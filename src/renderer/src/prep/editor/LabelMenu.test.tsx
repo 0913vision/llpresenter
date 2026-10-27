@@ -57,14 +57,14 @@ describe('song editor label menu', () => {
     await user.click(within(menu).getByRole('radio', {name: '초록'}));
     expect(fixture.labelEdits).toHaveLength(0);
     await user.click(within(menu).getByRole('menuitemradio', {name: /후렴/}));
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('후렴');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('후렴');
   });
   it('chooses a label, removes it, and returns focus without stealing it on save pushes', async () => {
     const {user, session} = await editorSetup();
     await openMenu(user);
     await user.click(screen.getByRole('menuitemradio', {name: /후렴/}));
     await act(() => session.flush());
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('후렴');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('후렴');
     expect(document.activeElement).toBe(
       screen.getAllByRole('button', {name: '후렴'})[0],
     );
@@ -72,7 +72,7 @@ describe('song editor label menu', () => {
       screen.getAllByRole('button', {name: '후렴'})[0] ?? document.body,
     );
     await user.click(screen.getByRole('menuitemradio', {name: '이름표 없음'}));
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('');
   });
 
   it('changes the global color immediately, stays open, and recolors another song', async () => {
@@ -109,7 +109,7 @@ describe('song editor label menu', () => {
       color: 'none',
       key: null,
     });
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('끝');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('끝');
     expect(
       screen.getByRole('button', {name: '끝'}).getAttribute('data-color'),
     ).toBe('none');
@@ -133,9 +133,9 @@ describe('song editor label menu', () => {
       to: '새 절',
     });
     for (const document of documents.values()) {
-      expect(document.song.slides[0]?.label).toBe('새 절');
+      expect(document.song.groups[0]?.name).toBe('새 절');
     }
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('새 절');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('새 절');
     expect(screen.getByRole('button', {name: '새 절'})).toBeDefined();
   });
 
@@ -217,7 +217,7 @@ describe('song editor label menu', () => {
       }),
     );
     await waitFor(() => expect(labels().value.labels).toHaveLength(1));
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('1절');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('1절');
     expect(
       screen.getByRole('button', {name: '1절'}).getAttribute('data-color'),
     ).toBe('none');

@@ -32,17 +32,21 @@ describe('global arrangement edits', () => {
     expect(documents.get(first.song.id)?.song.arrangements?.[0]?.name).toBe(
       '저녁용',
     );
-    expect(documents.get(first.song.id)?.song.slides[0]?.lines).toEqual(
-      first.song.slides[0]?.lines,
-    );
+    expect(
+      documents
+        .get(first.song.id)
+        ?.song.groups.flatMap(group => group.slides)[0]?.lines,
+    ).toEqual(first.song.groups.flatMap(group => group.slides)[0]?.lines);
     expect(await store.deleteArrangement('저녁용')).toBe(true);
     expect(session.arrangement).toBeUndefined();
     session.edit('redo');
     await session.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([]);
-    expect(documents.get(first.song.id)?.song.slides[0]?.lines).toEqual([
-      'Local line',
-    ]);
+    expect(
+      documents
+        .get(first.song.id)
+        ?.song.groups.flatMap(group => group.slides)[0]?.lines,
+    ).toEqual(['Local line']);
   });
 
   it('keeps the original order after a refusal and does not send a command after a failed preflight', async () => {

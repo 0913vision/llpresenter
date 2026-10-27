@@ -12,7 +12,7 @@ import {
   type Service,
   type Template,
 } from '@shared/schema/service';
-import type {Song} from '@shared/schema/song';
+import {sourceSlideCount, type GroupedSong} from '@shared/schema/groupedSong';
 import type {StoredDocument} from './documents';
 
 const TITLES = new Intl.Collator('ko', {numeric: true});
@@ -22,14 +22,14 @@ const TITLES = new Intl.Collator('ko', {numeric: true});
  * "Header": "예배 순서 2곳" and its tooltip).
  */
 export function librarySongs(
-  songs: ReadonlyArray<StoredDocument<Song>>,
+  songs: ReadonlyArray<StoredDocument<GroupedSong>>,
   services: ReadonlyArray<StoredDocument<Service>>,
 ): readonly LibrarySong[] {
   return songs
     .map(({data, access}) => ({
       id: data.id,
       title: data.title,
-      slideCount: data.slides.length,
+      slideCount: sourceSlideCount(data),
       access,
       usedBy: services
         .filter(service => usesSong(service.data, data.id))
@@ -80,7 +80,7 @@ export function songDocument({
   data,
   revision,
   access,
-}: StoredDocument<Song>): SongDocument {
+}: StoredDocument<GroupedSong>): SongDocument {
   return {song: data, revision, access};
 }
 

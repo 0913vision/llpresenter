@@ -1,6 +1,7 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import {
   Panel,
+  PanelActions,
   PanelBody,
   PanelFooter,
   PanelHeader,
@@ -20,6 +21,8 @@ import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import type {AnySong} from '@shared/schema/groupedSong';
 import {VirtualSlides} from './VirtualSlides';
+import {ARRANGEMENT_LIMIT_REASON} from './songArrangements';
+import {StatusDot} from '@renderer/ui/StatusMarks';
 import styles from './SongPanels.module.css';
 
 export interface SongSlideStore {
@@ -56,7 +59,7 @@ export function SongSlidePanel({
     );
   }
   const {song, selection} = session.history.snapshot;
-  const numbers = session.arrangementSlides;
+  const {slides: numbers, capped} = session.arrangementOrder;
   const at =
     pointed !== null &&
     pointed.songId === song.id &&
@@ -67,7 +70,21 @@ export function SongSlidePanel({
   return (
     <Panel label="슬라이드" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle title="슬라이드" meta={String(numbers.length)} />
+        <PanelTitle
+          title="슬라이드"
+          meta={capped ? '한도 초과' : String(numbers.length)}
+        />
+        {capped ? (
+          <PanelActions>
+            <span
+              role="status"
+              aria-label={ARRANGEMENT_LIMIT_REASON}
+              title={ARRANGEMENT_LIMIT_REASON}
+            >
+              <StatusDot tone="warning" />
+            </span>
+          </PanelActions>
+        ) : null}
       </PanelHeader>
       <PanelBody variant="flush">
         <VirtualSlides

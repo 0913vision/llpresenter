@@ -1,10 +1,14 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
-import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
+import {isGroupedSong} from '@shared/schema/groupedSong';
 import {playbackOrder} from '@shared/songOrder';
 import type {SongEditorStore} from '@renderer/prep/editor';
-import {editedOrder} from '@renderer/prep/editor/songArrangements';
+import {
+  ARRANGEMENT_LIMIT_REASON,
+  editedOrderWithLimit,
+} from '@renderer/prep/editor/songArrangements';
+import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
 import {
@@ -30,14 +34,10 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {historyCommand} from '@renderer/prep/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {
-  GROUPED_SONG_EDIT_REASON,
-  ItemArrangement,
-  NEWER_FILE_REASON,
-} from './ItemArrangement';
+import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
-import {isV1SongDocument, shownPosition} from './songItemModel';
+import {shownPosition} from './songItemModel';
 import styles from './SongItemPanel.module.css';
 import {BibleItemPanel} from './BibleItemPanel';
 
@@ -96,7 +96,7 @@ interface SongItemViewProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly item: ServiceItemOf<'song'>;
-  readonly session: SongSession | SongSession<GroupedSong>;
+  readonly session: SongSession;
   readonly sizeClass: SizeClass;
 }
 
@@ -116,17 +116,12 @@ function SongItemView({
       .labels ?? [];
   const scale = useThumbnailScale(sizeClass);
   const {song} = session.history.snapshot;
-  const sequence = isGroupedSong(song)
-    ? editedOrder(song, arrangement)
-    : playbackOrder(song, arrangement);
+  const {slides: sequence, capped} = isGroupedSong(song)
+    ? editedOrderWithLimit(song, arrangement)
+    : {slides: playbackOrder(song, arrangement), capped: false};
   const shown = shownPosition(position, sequence.length);
   const select = (index: number): void => items.selectPosition(index);
-  // TODO(0913vision): Remove the guard and enable library edit in group-7.
-  const editReason = !isV1SongDocument(session.document)
-    ? GROUPED_SONG_EDIT_REASON
-    : session.readOnly
-      ? NEWER_FILE_REASON
-      : undefined;
+  const editReason = session.readOnly ? NEWER_FILE_REASON : undefined;
   return (
     <div
       className={styles.keys}
@@ -142,17 +137,24 @@ function SongItemView({
         <PanelHeader>
           <PanelTitle
             title={session.document.song.title}
-            meta={`슬라이드 ${sequence.length}개`}
+            meta={capped ? '한도 초과' : `슬라이드 ${sequence.length}개`}
           />
           <PanelActions>
+            {capped ? (
+              <span
+                role="status"
+                aria-label={ARRANGEMENT_LIMIT_REASON}
+                title={ARRANGEMENT_LIMIT_REASON}
+              >
+                <StatusDot tone="warning" />
+              </span>
+            ) : null}
             <Button
               icon="edit"
               disabled={editReason !== undefined}
               title={editReason}
               onClick={() => {
-                if (isV1SongDocument(session.document)) {
-                  editor.open(session.document);
-                }
+                editor.open(session.document);
               }}
             >
               라이브러리 곡 편집

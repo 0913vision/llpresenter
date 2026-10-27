@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {GroupedSong} from '@shared/schema/groupedSong';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {editorGroupedSong} from './editorFixture';
 import {SongSession} from './songSession';
 import {SongSlidePanel, type SongSlideStore} from './SongSlidePanel';
@@ -10,10 +10,10 @@ function createGroupedSession(document = editorGroupedSong(1)) {
   const api = fakeLlpApi();
   const listeners = new Set<() => void>();
   let snapshot: {
-    readonly session: SongSession<GroupedSong>;
+    readonly session: SongSession;
     readonly labels: null;
   };
-  const session: SongSession<GroupedSong> = new SongSession<GroupedSong>({
+  const session: SongSession = new SongSession({
     document,
     api: api.content,
     changed: () => {
@@ -36,6 +36,45 @@ function createGroupedSession(document = editorGroupedSong(1)) {
 }
 
 describe('SongSlidePanel with grouped songs', () => {
+  it('bounds a valid billion-slide arrangement and retains the original order', () => {
+    const original = editorGroupedSong(1);
+    const group = original.song.groups[0];
+    if (group === undefined) throw new Error('Missing group');
+    const source = {
+      ...original.song,
+      groups: [
+        {
+          ...group,
+          slides: Array.from({length: 10_000}, () => ({lines: ['Invented']})),
+        },
+      ],
+      arrangements: [
+        {name: 'Large', groups: Array.from({length: 100_000}, () => group.id)},
+      ],
+    };
+    const parsed = parseGroupedSong(JSON.stringify(source), 'invented.llsong');
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    const {session, store} = createGroupedSession({
+      ...original,
+      song: parsed.value.data,
+    });
+    render(<SongSlidePanel store={store} sizeClass="normal" />);
+    act(() => session.selectArrangement('Large'));
+    expect(session.arrangementSlides).toEqual([]);
+    expect(
+      screen.getByRole('status', {name: '슬라이드 수가 한도를 초과합니다.'}),
+    ).toBeDefined();
+    expect(screen.getByText('한도 초과')).toBeDefined();
+    expect(
+      session.history.snapshot.song.arrangements?.[0]?.groups,
+    ).toHaveLength(100_000);
+    act(() => session.selectArrangement(undefined));
+    expect(session.arrangementSlides).toHaveLength(10_000);
+    expect(
+      screen.queryByRole('status', {name: '슬라이드 수가 한도를 초과합니다.'}),
+    ).toBeNull();
+  });
+
   it('renders thumbnails expanding groups in master order when no arrangement is picked', () => {
     const {store} = createGroupedSession();
     render(<SongSlidePanel store={store} sizeClass="normal" />);

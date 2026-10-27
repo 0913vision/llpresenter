@@ -5,7 +5,7 @@ import {
   parseSettingsDocument,
   type LabelRename,
 } from '@shared/schema/settingsDocuments';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
@@ -32,7 +32,7 @@ it('records a 1000-song label rename and a queued edit using atomic writes and r
     const file = join(locations.songs, `${itemId(index + 1)}.llsong`);
     return {
       ...expectSuccess(
-        parseSong(
+        parseGroupedSong(
           JSON.stringify({
             format: 'llsong',
             schemaVersion: 1,

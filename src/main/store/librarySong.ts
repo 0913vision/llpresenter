@@ -39,10 +39,8 @@ export async function showLibrarySong(
       : await sources.backgroundOf(song.background);
   const colors = new Map(labels.map(({name, color}) => [name, color]));
   const projected = projectSongTiles(song, colors);
-  // TODO(0913vision): Switch 'newer-version' to a dedicated tile-limit
-  // problem in group-7.
   const problem = projected.capped
-    ? 'newer-version'
+    ? 'tile-limit'
     : song.background !== undefined && background === null
       ? 'missing-background'
       : access === 'readOnly'

@@ -8,7 +8,6 @@ import {
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
-import type {GroupedSong} from '@shared/schema/groupedSong';
 import {editorSetup} from './editorTesting';
 import {editorFixture, editorGroupedSong, editorSong} from './editorFixture';
 import {SongSession} from './songSession';
@@ -100,7 +99,7 @@ describe('arrangement row', () => {
         ...fixture.first.song,
         arrangements: Array.from({length: 5}, (_, index) => ({
           name: `구성 ${index + 1}`,
-          slides: [2, 1],
+          groups: fixture.first.song.groups.map(group => group.id).toReversed(),
         })),
       },
     };
@@ -132,7 +131,7 @@ describe('arrangement row', () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
     const user = userEvent.setup();
-    const session = new SongSession<GroupedSong>({
+    const session = new SongSession({
       document: editorGroupedSong(1),
       api: fixture.api.content,
       changed: vi.fn(),

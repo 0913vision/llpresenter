@@ -36,11 +36,14 @@ describe('song editor view', () => {
     fireEvent.keyDown(lyrics(), command);
     cursor(lyrics(2), 2);
     fireEvent.keyDown(lyrics(2), {key: 'Enter', code: 'Enter', ctrlKey: true});
-    expect(session.history.snapshot.song.slides[0]).toEqual(
-      first.song.slides[0],
-    );
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
+    ).toEqual(first.song.groups.flatMap(group => group.slides)[0]);
     expect(lyrics(2).value).toBe(
-      first.song.slides[1]?.lines.join('\n').slice(0, 2),
+      first.song.groups
+        .flatMap(group => group.slides)[1]
+        ?.lines.join('\n')
+        .slice(0, 2),
     );
     expect(document.activeElement).toBe(lyrics(3));
   });
@@ -50,11 +53,16 @@ describe('song editor view', () => {
     await user.keyboard('{End}abc');
     await act(() => session.flush());
     const text = lyrics().value;
-    expect(documents.get(first.song.id)?.song.slides[0]?.lines.join('\n')).toBe(
-      text,
-    );
+    expect(
+      documents
+        .get(first.song.id)
+        ?.song.groups.flatMap(group => group.slides)[0]
+        ?.lines.join('\n'),
+    ).toBe(text);
     fireEvent.keyDown(lyrics(), {key: 'ㅈ', code: 'KeyZ', ctrlKey: true});
-    expect(lyrics().value).toBe(first.song.slides[0]?.lines.join('\n'));
+    expect(lyrics().value).toBe(
+      first.song.groups.flatMap(group => group.slides)[0]?.lines.join('\n'),
+    );
     fireEvent.keyDown(lyrics(), {key: 'y', code: 'KeyY', ctrlKey: true});
     expect(lyrics().value).toBe(text);
     fireEvent.keyDown(lyrics(), {key: 'z', code: 'KeyZ', ctrlKey: true});
@@ -68,15 +76,16 @@ describe('song editor view', () => {
   });
 
   it('splits at Ctrl Enter, remaps all references, and restores the caret', async () => {
-    const {session, first, documents} = await editorSetup();
+    const {session} = await editorSetup();
+    const references = session.history.snapshot.song.arrangements;
+    act(() => session.selectArrangement('주일용'));
     cursor(lyrics(2), 2);
     fireEvent.keyDown(lyrics(2), {key: 'Enter', code: 'Enter', ctrlKey: true});
     expect(
       screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
     ).toHaveLength(3);
-    expect(session.history.snapshot.song.arrangements?.[0]?.slides).toEqual([
-      1, 2, 3, 2, 3,
-    ]);
+    expect(session.arrangementSlides).toEqual([1, 2, 3, 2, 3]);
+    expect(session.history.snapshot.song.arrangements).toEqual(references);
     expect(document.activeElement).toBe(lyrics(3));
     expect(lyrics(3).selectionStart).toBe(0);
     fireEvent.keyDown(lyrics(3), {
@@ -91,9 +100,8 @@ describe('song editor view', () => {
     expect(document.activeElement).toBe(lyrics(4));
     expect(lyrics(4).value).toBe('');
     await act(() => session.flush());
-    expect(
-      documents.get(first.song.id)?.song.arrangements?.[0]?.slides,
-    ).toEqual([1, 2, 3, 2, 3]);
+    expect(session.arrangementSlides).toEqual([1, 2, 3, 4, 2, 3, 4]);
+    expect(session.history.snapshot.song.arrangements).toEqual(references);
   });
 
   it('starts lines, splits on an empty line, and merges with Backspace', async () => {
@@ -150,7 +158,9 @@ describe('song editor view', () => {
     });
     fireEvent.keyDown(lyrics(), {key: 'Enter', code: 'Enter', altKey: true});
     fireEvent.keyDown(lyrics(), {key: 'N', code: 'KeyN', ctrlKey: true});
-    expect(session.history.snapshot.song.slides).toHaveLength(2);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides),
+    ).toHaveLength(2);
     expect(edits).toHaveLength(0);
   });
 

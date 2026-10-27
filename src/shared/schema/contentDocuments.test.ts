@@ -19,10 +19,16 @@ function songDocument() {
   return {
     song: {
       format: 'llsong',
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: SONG_ID,
       title: '만복의 근원 하나님',
-      slides: [{lines: ['만복의 근원 하나님']}],
+      groups: [
+        {
+          id: '00000000-0000-4000-8000-000000000101',
+          name: '',
+          slides: [{lines: ['Invented contract line']}],
+        },
+      ],
     },
     revision: 2,
     access: 'editable',
@@ -40,6 +46,35 @@ function librarySong() {
 }
 
 describe('parseSongDocument', () => {
+  it('rejects legacy wire documents instead of migrating renderer messages', () => {
+    const original = songDocument();
+    const {groups: _groups, ...header} = original.song;
+    expect(
+      parseSongDocument({
+        ...original,
+        song: {
+          ...header,
+          schemaVersion: 1,
+          slides: [{lines: ['Invented legacy line']}],
+        },
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseSongChange({
+        songId: SONG_ID,
+        document: {
+          ...original,
+          song: {...header, schemaVersion: 1, slides: []},
+        },
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseSongDocument({
+        ...original,
+        song: {...original.song, schemaVersion: 1},
+      }).ok,
+    ).toBe(false);
+  });
   it('accepts a song with its revision, and no song', () => {
     expect(parseSongDocument(songDocument())).toEqual({
       ok: true,

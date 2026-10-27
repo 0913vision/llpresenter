@@ -12,7 +12,7 @@ import {
   templateIdSchema,
 } from '@shared/schema/ids';
 import {parseService, parseTemplate} from '@shared/schema/service';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {testId} from '@shared/schema/testHelpers';
 import type {Logger} from '../log';
 import {
@@ -27,6 +27,7 @@ import type {RecoveryTarget} from './recoveryCopies';
 import {MAX_WAITING_SAVES, type WaitingSave} from './saveFailures';
 import type {SaveRequest} from './saver';
 import {SettingsStore} from './settingsStore';
+import {convertTextImport} from '../import/convert';
 import {
   hymnOne,
   HYMN_ONE_ID,
@@ -60,7 +61,7 @@ function stored<T>(
 }
 
 function songFile(json: object = hymnOne()) {
-  return stored(parseSong, json, join(locations.songs, 'hymn.llsong'));
+  return stored(parseGroupedSong, json, join(locations.songs, 'hymn.llsong'));
 }
 
 function serviceFile(id: string, items: readonly object[]) {
@@ -200,11 +201,16 @@ function setUp(
   return {store, files, events, song, log};
 }
 
-function songEdit(title: string, baseRevision: number): ContentEdit {
-  const {song} = setUp();
+function songEdit(
+  store: ContentStore,
+  title: string,
+  baseRevision: number,
+): ContentEdit {
+  const document = store.song(SONG);
+  if (document === null) throw new Error('Missing fixture song');
   return {
     type: 'song.update',
-    song: {...song.data, title},
+    song: {...document.song, title},
     baseRevision,
   };
 }
@@ -250,6 +256,54 @@ const importedDraft = {
 };
 
 describe('song.import storage', () => {
+  it('retains preview section identities through grouped persistence and reload', async () => {
+    const {store, files} = importSetup();
+    const preview = convertTextImport({
+      source: {
+        source: 'file',
+        fileName: 'Invented.txt',
+        text: '[Verse]\nInvented first\n[Verse]\nInvented second\n[Chorus]\nInvented third',
+      },
+      options: {
+        split: 'lineBreak',
+        unitsPerSlide: 1,
+        labels: 'bracketLine',
+        firstLine: 'lyrics',
+      },
+    });
+    if (!preview.ok) {
+      throw new Error(preview.error.message);
+    }
+    const result = await store.apply({
+      type: 'song.import',
+      target: {kind: 'new'},
+      draft: preview.value,
+    });
+    if (!result.ok) {
+      throw new Error(result.error.message);
+    }
+    const song = store.song(result.value.id)?.song;
+    expect(song?.groups.map(group => group.name)).toEqual([
+      'Verse',
+      'Verse',
+      'Chorus',
+    ]);
+    const text = files.texts.get(
+      join(locations.songs, `${result.value.id}.llsong`),
+    );
+    if (text === undefined) {
+      throw new Error('No persisted import');
+    }
+    const reopened = parseGroupedSong(text, 'invented.llsong');
+    if (!reopened.ok) {
+      throw new Error(reopened.error.message);
+    }
+    expect(reopened.value.data).toEqual(song);
+    for (const group of reopened.value.data.groups) {
+      expect(group.slides[0]).not.toHaveProperty('section');
+    }
+  });
+
   it('refuses missing overwrite targets and refuses new labels in a read-only list', async () => {
     const {store, files, settings} = importSetup(
       [],
@@ -308,7 +362,11 @@ describe('song.import storage', () => {
     });
     if (!result.ok) throw new Error('Import failed');
     expect(result.value.id).not.toBe(SONG);
-    expect(store.song(result.value.id)?.song).toMatchObject(importedDraft);
+    expect(store.song(result.value.id)?.song).toMatchObject({
+      title: importedDraft.title,
+      schemaVersion: 2,
+      groups: [{name: 'New label', slides: [{lines: ['Invented line']}]}],
+    });
     expect(files.written[0]).toBe(join(locations.settings, 'labels.json'));
     expect(settings.get('labels').value).toMatchObject({
       future: 'kept',
@@ -357,9 +415,15 @@ describe('song.import storage', () => {
     ).toEqual({ok: true, value: {id: SONG, revision: 2}});
     expect(store.song(SONG)?.song).toMatchObject({
       future: 'song',
-      slides: [{future: 'slide'}],
+      groups: [{slides: [{future: 'slide'}]}],
       arrangements: [{name: 'Keep', future: 'arrangement'}],
     });
+    expect(store.song(SONG)?.song.groups[0]?.id).toBe(
+      original.data.groups[0]?.id,
+    );
+    expect(store.song(SONG)?.song.arrangements?.[0]?.groups).toEqual([
+      original.data.groups[0]?.id,
+    ]);
     expect(store.service(SUNDAY)?.service.order[0]).toMatchObject({
       song: SONG,
       future: 'item',
@@ -401,7 +465,7 @@ describe('song.import storage', () => {
     expect(files.texts.size).toBe(2);
   });
   it('rejects read-only overwrites before creating labels or writing files', async () => {
-    const original = songFile({...hymnOne(), schemaVersion: 2});
+    const original = songFile({...songFile().data, schemaVersion: 3});
     const {store, files, settings} = importSetup([], {
       songs: new Map([[HYMN_ONE_ID, original]]),
     });
@@ -462,7 +526,7 @@ describe('ContentStore save failures', () => {
         target: {kind: 'new'},
       }),
       await store.apply({type: 'song.delete', songId: song.data.id}),
-      await store.apply(songEdit('Invented refused title', 1)),
+      await store.apply(songEdit(store, 'Invented refused title', 1)),
     ];
 
     expect(refusals).toEqual(
@@ -490,7 +554,7 @@ describe('ContentStore save failures', () => {
   it('admits an edit of a file that waits already at the cap', async () => {
     const {store, files} = setUp();
     files.failAll = true;
-    await store.apply(songEdit('Invented waiting hymn', 1));
+    await store.apply(songEdit(store, 'Invented waiting hymn', 1));
     await vi.waitFor(() => expect(files.waiting).toHaveLength(1));
     for (let index = 1; index < MAX_WAITING_SAVES; index++) {
       await store.apply({type: 'song.create'});
@@ -498,9 +562,9 @@ describe('ContentStore save failures', () => {
     expect(await store.apply({type: 'song.create'})).toMatchObject({
       error: {reason: 'saves-full'},
     });
-    expect(await store.apply(songEdit('Invented hymn again', 2))).toMatchObject(
-      {ok: true, value: {revision: 3}},
-    );
+    expect(
+      await store.apply(songEdit(store, 'Invented hymn again', 2)),
+    ).toMatchObject({ok: true, value: {revision: 3}});
   });
 
   it('names a waiting 틀 without a name by its file name', async () => {
@@ -564,7 +628,7 @@ describe('ContentStore song updates', () => {
     ]);
     const text = files.texts.get(song.file);
     if (text === undefined) throw new Error('The changed song was not saved');
-    const parsed = parseSong(text, song.file);
+    const parsed = parseGroupedSong(text, song.file);
     if (!parsed.ok) throw new Error(parsed.error.message);
     expect(parsed.value.data.title).toBe(title);
   });
@@ -674,9 +738,9 @@ describe('ContentStore song updates', () => {
 
   it('answers stale for an update from an older revision, and changes nothing', async () => {
     const {store} = setUp();
-    await store.apply(songEdit('첫 고침', 1));
+    await store.apply(songEdit(store, '첫 고침', 1));
 
-    const answer = await store.apply(songEdit('늦은 고침', 1));
+    const answer = await store.apply(songEdit(store, '늦은 고침', 1));
 
     expect(answer).toMatchObject({ok: false, error: {reason: 'stale'}});
     expect(store.song(SONG)).toMatchObject({
@@ -687,14 +751,25 @@ describe('ContentStore song updates', () => {
 
   it('pushes the list only when what it shows changes', async () => {
     const {store, events, song} = setUp();
+    const first = song.data.groups[0];
+    if (first === undefined) throw new Error('Missing fixture group');
     const lyrics = {
       ...song.data,
-      slides: [{lines: ['새 가사']}, ...song.data.slides.slice(1)],
+      groups: [
+        {
+          ...first,
+          slides: [
+            {...first.slides[0], lines: ['새 가사']},
+            ...first.slides.slice(1),
+          ],
+        },
+        ...song.data.groups.slice(1),
+      ],
     };
 
     await store.apply({type: 'song.update', song: lyrics, baseRevision: 1});
     expect(events.songsListChanged).not.toHaveBeenCalled();
-    await store.apply(songEdit('새 제목', 2));
+    await store.apply(songEdit(store, '새 제목', 2));
 
     expect(events.songsListChanged).toHaveBeenCalledTimes(1);
     expect(events.songChanged).toHaveBeenCalledTimes(2);
@@ -720,7 +795,7 @@ describe('ContentStore song updates', () => {
     const newer = new ContentStore({
       locations,
       songs: new Map([
-        [HYMN_ONE_ID, songFile({...hymnOne(), schemaVersion: 99})],
+        [HYMN_ONE_ID, songFile({...songFile().data, schemaVersion: 99})],
       ]),
       services: new Map(),
       templates: new Map(),
@@ -728,7 +803,7 @@ describe('ContentStore song updates', () => {
       events: fakeEvents(),
       log: quietLog(),
     });
-    expect(await newer.apply(songEdit('고침', 1))).toMatchObject({
+    expect(await newer.apply(songEdit(newer, '고침', 1))).toMatchObject({
       ok: false,
       error: {reason: 'read-only'},
     });
@@ -772,7 +847,10 @@ describe('ContentStore song creation and deletion', () => {
     expect(titles).toEqual(['만복의 근원 하나님', '새 곡', '새 곡 2']);
     expect(first.ok && second.ok).toBe(true);
     const id = first.ok ? first.value.id : '';
-    expect(store.song(id)?.song.slides).toEqual([{lines: []}]);
+    expect(store.song(id)?.song).toMatchObject({
+      schemaVersion: 2,
+      groups: [{name: '', slides: [{lines: []}]}],
+    });
     expect(files.written).toEqual([
       join(locations.songs, `${id}.llsong`),
       expect.stringMatching(/\.llsong$/),
@@ -1336,8 +1414,8 @@ describe('ContentStore persistence and notifications', () => {
 
   it('debounces a typing burst and flushes the latest document before the delay', async () => {
     const {store, files} = setUp([], {writeDelayMs: 500});
-    await store.apply(songEdit('첫 제목', 1));
-    await store.apply(songEdit('마지막 제목', 2));
+    await store.apply(songEdit(store, '첫 제목', 1));
+    await store.apply(songEdit(store, '마지막 제목', 2));
 
     expect(files.written).toEqual([]);
     await store.flush();
@@ -1357,7 +1435,7 @@ describe('ContentStore persistence and notifications', () => {
       from: '주일용',
       to: '짧게',
     });
-    await store.apply(songEdit('최신 제목', 2));
+    await store.apply(songEdit(store, '최신 제목', 2));
     files.failing = new Set();
 
     await store.flush();
@@ -1382,14 +1460,14 @@ describe('ContentStore persistence and notifications', () => {
         applied: {revision: 1},
       },
     });
-    expect(await store.apply(songEdit('다음 제목', 1))).toMatchObject({
+    expect(await store.apply(songEdit(store, '다음 제목', 1))).toMatchObject({
       ok: true,
     });
   });
 
   it('does not recreate a deleted song from its pending autosave', async () => {
     const {store, files} = setUp([], {writeDelayMs: 500});
-    await store.apply(songEdit('지울 제목', 1));
+    await store.apply(songEdit(store, '지울 제목', 1));
     await store.apply({type: 'song.delete', songId: SONG});
 
     await store.flush();
@@ -1431,7 +1509,7 @@ describe('ContentStore persistence and notifications', () => {
   it('pushes only the list whose displayed fields changed', async () => {
     const {store, events} = setUp();
 
-    await store.apply(songEdit('바뀐 제목', 1));
+    await store.apply(songEdit(store, '바뀐 제목', 1));
 
     expect(events.songsListChanged).toHaveBeenCalledTimes(1);
     expect(events.servicesListChanged).not.toHaveBeenCalled();

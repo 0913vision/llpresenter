@@ -1,6 +1,6 @@
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+import {sourceSlideCount} from '@shared/schema/groupedSong';
 import type {EditorSongDocument} from './songSession';
 import {
   parseSongDocument,
@@ -15,28 +15,42 @@ import {
 } from '@shared/schema/settingsDocuments';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
 import {editorPreviewFixture} from './editorPreviewFixture';
+import type {Song} from '@shared/schema/song';
+import {importDraftSlides} from './importDraftSlides';
+
+/** Legacy source shape for migration and compatibility helper tests only. */
+export function editorLegacySong(number: number): Song {
+  const {
+    groups: _groups,
+    arrangements: _arrangements,
+    ...header
+  } = editorSong(number).song;
+  return {
+    ...header,
+    schemaVersion: 1,
+    ...importDraftSlides(editorSong(number).song),
+  };
+}
 
 /** Invented source documents for the editor gallery and focused tests. */
 export function editorSong(
   number: number,
   access: 'editable' | 'readOnly' = 'editable',
 ): SongDocument {
+  const grouped = editorGroupedSong(number, access);
+  const [first, second] = grouped.song.groups;
+  if (first === undefined || second === undefined) {
+    throw new Error('Invalid grouped editor fixture');
+  }
   const parsed = parseSongDocument({
+    ...grouped,
     song: {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: createSongId(
-        `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
-      ),
-      title: `새 노래 ${number}`,
-      slides: [
-        {label: '1절', lines: ['새 아침을 노래해요', '함께 걸어요']},
-        {label: '후렴', lines: ['빛을 따라가요']},
+      ...grouped.song,
+      groups: [{...first, slides: first.slides.slice(0, 1)}, second],
+      arrangements: [
+        {name: '주일용', groups: [first.id, second.id, second.id]},
       ],
-      arrangements: [{name: '주일용', slides: [1, 2, 2]}],
     },
-    revision: 1,
-    access,
   });
   if (!parsed.ok || parsed.value === null) {
     throw new Error('Invalid editor song fixture');
@@ -47,7 +61,7 @@ export function editorSong(
 export function editorGroupedSong(
   number: number,
   access: 'editable' | 'readOnly' = 'editable',
-): EditorSongDocument<GroupedSong> {
+): EditorSongDocument {
   const g1Id = createSongGroupId(
     `11111111-0000-4000-8000-${String(number).padStart(12, '0')}`,
   );
@@ -125,7 +139,7 @@ export function editorFixture() {
     [...documents.values()].map(({song, access}) => ({
       id: song.id,
       title: song.title,
-      slideCount: song.slides.length,
+      slideCount: sourceSlideCount(song),
       access,
       usedBy: [],
     }));
@@ -268,19 +282,15 @@ export function editorFixture() {
         for (const listener of settings) listener(labels);
         if (edit.type === 'labels.rename') {
           for (const document of documents.values()) {
-            if (
-              !document.song.slides.some(slide => slide.label === edit.from)
-            ) {
+            if (!document.song.groups.some(group => group.name === edit.from)) {
               continue;
             }
             const parsed = parseSongDocument({
               ...document,
               song: {
                 ...document.song,
-                slides: document.song.slides.map(slide =>
-                  slide.label === edit.from
-                    ? {...slide, label: edit.to}
-                    : slide,
+                groups: document.song.groups.map(group =>
+                  group.name === edit.from ? {...group, name: edit.to} : group,
                 ),
               },
               revision: document.revision + 1,

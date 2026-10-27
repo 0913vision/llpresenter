@@ -5,7 +5,7 @@ import {
   parseSettingsEdit,
   type LabelRename,
 } from '@shared/schema/settingsDocuments';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {createSongId} from '@shared/schema/ids';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
@@ -49,28 +49,38 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
   };
   const songs = [2, 1, 3].map(index => {
     const file = join(locations.songs, `${itemId(index)}.llsong`);
-    return {
-      ...expectSuccess(
-        parseSong(
-          JSON.stringify({
-            format: 'llsong',
-            schemaVersion: readOnlySong && index === 2 ? 2 : 1,
-            id: itemId(index),
-            title: `Invented song ${index}`,
-            future: 'kept',
-            slides: [
-              {
-                label: index === 3 ? 'Other' : 'Before',
-                lines: ['Invented line'],
-                future: 'kept',
-              },
-              {lines: ['Another invented line']},
-            ],
-            arrangements: [{name: 'Sequence', slides: [1, 2, 1]}],
-          }),
-          file,
-        ),
+    const current = expectSuccess(
+      parseGroupedSong(
+        JSON.stringify({
+          format: 'llsong',
+          schemaVersion: 1,
+          id: itemId(index),
+          title: `Invented song ${index}`,
+          future: 'kept',
+          slides: [
+            {
+              label: index === 3 ? 'Other' : 'Before',
+              lines: ['Invented line'],
+              future: 'kept',
+            },
+            {lines: ['Another invented line']},
+          ],
+          arrangements: [{name: 'Sequence', slides: [1, 2, 1]}],
+        }),
+        file,
       ),
+    );
+    const parsed =
+      readOnlySong && index === 2
+        ? expectSuccess(
+            parseGroupedSong(
+              JSON.stringify({...current.data, schemaVersion: 3}),
+              file,
+            ),
+          )
+        : current;
+    return {
+      ...parsed,
       file,
     };
   });
@@ -184,7 +194,7 @@ describe('global label rename', () => {
       await content.flush();
       expect(JSON.parse(texts.get(file) ?? '')).toMatchObject({
         title: 'Latest invented title',
-        slides: [{label: 'After'}, {}],
+        groups: [{name: 'After'}, {}],
       });
     } finally {
       release();
@@ -239,6 +249,12 @@ describe('global label rename', () => {
   });
   it('renames several songs, retains unknown fields and arrangements, and writes labels before songs in ID order', async () => {
     const {content, settings, events, writes, texts} = setup();
+    const before = new Map(
+      [...content.storedSongs()].map(([id, stored]) => [
+        id,
+        structuredClone(stored.data),
+      ]),
+    );
     const changed = vi.fn();
     settings.subscribe(changed);
     expect(await content.renameLabel(settings, rename)).toEqual({
@@ -255,15 +271,22 @@ describe('global label rename', () => {
       labels: [{name: 'After', key: 'KeyA', future: 'kept'}, {name: 'Other'}],
     });
     for (const index of [1, 2]) {
+      const song = content.song(itemId(index))?.song;
+      expect(song?.arrangements).toEqual(
+        before.get(itemId(index))?.arrangements,
+      );
+      expect(song?.groups.map(group => group.id)).toEqual(
+        before.get(itemId(index))?.groups.map(group => group.id),
+      );
       expect(content.song(itemId(index))).toMatchObject({
         revision: 2,
         song: {
           future: 'kept',
-          slides: [
-            {label: 'After', future: 'kept'},
-            {lines: ['Another invented line']},
+          groups: [
+            {name: 'After', slides: [{future: 'kept'}]},
+            {name: '', slides: [{lines: ['Another invented line']}]},
           ],
-          arrangements: [{name: 'Sequence', slides: [1, 2, 1]}],
+          arrangements: [{name: 'Sequence'}],
         },
       });
     }
@@ -320,7 +343,7 @@ describe('global label rename', () => {
     expect(texts.has(file)).toBe(false);
     expect(content.song(itemId(2))).toMatchObject({
       revision: 2,
-      song: {slides: [{label: 'After'}, {}]},
+      song: {groups: [{name: 'After'}, {}]},
     });
     failing.clear();
     await content.flush();

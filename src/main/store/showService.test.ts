@@ -490,7 +490,7 @@ describe('buildShowService', () => {
     expect(show.tiles[itemId(1)]).toHaveLength(10_000);
   });
 
-  it('stops iteration and marks row unknown-kind when tile expansion exceeds limit (10,001 tiles)', () => {
+  it('stops iteration and marks row tile-limit when tile expansion exceeds limit (10,001 tiles)', () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000005');
     const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000002');
     const slides = Array.from({length: 100}, (_, index) => ({
@@ -532,7 +532,7 @@ describe('buildShowService', () => {
     expect(show.rows[0]).toMatchObject({
       kind: 'song',
       id: itemId(1),
-      problem: 'unknown-kind',
+      problem: 'tile-limit',
     });
     expect(show.tiles[itemId(1)]).toEqual([]);
 

@@ -84,7 +84,7 @@ describe('local song preview model', () => {
     expect(layers.slide).toMatchObject({
       itemId: song.id,
       position: 1,
-      lines: song.slides[1]?.lines,
+      lines: song.groups[1]?.slides[0]?.lines,
     });
     expect(layers.media).toEqual({
       mediaId: 'fixture-media',

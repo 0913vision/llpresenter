@@ -12,6 +12,7 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
+  createSongGroupId,
 } from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from './pendingWrites';
@@ -50,10 +51,16 @@ function fixture() {
   const parsedSong = parseSongDocument({
     song: {
       format: 'llsong',
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: songId,
       title: 'Invented song',
-      slides: [{lines: ['Invented words']}],
+      groups: [
+        {
+          id: createSongGroupId('30000000-0000-4000-8000-000000000001'),
+          name: '',
+          slides: [{lines: ['Invented words']}],
+        },
+      ],
     },
     revision: 1,
     access: 'editable',

@@ -4,6 +4,8 @@ import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
 import {createMediaId, createSongId} from '@shared/schema/ids';
 import type {ContentEdit} from '@shared/schema/contentEdit';
 import type {TextImportDraft} from '@shared/schema/textImport';
+import {migrateImportedSongGroups} from '@shared/schema/songGroupMigration';
+import {importDraftSlides} from './importDraftSlides';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 
@@ -30,7 +32,15 @@ function fixture() {
           )
         : edit.target.songId;
     const parsed = parseSongDocument({
-      song: {...f.first.song, ...edit.draft, id},
+      song: {
+        ...migrateImportedSongGroups({
+          format: 'llsong',
+          schemaVersion: 1,
+          ...edit.draft,
+          id,
+        }),
+        schemaVersion: 2,
+      },
       revision: 2,
       access: 'editable',
     });
@@ -48,6 +58,38 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('keeps the newest imported draft when its arrangement exceeds the wire limit', async () => {
+    const f = fixture();
+    const song = f.session.history.snapshot.song;
+    const group = song.groups[0];
+    if (group === undefined) throw new Error('Missing group');
+    f.session.install({
+      ...f.session.document,
+      song: {
+        ...song,
+        groups: [
+          {
+            ...group,
+            slides: Array.from({length: 5_000}, () => ({lines: ['Invented']})),
+          },
+        ],
+        arrangements: [
+          {name: 'Large', groups: Array.from({length: 5}, () => group.id)},
+        ],
+      },
+    });
+    f.session.editTitle('Newest invented title');
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(await f.store.saveImported({kind: 'new'})).toBe(false);
+    expect(f.imports).toHaveLength(0);
+    expect(f.store.getSnapshot().session).toBe(f.session);
+    expect(f.session.title.value).toBe('Newest invented title');
+    expect(f.problem).toHaveBeenCalledWith(
+      expect.objectContaining({title: '슬라이드 수가 한도를 초과합니다.'}),
+    );
+    expect(f.session.readOnly).toBe(false);
+  });
+
   it('retains an edited label boundary when migrating an imported section', () => {
     const f = fixture();
     f.store.discardImported();
@@ -117,7 +159,15 @@ describe('imported song editor sessions', () => {
     ).toBe(true);
     const accepted = f.store.getSnapshot().session;
     expect(accepted).toBe(cached);
-    expect(accepted?.history.snapshot.song.slides).toEqual(draft.slides);
+    expect(
+      accepted === null
+        ? undefined
+        : importDraftSlides(accepted.history.snapshot.song).slides.map(
+            ({section: _section, ...slide}) => slide,
+          ),
+    ).toEqual(
+      draft.slides.map(slide => ({...slide, label: slide.label ?? ''})),
+    );
     expect(accepted?.readOnly).toBe(false);
     expect(accepted?.history.canUndo).toBe(false);
     expect(accepted?.document.revision).toBe(2);
@@ -152,9 +202,10 @@ describe('imported song editor sessions', () => {
     expect(await f.session.flush()).toBe(true);
     expect(f.edits).toHaveLength(0);
     expect(f.imports).toHaveLength(0);
-    expect(f.session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'Changed',
-    ]);
+    expect(
+      f.session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['Changed']);
     expect(f.store.getSnapshot().imported).toBe(true);
     expect(f.store.sessionOf(f.session.document.song.id)).toBeUndefined();
     expect(vi.getTimerCount()).toBe(0);

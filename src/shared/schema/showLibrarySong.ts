@@ -35,7 +35,9 @@ const songSchema = payloadObject({
     v.maxEntries(SHOW_LIBRARY_SONG_LIMITS.jumpKeys),
   ),
   background: v.exactOptional(mediaChoiceSchema),
-  problem: v.exactOptional(v.picklist(['missing-background', 'newer-version'])),
+  problem: v.exactOptional(
+    v.picklist(['missing-background', 'newer-version', 'tile-limit']),
+  ),
 });
 
 export type ShowLibrarySongRequest = Readonly<

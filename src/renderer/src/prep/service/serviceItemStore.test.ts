@@ -13,7 +13,6 @@ import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {SongSession} from '@renderer/prep/editor/songSession';
 import {editorGroupedSong} from '@renderer/prep/editor/editorFixture';
-import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {Notice} from '@renderer/ui/notices';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {
@@ -439,11 +438,11 @@ describe('service item store', () => {
     expect(await holding).toBe(true);
     expect(await creating).toBe(true);
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [1, 2, 2]},
-      {name: '구성 1', slides: [1, 2, 2]},
+      first.song.arrangements?.[0],
+      {...first.song.arrangements?.[0], name: '구성 1'},
     ]);
     expect(documents.get(second.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [1, 2, 2]},
+      second.song.arrangements?.[0],
     ]);
     expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
     expect(service().service.order[2]).not.toHaveProperty('arrangement');
@@ -495,24 +494,29 @@ describe('service item store', () => {
         createSongGroupId('11111111-1111-4111-a111-111111111111'),
       ]),
     ).toBe(false);
-    expect(items.setSlideOrder([2, 1, 2])).toBe(true);
+    const [verse, chorus] = first.song.groups;
+    if (verse === undefined || chorus === undefined) {
+      throw new Error('Missing groups');
+    }
+    expect(items.setGroupOrder([chorus.id, verse.id, chorus.id])).toBe(true);
+    expect(items.setGroupOrder([chorus.id, verse.id, chorus.id])).toBe(false);
     expect(items.setSlideOrder([2, 1, 2])).toBe(false);
     await session?.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [2, 1, 2]},
+      {name: '주일용', groups: [chorus.id, verse.id, chorus.id]},
     ]);
     expect(edits.at(-1)?.type).toBe('song.update');
     session?.edit('undo');
     await session?.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [1, 2, 2]},
+      first.song.arrangements?.[0],
     ]);
   });
 
   it('saves a new group order of the chosen 구성 in a grouped song', async () => {
     const {editor, pushService, service, api} = setup();
     const gSong = editorGroupedSong(1);
-    const session = new SongSession<GroupedSong>({
+    const session = new SongSession({
       document: gSong,
       api: api.content,
       changed: () => undefined,
@@ -561,16 +565,22 @@ describe('service item store', () => {
     ]);
   });
 
-  it('keeps 기본, missing 구성, and invalid 슬라이드 numbers unchanged', async () => {
-    const {items, edits} = setup();
+  it('keeps 기본 and unknown group references unchanged', async () => {
+    const {items, edits, second} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setSlideOrder([2, 1])).toBe(false);
+    expect(
+      items.setGroupOrder(
+        second.song.groups.map(group => group.id).toReversed(),
+      ),
+    ).toBe(false);
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    for (const slides of [[0], [3], [1.5]]) {
-      expect(items.setSlideOrder(slides)).toBe(false);
-    }
+    expect(
+      items.setGroupOrder([
+        createSongGroupId('00000000-0000-4000-8000-000000000999'),
+      ]),
+    ).toBe(false);
     expect(edits).toEqual([]);
   });
 
@@ -580,8 +590,8 @@ describe('service item store', () => {
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
     expect(await items.createArrangement()).toBe(true);
     expect(documents.get(second.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [1, 2, 2]},
-      {name: '구성 1', slides: [1, 2]},
+      second.song.arrangements?.[0],
+      {name: '구성 1', groups: second.song.groups.map(group => group.id)},
     ]);
     expect(service().service.order[2]).toMatchObject({arrangement: '구성 1'});
     expect(items.getSnapshot().arrangement).toBe('구성 1');

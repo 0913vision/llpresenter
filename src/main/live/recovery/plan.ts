@@ -12,7 +12,7 @@ import {
   type ServiceItemOf,
 } from '@shared/schema/service';
 import type {ServiceId} from '@shared/schema/ids';
-import type {Song} from '@shared/schema/song';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {SettingsReader} from '../../store/settingsStore';
 import {songTiles} from '../../store/showService';
 import {outputStateKeys} from '@shared/screens';
@@ -33,7 +33,7 @@ export interface RecoveryStep {
 export interface RecoveryContent {
   serviceList(): ReadonlyArray<{readonly id: string}>;
   service(id: string): {readonly service: Pick<Service, 'id' | 'order'>} | null;
-  song(id: string): {readonly song: Song} | null;
+  song(id: string): {readonly song: GroupedSong} | null;
 }
 
 /** The current settings and content that a recorded state is checked against. */

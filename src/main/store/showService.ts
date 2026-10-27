@@ -154,10 +154,8 @@ function songRow(
   const background =
     mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
   const capped = sources.cappedItems.has(item.id);
-  // TODO(0913vision): Switch 'unknown-kind' to a dedicated tile-limit
-  // problem in group-7.
   const problem = capped
-    ? 'unknown-kind'
+    ? 'tile-limit'
     : mediaId !== undefined && background === undefined
       ? 'missing-background'
       : song.access === 'readOnly'

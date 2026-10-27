@@ -14,7 +14,7 @@ import {
   type Service,
   type Template,
 } from '@shared/schema/service';
-import {parseSong, type Song} from '@shared/schema/song';
+import {parseGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
 import type {AppConfigFile} from './appConfigFile';
 import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
 import {loadFolder, type StoredFile} from './library';
@@ -58,7 +58,7 @@ export interface LoadedStore {
    * The song library, by song id. A song from a newer app version is
    * read-only (`access`).
    */
-  readonly songs: ReadonlyMap<string, StoredFile<Song>>;
+  readonly songs: ReadonlyMap<string, StoredFile<GroupedSong>>;
   /** The 예배 순서, by service id, read-only like the songs. */
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
   /** The 틀, by template id, read-only like the songs. */
@@ -154,7 +154,11 @@ export function chooseOpenService(
 }
 
 async function readData(locations: DataLocations): Promise<DataRead> {
-  const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
+  const songs = await loadFolder(
+    locations.songs,
+    SONG_EXTENSION,
+    parseGroupedSong,
+  );
   const services = await loadFolder(
     locations.services,
     SERVICE_EXTENSION,

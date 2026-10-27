@@ -25,11 +25,31 @@ function sources(overrides: object = {}) {
   const parsed = parseSongDocument({
     song: {
       format: 'llsong',
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: songId,
       title: 'Invented song',
-      slides: [{label: 'Verse', lines: ['First']}, {lines: ['Second']}],
-      arrangements: [{name: 'Alternate', slides: [2, 1, 2]}],
+      groups: [
+        {
+          id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
+          name: 'Verse',
+          slides: [{lines: ['First']}],
+        },
+        {
+          id: createSongGroupId('00000000-0000-4000-8000-000000000102'),
+          name: '',
+          slides: [{lines: ['Second']}],
+        },
+      ],
+      arrangements: [
+        {
+          name: 'Alternate',
+          groups: [
+            createSongGroupId('00000000-0000-4000-8000-000000000102'),
+            createSongGroupId('00000000-0000-4000-8000-000000000101'),
+            createSongGroupId('00000000-0000-4000-8000-000000000102'),
+          ],
+        },
+      ],
     },
     revision: 3,
     access: 'editable',
@@ -69,8 +89,26 @@ describe('library song projection', () => {
       title: 'Invented song',
       readOnly: false,
       tiles: [
-        {label: 'Verse', labelColor: 'teal', lines: ['First']},
-        {label: null, labelColor: 'none', lines: ['Second']},
+        {
+          label: 'Verse',
+          labelColor: 'teal',
+          lines: ['First'],
+          sourceSlide: {
+            songId,
+            groupId: createSongGroupId('00000000-0000-4000-8000-000000000101'),
+            slideIndex: 0,
+          },
+        },
+        {
+          label: null,
+          labelColor: 'none',
+          lines: ['Second'],
+          sourceSlide: {
+            songId,
+            groupId: createSongGroupId('00000000-0000-4000-8000-000000000102'),
+            slideIndex: 0,
+          },
+        },
       ],
       jumpKeys: {Digit1: 'Verse'},
     });
@@ -138,7 +176,7 @@ describe('library song projection', () => {
     });
   });
 
-  it('caps grouped song tile expansion and marks newer-version problem', async () => {
+  it('caps grouped song tile expansion and marks tile-limit problem', async () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000011');
     const slides = Array.from({length: 100}, (_, index) => ({
       lines: [`Line ${index}`],
@@ -170,7 +208,7 @@ describe('library song projection', () => {
     expect(result?.readOnly).toBe(true);
     expect(result).toMatchObject({
       readOnly: true,
-      problem: 'newer-version',
+      problem: 'tile-limit',
       tiles: [],
     });
   });

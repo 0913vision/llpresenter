@@ -27,7 +27,11 @@ describe('windowed song editor', () => {
     const f = await largeEditor();
     const parsed = parseSongDocument({
       ...f.first,
-      song: {...f.first.song, slides: f.session.history.snapshot.song.slides},
+      song: {
+        ...f.session.history.snapshot.song,
+        id: f.first.song.id,
+        title: f.first.song.title,
+      },
       revision: 2,
       access: 'readOnly',
     });

@@ -11,6 +11,7 @@ import {
   createMediaId,
   createServiceId,
   createServiceItemId,
+  createSongGroupId,
   createSongId,
 } from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
@@ -46,11 +47,17 @@ function setup() {
   const song: SongDocument = {
     song: {
       format: 'llsong',
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: songId,
       title: 'Invented song',
       background: defaultId,
-      slides: [{lines: ['Invented words']}],
+      groups: [
+        {
+          id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
+          name: '',
+          slides: [{lines: ['Invented words']}],
+        },
+      ],
     },
     revision: 1,
     access: 'editable',

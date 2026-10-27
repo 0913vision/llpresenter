@@ -1,4 +1,4 @@
-import {render, screen, waitFor, within} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
@@ -96,15 +96,38 @@ async function setupGrouped(
     readOnly?: boolean;
     arrangement?: string | undefined;
     danglingFirst?: boolean;
+    large?: boolean;
   } = {},
 ) {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   const fixture = itemFixture();
-  const {document, g1Id, g2Id, g3Id} = createTestGroupedSong(
+  const sample = createTestGroupedSong(
     options.unnamed,
     options.readOnly,
     options.danglingFirst,
   );
+  const {g1Id, g2Id, g3Id} = sample;
+  const firstGroup = sample.document.song.groups[0];
+  if (firstGroup === undefined) throw new Error('Missing group');
+  const document = options.large
+    ? {
+        ...sample.document,
+        song: {
+          ...sample.document.song,
+          groups: [
+            {
+              ...firstGroup,
+              slides: Array.from({length: 10_000}, () => ({
+                lines: ['Invented'],
+              })),
+            },
+          ],
+          arrangements: [
+            {name: 'Large', groups: Array.from({length: 100_000}, () => g1Id)},
+          ],
+        },
+      }
+    : sample.document;
 
   const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
   const currentService = fixture.service();
@@ -125,7 +148,7 @@ async function setupGrouped(
   fixture.pushService(updatedService);
 
   const editor = new SongEditorStore(fixture.api, vi.fn());
-  const session = new SongSession<GroupedSong>({
+  const session = new SongSession({
     document,
     api: fixture.api.content,
     changed: () => undefined,
@@ -179,6 +202,8 @@ async function setupGrouped(
     g2Id,
     g3Id,
     onSelect,
+    view,
+    labels,
     user: userEvent.setup(),
   };
 }
@@ -208,6 +233,71 @@ describe('ItemArrangement with grouped songs', () => {
       expect((await hoverForTooltip(warning))?.textContent).toBe(reason);
     },
   );
+  it('closes an open insert menu when an updated order exceeds the limit', async () => {
+    const f = await setupGrouped();
+    await f.user.click(screen.getByRole('button', {name: '그룹 넣기'}));
+    await screen.findByRole('menu', {name: '그룹 넣기'});
+    const original = f.session.document;
+    const group = original.song.groups[0];
+    if (group === undefined) throw new Error('Missing group');
+    const large = {
+      ...original,
+      song: {
+        ...original.song,
+        groups: [
+          {
+            ...group,
+            slides: Array.from({length: 10_000}, () => ({lines: ['Invented']})),
+          },
+        ],
+        arrangements: [
+          {
+            name: '주일용',
+            groups: Array.from({length: 100_000}, () => group.id),
+          },
+        ],
+      },
+    };
+    const renderPanel = () =>
+      f.view.rerender(
+        <ItemArrangement
+          items={f.items}
+          session={f.session}
+          itemId={f.itemId}
+          labels={f.labels}
+          selected={0}
+          onSelect={f.onSelect}
+        />,
+      );
+    act(() => f.session.install(large));
+    renderPanel();
+    expect(screen.queryByRole('menu', {name: '그룹 넣기'})).toBeNull();
+    expect(
+      screen
+        .getByRole('button', {name: '그룹 넣기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    act(() => f.session.install(original));
+    renderPanel();
+    expect(screen.queryByRole('menu', {name: '그룹 넣기'})).toBeNull();
+  });
+
+  it('does not render or edit a huge arrangement as 100,000 chips', async () => {
+    const {session} = await setupGrouped({large: true, arrangement: 'Large'});
+    expect(
+      within(screen.getByRole('listbox', {name: '구성 순서'})).queryAllByRole(
+        'option',
+      ),
+    ).toHaveLength(0);
+    expect(
+      screen
+        .getByRole('button', {name: '그룹 넣기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(
+      session.history.snapshot.song.arrangements?.[0]?.groups,
+    ).toHaveLength(100_000);
+  });
 
   it('renders one chip per group occurrence and colors chips by label', async () => {
     await setupGrouped();
@@ -278,7 +368,7 @@ describe('ItemArrangement with grouped songs', () => {
 
   it('opens 그룹 넣기 menu and appends chosen group', async () => {
     const {session, g3Id, user} = await setupGrouped();
-    const insertButton = screen.getByRole('button', {name: '슬라이드 넣기'});
+    const insertButton = screen.getByRole('button', {name: '그룹 넣기'});
     await user.click(insertButton);
 
     const menu = await screen.findByRole('menu', {name: '그룹 넣기'});

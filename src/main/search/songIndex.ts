@@ -6,7 +6,7 @@ import {
   type LibrarySearchRequest,
   type LibrarySearchResult,
 } from '@shared/schema/librarySearch';
-import type {Song} from '@shared/schema/song';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {
   isInitialQuery,
   normalizeSearch,
@@ -24,7 +24,7 @@ interface SearchText {
 }
 
 interface IndexedSong {
-  readonly songId: Song['id'];
+  readonly songId: GroupedSong['id'];
   readonly title: SearchText;
   readonly slideCount: number;
   readonly lines: readonly SearchText[];
@@ -55,13 +55,14 @@ export class SongSearchIndex {
     return this.songs.size;
   }
 
-  upsert(song: Song): void {
+  upsert(song: GroupedSong): void {
     this.remove(song.id);
+    const slides = song.groups.flatMap(group => group.slides);
     const entry = {
       songId: song.id,
       title: searchable(song.title),
-      slideCount: song.slides.length,
-      lines: song.slides.flatMap(slide => slide.lines.map(searchable)),
+      slideCount: slides.length,
+      lines: slides.flatMap(slide => slide.lines.map(searchable)),
     };
     this.songs.set(song.id, entry);
     this.ordered.splice(this.insertionPoint(entry), 0, entry);
@@ -136,7 +137,7 @@ export class SongSearchIndex {
 
 /** Builds in bounded batches, yielding to other main-process work between them. */
 export async function buildSongSearchIndex(
-  songs: Iterable<Song>,
+  songs: Iterable<GroupedSong>,
 ): Promise<SongSearchIndex> {
   const index = new SongSearchIndex();
   let count = 0;

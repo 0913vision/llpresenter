@@ -9,7 +9,7 @@ import {
   type ServiceItem,
   type ServiceItemOf,
 } from '@shared/schema/service';
-import type {Song} from '@shared/schema/song';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 
 /** A fresh version 4 id, checked against the schema of its kind. */
 export function newItemId(): ServiceItemId {
@@ -59,12 +59,42 @@ export function normalizeSongTitle(title: string): string {
   return title.trim().normalize('NFC');
 }
 
+/** Retains overwrite positions so their nested unknown fields can be merged. */
+export function withImportGroupIds(
+  song: GroupedSong,
+  current: GroupedSong | undefined,
+): GroupedSong {
+  if (current === undefined) return song;
+  const groups = song.groups.map((group, index) => ({
+    ...group,
+    id: current.groups[index]?.id ?? group.id,
+  }));
+  const ids = new Map(
+    song.groups.map((group, index) => [
+      group.id,
+      groups[index]?.id ?? group.id,
+    ]),
+  );
+  return {
+    ...song,
+    groups,
+    ...(song.arrangements === undefined
+      ? {}
+      : {
+          arrangements: song.arrangements.map(arrangement => ({
+            ...arrangement,
+            groups: arrangement.groups.map(id => ids.get(id) ?? id),
+          })),
+        }),
+  };
+}
+
 /** The song with a 구성 renamed, or `null` when it has no 구성 of that name. */
 export function withRenamedArrangement(
-  song: Song,
+  song: GroupedSong,
   from: string,
   to: string,
-): Song | null {
+): GroupedSong | null {
   const arrangements = song.arrangements ?? [];
   if (!arrangements.some(({name}) => name === from)) {
     return null;
@@ -78,7 +108,10 @@ export function withRenamedArrangement(
 }
 
 /** The song without a 구성, or `null` when it has no 구성 of that name. */
-export function withoutArrangement(song: Song, name: string): Song | null {
+export function withoutArrangement(
+  song: GroupedSong,
+  name: string,
+): GroupedSong | null {
   const arrangements = song.arrangements ?? [];
   if (!arrangements.some(arrangement => arrangement.name === name)) {
     return null;

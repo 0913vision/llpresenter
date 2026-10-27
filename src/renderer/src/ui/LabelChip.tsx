@@ -50,6 +50,7 @@ export interface ArrangementStripProps {
   readonly onRemove: (index: number) => void;
   /** The insert button asks to open the 이름표 menu below it. */
   readonly onInsert: (button: HTMLElement) => void;
+  readonly insertLabel?: string;
   /** Draws the drop position before this chip while dragging. */
   readonly dropIndex?: number | undefined;
   /** The chip being dragged. */
@@ -148,6 +149,7 @@ export function ArrangementStrip({
   onMove,
   onRemove,
   onInsert,
+  insertLabel = INSERT_LABEL,
   dropIndex,
   draggingIndex,
   readOnlyReason,
@@ -156,7 +158,7 @@ export function ArrangementStrip({
   const insertButton = useRef<HTMLButtonElement>(null);
   const focusAfterMove = useRef<number | null>(null);
   const readOnly = readOnlyReason !== undefined;
-  const insertTooltip = useTooltip({text: readOnlyReason ?? INSERT_LABEL});
+  const insertTooltip = useTooltip({text: readOnlyReason ?? insertLabel});
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
   const focusAfterRemoval = useFocusAfterRemoval(chips.length, index => {
     const target =
@@ -231,7 +233,7 @@ export function ArrangementStrip({
         {...insertTooltip.targetProps}
         ref={insertButton}
         type="button"
-        aria-label={INSERT_LABEL}
+        aria-label={insertLabel}
         aria-disabled={readOnly ? true : undefined}
         className={styles.add}
         onClick={(event: MouseEvent<HTMLButtonElement>) => {

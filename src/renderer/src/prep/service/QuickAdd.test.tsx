@@ -134,7 +134,10 @@ function setup() {
       .map(({song}) => ({
         songId: song.id,
         title: song.title,
-        slideCount: song.slides.length,
+        slideCount: song.groups.reduce(
+          (count, group) => count + group.slides.length,
+          0,
+        ),
         match: {kind: 'title' as const},
       })),
   }));

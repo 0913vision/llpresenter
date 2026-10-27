@@ -37,6 +37,7 @@ const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-media': '미디어 파일을 찾을 수 없습니다.',
   'unknown-kind': '이 버전에서 알 수 없는 항목입니다.',
   'newer-version': '새 버전의 파일이라 읽기 전용으로 엽니다.',
+  'tile-limit': '슬라이드 수가 한도를 초과합니다.',
 };
 
 interface RowGroup {

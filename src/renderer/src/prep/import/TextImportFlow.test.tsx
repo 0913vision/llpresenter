@@ -12,7 +12,7 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@shared/schema/textImport';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
+import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
 import {convertTextImport} from '../../../../main/import/convert';
 import {editorFixture, editorSong} from '../editor/editorFixture';
 import {SongEditorStore} from '../editor/songEditorStore';
@@ -118,27 +118,22 @@ describe('text import flow', () => {
     expect(f.store.getSnapshot().imported).toBe(true);
     const session = f.store.getSnapshot().session;
     expect(session?.title.value).toBe('Candidate');
-    expect(session?.history.snapshot.song.slides).toEqual([
-      {
-        label: '1절',
-        lines: ['First verse line', 'Second verse line'],
-        section: 0,
-      },
-      {
-        label: '1절',
-        lines: ['Third verse line', 'Fourth verse line'],
-        section: 0,
-      },
-      {
-        label: '후렴',
-        lines: ['Chorus first line', 'Chorus second line'],
-        section: 1,
-      },
-      {
-        label: '후렴',
-        lines: ['Chorus third line', 'Chorus fourth line'],
-        section: 1,
-      },
+    expect(
+      session?.history.snapshot.song.groups.map(group => ({
+        name: group.name,
+        count: group.slides.length,
+      })),
+    ).toEqual([
+      {name: '1절', count: 2},
+      {name: '후렴', count: 2},
+    ]);
+    expect(
+      session?.history.snapshot.song.groups.flatMap(group => group.slides),
+    ).toEqual([
+      {lines: ['First verse line', 'Second verse line']},
+      {lines: ['Third verse line', 'Fourth verse line']},
+      {lines: ['Chorus first line', 'Chorus second line']},
+      {lines: ['Chorus third line', 'Chorus fourth line']},
     ]);
     expect(onDone).toHaveBeenCalledOnce();
     expect(onEdit).toHaveBeenCalledOnce();
@@ -440,18 +435,19 @@ describe('imported song actions', () => {
         if (edit.type !== 'song.import') {
           throw new Error('Unexpected keyboard edit');
         }
-        const document = parseSongDocument({
-          ...accepted,
-          song: {
-            ...accepted.song,
+        const migrated = parseGroupedSongDraft(
+          JSON.stringify({
+            format: 'llsong',
+            schemaVersion: 1,
+            id: accepted.song.id,
             ...edit.draft,
-            arrangements: edit.draft.arrangements ?? [],
-          },
-        });
-        if (!document.ok || document.value === null) {
-          throw new Error('Invalid keyboard import fixture');
+          }),
+          'imported song',
+        );
+        if (!migrated.ok) {
+          throw new Error(migrated.error.message);
         }
-        f.pushSong(document.value);
+        f.pushSong({...accepted, song: migrated.value.data});
         return {
           ok: true,
           value: {id: accepted.song.id, revision: accepted.revision},

@@ -2,6 +2,7 @@ import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {defaultPreferences} from '@shared/schema/preferences';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
@@ -155,8 +156,13 @@ describe('loadStore', () => {
 
   it('loads a song from a newer app version read-only', async () => {
     const context = await developmentContext();
+    const grouped = parseGroupedSong(
+      JSON.stringify(hymnOne()),
+      'future.llsong',
+    );
+    if (!grouped.ok) throw new Error('Invalid grouped fixture');
     await writeJson(join(dataRoot(context), '곡', 'a.llsong'), {
-      ...hymnOne(),
+      ...grouped.value.data,
       schemaVersion: 99,
     });
 
@@ -189,8 +195,11 @@ describe('loadStore', () => {
 
     expect([...store.songs.keys()]).toEqual([HYMN_ONE_ID]);
     expect(store.problems).toEqual([
-      expect.objectContaining({kind: 'invalid', field: 'title'}),
+      expect.objectContaining({
+        kind: 'migration',
+      }),
     ]);
+    expect(store.problems[0]?.message).toContain('title:');
   });
 
   it('keeps the folders of a broken app.json and reports nothing more', async () => {

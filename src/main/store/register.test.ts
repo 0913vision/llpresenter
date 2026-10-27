@@ -20,9 +20,12 @@ import {
 import type {AppProblem} from '@shared/schema/appProblem';
 import {Channels} from '@shared/ipc';
 import {parseEditResult} from '@shared/schema/contentEdit';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {parseShowService} from '@shared/schema/showService';
-import {parseServiceDocument} from '@shared/schema/contentDocuments';
+import {
+  parseServiceDocument,
+  parseSongDocument,
+} from '@shared/schema/contentDocuments';
 import {createMediaId} from '@shared/schema/ids';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {parsePreferencesValue} from '@shared/schema/preferences';
@@ -159,6 +162,14 @@ function ask(channel: string, value?: unknown): Promise<unknown> {
   return Promise.resolve(handler({}, value));
 }
 
+async function songDocument(id: string) {
+  const parsed = parseSongDocument(await ask(Channels.songsDocumentGet, id));
+  if (!parsed.ok || parsed.value === null) {
+    throw new Error('Missing grouped fixture');
+  }
+  return parsed.value;
+}
+
 beforeEach(() => {
   electron.handlers.clear();
   electron.paths.clear();
@@ -285,11 +296,26 @@ describe('registerStore', () => {
     expect(
       await ask(Channels.libraryShowSong, {songId: song.id}),
     ).toMatchObject({songRevision: 1});
+    const current = (await songDocument(song.id)).song;
     expect(
       await ask(Channels.contentEdit, {
         type: 'song.update',
         baseRevision: 1,
-        song: {...song, title: 'After edit', slides: [{lines: ['After']}]},
+        song,
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      await ask(Channels.contentEdit, {
+        type: 'song.update',
+        baseRevision: 1,
+        song: {
+          ...current,
+          title: 'After edit',
+          groups: current.groups.map(group => ({
+            ...group,
+            slides: [{lines: ['After']}],
+          })),
+        },
       }),
     ).toMatchObject({ok: true});
     expect(
@@ -331,12 +357,17 @@ describe('registerStore', () => {
     });
     await writeJson(songFile, {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 3,
       id: songId,
       title: 'Standalone invented song',
       background: mediaId,
-      slides: [{label: 'Verse', lines: ['First']}, {lines: ['Second']}],
-      arrangements: [{name: 'Other', slides: [2, 1, 2]}],
+      groups: [
+        {id: itemId(82), name: 'Verse', slides: [{lines: ['First']}]},
+        {id: itemId(83), name: '', slides: [{lines: ['Second']}]},
+      ],
+      arrangements: [
+        {name: 'Other', groups: [itemId(83), itemId(82), itemId(83)]},
+      ],
       future: 'kept',
     });
     const store = await register(fakeLog(), context, () => true);
@@ -737,11 +768,11 @@ describe('registerStore', () => {
     for (const id of ids) {
       expect(await ask(Channels.songsDocumentGet, id)).toMatchObject({
         revision: 1,
-        song: {slides: [{label: 'After', future: 'kept'}]},
+        song: {groups: [{name: 'After', slides: [{future: 'kept'}]}]},
       });
       expect(
         JSON.parse(await readFile(join(root, '곡', `${id}.llsong`), 'utf8')),
-      ).toMatchObject({slides: [{label: 'After'}]});
+      ).toMatchObject({groups: [{name: 'After'}]});
     }
   });
   it('pushes a settings edit before the disk answer and retains current extensions across restart', async () => {
@@ -1092,10 +1123,14 @@ describe('registerStore', () => {
         ],
       },
     });
+    const current = (await songDocument(HYMN_ONE_ID)).song;
     const edited = {
-      ...original,
+      ...current,
       title: '바람의 노래',
-      slides: [{lines: ['다시 피어난 햇살']}],
+      groups: current.groups.map(group => ({
+        ...group,
+        slides: [{lines: ['다시 피어난 햇살']}],
+      })),
     };
     expect(
       await ask(Channels.contentEdit, {
@@ -1273,9 +1308,12 @@ describe('registerStore', () => {
     if (!before.ok || before.value === null) {
       throw new Error('Missing test service');
     }
+    const current = (await songDocument(HYMN_ONE_ID)).song;
     const edited = {
-      ...hymnOne(),
-      slides: [{lines: ['새로 편집한 가사']}],
+      ...current,
+      groups: current.groups
+        .slice(0, 1)
+        .map(group => ({...group, slides: [{lines: ['새로 편집한 가사']}]})),
       arrangements: [],
     };
 
@@ -1316,11 +1354,11 @@ describe('registerStore', () => {
     ).toBe(true);
     await store.dispose();
 
-    expect(parseSong(await readFile(file, 'utf8'), file)).toMatchObject({
+    expect(parseGroupedSong(await readFile(file, 'utf8'), file)).toMatchObject({
       ok: true,
       value: {
         data: {
-          slides: [{lines: ['새로 편집한 가사']}],
+          groups: [{slides: [{lines: ['새로 편집한 가사']}]}],
           future: {enabled: true},
         },
       },

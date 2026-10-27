@@ -4,7 +4,12 @@ import type {
   SongDocument,
 } from '@shared/schema/contentDocuments';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
-import {createServiceId, createSongId} from '@shared/schema/ids';
+import {
+  createServiceId,
+  createSongId,
+  createSongGroupId,
+} from '@shared/schema/ids';
+import {sourceSlideCount} from '@shared/schema/groupedSong';
 import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
 import type {EditResult} from '@shared/schema/contentEdit';
 import type {LibraryApi} from './useLibrary';
@@ -13,12 +18,20 @@ export function fixtureSong(number: number, title: string): SongDocument {
   const parsed = parseSongDocument({
     song: {
       format: 'llsong',
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: createSongId(
         `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
       ),
       title,
-      slides: [{lines: [`Invented words ${number}`]}],
+      groups: [
+        {
+          id: createSongGroupId(
+            `10000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+          ),
+          name: '',
+          slides: [{lines: [`Invented words ${number}`]}],
+        },
+      ],
     },
     revision: 1,
     access: 'editable',
@@ -47,7 +60,7 @@ export function libraryFixture(
     [...documents.values()].map(document => ({
       id: document.song.id,
       title: document.song.title,
-      slideCount: document.song.slides.length,
+      slideCount: sourceSlideCount(document.song),
       access: document.access,
       usedBy:
         document.song.id === initial[0]?.song.id
@@ -116,7 +129,13 @@ export function libraryFixture(
           const document = fixtureSong(sequence++, title);
           documents.set(document.song.id, {
             ...document,
-            song: {...document.song, slides: [{lines: []}]},
+            song: {
+              ...document.song,
+              groups: document.song.groups.map(group => ({
+                ...group,
+                slides: [{lines: []}],
+              })),
+            },
           });
           pushList();
           return Promise.resolve({

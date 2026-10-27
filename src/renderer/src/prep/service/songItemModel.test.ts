@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   editorGroupedSong,
-  editorSong,
+  editorLegacySong,
 } from '@renderer/prep/editor/editorFixture';
 import {createSongGroupId, createSongId} from '@shared/schema/ids';
 import type {GroupedSong} from '@shared/schema/groupedSong';
@@ -20,7 +20,7 @@ import {
   withoutPosition,
 } from './songItemModel';
 
-const {song} = editorSong(1);
+const song = editorLegacySong(1);
 
 describe('song item model', () => {
   it('keys repeated 슬라이드 by occurrence and colors them by 이름표', () => {

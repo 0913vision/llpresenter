@@ -1,26 +1,32 @@
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
-import {createSongId} from '@shared/schema/ids';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
 import {
   LIBRARY_SEARCH_LIMITS,
   parseLibrarySearchResult,
 } from '@shared/schema/librarySearch';
-import type {Song} from '@shared/schema/song';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {buildSongSearchIndex, SongSearchIndex} from './songIndex';
 
 function song(
   number: number,
   title: string,
   lines: readonly string[] = [],
-): Song {
+): GroupedSong {
   return {
     format: 'llsong',
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: createSongId(
       `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
     ),
     title,
-    slides: [{lines}],
+    groups: [
+      {
+        id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
+        name: '',
+        slides: [{lines}],
+      },
+    ],
   };
 }
 
@@ -113,7 +119,10 @@ describe('SongSearchIndex', () => {
     index.upsert({
       ...first,
       title: 'New title',
-      slides: [{lines: ['Fresh words']}, {lines: []}],
+      groups: first.groups.map(group => ({
+        ...group,
+        slides: [{lines: ['Fresh words']}, {lines: []}],
+      })),
     });
     expect(index.search({query: 'old'}).matches).toEqual([]);
     expect(index.search({query: 'fresh words'}).matches[0]).toMatchObject({

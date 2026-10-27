@@ -5,7 +5,7 @@ import {serviceIdSchema, songIdSchema, templateIdSchema} from './ids';
 import {payloadObject, type PayloadError} from './payload';
 import {localDateTime, nonNegativeInteger, positiveInteger} from './primitives';
 import {serviceSchema, templateSchema} from './service';
-import {songSchema} from './song';
+import {groupedSongSchema} from './groupedSong';
 
 /**
  * A document's revision in the main process: 1 when it is read at launch, and
@@ -19,7 +19,7 @@ export type Revision = v.InferOutput<typeof revisionSchema>;
 export const accessSchema = v.picklist(['editable', 'readOnly']);
 
 const songDocumentSchema = payloadObject({
-  song: songSchema,
+  song: groupedSongSchema,
   revision: revisionSchema,
   access: accessSchema,
 });

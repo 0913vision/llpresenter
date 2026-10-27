@@ -6,6 +6,7 @@ import type {SongId} from '@shared/schema/ids';
 import {createSongId} from '@shared/schema/ids';
 import type {TextImportDraft} from '@shared/schema/textImport';
 import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
 import type {Label} from '@shared/schema/labels';
 import type {
   SettingsDocument,
@@ -13,6 +14,8 @@ import type {
 } from '@shared/schema/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {SongSession} from './songSession';
+import {ImportDraftLimitError, importDraftSlides} from './importDraftSlides';
+import {ARRANGEMENT_LIMIT_REASON} from './songArrangements';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle} from './songTitle';
 
@@ -129,14 +132,22 @@ export class SongEditorStore {
       this.requestLeave(() => this.openImported(draft));
       return;
     }
-    const checked = parseSongDocument({
-      song: {
+    const migrated = parseGroupedSongDraft(
+      JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
         id: createSongId(crypto.randomUUID()),
         title: normalizeSongTitle(draft.title) || '가져온 곡',
         slides: draft.slides,
-      },
+      }),
+      'imported song',
+    );
+    if (!migrated.ok) {
+      this.problem('가져온 곡 열기 실패');
+      return;
+    }
+    const checked = parseSongDocument({
+      song: migrated.value.data,
       revision: 1,
       access: 'editable',
     });
@@ -209,10 +220,7 @@ export class SongEditorStore {
             target,
             draft: {
               title: normalizeSongTitle(session.title.value),
-              slides: song.slides,
-              ...(song.arrangements === undefined
-                ? {}
-                : {arrangements: song.arrangements}),
+              ...importDraftSlides(song),
               ...(session.background === undefined
                 ? {}
                 : {background: session.background}),
@@ -246,7 +254,11 @@ export class SongEditorStore {
         return true;
       } catch (error) {
         console.error('Imported song save failed', error);
-        this.problem('가져온 곡 저장 실패');
+        this.problem(
+          error instanceof ImportDraftLimitError
+            ? ARRANGEMENT_LIMIT_REASON
+            : '가져온 곡 저장 실패',
+        );
         return false;
       }
     });
@@ -571,7 +583,7 @@ export class SongEditorStore {
     for (const [id, session] of this.sessions) {
       const document =
         this.renamedSongs.get(id) ??
-        (session.document.song.slides.some(slide => slide.label === from)
+        (session.document.song.groups.some(group => group.name === from)
           ? await this.api.songs.get(id)
           : undefined);
       if (document === null) this.remove(id);

@@ -10,11 +10,25 @@ const ITEM_ID = '00000000-0000-4000-8000-000000000001';
 function song() {
   return {
     format: 'llsong',
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: SONG_ID,
     title: '만복의 근원 하나님',
-    slides: [{label: '1절', lines: ['만복의 근원 하나님']}],
-    arrangements: [{name: '주일용', slides: [1, 1]}],
+    groups: [
+      {
+        id: '00000000-0000-4000-8000-000000000101',
+        name: '1절',
+        slides: [{lines: ['Invented contract line']}],
+      },
+    ],
+    arrangements: [
+      {
+        name: '주일용',
+        groups: [
+          '00000000-0000-4000-8000-000000000101',
+          '00000000-0000-4000-8000-000000000101',
+        ],
+      },
+    ],
   };
 }
 
@@ -35,6 +49,48 @@ function template() {
 }
 
 describe('parseContentEdit', () => {
+  it('requires grouped updates and rejects duplicate physical slide hot keys', () => {
+    const current = song();
+    const {groups: _groups, arrangements: _arrangements, ...header} = current;
+    expect(
+      parseContentEdit({
+        type: 'song.update',
+        baseRevision: 1,
+        song: {
+          ...header,
+          schemaVersion: 1,
+          slides: [{lines: ['Invented legacy line']}],
+        },
+      }).ok,
+    ).toBe(false);
+    const keyed = {
+      ...current,
+      groups: current.groups.map(group => ({
+        ...group,
+        slides: [{lines: ['Invented keyed line'], hotKey: 'KeyK'}],
+      })),
+    };
+    expect(
+      parseContentEdit({type: 'song.update', baseRevision: 1, song: keyed}).ok,
+    ).toBe(true);
+    expect(
+      parseContentEdit({
+        type: 'song.update',
+        baseRevision: 1,
+        song: {
+          ...keyed,
+          groups: [
+            ...keyed.groups,
+            {
+              id: '00000000-0000-4000-8000-000000000102',
+              name: 'Repeated key',
+              slides: [{lines: [], hotKey: 'KeyK'}],
+            },
+          ],
+        },
+      }).ok,
+    ).toBe(false);
+  });
   it.each([
     [{type: 'song.create'}],
     [{type: 'song.update', song: song(), baseRevision: 3}],

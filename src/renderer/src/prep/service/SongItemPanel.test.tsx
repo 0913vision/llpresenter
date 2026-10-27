@@ -25,11 +25,7 @@ import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';
-import {
-  DEFAULT_ORDER_REASON,
-  GROUPED_SONG_EDIT_REASON,
-  NEWER_FILE_REASON,
-} from './ItemArrangement';
+import {DEFAULT_ORDER_REASON, NEWER_FILE_REASON} from './ItemArrangement';
 import {ServiceItemPanel} from './SongItemPanel';
 
 afterEach(() => {
@@ -170,7 +166,7 @@ describe('service song item panel', () => {
     expect(chips(panel)).toEqual(['후렴', '후렴']);
     await items.getSnapshot().song?.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [2, 2]},
+      {name: '주일용', groups: Array(2).fill(first.song.groups[1]?.id)},
     ]);
   });
 
@@ -263,19 +259,17 @@ describe('service song item panel', () => {
       ).toContain('구성 1'),
     );
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', slides: [1, 2, 2]},
-      {name: '구성 1', slides: [1, 2, 2]},
+      first.song.arrangements?.[0],
+      {...first.song.arrangements?.[0], name: '구성 1'},
     ]);
     expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
   });
 
-  it('appends a chosen 슬라이드 from 슬라이드 넣기', async () => {
+  it('appends a chosen group from 그룹 넣기', async () => {
     mockMenuRowHeight();
     const {panel, user} = await setup();
-    await user.click(
-      within(panel).getByRole('button', {name: '슬라이드 넣기'}),
-    );
-    await user.click(screen.getByRole('menuitem', {name: /^1절 /u}));
+    await user.click(within(panel).getByRole('button', {name: '그룹 넣기'}));
+    await user.click(screen.getByRole('menuitem', {name: /^1절/u}));
     expect(chips(panel)).toEqual(['1절', '후렴', '후렴', '1절']);
     expect(selectedThumbnail(panel)).toBe(3);
   });
@@ -344,7 +338,7 @@ describe('service song item panel', () => {
     expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
   });
 
-  it('shows 0 slides and disables 라이브러리 곡 편집 for grouped song with empty named 구성', async () => {
+  it('shows zero slides for an empty named group arrangement and enables library editing', async () => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     const fixture = itemFixture();
     const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
@@ -386,7 +380,7 @@ describe('service song item panel', () => {
     fixture.pushService(updatedService);
 
     const editor = new SongEditorStore(fixture.api, vi.fn());
-    const session = new SongSession<GroupedSong>({
+    const session = new SongSession({
       document,
       api: fixture.api.content,
       changed: () => undefined,
@@ -422,24 +416,21 @@ describe('service song item panel', () => {
     const editBtn = within(panel).getByRole('button', {
       name: '라이브러리 곡 편집',
     });
-    expect(editBtn.getAttribute('aria-disabled')).toBe('true');
+    expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
     const user = userEvent.setup();
     await user.click(editBtn);
-    expect(editor.getSnapshot().session).toBeNull();
-    expect((await hoverForTooltip(editBtn))?.textContent).toBe(
-      GROUPED_SONG_EDIT_REASON,
-    );
+    expect(editor.getSnapshot().session?.document.song).toEqual(groupedSong);
   });
 
-  it('shows file-order thumbnails for a v1 song with an empty named 구성 (v1 regression test)', async () => {
+  it('keeps an empty named group arrangement empty after activation', async () => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     const fixture = itemFixture();
-    const v1Song = {
+    const groupedEmpty = {
       ...fixture.first.song,
-      arrangements: [{name: '빈 구성', slides: []}],
+      arrangements: [{name: '빈 구성', groups: []}],
     };
     const document = {
-      song: v1Song,
+      song: groupedEmpty,
       revision: 1,
       access: 'editable' as const,
     };
@@ -491,14 +482,13 @@ describe('service song item panel', () => {
 
     await screen.findByRole('listbox', {name: '구성 순서'});
     const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    // NOTE(0913vision): v1 fallback: playbackOrder falls back to file order (2 slides).
-    expect(within(panel).getByText('슬라이드 2개')).toBeDefined();
+    expect(within(panel).getByText('슬라이드 0개')).toBeDefined();
     expect(within(panel).queryByRole('img', {name: /구성이 없어/})).toBeNull();
     expect(
       within(panel)
-        .getAllByRole('option')
+        .queryAllByRole('option')
         .filter(opt => opt.closest('[aria-label="구성 순서"]') === null),
-    ).toHaveLength(2);
+    ).toHaveLength(0);
   });
 
   it('shows an empty panel for nothing selected and for other kinds', async () => {

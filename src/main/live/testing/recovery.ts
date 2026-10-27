@@ -6,7 +6,7 @@ import {
   type RecoveryRecord,
 } from '@shared/schema/recoveryRecord';
 import {parseService} from '@shared/schema/service';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import type {RecoveryContent} from '../recovery/plan';
 import {
@@ -51,7 +51,7 @@ export function recoveryContent(): RecoveryContent {
     ].map(document => [document.id, document]),
   );
   const hymn = expectSuccess(
-    parseSong(JSON.stringify(hymnOne()), 'hymn.llsong'),
+    parseGroupedSong(JSON.stringify(hymnOne()), 'hymn.llsong'),
   ).data;
   return {
     serviceList: () => [...services.keys()].map(id => ({id})),

@@ -6,6 +6,7 @@ import type {ServiceDocument} from '@shared/schema/contentDocuments';
 import {
   createServiceId,
   createServiceItemId,
+  createSongGroupId,
   createSongId,
 } from '@shared/schema/ids';
 import {SONG_DRAG_MIME} from '@shared/schema/songDrag';
@@ -86,10 +87,16 @@ function setup(
         Promise.resolve({
           song: {
             format: 'llsong',
-            schemaVersion: 1,
+            schemaVersion: 2,
             id: songId,
             title: 'Invented song',
-            slides: [{lines: []}],
+            groups: [
+              {
+                id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
+                name: '',
+                slides: [{lines: []}],
+              },
+            ],
           },
           revision: 1,
           access: 'editable',

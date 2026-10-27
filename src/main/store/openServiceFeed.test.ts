@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {parseService} from '@shared/schema/service';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import type {MediaChoice} from '@shared/live';
 import type {OpenServiceSources} from './openServiceFeed';
 import {OpenServiceFeed} from './openServiceFeed';
@@ -121,7 +121,7 @@ describe('OpenServiceFeed', () => {
     });
     const backgroundOf = vi.fn<OpenServiceSources['backgroundOf']>(() => check);
     const {feed, content, current, push} = await setUp(backgroundOf);
-    const song = parseSong(
+    const song = parseGroupedSong(
       JSON.stringify({...hymnOne(), background: itemId(90)}),
       'song.llsong',
     );
@@ -177,7 +177,7 @@ describe('OpenServiceFeed', () => {
 
   it('coalesces refreshes and never publishes a superseded background check', async () => {
     const {content, current, push, report} = await setUp();
-    const song = parseSong(
+    const song = parseGroupedSong(
       JSON.stringify({...hymnOne(), background: itemId(90)}),
       'song.llsong',
     );

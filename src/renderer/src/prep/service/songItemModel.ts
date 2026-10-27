@@ -1,6 +1,5 @@
 import type {Label} from '@shared/schema/labels';
 import type {Song} from '@shared/schema/song';
-import type {SongDocument} from '@shared/schema/contentDocuments';
 import {
   arrangementGroupIds,
   isGroupedSong,
@@ -9,16 +8,8 @@ import {
 import type {SongGroupId} from '@shared/schema/ids';
 import {playbackOrder} from '@shared/songOrder';
 import type {SongPicture} from '@renderer/prep/editor';
-import type {EditorSongDocument} from '@renderer/prep/editor/songSession';
 import {linearSlidesOf} from '@renderer/prep/editor/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
-
-/** Whether an editor document holds a version 1 song. */
-export function isV1SongDocument(
-  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
-): document is SongDocument {
-  return 'slides' in document.song;
-}
 
 /** The 이름표 of a 슬라이드, or `undefined` when it has none. */
 export function slideLabel(

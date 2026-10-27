@@ -14,7 +14,6 @@ import type {ServiceItemOf} from '@shared/schema/service';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import {TYPING_PAUSE_MS} from '@renderer/prep/editor/songHistory';
-import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {
   backgroundEntries,
@@ -97,7 +96,7 @@ export function ItemBackgroundRow({
   session,
 }: RowState & {
   readonly item: ServiceItemOf<'song'>;
-  readonly session: SongSession | SongSession<GroupedSong>;
+  readonly session: SongSession;
 }): JSX.Element {
   const media = useMediaDocument(api.media);
   const [button, setButton] = useState<HTMLButtonElement | null>(null);

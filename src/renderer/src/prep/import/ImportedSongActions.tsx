@@ -1,6 +1,7 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {SongId} from '@shared/schema/ids';
+import {sourceSlideCount} from '@shared/schema/groupedSong';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
 import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
@@ -135,7 +136,7 @@ export function ImportedSongActions({
           title={`‘${title}’ 곡이 이미 있습니다. 덮어쓸까요?`}
           meta={[
             '라이브러리 곡',
-            `슬라이드 ${duplicate.song.slides.length}개`,
+            `슬라이드 ${sourceSlideCount(duplicate.song)}개`,
             ...(newTitle === null ? [] : [`새 곡 제목: ‘${newTitle}’`]),
             ...(duplicate.song.updatedAt === undefined
               ? []

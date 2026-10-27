@@ -72,7 +72,7 @@ describe('song editor right panels', () => {
       ...fixture.first,
       song: {
         ...fixture.first.song,
-        arrangements: [{name: '빈 구성', slides: []}],
+        arrangements: [{name: '빈 구성', groups: []}],
       },
     };
     fixture.documents.set(first.song.id, first);

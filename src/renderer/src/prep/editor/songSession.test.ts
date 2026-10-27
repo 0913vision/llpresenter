@@ -54,7 +54,7 @@ describe('typing-group autosaves', () => {
     expect(edits).toHaveLength(0);
     await vi.advanceTimersByTimeAsync(1);
     expect(edits).toHaveLength(1);
-    expect(session.document.song.slides[0]?.lines).toEqual(['abc']);
+    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual(['abc']);
     expect(session.history.inTypingGroup).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -101,12 +101,14 @@ describe('typing-group autosaves', () => {
     release();
     await vi.advanceTimersByTimeAsync(0);
     expect(edits).toHaveLength(1);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['latest']);
+    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
+      'latest',
+    ]);
     await vi.advanceTimersByTimeAsync(500);
     expect(edits).toHaveLength(2);
     expect(edits[1]).toMatchObject({
       baseRevision: 2,
-      song: {slides: [{lines: ['latest']}, {}]},
+      song: {groups: [{slides: [{lines: ['latest']}]}, {}]},
     });
   });
 
@@ -123,7 +125,9 @@ describe('typing-group autosaves', () => {
     release();
     await vi.advanceTimersByTimeAsync(0);
     expect(edits).toHaveLength(2);
-    expect(session.document.song.slides[0]?.lines).toEqual(['latest']);
+    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual([
+      'latest',
+    ]);
   });
 
   it('forces pending typing through an in-flight write on shutdown and removes the timer', async () => {
@@ -138,7 +142,9 @@ describe('typing-group autosaves', () => {
     release();
     expect(await closed).toBe(true);
     expect(edits).toHaveLength(2);
-    expect(session.document.song.slides[0]?.lines).toEqual(['latest']);
+    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual([
+      'latest',
+    ]);
     await vi.advanceTimersByTimeAsync(2000);
     expect(edits).toHaveLength(2);
   });
@@ -160,12 +166,12 @@ describe('typing-group autosaves', () => {
       throw new Error('Invalid fixture');
     }
     pushSong(changed.value);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
       'local draft',
     ]);
     await vi.advanceTimersByTimeAsync(1000);
     expect(session.blocked).toBe(true);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
       'local draft',
     ]);
     expect(vi.getTimerCount()).toBe(0);
@@ -210,7 +216,9 @@ describe('typing-group autosaves', () => {
     refuse();
     await vi.advanceTimersByTimeAsync(0);
     expect(session.blocked).toBe(true);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['latest']);
+    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
+      'latest',
+    ]);
     expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(2000);
     expect(edit).toHaveBeenCalledOnce();
@@ -256,6 +264,7 @@ describe('grouped song sessions', () => {
     const changed = vi.fn();
     const problem = vi.fn();
     const backspaceRefused = vi.fn();
+    fixture.pushSong({song: grouped, revision: 1, access: 'editable'});
     const session = new SongSession({
       document: {song: grouped, revision: 1, access: 'editable'},
       api: fixture.api.content,
@@ -323,12 +332,12 @@ describe('grouped song sessions', () => {
     expect(session.arrangementSlides).toEqual([3, 1, 2]);
 
     const flushed = await session.flush();
-    expect(flushed).toBe(false);
-    expect(session.clean).toBe(false);
+    expect(flushed).toBe(true);
+    expect(session.clean).toBe(true);
     expect(changed).toHaveBeenCalled();
   });
 
-  it('does not mark a grouped edit clean and refuses saving to v1 store', async () => {
+  it('writes grouped text, accepts its revision and marks the draft clean', async () => {
     const {session, edits} = setupGrouped();
     expect(session.clean).toBe(true);
 
@@ -337,18 +346,27 @@ describe('grouped song sessions', () => {
     expect(session.clean).toBe(false);
 
     const flushed = await session.flush();
-    expect(flushed).toBe(false);
-    expect(session.clean).toBe(false);
-    expect(edits).toHaveLength(0);
+    expect(flushed).toBe(true);
+    expect(session.clean).toBe(true);
+    expect(session.document.revision).toBe(2);
+    expect(edits).toHaveLength(1);
+    expect(edits[0]).toMatchObject({
+      type: 'song.update',
+      song: {
+        schemaVersion: 2,
+        groups: [{slides: [{}, {lines: ['modified']}]}, {}],
+      },
+    });
+    expect(edits[0]).not.toHaveProperty('song.slides');
   });
 
-  it('retains an empty order for an empty named arrangement on v1 songs', () => {
+  it('retains an empty order after opening an active grouped document', () => {
     const {store, first} = setup();
     const parsed = parseSongDocument({
       song: {
         ...first.song,
         id: createSongId('00000000-0000-4000-8000-000000000099'),
-        arrangements: [{name: '빈 구성', slides: []}],
+        arrangements: [{name: '빈 구성', groups: []}],
       },
       revision: 1,
       access: 'editable',

@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {SongDocument} from '@shared/schema/contentDocuments';
-import {editorFixture, editorSong} from './editorFixture';
+import {editorFixture, editorSong, editorLegacySong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 import {editedOrder, newArrangement} from './songArrangements';
 
@@ -28,13 +28,18 @@ describe('song arrangement selection and creation', () => {
     expect(session.arrangement).toBe('구성 1');
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
       ...(first.song.arrangements ?? []),
-      {name: '구성 1', slides: [1, 2, 2]},
+      {
+        name: '구성 1',
+        groups: first.song.groups.flatMap((group, index) =>
+          index === 0 ? [group.id] : [group.id, group.id],
+        ),
+      },
     ]);
     expect(edits).toHaveLength(1);
   });
 
   it('chooses the first unused name and retains an intentionally empty order', () => {
-    const {song} = editorSong(1);
+    const song = editorLegacySong(1);
     const value = {
       ...song,
       arrangements: [
@@ -59,7 +64,10 @@ describe('song arrangement selection and creation', () => {
     session.createArrangement();
     await session.flush();
     expect(edits).toHaveLength(1);
-    expect(documents.get(song.id)?.song.slides[0]?.lines).toEqual(['New line']);
+    expect(
+      documents.get(song.id)?.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['New line']);
     session.edit('undo');
     await session.flush();
     expect(
@@ -70,7 +78,7 @@ describe('song arrangement selection and creation', () => {
     session.edit('redo');
     await session.flush();
     expect(documents.get(song.id)?.song.arrangements).toEqual([
-      {name: '구성 1', slides: [1, 2]},
+      {name: '구성 1', groups: song.groups.map(group => group.id)},
     ]);
   });
 

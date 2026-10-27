@@ -4,21 +4,21 @@ import {
   arrangementGroupIds,
   isGroupedSong,
   type AnySong,
+  type GroupedSong,
 } from '@shared/schema/groupedSong';
-import type {Song} from '@shared/schema/song';
 import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle, SongTitleDraft} from './songTitle';
-import {editedOrder, newArrangement} from './songArrangements';
+import {editedOrderWithLimit, newArrangement} from './songArrangements';
 
-export interface EditorSongDocument<S extends AnySong = Song> {
+export interface EditorSongDocument<S extends AnySong = GroupedSong> {
   readonly song: S;
   readonly revision: number;
   readonly access: 'editable' | 'readOnly';
 }
 
-interface SessionOptions<S extends AnySong = Song> {
+interface SessionOptions<S extends AnySong = GroupedSong> {
   readonly document: EditorSongDocument<S>;
   readonly api: LlpApi['content'];
   readonly changed: () => void;
@@ -31,7 +31,7 @@ interface SessionOptions<S extends AnySong = Song> {
 }
 
 /** Coalesces typing-group saves and serializes one song's pending writes. */
-export class SongSession<S extends AnySong = Song> {
+export class SongSession<S extends AnySong = GroupedSong> {
   document: EditorSongDocument<S>;
   history: SongHistory<S>;
   title: SongTitleDraft;
@@ -96,7 +96,11 @@ export class SongSession<S extends AnySong = Song> {
   }
 
   get arrangementSlides(): readonly number[] {
-    return editedOrder(this.history.snapshot.song, this.arrangement);
+    return this.arrangementOrder.slides;
+  }
+
+  get arrangementOrder() {
+    return editedOrderWithLimit(this.history.snapshot.song, this.arrangement);
   }
 
   onBackspaceRefused(listener: (block: number) => void): () => void {
@@ -421,13 +425,7 @@ export class SongSession<S extends AnySong = Song> {
     while (this.hasChanges && !this.blocked && this.saveTimer === undefined) {
       const docSong = this.document.song;
       const draft = this.history.snapshot.song;
-      if (isGroupedSong(docSong) || isGroupedSong(draft)) {
-        // TODO(0913vision): Activate grouped song persistence in group-7.
-        // During the consumer rollout, refuse saving grouped songs to the
-        // v1 store contract so edits remain visibly unsaved instead of
-        // silently dropping data.
-        return false;
-      }
+      if (!isGroupedSong(docSong) || !isGroupedSong(draft)) return this.fail();
 
       const lyricsDirty = this.dirty;
       this.dirty = false;
@@ -441,11 +439,11 @@ export class SongSession<S extends AnySong = Song> {
         ...baseSong
       } = docSong;
 
-      const song: Song = {
+      const song: GroupedSong = {
         ...baseSong,
         ...draft,
         title: this.title.nextValue,
-        slides: draft.slides,
+        groups: draft.groups,
         ...(draft.arrangements === undefined
           ? {}
           : {arrangements: draft.arrangements}),

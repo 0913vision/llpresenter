@@ -11,7 +11,8 @@ import {
 import {payloadObject, plainObject, type PayloadError} from './payload';
 import {localDateTime} from './primitives';
 import {serviceSchema, templateSchema} from './service';
-import {arrangementNameSchema, songSchema} from './song';
+import {arrangementNameSchema} from './song';
+import {groupedSongSchema} from './groupedSong';
 import {songImportDraftSchema, songImportTargetSchema} from './songImport';
 
 /** Why an edit wasn't applied. */
@@ -40,7 +41,7 @@ const songEditSchemas = [
   v.object({type: v.literal('song.create')}),
   v.object({
     type: v.literal('song.update'),
-    song: songSchema,
+    song: groupedSongSchema,
     baseRevision: revisionSchema,
   }),
   v.object({type: v.literal('song.delete'), songId: songIdSchema}),

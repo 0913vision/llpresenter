@@ -21,6 +21,7 @@ import {preserveUnknownFields} from '@shared/schema/preserveUnknown';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {
   createServiceId,
+  createSongGroupId,
   createSongId,
   createTemplateId,
   type ServiceId,
@@ -35,7 +36,13 @@ import {
   type ServiceItem,
   type Template,
 } from '@shared/schema/service';
-import {serializeSong, songSchema, type Song} from '@shared/schema/song';
+import {
+  serializeGroupedSong,
+  groupedSongSchema,
+  sourceSlideCount,
+  type GroupedSong,
+} from '@shared/schema/groupedSong';
+import {migrateImportedSongGroups} from '@shared/schema/songGroupMigration';
 import {
   parseSettingsEdit,
   type LabelRename,
@@ -47,6 +54,7 @@ import {
   copiedItems,
   freeTitle,
   normalizeSongTitle,
+  withImportGroupIds,
   pickedItems,
   withArrangementPicks,
   withoutArrangement,
@@ -70,6 +78,7 @@ import type {RecoveryTarget} from './recoveryCopies';
 import {QueuedSaves} from './queuedSaves';
 
 const SCHEMA_VERSION = 1;
+const SONG_SCHEMA_VERSION = 2;
 const NEW_SONG_TITLE = '새 곡';
 const SONG_EXTENSION = '.llsong';
 const SERVICE_EXTENSION = '.llservice';
@@ -90,7 +99,7 @@ export interface ContentEvents {
 export interface ContentStoreOptions {
   readonly settings?: SettingsStore | null;
   readonly locations: DataLocations;
-  readonly songs: ReadonlyMap<string, StoredFile<Song>>;
+  readonly songs: ReadonlyMap<string, StoredFile<GroupedSong>>;
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
   readonly templates: ReadonlyMap<string, StoredFile<Template>>;
   readonly files: DocumentFiles;
@@ -105,7 +114,7 @@ interface Kind<T> {
   readonly serialize: (data: T, file: string) => Result<string, FileError>;
 }
 
-const SONG: Kind<Song> = {name: 'song', serialize: serializeSong};
+const SONG: Kind<GroupedSong> = {name: 'song', serialize: serializeGroupedSong};
 const SERVICE: Kind<Service> = {name: 'service', serialize: serializeService};
 const TEMPLATE: Kind<Template> = {
   name: 'template',
@@ -129,7 +138,7 @@ type Checked<T> = Result<StoredDocument<T>, EditResult>;
  * change. Every change goes to the windows with its revision.
  */
 export class ContentStore {
-  private readonly songs: DocumentCollection<Song>;
+  private readonly songs: DocumentCollection<GroupedSong>;
   private readonly services: DocumentCollection<Service>;
   private readonly templates: DocumentCollection<Template>;
   private readonly autosave: Autosave;
@@ -164,7 +173,7 @@ export class ContentStore {
     return this.enqueue(() => this.applyEdit(edit));
   }
 
-  /** Renames an app-wide label and every matching slide, saving settings before songs in ID order. */
+  /** Renames an app-wide label and matching groups, saving settings before songs. */
   renameLabel(settings: SettingsStore, edit: LabelRename): Promise<EditResult> {
     return this.serial(() => this.prepareLabelRename(settings, edit))
       .then(prepared => ('saved' in prepared ? prepared.saved : prepared))
@@ -265,7 +274,7 @@ export class ContentStore {
     }
     const affected = this.songs
       .all()
-      .filter(song => song.data.slides.some(slide => slide.label === edit.from))
+      .filter(song => song.data.groups.some(group => group.name === edit.from))
       .sort((a, b) => a.data.id.localeCompare(b.data.id));
     if (affected.some(song => song.access === 'readOnly')) {
       return refuse('read-only', 'A newer app version wrote an affected song');
@@ -290,8 +299,8 @@ export class ContentStore {
     const changed = affected.map(song =>
       this.songs.replace(song, {
         ...song.data,
-        slides: song.data.slides.map(slide =>
-          slide.label === edit.from ? {...slide, label: edit.to} : slide,
+        groups: song.data.groups.map(group =>
+          group.name === edit.from ? {...group, name: edit.to} : group,
         ),
       }),
     );
@@ -389,7 +398,7 @@ export class ContentStore {
   }
 
   /** The current songs, for the open 예배 순서 in 진행. */
-  storedSongs(): ReadonlyMap<string, StoredDocument<Song>> {
+  storedSongs(): ReadonlyMap<string, StoredDocument<GroupedSong>> {
     return new Map(this.songs.all().map(song => [song.data.id, song]));
   }
 
@@ -433,16 +442,30 @@ export class ContentStore {
     if (this.hasOtherSongTitled(title, id)) {
       return refuse('duplicate-title', `Another song is titled ${title}`);
     }
-    const checked = checkPart(
-      songSchema,
-      preserveUnknownFields(songSchema, current?.data, {
+    const migrated = checkPart(groupedSongSchema, {
+      ...migrateImportedSongGroups({
         ...draft,
         format: 'llsong',
-        schemaVersion: SCHEMA_VERSION,
+        schemaVersion: 1,
         id,
         title,
-        updatedAt: new Date().toISOString(),
       }),
+      schemaVersion: SONG_SCHEMA_VERSION,
+    });
+    if (!migrated.ok) return refuse('invalid', migrated.error.message);
+    const checked = checkPart(
+      groupedSongSchema,
+      preserveUnknownFields(
+        groupedSongSchema,
+        current?.data,
+        withImportGroupIds(
+          {
+            ...migrated.value,
+            updatedAt: new Date().toISOString(),
+          },
+          current?.data,
+        ),
+      ),
     );
     if (!checked.ok) return refuse('invalid', checked.error.message);
     const song = checked.value;
@@ -485,7 +508,7 @@ export class ContentStore {
     return answer({id, revision: stored.revision}, written);
   }
 
-  private async importLabels(song: Song): Promise<EditResult> {
+  private async importLabels(song: GroupedSong): Promise<EditResult> {
     const settings = this.options.settings;
     const current = settings?.get('labels');
     if (!settings || current?.name !== 'labels') {
@@ -493,7 +516,7 @@ export class ContentStore {
     }
     const existing = new Set(current.value.labels.map(label => label.name));
     const names = new Set(
-      song.slides.flatMap(slide => (slide.label ? [slide.label] : [])),
+      song.groups.flatMap(group => (group.name ? [group.name] : [])),
     );
     const added = [...names]
       .filter(name => !existing.has(name))
@@ -524,12 +547,14 @@ export class ContentStore {
     const titles = new Set(
       this.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
-    const song: Song = {
+    const song: GroupedSong = {
       format: 'llsong',
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: SONG_SCHEMA_VERSION,
       id,
       title: freeTitle(NEW_SONG_TITLE, titles),
-      slides: [{lines: []}],
+      groups: [
+        {id: createSongGroupId(randomUUID()), name: '', slides: [{lines: []}]},
+      ],
     };
     const file = join(this.options.locations.songs, `${id}${SONG_EXTENSION}`);
     const full = this.savesFull([file]);
@@ -540,11 +565,17 @@ export class ContentStore {
     return answer({id, revision: stored.revision}, [written]);
   }
 
-  private updateSong(song: Song, baseRevision: number): EditResult {
-    const checked = checkUpdate(this.songs.get(song.id), baseRevision, song);
+  private updateSong(input: GroupedSong, baseRevision: number): EditResult {
+    const checked = checkUpdate(this.songs.get(input.id), baseRevision, input);
     if (!checked.ok) {
       return checked.error;
     }
+    const validated = checkPart(
+      groupedSongSchema,
+      preserveUnknownFields(groupedSongSchema, checked.value.data, input),
+    );
+    if (!validated.ok) return refuse('invalid', validated.error.message);
+    const song = validated.value;
     const title = normalizeSongTitle(song.title);
     if (title === '') {
       return refuse('invalid', 'The song title must not be blank');
@@ -568,7 +599,7 @@ export class ContentStore {
     });
     if (
       checked.value.data.title !== title ||
-      checked.value.data.slides.length !== song.slides.length
+      sourceSlideCount(checked.value.data) !== sourceSlideCount(song)
     ) {
       this.announceList(
         'songs',
@@ -616,8 +647,8 @@ export class ContentStore {
   }
 
   private async rewriteArrangement(
-    current: StoredDocument<Song>,
-    changed: Song,
+    current: StoredDocument<GroupedSong>,
+    changed: GroupedSong,
     pick: ArrangementPick,
   ): Promise<EditResult> {
     const servicePicks = picksToRewrite(this.services, pick);
@@ -952,7 +983,10 @@ interface PickRewrite<T> {
 
 function importPicks<
   T extends {readonly id: string; readonly order: readonly ServiceItem[]},
->(documents: DocumentCollection<T>, song: Song): ReadonlyArray<PickRewrite<T>> {
+>(
+  documents: DocumentCollection<T>,
+  song: GroupedSong,
+): ReadonlyArray<PickRewrite<T>> {
   const names = new Set(
     song.arrangements?.map(arrangement => arrangement.name),
   );

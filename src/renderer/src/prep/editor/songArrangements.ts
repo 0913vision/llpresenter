@@ -3,22 +3,36 @@ import {
   arrangementGroupIds,
   type GroupedSong,
 } from '@shared/schema/groupedSong';
-import {expandGroupSlides} from '@shared/songOrder';
+import {
+  expandGroupSlidesWithLimit,
+  type ExpandedGroupSlides,
+} from '@shared/songOrder';
 
 const NEW_ARRANGEMENT_PREFIX = '구성';
+export const ARRANGEMENT_LIMIT_REASON = '슬라이드 수가 한도를 초과합니다.';
 
 /** Default order is implicit; named orders retain repeats and empty orders. */
 export function editedOrder(
   song: Song | GroupedSong,
   name: string | undefined,
 ): readonly number[] {
+  return editedOrderWithLimit(song, name).slides;
+}
+
+/** Returns an empty order with a limit flag when expansion exceeds the tile cap. */
+export function editedOrderWithLimit(
+  song: Song | GroupedSong,
+  name: string | undefined,
+): ExpandedGroupSlides {
   if ('groups' in song) {
-    return expandGroupSlides(song, arrangementGroupIds(song, name));
+    return expandGroupSlidesWithLimit(song, arrangementGroupIds(song, name));
   }
-  return (
-    song.arrangements?.find(arrangement => arrangement.name === name)?.slides ??
-    song.slides.map((_, index) => index + 1)
-  );
+  return {
+    slides:
+      song.arrangements?.find(arrangement => arrangement.name === name)
+        ?.slides ?? song.slides.map((_, index) => index + 1),
+    capped: false,
+  };
 }
 
 /** Whether two orders list the same items in the same places. */

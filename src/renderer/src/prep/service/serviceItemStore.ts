@@ -31,7 +31,7 @@ export type ServiceItemStoreApi = Pick<
 >;
 
 export interface ServiceItemEditor {
-  sessionOf(id: SongId): SongSession | SongSession<GroupedSong> | undefined;
+  sessionOf(id: SongId): SongSession | undefined;
   showItemSong(id: SongId | null): void;
   attach(document: SongDocument): SongSession | undefined;
   subscribe(listener: () => void): () => void;
@@ -53,7 +53,7 @@ export interface ServiceItemState {
   readonly service: ServiceDocument | null;
   readonly item: ServiceItem | null;
   /** The song of a song item, edited through the song editor's session. */
-  readonly song: SongSession | SongSession<GroupedSong> | null;
+  readonly song: SongSession | null;
   /** `null` when the item isn't a song item. */
   readonly songStatus: ItemSongStatus | null;
   /**
@@ -260,7 +260,7 @@ export class ServiceItemStore {
   }
 
   private async addArrangement(
-    song: SongSession | SongSession<GroupedSong>,
+    song: SongSession,
     arrangement: string | undefined,
     target: ItemTarget,
   ): Promise<boolean> {

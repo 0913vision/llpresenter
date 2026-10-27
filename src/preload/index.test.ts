@@ -1315,10 +1315,16 @@ describe('preload', () => {
     const song = {
       song: {
         format: 'llsong',
-        schemaVersion: 1,
+        schemaVersion: 2,
         id: SONG_ID,
         title: '만복의 근원 하나님',
-        slides: [{lines: ['만복의 근원 하나님']}],
+        groups: [
+          {
+            id: '00000000-0000-4000-8000-000000000101',
+            name: '',
+            slides: [{lines: ['Invented contract line']}],
+          },
+        ],
       },
       revision: 1,
       access: 'editable',
@@ -1338,6 +1344,33 @@ describe('preload', () => {
       Channels.songsDocumentGet,
       SONG_ID,
     );
+  });
+
+  it('rejects unmigrated song replies and drops unmigrated song pushes', async () => {
+    const legacy = {
+      song: {
+        format: 'llsong',
+        schemaVersion: 1,
+        id: SONG_ID,
+        title: 'Invented legacy wire song',
+        slides: [{lines: ['Invented legacy line']}],
+      },
+      revision: 1,
+      access: 'editable',
+    };
+    electron.invoke.mockResolvedValueOnce(legacy);
+    await expect(api.songs.get(SONG_ID)).rejects.toThrow(
+      `Bad reply on ${Channels.songsDocumentGet}`,
+    );
+    const changed = vi.fn();
+    const stop = api.songs.subscribe(changed);
+    electron.handlers.get(Channels.songsDocumentChanged)?.(
+      {},
+      {songId: SONG_ID, document: legacy},
+    );
+    expect(changed).not.toHaveBeenCalled();
+    expect(loggedErrors()).toHaveLength(2);
+    stop();
   });
 
   it('passes only valid document changes and lists to subscribers', () => {
@@ -1364,10 +1397,16 @@ describe('preload', () => {
         document: {
           song: {
             format: 'llsong',
-            schemaVersion: 1,
+            schemaVersion: 2,
             id: SONG_ID,
             title: '만복의 근원 하나님',
-            slides: [{lines: []}],
+            groups: [
+              {
+                id: '00000000-0000-4000-8000-000000000101',
+                name: '',
+                slides: [{lines: []}],
+              },
+            ],
           },
           revision: 1,
           access: 'editable',

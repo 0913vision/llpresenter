@@ -336,7 +336,7 @@ describe('version 1 group migration', () => {
     expect(song.groups[0]?.id).not.toBe(song.groups[1]?.id);
   });
 
-  it.each(['intro', 3])(
+  it.each(['intro', 3, {annotation: 'legacy'}])(
     'preserves a file section extension without treating it as a boundary: %j',
     section => {
       const song = expectSuccess(

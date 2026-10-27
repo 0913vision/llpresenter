@@ -1,29 +1,46 @@
 import type {Song} from './schema/song';
 import type {GroupedSong} from './schema/groupedSong';
 import type {SongGroupId} from './schema/ids';
+import {SHOW_SERVICE_LIMITS} from './schema/showService';
+
+export interface ExpandedGroupSlides {
+  readonly slides: readonly number[];
+  readonly capped: boolean;
+}
 
 /** Expands an arrangement's group sequence into linear 1-based slide numbers. */
 export function expandGroupSlides(
   song: GroupedSong,
   groupIds: readonly SongGroupId[],
 ): readonly number[] {
-  const groupOffset = new Map<string, number>();
+  return expandGroupSlidesWithLimit(song, groupIds).slides;
+}
+
+/** Refuses oversized expanded orders before allocating their slide numbers. */
+export function expandGroupSlidesWithLimit(
+  song: GroupedSong,
+  groupIds: readonly SongGroupId[],
+): ExpandedGroupSlides {
+  const groups = new Map<string, {start: number; length: number}>();
   let offset = 1;
   for (const group of song.groups) {
-    groupOffset.set(group.id, offset);
+    groups.set(group.id, {start: offset, length: group.slides.length});
     offset += group.slides.length;
   }
-  const groupsById = new Map(song.groups.map(g => [g.id, g]));
+  let count = 0;
+  for (const id of groupIds) {
+    count += groups.get(id)?.length ?? 0;
+    if (count > SHOW_SERVICE_LIMITS.tiles) return {slides: [], capped: true};
+  }
   const result: number[] = [];
   for (const id of groupIds) {
-    const group = groupsById.get(id);
-    const start = groupOffset.get(id);
-    if (group === undefined || start === undefined) continue;
-    for (let i = 0; i < group.slides.length; i++) {
-      result.push(start + i);
+    const group = groups.get(id);
+    if (group === undefined) continue;
+    for (let i = 0; i < group.length; i++) {
+      result.push(group.start + i);
     }
   }
-  return result;
+  return {slides: result, capped: false};
 }
 
 /**

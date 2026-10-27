@@ -1,5 +1,4 @@
 import {useSyncExternalStore, type JSX} from 'react';
-import type {GroupedSong} from '@shared/schema/groupedSong';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongPreviewFrame, type SongEditorStore} from '@renderer/prep/editor';
 import type {SongSession} from '@renderer/prep/editor/songSession';
@@ -10,14 +9,14 @@ import {
   PropertyGroup,
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
-import {GROUPED_SONG_EDIT_REASON, NEWER_FILE_REASON} from './ItemArrangement';
+import {NEWER_FILE_REASON} from './ItemArrangement';
 import {ItemBackgroundRow, ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import {
   isStartItem,
   type ServiceItemStore,
   type StartItem,
 } from './serviceItemStore';
-import {isV1SongDocument, itemPicture, shownPosition} from './songItemModel';
+import {itemPicture, shownPosition} from './songItemModel';
 import {useShow} from '@renderer/state/show';
 import {savedPassageTiles} from './bibleItemModel';
 
@@ -103,17 +102,8 @@ export function ItemSettingsPanel({
                     <IconButton
                       icon="open"
                       label="라이브러리 곡 열기"
-                      // TODO(0913vision): Remove the guard and enable library open in group-7.
-                      disabled={!isV1SongDocument(song.document)}
-                      title={
-                        !isV1SongDocument(song.document)
-                          ? GROUPED_SONG_EDIT_REASON
-                          : undefined
-                      }
                       onClick={() => {
-                        if (isV1SongDocument(song.document)) {
-                          editor.open(song.document);
-                        }
+                        editor.open(song.document);
                       }}
                     />
                   }
@@ -157,7 +147,7 @@ function ThisService({
   readonly items: ServiceItemStore;
   readonly api: SongEditorStore['api'];
   readonly item: StartItem;
-  readonly song: SongSession | SongSession<GroupedSong> | null;
+  readonly song: SongSession | null;
   readonly lockReason: string | undefined;
 }): JSX.Element {
   const {busy} = useSyncExternalStore(items.subscribe, items.getSnapshot);

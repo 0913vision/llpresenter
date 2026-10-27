@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
 import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
-import {parseSong} from '@shared/schema/song';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
 import type {Logger} from '../log';
 import {hymnOne} from '../store/testFiles';
 import {registerLibrarySearch} from './register';
@@ -53,7 +53,7 @@ describe('registerLibrarySearch', () => {
     });
     await Promise.resolve();
     expect(completed).toBe(false);
-    const parsed = parseSong(JSON.stringify(hymnOne()), 'song.llsong');
+    const parsed = parseGroupedSong(JSON.stringify(hymnOne()), 'song.llsong');
     if (!parsed.ok) throw new Error('Invalid test song');
     const index = new SongSearchIndex();
     index.upsert(parsed.value.data);

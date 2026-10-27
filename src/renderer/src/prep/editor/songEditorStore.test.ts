@@ -49,12 +49,15 @@ describe('song editor persistence', () => {
     expect(fixture.edits).toHaveLength(2);
     expect(fixture.edits[1]).toMatchObject({
       baseRevision: 2,
-      song: {slides: [{lines: ['abc']}, {}]},
+      song: {groups: [{slides: [{lines: ['abc']}]}, {}]},
     });
     session.edit('undo');
     await session.flush();
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
-      fixture.first.song.slides[0]?.lines,
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(
+      fixture.first.song.groups.flatMap(group => group.slides)[0]?.lines,
     );
   });
 
@@ -76,9 +79,10 @@ describe('song editor persistence', () => {
     });
     text('local draft');
     expect(await session.flush()).toBe(false);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'local draft',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['local draft']);
     expect(session.readOnly).toBe(true);
     expect(problem).toHaveBeenCalledOnce();
     await Promise.resolve(problem.mock.calls[0]?.[0].actions?.[0]?.onSelect());
@@ -105,9 +109,10 @@ describe('song editor persistence', () => {
     text('retained');
     await session.flush();
     expect(session.blocked).toBe(false);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'retained',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['retained']);
     expect(problem).toHaveBeenCalledOnce();
     text('later');
     expect(await session.flush()).toBe(true);
@@ -144,7 +149,10 @@ describe('song editor persistence', () => {
     });
     expect(await saved).toBe(false);
     expect(session.blocked).toBe(true);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['draft']);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['draft']);
   });
 
   it('does not change read-only songs and releases subscriptions on disposal', async () => {
@@ -173,11 +181,11 @@ describe('song editor persistence', () => {
       baseRevision: 1,
     });
     for (const document of documents.values()) {
-      expect(document.song.slides[0]?.label).toBe('새 절');
+      expect(document.song.groups[0]?.name).toBe('새 절');
     }
     session.edit('undo');
     await session.flush();
-    expect(session.history.snapshot.song.slides[0]?.label).toBe('새 절');
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('새 절');
   });
 
   it('flushes queued text before a rename and maps the redo history', async () => {
@@ -203,19 +211,22 @@ describe('song editor persistence', () => {
     release();
     expect(await earlier).toBe(true);
     expect(await rename).toBe(true);
-    expect(session.document.song.slides[0]).toMatchObject({
-      label: '새 절',
+    expect(
+      session.document.song.groups.flatMap(group => group.slides)[0],
+    ).toMatchObject({
       lines: ['latest'],
     });
     session.edit('undo');
     await session.flush();
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
-      first.song.slides[0]?.lines,
-    );
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(first.song.groups.flatMap(group => group.slides)[0]?.lines);
     session.edit('redo');
     await session.flush();
-    expect(session.history.snapshot.song.slides[0]).toMatchObject({
-      label: '새 절',
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
+    ).toMatchObject({
       lines: ['latest'],
     });
   });
@@ -243,8 +254,9 @@ describe('song editor persistence', () => {
     expect(await store.renameLabel('1절', '새 절')).toBe(true);
     session.edit('redo');
     await session.flush();
-    expect(session.history.snapshot.song.slides[0]).toMatchObject({
-      label: '새 절',
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
+    ).toMatchObject({
       lines: ['redo draft'],
     });
   });
@@ -271,9 +283,10 @@ describe('song editor persistence', () => {
     expect(await flushing).toBe(true);
     text('after close');
     expect(store.getSnapshot().busy).toBe(true);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'before close',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['before close']);
     expect(edits).toHaveLength(1);
     expect(JSON.stringify(edits)).not.toContain('during close');
   });
@@ -306,9 +319,10 @@ describe('song editor persistence', () => {
     store.resume();
     expect(store.getSnapshot().busy).toBe(false);
     text('after resume');
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'after resume',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['after resume']);
   });
 
   it('restarts edits after a refused shutdown flush', async () => {
@@ -318,10 +332,16 @@ describe('song editor persistence', () => {
     expect(await store.flush()).toBe(false);
     expect(store.getSnapshot().busy).toBe(false);
     text('typed again');
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'typed again',
-    ]);
-    expect(session.setArrangementSlides('주일용', [1])).toBe(true);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['typed again']);
+    expect(
+      session.setArrangementGroups(
+        '주일용',
+        session.document.song.groups.slice(0, 1).map(group => group.id),
+      ),
+    ).toBe(true);
   });
 
   it('reports a failed shutdown preflight without releasing the refused draft', async () => {
@@ -333,9 +353,10 @@ describe('song editor persistence', () => {
     expect(await store.flush()).toBe(false);
     expect(listenerCount()).toBe(3);
     expect(store.getSnapshot().session).toBe(session);
-    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
-      'keep open',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
+        ?.lines,
+    ).toEqual(['keep open']);
     await Promise.resolve(problem.mock.calls[0]?.[0].actions?.[0]?.onSelect());
     expect(await store.flush()).toBe(true);
   });

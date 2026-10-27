@@ -4,7 +4,11 @@ import {DEFAULT_ARRANGEMENT_NAME, type Song} from '@shared/schema/song';
 import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
 import type {SongGroupId} from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
-import {editedOrder} from '@renderer/prep/editor/songArrangements';
+import {
+  ARRANGEMENT_LIMIT_REASON,
+  editedOrder,
+  editedOrderWithLimit,
+} from '@renderer/prep/editor/songArrangements';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {useLive} from '@renderer/state/live';
@@ -31,8 +35,6 @@ import styles from './SongItemPanel.module.css';
 
 export const DEFAULT_ORDER_REASON = '기본 구성은 변경할 수 없습니다';
 export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다';
-export const GROUPED_SONG_EDIT_REASON =
-  '그룹 곡은 아직 라이브러리에서 편집할 수 없습니다';
 
 interface ArrangementAdapter {
   readonly menuLabel: string;
@@ -95,6 +97,7 @@ function makeGroupedAdapter({
   labels,
   items,
   sequenceLength,
+  capped,
   onSelect,
 }: {
   readonly song: GroupedSong;
@@ -102,9 +105,10 @@ function makeGroupedAdapter({
   readonly labels: readonly Label[];
   readonly items: ServiceItemStore;
   readonly sequenceLength: number;
+  readonly capped: boolean;
   readonly onSelect: (index: number) => void;
 }): ArrangementAdapter {
-  const order = editedGroupOrder(song, arrangement);
+  const order = capped ? [] : editedGroupOrder(song, arrangement);
   const ranges = groupRangesFromGroups(song, order);
   const chips = groupedOrderChips(song, order, labels);
 
@@ -190,9 +194,55 @@ function arrangementOptions(song: Song | GroupedSong) {
   ].map(value => ({value, label: value}));
 }
 
+function ArrangementStripSection({
+  adapter,
+  selected,
+  live,
+  orderReason,
+  drag,
+  labels,
+}: {
+  readonly adapter: ArrangementAdapter;
+  readonly selected: number | undefined;
+  readonly live: number | undefined;
+  readonly orderReason: string | undefined;
+  readonly drag: ReturnType<typeof useChipDrag>;
+  readonly labels: readonly Label[];
+}): JSX.Element {
+  const [insertAnchor, setInsertAnchor] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      <div {...drag.stripProps}>
+        <ArrangementStrip
+          label="구성 순서"
+          chips={adapter.chips}
+          selected={adapter.chipSelected(selected)}
+          live={adapter.chipLive(live)}
+          readOnlyReason={orderReason}
+          dropIndex={drag.dropIndex}
+          draggingIndex={drag.draggingIndex}
+          onSelect={adapter.selectFromChip}
+          onMove={adapter.move}
+          onRemove={adapter.remove}
+          onInsert={setInsertAnchor}
+          insertLabel={adapter.menuLabel}
+        />
+      </div>
+      {insertAnchor === null ? null : (
+        <Menu
+          label={adapter.menuLabel}
+          anchor={{kind: 'element', element: insertAnchor}}
+          entries={adapter.insertEntries(labels, () => setInsertAnchor(null))}
+          onClose={() => setInsertAnchor(null)}
+        />
+      )}
+    </>
+  );
+}
+
 export interface ItemArrangementProps {
   readonly items: ServiceItemStore;
-  readonly session: SongSession | SongSession<GroupedSong>;
+  readonly session: SongSession;
   readonly itemId: string;
   readonly labels: readonly Label[];
   readonly selected: number | undefined;
@@ -219,14 +269,13 @@ export function ItemArrangement({
     const slide = view.state?.layers.slide;
     return slide?.itemId === itemId ? slide.position : undefined;
   });
-  const [insertAnchor, setInsertAnchor] = useState<HTMLElement | null>(null);
   const {song} = session.history.snapshot;
   const sequence = useMemo(
-    () => editedOrder(song, arrangement),
+    () => editedOrderWithLimit(song, arrangement),
     [song, arrangement],
   );
   const isGrouped = isGroupedSong(song);
-  const sequenceLength = sequence.length;
+  const sequenceLength = sequence.slides.length;
   const adapter = useMemo(
     () =>
       isGrouped
@@ -236,6 +285,7 @@ export function ItemArrangement({
             labels,
             items,
             sequenceLength,
+            capped: sequence.capped,
             onSelect,
           })
         : makeLegacyAdapter({
@@ -245,14 +295,25 @@ export function ItemArrangement({
             items,
             onSelect,
           }),
-    [isGrouped, song, arrangement, labels, items, sequenceLength, onSelect],
+    [
+      isGrouped,
+      song,
+      arrangement,
+      labels,
+      items,
+      sequenceLength,
+      sequence.capped,
+      onSelect,
+    ],
   );
 
   const orderReason = session.readOnly
     ? NEWER_FILE_REASON
-    : arrangement === undefined
-      ? DEFAULT_ORDER_REASON
-      : undefined;
+    : sequence.capped
+      ? ARRANGEMENT_LIMIT_REASON
+      : arrangement === undefined
+        ? DEFAULT_ORDER_REASON
+        : undefined;
   const serviceReason =
     service?.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
   const requestedArrangement =
@@ -309,29 +370,15 @@ export function ItemArrangement({
           </Tooltip>
         )}
       </div>
-      <div {...drag.stripProps}>
-        <ArrangementStrip
-          label="구성 순서"
-          chips={adapter.chips}
-          selected={adapter.chipSelected(selected)}
-          live={adapter.chipLive(live)}
-          readOnlyReason={orderReason}
-          dropIndex={drag.dropIndex}
-          draggingIndex={drag.draggingIndex}
-          onSelect={adapter.selectFromChip}
-          onMove={adapter.move}
-          onRemove={adapter.remove}
-          onInsert={setInsertAnchor}
-        />
-      </div>
-      {insertAnchor === null ? null : (
-        <Menu
-          label={adapter.menuLabel}
-          anchor={{kind: 'element', element: insertAnchor}}
-          entries={adapter.insertEntries(labels, () => setInsertAnchor(null))}
-          onClose={() => setInsertAnchor(null)}
-        />
-      )}
+      <ArrangementStripSection
+        key={sequence.capped ? 'capped' : 'normal'}
+        adapter={adapter}
+        selected={selected}
+        live={live}
+        orderReason={orderReason}
+        drag={drag}
+        labels={labels}
+      />
     </div>
   );
 }

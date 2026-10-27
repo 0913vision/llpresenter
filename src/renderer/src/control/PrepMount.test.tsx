@@ -34,7 +34,10 @@ function mountPrep() {
     [...fixture.documents.values()].map(({song, access}) => ({
       id: song.id,
       title: song.title,
-      slideCount: song.slides.length,
+      slideCount: song.groups.reduce(
+        (count, group) => count + group.slides.length,
+        0,
+      ),
       usedBy: [],
       access,
     }));
@@ -112,7 +115,9 @@ it('opens the real library editor and preserves typing and undo across workspace
   await waitFor(() => expect(fixture.edits).toHaveLength(2));
   expect(screen.getByRole('textbox', {name: '슬라이드 1 가사'})).toHaveProperty(
     'value',
-    fixture.first.song.slides[0]?.lines.join('\n'),
+    fixture.first.song.groups
+      .flatMap(group => group.slides)[0]
+      ?.lines.join('\n'),
   );
   expect(fixture.send).not.toHaveBeenCalled();
   cleanup();
@@ -145,7 +150,9 @@ it('creates 새 곡 and focuses and selects its title without sending output com
     song: {
       ...sourceDocument.song,
       title: '새 곡',
-      slides: [{lines: ['']}],
+      groups: sourceDocument.song.groups
+        .slice(0, 1)
+        .map(group => ({...group, name: '', slides: [{lines: ['']}]})),
       arrangements: [],
     },
   };

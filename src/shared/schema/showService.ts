@@ -25,6 +25,7 @@ export const showRowProblems = [
   'missing-media',
   'unknown-kind',
   'newer-version',
+  'tile-limit',
 ] as const;
 
 export const SHOW_SERVICE_LIMITS = {

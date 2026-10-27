@@ -62,7 +62,7 @@ const groupArrangementSchema = jsonObject({
 export const groupedSongSchema = v.pipe(
   jsonObject({
     format: v.literal('llsong'),
-    schemaVersion: positiveInteger,
+    schemaVersion: v.pipe(positiveInteger, v.minValue(2)),
     id: songIdSchema,
     title: nonBlankText,
     background: v.exactOptional(mediaIdSchema),
@@ -128,12 +128,17 @@ const groupedSongFormat: FileFormat<typeof groupedSongSchema> = {
   migrations: [migrateSongGroups],
 };
 
-/** Version 2 contract; persistence stays on version 1 until consumers migrate. */
+/** A stored version 2 song, including its named groups and arrangements. */
 export type GroupedSong = ReadonlyKnown<
   v.InferOutput<typeof groupedSongSchema>
 >;
 export type SongGroup = GroupedSong['groups'][number];
 export type GroupArrangement = NonNullable<GroupedSong['arrangements']>[number];
+
+/** Counts source slides once, independent of arrangement repetitions. */
+export function sourceSlideCount(song: GroupedSong): number {
+  return song.groups.reduce((sum, group) => sum + group.slides.length, 0);
+}
 
 /** Reads version 2, or migrates a version 1 song in memory without writing it. */
 export function parseGroupedSong(
