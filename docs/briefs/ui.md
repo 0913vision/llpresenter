@@ -3,7 +3,8 @@
 - Session name: ui
 - Branches: `feat/ui/form-controls` for `ui-1`, then `feat/ui/overlays` for
   `ui-2` (own worktree)
-- Dev server port: 5186; app data folder: `D:\llp-dev\ui`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1, in parallel with trial, devops, and the lead
 
 ## Goal

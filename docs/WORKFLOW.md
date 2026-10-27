@@ -36,8 +36,8 @@ subagent).
   ProPresenter project) continues as the lead. If that session ends or its
   context grows too long, a new session takes over as the lead with
   `docs/briefs/lead.md`.
-- The lead runs in `D:\programming\2020-\pp` (`main`) with permission prompts
-  turned off. Team members start in the same mode. If the modes differ, messages
+- The lead runs in `<main checkout>` (`main`) with permission prompts turned
+  off. Team members start in the same mode. If the modes differ, messages
   between sessions stall while they wait for the user's approval.
 - The lead runs inside tmux and starts each team member as an independent
   interactive Claude Code session in a new tmux window (user rule). Never use
@@ -56,70 +56,30 @@ subagent).
   from the last commit on `main`.
 - At most three team members run at the same time.
 
-## Review request (PR) flow
+## Pull request flow
 
-1. **Implement:** The team member implements the scope of the brief and commits
-   in meaningful units. Keep each change small and focused, following Google's
-   engineering practices. Each commit message is one line in the format and with
-   the tags that `CLAUDE.md` defines. Run `npm run format` before you commit.
-2. **Rebase:** Before you send the review request, rebase onto the latest `main`
-   once and resolve any conflict yourself. You don't need to rebase again when
-   `main` moves later without touching your files: the lead rebases
-   conflict-free branches at merge time.
-3. **Check:** While you work, run the fast checks on what you changed:
-   `npm run typecheck`, `npx eslint <your files>`, and
-   `npx vitest run <your test files>`. Then push your branch
-   (`git push -u origin <branch>`, or `--force-with-lease` after a rebase) and
-   wait for its GitHub CI run: `node scripts/ci/status.mts <branch>` prints the
-   run's status and URL. A green run of your head commit is required; if it
-   fails only in a test you didn't touch that is known to be flaky (the lead
-   keeps the list), record it and send the request; any other failure blocks.
-   Don't run the full `npm run verify` on this computer unless the lead asks.
-4. **Request a review:** Write `docs/reviews/<name>-<number>.md` from
-   `docs/reviews/_template.md` and commit it. It says what changed and why, the
-   check results, the decisions you made yourself, and where you want the
-   reviewers to look. Then send the lead this message with SendMessage, and keep
-   working on your next branch (stacked if needed):
+The flow follows an ordinary GitHub pull request flow, kept on this computer
+because it has no GitHub CLI. `docs/MEMBER.md` has the steps for team members
+and `docs/REVIEW.md` the steps for reviewers.
 
-   ```text
-   Review request: docs/reviews/<name>-<number>.md, branch <tag>/<name>/<feature>, commit <hash>
-   ```
-
-5. **Review:** The lead looks at `git diff main...<branch>` and at the actual
-   behavior. At the same time, the lead calls the reviewer to review the same
-   range separately. Both reviewers follow Google's engineering practices:
-   approve a change once it improves the overall health of the code, even if it
-   isn't perfect. They check the clean code rules and the comment rules in
-   `CLAUDE.md` and request changes when a rule is broken, and they don't approve
-   changes without tests. Approve when only nits are left; the author fixes nits
-   in the next branch. The lead records both verdicts in the review document at
-   merge time, so members don't paste them.
-6. **Address comments:** If changes are requested, the lead tells the team
-   member with SendMessage. For each comment, the team member either addresses
-   it or answers it in the reply message, adds new commits, and resends the
-   request line.
-7. **Approve and merge:** When both the lead and the reviewer approve, the lead
-   first pulls the version bot's latest commit
-   (`git pull --ff-only origin main`), confirms that the team member's branch
-   sits on the latest `main`, and merges it by fast-forward only:
-   `git merge --ff-only <branch>`. Pushing `main` runs the pre-push check, and
-   GitHub then adds the `Bump version: x.y.z` commit and tag. If `main` moved in
-   the meantime and the rebase is conflict-free, the lead rebases a copy of the
-   branch onto `main` and fast-forwards to it; the member then starts the next
-   branch from `main`. Only a conflicting rebase goes back to the member. The
-   lead batches document commits and pushes them with merges, so `main` moves
-   less often.
-8. **Clean up:** The lead updates `docs/STATUS.md`, commits it, and tells the
-   other team members who are still working that `main` changed. Finished
-   worktrees and branches are cleaned up after the user confirms.
-
-- Merges are fast-forward only. Don't create merge commits or squash merges.
-- Never rebase or revert `main` itself.
-- After a merge, the lead pushes `main` to `origin` (for backup and CI). Nobody
-  force-pushes. Team members don't push.
-- If the lead and the reviewer disagree, they write their reasons in the review
-  document and discuss it once more. If they still can't agree, the user
-  decides.
+1. One ticket is one branch, one pull request, and one squashed commit on
+   `main`.
+2. The pull request is a short file in the author's worktree,
+   `.llp/pr/<name>.md`, outside git. Its title is the commit message `main`
+   gets.
+3. Before pushing, the author runs the typecheck, the format check, ESLint on
+   the changed files, and the tests related to them. The dispatcher sends the
+   pull request to a reviewer only after the branch's exact-head CI run passes.
+4. One reviewer reviews the range. Approve when only nits remain; the author
+   puts nits in the next branch. The lead reads the diff in the sensitive paths
+   (`src/main/outputs`, `live`, `store`, `windows`, `media`, and `src/preload`)
+   or has a second reviewer read it.
+5. The dispatcher, or the lead for sensitive paths, squash-merges the branch
+   onto local `main` after a passing typecheck. Merge conflicts go back to the
+   author. Nobody rebases or rewrites `main` itself.
+6. Review conversation, screenshots, measurements, and local details never go
+   into the repository. Committed files hold the product: code, tests, specs,
+   plans, and decisions.
 
 ## Questions
 
@@ -130,8 +90,8 @@ subagent).
   records the answer in `docs/decisions.md` and then passes it on to the team
   member.
 - When a team member finishes a turn, the app notifies the lead automatically.
-  The lead then checks the message and the review document. The lead doesn't
-  rely on the report alone, and looks at the actual changes and test results.
+  The lead then checks the message and the pull request. The lead doesn't rely
+  on the report alone, and looks at the actual changes and test results.
 - The lead's instructions and answers also go by SendMessage (to that session's
   `local_...` ID).
 
@@ -139,12 +99,11 @@ subagent).
 
 Write every document in English, following the style guides in `CLAUDE.md`.
 
-| File                              | Who                                                                              | Contents                                                                |
-| --------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `docs/briefs/<name>.md`           | Lead                                                                             | Brief. Template: `docs/briefs/_template.md`                             |
-| `docs/reviews/<name>-<number>.md` | The team member writes it; the lead and the reviewer fill in the review sections | Review request and reviews. Template: `docs/reviews/_template.md`       |
-| `docs/STATUS.md`                  | Lead                                                                             | State of the phases, bundles, and review requests                       |
-| `docs/decisions.md`               | Lead                                                                             | New decisions made during implementation, one entry each, with the date |
+| File                    | Who  | Contents                                                                |
+| ----------------------- | ---- | ----------------------------------------------------------------------- |
+| `docs/briefs/<name>.md` | Lead | Brief. Template: `docs/briefs/_template.md`                             |
+| `docs/STATUS.md`        | Lead | State of the phases, bundles, and review requests                       |
+| `docs/decisions.md`     | Lead | New decisions made during implementation, one entry each, with the date |
 
 ## When to clear
 
@@ -174,24 +133,10 @@ docs/STATUS.md, then continue."
 
 ## Port and app data folder assignments
 
-Phase 1 makes the app read the dev server port (`LLP_DEV_PORT`) and the app data
-folder (`LLP_USER_DATA`) from environment variables. With different app data
-folders, several copies of the same app can run without colliding.
-
-| Session | Port | App data folder      |
-| ------- | ---- | -------------------- |
-| lead    | 5173 | `D:\llp-dev\lead`    |
-| trial   | 5190 | `D:\llp-dev\trial`   |
-| devops  | 5185 | `D:\llp-dev\devops`  |
-| ui      | 5186 | `D:\llp-dev\ui`      |
-| shell   | 5187 | `D:\llp-dev\shell`   |
-| data    | 5188 | `D:\llp-dev\data`    |
-| qa      | 5189 | `D:\llp-dev\qa`      |
-| prep    | 5181 | `D:\llp-dev\prep`    |
-| output  | 5182 | `D:\llp-dev\output`  |
-| tools   | 5183 | `D:\llp-dev\tools`   |
-| polish  | 5184 | `D:\llp-dev\polish`  |
-| screens | 5192 | `D:\llp-dev\screens` |
+The app reads the dev server port (`LLP_DEV_PORT`) and the app data folder
+(`LLP_USER_DATA`) from environment variables, so several copies can run without
+colliding. Each session's port and folder are machine-specific, so the lead
+keeps the table outside the repository and gives each session its own.
 
 ## Milestones and QA
 
@@ -233,12 +178,13 @@ review:
    comments, rebase the branches above it onto it
    (`git rebase --onto <lower> <lower-before-the-change> <upper>`, or
    `git rebase --update-refs` from the top branch).
-3. **After the lower branch merges:** move the next branch onto `main` with
-   `git rebase --onto main <lower> <next>`, so only its own commits remain, and
-   run `npm run verify`.
+3. **After the lower branch merges:** it lands as one squashed commit, so move
+   the next branch onto `main` with
+   `git rebase --onto main <old head of the lower branch> <next>`, so only its
+   own commits remain.
 4. **Review requests go out in stack order.** Send the next request only after
    the one below it is merged and the next branch is rebased onto `main`.
-   Mention the stack in the review document ("stacked on ui-1").
+   Mention the stack in the pull request ("stacked on ui-1").
 5. Keep stacks shallow, two or three branches. If a lower branch needs a large
    rework, pause the upper ones instead of rebasing them again and again.
 
@@ -265,11 +211,8 @@ review:
 - CI: GitHub Actions runs `npm ci` and `npm run verify` on a Windows runner when
   `main` is pushed (set up by devops). The local `npm run verify` comes first.
   CI on GitHub checks once more in a clean environment.
-- For now, reviews happen through review documents in the repository
-  (`docs/reviews/`) and SendMessage, not through GitHub PRs, because this
-  computer has no GitHub CLI (`gh`) and team members don't push. devops
-  reconsiders GitHub PRs in phase 1 and makes a proposal in its review document,
-  and the lead decides.
+- Reviews use local pull request files (see "Pull request flow") because this
+  computer has no GitHub CLI.
 - On 2026-10-24, `main` was fast-forwarded to the rewrite (3c3efb7). It started
   from the last commit of the 2024 code (9b23462), so no force push was needed.
 
@@ -277,5 +220,4 @@ review:
 
 - The lead decides with the user when to add Codex (around phase 3). The user
   installs it and signs in.
-- Run it read-only so that it can't change code, and copy its results into the
-  reviewer section of the review document.
+- Reviewer sessions run read-only and follow `docs/REVIEW.md`.

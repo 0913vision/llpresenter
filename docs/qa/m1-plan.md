@@ -45,17 +45,17 @@ their failures as "known, M2 backlog", not as M1 bugs.
 
 ## Test environment
 
-| Item             | Value                                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- |
-| OS               | Windows 10 Education 10.0.19045                                                                               |
-| Monitors         | Primary 3440×1440 at 100%, secondary 1920×1080 at 100% to its right                                           |
-| Node             | 24.20.0, the version CI uses                                                                                  |
-| Git              | 2.35.2 (Git for Windows)                                                                                      |
-| Shells           | Git Bash and Windows PowerShell 5.1                                                                           |
-| Dev server port  | 5189 (`LLP_DEV_PORT`)                                                                                         |
-| Card server port | 5289 (`node design/system/card-server.js 5289`), apart from the 5296 that ui uses                             |
-| App data         | A new subfolder of `D:\llp-dev\qa` for each run (`LLP_USER_DATA=D:\llp-dev\qa\<run>`), so runs share no state |
-| Clean clone      | `D:\llp-dev\qa\clone`, a short path (see "Windows pitfalls" in `docs/WORKFLOW.md`)                            |
+| Item             | Value                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| OS               | Windows 10 Education 10.0.19045                                                                           |
+| Monitors         | Primary 3440×1440 at 100%, secondary 1920×1080 at 100% to its right                                       |
+| Node             | 24.20.0, the version CI uses                                                                              |
+| Git              | 2.35.2 (Git for Windows)                                                                                  |
+| Shells           | Git Bash and Windows PowerShell 5.1                                                                       |
+| Dev server port  | 5189 (`LLP_DEV_PORT`)                                                                                     |
+| Card server port | 5289 (`node design/system/card-server.js 5289`), apart from the 5296 that ui uses                         |
+| App data         | A new subfolder of `<qa folder>` for each run (`LLP_USER_DATA=<qa folder>\<run>`), so runs share no state |
+| Clean clone      | `<qa folder>\clone`, a short path (see "Windows pitfalls" in `docs/WORKFLOW.md`)                          |
 
 ### Display scaling
 
@@ -108,7 +108,7 @@ to the monitor height, QA runs the layout cases on an emulated viewport (CDP
 - QA never runs `git push`. The pre-push hook is tested by running
   `.githooks/pre-push` directly with the arguments and the standard input that
   git passes to it.
-- QA writes only in `D:\llp-dev\qa`, its scratchpad, and its own worktree.
+- QA writes only in `<qa folder>`, its scratchpad, and its own worktree.
   Deliberate breakage (section V) happens only in the clean clone, which is
   restored with `git restore .` afterward.
 - QA tools live in `.llp/qa/` in the QA worktree (ignored by git), outside the
@@ -121,7 +121,7 @@ The cases refer to these procedures by name.
 
 | Procedure        | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P-clone          | `git clone https://github.com/0913vision/llpresenter D:\llp-dev\qa\clone`, `git switch --detach m1`, `npm ci`. Records the time and the exit code.                                                                                                                                                                                                                                                                                                                        |
+| P-clone          | `git clone https://github.com/0913vision/llpresenter <qa folder>\clone`, `git switch --detach m1`, `npm ci`. Records the time and the exit code.                                                                                                                                                                                                                                                                                                                          |
 | P-launch(run)    | Runs the build through the QA launcher with a new `LLP_USER_DATA`, `--remote-debugging-port` (renderer CDP), `--inspect` (main process CDP), `--force-device-scale-factor` for the run's scale, and `--disable-features=CalculateNativeWinOcclusion` so the invisible window keeps painting. Sets the run's CSS size and waits for the `started` log line.                                                                                                                |
 | P-size(w, h)     | Sets the content size from the main process (`BrowserWindow#setContentSize`), waits two animation frames, and reads `innerWidth`, `innerHeight`, `devicePixelRatio`, `data-size`, and the boxes of the menu bar, toolbar, columns, gaps, and status bar through CDP.                                                                                                                                                                                                      |
 | P-drag(gap, dx)  | Presses the mouse in the middle of a gap, moves it by `dx` in 10 steps, and releases it, with CDP `Input.dispatchMouseEvent` (Chromium turns these into pointer events). Reads the column boxes after each step.                                                                                                                                                                                                                                                          |
@@ -262,7 +262,7 @@ about the version rules and the flow for `main`.
 - **V11 Version rules**
   - Steps: For each bump since the bot landed, list the subjects between the
     previous bump and this one, and compute the expected level. Then, in a
-    scratch repository under `D:\llp-dev\qa`, build ranges of only `fix` and
+    scratch repository under `<qa folder>`, build ranges of only `fix` and
     `docs` commits, with one `feat`, with one `refactor`, with one `break`, and
     of only bump commits, and run the version script with `--dry-run` on each.
   - Expected: Minor when a range holds `break`, `feat`, or `refactor`; patch

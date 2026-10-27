@@ -128,8 +128,8 @@ Each registry entry registers a type name, a data format (schema), a renderer
 
 ## Quality bar
 
-A review request is approved only when it meets everything below. The review
-template (`docs/reviews/_template.md`) has the same checklist.
+A pull request is approved only when it meets everything below
+(`docs/REVIEW.md`).
 
 ### Preventing runtime errors
 

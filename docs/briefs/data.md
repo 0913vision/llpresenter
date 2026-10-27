@@ -2,7 +2,8 @@
 
 - Session name: data (the session that reviewed trial-1 continues as data)
 - Branch: `feat/data/schemas` (own worktree)
-- Dev server port: 5188; app data folder: `D:\llp-dev\data`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1, in parallel with devops, ui, and shell
 
 ## Goal

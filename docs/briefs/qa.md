@@ -2,7 +2,8 @@
 
 - Session name: qa
 - Branch: `docs/qa/<milestone>-<topic>` for each report (own worktree)
-- Dev server port: 5189; app data folder: `D:\llp-dev\qa`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: every milestone, starting with M1
 
 ## Goal
@@ -26,9 +27,9 @@ reproduce, and describe.
 3. **After the freeze:** the lead tells you the tag (`m1`). Check it out
    detached in your worktree (`git switch --detach m1`), run `npm ci`, and run
    every test case: the app itself (`LLP_DEV_PORT=5189`,
-   `LLP_USER_DATA=D:\llp-dev\qa`), the gallery, `npm run verify` on a clean
-   clone, and the CI and version bot results on GitHub. Drive the app through
-   the Chrome DevTools Protocol where a script helps; keep windows offscreen or
+   `LLP_USER_DATA=<qa folder>`), the gallery, `npm run verify` on a clean clone,
+   and the CI and version bot results on GitHub. Drive the app through the
+   Chrome DevTools Protocol where a script helps; keep windows offscreen or
    unfocused so nothing pops up on the user's screen, and check any script with
    `node --check` before it starts Electron.
 4. **Report:** `docs/qa/m1-report.md` with the result of every case (pass, fail,

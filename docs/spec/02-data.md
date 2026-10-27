@@ -753,8 +753,8 @@ change this picker preference.
 ### What comes from copible
 
 The earlier plan was to follow "the offline data of copible". A read-only look
-at the user's repository (`D:\programming\copible`, last commit on 2025-07-22,
-on 2026-10-25) found no offline Bible text and no file format:
+at the user's repository (`<copible clone>`, last commit on 2025-07-22, on
+2026-10-25) found no offline Bible text and no file format:
 
 - copible fetches verse text live, one chapter at a time, from the Korean Bible
   Society website (`https://www.bskorea.or.kr/bible/korbibReadpage.php` with
@@ -1057,8 +1057,8 @@ Open questions (also in the README, row 4):
   build them from a pinned source file at build time, so that no Bible text
   lands in the repository and nothing is fetched at run time.
 
-Source: read-only look at `D:\programming\copible` (2026-10-25), the sources in
-the table above, `Prefs` 성경, `Bible`, product log (copible, offline data
+Source: read-only look at `<copible clone>` (2026-10-25), the sources in the
+table above, `Prefs` 성경, `Bible`, product log (copible, offline data
 preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 
 ## Schema versions and migration

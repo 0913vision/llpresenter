@@ -4,8 +4,9 @@ Right now, the session that handled phase 0 is the lead. Use this brief when a
 new session takes over as the lead.
 
 - Session name: lead
-- Location: `D:\programming\2020-\pp`, branch `main`
-- Dev server port: 5173; app data folder: `D:\llp-dev\lead`
+- Location: `<main checkout>`, branch `main`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Permission mode: permission prompts turned off
 
 ## Role

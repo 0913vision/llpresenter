@@ -184,7 +184,9 @@ without exception.
   branches.
 - The GitHub repository (0913vision/llpresenter) is public. Never commit
   secrets, personal data, or copyrighted lyrics. Use public-domain text or
-  invented sentences for sample lyrics.
+  invented sentences for sample lyrics. Never commit machine-specific details
+  either: local paths, user names, ports, or temp folders. Tests use neutral
+  paths such as `C:\data`.
 - Never run `reset --hard`, rewrite history, or delete branches on `main`.
   Members rebase only their own branch onto `main`. Nobody rebases `main`
   itself.
@@ -207,9 +209,8 @@ the process only at a milestone boundary, never in the middle of one.
   path, like code owners: the owner's rules apply to every change there, and the
   review checks them. You may change any path your request needs without asking
   first. List every change outside your own paths, with the reason, under
-  "Changes outside my paths" in the review document. Keep those changes to what
-  the request needs; a larger change in someone else's area is that owner's
-  request.
+  "Outside my paths" in your pull request. Keep those changes to what the
+  request needs; a larger change in someone else's area is that owner's request.
 - **Shared contracts:** `src/shared/` and `src/preload/` are kept by data.
   Additive changes (a new type, an optional field, a new IPC channel or command)
   go in your own request, with schemas, valid and invalid tests, and caps,
@@ -218,27 +219,30 @@ the process only at a milestone boundary, never in the middle of one.
 - **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
   review, start the next one stacked on it (`docs/WORKFLOW.md`, "Stacked
   branches").
-- **Checks:** while you work, run the fast checks on your own files on this
-  computer. The full `npm run verify` runs on GitHub: push your branch, wait for
-  its CI run (`node scripts/ci/status.mts <branch>`), and put the run's URL and
-  result in the review request. Don't run the full verify locally unless the
+- **Checks:** before every push, run the typecheck, the format check, ESLint on
+  your changed files, and the tests related to them (`docs/MEMBER.md`). The full
+  `npm run verify` runs on GitHub; the review starts only after your branch's CI
+  run passes. Never poll CI, and don't run the full verify locally unless the
   lead asks.
-- **Review request:** rebase onto the latest `main` once, resolving conflicts
-  yourself (for `package-lock.json`, take `main`'s file and run `npm install`),
-  then send the request line. Don't paste verdicts; the lead records them.
-  Answer review findings once; nits go into your next branch.
-- **Merging:** only the lead merges, one branch at a time, in the order in
-  "Merge queue" in `docs/STATUS.md`. If `main` moved and your branch rebases
-  without conflicts, the lead does it.
-- **Reporting:** send the lead one short message when you send a request, when
-  you finish a task, when you're blocked, and when you have no work left. The
-  lead gives you the next task. Don't wait silently.
-- Use the dev server port and app data folder from the table in
-  `docs/WORKFLOW.md`. Never let a window or an error dialog appear on the user's
-  screen; check scripts with `node --check` before they start Electron.
+- **Pull request:** one ticket is one branch and one pull request: a short file
+  outside git whose title becomes the one squashed commit on `main`
+  (`docs/MEMBER.md`). Rebase onto the latest `main` once before you open it,
+  resolving conflicts yourself (for `package-lock.json`, take `main`'s file and
+  run `npm install`). Answer findings once, one line each; nits go into your
+  next branch.
+- **Merging:** the dispatcher, or the lead for sensitive paths, squash-merges
+  approved branches onto `main`, one at a time. A conflict comes back to you.
+- **Nothing about the process is committed:** no review files, screenshots,
+  measurements, run logs, or notes. Committed files hold the product: code,
+  tests, specs, plans, and decisions.
+- **Reporting:** send the lead one short message when you open a pull request,
+  when you finish a task, when you're blocked, and when you have no work left.
+  The lead gives you the next task. Don't wait silently.
+- Use the dev server port and app data folder the lead gives you. Never let a
+  window or an error dialog appear on the user's screen; check scripts with
+  `node --check` before they start Electron.
 - The lead alone edits `CLAUDE.md` and `docs/` outside `docs/spec/`, `docs/qa/`,
-  `docs/plans/`, and your own `docs/reviews/` files. The lead manages and
-  doesn't write code.
+  and `docs/plans/`. The lead manages and doesn't write code.
 
 ## Context and compaction
 

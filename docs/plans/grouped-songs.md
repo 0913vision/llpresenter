@@ -212,7 +212,7 @@ To keep `main` 100% green, fully typed, and usable at every commit:
    helpers, adapters, and parallel grouped pipelines, tested with grouped
    fixtures.
 3. **Every request affecting the operator UI includes its own real-app offscreen
-   check** (`LLP_TEST_WINDOWS=offscreen`, port 5194, `D:\llp-dev\group`), with
+   check** (`LLP_TEST_WINDOWS=offscreen`, port 5194, `<group folder>`), with
    screenshots and flat element counts across repeated flows, as required by
    `CODEX.md`.
 4. **Final activation request** flips the store, IPC, and shared contracts
@@ -641,9 +641,9 @@ decision:
      operator assignment is required.
 
 2. **Port and App Data Folder Documentation**:
-   - Dev port 5194 and app data folder `D:\llp-dev\group` were assigned by the
+   - Dev port 5194 and app data folder `<group folder>` were assigned by the
      lead in `.llp/restart.md`. We request the lead add the `group` row (Port
-     5194, Folder `D:\llp-dev\group`) to the port table in `docs/WORKFLOW.md`.
+     5194, Folder `<group folder>`) to the port table in `docs/WORKFLOW.md`.
 
 3. **`Ctrl+G` Keyboard Shortcut for Group Split / Label Menu**:
    - _Context_: Spec 10 specifies `Tab` and `Shift+Tab` navigation in the

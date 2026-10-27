@@ -32,10 +32,10 @@ differs from the design system).
 
 One owner per path, like code owners: the owner keeps the path's rules, and
 reviews check every change there against them. Any member may change any path
-their request needs and lists changes outside their own paths in the review
-document (`CLAUDE.md`, "Your files"; user decision, October 26). Every member
-owns their own `docs/reviews/<name>-<number>.md`, and a member who rebases
-regenerates `package-lock.json` (take `main`'s file, then `npm install`).
+their request needs and lists changes outside their own paths in the pull
+request (`CLAUDE.md`, "Your files"; user decision, October 26). A member who
+rebases regenerates `package-lock.json` (take `main`'s file, then
+`npm install`).
 
 | Owner   | Paths                                                                                                                                                                                                                                                                                          |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -7,10 +7,10 @@ entry overrides an earlier one, even when it appears higher in the file. New
 decisions go into `docs/decisions.md`.
 
 Since 2026-10-23 the user is rebuilding their old 2024 Electron/React lyrics
-presenter (`D:\programming\2020-\pp`, GitHub 0913vision/llpresenter) from
-scratch on branch `rewrite`; the old code stays on `main` as reference only.
-Stack: Electron + electron-vite + React + TypeScript, Zustand, Pretendard. App
-code is paused until the drafts settle.
+presenter (`<main checkout>`, GitHub 0913vision/llpresenter) from scratch on
+branch `rewrite`; the old code stays on `main` as reference only. Stack:
+Electron + electron-vite + React + TypeScript, Zustand, Pretendard. App code is
+paused until the drafts settle.
 
 Must-haves they named: different content per monitor, lyrics stepped over a
 looping background video, a different text layout per monitor,
@@ -55,9 +55,8 @@ only in 준비; 진행's left column is 예배 순서 plus 퀵 실행, which is 
 (Bible verse input placeholder on top, then frequent items such as verses,
 songs, 검은 화면). The user deferred shortcut keys for 퀵 실행 to later. Bible
 behavior is deferred; it will reuse logic from the user's own repo
-github.com/0913vision/copible (local D:\programming\copible), preferably with
-offline data instead of live crawling. Avoid the term "쇼 컨트롤"; call it 진행
-도구.
+github.com/0913vision/copible (local <copible clone>), preferably with offline
+data instead of live crawling. Avoid the term "쇼 컨트롤"; call it 진행 도구.
 
 Drafts state (2026-10-24, version 50): the user picked the hybrid (ShowH, now
 titled 진행 화면) and said drafts are nearly done apart from alignment; they

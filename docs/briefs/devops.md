@@ -2,7 +2,8 @@
 
 - Session name: devops
 - Branch: `chore/devops/verify` (own worktree)
-- Dev server port: 5185; app data folder: `D:\llp-dev\devops`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1 (in parallel with the lead's foundation work)
 
 ## Goal

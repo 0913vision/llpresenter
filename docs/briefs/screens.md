@@ -4,7 +4,8 @@
   tmux window `ag-screens`; a model trial, user decision of October 26)
 - Branch: `<tag>/screens/<feature>` (own worktree `.claude/worktrees/screens`;
   rules in `docs/WORKFLOW.md`)
-- Dev server port: `5192`; app data folder: `D:\llp-dev\screens`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: M3 (`docs/plans/m3-breakdown.md`, "M3-O1 화면 설정: screens")
 
 ## Goal

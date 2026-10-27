@@ -2,7 +2,8 @@
 
 - Session name: shell (the session that ran trial continues as shell)
 - Branch: `feat/shell/column-resize` (own worktree)
-- Dev server port: 5187; app data folder: `D:\llp-dev\shell`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1, in parallel with devops, ui, and data
 
 ## Goal

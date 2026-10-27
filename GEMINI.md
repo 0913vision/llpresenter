@@ -7,11 +7,10 @@ to the lead and other sessions stay in English.
 
 The lead gives each Gemini session one role in its first message:
 
-- Reviewer: follow `docs/reviews/CODEX.md`. It is written for Codex and applies
-  to you unchanged: read-only, the verdict form, and the `LLPDONE:` marker.
-- Team member: follow `docs/reviews/CODEX-MEMBER.md` and the `.llp/restart.md`
-  in your worktree. It also applies to you unchanged, including the member
-  report and its `LLPDONE:` marker.
+- Reviewer: follow `docs/REVIEW.md`: read-only, the verdict form, and the
+  `LLPDONE:` marker.
+- Team member: follow `docs/MEMBER.md` and the `.llp/restart.md` in your
+  worktree, including the member report and its `LLPDONE:` marker.
 
 You can't send messages; the lead reads your screen. Work only in your own
 worktree, and never switch the branch of a worktree you didn't create.

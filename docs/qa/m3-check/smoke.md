@@ -3,7 +3,7 @@
 Current user tag: `m3-check3`, commit
 `9bde04fd51ba782d80fbed8dc01770baa269e219`, version `0.16.0`. On October 26,
 20:27 to 20:36 KST, QA detached the tag, ran npm ci and build, and used a fresh
-sample copy at `D:/llp-dev/qa/m3-check3-data`, port 5189, CDP 15189 and
+sample copy at `<qa folder>/m3-check3-data`, port 5189, CDP 15189 and
 `LLP_TEST_WINDOWS=offscreen`. No app code or API was patched. All launch/driver
 scripts passed node syntax checks before use.
 [Check3 evidence](evidence/check3.json) preserves observations. The save marker
@@ -37,8 +37,8 @@ Current user tag: `m3-check2`, commit
 `ca4b745cbd1821f3a1ae789097d14315d23c3284`, version `0.15.0`. Retested October
 26 from 19:41 KST. `npm ci` and build passed detached in QA's own worktree.
 Restored only later QA fixture paths from the member branch. Used fresh
-`D:\llp-dev\qa\m3-check2-data`, port 5189, offscreen windows and CDP 15189. No
-app source, built code or Electron API was patched.
+`<qa folder>\m3-check2-data`, port 5189, offscreen windows and CDP 15189. No app
+source, built code or Electron API was patched.
 
 The lead received C2-1 and authorized continuing with a documented Task Manager
 workaround if no check3 tag is ready around 20:30. This prepares a user check;
@@ -130,7 +130,7 @@ check2 outcomes are above.
 - Built app launched directly with the local Electron executable, without
   modifying app source, built output, preload, or Electron APIs.
 - `LLP_TEST_WINDOWS=offscreen`, `LLP_DEV_PORT=5189`, CDP `15189`.
-- Copied sample: `D:\llp-dev\qa\m3-check1-data`. Every app window stayed hidden.
+- Copied sample: `<qa folder>\m3-check1-data`. Every app window stayed hidden.
 - Reported monitor: 1920 x 1080, scale factor 1. No physical display check.
 - Runtime helper scripts passed `node --check` before use.
 - A fresh continuation copy under the same assigned data folder completed the

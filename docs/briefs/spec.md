@@ -2,7 +2,8 @@
 
 - Session name: spec
 - Branch: `docs/spec/shortcuts-settings` (own worktree)
-- Dev server port: none (documents only); app data folder: none
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1 research, in parallel with the other members. Implementation
   comes in phase 4.
 

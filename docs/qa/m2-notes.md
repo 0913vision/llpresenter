@@ -109,8 +109,7 @@ that run.
 
 ### Record and logs
 
-All paths are under
-`D:\programming\2020-\pp\.claude\worktrees\qa\.llp\qa\soak-2\`:
+All paths are under `<qa worktree>\.llp\qa\soak-2\`:
 
 | Evidence                                                  | Relative path                   |
 | --------------------------------------------------------- | ------------------------------- |
@@ -226,8 +225,7 @@ can route the GPU evidence for investigation.
 
 ### Record and logs
 
-All paths are under
-`D:\programming\2020-\pp\.claude\worktrees\qa\.llp\qa\soak-3\`:
+All paths are under `<qa worktree>\.llp\qa\soak-3\`:
 
 | Evidence                                                       | Relative path                   |
 | -------------------------------------------------------------- | ------------------------------- |
@@ -262,10 +260,10 @@ The separate, deliberately repeated force-quit check below passes.
 ### Build, visible output, and measurement
 
 - Tested main `51b9e625498241d3ae3ea63a4d56abb47f527bb7`, version `0.13.0`, on
-  October 25, 2026. Cloned `D:\programming\2020-\pp` to the explicitly
-  authorized `D:\llp-dev\m2-run`; `npm ci` and `npm run build` passed there. No
-  app source or built output was patched. The documentation branch was later
-  rebased independently; it is not the runtime snapshot.
+  October 25, 2026. Cloned `<main checkout>` to the explicitly authorized
+  `<m2-run folder>`; `npm ci` and `npm run build` passed there. No app source or
+  built output was patched. The documentation branch was later rebased
+  independently; it is not the runtime snapshot.
 - User-authorized visible run: 20:48:16 to 21:48:20 KST (`11:48:16.478Z` to
   `12:48:20.210Z`). The original 1920x1080, 300-frame, 10-second VP8 soak clip
   is 5,013,551 bytes. The unchanged scenario changes among 12 invented slides
@@ -421,7 +419,7 @@ during run 4; the subsequent physical check is recorded below.
 
 ### Evidence paths
 
-All paths are local under `D:\llp-dev\m2-run\.llp\real-run\`, outside team
+All paths are local under `<m2-run folder>\.llp\real-run\`, outside team
 worktrees and excluded from Git:
 
 | Evidence                                       | Relative path                                                                  |
@@ -455,8 +453,8 @@ output on the primary monitor before the smaller fallback window settled.
 ### Setup and method
 
 - Same built clone and runtime snapshot as run 4: main `51b9e62`, version
-  `0.13.0`, `D:\llp-dev\m2-run`, and the same `.llp/real-run/user-data` folder.
-  No soak variables were set. The user explicitly authorized visible app windows
+  `0.13.0`, `<m2-run folder>`, and the same `.llp/real-run/user-data` folder. No
+  soak variables were set. The user explicitly authorized visible app windows
   and physically removed/reinserted the HDMI cable; QA did not simulate display
   removal.
 - `샘플 주일 예배` was open, with the first slide of `새벽을 여는 노래` over its
@@ -529,7 +527,7 @@ successful content/playback recovery. No placement fix was attempted.
 
 ### Evidence
 
-Local evidence is under `D:\llp-dev\m2-run\.llp\unplug\`:
+Local evidence is under `<m2-run folder>\.llp\unplug\`:
 
 | Evidence                                                                       | Relative path                                                 |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------- |
@@ -562,14 +560,14 @@ reconnect notification are Not checked.
 
 - Tested exactly `3d8a38b406d1870072babff416e4e2a6bc9ee06f` (output-21 merged),
   app version `0.13.0`, built with `npm ci` and `npm run build` in
-  `D:\llp-dev\m2-run`. The clone stayed detached at that commit. Eleven built
-  file hashes were checked before launch; no app source or built code was
-  patched. The newer documentation branch base is not the tested app build.
-- Same data folder: `D:\llp-dev\m2-run\.llp\real-run\user-data`.
-  `샘플 주일 예배` was open with the first slide of `새벽을 여는 노래` and its
-  1280x720, 12-second looping background video. The user authorized visible
-  windows and physically unplugged/replugged HDMI. No display simulation, soak,
-  or memory measurements were performed.
+  `<m2-run folder>`. The clone stayed detached at that commit. Eleven built file
+  hashes were checked before launch; no app source or built code was patched.
+  The newer documentation branch base is not the tested app build.
+- Same data folder: `<m2-run folder>\.llp\real-run\user-data`. `샘플 주일 예배`
+  was open with the first slide of `새벽을 여는 노래` and its 1280x720,
+  12-second looping background video. The user authorized visible windows and
+  physically unplugged/replugged HDMI. No display simulation, soak, or memory
+  measurements were performed.
 - At readiness (`20:09:22.183Z`, 05:09:22 KST), control was on the primary
   TFG34Q14WQ at Electron bounds `(791, 180, 1920, 1080)`, native outer bounds
   `(783, 180, 1936, 1088)`. BenQ GW2780 output was full screen at
@@ -699,7 +697,7 @@ each other or internally across awaited playback reads, so timing claims use
 event timestamps and conservative native confirmation where available.
 
 Local evidence directory:
-`D:\llp-dev\m2-run\.llp\hdmi-recheck\run-2026-10-25T20-09-06-070Z\`.
+`<m2-run folder>\.llp\hdmi-recheck\run-2026-10-25T20-09-06-070Z\`.
 
 | Evidence                                                                    | File                                                                                          |
 | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |

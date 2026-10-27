@@ -2,7 +2,8 @@
 
 - Session name: output
 - Branch: `feat/output/<feature>` per review request (own worktree)
-- Dev server port: 5182; app data folder: `D:\llp-dev\output`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Milestone: M2 (vertical slice), see `docs/MILESTONES.md`
 
 ## Goal

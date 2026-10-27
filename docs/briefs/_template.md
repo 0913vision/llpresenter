@@ -2,7 +2,8 @@
 
 - Session name: `<name>`
 - Branch: `<tag>/<name>/<feature>` (own worktree; rules in `docs/WORKFLOW.md`)
-- Dev server port: `<port>`; app data folder: `D:\llp-dev\<name>`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: `<phase>`
 
 ## Goal
@@ -55,11 +56,7 @@
 1. Rebase onto the latest `main` and resolve conflicts yourself.
 2. Run the checks in "How to verify" and in `CLAUDE.md`. If anything fails,
    don't send the review request.
-3. Write `docs/reviews/<name>-<number>.md` and commit it.
-4. Send the lead this message with SendMessage, and wait:
+3. Open the pull request as `docs/MEMBER.md` describes: a short file outside
+   git, then the request line. Keep working on your next branch.
 
-   ```text
-   Review request: docs/reviews/<name>-<number>.md, branch <tag>/<name>/<feature>, commit <hash>
-   ```
-
-5. If changes are requested, address them and start again from step 1.
+4. If changes are requested, address them and start again from step 1.

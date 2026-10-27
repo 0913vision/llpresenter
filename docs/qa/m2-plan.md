@@ -136,7 +136,7 @@ Korean:
 
 The repository holds no video files, and QA installs no programs. QA makes its
 own test media with the browser's `MediaRecorder` in QA's invisible viewer and
-keeps it in `D:\llp-dev\qa\media`, never in the repository:
+keeps it in `<qa folder>\media`, never in the repository:
 
 | File              | Content                                                                                           |
 | ----------------- | ------------------------------------------------------------------------------------------------- |

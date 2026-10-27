@@ -2,8 +2,8 @@
 
 - Session name: trial
 - Branch: `docs/trial/workflow-check` (own worktree)
-- Dev server port: 5190; app data folder: `D:\llp-dev\trial` (the initial
-  scaffold reads `LLP_DEV_PORT` and `LLP_USER_DATA`)
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: phase 1, after the initial scaffold lands on `rewrite`
 
 ## Goal
@@ -24,7 +24,7 @@ app, review requests, messages, rebasing, and fast-forward merges.
 2. Run `npm ci`, and record how long it took and the size of `node_modules`.
 3. Run `npm run typecheck`, `npm run format:check`, and `npm run build`, and
    record the results.
-4. With `LLP_DEV_PORT=5190` and `LLP_USER_DATA=D:\llp-dev\trial`, start
+4. With `LLP_DEV_PORT=5190` and `LLP_USER_DATA=<trial folder>`, start
    `npm run dev` in the background and wait 20 seconds. Record the dev server
    address (port) and whether the Electron process started, then stop
    everything. Check that nothing collides even while the lead's dev app (5173)

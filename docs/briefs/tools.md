@@ -3,7 +3,8 @@
 - Session name: `tools` (a Codex session in tmux window `cx-tools`)
 - Branch: `<tag>/tools/<feature>` (own worktree `.claude/worktrees/tools`; rules
   in `docs/WORKFLOW.md`)
-- Dev server port: `5183`; app data folder: `D:\llp-dev\tools`
+- Dev server port and app data folder: given by the lead (machine-specific, kept
+  outside the repository).
 - Phase: M3 (`docs/plans/m3-breakdown.md`, "M3-T1 to M3-T4")
 
 ## Goal

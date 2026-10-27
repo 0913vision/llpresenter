@@ -58,12 +58,8 @@ into local `main` one at a time and pushes at a milestone freeze or a finished
 feature bundle (`docs/decisions.md`). Each review document records its verdicts
 at merge.
 
-## Review requests
+## Merged pull requests
 
-| Review document            | Team member | Lead    | Reviewer                           | Merged  |
-| -------------------------- | ----------- | ------- | ---------------------------------- | ------- |
-| `docs/reviews/trial-1.md`  | trial       | Approve | Approve (Claude reviewer, round 2) | 24534c6 |
-| `docs/reviews/devops-1.md` | devops      | Approve | Approve (Codex, round 3)           | 1298408 |
-| `docs/reviews/devops-3.md` | devops      | Approve | Approve (Codex 0:6)                | 8d23708 |
-| `docs/reviews/shell-1.md`  | shell       | Approve | Approve (Codex codex3, round 3)    | 13d88b1 |
-| `docs/reviews/output-3.md` | output      | Approve | Approve (Codex codex2)             | 1f52d24 |
+Each merged pull request is one squashed commit on `main`; `git log` lists them.
+Review records stopped being kept in the repository on October 27 (user
+decision).

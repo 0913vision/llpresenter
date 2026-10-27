@@ -100,10 +100,10 @@ repository (`design/`).
   SDK redistribution terms and the NDI trademark notice.
 - Bible verses are looked up directly in the 퀵 실행 input field. The text is
   built in (offline), and we reuse the logic in the user's repository
-  github.com/0913vision/copible (local `D:\programming\copible`). Translations
-  start with 개역한글 (Korean Revised Version) and the KJV. For 개역개정 (New
-  Korean Revised Version), we must confirm permission from 대한성서공회 (the
-  Korean Bible Society).
+  github.com/0913vision/copible (local `<copible clone>`). Translations start
+  with 개역한글 (Korean Revised Version) and the KJV. For 개역개정 (New Korean
+  Revised Version), we must confirm permission from 대한성서공회 (the Korean
+  Bible Society).
 
 ### Design
 
