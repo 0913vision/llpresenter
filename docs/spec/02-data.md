@@ -501,6 +501,12 @@ Copy its configuration and unknown fields, and retain the original quick row's
 ID, name and position. Stage picks and other references to the original timer
 keep that ID. Each resulting timer starts stopped on launch, as before.
 
+Separation copies each definition's original kind and settings, including a
+legacy `countdownTo` time/date, `elapsedFrom` reference time, or `clock`. It
+does not invent a duration or convert those records. Their quick display and
+click behavior is defined by kind in 04. The original definition and references
+from stage selections and prop tokens keep their IDs and meaning.
+
 ### 메시지 templates and stage message presets (`messages.json`)
 
 | Field            | Type                                        | Meaning                                                                                                   | Source                                                 |

@@ -42,3 +42,16 @@ This request changes specification text only. It has no operator-visible app
 change or new screen to capture. Each implementation request will build and
 exercise its flow offscreen through CDP, repeat selections and open/close
 cycles, measure DOM and memory, and include its screenshots here.
+
+## Team member's reply
+
+Round 1: specified quick display and clicks for preserved date/time countdown,
+time-of-day elapsed, duration-based elapsed and clock definitions. Stopped wall
+targets draw once; start/reset keeps their reference semantics, a paused row
+resumes, and clocks keep updating with no click effect or running bar. Spec 02
+explicitly preserves the original kind/settings when separating shared quick
+references, including the original stage and prop references. No duration is
+invented and no existing timer is converted. The general quick-row wording and
+table now defer to these kind rules. Checked against the shared formatter, quick
+action runner and main timer slice. Documentation only; no new runtime behavior
+or TSDoc comments.

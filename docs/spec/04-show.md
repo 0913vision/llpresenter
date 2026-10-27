@@ -474,10 +474,12 @@ after its name, and hides it at 0.
   on, using an unused number. The row's 이름 바꾸기 changes that timer's name
   too, so the 무대 tab and stage layout picker show the renamed timer. Those
   pickers continue selecting the existing timer; they do not create one.
-- The quick row is a start/reset control: a stopped timer starts at its set
-  duration; clicking a running timer stops it and restores the full duration. It
-  does not pause. The separate timer-tab pause and 처음으로 controls above
-  remain available (user decision from the October 26 check).
+- The quick row is a start/reset control for its timer's kind. A stopped
+  duration countdown starts at its duration; a date/time countdown starts toward
+  its target; an elapsed timer starts at its start value. A paused timer
+  resumes. Clicking a running timer resets it to its configured stopped value.
+  The quick row does not pause. The separate timer-tab pause and 처음으로
+  controls above remain available (user decision from the October 26 check).
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
   plus button in the tab and a right-click menu on each row (rename, change kind
   and time, delete) (proposal).
@@ -567,24 +569,41 @@ README (count badge).
 - Tool row: the Bible passage field (book icon, placeholder "요 3:16, 창
   1:1-5"). See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
-- A timer row also shows its current value in place. While stopped, it shows its
-  configured duration; while running, it follows that timer's 0 지나면 choice. A
-  finished 멈춤 timer holds zero with its red on-state bar off until the
-  operator starts it again or resets it. A running row keeps the red bar.
+- A timer row shows its current value in place, using the same formatter and
+  kind rules as the timer tab. A running non-clock row keeps the red bar. A
+  finished 멈춤 countdown holds zero with the bar off until started or reset.
+- Older quick rows keep their timer kind when separated into independent
+  definitions. They are not converted to fixed-duration countdowns:
+  - `countdownTo` shows time to its configured target. A legacy undated target
+    uses the run's start day, or today before starting. A stopped row draws its
+    value once; clicking starts it and clicking while running resets it. Reset
+    keeps an explicit date and returns an undated target to today's reference.
+    Its 0 지나면 choice applies while running.
+  - `elapsedFrom` shows signed time since its configured local `HH:mm`, using
+    the run's start day, or today before starting. A stopped row draws once;
+    clicking starts it, and clicking while running resets to today's reference.
+    This remains 시각 경과, distinct from duration-based 경과.
+  - `elapsed` shows its configured start value while stopped, counts up when
+    started and returns to that value on another click while running.
+  - `clock` always shows the current `HH:mm:ss`. Clicking has no effect and
+    never shows a running bar. It retains its ID and stage/prop references.
+- For each non-clock kind, clicking a paused quick row resumes it without
+  changing its held duration or target anchor. The timer tab's 처음으로 control
+  remains available to reset a paused or finished timer.
 
 ### Clicking an item
 
 Clicking a row runs it at once. A toggle item keeps a red bar at the left of its
 row while it's on. Clicking it again turns it off.
 
-| Kind          | Example in the board       | Clicking it                                                                                                                                                                | Toggle             |
-| ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                 |
-| Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                 |
-| Black screen  | 검은 화면                  | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                |
-| 소품          | 로고 화면 (logo screen)    | Turns that 소품 on or off.                                                                                                                                                 | Yes                |
-| 타이머        | 타이머 1                   | Starts its own timer from the configured duration. Clicking a running timer stops and resets it to that duration (user decision, October 26).                              | Yes, while running |
-| 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                               | No                 |
+| Kind          | Example in the board       | Clicking it                                                                                                                                                                | Toggle                                |
+| ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                                    |
+| Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
+| Black screen  | 검은 화면                  | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                                   |
+| 소품          | 로고 화면 (logo screen)    | Turns that 소품 on or off.                                                                                                                                                 | Yes                                   |
+| 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                         | Yes, while running; never for a clock |
+| 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                               | No                                    |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
