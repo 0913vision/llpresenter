@@ -167,6 +167,7 @@ describe('library song projection', () => {
       backgroundOf: vi.fn(() => Promise.resolve(null)),
     };
     const result = await showLibrarySong(source, gSongId);
+    expect(result?.readOnly).toBe(true);
     expect(result).toMatchObject({
       readOnly: true,
       problem: 'newer-version',

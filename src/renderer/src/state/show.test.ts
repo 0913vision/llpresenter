@@ -330,9 +330,9 @@ describe('slide hotkeys', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('uses live cursor item over open item when live is active', () => {
-    setLive('song-morning', 0);
-    openItem('song-river');
+  it('uses the open item in view even when another item is live', () => {
+    setLive('song-river', 0);
+    openItem('song-morning');
     expect(hasSlideHotKey('KeyA')).toBe(true);
     const result = outputHotKey('KeyA');
     expect(result).toBe(true);
