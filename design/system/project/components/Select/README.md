@@ -86,3 +86,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 - NewService date and time: background #262626 → `bg-control`, a 12px arrow added where there was none, icon 14 #8c8c8c → 16 `text-2`, left/right 8/10 → 12/8.
 - ShowH, Reflow, ImportEdit default background (sm): arrow 14 → 12. Compact default background: height 24 → 26, media 32×18 → 36×20, gap 6 → 8.
 - Bible version: icon #8c8c8c → `text-2`, arrow 14 → 12, right 8 → 6. Reference (슬라이드마다): height 24 → 26, background #262626 → `bg-control`, left/right 8/6 → 10/6.
+
+## Service item background scope
+
+The slide-header background choice edits the service item's override, while `곡 기본값` identifies inherited song data. Its enabled tooltip states the local scope and live impact: `이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다`. Use the existing Tooltip typography and wrapping, without adding a badge or a visible instruction paragraph. Read-only and busy reasons take precedence over this normal hint. Opening, hovering and cancelling the picker do not change content or output.

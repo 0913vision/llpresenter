@@ -45,6 +45,16 @@ export function SelectSection(): JSX.Element {
         <SpecItem label="md, media, background in item settings" width={300}>
           <Dropdown block value="따뜻한 빛" meta="곡 기본값" lead={media} />
         </SpecItem>
+        <SpecItem label="Service item scope and live impact in the tooltip">
+          <Dropdown
+            size="sm"
+            aria-label="배경 선택"
+            value="따뜻한 빛"
+            meta="곡 기본값"
+            lead={media}
+            title="이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다"
+          />
+        </SpecItem>
         <SpecItem label="md, macro color tile 20, 시작할 때" width={300}>
           <Dropdown
             block

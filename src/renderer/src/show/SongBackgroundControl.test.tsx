@@ -70,6 +70,20 @@ afterEach(() => {
 });
 
 describe('slide-header background control', () => {
+  it.each([true, false])(
+    'discloses item scope and live impact with inherited=%s without editing',
+    async inherited => {
+      const {onChoose} = setup({selection: {...selection, inherited}});
+      const tooltip = await hoverForTooltip(
+        screen.getByRole('button', {name: '배경 선택'}),
+      );
+      expect(tooltip?.textContent).toBe(
+        '이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다',
+      );
+      expect(onChoose).not.toHaveBeenCalled();
+    },
+  );
+
   it('shows the inherited image and opens image/video choices with ArrowDown', async () => {
     const {container, onChoose, user} = setup();
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
@@ -158,6 +172,9 @@ describe('slide-header background control', () => {
       fireEvent.keyDown(button, {key: 'ArrowDown'});
       expect(screen.queryByRole('menu')).toBeNull();
       expect(onChoose).not.toHaveBeenCalled();
+      expect((await hoverForTooltip(button))?.textContent).toBe(
+        'readOnly' in props ? '읽기 전용 예배 순서' : '배경 변경 중',
+      );
     },
   );
 

@@ -22,6 +22,8 @@ const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
 // TODO(0913vision): Enable relinking when P6a implements media.relink.
 const RELINK_UNAVAILABLE = '현재 버전에서는 미디어 파일을 다시 연결할 수 없음';
+const BACKGROUND_SCOPE_REASON =
+  '이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다';
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   const video = useRef<HTMLVideoElement>(null);
@@ -123,7 +125,11 @@ export function SongBackgroundSelect({
         aria-busy={busy}
         disabled={disabled}
         title={
-          readOnly ? '읽기 전용 예배 순서' : busy ? '배경 변경 중' : undefined
+          readOnly
+            ? '읽기 전용 예배 순서'
+            : busy
+              ? '배경 변경 중'
+              : BACKGROUND_SCOPE_REASON
         }
         onClick={event => {
           setQuery('');
