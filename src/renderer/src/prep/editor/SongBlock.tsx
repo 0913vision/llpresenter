@@ -11,17 +11,17 @@ import {
 import {createPortal} from 'react-dom';
 import type {LabelColor} from '@shared/colors';
 import type {Slide} from '@shared/schema/song';
+import {Icon} from '@renderer/ui/Icon';
 import {LabelTag} from '@renderer/ui/LabelChip';
 import {isComposing} from '@renderer/ui/ime';
 import {layerContainer} from '@renderer/ui/layers';
 import {placeFloating} from '@renderer/ui/floating';
 import {placeTooltip, viewportSize} from '@renderer/ui/placement';
 import tooltipStyles from '@renderer/ui/Tooltip.module.css';
+import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
 import {
-  isGroupedSong,
   linearBlockAddress,
   linearSlidesOf,
-  type AnySong,
   type EditorSlideItem,
 } from './blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
@@ -79,6 +79,7 @@ export const SongBlock = memo(
         : true);
 
     const [refused, setRefused] = useState(false);
+    const splitButtonRef = useRef<HTMLButtonElement | null>(null);
     const refusalTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
       undefined,
     );
@@ -142,6 +143,19 @@ export const SongBlock = memo(
     const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
       if (locked || focus.current.composing || isComposing(event)) return;
       select(event.currentTarget);
+      if (
+        editable &&
+        event.code === 'KeyG' &&
+        event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        const anchor = splitButtonRef.current ?? event.currentTarget;
+        onOpen(anchor, block);
+        return;
+      }
       const command = editorCommand(event);
       const adjacent = adjacentBlock(
         event,
@@ -186,6 +200,19 @@ export const SongBlock = memo(
                     }
               }
             />
+          ) : active && editable ? (
+            <button
+              ref={splitButtonRef}
+              type="button"
+              aria-label="새 그룹"
+              className={styles.splitButton}
+              onClick={event => {
+                if (!locked) onOpen(event.currentTarget, block);
+              }}
+            >
+              <Icon name="plus" size={12} />
+              <span>새 그룹</span>
+            </button>
           ) : null}
         </div>
         <textarea

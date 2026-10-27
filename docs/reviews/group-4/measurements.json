@@ -1,0 +1,162 @@
+[
+  {
+    "cycle": 1,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 1,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 2,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 2,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 3,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 3,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 4,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 4,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 5,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 5,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 6,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 6,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 7,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 7,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 8,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 8,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 9,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 9,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  },
+  {
+    "cycle": 10,
+    "action": "split",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 457,
+    "block1Label": "2절"
+  },
+  {
+    "cycle": 10,
+    "action": "undo",
+    "blocks": 4,
+    "thumbnails": 4,
+    "totalElements": 456,
+    "block1Label": "새 그룹"
+  }
+]

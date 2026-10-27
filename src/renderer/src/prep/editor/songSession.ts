@@ -1,13 +1,12 @@
 import type {LlpApi} from '@shared/ipc';
 import type {MediaId, SongGroupId} from '@shared/schema/ids';
-import {arrangementGroupIds} from '@shared/schema/groupedSong';
-import type {Song} from '@shared/schema/song';
 import {
+  arrangementGroupIds,
   isGroupedSong,
   type AnySong,
-  type BlockCommand,
-  type BlockSelection,
-} from './blockEdits';
+} from '@shared/schema/groupedSong';
+import type {Song} from '@shared/schema/song';
+import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle, SongTitleDraft} from './songTitle';
@@ -97,28 +96,7 @@ export class SongSession<S extends AnySong = Song> {
   }
 
   get arrangementSlides(): readonly number[] {
-    const song = this.history.snapshot.song;
-    if (isGroupedSong(song)) {
-      const groupIds = arrangementGroupIds(song, this.arrangement);
-      const groupOffset = new Map<string, number>();
-      let offset = 1;
-      for (const group of song.groups) {
-        groupOffset.set(group.id, offset);
-        offset += group.slides.length;
-      }
-      const groupsById = new Map(song.groups.map(g => [g.id, g]));
-      const result: number[] = [];
-      for (const id of groupIds) {
-        const group = groupsById.get(id);
-        const start = groupOffset.get(id);
-        if (group === undefined || start === undefined) continue;
-        for (let i = 0; i < group.slides.length; i++) {
-          result.push(start + i);
-        }
-      }
-      return result;
-    }
-    return editedOrder(song, this.arrangement);
+    return editedOrder(this.history.snapshot.song, this.arrangement);
   }
 
   onBackspaceRefused(listener: (block: number) => void): () => void {

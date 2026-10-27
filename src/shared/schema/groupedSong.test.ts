@@ -425,5 +425,11 @@ describe('version 1 group migration', () => {
     expect(arrangementGroupIds(v2, 'Alternate')).toEqual(
       v2.arrangements?.[0]?.groups,
     );
+
+    const withEmpty: GroupedSong = {
+      ...v2,
+      arrangements: [{name: 'Empty', groups: []}],
+    };
+    expect(arrangementGroupIds(withEmpty, 'Empty')).toEqual([]);
   });
 });

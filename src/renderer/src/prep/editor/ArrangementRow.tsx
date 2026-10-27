@@ -17,6 +17,7 @@ import {ArrangementDialog} from './ArrangementDialog';
 import {editorTask} from './editorTask';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
+import type {AnySong} from '@shared/schema/groupedSong';
 import styles from './ArrangementRow.module.css';
 
 const MAX_SEGMENTS = 5;
@@ -32,7 +33,7 @@ export function ArrangementRow({
   session,
 }: {
   readonly store: SongEditorStore;
-  readonly session: SongSession;
+  readonly session: SongSession<AnySong>;
 }): JSX.Element {
   const {busy} = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const row = useRef<HTMLDivElement>(null);

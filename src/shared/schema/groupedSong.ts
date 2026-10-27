@@ -158,7 +158,8 @@ export function isGroupedSong(song: AnySong): song is GroupedSong {
 
 /**
  * Returns the group IDs for a named arrangement, or all group IDs in file order
- * when the arrangement is missing or has an empty sequence.
+ * when no arrangement is named or found. An empty named arrangement retains its
+ * empty group sequence.
  */
 export function arrangementGroupIds(
   song: GroupedSong,
@@ -168,7 +169,7 @@ export function arrangementGroupIds(
     arrangementName === undefined
       ? undefined
       : song.arrangements?.find(item => item.name === arrangementName);
-  return chosen !== undefined && chosen.groups.length > 0
+  return chosen !== undefined
     ? chosen.groups
     : song.groups.map(group => group.id);
 }

@@ -29,9 +29,6 @@ export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-export type {AnySong};
-export {isGroupedSong};
-
 type SongLibrary = ReadonlyMap<string, Shown<AnySong>>;
 
 export interface ShowServiceSources {
@@ -192,7 +189,9 @@ function projectGroupedSongTiles(
   colors: ReadonlyMap<string, LabelColor>,
   arrangement?: string,
 ): ProjectedSongTiles {
-  const groupIds = arrangementGroupIds(song, arrangement);
+  const rawGroupIds = arrangementGroupIds(song, arrangement);
+  const groupIds =
+    rawGroupIds.length === 0 ? song.groups.map(group => group.id) : rawGroupIds;
 
   const groupsById = new Map<string, SongGroup>(
     song.groups.map(group => [group.id, group]),

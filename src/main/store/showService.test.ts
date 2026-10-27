@@ -371,6 +371,40 @@ describe('buildShowService', () => {
     });
   });
 
+  it('falls back to default group order for an empty named arrangement on grouped songs', () => {
+    const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
+    const gSongId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789a2');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: '빈 구성 곡',
+      groups: [{id: g1Id, name: '1절', slides: [{lines: ['가사']}]}],
+      arrangements: [{name: '빈구성', groups: []}],
+    };
+
+    const show = buildShowService({
+      service: loadedService([
+        {id: itemId(1), song: gSongId, arrangement: '빈구성'},
+      ]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: groupedSong,
+          },
+        ],
+      ]),
+      labels: [],
+      revision: 1,
+    });
+
+    expect(show.tiles[itemId(1)]).toHaveLength(1);
+  });
+
   it('gives unnamed group label: null and labelColor: none', () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000003');
     const g1Id = createSongGroupId('c0000000-0000-4000-8000-000000000001');

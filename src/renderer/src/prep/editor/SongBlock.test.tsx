@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {parseGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
@@ -53,6 +54,7 @@ function renderBlock(
     readonly onOpen?: (anchor: HTMLElement, block: number) => void;
     readonly editable?: boolean;
     readonly locked?: boolean;
+    readonly active?: boolean;
   } = {},
 ) {
   const api = fakeLlpApi();
@@ -81,7 +83,7 @@ function renderBlock(
       block={block}
       session={session}
       focus={focus}
-      active={false}
+      active={options.active ?? false}
       locked={options.locked ?? false}
       editable={options.editable ?? true}
       color="teal"
@@ -104,9 +106,52 @@ describe('SongBlock', () => {
     expect(screen.getByRole('button', {name: /이름표/})).toBeDefined();
   });
 
-  it('omits label tag on non-first slide of a group', () => {
+  it('omits label tag on non-first slide of a group when inactive', () => {
     renderBlock(1);
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('renders split button on non-first slide when active and opens label menu on click', () => {
+    const api = fakeLlpApi();
+    const song = createGroupedSong();
+    const session = new SongSession({
+      document: {song, revision: 1, access: 'editable'},
+      api: api.content,
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    const focus: {current: EditorFocus} = {
+      current: {
+        inputs: [],
+        requested: false,
+        composing: false,
+        restoring: false,
+      },
+    };
+    const slides = linearSlidesOf(song);
+    const slide = slides[1];
+    if (slide === undefined) throw new Error('Missing slide');
+    const onOpen = vi.fn();
+
+    render(
+      <SongBlock
+        slide={slide}
+        block={1}
+        session={session}
+        focus={focus}
+        active={true}
+        locked={false}
+        editable={true}
+        color="teal"
+        expanded={false}
+        onOpen={onOpen}
+        top={80}
+      />,
+    );
+    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    expect(splitButton).toBeDefined();
+    fireEvent.click(splitButton);
+    expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
   });
 
   it('refuses Backspace at start of first slide and displays refusal tooltip', () => {
@@ -150,5 +195,43 @@ describe('SongBlock', () => {
     expect(screen.queryByRole('tooltip')).toBeNull();
     const tooltip = await hoverForTooltip(input);
     expect(tooltip).toBeNull();
+  });
+
+  it('opens label menu via Ctrl+G keyboard shortcut on the active slide', () => {
+    const onOpen = vi.fn();
+    renderBlock(1, createGroupedSong(), {onOpen, active: true});
+    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    const input = blockLyrics(2);
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, {key: 'g', code: 'KeyG', ctrlKey: true});
+    expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
+  });
+
+  it('does nothing on Ctrl+G keyboard shortcut when block is not editable', () => {
+    const onOpen = vi.fn();
+    renderBlock(1, createGroupedSong(), {
+      onOpen,
+      editable: false,
+      active: true,
+    });
+    const input = blockLyrics(2);
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, {key: 'g', code: 'KeyG', ctrlKey: true});
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it('moves focus to split button on Shift+Tab from textarea', async () => {
+    const user = userEvent.setup();
+    renderBlock(1, createGroupedSong(), {active: true, editable: true});
+    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    const input = blockLyrics(2);
+    input.focus();
+    expect(document.activeElement).toBe(input);
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(splitButton);
   });
 });

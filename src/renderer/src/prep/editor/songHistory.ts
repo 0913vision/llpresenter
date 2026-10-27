@@ -1,12 +1,11 @@
 import type {SongGroupId} from '@shared/schema/ids';
 import type {Arrangement, Song} from '@shared/schema/song';
 import {sameOrder} from './songArrangements';
+import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
 import {
   blockSnapshot,
   editBlocks,
-  isGroupedSong,
   slideCountOf,
-  type AnySong,
   type BlockCommand,
   type BlockSelection,
   type BlockSnapshot,
@@ -89,29 +88,31 @@ export class SongHistory<S extends AnySong = Song> {
     return true;
   }
 
-  /** Replaces a named 구성's group order as one undo step; false when nothing changes. */
+  /** Replaces or adds a named 구성's group order as one undo step; false when nothing changes. */
   setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
     const song = this.value.song;
     if (!isGroupedSong(song)) return false;
     const arrangements = song.arrangements;
     const current = arrangements?.find(item => item.name === name);
     if (
-      arrangements === undefined ||
-      current === undefined ||
-      (current.groups.length === groups.length &&
-        current.groups.every((id, index) => id === groups[index]))
+      current?.groups.length === groups.length &&
+      current.groups.every((id, index) => id === groups[index])
     ) {
       return false;
     }
     this.endTyping();
     this.remember();
+    const updated =
+      current === undefined
+        ? [...(arrangements ?? []), {name, groups: [...groups]}]
+        : (arrangements?.map(item =>
+            item === current ? {...item, groups: [...groups]} : item,
+          ) ?? [{name, groups: [...groups]}]);
     this.value = {
       ...this.value,
       song: {
         ...song,
-        arrangements: arrangements.map(item =>
-          item === current ? {...item, groups: [...groups]} : item,
-        ),
+        arrangements: updated,
       },
     };
     return true;

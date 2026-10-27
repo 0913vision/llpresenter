@@ -11,7 +11,8 @@ import type {Label} from '@shared/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
-import {linearSlidesOf, type AnySong} from './blockEdits';
+import type {AnySong} from '@shared/schema/groupedSong';
+import {linearSlidesOf} from './blockEdits';
 import styles from './SongPanels.module.css';
 
 const OVERSCAN_ROWS = 1;
@@ -222,6 +223,7 @@ export function VirtualSlides({
                 }
                 text={slide.lines.join('\n')}
                 selected={start + index === selected}
+                hotKey={'hotKey' in slide ? slide.hotKey : undefined}
               />
             );
           })}

@@ -1,7 +1,19 @@
-import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import {describe, expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {editorSetup} from './editorTesting';
-import {editorFixture, editorSong} from './editorFixture';
+import {editorFixture, editorGroupedSong, editorSong} from './editorFixture';
+import {SongSession} from './songSession';
+import {SongEditorStore} from './songEditorStore';
+import {ArrangementRow} from './ArrangementRow';
 
 describe('arrangement row', () => {
   it('creates a copy, selects its name, validates, renames through main, and restores focus', async () => {
@@ -114,5 +126,42 @@ describe('arrangement row', () => {
         .getByRole('menuitem', {name: '삭제'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
+  });
+
+  it('manages named arrangements referencing groups on grouped songs', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    const user = userEvent.setup();
+    const session = new SongSession<GroupedSong>({
+      document: editorGroupedSong(1),
+      api: fixture.api.content,
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    const view = render(<ArrangementRow store={store} session={session} />);
+
+    expect(
+      within(view.container).getByRole('radio', {name: '기본'}),
+    ).toBeDefined();
+    expect(
+      within(view.container).getByRole('radio', {name: '주일용'}),
+    ).toBeDefined();
+
+    await user.click(
+      within(view.container).getByRole('radio', {name: '주일용'}),
+    );
+    expect(session.arrangement).toBe('주일용');
+    expect(session.arrangementSlides).toEqual([1, 2, 3, 1, 2]);
+
+    await user.click(
+      within(view.container).getByRole('button', {name: '구성 추가'}),
+    );
+    expect(session.arrangement).toBe('구성 1');
+    const song = session.history.snapshot.song;
+    const arrangement = song.arrangements?.find(a => a.name === '주일용');
+    if (arrangement === undefined || !('groups' in arrangement)) {
+      throw new Error('Expected grouped arrangement');
+    }
+    expect(session.arrangementGroups).toEqual(arrangement.groups);
   });
 });

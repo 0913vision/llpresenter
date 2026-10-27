@@ -342,6 +342,15 @@ describe('slide hotkeys', () => {
     });
   });
 
+  it('does nothing when the open item has no tile with the key while the live item has one', () => {
+    setLive('song-morning', 0);
+    openItem('song-river');
+    expect(hasSlideHotKey('KeyA')).toBe(false);
+    const result = outputHotKey('KeyA');
+    expect(result).toBe(false);
+    expect(sent).toHaveLength(0);
+  });
+
   it('returns false when no item is open or live', () => {
     useShow.setState({openItemId: null});
     expect(hasSlideHotKey('KeyA')).toBe(false);

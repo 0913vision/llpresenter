@@ -591,13 +591,17 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/main/live/testing/recovery.ts`
   - `src/shared/songOrder.ts`
   - `src/renderer/src/prep/editor/songEditorStore.ts`
+  - `src/renderer/src/prep/editor/songSession.ts` (remove temporary `drain`
+    grouped save guard `TODO(0913vision)`)
   - Tests: `src/main/store/contentStore.test.ts`,
     `src/main/store/fileStore.test.ts`, `src/main/search/songIndex.test.ts`,
     `src/main/store/labelRename.test.ts`,
     `src/shared/schema/contentDocuments.test.ts`,
     `src/shared/schema/contentEdit.test.ts`, `src/preload/index.test.ts`,
     `src/main/store/openServiceFeed.test.ts`,
-    `src/renderer/src/prep/editor/songEditorStore.test.ts`
+    `src/renderer/src/prep/editor/songEditorStore.test.ts`,
+    `src/renderer/src/prep/editor/songSession.test.ts` (remove temporary save
+    guard test)
 - **Checked in the app**:
   - Full end-to-end offscreen run: load existing v1 song from disk, verify
     automatic migration in memory, edit lyrics, verify v2 atomic save with
@@ -630,3 +634,16 @@ decision:
    - Dev port 5194 and app data folder `D:\llp-dev\group` were assigned by the
      lead in `.llp/restart.md`. We request the lead add the `group` row (Port
      5194, Folder `D:\llp-dev\group`) to the port table in `docs/WORKFLOW.md`.
+
+3. **`Ctrl+G` Keyboard Shortcut for Group Split / Label Menu**:
+   - _Context_: Spec 10 specifies `Tab` and `Shift+Tab` navigation in the
+     editor, where `Shift+Tab` from a block textarea moves focus to the previous
+     focusable element (such as the `새 그룹` button or label picker). Group-4
+     also introduces `Ctrl+G` from an active lyric block textarea as a direct
+     convenience shortcut to open the group label / split menu without leaving
+     the textarea.
+   - _Question_: Should `Ctrl+G` be formalized in `docs/spec/10-shortcuts.md` as
+     an editor shortcut for group splitting/labeling, or remain an assistive
+     accelerator alongside native `Shift+Tab` focus navigation?
+   - _Recommendation_: Keep `Ctrl+G` supported and document it in Spec 10 during
+     the shortcuts review cycle.

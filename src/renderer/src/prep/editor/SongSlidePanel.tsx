@@ -1,6 +1,4 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
-import {playbackOrder} from '@shared/songOrder';
-import {isGroupedSong, slideCountOf} from './blockEdits';
 import {
   Panel,
   PanelBody,
@@ -18,16 +16,26 @@ import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/shell/sizeClass';
-import type {SongEditorStore} from './songEditorStore';
+import type {EditorLabels, SongEditorStore} from './songEditorStore';
+import type {SongSession} from './songSession';
+import type {AnySong} from '@shared/schema/groupedSong';
 import {VirtualSlides} from './VirtualSlides';
 import styles from './SongPanels.module.css';
+
+export interface SongSlideStore {
+  readonly subscribe: (listener: () => void) => () => void;
+  readonly getSnapshot: () => {
+    readonly session: SongSession<AnySong> | null;
+    readonly labels?: EditorLabels | null | undefined;
+  };
+}
 
 /** File/arrangement thumbnails select editor blocks without outputting. */
 export function SongSlidePanel({
   store,
   sizeClass,
 }: {
-  readonly store: SongEditorStore;
+  readonly store: SongEditorStore | SongSlideStore;
   readonly sizeClass: SizeClass;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -48,9 +56,7 @@ export function SongSlidePanel({
     );
   }
   const {song, selection} = session.history.snapshot;
-  const numbers = isGroupedSong(song)
-    ? Array.from({length: slideCountOf(song)}, (_, i) => i + 1)
-    : playbackOrder(song, session.arrangement);
+  const numbers = session.arrangementSlides;
   const at =
     pointed !== null &&
     pointed.songId === song.id &&

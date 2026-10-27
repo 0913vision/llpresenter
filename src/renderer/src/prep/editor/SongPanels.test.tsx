@@ -66,7 +66,7 @@ describe('song editor right panels', () => {
     expect(list.querySelector('img,video')).toBeNull();
   });
 
-  it('falls back from an empty order like Show and keeps each song occurrence separate', async () => {
+  it('retains an empty order in the slide panel and keeps each song occurrence separate', async () => {
     const fixture = editorFixture();
     const first = {
       ...fixture.first,
@@ -79,12 +79,7 @@ describe('song editor right panels', () => {
     const {session, store, second} = await editorSetup({...fixture, first});
     render(<SongSlidePanel store={store} sizeClass="normal" />);
     act(() => session.selectArrangement('빈 구성'));
-    expect(screen.getAllByRole('option')).toHaveLength(2);
-    expect(
-      screen
-        .getAllByRole('option')
-        .map(option => option.getAttribute('aria-posinset')),
-    ).toEqual(['1', '2']);
+    expect(screen.queryAllByRole('option')).toHaveLength(0);
     act(() => store.open(second));
     expect(
       screen.getAllByRole('option')[0]?.getAttribute('aria-selected'),

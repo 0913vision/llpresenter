@@ -719,4 +719,110 @@ describe('grouped song block edits', () => {
       '22222222-2222-4222-a222-222222222222',
     ]);
   });
+
+  it('renames a group at slide 0 preserving UUID and arrangement references without merging', () => {
+    const original = sampleGroupedSong();
+    const g1Id = original.groups[0]?.id;
+    const g2Id = original.groups[1]?.id;
+
+    const renamed = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: '3절'},
+    );
+    expect(renamed.song.groups[0]?.id).toBe(g1Id);
+    expect(renamed.song.groups[0]?.name).toBe('3절');
+    expect(renamed.song.groups).toHaveLength(2);
+    expect(renamed.song.arrangements?.[0]?.groups).toEqual([g1Id, g2Id]);
+
+    const sameName = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: '후렴'},
+    );
+    expect(sameName.song.groups).toHaveLength(2);
+    expect(sameName.song.groups[0]?.name).toBe('후렴');
+    expect(sameName.song.groups[0]?.id).toBe(g1Id);
+    expect(sameName.song.groups[1]?.name).toBe('후렴');
+    expect(sameName.song.groups[1]?.id).toBe(g2Id);
+
+    const noLabel = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: undefined},
+    );
+    expect(noLabel.song.groups[0]?.name).toBe('');
+    expect(noLabel.song.groups[0]?.id).toBe(g1Id);
+  });
+
+  it('splits a group at slideIndex > 0 with caller-provided IDs and preserves unknown fields', () => {
+    const original = sampleGroupedSong();
+    const firstGroup = original.groups[0];
+    const secondGroup = original.groups[1];
+    if (firstGroup === undefined || secondGroup === undefined) {
+      throw new Error('Missing sample groups');
+    }
+    const withUnknownFields = {
+      ...original,
+      groups: [{...firstGroup, futureGroupProp: 'preserve-me'}, secondGroup],
+    };
+    const oldG2Id = secondGroup.id;
+
+    const newG0Id = createSongGroupId('10000000-0000-4000-8000-000000000001');
+    const newG1Id = createSongGroupId('10000000-0000-4000-8000-000000000002');
+
+    const split = editBlocks(
+      blockSnapshot(withUnknownFields, {block: 1, start: 0, end: 0}),
+      {type: 'label', name: '2절', ids: [newG0Id, newG1Id]},
+    );
+
+    expect(split.song.groups).toHaveLength(3);
+    const g0 = split.song.groups[0];
+    const g1 = split.song.groups[1];
+    const g2 = split.song.groups[2];
+    if (g0 === undefined || g1 === undefined || g2 === undefined) {
+      throw new Error('Expected 3 groups');
+    }
+
+    expect(g0.name).toBe('1절');
+    expect(g0.slides.map(s => s.lines)).toEqual([['first']]);
+    expect(g0.id).toBe(newG0Id);
+    expect(Reflect.get(g0, 'futureGroupProp')).toBe('preserve-me');
+
+    expect(g1.name).toBe('2절');
+    expect(g1.slides.map(s => s.lines)).toEqual([['second']]);
+    expect(g1.id).toBe(newG1Id);
+    expect(Reflect.get(g1, 'futureGroupProp')).toBe('preserve-me');
+
+    expect(g2.name).toBe('후렴');
+    expect(g2.id).toBe(oldG2Id);
+
+    expect(split.song.arrangements?.[0]?.groups).toEqual([
+      newG0Id,
+      newG1Id,
+      oldG2Id,
+    ]);
+    expect(split.selection).toEqual({block: 1, start: 0, end: 0});
+  });
+
+  it('undoes and redoes group splitting restoring original groups and arrangements', () => {
+    const original = sampleGroupedSong();
+    const history = new SongHistory(original);
+    const newG0Id = createSongGroupId('10000000-0000-4000-8000-000000000001');
+    const newG1Id = createSongGroupId('10000000-0000-4000-8000-000000000002');
+
+    history.select({block: 1, start: 0, end: 0});
+    history.apply({type: 'label', name: '2절', ids: [newG0Id, newG1Id]});
+
+    expect(history.snapshot.song.groups).toHaveLength(3);
+    expect(history.snapshot.song.groups[1]?.name).toBe('2절');
+
+    history.undo();
+    expect(history.snapshot.song.groups).toHaveLength(2);
+    expect(history.snapshot.song.groups[0]?.slides).toHaveLength(2);
+    expect(history.snapshot.song.groups[0]?.name).toBe('1절');
+
+    history.redo();
+    expect(history.snapshot.song.groups).toHaveLength(3);
+    expect(history.snapshot.song.groups[0]?.id).toBe(newG0Id);
+    expect(history.snapshot.song.groups[1]?.id).toBe(newG1Id);
+    expect(history.snapshot.song.groups[1]?.name).toBe('2절');
+  });
 });

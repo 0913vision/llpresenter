@@ -14,12 +14,8 @@ import {mediaUrl} from '@shared/media';
 import {emptyLayers} from '@shared/live';
 import type {Label} from '@shared/schema/labels';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {
-  isGroupedSong,
-  linearSlidesOf,
-  slideCountOf,
-  type AnySong,
-} from './blockEdits';
+import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {linearBlockAddress, linearSlidesOf, slideCountOf} from './blockEdits';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -177,8 +173,18 @@ export function SongPreviewFrame({
     ? linearSlidesOf(picture.song)
     : picture.song.slides;
   const slide = slides[block];
-  const color =
-    labels.find(label => label.name === slide?.label)?.color ?? 'none';
+  const addr = isGroupedSong(picture.song)
+    ? linearBlockAddress(picture.song, block)
+    : undefined;
+  const labelName =
+    addr !== undefined
+      ? addr.groupName === ''
+        ? undefined
+        : addr.groupName
+      : slide?.label === ''
+        ? undefined
+        : slide?.label;
+  const color = labels.find(label => label.name === labelName)?.color ?? 'none';
   return (
     <Panel label="미리보기">
       <PanelHeader>
@@ -200,7 +206,7 @@ export function SongPreviewFrame({
               style={{background: `var(--label-${color})`}}
             />
           )}
-          <span>{slide?.label}</span>
+          <span>{labelName}</span>
           <span>
             {position} / {total}
           </span>

@@ -9,8 +9,9 @@ import {
   parseShowLibrarySongRequest,
   type ShowLibrarySong,
 } from '@shared/schema/showLibrarySong';
+import type {AnySong} from '@shared/schema/groupedSong';
 import type {Logger} from '../log';
-import {type AnySong, jumpKeysOf, projectSongTiles} from './showService';
+import {jumpKeysOf, projectSongTiles} from './showService';
 
 export interface LibrarySongDocument {
   readonly song: AnySong;

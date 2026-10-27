@@ -1,12 +1,18 @@
 import type {Label} from '@shared/schema/labels';
 import type {Song} from '@shared/schema/song';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {playbackOrder} from '@shared/songOrder';
 import type {SongPicture} from '@renderer/prep/editor';
+import {linearSlidesOf} from '@renderer/prep/editor/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
 
 /** The 이름표 of a 슬라이드, or `undefined` when it has none. */
-export function slideLabel(song: Song, number: number): string | undefined {
-  const label = song.slides[number - 1]?.label;
+export function slideLabel(
+  song: Song | GroupedSong,
+  number: number,
+): string | undefined {
+  const slides = 'slides' in song ? song.slides : linearSlidesOf(song);
+  const label = slides[number - 1]?.label;
   return label === '' ? undefined : label;
 }
 
@@ -15,7 +21,7 @@ export function slideLabel(song: Song, number: number): string | undefined {
  * so a moved chip keeps its element and its focus.
  */
 export function orderChips(
-  song: Song,
+  song: Song | GroupedSong,
   order: readonly number[],
   labels: readonly Label[],
 ): readonly ArrangementChip[] {

@@ -6,7 +6,8 @@ import type {LooksFile} from '@shared/schema/looks';
 import type {ScreensFile} from '@shared/schema/screens';
 import type {RenderScreen} from '@renderer/render/layer';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
-import {isGroupedSong, linearSlidesOf, type AnySong} from './blockEdits';
+import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {linearBlockAddress, linearSlidesOf} from './blockEdits';
 
 export const PREVIEW_ROLES = [
   {value: 'main', label: '본 화면'},
@@ -66,17 +67,28 @@ export function selectedPreview(
 ): LiveLayers {
   const slides = isGroupedSong(song) ? linearSlidesOf(song) : song.slides;
   const slide = slides[block];
+  if (!appearance.slide || slide === undefined) {
+    return {
+      ...emptyLayers(),
+      media:
+        !appearance.media || background === undefined
+          ? null
+          : {mediaId: background, loop: true, startedAt: 0},
+    };
+  }
+  const addr = isGroupedSong(song)
+    ? linearBlockAddress(song, block)
+    : undefined;
+  const rawLabel = addr !== undefined ? addr.groupName : slide.label;
+  const label = rawLabel === undefined || rawLabel === '' ? null : rawLabel;
   return {
     ...emptyLayers(),
-    slide:
-      !appearance.slide || slide === undefined
-        ? null
-        : {
-            itemId: song.id,
-            position: block,
-            label: slide.label === '' ? null : (slide.label ?? null),
-            lines: slide.lines,
-          },
+    slide: {
+      itemId: song.id,
+      position: block,
+      label,
+      lines: slide.lines,
+    },
     media:
       !appearance.media || background === undefined
         ? null

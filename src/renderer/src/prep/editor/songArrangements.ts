@@ -1,19 +1,27 @@
 import type {Arrangement, Song} from '@shared/schema/song';
+import {
+  arrangementGroupIds,
+  type GroupedSong,
+} from '@shared/schema/groupedSong';
+import {expandGroupSlides} from '@shared/songOrder';
 
 const NEW_ARRANGEMENT_PREFIX = '구성';
 
 /** Default order is implicit; named orders retain repeats and empty orders. */
 export function editedOrder(
-  song: Song,
+  song: Song | GroupedSong,
   name: string | undefined,
 ): readonly number[] {
+  if ('groups' in song) {
+    return expandGroupSlides(song, arrangementGroupIds(song, name));
+  }
   return (
     song.arrangements?.find(arrangement => arrangement.name === name)?.slides ??
     song.slides.map((_, index) => index + 1)
   );
 }
 
-/** Whether two orders list the same 슬라이드 in the same places. */
+/** Whether two orders list the same items in the same places. */
 export function sameOrder(
   left: readonly number[],
   right: readonly number[],

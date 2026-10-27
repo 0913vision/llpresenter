@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {createSongGroupId} from '@shared/schema/ids';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {editorFixture} from './editorFixture';
@@ -340,5 +340,31 @@ describe('grouped song sessions', () => {
     expect(flushed).toBe(false);
     expect(session.clean).toBe(false);
     expect(edits).toHaveLength(0);
+  });
+
+  it('retains an empty order for an empty named arrangement on v1 songs', () => {
+    const {store, first} = setup();
+    const parsed = parseSongDocument({
+      song: {
+        ...first.song,
+        id: createSongId('00000000-0000-4000-8000-000000000099'),
+        arrangements: [{name: '빈 구성', slides: []}],
+      },
+      revision: 1,
+      access: 'editable',
+    });
+    if (!parsed.ok || parsed.value === null) throw new Error('Invalid fixture');
+    store.open(parsed.value);
+    const session = store.getSnapshot().session;
+    if (session === null) throw new Error('Missing session');
+    session.selectArrangement('빈 구성');
+    expect(session.arrangementSlides).toEqual([]);
+  });
+
+  it('retains an empty order for an empty named arrangement on grouped songs', () => {
+    const {session} = setupGrouped();
+    session.setArrangementGroups('기본순서', []);
+    session.selectArrangement('기본순서');
+    expect(session.arrangementSlides).toEqual([]);
   });
 });

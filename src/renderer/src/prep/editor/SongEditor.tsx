@@ -17,7 +17,8 @@ import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@shared/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
-import {isGroupedSong, linearSlidesOf, type AnySong} from './blockEdits';
+import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {linearSlidesOf} from './blockEdits';
 import {useSongBlockWindow} from './useSongBlockWindow';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */

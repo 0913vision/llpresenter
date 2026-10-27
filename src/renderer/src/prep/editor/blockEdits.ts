@@ -4,12 +4,9 @@ import {
   type GroupedSong,
   type SongGroup,
 } from '@shared/schema/groupedSong';
-import type {SongGroupId} from '@shared/schema/ids';
+import {createSongGroupId, type SongGroupId} from '@shared/schema/ids';
 import type {SlideHotKey} from '@shared/schema/slideHotKey';
 import type {Slide, Song} from '@shared/schema/song';
-
-export type {AnySong};
-export {isGroupedSong};
 
 export interface BlockSelection {
   readonly block: number;
@@ -53,7 +50,11 @@ export type BlockCommand =
       readonly end: number;
     }
   | {readonly type: 'paste'; readonly text: string}
-  | {readonly type: 'label'; readonly name: string | undefined}
+  | {
+      readonly type: 'label';
+      readonly name: string | undefined;
+      readonly ids?: readonly [SongGroupId, SongGroupId];
+    }
   | {readonly type: 'enter' | 'split' | 'insert' | 'merge'};
 
 const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');
@@ -390,6 +391,7 @@ function pasteGrouped(
 function labelGrouped(
   snapshot: BlockSnapshot<GroupedSong>,
   name: string | undefined,
+  ids?: readonly [SongGroupId, SongGroupId],
 ): BlockSnapshot<GroupedSong> {
   const {song} = snapshot;
   const {block} = snapshot.selection;
@@ -397,15 +399,66 @@ function labelGrouped(
   if (addr === undefined) return snapshot;
   const newName = name ?? '';
   const targetGroup = song.groups[addr.groupIndex];
-  if (targetGroup === undefined || targetGroup.name === newName) {
-    return snapshot;
+  if (targetGroup === undefined) return snapshot;
+
+  // NOTE(0913vision): Slide 0 renames the existing group, keeping its ID and
+  // arrangement references.
+  if (addr.slideIndex === 0) {
+    if (targetGroup.name === newName) {
+      return snapshot;
+    }
+    const newGroups = [...song.groups];
+    newGroups[addr.groupIndex] = {
+      ...targetGroup,
+      name: newName,
+    };
+    return blockSnapshot({...song, groups: newGroups}, snapshot.selection);
   }
-  const newGroups = [...song.groups];
-  newGroups[addr.groupIndex] = {
+
+  // NOTE(0913vision): SlideIndex > 0 splits the current group into two groups
+  // with fresh UUIDs (or caller-provided deterministic IDs). Arrangements
+  // replace every occurrence of the original group with both parts in order
+  // ([A] -> [A1, A2]).
+  const [id1, id2] = ids ?? [
+    createSongGroupId(crypto.randomUUID()),
+    createSongGroupId(crypto.randomUUID()),
+  ];
+  const oldId = targetGroup.id;
+
+  const group1: SongGroup = {
     ...targetGroup,
-    name: newName,
+    id: id1,
+    slides: targetGroup.slides.slice(0, addr.slideIndex),
   };
-  return blockSnapshot({...song, groups: newGroups}, snapshot.selection);
+  const group2: SongGroup = {
+    ...targetGroup,
+    id: id2,
+    name: newName,
+    slides: targetGroup.slides.slice(addr.slideIndex),
+  };
+
+  const newGroups = [
+    ...song.groups.slice(0, addr.groupIndex),
+    group1,
+    group2,
+    ...song.groups.slice(addr.groupIndex + 1),
+  ];
+
+  const newArrangements = song.arrangements?.map(arrangement => ({
+    ...arrangement,
+    groups: arrangement.groups.flatMap(id =>
+      id === oldId ? [id1, id2] : [id],
+    ),
+  }));
+
+  return blockSnapshot(
+    {
+      ...song,
+      groups: newGroups,
+      ...(newArrangements === undefined ? {} : {arrangements: newArrangements}),
+    },
+    snapshot.selection,
+  );
 }
 
 function mergeGrouped(
@@ -416,7 +469,6 @@ function mergeGrouped(
   if (start !== 0 || end !== 0) return snapshot;
   const addr = linearBlockAddress(song, block);
   if (addr === undefined) return snapshot;
-  // NOTE(0913vision): Refuse merge at group boundary (slideIndex === 0)
   if (addr.slideIndex === 0) {
     return blockSnapshot(song, snapshot.selection, true);
   }
@@ -490,7 +542,7 @@ function editGrouped(
     case 'paste':
       return pasteGrouped(snapshot, normalize(command.text));
     case 'label':
-      return labelGrouped(snapshot, command.name);
+      return labelGrouped(snapshot, command.name, command.ids);
     case 'split': {
       const addr = linearBlockAddress(snapshot.song, snapshot.selection.block);
       if (addr === undefined) return snapshot;

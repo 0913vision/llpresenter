@@ -1,5 +1,7 @@
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {createSongId} from '@shared/schema/ids';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
+import type {GroupedSong} from '@shared/schema/groupedSong';
+import type {EditorSongDocument} from './songSession';
 import {
   parseSongDocument,
   type SongChange,
@@ -40,6 +42,46 @@ export function editorSong(
     throw new Error('Invalid editor song fixture');
   }
   return parsed.value;
+}
+
+export function editorGroupedSong(
+  number: number,
+  access: 'editable' | 'readOnly' = 'editable',
+): EditorSongDocument<GroupedSong> {
+  const g1Id = createSongGroupId(
+    `11111111-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+  const g2Id = createSongGroupId(
+    `22222222-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+  return {
+    song: {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: createSongId(
+        `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+      ),
+      title: `새 노래 ${number}`,
+      groups: [
+        {
+          id: g1Id,
+          name: '1절',
+          slides: [
+            {lines: ['새 아침을 노래해요', '함께 걸어요']},
+            {lines: ['맑은 하늘 바라보며']},
+          ],
+        },
+        {
+          id: g2Id,
+          name: '후렴',
+          slides: [{lines: ['빛을 따라가요']}],
+        },
+      ],
+      arrangements: [{name: '주일용', groups: [g1Id, g2Id, g1Id]}],
+    },
+    revision: 1,
+    access,
+  };
 }
 
 function labelsDocument(document: unknown) {

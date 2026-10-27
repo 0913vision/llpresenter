@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {STARTER_SCREEN_IDS} from '@shared/screens';
-import {editorSong} from './editorFixture';
+import {editorGroupedSong, editorSong} from './editorFixture';
 import {editorPreviewFixture} from './editorPreviewFixture';
 import {previewAppearance, selectedPreview} from './songPreviewModel';
 
@@ -99,5 +99,44 @@ describe('local song preview model', () => {
         previewAppearance('main', undefined, undefined),
       ).slide,
     ).toBeNull();
+  });
+
+  it('draws grouped song slides with group label name across all slides of a group', () => {
+    const song = editorGroupedSong(1).song;
+    const slide0 = selectedPreview(
+      song,
+      {block: 0, background: undefined},
+      previewAppearance('main', undefined, undefined),
+    );
+    expect(slide0.slide).toMatchObject({
+      itemId: song.id,
+      position: 0,
+      label: '1절',
+      lines: ['새 아침을 노래해요', '함께 걸어요'],
+    });
+
+    const slide1 = selectedPreview(
+      song,
+      {block: 1, background: undefined},
+      previewAppearance('main', undefined, undefined),
+    );
+    expect(slide1.slide).toMatchObject({
+      itemId: song.id,
+      position: 1,
+      label: '1절',
+      lines: ['맑은 하늘 바라보며'],
+    });
+
+    const slide2 = selectedPreview(
+      song,
+      {block: 2, background: undefined},
+      previewAppearance('main', undefined, undefined),
+    );
+    expect(slide2.slide).toMatchObject({
+      itemId: song.id,
+      position: 2,
+      label: '후렴',
+      lines: ['빛을 따라가요'],
+    });
   });
 });
