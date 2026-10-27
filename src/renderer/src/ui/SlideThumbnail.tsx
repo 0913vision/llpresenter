@@ -129,17 +129,31 @@ export interface SlideThumbnailProps {
   readonly missingFile?: string | undefined;
   readonly selected?: boolean | undefined;
   readonly live?: boolean | undefined;
+  /** Physical hot key code assigned to this slide, e.g. KeyA or Digit1. */
+  readonly hotKey?: string | undefined;
 }
 
-/** The name assistive technology reads: number, 이름표, first line. */
+/** Formats a physical key code into a compact label, e.g. KeyA to A, Digit1 to 1. */
+export function formatSlideHotKey(code: string): string {
+  if (code.startsWith('Key')) return code.slice(3);
+  if (code.startsWith('Digit')) return code.slice(5);
+  return code;
+}
+
+/** The name assistive technology reads: number, 이름표, first line, optional hotkey. */
 export function thumbnailName({
   number,
   label,
   text,
-}: Pick<SlideThumbnailProps, 'number' | 'label' | 'text'>): string {
+  hotKey,
+}: Pick<SlideThumbnailProps, 'number' | 'label' | 'text' | 'hotKey'>): string {
   const head = label === undefined ? `${number}` : `${number} ${label}`;
   const firstLine = text?.split('\n')[0]?.trim() ?? '';
-  return firstLine === '' ? head : `${head}, ${firstLine}`;
+  const keyInfo =
+    hotKey === undefined ? '' : `, 단축키 ${formatSlideHotKey(hotKey)}`;
+  return firstLine === ''
+    ? `${head}${keyInfo}`
+    : `${head}, ${firstLine}${keyInfo}`;
 }
 
 function thumbnailState(live: boolean, missing: boolean): string | undefined {
@@ -153,11 +167,20 @@ function Canvas({
   text,
   media,
   missingFile,
-}: Pick<SlideThumbnailProps, 'text' | 'media' | 'missingFile'>): JSX.Element {
+  hotKey,
+}: Pick<
+  SlideThumbnailProps,
+  'text' | 'media' | 'missingFile' | 'hotKey'
+>): JSX.Element {
   if (missingFile !== undefined) {
     return (
       <span className={styles.canvas}>
         <MissingFileMark />
+        {hotKey !== undefined && (
+          <span className={styles.hotKey} aria-hidden="true">
+            {formatSlideHotKey(hotKey)}
+          </span>
+        )}
       </span>
     );
   }
@@ -167,6 +190,11 @@ function Canvas({
         <img className={styles.media} src={media} alt="" decoding="async" />
       )}
       {text === undefined ? null : <span className={styles.text}>{text}</span>}
+      {hotKey !== undefined && (
+        <span className={styles.hotKey} aria-hidden="true">
+          {formatSlideHotKey(hotKey)}
+        </span>
+      )}
     </span>
   );
 }
@@ -185,6 +213,7 @@ export const SlideThumbnail = memo(
     missingFile,
     selected = false,
     live = false,
+    hotKey,
   }: SlideThumbnailProps): JSX.Element => {
     const {targetProps, tooltip} = useTooltip(
       titleTooltip(
@@ -197,12 +226,17 @@ export const SlideThumbnail = memo(
         type="button"
         role="option"
         aria-selected={selected}
-        aria-label={thumbnailName({number, label, text})}
+        aria-label={thumbnailName({number, label, text, hotKey})}
         data-state={thumbnailState(live, missingFile !== undefined)}
         data-color={labelColor === NO_LABEL_COLOR ? undefined : labelColor}
         className={styles.thumb}
       >
-        <Canvas text={text} media={media} missingFile={missingFile} />
+        <Canvas
+          text={text}
+          media={media}
+          missingFile={missingFile}
+          hotKey={hotKey}
+        />
         <span className={styles.band} style={labelInk(labelColor)}>
           <span className={styles.number}>{number}</span>
           {label === undefined ? null : (

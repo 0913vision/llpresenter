@@ -1,6 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
-import {createSongId} from '@shared/schema/ids';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
 import type {Logger} from '../log';
 import {
@@ -88,6 +89,89 @@ describe('library song projection', () => {
     expect(
       await showLibrarySong(sources({access: 'readOnly'}), songId),
     ).toMatchObject({readOnly: true, problem: 'newer-version'});
+  });
+
+  it('projects a grouped song and maps hot keys', async () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000010');
+    const g1Id = createSongGroupId('e0000000-0000-4000-8000-000000000001');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Grouped Library Song',
+      groups: [
+        {
+          id: g1Id,
+          name: 'Verse',
+          slides: [{lines: ['G1 Line 1'], hotKey: 'KeyA'}],
+        },
+      ],
+    };
+    const source: LibrarySongSources = {
+      song: vi.fn(() => ({
+        song: groupedSong,
+        revision: 4,
+        access: 'editable' as const,
+      })),
+      labels: [{name: 'Verse', color: 'teal', key: 'Digit1'}],
+      backgroundOf: vi.fn(() => Promise.resolve(null)),
+    };
+    expect(await showLibrarySong(source, gSongId)).toEqual({
+      songId: gSongId,
+      songRevision: 4,
+      title: 'Grouped Library Song',
+      readOnly: false,
+      tiles: [
+        {
+          label: 'Verse',
+          labelColor: 'teal',
+          lines: ['G1 Line 1'],
+          sourceSlide: {
+            songId: gSongId,
+            groupId: g1Id,
+            slideIndex: 0,
+          },
+          hotKey: 'KeyA',
+        },
+      ],
+      jumpKeys: {Digit1: 'Verse'},
+    });
+  });
+
+  it('caps grouped song tile expansion and marks newer-version problem', async () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000011');
+    const slides = Array.from({length: 100}, (_, index) => ({
+      lines: [`Line ${index}`],
+    }));
+    const groupsOverLimit = Array.from({length: 101}, (_, i) => ({
+      id: createSongGroupId(
+        `f0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+      ),
+      name: `G${i}`,
+      slides,
+    }));
+    const hugeSongDefault: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Huge Song Default',
+      groups: groupsOverLimit,
+    };
+    const source: LibrarySongSources = {
+      song: vi.fn(() => ({
+        song: hugeSongDefault,
+        revision: 1,
+        access: 'editable' as const,
+      })),
+      labels: [],
+      backgroundOf: vi.fn(() => Promise.resolve(null)),
+    };
+    const result = await showLibrarySong(source, gSongId);
+    expect(result).toMatchObject({
+      readOnly: true,
+      problem: 'newer-version',
+      tiles: [],
+    });
   });
 
   it('returns null for a missing or deleted song', async () => {

@@ -81,6 +81,7 @@ export function SlideGrid({
             text={tile.lines.join('\n')}
             selected={index === selectedTile}
             live={index === liveIndex}
+            hotKey={tile.hotKey}
           />
         ))}
       </ThumbnailGrid>

@@ -103,3 +103,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.hotKey {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-badge);
+  height: var(--size-badge);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--scrim-strong);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font: var(--type-micro);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+}

@@ -3,7 +3,12 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from './clickFocus';
-import {SlideThumbnail, ThumbnailGrid, thumbnailName} from './SlideThumbnail';
+import {
+  formatSlideHotKey,
+  SlideThumbnail,
+  ThumbnailGrid,
+  thumbnailName,
+} from './SlideThumbnail';
 import {missingFileText} from './MissingFile';
 import type {Workspace} from './workspace';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
@@ -164,6 +169,40 @@ describe('SlideThumbnail', () => {
     const option = renderOne(<SlideThumbnail number={4} text={lyrics} />);
     expect(option.getAttribute('data-color')).toBeNull();
     expect(option.textContent).toBe(`${lyrics}4`);
+  });
+
+  it('formats physical hot key codes and describes them in thumbnailName', () => {
+    expect(formatSlideHotKey('KeyA')).toBe('A');
+    expect(formatSlideHotKey('Digit1')).toBe('1');
+    expect(formatSlideHotKey('F1')).toBe('F1');
+
+    expect(
+      thumbnailName({
+        number: 1,
+        label: '후렴',
+        text: lyrics,
+        hotKey: 'KeyA',
+      }),
+    ).toBe('1 후렴, 만복의 근원 하나님, 단축키 A');
+
+    expect(
+      thumbnailName({
+        number: 2,
+        hotKey: 'Digit1',
+      }),
+    ).toBe('2, 단축키 1');
+  });
+
+  it('renders a keycap badge with aria-hidden when hotKey is provided', () => {
+    const option = renderOne(
+      <SlideThumbnail number={1} label="후렴" hotKey="KeyA" text={lyrics} />,
+    );
+    expect(option.getAttribute('aria-label')).toBe(
+      '1 후렴, 만복의 근원 하나님, 단축키 A',
+    );
+    const keycap = option.querySelector('span[aria-hidden="true"]');
+    expect(keycap).not.toBeNull();
+    expect(keycap?.textContent).toBe('A');
   });
 
   it('marks live, the missing file, and both in data-state', () => {

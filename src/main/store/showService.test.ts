@@ -6,8 +6,15 @@ import type {Label} from '@shared/schema/labels';
 import {parseService, type Service} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
 import {DEFAULT_LABELS} from './defaults';
-import {buildShowService} from './showService';
+import {
+  buildShowService,
+  projectSongTiles,
+  SHOW_SERVICE_LIMITS,
+  songTiles,
+} from './showService';
 import {HYMN_ONE_ID, hymnOne, itemId, service, SUNDAY_ID} from './testFiles';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
@@ -230,5 +237,229 @@ describe('buildShowService', () => {
     );
 
     expect(show.jumpKeys).toEqual({Digit1: '1절', KeyC: '후렴'});
+  });
+
+  it('projects grouped song slides with sourceSlide, label, and hotKey', () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000001');
+    const g1Id = createSongGroupId('a0000000-0000-4000-8000-000000000001');
+    const g2Id = createSongGroupId('a0000000-0000-4000-8000-000000000002');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Grouped Song 1',
+      groups: [
+        {
+          id: g1Id,
+          name: '1절',
+          slides: [
+            {lines: ['1절 첫 줄'], hotKey: 'KeyA'},
+            {lines: ['1절 둘째 줄']},
+          ],
+        },
+        {
+          id: g2Id,
+          name: '후렴',
+          slides: [{lines: ['후렴 줄'], hotKey: 'KeyC'}],
+        },
+      ],
+    };
+
+    const show = buildShowService({
+      service: loadedService([{id: itemId(1), song: gSongId}]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: groupedSong,
+          },
+        ],
+      ]),
+      labels: [
+        {name: '1절', color: 'teal', key: null},
+        {name: '후렴', color: 'yellow', key: null},
+      ],
+      revision: 1,
+    });
+
+    expect(show.tiles[itemId(1)]).toEqual([
+      {
+        label: '1절',
+        labelColor: 'teal',
+        lines: ['1절 첫 줄'],
+        sourceSlide: {
+          songId: gSongId,
+          groupId: g1Id,
+          slideIndex: 0,
+        },
+        hotKey: 'KeyA',
+      },
+      {
+        label: '1절',
+        labelColor: 'teal',
+        lines: ['1절 둘째 줄'],
+        sourceSlide: {
+          songId: gSongId,
+          groupId: g1Id,
+          slideIndex: 1,
+        },
+      },
+      {
+        label: '후렴',
+        labelColor: 'yellow',
+        lines: ['후렴 줄'],
+        sourceSlide: {
+          songId: gSongId,
+          groupId: g2Id,
+          slideIndex: 0,
+        },
+        hotKey: 'KeyC',
+      },
+    ]);
+  });
+
+  it('projects grouped song with named arrangement and repeated groups', () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000002');
+    const g1Id = createSongGroupId('b0000000-0000-4000-8000-000000000001');
+    const g2Id = createSongGroupId('b0000000-0000-4000-8000-000000000002');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Repeated Groups',
+      groups: [
+        {id: g1Id, name: '1절', slides: [{lines: ['1절']}]},
+        {id: g2Id, name: '후렴', slides: [{lines: ['후렴']}]},
+      ],
+      arrangements: [{name: '반복구성', groups: [g1Id, g2Id, g1Id]}],
+    };
+
+    const show = buildShowService({
+      service: loadedService([
+        {id: itemId(1), song: gSongId, arrangement: '반복구성'},
+      ]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: groupedSong,
+          },
+        ],
+      ]),
+      labels: [{name: '1절', color: 'teal', key: null}],
+      revision: 1,
+    });
+
+    const tiles = show.tiles[itemId(1)] ?? [];
+    expect(tiles).toHaveLength(3);
+    expect(tiles.map(t => t.label)).toEqual(['1절', '후렴', '1절']);
+    expect(tiles[0]?.sourceSlide).toEqual({
+      songId: gSongId,
+      groupId: g1Id,
+      slideIndex: 0,
+    });
+    expect(tiles[2]?.sourceSlide).toEqual({
+      songId: gSongId,
+      groupId: g1Id,
+      slideIndex: 0,
+    });
+  });
+
+  it('gives unnamed group label: null and labelColor: none', () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000003');
+    const g1Id = createSongGroupId('c0000000-0000-4000-8000-000000000001');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Unnamed Group',
+      groups: [{id: g1Id, name: '', slides: [{lines: ['가사']}]}],
+    };
+
+    const show = buildShowService({
+      service: loadedService([{id: itemId(1), song: gSongId}]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: groupedSong,
+          },
+        ],
+      ]),
+      labels: [],
+      revision: 1,
+    });
+
+    expect(show.tiles[itemId(1)]).toEqual([
+      {
+        label: null,
+        labelColor: 'none',
+        lines: ['가사'],
+        sourceSlide: {
+          songId: gSongId,
+          groupId: g1Id,
+          slideIndex: 0,
+        },
+      },
+    ]);
+  });
+
+  it('stops iteration and marks row unknown-kind when tile expansion hits limit (10,000)', () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000004');
+    const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000001');
+    const slides = Array.from({length: 100}, (_, index) => ({
+      lines: [`Slide ${index + 1}`],
+    }));
+    const repeatedGroups = Array.from({length: 101}, () => g1Id);
+    const hugeSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Huge Grouped Song',
+      groups: [{id: g1Id, name: '반복절', slides}],
+      arrangements: [{name: '초과구성', groups: repeatedGroups}],
+    };
+
+    const projected = projectSongTiles(hugeSong, new Map(), '초과구성');
+    expect(projected.capped).toBe(true);
+    expect(projected.tiles).toEqual([]);
+
+    const show = buildShowService({
+      service: loadedService([
+        {id: itemId(1), song: gSongId, arrangement: '초과구성'},
+      ]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: hugeSong,
+          },
+        ],
+      ]),
+      labels: [],
+      revision: 1,
+    });
+
+    expect(show.rows[0]).toMatchObject({
+      kind: 'song',
+      id: itemId(1),
+      problem: 'unknown-kind',
+    });
+    expect(show.tiles[itemId(1)]).toEqual([]);
+
+    expect(songTiles(hugeSong, new Map(), '초과구성')).toEqual([]);
+    expect(SHOW_SERVICE_LIMITS.tiles).toBe(10_000);
   });
 });

@@ -1,12 +1,15 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
+  hasSlideHotKey,
   jumpLabelFor,
   openNextItem,
   openPreviousItem,
+  outputHotKey,
   revealLiveItem,
   selectTile,
   openItem,
@@ -248,5 +251,101 @@ describe('item keys', () => {
     openItem('song-river');
     revealLiveItem();
     expect(useShow.getState().openItemId).toBe('song-river');
+  });
+});
+
+describe('slide hotkeys', () => {
+  beforeEach(() => {
+    const tiles = useShow.getState().tiles;
+    const morningTiles = tiles['song-morning'] ?? [];
+    useShow.setState({
+      tiles: {
+        ...tiles,
+        'song-morning': morningTiles.map((tile, i) => {
+          if (i === 0) {
+            return {
+              ...tile,
+              hotKey: 'KeyA',
+              sourceSlide: {
+                songId: createSongId('30000000-0000-4000-8000-000000000001'),
+                groupId: createSongGroupId(
+                  'a0000000-0000-4000-8000-000000000001',
+                ),
+                slideIndex: 0,
+              },
+            };
+          }
+          if (i === 1) {
+            return {
+              ...tile,
+              hotKey: 'Digit1',
+              sourceSlide: {
+                songId: createSongId('30000000-0000-4000-8000-000000000001'),
+                groupId: createSongGroupId(
+                  'a0000000-0000-4000-8000-000000000001',
+                ),
+                slideIndex: 1,
+              },
+            };
+          }
+          return tile;
+        }),
+      },
+    });
+  });
+
+  it('detects whether active presentation has a matching slide hot key', () => {
+    openItem('song-morning');
+    expect(hasSlideHotKey('KeyA')).toBe(true);
+    expect(hasSlideHotKey('Digit1')).toBe(true);
+    expect(hasSlideHotKey('KeyZ')).toBe(false);
+  });
+
+  it('outputs the tile for a matching hot key and updates selection', () => {
+    openItem('song-morning');
+    const result = outputHotKey('KeyA');
+    expect(result).toBe(true);
+    expect(sent).toEqual([
+      {
+        type: 'slide.show',
+        slide: {
+          itemId: 'song-morning',
+          position: 0,
+          label: '1절',
+          lines: ['아침이 밝아 오네', '새로운 노래를 부르리'],
+          next: {
+            label: '후렴',
+            lines: ['함께 불러요 함께 노래해요'],
+          },
+        },
+      },
+    ]);
+    expect(useShow.getState().selectedTile).toBe(0);
+  });
+
+  it('returns false and outputs nothing for unmatched hot key', () => {
+    openItem('song-morning');
+    const result = outputHotKey('KeyZ');
+    expect(result).toBe(false);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('uses live cursor item over open item when live is active', () => {
+    setLive('song-morning', 0);
+    openItem('song-river');
+    expect(hasSlideHotKey('KeyA')).toBe(true);
+    const result = outputHotKey('KeyA');
+    expect(result).toBe(true);
+    expect(sent[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'song-morning', position: 0},
+    });
+  });
+
+  it('returns false when no item is open or live', () => {
+    useShow.setState({openItemId: null});
+    expect(hasSlideHotKey('KeyA')).toBe(false);
+    expect(outputHotKey('KeyA')).toBe(false);
+    expect(sent).toHaveLength(0);
   });
 });

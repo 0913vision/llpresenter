@@ -1,6 +1,7 @@
 import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
 import type {MediaChoice} from '@shared/live';
 import type {LoadedFile} from '@shared/schema/fileFormat';
+import type {GroupedSong, SongGroup} from '@shared/schema/groupedSong';
 import type {Label} from '@shared/schema/labels';
 import {
   isItemOfKind,
@@ -12,10 +13,17 @@ import type {ShowRow, ShowService, ShowTile} from '@shared/schema/showService';
 import type {Slide, Song} from '@shared/schema/song';
 import {playbackOrder} from '@shared/songOrder';
 
+/** Caps tile expansion from repeated groups to prevent unbounded allocation. */
+export const SHOW_SERVICE_LIMITS = {
+  tiles: 10_000,
+} as const;
+
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-type SongLibrary = ReadonlyMap<string, Shown<Song>>;
+export type AnySong = Song | GroupedSong;
+
+type SongLibrary = ReadonlyMap<string, Shown<AnySong>>;
 
 export interface ShowServiceSources {
   readonly service: Shown<Service>;
@@ -24,6 +32,15 @@ export interface ShowServiceSources {
   readonly labels: readonly Label[];
   readonly revision: number;
   readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
+}
+
+export interface ProjectedSongTiles {
+  readonly tiles: readonly ShowTile[];
+  readonly capped: boolean;
+}
+
+export function isGroupedSong(song: AnySong): song is GroupedSong {
+  return 'groups' in song && Array.isArray(song.groups);
 }
 
 /**
@@ -40,47 +57,50 @@ export function buildShowService({
   backgrounds = new Map(),
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
+  const colors = new Map(
+    labels.map(({name: labelName, color}) => [labelName, color]),
+  );
+  const itemTiles: Record<string, readonly ShowTile[]> = {};
+  const cappedItems = new Set<string>();
+
+  for (const item of order) {
+    if (!isItemOfKind(item, 'song')) continue;
+    const song = songs.get(item.song);
+    if (song === undefined) continue;
+    const projected = projectSongTiles(song.data, colors, item.arrangement);
+    if (projected.capped) {
+      cappedItems.add(item.id);
+      itemTiles[item.id] = [];
+    } else {
+      itemTiles[item.id] = projected.tiles;
+    }
+  }
+
+  const rowSources: RowSources = {songs, backgrounds, cappedItems};
   return {
     revision,
     id,
     name,
     readOnly: service.access === 'readOnly',
-    rows: order.map(item => rowOf(item, songs, backgrounds)),
-    tiles: tilesOf(order, songs, labels),
+    rows: order.map(item => rowOf(item, rowSources)),
+    tiles: itemTiles,
     jumpKeys: jumpKeysOf(labels),
   };
 }
 
-function tilesOf(
-  order: Service['order'],
-  songs: SongLibrary,
-  labels: readonly Label[],
-): Record<string, readonly ShowTile[]> {
-  const colors = new Map(labels.map(({name, color}) => [name, color]));
-  const tiles: Record<string, readonly ShowTile[]> = {};
-  for (const item of order) {
-    if (!isItemOfKind(item, 'song')) {
-      continue;
-    }
-    const song = songs.get(item.song);
-    if (song !== undefined) {
-      tiles[item.id] = songTiles(song.data, colors, item.arrangement);
-    }
-  }
-  return tiles;
+interface RowSources {
+  readonly songs: SongLibrary;
+  readonly backgrounds: ReadonlyMap<string, MediaChoice>;
+  readonly cappedItems: ReadonlySet<string>;
 }
 
-function rowOf(
-  item: ServiceItem,
-  songs: SongLibrary,
-  backgrounds: ReadonlyMap<string, MediaChoice>,
-): ShowRow {
+function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
   const {id} = item;
   if (isItemOfKind(item, 'header')) {
     return {kind: 'header', id, title: item.header};
   }
   if (isItemOfKind(item, 'song')) {
-    return songRow(item, songs.get(item.song), backgrounds);
+    return songRow(item, sources.songs.get(item.song), sources);
   }
   if (isItemOfKind(item, 'slot')) {
     return {kind: 'slot', id, title: item.title, accepts: item.slot};
@@ -100,15 +120,15 @@ function rowOf(
 /** The item's override takes precedence even when its media cannot be found. */
 export function songBackgroundId(
   item: ServiceItemOf<'song'>,
-  song: Song,
+  song: AnySong,
 ): string | undefined {
   return item.background ?? song.background;
 }
 
 function songRow(
   item: ServiceItemOf<'song'>,
-  song: Shown<Song> | undefined,
-  backgrounds: ReadonlyMap<string, MediaChoice>,
+  song: Shown<AnySong> | undefined,
+  sources: RowSources,
 ): ShowRow {
   const {id} = item;
   if (song === undefined) {
@@ -117,9 +137,11 @@ function songRow(
   const {title} = song.data;
   const mediaId = songBackgroundId(item, song.data);
   const background =
-    mediaId === undefined ? undefined : backgrounds.get(mediaId);
-  const problem =
-    mediaId !== undefined && background === undefined
+    mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
+  const capped = sources.cappedItems.has(item.id);
+  const problem = capped
+    ? 'unknown-kind'
+    : mediaId !== undefined && background === undefined
       ? 'missing-background'
       : song.access === 'readOnly'
         ? 'newer-version'
@@ -133,15 +155,83 @@ function songRow(
   };
 }
 
-export function songTiles(
-  song: Song,
+/**
+ * Projects a song's slides to tiles and indicates whether the tile count hit the
+ * expansion cap. An oversized expansion emits an empty tile set and flags capped.
+ */
+export function projectSongTiles(
+  song: AnySong,
   colors: ReadonlyMap<string, LabelColor>,
   arrangement?: string,
-): ShowTile[] {
-  return playbackOrder(song, arrangement).flatMap(number => {
+): ProjectedSongTiles {
+  if (isGroupedSong(song)) {
+    return projectGroupedSongTiles(song, colors, arrangement);
+  }
+  const tiles = playbackOrder(song, arrangement).flatMap(number => {
     const slide = song.slides[number - 1];
     return slide === undefined ? [] : [tileOf(slide, colors)];
   });
+  if (tiles.length > SHOW_SERVICE_LIMITS.tiles) {
+    return {tiles: [], capped: true};
+  }
+  return {tiles, capped: false};
+}
+
+function projectGroupedSongTiles(
+  song: GroupedSong,
+  colors: ReadonlyMap<string, LabelColor>,
+  arrangement?: string,
+): ProjectedSongTiles {
+  const chosen =
+    arrangement === undefined
+      ? undefined
+      : song.arrangements?.find(item => item.name === arrangement);
+  const groupIds =
+    chosen !== undefined && chosen.groups.length > 0
+      ? chosen.groups
+      : song.groups.map(group => group.id);
+
+  const groupsById = new Map<string, SongGroup>(
+    song.groups.map(group => [group.id, group]),
+  );
+  const tiles: ShowTile[] = [];
+
+  for (const groupId of groupIds) {
+    const group = groupsById.get(groupId);
+    if (group === undefined) continue;
+    const label = group.name === '' ? null : group.name;
+    const labelColor =
+      label === null ? NO_LABEL_COLOR : (colors.get(label) ?? NO_LABEL_COLOR);
+
+    for (let slideIndex = 0; slideIndex < group.slides.length; slideIndex++) {
+      if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
+        return {tiles: [], capped: true};
+      }
+      const slide = group.slides[slideIndex];
+      if (slide === undefined) continue;
+      tiles.push({
+        label,
+        labelColor,
+        lines: slide.lines,
+        sourceSlide: {
+          songId: song.id,
+          groupId: group.id,
+          slideIndex,
+        },
+        ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
+      });
+    }
+  }
+
+  return {tiles, capped: false};
+}
+
+export function songTiles(
+  song: AnySong,
+  colors: ReadonlyMap<string, LabelColor>,
+  arrangement?: string,
+): ShowTile[] {
+  return [...projectSongTiles(song, colors, arrangement).tiles];
 }
 
 function tileOf(

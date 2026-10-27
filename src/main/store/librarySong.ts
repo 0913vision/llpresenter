@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import type {MediaChoice} from '@shared/live';
-import type {SongDocument} from '@shared/schema/contentDocuments';
+import type {FileAccess} from '@shared/schema/fileFormat';
 import type {SongId} from '@shared/schema/ids';
 import type {Label} from '@shared/schema/labels';
 import {
@@ -10,10 +10,16 @@ import {
   type ShowLibrarySong,
 } from '@shared/schema/showLibrarySong';
 import type {Logger} from '../log';
-import {jumpKeysOf, songTiles} from './showService';
+import {type AnySong, jumpKeysOf, projectSongTiles} from './showService';
+
+export interface LibrarySongDocument {
+  readonly song: AnySong;
+  readonly revision: number;
+  readonly access: FileAccess;
+}
 
 export interface LibrarySongSources {
-  readonly song: (id: SongId) => SongDocument | null;
+  readonly song: (id: SongId) => LibrarySongDocument | null;
   readonly labels: readonly Label[];
   readonly backgroundOf: (id: string) => Promise<MediaChoice | null>;
 }
@@ -30,8 +36,11 @@ export async function showLibrarySong(
     song.background === undefined
       ? null
       : await sources.backgroundOf(song.background);
-  const problem =
-    song.background !== undefined && background === null
+  const colors = new Map(labels.map(({name, color}) => [name, color]));
+  const projected = projectSongTiles(song, colors);
+  const problem = projected.capped
+    ? 'newer-version'
+    : song.background !== undefined && background === null
       ? 'missing-background'
       : access === 'readOnly'
         ? 'newer-version'
@@ -40,11 +49,8 @@ export async function showLibrarySong(
     songId: song.id,
     songRevision: revision,
     title: song.title,
-    readOnly: access === 'readOnly',
-    tiles: songTiles(
-      song,
-      new Map(labels.map(({name, color}) => [name, color])),
-    ),
+    readOnly: access === 'readOnly' || projected.capped,
+    tiles: projected.tiles,
     jumpKeys: jumpKeysOf(labels),
     ...(background === null ? {} : {background}),
     ...(problem === undefined ? {} : {problem}),

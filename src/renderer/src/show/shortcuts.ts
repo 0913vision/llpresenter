@@ -2,9 +2,11 @@ import {useEffect} from 'react';
 import {isColumnDragActive} from '@renderer/state/drag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
+  hasSlideHotKey,
   jumpLabelFor,
   openNextItem,
   openPreviousItem,
+  outputHotKey,
   outputLabel,
   outputNext,
   outputPrevious,
@@ -172,7 +174,13 @@ export function handleShowKey(event: KeyboardEvent): void {
     else outputPrevious();
     return;
   }
-  const label = jumpLabelFor(physicalKey(event));
+  const code = physicalKey(event);
+  if (hasSlideHotKey(code)) {
+    event.preventDefault();
+    if (!event.repeat) outputHotKey(code);
+    return;
+  }
+  const label = jumpLabelFor(code);
   if (label === undefined) return;
   event.preventDefault();
   if (!event.repeat) outputLabel(label);

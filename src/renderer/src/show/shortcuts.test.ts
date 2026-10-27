@@ -60,6 +60,7 @@ beforeEach(() => {
   vi.spyOn(showState, 'outputNext').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputPrevious').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputLabel').mockImplementation(() => undefined);
+  vi.spyOn(showState, 'outputHotKey').mockImplementation(() => true);
   vi.spyOn(showState, 'openNextItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'openPreviousItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'revealLiveItem').mockImplementation(() => undefined);
@@ -370,6 +371,45 @@ describe('handleShowKey jump keys', () => {
     press('KeyC', {ctrlKey: true});
     press('KeyC', {}, appendTo('textarea'));
     expect(showState.outputLabel).not.toHaveBeenCalled();
+  });
+});
+
+describe('handleShowKey slide hotkeys', () => {
+  it('outputs the matching slide hotkey and prevents default', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
+      code => code === 'KeyA',
+    );
+    const event = press('KeyA');
+    expect(event.defaultPrevented).toBe(true);
+    expect(showState.outputHotKey).toHaveBeenCalledWith('KeyA');
+  });
+
+  it('runs a held slide hotkey once and swallows repeat events', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
+      code => code === 'KeyA',
+    );
+    press('KeyA');
+    const repeated = press('KeyA', {repeat: true});
+    expect(showState.outputHotKey).toHaveBeenCalledTimes(1);
+    expect(repeated.defaultPrevented).toBe(true);
+  });
+
+  it('prioritizes slide hotkey over jump key when both match the same code', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
+      code => code === 'KeyC',
+    );
+    const event = press('KeyC');
+    expect(event.defaultPrevented).toBe(true);
+    expect(showState.outputHotKey).toHaveBeenCalledWith('KeyC');
+    expect(showState.outputLabel).not.toHaveBeenCalled();
+  });
+
+  it('falls back to jump label when no slide hotkey matches', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
+    const event = press('KeyC');
+    expect(event.defaultPrevented).toBe(true);
+    expect(showState.outputHotKey).not.toHaveBeenCalled();
+    expect(showState.outputLabel).toHaveBeenCalledWith('후렴');
   });
 });
 

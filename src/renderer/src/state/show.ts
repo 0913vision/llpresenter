@@ -1,3 +1,4 @@
+import {findSlideHotKey} from '@shared/slideHotKeys';
 import {parseServiceItemId} from '@shared/schema/ids';
 import type {ShowService} from '@shared/schema/showService';
 import {
@@ -208,6 +209,25 @@ export function jumpLabelFor(code: string): string | undefined {
     return view.librarySong.jumpKeys[code];
   }
   return view.jumpKeys[code];
+}
+
+/** True if the active presentation has a slide assigned to this physical hot key. */
+export function hasSlideHotKey(code: string): boolean {
+  const view = useShow.getState();
+  const source = liveCursor()?.itemId ?? view.openItemId;
+  if (!source) return false;
+  return findSlideHotKey(tilesOf(source), code) !== null;
+}
+
+/** Outputs the first tile in the active presentation that has this physical hot key. */
+export function outputHotKey(code: string): boolean {
+  const view = useShow.getState();
+  const source = liveCursor()?.itemId ?? view.openItemId;
+  if (!source) return false;
+  const target = findSlideHotKey(tilesOf(source), code);
+  if (!target) return false;
+  outputTile({itemId: source, index: target.tileIndex});
+  return true;
 }
 
 /** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
