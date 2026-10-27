@@ -5,6 +5,8 @@ import type {SelectOption} from '@renderer/ui/SelectMenu';
 import type {FontCatalogState} from './useFontCatalog';
 
 const BUNDLED_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+const BUNDLED_WEIGHT_MIN = 45;
+const BUNDLED_WEIGHT_MAX = 920;
 const BUNDLED_NAMES = ['pretendard', 'pretendard variable'];
 const normalize = (name: string): string => name.trim().toLowerCase();
 const namesOf = (family: FontFamily): readonly string[] =>
@@ -58,9 +60,10 @@ export function weightChoices(
       : undefined;
   const weights = family?.weights ?? BUNDLED_WEIGHTS;
   const supported =
-    state.status !== 'ready' ||
     weights.includes(weight) ||
-    (family === undefined && weight >= 100 && weight <= 900);
+    (family === undefined &&
+      weight >= BUNDLED_WEIGHT_MIN &&
+      weight <= BUNDLED_WEIGHT_MAX);
   return [...new Set([...weights, weight])]
     .sort((left, right) => left - right)
     .map(value => ({

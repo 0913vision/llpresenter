@@ -93,6 +93,32 @@ it('offers actual weights and preserves an unsupported saved weight without adve
   );
 });
 
+it.each([
+  {weight: 44, disabled: true},
+  {weight: 45, disabled: false},
+  {weight: 920, disabled: false},
+  {weight: 921, disabled: true},
+])('recognizes bundled font weight $weight', ({weight, disabled}) => {
+  for (const font of ['Pretendard', 'Pretendard Variable']) {
+    for (const state of [
+      ready,
+      {status: 'loading'} as const,
+      {status: 'failed'} as const,
+    ]) {
+      expect(
+        weightChoices(font, weight, state).find(
+          item => item.value === String(weight),
+        )?.disabled,
+      ).toBe(disabled);
+    }
+  }
+  expect(
+    weightChoices('Absent Fixture', weight, ready).find(
+      item => item.value === String(weight),
+    )?.disabled,
+  ).toBe(disabled);
+});
+
 it('does not offer speculative weights before the installed family is known', async () => {
   let resolve: (fonts: FontCatalog) => void = () => undefined;
   window.llp = fakeLlpApi({
