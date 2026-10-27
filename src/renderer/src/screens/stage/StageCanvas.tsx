@@ -26,6 +26,7 @@ import {elementNames, STAGE_ELEMENT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import {StagePicture} from './StagePicture';
 import {StageFrameBar} from './StageFrameBar';
+import {snapToGrid} from './gridSnap';
 import styles from './StageCanvas.module.css';
 
 interface Gesture {
@@ -38,6 +39,7 @@ interface Gesture {
   readonly handle: ResizeHandle | 'move';
   readonly target: HTMLElement;
   readonly keepRatio: boolean;
+  readonly snapGrid: boolean;
   frame: ElementFrame;
 }
 const handleNames: Readonly<Record<ResizeHandle, string>> = {
@@ -63,6 +65,7 @@ export function StageCanvas({
   const live = useLive(view => view.state);
   const run = useStageEditor(document, onProblem);
   const [keepRatio, setKeepRatio] = useState(false);
+  const [snapGrid, setSnapGrid] = useState(false);
   const layout =
     selection.kind === 'stage'
       ? document?.value.layouts.find(layout => layout.id === selection.id)
@@ -77,6 +80,8 @@ export function StageCanvas({
       timers={timers?.value.timers ?? []}
       keepRatio={keepRatio}
       setKeepRatio={setKeepRatio}
+      snapGrid={snapGrid}
+      setSnapGrid={setSnapGrid}
     />
   );
 }
@@ -89,6 +94,8 @@ function CanvasBody({
   timers,
   keepRatio,
   setKeepRatio,
+  snapGrid,
+  setSnapGrid,
 }: {
   layout: StageLayout;
   readOnly: boolean;
@@ -97,6 +104,8 @@ function CanvasBody({
   timers: Parameters<typeof StagePicture>[0]['timers'];
   keepRatio: boolean;
   setKeepRatio: (value: boolean) => void;
+  snapGrid: boolean;
+  setSnapGrid: (value: boolean) => void;
 }): JSX.Element {
   const picked = useScreensSelection(view => view.stageElement);
   const selectElement = useScreensSelection(view => view.selectStageElement);
@@ -202,6 +211,7 @@ function CanvasBody({
       handle,
       target: event.currentTarget,
       keepRatio,
+      snapGrid,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -248,14 +258,20 @@ function CanvasBody({
           onPointerMove={event => {
             const current = gesture.current;
             if (current?.id !== event.pointerId) return;
-            current.frame = editFrame(
-              current.start,
-              {
-                x: (event.clientX - current.x) / current.scale,
-                y: (event.clientY - current.y) / current.scale,
-              },
-              {handle: current.handle, keepRatio: current.keepRatio},
-            );
+            const delta = {
+              x: (event.clientX - current.x) / current.scale,
+              y: (event.clientY - current.y) / current.scale,
+            };
+            const snapped = current.snapGrid
+              ? snapToGrid(current.start, delta, current)
+              : {delta, ratioAxis: undefined};
+            current.frame = editFrame(current.start, snapped.delta, {
+              handle: current.handle,
+              keepRatio: current.keepRatio,
+              ...(snapped.ratioAxis === undefined
+                ? {}
+                : {ratioAxis: snapped.ratioAxis}),
+            });
             setDraft({id: current.elementId, frame: current.frame});
           }}
           onPointerUp={event => {
@@ -382,6 +398,8 @@ function CanvasBody({
         readOnly={readOnly}
         keepRatio={keepRatio}
         setKeepRatio={setKeepRatio}
+        snapGrid={snapGrid}
+        setSnapGrid={setSnapGrid}
         change={(field, value) => {
           const element = picture.elements.find(
             element => element.id === selected,

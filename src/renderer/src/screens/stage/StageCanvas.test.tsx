@@ -432,6 +432,76 @@ it('toggles ratio without saving and couples both numeric and pointer resizing',
   await waitFor(() => expect(frame()).toMatchObject({w: 640, h: 400}));
 });
 
+it('snaps scaled pointer moves while leaving numeric values and arrows precise', async () => {
+  const {edit, frame} = setup();
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  const grid = screen.getByRole('button', {name: '격자에 맞추기'});
+  expect(grid.getAttribute('aria-pressed')).toBe('false');
+  fireEvent.click(grid);
+  expect(edit).not.toHaveBeenCalled();
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 5,
+    clientX: 0,
+    clientY: 0,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 5, clientX: 13, clientY: 7});
+  fireEvent.pointerUp(canvas, {pointerId: 5});
+  await waitFor(() => expect(frame()).toMatchObject({x: 120, y: 120}));
+  fireEvent.keyDown(canvas, {key: 'ArrowRight'});
+  fireEvent.keyDown(canvas, {key: 'ArrowDown', shiftKey: true});
+  await waitFor(() => expect(frame()).toMatchObject({x: 121, y: 130}));
+  const x = screen.getByRole('spinbutton', {name: 'X'});
+  fireEvent.change(x, {target: {value: '133'}});
+  fireEvent.keyDown(x, {key: 'Enter'});
+  await waitFor(() => expect(frame()).toMatchObject({x: 133, y: 130}));
+  fireEvent.click(grid);
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 6,
+    clientX: 0,
+    clientY: 0,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 6, clientX: 4, clientY: 6});
+  fireEvent.pointerUp(canvas, {pointerId: 6});
+  await waitFor(() => expect(frame()).toMatchObject({x: 141, y: 142}));
+});
+
+it('combines grid and ratio using the moving corner axis and cancels a snapped draft', async () => {
+  const {frame, edit} = setup();
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(screen.getByRole('button', {name: '격자에 맞추기'}));
+  fireEvent.click(screen.getByRole('button', {name: '비율 고정'}));
+  const handle = screen.getByRole('button', {
+    name: '현재 가사 오른쪽 아래 크기 조절',
+  });
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  fireEvent.pointerDown(handle, {
+    button: 0,
+    pointerId: 7,
+    clientX: 0,
+    clientY: 0,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 7, clientX: 15.5, clientY: 0.5});
+  fireEvent.pointerUp(canvas, {pointerId: 7});
+  await waitFor(() =>
+    expect(frame()).toMatchObject({x: 100, y: 100, w: 440, h: 220}),
+  );
+  fireEvent.pointerDown(handle, {
+    button: 0,
+    pointerId: 8,
+    clientX: 0,
+    clientY: 0,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 8, clientX: 27, clientY: 27});
+  fireEvent.keyDown(canvas, {key: 'Escape'});
+  fireEvent.pointerUp(canvas, {pointerId: 8});
+  await act(() => Promise.resolve());
+  expect(edit).toHaveBeenCalledTimes(1);
+  expect(frame()).toMatchObject({w: 440, h: 220});
+});
+
 it('cancels a draft on Escape and keeps read-only elements selectable', async () => {
   const editable = setup();
   const item = await screen.findByRole('button', {
@@ -459,6 +529,10 @@ it('cancels a draft on Escape and keeps read-only elements selectable', async ()
   expect(screen.queryAllByRole('button', {name: /크기 조절/})).toHaveLength(0);
   fireEvent.keyDown(screen.getByLabelText('무대 배치 캔버스'), {key: 'Delete'});
   expect(readOnly.edit).not.toHaveBeenCalled();
+  const grid = screen.getByRole('button', {name: '격자에 맞추기'});
+  expect(grid.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.click(grid);
+  expect(grid.getAttribute('aria-pressed')).toBe('false');
   expect(
     screen.getByRole('spinbutton', {name: 'W'}).hasAttribute('readonly'),
   ).toBe(true);

@@ -15,6 +15,8 @@ export function StageFrameBar({
   readOnly,
   keepRatio,
   setKeepRatio,
+  snapGrid,
+  setSnapGrid,
   change,
 }: {
   frame: ElementFrame | undefined;
@@ -24,6 +26,8 @@ export function StageFrameBar({
   readOnly: boolean;
   keepRatio: boolean;
   setKeepRatio: (value: boolean) => void;
+  snapGrid: boolean;
+  setSnapGrid: (value: boolean) => void;
   change: (field: FrameField, value: number) => void;
 }): JSX.Element {
   const reason = readOnly
@@ -59,6 +63,14 @@ export function StageFrameBar({
         disabled={readOnly}
         title={readOnly ? STAGE_READ_ONLY : undefined}
         onPressedChange={setKeepRatio}
+      />
+      <IconButton
+        icon="grid"
+        label="격자에 맞추기"
+        pressed={snapGrid}
+        disabled={readOnly}
+        title={readOnly ? STAGE_READ_ONLY : undefined}
+        onPressedChange={setSnapGrid}
       />
       <output className={styles.zoom} aria-label="캔버스 배율">
         {Math.round(100 * zoom)}%

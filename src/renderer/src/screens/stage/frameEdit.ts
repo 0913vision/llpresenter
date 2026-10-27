@@ -20,7 +20,7 @@ export interface FrameFieldChange {
 }
 const MIN_SIZE = 1;
 
-// TODO(0913vision): Add smart guides in the next geometry unit using UI's guide tokens.
+// TODO(0913vision): Add smart guides using UI's guide tokens.
 
 /** Applies a canvas-pixel gesture without flipping a handle past its opposite edge. */
 export function editFrame(
@@ -29,9 +29,11 @@ export function editFrame(
   {
     handle,
     keepRatio = false,
+    ratioAxis,
   }: {
     handle: ResizeHandle | 'move';
     keepRatio?: boolean;
+    ratioAxis?: 'x' | 'y';
   },
 ): ElementFrame {
   if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return frame;
@@ -61,21 +63,23 @@ export function editFrame(
   if (![x, y, w, h].every(Number.isFinite)) return frame;
   const next = {...frame, x, y, w, h};
   return keepRatio && frame.w > 0 && frame.h > 0
-    ? resizeWithRatio(frame, next, handle)
+    ? resizeWithRatio(frame, next, {handle, ratioAxis})
     : next;
 }
 
 function resizeWithRatio(
   frame: ElementFrame,
   next: ElementFrame,
-  handle: ResizeHandle,
+  {handle, ratioAxis}: {handle: ResizeHandle; ratioAxis: 'x' | 'y' | undefined},
 ): ElementFrame {
   const horizontal = handle.includes('w') || handle.includes('e');
   const vertical = handle.includes('n') || handle.includes('s');
   const widthDrives =
     horizontal &&
     (!vertical ||
-      Math.abs(next.w / frame.w - 1) >= Math.abs(next.h / frame.h - 1));
+      (ratioAxis === undefined
+        ? Math.abs(next.w / frame.w - 1) >= Math.abs(next.h / frame.h - 1)
+        : ratioAxis === 'x'));
   const scale = Math.max(
     widthDrives ? next.w / frame.w : next.h / frame.h,
     MIN_SIZE / frame.w,
