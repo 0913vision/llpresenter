@@ -491,6 +491,9 @@ after its name, and hides it at 0.
   Prop tokens for a missing timer render empty, as before. The edit requires
   writable timer settings and, when linked rows must change, writable quick
   settings. A refused edit removes nothing.
+- Renaming in the timer tab updates that timer and the names of its linked quick
+  rows together. It preserves the ID, configuration, current run and stage/prop
+  references. A standalone timer can be renamed without a quick row.
 - The timer editor offers countdown duration, countdown date/time, elapsed start
   duration and clock. Countdown editors include 0 지나면. Invalid dates, times
   or durations use an error ring and tooltip and block saving.

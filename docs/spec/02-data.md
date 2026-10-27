@@ -570,6 +570,8 @@ distinct `elapsed` kind; earlier kinds and fields keep their original meaning.
 
 Names are for display in 퀵 실행, the timer tab and stage pickers. References
 stay ID-based, so 이름 바꾸기 does not break a stage selection or a 소품 token.
+Renaming from either a quick row or the timer tab applies the timer name and
+linked quick-row names together, preserving unknown fields and running state.
 Quick start/reset changes only the referenced timer's live state. Passing zero
 does not rewrite `.duration`: `.overrun` determines whether the timer stops or
 continues with "-". A finished run holds zero and is not running; a fresh start

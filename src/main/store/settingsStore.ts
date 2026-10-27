@@ -29,6 +29,7 @@ import {loadSettingsArea, type SettingsProblem} from './settingsLoader';
 import {SettingsPersistence} from './settingsPersistence';
 import {prepareQuickTimerEdit} from './quickTimerEdits';
 import {prepareTimerDeletion} from './timerDeletions';
+import {prepareTimerRename} from './timerRenames';
 
 export type {SettingsProblem} from './settingsLoader';
 export type SettingsProblemListener = (problem: SettingsProblem) => void;
@@ -182,6 +183,12 @@ export class SettingsStore {
   private update(edit: SettingsEdit): Promise<EditResult> {
     if (edit.type === 'timer.delete') {
       const prepared = prepareTimerDeletion(this.documents, edit);
+      return prepared.ok
+        ? this.commit(prepared.value)
+        : Promise.resolve({ok: false, error: prepared.error});
+    }
+    if (edit.type === 'timer.rename') {
+      const prepared = prepareTimerRename(this.documents, edit);
       return prepared.ok
         ? this.commit(prepared.value)
         : Promise.resolve({ok: false, error: prepared.error});
