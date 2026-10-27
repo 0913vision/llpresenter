@@ -18,11 +18,13 @@ import styles from './LyricStyles.module.css';
 type Change = (change: LyricStyleEdit['change']) => void;
 
 const NUMBER_FIELDS = [
-  {key: 'size', label: '크기', min: 1, max: 10000, step: 1},
-  {key: 'lineHeight', label: '줄 간격', min: 0.1, max: 100, step: 0.1},
-  {key: 'maxLines', label: '최대 줄 수', min: 1, max: 1000, step: 1},
-  {key: 'margin', label: '여백', min: 0, max: 100, step: 1},
+  {key: 'size', label: '크기', min: 12, max: 300, step: 1},
+  {key: 'lineHeight', label: '줄 간격', min: 0.8, max: 3, step: 0.05},
+  {key: 'maxLines', label: '최대 줄 수', min: 1, max: 10, step: 1},
+  {key: 'margin', label: '여백', min: 0, max: 30, step: 1},
 ] as const;
+
+const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 
 function ColorField({
   style,
@@ -101,6 +103,24 @@ export function LyricStyleProperties({
                 disabled={reason !== undefined}
                 title={reason}
                 onChange={font => change({font})}
+              />
+            )}
+          </PropertyRow>
+          <PropertyRow label="굵기">
+            {({controlId}) => (
+              <SelectMenu
+                id={controlId}
+                block
+                value={String(style.weight)}
+                options={[...new Set([...FONT_WEIGHTS, style.weight])]
+                  .sort((left, right) => left - right)
+                  .map(weight => ({
+                    value: String(weight),
+                    label: String(weight),
+                  }))}
+                disabled={reason !== undefined}
+                title={reason}
+                onChange={weight => change({weight: Number(weight)})}
               />
             )}
           </PropertyRow>

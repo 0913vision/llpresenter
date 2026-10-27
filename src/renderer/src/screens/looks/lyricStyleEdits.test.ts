@@ -85,7 +85,10 @@ it('serializes rapid changes with list edits and waits for them during close', a
   editor.adopt(document);
   const first = editor.changeStyle({id: style.id, change: {size: 96}});
   await vi.waitFor(() => expect(writes).toHaveLength(1));
-  const second = editor.changeStyle({id: style.id, change: {margin: 12}});
+  const second = editor.changeStyle({
+    id: style.id,
+    change: {margin: 12, weight: 400, lineHeight: 1.45},
+  });
   const third = editor.change({
     kind: 'rename',
     id: document.value.current,
@@ -108,6 +111,14 @@ it('serializes rapid changes with list edits and waits for them during close', a
   expect(editor.getSnapshot()?.value.lyricStyles[0]).toMatchObject({
     size: 96,
     margin: 12,
+    weight: 400,
+    lineHeight: 1.45,
+  });
+  expect(writes.at(-1)).toMatchObject({
+    name: 'looks',
+    value: {
+      lyricStyles: [expect.objectContaining({weight: 400, lineHeight: 1.45})],
+    },
   });
   expect(
     writes.map(edit => 'baseRevision' in edit && edit.baseRevision),

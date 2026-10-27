@@ -55,7 +55,7 @@ function setup(reason?: string) {
       onProblem={vi.fn()}
     />,
   );
-  return {...view, change};
+  return {...view, change, looks};
 }
 
 it('previews on mount and switches presets without writing or recreating the renderer', () => {
@@ -96,6 +96,70 @@ it('commits valid drafts, rejects invalid colors and cancels with Escape', () =>
   );
 });
 
+it.each([
+  {label: '크기', key: 'size', min: 12, max: 300},
+  {label: '줄 간격', key: 'lineHeight', min: 0.8, max: 3},
+  {label: '최대 줄 수', key: 'maxLines', min: 1, max: 10},
+  {label: '여백', key: 'margin', min: 0, max: 30},
+])('clamps $key commits to the specified bounds', ({label, key, min, max}) => {
+  const {change} = setup();
+  const field = screen.getByLabelText(label);
+  expect(field.getAttribute('aria-valuemin')).toBe(String(min));
+  expect(field.getAttribute('aria-valuemax')).toBe(String(max));
+  fireEvent.change(field, {target: {value: String(min - 1)}});
+  fireEvent.blur(field);
+  expect(change).toHaveBeenLastCalledWith(
+    expect.objectContaining({change: {[key]: min}}),
+  );
+  fireEvent.change(field, {target: {value: String(max + 1)}});
+  fireEvent.keyDown(field, {key: 'Enter'});
+  expect(change).toHaveBeenLastCalledWith(
+    expect.objectContaining({change: {[key]: max}}),
+  );
+});
+
+it('preserves fractional line spacing on commit and uses a 0.05 arrow step', () => {
+  const {change} = setup();
+  const field = screen.getByLabelText('줄 간격');
+  fireEvent.change(field, {target: {value: '1.45'}});
+  fireEvent.keyDown(field, {key: 'Enter'});
+  expect(change).toHaveBeenLastCalledWith(
+    expect.objectContaining({change: {lineHeight: 1.45}}),
+  );
+  fireEvent.keyDown(field, {key: 'ArrowUp'});
+  expect(change).toHaveBeenLastCalledWith(
+    expect.objectContaining({change: {lineHeight: 1.45}}),
+  );
+  expect(change).toHaveBeenCalledTimes(2);
+});
+
+it('sends a weight-only edit and previews the saved weight', () => {
+  const view = setup();
+  fireEvent.click(screen.getByLabelText('굵기'));
+  fireEvent.click(screen.getByRole('menuitemradio', {name: '400'}));
+  expect(view.change).toHaveBeenCalledWith(
+    expect.objectContaining({change: {weight: 400}}),
+  );
+  view.rerender(
+    <LyricStyles
+      looks={{
+        ...view.looks,
+        lyricStyles: view.looks.lyricStyles.map((style, index) =>
+          index === 0 ? {...style, weight: 400} : style,
+        ),
+      }}
+      reason={undefined}
+      onChange={view.change}
+      onListChange={() => undefined}
+      onProblem={vi.fn()}
+    />,
+  );
+  expect(drawing.render.mock.lastCall?.[1]).toHaveProperty(
+    'look.lyricStyle.weight',
+    400,
+  );
+});
+
 it('sends field-specific alignment and effect changes and prevents read-only writes', () => {
   const {change, unmount} = setup();
   fireEvent.click(screen.getByRole('radio', {name: '왼쪽'}));
@@ -108,6 +172,11 @@ it('sends field-specific alignment and effect changes and prevents read-only wri
   const readonly = setup('읽기 전용');
   fireEvent.click(screen.getByRole('radio', {name: '왼쪽'}));
   fireEvent.click(screen.getByRole('switch', {name: '외곽선'}));
+  fireEvent.click(screen.getByLabelText('굵기'));
+  expect(screen.getByLabelText('굵기').getAttribute('aria-disabled')).toBe(
+    'true',
+  );
+  expect(screen.queryByRole('menuitemradio', {name: '400'})).toBeNull();
   expect(screen.getByLabelText('크기').hasAttribute('readonly')).toBe(true);
   expect(readonly.change).not.toHaveBeenCalled();
 });
