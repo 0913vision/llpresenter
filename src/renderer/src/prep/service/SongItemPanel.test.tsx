@@ -25,7 +25,11 @@ import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';
-import {DEFAULT_ORDER_REASON, NEWER_FILE_REASON} from './ItemArrangement';
+import {
+  DEFAULT_ORDER_REASON,
+  GROUPED_SONG_EDIT_REASON,
+  NEWER_FILE_REASON,
+} from './ItemArrangement';
 import {ServiceItemPanel} from './SongItemPanel';
 
 afterEach(() => {
@@ -366,8 +370,77 @@ describe('service song item panel', () => {
     await user.click(editBtn);
     expect(editor.getSnapshot().session).toBeNull();
     expect((await hoverForTooltip(editBtn))?.textContent).toBe(
-      NEWER_FILE_REASON,
+      GROUPED_SONG_EDIT_REASON,
     );
+  });
+
+  it('shows file-order thumbnails for a v1 song with an empty named 구성 (v1 regression test)', async () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const fixture = itemFixture();
+    const v1Song = {
+      ...fixture.first.song,
+      arrangements: [{name: '빈 구성', slides: []}],
+    };
+    const document = {
+      song: v1Song,
+      revision: 1,
+      access: 'editable' as const,
+    };
+    const itemId = createServiceItemId('50000000-0000-4000-8000-000000000098');
+    const currentService = fixture.service();
+    const updatedService: ServiceDocument = {
+      ...currentService,
+      service: {
+        ...currentService.service,
+        order: [
+          {
+            id: itemId,
+            song: document.song.id,
+            arrangement: '빈 구성',
+          },
+        ],
+      },
+    };
+    fixture.pushService(updatedService);
+
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const session = new SongSession({
+      document,
+      api: fixture.api.content,
+      changed: () => undefined,
+      problem: () => undefined,
+    });
+    const testEditor = {
+      sessionOf: (id: SongId) =>
+        id === document.song.id ? session : editor.sessionOf(id),
+      showItemSong: (id: SongId | null) => editor.showItemSong(id),
+      attach: (doc: Parameters<typeof editor.attach>[0]) => editor.attach(doc),
+      subscribe: (listener: () => void) => editor.subscribe(listener),
+    };
+
+    const items = new ServiceItemStore(fixture.api, testEditor, vi.fn());
+    useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
+    items.show({serviceId: fixtureServiceId, itemId});
+    await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+
+    const view = render(
+      <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
+    );
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    });
+
+    await screen.findByRole('listbox', {name: '구성 순서'});
+    const panel = screen.getByRole('region', {name: '예배 순서 항목'});
+    // NOTE(0913vision): v1 fallback: playbackOrder falls back to file order (2 slides).
+    expect(within(panel).getByText('슬라이드 2개')).toBeDefined();
+    expect(
+      within(panel)
+        .getAllByRole('option')
+        .filter(opt => opt.closest('[aria-label="구성 순서"]') === null),
+    ).toHaveLength(2);
   });
 
   it('shows an empty panel for nothing selected and for other kinds', async () => {

@@ -470,7 +470,12 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
     - `setOrder(groups: SongGroupId[])` saves updated group order to song
       session.
   - In `src/renderer/src/prep/service/SongItemPanel.tsx`:
-    - Line 97 calls grouped expansion for thumbnail grid.
+    - Line 97 calls grouped expansion for thumbnail grid: grouped songs use
+      `editedOrder(song, arrangement)` (showing 0 thumbnails and `슬라이드 0개`
+      when a named 구성 is emptied), while v1 songs preserve
+      `playbackOrder(song, arrangement)` (retaining file-order thumbnails).
+    - Library edit button is disabled for grouped songs with
+      `GROUPED_SONG_EDIT_REASON` until group-7.
   - Add new test file `ItemArrangement.test.tsx`.
 - **Paths changed**:
   - `src/renderer/src/prep/service/ItemArrangement.tsx`
@@ -591,6 +596,10 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/main/live/recovery/plan.ts`
   - `src/main/live/testing/recovery.ts`
   - `src/shared/songOrder.ts`
+  - `src/renderer/src/prep/service/SongItemPanel.tsx` (remove temporary library
+    edit guard `TODO(0913vision)`)
+  - `src/renderer/src/prep/service/ItemSidePanels.tsx` (remove temporary library
+    open guard `TODO(0913vision)`)
   - `src/renderer/src/prep/editor/songEditorStore.ts`
   - `src/renderer/src/prep/editor/songSession.ts` (remove temporary `drain`
     grouped save guard `TODO(0913vision)`)

@@ -308,27 +308,6 @@ export class ServiceItemStore {
     return song.setArrangementSlides(arrangement, order);
   }
 
-  /**
-   * Gives the item's chosen 구성 a new order in the song file, so every 예배
-   * 순서 that uses that 구성 shows it. 기본 has no order to change.
-   */
-  setOrder(order: readonly number[] | readonly SongGroupId[]): boolean {
-    const {song} = this.state;
-    if (song === null) return false;
-    if (isGroupedSong(song.history.snapshot.song)) {
-      const groupOrder: SongGroupId[] = [];
-      for (const item of order) {
-        if (typeof item === 'string') groupOrder.push(item);
-      }
-      return this.setGroupOrder(groupOrder);
-    }
-    const slideOrder: number[] = [];
-    for (const item of order) {
-      if (typeof item === 'number') slideOrder.push(item);
-    }
-    return this.setSlideOrder(slideOrder);
-  }
-
   /** Overrides the song's background for this item, or follows it with `null`. */
   setBackground(mediaId: MediaId | null): Promise<boolean> {
     const target = this.target;

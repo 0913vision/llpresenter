@@ -10,7 +10,7 @@ import {
   PropertyGroup,
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
-import {NEWER_FILE_REASON} from './ItemArrangement';
+import {GROUPED_SONG_EDIT_REASON, NEWER_FILE_REASON} from './ItemArrangement';
 import {ItemBackgroundRow, ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import {
   isStartItem,
@@ -87,10 +87,11 @@ export function ItemSettingsPanel({
                     <IconButton
                       icon="open"
                       label="라이브러리 곡 열기"
+                      // TODO(0913vision): Remove the guard and enable library open in group-7.
                       disabled={!isV1SongDocument(song.document)}
                       title={
                         !isV1SongDocument(song.document)
-                          ? NEWER_FILE_REASON
+                          ? GROUPED_SONG_EDIT_REASON
                           : undefined
                       }
                       onClick={() => {

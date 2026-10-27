@@ -186,6 +186,7 @@ describe('song item model', () => {
         {id: g1, name: '', slides: [{lines: ['1']}]},
         {id: g2, name: '', slides: [{lines: ['2']}]},
       ],
+      arrangements: [{name: '정리전', groups: [dangling, g1, g2]}],
     };
     const chips = orderChips(grouped, [g1, dangling, g2, g1], []);
     expect(chips).toEqual([
@@ -198,6 +199,12 @@ describe('song item model', () => {
       {start: 0, length: 1},
       {start: 1, length: 1},
     ]);
+
+    // NOTE(0913vision): editedGroupOrder drops dangling IDs so move and remove stay aligned.
+    const filtered = editedGroupOrder(grouped, '정리전');
+    expect(filtered).toEqual([g1, g2]);
+    expect(withoutPosition(filtered, 0)).toEqual([g2]);
+    expect(movedOrder(filtered, 0, 1)).toEqual([g2, g1]);
   });
 
   it('compares sequences with sameSequence', () => {

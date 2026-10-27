@@ -1,7 +1,8 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
+import {playbackOrder} from '@shared/songOrder';
 import type {SongEditorStore} from '@renderer/prep/editor';
 import {editedOrder} from '@renderer/prep/editor/songArrangements';
 import type {SongSession} from '@renderer/prep/editor/songSession';
@@ -29,7 +30,11 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {historyCommand} from '@renderer/prep/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
+import {
+  GROUPED_SONG_EDIT_REASON,
+  ItemArrangement,
+  NEWER_FILE_REASON,
+} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
 import {isV1SongDocument, shownPosition} from './songItemModel';
@@ -95,9 +100,17 @@ function SongItemView({
       .labels ?? [];
   const scale = useThumbnailScale(sizeClass);
   const {song} = session.history.snapshot;
-  const sequence = editedOrder(song, arrangement);
+  const sequence = isGroupedSong(song)
+    ? editedOrder(song, arrangement)
+    : playbackOrder(song, arrangement);
   const shown = shownPosition(position, sequence.length);
   const select = (index: number): void => items.selectPosition(index);
+  // TODO(0913vision): Remove the guard and enable library edit in group-7.
+  const editReason = !isV1SongDocument(session.document)
+    ? GROUPED_SONG_EDIT_REASON
+    : session.readOnly
+      ? NEWER_FILE_REASON
+      : undefined;
   return (
     <div
       className={styles.keys}
@@ -118,12 +131,8 @@ function SongItemView({
           <PanelActions>
             <Button
               icon="edit"
-              disabled={!isV1SongDocument(session.document)}
-              title={
-                !isV1SongDocument(session.document)
-                  ? NEWER_FILE_REASON
-                  : undefined
-              }
+              disabled={editReason !== undefined}
+              title={editReason}
               onClick={() => {
                 if (isV1SongDocument(session.document)) {
                   editor.open(session.document);

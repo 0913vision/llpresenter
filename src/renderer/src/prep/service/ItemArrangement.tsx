@@ -1,4 +1,4 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
 import type {Label} from '@shared/schema/labels';
 import {DEFAULT_ARRANGEMENT_NAME, type Song} from '@shared/schema/song';
 import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
@@ -15,7 +15,6 @@ import type {ServiceItemStore} from './serviceItemStore';
 import {
   chipIndexForSlide,
   editedGroupOrder,
-  groupRanges,
   groupRangesFromGroups,
   groupedOrderChips,
   legacyOrderChips,
@@ -29,6 +28,8 @@ import styles from './SongItemPanel.module.css';
 
 export const DEFAULT_ORDER_REASON = '기본 구성은 변경할 수 없습니다';
 export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다';
+export const GROUPED_SONG_EDIT_REASON =
+  '그룹 곡은 아직 라이브러리에서 편집할 수 없습니다';
 
 interface ArrangementAdapter {
   readonly menuLabel: string;
@@ -100,8 +101,8 @@ function makeGroupedAdapter({
   readonly sequenceLength: number;
   readonly onSelect: (index: number) => void;
 }): ArrangementAdapter {
-  const ranges = groupRanges(song, arrangement);
   const order = editedGroupOrder(song, arrangement);
+  const ranges = groupRangesFromGroups(song, order);
   const chips = groupedOrderChips(song, order, labels);
 
   return {
@@ -218,22 +219,28 @@ export function ItemArrangement({
   const [insertAnchor, setInsertAnchor] = useState<HTMLElement | null>(null);
   const {song} = session.history.snapshot;
   const sequence = editedOrder(song, arrangement);
-  const adapter = isGroupedSong(song)
-    ? makeGroupedAdapter({
-        song,
-        arrangement,
-        labels,
-        items,
-        sequenceLength: sequence.length,
-        onSelect,
-      })
-    : makeLegacyAdapter({
-        song,
-        arrangement,
-        labels,
-        items,
-        onSelect,
-      });
+  const isGrouped = isGroupedSong(song);
+  const sequenceLength = sequence.length;
+  const adapter = useMemo(
+    () =>
+      isGrouped
+        ? makeGroupedAdapter({
+            song,
+            arrangement,
+            labels,
+            items,
+            sequenceLength,
+            onSelect,
+          })
+        : makeLegacyAdapter({
+            song,
+            arrangement,
+            labels,
+            items,
+            onSelect,
+          }),
+    [isGrouped, song, arrangement, labels, items, sequenceLength, onSelect],
+  );
 
   const orderReason = session.readOnly
     ? NEWER_FILE_REASON

@@ -30,12 +30,18 @@ export function slideLabel(
   return label === '' ? undefined : label;
 }
 
-/** The active group order of a grouped song's arrangement, or master order for 기본. */
+/**
+ * The active group order of a grouped song's arrangement, or master order for 기본.
+ * Stale or dangling IDs not found in the song are dropped so chip indices, ranges,
+ * and edits stay 1:1 aligned with the active order.
+ */
 export function editedGroupOrder(
   song: GroupedSong,
   name: string | undefined,
 ): readonly SongGroupId[] {
-  return arrangementGroupIds(song, name);
+  const raw = arrangementGroupIds(song, name);
+  const known = new Set(song.groups.map(g => g.id));
+  return raw.filter(id => known.has(id));
 }
 
 /** Whether two sequences list the same items in the same places. */

@@ -143,7 +143,7 @@ describe('service item store', () => {
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.lost});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
     expect(items.getSnapshot().arrangement).toBeUndefined();
-    expect(items.setOrder([2, 1])).toBe(false);
+    expect(items.setSlideOrder([2, 1])).toBe(false);
     expect(edits).toEqual([]);
   });
 
@@ -306,7 +306,7 @@ describe('service item store', () => {
     );
     expect(await items.chooseArrangement('주일용')).toBe(false);
     expect(await items.createArrangement()).toBe(false);
-    expect(items.setOrder([1])).toBe(false);
+    expect(items.setSlideOrder([1])).toBe(false);
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
     );
@@ -565,11 +565,11 @@ describe('service item store', () => {
     const {items, edits} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setOrder([2, 1])).toBe(false);
+    expect(items.setSlideOrder([2, 1])).toBe(false);
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
     for (const slides of [[0], [3], [1.5]]) {
-      expect(items.setOrder(slides)).toBe(false);
+      expect(items.setSlideOrder(slides)).toBe(false);
     }
     expect(edits).toEqual([]);
   });
@@ -624,7 +624,7 @@ describe('service item store', () => {
     documents.set(first.song.id, {...first, access: 'readOnly'});
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setOrder([2, 1, 2])).toBe(false);
+    expect(items.setSlideOrder([2, 1, 2])).toBe(false);
   });
 
   it('shares one selected place and starts over for another item', async () => {

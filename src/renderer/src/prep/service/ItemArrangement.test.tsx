@@ -28,10 +28,15 @@ afterEach(() => {
   resetTooltips();
 });
 
-function createTestGroupedSong(unnamed = false, readOnly = false) {
+function createTestGroupedSong(
+  unnamed = false,
+  readOnly = false,
+  danglingFirst = false,
+) {
   const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
   const g2Id = createSongGroupId('22222222-2222-4222-a222-222222222222');
   const g3Id = createSongGroupId('33333333-3333-4333-a333-333333333333');
+  const danglingId = createSongGroupId('99999999-9999-4999-a999-999999999999');
   const songId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab');
 
   const song: GroupedSong = {
@@ -62,7 +67,9 @@ function createTestGroupedSong(unnamed = false, readOnly = false) {
     arrangements: [
       {
         name: '주일용',
-        groups: [g1Id, g2Id, g1Id],
+        groups: danglingFirst
+          ? [danglingId, g1Id, g2Id, g1Id]
+          : [g1Id, g2Id, g1Id],
       },
       {
         name: '빈 구성',
@@ -88,6 +95,7 @@ async function setupGrouped(
     unnamed?: boolean;
     readOnly?: boolean;
     arrangement?: string | undefined;
+    danglingFirst?: boolean;
   } = {},
 ) {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -95,6 +103,7 @@ async function setupGrouped(
   const {document, g1Id, g2Id, g3Id} = createTestGroupedSong(
     options.unnamed,
     options.readOnly,
+    options.danglingFirst,
   );
 
   const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
@@ -292,5 +301,44 @@ describe('ItemArrangement with grouped songs', () => {
     const listbox = screen.getByRole('listbox', {name: '구성 순서'});
     const chips = within(listbox).queryAllByRole('option');
     expect(chips).toHaveLength(0);
+  });
+
+  it('handles an arrangement with a dangling group id first by filtering it when read, allowing remove without offset', async () => {
+    const {session, g2Id, g1Id, user} = await setupGrouped({
+      danglingFirst: true,
+    });
+    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
+    const chips = within(listbox).getAllByRole('option');
+    expect(chips).toHaveLength(3);
+    expect(chips[0]?.textContent).toBe('1절');
+    expect(chips[1]?.textContent).toBe('후렴');
+    expect(chips[2]?.textContent).toBe('1절');
+
+    const firstChip = chips[0];
+    if (firstChip === undefined) throw new Error('Missing chip');
+    await user.click(firstChip);
+    await user.keyboard('{Delete}');
+    expect(session.history.snapshot.song.arrangements?.[0]?.groups).toEqual([
+      g2Id,
+      g1Id,
+    ]);
+  });
+
+  it('moves groups accurately without offset when arrangement starts with a dangling id', async () => {
+    const {session, g1Id, g2Id, user} = await setupGrouped({
+      danglingFirst: true,
+    });
+    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
+    const chips = within(listbox).getAllByRole('option');
+
+    const firstChip = chips[0];
+    if (firstChip === undefined) throw new Error('Missing chip');
+    await user.click(firstChip);
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
+    expect(session.history.snapshot.song.arrangements?.[0]?.groups).toEqual([
+      g2Id,
+      g1Id,
+      g1Id,
+    ]);
   });
 });
