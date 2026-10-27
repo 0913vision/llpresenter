@@ -29,6 +29,7 @@ import {loadSettingsArea, type SettingsProblem} from './settingsLoader';
 import {SettingsPersistence} from './settingsPersistence';
 import {prepareQuickTimerEdit} from './quickTimerEdits';
 import {prepareTimerDeletion} from './timerDeletions';
+import {stageLayoutReferenceFailure} from './stageLayoutReferences';
 import {prepareTimerRename} from './timerRenames';
 
 export type {SettingsProblem} from './settingsLoader';
@@ -242,6 +243,10 @@ export class SettingsStore {
       );
     }
     const next = merged.value;
+    const referenceFailure = stageLayoutReferenceFailure(this.documents, next);
+    if (referenceFailure !== null) {
+      return Promise.resolve({ok: false, error: referenceFailure});
+    }
     return this.commit({
       documents: [next],
       applied: {id: edit.name, revision: next.revision},
