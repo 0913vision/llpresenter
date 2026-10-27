@@ -34,7 +34,6 @@ function harness(macros: readonly object[] = [macro()]) {
     },
     file: join(locations.settings, 'media.json'),
     mediaFolder: locations.media,
-    developmentFolder: null,
     files,
     log: env.log,
   });

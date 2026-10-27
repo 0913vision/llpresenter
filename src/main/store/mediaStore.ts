@@ -30,7 +30,6 @@ export interface MediaStoreOptions {
   readonly document: MediaDocument;
   readonly file: string;
   readonly mediaFolder: string;
-  readonly developmentFolder: string | null;
   readonly files: DocumentFiles;
   readonly log: Logger;
   readonly delayMs?: number;
@@ -281,7 +280,6 @@ export class MediaStore implements MediaLibrary {
     return buildMediaLibrary({
       items: document.value.items,
       mediaFolder: this.options.mediaFolder,
-      developmentFolder: this.options.developmentFolder,
       listFile: this.options.file,
     });
   }

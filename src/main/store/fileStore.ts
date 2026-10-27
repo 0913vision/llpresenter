@@ -117,7 +117,7 @@ export async function loadStore(
   if (!confined.ok) {
     return confined;
   }
-  const data = await readData(confined.value, context.developmentFolder);
+  const data = await readData(confined.value);
   return {
     ok: true,
     value: {
@@ -153,10 +153,7 @@ export function chooseOpenService(
   return newest?.id ?? null;
 }
 
-async function readData(
-  locations: DataLocations,
-  developmentFolder: string | null,
-): Promise<DataRead> {
+async function readData(locations: DataLocations): Promise<DataRead> {
   const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
   const services = await loadFolder(
     locations.services,
@@ -170,7 +167,7 @@ async function readData(
   );
   const labels = await readLabels(locations);
   const preferences = await readPreferences(locations);
-  const media = await readMedia(locations, developmentFolder);
+  const media = await readMedia(locations);
   return {
     songs: songs.items,
     services: services.items,
@@ -211,16 +208,12 @@ async function readPreferences(
   };
 }
 
-async function readMedia(
-  locations: DataLocations,
-  developmentFolder: string | null,
-): Promise<MediaLibraryRead> {
+async function readMedia(locations: DataLocations): Promise<MediaLibraryRead> {
   const location = settingsLocation(locations, MEDIA_AREA);
   const {data, problems} = await readSettingsFile(location, parseMediaList);
   const built = buildMediaLibrary({
     items: (data ?? EMPTY_MEDIA_LIST).items,
     mediaFolder: locations.media,
-    developmentFolder,
     listFile: location.file,
   });
   return {library: built.library, problems: [...problems, ...built.problems]};

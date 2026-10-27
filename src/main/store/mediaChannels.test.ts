@@ -67,7 +67,6 @@ function setup() {
     ),
     file: resolve('/data/settings/media.json'),
     mediaFolder: resolve('/data/media'),
-    developmentFolder: resolve('/data'),
     log,
     files: {
       write: async () => ({ok: true, value: undefined}),

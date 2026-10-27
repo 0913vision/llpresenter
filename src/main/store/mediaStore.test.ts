@@ -39,7 +39,6 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
   const store = new MediaStore({
     file: FILE,
     mediaFolder: FOLDER,
-    developmentFolder: resolve('/data'),
     log,
     files: {write, remove},
     document: expectSuccess(
@@ -110,6 +109,25 @@ async function apply(store: MediaStore, edit: MediaListEdit) {
 }
 
 describe('media list edits and saves', () => {
+  it('admits and persists an external absolute media reference', async () => {
+    const {store, write} = setup();
+    const file = resolve('/external/Original.webm');
+    const result = await saved(
+      store.add(
+        {
+          baseRevision: 1,
+          items: [{id: NEW, name: 'Original', kind: 'video', file, size: 10}],
+        },
+        null,
+      ),
+    );
+    expect(result).toMatchObject({ok: true});
+    expect(store.fileOf(NEW)).toBe(file);
+    expect(store.roots).toContain(resolve('/external'));
+    const text: unknown = JSON.parse(write.mock.calls[0]?.[0].text ?? '');
+    expect(text).toHaveProperty('items.3.file', file);
+  });
+
   it('pushes revisions before disk I/O, debounces edits, preserves unknown fields, and rejects stale revisions', async () => {
     const {store, write} = setup();
     const listener = vi.fn();

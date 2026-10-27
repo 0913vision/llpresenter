@@ -10,8 +10,6 @@ import {realPathInside} from '../windows/insideRoots';
 
 const LEAVES_MEDIA_FOLDER =
   'Ignored: a relative file path must stay inside the media folder';
-const OUTSIDE_IN_DEVELOPMENT =
-  'Ignored in development: the file is outside the media folder';
 
 /** Where the file of each media item is, and the folders media come from. */
 export interface MediaLibrary {
@@ -20,9 +18,9 @@ export interface MediaLibrary {
   /** A playable visual background, or null for a missing or refused file. */
   backgroundOf(mediaId: string): Promise<MediaChoice | null>;
   /**
-   * The media folder and the folders of media kept outside it. In
-   * development, only the media folder, so a development run never serves a
-   * file outside `LLP_USER_DATA`.
+   * The media folder and the folders of original files referenced outside it.
+   * Every file is still resolved by
+   * catalogued media ID and checked against these roots after following links.
    */
   readonly roots: readonly string[];
 }
@@ -30,8 +28,6 @@ export interface MediaLibrary {
 export interface MediaLibrarySources {
   readonly items: readonly MediaItem[];
   readonly mediaFolder: string;
-  /** The `LLP_USER_DATA` folder in development, or `null`. */
-  readonly developmentFolder: string | null;
   /** `media.json`, for the problems. */
   readonly listFile: string;
 }
@@ -81,14 +77,13 @@ export class LoadingMediaLibrary {
 /**
  * Finds the file of every media item: a relative `file` lies in the media
  * folder, and an absolute one stays where it is (spec 02, "Media list"). A
- * relative path that leaves the media folder is refused, and so is any file
- * outside it in development. The serving side still checks every real path
- * against `roots`.
+ * relative path that leaves the media folder is refused. Absolute original
+ * references work in development and packaged runs alike. The serving side
+ * still checks every real path against `roots`.
  */
 export function buildMediaLibrary({
   items,
   mediaFolder,
-  developmentFolder,
   listFile,
 }: MediaLibrarySources): MediaLibraryRead {
   const files = new Map<string, string>();
@@ -96,7 +91,7 @@ export function buildMediaLibrary({
   const roots = new Set([resolve(mediaFolder)]);
   const problems: FileError[] = [];
   items.forEach((item, index) => {
-    const placed = placeFile(item.file, mediaFolder, developmentFolder);
+    const placed = placeFile(item.file, mediaFolder);
     if (!placed.ok) {
       problems.push({
         kind: 'invalid',
@@ -138,11 +133,7 @@ export function buildMediaLibrary({
   };
 }
 
-function placeFile(
-  file: string,
-  mediaFolder: string,
-  developmentFolder: string | null,
-): Result<string, string> {
+function placeFile(file: string, mediaFolder: string): Result<string, string> {
   const path = resolve(mediaFolder, file);
   if (isInside(path, mediaFolder)) {
     return {ok: true, value: path};
@@ -150,7 +141,5 @@ function placeFile(
   if (!isAbsolute(file)) {
     return {ok: false, error: LEAVES_MEDIA_FOLDER};
   }
-  return developmentFolder === null
-    ? {ok: true, value: path}
-    : {ok: false, error: OUTSIDE_IN_DEVELOPMENT};
+  return {ok: true, value: path};
 }

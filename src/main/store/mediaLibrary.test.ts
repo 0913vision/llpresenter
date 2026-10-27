@@ -20,11 +20,10 @@ function item(id: MediaId, file: string): MediaItem {
   return {id, name: 'media', kind: 'video', file, size: 1};
 }
 
-function build(items: readonly MediaItem[], developmentFolder: string | null) {
+function build(items: readonly MediaItem[]) {
   return buildMediaLibrary({
     items,
     mediaFolder: MEDIA,
-    developmentFolder,
     listFile: LIST_FILE,
   });
 }
@@ -41,7 +40,6 @@ describe('buildMediaLibrary', () => {
         {...item(ESCAPE, 'video.webm'), kind: 'audio'},
       ],
       mediaFolder: folder,
-      developmentFolder: folder,
       listFile: join(folder, 'media.json'),
     });
 
@@ -63,33 +61,37 @@ describe('buildMediaLibrary', () => {
     });
   });
 
-  it('refuses directories and links outside the allowed media roots', async () => {
+  it('refuses directories and links outside every catalogued media root', async () => {
     const folder = await makeTempDir();
     const outside = await makeTempDir();
+    const originals = await makeTempDir();
     await mkdir(join(folder, 'directory'));
     await writeFile(join(outside, 'video.webm'), 'video');
+    await writeFile(join(originals, 'original.webm'), 'original');
     await symlink(outside, join(folder, 'escape'), 'junction');
     const {library} = buildMediaLibrary({
       items: [
         item(WARM, 'directory'),
         item(LIGHT, join('escape', 'video.webm')),
-        item(ESCAPE, join(outside, 'video.webm')),
+        item(ESCAPE, join(originals, 'original.webm')),
       ],
       mediaFolder: folder,
-      developmentFolder: folder,
       listFile: join(folder, 'media.json'),
     });
-    for (const id of [WARM, LIGHT, ESCAPE]) {
+    for (const id of [WARM, LIGHT]) {
       await expect(library.backgroundOf(id)).resolves.toBeNull();
     }
+    await expect(library.backgroundOf(ESCAPE)).resolves.toMatchObject({
+      mediaId: ESCAPE,
+    });
   });
 
   it('finds a relative file in the media folder and keeps an absolute one', () => {
     const outside = join(ELSEWHERE, '따뜻한 빛.mp4');
-    const {library, problems} = build(
-      [item(WARM, outside), item(LIGHT, join('배경', '빛.mp4'))],
-      null,
-    );
+    const {library, problems} = build([
+      item(WARM, outside),
+      item(LIGHT, join('배경', '빛.mp4')),
+    ]);
 
     expect(library.fileOf(LIGHT)).toBe(join(MEDIA, '배경', '빛.mp4'));
     expect(library.fileOf(WARM)).toBe(outside);
@@ -99,10 +101,9 @@ describe('buildMediaLibrary', () => {
   });
 
   it('refuses a relative path that leaves the media folder', () => {
-    const {library, problems} = build(
-      [item(ESCAPE, join('..', '설정', 'app.json'))],
-      null,
-    );
+    const {library, problems} = build([
+      item(ESCAPE, join('..', '설정', 'app.json')),
+    ]);
 
     expect(library.fileOf(ESCAPE)).toBeNull();
     expect(problems).toEqual([
@@ -110,19 +111,17 @@ describe('buildMediaLibrary', () => {
     ]);
   });
 
-  it('serves only the media folder in development', () => {
+  it('keeps catalogued absolute originals outside the app data folder', () => {
     const inside = join(MEDIA, '빛.mp4');
-    const {library, problems} = build(
-      [item(WARM, inside), item(LIGHT, join(ELSEWHERE, 'a.mp4'))],
-      resolve('/data'),
-    );
+    const {library, problems} = build([
+      item(WARM, inside),
+      item(LIGHT, join(ELSEWHERE, 'a.mp4')),
+    ]);
 
     expect(library.fileOf(WARM)).toBe(inside);
-    expect(library.fileOf(LIGHT)).toBeNull();
-    expect(library.roots).toEqual([MEDIA]);
-    expect(problems).toEqual([
-      expect.objectContaining({field: 'items.1.file'}),
-    ]);
+    expect(library.fileOf(LIGHT)).toBe(join(ELSEWHERE, 'a.mp4'));
+    expect(library.roots).toEqual([MEDIA, ELSEWHERE]);
+    expect(problems).toEqual([]);
   });
 });
 
@@ -134,7 +133,7 @@ describe('LoadingMediaLibrary', () => {
       finish = resolve;
     });
     const media = new LoadingMediaLibrary(loading);
-    const {library} = build([item(LIGHT, '빛.mp4')], null);
+    const {library} = build([item(LIGHT, '빛.mp4')]);
 
     const found = media.findFile(LIGHT);
     expect(media.roots()).toEqual([]);

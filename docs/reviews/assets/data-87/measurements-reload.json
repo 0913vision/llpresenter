@@ -1,0 +1,44 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [],
+  "before": {
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 387,
+      "nodes": 574
+    },
+    "heap": {
+      "backingStorageSize": 1742634,
+      "embedderHeapUsedSize": 3499528,
+      "totalSize": 6230016,
+      "usedSize": 5595256
+    }
+  },
+  "after": {
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 387,
+      "nodes": 574
+    },
+    "heap": {
+      "backingStorageSize": 1742654,
+      "embedderHeapUsedSize": 3693608,
+      "totalSize": 6754304,
+      "usedSize": 5847236
+    }
+  },
+  "videoCounts": {
+    "bin": 132,
+    "players": 1,
+    "properties": 67
+  },
+  "audioCounts": {
+    "bin": 121,
+    "players": 1,
+    "properties": 56
+  },
+  "selectionRoundTrips": 20,
+  "reopens": 2,
+  "reload": true
+}

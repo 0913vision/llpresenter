@@ -372,7 +372,7 @@ describe('media import', () => {
 });
 
 describe('media import boundaries', () => {
-  it.each([true, false])(
+  it.each([true, false, undefined])(
     'keeps an imported file when the media list applies it but fails to save (copy=%s)',
     async copyIntoFolder => {
       const root = await makeTempDir();
@@ -388,7 +388,6 @@ describe('media import boundaries', () => {
         ),
         file: join(root, 'media.json'),
         mediaFolder: folder,
-        developmentFolder: null,
         files: {
           write: request =>
             Promise.resolve({
@@ -407,7 +406,7 @@ describe('media import boundaries', () => {
         report: value => reports.push(value),
         chooseFiles: () => Promise.resolve([]),
         createId: () => createMediaId(uuid(1)),
-        copyIntoFolder,
+        ...(copyIntoFolder === undefined ? {} : {copyIntoFolder}),
         analyse: () => Promise.resolve({kind: 'read', facts: {}}),
         saveThumbnail: () => Promise.resolve(),
         log: recordingLogger(),

@@ -53,7 +53,6 @@ export async function openMediaStore(
     document,
     file: location.file,
     mediaFolder: store.locations.media,
-    developmentFolder: store.developmentFolder,
     files: documentFiles({saver, copies, log, failures}),
     log,
   });

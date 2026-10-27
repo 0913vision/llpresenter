@@ -1,0 +1,51 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [],
+  "defaultCopyOff": true,
+  "externalImports": [
+    "native CDP file drop: WebM",
+    "production media.import IPC: WAV"
+  ],
+  "before": {
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 385,
+      "nodes": 566
+    },
+    "heap": {
+      "backingStorageSize": 1742492,
+      "embedderHeapUsedSize": 3471336,
+      "totalSize": 6230016,
+      "usedSize": 5669556
+    }
+  },
+  "after": {
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 385,
+      "nodes": 566
+    },
+    "heap": {
+      "backingStorageSize": 1742713,
+      "embedderHeapUsedSize": 3584264,
+      "totalSize": 6754304,
+      "usedSize": 5861816
+    }
+  },
+  "videoCounts": {
+    "bin": 126,
+    "players": 1,
+    "properties": 67
+  },
+  "audioCounts": {
+    "bin": 115,
+    "players": 1,
+    "properties": 56
+  },
+  "selectionRoundTrips": 20,
+  "reopens": 2,
+  "reload": false,
+  "copyOnControl": true,
+  "originalBytesUnchanged": true
+}
