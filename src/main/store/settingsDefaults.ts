@@ -32,7 +32,7 @@ const screen = (
   kind,
   method,
   onDisconnect: 'window',
-  alwaysOnTop: method === 'fullscreen',
+  alwaysOnTop: false,
   preventSleep: true,
   edgeMargin: 0,
   offset: {x: 0, y: 0},

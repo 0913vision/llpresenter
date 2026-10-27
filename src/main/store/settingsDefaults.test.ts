@@ -47,7 +47,7 @@ describe('starter screen defaults', () => {
       'kjv.llbible',
     ]);
   });
-  it('creates stable screen UUIDs and method-specific always-on-top values on a new install', async () => {
+  it('creates stable screen UUIDs with always-on-top off on a new install', async () => {
     const {locations, saver, file} = await setup();
     const loaded = await loadSettingsArea('screens', locations, saver);
     expect(loaded.problem).toBeNull();
@@ -62,9 +62,9 @@ describe('starter screen defaults', () => {
     expect(
       screens.map(({method, alwaysOnTop}) => ({method, alwaysOnTop})),
     ).toEqual([
-      {method: 'fullscreen', alwaysOnTop: true},
+      {method: 'fullscreen', alwaysOnTop: false},
       {method: 'capture', alwaysOnTop: false},
-      {method: 'fullscreen', alwaysOnTop: true},
+      {method: 'fullscreen', alwaysOnTop: false},
     ]);
     for (const role of ['main', 'broadcast', 'stage'] as const) {
       expect(resolveOutputScreen(role, screens)?.id).toBe(
