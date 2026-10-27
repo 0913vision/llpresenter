@@ -81,12 +81,15 @@ function setup(readOnly = false) {
     settings: {
       get: request => {
         if (request.name === 'looks') return Promise.resolve(document);
-        if (request.name === 'screens')
-          {return Promise.resolve(screensDocument());}
-        if (request.name === 'stage-layouts')
-          {return Promise.resolve(stageLayoutsDocument());}
-        if (request.name === 'timers')
-          {return Promise.resolve(settingsDocument('timers', {timers: []}));}
+        if (request.name === 'screens') {
+          return Promise.resolve(screensDocument());
+        }
+        if (request.name === 'stage-layouts') {
+          return Promise.resolve(stageLayoutsDocument());
+        }
+        if (request.name === 'timers') {
+          return Promise.resolve(settingsDocument('timers', {timers: []}));
+        }
         return Promise.reject(new Error(`Unexpected read: ${request.name}`));
       },
       edit,
