@@ -6,8 +6,8 @@ const SAVE_ATTEMPTS = 2;
 let owner: LlpApi['settings'] | undefined;
 let remember: ((passage: RecentPassage) => void) | undefined;
 
-/** Records all Bible output paths, including grid clicks and navigation keys. */
-export function rememberBibleOutput(passage: RecentPassage): void {
+/** Records a passage after successful output or service insertion. */
+export function rememberBiblePassage(passage: RecentPassage): void {
   const settings = window.llp?.settings;
   if (settings === undefined) return;
   if (owner !== settings) {
@@ -17,7 +17,7 @@ export function rememberBibleOutput(passage: RecentPassage): void {
   remember?.(passage);
 }
 
-/** Serializes accepted output history, retaining at most ten pending passages. */
+/** Serializes successful passage history, retaining at most ten pending entries. */
 export function recentWriter(
   api: LlpApi['settings'],
 ): (passage: RecentPassage) => void {

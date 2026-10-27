@@ -6,6 +6,10 @@ export interface BibleSource {
   readonly id: string;
   readonly passage: BibleLookupPassage;
   readonly tiles: readonly SlideTile[];
+  readonly insertion?: {
+    readonly serviceId: string | null;
+    readonly itemId: string | null;
+  };
 }
 
 export function bibleSource(passage: BibleLookupPassage): BibleSource {

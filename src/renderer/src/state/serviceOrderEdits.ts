@@ -195,6 +195,36 @@ export class ServiceOrderEdits {
     });
   }
 
+  /** Prepares an item under the close gate and inserts it in the current section. */
+  insertItemInSection(
+    serviceId: ServiceId,
+    selectedId: string | null,
+    prepare: () => Promise<ServiceItem>,
+  ) {
+    let item: ServiceItem | undefined;
+    return this.update(
+      serviceId,
+      service => {
+        if (!item) return refuse('invalid', 'The item is unavailable');
+        const selected = service.order.findIndex(row => row.id === selectedId);
+        const next =
+          selected < 0
+            ? -1
+            : service.order.findIndex(
+                (row, index) => index > selected && isItemOfKind(row, 'header'),
+              );
+        const order = [...service.order];
+        order.splice(next < 0 ? order.length : next, 0, item);
+        return {ok: true, value: order};
+      },
+      {
+        beforeRead: async () => {
+          item = await prepare();
+        },
+      },
+    );
+  }
+
   undo(serviceId: ServiceId): Promise<ServiceOrderEditResult> {
     return this.replay(serviceId, 'undo');
   }
@@ -225,7 +255,7 @@ export class ServiceOrderEdits {
           value: action === 'undo' ? entry.before : entry.after,
         };
       },
-      action,
+      {action},
     );
   }
 
@@ -234,10 +264,17 @@ export class ServiceOrderEdits {
   private update(
     serviceId: ServiceId,
     change: OrderChange,
-    action: HistoryAction = 'record',
+    options: {action?: HistoryAction; beforeRead?: () => Promise<void>} = {},
   ): Promise<ServiceOrderEditResult> {
+    const {action = 'record', beforeRead} = options;
     return pendingWritesOf(this.api).run({
-      write: () => this.send(serviceId, change, action),
+      write:
+        beforeRead === undefined
+          ? () => this.send(serviceId, change, action)
+          : async () => {
+              await beforeRead();
+              return this.send(serviceId, change, action);
+            },
       refused: {
         ok: false,
         error: {reason: 'busy', message: 'Edits stopped for closing'},

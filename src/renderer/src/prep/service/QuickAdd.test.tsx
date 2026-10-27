@@ -21,6 +21,7 @@ import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
 import {formLookupReply} from '@renderer/show/bible/testing/referenceForm';
+import type {RecentPassage} from '@shared/schema/bible';
 
 afterEach(() => {
   useShow.setState({
@@ -60,12 +61,32 @@ function mockBible(
 ) {
   const krv = v.parse(translationIdSchema, 'krv');
   const other = v.parse(translationIdSchema, 'other');
+  let recents: readonly RecentPassage[] = [];
+  let revision = 1;
   const readSettings = api.settings.get;
+  const editSettings = api.settings.edit;
+  vi.spyOn(api.settings, 'edit').mockImplementation(async change => {
+    if (change.type !== 'settings.update' || change.name !== 'bible') {
+      return editSettings(change);
+    }
+    const parsed = parseSettingsDocument({
+      name: 'bible',
+      access: 'editable',
+      revision: revision + 1,
+      value: change.value,
+    });
+    if (!parsed.ok || parsed.value.name !== 'bible') {
+      throw new Error('Invalid fixture history');
+    }
+    recents = parsed.value.value.recents;
+    revision++;
+    return {ok: true, value: {id: 'bible', revision}};
+  });
   vi.spyOn(api.settings, 'get').mockImplementation(async request => {
     if (request.name !== 'bible') return readSettings(request);
     const parsed = parseSettingsDocument({
       name: 'bible',
-      revision: 1,
+      revision,
       access: 'editable',
       value: {
         format: 'llsettings.bible',
@@ -86,7 +107,7 @@ function mockBible(
             default: defaultTranslation.current === 'krv',
           },
         ],
-        recents: [],
+        recents,
       },
     });
     if (!parsed.ok) throw new Error('No bible');
@@ -95,7 +116,7 @@ function mockBible(
   const lookup = vi
     .spyOn(api.bible, 'lookup')
     .mockImplementation(formLookupReply);
-  return {krv, other, lookup};
+  return {krv, other, lookup, recents: () => recents};
 }
 
 function songItems(menu: HTMLElement): HTMLElement[] {
@@ -470,7 +491,7 @@ describe('항목 추가', () => {
     'inserts a clamped passage using %s with the opening defaults',
     async action => {
       const {api, user, service} = setup();
-      const {krv} = mockBible(api);
+      const {krv, recents} = mockBible(api);
       await openBibleForm(user);
       fillBibleForm('99');
       const add = screen.getByRole('button', {name: '추가'});
@@ -493,6 +514,11 @@ describe('항목 추가', () => {
         },
       });
       expect(screen.queryByRole('dialog')).toBeNull();
+      await waitFor(() =>
+        expect(recents()).toEqual([
+          {translation: krv, ref: '요한복음 3:16-36'},
+        ]),
+      );
     },
   );
 
@@ -530,6 +556,61 @@ describe('항목 추가', () => {
     expect(service().service.order.at(-1)).toMatchObject({
       bible: {translation: other},
     });
+  });
+
+  it('does not remember a passage when the service insertion fails', async () => {
+    const {api, user, onProblem} = setup();
+    const {recents} = mockBible(api);
+    vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'read-only', message: 'Invented failure'},
+    });
+    await openBibleForm(user);
+    fillBibleForm();
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', {name: '추가'})
+          .getAttribute('aria-disabled'),
+      ).not.toBe('true'),
+    );
+    await user.click(screen.getByRole('button', {name: '추가'}));
+    await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
+    expect(recents()).toEqual([]);
+  });
+
+  it('remembers an applied Bible insertion after a save failure and shows the warning', async () => {
+    const {api, user, service, onProblem} = setup();
+    const {krv, recents} = mockBible(api);
+    const edit = api.content.edit;
+    vi.spyOn(api.content, 'edit').mockImplementationOnce(async change => {
+      const applied = await edit(change);
+      if (!applied.ok) throw Error('Fixture did not apply');
+      return {
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: 'Invented failure',
+          applied: applied.value,
+          unchangedFiles: ['service.llservice'],
+        },
+      };
+    });
+    await openBibleForm(user);
+    fillBibleForm();
+    const add = screen.getByRole('button', {name: '추가'});
+    await waitFor(() =>
+      expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    await user.click(add);
+    await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({title: '예배 순서 저장 실패'}),
+    );
+    expect(service().service.order).toHaveLength(6);
+    await waitFor(() =>
+      expect(recents()).toEqual([{translation: krv, ref: '요한복음 3:16'}]),
+    );
   });
 
   it('is unavailable for a read-only service, with the reason', async () => {

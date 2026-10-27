@@ -11,9 +11,14 @@ export function openBiblePassage(passage: BibleLookupPassage): void {
   const live = useLive.getState();
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
   const liveBibleSource = bibleSourceFor(view, liveItemId);
+  const previous = bibleSourceFor(view, view.openItemId);
+  const insertion =
+    previous?.insertion?.serviceId === view.serviceId
+      ? previous.insertion
+      : {serviceId: view.serviceId, itemId: view.openItemId};
   beginOutputRequest();
   useShow.setState({
-    bibleSource: source,
+    bibleSource: {...source, insertion},
     liveBibleSource,
     requestedBibleSource:
       view.requestedBibleSource?.id === liveItemId

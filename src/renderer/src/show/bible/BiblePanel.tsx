@@ -13,11 +13,15 @@ import {
 import {SlidePanelBody, SlideSizeControl} from '../SlidePanel';
 import {showBiblePassage} from './actions';
 import styles from './BiblePanel.module.css';
+import {BibleInsertButton} from './BibleInsertButton';
+import type {Notice} from '@renderer/ui/notices';
 
 export function BiblePanel({
   sizeClass,
+  onProblem,
 }: {
   readonly sizeClass: SizeClass;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
   const source = useShow(view => bibleSourceFor(view, view.openItemId));
   if (source === null) return null;
@@ -43,6 +47,7 @@ export function BiblePanel({
         }
       >
         <SlideSizeControl sizeClass={sizeClass} />
+        <BibleInsertButton source={source} onProblem={onProblem} />
       </PanelFooter>
     </Panel>
   );

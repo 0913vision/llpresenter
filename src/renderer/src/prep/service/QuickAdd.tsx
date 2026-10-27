@@ -1,5 +1,5 @@
 import {useEffect, useState, type JSX} from 'react';
-import type {ServiceItem} from '@shared/schema/service';
+import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {createServiceItemId, type SongId} from '@shared/schema/ids';
 import {searchRange} from '@shared/searchText';
@@ -17,6 +17,7 @@ import {BibleQuickAdd} from './BibleQuickAdd';
 import {quickAddBefore} from './quickAddPosition';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/state/headerRename';
+import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
 
 const QUICK_ADD_LIMIT = 20;
 const QUICK_ADD_WIDTH = 420;
@@ -130,13 +131,20 @@ export function ServiceQuickAdd({
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     if ('header' in item) useHeaderRename.getState().request(item.id);
-    editing.run((edits, id) =>
-      edits.insertItem(
+    editing.run(async (edits, id) => {
+      const result = await edits.insertItem(
         id,
         item,
         before === null ? null : createServiceItemId(before),
-      ),
-    );
+      );
+      if (
+        (result.ok ? result.value : result.error.reason === 'write-failed') &&
+        isItemOfKind(item, 'bible')
+      ) {
+        rememberBiblePassage(item.bible);
+      }
+      return result;
+    });
   };
   return (
     <>

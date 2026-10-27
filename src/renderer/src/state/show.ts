@@ -15,7 +15,7 @@ import {
   type SequenceState,
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
-import {rememberBibleOutput} from '@renderer/show/bible/recentWriter';
+import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
 import {sendLive, useLive} from './live';
 import {
   bibleSourceFor,
@@ -143,7 +143,7 @@ export function outputTile(cursor: TileCursor): void {
   startServiceItem(cursor.itemId);
   sendLive({type: 'slide.show', slide});
   if (source !== null) {
-    rememberBibleOutput(source.passage);
+    rememberBiblePassage(source.passage);
   }
 }
 

@@ -211,7 +211,11 @@ function showPanelParts({
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
-      if (bibleOpen) return {embedded: <BiblePanel sizeClass={sizeClass} />};
+      if (bibleOpen) {
+        return {
+          embedded: <BiblePanel sizeClass={sizeClass} onProblem={onProblem} />,
+        };
+      }
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
         meta: (
