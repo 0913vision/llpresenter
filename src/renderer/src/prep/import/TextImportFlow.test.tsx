@@ -10,9 +10,11 @@ import {
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import type {TextImportReadResult} from '@shared/schema/textImport';
+import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {convertTextImport} from '../../../../main/import/convert';
-import {editorFixture} from '../editor/editorFixture';
+import {editorFixture, editorSong} from '../editor/editorFixture';
 import {SongEditorStore} from '../editor/songEditorStore';
+import {SongEditor} from '../editor/SongEditor';
 import {ImportedSongActions} from './ImportedSongActions';
 import {TextImportFlow} from './TextImportFlow';
 
@@ -213,6 +215,68 @@ describe('imported song actions', () => {
     );
   });
 
+  it.each(['곡 제목', '슬라이드 1 가사'])(
+    'saves the imported draft from %s with Ctrl S',
+    async name => {
+      const f = fixture();
+      f.store.openImported({
+        title: 'Imported keyboard title',
+        slides: [{lines: ['Invented keyboard line']}],
+      });
+      const accepted = editorSong(3);
+      vi.spyOn(f.api.content, 'edit').mockImplementation(async edit => {
+        if (edit.type !== 'song.import') {
+          throw new Error('Unexpected keyboard edit');
+        }
+        f.pushSong({...accepted, song: {...accepted.song, ...edit.draft}});
+        return {
+          ok: true,
+          value: {id: accepted.song.id, revision: accepted.revision},
+        };
+      });
+      const save = vi.spyOn(f.store, 'saveImported');
+      const onSaved = vi.fn();
+      render(<SongEditor store={f.store} onImportedSave={onSaved} />);
+      const field = screen.getByRole('textbox', {name});
+      act(() => field.focus());
+      expect(
+        fireEvent.keyDown(field, {key: 's', code: 'KeyS', ctrlKey: true}),
+      ).toBe(false);
+      await waitFor(() => expect(f.store.getSnapshot().imported).toBe(false));
+      expect(save).toHaveBeenCalledExactlyOnceWith({kind: 'new'});
+      expect(
+        f.store
+          .getSnapshot()
+          .library.some(entry => entry.title === 'Imported keyboard title'),
+      ).toBe(true);
+      expect(onSaved).toHaveBeenCalledOnce();
+      expect(screen.queryByRole('button', {name: '저장'})).toBeNull();
+    },
+  );
+
+  it('uses duplicate confirmation from Ctrl S without saving through the open modal', async () => {
+    const f = fixture();
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Invented duplicate line']}],
+    });
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<SongEditor store={f.store} />);
+    await waitFor(() => expect(f.store.getSnapshot().library).toHaveLength(2));
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '곡 제목'}), {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: true,
+    });
+    const dialog = await screen.findByRole('alertdialog');
+    expect(
+      within(dialog).getByText(`새 곡 제목: ‘${f.first.song.title} (2)’`),
+    ).toBeDefined();
+    fireEvent.keyDown(dialog, {key: 's', code: 'KeyS', ctrlKey: true});
+    expect(save).not.toHaveBeenCalled();
+    expect(screen.getByRole('alertdialog')).toBe(dialog);
+  });
+
   it('saves a new title and requests library selection after acceptance', async () => {
     const f = await actions('Imported title');
     const save = vi
@@ -229,6 +293,58 @@ describe('imported song actions', () => {
     expect(save).toHaveBeenCalledExactlyOnceWith({kind: 'new'});
   });
 
+  it('omits an unavailable candidate and keeps saving as new disabled', async () => {
+    const f = fixture();
+    await waitFor(() => expect(f.store.getSnapshot().library).toHaveLength(2));
+    const title = '가'.repeat(SONG_IMPORT_LIMITS.name);
+    f.pushSong({...f.first, song: {...f.first.song, title}});
+    f.store.openImported({title, slides: [{lines: ['Imported line']}]});
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<ImportedSongActions store={f.store} />);
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).not.toContain('새 곡 제목:');
+    const choice = screen.getByRole('button', {name: '새 곡으로 저장'});
+    expect(choice.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(choice);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('updates the proposed title before saving when the library changes', async () => {
+    const f = fixture();
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Imported line']}],
+    });
+    await Promise.resolve();
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<ImportedSongActions store={f.store} />);
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    await screen.findByText(`새 곡 제목: ‘${f.first.song.title} (2)’`);
+    act(() =>
+      f.pushList(
+        f.store
+          .getSnapshot()
+          .library.map(entry =>
+            entry.id === f.second.song.id
+              ? {...entry, title: `${f.first.song.title} (2)`}
+              : entry,
+          ),
+      ),
+    );
+    expect(
+      screen.getByText(`새 곡 제목: ‘${f.first.song.title} (3)’`),
+    ).toBeDefined();
+    expect(save).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: '새 곡으로 저장'}));
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledExactlyOnceWith({kind: 'new'}),
+    );
+    expect(f.store.getSnapshot().session?.title.value).toBe(
+      `${f.first.song.title} (3)`,
+    );
+  });
+
   it.each(['overwrite', 'new', 'cancel'] as const)(
     'resolves an existing title with %s',
     async choice => {
@@ -243,6 +359,10 @@ describe('imported song actions', () => {
       fireEvent.click(screen.getByRole('button', {name: '저장'}));
       await screen.findByRole('alertdialog');
       expect(screen.getByText('슬라이드 2개')).toBeDefined();
+      expect(
+        screen.getByText(`새 곡 제목: ‘${f.first.song.title} (2)’`),
+      ).toBeDefined();
+      expect(save).not.toHaveBeenCalled();
       if (choice === 'cancel') {
         fireEvent.keyDown(screen.getByRole('alertdialog'), {key: 'Escape'});
         expect(save).not.toHaveBeenCalled();

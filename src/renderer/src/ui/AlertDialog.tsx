@@ -1,4 +1,12 @@
-import {useId, useRef, type JSX, type ReactNode} from 'react';
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type JSX,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import {Button} from './Button';
 import {classNames} from './classNames';
 import {ModalScrim} from './Dialog';
@@ -38,6 +46,27 @@ export interface AlertDialogProps {
 
 const CANCEL_LABEL = '취소';
 const ICON_SIZE = 24;
+
+function useHeadScroll(
+  head: RefObject<HTMLDivElement | null>,
+  text: RefObject<HTMLDivElement | null>,
+): boolean {
+  const [scrollable, setScrollable] = useState(false);
+  useLayoutEffect(() => {
+    const region = head.current;
+    const content = text.current;
+    if (region === null || content === null) return;
+    const measure = (): void =>
+      setScrollable(region.scrollHeight > region.clientHeight);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(region);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [head, text]);
+  return scrollable;
+}
 
 function escapeAction(
   onCancel: (() => void) | undefined,
@@ -89,6 +118,9 @@ export function AlertDialog({
 }: AlertDialogProps): JSX.Element {
   const titleId = useId();
   const metaId = useId();
+  const heading = useRef<HTMLDivElement>(null);
+  const headingText = useRef<HTMLDivElement>(null);
+  const scrollable = useHeadScroll(heading, headingText);
   const surface = useRef<HTMLDivElement>(null);
   const onKeyDown = useModal({
     surface,
@@ -110,11 +142,17 @@ export function AlertDialog({
         )}
         onKeyDown={onKeyDown}
       >
-        <div className={styles.head}>
+        <div
+          ref={heading}
+          className={styles.head}
+          tabIndex={scrollable ? 0 : undefined}
+          role={scrollable ? 'region' : undefined}
+          aria-label={scrollable ? '확인 내용' : undefined}
+        >
           <span className={styles.icon}>
             <Icon name={icon} size={ICON_SIZE} />
           </span>
-          <div className={styles.text}>
+          <div ref={headingText} className={styles.text}>
             <h2 id={titleId} className={styles.title}>
               {title}
             </h2>

@@ -961,11 +961,13 @@
 .ll-alert--list { width: var(--dialog-m); }
 
 /* Head group: icon cell, title, extra info */
-.ll-alert__head { flex: none; display: flex; align-items: flex-start; gap: var(--space-14); }
+.ll-alert__head { flex: 0 1 auto; min-height: 0; display: flex; align-items: flex-start; gap: var(--space-14); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+.ll-alert__head:focus-visible { outline: none; border-radius: var(--radius-md); box-shadow: var(--ring-field-focus); }
 .ll-alert__icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--size-alert-icon); height: var(--size-alert-icon); border-radius: var(--radius-lg); background: var(--bg-panel); color: var(--text-2); }
 .ll-alert__text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-.ll-alert__title { margin: 0; font: var(--type-heading); word-break: keep-all; }
+.ll-alert__title { margin: 0; font: var(--type-heading); word-break: keep-all; overflow-wrap: anywhere; }
 .ll-alert__meta { margin: 0; display: flex; flex-wrap: wrap; gap: 0 var(--space-10); font: var(--type-label); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-alert__meta > span { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 
 /* List section: group names from ListRow (ll-row-group) and check rows from Checkbox (ll-check-row). Rows align to the 20px inner line. */
 .ll-alert__list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: var(--space-16); border-top: 1px solid var(--line); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }

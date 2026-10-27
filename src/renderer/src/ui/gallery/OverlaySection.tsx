@@ -1,4 +1,5 @@
 import {useState, type JSX, type MouseEvent} from 'react';
+import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {AlertDialog} from '../AlertDialog';
 import {Button} from '../Button';
 import {CheckRow} from '../Checkbox';
@@ -40,6 +41,10 @@ const fileMenu: readonly MenuEntry[] = [
 ];
 
 const services = ['주일 예배', '수요 예배', '금요 기도회', '새벽 예배'];
+const NEW_SONG_SUFFIX = ' (2)';
+const LONG_SONG_TITLE = '가'.repeat(
+  SONG_IMPORT_LIMITS.name - NEW_SONG_SUFFIX.length,
+);
 
 function serviceEntries(query: string, current: string): readonly MenuEntry[] {
   return [
@@ -386,7 +391,30 @@ export function OverlaySection(): JSX.Element {
               <AlertDialog
                 icon="song"
                 title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
-                meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']}
+                meta={[
+                  '라이브러리 곡 슬라이드 4개, 10월 20일 수정',
+                  '새 곡 제목: ‘만복의 근원 하나님 (2)’',
+                ]}
+                onCancel={close}
+                actions={[
+                  {label: '새 곡으로 저장', onSelect: close},
+                  {label: '덮어쓰기', primary: true, onSelect: close},
+                ]}
+              />
+            )}
+          />
+        </SpecItem>
+        <SpecItem label="Long names: scroll details while choices remain visible">
+          <DialogButton
+            label="긴 곡 제목 확인"
+            render={close => (
+              <AlertDialog
+                icon="song"
+                title={`‘${LONG_SONG_TITLE}’ 곡이 이미 있습니다. 덮어쓸까요?`}
+                meta={[
+                  '라이브러리 곡 슬라이드 4개',
+                  `새 곡 제목: ‘${LONG_SONG_TITLE}${NEW_SONG_SUFFIX}’`,
+                ]}
                 onCancel={close}
                 actions={[
                   {label: '새 곡으로 저장', onSelect: close},

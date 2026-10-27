@@ -3,6 +3,7 @@ import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {SongId} from '@shared/schema/ids';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
+import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
 import {editorTask} from '../editor/editorTask';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import {EMPTY_TITLE_REASON, normalizeSongTitle} from '../editor/songTitle';
@@ -26,8 +27,7 @@ export function ImportedSongActions({
   const [duplicate, setDuplicate] = useState<SongDocument | null>(null);
   const [reading, setReading] = useState(false);
   const session = state.session;
-  if (!state.imported || session === null) return null;
-  const title = normalizeSongTitle(session.title.value);
+  const title = normalizeSongTitle(session?.title.value ?? '');
   const invalid =
     title === ''
       ? EMPTY_TITLE_REASON
@@ -44,7 +44,9 @@ export function ImportedSongActions({
     } else setDuplicate(null);
   };
   const beginSave = async (): Promise<void> => {
-    if (busy || invalid !== undefined) return;
+    if (!state.imported || session === null || busy || invalid !== undefined) {
+      return;
+    }
     const existing = state.library.find(
       entry => normalizeSongTitle(entry.title) === title,
     );
@@ -70,6 +72,15 @@ export function ImportedSongActions({
       setReading(false);
     }
   };
+  useWindowShortcuts([
+    {
+      code: 'KeyS',
+      ctrl: true,
+      when: () => state.imported,
+      run: () => editorTask(beginSave()),
+    },
+  ]);
+  if (!state.imported || session === null) return null;
   const newTitle = unusedTitle(
     title,
     state.library.map(entry => normalizeSongTitle(entry.title)),
@@ -109,6 +120,7 @@ export function ImportedSongActions({
           meta={[
             '라이브러리 곡',
             `슬라이드 ${duplicate.song.slides.length}개`,
+            ...(newTitle === null ? [] : [`새 곡 제목: ‘${newTitle}’`]),
             ...(duplicate.song.updatedAt === undefined
               ? []
               : [

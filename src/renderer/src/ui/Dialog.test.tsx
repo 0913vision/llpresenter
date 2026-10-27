@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
@@ -239,6 +239,49 @@ function Overwrite({
 }
 
 describe('AlertDialog', () => {
+  it('adds overflowing details to the focus cycle and releases its observers', async () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    let resize: (() => void) | undefined;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe = observe;
+        disconnect = disconnect;
+        constructor(measure: () => void) {
+          resize = measure;
+        }
+      },
+    );
+    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(200);
+    const scrollHeight = vi
+      .spyOn(Element.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(100);
+    const onOverwrite = vi.fn();
+    const view = render(<Overwrite onOverwrite={onOverwrite} />);
+    expect(screen.queryByRole('region', {name: '확인 내용'})).toBeNull();
+    expect(observe).toHaveBeenCalledTimes(2);
+    scrollHeight.mockReturnValue(400);
+    act(() => resize?.());
+    const details = screen.getByRole('region', {name: '확인 내용'});
+    expect(details.tabIndex).toBe(0);
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '덮어쓰기'}),
+    );
+    await userEvent.tab();
+    expect(document.activeElement).toBe(details);
+    scrollHeight.mockReturnValue(100);
+    act(() => resize?.());
+    expect(screen.queryByRole('region', {name: '확인 내용'})).toBeNull();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '취소'}),
+    );
+    expect(onOverwrite).not.toHaveBeenCalled();
+    view.unmount();
+    expect(disconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('asks its question and starts on the primary button', () => {
     render(<Overwrite />);
     const alert = screen.getByRole('alertdialog', {

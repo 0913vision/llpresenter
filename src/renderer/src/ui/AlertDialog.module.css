@@ -20,9 +20,19 @@
 
 .head {
   display: flex;
-  flex: none;
+  flex: 0 1 auto;
   align-items: flex-start;
   gap: var(--space-14);
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.head:focus-visible {
+  border-radius: var(--radius-md);
+  outline: none;
+  box-shadow: var(--ring-field-focus);
 }
 
 .icon {
@@ -49,6 +59,7 @@
   margin: 0;
   font: var(--type-heading);
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .meta {
@@ -59,6 +70,12 @@
   color: var(--text-3);
   font: var(--type-label);
   font-variant-numeric: tabular-nums;
+}
+
+.meta > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .list {
