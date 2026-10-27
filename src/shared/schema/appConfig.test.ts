@@ -8,7 +8,7 @@ import {
 } from './appConfig';
 import {expectFailure, expectSuccess} from './testHelpers';
 
-const FILE = 'D:\\llp-dev\\data\\app.json';
+const FILE = 'C:\\data\\app.json';
 const SERVICE_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const SCREEN_ID = '9e8d7c6b-5a49-4382-b170-6f5e4d3c2b1a';
 const COLLECTION_ID = '1a2b3c4d-5e6f-4a0b-9c1d-2e3f4a5b6c7d';
@@ -17,9 +17,9 @@ function fullConfig() {
   return {
     format: 'llapp',
     schemaVersion: 1,
-    dataRoot: 'D:\\llp-dev\\data\\LoveLight',
+    dataRoot: 'C:\\data\\LoveLight',
     songsPath: '',
-    mediaPath: 'E:\\미디어',
+    mediaPath: 'E:\\data\\media',
     backupPath: '',
     lastServiceId: SERVICE_ID,
     layout: {
@@ -31,7 +31,7 @@ function fullConfig() {
     macroView: 'grid',
     macroCollection: COLLECTION_ID,
     mediaStrip: true,
-    mediaImportFolder: 'D:\\llp-dev\\data\\imports',
+    mediaImportFolder: 'C:\\data\\imports',
     lastBackupAt: '2026-10-24T09:00:00+09:00',
   };
 }

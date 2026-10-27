@@ -45,8 +45,7 @@ vi.mock('node:fs/promises', async importOriginal => {
   };
 });
 
-const ABSOLUTE =
-  process.platform === 'win32' ? 'D:\\llp-dev\\qa' : '/llp-dev/qa';
+const ABSOLUTE = process.platform === 'win32' ? 'C:\\data\\qa' : '/data/qa';
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 
 async function loadMain(): Promise<void> {
@@ -91,7 +90,7 @@ describe(
   {timeout: ENTRY_TEST_TIMEOUT_MS},
   () => {
     it('quits with a logged error and no dialog when the path is relative', async () => {
-      vi.stubEnv('LLP_USER_DATA', 'D:llp-devqa');
+      vi.stubEnv('LLP_USER_DATA', 'C:dataqa');
       await loadMain();
       await vi.waitFor(() => {
         expect(electron.app.exit).toHaveBeenCalledWith(

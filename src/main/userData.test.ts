@@ -1,8 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {applyUserDataOverride} from './userData';
 
-const ABSOLUTE =
-  process.platform === 'win32' ? 'D:\\llp-dev\\qa' : '/llp-dev/qa';
+const ABSOLUTE = process.platform === 'win32' ? 'C:\\data\\qa' : '/data/qa';
 
 describe('applyUserDataOverride', () => {
   it('keeps the default folder when the value is unset or empty', () => {
@@ -18,7 +17,7 @@ describe('applyUserDataOverride', () => {
     expect(setPath).toHaveBeenCalledWith(ABSOLUTE);
   });
 
-  it.each(['relative', 'D:llp-devqa', String.raw`llp-dev\qa`])(
+  it.each(['relative', 'C:dataqa', String.raw`data\qa`])(
     'reports %s as not absolute without moving the folder',
     value => {
       const setPath = vi.fn();
