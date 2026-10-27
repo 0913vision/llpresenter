@@ -64,9 +64,10 @@ export function useLookListEditor(
     if (api === undefined) return undefined;
     const current = sessionFor(api);
     session.current = current;
-    if (onProblem !== undefined) current.reporters.add(onProblem);
+    const report = (notice: Notice): void => onProblem?.(notice);
+    if (onProblem !== undefined) current.reporters.add(report);
     return () => {
-      if (onProblem !== undefined) current.reporters.delete(onProblem);
+      current.reporters.delete(report);
       session.current = null;
     };
   }, [api, onProblem]);

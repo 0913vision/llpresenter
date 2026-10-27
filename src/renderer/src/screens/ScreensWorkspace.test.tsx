@@ -164,6 +164,30 @@ describe('the 화면 list', () => {
       editor.closest('[style*="padding-top"]')?.getAttribute('style'),
     ).toContain('96px');
   });
+  it('reports a failed Look list save after leaving its editor for a screen', async () => {
+    const {onProblem} = setup();
+    const api = window.llp;
+    if (api === undefined) throw new Error('Missing window API');
+    const edit = vi
+      .spyOn(api.settings, 'edit')
+      .mockRejectedValue(new Error('disk'));
+    const user = userEvent.setup();
+    await screen.findByRole('option', {name: '설교'});
+    await user.click(option('설교'));
+    await screen.findByRole('region', {name: 'Look 편집'});
+    await user.click(option('본 화면'));
+    await waitFor(() =>
+      expect(screen.queryByRole('region', {name: 'Look 편집'})).toBeNull(),
+    );
+    await user.click(screen.getByRole('button', {name: '새 Look'}));
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({title: 'Look 저장 실패'}),
+      ),
+    );
+    expect(edit).toHaveBeenCalledOnce();
+    expect(onProblem).toHaveBeenCalledOnce();
+  });
   it.each(['현재와 다음'])(
     'keeps the retained-screen pattern while committing a correction from %s',
     async label => {
