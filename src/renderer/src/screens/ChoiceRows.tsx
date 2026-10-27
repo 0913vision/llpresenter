@@ -5,35 +5,37 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {Look} from '@shared/schema/looks';
+import type {Choice} from './choices';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {GroupRename} from '@renderer/ui/ListRow';
-import styles from './LookList.module.css';
+import styles from './looks/LookList.module.css';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;
 
-/** Windows a long Look list while keeping keyboard navigation over every Look. */
-export function LookRows({
-  looks,
+/** Windows long choice lists while keeping keyboard navigation over every row. */
+export function ChoiceRows<T extends Choice>({
+  choices,
   warnings,
   selected,
-  current,
+  inUse,
+  label,
   renaming,
   onSelect,
   onMenu,
 }: {
-  readonly looks: readonly Look[];
-  readonly warnings: ReadonlyMap<string, string>;
+  readonly choices: readonly T[];
+  readonly warnings?: ReadonlyMap<string, string>;
   readonly selected: string | undefined;
-  readonly current: string | undefined;
+  readonly inUse: ReadonlySet<string>;
+  readonly label: string;
   readonly renaming: {
     readonly id: string;
     readonly handlers: GroupRename;
   } | null;
   readonly onSelect: (id: string) => void;
-  readonly onMenu: (look: Look, anchor: MenuAnchor) => void;
+  readonly onMenu?: (choice: T, anchor: MenuAnchor) => void;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<string | null>(null);
@@ -67,13 +69,13 @@ export function LookRows({
     0,
     Math.min(
       (view.row > 0 ? Math.floor(view.top / view.row) : 0) - OVERSCAN,
-      looks.length - count,
+      choices.length - count,
     ),
   );
-  const end = Math.min(looks.length, start + count + OVERSCAN * 2);
+  const end = Math.min(choices.length, start + count + OVERSCAN * 2);
   useLayoutEffect(() => {
     const element = viewport.current;
-    const index = looks.findIndex(look => look.id === selected);
+    const index = choices.findIndex(choice => choice.id === selected);
     if (
       element !== null &&
       view.row > 0 &&
@@ -85,7 +87,7 @@ export function LookRows({
       element.scrollTop = index * view.row;
       measure();
     }
-  }, [looks, selected, view.row]);
+  }, [choices, selected, view.row]);
   useLayoutEffect(() => {
     if (focusNext.current === null) return;
     const row = viewport.current?.querySelector<HTMLElement>(
@@ -106,16 +108,26 @@ export function LookRows({
     ) {
       return;
     }
-    const index = looks.findIndex(look => look.id === selected);
+    const option =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[role="option"][data-value]')
+        : null;
+    const focused = choices.findIndex(
+      choice => choice.id === option?.dataset['value'],
+    );
+    const index =
+      focused >= 0
+        ? focused
+        : choices.findIndex(choice => choice.id === selected);
     const targets: Readonly<Record<string, number>> = {
       ArrowDown: index + 1,
       ArrowUp: index - 1,
       Home: 0,
-      End: looks.length - 1,
+      End: choices.length - 1,
     };
     const target = targets[event.key];
     if (target === undefined) return;
-    const next = looks[Math.max(0, Math.min(target, looks.length - 1))];
+    const next = choices[Math.max(0, Math.min(target, choices.length - 1))];
     if (next === undefined) return;
     event.preventDefault();
     event.stopPropagation();
@@ -145,44 +157,48 @@ export function LookRows({
       }}
       onKeyDownCapture={navigate}
     >
-      <ListBox label="Look" selected={selected} onSelect={onSelect}>
+      <ListBox label={label} selected={selected} onSelect={onSelect}>
         <div
           aria-hidden="true"
           style={{height: `calc(var(--size-row) * ${start})`}}
         />
-        {looks.slice(start, end).map(look => (
+        {choices.slice(start, end).map(choice => (
           <div
-            key={look.id}
+            key={choice.id}
             onContextMenu={event => {
+              if (onMenu === undefined) return;
               event.preventDefault();
-              onMenu(look, {
+              onMenu(choice, {
                 kind: 'point',
                 point: {x: event.clientX, y: event.clientY},
               });
             }}
             onKeyDown={event => {
               if (
-                event.key !== 'ContextMenu' &&
-                !(event.key === 'F10' && event.shiftKey)
+                onMenu === undefined ||
+                (event.key !== 'ContextMenu' &&
+                  !(event.key === 'F10' && event.shiftKey))
               ) {
                 return;
               }
               event.preventDefault();
-              onMenu(look, {kind: 'element', element: event.currentTarget});
+              onMenu(choice, {kind: 'element', element: event.currentTarget});
             }}
           >
             <ListRow
-              value={look.id}
-              title={look.name}
-              warning={warnings.get(look.id)}
-              live={look.id === current}
-              rename={renaming?.id === look.id ? renaming.handlers : undefined}
+              value={choice.id}
+              title={choice.name}
+              warning={warnings?.get(choice.id)}
+              live={inUse.has(choice.id)}
+              rename={
+                renaming?.id === choice.id ? renaming.handlers : undefined
+              }
             />
           </div>
         ))}
         <div
           aria-hidden="true"
-          style={{height: `calc(var(--size-row) * ${looks.length - end})`}}
+          style={{height: `calc(var(--size-row) * ${choices.length - end})`}}
         />
       </ListBox>
     </div>

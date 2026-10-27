@@ -9,9 +9,9 @@ import {
   PanelTitle,
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
-import {ChoiceList} from '../ChoiceList';
+import {ChoiceRows} from '../ChoiceRows';
 import {stageLayoutsInUse} from '../choices';
-import {useScreensSelection} from '../selection';
+import {selectedIdIn, useScreensSelection} from '../selection';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {STAGE_LAYOUT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
@@ -28,6 +28,7 @@ export function StagePanel({
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const live = useLive(view => view.state?.lookId);
   const select = useScreensSelection(view => view.select);
+  const selection = useScreensSelection(view => view.selection);
   const run = useStageEditor(layouts, onProblem);
   const mounted = useRef(false);
   useLayoutEffect(() => {
@@ -67,9 +68,11 @@ export function StagePanel({
         </PanelActions>
       </PanelHeader>
       <PanelBody variant="flush" className={styles.body}>
-        <ChoiceList
+        <ChoiceRows
           label="무대 배치"
-          kind="stage"
+          selected={selectedIdIn(selection, 'stage')}
+          onSelect={id => select('stage', id)}
+          renaming={null}
           choices={layouts?.value.layouts ?? []}
           inUse={inUse}
         />

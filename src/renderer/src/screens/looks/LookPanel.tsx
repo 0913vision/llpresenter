@@ -23,9 +23,9 @@ import type {Notice} from '@renderer/ui/notices';
 import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '../screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
-import {LookRows} from './LookRows';
 import {lookFontWarnings} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
+import {ChoiceRows} from '../ChoiceRows';
 import {
   LOOK_LIST_LIMIT,
   type LookListEdit,
@@ -176,11 +176,12 @@ export function LookPanel({
           </PanelActions>
         </PanelHeader>
         <PanelBody variant="flush" className={styles.body}>
-          <LookRows
-            looks={looks}
+          <ChoiceRows
+            label="Look"
+            choices={looks}
             warnings={warnings}
             selected={selectedIdIn(selection, 'look')}
-            current={current}
+            inUse={new Set(current === undefined ? [] : [current])}
             onSelect={id => select('look', id)}
             onMenu={(look, anchor) => setMenu({look, anchor})}
             renaming={
