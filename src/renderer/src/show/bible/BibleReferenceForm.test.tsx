@@ -44,6 +44,104 @@ function enterPassage(view: ReturnType<typeof setup>, end = ''): void {
 }
 
 describe('shared Bible reference form', () => {
+  it('keeps Tab on an ambiguous arrow pick absent from the installed translation', async () => {
+    const view = setup();
+    view.lookup.mockImplementation(request => formLookupReply(request, [43]));
+    await view.user.type(view.book, '베');
+    await view.user.keyboard('{ArrowDown}');
+    await waitFor(() =>
+      expect(
+        document.getElementById(
+          view.book.getAttribute('aria-describedby') ?? '',
+        )?.textContent,
+      ).toBe('역본에 없는 책'),
+    );
+    await view.user.tab();
+    expect(view.book.value).toBe('에베소서');
+    expect(document.activeElement).toBe(view.book);
+    expect(
+      document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toBe('역본에 없는 책');
+    expect(view.onPreview).not.toHaveBeenCalled();
+    expect(view.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])(
+    'completes an ambiguous pick immediately while pending and returns focus only for an unavailable reply, available %s',
+    async available => {
+      const view = setup();
+      let finish: (reply: BibleLookupReply) => void = () => undefined;
+      view.lookup.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+      await view.user.type(view.book, '베');
+      await view.user.keyboard('{ArrowDown}{Tab}');
+      expect(view.book.value).toBe('에베소서');
+      expect(document.activeElement).toBe(view.chapter);
+      await view.user.tab();
+      expect(document.activeElement).toBe(view.chapter);
+      await act(async () =>
+        finish(
+          await formLookupReply(
+            lookupRequest('에베소서'),
+            available ? [43, 49] : [43],
+          ),
+        ),
+      );
+      expect(document.activeElement).toBe(available ? view.chapter : view.book);
+      expect(view.book.getAttribute('aria-invalid')).toBe(
+        available ? null : 'true',
+      );
+    },
+  );
+
+  it.each(['edit', 'blur', 'translation', 'composition'] as const)(
+    'cancels a late unavailable-book focus correction after %s',
+    async action => {
+      const view = setup();
+      view.lookup.mockImplementation(request => formLookupReply(request, [43]));
+      let finish: (reply: BibleLookupReply) => void = () => undefined;
+      view.lookup.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+      await view.user.type(view.book, '베');
+      await view.user.keyboard('{ArrowDown}{Tab}');
+      expect(document.activeElement).toBe(view.chapter);
+      if (action === 'edit') {
+        fireEvent.change(view.chapter, {target: {value: '2'}});
+      } else if (action === 'blur') {
+        await view.user.click(view.start);
+      } else if (action === 'translation') {
+        view.rerender(
+          <BibleReferenceForm {...view.props} translation={undefined} />,
+        );
+      } else {
+        fireEvent.compositionStart(view.chapter);
+      }
+      const focus = document.activeElement;
+      await act(async () =>
+        finish(await formLookupReply(lookupRequest('에베소서'), [43])),
+      );
+      if (action === 'translation') {
+        view.rerender(<BibleReferenceForm {...view.props} />);
+        await waitFor(() =>
+          expect(view.book.getAttribute('aria-invalid')).toBe('true'),
+        );
+      }
+      expect(document.activeElement).toBe(focus);
+      if (action === 'blur') expect(document.activeElement).toBe(view.start);
+      expect(view.onPreview).not.toHaveBeenCalled();
+      expect(view.onSubmit).not.toHaveBeenCalled();
+    },
+  );
+
   it('keeps Tab on a canonical book absent from the selected translation', async () => {
     const view = setup();
     fireEvent.change(view.book, {target: {value: '시'}});

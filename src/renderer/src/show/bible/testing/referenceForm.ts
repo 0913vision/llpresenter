@@ -11,8 +11,9 @@ import {
 
 export async function formLookupReply(
   request: BibleLookupRequest,
+  bookIds: readonly number[] = [1, 43, 49, 60, 61, 62],
 ): Promise<BibleLookupReply> {
-  const source = passageSource(translationFile([1, 43, 49, 60, 61, 62]));
+  const source = passageSource(translationFile(bookIds));
   const book = selectedBook(request.input.split(' ')[0] ?? '');
   const indexed = source.books.find(entry => entry.id === book?.id);
   return {

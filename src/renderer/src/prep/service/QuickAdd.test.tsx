@@ -410,6 +410,31 @@ describe('항목 추가', () => {
     expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
   });
 
+  it('keeps an unavailable arrow pick in the book field and cannot insert the previous valid passage', async () => {
+    const {api, user, service} = setup();
+    mockBible(api).lookup.mockImplementation(request =>
+      formLookupReply(request, [43]),
+    );
+    const length = service().service.order.length;
+    await openBibleForm(user);
+    fillBibleForm();
+    const add = screen.getByRole('button', {name: '추가'});
+    await waitFor(() =>
+      expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+    await user.clear(book);
+    await user.type(book, '베');
+    await user.keyboard('{ArrowDown}{Tab}');
+    await waitFor(() => expect(book.getAttribute('aria-invalid')).toBe('true'));
+    expect(book.value).toBe('에베소서');
+    expect(document.activeElement).toBe(book);
+    await waitFor(() => expect(add.getAttribute('aria-disabled')).toBe('true'));
+    await user.click(add);
+    expect(service().service.order).toHaveLength(length);
+    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
+  });
+
   it.each([
     ['장', '22'],
     ['시작절', '37'],

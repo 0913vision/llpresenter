@@ -48,6 +48,12 @@ const LABELS = {
 } as const;
 const ignorePreview = (): void => undefined;
 
+function focusChapter(root: HTMLElement | null): void {
+  root
+    ?.querySelector<HTMLInputElement>('[data-reference-part="chapter"]')
+    ?.focus();
+}
+
 /** Shares book completion and endpoint validation across Show and Prep. */
 export function BibleReferenceForm(
   props: BibleReferenceFormProps,
@@ -76,6 +82,10 @@ export function BibleReferenceForm(
       ? (selectedRecent?.translation ?? props.translation)
       : props.translation;
   const root = useRef<HTMLDivElement>(null);
+  const advancedBook = useRef<{
+    readonly bookId: number;
+    readonly translation: TranslationId | undefined;
+  } | null>(null);
   useEffect(() => {
     if (props.autoFocus && props.translation !== undefined) {
       root.current
@@ -86,13 +96,34 @@ export function BibleReferenceForm(
   const bookAnchor = useRef<HTMLDivElement>(null);
   const listId = useId();
   const book = selectedBook(fields.book);
+  const bookId = book?.id;
+  const books = findBibleBooks(fields.book);
+  const metadataBook = books[keyboardPointed ?? -1] ?? book;
   const metadata = useBibleLookup({
     ...props,
     translation,
-    input: book?.korean ?? '',
+    input: metadataBook?.korean ?? '',
     onPreview: ignorePreview,
   });
   const bookUnavailable = metadata !== null && metadata.bounds === undefined;
+  useEffect(() => {
+    const target = advancedBook.current;
+    if (target === null) return;
+    if (target.bookId !== bookId || target.translation !== translation) {
+      advancedBook.current = null;
+      return;
+    }
+    if (metadata === null) return;
+    advancedBook.current = null;
+    const field = root.current?.querySelector<HTMLInputElement>(
+      '[data-reference-part="chapter"]',
+    );
+    if (metadata.bounds === undefined && document.activeElement === field) {
+      root.current
+        ?.querySelector<HTMLInputElement>('[role="combobox"]')
+        ?.focus();
+    }
+  }, [bookId, metadata, translation]);
   const state = referenceFieldsState(fields, metadata?.bounds);
   const reply = useBibleLookup({
     ...props,
@@ -102,7 +133,6 @@ export function BibleReferenceForm(
   const passage = reply?.result.ok ? reply.result.value : undefined;
   const onReady = props.onReady;
   useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
-  const books = findBibleBooks(fields.book);
   const suggestions: readonly BibleSuggestion[] = [
     ...books.map(candidate => ({
       key: `book:${candidate.id}`,
@@ -122,6 +152,7 @@ export function BibleReferenceForm(
   const expanded =
     props.translation !== undefined && open && suggestions.length > 0;
   const change = (part: ReferencePart, value: string): void => {
+    advancedBook.current = null;
     props.onIntent?.();
     setRecent(null);
     setFields(previous => changeReferenceField(previous, part, value));
@@ -137,6 +168,7 @@ export function BibleReferenceForm(
     setOpen(false);
   };
   const chooseSuggestion = (item: BibleSuggestion): void => {
+    advancedBook.current = null;
     if (item.ref === undefined || item.translation === undefined) {
       choose(item.input);
       return;
@@ -164,6 +196,23 @@ export function BibleReferenceForm(
       ? state.errors[part]
       : undefined;
   };
+  const tabBook = (): void => {
+    const candidate = books[keyboardPointed ?? -1] ?? book;
+    if (!candidate) {
+      setBlocked('book');
+      return;
+    }
+    if (candidate.id === metadataBook?.id && bookUnavailable) {
+      if (candidate.id !== book?.id) choose(candidate.korean);
+      setBlocked('book');
+      return;
+    }
+    choose(candidate.korean);
+    focusChapter(root.current);
+    if (metadata === null) {
+      advancedBook.current = {bookId: candidate.id, translation};
+    }
+  };
   const onKeyDown = (
     part: ReferencePart,
     event: KeyboardEvent<HTMLInputElement>,
@@ -179,6 +228,7 @@ export function BibleReferenceForm(
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        advancedBook.current = null;
         event.preventDefault();
         setOpen(true);
         const next =
@@ -193,15 +243,7 @@ export function BibleReferenceForm(
       }
       if (event.key === 'Tab' && !event.shiftKey) {
         event.preventDefault();
-        const candidate = books[keyboardPointed ?? -1] ?? book;
-        if (!candidate || (candidate.id === book?.id && bookUnavailable)) {
-          setBlocked('book');
-          return;
-        }
-        choose(candidate.korean);
-        root.current
-          ?.querySelector<HTMLInputElement>('[data-reference-part="chapter"]')
-          ?.focus();
+        tabBook();
         return;
       }
     }
@@ -252,8 +294,17 @@ export function BibleReferenceForm(
           value={fields.book}
           onChange={value => change('book', value)}
           onKeyDown={event => onKeyDown('book', event)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onFocus={() => {
+            advancedBook.current = null;
+            setOpen(true);
+          }}
+          onBlur={() => {
+            advancedBook.current = null;
+            setOpen(false);
+          }}
+          onCompositionStart={() => {
+            advancedBook.current = null;
+          }}
           disabled={props.translation === undefined}
           invalid={reason('book') !== undefined}
           invalidReason={reason('book')}
@@ -272,6 +323,12 @@ export function BibleReferenceForm(
           value={fields[part]}
           onChange={value => change(part, value)}
           onKeyDown={event => onKeyDown(part, event)}
+          onBlur={() => {
+            advancedBook.current = null;
+          }}
+          onCompositionStart={() => {
+            advancedBook.current = null;
+          }}
           disabled={props.translation === undefined}
           invalid={reason(part) !== undefined}
           invalidReason={reason(part)}
