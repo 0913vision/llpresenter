@@ -117,6 +117,29 @@ Manual three-second audio fade behavior remains separate.
   [live props at capacity](evidence/output-56-round3/capacity-run1.png),
   [second launch](evidence/output-56-round3/overlap-run2.png).
 
+### Round 4 restack and app check
+
+- Restacked on output-55 round 3, above output-54 round 4. The round 2 and round
+  3 finding replies below remain unchanged. All 156 focused tests in eight
+  files, typecheck and build pass. CI pending for this head.
+- Two offscreen launches completed 25 cycles each and quit normally. Both
+  duration orders preserve prop stacking after the shorter fade expires. The
+  64-live-item and 85-distinct-clear macro checks pass. Five renderer targets
+  keep the same identities from start to finish.
+- Control stays at 1,237 elements, 2,485 CDP nodes and 417 listeners; output
+  stays at 774 elements, 1,214 nodes and 10 listeners. Collected control heaps
+  at iterations 5/25 are 6,397,856/6,820,736 and 6,346,212/6,781,744 bytes;
+  output heaps are 2,788,676/2,865,296 and 2,782,912/2,872,548 bytes. Formatting
+  and changed-file lint also pass.
+- Screenshots: [surviving fade](evidence/output-56-round4/overlap-run1.png),
+  [64 live props](evidence/output-56-round4/capacity-run1.png),
+  [second launch](evidence/output-56-round4/overlap-run2.png).
+- The launcher waits for all five initial renderer targets, including hidden
+  audio, before recording its window-count baseline. An earlier run recorded
+  that baseline as soon as the three screen pages loaded and failed its final
+  count assertion despite stable DOM and heap samples. No application retry or
+  window-count assertion was removed.
+
 ## Follow-up controls
 
 The user allows the editing controls as a follow-up request. Per-key controls
