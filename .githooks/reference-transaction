@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ "$1" != prepared ] || [ "${LLP_MAIN_OK:-}" = 1 ]; then
+  exit 0
+fi
+
+while read -r old new ref; do
+  if [ "$ref" = refs/heads/main ]; then
+    printf '%s\n' 'Only the lead moves main.' >&2
+    exit 1
+  fi
+done
+exit 0
