@@ -64,9 +64,10 @@ export function useImportItems({
   const selection = picked?.key === key ? picked.selection : NOTHING;
   const setSelection = (next: TreeSelection): void =>
     setPicked({key, selection: next});
-  // NOTE(0913vision): Picking a source checks nothing (spec 05), also when
+  // NOTE(0913vision): Changing sources checks nothing (spec 05), also when
   // the operator returns to one they checked items in.
   const choose = (next: ServiceSource): void => {
+    if (key === sourceKey(next)) return;
     setChosen(next);
     setPicked(null);
   };

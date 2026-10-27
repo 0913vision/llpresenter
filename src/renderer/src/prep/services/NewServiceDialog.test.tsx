@@ -436,6 +436,32 @@ describe('NewServiceDialog', () => {
     ).toBe('true');
   });
 
+  it.each(['click', 'boundary'] as const)(
+    'keeps exclusions when the selected source is selected again by %s',
+    async method => {
+      const user = userEvent.setup();
+      const {edits, onClose} = setup();
+      const source = await screen.findByRole('option', {
+        name: /지난 주일 예배/,
+      });
+      await user.click(source);
+      const item = await screen.findByRole('treeitem', {name: titles.first});
+      await user.click(item);
+      expect(item.getAttribute('aria-checked')).toBe('false');
+      if (method === 'click') await user.click(source);
+      else {
+        act(() => source.focus());
+        await user.keyboard('{End}{ArrowDown}');
+      }
+      expect(item.getAttribute('aria-checked')).toBe('false');
+      await user.click(createButton());
+      await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+      expect(edits.some(edit => edit.type === 'service.importItems')).toBe(
+        false,
+      );
+    },
+  );
+
   it('deletes the new service again when copying its items is rejected', async () => {
     const {edits, open, onClose, onProblem} = setup(edit =>
       edit.type === 'service.importItems'

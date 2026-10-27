@@ -205,6 +205,33 @@ describe('ImportItemsDialog', () => {
     });
   });
 
+  it.each(['click', 'boundary'] as const)(
+    'keeps checked items when the selected source is selected again by %s',
+    async method => {
+      const user = userEvent.setup();
+      const {edits, onClose} = setup();
+      const source = await screen.findByRole('option', {
+        name: /지난 주일 예배/,
+      });
+      await user.click(source);
+      const item = await screen.findByRole('treeitem', {name: titles.first});
+      await user.click(item);
+      expect(item.getAttribute('aria-checked')).toBe('true');
+      if (method === 'click') await user.click(source);
+      else {
+        act(() => source.focus());
+        await user.keyboard('{End}{ArrowDown}');
+      }
+      expect(item.getAttribute('aria-checked')).toBe('true');
+      await user.click(importButton());
+      await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+      expect(edits[0]).toMatchObject({
+        from: {kind: 'service', id: ids.past},
+        itemIds: [ids.pastSong],
+      });
+    },
+  );
+
   it('keeps the default 틀 and checked items when a rename sorts it after another 틀', async () => {
     let selectedTemplate = templateDocument;
     const otherTemplate: TemplateDocument = {

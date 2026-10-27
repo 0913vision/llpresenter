@@ -60,6 +60,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 - Enter triggers the primary button (when focus isn't in a multiline text field or a list). Esc and the close button do the same as [취소].
 - A click on the scrim doesn't close the dialog.
 - When the dialog closes, return focus to the button or menu item that opened it.
+- In the service-source dialogs, reselecting the current source keeps the operator's item choices, including at a keyboard boundary. A different source starts a fresh selection: all items for 새 예배 and none for 다른 예배에서 가져오기.
 - The 지우기 (clear) shortcuts for 출력 (output) (F1 to F7) work even while a dialog is open, because the operator must be able to clear the screens at once during a service.
 - `Notification` appears above the scrim, and its action buttons stay clickable while a dialog is open.
 - aria: `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` set to the title id. While the dialog is open, make the app behind it `inert` (except the notification layer).

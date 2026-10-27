@@ -179,6 +179,17 @@ function NewServiceDialog({
   readonly onClose: () => void;
 }): JSX.Element {
   const [name, setName] = useState('주일 예배');
+  const [source, setSource] = useState('sunday');
+  const [checks, setChecks] = useState([true, false, true]);
+  const setRow = (index: number, checked: boolean): void =>
+    setChecks(values =>
+      values.map((value, i) => (i === index ? checked : value)),
+    );
+  const chooseSource = (value: string): void => {
+    if (source === value) return;
+    setSource(value);
+    setChecks([true, true, true]);
+  };
   return (
     <Dialog
       title="새 예배"
@@ -192,7 +203,7 @@ function NewServiceDialog({
         title: '이름을 적어야 만들 수 있습니다',
       }}
       aside={
-        <ListBox label="틀" selected="sunday" onSelect={ignore} inset>
+        <ListBox label="틀" selected={source} onSelect={chooseSource} inset>
           <ListGroup label="틀">
             <ListRow
               value="sunday"
@@ -225,29 +236,36 @@ function NewServiceDialog({
       <DialogBox
         title="예배 순서"
         meta="항목 3개"
-        checkAll={{checked: 'mixed', onChange: ignore}}
+        checkAll={{
+          checked: checks.every(Boolean)
+            ? true
+            : checks.some(Boolean)
+              ? 'mixed'
+              : false,
+          onChange: checked => setChecks(checks.map(() => checked)),
+        }}
       >
         <CheckRow
           variant="list"
           icon="song"
           label="만복의 근원 하나님"
           meta="주일용"
-          checked
-          onChange={ignore}
+          checked={checks[0] ?? false}
+          onChange={checked => setRow(0, checked)}
         />
         <CheckRow
           variant="list"
           icon="song"
           label="내 주를 가까이 하게 함은"
-          checked={false}
-          onChange={ignore}
+          checked={checks[1] ?? false}
+          onChange={checked => setRow(1, checked)}
         />
         <CheckRow
           variant="list"
           icon="notice"
           label="주일 광고"
-          checked
-          onChange={ignore}
+          checked={checks[2] ?? false}
+          onChange={checked => setRow(2, checked)}
         />
       </DialogBox>
     </Dialog>

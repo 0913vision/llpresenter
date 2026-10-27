@@ -134,9 +134,10 @@ export function useNewService({
     picked?.key === key ? picked.selection : checkAll(rows, true);
   const setSelection = (next: TreeSelection): void =>
     setPicked({key, selection: next});
-  // NOTE(0913vision): Choosing a source checks every item again (spec 05),
+  // NOTE(0913vision): Changing sources checks every item again (spec 05),
   // also when the operator returns to a source they changed.
   const choose = (next: ServiceSource): void => {
+    if (key === sourceKey(next)) return;
     setChosen(next);
     setPicked(null);
   };
