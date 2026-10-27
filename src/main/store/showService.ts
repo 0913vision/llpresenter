@@ -114,10 +114,12 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {kind: 'slot', id, title: item.title, accepts: item.slot};
   }
   if (isItemOfKind(item, 'bible')) {
+    const bible = sources.passages?.references.get(id);
     return {
       kind: 'bible',
       id,
       title: item.bible.ref,
+      ...(bible === undefined ? {} : {bible}),
       ...(sources.passages?.unavailable.has(id)
         ? {problem: 'missing-bible' as const}
         : {}),

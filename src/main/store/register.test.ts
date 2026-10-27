@@ -239,7 +239,12 @@ describe('registerStore', () => {
       {label: '3:18'},
     ]);
     expect(shown.value.rows).toEqual([
-      {kind: 'bible', id: itemId(60), title: '요한복음 3:16-18'},
+      {
+        kind: 'bible',
+        id: itemId(60),
+        title: '요한복음 3:16-18',
+        bible: {ref: '요한복음 3:16-18', translation: 'sample'},
+      },
       {
         kind: 'bible',
         id: itemId(61),
@@ -270,6 +275,9 @@ describe('registerStore', () => {
       throw new Error('Missing refreshed service');
     }
     expect(removed.value.tiles).toEqual({});
+    for (const row of removed.value.rows) {
+      expect(row).not.toHaveProperty('bible');
+    }
     expect(
       removed.value.rows.every(
         row => row.kind !== 'header' && row.problem === 'missing-bible',
@@ -1681,13 +1689,13 @@ describe('registerStore', () => {
 
 describe('electronLocationContext', () => {
   it('uses the folders Electron gives and LLP_USER_DATA', () => {
-    electron.paths.set('userData', join('D:', 'llp-dev', 'data'));
-    electron.paths.set('documents', join('C:', 'Users', 'me', 'Documents'));
-    vi.stubEnv('LLP_USER_DATA', join('D:', 'llp-dev', 'data'));
+    electron.paths.set('userData', join('C:', 'data', 'app'));
+    electron.paths.set('documents', join('C:', 'data', 'documents'));
+    vi.stubEnv('LLP_USER_DATA', join('C:', 'data', 'app'));
 
     expect(electronLocationContext()).toEqual({
-      documents: join('C:', 'Users', 'me', 'Documents'),
-      developmentFolder: join('D:', 'llp-dev', 'data'),
+      documents: join('C:', 'data', 'documents'),
+      developmentFolder: join('C:', 'data', 'app'),
     });
   });
 

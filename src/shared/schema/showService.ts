@@ -3,9 +3,10 @@ import {NO_LABEL_COLOR, paletteColors} from '../colors';
 import type {Result} from '../result';
 import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
+import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {slotKinds} from './service';
-import {songIdSchema, songGroupIdSchema} from './ids';
-import {nonNegativeInteger} from './primitives';
+import {songIdSchema, songGroupIdSchema, translationIdSchema} from './ids';
+import {nonBlankText, nonNegativeInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
 import {
   parsePayload,
@@ -33,6 +34,13 @@ export const SHOW_SERVICE_LIMITS = {
 } as const;
 
 const id = v.pipe(v.string(), v.nonEmpty());
+const bibleReferenceSchema = payloadObject({
+  translation: v.pipe(
+    translationIdSchema,
+    v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+  ),
+  ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
+});
 
 const showRowSchema = v.pipe(
   plainObject,
@@ -53,7 +61,14 @@ const showRowSchema = v.pipe(
       accepts: v.exactOptional(v.picklist(slotKinds)),
     }),
     v.object({
-      kind: v.picklist(['bible', 'media', 'notice', 'unknown']),
+      kind: v.literal('bible'),
+      id,
+      title: v.string(),
+      problem: v.exactOptional(v.picklist(showRowProblems)),
+      bible: v.exactOptional(bibleReferenceSchema),
+    }),
+    v.object({
+      kind: v.picklist(['media', 'notice', 'unknown']),
       id,
       title: v.string(),
       problem: v.exactOptional(v.picklist(showRowProblems)),
@@ -120,6 +135,7 @@ export type ShowService = ReadonlyKnown<
  * One row, with the service item's id. Rows of a kind this version doesn't
  * know show a warning and can't be output.
  * Song rows may carry their resolved, available background as a media choice.
+ * Bible rows may carry their successfully resolved normalized reference.
  */
 export type ShowRow = ShowService['rows'][number];
 

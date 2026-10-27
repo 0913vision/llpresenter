@@ -142,8 +142,10 @@ export function outputTile(cursor: TileCursor): void {
   });
   startServiceItem(cursor.itemId);
   sendLive({type: 'slide.show', slide});
-  if (source !== null) {
-    rememberBiblePassage(source.passage);
+  const passage =
+    source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
+  if (passage !== undefined) {
+    rememberBiblePassage(passage);
   }
 }
 

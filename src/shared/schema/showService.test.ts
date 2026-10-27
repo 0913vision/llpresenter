@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseShowService, SHOW_SERVICE_LIMITS} from './showService';
+import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 
 function showService() {
   return {
@@ -25,6 +26,59 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('keeps optional Bible identity only on Bible rows and strips unrelated fields', () => {
+    const bible = {ref: '요한복음 3:16-18', translation: 'sample'};
+    const row = {kind: 'bible', id: 'saved', title: 'Stored reference'};
+    const song = {kind: 'song', id: 'song', title: 'Invented song'};
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [
+          row,
+          {...row, id: 'resolved', bible: {...bible, verses: []}},
+          {...song, bible},
+        ],
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {rows: [row, {...row, id: 'resolved', bible}, song]},
+    });
+  });
+
+  it.each([
+    null,
+    {ref: '', translation: 'sample'},
+    {ref: '   ', translation: 'sample'},
+    {ref: 'Invented', translation: ''},
+    {ref: 3, translation: 'sample'},
+    {ref: 'Invented', translation: 3},
+    {ref: 'x'.repeat(BIBLE_LOOKUP_LIMITS.input + 1), translation: 'sample'},
+    {
+      ref: 'Invented',
+      translation: 'x'.repeat(BIBLE_LOOKUP_LIMITS.translationId + 1),
+    },
+  ])('rejects malformed or oversized saved Bible identity %j', bible => {
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [{kind: 'bible', id: 'saved', title: '', bible}],
+      }).ok,
+    ).toBe(false);
+  });
+
+  it('accepts saved Bible identity at the reference and translation limits', () => {
+    const bible = {
+      ref: 'x'.repeat(BIBLE_LOOKUP_LIMITS.input),
+      translation: 'x'.repeat(BIBLE_LOOKUP_LIMITS.translationId),
+    };
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [{kind: 'bible', id: 'saved', title: '', bible}],
+      }).ok,
+    ).toBe(true);
+  });
+
   it('retains an unavailable saved Bible warning without accepting an unknown problem', () => {
     const row = {
       kind: 'bible',

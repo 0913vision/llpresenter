@@ -15,6 +15,9 @@ import {
 import {HYMN_ONE_ID, hymnOne, itemId, service, SUNDAY_ID} from './testFiles';
 import {createSongGroupId, createSongId} from '@shared/schema/ids';
 import type {GroupedSong} from '@shared/schema/groupedSong';
+import {resolveServicePassages} from '../bible/servicePassages';
+import {resolvePassage} from '../bible/reference';
+import {passageSource} from '../bible/testFiles';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
@@ -55,6 +58,52 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('projects normalized saved Bible identity with its tiles and no identity for an unavailable book', async () => {
+    const document = loadedService(
+      ['John 3 : 16 - 18', '시편 1:1'].map((ref, index) => ({
+        id: itemId(index + 1),
+        bible: {
+          translation: 'sample',
+          ref,
+          split: 'verse',
+          reference: 'every',
+          verseNumbers: false,
+          translationName: false,
+        },
+      })),
+    );
+    const passages = await resolveServicePassages(
+      document.data.order,
+      {
+        lookup: async request => ({
+          ...request,
+          suggestions: [],
+          result: await resolvePassage(passageSource(), request.input),
+        }),
+      },
+      {
+        reportError: error => {
+          throw error;
+        },
+      },
+    );
+    const show = buildShowService({
+      service: document,
+      songs: new Map(),
+      labels: [],
+      revision: 1,
+      passages,
+    });
+    expect(show.rows[0]).toMatchObject({
+      id: itemId(1),
+      title: 'John 3 : 16 - 18',
+      bible: {ref: '요한복음 3:16-18', translation: 'sample'},
+    });
+    expect(show.tiles[itemId(1)]).toHaveLength(3);
+    expect(show.rows[1]).toMatchObject({problem: 'missing-bible'});
+    expect(show.rows[1]).not.toHaveProperty('bible');
+  });
+
   it('resolves the item override before the song default without fallback', () => {
     const defaultMedia = {mediaId: MEDIA_ID, loop: true};
     const override = {mediaId: itemId(99), loop: false};

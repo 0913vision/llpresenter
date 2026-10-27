@@ -41,6 +41,18 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('exposes normalized identity only for successfully resolved saved items', async () => {
+    const bible = fixture();
+    const rows = items('John 3 : 16 - 18', '창세기 1:1');
+    const result = await resolveServicePassages(rows, bible, {
+      reportError: bible.report,
+    });
+    expect([...result.references]).toEqual([
+      [rows[0]?.id, {ref: '요한복음 3:16-18', translation: 'sample'}],
+    ]);
+    expect(result.unavailable.has(rows[1]?.id ?? '')).toBe(true);
+  });
+
   it('deduplicates reference reads while retaining item identity and verse-number choices', async () => {
     const bible = fixture();
     const rows = items('요한복음 3:16-18', '요한복음 3:16-18');
@@ -111,6 +123,7 @@ describe('saved Bible passage resolution', () => {
       reportError: bible.report,
     });
     expect(result.tiles.size).toBe(0);
+    expect(result.references.size).toBe(0);
     expect([...result.unavailable]).toEqual(rows.map(row => row.id));
   });
 

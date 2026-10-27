@@ -1,4 +1,5 @@
 import type {MediaChoice} from '@shared/live';
+import type {RecentPassage} from '@shared/schema/bible';
 import type {SlotKind} from '@shared/schema/service';
 import type {ShowTile, showRowProblems} from '@shared/schema/showService';
 
@@ -23,6 +24,7 @@ export interface ItemRow {
   readonly title: string;
   readonly problem?: RowProblem;
   readonly background?: MediaChoice;
+  readonly bible?: RecentPassage;
   /** The kind a 빈 자리 accepts. */
   readonly accepts?: SlotKind;
 }
