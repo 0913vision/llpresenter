@@ -17,7 +17,7 @@ import type {
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useLive} from '@renderer/state/live';
-import {resetTooltips} from '@renderer/ui/tooltipTesting';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {
   LOOK_ID,
@@ -153,20 +153,36 @@ it('commits a focused name during close flushing', async () => {
   expect(onProblem).not.toHaveBeenCalled();
 });
 
-it('rejects duplicate names without saving', async () => {
-  const {user, edit, onProblem} = setup();
-  await menu('설교');
-  await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
-  const renamed = await screen.findByRole('textbox', {name: '설교 이름'});
-  await user.clear(renamed);
-  await user.type(renamed, '평상시{Enter}');
-  await waitFor(() =>
-    expect(onProblem).toHaveBeenCalledWith(
-      expect.objectContaining({title: '같은 이름의 Look이 있음'}),
-    ),
-  );
-  expect(edit).not.toHaveBeenCalled();
-});
+it.each([
+  {draft: '', reason: '이름이 비어 있음'},
+  {draft: '평상시', reason: '같은 이름의 Look이 있음'},
+])(
+  'keeps invalid Look drafts open for $reason and restores them on blur',
+  async ({draft, reason}) => {
+    const {user, edit, onProblem} = setup();
+    await menu('설교');
+    await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+    const field = await screen.findByRole('textbox', {name: '설교 이름'});
+    await user.clear(field);
+    if (draft !== '') await user.type(field, draft);
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    await hoverForTooltip(field);
+    expect(screen.getByRole('tooltip').textContent).toBe(reason);
+    resetTooltips();
+    vi.useRealTimers();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('textbox', {name: '설교 이름'})).toBe(field);
+    expect(edit).not.toHaveBeenCalled();
+    expect(onProblem).not.toHaveBeenCalled();
+    await user.tab();
+    await waitFor(() =>
+      expect(screen.queryByRole('textbox', {name: '설교 이름'})).toBeNull(),
+    );
+    expect(screen.getByRole('option', {name: '설교'})).toBeDefined();
+    expect(edit).not.toHaveBeenCalled();
+    expect(onProblem).not.toHaveBeenCalled();
+  },
+);
 
 it('hands keyboard-menu focus to the rename field after the menu restores its opener', async () => {
   const {user, edit} = setup();

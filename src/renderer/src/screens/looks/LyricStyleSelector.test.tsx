@@ -87,6 +87,25 @@ it('hands focus from a focused keyboard context menu to rename after cleanup', a
   );
 });
 
+it.each(['', '다른 스타일'])(
+  'keeps invalid style draft %j open on Enter and restores it on blur',
+  async draft => {
+    const {change} = setup();
+    fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+    const field = await screen.findByRole('textbox', {name: '스타일 이름'});
+    fireEvent.change(field, {target: {value: draft}});
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    fireEvent.keyDown(field, {key: 'Enter'});
+    expect(screen.getByRole('textbox', {name: '스타일 이름'})).toBe(field);
+    expect(change).not.toHaveBeenCalled();
+    fireEvent.blur(field);
+    expect(screen.queryByRole('textbox', {name: '스타일 이름'})).toBeNull();
+    expect(screen.getByRole('tab', {name: '기본'})).toBeDefined();
+    expect(change).not.toHaveBeenCalled();
+  },
+);
+
 it('cancels invalid or escaped names without writing', async () => {
   const {change} = setup();
   fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));

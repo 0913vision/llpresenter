@@ -173,6 +173,12 @@ export function LookPanel({
                 : {
                     id: renaming.id,
                     handlers: {
+                      validate: name => {
+                        const problem = nameProblem(name, looks, renaming.id);
+                        return problem === undefined
+                          ? undefined
+                          : PROBLEMS[problem];
+                      },
                       onCommit: name => {
                         setRenaming(null);
                         const problem = nameProblem(name, looks, renaming.id);

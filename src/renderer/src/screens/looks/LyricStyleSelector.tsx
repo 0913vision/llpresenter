@@ -39,6 +39,7 @@ function Rename({
   const problem = nameProblem(draft, looks.lyricStyles, style.id);
   const finish = (commit: boolean): void => {
     if (finished.current) return;
+    if (commit && problem !== undefined) return;
     finished.current = true;
     onFinish(commit && problem === undefined ? draft.trim() : null);
   };
@@ -51,7 +52,7 @@ function Rename({
       onFocus={event => event.currentTarget.select()}
       invalid={problem !== undefined}
       invalidReason={problem === undefined ? undefined : PROBLEMS[problem]}
-      onBlur={() => finish(true)}
+      onBlur={() => finish(problem === undefined)}
       onKeyDown={event => {
         if (isComposing(event)) return;
         if (event.key === 'Enter' || event.key === 'Escape') {
