@@ -3,14 +3,25 @@ import {outputTile, useShow} from '@renderer/state/show';
 import {beginOutputRequest} from '@renderer/state/showOutput';
 import {useLive} from '@renderer/state/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
-import {bibleSource} from './source';
+import {bibleSource, type BibleDisplayOptions} from './source';
 
-export function openBiblePassage(passage: BibleLookupPassage): void {
-  const source = bibleSource(passage);
+function samePassage(
+  first: BibleLookupPassage,
+  second: BibleLookupPassage,
+): boolean {
+  return first.ref === second.ref && first.translation === second.translation;
+}
+
+export function openBiblePassage(
+  passage: BibleLookupPassage,
+  options?: BibleDisplayOptions,
+): void {
+  const source = bibleSource(passage, options);
   const view = useShow.getState();
   const live = useLive.getState();
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
   const liveBibleSource = bibleSourceFor(view, liveItemId);
+  const previous = bibleSourceFor(view, view.openItemId);
   beginOutputRequest();
   useShow.setState({
     bibleSource: source,
@@ -21,15 +32,25 @@ export function openBiblePassage(passage: BibleLookupPassage): void {
         : view.requestedBibleSource,
     openItemId: source.id,
     selectedTile:
-      view.openItemId === source.id
+      previous !== null && samePassage(previous.passage, passage)
         ? Math.min(view.selectedTile, source.tiles.length - 1)
         : 0,
   });
 }
 
 /** Outputs the selected Bible tile through the standard slide command path. */
-export function showBiblePassage(passage: BibleLookupPassage): void {
-  openBiblePassage(passage);
+export function showBiblePassage(
+  passage: BibleLookupPassage,
+  options?: BibleDisplayOptions,
+): void {
+  const current = useShow.getState();
+  const prepared = bibleSourceFor(current, current.openItemId);
+  const display =
+    options ??
+    (prepared !== null && samePassage(prepared.passage, passage)
+      ? {verseNumbers: prepared.verseNumbers}
+      : undefined);
+  openBiblePassage(passage, display);
   const view = useShow.getState();
   if (view.openItemId !== null) {
     outputTile({itemId: view.openItemId, index: view.selectedTile});
