@@ -22,7 +22,10 @@ import {
   timestamp,
 } from './primitives';
 import {arrangementNameSchema, type Song} from './song';
-import {migrateSongGroups} from './songGroupMigration';
+import {
+  migrateImportedSongGroups,
+  migrateSongGroups,
+} from './songGroupMigration';
 import {slideHotKeySchema} from './slideHotKey';
 
 /** File bounds keep group expansion and arrangement validation finite. */
@@ -138,6 +141,18 @@ export function parseGroupedSong(
   file: string,
 ): Result<LoadedFile<GroupedSong>, FileError> {
   return parseFile(groupedSongFormat, text, file);
+}
+
+/** Reads import wire data whose section indices are validated draft metadata. */
+export function parseGroupedSongDraft(
+  text: string,
+  file: string,
+): Result<LoadedFile<GroupedSong>, FileError> {
+  return parseFile(
+    {...groupedSongFormat, migrations: [migrateImportedSongGroups]},
+    text,
+    file,
+  );
 }
 
 /** Only version 2 is writable; unknown fields survive at every object level. */

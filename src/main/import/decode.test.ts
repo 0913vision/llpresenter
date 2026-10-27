@@ -33,8 +33,8 @@ describe('text import encoding', () => {
         value: {
           title: 'Example',
           slides: [
-            {lines: ['첫째 문장', '뷁 새 문장']},
-            {label: '후렴', lines: ['마지막 문장']},
+            {lines: ['첫째 문장', '뷁 새 문장'], section: 0},
+            {label: '후렴', lines: ['마지막 문장'], section: 1},
           ],
         },
       });

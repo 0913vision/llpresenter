@@ -1,5 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
+import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
 import {createMediaId, createSongId} from '@shared/schema/ids';
 import type {ContentEdit} from '@shared/schema/contentEdit';
 import type {TextImportDraft} from '@shared/schema/textImport';
@@ -47,6 +48,31 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('retains an edited label boundary when migrating an imported section', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openImported({
+      title: 'Invented',
+      slides: [
+        {label: 'Verse', lines: ['Invented first'], section: 0},
+        {label: 'Verse', lines: ['Invented second'], section: 0},
+      ],
+    });
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No imported session');
+    session.select({block: 1, start: 0, end: 0});
+    session.edit({type: 'label', name: 'Chorus'});
+    const migrated = parseGroupedSongDraft(
+      JSON.stringify(session.history.snapshot.song),
+      'invented.llsong',
+    );
+    if (!migrated.ok) throw new Error(migrated.error.message);
+    expect(migrated.value.data.groups.map(group => group.name)).toEqual([
+      'Verse',
+      'Chorus',
+    ]);
+  });
+
   it('evicts clean sessions after repeated imports while retaining the active and item songs', async () => {
     const f = fixture();
     f.store.attach(f.first);

@@ -158,7 +158,10 @@ describe('text import IPC registration', () => {
     const preview = handler(Channels.textImportPreview)({}, previewRequest);
     expect(preview).toEqual({
       ok: true,
-      value: {title: 'Title', slides: [{label: '후렴', lines: ['One', 'Two']}]},
+      value: {
+        title: 'Title',
+        slides: [{label: '후렴', lines: ['One', 'Two'], section: 0}],
+      },
     });
     expect(parseTextImportPreviewResult(preview).ok).toBe(true);
     expect(log.warn).not.toHaveBeenCalled();

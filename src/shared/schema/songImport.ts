@@ -3,7 +3,8 @@ import {revisionSchema} from './contentDocuments';
 import {mediaIdSchema, songIdSchema} from './ids';
 import {payloadObject, plainObject} from './payload';
 import {nonBlankText} from './primitives';
-import {arrangementsSchema, slideSchema} from './song';
+import {arrangementsSchema} from './song';
+import {importSlideSchema} from './textImport';
 
 export const SONG_IMPORT_LIMITS = {
   slides: 5000,
@@ -21,7 +22,7 @@ export const songImportDraftSchema = v.pipe(
     slides: v.pipe(
       v.array(
         v.pipe(
-          slideSchema,
+          importSlideSchema,
           v.check(
             slide =>
               slide.label === undefined ||

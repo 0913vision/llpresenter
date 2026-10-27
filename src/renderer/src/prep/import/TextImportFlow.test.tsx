@@ -66,6 +66,75 @@ describe('text import flow', () => {
     expect(f.edits).toHaveLength(0);
   });
 
+  it('previews candidate group boundaries and preserves section labels on open', async () => {
+    const f = fixture();
+    const text =
+      '[1절]\nFirst verse line\nSecond verse line\n\nThird verse line\nFourth verse line\n\n[후렴]\nChorus first line\nChorus second line\n\nChorus third line\nChorus fourth line';
+    const read = vi.fn(async (): Promise<TextImportReadResult> => ({
+      ok: true,
+      value: {source: 'file', fileName: 'Candidate.txt', text},
+    }));
+    const api = fakeLlpApi({
+      ...f.api,
+      textImport: {read, preview: async request => convertTextImport(request)},
+    });
+    const onDone = vi.fn();
+    const onEdit = vi.fn();
+    render(
+      <TextImportFlow
+        api={api}
+        store={f.store}
+        source="file"
+        onDone={onDone}
+        onEdit={onEdit}
+        onProblem={f.problem}
+      />,
+    );
+    await screen.findByText('슬라이드 4');
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(4);
+    const opt0 = options[0];
+    const opt1 = options[1];
+    const opt2 = options[2];
+    const opt3 = options[3];
+    if (!opt0 || !opt1 || !opt2 || !opt3) {
+      throw new Error('Missing preview option');
+    }
+    expect(within(opt0).getByText('1절')).toBeTruthy();
+    expect(within(opt1).queryByText('1절')).toBeNull();
+    expect(within(opt2).getByText('후렴')).toBeTruthy();
+    expect(within(opt3).queryByText('후렴')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    expect(f.store.getSnapshot().imported).toBe(true);
+    const session = f.store.getSnapshot().session;
+    expect(session?.title.value).toBe('Candidate');
+    expect(session?.history.snapshot.song.slides).toEqual([
+      {
+        label: '1절',
+        lines: ['First verse line', 'Second verse line'],
+        section: 0,
+      },
+      {
+        label: '1절',
+        lines: ['Third verse line', 'Fourth verse line'],
+        section: 0,
+      },
+      {
+        label: '후렴',
+        lines: ['Chorus first line', 'Chorus second line'],
+        section: 1,
+      },
+      {
+        label: '후렴',
+        lines: ['Chorus third line', 'Chorus fourth line'],
+        section: 1,
+      },
+    ]);
+    expect(onDone).toHaveBeenCalledOnce();
+    expect(onEdit).toHaveBeenCalledOnce();
+  });
+
   it.each(['cancel', 'failure'] as const)(
     'handles a read %s without opening an editor',
     async kind => {

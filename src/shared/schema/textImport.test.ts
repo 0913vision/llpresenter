@@ -152,6 +152,10 @@ describe('text import preview boundary', () => {
 
   it.each([
     {ok: true, value: null},
+    ...['intro', -1, 0.5].map(section => ({
+      ok: true,
+      value: {title: 'Invented', slides: [{lines: [], section}]},
+    })),
     {ok: true, value: {title: '', slides: []}},
     {ok: true, value: {title: 1, slides: [{lines: []}]}},
     {ok: true, value: {title: '', slides: [{lines: [1]}]}},

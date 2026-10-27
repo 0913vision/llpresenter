@@ -5,6 +5,7 @@ import {
   renderHook,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
@@ -69,6 +70,30 @@ beforeEach(() => {
 });
 
 describe('text import dialog', () => {
+  it('keeps different candidate labels when section indices are equal', async () => {
+    const f = fixture();
+    f.preview.mockResolvedValue({
+      ok: true,
+      value: {
+        title: 'Invented',
+        slides: [
+          {label: 'Verse', lines: ['Invented first'], section: 0},
+          {label: 'Chorus', lines: ['Invented second'], section: 0},
+        ],
+      },
+    });
+    render(<TextImportDialog {...f.props} />);
+    await screen.findByText('슬라이드 2');
+    const options = screen.getAllByRole('option');
+    const first = options[0];
+    const second = options[1];
+    if (first === undefined || second === undefined) {
+      throw new Error('No preview options');
+    }
+    expect(within(first).getByText('Verse')).toBeTruthy();
+    expect(within(second).getByText('Chorus')).toBeTruthy();
+  });
+
   it('previews labels and counts, keeps an edited title through option changes, and hands off without saving', async () => {
     const f = fixture();
     render(<TextImportDialog {...f.props} />);
@@ -257,7 +282,7 @@ describe('text import dialog', () => {
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     expect(f.onEdit).toHaveBeenCalledExactlyOnceWith({
       title: '',
-      slides: [{lines: ['Invented line']}],
+      slides: [{lines: ['Invented line'], section: 0}],
     });
   });
   it.each(['reply', 'rejection'])(
@@ -282,6 +307,96 @@ describe('text import dialog', () => {
       ).toBe('true');
     },
   );
+  it('previews candidate group boundaries and displays labels only on group start slides', async () => {
+    const f = fixture();
+    const groupedText =
+      '[1절]\nFirst verse line\nSecond verse line\nThird verse line\nFourth verse line\n\n[후렴]\nChorus first line\nChorus second line\nChorus third line\nChorus fourth line';
+    render(
+      <TextImportDialog
+        {...f.props}
+        source={{source: 'file', fileName: 'Grouped.txt', text: groupedText}}
+        defaults={{...defaults, split: 'lineBreak'}}
+      />,
+    );
+    await screen.findByText('슬라이드 4');
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(4);
+    const firstOption = options[0];
+    const secondOption = options[1];
+    const thirdOption = options[2];
+    const fourthOption = options[3];
+    if (!firstOption || !secondOption || !thirdOption || !fourthOption) {
+      throw new Error('Missing preview option');
+    }
+    expect(within(firstOption).getByText('1절')).toBeTruthy();
+    expect(within(secondOption).queryByText('1절')).toBeNull();
+    expect(within(thirdOption).getByText('후렴')).toBeTruthy();
+    expect(within(fourthOption).queryByText('후렴')).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        title: 'Grouped',
+        slides: [
+          {
+            label: '1절',
+            lines: ['First verse line', 'Second verse line'],
+            section: 0,
+          },
+          {
+            label: '1절',
+            lines: ['Third verse line', 'Fourth verse line'],
+            section: 0,
+          },
+          {
+            label: '후렴',
+            lines: ['Chorus first line', 'Chorus second line'],
+            section: 1,
+          },
+          {
+            label: '후렴',
+            lines: ['Chorus third line', 'Chorus fourth line'],
+            section: 1,
+          },
+        ],
+      }),
+    );
+  });
+  it('preserves section boundaries and candidate groups for adjacent sections with identical names', async () => {
+    const f = fixture();
+    const adjacentSameNameText =
+      '[후렴]\nFirst chorus slide\n\n[후렴]\nSecond chorus slide';
+    render(
+      <TextImportDialog
+        {...f.props}
+        source={{
+          source: 'file',
+          fileName: 'Adjacent.txt',
+          text: adjacentSameNameText,
+        }}
+        defaults={{...defaults, split: 'blankLine'}}
+      />,
+    );
+    await screen.findByText('슬라이드 2');
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(2);
+    const firstOption = options[0];
+    const secondOption = options[1];
+    if (!firstOption || !secondOption) {
+      throw new Error('Missing preview option');
+    }
+    expect(within(firstOption).getByText('후렴')).toBeTruthy();
+    expect(within(secondOption).getByText('후렴')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        title: 'Adjacent',
+        slides: [
+          {label: '후렴', lines: ['First chorus slide'], section: 0},
+          {label: '후렴', lines: ['Second chorus slide'], section: 1},
+        ],
+      }),
+    );
+  });
 });
 
 describe('import preview ordering', () => {

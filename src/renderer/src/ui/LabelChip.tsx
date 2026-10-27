@@ -5,6 +5,7 @@ import {
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
+  type Ref,
 } from 'react';
 import type {LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
@@ -330,13 +331,19 @@ export interface LabelTagProps {
         readonly onOpen: (button: HTMLElement) => void;
       }
     | undefined;
+  readonly buttonRef?: Ref<HTMLButtonElement>;
 }
 
 /**
  * The small 22px 이름표 left of a lyric block or in a list row. As a picker,
  * it is a button with a down arrow that opens the 이름표 menu.
  */
-export function LabelTag({name, color, picker}: LabelTagProps): JSX.Element {
+export function LabelTag({
+  name,
+  color,
+  picker,
+  buttonRef,
+}: LabelTagProps): JSX.Element {
   if (picker === undefined) {
     return (
       <span data-color={color} style={labelInk(color)} className={styles.tag}>
@@ -346,6 +353,7 @@ export function LabelTag({name, color, picker}: LabelTagProps): JSX.Element {
   }
   return (
     <button
+      ref={buttonRef}
       type="button"
       aria-haspopup="menu"
       aria-expanded={picker.expanded}

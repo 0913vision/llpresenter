@@ -8,8 +8,19 @@ import {
   textImportLabelsSchema,
   textImportSplitSchema,
 } from './preferences';
-import {nonBlankText, positiveInteger} from './primitives';
-import {slideSchema} from './song';
+import {
+  jsonObject,
+  nonBlankText,
+  nonNegativeInteger,
+  positiveInteger,
+} from './primitives';
+
+/** Section indices belong to import drafts, not stored version 1 slides. */
+export const importSlideSchema = jsonObject({
+  label: v.exactOptional(v.string()),
+  lines: v.array(v.string()),
+  section: v.exactOptional(nonNegativeInteger),
+});
 
 const readRequestSchema = payloadObject({
   source: v.picklist(['file', 'clipboard']),
@@ -56,7 +67,7 @@ const previewRequestSchema = payloadObject({
 
 const draftSchema = payloadObject({
   title: v.string(),
-  slides: v.pipe(v.array(slideSchema), v.minLength(1)),
+  slides: v.pipe(v.array(importSlideSchema), v.minLength(1)),
 });
 
 const failureSchema = payloadObject({

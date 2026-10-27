@@ -1,16 +1,40 @@
+import * as v from 'valibot';
 import type {UnknownRecord} from '../guards';
 import {checkPart} from './fileFormat';
 import {createSongGroupId, type SongGroupId} from './ids';
 import {songSchema, type Song} from './song';
+import {importSlideSchema} from './textImport';
+
+/** Consumes validated import boundaries separately from stored song extensions. */
+export function migrateImportedSongGroups(file: UnknownRecord): UnknownRecord {
+  const checked = checkPart(v.array(importSlideSchema), file.slides);
+  if (!checked.ok) {
+    throw new Error(`${checked.error.field}: ${checked.error.message}`);
+  }
+  return migrateGroups(
+    {
+      ...file,
+      slides: checked.value.map(({section: _section, ...slide}) => slide),
+    },
+    checked.value.map(slide => slide.section),
+  );
+}
 
 /** Converts validated version 1 slide orders without changing their expansion. */
 export function migrateSongGroups(file: UnknownRecord): UnknownRecord {
+  return migrateGroups(file, []);
+}
+
+function migrateGroups(
+  file: UnknownRecord,
+  sections: ReadonlyArray<number | undefined>,
+): UnknownRecord {
   const checked = checkPart(songSchema, file);
   if (!checked.ok) {
     throw new Error(`${checked.error.field}: ${checked.error.message}`);
   }
   const {slides, arrangements, ...fields} = checked.value;
-  const boundaries = groupBoundaries(checked.value);
+  const boundaries = groupBoundaries(checked.value, sections);
   const groups = [];
   const starts = new Map<number, SongGroupId>();
   let start = 0;
@@ -44,10 +68,20 @@ export function migrateSongGroups(file: UnknownRecord): UnknownRecord {
   };
 }
 
-function groupBoundaries(song: Song): ReadonlySet<number> {
+function groupBoundaries(
+  song: Song,
+  sections: ReadonlyArray<number | undefined>,
+): ReadonlySet<number> {
   const cuts = new Set([0, song.slides.length]);
   song.slides.forEach((slide, index) => {
-    if ((slide.label ?? '') !== (song.slides[index - 1]?.label ?? '')) {
+    const prev = song.slides[index - 1];
+    if (prev === undefined) return;
+    const isCut =
+      (slide.label ?? '') !== (prev.label ?? '') ||
+      (sections[index] !== undefined &&
+        sections[index - 1] !== undefined &&
+        sections[index] !== sections[index - 1]);
+    if (isCut) {
       cuts.add(index);
     }
   });

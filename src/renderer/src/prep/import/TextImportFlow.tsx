@@ -20,6 +20,7 @@ async function read(api: LlpApi, source: 'file' | 'clipboard') {
   };
 }
 
+/** Coordinates reading, options preview dialog, and imported draft handoff. */
 export function TextImportFlow({
   api,
   store,

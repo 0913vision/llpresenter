@@ -1,4 +1,9 @@
 import {describe, expect, it} from 'vitest';
+import {
+  parseGroupedSongDraft,
+  serializeGroupedSong,
+} from '@shared/schema/groupedSong';
+import {parseContentEdit} from '@shared/schema/contentEdit';
 import type {
   TextImportOptions,
   TextImportPreviewRequest,
@@ -30,32 +35,78 @@ function draft(text: string, options: Partial<TextImportOptions> = {}) {
 }
 
 describe('text import conversion', () => {
+  it.each(['\u0000', '"', '\\'])(
+    'keeps an accepted escaped preview savable: %j',
+    character => {
+      const preview = draft(character.repeat(150_000));
+      const edit = parseContentEdit({
+        type: 'song.import',
+        target: {kind: 'new'},
+        draft: preview,
+      });
+      expect(edit.ok).toBe(true);
+      const migrated = parseGroupedSongDraft(
+        JSON.stringify({
+          ...preview,
+          format: 'llsong',
+          schemaVersion: 1,
+          id: '00000000-0000-4000-8000-000000000001',
+        }),
+        'invented.llsong',
+      );
+      if (!migrated.ok) throw new Error(migrated.error.message);
+      expect(
+        serializeGroupedSong(migrated.value.data, 'invented.llsong').ok,
+      ).toBe(true);
+      expect(migrated.value.data.groups[0]?.slides[0]?.lines).toEqual(
+        preview.slides[0]?.lines,
+      );
+    },
+  );
+
+  it('counts slide JSON structure as well as lyric characters', () => {
+    const line = 'a'.repeat(180);
+    expect(
+      convertTextImport(
+        request(Array.from({length: 5000}, () => line).join('\n'), {
+          unitsPerSlide: 1,
+        }),
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+  });
+  it('rejects JSON escaping expansion before offering an unsavable preview', () => {
+    expect(convertTextImport(request('\u0000'.repeat(170_000)))).toMatchObject({
+      ok: false,
+      error: {reason: 'invalid'},
+    });
+  });
+
   it('normalizes BOM, CRLF, CR, tabs, and trailing spaces while keeping lyric indentation', () => {
     expect(draft('\uFEFF\r\n  First\tline  \rSecond\tline\t\r\n\r\n')).toEqual({
       title: 'Example.song',
-      slides: [{lines: ['  First line', 'Second line']}],
+      slides: [{lines: ['  First line', 'Second line'], section: 0}],
     });
   });
 
   it('groups line breaks without joining across a stanza', () => {
     expect(draft('One\nTwo\nThree\n\nFour\nFive\nSix').slides).toEqual([
-      {lines: ['One', 'Two']},
-      {lines: ['Three']},
-      {lines: ['Four', 'Five']},
-      {lines: ['Six']},
+      {lines: ['One', 'Two'], section: 0},
+      {lines: ['Three'], section: 0},
+      {lines: ['Four', 'Five'], section: 0},
+      {lines: ['Six'], section: 0},
     ]);
   });
 
   it('groups paragraphs and preserves their blank separator', () => {
     const text = 'One\nTwo\n\nThree\n\n\nFour\nFive';
     expect(draft(text, {split: 'blankLine', unitsPerSlide: 1}).slides).toEqual([
-      {lines: ['One', 'Two']},
-      {lines: ['Three']},
-      {lines: ['Four', 'Five']},
+      {lines: ['One', 'Two'], section: 0},
+      {lines: ['Three'], section: 0},
+      {lines: ['Four', 'Five'], section: 0},
     ]);
     expect(draft(text, {split: 'blankLine', unitsPerSlide: 2}).slides).toEqual([
-      {lines: ['One', 'Two', '', 'Three']},
-      {lines: ['Four', 'Five']},
+      {lines: ['One', 'Two', '', 'Three'], section: 0},
+      {lines: ['Four', 'Five'], section: 0},
     ]);
   });
 
@@ -66,14 +117,21 @@ describe('text import conversion', () => {
         symbol: '/',
         unitsPerSlide: 2,
       }).slides,
-    ).toEqual([{lines: ['One', 'Two', 'Still two']}, {lines: ['Three']}]);
+    ).toEqual([
+      {lines: ['One', 'Two', 'Still two'], section: 0},
+      {lines: ['Three'], section: 0},
+    ]);
     expect(
       draft('One.*Two.*.*Three', {
         split: 'symbol',
         symbol: '.*',
         unitsPerSlide: 1,
       }).slides,
-    ).toEqual([{lines: ['One']}, {lines: ['Two']}, {lines: ['Three']}]);
+    ).toEqual([
+      {lines: ['One'], section: 0},
+      {lines: ['Two'], section: 0},
+      {lines: ['Three'], section: 0},
+    ]);
   });
 
   it.each(['lineBreak', 'blankLine', 'symbol'] as const)(
@@ -85,40 +143,40 @@ describe('text import conversion', () => {
         unitsPerSlide: 100,
       });
       expect(result.slides).toEqual([
-        {lines: ['Before']},
-        {label: '후렴', lines: ['After', 'Again']},
-        {label: 'Chorus', lines: ['Last']},
+        {lines: ['Before'], section: 0},
+        {label: '후렴', lines: ['After', 'Again'], section: 1},
+        {label: 'Chorus', lines: ['Last'], section: 2},
       ]);
     },
   );
 
-  it('labels only the next emitted slide, including after blank lines', () => {
+  it('preserves bracket labels across all emitted slides in a candidate group section', () => {
     expect(
       draft('[후렴]\n\nOne\nTwo\nThree\nFour', {unitsPerSlide: 1}).slides,
     ).toEqual([
-      {label: '후렴', lines: ['One']},
-      {lines: ['Two']},
-      {lines: ['Three']},
-      {lines: ['Four']},
+      {label: '후렴', lines: ['One'], section: 0},
+      {label: '후렴', lines: ['Two'], section: 0},
+      {label: '후렴', lines: ['Three'], section: 0},
+      {label: '후렴', lines: ['Four'], section: 0},
     ]);
     expect(
       draft('[Old]\n[New]\nOne\n[Unused]', {unitsPerSlide: 1}).slides,
-    ).toEqual([{label: 'New', lines: ['One']}]);
+    ).toEqual([{label: 'New', lines: ['One'], section: 0}]);
   });
 
   it('treats bracket text as lyrics when detection is off and keeps other bracket forms', () => {
     expect(draft('[후렴]\nOne', {labels: 'off'}).slides).toEqual([
-      {lines: ['[후렴]', 'One']},
+      {lines: ['[후렴]', 'One'], section: 0},
     ]);
     expect(
       draft('(후렴)\nText [후렴]\n[ ]', {unitsPerSlide: 10}).slides,
-    ).toEqual([{lines: ['(후렴)', 'Text [후렴]', '[ ]']}]);
+    ).toEqual([{lines: ['(후렴)', 'Text [후렴]', '[ ]'], section: 0}]);
   });
 
   it('always uses a file name stem and keeps the first lyric line', () => {
     expect(draft('First\nSecond', {firstLine: 'title'})).toEqual({
       title: 'Example.song',
-      slides: [{lines: ['First', 'Second']}],
+      slides: [{lines: ['First', 'Second'], section: 0}],
     });
   });
 
@@ -135,7 +193,7 @@ describe('text import conversion', () => {
       ok: true,
       value: {
         title: 'New title',
-        slides: [{label: '후렴', lines: ['First', 'Second']}],
+        slides: [{label: '후렴', lines: ['First', 'Second'], section: 0}],
       },
     });
     const lyrics = request('First\nSecond');
@@ -146,7 +204,7 @@ describe('text import conversion', () => {
       }),
     ).toEqual({
       ok: true,
-      value: {title: '', slides: [{lines: ['First', 'Second']}]},
+      value: {title: '', slides: [{lines: ['First', 'Second'], section: 0}]},
     });
   });
 
@@ -210,10 +268,125 @@ describe('text import conversion', () => {
     ).toMatchObject({
       ok: true,
       value: {
-        slides: [{label: '후렴', lines: ['One', 'Two']}, {lines: ['Three']}],
+        slides: [
+          {label: '후렴', lines: ['One', 'Two']},
+          {label: '후렴', lines: ['Three']},
+        ],
       },
     });
     expect(convertTextImport(value)).toEqual(first);
     expect(value).toEqual(original);
+  });
+
+  it('maps bracketed sections to draft slide boundaries preserving labels for group migration', () => {
+    const text =
+      '[1절]\nFirst invented line\nSecond invented line\n\n[후렴]\nChorus first line\nChorus second line';
+    const result = draft(text, {unitsPerSlide: 1});
+    expect(result.slides).toEqual([
+      {label: '1절', lines: ['First invented line'], section: 0},
+      {label: '1절', lines: ['Second invented line'], section: 0},
+      {label: '후렴', lines: ['Chorus first line'], section: 1},
+      {label: '후렴', lines: ['Chorus second line'], section: 1},
+    ]);
+  });
+
+  it('leaves unbracketed leading lines unlabeled before the first section', () => {
+    const text =
+      'Intro invented line 1\nIntro invented line 2\n\n[1절]\nVerse invented line';
+    const result = draft(text, {unitsPerSlide: 1});
+    expect(result.slides).toEqual([
+      {lines: ['Intro invented line 1'], section: 0},
+      {lines: ['Intro invented line 2'], section: 0},
+      {label: '1절', lines: ['Verse invented line'], section: 1},
+    ]);
+  });
+
+  it('refuses a bracket label exceeding the label length limit', () => {
+    const longLabel = `[${'a'.repeat(TEXT_IMPORT_LIMITS.label + 1)}]`;
+    expect(convertTextImport(request(`${longLabel}\nLyric line`))).toEqual({
+      ok: false,
+      error: {
+        reason: 'invalid',
+        message: 'The text import exceeds its size limit',
+      },
+    });
+  });
+
+  it('refuses an aggregate draft exceeding the draft characters limit', () => {
+    const label = `[${'a'.repeat(500)}]`;
+    const slides = 'Line\n'.repeat(2500);
+    expect(
+      convertTextImport(request(`${label}\n${slides}`, {unitsPerSlide: 1})),
+    ).toEqual({
+      ok: false,
+      error: {
+        reason: 'invalid',
+        message: 'The text import exceeds its size limit',
+      },
+    });
+  });
+
+  it('preserves section identity for adjacent sections with identical names', () => {
+    const text = '[후렴]\nFirst chorus\n[후렴]\nSecond chorus';
+    const result = draft(text, {unitsPerSlide: 1});
+    expect(result.slides).toEqual([
+      {label: '후렴', lines: ['First chorus'], section: 0},
+      {label: '후렴', lines: ['Second chorus'], section: 1},
+    ]);
+    const song = parseGroupedSongDraft(
+      JSON.stringify({
+        format: 'llsong',
+        schemaVersion: 1,
+        id: '00000000-0000-4000-8000-000000000002',
+        title: 'Chorus Song',
+        slides: result.slides,
+      }),
+      'Invented.llsong',
+    );
+    expect(song.ok).toBe(true);
+    if (!song.ok) return;
+    expect(song.value.data.groups).toHaveLength(2);
+    expect(song.value.data.groups[0]?.name).toBe('후렴');
+    expect(song.value.data.groups[0]?.slides).toEqual([
+      {lines: ['First chorus']},
+    ]);
+    expect(song.value.data.groups[1]?.name).toBe('후렴');
+    expect(song.value.data.groups[1]?.slides).toEqual([
+      {lines: ['Second chorus']},
+    ]);
+  });
+
+  it('constructs clean candidate groups through the import draft reader', () => {
+    const text =
+      '[1절]\nFirst invented line\nSecond invented line\n\n[후렴]\nChorus first line\nChorus second line';
+    const result = draft(text, {unitsPerSlide: 1});
+    const song = parseGroupedSongDraft(
+      JSON.stringify({
+        format: 'llsong',
+        schemaVersion: 1,
+        id: '00000000-0000-4000-8000-000000000001',
+        title: 'Invented Song',
+        slides: result.slides,
+      }),
+      'Invented.llsong',
+    );
+    if (!song.ok) throw new Error('Migration failed');
+    expect(song.value.data.groups).toHaveLength(2);
+    expect(song.value.data.groups[0]?.name).toBe('1절');
+    expect(song.value.data.groups[0]?.slides).toHaveLength(2);
+    expect(song.value.data.groups[0]?.slides[0]?.lines).toEqual([
+      'First invented line',
+    ]);
+    expect(song.value.data.groups[0]?.slides[1]?.lines).toEqual([
+      'Second invented line',
+    ]);
+    expect(song.value.data.groups[1]?.name).toBe('후렴');
+    expect(song.value.data.groups[1]?.slides).toHaveLength(2);
+    expect(song.value.data.groups[1]?.slides[0]?.lines).toEqual([
+      'Chorus first line',
+    ]);
+    expect(song.value.data.groups[1]?.slides[1]?.lines).toEqual([
+      'Chorus second line',
+    ]);
   });
 });

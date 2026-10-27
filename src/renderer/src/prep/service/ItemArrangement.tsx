@@ -218,7 +218,10 @@ export function ItemArrangement({
   });
   const [insertAnchor, setInsertAnchor] = useState<HTMLElement | null>(null);
   const {song} = session.history.snapshot;
-  const sequence = editedOrder(song, arrangement);
+  const sequence = useMemo(
+    () => editedOrder(song, arrangement),
+    [song, arrangement],
+  );
   const isGrouped = isGroupedSong(song);
   const sequenceLength = sequence.length;
   const adapter = useMemo(

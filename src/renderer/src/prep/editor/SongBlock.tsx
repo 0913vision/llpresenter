@@ -80,7 +80,7 @@ export const SongBlock = memo(
 
     const [refused, setRefused] = useState(false);
     const splitButtonRef = useRef<HTMLButtonElement | null>(null);
-    const labelContainerRef = useRef<HTMLDivElement | null>(null);
+    const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const refusalTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
       undefined,
     );
@@ -155,7 +155,7 @@ export const SongBlock = memo(
         event.stopPropagation();
         const anchor =
           splitButtonRef.current ??
-          labelContainerRef.current?.querySelector<HTMLElement>('button') ??
+          labelButtonRef.current ??
           event.currentTarget;
         onOpen(anchor, block);
         return;
@@ -188,9 +188,10 @@ export const SongBlock = memo(
         style={{top}}
       >
         <span className={styles.number}>{block + 1}</span>
-        <div ref={labelContainerRef} className={styles.label}>
+        <div className={styles.label}>
           {isGroupStart ? (
             <LabelTag
+              buttonRef={labelButtonRef}
               name={slide.label === '' ? undefined : slide.label}
               color={color}
               picker={

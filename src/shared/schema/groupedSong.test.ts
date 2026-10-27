@@ -3,6 +3,7 @@ import {
   arrangementGroupIds,
   isGroupedSong,
   parseGroupedSong,
+  parseGroupedSongDraft,
   serializeGroupedSong,
   SONG_GROUP_LIMITS,
   type GroupedSong,
@@ -194,6 +195,20 @@ describe('grouped song contract', () => {
 });
 
 describe('version 1 group migration', () => {
+  it('keeps label changes when adjacent slides carry the same section number', () => {
+    const song = expectSuccess(
+      parse({
+        ...legacy(),
+        slides: [
+          {label: 'Verse', lines: ['Invented verse'], section: 0},
+          {label: 'Chorus', lines: ['Invented chorus'], section: 0},
+        ],
+        arrangements: [],
+      }),
+    ).data;
+    expect(song.groups.map(group => group.name)).toEqual(['Verse', 'Chorus']);
+  });
+
   it('splits one run only at the boundaries a partial arrangement needs', () => {
     const source = legacy();
     const input = {
@@ -293,6 +308,82 @@ describe('version 1 group migration', () => {
       ],
     );
     expect(new Set(song.groups.map(group => group.id)).size).toBe(3);
+  });
+
+  it('splits import draft slides with identical names when explicit sections differ', () => {
+    const source = legacy();
+    const song = expectSuccess(
+      parseGroupedSongDraft(
+        JSON.stringify({
+          ...source,
+          arrangements: [],
+          slides: [
+            {label: '후렴', lines: ['Chorus A'], section: 0},
+            {label: '후렴', lines: ['Chorus B'], section: 1},
+          ],
+        }),
+        FILE,
+      ),
+    ).data;
+    expect(song.groups.map(group => [group.name, group.slides.length])).toEqual(
+      [
+        ['후렴', 1],
+        ['후렴', 1],
+      ],
+    );
+    expect(song.groups[0]?.slides[0]?.lines).toEqual(['Chorus A']);
+    expect(song.groups[1]?.slides[0]?.lines).toEqual(['Chorus B']);
+    expect(song.groups[0]?.id).not.toBe(song.groups[1]?.id);
+  });
+
+  it.each(['intro', 3])(
+    'preserves a file section extension without treating it as a boundary: %j',
+    section => {
+      const song = expectSuccess(
+        parse({
+          ...legacy(),
+          arrangements: [],
+          slides: [
+            {label: 'Verse', lines: ['Invented first'], section},
+            {label: 'Verse', lines: ['Invented second'], section: 7},
+          ],
+        }),
+      ).data;
+      expect(song.groups).toHaveLength(1);
+      expect(song.groups[0]?.slides).toEqual([
+        {lines: ['Invented first'], section},
+        {lines: ['Invented second'], section: 7},
+      ]);
+      expect(
+        expectSuccess(
+          parseGroupedSong(
+            expectSuccess(serializeGroupedSong(song, FILE)),
+            FILE,
+          ),
+        ).data,
+      ).toEqual(song);
+    },
+  );
+
+  it('splits import draft groups on label changes even with equal section indices', () => {
+    const song = expectSuccess(
+      parseGroupedSongDraft(
+        JSON.stringify({
+          ...legacy(),
+          arrangements: [],
+          slides: [
+            {label: 'Verse', lines: ['Invented first'], section: 0},
+            {label: 'Chorus', lines: ['Invented second'], section: 0},
+          ],
+        }),
+        FILE,
+      ),
+    ).data;
+    expect(song.groups.map(group => group.name)).toEqual(['Verse', 'Chorus']);
+    expect(song.groups.flatMap(group => group.slides)).toEqual([
+      {lines: ['Invented first']},
+      {lines: ['Invented second']},
+    ]);
   });
 
   it('preserves unknown fields and archives promoted-key collisions without overwriting data', () => {

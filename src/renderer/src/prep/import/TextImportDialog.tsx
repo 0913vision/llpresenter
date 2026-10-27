@@ -1,6 +1,8 @@
 import {useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {LibrarySong} from '@shared/schema/contentDocuments';
+import {createSongGroupId, createSongId} from '@shared/schema/ids';
+import type {AnySong, SongGroup} from '@shared/schema/groupedSong';
 import type {Label} from '@shared/schema/labels';
 import type {Preferences} from '@shared/schema/preferences';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
@@ -27,6 +29,46 @@ const SPLITS = [
   {value: 'lineBreak', label: '줄 바꿈'},
   {value: 'symbol', label: '기호'},
 ] as const;
+
+function candidateGroups(
+  slides: ReadonlyArray<TextImportDraft['slides'][number]>,
+): readonly SongGroup[] {
+  const groups: SongGroup[] = [];
+  let currentSlides: Array<{readonly lines: readonly string[]}> = [];
+  let currentName = '';
+
+  const flush = (): void => {
+    if (currentSlides.length === 0) return;
+    groups.push({
+      id: createSongGroupId(
+        `00000000-0000-4000-8000-${String(groups.length + 1).padStart(12, '0')}`,
+      ),
+      name: currentName,
+      slides: currentSlides,
+    });
+    currentSlides = [];
+  };
+
+  for (let index = 0; index < slides.length; index++) {
+    const slide = slides[index];
+    if (slide === undefined) continue;
+    const label = slide.label ?? '';
+    const prevSlide = index > 0 ? slides[index - 1] : undefined;
+    const isNewGroup =
+      index > 0 &&
+      (label !== (prevSlide?.label ?? '') ||
+        (slide.section !== undefined &&
+          prevSlide?.section !== undefined &&
+          slide.section !== prevSlide.section));
+    if (isNewGroup) {
+      flush();
+    }
+    currentName = label;
+    currentSlides.push({lines: slide.lines});
+  }
+  flush();
+  return groups;
+}
 
 export function TextImportDialog({
   api,
@@ -67,6 +109,16 @@ export function TextImportDialog({
     () => preview.draft?.slides.map((_, index) => index + 1) ?? [],
     [preview.draft],
   );
+  const candidateSong = useMemo<AnySong | null>(() => {
+    if (preview.draft === null) return null;
+    return {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: createSongId('00000000-0000-4000-8000-000000000000'),
+      title: shownTitle,
+      groups: candidateGroups(preview.draft.slides),
+    };
+  }, [preview.draft, shownTitle]);
   return (
     <Dialog
       title="텍스트 가져오기"
@@ -164,9 +216,9 @@ export function TextImportDialog({
           <span className={styles.count}>슬라이드 {numbers.length}</span>
         </div>
         <div className={styles.preview}>
-          {preview.draft === null ? null : (
+          {candidateSong === null ? null : (
             <VirtualSlides
-              song={preview.draft}
+              song={candidateSong}
               numbers={numbers}
               labels={labels}
               selected={

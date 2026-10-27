@@ -13,15 +13,25 @@ type Unit = readonly string[] | null;
 interface Section {
   readonly label: string | null;
   readonly lines: readonly string[];
+  readonly section: number;
 }
 
-function bracketLabel(
+type BracketMatch =
+  | {readonly kind: 'label'; readonly name: string}
+  | {readonly kind: 'oversized'}
+  | {readonly kind: 'none'};
+
+function parseBracketLabel(
   line: string,
   labels: TextImportOptions['labels'],
-): string | null {
-  if (labels === 'off') return null;
-  const name = /^\[([^[\]]+)\]$/u.exec(line.trim())?.[1]?.trim();
-  return name === undefined || name === '' ? null : name;
+): BracketMatch {
+  if (labels === 'off') return {kind: 'none'};
+  const match = /^\[([^[\]]+)\]$/u.exec(line.trim());
+  if (!match) return {kind: 'none'};
+  const name = match[1]?.trim();
+  if (name === undefined || name === '') return {kind: 'none'};
+  if (name.length > TEXT_IMPORT_LIMITS.label) return {kind: 'oversized'};
+  return {kind: 'label', name};
 }
 
 function normalizeLines(text: string): string[] | null {
@@ -41,20 +51,29 @@ function normalizeLines(text: string): string[] | null {
 function* sections(
   lines: readonly string[],
   labels: TextImportOptions['labels'],
-): Generator<Section> {
+): Generator<Section | 'oversized'> {
   let label: string | null = null;
   let content: string[] = [];
+  let section = 0;
   for (const line of lines) {
-    const nextLabel = bracketLabel(line, labels);
-    if (nextLabel === null) {
+    const match = parseBracketLabel(line, labels);
+    if (match.kind === 'oversized') {
+      yield 'oversized';
+      return;
+    }
+    if (match.kind === 'none') {
       content.push(line);
       continue;
     }
-    if (content.some(line => line !== '')) yield {label, lines: content};
+    if (content.some(line => line !== '')) {
+      yield {label, lines: content, section: section++};
+    }
     content = [];
-    label = nextLabel;
+    label = match.name;
   }
-  if (content.some(line => line !== '')) yield {label, lines: content};
+  if (content.some(line => line !== '')) {
+    yield {label, lines: content, section};
+  }
 }
 
 function paragraphUnits(lines: readonly string[]): Unit[] {
@@ -104,12 +123,20 @@ class DraftSlides {
   private units = 0;
   private totalUnits = 0;
   private label: string | null = null;
+  private section = 0;
+  private totalCharacters: number;
 
-  constructor(private readonly options: TextImportOptions) {}
+  constructor(
+    private readonly options: TextImportOptions,
+    initialCharacters: number,
+  ) {
+    this.totalCharacters = initialCharacters;
+  }
 
-  startSection(label: string | null): void {
+  startSection(label: string | null, section: number): void {
     this.flush();
     this.label = label;
+    this.section = section;
   }
 
   append(lines: readonly string[]): void {
@@ -132,12 +159,21 @@ class DraftSlides {
       this.overflow = true;
       return;
     }
-    this.slides.push(
+    const slide: DraftSlide =
       this.label === null
-        ? {lines: this.lines}
-        : {label: this.label, lines: this.lines},
-    );
-    this.label = null;
+        ? {lines: this.lines, section: this.section}
+        : {label: this.label, lines: this.lines, section: this.section};
+    const slideCharacters =
+      JSON.stringify(slide).length + (this.slides.length === 0 ? 0 : 1);
+    if (
+      this.totalCharacters + slideCharacters >
+      TEXT_IMPORT_LIMITS.draftCharacters
+    ) {
+      this.overflow = true;
+      return;
+    }
+    this.totalCharacters += slideCharacters;
+    this.slides.push(slide);
     this.lines = [];
     this.units = 0;
   }
@@ -178,13 +214,18 @@ export function convertTextImport({
   let title = source.source === 'file' ? win32.parse(source.fileName).name : '';
   if (source.source === 'clipboard' && options.firstLine === 'title') {
     const index = lines.findIndex(
-      line => line !== '' && bracketLabel(line, options.labels) === null,
+      line =>
+        line !== '' && parseBracketLabel(line, options.labels).kind === 'none',
     );
     if (index >= 0) title = lines.splice(index, 1)[0]?.trim() ?? '';
   }
-  const draft = new DraftSlides(options);
+  const draft = new DraftSlides(
+    options,
+    JSON.stringify({title: title.trim() || '가져온 곡', slides: []}).length,
+  );
   for (const section of sections(lines, options.labels)) {
-    draft.startSection(section.label);
+    if (section === 'oversized') return invalidSize();
+    draft.startSection(section.label, section.section);
     const units = splitUnits(section.lines, options);
     if (units === null) return invalidSize();
     for (const unit of units) {

@@ -48,6 +48,22 @@ function parse(json: unknown) {
 }
 
 describe('parseSong', () => {
+  it.each(['intro', 4])(
+    'round trips a legacy section extension %j',
+    section => {
+      const source = {
+        ...hymnOne(),
+        slides: [{label: 'Invented', lines: ['Invented line'], section}],
+        arrangements: [],
+      };
+      const song = expectSuccess(parse(source)).data;
+      expect(song).toEqual(source);
+      expect(JSON.parse(expectSuccess(serializeSong(song, FILE)))).toEqual(
+        source,
+      );
+    },
+  );
+
   it('reads hymn 1 with every field', () => {
     const loaded = expectSuccess(parse(hymnOne()));
 
