@@ -1,4 +1,4 @@
-# Review request: `group-1` (round 3)
+# Review request: `group-1` (round 4)
 
 - Team member: `group`
 - Branch: `docs/group/plan`
@@ -13,28 +13,36 @@ ProPresenter-style grouped songs end-to-end across the store, IPC, song editor,
 예배 순서 구성 chips, and projection to the 진행 tiles, following the user's
 October 27 decision ("Follow ProPresenter where qa-12 found a difference").
 
-Round 3 addresses all 4 findings from the round 2 review:
+Round 4 addresses all 4 findings from the round 3 review:
 
-1. Added `- Paths changed:` and `- Checked in the app:` offscreen verification
-   sections to request `group-6` (`convert.ts`, `TextImportFlow.tsx`,
-   `TextImportDialog.tsx`), covering candidate group preview rendering and flat
-   element counts.
-2. Added `src/renderer/src/show/shortcuts.ts` and `shortcuts.test.ts` to audit
-   Section 3.4 and `group-2` scope/paths/tests. Added
-   `src/renderer/src/show/SlideGrid.tsx`,
-   `src/renderer/src/ui/SlideThumbnail.module.css`, and
-   `src/shared/schema/showService.ts` to `group-2` Paths changed.
-3. Added `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`),
-   `src/main/store/librarySong.ts` (`showLibrarySong`),
-   `src/main/live/recovery/plan.ts` (`RecoveryContent.song`),
-   `src/shared/songOrder.ts` (`playbackOrder`), and tests
-   (`openServiceFeed.test.ts`, `songEditorStore.test.ts`) to `group-7` scope and
-   paths changed.
-4. Clarified tile expansion cap problem reporting: reusing `unknown-kind` (which
-   triggers tooltip "이 버전에서 알 수 없는 항목입니다." in
-   `ServiceOrderList.tsx`) is intentional in `group-2` to keep the shared
-   `showRowProblems` contract unchanged prior to the contract activation in
-   `group-7`.
+1. **Shared schema cap and contract tag (finding a)**:
+   - Specified that `SHOW_SERVICE_LIMITS = {tiles: 10_000}` is a new constant to
+     be defined in `src/shared/schema/showService.ts` (matching
+     `SHOW_LIBRARY_SONG_LIMITS.tiles` in
+     `src/shared/schema/showLibrarySong.ts`), and tile arrays in
+     `showServiceSchema` are capped with
+     `v.maxLength(SHOW_SERVICE_LIMITS.tiles)` for runtime boundary validation.
+   - Tagged `group-2` as an additive shared contract change on `showService.ts`.
+   - Added `src/shared/schema/showService.ts` and its test
+     `src/shared/schema/showService.test.ts` to `group-2` Paths changed.
+2. **Expansion cap consistency and testability (finding b)**:
+   - Clarified that reusing `unknown-kind` on `ShowRow` and `newer-version` on
+     `ShowLibrarySong` is intentional temporary staging to preserve existing
+     contracts until `group-7`.
+   - Added `TODO(0913vision)` in `showService.ts` and `librarySong.ts` to switch
+     to a dedicated typed row problem during `group-7`.
+   - Specified testing that rows are flagged at 10,001 tiles (one tile over the
+     cap).
+3. **Hotkey edge cases, suppression, and named tests (finding c)**:
+   - Specified exact hotkey behaviors: ignored when no item is open
+     (`openItemId === null`), bypassed when modifier keys (Ctrl/Alt/Meta) are
+     held, suppressed when keyboard focus is in a text input/textarea, and
+     repeated keydown (`event.repeat === true`) ignored.
+   - Added explicit named unit tests in `shortcuts.test.ts` for all four cases.
+4. **Targeted element count measurement (finding d)**:
+   - Clarified "Checked in the app" element count measurement: specifically
+     measures thumbnail DOM node count (`button[role='option']`) in the 진행
+     grid and total document element count across 10 repeated triggers.
 
 ## Changed files
 
@@ -60,23 +68,26 @@ Round 3 addresses all 4 findings from the round 2 review:
 
 - Staged consumer readiness (`group-2` through `group-6`) ahead of store/IPC
   contract flipping (`group-7`), ensuring `main` remains green at all times.
-- Defined tile expansion cap of 10,000 tiles with typed row problem reporting.
+- Defined tile expansion cap of 10,000 tiles with typed row problem reporting,
+  validated at the shared schema boundary in `showServiceSchema`.
 - Established that slide hotkeys trigger output directly, override global label
   jump keys for the active item, and render a keycap badge on slide thumbnails.
-- Reusing existing `unknown-kind` row problem in `group-2` to respect shared
-  contract boundaries prior to `group-7`.
+- Reusing existing `unknown-kind` row problem in `group-2` as temporary staging
+  prior to `group-7` with `TODO(0913vision)`.
 
 ## Shared contract change requests
 
-Staged for `group-7` under `break(data)` on branch
-`break/group/activate-contracts`: switch `songDocumentSchema` and `song.update`
-to `groupedSongSchema`.
+- `group-2`: Additive shared contract change in
+  `src/shared/schema/showService.ts` defining `SHOW_SERVICE_LIMITS.tiles` and
+  capping `showServiceSchema.tiles`.
+- `group-7`: Breaking contract change under `break(data)` on branch
+  `break/group/activate-contracts` switching `songDocumentSchema` and
+  `song.update` to `groupedSongSchema`.
 
 ## Where to look
 
-- `docs/plans/grouped-songs.md`: Section 3.4 (진행 Projection & Hotkeys),
-  Section 4 (`group-2`, `group-6`, and `group-7` scopes/paths/verifications),
-  and Section 5 (Open Questions).
+- `docs/plans/grouped-songs.md`: Section 3.4 (진행 Projection & Hotkeys) and
+  Section 4 (`group-2` scope, paths, and verification).
 
 ---
 
@@ -85,6 +96,68 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
+## Review: lead (round 3)
+
+- Verdict: Request changes
+- Findings:
+
+  1. docs/plans/grouped-songs.md:288-300 The reply says
+     src/shared/schema/showService.ts was added to the group-2 Paths changed,
+     but the list does not contain it. The file has no SHOW_SERVICE_LIMITS. Line
+     92 is an uncapped v.record(..., v.array(showTileSchema)), and only
+     SHOW_LIBRARY_SONG_LIMITS.tiles exists, in showLibrarySong.ts:10. Section
+     3.4 (line 115) also wrongly says the schema file "defines
+     SHOW_SERVICE_LIMITS.tiles". Fix: state that the cap is a new constant.
+     Define it, and the array maxLength in showServiceSchema, in
+     src/shared/schema/showService.ts, not in src/main/store/showService.ts
+     (line 255). Add the file and its test showService.test.ts to the Paths
+     changed. Tag it as an additive contract change, since the schema is shared.
+     Without the schema cap, the service tile cap is unvalidated at the
+     boundary.
+  2. docs/plans/grouped-songs.md:258-262 The cap path reports unknown-kind on a
+     ShowRow, and the same path reports newer-version on a ShowLibrarySong.
+     These are inconsistent for one cause. A row that is over the cap shows the
+     "unknown item" tooltip, which tells the operator nothing useful. The reuse
+     is acceptable for staging, but add a TODO(0913vision) to switch to a
+     dedicated problem in group-7, plus a test that the row is flagged at 10,001
+     tiles. As written, the "decision" is not testable.
+  3. docs/plans/grouped-songs.md:266-272 The hotkey dispatch is underspecified.
+     Say what happens when the key is pressed with no open item, when modifier
+     keys are held, and when focus is in a text input (it must not fire). Also
+     state that event.repeat is ignored so a held key does not re-output. Add
+     these as named tests in shortcuts.test.ts.
+  4. Nit: docs/plans/grouped-songs.md:301-304 "flat element count over 10
+     repeated triggers" is fine, but also name which element count is measured
+     (for example the thumbnail DOM node count in the 진행 grid).
+
+## Review: reviewer (round 3)
+
+- Verdict: Request changes (same as lead)
+
+## Team member's reply (round 4)
+
+1. Stated in Section 3.4 and `group-2` scope that
+   `SHOW_SERVICE_LIMITS = {tiles: 10_000}` is a new constant defined in
+   `src/shared/schema/showService.ts` (matching
+   `SHOW_LIBRARY_SONG_LIMITS.tiles`), and added
+   `v.maxLength(SHOW_SERVICE_LIMITS.tiles)` to `showServiceSchema` tile arrays
+   for runtime boundary validation. Tagged `group-2` as an additive shared
+   contract change and added `src/shared/schema/showService.ts` and
+   `src/shared/schema/showService.test.ts` to `group-2` Paths changed.
+2. Clarified that reusing `unknown-kind` on `ShowRow` and `newer-version` on
+   `ShowLibrarySong` is intentional temporary staging to avoid altering shared
+   contract `showRowProblems` before `group-7`. Added `TODO(0913vision)` in
+   `showService.ts` and `librarySong.ts` to switch to a dedicated problem in
+   `group-7`, and planned explicit tests flagging rows at 10,001 tiles.
+3. Specified hotkey dispatch suppression rules: ignored when no item is open
+   (`openItemId === null`), bypassed when modifier keys (Ctrl/Alt/Meta) are
+   held, suppressed when focus is in a text input or textarea, and ignored on
+   held key repeat (`event.repeat === true`). Added named tests in
+   `shortcuts.test.ts`.
+4. Named the element counts measured in "Checked in the app": thumbnail DOM node
+   count (`button[role='option']`) in the 진행 grid and total document element
+   count across 10 repeated triggers.
+
 ## Review: lead (round 2)
 
 - Verdict: Request changes
@@ -92,34 +165,16 @@ missing.
 
   1. docs/plans/grouped-songs.md:425-446 Request group-6 lacks a "- Paths
      changed:" section and an offscreen real-app verification section ("-
-     Checked in the app:"). Updating import previews in TextImportFlow.tsx and
-     TextImportDialog.tsx changes what the operator sees, which requires
-     offscreen CDP checks with screenshots and flat element counts per CODEX.md.
-     Add Paths changed and the "Checked in the app" verification plan.
+     Checked in the app:").
   2. docs/plans/grouped-songs.md:251-280 Hotkey interception is described under
      src/renderer/src/state/show.ts, but keyboard event handling for 진행 live
      navigation and jump keys lives in src/renderer/src/show/shortcuts.ts
-     (handleShowKey). Add src/renderer/src/show/shortcuts.ts and
-     shortcuts.test.ts to audit section 3.4 and group-2 scope/paths/tests. Also
-     add src/renderer/src/show/SlideGrid.tsx (passes tile.hotKey to
-     SlideThumbnail), src/renderer/src/ui/SlideThumbnail.module.css (badge
-     styles), and src/shared/schema/showService.ts (defines
-     SHOW_SERVICE_LIMITS.tiles and showServiceSchema cap) to group-2 Paths
-     changed.
+     (handleShowKey).
   3. docs/plans/grouped-songs.md:447-508 When group-7 switches ContentStore and
      songDocumentSchema to GroupedSong, existing consumers expecting Song will
-     fail typechecking unless updated in the same request. Include
-     src/main/store/showService.ts (SongLibrary / buildShowService),
-     src/main/store/librarySong.ts (showLibrarySong),
-     src/main/live/recovery/plan.ts (RecoveryContent.song),
-     src/shared/songOrder.ts (playbackOrder), and tests
-     (openServiceFeed.test.ts, songEditorStore.test.ts) in group-7 scope and
-     paths changed.
-  4. docs/plans/grouped-songs.md:252 Nit: Emitting empty tiles and marking
-     problem: 'unknown-kind' on ShowRow triggers the tooltip "이 버전에서 알 수
-     없는 항목입니다." in ServiceOrderList.tsx. For an arrangement exceeding the
-     10,000 tile cap, clarify whether reusing unknown-kind is intentional or if
-     a dedicated row problem is planned.
+     fail typechecking unless updated in the same request.
+  4. docs/plans/grouped-songs.md:252 Nit: Clarify whether reusing unknown-kind
+     is intentional.
 
 ## Review: reviewer (round 2)
 

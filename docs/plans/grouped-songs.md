@@ -113,7 +113,9 @@ or projecting songs, categorized by component and owner:
   maps `playbackOrder` numbers to slides. Does not populate `hotKey` or
   `sourceSlide`.
 - `src/shared/schema/showService.ts` (Owner: `data`): defines `ShowTile` and
-  `SHOW_SERVICE_LIMITS.tiles` cap.
+  `showServiceSchema`. Add new constant `SHOW_SERVICE_LIMITS.tiles = 10_000` and
+  cap tile arrays with `v.maxLength(SHOW_SERVICE_LIMITS.tiles)` (additive shared
+  contract change).
 - `src/main/store/librarySong.ts` (Owner: `data`): `showLibrarySong` calls
   `songTiles(song, ...)`.
 - `src/renderer/src/show/SlidePanel.tsx` (Owner: `shell`): displays meta count
@@ -243,33 +245,60 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
 
 ### Request `group-2`: Projection to 진행 Tiles, Tile Expansion Cap, and Slide Hotkeys
 
-- **Role & Owners**: `data` (store projection) and `shell` (진행 keyboard & tile
-  dispatch), `ui` (thumbnail badge)
-- **Tag & Branch**: `feat/group/show-projection-hotkeys`
+- **Role & Owners**: `data` (store projection and shared schema contract),
+  `shell` (진행 keyboard & tile dispatch), `ui` (thumbnail badge)
+- **Tag & Branch**: `feat/group/show-projection-hotkeys` _(Includes additive
+  shared contract change defining `SHOW_SERVICE_LIMITS.tiles` and capping
+  `showServiceSchema.tiles` in `src/shared/schema/showService.ts`)_
 - **Scope**:
   - Add grouped tile projection helpers `projectSongTiles` and
     `projectGroupedSongTiles` in `src/main/store/showService.ts` and
     `src/main/store/librarySong.ts` supporting both `Song` (v1) and
     `GroupedSong` (v2): populates `label`, `labelColor`, `lines`, `hotKey`, and
     `sourceSlide: {songId, groupId, slideIndex}`.
-  - **Tile Expansion Cap**: define `SHOW_SERVICE_LIMITS.tiles = 10_000` in
-    `src/main/store/showService.ts` (matching `SHOW_LIBRARY_SONG_LIMITS.tiles`
-    in `src/shared/schema/showLibrarySong.ts`). When expanding repeated groups
-    in an arrangement, stop iterating immediately if the count reaches 10,000 to
-    prevent unbounded allocation. Emit empty tiles and mark
-    `problem: 'unknown-kind'` on `ShowRow` (`problem: 'newer-version'` on
-    `ShowLibrarySong`). Reusing `unknown-kind` (which triggers tooltip "이
-    버전에서 알 수 없는 항목입니다.") is intentional to keep the shared contract
-    `showRowProblems` completely unchanged before group-7. Never truncate
-    silently. Ensure `songTiles(song, ...).length` returns 0 at the cap,
-    safeguarding recovery `plan.ts:135`.
-  - **Hotkey Dispatch**: in `src/renderer/src/show/shortcuts.ts`
-    (`handleShowKey`), intercept physical keys `KeyA`..`KeyZ` and
-    `Digit0`..`Digit9`. Query active item tiles via `hasSlideHotKey(code)` in
-    `src/renderer/src/state/show.ts` (using `findSlideHotKey`). When matched,
-    output the tile immediately through the main command path
-    (`outputHotKey(code)` calling `outputTile({itemId, index})`, which sends
-    `SlideLayer` to output windows) and update `selectedTile`.
+  - **Tile Expansion Cap (Boundary & Store)**:
+    - In `src/shared/schema/showService.ts`, define new constant
+      `SHOW_SERVICE_LIMITS = {tiles: 10_000}` (matching
+      `SHOW_LIBRARY_SONG_LIMITS.tiles` in
+      `src/shared/schema/showLibrarySong.ts`). Cap the tile array in
+      `showServiceSchema` with `v.maxLength(SHOW_SERVICE_LIMITS.tiles)`,
+      ensuring boundary validation.
+    - In `src/main/store/showService.ts` and `src/main/store/librarySong.ts`,
+      check the tile count inside projection loops (both v1 and v2 branches) and
+      stop iterating immediately if the count reaches 10,000 to prevent large
+      memory allocations.
+    - When exceeding 10,000 tiles (tested at 10,001 tiles): emit empty tiles and
+      mark `problem: 'unknown-kind'` on `ShowRow` (`problem: 'newer-version'` on
+      `ShowLibrarySong`). Reusing `unknown-kind` (which triggers tooltip "이
+      버전에서 알 수 없는 항목입니다.") is intentional temporary staging to keep
+      the active shared contract `showRowProblems` completely unchanged before
+      group-7.
+    - Add `TODO(0913vision)` in `src/main/store/showService.ts` and
+      `src/main/store/librarySong.ts` to switch to a dedicated typed row problem
+      in group-7.
+    - Never truncate silently. Ensure `songTiles(song, ...).length` returns 0 at
+      the cap, safeguarding recovery `plan.ts:135`.
+  - **Hotkey Dispatch**:
+    - In `src/renderer/src/show/shortcuts.ts` (`handleShowKey`), intercept
+      physical keys `KeyA`..`KeyZ` and `Digit0`..`Digit9`. Query active item
+      tiles via `hasSlideHotKey(code)` in `src/renderer/src/state/show.ts`
+      (using `findSlideHotKey`).
+    - When matched, output the tile immediately through the main command path
+      (`outputHotKey(code)` calling `outputTile({itemId, index})`, which sends
+      `SlideLayer` to output windows) and update `selectedTile`.
+    - **Edge Cases & Suppression**:
+      - If pressed with **no open item** (`openItemId === null`), keypress is
+        ignored; does not throw or trigger output.
+      - If **modifier keys are held**
+        (`event.ctrlKey || event.altKey || event.metaKey`), hotkey dispatch is
+        bypassed, preserving OS and application shortcuts.
+      - If focus is in a **text input or textarea**
+        (`targetIsInputElement(event.target)`), hotkey dispatch does not fire,
+        preventing typed characters from triggering tiles.
+      - If the key is **held down** (`event.repeat === true`), repeated events
+        are ignored so a held key does not re-output.
+      - Add these as named unit tests in
+        `src/renderer/src/show/shortcuts.test.ts`.
   - **Conflict Resolution**:
     - If a key matches both a slide hot key in the open presentation and an
       app-wide label jump key in `labels.json`, the slide hot key takes
@@ -286,6 +315,7 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
     `<SlideThumbnail />`.
   - Keep active v1 projection paths operational for existing files.
 - **Paths changed**:
+  - `src/shared/schema/showService.ts`
   - `src/main/store/showService.ts`
   - `src/main/store/librarySong.ts`
   - `src/main/live/recovery/plan.ts` (test helper compatibility at limit)
@@ -294,15 +324,20 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/renderer/src/show/SlideGrid.tsx`
   - `src/renderer/src/ui/SlideThumbnail.tsx`
   - `src/renderer/src/ui/SlideThumbnail.module.css`
-  - Tests: `src/main/store/showService.test.ts`,
-    `src/main/store/librarySong.test.ts`, `src/renderer/src/state/show.test.ts`,
+  - Tests: `src/shared/schema/showService.test.ts`,
+    `src/main/store/showService.test.ts`, `src/main/store/librarySong.test.ts`,
+    `src/renderer/src/state/show.test.ts`,
     `src/renderer/src/show/shortcuts.test.ts`,
     `src/renderer/src/ui/SlideThumbnail.test.tsx`
 - **Checked in the app**:
-  - Offscreen run: open presentation with hotkey tiles, press hotkey, capture
-    screenshot showing output triggered and selected tile updated, verify flat
-    element count over 10 repeated triggers.
-- **Estimated lines**: ~620 lines.
+  - Offscreen run: open presentation with hotkey tiles (injected via renderer
+    state or presentation with slide hotkeys), verify thumbnails render keycap
+    badges, press hotkey, capture screenshot showing output triggered and
+    selected tile updated. Verify flat element counts over 10 repeated triggers
+    (measuring thumbnail DOM node count
+    `document.querySelectorAll("button[role='option']").length` in the 진행 grid
+    and total element count `document.querySelectorAll('*').length`).
+- **Estimated lines**: ~640 lines.
 
 ---
 
