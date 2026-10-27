@@ -49,6 +49,7 @@ import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {DisplayLayout} from '@renderer/screens/DisplayLayout';
 import {StageCanvas} from '@renderer/screens/stage/StageCanvas';
+import {StageProperties} from '@renderer/screens/stage/StageProperties';
 import {OutputPreview} from '@renderer/screens/OutputPreview';
 import {ScreenList} from '@renderer/screens/ScreenList';
 import {ScreenProperties} from '@renderer/screens/ScreenProperties';
@@ -243,7 +244,7 @@ function screensPanelParts(
     case '배치':
       return {body: <ScreenCanvas onProblem={onProblem} />};
     case '속성':
-      return {body: <ScreenProperties onProblem={onProblem} />};
+      return {body: <ScreenPropertiesOrStage onProblem={onProblem} />};
     case '출력 미리보기':
       return {body: <OutputPreview onProblem={onProblem} />};
     default:
@@ -261,6 +262,19 @@ function ScreenCanvas({
     <StageCanvas onProblem={onProblem} />
   ) : (
     <DisplayLayout onProblem={onProblem} />
+  );
+}
+
+function ScreenPropertiesOrStage({
+  onProblem,
+}: {
+  onProblem: ((notice: Notice) => void) | undefined;
+}): JSX.Element | null {
+  const stage = useScreensSelection(view => view.selection.kind === 'stage');
+  return stage ? (
+    <StageProperties onProblem={onProblem} />
+  ) : (
+    <ScreenProperties onProblem={onProblem} />
   );
 }
 

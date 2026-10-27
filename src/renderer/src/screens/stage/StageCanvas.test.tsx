@@ -15,6 +15,7 @@ import {useLive} from '@renderer/state/live';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {useScreensSelection} from '../selection';
 import {StageCanvas} from './StageCanvas';
+import {StageProperties} from './StageProperties';
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -56,6 +57,7 @@ beforeEach(() => {
   HTMLElement.prototype.hasPointerCapture = () => false;
   useLive.setState({state: emptyLiveState()});
   useScreensSelection.getState().select('stage', LAYOUT_ID);
+  useScreensSelection.getState().selectStageElement(LAYOUT_ID, null);
 });
 afterEach(() => {
   cleanup();
@@ -67,6 +69,7 @@ afterEach(() => {
 function setup(
   access: 'editable' | 'readOnly' = 'editable',
   saving: Promise<void> = Promise.resolve(),
+  {properties = false}: {properties?: boolean} = {},
 ) {
   let current = settingsDocument('stage-layouts', {
     format: 'llsettings.stage',
@@ -131,13 +134,15 @@ function setup(
   const view = render(
     <StrictMode>
       <StageCanvas />
+      {properties ? <StageProperties /> : null}
     </StrictMode>,
   );
-  const frame = () =>
+  const element = () =>
     current.name === 'stage-layouts'
-      ? current.value.layouts[0]?.elements[0]?.frame
+      ? current.value.layouts[0]?.elements[0]
       : undefined;
-  return {view, edit, frame, listeners};
+  const frame = () => element()?.frame;
+  return {view, edit, frame, element, listeners};
 }
 
 it('selects, previews a scaled drag, saves once, nudges cumulatively, and deletes', async () => {
@@ -211,6 +216,59 @@ it('keeps a completed drag drawn through Tab and unrelated keys while its save i
   release();
   await waitFor(() => expect(frame()).toMatchObject({x: 120, y: 140}));
 });
+
+it('selects an element without writing unchanged geometry on a pointer click', async () => {
+  const {edit} = setup();
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerUp(item, {pointerId: 1});
+  await act(() => Promise.resolve());
+  expect(item.getAttribute('aria-pressed')).toBe('true');
+  expect(edit).not.toHaveBeenCalled();
+});
+
+it.each([
+  {
+    label: '이름',
+    role: 'textbox',
+    value: 'Renamed',
+    expected: {name: 'Renamed'},
+  },
+  {
+    label: '글자색',
+    role: 'textbox',
+    value: '#00FF00',
+    expected: {text: {color: '#00FF00'}},
+  },
+  {
+    label: '크기',
+    role: 'spinbutton',
+    value: '96',
+    expected: {text: {size: 96}},
+  },
+])(
+  'commits $label before a blank-canvas pointer sequence clears selection',
+  async ({label, role, value, expected}) => {
+    const {element} = setup('editable', Promise.resolve(), {properties: true});
+    fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+    const input = await screen.findByRole(role, {name: label});
+    input.focus();
+    fireEvent.change(input, {target: {value}});
+    const canvas = screen.getByLabelText('무대 배치 캔버스');
+    fireEvent.pointerDown(canvas, {button: 0, pointerId: 1});
+    fireEvent.mouseDown(canvas);
+    fireEvent.pointerUp(canvas, {pointerId: 1});
+    fireEvent.mouseUp(canvas);
+    fireEvent.click(canvas);
+    expect(useScreensSelection.getState().stageElement).toBeNull();
+    await waitFor(() => expect(element()).toMatchObject(expected));
+  },
+);
 
 it('cancels a draft on Escape and keeps read-only elements selectable', async () => {
   const editable = setup();

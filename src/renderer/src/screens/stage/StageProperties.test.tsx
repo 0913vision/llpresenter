@@ -1,0 +1,236 @@
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {afterEach, expect, it, vi} from 'vitest';
+import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {settingsDocument, LAYOUT_ID} from '../testing/documents';
+import {useScreensSelection} from '../selection';
+import {StageProperties} from './StageProperties';
+import {STAGE_DEFAULT_TEXT} from './stageEditor';
+
+afterEach(() => {
+  cleanup();
+  delete window.llp;
+  vi.restoreAllMocks();
+});
+function setup(
+  access: 'editable' | 'readOnly' = 'editable',
+  saving: Promise<void> = Promise.resolve(),
+) {
+  const make = (value: object, revision = 1) => {
+    const document = settingsDocument('stage-layouts', value, revision);
+    if (document.name !== 'stage-layouts') {
+      throw new Error('Expected stage settings');
+    }
+    return {...document, access};
+  };
+  let current = make({
+    format: 'llsettings.stage',
+    layouts: [
+      {
+        id: LAYOUT_ID,
+        name: 'Test layout',
+        width: 1920,
+        height: 1080,
+        elements: [
+          {
+            id: 'first',
+            name: 'First',
+            kind: 'currentSlide',
+            frame: {x: 0, y: 0, w: 500, h: 100},
+            text: {...STAGE_DEFAULT_TEXT, future: 'keep'},
+          },
+          {
+            id: 'second',
+            name: 'Second',
+            kind: 'nextSlide',
+            frame: {x: 0, y: 200, w: 500, h: 100},
+          },
+        ],
+      },
+    ],
+  });
+  const listeners = new Set<(document: SettingsDocument) => void>();
+  const edit = vi.fn(
+    async (
+      change: Parameters<NonNullable<Window['llp']>['settings']['edit']>[0],
+    ) => {
+      if (
+        change.type !== 'settings.update' ||
+        change.name !== 'stage-layouts'
+      ) {
+        throw new Error('Unexpected change');
+      }
+      await saving;
+      current = make(change.value, current.revision + 1);
+      for (const listener of listeners) listener(current);
+      return {
+        ok: true as const,
+        value: {id: 'stage-layouts', revision: current.revision},
+      };
+    },
+  );
+  window.llp = fakeLlpApi({
+    settings: {
+      get: () => Promise.resolve(current),
+      edit,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      },
+    },
+  });
+  useScreensSelection.getState().select('stage', LAYOUT_ID);
+  useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'first');
+  const view = render(<StageProperties />);
+  const first = () => current.value.layouts[0]?.elements[0];
+  return {view, first, edit, listeners};
+}
+
+it('saves text controls on the selected element and preserves unknown style fields', async () => {
+  const {first, listeners, view} = setup();
+  const user = userEvent.setup();
+  const name = await screen.findByRole('textbox', {name: '이름'});
+  await user.clear(name);
+  await user.type(name, 'Renamed');
+  await user.tab();
+  await waitFor(() => expect(first()?.name).toBe('Renamed'));
+  await user.click(screen.getByRole('button', {name: '글꼴'}));
+  await user.click(await screen.findByRole('menuitemradio', {name: 'Arial'}));
+  const size = screen.getByRole('spinbutton', {name: '크기'});
+  fireEvent.change(size, {target: {value: '100'}});
+  fireEvent.blur(size);
+  await user.click(
+    within(screen.getByRole('radiogroup', {name: '가로 정렬'})).getByRole(
+      'radio',
+      {name: '가운데'},
+    ),
+  );
+  await user.click(screen.getByRole('switch', {name: '크기 자동 맞춤'}));
+  await waitFor(() =>
+    expect(first()?.text).toMatchObject({
+      font: 'Arial',
+      size: 100,
+      align: 'center',
+      autoFit: false,
+      future: 'keep',
+    }),
+  );
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'second'),
+  );
+  expect(
+    screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
+  ).toBe('Second');
+  view.unmount();
+  expect(listeners.size).toBe(0);
+});
+
+it('refuses malformed colors, cancels a draft with Escape, and deletes the selection', async () => {
+  const {first, edit} = setup();
+  const color = await screen.findByRole('textbox', {name: '글자색'});
+  fireEvent.change(color, {target: {value: 'invalid'}});
+  expect(color.getAttribute('aria-invalid')).toBe('true');
+  fireEvent.blur(color);
+  expect(edit).not.toHaveBeenCalled();
+  expect(first()?.text?.color).toBe('#FFFFFF');
+  const name = screen.getByRole('textbox', {name: '이름'});
+  fireEvent.change(name, {target: {value: 'Discard'}});
+  fireEvent.keyDown(name, {key: 'Escape'});
+  fireEvent.blur(name);
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', {name: '요소 삭제'}));
+  await waitFor(() =>
+    expect(useScreensSelection.getState().stageElement).toBeNull(),
+  );
+  expect(first()?.id).toBe('second');
+});
+
+it('displays and preserves the renderer fallback when editing an element without text', async () => {
+  const {edit} = setup();
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'second'),
+  );
+  const size = await screen.findByRole('spinbutton', {name: '크기'});
+  expect(size.getAttribute('aria-valuenow')).toBe('84');
+  expect(
+    screen
+      .getByRole('spinbutton', {name: '줄 간격'})
+      .getAttribute('aria-valuenow'),
+  ).toBe('1.4');
+  const color = screen.getByRole('textbox', {name: '글자색'});
+  fireEvent.change(color, {target: {value: '#00FF00'}});
+  fireEvent.blur(color);
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  const change = edit.mock.calls[0]?.[0];
+  if (change?.name !== 'stage-layouts') {
+    throw new Error('Expected stage edit');
+  }
+  expect(change.value.layouts[0]?.elements[1]?.text).toMatchObject({
+    size: 84,
+    lineHeight: 1.4,
+    align: 'center',
+    vAlign: 'middle',
+    color: '#00FF00',
+    autoFit: true,
+  });
+});
+
+it('keeps a future-version settings document read-only', async () => {
+  const {edit} = setup('readOnly');
+  const name = await screen.findByRole('textbox', {name: '이름'});
+  expect(name.hasAttribute('readonly')).toBe(true);
+  fireEvent.click(screen.getByRole('switch', {name: '크기 자동 맞춤'}));
+  fireEvent.click(screen.getByRole('button', {name: '요소 삭제'}));
+  expect(edit).not.toHaveBeenCalled();
+});
+
+it('commits a directly entered font and leaves IME Enter and Escape unsaved', async () => {
+  const {first, edit} = setup();
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('button', {name: '글꼴'}));
+  await user.click(await screen.findByRole('menuitem', {name: '다른 글꼴'}));
+  const input = await screen.findByRole('textbox', {name: '글꼴'});
+  fireEvent.change(input, {target: {value: 'Custom font'}});
+  fireEvent.keyDown(input, {key: 'Enter', isComposing: true});
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.keyDown(input, {key: 'Escape'});
+  expect(edit).not.toHaveBeenCalled();
+  await user.click(screen.getByRole('button', {name: '글꼴'}));
+  await user.click(await screen.findByRole('menuitem', {name: '다른 글꼴'}));
+  const field = await screen.findByRole('textbox', {name: '글꼴'});
+  fireEvent.change(field, {target: {value: 'Custom font'}});
+  field.focus();
+  fireEvent.keyDown(field, {key: 'Enter'});
+  await waitFor(() => expect(first()?.text?.font).toBe('Custom font'));
+});
+
+it('does not clear a new selection when an earlier deletion completes', async () => {
+  let release: () => void = () => undefined;
+  const saving = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {edit} = setup('editable', saving);
+  fireEvent.click(await screen.findByRole('button', {name: '요소 삭제'}));
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'second'),
+  );
+  release();
+  await waitFor(() =>
+    expect(
+      screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
+    ).toBe('Second'),
+  );
+  expect(useScreensSelection.getState().stageElement?.elementId).toBe('second');
+});

@@ -88,7 +88,10 @@ function CanvasBody({
   live: Parameters<typeof StagePicture>[0]['live'];
   timers: Parameters<typeof StagePicture>[0]['timers'];
 }): JSX.Element {
-  const [selected, select] = useState<string | null>(null);
+  const picked = useScreensSelection(view => view.stageElement);
+  const selectElement = useScreensSelection(view => view.selectStageElement);
+  const selected = picked?.layoutId === layout.id ? picked.elementId : null;
+  const select = (id: string | null): void => selectElement(layout.id, id);
   const [draft, setDraft] = useState<{
     id: string;
     frame: ElementFrame;
@@ -143,6 +146,15 @@ function CanvasBody({
       current.target.releasePointerCapture(current.id);
     }
     if (!commit) {
+      setDraft(null);
+      return;
+    }
+    if (
+      current.frame.x === current.start.x &&
+      current.frame.y === current.start.y &&
+      current.frame.w === current.start.w &&
+      current.frame.h === current.start.h
+    ) {
       setDraft(null);
       return;
     }
@@ -266,7 +278,10 @@ function CanvasBody({
             }
           }}
           onPointerDown={event => {
-            if (event.target === event.currentTarget) select(null);
+            if (event.target === event.currentTarget) {
+              event.currentTarget.focus();
+              select(null);
+            }
           }}
           onKeyDown={event => {
             if (event.key === 'Escape') {
@@ -327,7 +342,7 @@ function CanvasBody({
             >
               <button
                 className={styles.move}
-                aria-label={element.name}
+                aria-label={element.name || elementNames[element.kind]}
                 aria-pressed={selected === element.id}
                 onClick={() => select(element.id)}
                 onPointerDown={event => start(event, element, 'move')}

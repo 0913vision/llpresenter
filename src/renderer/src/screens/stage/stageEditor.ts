@@ -7,6 +7,7 @@ import type {
   StageLayoutsFile,
 } from '@shared/schema/stageLayouts';
 import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
+import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import type {NamedDocument} from '../useSettingsDocument';
 import {editFrame, type ElementFrame} from './frameEdit';
@@ -14,7 +15,7 @@ import {editFrame, type ElementFrame} from './frameEdit';
 export const STAGE_LAYOUT_LIMIT = 1000;
 export const STAGE_ELEMENT_LIMIT = 128;
 const DEFAULT_FRAME = {x: 45, y: 100, w: 1194, h: 260};
-const DEFAULT_TEXT: NonNullable<StageElement['text']> = {
+export const STAGE_DEFAULT_TEXT: NonNullable<StageElement['text']> = {
   font: 'Pretendard',
   weight: 700,
   size: 72,
@@ -33,6 +34,12 @@ export const elementNames: Readonly<Record<StageElement['kind'], string>> = {
   timer: '타이머',
   stageMessage: '무대 메시지',
 };
+
+export interface StageElementPatch {
+  readonly name?: string;
+  readonly kind?: StageElement['kind'];
+  readonly text?: Partial<NonNullable<StageElement['text']>>;
+}
 
 /** Serializes stage edits through the same document queue as the screen editor. */
 export class StageEditor {
@@ -94,7 +101,7 @@ export class StageEditor {
           w: Math.max(1, Math.round(DEFAULT_FRAME.w * sx)),
           h: Math.max(1, Math.round(DEFAULT_FRAME.h * sy)),
         },
-        text: {...DEFAULT_TEXT},
+        text: {...STAGE_DEFAULT_TEXT},
       };
       return {...layout, elements: [...layout.elements, element]};
     });
@@ -132,6 +139,33 @@ export class StageEditor {
     return this.change(layoutId, layout => ({
       ...layout,
       elements: layout.elements.filter(element => element.id !== elementId),
+    }));
+  }
+  patch(
+    layoutId: string,
+    elementId: string,
+    patch: StageElementPatch,
+  ): Promise<boolean> {
+    return this.change(layoutId, layout => ({
+      ...layout,
+      elements: layout.elements.map(element =>
+        element.id === elementId
+          ? {
+              ...element,
+              ...(patch.name === undefined ? {} : {name: patch.name}),
+              ...(patch.kind === undefined ? {} : {kind: patch.kind}),
+              ...(patch.text === undefined
+                ? {}
+                : {
+                    text: {
+                      ...STAGE_TEXT_FALLBACK,
+                      ...element.text,
+                      ...patch.text,
+                    },
+                  }),
+            }
+          : element,
+      ),
     }));
   }
   private change(

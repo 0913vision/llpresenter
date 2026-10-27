@@ -24,7 +24,7 @@ const JUSTIFY: Readonly<Record<'top' | 'middle' | 'bottom', string>> = {
 // can measure a pixel over.
 const LAYOUT_TOLERANCE_PX = 1;
 
-const DEFAULT_TEXT: NonNullable<StageElement['text']> = {
+export const STAGE_TEXT_FALLBACK: NonNullable<StageElement['text']> = {
   font: DEFAULT_LYRIC_STYLE.font,
   weight: DEFAULT_LYRIC_STYLE.weight,
   size: DEFAULT_LYRIC_STYLE.size,
@@ -125,7 +125,7 @@ class StageElementView {
     parent: HTMLElement,
   ) {
     const {frame, box: fill} = element;
-    this.style = element.text ?? DEFAULT_TEXT;
+    this.style = element.text ?? STAGE_TEXT_FALLBACK;
     this.box.className = classOf('element');
     this.box.style.left = `${frame.x}px`;
     this.box.style.top = `${frame.y}px`;

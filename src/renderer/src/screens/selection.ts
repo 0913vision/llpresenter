@@ -14,6 +14,14 @@ interface SelectionView {
   readonly selection: ScreensSelection;
   readonly lastScreenId: string | null;
   readonly select: (kind: ScreensSelectionKind, id: string) => void;
+  readonly stageElement: {
+    readonly layoutId: string;
+    readonly elementId: string;
+  } | null;
+  readonly selectStageElement: (
+    layoutId: string,
+    elementId: string | null,
+  ) => void;
 }
 
 const initialSelection: ScreensSelection = {kind: 'screen', id: null};
@@ -35,6 +43,9 @@ export const useScreensSelection = create<SelectionView>(set => ({
             ? view.selection.id
             : view.lastScreenId,
     })),
+  stageElement: null,
+  selectStageElement: (layoutId, elementId) =>
+    set({stageElement: elementId === null ? null : {layoutId, elementId}}),
 }));
 
 /** Retains the screen view while a Look or stage-layout row is selected. */
