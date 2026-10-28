@@ -24,7 +24,6 @@ export function quickItemUnavailable(item: QuickItem): string | undefined {
     item.kind === 'bible' &&
     (item.ref.split !== 'verse' ||
       item.ref.reference !== 'none' ||
-      !item.ref.verseNumbers ||
       item.ref.translationName)
   ) {
     return '이 구절의 표시 설정을 사용할 수 없습니다';
@@ -104,7 +103,9 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           );
           if (!current()) return;
           if (!reply.result.ok) throw new Error(reply.result.error.message);
-          openBiblePassage(reply.result.value);
+          openBiblePassage(reply.result.value, {
+            verseNumbers: item.ref.verseNumbers,
+          });
           selectTile(0);
           showBiblePassage(reply.result.value);
           return;

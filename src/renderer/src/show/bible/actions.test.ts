@@ -40,6 +40,38 @@ afterEach(() => {
 });
 
 describe('Bible slide source', () => {
+  it('retains the numbered live source while preparing the same passage without numbers', () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const passage = panelPassage();
+    openBiblePassage(passage);
+    selectTile(1);
+    showBiblePassage(passage);
+    const output = fixture.send.mock.calls.at(-1)?.[0];
+    if (output?.type !== 'slide.show') {
+      throw new Error('Missing numbered output');
+    }
+    const numbered = useShow.getState().bibleSource;
+    const live = emptyLiveState();
+    useLive.setState({
+      state: {...live, layers: {...live.layers, slide: output.slide}},
+    });
+    openBiblePassage(passage, {verseNumbers: false});
+    const plain = useShow.getState().bibleSource;
+    expect(plain?.id).not.toBe(numbered?.id);
+    expect(plain?.tiles[0]?.lines).toEqual(['Invented verse 16']);
+    expect(useShow.getState().selectedTile).toBe(1);
+    expect(bibleSourceFor(useShow.getState(), output.slide.itemId)).toBe(
+      numbered,
+    );
+    expect(fixture.send).toHaveBeenCalledOnce();
+    showBiblePassage(passage);
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: plain?.id, position: 1, lines: ['Invented verse 17']},
+    });
+  });
+
   it('retains a requested passage while its output feedback and another preview cross', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

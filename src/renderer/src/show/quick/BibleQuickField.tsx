@@ -5,6 +5,7 @@ import {useShow} from '@renderer/state/show';
 import {isBibleSource} from '@renderer/state/showLibrary';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
+import {useBibleVerseNumbers} from '../bible/useBibleVerseNumbers';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -16,6 +17,7 @@ export function BibleQuickField({
   readonly selectionVersion?: number;
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
+  const verseNumbers = useBibleVerseNumbers(api.preferences);
   const [document, setDocument] = useState<Extract<
     SettingsDocument,
     {name: 'bible'}
@@ -54,11 +56,17 @@ export function BibleQuickField({
       key={`${selectionVersion}:${session}`}
       api={api.bible}
       translation={
-        (translations.find(item => item.default) ?? translations[0])?.id
+        verseNumbers === null
+          ? undefined
+          : (translations.find(item => item.default) ?? translations[0])?.id
       }
       recents={document?.value.recents ?? []}
       onIntent={onIntent}
-      onPreview={openBiblePassage}
+      onPreview={passage => {
+        if (verseNumbers !== null) {
+          openBiblePassage(passage, {verseNumbers});
+        }
+      }}
       onShow={showBiblePassage}
     />
   );

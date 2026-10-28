@@ -111,7 +111,7 @@ it('retains the selected empty section through successive previews and remembers
     bible: {
       translation: panelPassage().translation,
       ref: '요한복음 3:17-18',
-      verseNumbers: false,
+      verseNumbers: true,
     },
   });
   expect(view.service().service.order[4]?.id).toBe(fixtureItems.lost);
@@ -123,17 +123,40 @@ it('retains the selected empty section through successive previews and remembers
   expect(view.output).not.toHaveBeenCalled();
 });
 
-it('waits for a held preferences read during close and uses the latest section boundary', async () => {
+it.each([true, false])(
+  'saves the preview numbering %s instead of a different default',
+  async verseNumbers => {
+    const view = setup();
+    view.preferences.mockResolvedValue({
+      ...defaultPreferences,
+      bible: {...defaultPreferences.bible, verseNumbers: !verseNumbers},
+    });
+    act(() => openBiblePassage(panelPassage(), {verseNumbers}));
+    await view.user.click(view.button);
+    await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+    expect(view.service().service.order[3]).toMatchObject({
+      bible: {
+        ref: panelPassage().ref,
+        translation: panelPassage().translation,
+        verseNumbers,
+      },
+    });
+    expect(view.preferences).not.toHaveBeenCalled();
+    expect(view.output).not.toHaveBeenCalled();
+  },
+);
+
+it('waits for a held service read during close and uses the latest section boundary', async () => {
   const view = setup();
-  let finish: (preferences: typeof defaultPreferences) => void = () =>
+  let finish: (document: ReturnType<typeof view.service>) => void = () =>
     undefined;
-  view.preferences.mockReturnValueOnce(
+  view.serviceRead.mockReturnValueOnce(
     new Promise(resolve => {
       finish = resolve;
     }),
   );
   fireEvent.click(view.button);
-  await waitFor(() => expect(view.preferences).toHaveBeenCalledOnce());
+  await waitFor(() => expect(view.serviceRead).toHaveBeenCalledOnce());
   let closed = false;
   const closing = pendingWritesOf(view.api)
     .flush()
@@ -159,7 +182,7 @@ it('waits for a held preferences read during close and uses the latest section b
       ],
     },
   });
-  await act(async () => finish(defaultPreferences));
+  await act(async () => finish(view.service()));
   expect(await closing).toBe(true);
   await waitFor(() => expect(view.service().service.order).toHaveLength(7));
   expect(view.service().service.order[3]).toMatchObject({
@@ -169,16 +192,16 @@ it('waits for a held preferences read during close and uses the latest section b
   expect(view.output).not.toHaveBeenCalled();
 });
 
-it('refuses the close when the held preferences read fails', async () => {
+it('refuses the close when the held service read fails', async () => {
   const view = setup();
   let fail: (error: Error) => void = () => undefined;
-  view.preferences.mockReturnValueOnce(
+  view.serviceRead.mockReturnValueOnce(
     new Promise((_resolve, reject) => {
       fail = reject;
     }),
   );
   fireEvent.click(view.button);
-  await waitFor(() => expect(view.preferences).toHaveBeenCalledOnce());
+  await waitFor(() => expect(view.serviceRead).toHaveBeenCalledOnce());
   const closing = pendingWritesOf(view.api).flush();
   await act(async () => fail(new Error('Invented preferences failure')));
   expect(await closing).toBe(false);

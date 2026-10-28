@@ -2,7 +2,11 @@ import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
 import {bibleVerseTiles} from '@shared/bibleTiles';
 import type {SlideTile} from '../model';
 
-export interface BibleSource {
+export interface BibleDisplayOptions {
+  readonly verseNumbers: boolean;
+}
+
+export interface BibleSource extends BibleDisplayOptions {
   readonly id: string;
   readonly passage: BibleLookupPassage;
   readonly tiles: readonly SlideTile[];
@@ -12,10 +16,16 @@ export interface BibleSource {
   };
 }
 
-export function bibleSource(passage: BibleLookupPassage): BibleSource {
+export function bibleSource(
+  passage: BibleLookupPassage,
+  options: BibleDisplayOptions = {verseNumbers: true},
+): BibleSource {
+  const id = `bible:${passage.translation}:${passage.ref}`;
+  const {verseNumbers} = options;
   return {
-    id: `bible:${passage.translation}:${passage.ref}`,
+    id: verseNumbers ? id : `${id}:plain`,
     passage,
-    tiles: bibleVerseTiles(passage),
+    verseNumbers,
+    tiles: bibleVerseTiles(passage, verseNumbers),
   };
 }

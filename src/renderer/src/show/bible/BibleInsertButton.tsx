@@ -40,13 +40,14 @@ export function BibleInsertButton({
         ? source.insertion.itemId
         : view.openItemId;
     editing.run(async (edits, id) => {
-      const result = await edits.insertItemInSection(id, selected, async () => {
-        const preferences = await api.preferences.get();
-        return passageItem(source.passage.ref, {
-          translation: source.passage.translation,
-          verseNumbers: preferences.bible.verseNumbers,
-        });
-      });
+      const result = await edits.insertItemInSection(id, selected, () =>
+        Promise.resolve(
+          passageItem(source.passage.ref, {
+            translation: source.passage.translation,
+            verseNumbers: source.verseNumbers,
+          }),
+        ),
+      );
       if (result.ok ? result.value : result.error.reason === 'write-failed') {
         rememberBiblePassage(source.passage);
       }

@@ -15,6 +15,7 @@ import {createQuickItemId, createAppFlushRequestId} from '@shared/schema/ids';
 import type {AppFlushRequest} from '@shared/schema/appFlush';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
+import {isKnownQuickItem} from '@shared/schema/quick';
 import {useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {openLibrarySong} from '@renderer/state/showLibrary';
@@ -25,6 +26,7 @@ import {openBiblePassage} from '../bible/actions';
 import {panelPassage} from '../bible/panelTesting';
 import {MAX_QUICK_ITEMS, newQuickItem, saveQuickEdit} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
+import {quickRunner} from './quickActions';
 import {
   deferred,
   quickDocument,
@@ -612,27 +614,55 @@ describe('quick editing', () => {
       expect(fixture.send).not.toHaveBeenCalled();
     },
   );
-  it('copies the open Bible preview without writing output or recent history', async () => {
-    const fixture = setup();
-    openBiblePassage(panelPassage());
-    fixture.mount();
-    await openAddMenu();
-    const current = await screen.findByRole('menuitem', {
-      name: /현재 항목 추가/,
-    });
-    await waitFor(() =>
-      expect(current.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    fireEvent.click(current);
-    await waitFor(() =>
-      expect(fixture.current().value.items.at(-1)).toMatchObject({
-        kind: 'bible',
-        ref: {ref: panelPassage().ref, split: 'verse', reference: 'none'},
-      }),
-    );
-    expect(fixture.send).not.toHaveBeenCalled();
-    expect(fixture.document().value.recents).toEqual([]);
-  });
+  it.each([true, false])(
+    'copies and replays the open Bible preview with numbering %s',
+    async verseNumbers => {
+      const fixture = setup();
+      openBiblePassage(panelPassage(), {verseNumbers});
+      fixture.mount();
+      await openAddMenu();
+      const current = await screen.findByRole('menuitem', {
+        name: /현재 항목 추가/,
+      });
+      await waitFor(() =>
+        expect(current.getAttribute('aria-disabled')).not.toBe('true'),
+      );
+      fireEvent.click(current);
+      await waitFor(() =>
+        expect(fixture.current().value.items.at(-1)).toMatchObject({
+          kind: 'bible',
+          ref: {
+            ref: panelPassage().ref,
+            split: 'verse',
+            reference: 'none',
+            verseNumbers,
+          },
+        }),
+      );
+      expect(fixture.send).not.toHaveBeenCalled();
+      expect(fixture.document().value.recents).toEqual([]);
+      const stored = fixture.current().value.items.at(-1);
+      if (!stored || !isKnownQuickItem(stored) || stored.kind !== 'bible') {
+        throw new Error('Missing saved Bible item');
+      }
+      act(() =>
+        openBiblePassage(panelPassage(), {verseNumbers: !verseNumbers}),
+      );
+      await act(async () =>
+        quickRunner(fixture.api, fixture.problem).run(stored),
+      );
+      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        type: 'slide.show',
+        slide: {
+          position: 0,
+          lines: [
+            `${verseNumbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
+          ],
+        },
+      });
+      expect(fixture.problem).not.toHaveBeenCalled();
+    },
+  );
   it('adds the open library song and keeps its background out of the saved target', async () => {
     const fixture = setup();
     openLibrarySong(fixture.song);
