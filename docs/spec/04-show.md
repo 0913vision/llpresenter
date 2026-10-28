@@ -746,6 +746,11 @@ that ProPresenter's Edit mode has the same behavior.
   슬라이드에 한 절 one verse per 슬라이드, 두 절씩 two verses, 길이에 맞춤 fit
   to length), 참조 (reference: 슬라이드마다 every 슬라이드), 절 번호 (verse
   numbers), and 역본 이름 (translation name).
+  - The installed translation and 절 번호 controls change this preview only;
+    they do not change the defaults, saved items, or live output. A translation
+    lookup retains the range and selected verse when available. If the selected
+    verse is omitted, choose the next available verse, or the last one when no
+    later verse remains. A failed or superseded lookup keeps the old preview.
   - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
     슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
   - 참조 decides where the reference (3:16) appears. The board shows only

@@ -9,10 +9,12 @@ import {
   PanelFooter,
   PanelHeader,
   PanelTitle,
+  PanelTools,
 } from '@renderer/ui/Panel';
 import {SlidePanelBody, SlideSizeControl} from '../SlidePanel';
 import {showBiblePassage} from './actions';
 import {BibleAdjacentButtons} from './BibleAdjacentButtons';
+import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
 import {BibleInsertButton} from './BibleInsertButton';
 import type {Notice} from '@renderer/ui/notices';
@@ -34,6 +36,9 @@ export function BiblePanel({
           meta={`슬라이드 ${source.tiles.length}개`}
         />
       </PanelHeader>
+      <PanelTools>
+        <BibleDisplayControls key={source.id} source={source} />
+      </PanelTools>
       <PanelBody variant="flush" className={styles.body}>
         <SlidePanelBody sizeClass={sizeClass} />
       </PanelBody>

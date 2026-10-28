@@ -56,7 +56,11 @@ export function showBiblePassage(
   const display =
     options ??
     (prepared !== null && samePassage(prepared.passage, passage)
-      ? {verseNumbers: prepared.verseNumbers, enteredRef: prepared.enteredRef}
+      ? {
+          verseNumbers: prepared.verseNumbers,
+          enteredRef: prepared.enteredRef,
+          enteredTranslation: prepared.enteredTranslation,
+        }
       : undefined);
   openBiblePassage(passage, display);
   const view = useShow.getState();

@@ -1,4 +1,5 @@
 import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
+import type {TranslationId} from '@shared/schema/ids';
 import {bibleVerseTiles} from '@shared/bibleTiles';
 import type {SlideTile} from '../model';
 
@@ -8,6 +9,7 @@ export interface BibleDisplayOptions {
 
 export interface BiblePreviewOptions extends BibleDisplayOptions {
   readonly enteredRef?: string | undefined;
+  readonly enteredTranslation?: TranslationId | undefined;
 }
 
 export interface BibleSource extends BiblePreviewOptions {
@@ -33,6 +35,9 @@ export function bibleSource(
     ...(options.enteredRef === undefined
       ? {}
       : {enteredRef: options.enteredRef}),
+    ...(options.enteredTranslation === undefined
+      ? {}
+      : {enteredTranslation: options.enteredTranslation}),
     tiles: bibleVerseTiles(passage, verseNumbers, 'every'),
   };
 }

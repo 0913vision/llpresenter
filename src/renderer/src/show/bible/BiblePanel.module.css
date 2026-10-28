@@ -13,3 +13,14 @@
   gap: var(--space-4) var(--space-10);
   padding-block: var(--space-4);
 }
+
+.options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.translation {
+  max-width: 50%;
+  min-width: 0;
+}

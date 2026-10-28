@@ -72,7 +72,8 @@ export function BibleQuickField({
         if (source?.id === view.openItemId && source.enteredRef !== undefined) {
           if (
             equivalent?.ref === source.enteredRef &&
-            source.passage.translation === equivalent.translation &&
+            (source.enteredTranslation ?? source.passage.translation) ===
+              equivalent.translation &&
             verseNumbers !== null
           ) {
             openBiblePassage(equivalent, {verseNumbers});
@@ -91,7 +92,8 @@ export function BibleQuickField({
         const prepared = bibleSourceFor(view, view.openItemId);
         const expanded =
           prepared?.enteredRef === passage.ref &&
-          prepared.passage.translation === passage.translation;
+          (prepared.enteredTranslation ?? prepared.passage.translation) ===
+            passage.translation;
         showBiblePassage(expanded ? prepared.passage : passage);
       }}
     />

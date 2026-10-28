@@ -91,6 +91,8 @@ export function BibleAdjacentButtons({
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
         enteredRef: source.enteredRef ?? source.passage.ref,
+        enteredTranslation:
+          source.enteredTranslation ?? source.passage.translation,
       });
       selectTile(initial.selectedTile + shift);
     } catch (cause) {
