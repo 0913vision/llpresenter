@@ -132,6 +132,26 @@ describe('TileList', () => {
     expect(onActivate.mock.calls).toEqual([[1]]);
   });
 
+  it('passes modified Enter without activating on its native click', () => {
+    const onActivate = vi.fn();
+    render(<Strip onActivate={onActivate} />);
+    const target = tile('새벽 하늘');
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      expect(fireEvent.keyDown(target, {key: 'Enter', [modifier]: true})).toBe(
+        true,
+      );
+      fireEvent.click(target, {detail: 0});
+      fireEvent.keyUp(target, {key: 'Enter'});
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(4);
+    expect(onActivate).not.toHaveBeenCalled();
+    fireEvent.click(target, {detail: 1, ctrlKey: true});
+    expect(onActivate).toHaveBeenCalledExactlyOnceWith(1);
+  });
+
   it('ignores a Space whose modifier is released before it', async () => {
     const onActivate = vi.fn<(index: number) => void>();
     render(<Macros onActivate={onActivate} />);

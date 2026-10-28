@@ -51,6 +51,7 @@ A media tile that shows one background video or image as a 16:9 picture with a n
 - A copying tile can't be clicked, and its right-click menu has only "복사 멈추기" (stop copying).
 - The grid and the strip are `role="listbox"`, and each tile is `role="option"` + `aria-selected`. While a tile has keyboard focus, the arrow keys move between tiles, and Enter acts as a click.
 - Shift+F10 or the Menu key opens the context menu. Shift+F10 with Ctrl, Alt or Windows passes through without opening it.
+- Modified Enter passes through to shortcuts and does not activate the tile.
 - Read-only notice grids move keyboard focus without selecting or outputting tiles. Tab enters once at the last focused tile; arrow keys, Home, and End reach tiles across virtual windows.
 - In the media strip of the 진행 workspace, a mouse click sends the media out but doesn't give the tile keyboard focus; only Tab moves keyboard focus into the strip. So → and Space after a click still go to 다음 슬라이드. In the media view, a click selects the tile and focuses it as usual.
 - State attributes: `data-state="live"`, `data-state="warning"`, `data-state="busy"` (separate them with spaces when combined).

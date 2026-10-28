@@ -14,6 +14,7 @@ import {
 import {clickFocusProps} from './clickFocus';
 import type {MenuAnchor} from './Menu';
 import {hasModifier} from './modifierKeys';
+import {useButtonPress} from './press';
 import type {Workspace} from './workspace';
 
 const TILE = '[role="option"]';
@@ -284,8 +285,9 @@ export function TileList(props: TileListProps): JSX.Element {
     // NOTE(0913vision): A button clicks on every Enter keydown, held or with
     // a modifier, so the list cancels that click and presses the tile only
     // once per plain press (spec 10).
+    if (hasModifier(event)) return;
     event.preventDefault();
-    if (!event.repeat && !hasModifier(event)) {
+    if (!event.repeat) {
       activate(event.currentTarget, event.target);
     }
   };
@@ -311,6 +313,12 @@ export function TileList(props: TileListProps): JSX.Element {
   const onKeyUp = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (event.key === SPACE) space.onKeyUp(event);
   };
+  const press = useButtonPress<HTMLDivElement>({
+    disabled: false,
+    onPress: onClick,
+    onKeyDown,
+    onKeyUp,
+  });
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
     if (followsSelection) return;
     const index = indexOf(event.currentTarget, tileOf(event.target));
@@ -320,6 +328,7 @@ export function TileList(props: TileListProps): JSX.Element {
   return (
     <div
       {...(props.takesClickFocus === true ? clickFocusProps : undefined)}
+      {...press}
       ref={listRef}
       role="listbox"
       data-workspace={props.workspace ?? 'prep'}
@@ -327,11 +336,8 @@ export function TileList(props: TileListProps): JSX.Element {
       aria-orientation={props.orientation}
       className={props.className}
       style={props.style}
-      onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
       onFocus={onFocus}
     >
       {props.children}
