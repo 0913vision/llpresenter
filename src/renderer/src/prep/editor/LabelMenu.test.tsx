@@ -19,6 +19,35 @@ async function manage(name: string, action: string) {
 }
 
 describe('song editor label menu', () => {
+  it('ignores modified activation on choices and inline creation', async () => {
+    const {user, session, labels} = await editorSetup();
+    const menu = await openMenu(user);
+    const targets = [
+      within(menu).getByRole('menuitemradio', {name: /후렴/}),
+      within(menu).getByRole('menuitemradio', {name: '이름표 없음'}),
+      within(menu).getByRole('menuitem', {name: '새 이름표'}),
+    ];
+    for (const target of targets) {
+      for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+        for (const key of [' ', 'Enter']) {
+          fireEvent.keyDown(target, {key, [modifier]: true});
+          fireEvent.keyUp(target, {key});
+          fireEvent.click(target, {detail: 0});
+        }
+      }
+    }
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('1절');
+    expect(screen.getByRole('menu', {name: '이름표'})).toBe(menu);
+    expect(screen.queryByRole('textbox', {name: '새 이름표 이름'})).toBeNull();
+    await user.click(within(menu).getByRole('menuitem', {name: '새 이름표'}));
+    const input = screen.getByRole('textbox', {name: '새 이름표 이름'});
+    await user.type(input, '끝');
+    fireEvent.keyDown(input, {key: 'Enter', ctrlKey: true});
+    expect(labels().value.labels).toHaveLength(2);
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(labels().value.labels).toHaveLength(3));
+  });
+
   it('discloses shared color scope before applying a color', async () => {
     const {user, labelEdits} = await editorSetup();
     const menu = await openMenu(user);

@@ -3,6 +3,7 @@ import type {Label} from '@shared/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuAnchor} from '@renderer/ui/Menu';
+import {useButtonPress} from '@renderer/ui/press';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import styles from './LabelMenu.module.css';
 
@@ -26,16 +27,37 @@ export function LabelChoices({
   onChoose,
   onContext,
 }: ChoicesProps): JSX.Element {
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: event => onChoose(event.currentTarget.dataset.labelName),
+    onKeyDown: event => {
+      const label = labels.find(
+        item => item.name === event.currentTarget.dataset.labelName,
+      );
+      if (
+        label !== undefined &&
+        (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey))
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        onContext({
+          label,
+          trigger: event.currentTarget,
+          anchor: {kind: 'element', element: event.currentTarget},
+        });
+      }
+    },
+  });
   return (
     <div className={menuStyles.scroll}>
       <button
+        {...press}
         type="button"
         role="menuitemradio"
         aria-checked={selected === undefined}
         data-choice
         tabIndex={-1}
         className={classNames(menuStyles.item, styles.choice)}
-        onClick={() => onChoose(undefined)}
       >
         <span className={menuStyles.lead}>
           {selected === undefined ? <Icon name="check" size={14} /> : null}
@@ -46,15 +68,16 @@ export function LabelChoices({
       {labels.map(label => {
         return (
           <button
+            {...press}
             key={label.name}
             type="button"
             role="menuitemradio"
             aria-checked={label.name === selected}
             aria-haspopup="menu"
             data-choice
+            data-label-name={label.name}
             tabIndex={-1}
             className={classNames(menuStyles.item, styles.choice)}
-            onClick={() => onChoose(label.name)}
             onContextMenu={event => {
               event.preventDefault();
               onContext({
@@ -65,20 +88,6 @@ export function LabelChoices({
                   point: {x: event.clientX, y: event.clientY},
                 },
               });
-            }}
-            onKeyDown={event => {
-              if (
-                event.key === 'ContextMenu' ||
-                (event.key === 'F10' && event.shiftKey)
-              ) {
-                event.preventDefault();
-                event.stopPropagation();
-                onContext({
-                  label,
-                  trigger: event.currentTarget,
-                  anchor: {kind: 'element', element: event.currentTarget},
-                });
-              }
             }}
           >
             <span className={menuStyles.lead}>

@@ -6,6 +6,8 @@ import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
+import {useButtonPress} from '@renderer/ui/press';
 import {layerContainer} from '@renderer/ui/layers';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import {labelNameReason} from './LabelDialog';
@@ -48,6 +50,10 @@ export function LabelMenu({
   const [context, setContext] = useState<LabelContext | null>(null);
   const current = labels.find(label => label.name === selected);
   const reason = labelNameReason(name, labels);
+  const newPress = useButtonPress<HTMLButtonElement>({
+    disabled: locked,
+    onPress: () => setCreating(true),
+  });
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
     onClose,
@@ -149,7 +155,11 @@ export function LabelMenu({
                 invalid={name !== '' && reason !== undefined}
                 invalidReason={name === '' ? undefined : reason}
                 onKeyDown={event => {
-                  if (event.key === 'Enter' && !isComposing(event)) {
+                  if (
+                    event.key === 'Enter' &&
+                    !isComposing(event) &&
+                    !hasModifier(event)
+                  ) {
                     event.preventDefault();
                     event.stopPropagation();
                     editorTask(create());
@@ -160,15 +170,13 @@ export function LabelMenu({
           ) : (
             <Tooltip text={locked ? lockReason : '새 이름표'}>
               <button
+                {...newPress}
                 type="button"
                 role="menuitem"
                 data-choice
                 data-new
                 className={classNames(menuStyles.item, styles.choice)}
                 aria-disabled={locked}
-                onClick={() => {
-                  if (!locked) setCreating(true);
-                }}
               >
                 <span className={menuStyles.lead}>
                   <Icon name="plus" size={14} />
