@@ -28,6 +28,8 @@ import {draftMacroAction} from './macroActionDraft';
 import {MACRO_PALETTE} from './macroPaletteCatalog';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
+import {MacroPalette} from './MacroPalette';
+import styles from './MacroPanel.module.css';
 
 type Editor =
   | {kind: 'icon'; item: Macro}
@@ -196,6 +198,8 @@ export function MacroPanel({
     null,
   );
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [paletteFor, setPaletteFor] = useState<Macro['id']>();
+  const [paletteDragging, setPaletteDragging] = useState(false);
   const revision = useRef(0);
   const pendingCount = useRef<AbortController | null>(null);
   const colorRow = useRef<HTMLDivElement>(null);
@@ -305,32 +309,68 @@ export function MacroPanel({
   };
   return (
     <>
-      <MacroView
-        macros={document?.value.macros ?? []}
-        collections={document?.value.collections ?? []}
-        collectionId={currentCollection}
-        mode={mode}
-        selectedId={editor?.item.id ?? menu?.item.id}
-        lastRunId={lastRunId}
-        onCollection={id => {
-          revision.current++;
-          setCollection(id);
-        }}
-        onMode={value => {
-          revision.current++;
-          setMode(value);
-        }}
-        onRun={start}
-        onMenu={(item, anchor) => {
-          revision.current++;
-          setMenu({item, anchor});
-        }}
-        onNew={
-          !locked && document.value.macros.length < MACRO_FILE_LIMITS.macros
-            ? create
-            : undefined
-        }
-      />
+      <div className={styles.panel}>
+        <MacroView
+          macros={document?.value.macros ?? []}
+          collections={document?.value.collections ?? []}
+          collectionId={currentCollection}
+          mode={mode}
+          selectedId={editor?.item.id ?? menu?.item.id}
+          lastRunId={lastRunId}
+          onCollection={id => {
+            revision.current++;
+            setCollection(id);
+          }}
+          onMode={value => {
+            revision.current++;
+            setMode(value);
+          }}
+          onRun={start}
+          onMenu={(item, anchor) => {
+            revision.current++;
+            setMenu({item, anchor});
+          }}
+          onDropAction={
+            locked
+              ? undefined
+              : (item, actionKind) => {
+                  if (item.actions.length >= MACRO_FILE_LIMITS.actions) return;
+                  revision.current++;
+                  setEditor({kind: 'action', item, actionKind});
+                }
+          }
+          onNew={
+            !locked && document.value.macros.length < MACRO_FILE_LIMITS.macros
+              ? create
+              : undefined
+          }
+        />
+        {paletteFor ? (
+          <div
+            className={styles.palette}
+            data-dragging={paletteDragging || undefined}
+            onDragStart={() => setPaletteDragging(true)}
+            onDragEnd={() => setPaletteDragging(false)}
+          >
+            <MacroPalette
+              onClose={() => setPaletteFor(undefined)}
+              onChoose={actionKind => {
+                const item = document?.value.macros.find(
+                  macro => macro.id === paletteFor,
+                );
+                if (
+                  !locked &&
+                  item &&
+                  item.actions.length < MACRO_FILE_LIMITS.actions
+                ) {
+                  revision.current++;
+                  setEditor({kind: 'action', item, actionKind});
+                }
+              }}
+            />
+          </div>
+        ) : null}
+      </div>
       {menu ? (
         <Menu
           label="매크로"
@@ -416,21 +456,30 @@ export function MacroPanel({
               kind: 'item',
               id: 'add-action',
               label: '\ub3d9\uc791 \ucd94\uac00',
-              disabled:
-                locked || menu.item.actions.length >= MACRO_FILE_LIMITS.actions,
-              submenu: MACRO_PALETTE.flatMap(group => group.actions).map(
-                action => ({
+              disabled: locked,
+              submenu: [
+                ...MACRO_PALETTE.flatMap(group => group.actions).map(
+                  action => ({
+                    kind: 'item' as const,
+                    id: action.kind,
+                    label: action.label,
+                    disabled:
+                      menu.item.actions.length >= MACRO_FILE_LIMITS.actions,
+                    onSelect: () =>
+                      setEditor({
+                        kind: 'action',
+                        item: menu.item,
+                        actionKind: action.kind,
+                      }),
+                  }),
+                ),
+                {
                   kind: 'item' as const,
-                  id: action.kind,
-                  label: action.label,
-                  onSelect: () =>
-                    setEditor({
-                      kind: 'action',
-                      item: menu.item,
-                      actionKind: action.kind,
-                    }),
-                }),
-              ),
+                  id: 'palette',
+                  label: '\ub3d9\uc791 \ud314\ub808\ud2b8',
+                  onSelect: () => setPaletteFor(menu.item.id),
+                },
+              ],
             },
             {
               kind: 'item',

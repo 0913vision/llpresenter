@@ -1,0 +1,18 @@
+.panel {
+  position: relative;
+  min-height: 0;
+}
+.palette {
+  position: absolute;
+  z-index: var(--z-popover);
+  inset: 0 0 auto auto;
+  max-height: 100%;
+  overflow: auto;
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-popover);
+}
+
+.palette[data-dragging] {
+  opacity: 0;
+  pointer-events: none;
+}

@@ -365,3 +365,82 @@ it.each([
     expect(pointed?.textContent).toBe(expected);
   },
 );
+
+it('opens the palette and drops an action on the target macro without running it', async () => {
+  const f = fixture();
+  const secondId = '00000000-0000-4000-8000-000000000007';
+  const second = {...macro, id: secondId, name: 'Second'};
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {macros: [macro, second], collections: [group]},
+        2,
+      ),
+    ),
+  );
+  await screen.findByRole('option', {name: 'Second'});
+  await openActionSubmenu('\ub3d9\uc791 \ucd94\uac00');
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
+  );
+  expect(
+    screen.getByRole('region', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
+  ).toBeDefined();
+  const dataTransfer = {
+    types: ['application/x-llpresenter-macro-action'],
+    getData: () => 'clearAll',
+    setData: vi.fn(),
+    effectAllowed: '',
+    dropEffect: '',
+  };
+  const source = screen.getByRole('button', {
+    name: '\ubaa8\ub450 \uc9c0\uc6b0\uae30',
+  });
+  const palette = source.closest('[data-dragging], [class*="palette"]');
+  if (!palette) throw new Error('Missing palette');
+  fireEvent.dragStart(source, {dataTransfer});
+  expect(palette.hasAttribute('data-dragging')).toBe(true);
+  const target = screen.getByRole('option', {name: 'Second'});
+  fireEvent.dragOver(target, {dataTransfer});
+  expect(dataTransfer.dropEffect).toBe('copy');
+  fireEvent.drop(target, {dataTransfer});
+  fireEvent.dragEnd(source, {dataTransfer});
+  expect(palette.hasAttribute('data-dragging')).toBe(false);
+  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '\uc644\ub8cc'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[1]?.actions).toEqual([{kind: 'clearAll'}]);
+  expect(f.send).not.toHaveBeenCalled();
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: '\ub3d9\uc791 \ud314\ub808\ud2b8 \ub2eb\uae30',
+    }),
+  );
+  expect(
+    screen.queryByRole('region', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
+  ).toBeNull();
+});
+
+it('ignores unknown external action drops', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.drop(tile, {
+    dataTransfer: {types: ['text/plain'], getData: () => 'clearAll'},
+  });
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(f.edit).not.toHaveBeenCalled();
+  expect(f.send).not.toHaveBeenCalled();
+});

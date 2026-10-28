@@ -1,0 +1,9 @@
+import {expect, it} from 'vitest';
+import {cssRules} from '@renderer/shell/testing/cssRules';
+
+const ruleOf = cssRules('src/renderer/src/show/tools/MacroPanel.module.css');
+
+it('makes covered macro tiles visible and reachable while dragging the palette', () => {
+  expect(ruleOf('.palette[data-dragging]')).toContain('opacity: 0');
+  expect(ruleOf('.palette[data-dragging]')).toContain('pointer-events: none');
+});

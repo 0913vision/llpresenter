@@ -1,4 +1,6 @@
-import type {JSX} from 'react';
+import {useRef, type DragEvent, type JSX} from 'react';
+import type {MacroActionKind} from '@shared/schema/macros';
+import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
 import type {Macro, MacroCollection} from '@shared/schema/macros';
 import {
   Button,
@@ -26,6 +28,7 @@ export function MacroView({
   onRun,
   onMenu,
   onNew,
+  onDropAction,
 }: {
   readonly macros: readonly Macro[];
   readonly collections: readonly MacroCollection[];
@@ -38,7 +41,19 @@ export function MacroView({
   readonly onRun: (item: Macro) => void;
   readonly onMenu: (item: Macro, anchor: MenuAnchor) => void;
   readonly onNew?: (() => void) | undefined;
+  readonly onDropAction?:
+    ((item: Macro, kind: MacroActionKind) => void) | undefined;
 }): JSX.Element {
+  const root = useRef<HTMLDivElement>(null);
+  const dropTarget = (event: DragEvent): Macro | undefined => {
+    if (!(event.target instanceof Element)) return undefined;
+    const option = event.target.closest('[role="option"]');
+    if (!option || !root.current?.contains(option)) return undefined;
+    const options = Array.from(
+      root.current.querySelectorAll('[role="option"]'),
+    );
+    return shown[options.indexOf(option)];
+  };
   const collection = collections.find(item => item.id === collectionId);
   const members = collection ? new Set(collection.macroIds) : undefined;
   const shown = members ? macros.filter(item => members.has(item.id)) : macros;
@@ -56,7 +71,36 @@ export function MacroView({
     },
   };
   return (
-    <div className={styles.root}>
+    <div
+      ref={root}
+      className={styles.root}
+      onDragOver={event => {
+        if (
+          onDropAction &&
+          Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME) &&
+          dropTarget(event)
+        ) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        }
+      }}
+      onDrop={event => {
+        if (
+          !onDropAction ||
+          !Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME)
+        ) {
+          return;
+        }
+        const item = dropTarget(event);
+        const kind = readMacroActionDrag(
+          event.dataTransfer.getData(MACRO_ACTION_MIME),
+        );
+        if (item && kind) {
+          event.preventDefault();
+          onDropAction(item, kind);
+        }
+      }}
+    >
       <div className={styles.header}>
         <SelectMenu
           aria-label="매크로 모음"
