@@ -37,7 +37,7 @@ export function MacroView({
   readonly onMode: (mode: MacroViewMode) => void;
   readonly onRun: (item: Macro) => void;
   readonly onMenu: (item: Macro, anchor: MenuAnchor) => void;
-  readonly onNew: () => void;
+  readonly onNew?: (() => void) | undefined;
 }): JSX.Element {
   const collection = collections.find(item => item.id === collectionId);
   const members = collection ? new Set(collection.macroIds) : undefined;
