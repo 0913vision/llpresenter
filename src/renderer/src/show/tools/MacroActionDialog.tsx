@@ -137,6 +137,11 @@ export function MacroActionDialog({
       }}
     >
       <Properties placement="window">
+        {kind === 'clearAll' ? (
+          <PropertyRow label={'\ub3d9\uc791'}>
+            {() => <span>{'\ubaa8\ub450 \uc9c0\uc6b0\uae30'}</span>}
+          </PropertyRow>
+        ) : null}
         {modeOptions ? (
           <PropertyRow label="동작">
             {({controlId}) => (

@@ -64,6 +64,7 @@ it('supports a clear action and audio stop without a target', () => {
       onSave={save}
     />,
   );
+  expect(screen.getByText('\ubaa8\ub450 \uc9c0\uc6b0\uae30')).toBeDefined();
   fireEvent.click(screen.getByRole('button', {name: '완료'}));
   expect(save).toHaveBeenCalledWith({kind: 'clearAll'});
   view.rerender(
