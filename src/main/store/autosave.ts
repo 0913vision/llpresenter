@@ -47,15 +47,17 @@ export class Autosave {
   }
 
   /**
-   * Saves every file that waits now, and resolves when those saves, the ones
-   * already running, and the ones that came due meanwhile have finished.
+   * Saves waiting work, including work scheduled while saves are running,
+   * and resolves after all of it finishes.
    */
   async flush(): Promise<void> {
-    for (const [key, {save}] of [...this.waiting]) {
-      this.cancel(key);
-      this.start(key, save);
-    }
-    while (this.running.size > 0) {
+    while (this.waiting.size > 0 || this.running.size > 0) {
+      for (const key of [...this.waiting.keys()]) {
+        const waiting = this.waiting.get(key);
+        if (waiting === undefined) continue;
+        this.cancel(key);
+        this.start(key, waiting.save);
+      }
       await Promise.all(this.running.values());
     }
   }

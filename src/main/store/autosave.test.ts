@@ -178,6 +178,57 @@ describe('Autosave', () => {
     expect(latest).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['same', 'other'])(
+    'flushes a %s file scheduled while a save is running',
+    async key => {
+      let releaseFirst = (): void => undefined;
+      let releaseLatest = (): void => undefined;
+      const autosave = new Autosave(vi.fn(), DELAY_MS);
+      autosave.schedule(
+        'same',
+        () =>
+          new Promise<void>(resolve => {
+            releaseFirst = resolve;
+          }),
+      );
+      const flushing = autosave.flush();
+      const latest = vi.fn(
+        () =>
+          new Promise<void>(resolve => {
+            releaseLatest = resolve;
+          }),
+      );
+      autosave.schedule(key, latest);
+      let finished = false;
+      const completed = flushing.then(() => {
+        finished = true;
+      });
+      releaseFirst();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(latest).toHaveBeenCalledOnce();
+      expect(finished).toBe(false);
+      releaseLatest();
+      await completed;
+      expect(finished).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+      autosave.dispose();
+    },
+  );
+
+  it('keeps the latest callback when a save reschedules another waiting file', async () => {
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    const older = vi.fn(async () => undefined);
+    const latest = vi.fn(async () => undefined);
+    autosave.schedule('first', async () => {
+      autosave.schedule('second', latest);
+    });
+    autosave.schedule('second', older);
+    await autosave.flush();
+    expect(older).not.toHaveBeenCalled();
+    expect(latest).toHaveBeenCalledOnce();
+    autosave.dispose();
+  });
+
   it('reports a save that fails and keeps going', async () => {
     const onError = vi.fn();
     const autosave = new Autosave(onError, DELAY_MS);
