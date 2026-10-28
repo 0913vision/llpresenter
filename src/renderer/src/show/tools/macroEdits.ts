@@ -9,9 +9,10 @@ import {
 } from '@shared/schema/macros';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
+import {editMacroActions, type MacroActionEdit} from './macroActionEdits';
 
 export type MacroChanges = Partial<
-  Pick<Macro, 'name' | 'icon' | 'color' | 'actions' | 'runOnStartup'>
+  Pick<Macro, 'name' | 'icon' | 'color' | 'runOnStartup'>
 >;
 export type MacroEdit =
   | {
@@ -25,6 +26,11 @@ export type MacroEdit =
       readonly changes: MacroChanges;
     }
   | {readonly kind: 'delete'; readonly id: Macro['id']}
+  | {
+      readonly kind: 'action';
+      readonly id: Macro['id'];
+      readonly action: MacroActionEdit;
+    }
   | {
       readonly kind: 'membership';
       readonly id: Macro['id'];
@@ -96,7 +102,12 @@ function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
   const item =
     edit.kind === 'add'
       ? edit.item
-      : existing && {...existing, ...edit.changes};
+      : edit.kind === 'action'
+        ? existing && {
+            ...existing,
+            actions: editMacroActions(existing.actions, edit.action),
+          }
+        : existing && {...existing, ...edit.changes};
   if (!item?.name.trim() || item.name.trim().length > 256) {
     throw new Error('Invalid macro name');
   }

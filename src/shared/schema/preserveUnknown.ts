@@ -80,6 +80,18 @@ function mergeArray(
   current: readonly unknown[],
   update: readonly unknown[],
 ): unknown[] {
+  const kindOnly = (value: unknown): boolean =>
+    isRecord(value) &&
+    typeof value.kind === 'string' &&
+    itemIdentity(schema.item, value) === undefined;
+  if (
+    current.length > 0 &&
+    update.length > 0 &&
+    current.every(kindOnly) &&
+    update.every(kindOnly)
+  ) {
+    return mergeKindArray(schema.item, current, update);
+  }
   const byKey = new Map(
     current.flatMap(item => {
       const identity = itemIdentity(schema.item, item);
@@ -93,6 +105,45 @@ function mergeArray(
     const previous =
       identity?.stable === true ? matched : (matched ?? current[index]);
     return merge(schema.item, previous, item);
+  });
+}
+
+function mergeKindArray(
+  schema: unknown,
+  current: readonly unknown[],
+  update: readonly unknown[],
+): unknown[] {
+  const available = new Map<string | undefined, number[]>();
+  current.forEach((item, index) => {
+    const key = JSON.stringify(item);
+    const indices = available.get(key) ?? [];
+    indices.push(index);
+    available.set(key, indices);
+  });
+  const used = new Set<number>();
+  const matches = update.map(item => {
+    const index = available.get(JSON.stringify(item))?.shift();
+    if (index !== undefined) used.add(index);
+    return index;
+  });
+  return update.map((item, index) => {
+    let match = matches[index];
+    const candidate = current[index];
+    if (
+      match === undefined &&
+      !used.has(index) &&
+      isRecord(item) &&
+      isRecord(candidate) &&
+      item.kind === candidate.kind
+    ) {
+      match = index;
+      used.add(index);
+    }
+    return merge(
+      schema,
+      match === undefined ? undefined : current[match],
+      item,
+    );
   });
 }
 
