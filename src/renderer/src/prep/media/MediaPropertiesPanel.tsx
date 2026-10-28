@@ -12,6 +12,8 @@ import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {Slider} from '@renderer/ui/Slider';
 import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
+import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {durationText, sizeText} from './mediaEntries';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {
@@ -83,6 +85,7 @@ function TimeField({
       onChange={setDraft}
       onBlur={finish}
       onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+        if (isComposing(event) || hasModifier(event)) return;
         if (event.key === 'Enter') finish();
         else if (event.key === 'Escape') setDraft(null);
       }}

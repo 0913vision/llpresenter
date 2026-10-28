@@ -246,6 +246,29 @@ describe('media properties panel', () => {
     );
   });
 
+  it('keeps a time draft on modified keys and IME composition', async () => {
+    const {edit} = setup();
+    const panel = await choose('Dawn');
+    const start = within(panel).getByRole('textbox', {name: '시작'});
+    fireEvent.change(start, {target: {value: '0:05.5'}});
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of ['Enter', 'Escape']) {
+        expect(fireEvent.keyDown(start, {key, [modifier]: true})).toBe(true);
+      }
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(8);
+    fireEvent.keyDown(start, {key: 'Enter', isComposing: true});
+    expect(start).toHaveProperty('value', '0:05.5');
+    expect(edit).not.toHaveBeenCalled();
+    fireEvent.keyDown(start, {key: 'Enter'});
+    expect(edit).toHaveBeenCalledWith(
+      expect.objectContaining({changes: {props: {audio: false, in: 5.5}}}),
+    );
+  });
+
   it('takes a typed range only when it starts before it ends', async () => {
     const {edit} = setup();
     const panel = await choose('Dawn');
