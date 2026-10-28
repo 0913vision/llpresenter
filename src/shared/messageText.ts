@@ -17,7 +17,7 @@ export function messageBlankNames(text: string): readonly string[] {
 }
 
 export function fillMessageText(
-  template: MessageTemplate,
+  template: Pick<MessageTemplate, 'text'>,
   values: Readonly<Record<string, string>>,
 ): string {
   if (template.text.length > MAX_MESSAGE_CHARACTERS) {
