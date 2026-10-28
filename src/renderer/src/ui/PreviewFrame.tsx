@@ -2,6 +2,7 @@ import type {JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {titleTooltip, useTooltip} from './Tooltip';
+import {useButtonPress} from './press';
 import styles from './PreviewFrame.module.css';
 import {TruncatedText} from './TruncatedText';
 
@@ -190,6 +191,11 @@ function ScreenCell<Id extends string>({
   const {targetProps, tooltip} = useTooltip(
     titleTooltip(previewReason(screen)),
   );
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: () => onBigChange(screen.id),
+    onBlur: targetProps.onBlur,
+  });
   const large = role === 'large';
   return (
     <>
@@ -207,6 +213,7 @@ function ScreenCell<Id extends string>({
       </div>
       <button
         {...targetProps}
+        {...press}
         type="button"
         aria-label={smallPreviewName(screen)}
         aria-pressed={large}
@@ -214,7 +221,6 @@ function ScreenCell<Id extends string>({
         data-state={stateOf(screen.status)}
         className={classNames(styles.hit, large && styles.selected)}
         style={{gridColumn: column}}
-        onClick={() => onBigChange(screen.id)}
       >
         {large ? (
           <>

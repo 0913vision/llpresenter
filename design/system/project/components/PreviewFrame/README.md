@@ -84,6 +84,7 @@ what will appear when output is enabled. Give reasons in tooltips, for example
   "무대 화면 크게 보기, 모니터 3 연결 끊김".
 - Native button Enter and Space activation select a screen. Keep focus on the
   activated slot.
+- Modified Enter and Space pass through without selecting a screen.
 - Swap immediately, with no picture transition.
 - Do not add state explanations or placeholder Look names to the captions.
 

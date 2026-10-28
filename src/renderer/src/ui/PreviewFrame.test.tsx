@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -73,6 +73,25 @@ function smallNames(): Array<string | null> {
 }
 
 describe('PreviewFrame', () => {
+  it('does not switch previews on modified keyboard activation', () => {
+    const onBigChange = vi.fn();
+    render(<Preview onBigChange={onBigChange} />);
+    const target = screen.getByRole('button', {
+      name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+    });
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(target, {key, [modifier]: true});
+        fireEvent.keyUp(target, {key});
+        fireEvent.click(target, {detail: 0});
+      }
+    }
+    expect(onBigChange).not.toHaveBeenCalled();
+    expect(target.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(target, {detail: 1, ctrlKey: true});
+    expect(onBigChange).toHaveBeenCalledExactlyOnceWith('stage');
+  });
+
   it('shows one picture per screen and a selected marker in the fixed three-slot row', () => {
     const {container} = render(<Preview />);
     expect(screen.getByText('본 화면 출력')).toBeDefined();
