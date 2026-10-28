@@ -19,6 +19,7 @@ import {Workspace} from '@renderer/shell/Workspace';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from './selection';
+import {wideMonitorArrangement} from './testing/monitorArrangement';
 import {
   CAPTIONS_ID,
   MAIN_ID,
@@ -153,6 +154,35 @@ function selectedOf(name: string): string | null {
 }
 
 describe('the 화면 list', () => {
+  it('keeps the configured monitor selected and named while output is off', async () => {
+    const {send} = setup({outputs: {}, monitors: wideMonitorArrangement});
+    const monitor = await screen.findByRole('button', {
+      name: '모니터 2 Second monitor',
+    });
+    await waitFor(() =>
+      expect(monitor.getAttribute('aria-pressed')).toBe('true'),
+    );
+    expect(monitor.textContent).toContain('본 화면');
+    expect(document.querySelector(`[data-target="${MAIN_ID}"]`)).toBeNull();
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[MAIN_ID]: true}},
+      }),
+    );
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[MAIN_ID]: false}},
+      }),
+    );
+    expect(monitor.getAttribute('aria-pressed')).toBe('true');
+    expect(monitor.textContent).toContain('본 화면');
+    await userEvent.click(option('방송 자막'));
+    expect(monitor.getAttribute('aria-pressed')).toBe('false');
+    await userEvent.click(monitor);
+    expect(selectedOf('본 화면')).toBe('true');
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('opens the selected Look editor and keeps output warnings above its column', async () => {
     setup({warningHeight: 96});
     await screen.findByRole('option', {name: '설교'});

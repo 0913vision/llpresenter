@@ -615,7 +615,7 @@ describe('saved output backend', () => {
     );
   });
 
-  it('lists the screens on the monitors main assigned, and pushes when the assignment changes', async () => {
+  it('keeps configured monitor assignments through output toggles and publishes display changes', async () => {
     const twin = {name: 'Generic PnP'};
     const second = (id: number, x: number) =>
       displayInfo({id, x, name: twin.name});
@@ -633,7 +633,7 @@ describe('saved output backend', () => {
       second(22, 1920),
       second(33, 3840),
     ];
-    const {save} = setup();
+    const {save, store, windows} = setup();
     await loaded();
     save([{...main, display: savedDisplay(second(2, 1920))}, stageScreen]);
     const assignment = () => {
@@ -643,6 +643,15 @@ describe('saved output backend', () => {
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.value.map(monitor => [monitor.number, monitor.screenIds]);
     };
+    expect(assignment()).toEqual([
+      [1, []],
+      [2, [MAIN]],
+      [3, [STAGE_SCREEN]],
+    ]);
+    expect(store.state.outputs[MAIN]).not.toBe(true);
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    store.dispatch({type: 'output.set', screenId: MAIN, on: false});
+    expect(windows.only(MAIN).mode.kind).toBe('hidden');
     expect(assignment()).toEqual([
       [1, []],
       [2, [MAIN]],
