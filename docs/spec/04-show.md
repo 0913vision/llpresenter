@@ -179,13 +179,13 @@ The shortcut part of 10 is decided (2026-10-25): shortcuts follow ProPresenter
 where it has a key or a behavior, and 10's choice applies where no ProPresenter
 source was found.
 
-| Key                    | Action                          | Basis                                                                                         |
-| ---------------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
-| ↑, ↓ (grid has focus)  | Move the selected tile by a row | `SlideThumbnail` README, narrowed by 10 (focus precedence rule 5)                             |
-| Enter (grid has focus) | Output the selected tile        | `SlideThumbnail` README                                                                       |
-| →, Space, Page Down    | Output the next 슬라이드        | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
-| ←, Page Up             | Output the previous 슬라이드    | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
-| 이름표 jump key        | Output that 이름표's 슬라이드   | Follows ProPresenter's group hot keys (S4 pp. 58, 176; 10)                                    |
+| Key                    | Action                             | Basis                                                                                         |
+| ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| ↑, ↓ (grid has focus)  | Move the selected tile by a row    | `SlideThumbnail` README, narrowed by 10 (focus precedence rule 5)                             |
+| Enter (grid has focus) | Output the selected tile           | `SlideThumbnail` README                                                                       |
+| →, Space, Page Down    | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| ←, Page Up             | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
+| Slide hot key          | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
 
 - → ← Space Page Up Page Down output the next and previous 슬라이드 even while
   the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
@@ -207,11 +207,14 @@ source was found.
   환경설정 > 진행 setting that lets next move into the next item is part of 10's
   settings proposal, which is still open. On the first tile, previous does
   nothing (proposal).
-- An 이름표 jump key outputs the first tile with that 이름표 after the live
-  슬라이드 in the current item's sequence. If none follows, it outputs the first
-  tile with that 이름표 in the sequence (proposal: ProPresenter's hot keys jump
-  to a slide, S4 pp. 58 and 176, but no ProPresenter source says which
-  occurrence of a repeated group).
+- A slide hot key outputs its particular source slide in the song open in the
+  슬라이드 panel, even when another item is live. It identifies
+  `{songId, groupId, slideIndex}` (02), independently of 이름표 names. If the
+  chosen 구성 repeats that group, the first projected occurrence is the
+  destination. Further presses target that same occurrence and never cycle. If
+  the source is absent from the chosen 구성, the key does nothing. This is the
+  October 27 S26 user decision; ProPresenter documents per-slide hot keys (S4 p.
+  58), while the repeated-group rule is our explicit user decision.
 - Live commands run once per key press and ignore key repeat (decided, 10).
 - These keys don't work while a text field has focus (10, focus precedence).
 
@@ -841,18 +844,18 @@ Source: `Compact`, `Main` board guide (진행 화면 1366×768), design system R
 Decided on 2026-10-25. The full command list, where each command works, and how
 keys are changed are in 10, "Shortcut system".
 
-| Key                                              | Action                                                          | Basis                                                                             |
-| ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| →, Space, Page Down                              | Next 슬라이드                                                   | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes           |
-| ←, Page Up                                       | Previous 슬라이드                                               | Follows ProPresenter (S1); Page Up for presentation remotes                       |
-| Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)         | No ProPresenter source found                                                      |
-| Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)        | Follows ProPresenter (Show Triggered Presentation, S1)                            |
-| Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist  | Follows ProPresenter (Next and Previous Background, S1)                           |
-| F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지             | Follows ProPresenter (S1)                                                         |
-| Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)         | M2 check 1 row 8; never restores cleared output (03, 10)                          |
-| Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off       | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                       |
-| Ctrl 2                                           | 무대 화면 output on or off                                      | Follows ProPresenter (Toggle Stage Display Screens, S1)                           |
-| Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette | Follows ProPresenter (S1)                                                         |
-| Ctrl Alt B                                       | The Bible field in 퀵 실행                                      | Follows ProPresenter (Open Bibles Mode, S1)                                       |
-| 이름표 jump key (a bare letter or digit)         | That 이름표's 슬라이드                                          | Follows ProPresenter (group hot keys, S4 pp. 58, 176); no default keys            |
-| A key set for a Look, 소품, 매크로, or 타이머    | That object's command                                           | No default keys; follows ProPresenter's Key Mappings for 소품 and 매크로 (S2, S3) |
+| Key                                              | Action                                                                   | Basis                                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| →, Space, Page Down                              | Next 슬라이드                                                            | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes                  |
+| ←, Page Up                                       | Previous 슬라이드                                                        | Follows ProPresenter (S1); Page Up for presentation remotes                              |
+| Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)                  | No ProPresenter source found                                                             |
+| Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)                 | Follows ProPresenter (Show Triggered Presentation, S1)                                   |
+| Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |
+| F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지                      | Follows ProPresenter (S1)                                                                |
+| Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)                  | M2 check 1 row 8; never restores cleared output (03, 10)                                 |
+| Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off                | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
+| Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
+| Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette          | Follows ProPresenter (S1)                                                                |
+| Ctrl Alt B                                       | The Bible field in 퀵 실행                                               | Follows ProPresenter (Open Bibles Mode, S1)                                              |
+| Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
+| A key set for a Look, 소품, 매크로, or 타이머    | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 소품 and 매크로 (S2, S3)        |

@@ -117,7 +117,8 @@ Rules:
 - Don't store the default 구성. It expands every group once in file order.
 - A 구성 belongs to the song, not to any service. A 예배 순서 item picks a 구성
   by name.
-- Don't store 이름표 colors or jump keys in the song file. See the 이름표 list.
+- Don't store shared 이름표 colors or legacy label keys in the song file. A
+  source slide's optional hot key belongs in `groups[].slides[].hotKey`.
 - Editing or splitting a slide changes its group's source slides. Every
   occurrence uses the updated group, without rewriting positional references. A
   new slide stays in the active group. Deleting the last slide deletes the group
@@ -623,17 +624,18 @@ references continue resolving by ID (October 27 user decision, see 04).
 
 ### 이름표 list (`labels.json`)
 
-| Field      | Type                                                                                                     | Meaning                                                                                                                        | Source                                        |
-| ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                              | `Reflow` 이름표 menu                          |
-| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                      | `Reflow`                                      |
-| `.color`   | One of the eight colors above, or `"none"`                                                               | Color.                                                                                                                         | `Reflow` color row, `LabelColorPicker` README |
-| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Jump key that outputs this 이름표 in 진행 (see 04). Matched by physical key, so it works with the Korean IME on (decided, 10). | Product log (each 이름표 has a jump key), 10  |
+| Field      | Type                                                                                                     | Meaning                                                                                                                                                               | Source                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                                                                     | `Reflow` 이름표 menu                                             |
+| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                                                             | `Reflow`                                                         |
+| `.color`   | One of the eight colors above, or `"none"`                                                               | Color.                                                                                                                                                                | `Reflow` color row, `LabelColorPicker` README                    |
+| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Legacy label assignment retained when reading/writing existing settings. It does not assign a source-slide hot key; use `groups[].slides[].hotKey` (S26, October 27). | Earlier product log; superseded by the October 27 user decision. |
 
 Defaults: 1절 (teal), 2절 (teal), 3절 (teal), 프리코러스 (green), 후렴 (yellow),
-브리지 (violet), 간주 (gray), 엔딩 (none). Jump keys start empty (decided: no
-source gives default keys for ProPresenter's group labels; 10). The board spells
-브릿지 and the design system spells 브리지. This spec follows the design system.
+브리지 (violet), 간주 (gray), 엔딩 (none). New labels retain `key: null` for
+legacy compatibility. Source-slide hot keys start unassigned; these names do not
+generate assignments (October 27 S26 decision, 10). The board spells 브릿지 and
+the design system spells 브리지. This spec follows the design system.
 
 ### 환경설정 (`preferences.json`)
 

@@ -217,14 +217,37 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 ### Managing the 이름표 list (proposal)
 
-No board shows where to rename or delete an 이름표 or set its jump key (open
-question). Version 1 adds a right-click menu to each name in the 이름표 menu:
+Version 1 adds a right-click menu to each name in the 이름표 menu. Hot keys
+belong to particular source slides, not this app-wide name/color registry
+(October 27 S26 user decision).
 
-| Item                    | Behavior                                                                                                                                                                                                                                   |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 이름 바꾸기 (rename)    | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02).                                                                                                                |
-| 바로 가기 키 (jump key) | Sets one letter or digit key, matched by physical key and stored as a code (02). A key that another 이름표 uses shows the conflict warning. Commands never use bare letters or digits, so a jump key can't collide with one (decided, 10). |
-| 삭제 (delete)           | Removes the name from the list only. Songs keep the name, and it draws with no color.                                                                                                                                                      |
+| Item                 | Behavior                                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 이름 바꾸기 (rename) | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02). |
+| 삭제 (delete)        | Removes the name from the list only. Songs keep the name, and it draws with no color.                                       |
+
+### Slide hot keys
+
+- The source slide's editor control opens 슬라이드 바로 가기 키. Store an
+  optional physical `KeyA` through `KeyZ` or `Digit0` through `Digit9` in
+  `groups[].slides[].hotKey` (02). No assignment is the default.
+- Assign a key to that source slide once, regardless of how many times its group
+  occurs in a 구성. Another source slide in the same song cannot use that code.
+  The conflict identifies the source slide number in master group order; another
+  song may use the same code.
+- Enter or numeric keypad Enter saves a changed, valid assignment. Esc cancels
+  the draft. Backspace, Delete or 지우기 removes the assignment. Tab and Shift
+  Tab navigate without changing it, and standalone modifier keys leave the draft
+  intact. Modified assignments and reserved keys are refused (10).
+- IME composition and held keys do not record an assignment. Physical letter
+  codes work in Korean mode; numpad digits count only with Num Lock on.
+- Read-only and close-preflight locks refuse edits. A song/source change while
+  the dialog is open makes the draft stale; do not write it onto another slide.
+  A removed source closes the dialog. A refused commit keeps it open.
+- Assignment/removal uses the song's existing undo and save path as one step,
+  separate from typing, without moving the lyric cursor. In 진행 the key goes to
+  the first projected occurrence of that exact source, never the next match by
+  이름표 (04).
 
 ### Preview
 
@@ -243,7 +266,7 @@ question). Version 1 adds a right-click menu to each name in the 이름표 menu:
 
 Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 `Menu` README, `TextField` README, `SlideThumbnail` README, product log (version
-61 구성 presets, user-managed 이름표 list with colors and jump keys).
+61 구성 presets, user-managed 이름표 colors; October 27 S26 user decision).
 
 ## 예배 순서 item settings
 

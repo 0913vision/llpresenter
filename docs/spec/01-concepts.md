@@ -358,28 +358,29 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 
 ### Objects
 
-| Object                         | Meaning                                                                                                           | Stored in                                | Referenced by                       |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------- |
-| 라이브러리 song                | The source of the lyrics. Title, 슬라이드 list, default background, 구성 list.                                    | One `.llsong` file per song              | Song ID                             |
-| 슬라이드                       | One screen of content. An optional 이름표 and a list of lines.                                                    | Inside the song file                     | 슬라이드 number in the song, from 1 |
-| 이름표                         | The name of a 슬라이드. Has a color and a jump key.                                                               | App-wide 이름표 list                     | Name (string)                       |
-| 구성                           | A named 슬라이드 order stored in the song, with repeats. "기본" (default) is the file order and isn't stored.     | Inside the song file                     | 구성 name                           |
-| 예배 순서                      | The item list of one service. Name, date, items.                                                                  | One `.llservice` file per service        | Service ID                          |
-| 예배 순서 item                 | Section (구역, stored as `header`), song, Bible passage, media, or 공지.                                          | Inside the service file                  | Item ID (proposal)                  |
-| 틀                             | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 틀             | 틀 ID                               |
-| Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                            |
-| Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                         |
-| Screen                         | One output target (본 화면, 무대 화면, 방송 자막).                                                                | App-wide settings                        | Screen ID                           |
-| Look                           | Per screen: which layers show, and the lyric style (or stage layout for the 무대 화면).                           | App-wide settings                        | Look ID                             |
-| Lyric style                    | The look of the text on a 슬라이드: font, size, color, alignment, margins.                                        | App-wide settings                        | Lyric style ID                      |
-| Stage layout                   | The arrangement of elements on the 무대 화면 (current lyrics, next lyrics, 이름표, clock, 타이머, stage message). | App-wide settings                        | Stage layout ID                     |
-| 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                           |
-| 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                             |
-| 메시지 template                | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                         |
-| 공지 set                       | A list of 공지 images that advance in turn.                                                                       | App-wide settings                        | Set ID                              |
-| 소품                           | An element above the lyrics, such as a logo, a caption, or a notice card.                                         | App-wide settings                        | 소품 ID                             |
-| 타이머                         | Time left until a set time, a fixed duration, time since a set time, or a clock.                                  | App-wide settings                        | 타이머 ID                           |
-| Bible translation              | A bundled Bible text.                                                                                             | Translation files in the app data folder | Translation ID                      |
+| Object                         | Meaning                                                                                                           | Stored in                                | Referenced by                                     |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| 라이브러리 song                | The source of the lyrics. Title, master source groups, default background and 구성 list.                          | One `.llsong` file per song              | Song ID                                           |
+| Song group                     | A name and ordered source slides. Repeated arrangement occurrences share this group.                              | Inside the song file                     | Group ID within the song                          |
+| 슬라이드                       | One source slide's lines and optional hot key. It inherits its group name.                                        | Inside a source group in the song file   | Song ID, group ID and zero-based slide index (02) |
+| 이름표                         | The name of a 슬라이드. Its color comes from the shared list; a hot key belongs to a particular source slide.     | App-wide 이름표 list                     | Name (string)                                     |
+| 구성                           | A named group-ID order stored in the song, with repeats. "기본" expands each master group once and is not stored. | Inside the song file                     | 구성 name                                         |
+| 예배 순서                      | The item list of one service. Name, date, items.                                                                  | One `.llservice` file per service        | Service ID                                        |
+| 예배 순서 item                 | Section (구역, stored as `header`), song, Bible passage, media, or 공지.                                          | Inside the service file                  | Item ID (proposal)                                |
+| 틀                             | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 틀             | 틀 ID                                             |
+| Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                                          |
+| Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                                       |
+| Screen                         | One output target (본 화면, 무대 화면, 방송 자막).                                                                | App-wide settings                        | Screen ID                                         |
+| Look                           | Per screen: which layers show, and the lyric style (or stage layout for the 무대 화면).                           | App-wide settings                        | Look ID                                           |
+| Lyric style                    | The look of the text on a 슬라이드: font, size, color, alignment, margins.                                        | App-wide settings                        | Lyric style ID                                    |
+| Stage layout                   | The arrangement of elements on the 무대 화면 (current lyrics, next lyrics, 이름표, clock, 타이머, stage message). | App-wide settings                        | Stage layout ID                                   |
+| 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
+| 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
+| 메시지 template                | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
+| 공지 set                       | A list of 공지 images that advance in turn.                                                                       | App-wide settings                        | Set ID                                            |
+| 소품                           | An element above the lyrics, such as a logo, a caption, or a notice card.                                         | App-wide settings                        | 소품 ID                                           |
+| 타이머                         | Time left until a set time, a fixed duration, time since a set time, or a clock.                                  | App-wide settings                        | 타이머 ID                                         |
+| Bible translation              | A bundled Bible text.                                                                                             | Translation files in the app data folder | Translation ID                                    |
 
 ### Relations
 
@@ -390,9 +391,11 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
   run when the item starts, and a memo.
 - Edits to a song's lyrics, 이름표, default background, or 구성 show at once in
   every 예배 순서 that uses the song. A 예배 순서 never copies a song.
-- A 슬라이드 holds its 이름표 by name. The app looks up the color and jump key
-  in the app-wide 이름표 list. A name that isn't in the list draws with no
-  color.
+- A source group holds its 이름표 by name; its slides inherit that name. The app
+  looks up its color in the app-wide 이름표 list. A name that isn't in the list
+  draws with no color. A hot key belongs to that particular source slide,
+  independent of its name or color. Repeated occurrences of a group use the same
+  assignment (02, 04).
 - Songs and 예배 순서 refer to media only by media ID. File paths exist only in
   the media list.
 - A Look holds, for each screen ID, the visibility of each layer and a lyric
@@ -404,17 +407,17 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 
 ### What belongs to a service, a song, or the app
 
-| Per service (`.llservice`)            | Per song (`.llsong`)             | One for the whole app                     |
-| ------------------------------------- | -------------------------------- | ----------------------------------------- |
-| Service name, date and time           | Title                            | Screens                                   |
-| Items and their order                 | 슬라이드 (이름표 name, lines)    | Looks, lyric styles                       |
-| The 구성 name each song item picks    | Default background               | Stage layouts                             |
-| Background override of each song item | 구성 (names and 슬라이드 orders) | 매크로 and collections                    |
-| Start 매크로 of each song item        |                                  | 퀵 실행                                   |
-| Memo of each song item                |                                  | 메시지 templates, 공지 sets, 소품, 타이머 |
-|                                       |                                  | 이름표 list (name, color, jump key)       |
-|                                       |                                  | 환경설정, shortcuts, Bible translations   |
-|                                       |                                  | Media list and playlists                  |
+| Per service (`.llservice`)            | Per song (`.llsong`)                    | One for the whole app                     |
+| ------------------------------------- | --------------------------------------- | ----------------------------------------- |
+| Service name, date and time           | Title                                   | Screens                                   |
+| Items and their order                 | Source slides (lines, optional hot key) | Looks, lyric styles                       |
+| The 구성 name each song item picks    | Default background                      | Stage layouts                             |
+| Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                    |
+| Start 매크로 of each song item        |                                         | 퀵 실행                                   |
+| Memo of each song item                |                                         | 메시지 templates, 공지 sets, 소품, 타이머 |
+|                                       |                                         | 이름표 list (name, color)                 |
+|                                       |                                         | 환경설정, shortcuts, Bible translations   |
+|                                       |                                         | Media list and playlists                  |
 
 - To make one service look different from another, keep several Looks and switch
   them with the start 매크로 of an item.

@@ -361,9 +361,10 @@ full command list.
   전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
   count).
 - A table with the columns 명령 (command) and 단축키 (shortcut), grouped as in
-  10's command list, with a group for 이름표 jump keys. Editing a jump key here
-  edits the 이름표 list (05). Each Look, 소품, 매크로, and 타이머 has its own
-  row under its group.
+  10's command list. Each Look, 소품, 매크로, and 타이머 has its own row under
+  its group. Bare letters/digits are reserved for source-slide hot keys, which
+  are edited on that song's particular source slide (05), not in a global 이름표
+  binding group (October 27 S26 user decision).
 - A bar at the bottom shows the selected command, its default ("기본값 없음", no
   default), and the buttons 기본값으로 (reset to default) and 지우기 (remove the
   shortcut). Here 지우기 is the board's label for removing a shortcut, not a
@@ -377,12 +378,14 @@ full command list.
   reserved keys, with the reason in its tooltip (10, "Reserved keys").
 - A shortcut that differs from the default shows its key caps on the selection
   background.
-- If two commands share a combination, or two 이름표 share a jump key, both rows
-  show an amber outline and a warning icon. The icon's tooltip reads "(명령)과
-  겹침" (conflicts with the command), for example "출력 켜기와 겹침".
+- If two commands share a combination, both rows show an amber outline and a
+  warning icon. The icon's tooltip reads "(명령)과 겹침" (conflicts with the
+  command), for example "출력 켜기와 겹침".
 - While a conflict exists, the binding that existed first keeps the key. The
   other one doesn't run on that key until the operator resolves the conflict
   (decided, 10).
+- Source-slide key conflicts are checked within the song's editor control (05).
+  They are not global command conflicts or conflicts across songs.
 
 ### Where shortcuts work and default keys
 
