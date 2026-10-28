@@ -306,3 +306,20 @@ it('creates a new collection containing the selected macro', async () => {
     macroIds: [id],
   });
 });
+
+it('saves an icon chosen from the macro menu', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.contextMenu(tile);
+  fireEvent.click(
+    screen.getByRole('menuitem', {
+      name: '\uc544\uc774\ucf58 \ubc14\uafb8\uae30',
+    }),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '\uc544\uc774\ucf58 sun'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.icon).toBe('sun');
+});

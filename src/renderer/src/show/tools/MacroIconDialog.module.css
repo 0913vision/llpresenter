@@ -1,0 +1,6 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, 32px);
+  max-height: 320px;
+  overflow: auto;
+}

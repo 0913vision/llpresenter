@@ -21,8 +21,10 @@ import {MacroActionDialog} from './MacroActionDialog';
 import {draftMacroAction} from './macroActionDraft';
 import {MACRO_PALETTE} from './macroPaletteCatalog';
 import {useMacroTargets} from './useMacroTargets';
+import {MacroIconDialog} from './MacroIconDialog';
 
 type Editor =
+  | {kind: 'icon'; item: Macro}
   | {kind: 'new-collection'; item: Macro}
   | {
       kind: 'action';
@@ -343,6 +345,13 @@ export function MacroPanel({
             },
             {
               kind: 'item',
+              id: 'icon',
+              label: '\uc544\uc774\ucf58 \ubc14\uafb8\uae30',
+              disabled: locked,
+              onSelect: () => setEditor({kind: 'icon', item: menu.item}),
+            },
+            {
+              kind: 'item',
               id: 'add-action',
               label: '\ub3d9\uc791 \ucd94\uac00',
               disabled:
@@ -476,6 +485,16 @@ export function MacroPanel({
               onSelect: () => askDelete(menu.item),
             },
           ]}
+        />
+      ) : null}
+      {editor?.kind === 'icon' ? (
+        <MacroIconDialog
+          value={editor.item.icon}
+          locked={locked}
+          close={close}
+          save={icon =>
+            commit({kind: 'update', id: editor.item.id, changes: {icon}}, close)
+          }
         />
       ) : null}
       {editor?.kind === 'action' ? (
