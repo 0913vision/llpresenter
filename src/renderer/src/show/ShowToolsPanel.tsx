@@ -24,7 +24,7 @@ export function ShowToolsPanel({
     ? tool
     : 'stage';
 
-  const showingCount = useShowingCount();
+  const showingCount = useShowingCount(onProblem);
 
   const tabs = AVAILABLE_TOOL_TABS.map(tab =>
     tab.value === 'showing' ? {...tab, count: showingCount} : tab,

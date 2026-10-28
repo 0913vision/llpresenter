@@ -1,3 +1,4 @@
+import {memo} from 'react';
 import {
   act,
   cleanup,
@@ -18,12 +19,14 @@ import {
   noticeSetIdSchema,
   propIdSchema,
   screenIdSchema,
+  stageLayoutIdSchema,
   type LookId,
   type MediaId,
   type MessageId,
   type NoticeSetId,
   type PropId,
   type ScreenId,
+  type StageLayoutId,
 } from '@shared/schema/ids';
 import type {LooksFile} from '@shared/schema/looks';
 import type {PropsFile} from '@shared/schema/props';
@@ -42,8 +45,19 @@ import {
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/showStore';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
-import {ShowingTab} from './ShowingTab';
-import {computeShowingGroups, dismissMessage, dismissProp} from './showingRows';
+import {
+  ShowingTab,
+  ShowingRow,
+  areShowingRowPropsEqual,
+  type ShowingRowProps,
+} from './ShowingTab';
+import {
+  computeShowingGroups,
+  computeShowingCount,
+  dismissMessage,
+  dismissProp,
+  type ShowingItem,
+} from './showingRows';
 
 function parseTestMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
@@ -67,6 +81,10 @@ function parseTestLookId(uuid: string): LookId {
 
 function parseTestScreenId(uuid: string): ScreenId {
   return v.parse(screenIdSchema, uuid);
+}
+
+function parseTestStageLayoutId(uuid: string): StageLayoutId {
+  return v.parse(stageLayoutIdSchema, uuid);
 }
 
 const UUID_MESSAGE = parseTestMessageId('11111111-2222-4333-8444-555555555555');
@@ -872,5 +890,280 @@ describe('ShowingTab', () => {
     expect(
       within(clockRowElement).queryByRole('button', {name: '내리기'}),
     ).toBeNull();
+  });
+
+  it('proves computeShowingCount equals total rows across all screens on a fixture with every kind', () => {
+    const screensDoc = screensDocument();
+    if (screensDoc.value.format !== 'llsettings.screens') {
+      throw new Error('expected screens document');
+    }
+    const screens = screensDoc.value.screens;
+    const stageDoc = stageLayoutsDocument();
+    if (stageDoc.value.format !== 'llsettings.stage') {
+      throw new Error('expected stage layouts document');
+    }
+    const now = 1_700_000_000_000;
+    const allKindsLooks: LooksFile = {
+      format: 'llsettings.looks',
+      schemaVersion: 1,
+      current: parseTestLookId(LOOK_ID),
+      looks: [
+        {
+          id: parseTestLookId(LOOK_ID),
+          name: '모든 레이어',
+          screens: {
+            [testMainScreen]: {
+              layers: {
+                slide: true,
+                media: true,
+                message: true,
+                prop: true,
+                notice: true,
+              },
+            },
+            [testCaptionsScreen]: {
+              layers: {
+                slide: true,
+                media: true,
+                message: true,
+                prop: true,
+                notice: true,
+              },
+            },
+            [testStageScreen]: {
+              layers: {stageMessage: true, clock: true},
+              stageLayout: parseTestStageLayoutId(LAYOUT_ID),
+            },
+          },
+        },
+      ],
+      lyricStyles: [],
+    };
+
+    const options = {
+      screens,
+      looks: allKindsLooks,
+      liveState: {
+        ...emptyLiveState(),
+        version: 1,
+        lookId: parseTestLookId(LOOK_ID),
+        stageMessage: '무대 전달 사항',
+        layers: {
+          slide: {
+            itemId: 'song-1',
+            position: 0,
+            label: '1절',
+            lines: ['가사 첫줄'],
+          },
+          media: {
+            mediaId: MEDIA_ID,
+            loop: true,
+            startedAt: now,
+          },
+          message: {
+            messageId: UUID_MESSAGE,
+            text: '알림',
+            items: [
+              {
+                messageId: UUID_MESSAGE,
+                text: '자막 알림',
+                targets: [testMainScreen],
+                excludedTargets: [],
+                startedAt: now,
+                expiresAt: null,
+              },
+            ],
+          },
+          prop: {
+            propId: UUID_PROP,
+            items: [
+              {
+                propId: UUID_PROP,
+                content: {kind: 'image' as const, media: MEDIA_ID},
+                targets: [testMainScreen],
+              },
+            ],
+          },
+          notice: {
+            noticeId: NOTICE_ID,
+            playback: {
+              media: [MEDIA_ID],
+              position: 0,
+              interval: 5,
+              loop: true,
+              targets: [testMainScreen],
+              startedAt: now,
+              pausedAt: null,
+            },
+          },
+          audio: null,
+        },
+      },
+      now,
+      rows: [{id: 'song-1', kind: 'song' as const, title: '찬양'}],
+      mediaItems: [
+        {
+          id: MEDIA_ID,
+          name: '배경 영상',
+          kind: 'video' as const,
+          file: 'bg.mp4',
+          size: 100,
+          duration: 30,
+        },
+      ],
+      propsFile: testPropsFile,
+      noticesFile: testNoticesFile,
+      stageLayoutsFile: stageDoc.value,
+    };
+
+    const groups = computeShowingGroups(options);
+    const count = computeShowingCount(options);
+    const totalRows = groups.reduce((acc, g) => acc + g.items.length, 0);
+
+    expect(count).toBe(totalRows);
+
+    const allKinds = new Set(groups.flatMap(g => g.items.map(i => i.kind)));
+    expect(allKinds).toEqual(
+      new Set(['text', 'media', 'msg', 'prop', 'notice', 'stagemsg', 'clock']),
+    );
+  });
+
+  it('proves an unchanged row does not re-render when only another row time changes', () => {
+    const onDismiss = vi.fn();
+    const item1: ShowingItem = {
+      id: 'main-slide',
+      kind: 'text',
+      kindLabel: '가사',
+      icon: 'text',
+      title: '만복의 근원',
+      dismiss: {kind: 'slide'},
+    };
+    const item2Initial: ShowingItem = {
+      id: 'main-msg',
+      kind: 'msg',
+      kindLabel: '메시지',
+      icon: 'msg',
+      title: '차량 이동',
+      time: '0:42',
+      dismiss: {kind: 'message', messageId: UUID_MESSAGE},
+    };
+    const item2Updated: ShowingItem = {
+      ...item2Initial,
+      time: '0:41',
+    };
+
+    let row1Renders = 0;
+    let row2Renders = 0;
+    const SpiedRow1 = memo((props: ShowingRowProps) => {
+      row1Renders++;
+      return <ShowingRow {...props} />;
+    }, areShowingRowPropsEqual);
+    const SpiedRow2 = memo((props: ShowingRowProps) => {
+      row2Renders++;
+      return <ShowingRow {...props} />;
+    }, areShowingRowPropsEqual);
+
+    const {rerender} = render(
+      <div>
+        <SpiedRow1 item={item1} onDismiss={onDismiss} />
+        <SpiedRow2 item={item2Initial} onDismiss={onDismiss} />
+      </div>,
+    );
+    expect(row1Renders).toBe(1);
+    expect(row2Renders).toBe(1);
+
+    const item1Clone: ShowingItem = {
+      id: 'main-slide',
+      kind: 'text',
+      kindLabel: '가사',
+      icon: 'text',
+      title: '만복의 근원',
+      dismiss: {kind: 'slide'},
+    };
+    rerender(
+      <div>
+        <SpiedRow1 item={item1Clone} onDismiss={onDismiss} />
+        <SpiedRow2 item={item2Updated} onDismiss={onDismiss} />
+      </div>,
+    );
+
+    expect(row1Renders).toBe(1);
+    expect(row2Renders).toBe(2);
+  });
+
+  it('clamps video time when shorter than 1 s and when non-looping video exceeds duration', () => {
+    const screensDoc = screensDocument();
+    if (screensDoc.value.format !== 'llsettings.screens') {
+      throw new Error('expected screens document');
+    }
+    const screens = screensDoc.value.screens;
+    const now = 1_700_000_000_000;
+    const shortVideoId = parseTestMediaId(
+      '00000000-0000-4000-8000-000000000088',
+    );
+    const tenSecVideoId = parseTestMediaId(
+      '00000000-0000-4000-8000-000000000089',
+    );
+
+    const groupsShort = computeShowingGroups({
+      screens,
+      looks: null,
+      liveState: {
+        ...emptyLiveState(),
+        version: 1,
+        layers: {
+          ...emptyLiveState().layers,
+          media: {
+            mediaId: shortVideoId,
+            loop: true,
+            startedAt: now - 3000,
+          },
+        },
+      },
+      now,
+      mediaItems: [
+        {
+          id: shortVideoId,
+          name: '짧은 클립',
+          kind: 'video',
+          file: 'short.mp4',
+          size: 10,
+          duration: 0.4,
+        },
+      ],
+    });
+    const shortRow = groupsShort[0]?.items.find(i => i.kind === 'media');
+    expect(shortRow?.time).toBe('0:00');
+    expect(shortRow?.time).not.toContain('NaN');
+
+    const groupsOver = computeShowingGroups({
+      screens,
+      looks: null,
+      liveState: {
+        ...emptyLiveState(),
+        version: 1,
+        layers: {
+          ...emptyLiveState().layers,
+          media: {
+            mediaId: tenSecVideoId,
+            loop: false,
+            startedAt: now - 25000,
+          },
+        },
+      },
+      now,
+      mediaItems: [
+        {
+          id: tenSecVideoId,
+          name: '10초 영상',
+          kind: 'video',
+          file: 'ten.mp4',
+          size: 100,
+          duration: 10,
+        },
+      ],
+    });
+    const overRow = groupsOver[0]?.items.find(i => i.kind === 'media');
+    expect(overRow?.time).toBe('0:10');
   });
 });
