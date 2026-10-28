@@ -27,7 +27,7 @@ interface RecordWriterOptions {
 }
 
 /** The state as recovery restores it: audio, 타이머, and clear undo are never saved. */
-function recordedState({timers, ...state}: LiveState): LiveState {
+function recordedState({timers, lastMacroId, ...state}: LiveState): LiveState {
   return {
     ...state,
     canUndo: false,

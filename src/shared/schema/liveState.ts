@@ -4,6 +4,7 @@ import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {
   lookIdSchema,
+  macroIdSchema,
   screenIdSchema,
   stageLayoutIdSchema,
   timerIdSchema,
@@ -77,6 +78,7 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
+  lastMacroId: v.exactOptional(macroIdSchema),
   audioTrackVersion: v.exactOptional(
     v.pipe(count, v.maxValue(Number.MAX_SAFE_INTEGER)),
   ),

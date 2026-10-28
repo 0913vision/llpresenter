@@ -98,6 +98,7 @@ describe('recovery record writer', () => {
     const live = parseLiveState({
       ...emptyLiveState(),
       version: 7,
+      lastMacroId: '00000000-0000-4000-8000-000000000001',
       canUndo: true,
       outputs: {main: true},
       layers: {
@@ -140,6 +141,7 @@ describe('recovery record writer', () => {
       },
     });
     expect(record.state).not.toHaveProperty('timers');
+    expect(record.state).not.toHaveProperty('lastMacroId');
     expect(Date.parse(record.savedAt)).toBe(SAVED_AT);
     expect(log.entries).toEqual([]);
   });

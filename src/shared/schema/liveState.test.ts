@@ -28,6 +28,13 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('accepts a bounded last macro ID and rejects malformed IDs', () => {
+    const lastMacroId = screenUuid(7);
+    expect(parseLiveState({...emptyLiveState(), lastMacroId}).ok).toBe(true);
+    expect(
+      parseLiveState({...emptyLiveState(), lastMacroId: 'not-an-id'}).ok,
+    ).toBe(false);
+  });
   it('preserves a bounded Bible reference independently of the slide label', () => {
     const state = busyState();
     const slide = state.layers.slide;

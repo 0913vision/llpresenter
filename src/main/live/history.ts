@@ -29,15 +29,17 @@ export interface LiveHistory {
 }
 
 export function initialHistory(state: LiveState): LiveHistory {
+  const {lastMacroId: _lastMacroId, ...restored} = state;
+  const sessionState = state.lastMacroId === undefined ? state : restored;
   return {
     state:
-      state.clearToggles?.length || state.clearEffects?.length
+      sessionState.clearToggles?.length || sessionState.clearEffects?.length
         ? {
-            ...state,
-            ...(state.clearToggles?.length ? {clearToggles: []} : {}),
-            ...(state.clearEffects?.length ? {clearEffects: []} : {}),
+            ...sessionState,
+            ...(sessionState.clearToggles?.length ? {clearToggles: []} : {}),
+            ...(sessionState.clearEffects?.length ? {clearEffects: []} : {}),
           }
-        : state,
+        : sessionState,
     undo: null,
   };
 }

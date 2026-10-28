@@ -64,6 +64,17 @@ function harness(
 }
 
 describe('macro live execution', () => {
+  it('publishes the last run even for an empty macro and drops it in a new session', () => {
+    const {store, id} = harness([]);
+    const listener = vi.fn();
+    onTestFinished(store.subscribe(listener));
+    store.dispatch({type: 'macro.run', macroId: id});
+    expect(store.state.lastMacroId).toBe(id);
+    expect(listener).toHaveBeenCalledOnce();
+    expect(store.state.version).toBe(1);
+    expect(new LiveStore(store.state).state.lastMacroId).toBeUndefined();
+  });
+
   it('drops the macro report and reports the 매크로 when another child makes the whole dispatch fail admission', () => {
     const {store, runner, log, id} = harness([{kind: 'look', look: uuid(99)}]);
     const problems = vi.fn();
@@ -287,6 +298,7 @@ describe('macro live execution', () => {
     onTestFinished(store.subscribe(listener));
     dispatchLogged(store, parsed.value, log);
     expect(listener).toHaveBeenCalledTimes(1);
+    expect(store.state.lastMacroId).toBe(IDS.macro);
     expect(store.state.layers.media).toBeNull();
     expect(store.state.layers.slide?.lines).toEqual(['After start']);
   });

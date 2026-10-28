@@ -3,7 +3,13 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from './schema/overlayState';
-import type {LookId, ScreenId, StageLayoutId, TimerId} from './schema/ids';
+import type {
+  LookId,
+  MacroId,
+  ScreenId,
+  StageLayoutId,
+  TimerId,
+} from './schema/ids';
 import type {TimerRuns} from './schema/timerState';
 import type {AudioPlayback} from './schema/audioState';
 import type {ClearTarget} from './commands';
@@ -96,6 +102,8 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  /** The most recently run macro in this session, if one has run. */
+  readonly lastMacroId?: MacroId;
   /** Last allocated audio track version, retained across clears and batches. */
   readonly audioTrackVersion?: number;
   /** The audio layer's live volume, from 0 to 100; absent means 100. */

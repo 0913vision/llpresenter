@@ -60,10 +60,19 @@ export class MacroRunner implements MacroCommandPort {
     context.defer(() => {
       this.report(plan);
     });
-    return context.apply(history, {
+    const next = context.apply(history, {
       type: 'live.batch',
       commands: plan.commands,
     });
+    if (next.state.lastMacroId === macro.id) return next;
+    return {
+      ...next,
+      state: {
+        ...next.state,
+        version: next === history ? next.state.version + 1 : next.state.version,
+        lastMacroId: macro.id,
+      },
+    };
   }
 
   private report(plan: MacroPlan): void {
