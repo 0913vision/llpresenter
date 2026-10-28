@@ -54,6 +54,8 @@ export interface SlideLayer {
   readonly position: number;
   readonly label: string | null;
   readonly lines: readonly string[];
+  /** A Bible reference, separate from the operator's slide label. */
+  readonly reference?: string;
   /** The next 장 when the sender knows one; absent after the item's last. */
   readonly next?: NextSlide;
 }

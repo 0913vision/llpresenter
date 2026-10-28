@@ -28,6 +28,30 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('preserves a bounded Bible reference independently of the slide label', () => {
+    const state = busyState();
+    const slide = state.layers.slide;
+    if (slide === null) throw new Error('Missing slide fixture');
+    const withReference = {
+      ...state,
+      layers: {...state.layers, slide: {...slide, reference: '3:16'}},
+    };
+    expect(parseLiveState(withReference)).toEqual({
+      ok: true,
+      value: withReference,
+    });
+    const invalid = {
+      ...withReference,
+      layers: {
+        ...withReference.layers,
+        slide: {
+          ...slide,
+          reference: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+        },
+      },
+    };
+    expect(parseLiveState(invalid).ok).toBe(false);
+  });
   it('accepts optional unique clear key restore flags', () => {
     const state = {
       ...emptyLiveState(),

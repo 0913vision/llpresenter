@@ -48,6 +48,7 @@ export const layerSchemas = {
     position: count,
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
+    reference: v.exactOptional(liveTextSchema),
     next: v.exactOptional(
       payloadObject({
         label: v.nullable(liveTextSchema),

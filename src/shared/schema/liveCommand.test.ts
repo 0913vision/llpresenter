@@ -3,6 +3,19 @@ import {layerKinds} from '../live';
 import {parseLiveCommand} from './liveCommand';
 
 describe('parseLiveCommand', () => {
+  it('preserves an explicit Bible reference on a slide command', () => {
+    const command = {
+      type: 'slide.show',
+      slide: {
+        itemId: 'bible',
+        position: 0,
+        label: '3:16',
+        lines: ['Invented'],
+        reference: '3:16',
+      },
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+  });
   it('returns every well-formed command unchanged', () => {
     const commands: unknown[] = [
       {type: 'clear.undo'},

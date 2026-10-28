@@ -26,6 +26,20 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('retains a Bible reference on a projected tile', () => {
+    const tile = {
+      label: '3:16',
+      labelColor: 'none',
+      lines: ['Invented'],
+      reference: '3:16',
+    };
+    expect(
+      parseShowService({...showService(), tiles: {bible: [tile]}}),
+    ).toMatchObject({
+      ok: true,
+      value: {tiles: {bible: [tile]}},
+    });
+  });
   it('keeps optional Bible identity only on Bible rows and strips unrelated fields', () => {
     const bible = {ref: '요한복음 3:16-18', translation: 'sample'};
     const row = {kind: 'bible', id: 'saved', title: 'Stored reference'};

@@ -5,6 +5,7 @@ import {
 } from '@shared/schema/bibleLookup';
 import {createServiceItemId} from '@shared/schema/ids';
 import type {ServiceItem} from '@shared/schema/service';
+import {isItemOfKind} from '@shared/schema/service';
 import {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 import {resolvePassage} from './reference';
 import {passageSource} from './testFiles';
@@ -41,6 +42,28 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('keeps each saved passage reference frequency on its projected tiles', async () => {
+    const original = items('요한복음 3:16-18')[0];
+    if (original === undefined || !isItemOfKind(original, 'bible')) {
+      throw new Error('Missing Bible fixture');
+    }
+    for (const frequency of ['every', 'first', 'none'] as const) {
+      const row = {
+        ...original,
+        bible: {...original.bible, reference: frequency},
+      };
+      const result = await resolveServicePassages([row], fixture(), {
+        reportError: vi.fn(),
+      });
+      expect(result.tiles.get(row.id)?.map(tile => tile.reference)).toEqual(
+        frequency === 'every'
+          ? ['3:16', '3:17', '3:18']
+          : frequency === 'first'
+            ? ['3:16', undefined, undefined]
+            : [undefined, undefined, undefined],
+      );
+    }
+  });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();
     const rows = items('John 3 : 16 - 18', '창세기 1:1');

@@ -8,6 +8,7 @@ import {slotKinds} from './service';
 import {songIdSchema, songGroupIdSchema, translationIdSchema} from './ids';
 import {nonBlankText, nonNegativeInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
+import {liveTextSchema} from './liveLimits';
 import {
   parsePayload,
   payloadObject,
@@ -92,6 +93,7 @@ export const showTileSchema = v.pipe(
     label: v.nullable(v.string()),
     labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
     lines: v.array(v.string()),
+    reference: v.exactOptional(liveTextSchema),
     hotKey: v.exactOptional(slideHotKeySchema),
     sourceSlide: v.exactOptional(songSlideSourceSchema),
   }),

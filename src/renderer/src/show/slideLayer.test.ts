@@ -28,4 +28,21 @@ describe('slideLayerOf', () => {
     expect(slideLayerOf({itemId: 'song', index: 2}, tilesOf)).toBeNull();
     expect(slideLayerOf({itemId: 'other', index: 0}, tilesOf)).toBeNull();
   });
+
+  it('carries an explicit Bible reference without treating song labels as references', () => {
+    const bible: readonly SlideTile[] = [
+      {
+        label: '3:16',
+        labelColor: 'none',
+        lines: ['Invented'],
+        reference: '3:16',
+      },
+    ];
+    expect(
+      slideLayerOf({itemId: 'bible', index: 0}, () => bible),
+    ).toMatchObject({reference: '3:16'});
+    expect(
+      slideLayerOf({itemId: 'song', index: 0}, tilesOf),
+    ).not.toHaveProperty('reference');
+  });
 });

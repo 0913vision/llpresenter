@@ -21,10 +21,14 @@ function outputLines(text: string): readonly string[] {
 export function bibleVerseTiles(
   passage: BibleLookupPassage,
   verseNumbers = true,
+  reference: 'every' | 'first' | 'none' = 'none',
 ): readonly ShowTile[] {
-  return passage.verses.map(verse => ({
+  return passage.verses.map((verse, index) => ({
     label: `${verse.chapter}:${verse.verse}`,
     labelColor: NO_LABEL_COLOR,
+    ...(reference === 'every' || (reference === 'first' && index === 0)
+      ? {reference: `${verse.chapter}:${verse.verse}`}
+      : {}),
     lines: outputLines(
       verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
     ),

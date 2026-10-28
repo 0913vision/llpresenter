@@ -57,7 +57,11 @@ export async function resolveServicePassages(
     }
     tiles.set(
       item.id,
-      bibleVerseTiles(reply.result.value, item.bible.verseNumbers),
+      bibleVerseTiles(
+        reply.result.value,
+        item.bible.verseNumbers,
+        item.bible.reference,
+      ),
     );
     const {ref, translation} = reply.result.value;
     references.set(item.id, {ref, translation});

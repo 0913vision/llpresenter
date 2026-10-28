@@ -26,6 +26,6 @@ export function bibleSource(
     id: verseNumbers ? id : `${id}:plain`,
     passage,
     verseNumbers,
-    tiles: bibleVerseTiles(passage, verseNumbers),
+    tiles: bibleVerseTiles(passage, verseNumbers, 'every'),
   };
 }

@@ -248,6 +248,7 @@ describe('Bible slide source', () => {
         itemId: useShow.getState().openItemId,
         position: 1,
         label: '3:17',
+        reference: '3:17',
         lines: ['17 Invented verse 17'],
         next: {label: '3:18', lines: ['18 Invented verse 18']},
       },

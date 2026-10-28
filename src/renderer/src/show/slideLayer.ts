@@ -19,6 +19,7 @@ export function slideLayerOf(
     position: cursor.index,
     label: tile.label,
     lines: tile.lines,
+    ...(tile.reference === undefined ? {} : {reference: tile.reference}),
     ...(next === undefined
       ? {}
       : {next: {label: next.label, lines: next.lines}}),
