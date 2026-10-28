@@ -128,10 +128,31 @@ export function listWithUniqueIds<
 >(item: TItem) {
   return v.pipe(
     v.array(item),
-    v.checkItems(
-      (_item, index, items) => isFirstWithKey(items, index, ({id}) => id),
-      DUPLICATE_ID_MESSAGE,
-    ),
+    v.rawCheck<Array<v.InferOutput<TItem>>>(({dataset, addIssue}) => {
+      if (!dataset.typed) return;
+      const seen = new Set<unknown>();
+      for (const [index, entry] of dataset.value.entries()) {
+        const {id} = entry;
+        if (typeof id === 'number' && Number.isNaN(id)) continue;
+        if (seen.has(id)) {
+          addIssue({
+            input: entry,
+            message: DUPLICATE_ID_MESSAGE,
+            path: [
+              {
+                type: 'array',
+                origin: 'value',
+                input: dataset.value,
+                key: index,
+                value: entry,
+              },
+            ],
+          });
+        } else {
+          seen.add(id);
+        }
+      }
+    }),
   );
 }
 
