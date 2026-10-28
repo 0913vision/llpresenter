@@ -5,7 +5,10 @@ import {parsePayload} from '@shared/schema/payload';
 import type {LooksFile} from '@shared/schema/looks';
 import type {ScreensFile} from '@shared/schema/screens';
 import type {RenderScreen} from '@renderer/render/layer';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {
+  DEFAULT_LYRIC_STYLE,
+  renderLyricStyle,
+} from '@renderer/render/lyricStyle';
 import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from './blockEdits';
 
@@ -38,7 +41,7 @@ export function previewAppearance(
     role === 'broadcast' ? (configured?.previewBackground ?? 'green') : 'black';
   return {
     screen,
-    style: style ?? DEFAULT_LYRIC_STYLE,
+    style: style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
     styleName: style?.name ?? '기본',
     slide: look === undefined || binding?.layers.slide === true,
     media:

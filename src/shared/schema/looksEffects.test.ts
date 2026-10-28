@@ -1,9 +1,9 @@
 import {expect, it} from 'vitest';
-import {parseLooksEffects, serializeLooksEffects} from './looksEffects';
+import {parseLooks, serializeLooks} from './looks';
 import {expectFailure, expectSuccess} from './testHelpers';
 
 const id = '11111111-1111-4111-8111-111111111111';
-const old = {
+const fixture = {
   format: 'llsettings.looks',
   schemaVersion: 1,
   current: id,
@@ -21,47 +21,27 @@ const old = {
       lineHeight: 1.4,
       maxLines: 2,
       margin: 6,
-      outline: false,
-      shadow: true,
+      outline: {on: false, width: 3, color: '#000000'},
+      shadow: {
+        on: true,
+        blur: 8,
+        distance: 4,
+        angle: 45,
+        opacity: 60,
+        color: '#000000',
+      },
+      referencePosition: 'bottomRight',
       futureStyle: {retained: 7},
     },
   ],
   futureRoot: ['retained'],
 };
 
-it('migrates switches without losing their state or unknown fields', () => {
-  const result = expectSuccess(parseLooksEffects(JSON.stringify(old), 'looks'));
-  expect(result.sourceVersion).toBe(1);
-  expect(result.data).toMatchObject({
-    schemaVersion: 2,
-    futureRoot: ['retained'],
-    lyricStyles: [
-      {
-        futureStyle: {retained: 7},
-        outline: {on: false, width: 3, color: '#000000'},
-        referencePosition: 'bottomRight',
-        shadow: {
-          on: true,
-          blur: 8,
-          distance: 4,
-          angle: 45,
-          opacity: 60,
-          color: '#000000',
-        },
-      },
-    ],
-  });
-  const written = expectSuccess(serializeLooksEffects(result.data, 'looks'));
-  expect(expectSuccess(parseLooksEffects(written, 'looks')).data).toEqual(
-    result.data,
-  );
-});
-
 it.each(['bottomRight', 'bottomLeft', 'afterLastLine', 'hidden'] as const)(
   'round-trips the reference position %s',
   position => {
     const current = expectSuccess(
-      parseLooksEffects(JSON.stringify(old), 'looks'),
+      parseLooks(JSON.stringify(fixture), 'looks'),
     ).data;
     const changed = {
       ...current,
@@ -70,36 +50,14 @@ it.each(['bottomRight', 'bottomLeft', 'afterLastLine', 'hidden'] as const)(
         referencePosition: position,
       })),
     };
-    const text = expectSuccess(serializeLooksEffects(changed, 'looks'));
-    expect(expectSuccess(parseLooksEffects(text, 'looks')).data).toEqual(
-      changed,
-    );
+    const text = expectSuccess(serializeLooks(changed, 'looks'));
+    expect(expectSuccess(parseLooks(text, 'looks')).data).toEqual(changed);
   },
 );
 
-it('preserves a legacy extension that collides with the new reference field', () => {
-  const input = {
-    ...old,
-    lyricStyles: [
-      {
-        ...old.lyricStyles[0],
-        referencePosition: {old: true},
-        legacyV1: {other: 7},
-      },
-    ],
-  };
-  const loaded = expectSuccess(
-    parseLooksEffects(JSON.stringify(input), 'looks'),
-  );
-  expect(loaded.data.lyricStyles[0]).toMatchObject({
-    referencePosition: 'bottomRight',
-    legacyV1: {referencePosition: {old: true}, legacyV1: {other: 7}},
-  });
-});
-
 it('rejects an unknown reference position', () => {
   const current = expectSuccess(
-    parseLooksEffects(JSON.stringify(old), 'looks'),
+    parseLooks(JSON.stringify(fixture), 'looks'),
   ).data;
   const bad = {
     ...current,
@@ -108,35 +66,18 @@ it('rejects an unknown reference position', () => {
       referencePosition: 'middle',
     })),
   };
-  expect(
-    expectFailure(parseLooksEffects(JSON.stringify(bad), 'looks')).field,
-  ).toBe('lyricStyles.0.referencePosition');
-});
-
-it.each([
-  [true, true],
-  [true, false],
-  [false, true],
-  [false, false],
-])('keeps legacy outline=%s and shadow=%s', (outline, shadow) => {
-  const file = {
-    ...old,
-    lyricStyles: [{...old.lyricStyles[0], outline, shadow}],
-  };
-  const loaded = expectSuccess(
-    parseLooksEffects(JSON.stringify(file), 'looks'),
+  expect(expectFailure(parseLooks(JSON.stringify(bad), 'looks')).field).toBe(
+    'lyricStyles.0.referencePosition',
   );
-  expect(loaded.data.lyricStyles[0]?.outline.on).toBe(outline);
-  expect(loaded.data.lyricStyles[0]?.shadow.on).toBe(shadow);
 });
 
 it('preserves custom fields and parameters even when effects are off', () => {
-  const migrated = expectSuccess(
-    parseLooksEffects(JSON.stringify(old), 'looks'),
+  const current = expectSuccess(
+    parseLooks(JSON.stringify(fixture), 'looks'),
   ).data;
   const input = {
-    ...migrated,
-    lyricStyles: migrated.lyricStyles.map(style => ({
+    ...current,
+    lyricStyles: current.lyricStyles.map(style => ({
       ...style,
       outline: {on: false, width: 10, color: '#ABCDEF', future: 'x'},
       shadow: {
@@ -150,10 +91,8 @@ it('preserves custom fields and parameters even when effects are off', () => {
       },
     })),
   };
-  const written = expectSuccess(serializeLooksEffects(input, 'looks'));
-  expect(expectSuccess(parseLooksEffects(written, 'looks')).data).toEqual(
-    input,
-  );
+  const written = expectSuccess(serializeLooks(input, 'looks'));
+  expect(expectSuccess(parseLooks(written, 'looks')).data).toEqual(input);
 });
 
 it.each([
@@ -190,52 +129,45 @@ it.each([
     {on: true, blur: 8, distance: 4, angle: 45, opacity: 101, color: '#000000'},
   ],
 ])('rejects invalid %s parameters', (key, value) => {
-  const migrated = expectSuccess(
-    parseLooksEffects(JSON.stringify(old), 'looks'),
+  const current = expectSuccess(
+    parseLooks(JSON.stringify(fixture), 'looks'),
   ).data;
   const bad = {
-    ...migrated,
-    lyricStyles: migrated.lyricStyles.map(style => ({...style, [key]: value})),
+    ...current,
+    lyricStyles: current.lyricStyles.map(style => ({...style, [key]: value})),
   };
-  expect(
-    expectFailure(parseLooksEffects(JSON.stringify(bad), 'looks')).kind,
-  ).toBe('invalid');
-});
-
-it('rejects a malformed old switch instead of silently migrating it', () => {
-  const bad = {...old, lyricStyles: [{...old.lyricStyles[0], shadow: 'yes'}]};
-  expect(
-    expectFailure(parseLooksEffects(JSON.stringify(bad), 'looks')).kind,
-  ).toBe('migration');
+  expect(expectFailure(parseLooks(JSON.stringify(bad), 'looks')).kind).toBe(
+    'invalid',
+  );
 });
 
 it('validates the rest of the current style and the file header', () => {
   const current = expectSuccess(
-    parseLooksEffects(JSON.stringify(old), 'looks'),
+    parseLooks(JSON.stringify(fixture), 'looks'),
   ).data;
   const bad = {
     ...current,
     lyricStyles: current.lyricStyles.map(style => ({...style, font: ''})),
   };
-  expect(
-    expectFailure(parseLooksEffects(JSON.stringify(bad), 'looks')).field,
-  ).toBe('lyricStyles.0.font');
+  expect(expectFailure(parseLooks(JSON.stringify(bad), 'looks')).field).toBe(
+    'lyricStyles.0.font',
+  );
   expect(
     expectFailure(
-      parseLooksEffects(JSON.stringify({...current, current: 'bad'}), 'looks'),
+      parseLooks(JSON.stringify({...current, current: 'bad'}), 'looks'),
     ).field,
   ).toBe('current');
 });
 
-it('opens a compatible newer format read-only and refuses an old-version write', () => {
+it('opens a compatible newer format read-only and refuses a newer-version write', () => {
   const current = expectSuccess(
-    parseLooksEffects(JSON.stringify(old), 'looks'),
+    parseLooks(JSON.stringify(fixture), 'looks'),
   ).data;
-  const newer = {...current, schemaVersion: 3};
-  expect(
-    expectSuccess(parseLooksEffects(JSON.stringify(newer), 'looks')).access,
-  ).toBe('readOnly');
-  expect(
-    serializeLooksEffects({...current, schemaVersion: 1}, 'looks').ok,
-  ).toBe(false);
+  const newer = {...current, schemaVersion: 2};
+  expect(expectSuccess(parseLooks(JSON.stringify(newer), 'looks')).access).toBe(
+    'readOnly',
+  );
+  expect(serializeLooks({...current, schemaVersion: 2}, 'looks').ok).toBe(
+    false,
+  );
 });

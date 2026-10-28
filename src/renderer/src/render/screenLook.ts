@@ -1,6 +1,10 @@
 import type {LookId, ScreenId, StageLayoutId} from '@shared/schema/ids';
 import type {Look, LooksFile, ScreenLook} from '@shared/schema/looks';
-import {DEFAULT_LYRIC_STYLE, type LyricStyle} from './lyricStyle';
+import {
+  DEFAULT_LYRIC_STYLE,
+  renderLyricStyle,
+  type LyricStyle,
+} from './lyricStyle';
 
 /** A layer switch of a Look's screen card. */
 export type LookLayer = keyof ScreenLook['layers'];
@@ -70,7 +74,8 @@ export function resolveScreenLook(
   return {
     appearance: {
       layers: card.layers,
-      lyricStyle: style ?? DEFAULT_LYRIC_STYLE,
+      lyricStyle:
+        style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
       background:
         card.background?.kind === 'color' ? card.background.color : null,
       ...(screen.kind === 'stage' && card.stageLayout !== undefined

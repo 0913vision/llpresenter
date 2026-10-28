@@ -5,7 +5,11 @@ import type {SettingsEdit} from '@shared/schema/settingsDocuments';
 import {looksSchema} from '@shared/schema/looks';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {looksDocument} from '../testing/documents';
 import {editLyricStyle} from './lyricStyleEdits';
 import {LookListEditor} from './lookListEditor';
@@ -212,4 +216,26 @@ it('preserves a color reversion queued behind a held settings save', async () =>
   expect(await second).toBe(true);
   expect(writes).toHaveLength(2);
   expect(editor.getSnapshot()?.value.lyricStyles[0]?.color).toBe(style.color);
+});
+
+it('preserves v2 effect parameters when a switch changes', () => {
+  const {document, style} = fixture();
+  const value = {
+    ...document.value,
+    lyricStyles: [
+      {
+        ...style,
+        outline: {...style.outline, width: 8, color: '#112233'},
+        shadow: {...style.shadow, angle: 180},
+      },
+    ],
+  };
+  const result = editLyricStyle(value, {
+    id: style.id,
+    change: {outline: true, shadow: false},
+  });
+  expect(result?.lyricStyles[0]).toMatchObject({
+    outline: {on: true, width: 8, color: '#112233'},
+    shadow: {on: false, angle: 180},
+  });
 });

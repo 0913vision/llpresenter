@@ -1,6 +1,10 @@
 import {STARTER_SCREEN_IDS} from '@shared/screens';
 import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 
 const STYLE_ID = '00000000-0000-4000-8000-000000000010';
 

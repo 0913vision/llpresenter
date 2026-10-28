@@ -1,3 +1,5 @@
+import type {LyricStyle as StoredLyricStyle} from '@shared/schema/looks';
+
 /**
  * How the lyrics layer draws a 장: the lyric style fields of a Look
  * (docs/spec/02-data.md). Sizes are px on a 1920 x 1080 screen.
@@ -52,4 +54,9 @@ export function scaleFor(width: number, height: number): number {
     width / REFERENCE_SCREEN.width,
     height / REFERENCE_SCREEN.height,
   );
+}
+
+/** Retains the existing renderer's fixed effects until it supports v2 details. */
+export function renderLyricStyle(style: StoredLyricStyle): LyricStyle {
+  return {...style, shadow: style.shadow.on, outline: style.outline.on};
 }

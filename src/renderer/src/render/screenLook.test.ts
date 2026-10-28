@@ -7,9 +7,9 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-  TEXT_STYLE,
 } from '../../../main/live/testing/overlays';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from './lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
 import {resolveScreenLook, showsLayer} from './screenLook';
 
 const NORMAL = lookIdOf(70);
@@ -52,7 +52,13 @@ function looks(): LooksFile {
       },
     ],
     lyricStyles: [
-      {...TEXT_STYLE, id: LOWER_THIRD, name: '하단 자막', vAlign: 'bottom'},
+      {
+        ...DEFAULT_MESSAGE_STYLE,
+        id: LOWER_THIRD,
+        name: 'Caption',
+        vAlign: 'bottom',
+        referencePosition: 'bottomRight',
+      },
     ],
   });
   if (document.name !== 'looks') throw new Error('Invalid looks fixture');
@@ -68,10 +74,12 @@ describe('screen Look resolution', () => {
   });
 
   it('takes the card of the live Look, with its lyric style and background', () => {
+    const style = looks().lyricStyles[0];
+    if (style === undefined) throw new Error('Missing style');
     expect(resolveScreenLook(looks(), NORMAL, CAPTIONS_SCREEN)).toEqual({
       appearance: {
         layers: {media: true, slide: true},
-        lyricStyle: looks().lyricStyles[0],
+        lyricStyle: renderLyricStyle(style),
         background: GREEN,
       },
       gap: null,

@@ -434,7 +434,11 @@ describe('live admission limits', () => {
                 content: {
                   kind: 'text',
                   text: 'x'.repeat(length),
-                  style: style.value.lyricStyles[0],
+                  style: {
+                    ...style.value.lyricStyles[0],
+                    shadow: style.value.lyricStyles[0].shadow.on,
+                    outline: style.value.lyricStyles[0].outline.on,
+                  },
                 },
                 targets: [],
               },

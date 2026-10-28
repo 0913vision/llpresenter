@@ -9,7 +9,11 @@ import {
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {looksSchema} from '@shared/schema/looks';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {looksDocument} from '../testing/documents';
 import {LyricStyles} from './LyricStyles';
 import type {LyricStyleEdit} from './lyricStyleEdits';

@@ -1,7 +1,7 @@
 import type {Result} from '@shared/result';
 import type {LyricStyleId} from '@shared/schema/ids';
 import type {LooksFile} from '@shared/schema/looks';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
 import {nameProblem} from '../screenEdits';
 
 export const LYRIC_STYLE_LIMIT = 1000;
@@ -51,7 +51,14 @@ export function editLyricStyleList(
         ...file,
         lyricStyles: [
           ...file.lyricStyles,
-          {...(source ?? DEFAULT_LYRIC_STYLE), id: edit.id, name},
+          {
+            ...(source ?? {
+              ...DEFAULT_MESSAGE_STYLE,
+              referencePosition: 'bottomRight' as const,
+            }),
+            id: edit.id,
+            name,
+          },
         ],
       },
     };

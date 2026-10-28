@@ -5,7 +5,11 @@ import {looksSchema} from '@shared/schema/looks';
 import type {EditResult} from '@shared/schema/contentEdit';
 import type {SettingsEdit} from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {looksDocument, MAIN_ID} from '../testing/documents';
 import {editLyricStyleList, LYRIC_STYLE_LIMIT} from './lyricStyleListEdits';
@@ -68,7 +72,11 @@ it('creates a default preset from an empty list and can delete the last unused p
     {kind: 'add', id: addedId},
   );
   if (!added.ok) throw new Error('Expected addition');
-  expect(added.value.lyricStyles[0]).toMatchObject(DEFAULT_LYRIC_STYLE);
+  expect(added.value.lyricStyles[0]).toMatchObject({
+    ...DEFAULT_LYRIC_STYLE,
+    id: addedId,
+    name: '새 스타일',
+  });
   const removed = editLyricStyleList(added.value, {
     kind: 'delete',
     id: addedId,

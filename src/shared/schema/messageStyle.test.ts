@@ -5,9 +5,9 @@ import {
   DEFAULT_MESSAGE_STYLE,
   MESSAGE_STYLE_LIMIT,
   messageStyleForScreen,
-  parseLooksEffects as parseLooks,
-  serializeLooksEffects as serializeLooks,
-} from './looksEffects';
+  parseLooks,
+  serializeLooks,
+} from './looks';
 import {expectFailure, expectSuccess} from './testHelpers';
 
 const id = '11111111-1111-4111-8111-111111111111';
@@ -31,7 +31,7 @@ const file = {
   lyricStyles: [],
 };
 
-it('uses the existing message appearance for an old file', () => {
+it('uses the existing message appearance when no style is selected', () => {
   const loaded = expectSuccess(parseLooks(JSON.stringify(file), 'looks')).data;
   const screen = loaded.looks[0]?.screens[screenA];
   expect(screen).toBeDefined();
@@ -51,7 +51,7 @@ it('round-trips a per-screen choice and resolves missing styles safely', () => {
   };
   const input = {
     ...file,
-    schemaVersion: 2,
+    schemaVersion: 1,
     messageStyles: [style],
     looks: [
       {
@@ -79,7 +79,7 @@ it('round-trips a per-screen choice and resolves missing styles safely', () => {
 
 it('rejects invalid style fields, references, duplicates, and oversized lists', () => {
   const parse = (value: unknown) => parseLooks(JSON.stringify(value), 'looks');
-  const current = {...file, schemaVersion: 2};
+  const current = {...file, schemaVersion: 1};
   expect(
     expectFailure(
       parse({
@@ -130,40 +130,4 @@ it('rejects invalid style fields, references, duplicates, and oversized lists', 
   expect(expectFailure(parse({...current, messageStyles: many})).kind).toBe(
     'invalid',
   );
-});
-
-it('preserves legacy fields that collide with message style names', () => {
-  const legacy = {
-    ...file,
-    messageStyles: {old: true},
-    looks: [
-      {
-        ...file.looks[0],
-        screens: {
-          [screenA]: {
-            layers: {},
-            messageStyle: 'old-extension',
-            legacyV1: {other: 2},
-          },
-        },
-      },
-    ],
-  };
-  const result = expectSuccess(
-    parseLooks(JSON.stringify(legacy), 'looks'),
-  ).data;
-  expect(result).toMatchObject({
-    legacyV1: {messageStyles: {old: true}},
-    looks: [
-      {
-        screens: {
-          [screenA]: {
-            legacyV1: {messageStyle: 'old-extension', legacyV1: {other: 2}},
-          },
-        },
-      },
-    ],
-  });
-  const written = expectSuccess(serializeLooks(result, 'looks'));
-  expect(expectSuccess(parseLooks(written, 'looks')).data).toEqual(result);
 });

@@ -12,7 +12,11 @@ import * as v from 'valibot';
 import {looksSchema} from '@shared/schema/looks';
 import type {LyricStyleId} from '@shared/schema/ids';
 import type {Result} from '@shared/result';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {looksDocument} from '../testing/documents';
 import {LyricStyleSelector} from './LyricStyleSelector';

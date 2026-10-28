@@ -1,3 +1,4 @@
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import {parseLookId} from '@shared/schema/ids';
@@ -10,7 +11,6 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-  TEXT_STYLE,
 } from '../../../main/live/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
@@ -228,7 +228,13 @@ describe('ScreenFrames', () => {
         },
       ],
       lyricStyles: [
-        {...TEXT_STYLE, id: lowerThird, name: '하단 자막', vAlign: 'bottom'},
+        {
+          ...DEFAULT_MESSAGE_STYLE,
+          referencePosition: 'bottomRight',
+          id: lowerThird,
+          name: '하단 자막',
+          vAlign: 'bottom',
+        },
       ],
     });
     const settings = fakeSettings(styled);

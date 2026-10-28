@@ -18,7 +18,11 @@ import type {
   SettingsEdit,
 } from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useLive} from '@renderer/state/live';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';

@@ -9,7 +9,10 @@ import {emptyLayers} from '@shared/live';
 import {mediaUrl} from '@shared/media';
 import type {LyricStyle} from '@shared/schema/looks';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {
+  DEFAULT_LYRIC_STYLE,
+  renderLyricStyle,
+} from '@renderer/render/lyricStyle';
 import styles from './LookPreview.module.css';
 
 const sample = {
@@ -33,7 +36,11 @@ export function LyricStylePreview({
   const draw = useEffectEvent(() => {
     renderer.current?.render(sample, {
       transitions: false,
-      look: {layers: {slide: true}, lyricStyle: style, background: null},
+      look: {
+        layers: {slide: true},
+        lyricStyle: renderLyricStyle(style),
+        background: null,
+      },
     });
   });
   useEffect(() => {

@@ -11,7 +11,11 @@ import {afterEach, expect, it, vi} from 'vitest';
 import type {FontCatalog} from '@shared/schema/fontCatalog';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {fontFamilyFixture} from '@shared/testing/fontCatalog';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+const DEFAULT_LYRIC_STYLE = {
+  ...DEFAULT_MESSAGE_STYLE,
+  referencePosition: 'bottomRight' as const,
+};
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {
   LOOK_ID,

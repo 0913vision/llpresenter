@@ -74,7 +74,11 @@ export function settingsDocument(
 ): SettingsDocument {
   const result = parseSettingsDocument({
     name,
-    value: {format: `llsettings.${name}`, schemaVersion: 1, ...value},
+    value: {
+      format: `llsettings.${name}`,
+      schemaVersion: 1,
+      ...value,
+    },
     revision,
     access: 'editable',
   });

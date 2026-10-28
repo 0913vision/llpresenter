@@ -264,7 +264,7 @@ export function LyricStyleProperties({
               {({controlId}) => (
                 <Switch
                   id={controlId}
-                  checked={style[key]}
+                  checked={style[key].on}
                   disabled={reason !== undefined}
                   title={reason}
                   onChange={value => dispatch({[key]: value})}

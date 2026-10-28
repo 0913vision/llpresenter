@@ -17,15 +17,23 @@ export function editLyricStyle(
 ): LooksFile | undefined {
   const style = file.lyricStyles.find(style => style.id === edit.id);
   if (style === undefined) return undefined;
-  const change = parseLyricTextStyle({...style, ...edit.change});
+  const legacy = {...style, shadow: style.shadow.on, outline: style.outline.on};
+  const change = parseLyricTextStyle({...legacy, ...edit.change});
   if (change === undefined) return undefined;
-  if (JSON.stringify(change) === JSON.stringify(parseLyricTextStyle(style))) {
+  if (JSON.stringify(change) === JSON.stringify(parseLyricTextStyle(legacy))) {
     return file;
   }
   return {
     ...file,
     lyricStyles: file.lyricStyles.map(style =>
-      style.id === edit.id ? {...style, ...change} : style,
+      style.id === edit.id
+        ? {
+            ...style,
+            ...change,
+            outline: {...style.outline, on: change.outline},
+            shadow: {...style.shadow, on: change.shadow},
+          }
+        : style,
     ),
   };
 }

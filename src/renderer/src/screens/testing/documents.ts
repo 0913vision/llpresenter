@@ -22,7 +22,11 @@ export function settingsDocument(
     name,
     revision,
     access: 'editable',
-    value: {format: `llsettings.${name}`, schemaVersion: 1, ...value},
+    value: {
+      format: `llsettings.${name}`,
+      schemaVersion: 1,
+      ...value,
+    },
   });
   if (!parsed.ok) throw new Error(JSON.stringify(parsed.error));
   return parsed.value;

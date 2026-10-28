@@ -31,8 +31,16 @@ function basicStyle() {
     vAlign: 'middle',
     maxLines: 2,
     margin: 5,
-    shadow: true,
-    outline: false,
+    shadow: {
+      on: true,
+      blur: 8,
+      distance: 4,
+      angle: 45,
+      opacity: 60,
+      color: '#000000',
+    },
+    outline: {on: false, width: 3, color: '#000000'},
+    referencePosition: 'bottomRight',
   };
 }
 
