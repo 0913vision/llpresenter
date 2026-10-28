@@ -44,6 +44,7 @@ A 30×18 switch that turns on or off a setting that applies the moment you click
 ## Behavior
 
 - A click or unmodified Space toggles it. Modified Space passes on without toggling. The new value is saved and applied at once.
+- Modified Enter passes through without toggling; unmodified Enter remains with the dialog action.
 - A click on the name also toggles it (`label for`, or wrapping it in `label`).
 - In 진행, clicking the switch or its name keeps keyboard focus where it was. Tab still focuses the switch and Space toggles it. 준비 and dialogs retain native label focus behavior.
 - The left and right arrows don't toggle it. Tab stops at each switch.

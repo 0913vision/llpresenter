@@ -54,13 +54,15 @@ export function useButtonPress<T extends Element>({
   return {
     onKeyDown: event => {
       onKeyDown?.(event);
-      if (event.key === ' ' || (!spaceOnly && event.key === 'Enter')) {
+      if (event.key === ' ' || event.key === 'Enter') {
         pending.current.version++;
         pending.current.modified =
           !event.defaultPrevented && hasModifier(event);
       }
       // NOTE(0913vision): Enter belongs to the dialog's primary action.
-      if (spaceOnly && event.key === 'Enter') event.preventDefault();
+      if (spaceOnly && event.key === 'Enter' && !hasModifier(event)) {
+        event.preventDefault();
+      }
     },
     onKeyUp: event => {
       onKeyUp?.(event);

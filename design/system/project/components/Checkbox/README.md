@@ -52,6 +52,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 ## Behavior
 
 - The whole row is a `label`, so a click on the box, icon, or name toggles it. Unmodified Space toggles it too; modified Space passes on without toggling.
+- Modified Enter passes through without toggling; unmodified Enter remains with the dialog action.
 - In 진행, clicking the box or any part of its label keeps keyboard focus where it was. Tab still focuses the checkbox and Space toggles it. 준비 and dialogs retain native label focus behavior.
 - A click on a group header: if it is mixed or off, turn on the whole group; if it is on, turn off the whole group. When an item changes, recount the header state (all on, mixed, all off).
 - In a list (item tree), Tab enters the list only once, the up and down arrows move between rows, and Space toggles. For the few rows in a dialog (출력 상태 복구), Tab stops at each box.
