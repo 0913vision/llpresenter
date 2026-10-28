@@ -13,6 +13,7 @@ import {
 import {LiveBadge} from '@renderer/ui/StatusMarks';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {Notice} from '@renderer/ui/notices';
 import {nameProblem} from '../screenEdits';
 import {useScreensSelection} from '../selection';
@@ -72,7 +73,7 @@ function LookName({
       }
       onBlur={commit}
       onKeyDown={event => {
-        if (isComposing(event)) return;
+        if (isComposing(event) || hasModifier(event)) return;
         if (event.key === 'Enter') {
           event.preventDefault();
           event.currentTarget.blur();

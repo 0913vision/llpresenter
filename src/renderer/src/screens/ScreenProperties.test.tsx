@@ -410,3 +410,15 @@ describe('the screen properties', () => {
     expect((await nameField()).getAttribute('value')).toBe('방송 자막');
   });
 });
+
+it('keeps a screen name draft on modified Enter', async () => {
+  const {edits} = setup();
+  const field = await nameField();
+  field.focus();
+  fireEvent.change(field, {target: {value: 'Revised screen'}});
+  fireEvent.keyDown(field, {key: 'Enter', ctrlKey: true});
+  expect(document.activeElement).toBe(field);
+  expect(edits).toHaveLength(0);
+  fireEvent.keyDown(field, {key: 'Enter'});
+  await waitFor(() => expect(edits).toHaveLength(1));
+});

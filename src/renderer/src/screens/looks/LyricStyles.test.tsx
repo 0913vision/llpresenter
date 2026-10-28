@@ -327,3 +327,18 @@ it('sends field-specific alignment and effect changes and prevents read-only wri
   expect(screen.getByLabelText('크기').hasAttribute('readonly')).toBe(true);
   expect(readonly.change).not.toHaveBeenCalled();
 });
+
+it('keeps a color draft on modified Enter and Escape', () => {
+  const {change} = setup();
+  change.mockResolvedValue(true);
+  const field = screen.getByLabelText('\uAE00\uC790\uC0C9');
+  field.focus();
+  fireEvent.change(field, {target: {value: '#123456'}});
+  fireEvent.keyDown(field, {key: 'Enter', ctrlKey: true});
+  fireEvent.keyDown(field, {key: 'Escape', shiftKey: true});
+  expect(document.activeElement).toBe(field);
+  expect(field).toHaveProperty('value', '#123456');
+  expect(change).not.toHaveBeenCalled();
+  fireEvent.keyDown(field, {key: 'Enter'});
+  expect(change).toHaveBeenCalledOnce();
+});

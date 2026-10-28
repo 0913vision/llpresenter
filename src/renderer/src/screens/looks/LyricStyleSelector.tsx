@@ -7,6 +7,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {nameProblem} from '../screenEdits';
 import {
   LYRIC_STYLE_LIMIT,
@@ -54,7 +55,7 @@ function Rename({
       invalidReason={problem === undefined ? undefined : PROBLEMS[problem]}
       onBlur={() => finish(problem === undefined)}
       onKeyDown={event => {
-        if (isComposing(event)) return;
+        if (isComposing(event) || hasModifier(event)) return;
         if (event.key === 'Enter' || event.key === 'Escape') {
           event.preventDefault();
           event.stopPropagation();

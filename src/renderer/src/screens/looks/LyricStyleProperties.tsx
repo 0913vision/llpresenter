@@ -12,6 +12,7 @@ import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {LyricStyleEdit} from './lyricStyleEdits';
 import {FontPicker} from './FontPicker';
 import {ColorPicker} from './ColorPicker';
@@ -124,7 +125,7 @@ function ColorField({
               setDraft(null);
             }}
             onKeyDown={event => {
-              if (isComposing(event)) return;
+              if (isComposing(event) || hasModifier(event)) return;
               if (event.key === 'Enter') event.currentTarget.blur();
               if (event.key === 'Escape') {
                 event.preventDefault();

@@ -308,3 +308,17 @@ it('sends no edit from read-only name, duplicate, layer or style controls', asyn
   }
   expect(edit).not.toHaveBeenCalled();
 });
+
+it('keeps a Look name draft on modified Enter and Escape', async () => {
+  const {edit} = setup();
+  const field = await screen.findByRole('textbox', {name: 'Look \uC774\uB984'});
+  field.focus();
+  fireEvent.change(field, {target: {value: 'Revised Look'}});
+  fireEvent.keyDown(field, {key: 'Enter', ctrlKey: true});
+  fireEvent.keyDown(field, {key: 'Escape', shiftKey: true});
+  expect(document.activeElement).toBe(field);
+  expect(field).toHaveProperty('value', 'Revised Look');
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.keyDown(field, {key: 'Enter'});
+  await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+});

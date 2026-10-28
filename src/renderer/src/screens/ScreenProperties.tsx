@@ -14,6 +14,7 @@ import {
 } from '@renderer/ui';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from './monitorAssignment';
 import {
@@ -91,7 +92,11 @@ function NameRow({
           onChange={setDraft}
           onBlur={commit}
           onKeyDown={event => {
-            if (event.key === 'Enter' && !isComposing(event)) {
+            if (
+              event.key === 'Enter' &&
+              !isComposing(event) &&
+              !hasModifier(event)
+            ) {
               event.currentTarget.blur();
             }
           }}

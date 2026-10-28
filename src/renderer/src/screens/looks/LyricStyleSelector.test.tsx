@@ -157,3 +157,25 @@ it('disables lifecycle actions for read-only settings', async () => {
   fireEvent.click(rename);
   expect(change).not.toHaveBeenCalled();
 });
+
+it('keeps a style rename draft on modified Enter and Escape', async () => {
+  const {change} = setup();
+  const tab = screen.getAllByRole('tab')[0];
+  if (tab === undefined) throw new Error('Missing style');
+  fireEvent.contextMenu(tab);
+  fireEvent.click(
+    await screen.findByRole('menuitem', {name: '\uC774\uB984 \uBCC0\uACBD'}),
+  );
+  const field = await screen.findByRole('textbox', {
+    name: '\uC2A4\uD0C0\uC77C \uC774\uB984',
+  });
+  fireEvent.change(field, {target: {value: 'Revised style'}});
+  fireEvent.keyDown(field, {key: 'Enter', ctrlKey: true});
+  fireEvent.keyDown(field, {key: 'Escape', shiftKey: true});
+  expect(
+    screen.getByRole('textbox', {name: '\uC2A4\uD0C0\uC77C \uC774\uB984'}),
+  ).toBe(field);
+  expect(change).not.toHaveBeenCalled();
+  fireEvent.keyDown(field, {key: 'Enter'});
+  expect(change).toHaveBeenCalledOnce();
+});
