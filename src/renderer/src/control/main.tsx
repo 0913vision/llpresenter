@@ -1,6 +1,6 @@
 import '@renderer/styles/base.css';
 import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import {createRoot, type Root} from 'react-dom/client';
 import {startLiveSync} from '@renderer/state/live';
 import {startServiceSync} from '@renderer/state/show';
 import {seedThumbnailScale} from '@renderer/state/thumbnailScale';
@@ -17,21 +17,24 @@ async function start(container: HTMLElement): Promise<void> {
   const stopLive = startLiveSync();
   const stopService = startServiceSync();
   const session = new ControlSession(window.llp);
-  const uiState = await loadUiState(window.llp);
-  seedThumbnailScale(uiState);
-  const columnWidthStore = createColumnWidthStore(window.llp, uiState);
-  const reactRoot = createRoot(container);
+  const lifecycle: {stopped: boolean; root?: Root} = {stopped: false};
   window.addEventListener(
     'pagehide',
     () => {
-      reactRoot.unmount();
+      lifecycle.stopped = true;
+      lifecycle.root?.unmount();
       stopLive();
       stopService();
       session.dispose().catch((error: unknown) => console.error(error));
     },
     {once: true},
   );
-  reactRoot.render(
+  const uiState = await loadUiState(window.llp);
+  if (lifecycle.stopped) return;
+  seedThumbnailScale(uiState);
+  const columnWidthStore = createColumnWidthStore(window.llp, uiState);
+  lifecycle.root = createRoot(container);
+  lifecycle.root.render(
     <StrictMode>
       <App
         columnWidthStore={columnWidthStore}

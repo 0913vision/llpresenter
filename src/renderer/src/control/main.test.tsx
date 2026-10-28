@@ -55,3 +55,41 @@ it('creates a window session outside render and releases its resources on pagehi
     delete window.llp;
   }
 });
+
+it('releases startup subscriptions if the page hides before UI state loads', async () => {
+  vi.resetModules();
+  root.render.mockClear();
+  root.unmount.mockClear();
+  stops.live.mockClear();
+  stops.service.mockClear();
+  const fixture = editorFixture();
+  let resolveUi:
+    | ((value: Awaited<ReturnType<typeof fixture.api.ui.get>>) => void)
+    | undefined;
+  vi.spyOn(fixture.api.ui, 'get').mockReturnValue(
+    new Promise(resolve => {
+      resolveUi = resolve;
+    }),
+  );
+  window.llp = fixture.api;
+  const container = document.createElement('div');
+  container.id = 'root';
+  document.body.append(container);
+  try {
+    await act(async () => {
+      await import('./main');
+    });
+    await act(async () => {
+      window.dispatchEvent(new Event('pagehide'));
+    });
+    expect(stops.live).toHaveBeenCalledTimes(1);
+    expect(stops.service).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveUi?.({});
+    });
+    expect(root.render).not.toHaveBeenCalled();
+  } finally {
+    container.remove();
+    delete window.llp;
+  }
+});
