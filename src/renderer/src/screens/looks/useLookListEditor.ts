@@ -7,6 +7,8 @@ import {LookListEditor} from './lookListEditor';
 import type {LookListEdit} from './lookListEdits';
 import type {LookCardEdit} from './lookCardEdits';
 import type {LyricStyleEdit} from './lyricStyleEdits';
+import type {MessageStyleChange} from './messageStyleEdits';
+import type {MessageStyleId} from '@shared/schema/ids';
 import type {
   assignMessageStyle,
   createAndAssignMessageStyle,
@@ -87,6 +89,8 @@ export function useLookListEditor(
       session.current?.editor.assignMessage(input),
     createMessage: (input: Parameters<typeof createAndAssignMessageStyle>[1]) =>
       session.current?.editor.createMessage(input),
+    changeMessageStyle: (id: MessageStyleId, change: MessageStyleChange) =>
+      session.current?.editor.changeMessageStyle(id, change),
     changeStyle: (edit: LyricStyleEdit) =>
       session.current?.editor.changeStyle(edit),
     changeStyleList: (edit: LyricStyleListEdit) =>

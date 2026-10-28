@@ -207,6 +207,14 @@ export function LookEditor({
                       })
                       ?.catch(failed);
                   }}
+                  onMessageStyleChange={(id, change) =>
+                    editor
+                      .changeMessageStyle(id, change)
+                      ?.catch((cause: unknown) => {
+                        failed(cause);
+                        return false;
+                      })
+                  }
                   onMessageCreate={() => {
                     const id = parseMessageStyleId(crypto.randomUUID());
                     if (!id.ok) {

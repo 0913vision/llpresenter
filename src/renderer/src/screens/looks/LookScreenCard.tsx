@@ -2,6 +2,8 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import type {Look} from '@shared/schema/looks';
 import type {MessageStyleId} from '@shared/schema/ids';
 import {MessageStyleSelect} from './MessageStyleSelect';
+import {MessageStyleProperties} from './MessageStyleProperties';
+import type {MessageStyleChange} from './messageStyleEdits';
 import type {LookPreviewInput} from './lookPreviewFrame';
 import type {Timer} from '@shared/schema/timers';
 import {CheckRow} from '@renderer/ui/Checkbox';
@@ -79,6 +81,7 @@ export function LookScreenCard({
   onProblem,
   onMessageChange,
   onMessageCreate,
+  onMessageStyleChange,
 }: Omit<LookPreviewInput, 'lookId' | 'state'> & {
   readonly look: Look;
   readonly timers: readonly Timer[];
@@ -88,8 +91,15 @@ export function LookScreenCard({
   readonly onProblem: (title: string) => void;
   readonly onMessageChange: (id: MessageStyleId | null) => void;
   readonly onMessageCreate: () => void;
+  readonly onMessageStyleChange: (
+    id: MessageStyleId,
+    change: MessageStyleChange,
+  ) => Promise<boolean> | undefined;
 }): JSX.Element {
   const card = screenCard(look, screen.id);
+  const messageStyle = looks.messageStyles?.find(
+    style => style.id === look.screens[screen.id]?.messageStyle,
+  );
   const stage = screen.kind === 'stage';
   const caption =
     !stage && (screen.method === 'capture' || screen.method === 'ndi');
@@ -232,6 +242,13 @@ export function LookScreenCard({
           ) : null}
         </div>
       ))}
+      {messageStyle === undefined ? null : (
+        <MessageStyleProperties
+          style={messageStyle}
+          reason={reason}
+          onChange={change => onMessageStyleChange(messageStyle.id, change)}
+        />
+      )}
     </section>
   );
 }

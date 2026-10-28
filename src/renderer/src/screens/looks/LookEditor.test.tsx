@@ -481,3 +481,52 @@ it('reports a meaningful error when generating a message style id fails', async 
   );
   random.mockRestore();
 });
+
+it('saves a screen message style property through the shared queue', async () => {
+  const {user, document} = setup();
+  const card = within(
+    await screen.findByRole('region', {name: '\ubcf8 \ud654\uba74'}),
+  );
+  await user.click(
+    card.getByRole('button', {
+      name: '\ubcf8 \ud654\uba74 \uba54\uc2dc\uc9c0 \uc2a4\ud0c0\uc77c \ucd94\uac00',
+    }),
+  );
+  const size = await card.findByRole('spinbutton', {name: '\ud06c\uae30'});
+  await user.clear(size);
+  await user.type(size, '120{Enter}');
+  await waitFor(() => {
+    const saved = document();
+    if (saved.name !== 'looks') throw new Error('Wrong fixture');
+    expect(saved.value.messageStyles?.[0]?.size).toBe(120);
+  });
+});
+
+it('saves a numeric reversion queued behind a held message style save', async () => {
+  let release = (): void => undefined;
+  let hold = false;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {user, edit, document} = setup(false, () =>
+    hold ? held : Promise.resolve(),
+  );
+  const card = within(await screen.findByRole('region', {name: '본 화면'}));
+  await user.click(
+    card.getByRole('button', {name: '본 화면 메시지 스타일 추가'}),
+  );
+  const size = await card.findByRole('spinbutton', {name: '크기'});
+  hold = true;
+  await user.clear(size);
+  await user.type(size, '120{Enter}');
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  await user.clear(size);
+  await user.type(size, '84{Enter}');
+  release();
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(3));
+  await waitFor(() => {
+    const saved = document();
+    if (saved.name !== 'looks') throw new Error('Wrong fixture');
+    expect(saved.value.messageStyles?.[0]?.size).toBe(84);
+  });
+});

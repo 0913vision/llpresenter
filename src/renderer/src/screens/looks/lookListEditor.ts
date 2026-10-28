@@ -10,6 +10,8 @@ import {
 import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
 import {editLyricEffects, type LyricEffectsChange} from './lyricEffectsEdits';
 import type {LyricStyleId} from '@shared/schema/ids';
+import {editMessageStyle, type MessageStyleChange} from './messageStyleEdits';
+import type {MessageStyleId} from '@shared/schema/ids';
 import {
   editLyricStyleList,
   type LyricStyleListEdit,
@@ -70,6 +72,13 @@ export class LookListEditor {
     return this.documents.change(value =>
       createAndAssignMessageStyle(value, input),
     );
+  }
+
+  changeMessageStyle(
+    id: MessageStyleId,
+    change: MessageStyleChange,
+  ): Promise<boolean> {
+    return this.documents.change(value => editMessageStyle(value, id, change));
   }
 
   changeStyle(edit: LyricStyleEdit): Promise<boolean> {
