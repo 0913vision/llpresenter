@@ -15,12 +15,12 @@ import {
   type SongGroupId,
 } from './ids';
 import {
-  isFirstWithKey,
   jsonObject,
   nonBlankText,
   positiveInteger,
   timestamp,
 } from './primitives';
+import {uniqueNames} from './uniqueNames';
 import {arrangementNameSchema, type Song} from './song';
 import {
   migrateImportedSongGroups,
@@ -96,9 +96,7 @@ export const groupedSongSchema = v.pipe(
       v.pipe(
         v.array(groupArrangementSchema),
         v.maxLength(SONG_GROUP_LIMITS.arrangements),
-        v.checkItems(
-          (_item, index, items) =>
-            isFirstWithKey(items, index, ({name}) => name),
+        uniqueNames<v.InferOutput<typeof groupArrangementSchema>>(
           'Another arrangement already has this name',
         ),
         v.check(

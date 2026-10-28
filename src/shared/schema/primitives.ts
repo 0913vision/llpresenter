@@ -106,22 +106,6 @@ export const timestamp = v.pipe(
   v.isoTimestamp('Expected an ISO 8601 time with a time zone offset'),
 );
 
-/**
- * Whether no item before `index` has the same key. Use it in `v.checkItems` so
- * that the issue points at the repeated item.
- */
-export function isFirstWithKey<TItem>(
-  items: readonly TItem[],
-  index: number,
-  key: (item: TItem) => unknown,
-): boolean {
-  const item = items[index];
-  return (
-    item !== undefined &&
-    items.findIndex(other => key(other) === key(item)) === index
-  );
-}
-
 /** An array whose items each have an `id`, with no id used twice. */
 export function listWithUniqueIds<
   TItem extends v.GenericSchema<unknown, {readonly id: unknown}>,

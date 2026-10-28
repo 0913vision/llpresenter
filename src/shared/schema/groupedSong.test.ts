@@ -148,6 +148,19 @@ describe('grouped song contract', () => {
     expectFailure(parse(value));
   });
 
+  it('identifies the repeated grouped arrangement at its original index', () => {
+    const source = grouped();
+    const repeated = {
+      ...source,
+      arrangements: [source.arrangements[0], source.arrangements[0]],
+    };
+    expect(expectFailure(parse(repeated))).toMatchObject({
+      kind: 'invalid',
+      field: 'arrangements.1',
+      message: 'Another arrangement already has this name',
+    });
+  });
+
   it('bounds total slides and occurrences across groups and arrangements', () => {
     const source = grouped();
     expectFailure(

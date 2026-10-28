@@ -14,12 +14,8 @@ import {
   type ReadonlyKnown,
 } from './fileFormat';
 import type {MigrationStep} from './migration';
-import {
-  isFirstWithKey,
-  jsonObject,
-  nonBlankText,
-  positiveInteger,
-} from './primitives';
+import {jsonObject, nonBlankText, positiveInteger} from './primitives';
+import {uniqueNames} from './uniqueNames';
 
 const JUMP_KEY = /^(Key[A-Z]|Digit\d)$/;
 
@@ -41,9 +37,7 @@ export const labelsSchema = jsonObject({
   schemaVersion: positiveInteger,
   labels: v.pipe(
     v.array(labelSchema),
-    v.checkItems(
-      (_label, index, labels) =>
-        isFirstWithKey(labels, index, ({name}) => name),
+    uniqueNames<v.InferOutput<typeof labelSchema>>(
       'Another label already has this name',
     ),
   ),

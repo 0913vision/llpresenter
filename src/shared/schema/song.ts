@@ -11,12 +11,12 @@ import {
 import {mediaIdSchema, songIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
-  isFirstWithKey,
   jsonObject,
   nonBlankText,
   positiveInteger,
   timestamp,
 } from './primitives';
+import {uniqueNames} from './uniqueNames';
 
 /** The name of the default 구성. It is never stored, so no 구성 may use it. */
 export const DEFAULT_ARRANGEMENT_NAME = '기본';
@@ -42,9 +42,7 @@ const arrangementSchema = jsonObject({
 
 export const arrangementsSchema = v.pipe(
   v.array(arrangementSchema),
-  v.checkItems(
-    (_arrangement, index, arrangements) =>
-      isFirstWithKey(arrangements, index, ({name}) => name),
+  uniqueNames<v.InferOutput<typeof arrangementSchema>>(
     'Another arrangement already has this name',
   ),
 );
