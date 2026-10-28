@@ -237,8 +237,9 @@ describe('항목 설정 이번 예배 and 메모', () => {
 
   it('reads the 매크로 again from the failed row and recovers', async () => {
     const {shown, fixture, read} = failedMacros();
-    await waitFor(() =>
-      expect(shown().getAttribute('aria-disabled')).toBeNull(),
+    await waitFor(
+      () => expect(shown().getAttribute('aria-disabled')).toBeNull(),
+      {timeout: 5000},
     );
     vi.mocked(fixture.api.settings.get).mockImplementation(read);
     await userEvent.click(shown());

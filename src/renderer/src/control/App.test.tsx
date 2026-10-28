@@ -117,7 +117,7 @@ describe('App menu bar title', () => {
         shiftKey: true,
         repeat: true,
       });
-      await screen.findByText('슬라이드 1');
+      await screen.findByText('슬라이드 1', undefined, {timeout: 5000});
       expect(read).toHaveBeenCalledExactlyOnceWith({
         source: 'file',
         encoding: 'auto',

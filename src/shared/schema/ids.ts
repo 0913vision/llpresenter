@@ -26,6 +26,7 @@ export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
 export const lookIdSchema = uuidId('LookId');
 export const lyricStyleIdSchema = uuidId('LyricStyleId');
+export const messageStyleIdSchema = uuidId('MessageStyleId');
 export const stageLayoutIdSchema = uuidId('StageLayoutId');
 export const mediaPlaylistIdSchema = uuidId('MediaPlaylistId');
 export const audioPlaylistIdSchema = uuidId('AudioPlaylistId');
@@ -60,6 +61,7 @@ export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
 export type LookId = v.InferOutput<typeof lookIdSchema>;
 export type LyricStyleId = v.InferOutput<typeof lyricStyleIdSchema>;
+export type MessageStyleId = v.InferOutput<typeof messageStyleIdSchema>;
 export type StageLayoutId = v.InferOutput<typeof stageLayoutIdSchema>;
 export type MediaPlaylistId = v.InferOutput<typeof mediaPlaylistIdSchema>;
 export type AudioPlaylistId = v.InferOutput<typeof audioPlaylistIdSchema>;
@@ -85,6 +87,16 @@ export function parseLookId(value: unknown) {
 /** Checks a generated lyric style UUID without throwing. */
 export function parseLyricStyleId(value: unknown) {
   return parsePayload(lyricStyleIdSchema, value);
+}
+
+/** Checks a message style ID received from a view. */
+export function parseMessageStyleId(value: unknown) {
+  return parsePayload(messageStyleIdSchema, value);
+}
+
+/** Brands a generated message style UUID. */
+export function createMessageStyleId(uuid: string): MessageStyleId {
+  return v.parse(messageStyleIdSchema, uuid);
 }
 
 /** Brands a generated song UUID; throws unless it is lowercase version 4. */

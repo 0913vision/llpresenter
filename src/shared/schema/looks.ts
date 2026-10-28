@@ -26,7 +26,7 @@ import {lyricTextEntries} from './textStyle';
 
 const optionalLayer = v.exactOptional(v.boolean());
 
-const screenLookSchema = jsonObject({
+export const screenLookEntries = {
   layers: jsonObject({
     media: optionalLayer,
     slide: optionalLayer,
@@ -44,13 +44,13 @@ const screenLookSchema = jsonObject({
       v.looseObject({kind: v.literal('color'), color: hexColor}),
     ]),
   ),
-});
+};
 
-const lookSchema = jsonObject({
+export const lookEntries = {
   id: lookIdSchema,
   name: v.string(),
-  screens: jsonRecord(screenIdSchema, screenLookSchema),
-});
+  screens: jsonRecord(screenIdSchema, jsonObject(screenLookEntries)),
+};
 
 export const lyricStyleEntries = {
   id: lyricStyleIdSchema,
@@ -62,7 +62,7 @@ export const looksEntries = {
   format: v.literal('llsettings.looks'),
   schemaVersion: positiveInteger,
   current: lookIdSchema,
-  looks: listWithUniqueIds(lookSchema),
+  looks: listWithUniqueIds(jsonObject(lookEntries)),
   lyricStyles: listWithUniqueIds(jsonObject(lyricStyleEntries)),
 };
 
