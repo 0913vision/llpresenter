@@ -92,6 +92,57 @@ function setup() {
 }
 
 describe('quick pointer reorder', () => {
+  it('drops after the last visible row before the following unmounted row', () => {
+    const moved = vi.fn();
+    const activated = vi.fn();
+    const ids = [1, 2, 3, 4, 5].map(quickId);
+    function VirtualList() {
+      const drag = useQuickDrag({
+        enabled: true,
+        revision: 1,
+        onMove: moved,
+        ids,
+      });
+      return (
+        <div data-viewport>
+          <div {...drag.listProps}>
+            {ids.slice(0, 3).map((id, index) => (
+              <div data-quick-id={id} key={id}>
+                <button onClick={activated}>{`Row ${index + 1}`}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    render(<VirtualList />);
+    const first = screen.getByRole('button', {name: 'Row 1'});
+    const list = first.closest('[data-quick-id]')?.parentElement;
+    const viewport = list?.parentElement;
+    if (!list || !viewport) throw new Error('Missing virtual list');
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 0, 200, 150),
+    );
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 0, 200, 90),
+    );
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: () => list,
+    });
+    const rows = list.querySelectorAll<HTMLElement>('[data-quick-id]');
+    rows.forEach((row, index) =>
+      vi
+        .spyOn(row, 'getBoundingClientRect')
+        .mockReturnValue(new DOMRect(0, index * 30, 200, 30)),
+    );
+    fireEvent.pointerDown(first, {...pointer, clientY: 15});
+    fireEvent.pointerMove(window, {...pointer, clientY: 85});
+    fireEvent.pointerUp(window, {...pointer, clientY: 85});
+    fireEvent.click(first, {detail: 1});
+    expect(moved).toHaveBeenCalledExactlyOnceWith(quickId(1), quickId(4));
+    expect(activated).not.toHaveBeenCalled();
+  });
   it.each([
     {y: 14, before: quickId(1)},
     {y: 15, before: quickId(2)},

@@ -239,16 +239,23 @@ export function QuickRowEditor({
   save,
   children,
   insertBefore = false,
+  onPinChange,
 }: {
   readonly item: QuickItem;
   readonly locked: boolean;
   readonly save: Save;
   readonly children: ReactNode;
   readonly insertBefore?: boolean;
+  readonly onPinChange?: ((id: string, active: boolean) => void) | undefined;
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(item.name);
+  useEffect(() => {
+    if (!menu && !renaming) return undefined;
+    onPinChange?.(item.id, true);
+    return () => onPinChange?.(item.id, false);
+  }, [item.id, menu, renaming, onPinChange]);
   const reason = quickNameReason(name);
   return (
     <div

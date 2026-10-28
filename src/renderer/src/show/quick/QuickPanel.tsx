@@ -1,5 +1,9 @@
 import {useEffect, useMemo, useState, type JSX} from 'react';
-import {isKnownQuickItem, type QuickItemKind} from '@shared/schema/quick';
+import {
+  isKnownQuickItem,
+  type QuickItem,
+  type QuickItemKind,
+} from '@shared/schema/quick';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
@@ -21,6 +25,7 @@ import {MAX_QUICK_ITEMS} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {useQuickDrag} from './useQuickDrag';
 import {useQuickTimers} from './useQuickTimers';
+import {useQuickWindow} from './useQuickWindow';
 import {TimerValue} from '../tools/TimerValue';
 
 const icons: Readonly<Record<QuickItemKind, string>> = {
@@ -31,6 +36,7 @@ const icons: Readonly<Record<QuickItemKind, string>> = {
   macro: 'macro',
   black: 'monitor',
 };
+const EMPTY_ITEMS: readonly QuickItem[] = [];
 
 export function QuickPanel({
   selectionVersion,
@@ -45,9 +51,14 @@ export function QuickPanel({
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
+  const items = document?.value.items ?? EMPTY_ITEMS;
+  const ids = useMemo(() => items.map(item => item.id), [items]);
+  const windowed = useQuickWindow(items);
   const drag = useQuickDrag({
     enabled: !locked,
     revision: document?.revision ?? null,
+    ids,
+    listRef: windowed.list,
     onMove: (id, before) => {
       const source = document?.value.items.find(item => item.id === id);
       const target = document?.value.items.find(item => item.id === before);
@@ -100,8 +111,17 @@ export function QuickPanel({
         />
       </PanelTools>
       <PanelBody variant="flush">
-        <div {...drag.listProps} role="group" aria-label="퀵 실행 항목">
-          {document?.value.items.map(item => {
+        <div
+          {...drag.listProps}
+          role="group"
+          aria-label="퀵 실행 항목"
+          className={styles.list}
+          style={{height: items.length * windowed.rowHeight}}
+          onKeyDown={windowed.onKeyDown}
+          onFocusCapture={windowed.onFocusCapture}
+          onBlurCapture={windowed.onBlurCapture}
+        >
+          {windowed.shown.map(({item, index}) => {
             const known = isKnownQuickItem(item);
             const reason = quickItemUnavailable(item) ?? timers.reason(item);
             const available = known && reason === undefined;
@@ -110,45 +130,58 @@ export function QuickPanel({
                 ? timers.definitions.get(item.ref)
                 : undefined;
             return (
-              <QuickRowEditor
+              <div
                 key={item.id}
-                item={item}
-                locked={locked}
-                save={editing.run}
-                insertBefore={drag.before === item.id}
+                className={styles.slot}
+                style={{top: index * windowed.rowHeight}}
               >
-                <ListActionRow
-                  title={item.name}
-                  meta={
-                    timer ? (
-                      <TimerValue
-                        api={api}
-                        timer={timer}
-                        run={available ? live?.timers?.[timer.id] : undefined}
-                      />
-                    ) : undefined
-                  }
-                  icon={known ? icons[item.kind] : 'warning'}
-                  pressed={
-                    known && available ? quickItemOn(item, live) : undefined
-                  }
-                  disabled={!available}
-                  reason={reason}
-                  onPress={() => {
-                    if (available) {
-                      setActivationVersion(value => value + 1);
-                      runner
-                        ?.run(item)
-                        .catch((cause: unknown) =>
-                          console.error('Quick item callback failed:', cause),
-                        );
+                <QuickRowEditor
+                  item={item}
+                  locked={locked}
+                  save={editing.run}
+                  onPinChange={windowed.pin}
+                  insertBefore={drag.before === item.id}
+                >
+                  <ListActionRow
+                    title={item.name}
+                    meta={
+                      timer ? (
+                        <TimerValue
+                          api={api}
+                          timer={timer}
+                          run={available ? live?.timers?.[timer.id] : undefined}
+                        />
+                      ) : undefined
                     }
-                  }}
-                />
-              </QuickRowEditor>
+                    icon={known ? icons[item.kind] : 'warning'}
+                    pressed={
+                      known && available ? quickItemOn(item, live) : undefined
+                    }
+                    disabled={!available}
+                    reason={reason}
+                    onPress={() => {
+                      if (available) {
+                        setActivationVersion(value => value + 1);
+                        runner
+                          ?.run(item)
+                          .catch((cause: unknown) =>
+                            console.error('Quick item callback failed:', cause),
+                          );
+                      }
+                    }}
+                  />
+                </QuickRowEditor>
+              </div>
             );
           })}
-          {drag.before === null ? <ListInsertLine /> : null}
+          {drag.before === null ? (
+            <div
+              className={styles.slot}
+              style={{top: items.length * windowed.rowHeight}}
+            >
+              <ListInsertLine />
+            </div>
+          ) : null}
         </div>
       </PanelBody>
     </Panel>

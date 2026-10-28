@@ -5,6 +5,7 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type RefObject,
 } from 'react';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
@@ -23,8 +24,8 @@ interface Drag {
 
 function beforeAt(
   list: HTMLElement,
-  x: number,
-  y: number,
+  {x, y}: {readonly x: number; readonly y: number},
+  ids?: readonly string[],
 ): string | null | undefined {
   const bounds = list.getBoundingClientRect();
   if (
@@ -36,23 +37,40 @@ function beforeAt(
   ) {
     return undefined;
   }
+  const viewport =
+    ids === undefined ? null : list.parentElement?.getBoundingClientRect();
+  let last: string | undefined;
   for (const row of list.querySelectorAll<HTMLElement>(ROW)) {
     const box = row.getBoundingClientRect();
+    if (
+      viewport &&
+      viewport.height > 0 &&
+      (box.bottom <= viewport.top || box.top >= viewport.bottom)
+    ) {
+      continue;
+    }
+    last = row.dataset['quickId'];
     if (beforeRowMidpoint(y, box)) return row.dataset['quickId'] ?? null;
   }
-  return null;
+  const index = last === undefined ? -1 : (ids?.indexOf(last) ?? -1);
+  return index >= 0 ? (ids?.[index + 1] ?? null) : null;
 }
 
 export function useQuickDrag({
   enabled,
   revision,
   onMove,
+  ids,
+  listRef,
 }: {
   readonly enabled: boolean;
   readonly revision: number | null;
   readonly onMove: (id: string, before: string | null) => void;
+  readonly ids?: readonly string[] | undefined;
+  readonly listRef?: RefObject<HTMLDivElement | null> | undefined;
 }) {
-  const list = useRef<HTMLDivElement>(null);
+  const internalList = useRef<HTMLDivElement>(null);
+  const list = listRef ?? internalList;
   const click = useDragClickGuard();
   const aborted = useRef(false);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -85,7 +103,7 @@ export function useQuickDrag({
     setDrag({
       ...drag,
       started: true,
-      before: beforeAt(list.current, event.clientX, event.clientY),
+      before: beforeAt(list.current, {x: event.clientX, y: event.clientY}, ids),
     });
   });
   const finish = useEffectEvent((event: globalThis.PointerEvent) => {
@@ -102,11 +120,19 @@ export function useQuickDrag({
     }
     click.markDragged();
     if (list.current === null) return;
-    const before = beforeAt(list.current, event.clientX, event.clientY);
+    const before = beforeAt(
+      list.current,
+      {x: event.clientX, y: event.clientY},
+      ids,
+    );
     if (before === undefined) return;
     const rows = [...list.current.querySelectorAll<HTMLElement>(ROW)];
-    const index = rows.findIndex(row => row.dataset['quickId'] === drag.id);
-    const next = rows[index + 1]?.dataset['quickId'] ?? null;
+    const index = ids
+      ? ids.indexOf(drag.id)
+      : rows.findIndex(row => row.dataset['quickId'] === drag.id);
+    const next = ids
+      ? (ids[index + 1] ?? null)
+      : (rows[index + 1]?.dataset['quickId'] ?? null);
     if (index >= 0 && before !== drag.id && before !== next) {
       onMove(drag.id, before);
     }
