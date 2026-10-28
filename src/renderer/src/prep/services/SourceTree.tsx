@@ -140,11 +140,11 @@ export function SourceTree({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (hasModifier(event)) return;
     if (event.key === 'Enter') {
       event.stopPropagation();
       return;
     }
-    if (hasModifier(event)) return;
     // NOTE(0913vision): The row comes from the key's target, so a row that
     // took focus some other way, such as a right click, is the one that acts.
     const target =

@@ -3,6 +3,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {slideCountOf} from './blockEdits';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
@@ -74,7 +75,11 @@ export function SongHeader({
           invalid={session.title.reason !== undefined}
           invalidReason={session.title.reason}
           onKeyDown={event => {
-            if (event.key === 'Enter' && !isComposing(event)) {
+            if (
+              event.key === 'Enter' &&
+              !isComposing(event) &&
+              !hasModifier(event)
+            ) {
               event.preventDefault();
               event.stopPropagation();
               if (session.title.reason === undefined) session.endTyping();

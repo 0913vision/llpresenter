@@ -1,4 +1,4 @@
-import {act, render, screen, within} from '@testing-library/react';
+import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
@@ -36,6 +36,22 @@ function position(name: string): ReadonlyArray<string | null> {
 }
 
 describe('SourceTree', () => {
+  it('passes modified Enter from a tree item to window shortcuts', () => {
+    render(<Tree />);
+    const row = item('찬양');
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      expect(fireEvent.keyDown(row, {key: 'Enter', [modifier]: true})).toBe(
+        true,
+      );
+    }
+    expect(keys).toHaveBeenCalledTimes(4);
+    fireEvent.keyDown(row, {key: 'Enter'});
+    expect(keys).toHaveBeenCalledTimes(4);
+    window.removeEventListener('keydown', keys);
+  });
+
   it('shows a tree of headers and items with levels, details, and states', () => {
     render(<Tree />);
     const tree = screen.getByRole('tree', {name: '예배 순서 항목'});

@@ -13,6 +13,21 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('passes modified Enter from the title field to window shortcuts', async () => {
+    await editorSetup();
+    const title = screen.getByRole('textbox', {name: '곡 제목'});
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      expect(fireEvent.keyDown(title, {key: 'Enter', [modifier]: true})).toBe(
+        true,
+      );
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(4);
+    expect(fireEvent.keyDown(title, {key: 'Enter'})).toBe(false);
+  });
+
   it('coalesces typing and flushes when the lyrics field loses focus', async () => {
     const {edits} = await editorSetup();
     cursor(lyrics(), 0);
