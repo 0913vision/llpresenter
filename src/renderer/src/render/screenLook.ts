@@ -80,15 +80,7 @@ export function resolveScreenLook(
       layers: card.layers,
       lyricStyle:
         style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
-      ...(card.messageStyle === undefined
-        ? {}
-        : {
-            messageStyle: {
-              ...messageStyle,
-              outline: messageStyle.outline.on,
-              shadow: messageStyle.shadow.on,
-            },
-          }),
+      ...(card.messageStyle === undefined ? {} : {messageStyle}),
       background:
         card.background?.kind === 'color' ? card.background.color : null,
       ...(screen.kind === 'stage' && card.stageLayout !== undefined

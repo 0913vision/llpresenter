@@ -308,7 +308,12 @@ describe('registered overlay layers', () => {
     const look = (color: string) => ({
       layers: {message: true},
       lyricStyle: DEFAULT_LYRIC_STYLE,
-      messageStyle: {...DEFAULT_LYRIC_STYLE, color},
+      messageStyle: {
+        ...DEFAULT_LYRIC_STYLE,
+        color,
+        outline: {on: true, width: 7, color},
+        shadow: {on: true, blur: 8, distance: 4, angle: 45, opacity: 35, color},
+      },
       background: null,
     });
     first.renderer.render(first.store.state.layers, {
@@ -327,6 +332,17 @@ describe('registered overlay layers', () => {
     expect(shown(first.parent)?.style.color).toBe('rgb(255, 0, 0)');
     expect(shown(second.parent)?.textContent).toBe('Welcome');
     expect(shown(second.parent)?.style.color).toBe('rgb(0, 0, 255)');
+    const effects = (parent: HTMLElement) =>
+      parent.querySelector<HTMLElement>('[data-layer="message"] > div');
+    expect(
+      effects(first.parent)?.style.getPropertyValue('--lyric-outline-color'),
+    ).toBe('#FF0000');
+    expect(
+      effects(second.parent)?.style.getPropertyValue('--lyric-shadow-color'),
+    ).toBe('#0000FF');
+    expect(
+      effects(second.parent)?.style.getPropertyValue('--lyric-shadow-strength'),
+    ).toBe('35%');
 
     first.renderer.render(first.store.state.layers, {
       screen: {id: MAIN, kind: 'audience'},

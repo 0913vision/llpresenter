@@ -90,7 +90,13 @@ describe('screen Look resolution', () => {
           : look,
       ),
       messageStyles: [
-        {...DEFAULT_MESSAGE_STYLE, id: overlayUuid(90), color: '#FF0000'},
+        {
+          ...DEFAULT_MESSAGE_STYLE,
+          id: overlayUuid(90),
+          color: '#FF0000',
+          outline: {on: true, width: 7, color: '#123456'},
+          shadow: {...DEFAULT_MESSAGE_STYLE.shadow, blur: 19, color: '#654321'},
+        },
         {...DEFAULT_MESSAGE_STYLE, id: overlayUuid(91), color: '#0000FF'},
       ],
     });
@@ -99,6 +105,13 @@ describe('screen Look resolution', () => {
       resolveScreenLook(document.value, NORMAL, MAIN_SCREEN).appearance
         ?.messageStyle?.color,
     ).toBe('#FF0000');
+    expect(
+      resolveScreenLook(document.value, NORMAL, MAIN_SCREEN).appearance
+        ?.messageStyle,
+    ).toMatchObject({
+      outline: {on: true, width: 7, color: '#123456'},
+      shadow: {blur: 19, color: '#654321'},
+    });
     expect(
       resolveScreenLook(document.value, NORMAL, CAPTIONS_SCREEN).appearance
         ?.messageStyle?.color,
