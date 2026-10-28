@@ -8,6 +8,7 @@ import {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
+import {useButtonPress} from './press';
 import {useTooltip} from './Tooltip';
 import styles from './LabelColorPicker.module.css';
 
@@ -47,11 +48,18 @@ function Swatch({
 }: SwatchProps): JSX.Element {
   const name = labelColorNames[color];
   const {targetProps, tooltip} = useTooltip({text: name, sub: scope});
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: onSelect,
+    onKeyDown,
+    onBlur: targetProps.onBlur,
+  });
   const isNone = color === NO_LABEL_COLOR;
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         ref={elementRef}
         type="button"
         role="radio"
@@ -59,8 +67,6 @@ function Swatch({
         aria-label={name}
         tabIndex={tabIndex}
         className={classNames(styles.swatch, isNone && styles.none)}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
       >
         <span
           className={styles.chip}

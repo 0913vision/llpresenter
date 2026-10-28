@@ -62,6 +62,7 @@ Hover on a color chip doesn't change the background color. The 이름표 color i
 - A picker 이름표 has `aria-haspopup="menu"` and gets `aria-expanded="true"` when open. The menu follows the Menu rules (rule 11).
 - A small 이름표 fits its host column. Long names use an ellipsis, keeping the picker arrow visible; the menu shows the full name.
 - The chip of a live group has `data-state="live"`.
+- Modified Space and Enter pass through without selecting a chip or opening its menu; unmodified activation and pointer presses work normally.
 
 ## Writing
 

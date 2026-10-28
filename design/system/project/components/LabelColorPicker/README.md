@@ -1,5 +1,7 @@
 # LabelColorPicker
 
+Modified Space and Enter pass through without choosing a color; unmodified activation and pointer presses still choose it.
+
 A row of color swatches for picking the color of an 이름표 (label) or a macro. It goes inside the 이름표 menu in library song editing and inside the macro right-click menu.
 
 ## Where to use

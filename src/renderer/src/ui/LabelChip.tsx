@@ -4,7 +4,6 @@ import {
   useRef,
   type JSX,
   type KeyboardEvent,
-  type MouseEvent,
   type Ref,
 } from 'react';
 import type {LabelColor} from '@shared/colors';
@@ -12,6 +11,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
 import {hasModifier, isAltOnly} from './modifierKeys';
+import {useButtonPress} from './press';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './LabelChip.module.css';
 
@@ -159,6 +159,11 @@ export function ArrangementStrip({
   const focusAfterMove = useRef<number | null>(null);
   const readOnly = readOnlyReason !== undefined;
   const insertTooltip = useTooltip({text: readOnlyReason ?? insertLabel});
+  const insertPress = useButtonPress<HTMLButtonElement>({
+    disabled: readOnly,
+    onPress: event => onInsert(event.currentTarget),
+    onBlur: insertTooltip.targetProps.onBlur,
+  });
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
   const focusAfterRemoval = useFocusAfterRemoval(chips.length, index => {
     const target =
@@ -231,14 +236,12 @@ export function ArrangementStrip({
       </div>
       <button
         {...insertTooltip.targetProps}
+        {...insertPress}
         ref={insertButton}
         type="button"
         aria-label={insertLabel}
         aria-disabled={readOnly ? true : undefined}
         className={styles.add}
-        onClick={(event: MouseEvent<HTMLButtonElement>) => {
-          if (!readOnly) onInsert(event.currentTarget);
-        }}
       >
         <Icon name="plus" size={ADD_ICON_SIZE} />
       </button>
@@ -297,10 +300,17 @@ function LabelChip({
   onKeyDown,
 }: LabelChipProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(reason));
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: onSelect,
+    onKeyDown,
+    onBlur: targetProps.onBlur,
+  });
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         ref={elementRef}
         type="button"
         role="option"
@@ -311,8 +321,6 @@ function LabelChip({
         data-dragging={dragging ? true : undefined}
         style={labelInk(chip.color)}
         className={styles.chip}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
       >
         <Icon name="grip" size={GRIP_SIZE} className={styles.grip} />
         {chipText(chip)}
@@ -346,6 +354,10 @@ export function LabelTag({
   picker,
   buttonRef,
 }: LabelTagProps): JSX.Element {
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: picker === undefined,
+    onPress: event => picker?.onOpen(event.currentTarget),
+  });
   if (picker === undefined) {
     return (
       <span data-color={color} style={labelInk(color)} className={styles.tag}>
@@ -355,6 +367,7 @@ export function LabelTag({
   }
   return (
     <button
+      {...press}
       ref={buttonRef}
       type="button"
       aria-haspopup="menu"
@@ -362,7 +375,6 @@ export function LabelTag({
       data-color={color}
       style={labelInk(color)}
       className={classNames(styles.tag, styles.picker)}
-      onClick={event => picker.onOpen(event.currentTarget)}
     >
       <span className={styles.tagName}>{name ?? PICKER_PLACEHOLDER}</span>
       <Icon name="down" size={CHEVRON_SIZE} />

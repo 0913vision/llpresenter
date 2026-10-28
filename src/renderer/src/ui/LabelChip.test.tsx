@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -77,6 +77,44 @@ function selectedChip(): string | null {
 }
 
 describe('ArrangementStrip', () => {
+  it('ignores modified keyboard presses on chips and the insert button', () => {
+    const onInsert = vi.fn();
+    render(<Strip onInsert={onInsert} />);
+    const chip = screen.getByRole('option', {name: '후렴'});
+    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
+    for (const target of [chip, insert]) {
+      for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+        for (const key of [' ', 'Enter']) {
+          fireEvent.keyDown(target, {key, [modifier]: true});
+          fireEvent.keyUp(target, {key});
+          fireEvent.click(target, {detail: 0});
+        }
+      }
+    }
+    expect(selectedChip()).toBe('1절');
+    expect(onInsert).not.toHaveBeenCalled();
+    fireEvent.click(chip, {detail: 1, ctrlKey: true});
+    expect(selectedChip()).toBe('후렴');
+  });
+
+  it('ignores modified keyboard presses on label pickers', () => {
+    const onOpen = vi.fn();
+    render(
+      <LabelTag
+        name="후렴"
+        color="yellow"
+        picker={{expanded: false, onOpen}}
+      />,
+    );
+    const tag = screen.getByRole('button', {name: '후렴'});
+    fireEvent.keyDown(tag, {key: ' ', ctrlKey: true});
+    fireEvent.keyUp(tag, {key: ' '});
+    fireEvent.click(tag, {detail: 0});
+    expect(onOpen).not.toHaveBeenCalled();
+    fireEvent.click(tag, {detail: 1});
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
+
   it('is a horizontal list of chips named by 이름표 or number', () => {
     render(<Strip />);
     const strip = screen.getByRole('listbox', {name: '구성'});
