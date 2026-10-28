@@ -10,6 +10,7 @@ import {BibleLibrary, loadBibleLibrary} from './library';
 import {matchBooks} from '@shared/bibleMatching';
 
 const BOOK_PREFIX = /^((?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
+const WARNED_FILE_LIMIT = 128;
 
 export interface BibleLookupOptions {
   readonly folder: string;
@@ -107,6 +108,10 @@ export class BibleLookupSession {
         translations: document.value.translations,
         onProblem: problem => {
           if (this.disposed || this.warnedFiles.has(problem.file)) return;
+          if (this.warnedFiles.size >= WARNED_FILE_LIMIT) {
+            const oldest = this.warnedFiles.values().next().value;
+            if (oldest !== undefined) this.warnedFiles.delete(oldest);
+          }
           this.warnedFiles.add(problem.file);
           this.options.log.warn('skipped a Bible translation', problem);
         },

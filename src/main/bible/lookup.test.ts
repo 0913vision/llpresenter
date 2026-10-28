@@ -200,6 +200,23 @@ describe('Bible lookup session', () => {
     expect(log.warn).toHaveBeenCalledTimes(warnings + 2);
   });
 
+  it('bounds remembered bad files while suppressing recent duplicate warnings', async () => {
+    const {session, get} = await setup();
+    await session.lookup(request());
+    const warnings = vi.mocked(log.warn).mock.calls.length;
+    for (let index = 0; index < 129; index++) {
+      get.mockImplementation(() => document(`missing-${index}.llbible`));
+      await session.lookup(request());
+    }
+    expect(log.warn).toHaveBeenCalledTimes(warnings + 129);
+    get.mockImplementation(() => document('missing-128.llbible'));
+    await session.lookup(request());
+    expect(log.warn).toHaveBeenCalledTimes(warnings + 129);
+    get.mockImplementation(() => document('missing-0.llbible'));
+    await session.lookup(request());
+    expect(log.warn).toHaveBeenCalledTimes(warnings + 130);
+  });
+
   it('rejects unavailable settings and releases queued requests after disposal', async () => {
     const folder = await makeTempDir();
     const unavailable = new BibleLookupSession({
