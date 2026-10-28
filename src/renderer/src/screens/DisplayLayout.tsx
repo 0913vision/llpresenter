@@ -15,7 +15,6 @@ import {
   displayLayout,
   type DisplayLayoutModel,
   type MonitorBox,
-  type TargetBox,
 } from './layoutBoxes';
 import {fitAspect, type BoxSize} from './fitAspect';
 import {
@@ -29,6 +28,7 @@ import {useSettingsDocument} from './useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './DisplayLayout.module.css';
+import {DisplayTarget} from './DisplayTarget';
 
 const TITLE = '배치';
 const LOAD_TITLE = '화면';
@@ -113,24 +113,6 @@ function MonitorView({
       {box.control && <span className={styles.control}>{CONTROL_LABEL}</span>}
       <span>{box.resolution}</span>
       <span>{box.name}</span>
-    </button>
-  );
-}
-
-function TargetView({target}: {readonly target: TargetBox}): JSX.Element {
-  return (
-    <button
-      type="button"
-      aria-label={target.name}
-      aria-pressed={target.selected}
-      onClick={() => useScreensSelection.getState().select('screen', target.id)}
-      className={classNames(styles.target, target.selected && styles.selected)}
-      data-target={target.id}
-      aria-current={target.selected ? 'true' : undefined}
-    >
-      <span className={styles.targetName}>{target.name}</span>
-      <span>{target.detail}</span>
-      {target.resolution !== undefined && <span>{target.resolution}</span>}
     </button>
   );
 }
@@ -251,12 +233,10 @@ export function DisplayLayout({
         {model.targets.length > 0 ? (
           <div className={styles.targets}>
             {model.targets.map(target => (
-              <TargetView
+              <DisplayTarget
                 key={target.id}
-                target={{
-                  ...target,
-                  selected: pickedNumber === null && target.selected,
-                }}
+                {...target}
+                selected={pickedNumber === null && target.selected}
               />
             ))}
           </div>
