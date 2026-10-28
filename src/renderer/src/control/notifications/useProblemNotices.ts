@@ -1,4 +1,4 @@
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@shared/schema/appProblem';
 import {noticeTime} from '@renderer/ui/notices';
@@ -24,7 +24,8 @@ function isSaveProblem(problem: AppProblem): boolean {
 export function useProblemNotices(
   api: Pick<LlpApi, 'problems'> | undefined,
   target: Pick<NoticeTarget, 'report' | 'dismiss'>,
-): void {
+): boolean {
+  const [saveFailed, setSaveFailed] = useState(false);
   const show = useEffectEvent(target.report);
   const close = useEffectEvent(target.dismiss);
   useEffect(() => {
@@ -40,6 +41,7 @@ export function useProblemNotices(
           show(macroDroppedCard(problem, noticeTime()));
           return;
         case 'save-failed':
+          setSaveFailed(true);
           show(
             waitingSavesCard(problem, {
               time: noticeTime(),
@@ -48,6 +50,7 @@ export function useProblemNotices(
           );
           return;
         case 'save-recovered':
+          setSaveFailed(false);
           close(WAITING_SAVES_KEY);
           return;
         case 'file-skipped': {
@@ -82,4 +85,5 @@ export function useProblemNotices(
       unsubscribe();
     };
   }, [api]);
+  return saveFailed;
 }

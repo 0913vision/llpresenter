@@ -184,3 +184,12 @@ it('releases the problem listener when the app unmounts', () => {
   view.unmount();
   expect(stop).toHaveBeenCalledOnce();
 });
+it('keeps status text in step with save failure and recovery pushes', () => {
+  const {push, view} = setup();
+  const bar = view.container.querySelector('footer[role="status"]');
+  expect(bar?.textContent).toBe('');
+  push(saveFailedProblem('service', 1));
+  expect(bar?.textContent).toBe('\uC800\uC7A5\uD558\uC9C0 \uBABB\uD568');
+  push({kind: 'save-recovered'});
+  expect(bar?.textContent).toBe('');
+});

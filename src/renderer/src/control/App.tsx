@@ -29,6 +29,7 @@ import {workspaceShortcuts} from '@renderer/shell/workspaceCommands';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
 import {RecoveryPrompt} from './recovery/RecoveryPrompt';
+import {useRecovery} from './recovery/useRecovery';
 import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
@@ -56,6 +57,7 @@ function ControlApp({
   session,
   uiState = {},
 }: AppProps): JSX.Element {
+  const recovery = useRecovery(session.api, session.report);
   const sizeClass = useSizeClass();
   const mediaStrip = useMediaStripVisibility(
     sizeClass,
@@ -119,7 +121,17 @@ function ControlApp({
   useClearKeys();
   useUiZoomKeys();
   useOutputNotices(session.api, session);
-  useProblemNotices(session.api, session);
+  const saveFailed = useProblemNotices(session.api, session);
+  const closeView = useSyncExternalStore(
+    session.closeFlush?.subscribe ?? noEditorSubscription,
+    session.closeFlush?.getSnapshot ?? (() => 'hidden' as const),
+  );
+  const saveState =
+    closeView === 'saving'
+      ? 'saving'
+      : saveFailed || closeView === 'failed'
+        ? 'failed'
+        : undefined;
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
@@ -186,7 +198,7 @@ function ControlApp({
         mediaApi={session.api}
         sidebar={sidebar}
       />
-      <StatusBar />
+      <StatusBar standby={recovery.offer !== null} saveState={saveState} />
       {session.api && session.editor && importSource !== null ? (
         <TextImportFlow
           api={session.api}
@@ -199,7 +211,7 @@ function ControlApp({
           onProblem={session.report}
         />
       ) : null}
-      <RecoveryPrompt api={session.api} onProblem={session.report} />
+      <RecoveryPrompt recovery={recovery} />
       <NotificationStack
         notices={notices}
         compact={sizeClass === 'narrow'}

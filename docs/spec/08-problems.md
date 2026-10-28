@@ -19,7 +19,7 @@ captions), 소품 (prop), 공지 (notice), 메시지 (message), 매크로 (macro
 | Output window crashed      | Log file. After 3 crashes in 60 seconds, a warning notification and an amber outline on the preview frame                              | The main process loads the window again; at the limit, the window shows an empty picture and retries after a cool-down | Automatic, or 다시 시도 (try again)                                                       | `docs/TECH.md` process structure, lead rule |
 | Control window crashed     | Nothing on the outputs                                                                                                                 | The outputs keep their picture                                                                                         | The main process reloads the control window (proposal)                                    | `docs/TECH.md`                              |
 | App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved                                                                        | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                                  |
-| Frame rate dropped         | Status bar, amber dot and text ("방송 자막 41fps")                                                                                     | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
+| Frame rate dropped         | Status bar text ("프레임 속도가 낮아지는 중: 방송 자막 (41fps)")                                                                       | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
 | Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
 | File can't be read         | Warning notification, and a log entry                                                                                                  | The app skips that file and keeps running                                                                              | Fix or remove the file                                                                    | `docs/TECH.md` storage                      |
 | Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 슬라이드 (proposal).              | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
@@ -188,6 +188,9 @@ editor can change meanwhile.
 
 Source: `docs/decisions.md`, "Closing the app while edits are still being saved"
 (user decision), `AlertDialog` README.
+
+The status bar keeps its height and stays empty in normal operation. It shows
+readable text only for a problem or standby.
 
 ## Crash and restart: 출력 상태 복구
 

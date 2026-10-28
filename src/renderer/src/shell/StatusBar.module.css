@@ -8,51 +8,24 @@
   background: var(--bg-app);
   color: var(--text-3);
   font: var(--type-caption);
-}
-
-.spacer {
-  flex: 1;
-}
-
-.screens {
-  display: flex;
-  align-items: center;
-  gap: var(--space-18);
-  height: 100%;
-  min-width: 0;
-  max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
 }
 
-.item {
-  display: inline-flex;
+.bar > span {
   flex: none;
-  align-items: center;
-  gap: var(--space-6);
-  min-width: 0;
-  max-width: calc(var(--size-toolbar-button-min) * 2);
-}
-
-.name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--ok);
+.bar > span:first-child {
+  margin-inline-start: auto;
 }
 
-.off .dot {
-  box-sizing: border-box;
-  border: 1px solid var(--text-3);
-  background: transparent;
+.bar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.bar::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-full);
+  background: var(--line-strong);
 }

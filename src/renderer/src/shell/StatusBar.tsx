@@ -1,42 +1,46 @@
 import type {JSX} from 'react';
-import {useOutputs} from '@renderer/state/live';
+import {useOutputStatuses} from '@renderer/screens/useOutputStatuses';
 import {useScreenSummaries} from './ScreenSummaries';
-import {TruncatedText} from '@renderer/ui/TruncatedText';
 import styles from './StatusBar.module.css';
 
-// TODO(0913vision): Show the save state and each output window's frame rate.
-
-/** The 28px status bar: a filled or hollow dot for each screen's output. */
-export function StatusBar(): JSX.Element {
-  const outputs = useOutputs();
+/** The fixed-height status bar shows only conditions requiring attention. */
+export function StatusBar({
+  standby = false,
+  saveState,
+}: {
+  readonly standby?: boolean;
+  readonly saveState?: 'saving' | 'failed' | undefined;
+}): JSX.Element {
   const screens = useScreenSummaries();
+  const statuses = useOutputStatuses();
+  const messages = screens.flatMap(screen => {
+    const status = statuses[screen.id];
+    if (status === undefined || status.placement === 'off') return [];
+    const problems: string[] = [];
+    if (status.placement === 'monitorMissing') {
+      problems.push(`${screen.statusLabel} 창으로 표시 중`);
+    }
+    if (status.renderer === 'restarting') {
+      problems.push(`${screen.statusLabel} 출력 창을 다시 시작하는 중`);
+    }
+    if (status.renderer === 'limited') {
+      problems.push(`${screen.statusLabel} 다시 시작 시도 제한됨`);
+    }
+    if (status.fpsLow && status.fps !== null) {
+      problems.push(
+        `프레임 속도가 낮아지는 중: ${screen.statusLabel} (${Math.round(status.fps)}fps)`,
+      );
+    }
+    return problems;
+  });
   return (
     <footer role="status" className={styles.bar}>
-      <span className={styles.spacer} />
-      <div
-        className={styles.screens}
-        role="group"
-        aria-label="화면 출력 상태"
-        tabIndex={-1}
-      >
-        {screens.map(screen => {
-          const on = outputs[screen.id] === true;
-          return (
-            <span
-              key={screen.id}
-              className={on ? styles.item : `${styles.item} ${styles.off}`}
-              role="img"
-              aria-label={`${screen.statusLabel} 출력 ${on ? '켜짐' : '꺼짐'}`}
-            >
-              <span className={styles.dot} aria-hidden="true" />
-              <TruncatedText
-                text={screen.statusLabel}
-                className={styles.name}
-              />
-            </span>
-          );
-        })}
-      </div>
+      {standby ? <span>대기</span> : null}
+      {saveState === 'saving' ? <span>저장을 시도하는 중...</span> : null}
+      {saveState === 'failed' ? <span>저장하지 못함</span> : null}
+      {messages.map(message => (
+        <span key={message}>{message}</span>
+      ))}
     </footer>
   );
 }

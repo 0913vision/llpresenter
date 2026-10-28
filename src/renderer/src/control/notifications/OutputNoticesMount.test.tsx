@@ -39,12 +39,15 @@ function setup(initial: OutputStatuses = {}) {
   vi.stubGlobal('innerWidth', 1920);
   vi.stubGlobal('innerHeight', 1080);
   const {api} = editorFixture();
-  let push: (statuses: OutputStatuses) => void = () => undefined;
+  const listeners = new Set<(statuses: OutputStatuses) => void>();
   const stop = vi.fn();
   vi.spyOn(api.output, 'getStatus').mockResolvedValue(initial);
   vi.spyOn(api.output, 'subscribeStatus').mockImplementation(listener => {
-    push = listener;
-    return stop;
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+      stop();
+    };
   });
   const findMonitors = vi.spyOn(api.output, 'findMonitors');
   const showWindow = vi.spyOn(api.output, 'showWindow');
@@ -57,9 +60,12 @@ function setup(initial: OutputStatuses = {}) {
   );
   return {
     push: (statuses: OutputStatuses): void => {
-      act(() => push(statuses));
+      act(() => {
+        for (const listener of listeners) listener(statuses);
+      });
     },
     stop,
+    listeners,
     findMonitors,
     showWindow,
     retry,
@@ -243,8 +249,10 @@ it('shows at most three cards', () => {
   expect(screen.getAllByRole('alert')).toHaveLength(3);
 });
 
-it('releases the status listener when the app unmounts', () => {
-  const {stop, view} = setup();
+it('releases both status listeners when the app unmounts', () => {
+  const {stop, listeners, view} = setup();
+  expect(listeners.size).toBe(2);
   view.unmount();
-  expect(stop).toHaveBeenCalledOnce();
+  expect(stop).toHaveBeenCalledTimes(2);
+  expect(listeners.size).toBe(0);
 });

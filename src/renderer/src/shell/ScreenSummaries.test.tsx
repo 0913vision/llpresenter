@@ -144,7 +144,7 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
   expect(
     screen.getByRole('menuitem', {name: '바뀐 화면 경고 보기'}),
   ).toBeTruthy();
-  expect(screen.getByRole('status').textContent).toBe('바뀐 화면사용자 캡처');
+  expect(screen.getByRole('status').textContent).toBe('');
   expect(lifecycle.mounted).toHaveBeenCalledTimes(2);
   expect(lifecycle.disposed).not.toHaveBeenCalled();
   view.unmount();
@@ -157,7 +157,7 @@ function documentText(): string {
 }
 
 it.each([16, 50])(
-  'keeps all %i screen slots and status names reachable without replacing renderers',
+  'keeps all %i screen slots reachable without replacing renderers',
   async count => {
     const choices = Array.from({length: count}, (_, index) => ({
       id: `60000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
@@ -186,9 +186,7 @@ it.each([16, 50])(
     if (firstButton === undefined) throw new Error('Missing first screen slot');
     const pictures = [...view.container.querySelectorAll('[data-screen]')];
     expect(pictures).toHaveLength(count);
-    expect(
-      screen.getByRole('group', {name: '화면 출력 상태'}).textContent,
-    ).toBe(choices.map(choice => choice.name).join(''));
+    expect(screen.getByRole('status').textContent).toBe('');
     for (let round = 0; round < 20; round++) {
       fireEvent.click(lastButton);
       expect(lastButton.getAttribute('aria-pressed')).toBe('true');
