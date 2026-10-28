@@ -63,6 +63,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 
 - Opening: click a menu bar name or a button, or press Enter, Space, or the Down arrow. A right-click menu opens with a right-click, Shift+F10, or the Menu key. When a menu opens, point to the first item, or focus the search field if there is one.
 - Keyboard: the Up and Down arrows move between items (disabled items get pointed to but don't run). Home and End go to the first and last item. The Right arrow opens a submenu and points to its first item. The Left arrow closes a submenu. Enter and Space run the item. Esc closes one level, and Tab closes all. Typing a letter goes to the item that starts with that letter. In the search field, typed text becomes the search term, and the Down arrow moves into the list.
+- Modified navigation, Enter, Space and Esc pass through without moving, running or closing the menu. Shift+Tab still closes it.
 - Mouse: open a submenu when the pointer rests on its parent item for 150ms. While the pointer moves diagonally toward the submenu (within 300ms), don't close it even if the pointer crosses other items. If a menu bar menu is open and the pointer moves to another menu name, switch to that menu.
 - A click outside the menu closes it, and that click doesn't pass through to what is underneath. Running an item closes all menus and returns focus to where the menu was opened.
 - Fade in over 120ms when appearing; disappear at once when closing. Under `prefers-reduced-motion`, don't fade.

@@ -1,5 +1,6 @@
 import type {KeyboardEvent} from 'react';
 import {isComposing} from './ime';
+import {hasModifier} from './modifierKeys';
 import {
   movePointer,
   typeaheadTarget,
@@ -70,6 +71,13 @@ export function handleMenuKey(
   const {items, pointed, pointTo, run, closeChild, onBack, onClose} = actions;
   const inField = event.target instanceof HTMLInputElement;
   const move = keyMoves[event.key];
+  if (
+    hasModifier(event) &&
+    (move !== undefined ||
+      ['Enter', ' ', 'ArrowRight', 'ArrowLeft', 'Escape'].includes(event.key))
+  ) {
+    return false;
+  }
   if (move !== undefined && !isCaretMove(move, inField)) {
     pointTo(movePointer(items.length, pointed, move));
     return true;

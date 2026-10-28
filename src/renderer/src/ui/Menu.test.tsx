@@ -144,6 +144,29 @@ describe('Menu', () => {
     expect(pointedName()).toBe('새 예배Ctrl N');
   });
 
+  it('passes modified navigation and activation without running an item', async () => {
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(<Harness onSelect={onSelect} onClose={onClose} />);
+    await openMenu();
+    const menu = screen.getByRole('menu');
+    const initial = pointedName();
+    const onKeyDown = vi.fn();
+    window.addEventListener('keydown', onKeyDown);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of ['ArrowDown', 'Home', 'Enter', ' ', 'Escape']) {
+        expect(fireEvent.keyDown(menu, {key, [modifier]: true})).toBe(true);
+        expect(pointedName()).toBe(initial);
+      }
+    }
+    window.removeEventListener('keydown', onKeyDown);
+    expect(onKeyDown).toHaveBeenCalledTimes(20);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Enter}');
+    expect(onSelect).toHaveBeenCalledOnce();
+  });
+
   it('runs the pointed item with Enter, closes, and returns focus', async () => {
     const onSelect = vi.fn();
     const onClose = vi.fn();
