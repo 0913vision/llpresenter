@@ -3,6 +3,7 @@ import type {Screen} from '@shared/schema/screens';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu} from '@renderer/ui/Menu';
 import {menuButtonProps} from '@renderer/ui/menuButton';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {NewScreen} from './addScreen';
 import styles from './ScreenList.module.css';
 
@@ -40,7 +41,10 @@ export function ScreenGroupActions({
     <div
       className={styles.actions}
       onKeyDown={event => {
-        if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        if (
+          !hasModifier(event) &&
+          ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)
+        ) {
           event.stopPropagation();
         }
       }}
