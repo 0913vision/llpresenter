@@ -361,6 +361,98 @@ describe('library panel', () => {
     expect(search).toHaveBeenCalledTimes(2);
   });
 
+  it('removes stale matches after a failed refresh and retries the current search', async () => {
+    const {fixture, onProblem} = await setup();
+    const song = fixture.list()[0];
+    if (!song) throw new Error('Missing fixture song');
+    const search = vi
+      .spyOn(fixture.api.library, 'search')
+      .mockResolvedValueOnce({
+        query: 'fresh',
+        matches: [
+          {
+            songId: song.id,
+            title: song.title,
+            slideCount: song.slideCount,
+            match: {kind: 'lyrics', line: 'Invented fresh words'},
+          },
+        ],
+      })
+      .mockRejectedValueOnce(new Error('Search unavailable'))
+      .mockResolvedValueOnce({query: 'fresh', matches: []});
+    fireEvent.change(screen.getByRole('textbox', {name: '라이브러리 검색'}), {
+      target: {value: 'fresh'},
+    });
+    await screen.findByRole('option', {name: song.title});
+    act(() => fixture.pushSong({songId: song.id, document: null}));
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(screen.queryByRole('option', {name: song.title})).toBeNull();
+    const notice = onProblem.mock.lastCall?.[0];
+    expect(notice?.title).toBe('라이브러리 검색 실패');
+    expect(notice?.actions?.[0]?.label).toBe('다시 검색');
+    act(() => notice?.actions?.[0]?.onSelect());
+    await waitFor(() => expect(search).toHaveBeenCalledTimes(3));
+    expect(screen.queryByRole('option', {name: song.title})).toBeNull();
+  });
+
+  it('hides old matches while a changed song is still being searched', async () => {
+    const {fixture} = await setup();
+    const song = fixture.list()[0];
+    if (!song) throw new Error('Missing fixture song');
+    let finish: ((result: LibrarySearchResult) => void) | undefined;
+    vi.spyOn(fixture.api.library, 'search')
+      .mockResolvedValueOnce({
+        query: 'fresh',
+        matches: [
+          {
+            songId: song.id,
+            title: song.title,
+            slideCount: song.slideCount,
+            match: {kind: 'title'},
+          },
+        ],
+      })
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+    fireEvent.change(screen.getByRole('textbox', {name: '라이브러리 검색'}), {
+      target: {value: 'fresh'},
+    });
+    await screen.findByRole('option', {name: song.title});
+    act(() => fixture.pushSong({songId: song.id, document: null}));
+    await waitFor(() => expect(finish).toBeDefined());
+    expect(screen.queryByRole('option', {name: song.title})).toBeNull();
+    await act(async () => finish?.({query: 'fresh', matches: []}));
+    expect(screen.queryByRole('option', {name: song.title})).toBeNull();
+  });
+
+  it('retries the current query after it changes and ignores retry after unmount', async () => {
+    const {fixture, onProblem, unmount} = await setup();
+    const search = vi
+      .spyOn(fixture.api.library, 'search')
+      .mockRejectedValueOnce(new Error('Search unavailable'))
+      .mockResolvedValue({query: 'new', matches: []});
+    const input = screen.getByRole('textbox', {name: '라이브러리 검색'});
+    fireEvent.change(input, {target: {value: 'old'}});
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    const retry = onProblem.mock.lastCall?.[0].actions?.[0]?.onSelect;
+    expect(retry).toBeDefined();
+    fireEvent.change(input, {target: {value: 'new'}});
+    await waitFor(() => expect(search).toHaveBeenCalledTimes(2));
+    act(() => retry?.());
+    await waitFor(() => expect(search).toHaveBeenCalledTimes(3));
+    expect(search).toHaveBeenLastCalledWith({
+      query: 'new',
+      limit: LIBRARY_SEARCH_LIMITS.max,
+    });
+    unmount();
+    act(() => retry?.());
+    expect(search).toHaveBeenCalledTimes(3);
+  });
+
   it('creates sequential new songs with one blank slide and focuses the editor title in the gallery host', async () => {
     render(<LibrarySection />);
     const user = userEvent.setup();

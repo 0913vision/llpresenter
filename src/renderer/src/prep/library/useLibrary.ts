@@ -86,6 +86,7 @@ export function useLibrary(
     );
     rows.current = sorted;
     setSongs(sorted);
+    setSearch(null);
     setLoading(false);
     setSelected(current =>
       sorted.some(song => song.id === current) ? current : null,
@@ -133,9 +134,10 @@ export function useLibrary(
     const stopList = api.songs.subscribeList(entries => {
       if (isActive()) accept(entries);
     });
-    const stopSongs = api.songs.subscribe(() =>
-      setSearchVersion(value => value + 1),
-    );
+    const stopSongs = api.songs.subscribe(() => {
+      setSearch(null);
+      setSearchVersion(value => value + 1);
+    });
     const version = ++pending.list;
     api.songs.list().then(
       entries => {
@@ -179,12 +181,21 @@ export function useLibrary(
       if (current) setSearch({query, matches});
     };
     load().catch(() => {
-      if (current) report('search');
+      if (current) {
+        setSearch(null);
+        report('search', {
+          icon: 'refresh',
+          label: '다시 검색',
+          onSelect: () => {
+            if (isActive()) setSearchVersion(value => value + 1);
+          },
+        });
+      }
     });
     return () => {
       current = false;
     };
-  }, [api, query, songs, searchVersion, report]);
+  }, [api, query, songs, searchVersion, report, isActive]);
 
   const visible = useMemo<readonly LibraryRow[]>(() => {
     if (query === '') return songs.map(song => ({song}));
@@ -285,7 +296,11 @@ export function useLibrary(
     songs,
     visible,
     query,
-    setQuery,
+    setQuery: (value: string): void => {
+      if (value === query) return;
+      setSearch(null);
+      setQuery(value);
+    },
     selected,
     clearSelection: (): void => {
       requests.current.open++;
