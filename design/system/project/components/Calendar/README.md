@@ -49,6 +49,7 @@ No month slide, scale or exit delay. Reduced motion opens immediately.
   where possible and clamping to the target month's last day.
 - Enter/Space choose the focused day. Escape closes without changing the value
   and returns focus to the date field. Closing must not cancel the parent dialog.
+- Modified Enter, Space and Escape pass through without choosing or closing.
 - Tab cycles through previous month, next month, the grid's one focused day
   and 오늘, skipping disabled controls. Keep focus inside the popover while it
   is open. A pointer press outside closes it and continues that pointer action.

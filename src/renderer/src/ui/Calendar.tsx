@@ -14,6 +14,8 @@ import {modalStack} from './modalStack';
 import {useCalendarSurface} from './useCalendarSurface';
 import {tabbableElements} from './useModal';
 import {isComposing} from './ime';
+import {hasModifier} from './modifierKeys';
+import {useButtonPress} from './press';
 import {
   calendarDateLabel,
   calendarDateValue,
@@ -110,7 +112,7 @@ export function Calendar({
   };
   const keyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isComposing(event)) return;
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && !hasModifier(event)) {
       event.preventDefault();
       event.stopPropagation();
       onClose('escape');
@@ -128,7 +130,10 @@ export function Calendar({
       event.preventDefault();
       event.stopPropagation();
       cycle[next]?.focus();
-    } else if (event.key === 'Enter' || event.key === ' ') {
+    } else if (
+      (event.key === 'Enter' || event.key === ' ') &&
+      !hasModifier(event)
+    ) {
       event.stopPropagation();
     }
   };
@@ -142,6 +147,14 @@ export function Calendar({
     event.stopPropagation();
     setView({date: next, focus: true});
   };
+  const dayPress = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onKeyDown: dayKeyDown,
+    onPress: event => {
+      const date = event.currentTarget.dataset.date;
+      if (date !== undefined) choose(date);
+    },
+  });
 
   return createPortal(
     <div
@@ -200,18 +213,16 @@ export function Calendar({
                   key={calendarDateValue(day.date)}
                 >
                   <button
+                    {...dayPress}
                     type="button"
                     className={styles.day}
                     aria-label={calendarDateLabel(day.date)}
                     aria-current={day.value === todayValue ? 'date' : undefined}
                     data-outside={!day.currentMonth || undefined}
+                    data-date={day.value ?? undefined}
                     disabled={day.value === null}
                     tabIndex={day.value === activeValue ? 0 : -1}
                     ref={day.value === activeValue ? focusedDay : undefined}
-                    onKeyDown={dayKeyDown}
-                    onClick={() => {
-                      if (day.value !== null) choose(day.value);
-                    }}
                   >
                     {day.date.day}
                   </button>

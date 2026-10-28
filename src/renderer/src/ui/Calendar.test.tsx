@@ -58,6 +58,32 @@ const activeLabel = (): string | null =>
   document.activeElement?.getAttribute('aria-label') ?? null;
 
 describe('calendar date field', () => {
+  it('does not choose a day from modified keyboard activation', async () => {
+    const change = vi.fn();
+    render(<Field initial="2026-10-28" onChange={change} />);
+    await userEvent.click(opener());
+    const day = screen.getByRole('button', {name: '2026년 10월 28일 수요일'});
+    const onKeyDown = vi.fn();
+    window.addEventListener('keydown', onKeyDown);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(day, {key, [modifier]: true});
+        fireEvent.keyUp(day, {key});
+        fireEvent.click(day, {detail: 0});
+        expect(popup()).toBeDefined();
+      }
+      expect(fireEvent.keyDown(day, {key: 'Escape', [modifier]: true})).toBe(
+        true,
+      );
+      expect(popup()).toBeDefined();
+    }
+    window.removeEventListener('keydown', onKeyDown);
+    expect(onKeyDown).toHaveBeenCalledTimes(12);
+    expect(change).not.toHaveBeenCalled();
+    fireEvent.click(day, {detail: 1, ctrlKey: true});
+    expect(change).toHaveBeenCalledExactlyOnceWith('2026-10-28');
+  });
+
   it('follows an external date change and closes when the field becomes disabled', async () => {
     const change = vi.fn();
     const {rerender} = render(
