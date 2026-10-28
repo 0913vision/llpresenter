@@ -151,3 +151,19 @@ it('creates in all macros after the selected collection is removed', async () =>
   expect(edit.value.collections).toEqual([]);
   expect(edit.value.macros).toHaveLength(2);
 });
+
+it('duplicates the selected macro from its context menu', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.contextMenu(tile);
+  fireEvent.click(screen.getByRole('menuitem', {name: '\ubcf5\uc81c'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(edit.value.macros).toHaveLength(2);
+  expect(edit.value.macros[1]?.name).toBe('\ucc2c\uc591 \ubcf5\uc0ac\ubcf8');
+  expect(edit.value.collections[0]?.macroIds).toContain(
+    edit.value.macros[1]?.id,
+  );
+});

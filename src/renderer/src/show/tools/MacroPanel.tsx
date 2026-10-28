@@ -218,6 +218,24 @@ export function MacroPanel({
             },
             {
               kind: 'item',
+              id: 'duplicate',
+              label: '\ubcf5\uc81c',
+              disabled:
+                locked ||
+                document.value.macros.length >= MACRO_FILE_LIMITS.macros,
+              onSelect: () => {
+                const copyId = parseMacroId(crypto.randomUUID());
+                if (copyId.ok) {
+                  commit({
+                    kind: 'duplicate',
+                    id: menu.item.id,
+                    copyId: copyId.value,
+                  });
+                }
+              },
+            },
+            {
+              kind: 'item',
               id: 'startup',
               label: '시작할 때 실행',
               check: 'checkbox',

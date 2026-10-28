@@ -17,7 +17,7 @@ export function MacroPalette({
     <section aria-label="동작 팔레트" className={styles.root}>
       <div className={styles.header}>
         <strong>동작 팔레트</strong>
-        <IconButton icon="close" label="동작 팔레트 닫기" onClick={onClose} />
+        <IconButton icon="x" label="동작 팔레트 닫기" onClick={onClose} />
       </div>
       <TextField
         aria-label="동작 찾기"
