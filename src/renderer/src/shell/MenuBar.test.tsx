@@ -33,6 +33,39 @@ function outputItem(name: string): HTMLElement {
 }
 
 describe('MenuBar', () => {
+  it.each(['파일', '보기', '출력', '최소화', '최대화', '닫기'])(
+    'does not activate %s on modified keyboard presses',
+    label => {
+      const control = vi.fn();
+      window.llp = fakeLlpApi({window: {control}});
+      render(<MenuBar title="" clipboardAvailable={async () => false} />);
+      const target = screen.getByRole(
+        ['파일', '보기', '출력'].includes(label) ? 'menuitem' : 'button',
+        {name: label},
+      );
+      for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+        for (const key of [' ', 'Enter']) {
+          fireEvent.keyDown(target, {key, [modifier]: true});
+          fireEvent.keyUp(target, {key});
+          fireEvent.click(target, {detail: 0});
+          expect(screen.queryByRole('menu')).toBeNull();
+          expect(control).not.toHaveBeenCalled();
+        }
+      }
+    },
+  );
+
+  it('still accepts modified pointer presses on window controls', () => {
+    const control = vi.fn();
+    window.llp = fakeLlpApi({window: {control}});
+    render(<MenuBar title="" />);
+    fireEvent.click(screen.getByRole('button', {name: '최대화'}), {
+      detail: 1,
+      ctrlKey: true,
+    });
+    expect(control).toHaveBeenCalledExactlyOnceWith('toggle-maximize');
+  });
+
   it.each([
     {label: '텍스트 파일', source: 'file'},
     {label: '클립보드 텍스트', source: 'clipboard'},

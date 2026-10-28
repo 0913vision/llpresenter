@@ -7,6 +7,7 @@ import {useLive, useOutputs} from '@renderer/state/live';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
+import {useButtonPress} from '@renderer/ui/press';
 import type {Notice} from '@renderer/ui/notices';
 import type {ScreenSummary} from './screens';
 import {useScreenSummaries} from './ScreenSummaries';
@@ -67,14 +68,19 @@ function WindowButton({
   readonly control: WindowControl;
 }): JSX.Element {
   const {targetProps, tooltip} = useTooltip({text: control.label});
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: () => window.llp?.window.control(control.action),
+    onBlur: targetProps.onBlur,
+  });
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         type="button"
         className={styles.control}
         aria-label={control.label}
-        onClick={() => window.llp?.window.control(control.action)}
       >
         <Icon name={control.icon} size={14} />
       </button>
@@ -111,24 +117,27 @@ function MenuTrigger({
   readonly control: MenuControl;
 }): JSX.Element {
   const expanded = control.anchor !== null;
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: event => control.toggle(event.currentTarget),
+    onKeyDown: event =>
+      openOnArrowDown(event, {
+        expanded,
+        onExpandedChange: next => {
+          if (next) control.open(event.currentTarget);
+          else control.close();
+        },
+      }),
+  });
   return (
     <button
+      {...press}
       type="button"
       role="menuitem"
       aria-haspopup="menu"
       aria-expanded={expanded}
       className={styles.menu}
-      onClick={event => control.toggle(event.currentTarget)}
       onPointerEnter={event => control.hover(event.currentTarget)}
-      onKeyDown={event =>
-        openOnArrowDown(event, {
-          expanded,
-          onExpandedChange: next => {
-            if (next) control.open(event.currentTarget);
-            else control.close();
-          },
-        })
-      }
     >
       {label}
     </button>
