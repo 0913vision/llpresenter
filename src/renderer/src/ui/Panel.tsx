@@ -121,10 +121,17 @@ function PanelTabButton<T extends string>({
 }: PanelTabButtonProps<T>): JSX.Element {
   const base = useContext(PanelIdBase);
   const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: tab.disabled === true,
+    onPress: onSelect,
+    onKeyDown,
+    onBlur: targetProps.onBlur,
+  });
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         ref={elementRef}
         id={tabId(base, tab.value)}
         type="button"
@@ -134,8 +141,6 @@ function PanelTabButton<T extends string>({
         aria-disabled={tab.disabled === true ? true : undefined}
         tabIndex={tabIndex}
         className={styles.tab}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
       >
         {tab.label}
         {tab.count === undefined ? null : <CountBadge value={tab.count} />}

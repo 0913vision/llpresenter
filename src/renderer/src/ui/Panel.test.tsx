@@ -45,6 +45,21 @@ function selectedTab(): string | null {
 }
 
 describe('Panel', () => {
+  it('does not switch tabs on modified keyboard activation', () => {
+    render(<ShowTools />);
+    const target = screen.getByRole('tab', {name: '오디오'});
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(target, {key, [modifier]: true});
+        fireEvent.keyUp(target, {key});
+        fireEvent.click(target, {detail: 0});
+      }
+    }
+    expect(selectedTab()).toBe('표시 중3');
+    fireEvent.click(target, {detail: 1, ctrlKey: true});
+    expect(selectedTab()).toBe('오디오');
+  });
+
   it('is a section named by its label', () => {
     render(<ShowTools />);
     expect(screen.getByRole('region', {name: '진행 도구'})).toBeDefined();

@@ -60,7 +60,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 
 ## Behavior
 
-- Modified Space and Enter pass to their owner without opening the service switcher or the extra-tabs menu.
+- Modified Space and Enter pass to their owner without switching tabs or opening the service switcher or the extra-tabs menu.
 - Tabs: the tab row has `role="tablist"`, each tab has `role="tab"` and `aria-selected`, and the body has `role="tabpanel"` and `aria-labelledby`. In the tab row, moving with the left and right arrows selects a tab at once. The Tab key stops only on the selected tab.
 - 더 보기 (more) tabs: when the tabs don't fit, as in the narrow 진행 도구 panel (`Layout`), the rest go behind a ghost sm button "더 보기" with a 12px `down` arrow (`text-3`) at the right end of the header: `label` (14/20) `text-2`, padding left `space-8` and right `space-6`, hover `bg-raised`, pressed or open `bg-control-hover` with `text`. A click, Enter, Space, or the down arrow opens a `Menu` with the remaining tab names and a check mark before the current one. While one of them is selected, no tab in the row is selected, and the button shows as the selected tab: `text` with the 2px `text` underline. `aria-haspopup="menu"`; the button sits after the tab row, not in it. In code: `PanelTabs` `more={{label: '더 보기', tabs}}`.
 - Service switcher: a click, Enter, Space, or the down arrow opens the 예배 순서 list (the popover list of `Menu`). The list opens 4px below the button, with its left edge aligned to the button. `aria-haspopup="menu"`, and `aria-expanded="true"` while it is open.
