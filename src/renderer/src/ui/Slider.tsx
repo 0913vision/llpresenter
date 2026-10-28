@@ -1,4 +1,4 @@
-import type {CSSProperties, JSX, KeyboardEvent} from 'react';
+import {useRef, type CSSProperties, type JSX, type KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {sliderKeyValue, sliderPercent} from './sliderValue';
@@ -71,6 +71,7 @@ export function Slider({
   className,
 }: SliderProps): JSX.Element {
   const pointerProps = useSliderPointer({workspace, disabled, onCommit});
+  const ignoreNativeStep = useRef(false);
   const scale = {min, max, step: step === 'any' ? 1 : step};
   const {targetProps, tooltip} = useTooltip({text: title ?? label});
   const trackStyle: TrackStyle = {
@@ -78,7 +79,13 @@ export function Slider({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (disabled || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (disabled) return;
+    if (event.ctrlKey || event.altKey || event.metaKey) {
+      ignoreNativeStep.current =
+        sliderKeyValue(event.key, value, scale) !== undefined;
+      return;
+    }
+    ignoreNativeStep.current = false;
     const keyScale =
       event.shiftKey && event.key.startsWith('Arrow') && shiftStep !== undefined
         ? {...scale, step: shiftStep}
@@ -95,6 +102,10 @@ export function Slider({
   const slider = (
     <input
       {...pointerProps}
+      onPointerDown={event => {
+        ignoreNativeStep.current = false;
+        pointerProps.onPointerDown(event);
+      }}
       type="range"
       min={min}
       max={max}
@@ -109,8 +120,20 @@ export function Slider({
         widthClass[width],
         surface === 'dialog' && styles.onDialog,
       )}
-      onChange={event => onChange(Number(event.target.value))}
+      onChange={event => {
+        if (ignoreNativeStep.current) {
+          event.currentTarget.value = String(value);
+          return;
+        }
+        onChange(Number(event.target.value));
+      }}
       onKeyDown={handleKeyDown}
+      onKeyUp={() => {
+        ignoreNativeStep.current = false;
+      }}
+      onBlur={() => {
+        ignoreNativeStep.current = false;
+      }}
     />
   );
 

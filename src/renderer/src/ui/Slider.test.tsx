@@ -82,6 +82,42 @@ function startPointer(input: HTMLInputElement): ReturnType<typeof vi.fn> {
 
 describe('Slider', () => {
   it.each(['ctrlKey', 'altKey', 'metaKey'] as const)(
+    'ignores the native range change after a %s arrow while allowing later changes',
+    modifier => {
+      const onChange = vi.fn();
+      render(<ThumbnailSize onChange={onChange} />);
+      const input = slider();
+      for (const key of [
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+        'PageUp',
+        'PageDown',
+      ]) {
+        expect(fireEvent.keyDown(input, {key, [modifier]: true})).toBe(true);
+        fireEvent.change(input, {target: {value: '3'}});
+        expect(onChange).not.toHaveBeenCalled();
+        expect(input.value).toBe('2');
+        fireEvent.keyUp(input, {key, [modifier]: true});
+      }
+      fireEvent.change(input, {target: {value: '4'}});
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
+    },
+  );
+
+  it('allows a pointer change after a modified key, even before key release', () => {
+    const onChange = vi.fn();
+    render(<ThumbnailSize onChange={onChange} />);
+    const input = slider();
+    fireEvent.keyDown(input, {key: 'ArrowUp', altKey: true});
+    fireEvent.pointerDown(input, {button: 0, pointerId: 1});
+    fireEvent.change(input, {target: {value: '4'}});
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
+  });
+  it.each(['ctrlKey', 'altKey', 'metaKey'] as const)(
     'passes %s arrow combinations to window commands',
     modifier => {
       const onChange = vi.fn();
