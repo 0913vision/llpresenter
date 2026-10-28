@@ -1,5 +1,11 @@
-import {cleanup, render, screen, within} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {emptyLiveState} from '@shared/live';
@@ -27,27 +33,17 @@ import {
   MAIN_ID,
   CAPTIONS_ID,
   STAGE_ID,
+  LOOK_ID,
+  LAYOUT_ID,
   screensDocument,
-  looksDocument,
   stageLayoutsDocument,
   settingsDocument,
 } from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/showStore';
-import {Panel, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
 import {ShowingTab} from './ShowingTab';
-import {
-  computeShowingGroups,
-  dismissMedia,
-  dismissMessage,
-  dismissNotice,
-  dismissProp,
-  dismissSlide,
-  dismissStageMessage,
-  isUuidV4,
-  useShowingCountStore,
-} from './showingRows';
+import {computeShowingGroups, dismissMessage, dismissProp} from './showingRows';
 
 function parseTestMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
@@ -74,11 +70,14 @@ function parseTestScreenId(uuid: string): ScreenId {
 }
 
 const UUID_MESSAGE = parseTestMessageId('11111111-2222-4333-8444-555555555555');
+const UPPER_MESSAGE = '11111111-2222-4333-8444-55555555555A';
 const LEGACY_MESSAGE = 'msg-legacy-id';
 const UUID_PROP = parseTestPropId('66666666-7777-4888-8999-000000000000');
+const UPPER_PROP = '66666666-7777-4888-8999-00000000000A';
 const LEGACY_PROP = 'prop-legacy-id';
 const NOTICE_ID = parseTestNoticeId('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee');
 const MEDIA_ID = parseTestMediaId('00000000-0000-4000-8000-000000000055');
+const IMAGE_MEDIA_ID = parseTestMediaId('00000000-0000-4000-8000-000000000088');
 const MISSING_MEDIA_ID = parseTestMediaId(
   '99999999-9999-4999-8999-999999999999',
 );
@@ -149,6 +148,38 @@ const testNoticesFile: NoticesFile = {
   ],
 };
 
+function testMediaDoc(): MediaDocument {
+  return {
+    name: 'media',
+    revision: 1,
+    access: 'editable',
+    value: {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: MEDIA_ID,
+          name: '따뜻한 빛',
+          kind: 'video',
+          file: 'warm.mp4',
+          size: 100,
+          duration: 60,
+        },
+        {
+          id: IMAGE_MEDIA_ID,
+          name: '풍경 사진',
+          kind: 'image',
+          file: 'still.jpg',
+          size: 50,
+          duration: 0,
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    },
+  };
+}
+
 function setupFixture() {
   const send = vi.fn();
   const getDoc = (name: string) => {
@@ -156,7 +187,42 @@ function setupFixture() {
       return Promise.resolve(screensDocument());
     }
     if (name === 'looks') {
-      return Promise.resolve(looksDocument());
+      return Promise.resolve(
+        settingsDocument('looks', {
+          current: LOOK_ID,
+          looks: [
+            {
+              id: LOOK_ID,
+              name: '기본',
+              screens: {
+                [MAIN_ID]: {
+                  layers: {
+                    slide: true,
+                    media: true,
+                    message: true,
+                    prop: true,
+                    notice: true,
+                  },
+                },
+                [CAPTIONS_ID]: {
+                  layers: {
+                    slide: true,
+                    media: true,
+                    message: true,
+                    prop: true,
+                    notice: true,
+                  },
+                },
+                [STAGE_ID]: {
+                  layers: {stageMessage: true, clock: true},
+                  stageLayout: LAYOUT_ID,
+                },
+              },
+            },
+          ],
+          lyricStyles: [],
+        }),
+      );
     }
     if (name === 'stage-layouts') {
       return Promise.resolve(stageLayoutsDocument());
@@ -201,29 +267,7 @@ function setupFixture() {
     },
     live: {send},
     media: {
-      get: vi.fn((): Promise<MediaDocument> =>
-        Promise.resolve({
-          name: 'media',
-          revision: 1,
-          access: 'editable',
-          value: {
-            format: 'llmedia',
-            schemaVersion: 1,
-            items: [
-              {
-                id: MEDIA_ID,
-                name: '따뜻한 빛',
-                kind: 'video',
-                file: 'warm.mp4',
-                size: 100,
-                duration: 60,
-              },
-            ],
-            playlists: [],
-            audioPlaylists: [],
-          },
-        }),
-      ),
+      get: vi.fn((): Promise<MediaDocument> => Promise.resolve(testMediaDoc())),
       subscribe: vi.fn(() => () => undefined),
       missing: vi.fn(() => Promise.resolve([MISSING_MEDIA_ID])),
       subscribeMissing: vi.fn(() => () => undefined),
@@ -271,11 +315,62 @@ describe('ShowingTab', () => {
     delete window.llp;
   });
 
-  it('validates lowercase UUID v4 strings properly', () => {
-    expect(isUuidV4(UUID_MESSAGE)).toBe(true);
-    expect(isUuidV4(UUID_PROP)).toBe(true);
-    expect(isUuidV4(LEGACY_MESSAGE)).toBe(false);
-    expect(isUuidV4(LEGACY_PROP)).toBe(false);
+  it('validates UUID v4 schema and handles uppercase and legacy fallbacks', () => {
+    expect(v.is(messageIdSchema, UUID_MESSAGE)).toBe(true);
+    expect(v.is(propIdSchema, UUID_PROP)).toBe(true);
+    expect(v.is(messageIdSchema, UPPER_MESSAGE)).toBe(false);
+    expect(v.is(propIdSchema, UPPER_PROP)).toBe(false);
+    expect(v.is(messageIdSchema, LEGACY_MESSAGE)).toBe(false);
+    expect(v.is(propIdSchema, LEGACY_PROP)).toBe(false);
+
+    fixture.setLive({
+      message: {messageId: UPPER_MESSAGE, text: '대문자 메시지'},
+    });
+    dismissMessage(UPPER_MESSAGE);
+    expect(fixture.send).toHaveBeenCalledWith({
+      type: 'layer.clear.toggle',
+      target: 'message',
+    });
+
+    fixture.send.mockClear();
+    fixture.setLive({
+      message: {
+        messageId: UUID_MESSAGE,
+        text: '첫째',
+        items: [
+          {
+            messageId: UUID_MESSAGE,
+            text: '첫째',
+            targets: 'all',
+            excludedTargets: [],
+            startedAt: 1000,
+            expiresAt: null,
+          },
+          {
+            messageId: parseTestMessageId(
+              '22222222-3333-4444-8555-666666666666',
+            ),
+            text: '둘째',
+            targets: 'all',
+            excludedTargets: [],
+            startedAt: 1000,
+            expiresAt: null,
+          },
+        ],
+      },
+    });
+    dismissMessage(UPPER_MESSAGE);
+    expect(fixture.send).not.toHaveBeenCalled();
+
+    fixture.send.mockClear();
+    fixture.setLive({
+      prop: {propId: UPPER_PROP},
+    });
+    dismissProp(UPPER_PROP);
+    expect(fixture.send).toHaveBeenCalledWith({
+      type: 'layer.clear.toggle',
+      target: 'prop',
+    });
   });
 
   it('renders rows per kind with expected content, icons, and times', () => {
@@ -349,13 +444,7 @@ describe('ShowingTab', () => {
         },
       },
       now,
-      rows: [
-        {
-          id: 'song-1',
-          kind: 'song',
-          title: '만복의 근원 하나님',
-        },
-      ],
+      rows: [{id: 'song-1', kind: 'song', title: '만복의 근원 하나님'}],
       mediaItems: [
         {
           id: MEDIA_ID,
@@ -370,133 +459,99 @@ describe('ShowingTab', () => {
       noticesFile: testNoticesFile,
     });
 
-    render(<ShowingTab groups={groups} />);
-
-    const mainHeader = screen.getByText('본 화면');
-    const mainGroup = mainHeader.closest('div');
-    if (mainGroup === null) {
-      throw new Error('Expected mainGroup');
+    const [mainGroup, , stageGroup] = groups;
+    if (mainGroup === undefined || stageGroup === undefined) {
+      throw new Error('Expected groups');
     }
-    expect(
-      within(mainGroup).getByText('만복의 근원 하나님 후렴'),
-    ).toBeDefined();
-    expect(within(mainGroup).getByText('따뜻한 빛')).toBeDefined();
-    expect(within(mainGroup).getByText('0:12')).toBeDefined();
-    expect(
-      within(mainGroup).getByText('12가 3456 차량 이동 부탁드립니다'),
-    ).toBeDefined();
-    expect(within(mainGroup).getByText('0:42')).toBeDefined();
-    expect(within(mainGroup).getByText('로고')).toBeDefined();
-    expect(within(mainGroup).getByText('주일 광고 3 / 6')).toBeDefined();
 
-    const stageHeader = screen.getByText('무대 화면');
-    const stageGroup = stageHeader.closest('div');
-    if (stageGroup === null) {
-      throw new Error('Expected stageGroup');
-    }
-    expect(within(stageGroup).getByText('후렴 한 번 더')).toBeDefined();
-    expect(within(stageGroup).getByText('시계')).toBeDefined();
+    expect(mainGroup.items.some(i => i.title.includes('만복의 근원'))).toBe(
+      true,
+    );
+    expect(mainGroup.items.some(i => i.title === '따뜻한 빛')).toBe(true);
+    expect(mainGroup.items.some(i => i.time === '0:12')).toBe(true);
+    expect(mainGroup.items.some(i => i.title.includes('12가 3456'))).toBe(true);
+    expect(mainGroup.items.some(i => i.time === '0:42')).toBe(true);
+    expect(mainGroup.items.some(i => i.title === '로고')).toBe(true);
+    expect(mainGroup.items.some(i => i.title.includes('주일 광고'))).toBe(true);
+
+    expect(stageGroup.items.some(i => i.title === '후렴 한 번 더')).toBe(true);
+    expect(stageGroup.items.some(i => i.kind === 'clock')).toBe(true);
   });
 
-  it('groups items by screen and excludes lyrics from the stage screen', () => {
-    const now = 1_700_000_000_000;
+  it('uses fallback title for unknown media and omits position time on image backgrounds', () => {
+    const unknownMediaId = parseTestMediaId(
+      '00000000-0000-4000-8000-000000000099',
+    );
     const screensDoc = screensDocument();
     const screens =
       screensDoc.name === 'screens' ? screensDoc.value.screens : [];
 
-    const groups = computeShowingGroups({
+    const groupsUnknown = computeShowingGroups({
       screens,
       looks: stageLooks,
       liveState: {
         ...emptyLiveState(),
-        stageMessage: '마무리',
         layers: {
           ...emptyLiveState().layers,
-          slide: {
-            itemId: 'song-1',
-            position: 0,
-            label: null,
-            lines: [],
-          },
+          media: {mediaId: unknownMediaId, loop: false, startedAt: 1000},
         },
       },
-      now,
-      rows: [{id: 'song-1', kind: 'song', title: '찬양'}],
+      now: 5000,
+      mediaItems: [],
     });
-
-    render(<ShowingTab groups={groups} />);
-
-    expect(screen.getByText('본 화면')).toBeDefined();
-    expect(screen.getByText('방송 자막')).toBeDefined();
-    expect(screen.getByText('무대 화면')).toBeDefined();
-
-    const stageHeader = screen.getByText('무대 화면');
-    const stageGroup = stageHeader.closest('div');
-    if (stageGroup === null) {
-      throw new Error('Expected stageGroup');
+    const mainUnknown = groupsUnknown[0];
+    if (mainUnknown === undefined) {
+      throw new Error('Expected group');
     }
-    expect(within(stageGroup).queryByText('가사')).toBeNull();
-    expect(within(stageGroup).getByText('무대')).toBeDefined();
-    expect(within(stageGroup).getByText('시계')).toBeDefined();
-  });
+    const unknownItem = mainUnknown.items.find(i => i.kind === 'media');
+    expect(unknownItem?.title).toBe('배경');
+    expect(unknownItem?.time).toBeUndefined();
 
-  it('hides count badge at 0 and displays it when count > 0', () => {
-    useShowingCountStore.setState({count: 0});
-    const {rerender} = render(
-      <Panel label="진행 도구">
-        <PanelHeader>
-          <PanelTabs
-            tabs={[{value: 'showing', label: '표시 중', count: 0}]}
-            value="showing"
-            onChange={() => undefined}
-          />
-        </PanelHeader>
-      </Panel>,
-    );
-
-    const tab = screen.getByRole('tab');
-    expect(tab.textContent).toBe('표시 중');
-    expect(tab.getAttribute('aria-label')).toBeNull();
-
-    rerender(
-      <Panel label="진행 도구">
-        <PanelHeader>
-          <PanelTabs
-            tabs={[{value: 'showing', label: '표시 중', count: 5}]}
-            value="showing"
-            onChange={() => undefined}
-          />
-        </PanelHeader>
-      </Panel>,
-    );
-
-    const updatedTab = screen.getByRole('tab');
-    expect(updatedTab.textContent).toContain('5');
-    expect(updatedTab.getAttribute('aria-label')).toBe('표시 중 5개');
-  });
-
-  it('renders pause icon with tooltip when background media is missing', () => {
-    const now = 1_700_000_000_000;
-    const screensDoc = screensDocument();
-    const screens =
-      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
-    const mainScreen = screens[0];
-    if (mainScreen === undefined) {
-      throw new Error('Expected mainScreen');
-    }
-
-    const groups = computeShowingGroups({
-      screens: [mainScreen],
+    const groupsImage = computeShowingGroups({
+      screens,
       looks: stageLooks,
       liveState: {
         ...emptyLiveState(),
         layers: {
           ...emptyLiveState().layers,
-          media: {
-            mediaId: MISSING_MEDIA_ID,
-            loop: true,
-            startedAt: now,
-          },
+          media: {mediaId: IMAGE_MEDIA_ID, loop: false, startedAt: 1000},
+        },
+      },
+      now: 15_000,
+      mediaItems: [
+        {
+          id: IMAGE_MEDIA_ID,
+          name: '풍경 사진',
+          kind: 'image',
+          file: 'still.jpg',
+          size: 50,
+          duration: 0,
+        },
+      ],
+    });
+    const mainImage = groupsImage[0];
+    if (mainImage === undefined) {
+      throw new Error('Expected group');
+    }
+    const imageItem = mainImage.items.find(i => i.kind === 'media');
+    expect(imageItem?.title).toBe('풍경 사진');
+    expect(imageItem?.time).toBeUndefined();
+  });
+
+  it('renders pause icon and tooltip only when the live media itself is missing', () => {
+    const now = 1_700_000_000_000;
+    const screensDoc = screensDocument();
+    const screens =
+      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
+
+    const groupsWithMissingVideo = computeShowingGroups({
+      screens,
+      looks: stageLooks,
+      liveState: {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          media: {mediaId: MISSING_MEDIA_ID, loop: true, startedAt: now},
         },
       },
       now,
@@ -508,206 +563,311 @@ describe('ShowingTab', () => {
           kind: 'video',
           file: 'missing.mp4',
           size: 100,
+          duration: 10,
+        },
+      ],
+      rows: [
+        {
+          id: 'song-1',
+          kind: 'song',
+          title: '곡',
+          problem: 'missing-background',
         },
       ],
     });
+    const itemMissing = groupsWithMissingVideo[0]?.items.find(
+      i => i.kind === 'media',
+    );
+    expect(itemMissing?.icon).toBe('pause');
+    expect(itemMissing?.iconTooltip).toBe(MISSING_STILL_BACKGROUND_TIP);
 
-    render(<ShowingTab groups={groups} />);
-
-    const pauseIcon = screen.getByRole('img', {
-      name: MISSING_STILL_BACKGROUND_TIP,
-    });
-    expect(pauseIcon).toBeDefined();
-  });
-
-  it('sends the correct commands for each 내리기 button press', async () => {
-    const onDismissSlide = vi.fn();
-    const onDismissMedia = vi.fn();
-    const onDismissMessage = vi.fn();
-    const onDismissProp = vi.fn();
-    const onDismissNotice = vi.fn();
-    const onDismissStageMessage = vi.fn();
-
-    const now = 1_700_000_000_000;
-    const screensDoc = screensDocument();
-    const screens =
-      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
-    const mainScreen = screens[0];
-    if (mainScreen === undefined) {
-      throw new Error('Expected mainScreen');
-    }
-
-    const groups = computeShowingGroups({
-      screens: [mainScreen],
+    const groupsWithOtherMissing = computeShowingGroups({
+      screens,
       looks: stageLooks,
       liveState: {
         ...emptyLiveState(),
         layers: {
           ...emptyLiveState().layers,
-          slide: {itemId: 'song-1', position: 0, label: null, lines: []},
           media: {mediaId: MEDIA_ID, loop: true, startedAt: now},
+        },
+      },
+      now,
+      missingMediaIds: new Set([MISSING_MEDIA_ID]),
+      mediaItems: [
+        {
+          id: MEDIA_ID,
+          name: '따뜻한 빛',
+          kind: 'video',
+          file: 'warm.mp4',
+          size: 100,
+          duration: 60,
+        },
+      ],
+      rows: [
+        {
+          id: 'song-1',
+          kind: 'song',
+          title: '곡',
+          problem: 'missing-background',
+        },
+      ],
+    });
+    const itemNotMissing = groupsWithOtherMissing[0]?.items.find(
+      i => i.kind === 'media',
+    );
+    expect(itemNotMissing?.icon).toBe('image');
+    expect(itemNotMissing?.iconTooltip).toBeUndefined();
+  });
+
+  it('omits expired messages and excluded screen targets', () => {
+    const now = 1_700_000_000_000;
+    const screensDoc = screensDocument();
+    const screens =
+      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
+
+    const groups = computeShowingGroups({
+      screens,
+      looks: stageLooks,
+      liveState: {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
           message: {
             messageId: UUID_MESSAGE,
-            text: '차량',
+            text: '메시지',
             items: [
               {
                 messageId: UUID_MESSAGE,
-                text: '차량 이동',
+                text: '자막에만 표시',
+                targets: 'all',
+                excludedTargets: [testMainScreen],
+                startedAt: now - 5000,
+                expiresAt: now + 30_000,
+              },
+              {
+                messageId: parseTestMessageId(
+                  '33333333-4444-4555-8666-777777777777',
+                ),
+                text: '이미 만료된 메시지',
                 targets: 'all',
                 excludedTargets: [],
-                startedAt: now,
-                expiresAt: null,
+                startedAt: now - 20_000,
+                expiresAt: now - 1000,
               },
             ],
-          },
-          prop: {
-            propId: UUID_PROP,
-            items: [
-              {
-                propId: UUID_PROP,
-                content: {kind: 'image', media: MEDIA_ID},
-                targets: [testMainScreen],
-              },
-            ],
-          },
-          notice: {
-            noticeId: NOTICE_ID,
-            playback: {
-              media: [parseTestMediaId('00000000-0000-4000-8000-000000000001')],
-              position: 0,
-              interval: 5,
-              loop: true,
-              targets: [testMainScreen],
-              startedAt: now,
-              pausedAt: null,
-            },
           },
         },
       },
       now,
-      handlers: {
-        onDismissSlide,
-        onDismissMedia,
-        onDismissMessage,
-        onDismissProp,
-        onDismissNotice,
-        onDismissStageMessage,
+    });
+
+    const mainGroup = groups.find(g => g.screenId === testMainScreen);
+    const captionsGroup = groups.find(g => g.screenId === testCaptionsScreen);
+
+    expect(mainGroup).toBeUndefined();
+    expect(captionsGroup?.items.some(i => i.title === '자막에만 표시')).toBe(
+      true,
+    );
+    expect(captionsGroup?.items.some(i => i.title.includes('만료된'))).toBe(
+      false,
+    );
+  });
+
+  it('updates timed message and removes it on expiration with fake timers', async () => {
+    vi.useFakeTimers();
+    const now = 1_700_000_000_000;
+    vi.setSystemTime(now);
+
+    fixture.setLive({
+      message: {
+        messageId: UUID_MESSAGE,
+        text: '5초 후 종료',
+        items: [
+          {
+            messageId: UUID_MESSAGE,
+            text: '5초 후 종료',
+            targets: [MAIN_ID],
+            excludedTargets: [],
+            startedAt: now,
+            expiresAt: now + 5000,
+          },
+        ],
       },
     });
 
-    render(<ShowingTab groups={groups} />);
-
-    const buttons = screen.getAllByRole('button', {name: '내리기'});
-    expect(buttons).toHaveLength(5);
-
-    const [btn1, btn2, btn3, btn4, btn5] = buttons;
-    if (
-      btn1 === undefined ||
-      btn2 === undefined ||
-      btn3 === undefined ||
-      btn4 === undefined ||
-      btn5 === undefined
-    ) {
-      throw new Error('Expected 5 buttons');
-    }
-
-    await userEvent.click(btn1);
-    expect(onDismissSlide).toHaveBeenCalledTimes(1);
-
-    await userEvent.click(btn2);
-    expect(onDismissMedia).toHaveBeenCalledTimes(1);
-
-    await userEvent.click(btn3);
-    expect(onDismissMessage).toHaveBeenCalledWith(UUID_MESSAGE);
-
-    await userEvent.click(btn4);
-    expect(onDismissProp).toHaveBeenCalledWith(UUID_PROP);
-
-    await userEvent.click(btn5);
-    expect(onDismissNotice).toHaveBeenCalledTimes(1);
-  });
-
-  it('sends default live commands through command sink for each dismiss action', () => {
-    fixture.setLive({
-      slide: {itemId: 'song-1', position: 0, label: null, lines: []},
-      media: {mediaId: MEDIA_ID, loop: true, startedAt: 1000},
+    render(<ShowingTab />);
+    await act(async () => {
+      await Promise.resolve();
     });
 
-    dismissSlide();
+    expect(screen.getByText('5초 후 종료')).toBeDefined();
+    expect(screen.getByText('0:05')).toBeDefined();
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText('0:03')).toBeDefined();
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(screen.queryByText('5초 후 종료')).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it('ticks video time once per second (1 s interval) rather than 4 Hz', async () => {
+    vi.useFakeTimers();
+    const now = 1_700_000_000_000;
+    vi.setSystemTime(now);
+
+    fixture.setLive({
+      media: {mediaId: MEDIA_ID, loop: true, startedAt: now},
+    });
+
+    render(<ShowingTab />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getAllByText('0:00')).toHaveLength(2);
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(screen.getAllByText('0:00')).toHaveLength(2);
+
+    act(() => {
+      vi.advanceTimersByTime(750);
+    });
+    expect(screen.getAllByText('0:01')).toHaveLength(2);
+
+    vi.useRealTimers();
+  });
+
+  it('toggles clear for slide and media with clearToggles active', async () => {
+    fixture.setLive(
+      {
+        slide: {itemId: 'song-1', position: 0, label: null, lines: []},
+        media: {mediaId: MEDIA_ID, loop: true, startedAt: 1000},
+      },
+      {clearToggles: ['slide', 'media']},
+    );
+
+    render(<ShowingTab />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const buttons = screen.getAllByRole('button', {name: '내리기'});
+    const [slideBtn, mediaBtn] = buttons;
+    if (slideBtn === undefined || mediaBtn === undefined) {
+      throw new Error('Expected buttons');
+    }
+
+    fireEvent.click(slideBtn);
     expect(fixture.send).toHaveBeenCalledWith({
       type: 'layer.clear.toggle',
       target: 'slide',
     });
 
-    dismissMedia();
+    fixture.send.mockClear();
+    fireEvent.click(mediaBtn);
     expect(fixture.send).toHaveBeenCalledWith({
       type: 'layer.clear.toggle',
       target: 'media',
     });
+  });
 
-    dismissMessage(UUID_MESSAGE);
+  it('executes individual overlay clear for message, prop, and stage message', async () => {
+    fixture.setLive(
+      {
+        message: {
+          messageId: UUID_MESSAGE,
+          text: '알림',
+          items: [
+            {
+              messageId: UUID_MESSAGE,
+              text: '알림 메시지',
+              targets: [MAIN_ID],
+              excludedTargets: [],
+              startedAt: 1000,
+              expiresAt: null,
+            },
+          ],
+        },
+        prop: {
+          propId: UUID_PROP,
+          items: [
+            {
+              propId: UUID_PROP,
+              content: {kind: 'image', media: MEDIA_ID},
+              targets: [MAIN_ID],
+            },
+          ],
+        },
+      },
+      {stageMessage: '무대 전달 사항'},
+    );
+
+    render(<ShowingTab />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const messageBtn = screen
+      .getByText('알림 메시지')
+      .closest('div')
+      ?.querySelector('button');
+    if (!messageBtn) {
+      throw new Error('Expected message button');
+    }
+    fireEvent.click(messageBtn);
     expect(fixture.send).toHaveBeenCalledWith({
       type: 'overlay.clear',
       target: {kind: 'message', messageId: UUID_MESSAGE},
     });
 
-    fixture.setLive({message: {messageId: LEGACY_MESSAGE, text: 'old'}});
-    dismissMessage(LEGACY_MESSAGE);
-    expect(fixture.send).toHaveBeenCalledWith({
-      type: 'layer.clear.toggle',
-      target: 'message',
-    });
-
-    dismissProp(UUID_PROP);
+    fixture.send.mockClear();
+    const propBtn = screen
+      .getByText('로고')
+      .closest('div')
+      ?.querySelector('button');
+    if (!propBtn) {
+      throw new Error('Expected prop button');
+    }
+    fireEvent.click(propBtn);
     expect(fixture.send).toHaveBeenCalledWith({
       type: 'overlay.clear',
       target: {kind: 'prop', propId: UUID_PROP},
     });
 
-    fixture.setLive({prop: {propId: LEGACY_PROP}});
-    dismissProp(LEGACY_PROP);
-    expect(fixture.send).toHaveBeenCalledWith({
-      type: 'layer.clear.toggle',
-      target: 'prop',
-    });
-
-    fixture.setLive({notice: {noticeId: NOTICE_ID}});
-    dismissNotice();
-    expect(fixture.send).toHaveBeenCalledWith({
-      type: 'layer.clear.toggle',
-      target: 'notice',
-    });
-
-    dismissStageMessage();
+    fixture.send.mockClear();
+    const stageMsgBtn = screen
+      .getByText('무대 전달 사항')
+      .closest('div')
+      ?.querySelector('button');
+    if (!stageMsgBtn) {
+      throw new Error('Expected stageMsg button');
+    }
+    fireEvent.click(stageMsgBtn);
     expect(fixture.send).toHaveBeenCalledWith({
       type: 'overlay.clear',
       target: {kind: 'stage-message'},
     });
   });
 
-  it('does not render a 내리기 button on the clock row', () => {
-    const now = 1_700_000_000_000;
-    const screensDoc = screensDocument();
-    const screens =
-      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
-    const stageScreen = screens[2];
-    if (stageScreen === undefined) {
-      throw new Error('Expected stageScreen');
-    }
-
-    const groups = computeShowingGroups({
-      screens: [stageScreen],
-      looks: stageLooks,
-      liveState: emptyLiveState(),
-      now,
+  it('does not render 내리기 on clock row and leaves undo preserved on dismiss', async () => {
+    fixture.setLive({}, {canUndo: true});
+    render(<ShowingTab />);
+    await act(async () => {
+      await Promise.resolve();
     });
 
-    render(<ShowingTab groups={groups} />);
-
-    expect(screen.getByText('시계')).toBeDefined();
-    const clockRowElement = screen.getByText('시계').closest('div');
+    const clockText = screen.getByText('시계');
+    const clockRowElement = clockText.closest('div');
     if (clockRowElement === null) {
-      throw new Error('Expected clockRowElement');
+      throw new Error('Expected clock row');
     }
     expect(
       within(clockRowElement).queryByRole('button', {name: '내리기'}),

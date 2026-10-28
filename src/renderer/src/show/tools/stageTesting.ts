@@ -20,7 +20,7 @@ export {STAGE_ID, LOOK_ID, SERMON_LOOK_ID, WIDE_LAYOUT_ID};
 export const TIMER_ID = '00000000-0000-4000-8000-000000000011';
 export const SECOND_STAGE = '00000000-0000-4000-8000-000000000012';
 
-export function stageFixture() {
+export function stageFixture(overrides: readonly SettingsDocument[] = []) {
   const listeners = new Set<(document: SettingsDocument) => void>();
   const documents = new Map(
     [
@@ -34,6 +34,7 @@ export function stageFixture() {
         templates: [],
         stagePresets: ['후렴 한 번 더', '마무리'],
       }),
+      ...overrides,
     ].map(document => [document.name, document]),
   );
   const get = vi.fn<LlpApi['settings']['get']>(request => {

@@ -1,5 +1,4 @@
-import {useEffect, useState} from 'react';
-import {create} from 'zustand';
+import {useEffect, useMemo, useState} from 'react';
 import type {Screen} from '@shared/schema/screens';
 import type {LooksFile} from '@shared/schema/looks';
 import type {LiveState} from '@shared/live';
@@ -8,9 +7,10 @@ import type {PropsFile} from '@shared/schema/props';
 import type {NoticesFile} from '@shared/schema/notices';
 import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
 import type {Notice} from '@renderer/ui/notices';
-import {isItemRow, type ServiceRow} from '@renderer/show/model';
+import type {ServiceRow} from '@renderer/show/model';
 import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
-import type {MessageId, PropId, ScreenId} from '@shared/schema/ids';
+import {messageIdSchema, propIdSchema, type ScreenId} from '@shared/schema/ids';
+import {parsePayload} from '@shared/schema/payload';
 import {
   showsLayer,
   resolveScreenLook,
@@ -20,11 +20,24 @@ import {stageClockText} from '@renderer/render/stageLayout';
 import {clearLayer} from '@renderer/state/clear';
 import {sendLive, useLive} from '@renderer/state/live';
 import {tilesOf, useShow} from '@renderer/state/show';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {
+  useSettingsDocument,
+  type NamedDocument,
+} from '@renderer/screens/useSettingsDocument';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
+
+const EMPTY_SCREENS: readonly Screen[] = [];
 
 export type ShowingKind =
   'text' | 'media' | 'msg' | 'prop' | 'notice' | 'stagemsg' | 'clock';
+
+export type DismissDescriptor =
+  | {readonly kind: 'slide'}
+  | {readonly kind: 'media'}
+  | {readonly kind: 'message'; readonly messageId: string}
+  | {readonly kind: 'prop'; readonly propId: string}
+  | {readonly kind: 'notice'}
+  | {readonly kind: 'stage-message'};
 
 export interface ShowingItem {
   readonly id: string;
@@ -34,36 +47,13 @@ export interface ShowingItem {
   readonly iconTooltip?: string | undefined;
   readonly title: string;
   readonly time?: string | undefined;
-  readonly canDismiss: boolean;
-  readonly onDismiss?: (() => void) | undefined;
+  readonly dismiss?: DismissDescriptor | undefined;
 }
 
 export interface ShowingGroup {
   readonly screenId: ScreenId;
   readonly screenName: string;
   readonly items: readonly ShowingItem[];
-}
-
-export const useShowingCountStore = create<{
-  readonly count: number;
-  readonly setCount: (count: number) => void;
-}>(set => ({
-  count: 0,
-  setCount: count => set({count}),
-}));
-
-/** The current row count for the 표시 중 tab header badge. */
-export function useShowingCount(): number {
-  return useShowingCountStore(state => state.count);
-}
-
-export interface DismissHandlers {
-  readonly onDismissSlide?: () => void;
-  readonly onDismissMedia?: () => void;
-  readonly onDismissMessage?: (messageId: string) => void;
-  readonly onDismissProp?: (propId: string) => void;
-  readonly onDismissNotice?: () => void;
-  readonly onDismissStageMessage?: () => void;
 }
 
 export interface ComputeShowingOptions {
@@ -79,15 +69,6 @@ export interface ComputeShowingOptions {
   readonly propsFile?: PropsFile | null;
   readonly noticesFile?: NoticesFile | null;
   readonly stageLayoutsFile?: StageLayoutsFile | null;
-  readonly handlers?: DismissHandlers;
-}
-
-const UUID_V4 =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-/** Whether an identifier is a standard lowercase UUID v4. */
-export function isUuidV4(value: string): value is MessageId & PropId {
-  return UUID_V4.test(value);
 }
 
 export function dismissSlide(): void {
@@ -98,24 +79,36 @@ export function dismissMedia(): void {
   clearLayer('media');
 }
 
+/** Dismisses an active message row, or falls back to whole-layer clear for legacy single-item layers. */
 export function dismissMessage(messageId: string): void {
-  if (isUuidV4(messageId)) {
+  const parsed = parsePayload(messageIdSchema, messageId);
+  if (parsed.ok) {
     sendLive({
       type: 'overlay.clear',
-      target: {kind: 'message', messageId},
+      target: {kind: 'message', messageId: parsed.value},
     });
-  } else {
+    return;
+  }
+  const currentMsgLayer = useLive.getState().state?.layers.message;
+  const itemCount = currentMsgLayer?.items?.length ?? 0;
+  if (itemCount <= 1) {
     clearLayer('message');
   }
 }
 
+/** Dismisses an active prop row, or falls back to whole-layer clear for legacy single-item layers. */
 export function dismissProp(propId: string): void {
-  if (isUuidV4(propId)) {
+  const parsed = parsePayload(propIdSchema, propId);
+  if (parsed.ok) {
     sendLive({
       type: 'overlay.clear',
-      target: {kind: 'prop', propId},
+      target: {kind: 'prop', propId: parsed.value},
     });
-  } else {
+    return;
+  }
+  const currentPropLayer = useLive.getState().state?.layers.prop;
+  const itemCount = currentPropLayer?.items?.length ?? 0;
+  if (itemCount <= 1) {
     clearLayer('prop');
   }
 }
@@ -129,6 +122,30 @@ export function dismissStageMessage(): void {
     type: 'overlay.clear',
     target: {kind: 'stage-message'},
   });
+}
+
+/** Executes the appropriate clear command for a dismiss descriptor. */
+export function executeDismiss(descriptor: DismissDescriptor): void {
+  switch (descriptor.kind) {
+    case 'slide':
+      dismissSlide();
+      break;
+    case 'media':
+      dismissMedia();
+      break;
+    case 'message':
+      dismissMessage(descriptor.messageId);
+      break;
+    case 'prop':
+      dismissProp(descriptor.propId);
+      break;
+    case 'notice':
+      dismissNotice();
+      break;
+    case 'stage-message':
+      dismissStageMessage();
+      break;
+  }
 }
 
 function formatSeconds(totalSeconds: number): string {
@@ -175,8 +192,7 @@ function slideRow(
     kindLabel: '가사',
     icon: 'text',
     title,
-    canDismiss: true,
-    onDismiss: options.handlers?.onDismissSlide ?? dismissSlide,
+    dismiss: {kind: 'slide'},
   };
 }
 
@@ -189,43 +205,35 @@ function mediaRow(
   if (media === null) return null;
 
   const mediaItem = options.mediaItems?.find(m => m.id === media.mediaId);
-  const liveRow = options.rows?.find(
-    r => r.id === liveState.layers.slide?.itemId,
-  );
-  const rowMissing =
-    liveRow !== undefined &&
-    isItemRow(liveRow) &&
-    liveRow.problem === 'missing-background';
-  const isMissing =
-    (options.missingMediaIds?.has(media.mediaId) ?? false) ||
-    rowMissing ||
-    (mediaItem !== undefined &&
-      (options.missingMediaIds?.has(mediaItem.id) ?? false));
+  const isVideo = mediaItem?.kind === 'video';
+  const isMissing = options.missingMediaIds?.has(media.mediaId) === true;
+  const isStillMissingVideo = isMissing && isVideo;
 
-  const title = mediaItem?.name ?? media.mediaId;
-  const elapsedSec = Math.max(
-    0,
-    Math.floor((options.now - media.startedAt) / 1000),
-  );
-  let currentSec = elapsedSec;
-  if (
-    mediaItem?.duration !== undefined &&
-    mediaItem.duration > 0 &&
-    media.loop
-  ) {
-    currentSec = elapsedSec % Math.floor(mediaItem.duration);
+  const title = mediaItem?.name ?? '배경';
+  let time: string | undefined;
+
+  const duration = mediaItem?.duration;
+  if (isVideo && duration !== undefined && duration > 0) {
+    const elapsedSec = Math.max(
+      0,
+      Math.floor((options.now - media.startedAt) / 1000),
+    );
+    let currentSec = elapsedSec;
+    if (media.loop) {
+      currentSec = elapsedSec % Math.floor(duration);
+    }
+    time = formatSeconds(currentSec);
   }
 
   return {
     id: `${screenId}-media-${media.mediaId}`,
     kind: 'media',
     kindLabel: '배경',
-    icon: isMissing ? 'pause' : 'image',
-    iconTooltip: isMissing ? MISSING_STILL_BACKGROUND_TIP : undefined,
+    icon: isStillMissingVideo ? 'pause' : 'image',
+    iconTooltip: isStillMissingVideo ? MISSING_STILL_BACKGROUND_TIP : undefined,
     title,
-    time: formatSeconds(currentSec),
-    canDismiss: true,
-    onDismiss: options.handlers?.onDismissMedia ?? dismissMedia,
+    time,
+    dismiss: {kind: 'media'},
   };
 }
 
@@ -262,9 +270,7 @@ function messageRows(
         icon: 'msg',
         title: msg.text,
         time,
-        canDismiss: true,
-        onDismiss: () =>
-          (options.handlers?.onDismissMessage ?? dismissMessage)(msg.messageId),
+        dismiss: {kind: 'message', messageId: msg.messageId},
       });
     }
     return items;
@@ -277,11 +283,7 @@ function messageRows(
       kindLabel: '메시지',
       icon: 'msg',
       title: msgLayer.text,
-      canDismiss: true,
-      onDismiss: () =>
-        (options.handlers?.onDismissMessage ?? dismissMessage)(
-          msgLayer.messageId,
-        ),
+      dismiss: {kind: 'message', messageId: msgLayer.messageId},
     },
   ];
 }
@@ -303,9 +305,7 @@ function propRows(
       );
       const title =
         propDef?.name ??
-        (activeProp.content.kind === 'text'
-          ? activeProp.content.text
-          : activeProp.propId);
+        (activeProp.content.kind === 'text' ? activeProp.content.text : '소품');
 
       items.push({
         id: `${screenId}-prop-${activeProp.propId}`,
@@ -313,16 +313,14 @@ function propRows(
         kindLabel: '소품',
         icon: 'prop',
         title,
-        canDismiss: true,
-        onDismiss: () =>
-          (options.handlers?.onDismissProp ?? dismissProp)(activeProp.propId),
+        dismiss: {kind: 'prop', propId: activeProp.propId},
       });
     }
     return items;
   }
 
   const propDef = options.propsFile?.props.find(p => p.id === propLayer.propId);
-  const title = propDef?.name ?? propLayer.propId;
+  const title = propDef?.name ?? '소품';
   return [
     {
       id: `${screenId}-prop-${propLayer.propId}`,
@@ -330,9 +328,7 @@ function propRows(
       kindLabel: '소품',
       icon: 'prop',
       title,
-      canDismiss: true,
-      onDismiss: () =>
-        (options.handlers?.onDismissProp ?? dismissProp)(propLayer.propId),
+      dismiss: {kind: 'prop', propId: propLayer.propId},
     },
   ];
 }
@@ -365,15 +361,13 @@ function noticeRow(
     kindLabel: '공지',
     icon: 'notice',
     title,
-    canDismiss: true,
-    onDismiss: options.handlers?.onDismissNotice ?? dismissNotice,
+    dismiss: {kind: 'notice'},
   };
 }
 
 function stageMessageRow(
   screenId: ScreenId,
   liveState: LiveState,
-  options: ComputeShowingOptions,
 ): ShowingItem | null {
   if (
     liveState.stageMessage === null ||
@@ -389,8 +383,7 @@ function stageMessageRow(
     kindLabel: '무대',
     icon: 'monitor',
     title: liveState.stageMessage,
-    canDismiss: true,
-    onDismiss: options.handlers?.onDismissStageMessage ?? dismissStageMessage,
+    dismiss: {kind: 'stage-message'},
   };
 }
 
@@ -412,7 +405,6 @@ function clockRow(
     kindLabel: '시계',
     icon: 'clock',
     title,
-    canDismiss: false,
   };
 }
 
@@ -463,7 +455,7 @@ function computeStageItems(
   const items: ShowingItem[] = [];
 
   if (showsLayer(appearance, 'stageMessage')) {
-    const item = stageMessageRow(screen.id, liveState, options);
+    const item = stageMessageRow(screen.id, liveState);
     if (item !== null) items.push(item);
   }
 
@@ -502,29 +494,255 @@ export function computeShowingGroups(
   return groups;
 }
 
-function useCurrentTime(externalNow?: number): number {
-  const [now, setNow] = useState(() => Date.now());
+function hasMovingSeconds(
+  screens: readonly Screen[],
+  looks: LooksFile | null,
+  liveState: LiveState | null,
+): boolean {
+  if (liveState === null || screens.length === 0) return false;
+  const hasMedia = liveState.layers.media !== null;
+  const hasTimedMessage =
+    liveState.layers.message?.items?.some(m => m.expiresAt !== null) === true;
+
+  if (!hasMedia && !hasTimedMessage) return false;
+
+  for (const screen of screens) {
+    if (screen.kind !== 'audience') continue;
+    const {appearance} = resolveScreenLook(looks, liveState.lookId, screen);
+    if (hasMedia && showsLayer(appearance, 'media')) return true;
+    if (hasTimedMessage && showsLayer(appearance, 'message')) return true;
+  }
+  return false;
+}
+
+function hasClockRow(
+  screens: readonly Screen[],
+  looks: LooksFile | null,
+  liveState: LiveState | null,
+): boolean {
+  if (liveState === null || screens.length === 0) return false;
+  for (const screen of screens) {
+    if (screen.kind !== 'stage') continue;
+    const {appearance} = resolveScreenLook(looks, liveState.lookId, screen);
+    if (showsLayer(appearance, 'clock')) return true;
+  }
+  return false;
+}
+
+export interface ClockOptions {
+  readonly screens: readonly Screen[];
+  readonly looks: LooksFile | null;
+  readonly liveState: LiveState | null;
+  readonly externalNow?: number | undefined;
+}
+
+/** Ticks time only while a timed row exists: at 1 s for seconds, or at minute boundaries for the clock. */
+export function useShowingClock(options: ClockOptions): number {
+  const {screens, looks, liveState, externalNow} = options;
+  const [internalNow, setInternalNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (externalNow !== undefined) return undefined;
-    const timer = setInterval(() => {
-      setNow(Date.now());
-    }, 250);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [externalNow]);
+    if (externalNow !== undefined) {
+      return undefined;
+    }
 
-  return externalNow ?? now;
+    if (hasMovingSeconds(screens, looks, liveState)) {
+      const timer = setInterval(() => {
+        setInternalNow(Date.now());
+      }, 1000);
+      return () => {
+        clearInterval(timer);
+      };
+    }
+
+    if (hasClockRow(screens, looks, liveState)) {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const scheduleNext = () => {
+        const current = Date.now();
+        const seconds = new Date(current).getSeconds();
+        const ms = Math.max(1000, (60 - seconds) * 1000);
+        timeoutId = setTimeout(() => {
+          setInternalNow(Date.now());
+          scheduleNext();
+        }, ms);
+      };
+      scheduleNext();
+      return () => {
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
+      };
+    }
+
+    return undefined;
+  }, [externalNow, screens, looks, liveState]);
+
+  return externalNow ?? internalNow;
+}
+
+function countMessageRows(
+  screenId: ScreenId,
+  appearance: ScreenAppearance | null,
+  options: ShowingCountOptions,
+): number {
+  const {liveState, now} = options;
+  if (liveState?.layers.message == null || !showsLayer(appearance, 'message')) {
+    return 0;
+  }
+  const msg = liveState.layers.message;
+  if (msg.items === undefined || msg.items.length === 0) {
+    return 1;
+  }
+  let count = 0;
+  for (const item of msg.items) {
+    const isTarget =
+      (item.targets === 'all' || item.targets.includes(screenId)) &&
+      !item.excludedTargets.includes(screenId);
+    if (isTarget && (item.expiresAt === null || item.expiresAt > now)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function countPropRows(
+  screenId: ScreenId,
+  appearance: ScreenAppearance | null,
+  liveState: LiveState,
+): number {
+  if (liveState.layers.prop === null || !showsLayer(appearance, 'prop')) {
+    return 0;
+  }
+  const prop = liveState.layers.prop;
+  if (prop.items === undefined || prop.items.length === 0) {
+    return 1;
+  }
+  let count = 0;
+  for (const item of prop.items) {
+    if (item.targets.includes(screenId)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function countAudienceRows(
+  screenId: ScreenId,
+  appearance: ScreenAppearance | null,
+  options: ShowingCountOptions,
+): number {
+  const {liveState} = options;
+  if (liveState === null) {
+    return 0;
+  }
+  let count = 0;
+  if (liveState.layers.slide !== null && showsLayer(appearance, 'slide')) {
+    count++;
+  }
+  if (liveState.layers.media !== null && showsLayer(appearance, 'media')) {
+    count++;
+  }
+  count += countMessageRows(screenId, appearance, options);
+  count += countPropRows(screenId, appearance, liveState);
+  if (liveState.layers.notice !== null && showsLayer(appearance, 'notice')) {
+    const notice = liveState.layers.notice;
+    const isTarget =
+      notice.playback !== undefined
+        ? notice.playback.targets.includes(screenId)
+        : true;
+    if (isTarget) count++;
+  }
+  return count;
+}
+
+function countStageRows(
+  appearance: ScreenAppearance | null,
+  liveState: LiveState,
+): number {
+  let count = 0;
+  if (
+    liveState.stageMessage !== null &&
+    liveState.stageMessage !== undefined &&
+    liveState.stageMessage.trim().length > 0 &&
+    showsLayer(appearance, 'stageMessage')
+  ) {
+    count++;
+  }
+  if (showsLayer(appearance, 'clock')) {
+    count++;
+  }
+  return count;
+}
+
+export interface ShowingCountOptions {
+  readonly screens: readonly Screen[];
+  readonly looks: LooksFile | null;
+  readonly liveState: LiveState | null;
+  readonly now: number;
+}
+
+/** Computes the total row count across all screens for the tab header badge. */
+export function computeShowingCount(options: ShowingCountOptions): number {
+  const {screens, looks, liveState} = options;
+  if (liveState === null || screens.length === 0) return 0;
+  let count = 0;
+
+  for (const screen of screens) {
+    const {appearance} = resolveScreenLook(looks, liveState.lookId, screen);
+    if (screen.kind === 'audience') {
+      count += countAudienceRows(screen.id, appearance, options);
+    } else {
+      count += countStageRows(appearance, liveState);
+    }
+  }
+
+  return count;
+}
+
+/** Hook for ShowToolsPanel to get the showing tab badge count without depending on ShowingTab. */
+export function useShowingCount(
+  screens: readonly Screen[],
+  looks: LooksFile | null,
+): number {
+  const liveState = useLive(view => view.state);
+  const now = useShowingClock({screens, looks, liveState});
+  return useMemo(
+    () => computeShowingCount({screens, looks, liveState, now}),
+    [screens, looks, liveState, now],
+  );
+}
+
+export interface ShowingGroupsResult {
+  readonly groups: readonly ShowingGroup[];
+  readonly count: number;
+}
+
+export interface ShowingGroupsOptions {
+  readonly screensDoc?: NamedDocument<'screens'> | null | undefined;
+  readonly looksDoc?: NamedDocument<'looks'> | null | undefined;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly externalNow?: number | undefined;
 }
 
 /** Reads documents and live state to calculate showing tab groups and total count. */
 export function useShowingGroups(
-  onProblem?: (notice: Notice) => void,
-  externalNow?: number,
-): {readonly groups: readonly ShowingGroup[]; readonly count: number} {
-  const screens = useSettingsDocument('screens', '화면', onProblem);
-  const looks = useSettingsDocument('looks', 'Look', onProblem);
+  options: ShowingGroupsOptions = {},
+): ShowingGroupsResult {
+  const {screensDoc, looksDoc, onProblem, externalNow} = options;
+
+  const fallbackScreens = useSettingsDocument(
+    screensDoc !== undefined ? null : 'screens',
+    '화면',
+    onProblem,
+  );
+  const fallbackLooks = useSettingsDocument(
+    looksDoc !== undefined ? null : 'looks',
+    'Look',
+    onProblem,
+  );
+  const effectiveScreensDoc = screensDoc ?? fallbackScreens;
+  const effectiveLooksDoc = looksDoc ?? fallbackLooks;
+
   const propsDoc = useSettingsDocument('props', '소품', onProblem);
   const noticesDoc = useSettingsDocument('notices', '공지', onProblem);
   const stageLayoutsDoc = useSettingsDocument(
@@ -532,6 +750,7 @@ export function useShowingGroups(
     '무대 배치',
     onProblem,
   );
+
   const liveState = useLive(view => view.state);
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
@@ -584,28 +803,50 @@ export function useShowingGroups(
     };
   }, []);
 
-  const now = useCurrentTime(externalNow);
+  const screens = effectiveScreensDoc?.value.screens ?? EMPTY_SCREENS;
+  const looks = effectiveLooksDoc?.value ?? null;
+  const propsFile = propsDoc?.value ?? null;
+  const noticesFile = noticesDoc?.value ?? null;
+  const stageLayoutsFile = stageLayoutsDoc?.value ?? null;
 
-  const groups = computeShowingGroups({
-    screens: screens?.value.screens ?? [],
-    looks: looks?.value ?? null,
-    liveState,
-    now,
-    rows,
-    openItemId,
-    librarySong,
-    mediaItems,
-    missingMediaIds,
-    propsFile: propsDoc?.value ?? null,
-    noticesFile: noticesDoc?.value ?? null,
-    stageLayoutsFile: stageLayoutsDoc?.value ?? null,
-  });
+  const now = useShowingClock({screens, looks, liveState, externalNow});
 
-  const count = groups.reduce((acc, g) => acc + g.items.length, 0);
+  const groups = useMemo(
+    () =>
+      computeShowingGroups({
+        screens,
+        looks,
+        liveState,
+        now,
+        rows,
+        openItemId,
+        librarySong,
+        mediaItems,
+        missingMediaIds,
+        propsFile,
+        noticesFile,
+        stageLayoutsFile,
+      }),
+    [
+      screens,
+      looks,
+      liveState,
+      now,
+      rows,
+      openItemId,
+      librarySong,
+      mediaItems,
+      missingMediaIds,
+      propsFile,
+      noticesFile,
+      stageLayoutsFile,
+    ],
+  );
 
-  useEffect(() => {
-    useShowingCountStore.getState().setCount(count);
-  }, [count]);
+  const count = useMemo(
+    () => groups.reduce((acc, g) => acc + g.items.length, 0),
+    [groups],
+  );
 
   return {groups, count};
 }
