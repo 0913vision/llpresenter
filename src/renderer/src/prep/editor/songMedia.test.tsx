@@ -122,6 +122,36 @@ describe('song title normalization', () => {
 });
 
 describe('default song background', () => {
+  it('passes modified keys without changing the background or moving the choice', async () => {
+    const {media} = await setup();
+    const onSelect = vi.fn();
+    const {search, listbox, onClose} = renderPicker(
+      media.value.items,
+      onSelect,
+    );
+    const active = search.getAttribute('aria-activedescendant');
+    const onKeyDown = vi.fn();
+    window.addEventListener('keydown', onKeyDown);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      fireEvent.keyDown(search, {key: 'ArrowDown', [modifier]: true});
+      fireEvent.keyDown(search, {key: 'Enter', [modifier]: true});
+    }
+    expect(search.getAttribute('aria-activedescendant')).toBe(active);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    const option = listbox.querySelector<HTMLElement>('[role="option"]');
+    if (option === null) throw new Error('Missing option');
+    fireEvent.keyDown(option, {key: ' ', ctrlKey: true});
+    fireEvent.keyUp(option, {key: ' '});
+    fireEvent.click(option, {detail: 0});
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onKeyDown).toHaveBeenCalledTimes(9);
+    window.removeEventListener('keydown', onKeyDown);
+    fireEvent.keyDown(search, {key: 'ArrowDown'});
+    fireEvent.keyDown(search, {key: 'Enter'});
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(media.value.items[0]?.id);
+  });
+
   it('saves the newest queued background after the preceding revision is accepted', async () => {
     const {api, session, media, edits, documents, first} = await setup();
     const write = api.content.edit;

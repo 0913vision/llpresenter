@@ -13,6 +13,8 @@ import type {MediaId} from '@shared/schema/ids';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
+import {useButtonPress} from '@renderer/ui/press';
 import {layerContainer} from '@renderer/ui/layers';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
@@ -126,6 +128,10 @@ export function MediaPicker({
     onSelect(choices[index]?.id);
     onClose(true);
   };
+  const optionPress = useButtonPress<HTMLButtonElement>({
+    disabled: false,
+    onPress: event => choose(Number(event.currentTarget.dataset.index)),
+  });
   const filter = (value: string): void => {
     onQueryChange(value);
     const term = searchName(value);
@@ -136,7 +142,7 @@ export function MediaPicker({
     setTop(0);
   };
   const keyDown = (event: KeyboardEvent): void => {
-    if (isComposing(event)) return;
+    if (isComposing(event) || hasModifier(event)) return;
     const inField = event.target instanceof HTMLInputElement;
     if (inField && ['Home', 'End', ' '].includes(event.key)) return;
     const target = targetFor(event.key, active, choices.length);
@@ -189,6 +195,7 @@ export function MediaPicker({
               const index = start + offset;
               return (
                 <button
+                  {...optionPress}
                   key={item?.id ?? 'none'}
                   type="button"
                   role="option"
@@ -199,10 +206,10 @@ export function MediaPicker({
                   aria-setsize={choices.length}
                   className={classNames(menu.item, styles.option)}
                   data-pointed={index === active}
+                  data-index={index}
                   style={{top: index * row}}
                   onPointerMove={() => setActive(index)}
                   onMouseDown={event => event.preventDefault()}
-                  onClick={() => choose(index)}
                 >
                   <span className={menu.lead}>
                     {item?.id === selected ? (
