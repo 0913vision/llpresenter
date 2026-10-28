@@ -50,6 +50,7 @@ There is one size. Next to md 30 controls (Preferences), use the 26 track too an
 
 - Build a group that picks one value with `role="radiogroup"`, and its segments with `role="radio"` + `aria-checked`. Use `role="tablist"` and `role="tab"` + `aria-selected` for screen tabs that change the content inside a panel, and `aria-pressed` for view switches. The CSS accepts all three.
 - Keyboard: Tab moves focus to the selected segment (the others have `tabindex="-1"`). Left and Right arrows move to the next segment and select it at once, and wrap from the end to the start. Home and End go to the first and the last segment.
+- Modified Enter and Space pass through without selecting a segment.
 - Mouse: a click selects at once. A click on the segment that is already selected changes nothing.
 - Name the group with `aria-label` (구성, 방식, 보기). If a visible label comes before it, connect it with `aria-labelledby`.
 - When the whole group is disabled, give each segment `aria-disabled="true"`.

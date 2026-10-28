@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -34,6 +34,21 @@ function selectedTab(): string | null {
 }
 
 describe('ToolbarTabs', () => {
+  it('does not switch workspace on modified keyboard activation', () => {
+    render(<Workspaces />);
+    const target = screen.getByRole('tab', {name: '준비'});
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(target, {key, [modifier]: true});
+        fireEvent.keyUp(target, {key});
+        fireEvent.click(target, {detail: 0});
+      }
+    }
+    expect(selectedTab()).toBe('진행');
+    fireEvent.click(target, {detail: 1, ctrlKey: true});
+    expect(selectedTab()).toBe('준비');
+  });
+
   it('is a named tab list with the current workspace selected', () => {
     render(<Workspaces />);
     expect(screen.getByRole('tablist', {name: '작업 공간'})).toBeDefined();

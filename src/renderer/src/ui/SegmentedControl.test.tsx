@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -52,6 +52,22 @@ function checkedNames(): string[] {
 }
 
 describe('SegmentedControl', () => {
+  it('does not select a segment on modified keyboard activation', () => {
+    const onChange = vi.fn();
+    render(<Controlled onChange={onChange} />);
+    const target = screen.getByRole('radio', {name: '주일용'});
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(target, {key, [modifier]: true});
+        fireEvent.keyUp(target, {key});
+        fireEvent.click(target, {detail: 0});
+      }
+    }
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.click(target, {detail: 1, ctrlKey: true});
+    expect(onChange).toHaveBeenCalledExactlyOnceWith('sunday');
+  });
+
   it('is a named radio group with the selected segment checked', () => {
     render(<Controlled />);
     expect(screen.getByRole('radiogroup', {name: '구성'})).toBeDefined();

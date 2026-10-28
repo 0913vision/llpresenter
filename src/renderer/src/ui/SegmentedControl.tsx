@@ -2,6 +2,7 @@ import type {ComponentPropsWithoutRef, JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
+import {useButtonPress} from './press';
 import {titleTooltip, useTooltip} from './Tooltip';
 import type {GroupName} from './types';
 import styles from './SegmentedControl.module.css';
@@ -122,10 +123,17 @@ function Segment<T extends string>({
   const {targetProps, tooltip} = useTooltip(
     titleTooltip(option.title ?? (isIcon ? option.label : undefined)),
   );
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled,
+    onPress: onSelect,
+    onKeyDown,
+    onBlur: targetProps.onBlur,
+  });
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         ref={elementRef}
         type="button"
         {...selectionAttributes(kind, selected)}
@@ -133,8 +141,6 @@ function Segment<T extends string>({
         aria-label={accessibleName(option)}
         aria-disabled={disabled ? true : undefined}
         className={classNames(styles.segment, isIcon && styles.iconSegment)}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
       >
         <SegmentContent option={option} />
       </button>

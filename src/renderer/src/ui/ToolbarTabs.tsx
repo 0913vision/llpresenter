@@ -2,6 +2,7 @@ import type {JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
+import {useButtonPress} from './press';
 import {toolbarIconSize} from './toolbarLook';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './ToolbarButton.module.css';
@@ -45,10 +46,17 @@ function TabButton<T extends string>({
   onKeyDown,
 }: TabButtonProps<T>): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled: tab.disabled === true,
+    onPress: onSelect,
+    onKeyDown,
+    onBlur: targetProps.onBlur,
+  });
   return (
     <>
       <button
         {...targetProps}
+        {...press}
         ref={elementRef}
         type="button"
         role="tab"
@@ -60,8 +68,6 @@ function TabButton<T extends string>({
           styles.tab,
           compact && styles.compact,
         )}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
       >
         <Icon name={tab.icon} size={toolbarIconSize(compact)} />
         <span className={styles.label}>{tab.label}</span>
