@@ -6,78 +6,16 @@ import {
   SegmentedControl,
   SelectMenu,
   Switch,
-  TextField,
 } from '@renderer/ui';
-import {isComposing} from '@renderer/ui/ime';
+import {StageStringProperty} from './StageStringProperty';
+import {StageColorProperty} from './StageColorProperty';
+
+export {StageStringProperty} from './StageStringProperty';
 
 type TextStyle = NonNullable<StageElement['text']>;
 export const STAGE_READ_ONLY = '새 버전에서 만든 설정이므로 변경할 수 없음';
 const FONT_CHOICES = ['Pretendard', '맑은 고딕', 'Arial', 'Times New Roman'];
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
-const COLOR = /^#[0-9a-f]{6}$/i;
-
-/** Buffers a string until blur or Enter; Escape and invalid values keep the saved value. */
-export function StageStringProperty({
-  label,
-  value,
-  reason,
-  commit,
-  validate = () => undefined,
-  autoFocus = false,
-  placeholder,
-  onCancel,
-}: {
-  label: string;
-  value: string;
-  reason: string | undefined;
-  commit: (value: string) => void;
-  validate?: (value: string) => string | undefined;
-  autoFocus?: boolean;
-  placeholder?: string;
-  onCancel?: () => void;
-}): JSX.Element {
-  const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? value;
-  const problem = validate(shown);
-  return (
-    <PropertyRow label={label}>
-      {({controlId}) => (
-        <TextField
-          id={controlId}
-          block
-          autoFocus={autoFocus}
-          placeholder={placeholder}
-          value={shown}
-          readOnly={reason !== undefined}
-          title={reason}
-          invalid={problem !== undefined}
-          invalidReason={problem}
-          onChange={setDraft}
-          onBlur={() => {
-            if (
-              reason === undefined &&
-              problem === undefined &&
-              shown !== value
-            ) {
-              commit(shown);
-            }
-            setDraft(null);
-            onCancel?.();
-          }}
-          onKeyDown={event => {
-            if (isComposing(event)) return;
-            if (event.key === 'Enter') event.currentTarget.blur();
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              setDraft(null);
-              onCancel?.();
-            }
-          }}
-        />
-      )}
-    </PropertyRow>
-  );
-}
 
 function FontProperty({
   font,
@@ -177,13 +115,10 @@ export function StageTextProperties({
           />
         )}
       </PropertyRow>
-      <StageStringProperty
+      <StageColorProperty
         label="글자색"
         value={text.color}
         reason={reason}
-        validate={value =>
-          COLOR.test(value) ? undefined : '#RRGGBB 형식으로 입력'
-        }
         commit={color => change({color})}
       />
       <PropertyRow label="가로 정렬">

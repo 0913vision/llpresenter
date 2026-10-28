@@ -211,6 +211,76 @@ it('refuses malformed colors, cancels a draft with Escape, and deletes the selec
   expect(first()?.id).toBe('second');
 });
 
+it('chooses colors, preserves other fields, and cancels a picker draft', async () => {
+  const {first, edit} = setup();
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', {name: '글자색'});
+  await user.clear(field);
+  await user.type(field, '#123456');
+  await user.click(screen.getByRole('button', {name: '글자색 선택'}));
+  let dialog = screen.getByRole('dialog', {name: '글자색 선택'});
+  expect(within(dialog).getByText('#123456')).toBeTruthy();
+  fireEvent.change(within(dialog).getByRole('slider', {name: '빨강'}), {
+    target: {value: '255'},
+  });
+  expect(within(dialog).getByText('#FF3456')).toBeTruthy();
+  await user.click(within(dialog).getByRole('button', {name: '적용'}));
+  await waitFor(() => expect(first()?.text?.color).toBe('#FF3456'));
+  expect(first()?.text).toMatchObject({future: 'keep'});
+  const saved = edit.mock.calls.length;
+  await user.click(screen.getByRole('button', {name: '글자색 선택'}));
+  dialog = screen.getByRole('dialog', {name: '글자색 선택'});
+  fireEvent.change(within(dialog).getByRole('slider', {name: '파랑'}), {
+    target: {value: '0'},
+  });
+  await user.click(within(dialog).getByRole('button', {name: '취소'}));
+  expect(edit).toHaveBeenCalledTimes(saved);
+  expect(first()?.text?.color).toBe('#FF3456');
+
+  await user.click(screen.getByRole('tab', {name: '모양'}));
+  await user.click(screen.getByRole('button', {name: '배경색 선택'}));
+  dialog = screen.getByRole('dialog', {name: '배경색 선택'});
+  await user.click(within(dialog).getByRole('button', {name: '없음'}));
+  await waitFor(() => expect(first()?.box?.background).toBeUndefined());
+  expect(first()?.box).toMatchObject({opacity: 0.375, future: 'keep'});
+});
+
+it('disables color selection for read-only layouts', async () => {
+  setup('readOnly');
+  expect(
+    await screen.findByRole('button', {name: '글자색 선택'}),
+  ).toHaveProperty('disabled', true);
+});
+
+it('applies the original color after a pending hex edit', async () => {
+  let release = () => {};
+  const saving = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {first, edit} = setup('editable', saving);
+  const user = userEvent.setup();
+  const field = await screen.findByRole('textbox', {name: '글자색'});
+  await user.clear(field);
+  await user.type(field, '#123456');
+  await user.click(screen.getByRole('button', {name: '글자색 선택'}));
+  const dialog = screen.getByRole('dialog', {name: '글자색 선택'});
+  for (const name of ['빨강', '초록', '파랑']) {
+    fireEvent.change(within(dialog).getByRole('slider', {name}), {
+      target: {value: '255'},
+    });
+  }
+  await user.click(within(dialog).getByRole('button', {name: '적용'}));
+  release();
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(first()?.text?.color).toBe('#FFFFFF'));
+  await waitFor(() =>
+    expect(screen.getByRole('textbox', {name: '글자색'})).toHaveProperty(
+      'value',
+      '#FFFFFF',
+    ),
+  );
+});
+
 it('displays and preserves the renderer fallback when editing an element without text', async () => {
   const {edit} = setup();
   act(() =>

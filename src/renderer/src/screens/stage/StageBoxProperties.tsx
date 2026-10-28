@@ -1,9 +1,8 @@
 import type {JSX} from 'react';
 import type {StageElement} from '@shared/schema/stageLayouts';
-import {isLyricTextColor} from '@shared/schema/textStyle';
 import {NumberField, PropertyRow} from '@renderer/ui';
 import type {StageBoxPatch} from './stageEditor';
-import {StageStringProperty} from './StageTextProperties';
+import {StageColorProperty} from './StageColorProperty';
 
 const PERCENT_MAX = 100;
 
@@ -19,16 +18,11 @@ export function StageBoxProperties({
 }): JSX.Element {
   return (
     <>
-      <StageStringProperty
+      <StageColorProperty
         label="배경색"
         value={box?.background ?? ''}
-        placeholder="없음"
+        allowNone
         reason={reason}
-        validate={value =>
-          value === '' || isLyricTextColor(value)
-            ? undefined
-            : '#RRGGBB 형식으로 입력'
-        }
         commit={background =>
           change({
             background: background === '' ? null : background.toUpperCase(),
