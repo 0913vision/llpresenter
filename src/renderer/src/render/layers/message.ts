@@ -12,7 +12,7 @@ export const messageLayer = defineLayer({
       render: (layers, frame) => {
         const message = layers.message;
         if (message?.items === undefined) {
-          view.show(message?.text ?? null);
+          view.show(message?.text ?? null, frame?.look?.messageStyle);
           return;
         }
         const id = frame?.screen?.id;
@@ -26,7 +26,7 @@ export const messageLayer = defineLayer({
                     (item.targets === 'all' || item.targets.includes(id)) &&
                     !item.excludedTargets.includes(id),
                 );
-        view.show(item?.text ?? null);
+        view.show(item?.text ?? null, frame?.look?.messageStyle);
       },
       rescale: scale => view.rescale(scale),
       dispose: () => view.dispose(),

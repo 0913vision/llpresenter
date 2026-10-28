@@ -66,6 +66,48 @@ function looks(): LooksFile {
 }
 
 describe('screen Look resolution', () => {
+  it('resolves each screen’s selected message style and falls back when missing', () => {
+    const original = looks();
+    const document = settingsDocument('looks', {
+      ...original,
+      looks: original.looks.map(look =>
+        look.id === NORMAL
+          ? {
+              ...look,
+              screens: {
+                ...look.screens,
+                [MAIN]: {...look.screens[MAIN], messageStyle: overlayUuid(90)},
+                [CAPTIONS]: {
+                  ...look.screens[CAPTIONS],
+                  messageStyle: overlayUuid(91),
+                },
+                [STAGE]: {
+                  ...look.screens[STAGE],
+                  messageStyle: overlayUuid(92),
+                },
+              },
+            }
+          : look,
+      ),
+      messageStyles: [
+        {...DEFAULT_MESSAGE_STYLE, id: overlayUuid(90), color: '#FF0000'},
+        {...DEFAULT_MESSAGE_STYLE, id: overlayUuid(91), color: '#0000FF'},
+      ],
+    });
+    if (document.name !== 'looks') throw new Error('Invalid looks fixture');
+    expect(
+      resolveScreenLook(document.value, NORMAL, MAIN_SCREEN).appearance
+        ?.messageStyle?.color,
+    ).toBe('#FF0000');
+    expect(
+      resolveScreenLook(document.value, NORMAL, CAPTIONS_SCREEN).appearance
+        ?.messageStyle?.color,
+    ).toBe('#0000FF');
+    expect(
+      resolveScreenLook(document.value, NORMAL, STAGE_SCREEN).appearance
+        ?.messageStyle?.color,
+    ).toBe(DEFAULT_MESSAGE_STYLE.color);
+  });
   it('draws as before Looks while the Looks are unknown', () => {
     expect(resolveScreenLook(null, NORMAL, MAIN_SCREEN)).toEqual({
       appearance: null,

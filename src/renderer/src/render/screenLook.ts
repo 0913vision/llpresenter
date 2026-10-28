@@ -1,5 +1,6 @@
 import type {LookId, ScreenId, StageLayoutId} from '@shared/schema/ids';
 import type {Look, LooksFile, ScreenLook} from '@shared/schema/looks';
+import {messageStyleForScreen} from '@shared/schema/looks';
 import {
   DEFAULT_LYRIC_STYLE,
   renderLyricStyle,
@@ -14,6 +15,8 @@ export interface ScreenAppearance {
   /** The card's layer switches; an absent switch hides its layer. */
   readonly layers: ScreenLook['layers'];
   readonly lyricStyle: LyricStyle;
+  /** The message appearance for this screen, when supplied by the Look. */
+  readonly messageStyle?: LyricStyle;
   /** A solid color in place of the background media, or null for the media. */
   readonly background: string | null;
   /** The 무대 화면's stage layout under this Look; absent on audience screens. */
@@ -71,11 +74,21 @@ export function resolveScreenLook(
     styleId === undefined
       ? undefined
       : looks.lyricStyles.find(({id}) => id === styleId);
+  const messageStyle = messageStyleForScreen(looks, card);
   return {
     appearance: {
       layers: card.layers,
       lyricStyle:
         style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
+      ...(card.messageStyle === undefined
+        ? {}
+        : {
+            messageStyle: {
+              ...messageStyle,
+              outline: messageStyle.outline.on,
+              shadow: messageStyle.shadow.on,
+            },
+          }),
       background:
         card.background?.kind === 'color' ? card.background.color : null,
       ...(screen.kind === 'stage' && card.stageLayout !== undefined

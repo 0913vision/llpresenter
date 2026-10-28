@@ -296,6 +296,46 @@ describe('registered overlay layers', () => {
     ]).toEqual(pages);
   });
 
+  it("draws the same message with each output frame's own style", () => {
+    const first = setup();
+    const second = setup();
+    first.send({
+      type: 'message.send',
+      text: 'Welcome',
+      targets: [MAIN, CAPTIONS],
+      duration: null,
+    });
+    const look = (color: string) => ({
+      layers: {message: true},
+      lyricStyle: DEFAULT_LYRIC_STYLE,
+      messageStyle: {...DEFAULT_LYRIC_STYLE, color},
+      background: null,
+    });
+    first.renderer.render(first.store.state.layers, {
+      screen: {id: MAIN, kind: 'audience'},
+      look: look('#FF0000'),
+    });
+    second.renderer.render(first.store.state.layers, {
+      screen: {id: CAPTIONS, kind: 'audience'},
+      look: look('#0000FF'),
+    });
+    const shown = (parent: HTMLElement) =>
+      parent.querySelector<HTMLElement>(
+        `[data-layer="message"] .${classes.shown} .${classes.block}`,
+      );
+    expect(shown(first.parent)?.textContent).toBe('Welcome');
+    expect(shown(first.parent)?.style.color).toBe('rgb(255, 0, 0)');
+    expect(shown(second.parent)?.textContent).toBe('Welcome');
+    expect(shown(second.parent)?.style.color).toBe('rgb(0, 0, 255)');
+
+    first.renderer.render(first.store.state.layers, {
+      screen: {id: MAIN, kind: 'audience'},
+      look: look('#00FF00'),
+    });
+    expect(shown(first.parent)?.style.color).toBe('rgb(0, 255, 0)');
+    expect(shown(second.parent)?.style.color).toBe('rgb(0, 0, 255)');
+  });
+
   it('keeps the stage message above overlays, only on a stage screen, through all clears', () => {
     const {send, render, box, shownText} = setup();
     send({type: 'stage.message.set', text: 'Stage cue'});
