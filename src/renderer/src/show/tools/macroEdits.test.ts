@@ -148,3 +148,82 @@ it('updates memberships without duplicates and reports persistence failures as a
     saveMacroEdit(api, {kind: 'update', id: item.id, changes: {name: ' '}}),
   ).rejects.toThrow('Invalid macro name');
 });
+
+it('duplicates next to its source in the list and its collections', async () => {
+  const copyId = document([
+    {...raw, id: '00000000-0000-4000-8000-000000000003'},
+  ]).value.macros[0]?.id;
+  if (!copyId) throw new Error('Missing copy ID');
+  const doc = document(
+    [{...raw, name: 'Source', future: true}],
+    [{...group, macroIds: [item.id]}],
+  );
+  const edit = vi
+    .fn()
+    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
+  const api = fakeLlpApi({settings: {get: async () => doc, edit}});
+  await saveMacroEdit(api, {kind: 'duplicate', id: item.id, copyId});
+  expect(edit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      value: {
+        ...doc.value,
+        macros: [
+          doc.value.macros[0],
+          {
+            ...doc.value.macros[0],
+            id: copyId,
+            name: 'Source \ubcf5\uc0ac\ubcf8',
+          },
+        ],
+        collections: [{...group, macroIds: [item.id, copyId]}],
+      },
+    }),
+  );
+});
+
+it('duplicates the latest source after a stale revision and treats a repeated ID as applied', async () => {
+  const copyId = document([
+    {...raw, id: '00000000-0000-4000-8000-000000000003'},
+  ]).value.macros[0]?.id;
+  if (!copyId) throw new Error('Missing copy ID');
+  const newer = document([{...raw, name: 'Newer', color: 'rose'}], [group], 2);
+  const get = vi
+    .fn()
+    .mockResolvedValueOnce(document([raw]))
+    .mockResolvedValueOnce(newer);
+  const edit = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'stale'},
+    })
+    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
+  await saveMacroEdit(fakeLlpApi({settings: {get, edit}}), {
+    kind: 'duplicate',
+    id: item.id,
+    copyId,
+  });
+  expect(edit).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      baseRevision: 2,
+      value: {
+        ...newer.value,
+        macros: [
+          newer.value.macros[0],
+          {
+            ...newer.value.macros[0],
+            id: copyId,
+            name: 'Newer \ubcf5\uc0ac\ubcf8',
+          },
+        ],
+      },
+    }),
+  );
+  const existing = document([raw, {...raw, id: copyId}], [group], 3);
+  const retry = vi.fn();
+  await saveMacroEdit(
+    fakeLlpApi({settings: {get: async () => existing, edit: retry}}),
+    {kind: 'duplicate', id: item.id, copyId},
+  );
+  expect(retry).not.toHaveBeenCalled();
+});

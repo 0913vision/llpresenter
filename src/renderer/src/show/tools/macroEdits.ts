@@ -16,6 +16,11 @@ export type MacroChanges = Partial<
 >;
 export type MacroEdit =
   | {
+      readonly kind: 'duplicate';
+      readonly id: Macro['id'];
+      readonly copyId: Macro['id'];
+    }
+  | {
       readonly kind: 'add';
       readonly item: Macro;
       readonly collection?: MacroCollection['id'] | undefined;
@@ -38,7 +43,52 @@ export type MacroEdit =
       readonly member: boolean;
     };
 
+function duplicate(
+  file: MacrosFile,
+  id: Macro['id'],
+  copyId: Macro['id'],
+): MacrosFile {
+  if (file.macros.some(item => item.id === copyId)) return file;
+  const index = file.macros.findIndex(item => item.id === id);
+  const source = file.macros[index];
+  if (!source) throw new Error('Macro no longer exists');
+  if (file.macros.length >= MACRO_FILE_LIMITS.macros) {
+    throw new Error('Macro list is full');
+  }
+  const name = `${source.name.trim()} \ubcf5\uc0ac\ubcf8`;
+  if (name.length > 256) throw new Error('Macro name is too long to duplicate');
+  const collections = file.collections.map(group => {
+    const position = group.macroIds.indexOf(id);
+    if (position < 0) return group;
+    if (group.macroIds.length >= MACRO_FILE_LIMITS.collectionItems) {
+      throw new Error('Collection is full');
+    }
+    return {
+      ...group,
+      macroIds: [
+        ...group.macroIds.slice(0, position + 1),
+        copyId,
+        ...group.macroIds.slice(position + 1),
+      ],
+    };
+  });
+  const next = {
+    ...file,
+    collections,
+    macros: [
+      ...file.macros.slice(0, index + 1),
+      {...source, id: copyId, name},
+      ...file.macros.slice(index + 1),
+    ],
+  };
+  if (!serializeMacros(next, 'macros').ok) {
+    throw new Error('Invalid macro copy');
+  }
+  return next;
+}
+
 function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
+  if (edit.kind === 'duplicate') return duplicate(file, edit.id, edit.copyId);
   if (edit.kind === 'delete') {
     return {
       ...file,
