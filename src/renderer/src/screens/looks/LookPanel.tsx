@@ -62,6 +62,7 @@ export function LookPanel({
   );
   const editor = useLookListEditor(document, macros, onProblem);
   const mounted = useRef(false);
+  const latestCreation = useRef<Look['id'] | null>(null);
   useLayoutEffect(() => {
     mounted.current = true;
     return () => {
@@ -96,6 +97,10 @@ export function LookPanel({
     macros: readonly string[];
   } | null>(null);
   const run = (edit: LookListEdit): void => {
+    const previous = useScreensSelection.getState().selection;
+    if (edit.kind === 'add' || edit.kind === 'duplicate') {
+      latestCreation.current = edit.id;
+    }
     const saving = editor.change(edit);
     saving
       ?.then(result => {
@@ -116,7 +121,11 @@ export function LookPanel({
           return;
         }
         if (!result.value) return;
-        if (edit.kind === 'add' || edit.kind === 'duplicate') {
+        if (
+          (edit.kind === 'add' || edit.kind === 'duplicate') &&
+          latestCreation.current === edit.id &&
+          useScreensSelection.getState().selection === previous
+        ) {
           select('look', edit.id);
         }
         if (edit.kind === 'delete') {

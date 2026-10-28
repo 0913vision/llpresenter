@@ -21,6 +21,7 @@ import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {
   LOOK_ID,
+  MAIN_ID,
   SERMON_LOOK_ID,
   looksDocument,
   screensDocument,
@@ -32,10 +33,12 @@ function setup({
   initial = looksDocument(),
   referenced = false,
   holdMacros = false,
+  beforeSave = () => Promise.resolve(),
 }: {
   readonly initial?: SettingsDocument;
   readonly referenced?: boolean;
   readonly holdMacros?: boolean;
+  readonly beforeSave?: () => Promise<void>;
 } = {}) {
   let document = initial;
   const listeners = new Set<(next: SettingsDocument) => void>();
@@ -58,16 +61,17 @@ function setup({
     releaseMacros = () => resolve(macros);
   });
   const send = vi.fn();
-  const edit = vi.fn((change: SettingsEdit) => {
+  const edit = vi.fn(async (change: SettingsEdit) => {
     if (change.type !== 'settings.update' || change.name !== 'looks') {
       throw new Error('Unexpected edit');
     }
+    await beforeSave();
     document = settingsDocument('looks', change.value, document.revision + 1);
     for (const listener of listeners) listener(document);
-    return Promise.resolve({
+    return {
       ok: true,
       value: {id: 'looks', revision: document.revision},
-    } as const);
+    } as const;
   });
   const api = fakeLlpApi({
     live: {send},
@@ -141,6 +145,51 @@ it('adds and duplicates without changing live output or the saved current Look',
   expect(edit).toHaveBeenCalledTimes(2);
   expect(document().value).toHaveProperty('current', LOOK_ID);
   expect(send).not.toHaveBeenCalled();
+});
+
+it('does not replace a screen selection made while a new Look is saving', async () => {
+  let release: () => void = () => undefined;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {user, edit} = setup({beforeSave: () => held});
+  await screen.findByRole('option', {name: '평상시'});
+  await user.click(screen.getByRole('button', {name: '새 Look'}));
+  await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+  act(() => useScreensSelection.getState().select('screen', MAIN_ID));
+  await act(async () => release());
+  await screen.findByRole('option', {name: '새 Look'});
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'screen',
+    id: MAIN_ID,
+  });
+});
+
+it('waits for the latest queued Look creation before changing selection', async () => {
+  let releaseFirst: () => void = () => undefined;
+  let releaseSecond: () => void = () => undefined;
+  const first = new Promise<void>(resolve => {
+    releaseFirst = resolve;
+  });
+  const second = new Promise<void>(resolve => {
+    releaseSecond = resolve;
+  });
+  let count = 0;
+  const {user, edit} = setup({
+    beforeSave: () => (++count === 1 ? first : second),
+  });
+  await screen.findByRole('option', {name: '평상시'});
+  await user.click(screen.getByRole('button', {name: '새 Look'}));
+  await user.click(screen.getByRole('button', {name: '새 Look'}));
+  expect(edit).toHaveBeenCalledOnce();
+  await act(async () => releaseFirst());
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'screen',
+    id: null,
+  });
+  await act(async () => releaseSecond());
+  await screen.findByRole('option', {name: '새 Look 2', selected: true});
 });
 
 it('commits a focused name during close flushing', async () => {
