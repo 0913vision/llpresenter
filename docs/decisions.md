@@ -576,3 +576,5 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - It shows text only for a problem (for example "무대 화면 창으로 표시 중" or
   "방송 자막 41fps") or while the app waits in standby ("대기"), so anything in
   it means something to check. Its text keeps at least 4.5:1 contrast.
+- Each message says plainly what is happening, as a short Korean phrase such as
+  "저장을 시도하는 중...", not a code or a bare number (user decision).
