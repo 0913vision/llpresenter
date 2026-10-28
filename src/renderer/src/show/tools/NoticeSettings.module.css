@@ -1,0 +1,10 @@
+.root {
+  display: grid;
+  gap: var(--space-8);
+}
+.controls,
+.targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
