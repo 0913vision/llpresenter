@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from 'react';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {placeFloating} from '@renderer/ui/floating';
 import {
   maxPopoverHeight,
@@ -105,7 +106,7 @@ export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
             : event.key === 'End'
               ? items.length - 1
               : undefined;
-    if (target !== undefined) {
+    if (target !== undefined && !hasModifier(event)) {
       event.preventDefault();
       items[target]?.focus();
       return;

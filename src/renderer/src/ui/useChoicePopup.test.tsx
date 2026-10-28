@@ -82,6 +82,25 @@ it('focuses the checked choice and retains wrapping navigation, endpoints and ty
   expect(document.activeElement).toBe(amber);
 });
 
+it('passes modified navigation keys without moving focus', () => {
+  setup();
+  const blue = screen.getByRole('menuitemradio', {name: 'Blue'});
+  const onKeyDown = vi.fn();
+  window.addEventListener('keydown', onKeyDown);
+  for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+    for (const key of ['ArrowDown', 'ArrowUp', 'Home', 'End']) {
+      expect(fireEvent.keyDown(blue, {key, [modifier]: true})).toBe(true);
+      expect(document.activeElement).toBe(blue);
+    }
+  }
+  window.removeEventListener('keydown', onKeyDown);
+  expect(onKeyDown).toHaveBeenCalledTimes(16);
+  fireEvent.keyDown(blue, {key: 'ArrowDown'});
+  expect(document.activeElement).toBe(
+    screen.getByRole('menuitemradio', {name: 'Amber'}),
+  );
+});
+
 it('falls back to the first choice and leaves typing and composing Escape to the input', () => {
   const {onEscape} = setup(false);
   expect(document.activeElement).toBe(
