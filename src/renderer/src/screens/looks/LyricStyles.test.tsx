@@ -58,8 +58,10 @@ function setup(reason?: string) {
   });
   const change =
     vi.fn<(edit: LyricStyleEdit) => Promise<boolean> | undefined>();
+  const effects = vi.fn();
   const view = render(
     <LyricStyles
+      onEffectsChange={effects}
       looks={looks}
       reason={reason}
       onChange={change}
@@ -67,7 +69,7 @@ function setup(reason?: string) {
       onProblem={vi.fn()}
     />,
   );
-  return {...view, change, looks};
+  return {...view, change, effects, looks};
 }
 
 it('previews on mount and switches presets without writing or recreating the renderer', () => {
@@ -98,6 +100,7 @@ it('applies the picker color to the shared style and redraws its preview', () =>
   );
   view.rerender(
     <LyricStyles
+      onEffectsChange={vi.fn()}
       looks={{
         ...view.looks,
         lyricStyles: view.looks.lyricStyles.map((style, index) =>
@@ -132,6 +135,7 @@ it('preserves a queued color reversion and restores the last saved color on fail
     .mockReturnValueOnce(second);
   const renderWith = (color: string) => (
     <LyricStyles
+      onEffectsChange={vi.fn()}
       looks={{
         ...view.looks,
         lyricStyles: view.looks.lyricStyles.map((style, index) =>
@@ -190,6 +194,7 @@ it('clears a successful no-op reversion after an earlier color save is refused',
     .mockResolvedValue(true);
   const renderWith = (color: string) => (
     <LyricStyles
+      onEffectsChange={vi.fn()}
       looks={{
         ...view.looks,
         lyricStyles: view.looks.lyricStyles.map((style, index) =>
@@ -293,6 +298,7 @@ it('sends a weight-only edit and previews the saved weight', () => {
   );
   view.rerender(
     <LyricStyles
+      onEffectsChange={vi.fn()}
       looks={{
         ...view.looks,
         lyricStyles: view.looks.lyricStyles.map((style, index) =>
@@ -312,13 +318,16 @@ it('sends a weight-only edit and previews the saved weight', () => {
 });
 
 it('sends field-specific alignment and effect changes and prevents read-only writes', () => {
-  const {change, unmount} = setup();
+  const {change, effects, unmount} = setup();
   fireEvent.click(screen.getByRole('radio', {name: '왼쪽'}));
   fireEvent.click(screen.getByRole('switch', {name: '외곽선'}));
   expect(change.mock.calls.map(call => call[0].change)).toEqual([
     {align: 'left'},
-    {outline: true},
   ]);
+  expect(effects).toHaveBeenCalledWith(expect.any(String), {
+    kind: 'outline',
+    change: {on: true},
+  });
   unmount();
   const readonly = setup('읽기 전용');
   fireEvent.click(screen.getByRole('radio', {name: '왼쪽'}));

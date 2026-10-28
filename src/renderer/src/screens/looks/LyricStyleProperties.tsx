@@ -9,13 +9,14 @@ import {
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {LyricStyleEdit} from './lyricStyleEdits';
 import {FontPicker} from './FontPicker';
 import {ColorPicker} from './ColorPicker';
+import {LyricEffectsProperties} from './LyricEffectsProperties';
+import type {LyricEffectsChange} from './lyricEffectsEdits';
 import {missingFontReason, weightChoices} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
 
@@ -144,10 +145,14 @@ export function LyricStyleProperties({
   style,
   reason,
   change,
+  changeEffects,
 }: {
   readonly style: LyricStyle;
   readonly reason: string | undefined;
   readonly change: Change;
+  readonly changeEffects: (
+    change: LyricEffectsChange,
+  ) => Promise<boolean> | undefined;
 }): JSX.Element {
   const fonts = useFontCatalog();
   const missing = missingFontReason(style.font, fonts);
@@ -256,22 +261,11 @@ export function LyricStyleProperties({
               />
             )}
           </PropertyRow>
-          {(['shadow', 'outline'] as const).map(key => (
-            <PropertyRow
-              key={key}
-              label={key === 'shadow' ? '그림자' : '외곽선'}
-            >
-              {({controlId}) => (
-                <Switch
-                  id={controlId}
-                  checked={style[key].on}
-                  disabled={reason !== undefined}
-                  title={reason}
-                  onChange={value => dispatch({[key]: value})}
-                />
-              )}
-            </PropertyRow>
-          ))}
+          <LyricEffectsProperties
+            style={style}
+            reason={reason}
+            onChange={changeEffects}
+          />
         </div>
       </PropertyColumns>
     </Properties>

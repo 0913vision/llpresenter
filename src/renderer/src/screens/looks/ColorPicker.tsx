@@ -25,10 +25,12 @@ function selectionAt(
 
 function PickerDialog({
   value,
+  label,
   onApply,
   onCancel,
 }: {
   readonly value: string;
+  readonly label: string;
   readonly onApply: (color: string) => void;
   readonly onCancel: () => void;
 }): JSX.Element {
@@ -45,7 +47,7 @@ function PickerDialog({
   ] as const;
   return (
     <Dialog
-      title="글자색 선택"
+      title={`${label} 선택`}
       size="s"
       onCancel={onCancel}
       primary={{label: '적용', onSelect: () => onApply(hex)}}
@@ -117,20 +119,23 @@ export function ColorPicker({
   value,
   reason,
   onChange,
+  label = '글자색',
 }: {
   readonly value: string;
   readonly reason: string | undefined;
   readonly onChange: (color: string) => void;
+  readonly label?: string | undefined;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
-  const {targetProps, tooltip} = useTooltip({text: reason ?? '글자색 선택'});
+  const title = `${label} 선택`;
+  const {targetProps, tooltip} = useTooltip({text: reason ?? title});
   if (open && reason !== undefined) setOpen(false);
   return (
     <>
       <button
         {...targetProps}
         type="button"
-        aria-label="글자색 선택"
+        aria-label={title}
         aria-haspopup="dialog"
         aria-disabled={reason !== undefined || undefined}
         className={styles.swatch}
@@ -146,6 +151,7 @@ export function ColorPicker({
       {open ? (
         <PickerDialog
           value={value}
+          label={label}
           onCancel={() => setOpen(false)}
           onApply={color => {
             setOpen(false);

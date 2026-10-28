@@ -530,3 +530,56 @@ it('saves a numeric reversion queued behind a held message style save', async ()
     expect(saved.value.messageStyles?.[0]?.size).toBe(84);
   });
 });
+
+it('saves queued lyric effects against the latest Looks document', async () => {
+  let release = (): void => undefined;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {user, edit, document} = setup(false, () => held);
+  const outline = await screen.findByRole('switch', {
+    name: '\uc678\uacfd\uc120',
+  });
+  await user.click(outline);
+  await user.click(
+    screen.getByRole('button', {name: '\ucd9c\ucc98 \uc704\uce58'}),
+  );
+  await user.click(screen.getByRole('menuitemradio', {name: '\uc228\uae40'}));
+  expect(edit).toHaveBeenCalledTimes(1);
+  release();
+  await waitFor(() => {
+    const saved = document();
+    if (saved.name !== 'looks') throw new Error('Wrong document');
+    expect(saved.value.lyricStyles[0]?.outline.on).toBe(true);
+    expect(saved.value.lyricStyles[0]?.referencePosition).toBe('hidden');
+  });
+  expect(edit).toHaveBeenCalledTimes(2);
+});
+
+it('saves a lyric outline width reversion queued behind a held save', async () => {
+  let release = (): void => undefined;
+  let hold = false;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {user, edit, document} = setup(false, () =>
+    hold ? held : Promise.resolve(),
+  );
+  const outline = await screen.findByRole('switch', {name: '외곽선'});
+  await user.click(outline);
+  const width = await screen.findByRole('spinbutton', {name: '외곽선 두께'});
+  await waitFor(() => expect(width).toHaveProperty('readOnly', false));
+  hold = true;
+  await user.clear(width);
+  await user.type(width, '6{Enter}');
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  await user.clear(width);
+  await user.type(width, '3{Enter}');
+  release();
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(3));
+  await waitFor(() => {
+    const saved = document();
+    if (saved.name !== 'looks') throw new Error('Wrong document');
+    expect(saved.value.lyricStyles[0]?.outline.width).toBe(3);
+  });
+});

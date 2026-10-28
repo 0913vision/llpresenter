@@ -13,6 +13,8 @@ import type {
   assignMessageStyle,
   createAndAssignMessageStyle,
 } from './messageStyleAssignment';
+import type {LyricEffectsChange} from './lyricEffectsEdits';
+import type {LyricStyleId} from '@shared/schema/ids';
 import type {LyricStyleListEdit} from './lyricStyleListEdits';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
@@ -93,6 +95,8 @@ export function useLookListEditor(
       session.current?.editor.changeMessageStyle(id, change),
     changeStyle: (edit: LyricStyleEdit) =>
       session.current?.editor.changeStyle(edit),
+    changeEffects: (id: LyricStyleId, change: LyricEffectsChange) =>
+      session.current?.editor.changeEffects(id, change),
     changeStyleList: (edit: LyricStyleListEdit) =>
       session.current?.editor.changeStyleList(edit),
     report: (title: string): void => session.current?.report(title),

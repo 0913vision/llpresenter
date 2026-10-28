@@ -245,6 +245,12 @@ export function LookEditor({
               looks={document.value}
               reason={reason}
               onListChange={editor.changeStyleList}
+              onEffectsChange={(id, change) =>
+                editor.changeEffects(id, change)?.catch((cause: unknown) => {
+                  failed(cause);
+                  return false;
+                })
+              }
               onProblem={editor.report}
               onChange={edit => {
                 const saving = editor.changeStyle(edit);

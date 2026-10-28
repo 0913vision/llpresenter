@@ -140,7 +140,12 @@ it('does not offer speculative weights before the installed family is known', as
   if (style === undefined) throw new Error('Missing style');
   const change = vi.fn();
   render(
-    <LyricStyleProperties style={style} reason={undefined} change={change} />,
+    <LyricStyleProperties
+      changeEffects={vi.fn()}
+      style={style}
+      reason={undefined}
+      change={change}
+    />,
   );
   const control = screen.getByLabelText('굵기');
   expect(control.getAttribute('aria-disabled')).toBe('true');
@@ -211,7 +216,12 @@ it('sends a weight-only edit from the installed list and keeps read-only propert
   if (style === undefined) throw new Error('Missing style');
   const change = vi.fn();
   const view = render(
-    <LyricStyleProperties style={style} reason={undefined} change={change} />,
+    <LyricStyleProperties
+      changeEffects={vi.fn()}
+      style={style}
+      reason={undefined}
+      change={change}
+    />,
   );
   await act(async () => undefined);
   fireEvent.click(screen.getByLabelText('굵기'));
@@ -219,7 +229,12 @@ it('sends a weight-only edit from the installed list and keeps read-only propert
   fireEvent.click(screen.getByRole('menuitemradio', {name: '350'}));
   expect(change).toHaveBeenCalledExactlyOnceWith({weight: 350});
   view.rerender(
-    <LyricStyleProperties style={style} reason="읽기 전용" change={change} />,
+    <LyricStyleProperties
+      changeEffects={vi.fn()}
+      style={style}
+      reason="읽기 전용"
+      change={change}
+    />,
   );
   fireEvent.click(screen.getByLabelText('굵기'));
   fireEvent.click(screen.getByLabelText('글꼴'));
@@ -233,7 +248,12 @@ it('shows the missing-font reason and saves only an explicit replacement', async
   if (style === undefined) throw new Error('Missing style');
   const change = vi.fn();
   render(
-    <LyricStyleProperties style={style} reason={undefined} change={change} />,
+    <LyricStyleProperties
+      changeEffects={vi.fn()}
+      style={style}
+      reason={undefined}
+      change={change}
+    />,
   );
   await act(async () => undefined);
   expect(change).not.toHaveBeenCalled();
