@@ -3,7 +3,6 @@ import type {SizeClass} from '@renderer/shell/sizeClass';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {AVAILABLE_TOOL_TABS} from './showTools';
 import {ShowingTab} from './tools/ShowingTab';
 import {StageTab} from './tools/StageTab';
@@ -25,11 +24,7 @@ export function ShowToolsPanel({
     ? tool
     : 'stage';
 
-  const screensDoc = useSettingsDocument('screens', '화면', onProblem);
-  const looksDoc = useSettingsDocument('looks', 'Look', onProblem);
-  const screens = screensDoc?.value.screens ?? [];
-  const looks = looksDoc?.value ?? null;
-  const showingCount = useShowingCount(screens, looks);
+  const showingCount = useShowingCount();
 
   const tabs = AVAILABLE_TOOL_TABS.map(tab =>
     tab.value === 'showing' ? {...tab, count: showingCount} : tab,
@@ -41,13 +36,7 @@ export function ShowToolsPanel({
           <PanelTabs tabs={tabs} value={selected} onChange={setTool} />
         </PanelHeader>
         <PanelBody variant="flush" tab={selected}>
-          {selected === 'showing' ? (
-            <ShowingTab
-              screensDoc={screensDoc}
-              looksDoc={looksDoc}
-              onProblem={onProblem}
-            />
-          ) : null}
+          {selected === 'showing' ? <ShowingTab onProblem={onProblem} /> : null}
           {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
           {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
           {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}

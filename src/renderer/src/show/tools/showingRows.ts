@@ -701,14 +701,59 @@ export function computeShowingCount(options: ShowingCountOptions): number {
 
 /** Hook for ShowToolsPanel to get the showing tab badge count without depending on ShowingTab. */
 export function useShowingCount(
-  screens: readonly Screen[],
-  looks: LooksFile | null,
+  externalScreens?: readonly Screen[],
+  externalLooks?: LooksFile | null,
 ): number {
   const liveState = useLive(view => view.state);
-  const now = useShowingClock({screens, looks, liveState});
+  const [screens, setScreens] = useState<readonly Screen[]>(
+    externalScreens ?? EMPTY_SCREENS,
+  );
+  const [looks, setLooks] = useState<LooksFile | null>(externalLooks ?? null);
+
+  useEffect(() => {
+    if (externalScreens !== undefined && externalLooks !== undefined) {
+      return undefined;
+    }
+    const api = window.llp;
+    if (!api) return undefined;
+    let active = true;
+    api.settings
+      .get({name: 'screens'})
+      .then(res => {
+        if (active && res.name === 'screens') {
+          setScreens(res.value.screens);
+        }
+      })
+      .catch(() => undefined);
+    api.settings
+      .get({name: 'looks'})
+      .then(res => {
+        if (active && res.name === 'looks') {
+          setLooks(res.value);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [externalScreens, externalLooks, liveState?.lookId]);
+
+  const effectiveScreens = externalScreens ?? screens;
+  const effectiveLooks = externalLooks !== undefined ? externalLooks : looks;
+  const now = useShowingClock({
+    screens: effectiveScreens,
+    looks: effectiveLooks,
+    liveState,
+  });
   return useMemo(
-    () => computeShowingCount({screens, looks, liveState, now}),
-    [screens, looks, liveState, now],
+    () =>
+      computeShowingCount({
+        screens: effectiveScreens,
+        looks: effectiveLooks,
+        liveState,
+        now,
+      }),
+    [effectiveScreens, effectiveLooks, liveState, now],
   );
 }
 

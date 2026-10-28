@@ -27,7 +27,7 @@ const tabNames = (): readonly string[] =>
   within(screen.getByRole('tablist'))
     .getAllByRole('tab')
     .map(tab => tab.textContent);
-const stageReady = () => waitFor(() => expect(fixture.count()).toBe(7));
+const stageReady = () => waitFor(() => expect(fixture.count()).toBe(5));
 
 it.each(['normal', 'wide', 'narrow'] as const)(
   'shows only working tabs in a %s window without an empty overflow menu',
@@ -109,7 +109,9 @@ it('shows the live row count on the 표시 중 tab while stage tab is selected',
   expect(
     screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
   ).toBe('true');
-  expect(screen.getByRole('tab', {name: '표시 중 1개'})).toBeDefined();
+  await waitFor(() => {
+    expect(screen.getByRole('tab', {name: '표시 중 1개'})).toBeDefined();
+  });
 });
 
 it('selects only working panels with arrow keys and releases their subscriptions', async () => {
@@ -117,12 +119,12 @@ it('selects only working panels with arrow keys and releases their subscriptions
   await stageReady();
   screen.getByRole('tab', {name: '무대'}).focus();
   await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(3));
+  await waitFor(() => expect(fixture.count()).toBe(1));
   expect(
     screen.getByRole('tabpanel', {name: '타이머'}).childElementCount,
   ).toBeGreaterThan(0);
   await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(4));
+  await waitFor(() => expect(fixture.count()).toBe(2));
   expect(
     screen.getByRole('tabpanel', {name: '메시지'}).childElementCount,
   ).toBeGreaterThan(0);
@@ -140,7 +142,7 @@ it('keeps the chosen working panel through size changes and remounting', async (
   const {rerender, unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
   await userEvent.click(screen.getByRole('tab', {name: '메시지'}));
-  await waitFor(() => expect(fixture.count()).toBe(4));
+  await waitFor(() => expect(fixture.count()).toBe(2));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(
     screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
@@ -148,6 +150,6 @@ it('keeps the chosen working panel through size changes and remounting', async (
   unmount();
   expect(fixture.count()).toBe(0);
   render(<ShowToolsPanel sizeClass="wide" />);
-  await waitFor(() => expect(fixture.count()).toBe(4));
+  await waitFor(() => expect(fixture.count()).toBe(2));
   expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
 });
