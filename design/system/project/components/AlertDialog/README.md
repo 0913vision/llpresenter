@@ -48,6 +48,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 ## Behavior
 
 - When the dialog opens, focus the primary button. Enter triggers the primary button, and Esc triggers [취소]. In 출력 상태 복구, which has no [취소], Esc triggers [새로 시작].
+- Modified Enter and Esc pass through without running a dialog action.
 - Tab order: overflowing head (if any) → check rows (if any) → buttons from the left. An ordinary head adds no Tab stop. Arrow/Page/Home/End keys scroll the focused head natively.
 - A confirmation dialog has no close (×) button. A click on the scrim doesn't close it.
 - Don't open another confirmation dialog on top of a confirmation dialog.

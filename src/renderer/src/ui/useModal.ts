@@ -7,6 +7,7 @@ import {
 import {isComposing, isComposingKey} from './ime';
 import {findLayerContainer} from './layers';
 import {modalStack} from './modalStack';
+import {hasModifier} from './modifierKeys';
 
 const TABBABLE = [
   'button:not([disabled])',
@@ -152,6 +153,7 @@ function useKeysFromNotificationCards(
         moveInFocusCycle(event, element);
       } else if (
         event.key === 'Escape' &&
+        !hasModifier(event) &&
         !isComposingKey(event) &&
         isOnNotificationCard(event.target) &&
         escape()
@@ -202,6 +204,7 @@ export function useModal({
       case 'Escape':
         if (
           event.defaultPrevented ||
+          hasModifier(event) ||
           onEscape === undefined ||
           isComposing(event)
         ) {
@@ -213,6 +216,7 @@ export function useModal({
       case 'Enter':
         if (
           onEnter === undefined ||
+          hasModifier(event) ||
           isComposing(event) ||
           !(event.target instanceof Element) ||
           !enterPressesPrimary(event.target, event.defaultPrevented)

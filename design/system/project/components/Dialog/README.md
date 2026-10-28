@@ -58,6 +58,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 - When the dialog opens, put focus in the first text field and select all its text (새 예배: the name field). If there is no text field, focus the primary button.
 - Focus cycles only inside the dialog (Tab, Shift+Tab). The order follows the screen: close → body → bar → footer.
 - Enter triggers the primary button (when focus isn't in a multiline text field or a list). Esc and the close button do the same as [취소].
+- Modified Enter and Esc pass through without submitting or canceling.
 - A click on the scrim doesn't close the dialog.
 - When the dialog closes, return focus to the button or menu item that opened it.
 - In the service-source dialogs, reselecting the current source keeps the operator's item choices, including at a keyboard boundary. A different source starts a fresh selection: all items for 새 예배 and none for 다른 예배에서 가져오기.

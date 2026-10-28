@@ -8,6 +8,7 @@ import {Dialog, DialogBox, DialogField} from './Dialog';
 import {TextArea} from './TextArea';
 import {TextField} from './TextField';
 import {enterPressesPrimary} from './useModal';
+import {layerContainer} from './layers';
 
 interface Handlers {
   readonly onCancel?: () => void;
@@ -108,6 +109,45 @@ describe('Dialog', () => {
     await openDialog();
     await userEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(onCancel).toHaveBeenCalledTimes(3);
+  });
+
+  it('passes modified Enter and Escape without submitting or canceling', async () => {
+    const onCreate = vi.fn();
+    const onCancel = vi.fn();
+    render(<NewService onCreate={onCreate} onCancel={onCancel} />);
+    await openDialog();
+    const field = screen.getByRole('textbox', {name: '이름'});
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of ['Enter', 'Escape']) {
+        expect(fireEvent.keyDown(field, {key, [modifier]: true})).toBe(true);
+      }
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(8);
+    expect(onCreate).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
+    field.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(onCreate).toHaveBeenCalledOnce();
+  });
+
+  it('passes modified Escape from a notification while a dialog is open', async () => {
+    const onCancel = vi.fn();
+    render(<NewService onCancel={onCancel} />);
+    await openDialog();
+    const button = document.createElement('button');
+    layerContainer('notification').append(button);
+    button.focus();
+    expect(fireEvent.keyDown(button, {key: 'Escape', ctrlKey: true})).toBe(
+      true,
+    );
+    expect(onCancel).not.toHaveBeenCalled();
+    fireEvent.keyDown(button, {key: 'Escape'});
+    expect(onCancel).toHaveBeenCalledOnce();
+    button.remove();
   });
 
   it('presses the primary button with Enter in a single-line field', async () => {
