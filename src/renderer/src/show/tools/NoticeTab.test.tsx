@@ -128,6 +128,66 @@ it('starts the chosen image and saves repeat changes', async () => {
   expect(edit.value.sets[0]?.loop).toBe(false);
 });
 
+it('places interval and repeat before the images and targets after them', async () => {
+  fixture();
+  render(<NoticeTab />);
+  const grid = await screen.findByRole('listbox', {name: '공지 이미지'});
+  const interval = screen.getByRole('button', {name: '8초'});
+  const targets = screen.getByRole('group', {name: '보낼 화면'});
+  expect(
+    interval.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  expect(
+    grid.compareDocumentPosition(targets) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+});
+
+it('renames a set with its keyboard context menu', async () => {
+  const f = fixture();
+  render(<NoticeTab />);
+  const select = await screen.findByRole('button', {name: '공지 세트'});
+  await waitFor(() => expect(select.textContent).toContain('주일 공지'));
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '공지 추가'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  fireEvent.keyDown(select, {key: 'ContextMenu'});
+  fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
+  fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
+    target: {value: '새 공지'},
+  });
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'notices') throw new Error('Missing notice edit');
+  expect(edit.value.sets[0]?.name).toBe('새 공지');
+});
+
+it('confirms before deleting the selected set', async () => {
+  const f = fixture();
+  render(<NoticeTab />);
+  const select = await screen.findByRole('button', {name: '공지 세트'});
+  await waitFor(() => expect(select.textContent).toContain('주일 공지'));
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '공지 추가'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  fireEvent.contextMenu(select);
+  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+  expect(f.edit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', {name: '삭제'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'notices') throw new Error('Missing notice edit');
+  expect(edit.value.sets).toEqual([]);
+});
+
 it('creates a notice from a playlist and locks every draft control during save', async () => {
   const f = fixture([]);
   const pending = deferred<EditResult>();

@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useState, type JSX, type ReactNode} from 'react';
 import type {NoticeSet} from '@shared/schema/notices';
 import type {Screen} from '@shared/schema/screens';
 import {Button, Dialog, TextField} from '@renderer/ui';
@@ -61,11 +61,13 @@ export function NoticeSettings({
   screens,
   locked,
   save,
+  children,
 }: {
   readonly item: NoticeSet;
   readonly screens: readonly Screen[];
   readonly locked: boolean;
   readonly save: (changes: NoticeChanges) => Promise<boolean>;
+  readonly children?: ReactNode;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const change = (changes: NoticeChanges): void => {
@@ -90,6 +92,7 @@ export function NoticeSettings({
           반복
         </Button>
       </div>
+      {children}
       <div role="group" aria-label="보낼 화면" className={styles.targets}>
         {screens.map(screen => {
           const on = item.targets.includes(screen.id);

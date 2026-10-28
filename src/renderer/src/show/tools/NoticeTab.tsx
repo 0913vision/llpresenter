@@ -5,6 +5,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {NoticeCreateDialog} from './NoticeCreateDialog';
 import {NoticePlayback} from './NoticePlayback';
 import {NoticeSettings} from './NoticeSettings';
+import {NoticeEditing} from './NoticeEditing';
 import {MAX_NOTICE_SETS, saveNoticeEdit, type NoticeEdit} from './noticeEdits';
 import {useNoticeMedia} from './useNoticeMedia';
 import {useToolEditing} from './useToolEditing';
@@ -59,22 +60,26 @@ export function NoticeTab({
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <SelectMenu
-          aria-label="공지 세트"
-          block
-          value={selected?.id}
-          disabled={!document?.value.sets.length}
-          options={
-            document?.value.sets.map(item => ({
-              value: item.id,
-              label: item.name,
-            })) ?? []
-          }
-          onChange={id => {
-            selectionRevision.current++;
-            setSelectedId(id);
-          }}
-        />
+        <div className={styles.selector}>
+          <NoticeEditing item={current} locked={locked} save={run}>
+            <SelectMenu
+              aria-label="공지 세트"
+              block
+              value={selected?.id}
+              disabled={!document?.value.sets.length}
+              options={
+                document?.value.sets.map(item => ({
+                  value: item.id,
+                  label: item.name,
+                })) ?? []
+              }
+              onChange={id => {
+                selectionRevision.current++;
+                setSelectedId(id);
+              }}
+            />
+          </NoticeEditing>
+        </div>
         <IconButton
           icon="plus"
           label="공지 추가"
@@ -87,14 +92,15 @@ export function NoticeTab({
       </div>
       {current ? (
         <>
-          <NoticePlayback item={current} media={media?.value.items ?? []} />
           <NoticeSettings
             key={current.id}
             item={current}
             screens={screens?.value.screens ?? []}
             locked={locked}
             save={changes => run({kind: 'update', id: current.id, changes})}
-          />
+          >
+            <NoticePlayback item={current} media={media?.value.items ?? []} />
+          </NoticeSettings>
         </>
       ) : null}
       {adding && media ? (
