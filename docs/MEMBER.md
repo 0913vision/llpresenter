@@ -20,6 +20,9 @@ session that can't send messages works with the lead.
    ```markdown
    # tag(scope): one sentence starting with a base-form verb
 
+   Plan: <the unit in docs/plans/, such as X1b, or none>
+   LLPREQ:<name>|<branch>|<base commit>|<round>
+
    - Why: the bug or the plan unit, in one or two lines.
    - What: the main changes, a few bullets.
    - Tests: what the new tests prove.
@@ -29,21 +32,27 @@ session that can't send messages works with the lead.
    ```
 
    The title is the commit message `main` gets, so follow the commit rules in
-   `CLAUDE.md`. Screenshots, if you need them, go in `.llp/pr/<name>/`. Then
-   print the request line: `LLPREQ:<name>|<branch>|<base commit>|<round>`. What
-   you do while it is reviewed is your call, as on a real team: an independent
-   ticket from `main`, a branch stacked on it when the next work really builds
-   on it, or waiting for the review when the change is risky or likely to
-   change. You own the ticket until it merges; when something outside it slows
-   you down (a flaky test, a conflict, an unclear spec), fix or report it
-   quickly instead of letting the ticket drag.
+   `CLAUDE.md`. Screenshots, if you need them, go in `.llp/pr/<name>/`. The
+   dispatcher reads the request line from this file, so keep exactly one and
+   update it every round; also print it on its own line in your final reply,
+   never only inside command output. Keep a request near 200 to 600 lines and
+   bundle small fixes in one area into one request. What you do while it is
+   reviewed is your call, as on a real team: an independent ticket from `main`,
+   a branch stacked on it when the next work really builds on it, or waiting for
+   the review when the change is risky or likely to change. You own the ticket
+   until it merges; when something outside it slows you down (a flaky test, a
+   conflict, an unclear spec), fix or report it quickly instead of letting the
+   ticket drag.
 
 5. **CI and review:** the dispatcher waits for your branch's CI run to pass,
    then sends the pull request to a reviewer. A failed run or the review verdict
-   comes back to you as a message.
+   comes back to you as a message. Your status file, whose path the lead gives
+   you, lists each of your requests and what it needs next; read it when you
+   finish a turn or are unsure, and trust it over older messages.
 6. **Changes requested:** fix them on the same branch, add a
    `## Round <n> changes` list to the pull request file (one line per finding:
-   what changed), push, and print the request line with the next round.
+   what changed), push, and update and print the request line with the next
+   round.
 7. **Merge:** the dispatcher or the lead squash-merges the branch onto `main`
    with the pull request title. If your next branch was stacked on it, move it:
    `git rebase --onto main <old head of the merged branch> <next branch>`.
