@@ -2,15 +2,14 @@ import {useEffect} from 'react';
 import {isColumnDragActive} from '@renderer/state/drag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
-  hasSlideHotKey,
   openNextItem,
   openPreviousItem,
-  outputHotKey,
   outputNext,
   outputPrevious,
   revealLiveItem,
 } from '@renderer/state/show';
 import {TEXT_ENTRY_SELECTOR} from '@renderer/ui/textEntry';
+import {useSlideHotKeys} from './useSlideHotKeys';
 
 const NEXT_CODES: ReadonlySet<string> = new Set([
   'ArrowRight',
@@ -48,8 +47,6 @@ const ITEM_COMMANDS: ReadonlyArray<{
     run: () => revealLiveItem(),
   },
 ];
-const NUMPAD_DIGIT = /^Numpad(\d)$/;
-const NUM_LOCK = 'NumLock';
 const PRIMARY_BUTTON = 0;
 
 const TEXT_FIELD_SELECTOR =
@@ -139,19 +136,10 @@ function runItemCommand(event: KeyboardEvent): void {
   command.run();
 }
 
-// NOTE(0913vision): Numpad digits count as the digits of the top row only while
-// Num Lock is on. With Num Lock off those keys move the cursor.
-function physicalKey(event: KeyboardEvent): string {
-  const digit = NUMPAD_DIGIT.exec(event.code)?.[1];
-  if (digit === undefined) return event.code;
-  return event.getModifierState(NUM_LOCK) ? `Digit${digit}` : event.code;
-}
-
 /**
  * Handles the live keys of 진행: next 장 (→, Space, Page Down), previous 장 (←,
- * Page Up), and source-slide hot keys, matched by physical key. They work with
- * the 장 grid or the 예배 순서 list in focus, a held key runs once, and they
- * stay inactive during a column drag.
+ * Page Up). They work with the 장 grid or 예배 순서 list in focus, a held key
+ * runs once, and they stay inactive during a column drag.
  */
 export function handleShowKey(event: KeyboardEvent): void {
   pendingClick = null;
@@ -170,12 +158,6 @@ export function handleShowKey(event: KeyboardEvent): void {
     if (event.repeat) return;
     if (isNext) outputNext();
     else outputPrevious();
-    return;
-  }
-  const code = physicalKey(event);
-  if (hasSlideHotKey(code)) {
-    event.preventDefault();
-    if (!event.repeat) outputHotKey(code);
     return;
   }
 }
@@ -251,6 +233,7 @@ function clearPendingClick(event: Event): void {
 
 /** Listens for the live keys while the 진행 workspace is shown. */
 export function useShowKeys(): void {
+  useSlideHotKeys();
   useEffect(() => {
     window.addEventListener('keydown', clearPendingClick, {capture: true});
     window.addEventListener('keydown', handleShowKey);

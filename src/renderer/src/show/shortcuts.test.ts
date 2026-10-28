@@ -161,16 +161,11 @@ describe('handleShowKey where a focused control takes the key', () => {
     expect(showState.outputNext).toHaveBeenCalledTimes(1);
   });
 
-  it('still passes Page keys and assigned slide keys on from a focused button', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
-      code => code === 'KeyC',
-    );
+  it('still passes Page keys on from a focused button', () => {
     press('PageDown', {}, appendTo('button'));
     press('PageUp', {}, appendTo('button'));
-    press('KeyC', {}, appendTo('button'));
     expect(showState.outputNext).toHaveBeenCalledTimes(1);
     expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
-    expect(showState.outputHotKey).toHaveBeenCalledExactlyOnceWith('KeyC');
   });
 
   it('still takes Space from a button of the 장 grid and the 예배 순서 list', () => {
@@ -332,96 +327,13 @@ describe('handleShowKey during a column drag', () => {
   });
 });
 
-describe('handleShowKey legacy label keys', () => {
-  it('leaves stored label keys unhandled when no source slide is assigned', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
-    for (const code of ['KeyC', 'Digit1', 'Numpad1']) {
-      expect(press(code, {modifierNumLock: true}).defaultPrevented).toBe(false);
-    }
-    expect(showState.outputHotKey).not.toHaveBeenCalled();
-  });
-
-  it('normalizes assigned numpad digits only while Num Lock is on', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
-      code => code === 'Digit1',
-    );
-    expect(press('Numpad1', {modifierNumLock: false}).defaultPrevented).toBe(
-      false,
-    );
-    expect(press('Numpad1', {modifierNumLock: true}).defaultPrevented).toBe(
-      true,
-    );
-    expect(press('Digit1', {modifierNumLock: false}).defaultPrevented).toBe(
-      true,
-    );
-    expect(showState.outputHotKey).toHaveBeenCalledTimes(2);
-    expect(showState.outputHotKey).toHaveBeenCalledWith('Digit1');
-  });
-});
-describe('handleShowKey slide hotkeys', () => {
-  it('outputs the matching slide hotkey and prevents default', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
-      code => code === 'KeyA',
-    );
-    const event = press('KeyA');
-    expect(event.defaultPrevented).toBe(true);
-    expect(showState.outputHotKey).toHaveBeenCalledWith('KeyA');
-  });
-
-  it('ignores slide hotkeys when no item is open', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
-    const event = press('KeyA');
-    expect(event.defaultPrevented).toBe(false);
-    expect(showState.outputHotKey).not.toHaveBeenCalled();
-  });
-
-  it('ignores slide hotkeys when modifier keys (ctrl, alt, meta) are held', () => {
+describe('handleShowKey slide keys', () => {
+  it('leaves source-slide keys to the mounted shortcut hook', () => {
     vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
-    const ctrlEvent = press('KeyA', {ctrlKey: true});
-    const altEvent = press('KeyA', {altKey: true});
-    const metaEvent = press('KeyA', {metaKey: true});
-    expect(ctrlEvent.defaultPrevented).toBe(false);
-    expect(altEvent.defaultPrevented).toBe(false);
-    expect(metaEvent.defaultPrevented).toBe(false);
-    expect(showState.outputHotKey).not.toHaveBeenCalled();
-  });
-
-  it('ignores slide hotkeys when focus is inside a text input or textarea', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
-    const input = appendTo('input');
-    const textarea = appendTo('textarea');
-    const inputEvent = press('KeyA', {}, input);
-    const textareaEvent = press('KeyA', {}, textarea);
-    expect(inputEvent.defaultPrevented).toBe(false);
-    expect(textareaEvent.defaultPrevented).toBe(false);
-    expect(showState.outputHotKey).not.toHaveBeenCalled();
-  });
-
-  it('ignores repeated keydown events (event.repeat)', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
-    press('KeyA');
-    const repeated = press('KeyA', {repeat: true});
-    expect(showState.outputHotKey).toHaveBeenCalledTimes(1);
-    expect(repeated.defaultPrevented).toBe(true);
-  });
-
-  it('prioritizes slide hotkey over jump key when both match the same code', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
-      code => code === 'KeyC',
-    );
-    const event = press('KeyC');
-    expect(event.defaultPrevented).toBe(true);
-    expect(showState.outputHotKey).toHaveBeenCalledWith('KeyC');
-  });
-
-  it('does not fall back to a legacy label key when no slide hotkey matches', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
-    const event = press('KeyC');
-    expect(event.defaultPrevented).toBe(false);
+    expect(press('KeyC').defaultPrevented).toBe(false);
     expect(showState.outputHotKey).not.toHaveBeenCalled();
   });
 });
-
 describe('handleShowKeyUp', () => {
   it('cancels the key up of a Space that the live handler took', () => {
     press('Space');
