@@ -79,6 +79,9 @@ function renameLook(
   if (!file.looks.some(look => look.id === edit.id)) return refused('missing');
   const problem = nameProblem(edit.name, file.looks, edit.id);
   if (problem !== undefined) return refused(problem);
+  if (file.looks.find(look => look.id === edit.id)?.name === edit.name.trim()) {
+    return {ok: true, value: file};
+  }
   return {
     ok: true,
     value: {

@@ -47,7 +47,7 @@ vi.mock('@renderer/render/outputRenderer', () => ({
   },
 }));
 
-function setup(readOnly = false) {
+function setup(readOnly = false, beforeSave = () => Promise.resolve()) {
   const initial = looksDocument();
   if (initial.name !== 'looks') throw new Error('Wrong document');
   let document: SettingsDocument = {
@@ -65,16 +65,17 @@ function setup(readOnly = false) {
   };
   const listeners = new Set<(next: SettingsDocument) => void>();
   const send = vi.fn();
-  const edit = vi.fn((change: SettingsEdit) => {
+  const edit = vi.fn(async (change: SettingsEdit) => {
     if (change.type !== 'settings.update' || change.name !== 'looks') {
       throw new Error('Unexpected edit');
     }
+    await beforeSave();
     document = settingsDocument('looks', change.value, document.revision + 1);
     for (const listener of listeners) listener(document);
-    return Promise.resolve({
+    return {
       ok: true,
       value: {id: 'looks', revision: document.revision},
-    } as const);
+    } as const;
   });
   const api = fakeLlpApi({
     live: {send},
@@ -243,6 +244,39 @@ it('cancels a header name with Escape and commits its valid focused draft before
   });
   expect(edit).toHaveBeenCalledOnce();
   expect(field.getAttribute('value')).toBe('새 이름');
+});
+
+it('saves a queued reversion to the displayed Look name after a held rename', async () => {
+  let release: () => void = () => undefined;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {user, edit, document: saved} = setup(false, () => held);
+  const field = await screen.findByRole('textbox', {name: 'Look 이름'});
+  await user.clear(field);
+  await user.type(field, '임시 Look{Enter}');
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  await user.clear(field);
+  await user.type(field, '평상시{Enter}');
+  expect(edit).toHaveBeenCalledTimes(1);
+  release();
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  await waitFor(() => {
+    const document = saved();
+    if (document.name !== 'looks') throw new Error('Wrong document');
+    expect(document.value.looks[0]?.name).toBe('평상시');
+  });
+});
+
+it('does not save a name that remains unchanged', async () => {
+  const {user, edit} = setup();
+  const field = await screen.findByRole('textbox', {name: 'Look 이름'});
+  await user.clear(field);
+  await user.type(field, '평상시{Enter}');
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(edit).not.toHaveBeenCalled();
 });
 
 it('duplicates from the center header and selects the copy without changing live output', async () => {

@@ -48,11 +48,7 @@ function LookName({
       setDraft(null);
       return;
     }
-    if (
-      reason === undefined &&
-      problem === undefined &&
-      shown.trim() !== look.name
-    ) {
+    if (reason === undefined && problem === undefined && draft !== null) {
       onCommit(shown.trim());
     }
     setDraft(null);
