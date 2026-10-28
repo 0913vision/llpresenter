@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from './editorFixture';
 import {SongEditor} from './SongEditor';
 import {editorSetup, lyrics} from './editorTesting';
@@ -50,7 +50,12 @@ describe('song editor view', () => {
   it('saves input and dispatches physical undo and both redo bindings', async () => {
     const {user, session, documents, first} = await editorSetup();
     await user.click(lyrics());
-    await user.keyboard('{End}abc');
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(1000);
+    try {
+      await user.keyboard('{End}abc');
+    } finally {
+      clock.mockRestore();
+    }
     await act(() => session.flush());
     const text = lyrics().value;
     expect(

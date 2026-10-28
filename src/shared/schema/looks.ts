@@ -52,19 +52,21 @@ const lookSchema = jsonObject({
   screens: jsonRecord(screenIdSchema, screenLookSchema),
 });
 
-const lyricStyleSchema = jsonObject({
+export const lyricStyleEntries = {
   id: lyricStyleIdSchema,
   name: v.string(),
   ...lyricTextEntries,
-});
+};
 
-export const looksSchema = jsonObject({
+export const looksEntries = {
   format: v.literal('llsettings.looks'),
   schemaVersion: positiveInteger,
   current: lookIdSchema,
   looks: listWithUniqueIds(lookSchema),
-  lyricStyles: listWithUniqueIds(lyricStyleSchema),
-});
+  lyricStyles: listWithUniqueIds(jsonObject(lyricStyleEntries)),
+};
+
+export const looksSchema = jsonObject(looksEntries);
 
 const looksMigrations: readonly MigrationStep[] = [];
 
