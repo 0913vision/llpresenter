@@ -15,6 +15,7 @@ import {settingsDocument} from '@renderer/screens/testing/documents';
 import {deferred} from '../quick/quickTesting';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
+import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 
 const id = '00000000-0000-4000-8000-000000000001';
@@ -54,14 +55,37 @@ if (!entries.ok || !service.ok || !service.value) {
 const serviceEntries = entries.value;
 const serviceDocument = service.value;
 
-function fixture() {
+function fixture(actions: readonly object[] = []) {
   const f = stageFixture([
-    settingsDocument('macros', {macros: [macro], collections: [group]}),
+    settingsDocument('macros', {
+      macros: [{...macro, actions}],
+      collections: [group],
+    }),
+    settingsDocument('props', {props: []}),
+    settingsDocument('notices', {sets: []}),
   ]);
   const api = window.llp;
   if (!api) throw new Error('Missing API');
+  const media = parseMediaDocument({
+    name: 'media',
+    revision: 1,
+    access: 'editable',
+    value: {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [],
+      playlists: [],
+      audioPlaylists: [],
+    },
+  });
+  if (!media.ok) throw new Error('Invalid media');
   window.llp = {
     ...api,
+    media: {
+      ...api.media,
+      get: async () => media.value,
+      subscribe: () => () => undefined,
+    },
     services: {
       ...api.services,
       list: async () => serviceEntries,
@@ -166,4 +190,67 @@ it('duplicates the selected macro from its context menu', async () => {
   expect(edit.value.collections[0]?.macroIds).toContain(
     edit.value.macros[1]?.id,
   );
+});
+
+async function openActionSubmenu(name: string) {
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.contextMenu(tile);
+  fireEvent.pointerEnter(screen.getByRole('menuitem', {name}));
+  await screen.findByRole('menu', {name});
+}
+
+it('adds an action from the menu after configuring it', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  await openActionSubmenu('\ub3d9\uc791 \ucd94\uac00');
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: '\ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
+  );
+  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '\uc644\ub8cc'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.actions).toEqual([{kind: 'clearAll'}]);
+});
+
+it('edits and removes actions with their original transition and expected list', async () => {
+  const action = {kind: 'clearAll', transition: {fade: true, durationMs: 1200}};
+  const f = fixture([action]);
+  const view = render(<MacroPanel />);
+  await openActionSubmenu('\ub3d9\uc791 \ud3b8\uc9d1');
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: '1. \ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
+  );
+  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '\uc644\ub8cc'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.actions).toEqual([action]);
+  view.unmount();
+  const next = fixture([action]);
+  render(<MacroPanel />);
+  await openActionSubmenu('\ub3d9\uc791 \ube7c\uae30');
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: '1. \ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
+  );
+  await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
+  const removal = next.edit.mock.calls[0]?.[0];
+  if (removal?.name !== 'macros') throw new Error('Missing edit');
+  expect(removal.value.macros[0]?.actions).toEqual([]);
 });

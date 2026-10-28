@@ -2,6 +2,8 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {parseMacroId} from '@shared/schema/ids';
 import {
   MACRO_FILE_LIMITS,
+  isKnownMacroAction,
+  type MacroActionKind,
   type Macro,
   type MacroCollection,
 } from '@shared/schema/macros';
@@ -14,8 +16,18 @@ import {MacroView, type MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {countMacroUses} from './macroUsage';
 import {useToolEditing} from './useToolEditing';
+import {MacroActionDialog} from './MacroActionDialog';
+import {draftMacroAction} from './macroActionDraft';
+import {MACRO_PALETTE} from './macroPaletteCatalog';
+import {useMacroTargets} from './useMacroTargets';
 
 type Editor =
+  | {
+      kind: 'action';
+      item: Macro;
+      actionKind: MacroActionKind;
+      index?: number | undefined;
+    }
   | {kind: 'rename'; item: Macro}
   | {kind: 'delete'; item: Macro; uses: number | null; failed: boolean};
 
@@ -60,6 +72,69 @@ function RenameDialog({
         invalidReason={reason}
       />
     </Dialog>
+  );
+}
+
+function ActionDialog({
+  editor,
+  locked,
+  onProblem,
+  close,
+  save,
+}: {
+  readonly editor: Extract<Editor, {kind: 'action'}>;
+  readonly locked: boolean;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly close: () => void;
+  readonly save: (
+    action: import('@shared/schema/macros').KnownMacroAction,
+  ) => void;
+}): JSX.Element {
+  const targets = useMacroTargets(onProblem);
+  const previous =
+    editor.index === undefined ? undefined : editor.item.actions[editor.index];
+  if (!targets) {
+    return (
+      <Dialog
+        title="\ub3d9\uc791 \uc124\uc815"
+        size="s"
+        onCancel={close}
+        primary={{
+          label: '\uc644\ub8cc',
+          disabled: true,
+          onSelect: () => undefined,
+        }}
+      >
+        <span>\ub300\uc0c1\uc744 \ubd88\ub7ec\uc624\ub294 \uc911</span>
+      </Dialog>
+    );
+  }
+  return (
+    <MacroActionDialog
+      kind={editor.actionKind}
+      choices={targets.choices}
+      screens={
+        editor.actionKind === 'stageLayout'
+          ? targets.stageScreens
+          : targets.screens
+      }
+      initial={
+        previous && isKnownMacroAction(previous)
+          ? draftMacroAction(previous)
+          : undefined
+      }
+      locked={locked}
+      onCancel={close}
+      onSave={save}
+    />
+  );
+}
+
+function actionLabel(kind: string): string {
+  return (
+    MACRO_PALETTE.flatMap(group => group.actions).find(
+      action => action.kind === kind,
+    )?.label ?? kind
   );
 }
 
@@ -218,6 +293,69 @@ export function MacroPanel({
             },
             {
               kind: 'item',
+              id: 'add-action',
+              label: '\ub3d9\uc791 \ucd94\uac00',
+              disabled:
+                locked || menu.item.actions.length >= MACRO_FILE_LIMITS.actions,
+              submenu: MACRO_PALETTE.flatMap(group => group.actions).map(
+                action => ({
+                  kind: 'item' as const,
+                  id: action.kind,
+                  label: action.label,
+                  onSelect: () =>
+                    setEditor({
+                      kind: 'action',
+                      item: menu.item,
+                      actionKind: action.kind,
+                    }),
+                }),
+              ),
+            },
+            {
+              kind: 'item',
+              id: 'edit-action',
+              label: '\ub3d9\uc791 \ud3b8\uc9d1',
+              disabled: locked || menu.item.actions.length === 0,
+              submenu: menu.item.actions.map((action, index) => ({
+                kind: 'item' as const,
+                id: String(index),
+                label: `${index + 1}. ${actionLabel(action.kind)}`,
+                disabled: !isKnownMacroAction(action),
+                onSelect: () => {
+                  if (isKnownMacroAction(action)) {
+                    setEditor({
+                      kind: 'action',
+                      item: menu.item,
+                      actionKind: action.kind,
+                      index,
+                    });
+                  }
+                },
+              })),
+            },
+            {
+              kind: 'item',
+              id: 'remove-action',
+              label: '\ub3d9\uc791 \ube7c\uae30',
+              disabled: locked || menu.item.actions.length === 0,
+              submenu: menu.item.actions.map((action, index) => ({
+                kind: 'item' as const,
+                id: String(index),
+                label: `${index + 1}. ${actionLabel(action.kind)}`,
+                onSelect: () =>
+                  commit({
+                    kind: 'action',
+                    id: menu.item.id,
+                    action: {
+                      kind: 'remove',
+                      index,
+                      expected: menu.item.actions,
+                    },
+                  }),
+              })),
+            },
+            {
+              kind: 'item',
               id: 'duplicate',
               label: '\ubcf5\uc81c',
               disabled:
@@ -256,6 +394,32 @@ export function MacroPanel({
               onSelect: () => askDelete(menu.item),
             },
           ]}
+        />
+      ) : null}
+      {editor?.kind === 'action' ? (
+        <ActionDialog
+          editor={editor}
+          locked={locked}
+          onProblem={onProblem}
+          close={close}
+          save={action =>
+            commit(
+              {
+                kind: 'action',
+                id: editor.item.id,
+                action:
+                  editor.index === undefined
+                    ? {kind: 'append', action}
+                    : {
+                        kind: 'replace',
+                        index: editor.index,
+                        action,
+                        expected: editor.item.actions,
+                      },
+              },
+              close,
+            )
+          }
         />
       ) : null}
       {editor?.kind === 'rename' ? (
