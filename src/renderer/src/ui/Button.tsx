@@ -1,7 +1,7 @@
 import type {ComponentPropsWithRef, JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
-import {pressHandler} from './press';
+import {useButtonPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './Button.module.css';
@@ -42,16 +42,26 @@ export function Button({
   type = 'button',
   className,
   onClick,
+  onKeyDown,
+  onKeyUp,
+  onBlur,
   title,
   children,
   ...rest
 }: ButtonProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
+  const {onBlur: pressBlur, ...press} = useButtonPress({
+    disabled,
+    onPress: onClick,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  });
   return (
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type={type}
         aria-disabled={disabled ? true : undefined}
         className={classNames(
@@ -61,7 +71,7 @@ export function Button({
           icon !== undefined && styles.lead,
           className,
         )}
-        onClick={pressHandler(disabled, onClick)}
+        {...press}
       >
         {icon === undefined ? null : <Icon name={icon} size={iconSize[size]} />}
         {children}

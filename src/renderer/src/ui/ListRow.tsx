@@ -18,9 +18,9 @@ import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
-import {pressHandler} from './press';
+import {pressHandler, useButtonPress} from './press';
 import {LiveBadge} from './StatusMarks';
-import {titleTooltip, useTooltip} from './Tooltip';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TextField} from './TextField';
 import {TruncatedText} from './TruncatedText';
 import type {Workspace} from './workspace';
@@ -417,15 +417,19 @@ export function ListActionRow({
   reason,
 }: ListActionRowProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(reason));
+  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
+    disabled,
+    onPress,
+  });
   return (
     <>
       <button
-        {...targetProps}
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
         aria-pressed={pressed}
         aria-disabled={disabled ? true : undefined}
         className={styles.row}
-        onClick={pressHandler(disabled, onPress)}
+        {...press}
       >
         {icon === undefined ? null : (
           <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />

@@ -7,7 +7,7 @@ import type {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {hasModifier} from './modifierKeys';
-import {pressHandler} from './press';
+import {useButtonPress} from './press';
 import {useTooltip, withTooltipProps, type TooltipContent} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './IconButton.module.css';
@@ -57,24 +57,36 @@ export function IconButton({
   title,
   onClick,
   onKeyDown,
+  onKeyUp,
+  onBlur,
   ...rest
 }: IconButtonProps): JSX.Element {
   const press = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     if (pressed !== undefined) onPressedChange?.(!pressed);
   };
-  const guardedPress = pressHandler(disabled, press);
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    const rowKey = event.key === 'Enter' || event.key === ' ';
+    if (rowKey && !hasModifier(event)) event.stopPropagation();
+    onKeyDown?.(event);
+  };
+  const {
+    onClick: guardedPress,
+    onBlur: pressBlur,
+    ...pressHandlers
+  } = useButtonPress({
+    disabled,
+    onPress: press,
+    onKeyDown: handleKeyDown,
+    onKeyUp,
+    onBlur,
+  });
   // NOTE(0913vision): An icon button often sits at the end of a list row that
   // selects on a click, Enter, or Space, so its presses must not reach the
   // row, even while the button is disabled.
   const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
     guardedPress(event);
-  };
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    const rowKey = event.key === 'Enter' || event.key === ' ';
-    if (rowKey && !hasModifier(event)) event.stopPropagation();
-    onKeyDown?.(event);
   };
   const {targetProps, tooltip} = useTooltip(
     tooltipContent(label, shortcut, title),
@@ -83,7 +95,7 @@ export function IconButton({
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
         aria-label={label}
         aria-pressed={pressed}
@@ -96,7 +108,7 @@ export function IconButton({
           className,
         )}
         onClick={handleClick}
-        onKeyDown={handleKeyDown}
+        {...pressHandlers}
       >
         <Icon name={icon} size={ICON_SIZE} />
       </button>

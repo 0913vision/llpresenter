@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -109,6 +109,22 @@ function NarrowTools({
 }
 
 describe('PanelTabs with a 더 보기 group', () => {
+  it('leaves modified Space to its owner without opening 더 보기', () => {
+    render(<NarrowTools />);
+    const more = screen.getByRole('button', {name: '더 보기'});
+    const key = new KeyboardEvent('keydown', {
+      key: ' ',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    fireEvent(more, key);
+    expect(key.defaultPrevented).toBe(false);
+    fireEvent.keyUp(more, {key: ' '});
+    fireEvent.click(more, {detail: 0});
+    expect(more.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('opens the rest of the tabs as a menu from a button after the tabs', async () => {
     Element.prototype.scrollIntoView = () => undefined;
     render(<NarrowTools />);

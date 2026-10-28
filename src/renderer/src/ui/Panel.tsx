@@ -11,9 +11,10 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {Menu} from './Menu';
 import {menuButtonProps} from './menuButton';
+import {useButtonPress} from './press';
 import {useRovingSelection} from './roving';
 import {CountBadge} from './StatusMarks';
-import {titleTooltip, useTooltip} from './Tooltip';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TruncatedText} from './TruncatedText';
 import styles from './Panel.module.css';
 
@@ -177,12 +178,19 @@ function PanelMoreTabs<T extends string>({
   const [expanded, setExpanded] = useState(false);
   const current = more.tabs.find(tab => tab.value === value);
   const active = current !== undefined;
+  const menuProps = menuButtonProps({expanded, onExpandedChange: setExpanded});
+  const press = useButtonPress({
+    disabled: false,
+    onPress: menuProps.onClick,
+    onKeyDown: menuProps.onKeyDown,
+  });
   return (
     <>
       <button
         ref={setButton}
         type="button"
-        {...menuButtonProps({expanded, onExpandedChange: setExpanded})}
+        {...menuProps}
+        {...press}
         data-active={active || undefined}
         className={styles.more}
       >
@@ -308,11 +316,18 @@ export function PanelSwitch({
   title,
 }: PanelSwitchProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
+  const menuProps = menuButtonProps({expanded, onExpandedChange, disabled});
+  const {onBlur: pressBlur, ...press} = useButtonPress({
+    disabled,
+    onPress: menuProps.onClick,
+    onKeyDown: menuProps.onKeyDown,
+  });
   return (
     <>
       <button
-        {...targetProps}
-        {...menuButtonProps({expanded, onExpandedChange, disabled})}
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
+        {...menuProps}
+        {...press}
         type="button"
         aria-disabled={disabled ? true : undefined}
         className={styles.switch}

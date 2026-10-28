@@ -57,6 +57,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 ## Behavior
 
+- Modified Space and Enter pass to their owner without opening the dropdown; unmodified activation keeps its normal behavior.
 - A media lead can show an image or a muted video's first frame. React callers use `lead: {kind: 'media', src, mediaType: 'video'}` for a video. It loads metadata without autoplay and releases the source on change or unmount; the 36x20 frame is unchanged.
 - A missing named song arrangement displays `기본`, with the adjacent warning identifying the unavailable name and the basic arrangement fallback. Opening/cancelling the menu never repairs stored data. An explicit valid choice changes only the selected service item and clears the warning. A valid empty named arrangement is not a missing reference.
 - A click, Enter, Space, or the down arrow opens the menu. Open the menu below the button, aligned to its left edge, and don't make the menu narrower than the button.

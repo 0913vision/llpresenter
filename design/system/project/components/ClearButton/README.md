@@ -48,6 +48,7 @@ Don't use red because a layer is live. Show only whether there is something to c
 
 ## Behavior
 
+- Unmodified Enter and Space press a focused clear button. Modified activation keys pass to their owner without clearing a layer.
 - A click clears that layer at once. Don't show a confirmation dialog. If the operator clicked by mistake, 되돌림 brings it back.
 - 모두 clears every layer that has something to clear at once. While even one layer is left, 모두 is in the something-to-clear state.
 - 되돌림 undoes the last 지우기 (including 모두), one step only. After the undo, it has nothing to undo. Render it only when 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 is on; the setting is off by default. The caller owns this setting and omits both the button and its divider when off.

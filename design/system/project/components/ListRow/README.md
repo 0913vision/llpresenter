@@ -76,6 +76,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 
 ## Behavior
 
+- For an action row, modified Space and Enter pass to their owner without running the action; unmodified activation still runs it.
 - `ListBox workspace="show"` keeps keyboard focus without drawing the row's focus outline. Tab entry, arrow selection, and Enter still work. 준비, including the default workspace in a dialog, keeps the normal outline. Controls at a row's end keep their own focus outline in either workspace.
 - A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, on the selected row or, with none selected, the first row, and Shift Tab leaves it (the list itself never takes focus); the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
 - In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.

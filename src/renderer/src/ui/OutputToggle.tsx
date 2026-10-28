@@ -2,10 +2,10 @@ import type {JSX} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {objectParticle} from './korean';
-import {pressHandler} from './press';
+import {useButtonPress} from './press';
 import {StatusDot} from './StatusMarks';
 import {toolbarIconSize} from './toolbarLook';
-import {useTooltip} from './Tooltip';
+import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 
 /** The drawn output state: on, off, or turned on with its monitor missing. */
@@ -63,10 +63,14 @@ export function OutputToggle({
   const {targetProps, tooltip} = useTooltip({
     text: outputTooltip({screenName, target, state}),
   });
+  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
+    disabled,
+    onPress: onToggle,
+  });
   return (
     <>
       <button
-        {...targetProps}
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
         aria-pressed={state !== 'off'}
         aria-disabled={disabled ? true : undefined}
@@ -77,7 +81,7 @@ export function OutputToggle({
           compact && styles.compact,
           className,
         )}
-        onClick={pressHandler(disabled, onToggle)}
+        {...press}
       >
         <span className={styles.iconSlot}>
           <Icon

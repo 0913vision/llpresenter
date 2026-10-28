@@ -43,7 +43,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 
 ## Behavior
 
-- Enter and Space press the button. An on/off button toggles `aria-pressed` on each press.
+- Unmodified Enter and Space press the button. Modified activation keys pass to their owner without pressing it. An on/off button toggles `aria-pressed` on each press.
 - The button has no text, so always give it an `aria-label`. The tooltip shows the same name, followed by the shortcut if there is one (닫기 Esc).
 - Keep the name of an on/off button the same in both states (반복). `aria-pressed` reports whether it is on.
 - Give a button that opens a menu `aria-haspopup="menu"` and `aria-expanded`.

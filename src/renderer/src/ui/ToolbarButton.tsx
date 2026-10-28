@@ -1,7 +1,7 @@
 import type {ComponentPropsWithRef, JSX, MouseEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
-import {pressHandler} from './press';
+import {useButtonPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TOOLBAR_CHEVRON_SIZE, toolbarIconSize} from './toolbarLook';
 import styles from './ToolbarButton.module.css';
@@ -93,6 +93,9 @@ export function ToolbarButton({
   disabled = false,
   className,
   onClick,
+  onKeyDown,
+  onKeyUp,
+  onBlur,
   title,
   ...rest
 }: ToolbarButtonProps): JSX.Element {
@@ -103,11 +106,18 @@ export function ToolbarButton({
     onClick?.(event);
     if (pressed !== undefined) onPressedChange?.(!pressed);
   };
+  const {onBlur: pressBlur, ...pressHandlers} = useButtonPress({
+    disabled,
+    onPress: press,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  });
   return (
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
         aria-label={labelHidden ? label : undefined}
         aria-pressed={pressed}
@@ -121,7 +131,7 @@ export function ToolbarButton({
           labelHidden && styles.iconOnly,
           className,
         )}
-        onClick={pressHandler(disabled, press)}
+        {...pressHandlers}
       >
         <Content
           icon={icon}

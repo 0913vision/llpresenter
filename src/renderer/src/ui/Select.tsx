@@ -10,7 +10,7 @@ import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {openOnArrowDown} from './menuButton';
-import {pressHandler} from './press';
+import {useButtonPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './Select.module.css';
@@ -130,6 +130,8 @@ export function Select({
   className,
   onClick,
   onKeyDown,
+  onKeyUp,
+  onBlur,
   title,
   ...rest
 }: SelectProps): JSX.Element {
@@ -143,12 +145,19 @@ export function Select({
     onKeyDown?.(event);
     openOnArrowDown(event, {expanded, onExpandedChange, disabled});
   };
+  const {onBlur: pressBlur, ...press} = useButtonPress({
+    disabled,
+    onPress: toggle,
+    onKeyDown: handleKeyDown,
+    onKeyUp,
+    onBlur,
+  });
 
   return (
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
         aria-haspopup={popup}
         aria-expanded={expanded}
@@ -160,8 +169,7 @@ export function Select({
           lead !== undefined && lead.kind !== 'icon' && styles.withImage,
           className,
         )}
-        onClick={pressHandler(disabled, toggle)}
-        onKeyDown={handleKeyDown}
+        {...press}
       >
         {lead === undefined ? null : <Lead lead={lead} size={size} />}
         <span className={classNames(styles.value, numeric && styles.numeric)}>

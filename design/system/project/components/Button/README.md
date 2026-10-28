@@ -48,7 +48,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 
 ## Behavior
 
-- Enter and Space press the button. In a dialog, Enter acts as the primary button and Esc acts as [취소] (Dialog handles this).
+- Unmodified Enter and Space press the button. Modified activation keys pass to their owner without pressing it. In a dialog, Enter acts as the primary button and Esc acts as [취소] (Dialog handles this).
 - The focus order is the visible order (left to right).
 - Make a disabled button with `aria-disabled="true"` instead of `disabled`, and ignore presses. The button stays focusable and can show the reason in a tooltip. The CSS accepts both.
 - Don't draw the focus ring on a mouse click (`:focus-visible` only).

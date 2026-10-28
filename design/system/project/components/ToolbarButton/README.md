@@ -80,6 +80,7 @@ kind of navigation.
 
 ## Behavior
 
+- Unmodified Enter and Space activate toolbar and screen-output buttons. Modified activation keys pass to their owner without activating them.
 - Workspace tabs: group the three tabs in `role="tablist"` (name "작업 공간"), and give each tab `role="tab"` + `aria-selected`. Left and Right arrows move between tabs and switch at once. Tab stops only on the selected tab.
 - 미디어: `aria-pressed` reports the on state. Tooltip "미디어 열기" / "미디어 닫기".
 - Look: `aria-haspopup="menu"`, and `aria-expanded="true"` while the menu is open. Open the menu below the button, aligned to its left edge. The name shows the current Look name (평상시).

@@ -2,8 +2,8 @@ import {createContext, useContext, type JSX, type ReactNode} from 'react';
 import type {ClearTarget} from '@shared/commands';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
-import {pressHandler} from './press';
-import {useTooltip} from './Tooltip';
+import {useButtonPress} from './press';
+import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ClearButton.module.css';
 
 const ROW_NAME = '지우기';
@@ -77,16 +77,20 @@ function ClearControl(props: ControlProps): JSX.Element {
   const {name, icon, label, shortcut, available, onPress} = props;
   const compact = useContext(CompactRow);
   const {targetProps, tooltip} = useTooltip({text: label, shortcut});
+  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
+    disabled: !available,
+    onPress,
+  });
   return (
     <>
       <button
-        {...targetProps}
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
         aria-label={label}
         aria-disabled={available ? undefined : true}
         data-state={available ? undefined : 'off'}
         className={classNames(styles.button, props.className)}
-        onClick={pressHandler(!available, onPress)}
+        {...press}
       >
         <Icon name={icon} size={compact ? COMPACT_ICON_SIZE : ICON_SIZE} />
         <span className={styles.label}>{name}</span>

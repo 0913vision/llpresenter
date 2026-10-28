@@ -5,6 +5,7 @@ import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
+import {useButtonPress} from '@renderer/ui/press';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
 import {useServicePicker} from './useServicePicker';
@@ -30,6 +31,23 @@ export function ServiceOrderHeader({
   const name = useShow(view =>
     view.serviceId === null ? null : view.serviceName,
   );
+  const disabled = window.llp === undefined || picker.busy;
+  const press = useButtonPress<HTMLButtonElement>({
+    disabled,
+    onPress: event => {
+      setAnchor(event.currentTarget);
+      picker.toggle();
+    },
+    onKeyDown: event =>
+      openOnArrowDown(event, {
+        expanded: picker.open,
+        disabled,
+        onExpandedChange: () => {
+          setAnchor(event.currentTarget);
+          picker.toggle();
+        },
+      }),
+  });
   return (
     <>
       <button
@@ -40,20 +58,7 @@ export function ServiceOrderHeader({
         aria-busy={picker.busy}
         disabled={window.llp === undefined}
         aria-disabled={picker.busy || undefined}
-        onClick={event => {
-          setAnchor(event.currentTarget);
-          picker.toggle();
-        }}
-        onKeyDown={event =>
-          openOnArrowDown(event, {
-            expanded: picker.open,
-            disabled: window.llp === undefined || picker.busy,
-            onExpandedChange: () => {
-              setAnchor(event.currentTarget);
-              picker.toggle();
-            },
-          })
-        }
+        {...press}
       >
         <TruncatedText text={name ?? '예배 순서'} className={styles.name} />
         {name === null ? null : (

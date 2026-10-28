@@ -82,6 +82,25 @@ describe('ServiceOrderHeader', () => {
     expect(useShow.getState().serviceId).toBe(sampleService.id);
   });
 
+  it('does not open the picker from modified Space', () => {
+    window.llp = fakeLlpApi();
+    render(<ServiceOrderHeader />);
+    const button = screen.getByRole('button', {name: sampleService.name});
+    const key = new KeyboardEvent('keydown', {
+      key: ' ',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    fireEvent(button, key);
+    expect(key.defaultPrevented).toBe(false);
+    fireEvent.keyUp(button, {key: ' '});
+    fireEvent.click(button, {detail: 0});
+    expect(screen.queryByRole('menu', {name: '예배 순서 선택'})).toBeNull();
+    fireEvent.click(button, {detail: 1});
+    expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeDefined();
+  });
+
   it('ends the picker with the service commands, which open their dialogs', async () => {
     window.llp = fakeLlpApi({
       services: {
