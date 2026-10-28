@@ -54,6 +54,12 @@ it('keeps repeated and missing tracks at their playlist positions', () => {
     false,
   ]);
   expect(tracks[2]?.source).toEqual(active);
+  expect(tracks.map(track => track.missing)).toEqual([
+    false,
+    true,
+    false,
+    true,
+  ]);
   expect(audioTracks(other, data.items, active)[0]?.playing).toBe(false);
   expect(
     audioTracks(playlist, data.items, {

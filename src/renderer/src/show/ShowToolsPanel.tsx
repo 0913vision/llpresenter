@@ -5,6 +5,7 @@ import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {AVAILABLE_TOOL_TABS} from './showTools';
 import {ShowingTab} from './tools/ShowingTab';
+import {AudioTab} from './tools/AudioTab';
 import {StageTab} from './tools/StageTab';
 import {MessageTab} from './tools/MessageTab';
 import {TimerTab} from './tools/TimerTab';
@@ -37,6 +38,7 @@ export function ShowToolsPanel({
         </PanelHeader>
         <PanelBody variant="flush" tab={selected}>
           {selected === 'showing' ? <ShowingTab onProblem={onProblem} /> : null}
+          {selected === 'audio' ? <AudioTab onProblem={onProblem} /> : null}
           {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
           {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
           {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}

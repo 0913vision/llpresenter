@@ -14,12 +14,14 @@ export function AudioTransport({
   items,
   selected,
   volume,
+  firstPlayable = true,
 }: {
   readonly api: LlpApi;
   readonly audio: AudioLayer | null;
   readonly items: readonly MediaItem[];
   readonly selected: AudioPlaylist | undefined;
   readonly volume: number;
+  readonly firstPlayable?: boolean | undefined;
 }): JSX.Element {
   const playback = audio?.playback;
   const running = playback !== undefined && playback.since !== null;
@@ -32,7 +34,7 @@ export function AudioTransport({
     duration === undefined ? position : Math.min(position, duration);
   const play = (): void => {
     if (playback) api.live.send({type: running ? 'audio.pause' : 'audio.play'});
-    else if (selected && selected.items.length > 0) {
+    else if (selected && selected.items.length > 0 && firstPlayable) {
       api.live.send({
         type: 'audio.play',
         source: {kind: 'playlist', playlistId: selected.id, position: 0},
@@ -62,7 +64,10 @@ export function AudioTransport({
         >
           이전
         </Button>
-        <Button disabled={!playback && !selected?.items.length} onClick={play}>
+        <Button
+          disabled={!playback && (!selected?.items.length || !firstPlayable)}
+          onClick={play}
+        >
           {running ? '일시 정지' : '재생'}
         </Button>
         <Button

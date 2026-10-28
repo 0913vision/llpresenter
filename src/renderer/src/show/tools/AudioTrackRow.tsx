@@ -18,8 +18,8 @@ export function AudioTrackRow({
     <button
       type="button"
       className={styles.row}
-      disabled={item === undefined}
-      title={item === undefined ? '오디오 파일을 찾을 수 없습니다' : undefined}
+      disabled={track.missing}
+      title={track.missing ? '오디오 파일을 찾을 수 없습니다' : undefined}
       onClick={() => api.live.send({type: 'audio.play', source: track.source})}
     >
       <span className={styles.number}>

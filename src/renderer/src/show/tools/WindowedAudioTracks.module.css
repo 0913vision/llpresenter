@@ -1,0 +1,13 @@
+.viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.rows {
+  position: relative;
+}
+.slot {
+  position: absolute;
+  inset-inline: 0;
+  height: var(--size-row);
+}

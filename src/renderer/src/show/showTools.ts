@@ -16,6 +16,7 @@ export type ShowTool = ShowToolEntry['value'];
 export const AVAILABLE_TOOL_TABS = SHOW_TOOLS.filter(
   tool =>
     tool.value === 'showing' ||
+    tool.value === 'audio' ||
     tool.value === 'stage' ||
     tool.value === 'timer' ||
     tool.value === 'message',

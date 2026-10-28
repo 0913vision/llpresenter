@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--panel-inset);
+}
+.header > span {
+  flex: none;
+  white-space: nowrap;
+}
+.repeat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  white-space: nowrap;
+}
+.empty {
+  flex: 1;
+  padding: var(--space-8) var(--panel-inset);
+  color: var(--text-3);
+}

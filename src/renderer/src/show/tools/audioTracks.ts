@@ -6,6 +6,7 @@ export interface AudioTrack {
   readonly item: MediaItem | undefined;
   readonly playing: boolean;
   readonly source: AudioSource;
+  readonly missing: boolean;
 }
 
 export function audioTracks(
@@ -19,6 +20,7 @@ export function audioTracks(
   return playlist.items.map((id, position) => ({
     position,
     item: byId.get(id),
+    missing: !byId.has(id),
     playing:
       active?.kind === 'playlist' &&
       active.playlistId === playlist.id &&
