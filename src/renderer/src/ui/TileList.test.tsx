@@ -185,6 +185,28 @@ describe('TileList', () => {
     });
   });
 
+  it('passes modified context-menu combinations without opening the menu', () => {
+    const onMenu = vi.fn();
+    render(<Strip onMenu={onMenu} />);
+    const target = tile('따뜻한 빛');
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey']) {
+      expect(
+        fireEvent.keyDown(target, {
+          key: 'F10',
+          shiftKey: true,
+          [modifier]: true,
+        }),
+      ).toBe(true);
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(3);
+    expect(onMenu).not.toHaveBeenCalled();
+    fireEvent.keyDown(target, {key: 'ContextMenu', ctrlKey: true});
+    expect(onMenu).toHaveBeenCalledOnce();
+  });
+
   it('opens the menu at the tile with Shift F10 and the Menu key', async () => {
     const onMenu = vi.fn<(index: number, anchor: MenuAnchor) => void>();
     render(<Strip onMenu={onMenu} />);

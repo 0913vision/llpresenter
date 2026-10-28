@@ -112,7 +112,13 @@ export type TileListProps = SelectionArrowsProps | FocusArrowsProps;
 
 function isMenuKey(event: KeyboardEvent): boolean {
   if (event.key === MENU_KEY) return true;
-  return event.key === SHIFT_MENU_KEY && event.shiftKey;
+  return (
+    event.key === SHIFT_MENU_KEY &&
+    event.shiftKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey
+  );
 }
 
 function tilesOf(list: HTMLElement): HTMLElement[] {
