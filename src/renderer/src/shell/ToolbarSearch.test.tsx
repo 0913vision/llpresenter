@@ -427,3 +427,66 @@ it('searches again when a song changes while the query stays', async () => {
   expect(search).toHaveBeenCalledTimes(2);
   expect(screen.getByRole('option', {name: /아침길/})).toBeDefined();
 });
+
+it('cannot choose a stale match while a changed song is being searched', async () => {
+  const {api, search, showSong, mount} = setup();
+  let changed = (): void => undefined;
+  vi.spyOn(api.songs, 'subscribe').mockImplementation(listener => {
+    changed = () => listener({songId, document: null});
+    return () => undefined;
+  });
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  fireEvent.change(field, {target: {value: '새벽'}});
+  await screen.findByRole('option', {name: /새벽빛/});
+  let finish: ((result: LibrarySearchResult) => void) | undefined;
+  search.mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+  );
+  act(() => changed());
+  await waitFor(() => expect(finish).toBeDefined());
+  expect(screen.queryByRole('option', {name: /새벽빛/})).toBeNull();
+  expect(screen.getByRole('status').textContent).toBe('검색 중');
+  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
+  expect(showSong).not.toHaveBeenCalled();
+  await act(async () => finish?.({query: '새벽', matches: matches.slice(1)}));
+  expect(screen.getByRole('option', {name: /아침길/})).toBeDefined();
+});
+
+it('does not reuse an old result when the query returns before a fresh reply', async () => {
+  const {search, mount} = setup();
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  fireEvent.change(field, {target: {value: '새벽'}});
+  await screen.findByRole('option', {name: /새벽빛/});
+  let finishFirst: ((result: LibrarySearchResult) => void) | undefined;
+  let finishSecond: ((result: LibrarySearchResult) => void) | undefined;
+  search
+    .mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finishFirst = resolve;
+        }),
+    )
+    .mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finishSecond = resolve;
+        }),
+    );
+  fireEvent.change(field, {target: {value: '다른'}});
+  await waitFor(() => expect(finishFirst).toBeDefined());
+  fireEvent.change(field, {target: {value: '새벽'}});
+  await waitFor(() => expect(finishSecond).toBeDefined());
+  expect(screen.queryByRole('option', {name: /새벽빛/})).toBeNull();
+  expect(screen.getByRole('status').textContent).toBe('검색 중');
+  await act(async () =>
+    finishSecond?.({query: '새벽', matches: matches.slice(1)}),
+  );
+  await act(async () => finishFirst?.({query: '다른', matches}));
+  expect(screen.queryByRole('option', {name: /새벽빛/})).toBeNull();
+  expect(screen.getByRole('option', {name: /아침길/})).toBeDefined();
+});

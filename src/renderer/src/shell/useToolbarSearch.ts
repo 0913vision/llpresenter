@@ -12,10 +12,16 @@ interface SearchReply {
   readonly query: string;
   readonly matches: readonly LibrarySearchMatch[];
   readonly failed: boolean;
+  readonly loading: boolean;
 }
 
 const noMatches: readonly LibrarySearchMatch[] = [];
-const noReply: SearchReply = {query: '', matches: noMatches, failed: false};
+const noReply: SearchReply = {
+  query: '',
+  matches: noMatches,
+  failed: false,
+  loading: false,
+};
 
 function problem(title: string, name?: string): Notice {
   return {
@@ -49,7 +55,7 @@ function useSearchReply({
   readonly enabled: boolean;
   readonly query: string;
   readonly onProblem: (notice: Notice) => void;
-}): SearchReply {
+}): {reply: SearchReply; invalidate: () => void} {
   const [reply, setReply] = useState(noReply);
   const report = useEffectEvent(onProblem);
 
@@ -72,16 +78,18 @@ function useSearchReply({
           query,
           matches: found.matches.slice(0, TOOLBAR_SEARCH_LIMIT),
           failed: false,
+          loading: false,
         });
       } catch (cause) {
         logFailure('Could not search the toolbar library', cause);
         if (!isCurrent()) return;
-        setReply({query, matches: noMatches, failed: true});
+        setReply({query, matches: noMatches, failed: true, loading: false});
         report(problem('검색 실패'));
       }
     };
     const refresh = (): void => {
       if (!active) return;
+      setReply({query, matches: noMatches, failed: false, loading: true});
       search().catch((cause: unknown) =>
         console.error('Toolbar search callback failed:', cause),
       );
@@ -94,7 +102,7 @@ function useSearchReply({
       stop();
     };
   }, [enabled, query]);
-  return reply;
+  return {reply, invalidate: () => setReply(noReply)};
 }
 
 /**
@@ -168,7 +176,7 @@ export function useToolbarSearch(
   onOpenPrepSong?: (songId: SongId) => void,
 ) {
   const [query, setQuery] = useState('');
-  const reply = useSearchReply({enabled, query, onProblem});
+  const {reply, invalidate} = useSearchReply({enabled, query, onProblem});
   const {choose: openSource, supersede} = useResultChooser(enabled, onProblem);
   const choose = async (match: LibrarySearchMatch): Promise<void> => {
     if (!enabled) return;
@@ -184,10 +192,11 @@ export function useToolbarSearch(
     query,
     setQuery: (value: string): void => {
       supersede();
+      if (value !== query) invalidate();
       setQuery(value);
     },
     matches: answered ? reply.matches : noMatches,
-    loading: query.trim() !== '' && !answered,
+    loading: query.trim() !== '' && (!answered || reply.loading),
     failed: answered && reply.failed,
     choose,
   };
