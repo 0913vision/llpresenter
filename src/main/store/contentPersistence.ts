@@ -62,8 +62,8 @@ export class ContentPersistence {
 
   /** Retries each pending file once, in the order the operations were asked. */
   async flush(): Promise<void> {
-    for (const operation of [...this.pending.values()]) {
-      await this.perform(operation);
+    for (const file of [...this.pending.keys()]) {
+      await this.retry(file);
     }
   }
 

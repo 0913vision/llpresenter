@@ -74,6 +74,76 @@ describe('content persistence failures', () => {
     expect(saved).toHaveBeenCalledExactlyOnceWith(FILE);
   });
 
+  it('does not retry an old write after a newer write succeeds during flush', async () => {
+    const {persistence, write} = setup();
+    const first = 'C:\\data\\first.llsong';
+    const second = 'C:\\data\\second.llsong';
+    await persistence.write(request('first old', first));
+    await persistence.write(request('second old', second));
+    let release: (result: WriteResult) => void = () => undefined;
+    write.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          release = resolve;
+        }),
+    );
+    write.mockResolvedValue(written);
+    const flushing = persistence.flush();
+    await persistence.write(request('second new', second));
+    release(written);
+    await flushing;
+    expect(
+      write.mock.calls.filter(([value]) => value.target.file === second),
+    ).toEqual([
+      [request('second old', second)],
+      [request('second new', second)],
+    ]);
+  });
+
+  it('retries the newest failed edit rather than an older flush snapshot', async () => {
+    const {persistence, write} = setup();
+    const first = 'C:\\data\\first.llsong';
+    const second = 'C:\\data\\second.llsong';
+    await persistence.write(request('first old', first));
+    await persistence.write(request('second old', second));
+    let release: (result: WriteResult) => void = () => undefined;
+    write.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          release = resolve;
+        }),
+    );
+    const flushing = persistence.flush();
+    await persistence.write(request('second new', second));
+    write.mockResolvedValue(written);
+    release(written);
+    await flushing;
+    expect(write).toHaveBeenLastCalledWith(request('second new', second));
+  });
+
+  it('does not recreate a file deleted while another flush retry waits', async () => {
+    const {persistence, write, remove} = setup();
+    const first = 'C:\\data\\first.llsong';
+    const second = 'C:\\data\\second.llsong';
+    await persistence.write(request('first old', first));
+    await persistence.write(request('second old', second));
+    let release: (result: WriteResult) => void = () => undefined;
+    write.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          release = resolve;
+        }),
+    );
+    const flushing = persistence.flush();
+    await persistence.remove({file: second, kind: 'song', id: 'a'});
+    release(written);
+    await flushing;
+    expect(remove).toHaveBeenCalledOnce();
+    expect(
+      write.mock.calls.filter(([value]) => value.target.file === second),
+    ).toEqual([[request('second old', second)]]);
+  });
+
   it('retries only a delete that superseded a waiting write of the same file', async () => {
     const {persistence, waiting, saved, write, remove} = setup();
     await persistence.write(request('created'));
