@@ -446,6 +446,13 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).
+- The Look selects a 메시지 style independently for each screen. A 메시지 sent
+  to several screens draws using each target's selected style. The Look's 메시지
+  layer visibility still controls whether that screen shows it. The stage
+  message continues to use its stage-layout element. This is the
+  [October 28 decision](../decisions.md#2026-10-28-each-screen-draws-메시지-in-its-own-style).
+  Until M3-X1 supplies the stored choices and rendering, the existing fixed
+  default style remains in use.
 - One 공지 set runs at a time. Starting another set replaces the previous one
   (proposal).
 - Several 소품 can be on at the same time (proposal).

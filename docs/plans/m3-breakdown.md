@@ -80,58 +80,58 @@ They take effect at the M2 freeze (lead decision 2).
 
 ## Requests
 
-| ID  | Owner   | Scope                                                                                                        | Depends on                                                   | Wave  |
-| --- | ------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ----- |
-| O0  | output  | Registry bootstrap for live slices and render layers, no behavior change                                     | M2 rendering (output-2)                                      | A     |
-| D1a | data    | Contracts for 준비 and content                                                                               | M1 schemas                                                   | A     |
-| D2  | data    | App-wide settings stores                                                                                     | M2 file store, D1a                                           | A     |
-| D4  | data    | Search index                                                                                                 | M2 song library, D1a                                         | A     |
-| U1  | ui      | Design system follow-ups                                                                                     | spec-1, spec-2, spec-5 merged                                | A     |
-| Q1  | qa      | M3 test plan                                                                                                 | This plan                                                    | A     |
-| W1  | spec    | Spec updates (first parts done as spec-4 and spec-5)                                                         | None                                                         | A     |
-| D1b | data    | Live command contracts: content layers, Look, stage, audio, 타이머, `live.batch`, `item.start`               | O0                                                           | A     |
-| D1c | data    | Screen and recovery contracts: test pattern, monitor numbers, screen setting changes, the recovery interface | O0                                                           | A     |
-| O9a | output  | Screen output backend: window and capture methods, live screen settings, sleep prevention                    | M2 output windows, D1c, D2                                   | B     |
-| O9b | output  | Test pattern, monitor numbers, edge margin and offset on the output                                          | O9a                                                          | B     |
-| O10 | output  | Live transactions (`live.batch`)                                                                             | O0, D1b                                                      | B     |
-| O4  | output  | Look slice and lyric style rendering                                                                         | O0, D1b, D2                                                  | B     |
-| O6a | output  | 메시지, 공지, 소품, and stage message slices and layers                                                      | O0, D1b, D2                                                  | B     |
-| O1  | screens | 화면 설정: screens, display layout, test pattern, properties (UI)                                            | D1c, D2                                                      | B     |
-| S1a | shell   | 예배 순서 panel, 장 panel header, item start                                                                 | M2 진행, D1a, D1b, D2                                        | B     |
-| P1  | prep    | 라이브러리 and search                                                                                        | D1a, D4                                                      | B     |
-| P2a | prep    | Song editor: blocks and 이름표                                                                               | D1a, D2                                                      | B     |
-| D3  | data    | Text and clipboard import conversion                                                                         | D1a                                                          | B     |
-| T4a | tools   | Bible data and reference parsing                                                                             | spec-4 merged, the user's source choice, D1a                 | B     |
-| O6b | output  | 타이머 slice                                                                                                 | O6a                                                          | C     |
-| O5  | output  | 무대 화면 rendering and the stage slice                                                                      | O0, D1b, D2                                                  | C     |
-| O7  | output  | Audio playback                                                                                               | O0, D1b, D2                                                  | C     |
-| O8  | output  | Output state recovery backend                                                                                | M2 recovery record, D1c, O6a                                 | C     |
-| O2  | screens | Look editor                                                                                                  | O1, D2                                                       | C     |
-| O3  | screens | Stage layout editor                                                                                          | O1, D2                                                       | C     |
-| S1b | shell   | Toolbar Look menu and search results, media strip, narrow layout                                             | S1a, D1b, D4                                                 | C     |
-| S2a | shell   | Notifications and problem marks                                                                              | M2 display events, D2                                        | C     |
-| P2b | prep    | Song editor: header, 구성, preview                                                                           | P2a                                                          | C     |
-| P3a | prep    | 예배 순서 item panel and 항목 설정                                                                           | S1a, D1a                                                     | C     |
-| P4  | prep    | Service dialogs and 틀                                                                                       | S1a, D1a                                                     | C     |
-| T1a | tools   | 진행 도구 tabs: 표시 중, 무대, 메시지                                                                        | O6a, D1b                                                     | C     |
-| T3a | tools   | 매크로 execution                                                                                             | D1b, O10, D2                                                 | C     |
-| V1a | devops  | UI tests for wave B and C flows                                                                              | The flows it tests                                           | C     |
-| S2b | shell   | 출력 상태 복구 dialog                                                                                        | O8, D1c, S2a                                                 | D     |
-| P3b | prep    | Quick add and dropping songs on the 예배 순서                                                                | P3a, P1                                                      | D     |
-| P5  | prep    | Text import flow                                                                                             | D3, P2b                                                      | D     |
-| P6a | prep    | `src/main/media/`: copy, analysis, missing files, relink                                                     | D1a, D2, the utility process (output)                        | D     |
-| P6b | prep    | Media view                                                                                                   | P6a                                                          | D     |
-| T1b | tools   | 진행 도구 tabs: 공지, 소품                                                                                   | T1a, O6a                                                     | D     |
-| T2  | tools   | 진행 도구 tabs: 오디오, 타이머                                                                               | O7, O6b, D1b                                                 | D     |
-| T3b | tools   | 매크로 tab and action palette                                                                                | T3a                                                          | D     |
-| T4b | tools   | 퀵 실행 panel and Bible panel                                                                                | T4a, S1a                                                     | D     |
-| V1b | devops  | UI tests for wave D flows, soak with overlays and audio                                                      | The flows it tests                                           | D     |
-| X1a | data    | 메시지 style: stored fields                                                                                  | Open question 13                                             | Waits |
-| X1b | screens | 메시지 style: Look editor controls                                                                           | X1a, O2                                                      | Waits |
-| X1c | output  | 메시지 style: rendering                                                                                      | X1a, O6a                                                     | Waits |
-| X2a | data    | Lyric style additions: stored fields                                                                         | Open question 16; the 출처 위치 row of the settings proposal | Waits |
-| X2b | screens | Lyric style additions: Look editor rows                                                                      | X2a, O2                                                      | Waits |
-| X2c | output  | Lyric style additions: rendering                                                                             | X2a, O4                                                      | Waits |
+| ID  | Owner   | Scope                                                                                                        | Depends on                                                   | Wave    |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ------- |
+| O0  | output  | Registry bootstrap for live slices and render layers, no behavior change                                     | M2 rendering (output-2)                                      | A       |
+| D1a | data    | Contracts for 준비 and content                                                                               | M1 schemas                                                   | A       |
+| D2  | data    | App-wide settings stores                                                                                     | M2 file store, D1a                                           | A       |
+| D4  | data    | Search index                                                                                                 | M2 song library, D1a                                         | A       |
+| U1  | ui      | Design system follow-ups                                                                                     | spec-1, spec-2, spec-5 merged                                | A       |
+| Q1  | qa      | M3 test plan                                                                                                 | This plan                                                    | A       |
+| W1  | spec    | Spec updates (first parts done as spec-4 and spec-5)                                                         | None                                                         | A       |
+| D1b | data    | Live command contracts: content layers, Look, stage, audio, 타이머, `live.batch`, `item.start`               | O0                                                           | A       |
+| D1c | data    | Screen and recovery contracts: test pattern, monitor numbers, screen setting changes, the recovery interface | O0                                                           | A       |
+| O9a | output  | Screen output backend: window and capture methods, live screen settings, sleep prevention                    | M2 output windows, D1c, D2                                   | B       |
+| O9b | output  | Test pattern, monitor numbers, edge margin and offset on the output                                          | O9a                                                          | B       |
+| O10 | output  | Live transactions (`live.batch`)                                                                             | O0, D1b                                                      | B       |
+| O4  | output  | Look slice and lyric style rendering                                                                         | O0, D1b, D2                                                  | B       |
+| O6a | output  | 메시지, 공지, 소품, and stage message slices and layers                                                      | O0, D1b, D2                                                  | B       |
+| O1  | screens | 화면 설정: screens, display layout, test pattern, properties (UI)                                            | D1c, D2                                                      | B       |
+| S1a | shell   | 예배 순서 panel, 장 panel header, item start                                                                 | M2 진행, D1a, D1b, D2                                        | B       |
+| P1  | prep    | 라이브러리 and search                                                                                        | D1a, D4                                                      | B       |
+| P2a | prep    | Song editor: blocks and 이름표                                                                               | D1a, D2                                                      | B       |
+| D3  | data    | Text and clipboard import conversion                                                                         | D1a                                                          | B       |
+| T4a | tools   | Bible data and reference parsing                                                                             | spec-4 merged, the user's source choice, D1a                 | B       |
+| O6b | output  | 타이머 slice                                                                                                 | O6a                                                          | C       |
+| O5  | output  | 무대 화면 rendering and the stage slice                                                                      | O0, D1b, D2                                                  | C       |
+| O7  | output  | Audio playback                                                                                               | O0, D1b, D2                                                  | C       |
+| O8  | output  | Output state recovery backend                                                                                | M2 recovery record, D1c, O6a                                 | C       |
+| O2  | screens | Look editor                                                                                                  | O1, D2                                                       | C       |
+| O3  | screens | Stage layout editor                                                                                          | O1, D2                                                       | C       |
+| S1b | shell   | Toolbar Look menu and search results, media strip, narrow layout                                             | S1a, D1b, D4                                                 | C       |
+| S2a | shell   | Notifications and problem marks                                                                              | M2 display events, D2                                        | C       |
+| P2b | prep    | Song editor: header, 구성, preview                                                                           | P2a                                                          | C       |
+| P3a | prep    | 예배 순서 item panel and 항목 설정                                                                           | S1a, D1a                                                     | C       |
+| P4  | prep    | Service dialogs and 틀                                                                                       | S1a, D1a                                                     | C       |
+| T1a | tools   | 진행 도구 tabs: 표시 중, 무대, 메시지                                                                        | O6a, D1b                                                     | C       |
+| T3a | tools   | 매크로 execution                                                                                             | D1b, O10, D2                                                 | C       |
+| V1a | devops  | UI tests for wave B and C flows                                                                              | The flows it tests                                           | C       |
+| S2b | shell   | 출력 상태 복구 dialog                                                                                        | O8, D1c, S2a                                                 | D       |
+| P3b | prep    | Quick add and dropping songs on the 예배 순서                                                                | P3a, P1                                                      | D       |
+| P5  | prep    | Text import flow                                                                                             | D3, P2b                                                      | D       |
+| P6a | prep    | `src/main/media/`: copy, analysis, missing files, relink                                                     | D1a, D2, the utility process (output)                        | D       |
+| P6b | prep    | Media view                                                                                                   | P6a                                                          | D       |
+| T1b | tools   | 진행 도구 tabs: 공지, 소품                                                                                   | T1a, O6a                                                     | D       |
+| T2  | tools   | 진행 도구 tabs: 오디오, 타이머                                                                               | O7, O6b, D1b                                                 | D       |
+| T3b | tools   | 매크로 tab and action palette                                                                                | T3a                                                          | D       |
+| T4b | tools   | 퀵 실행 panel and Bible panel                                                                                | T4a, S1a                                                     | D       |
+| V1b | devops  | UI tests for wave D flows, soak with overlays and audio                                                      | The flows it tests                                           | D       |
+| X1a | data    | 메시지 style: stored fields                                                                                  | Decision 25 (decided)                                        | Planned |
+| X1b | screens | 메시지 style: Look editor controls                                                                           | X1a, O2                                                      | Waits   |
+| X1c | output  | 메시지 style: rendering                                                                                      | X1a, O6a                                                     | Waits   |
+| X2a | data    | Lyric style additions: stored fields                                                                         | Open question 16; the 출처 위치 row of the settings proposal | Waits   |
+| X2b | screens | Lyric style additions: Look editor rows                                                                      | X2a, O2                                                      | Waits   |
+| X2c | output  | Lyric style additions: rendering                                                                             | X2a, O4                                                      | Waits   |
 
 ## Tasks
 
@@ -336,8 +336,9 @@ acceptance criteria that QA can test without other owners' unmerged parts.
 - **Owned paths:** `src/main/live/slices/` (overlays, timers),
   `src/renderer/src/render/` (overlay layers).
 - **Depends on:** M3-O0, M3-D1b, M3-D2; O6b on O6a.
-- **Waits on:** open question 13 (메시지 appearance): one fixed default style
-  until M3-X1; open question 12 as in M3-O4.
+- **Until M3-X1:** 메시지 uses one fixed default style. The October 28 decision
+  selects a 메시지 style per screen in a Look; see M3-X1. Open question 12
+  remains as in M3-O4.
 - **Acceptance (O6a):** a 메시지 command with 30 seconds shows only on its
   targets and comes down after 30 seconds; a 공지 advances at its interval and
   stays on the last image without 반복; F4, F6, and F7 clear and undo restores,
@@ -556,13 +557,13 @@ acceptance criteria that QA can test without other owners' unmerged parts.
   user decides so. Acceptance: Enter does the same as 바로 띄우기; the recent
   list keeps 10 passages; 검은 화면 toggles.
 
-### M3-X1 메시지 style (waits on open question 13)
+### M3-X1 메시지 style
 
-| Request | Owner   | Scope                                                                         | Owned paths                               | Depends on  | Acceptance                                                                                     |
-| ------- | ------- | ----------------------------------------------------------------------------- | ----------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| X1a     | data    | The stored fields: a 메시지 style object and where a Look picks it per screen | `src/shared/schema/`                      | Question 13 | A file with the new fields parses and round-trips; a file without them gets the default style. |
-| X1b     | screens | The controls in the Look editor                                               | `src/renderer/src/screens/looks/`         | X1a, O2     | Choosing a 메시지 style for one screen stores it for that screen only.                         |
-| X1c     | output  | Drawing 메시지 with the chosen style                                          | `src/renderer/src/render/` (메시지 layer) | X1a, O6a    | A 메시지 sent to two screens draws with each screen's style.                                   |
+| Request | Owner   | Scope                                                                         | Owned paths                               | Depends on            | Acceptance                                                                                     |
+| ------- | ------- | ----------------------------------------------------------------------------- | ----------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------- |
+| X1a     | data    | The stored fields: a 메시지 style object and where a Look picks it per screen | `src/shared/schema/`                      | Decision 25 (decided) | A file with the new fields parses and round-trips; a file without them gets the default style. |
+| X1b     | screens | The controls in the Look editor                                               | `src/renderer/src/screens/looks/`         | X1a, O2               | Choosing a 메시지 style for one screen stores it for that screen only.                         |
+| X1c     | output  | Drawing 메시지 with the chosen style                                          | `src/renderer/src/render/` (메시지 layer) | X1a, O6a              | A 메시지 sent to two screens draws with each screen's style.                                   |
 
 ### M3-X2 Lyric style additions (waits on open question 16 and the 출처 위치 row)
 

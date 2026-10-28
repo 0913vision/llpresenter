@@ -190,6 +190,10 @@ Note: the proposal in 10 would add rows to the lyric style properties (굵기,
 | 무대 화면 | 배경 미디어, 가사 (with a stage layout select), 시계 (clock), 무대 메시지 (stage message), 메시지  |
 | 방송 자막 | 배경 (background, with a color select, 초록), 가사 (with a lyric style select), 공지, 소품, 메시지 |
 
+The October 28 decision adds a 메시지 style choice for each screen in a Look,
+separate from its 메시지 layer switch. M3-X1 defines the stored styles and
+editor controls; until then the current default style remains in use (02, 03).
+
 - Below the cards: the 가사 스타일 (lyric style) section, with a segmented
   control for the styles (기본, 현재와 다음, 하단 자막), a style preview, and a
   two-column property grid:

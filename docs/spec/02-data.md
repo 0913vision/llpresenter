@@ -421,6 +421,11 @@ Screen Look:
 | `stageLayout`         | String (stage layout ID)                                           | The stage layout of the 무대 화면 (proposal, see the stage layout rule in 03).                          | `Looks` 무대 화면 card, "가사: 현재와 다음"              |
 | `background`          | `{ "kind": "media" }` \| `{ "kind": "color", "color": "#RRGGBB" }` | Whether the background layer shows media or a solid color. The 방송 자막 default is the `chroma` green. | `Looks` 방송 자막 card, "배경: 초록" (background: green) |
 
+The October 28 decision gives each screen in a Look its own 메시지 style choice,
+separate from whether its 메시지 layer is visible. M3-X1a defines the stored
+style and per-screen reference, including defaults for existing files; the
+current format remains in use until that contract lands (03, 06).
+
 Lyric style:
 
 | Field        | Type                                | Meaning                                                                                    | Source                    |
