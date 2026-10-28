@@ -4,6 +4,7 @@ import {isRecord} from '../guards';
 import {layerKinds} from '../live';
 import type {Result} from '../result';
 import {
+  checkPart,
   parseFile,
   serializeFile,
   type FileError,
@@ -141,6 +142,21 @@ const actionSchemas = {
   macro: jsonObject({kind: v.literal('macro'), macro: macroIdSchema}),
 };
 
+const knownActionSchema = v.union([
+  actionSchemas.look,
+  actionSchemas.stageLayout,
+  actionSchemas.clearAll,
+  actionSchemas.clearLayer,
+  actionSchemas.media,
+  actionSchemas.prop,
+  actionSchemas.message,
+  actionSchemas.notice,
+  actionSchemas.audio,
+  actionSchemas.audioPlaylist,
+  actionSchemas.timer,
+  actionSchemas.macro,
+]);
+
 const macroSchema = jsonObject({
   id: macroIdSchema,
   name: v.string(),
@@ -213,6 +229,11 @@ export function isKnownMacroAction(
   action: MacroAction,
 ): action is KnownMacroAction {
   return isKnownKind(macroActionKinds, action.kind);
+}
+
+/** Validates one supported action prepared by an editor or received from a drop. */
+export function parseKnownMacroAction(value: unknown) {
+  return checkPart(knownActionSchema, value);
 }
 
 export function parseMacros(
