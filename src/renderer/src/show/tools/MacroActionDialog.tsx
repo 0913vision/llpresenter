@@ -114,6 +114,7 @@ export function MacroActionDialog({
     values: Object.fromEntries(blanks.map(name => [name, valueOf(name)])),
     targets: currentTargets,
     duration,
+    transition: initial?.transition,
   };
   const action =
     (!needsTarget || selected) &&

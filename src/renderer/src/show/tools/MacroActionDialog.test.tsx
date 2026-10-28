@@ -262,3 +262,23 @@ it.each(['', '  \n\t '])(
     expect(save).not.toHaveBeenCalled();
   },
 );
+
+it('preserves an existing clear transition when the dialog saves', () => {
+  const save = vi.fn<(action: KnownMacroAction) => void>();
+  render(
+    <MacroActionDialog
+      kind="clearAll"
+      initial={{kind: 'clearAll', transition: {fade: true, durationMs: 1200}}}
+      choices={{}}
+      screens={screens}
+      locked={false}
+      onCancel={() => undefined}
+      onSave={save}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  expect(save).toHaveBeenCalledWith({
+    kind: 'clearAll',
+    transition: {fade: true, durationMs: 1200},
+  });
+});
