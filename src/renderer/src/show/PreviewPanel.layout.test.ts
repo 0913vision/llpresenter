@@ -32,6 +32,16 @@ describe('PreviewPanel layout rules', () => {
     );
   });
 
+  it('keeps content-sized pictures from shrinking without changing fill sizing', () => {
+    expect(ruleOf('.content')).toContain('grid-template-rows: auto auto');
+    expect(ruleOf('.content')).toContain('height: auto');
+    expect(ruleOf('.content .main .surface')).toContain('flex-shrink: 0');
+    expect(ruleOf('.main .surface')).not.toContain('flex-shrink: 0');
+    expect(ruleOf('.monitor')).toContain(
+      'grid-template-rows: minmax(0, 1fr) auto',
+    );
+  });
+
   it('lets a click reach the slot button rather than the renderer', () => {
     const surface = ruleOf('.surface');
     expect(surface).toContain('pointer-events: none');

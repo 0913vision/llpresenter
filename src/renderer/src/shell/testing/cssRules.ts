@@ -11,8 +11,12 @@ import {resolve} from 'node:path';
 export function cssRules(file: string): (selector: string) => string {
   const css = readFileSync(resolve(file), 'utf8');
   return selector => {
-    const start = css.indexOf(`${selector} {`);
-    if (start < 0) throw new Error(`No rule for ${selector}`);
-    return css.slice(start, css.indexOf('}', start));
+    for (const rule of css.split('}')) {
+      const start = rule.indexOf('{');
+      if (rule.slice(0, start).trim() === selector) {
+        return rule.slice(start + 1);
+      }
+    }
+    throw new Error(`No rule for ${selector}`);
   };
 }

@@ -43,15 +43,18 @@ const broadcast: PreviewScreen<ScreenName> = {
 const screens = [main, stage, broadcast];
 
 function Preview({
+  sizing = 'fill',
   onBigChange = () => {},
   renderScreen = shown => <span>{`${shown.name} 출력`}</span>,
 }: {
+  readonly sizing?: 'fill' | 'content';
   readonly onBigChange?: (id: ScreenName) => void;
   readonly renderScreen?: (shown: PreviewScreen<ScreenName>) => ReactNode;
 }): JSX.Element {
   const [big, setBig] = useState<ScreenName>('main');
   return (
     <PreviewFrame
+      sizing={sizing}
       screens={screens}
       big={big}
       onBigChange={id => {
@@ -130,39 +133,47 @@ describe('PreviewFrame', () => {
     expect(screen.getAllByRole('button', {pressed: true})).toHaveLength(1);
   });
 
-  it('keeps every screen mounted in its place across swaps', async () => {
-    const lifecycle: string[] = [];
-    function Output({name}: {readonly name: string}): JSX.Element {
-      useEffect(() => {
-        lifecycle.push(`mount ${name}`);
-        return () => {
-          lifecycle.push(`unmount ${name}`);
-        };
-      }, [name]);
-      return <span>{`${name} 출력`}</span>;
-    }
-    render(<Preview renderScreen={shown => <Output name={shown.name} />} />);
-    const stageOutput = screen.getByText('무대 화면 출력');
-    const mainOutput = screen.getByText('본 화면 출력');
-    const parents = [stageOutput.parentElement, mainOutput.parentElement];
-    lifecycle.length = 0;
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      }),
-    );
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
-      }),
-    );
-    expect(lifecycle).toEqual([]);
-    expect(screen.getByText('무대 화면 출력')).toBe(stageOutput);
-    expect(screen.getByText('본 화면 출력')).toBe(mainOutput);
-    expect([stageOutput.parentElement, mainOutput.parentElement]).toEqual(
-      parents,
-    );
-  });
+  it.each(['fill', 'content'] as const)(
+    'keeps every screen mounted across swaps with %s sizing',
+    async sizing => {
+      const lifecycle: string[] = [];
+      function Output({name}: {readonly name: string}): JSX.Element {
+        useEffect(() => {
+          lifecycle.push(`mount ${name}`);
+          return () => {
+            lifecycle.push(`unmount ${name}`);
+          };
+        }, [name]);
+        return <span>{`${name} 출력`}</span>;
+      }
+      render(
+        <Preview
+          sizing={sizing}
+          renderScreen={shown => <Output name={shown.name} />}
+        />,
+      );
+      const stageOutput = screen.getByText('무대 화면 출력');
+      const mainOutput = screen.getByText('본 화면 출력');
+      const parents = [stageOutput.parentElement, mainOutput.parentElement];
+      lifecycle.length = 0;
+      await userEvent.click(
+        screen.getByRole('button', {
+          name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+        }),
+      );
+      await userEvent.click(
+        screen.getByRole('button', {
+          name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+        }),
+      );
+      expect(lifecycle).toEqual([]);
+      expect(screen.getByText('무대 화면 출력')).toBe(stageOutput);
+      expect(screen.getByText('본 화면 출력')).toBe(mainOutput);
+      expect([stageOutput.parentElement, mainOutput.parentElement]).toEqual(
+        parents,
+      );
+    },
+  );
 
   it('marks the states and explains them in a tooltip', async () => {
     render(<Preview />);

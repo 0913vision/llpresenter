@@ -40,6 +40,7 @@ export function PreviewPanel({
         screens={screens}
         big={large}
         compact={compact}
+        sizing="content"
         onBigChange={showLarge}
         renderScreen={renderScreen}
       />

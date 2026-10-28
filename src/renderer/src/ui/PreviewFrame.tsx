@@ -46,6 +46,8 @@ export interface PreviewFrameProps<Id extends string> {
   readonly big: Id;
   /** The narrow window form keeps the same horizontal slot order. */
   readonly compact?: boolean | undefined;
+  /** Content sizing preserves picture geometry inside a scrolling body. */
+  readonly sizing?: 'fill' | 'content';
   /** Selects the large monitoring picture without changing output. */
   readonly onBigChange: (id: Id) => void;
   /** Draws a screen's output, scaled to its frame. */
@@ -246,12 +248,17 @@ export function PreviewFrame<Id extends string>({
   screens,
   big,
   compact = false,
+  sizing = 'fill',
   onBigChange,
   renderScreen,
 }: PreviewFrameProps<Id>): JSX.Element {
   return (
     <div
-      className={classNames(styles.monitor, compact && styles.compact)}
+      className={classNames(
+        styles.monitor,
+        compact && styles.compact,
+        sizing === 'content' && styles.content,
+      )}
       style={{
         gridTemplateColumns: `repeat(${Math.max(1, screens.length)}, minmax(var(--size-preview-compact), 1fr))`,
       }}
