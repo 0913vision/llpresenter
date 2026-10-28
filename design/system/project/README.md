@@ -33,7 +33,7 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 ### Text
 
 - Use `text` for primary text and icons, `text-2` for secondary and disabled text, `text-3` for counts, dates, and shortcuts, and `text-off` for non-text marks that are off or disabled.
-- Use `text-3` only on `bg-panel`, `bg-dialog`, and `bg-raised`. On `bg-control` its contrast is 4.3:1, so use `text-2` or brighter.
+- `text-3` meets 4.5:1 on the control hover background and darker surfaces. On `selection`, use `text-2` or brighter for readable text.
 - Don't use `text-off` for readable text, including names of controls that are off or disabled. Use a separate state mark or disabled attribute.
 - Text on filled surfaces: use `text-on-fill` on `accent-fill` and `live`, `text-on-label` on 이름표 (label) colors and macro tiles, and `text-on-selection` for secondary text on `selection`.
 
@@ -69,8 +69,8 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 | --- | --- |
 | `text` / `bg-panel` | 14.4:1 |
 | `text-2` / `bg-control` | 6.9:1 |
-| `text-3` / `bg-panel` | 5.1:1 |
-| `text-3` / `bg-raised` | 4.5:1 |
+| `text-3` / `bg-control-hover` | 4.55:1 |
+| `text-2` / `selection` | 4.94:1 |
 | `text-on-fill` / `accent-fill` | 4.7:1 |
 | `text-on-fill` / `live` | 4.9:1 |
 | `text-on-label` / 이름표 colors | 6.1:1 or higher |
