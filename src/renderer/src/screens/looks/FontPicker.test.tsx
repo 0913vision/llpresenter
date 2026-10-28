@@ -182,3 +182,25 @@ it('does not choose or close during IME composition', () => {
   expect(screen.getByRole('combobox', {name: '글꼴 검색'})).toBe(search);
   expect(change).not.toHaveBeenCalled();
 });
+
+it('passes modified navigation and activation keys through the font search', () => {
+  const {change} = renderPicker();
+  fireEvent.click(screen.getByRole('button', {name: '\uAE00\uAF34'}));
+  const search = screen.getByRole('combobox', {
+    name: '\uAE00\uAF34 \uAC80\uC0C9',
+  });
+  const active = search.getAttribute('aria-activedescendant');
+  for (const event of [
+    {key: 'ArrowDown', ctrlKey: true},
+    {key: 'ArrowUp', shiftKey: true},
+    {key: 'Enter', altKey: true},
+    {key: 'End', metaKey: true},
+  ]) {
+    expect(fireEvent.keyDown(search, event)).toBe(true);
+    expect(search.getAttribute('aria-activedescendant')).toBe(active);
+  }
+  expect(change).not.toHaveBeenCalled();
+  expect(
+    screen.getByRole('combobox', {name: '\uAE00\uAF34 \uAC80\uC0C9'}),
+  ).toBe(search);
+});

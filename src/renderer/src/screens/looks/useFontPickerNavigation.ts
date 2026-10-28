@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import {filterFamilies, type FontChoice} from './fontChoices';
 
@@ -105,7 +106,7 @@ export function useFontPickerNavigation({
     onClose(true);
   };
   const keyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (isComposing(event)) return;
+    if (isComposing(event) || hasModifier(event)) return;
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
