@@ -60,7 +60,7 @@ function firstOf<T>(values: Iterable<T>): T | undefined {
  * {@link MAX_FAILED_RETRIES_IN_A_ROW} failures in a row.
  */
 export class SaveFailures implements SaveFailureSink {
-  private readonly saves = new Map<string, WaitingSave>();
+  private readonly saves = new Map<string, {save: WaitingSave}>();
   private readonly listeners = new Set<SaveProblemListener>();
   private published: AppProblemOf<'save-failed'> | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -78,7 +78,9 @@ export class SaveFailures implements SaveFailureSink {
     // NOTE(0913vision): One entry per file. Each store refuses edits of new
     // files once MAX_WAITING_SAVES of its files wait, so this list holds at
     // most the cap per store, plus files of edits admitted just before it.
-    this.saves.set(save.file, save);
+    const existing = this.saves.get(save.file);
+    if (existing === undefined) this.saves.set(save.file, {save});
+    else existing.save = save;
     this.changed();
   }
 
@@ -133,22 +135,13 @@ export class SaveFailures implements SaveFailureSink {
 
   private async retryAll(): Promise<void> {
     let failedInARow = 0;
-    // NOTE(0913vision): A file that fails again moves to the end, so the first
-    // file is always the next one this pass hasn't tried, and counting the
-    // files that waited when it began stops it before it reaches them again.
-    for (let left = this.saves.size; left > 0; left--) {
-      const save = firstOf(this.saves.values());
-      if (
-        save === undefined ||
-        this.disposed ||
-        failedInARow >= MAX_FAILED_RETRIES_IN_A_ROW
-      ) {
-        return;
-      }
-      await this.retryOne(save);
-      if (this.saves.has(save.file)) {
+    for (const [file, entry] of [...this.saves]) {
+      if (this.disposed || failedInARow >= MAX_FAILED_RETRIES_IN_A_ROW) return;
+      if (this.saves.get(file) !== entry) continue;
+      await this.retryOne(entry.save);
+      if (this.saves.get(file) === entry) {
         failedInARow++;
-        this.moveToEnd(save.file);
+        this.moveToEnd(file);
       } else {
         failedInARow = 0;
       }
@@ -177,7 +170,7 @@ export class SaveFailures implements SaveFailureSink {
     const oldest = firstOf(this.saves.values());
     return oldest === undefined
       ? null
-      : saveFailedProblem(oldest.name, this.saves.size);
+      : saveFailedProblem(oldest.save.name, this.saves.size);
   }
 
   private changed(): void {

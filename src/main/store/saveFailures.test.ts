@@ -196,6 +196,125 @@ describe('save failures', () => {
     expect(tried).toEqual(['new', 'a', 'b']);
   });
 
+  it('does not retry a newly waiting file when an earlier file recovers mid-pass', async () => {
+    const {failures} = setup();
+    const tried: string[] = [];
+    let release = (): void => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    failures.waiting({
+      file: 'a',
+      name: 'a',
+      retry: async () => {
+        tried.push('a');
+        await held;
+      },
+    });
+    failures.waiting({
+      file: 'b',
+      name: 'b',
+      retry: async () => {
+        tried.push('b');
+      },
+    });
+    failures.waiting({
+      file: 'c',
+      name: 'c',
+      retry: async () => {
+        tried.push('c');
+      },
+    });
+    const pass = failures.retry();
+    failures.saved('b');
+    failures.waiting({
+      file: 'new',
+      name: 'new',
+      retry: async () => {
+        tried.push('new');
+      },
+    });
+    release();
+    await pass;
+    expect(tried).toEqual(['a', 'c']);
+    tried.length = 0;
+    await failures.retry();
+    expect(tried).toEqual(['new', 'a', 'c']);
+  });
+
+  it('leaves a recovered and newly failed file for the next pass', async () => {
+    const {failures} = setup();
+    const tried: string[] = [];
+    let release = (): void => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    failures.waiting({
+      file: 'a',
+      name: 'a',
+      retry: async () => {
+        tried.push('a');
+        await held;
+      },
+    });
+    failures.waiting({
+      file: 'b',
+      name: 'b',
+      retry: async () => {
+        tried.push('old b');
+      },
+    });
+    const pass = failures.retry();
+    failures.saved('b');
+    failures.waiting({
+      file: 'b',
+      name: 'b',
+      retry: async () => {
+        tried.push('new b');
+      },
+    });
+    release();
+    await pass;
+    expect(tried).toEqual(['a']);
+    await failures.retry();
+    expect(tried).toEqual(['a', 'new b', 'a']);
+  });
+
+  it('uses a newer retry callback for a file that never stopped waiting', async () => {
+    const {failures} = setup();
+    const tried: string[] = [];
+    let release = (): void => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    failures.waiting({
+      file: 'a',
+      name: 'a',
+      retry: async () => {
+        tried.push('a');
+        await held;
+      },
+    });
+    failures.waiting({
+      file: 'b',
+      name: 'b',
+      retry: async () => {
+        tried.push('old b');
+      },
+    });
+    const pass = failures.retry();
+    failures.waiting({
+      file: 'b',
+      name: 'b',
+      retry: async () => {
+        tried.push('new b');
+      },
+    });
+    release();
+    await pass;
+    expect(tried).toEqual(['a', 'new b']);
+  });
+
   it('pushes save-failed again on remind only while files wait', () => {
     const {failures, pushed, wait} = setup();
     failures.remind();
