@@ -1,0 +1,107 @@
+.swatch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+}
+
+.swatch:hover:not([aria-disabled='true']) {
+  background: var(--bg-control-hover);
+}
+
+.chip {
+  width: var(--space-16);
+  height: var(--space-16);
+  border: var(--radius-hairline) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.swatch:focus-visible {
+  outline: var(--space-2) solid var(--accent);
+  outline-offset: var(--radius-hairline);
+}
+
+.swatch[aria-disabled='true'] {
+  cursor: default;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.plane {
+  position: relative;
+  height: var(--size-preview-small-max);
+  border-radius: var(--radius-md);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.cursor {
+  position: absolute;
+  box-sizing: border-box;
+  width: var(--space-12);
+  height: var(--space-12);
+  border: var(--space-2) solid var(--text);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-popover);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--size-preview-compact) minmax(0, 1fr) var(
+      --size-control-md
+    );
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hue input::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+}
+
+.hue input::-webkit-slider-thumb {
+  box-shadow: 0 0 0 var(--radius-hairline) var(--bg-panel);
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text);
+  font: var(--type-body);
+}
+
+.previewSwatch {
+  width: var(--size-alert-icon);
+  height: var(--size-alert-icon);
+  border: var(--radius-hairline) solid var(--line-strong);
+  border-radius: var(--radius-md);
+}

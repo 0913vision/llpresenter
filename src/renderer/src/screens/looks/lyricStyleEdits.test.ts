@@ -178,3 +178,38 @@ it('refuses shared style writes for a read-only document', async () => {
   );
   expect(edit).not.toHaveBeenCalled();
 });
+
+it('preserves a color reversion queued behind a held settings save', async () => {
+  const {document, style} = fixture();
+  let release: (result: EditResult) => void = () => undefined;
+  const held = new Promise<EditResult>(resolve => {
+    release = resolve;
+  });
+  const writes: SettingsEdit[] = [];
+  const api = fakeLlpApi({
+    settings: {
+      edit: edit => {
+        writes.push(edit);
+        return writes.length === 1
+          ? held
+          : Promise.resolve({ok: true, value: {id: 'looks', revision: 3}});
+      },
+    },
+  });
+  const editor = new LookListEditor(api, vi.fn(), () => ({
+    current: document.value.current,
+    macros: [],
+  }));
+  editor.adopt(document);
+  const first = editor.changeStyle({id: style.id, change: {color: '#112233'}});
+  await vi.waitFor(() => expect(writes).toHaveLength(1));
+  const second = editor.changeStyle({
+    id: style.id,
+    change: {color: style.color},
+  });
+  release({ok: true, value: {id: 'looks', revision: 2}});
+  expect(await first).toBe(true);
+  expect(await second).toBe(true);
+  expect(writes).toHaveLength(2);
+  expect(editor.getSnapshot()?.value.lyricStyles[0]?.color).toBe(style.color);
+});

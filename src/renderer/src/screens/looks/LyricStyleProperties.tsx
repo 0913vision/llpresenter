@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {LyricStyle} from '@shared/schema/looks';
 import {isLyricTextColor} from '@shared/schema/textStyle';
 import {NumberField} from '@renderer/ui/NumberField';
@@ -14,11 +14,18 @@ import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import type {LyricStyleEdit} from './lyricStyleEdits';
 import {FontPicker} from './FontPicker';
+import {ColorPicker} from './ColorPicker';
 import {missingFontReason, weightChoices} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
-import styles from './LyricStyles.module.css';
 
-type Change = (change: LyricStyleEdit['change']) => void;
+type Change = (
+  change: LyricStyleEdit['change'],
+) => Promise<boolean> | undefined;
+
+interface ColorState {
+  readonly source: string;
+  readonly optimistic: string | null;
+}
 
 const NUMBER_FIELDS = [
   {key: 'size', label: '크기', min: 12, max: 300, step: 1},
@@ -37,15 +44,71 @@ function ColorField({
   readonly change: Change;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? style.color;
+  const [local, setLocal] = useState<ColorState>({
+    source: style.color,
+    optimistic: null,
+  });
+  const latest = useRef(style.color);
+  const saved = useRef(style.color);
+  const serial = useRef(0);
+  const mounted = useRef(false);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  useLayoutEffect(() => {
+    saved.current = style.color;
+    if (local.optimistic === null) latest.current = style.color;
+  }, [style.color, local.optimistic]);
+  if (local.source !== style.color) {
+    setLocal({
+      source: style.color,
+      optimistic: local.optimistic === style.color ? null : local.optimistic,
+    });
+  }
+  const effective = local.optimistic ?? style.color;
+  const shown = draft ?? effective;
   const valid = isLyricTextColor(shown);
+  const commit = (value: string): void => {
+    if (reason !== undefined) return;
+    const next = value.toUpperCase();
+    if (next === latest.current) return;
+    latest.current = next;
+    const token = ++serial.current;
+    setLocal(previous => ({
+      ...previous,
+      optimistic: next,
+    }));
+    const saving = change({color: next});
+    const rollback = (): void => {
+      if (!mounted.current || serial.current !== token) return;
+      latest.current = saved.current;
+      setLocal(previous => ({...previous, optimistic: null}));
+    };
+    if (saving === undefined) rollback();
+    else {
+      saving.then(applied => {
+        if (!applied) rollback();
+        else if (
+          mounted.current &&
+          serial.current === token &&
+          saved.current === next
+        ) {
+          setLocal(previous => ({...previous, optimistic: null}));
+        }
+      }, rollback);
+    }
+  };
   return (
     <PropertyRow label="글자색">
       {({controlId}) => (
         <>
-          <span
-            className={styles.swatch}
-            style={{backgroundColor: style.color}}
+          <ColorPicker
+            value={valid ? shown.toUpperCase() : effective}
+            reason={reason}
+            onChange={commit}
           />
           <TextField
             id={controlId}
@@ -57,9 +120,7 @@ function ColorField({
             invalid={!valid}
             invalidReason={valid ? undefined : '#RRGGBB 형식으로 입력'}
             onBlur={() => {
-              if (reason === undefined && valid && shown !== style.color) {
-                change({color: shown.toUpperCase()});
-              }
+              if (draft !== null && valid) commit(shown);
               setDraft(null);
             }}
             onKeyDown={event => {
@@ -92,6 +153,15 @@ export function LyricStyleProperties({
   const fontProblem =
     missing ??
     (fonts.status === 'failed' ? '설치 글꼴을 불러올 수 없음' : undefined);
+  const dispatch = (update: LyricStyleEdit['change']): void => {
+    change(update)?.catch((cause: unknown) => {
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Could not edit the lyric style',
+        detail: cause instanceof Error ? cause.message : String(cause),
+      });
+    });
+  };
   const weights = weightChoices(style.font, style.weight, fonts);
   const weightReason =
     reason ??
@@ -108,7 +178,7 @@ export function LyricStyleProperties({
                 state={fonts}
                 reason={reason}
                 problem={fontProblem}
-                onChange={font => change({font})}
+                onChange={font => dispatch({font})}
               />
             )}
           </PropertyRow>
@@ -121,7 +191,7 @@ export function LyricStyleProperties({
                 options={weights}
                 disabled={weightReason !== undefined}
                 title={weightReason}
-                onChange={weight => change({weight: Number(weight)})}
+                onChange={weight => dispatch({weight: Number(weight)})}
               />
             )}
           </PropertyRow>
@@ -145,7 +215,7 @@ export function LyricStyleProperties({
                   readOnly={reason !== undefined}
                   aria-disabled={reason !== undefined || undefined}
                   title={reason}
-                  onChange={value => change({[field.key]: value})}
+                  onChange={value => dispatch({[field.key]: value})}
                 />
               )}
             </PropertyRow>
@@ -164,7 +234,7 @@ export function LyricStyleProperties({
                 ]}
                 disabled={reason !== undefined}
                 title={reason}
-                onChange={align => change({align})}
+                onChange={align => dispatch({align})}
               />
             )}
           </PropertyRow>
@@ -181,7 +251,7 @@ export function LyricStyleProperties({
                 ]}
                 disabled={reason !== undefined}
                 title={reason}
-                onChange={vAlign => change({vAlign})}
+                onChange={vAlign => dispatch({vAlign})}
               />
             )}
           </PropertyRow>
@@ -196,7 +266,7 @@ export function LyricStyleProperties({
                   checked={style[key]}
                   disabled={reason !== undefined}
                   title={reason}
-                  onChange={value => change({[key]: value})}
+                  onChange={value => dispatch({[key]: value})}
                 />
               )}
             </PropertyRow>

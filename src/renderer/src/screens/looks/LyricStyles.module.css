@@ -28,14 +28,6 @@
   margin: var(--space-14) 0;
 }
 
-.swatch {
-  flex: none;
-  width: var(--space-16);
-  height: var(--space-16);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-}
-
 .empty {
   color: var(--text-3);
   font: var(--type-label);

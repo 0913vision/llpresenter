@@ -1,4 +1,11 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {looksSchema} from '@shared/schema/looks';
@@ -45,7 +52,8 @@ function setup(reason?: string) {
       },
     ],
   });
-  const change = vi.fn<(edit: LyricStyleEdit) => void>();
+  const change =
+    vi.fn<(edit: LyricStyleEdit) => Promise<boolean> | undefined>();
   const view = render(
     <LyricStyles
       looks={looks}
@@ -70,6 +78,145 @@ it('previews on mount and switches presets without writing or recreating the ren
   expect(drawing.create).toHaveBeenCalledOnce();
   view.unmount();
   expect(drawing.dispose).toHaveBeenCalledOnce();
+});
+
+it('applies the picker color to the shared style and redraws its preview', () => {
+  const view = setup();
+  fireEvent.click(screen.getByRole('button', {name: '글자색 선택'}));
+  const dialog = screen.getByRole('dialog', {name: '글자색 선택'});
+  fireEvent.change(within(dialog).getByRole('slider', {name: '채도'}), {
+    target: {value: '100'},
+  });
+  expect(view.change).not.toHaveBeenCalled();
+  fireEvent.click(within(dialog).getByRole('button', {name: '적용'}));
+  expect(view.change).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({change: {color: '#FF0000'}}),
+  );
+  view.rerender(
+    <LyricStyles
+      looks={{
+        ...view.looks,
+        lyricStyles: view.looks.lyricStyles.map((style, index) =>
+          index === 0 ? {...style, color: '#FF0000'} : style,
+        ),
+      }}
+      reason={undefined}
+      onChange={view.change}
+      onListChange={() => undefined}
+      onProblem={vi.fn()}
+    />,
+  );
+  expect(drawing.render.mock.lastCall?.[1]).toHaveProperty(
+    'look.lyricStyle.color',
+    '#FF0000',
+  );
+});
+
+it('preserves a queued color reversion and restores the last saved color on failure', async () => {
+  const view = setup();
+  let finishFirst: (success: boolean) => void = () => undefined;
+  let finishSecond: (success: boolean) => void = () => undefined;
+  const first = new Promise<boolean>(resolve => {
+    finishFirst = resolve;
+  });
+  const second = new Promise<boolean>(resolve => {
+    finishSecond = resolve;
+  });
+  const save = vi
+    .fn<(edit: LyricStyleEdit) => Promise<boolean>>()
+    .mockReturnValueOnce(first)
+    .mockReturnValueOnce(second);
+  const renderWith = (color: string) => (
+    <LyricStyles
+      looks={{
+        ...view.looks,
+        lyricStyles: view.looks.lyricStyles.map((style, index) =>
+          index === 0 ? {...style, color} : style,
+        ),
+      }}
+      reason={undefined}
+      onChange={save}
+      onListChange={() => undefined}
+      onProblem={vi.fn()}
+    />
+  );
+  view.rerender(renderWith('#FFFFFF'));
+  const field = screen.getByLabelText('글자색');
+  fireEvent.change(field, {target: {value: '#112233'}});
+  fireEvent.blur(field);
+  expect(field).toHaveProperty('value', '#112233');
+  fireEvent.click(screen.getByRole('button', {name: '글자색 선택'}));
+  expect(
+    within(screen.getByRole('dialog', {name: '글자색 선택'})).getByLabelText(
+      '선택한 색',
+    ).textContent,
+  ).toBe('#112233');
+  fireEvent.click(screen.getByRole('button', {name: '취소'}));
+  fireEvent.change(field, {target: {value: '#FFFFFF'}});
+  fireEvent.blur(field);
+  expect(save.mock.calls.map(call => call[0].change)).toEqual([
+    {color: '#112233'},
+    {color: '#FFFFFF'},
+  ]);
+  view.rerender(renderWith('#112233'));
+  expect(field).toHaveProperty('value', '#FFFFFF');
+  await act(async () => {
+    finishFirst(true);
+  });
+  await act(async () => {
+    finishSecond(false);
+  });
+  expect(field).toHaveProperty('value', '#112233');
+});
+
+it('clears a successful no-op reversion after an earlier color save is refused', async () => {
+  const view = setup();
+  let finishFirst: (success: boolean) => void = () => undefined;
+  let finishSecond: (success: boolean) => void = () => undefined;
+  const first = new Promise<boolean>(resolve => {
+    finishFirst = resolve;
+  });
+  const second = new Promise<boolean>(resolve => {
+    finishSecond = resolve;
+  });
+  const save = vi
+    .fn<(edit: LyricStyleEdit) => Promise<boolean>>()
+    .mockReturnValueOnce(first)
+    .mockReturnValueOnce(second)
+    .mockResolvedValue(true);
+  const renderWith = (color: string) => (
+    <LyricStyles
+      looks={{
+        ...view.looks,
+        lyricStyles: view.looks.lyricStyles.map((style, index) =>
+          index === 0 ? {...style, color} : style,
+        ),
+      }}
+      reason={undefined}
+      onChange={save}
+      onListChange={() => undefined}
+      onProblem={vi.fn()}
+    />
+  );
+  view.rerender(renderWith('#FFFFFF'));
+  const field = screen.getByLabelText('글자색');
+  fireEvent.change(field, {target: {value: '#112233'}});
+  fireEvent.blur(field);
+  fireEvent.change(field, {target: {value: '#FFFFFF'}});
+  fireEvent.blur(field);
+  await act(async () => {
+    finishFirst(false);
+    finishSecond(true);
+  });
+  view.rerender(renderWith('#445566'));
+  expect(field).toHaveProperty('value', '#445566');
+  fireEvent.change(field, {target: {value: '#FFFFFF'}});
+  fireEvent.blur(field);
+  expect(save.mock.calls.map(call => call[0].change)).toEqual([
+    {color: '#112233'},
+    {color: '#FFFFFF'},
+    {color: '#FFFFFF'},
+  ]);
 });
 
 it('commits valid drafts, rejects invalid colors and cancels with Escape', () => {

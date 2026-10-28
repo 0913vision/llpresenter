@@ -214,7 +214,11 @@ export function LookEditor({
               onListChange={editor.changeStyleList}
               onProblem={editor.report}
               onChange={edit => {
-                editor.changeStyle(edit)?.catch(failed);
+                const saving = editor.changeStyle(edit);
+                return saving?.catch((cause: unknown) => {
+                  failed(cause);
+                  return false;
+                });
               }}
             />
           </>

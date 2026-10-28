@@ -21,7 +21,7 @@ export function LyricStyles({
 }: {
   readonly looks: LooksFile;
   readonly reason: string | undefined;
-  readonly onChange: (edit: LyricStyleEdit) => void;
+  readonly onChange: (edit: LyricStyleEdit) => Promise<boolean> | undefined;
   readonly onListChange: (
     edit: LyricStyleListEdit,
   ) => Promise<Result<boolean, LyricStyleListProblem>> | undefined;
