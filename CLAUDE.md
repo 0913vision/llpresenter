@@ -180,8 +180,9 @@ without exception.
 - Team members push only their own branches (`<tag>/<name>/<feature>`) to
   `origin`, so GitHub's runners verify them; after a rebase they push with
   `--force-with-lease` to their own branch only. Only the lead pushes `main`,
-  after a merge. Nobody pushes tags, force-pushes `main`, or deletes remote
-  branches.
+  after a merge. Nobody pushes tags or force-pushes `main`. A merged branch is
+  deleted from `origin` by the dispatcher or the lead, like a pull request's
+  delete-after-merge; members never delete remote branches themselves.
 - The GitHub repository (0913vision/llpresenter) is public. Never commit
   secrets, personal data, or copyrighted lyrics. Use public-domain text or
   invented sentences for sample lyrics. Never commit machine-specific details
