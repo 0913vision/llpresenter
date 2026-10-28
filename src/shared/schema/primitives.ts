@@ -117,8 +117,7 @@ export function listWithUniqueIds<
       const seen = new Set<unknown>();
       for (const [index, entry] of dataset.value.entries()) {
         const {id} = entry;
-        if (typeof id === 'number' && Number.isNaN(id)) continue;
-        if (seen.has(id)) {
+        if ((typeof id === 'number' && Number.isNaN(id)) || seen.has(id)) {
           addIssue({
             input: entry,
             message: DUPLICATE_ID_MESSAGE,

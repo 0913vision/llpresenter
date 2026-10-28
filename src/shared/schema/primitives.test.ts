@@ -36,7 +36,8 @@ it('does not retain IDs between validations and still reports invalid items', ()
 
 it('keeps strict equality behavior for non-string IDs', () => {
   const generic = listWithUniqueIds(v.object({id: v.unknown()}));
-  expect(v.safeParse(generic, [{id: NaN}, {id: NaN}]).success).toBe(true);
+  expect(v.safeParse(generic, [{id: NaN}]).success).toBe(false);
+  expect(v.safeParse(generic, [{id: NaN}, {id: NaN}]).issues).toHaveLength(2);
   expect(v.safeParse(generic, [{id: 0}, {id: -0}]).success).toBe(false);
   const shared = {};
   expect(v.safeParse(generic, [{id: shared}, {id: shared}]).success).toBe(
