@@ -17,14 +17,7 @@ import {SlidePanelBody, SlidePanelMeta} from '@renderer/show/SlidePanel';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {sampleService} from '@renderer/show/testing/sampleService';
 import {useLive} from './live';
-import {
-  applyService,
-  jumpLabelFor,
-  openItem,
-  outputTile,
-  selectTile,
-  useShow,
-} from './show';
+import {applyService, openItem, outputTile, selectTile, useShow} from './show';
 import {
   librarySourceId,
   openLibrarySong,
@@ -121,7 +114,6 @@ it('refreshes the source and outputs its background before lyrics without item.s
       },
     },
   ]);
-  expect(jumpLabelFor('KeyC')).toBe('후렴');
 });
 
 it.each([

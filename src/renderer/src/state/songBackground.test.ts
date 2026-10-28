@@ -8,7 +8,6 @@ import {sendLive, startLiveSync, useLive} from './live';
 import {
   applyService,
   openItem,
-  outputLabel,
   outputNext,
   outputPrevious,
   outputTile,
@@ -126,7 +125,7 @@ describe('song backgrounds on output', () => {
     sent.length = 0;
     outputNext();
     outputPrevious();
-    outputLabel('Verse');
+    outputTile({itemId: 'one', index: 0});
     expect(sent.map(command => command.type)).toEqual([
       'slide.show',
       'slide.show',

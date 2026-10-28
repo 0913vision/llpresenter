@@ -6,14 +6,12 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
   hasSlideHotKey,
-  jumpLabelFor,
   openNextItem,
   openPreviousItem,
   outputHotKey,
   revealLiveItem,
   selectTile,
   openItem,
-  outputLabel,
   outputNext,
   outputPrevious,
   outputTile,
@@ -148,27 +146,6 @@ describe('show state', () => {
     expect(sent[0]).toMatchObject({
       slide: {itemId: 'song-river', position: 0},
     });
-  });
-
-  it('outputs an 이름표 after the live 장 and goes back to the first when none follows', () => {
-    openItem('song-morning');
-    setLive('song-morning', 0);
-    outputLabel('후렴');
-    expect(sent[0]).toMatchObject({slide: {position: 1, label: '후렴'}});
-    setLive('song-morning', 3);
-    outputLabel('후렴');
-    expect(sent[1]).toMatchObject({slide: {position: 1, label: '후렴'}});
-  });
-
-  it('sends nothing for an 이름표 the item does not have', () => {
-    openItem('song-morning');
-    outputLabel('브리지');
-    expect(sent).toHaveLength(0);
-  });
-
-  it('knows the 이름표 of a jump key by its physical key', () => {
-    expect(jumpLabelFor('KeyC')).toBe('후렴');
-    expect(jumpLabelFor('KeyZ')).toBeUndefined();
   });
 
   it('outputs the tile before the live one with previous', () => {

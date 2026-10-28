@@ -46,29 +46,6 @@ export function previousTile(state: SequenceState): TileCursor | null {
   return {itemId: live.itemId, index: live.index - 1};
 }
 
-/**
- * The tile that an 이름표 (label) jump key outputs: the first tile with that
- * label after the live 장, or else the first one with that label in the
- * sequence.
- */
-export function tileForLabel(
-  state: SequenceState,
-  label: string,
-): TileCursor | null {
-  const itemId = state.live?.itemId ?? state.openItemId;
-  if (!itemId) return null;
-  const tiles = state.tilesOf(itemId);
-  const after = (state.live?.index ?? -1) + 1;
-  const indexAfter = tiles.findIndex(
-    (tile, index) => index >= after && tile.label === label,
-  );
-  const index =
-    indexAfter === -1
-      ? tiles.findIndex(tile => tile.label === label)
-      : indexAfter;
-  return index === -1 ? null : {itemId, index};
-}
-
 function canOutput(row: ServiceRow, tilesOf: TilesOf): row is ItemRow {
   return isItemRow(row) && row.kind !== 'slot' && tilesOf(row.id).length > 0;
 }

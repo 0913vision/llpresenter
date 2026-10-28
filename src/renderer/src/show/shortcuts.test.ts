@@ -59,7 +59,6 @@ beforeEach(() => {
   seedSampleService();
   vi.spyOn(showState, 'outputNext').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputPrevious').mockImplementation(() => undefined);
-  vi.spyOn(showState, 'outputLabel').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputHotKey').mockImplementation(() => true);
   vi.spyOn(showState, 'openNextItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'openPreviousItem').mockImplementation(() => undefined);
@@ -162,13 +161,16 @@ describe('handleShowKey where a focused control takes the key', () => {
     expect(showState.outputNext).toHaveBeenCalledTimes(1);
   });
 
-  it('still passes the Page keys and the jump keys on from a focused button', () => {
+  it('still passes Page keys and assigned slide keys on from a focused button', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
+      code => code === 'KeyC',
+    );
     press('PageDown', {}, appendTo('button'));
     press('PageUp', {}, appendTo('button'));
     press('KeyC', {}, appendTo('button'));
     expect(showState.outputNext).toHaveBeenCalledTimes(1);
     expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
-    expect(showState.outputLabel).toHaveBeenCalledTimes(1);
+    expect(showState.outputHotKey).toHaveBeenCalledExactlyOnceWith('KeyC');
   });
 
   it('still takes Space from a button of the 장 grid and the 예배 순서 list', () => {
@@ -203,7 +205,6 @@ describe('handleShowKey item keys', () => {
     press('KeyL', {ctrlKey: true});
     expect(showState.outputNext).not.toHaveBeenCalled();
     expect(showState.outputPrevious).not.toHaveBeenCalled();
-    expect(showState.outputLabel).not.toHaveBeenCalled();
   });
 
   it('works with the 장 grid and the 예배 순서 list in focus', () => {
@@ -321,7 +322,6 @@ describe('handleShowKey during a column drag', () => {
     }
     expect(showState.outputNext).not.toHaveBeenCalled();
     expect(showState.outputPrevious).not.toHaveBeenCalled();
-    expect(showState.outputLabel).not.toHaveBeenCalled();
   });
 
   it('works again when the drag has ended', () => {
@@ -332,48 +332,32 @@ describe('handleShowKey during a column drag', () => {
   });
 });
 
-describe('handleShowKey jump keys', () => {
-  it('outputs the 이름표 of a bound key and swallows it', () => {
-    const event = press('KeyC');
-    expect(showState.outputLabel).toHaveBeenCalledWith('후렴');
-    expect(event.defaultPrevented).toBe(true);
+describe('handleShowKey legacy label keys', () => {
+  it('leaves stored label keys unhandled when no source slide is assigned', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
+    for (const code of ['KeyC', 'Digit1', 'Numpad1']) {
+      expect(press(code, {modifierNumLock: true}).defaultPrevented).toBe(false);
+    }
+    expect(showState.outputHotKey).not.toHaveBeenCalled();
   });
 
-  it('treats numpad digits as the digits of the top row while Num Lock is on', () => {
-    press('Numpad1', {modifierNumLock: true});
-    expect(showState.outputLabel).toHaveBeenCalledWith('1절');
-  });
-
-  it('ignores numpad digits while Num Lock is off', () => {
-    const event = press('Numpad1', {modifierNumLock: false});
-    expect(showState.outputLabel).not.toHaveBeenCalled();
-    expect(event.defaultPrevented).toBe(false);
-  });
-
-  it('still matches the digits of the top row with Num Lock off', () => {
-    press('Digit1', {modifierNumLock: false});
-    expect(showState.outputLabel).toHaveBeenCalledWith('1절');
-  });
-
-  it('ignores a key that no 이름표 uses', () => {
-    const event = press('KeyZ');
-    expect(showState.outputLabel).not.toHaveBeenCalled();
-    expect(event.defaultPrevented).toBe(false);
-  });
-
-  it('runs a held jump key once', () => {
-    press('KeyC');
-    press('KeyC', {repeat: true});
-    expect(showState.outputLabel).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores a jump key with a modifier and inside a text field', () => {
-    press('KeyC', {ctrlKey: true});
-    press('KeyC', {}, appendTo('textarea'));
-    expect(showState.outputLabel).not.toHaveBeenCalled();
+  it('normalizes assigned numpad digits only while Num Lock is on', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
+      code => code === 'Digit1',
+    );
+    expect(press('Numpad1', {modifierNumLock: false}).defaultPrevented).toBe(
+      false,
+    );
+    expect(press('Numpad1', {modifierNumLock: true}).defaultPrevented).toBe(
+      true,
+    );
+    expect(press('Digit1', {modifierNumLock: false}).defaultPrevented).toBe(
+      true,
+    );
+    expect(showState.outputHotKey).toHaveBeenCalledTimes(2);
+    expect(showState.outputHotKey).toHaveBeenCalledWith('Digit1');
   });
 });
-
 describe('handleShowKey slide hotkeys', () => {
   it('outputs the matching slide hotkey and prevents default', () => {
     vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
@@ -428,15 +412,13 @@ describe('handleShowKey slide hotkeys', () => {
     const event = press('KeyC');
     expect(event.defaultPrevented).toBe(true);
     expect(showState.outputHotKey).toHaveBeenCalledWith('KeyC');
-    expect(showState.outputLabel).not.toHaveBeenCalled();
   });
 
-  it('falls back to jump label when no slide hotkey matches', () => {
+  it('does not fall back to a legacy label key when no slide hotkey matches', () => {
     vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
     const event = press('KeyC');
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
     expect(showState.outputHotKey).not.toHaveBeenCalled();
-    expect(showState.outputLabel).toHaveBeenCalledWith('후렴');
   });
 });
 

@@ -5,7 +5,6 @@ import {
   liveItem,
   nextTile,
   previousTile,
-  tileForLabel,
   type SequenceState,
 } from './navigation';
 
@@ -94,40 +93,6 @@ describe('previousTile', () => {
 
   it('does nothing without a live 장', () => {
     expect(previousTile(stateOf({openItemId: 'a'}))).toBeNull();
-  });
-});
-
-describe('tileForLabel', () => {
-  it('outputs the first tile with the label after the live 장', () => {
-    const live = {itemId: 'a', index: 1};
-    expect(tileForLabel(stateOf({live}), 'Chorus')).toEqual({
-      itemId: 'a',
-      index: 3,
-    });
-  });
-
-  it('goes back to the first tile with the label when none follows', () => {
-    const live = {itemId: 'a', index: 3};
-    expect(tileForLabel(stateOf({live}), 'Chorus')).toEqual({
-      itemId: 'a',
-      index: 1,
-    });
-  });
-
-  it('starts from the beginning of the open item when nothing is live', () => {
-    expect(tileForLabel(stateOf({openItemId: 'a'}), 'Verse')).toEqual({
-      itemId: 'a',
-      index: 0,
-    });
-  });
-
-  it('returns nothing when the label does not exist', () => {
-    const live = {itemId: 'a', index: 0};
-    expect(tileForLabel(stateOf({live}), 'Bridge')).toBeNull();
-  });
-
-  it('returns nothing without a live 장 and without an open item', () => {
-    expect(tileForLabel(stateOf({}), 'Verse')).toBeNull();
   });
 });
 

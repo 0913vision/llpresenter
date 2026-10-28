@@ -10,7 +10,6 @@ import {
 import {
   DUPLICATE_LABEL_NAME_REASON,
   EMPTY_LABEL_NAME_REASON,
-  JUMP_KEY_REASON,
   labelNameReason,
 } from './LabelDialog';
 
@@ -61,7 +60,6 @@ describe('editor name reasons', () => {
     DUPLICATE_ARRANGEMENT_NAME_REASON,
     EMPTY_LABEL_NAME_REASON,
     DUPLICATE_LABEL_NAME_REASON,
-    JUMP_KEY_REASON,
   ])('writes %j as one polite sentence without a period', reason => {
     expect(reason).toMatch(REASON_SENTENCE);
   });

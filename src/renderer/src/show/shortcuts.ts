@@ -3,11 +3,9 @@ import {isColumnDragActive} from '@renderer/state/drag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
   hasSlideHotKey,
-  jumpLabelFor,
   openNextItem,
   openPreviousItem,
   outputHotKey,
-  outputLabel,
   outputNext,
   outputPrevious,
   revealLiveItem,
@@ -151,7 +149,7 @@ function physicalKey(event: KeyboardEvent): string {
 
 /**
  * Handles the live keys of 진행: next 장 (→, Space, Page Down), previous 장 (←,
- * Page Up), and the 이름표 jump keys, matched by physical key. They work with
+ * Page Up), and source-slide hot keys, matched by physical key. They work with
  * the 장 grid or the 예배 순서 list in focus, a held key runs once, and they
  * stay inactive during a column drag.
  */
@@ -180,10 +178,6 @@ export function handleShowKey(event: KeyboardEvent): void {
     if (!event.repeat) outputHotKey(code);
     return;
   }
-  const label = jumpLabelFor(code);
-  if (label === undefined) return;
-  event.preventDefault();
-  if (!event.repeat) outputLabel(label);
 }
 
 /**

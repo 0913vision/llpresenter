@@ -39,14 +39,3 @@
 .create {
   padding: var(--space-4) var(--space-8);
 }
-
-.shortcut {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.warning {
-  display: inline-flex;
-  color: var(--warning);
-}

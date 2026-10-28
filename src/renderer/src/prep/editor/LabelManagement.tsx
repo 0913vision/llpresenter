@@ -23,9 +23,7 @@ export function LabelManagement({
   locked,
   onClose,
 }: ManagementProps): JSX.Element {
-  const [action, setAction] = useState<'rename' | 'key' | 'delete' | null>(
-    null,
-  );
+  const [action, setAction] = useState<'rename' | 'delete' | null>(null);
   if (action === 'delete') {
     return (
       <AlertDialog
@@ -59,7 +57,6 @@ export function LabelManagement({
   if (action !== null) {
     return (
       <LabelDialog
-        kind={action}
         label={context.label}
         labels={labels}
         store={store}
@@ -83,13 +80,6 @@ export function LabelManagement({
           title: LABEL_RENAME_SCOPE,
           disabled: locked,
           onSelect: () => setAction('rename'),
-        },
-        {
-          kind: 'item',
-          id: 'key',
-          label: '바로 가기 키',
-          disabled: locked,
-          onSelect: () => setAction('key'),
         },
         {kind: 'separator', id: 'separator'},
         {

@@ -11,7 +11,6 @@ import {
   liveItem,
   nextTile,
   previousTile,
-  tileForLabel,
   type SequenceState,
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
@@ -215,15 +214,6 @@ export function outputPrevious(): void {
   outputIfPresent(previousTile(sequenceState()));
 }
 
-export function jumpLabelFor(code: string): string | undefined {
-  const view = useShow.getState();
-  const source = liveCursor()?.itemId ?? view.openItemId;
-  if (isLibrarySource(view, source)) {
-    return view.librarySong.jumpKeys[code];
-  }
-  return view.jumpKeys[code];
-}
-
 /** True if the open presentation has a slide assigned to this physical hot key. */
 export function hasSlideHotKey(code: string): boolean {
   const view = useShow.getState();
@@ -241,11 +231,6 @@ export function outputHotKey(code: string): boolean {
   if (!target) return false;
   outputTile({itemId: source, index: target.tileIndex});
   return true;
-}
-
-/** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
-export function outputLabel(label: string): void {
-  outputIfPresent(tileForLabel(sequenceState(), label));
 }
 
 function openAdjacentItem(direction: 'next' | 'previous'): void {

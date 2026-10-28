@@ -1,17 +1,13 @@
-import {useState, type JSX, type KeyboardEvent} from 'react';
+import {useState, type JSX} from 'react';
 import type {Label} from '@shared/schema/labels';
 import {Dialog} from '@renderer/ui/Dialog';
-import {KeyCombo} from '@renderer/ui/KeyCap';
 import {TextField} from '@renderer/ui/TextField';
-import {isComposing} from '@renderer/ui/ime';
-import {shortcutRecordingProps} from '@renderer/ui/shortcutRecording';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';
 
 export const EMPTY_LABEL_NAME_REASON =
   '이름표 이름을 적어야 저장할 수 있습니다';
 export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다';
-export const JUMP_KEY_REASON = '영문자나 숫자 키만 쓸 수 있습니다';
 export const LABEL_RENAME_SCOPE = '모든 곡에서 이 이름표의 이름을 바꿉니다';
 
 /** The labels file stores unique, nonblank names without trimming old names. */
@@ -27,7 +23,6 @@ export function labelNameReason(
 }
 
 interface LabelDialogProps {
-  readonly kind: 'rename' | 'key';
   readonly label: Label;
   readonly labels: readonly Label[];
   readonly store: SongEditorStore;
@@ -35,9 +30,8 @@ interface LabelDialogProps {
   readonly onClose: () => void;
 }
 
-/** Rename is main-owned across songs; jump keys are physical letters/digits. */
+/** Renames the shared label across the library through main. */
 export function LabelDialog({
-  kind,
   label,
   labels,
   store,
@@ -45,125 +39,41 @@ export function LabelDialog({
   onClose,
 }: LabelDialogProps): JSX.Element {
   const [name, setName] = useState(label.name);
-  const [key, setKey] = useState(label.key);
-  const [keyReason, setKeyReason] = useState<string>();
-  const reason =
-    kind === 'rename'
-      ? labelNameReason(
-          name,
-          labels.filter(item => item.name !== label.name),
-        )
-      : keyReason;
-  const conflict = labels.find(
-    item => item.name !== label.name && item.key !== null && item.key === key,
+  const reason = labelNameReason(
+    name,
+    labels.filter(item => item.name !== label.name),
   );
-  const unchangedName = kind === 'rename' && name.trim() === label.name;
+  const unchanged = name.trim() === label.name;
   const unavailableReason =
-    reason ?? (busy ? '저장 중' : unchangedName ? '같은 이름' : undefined);
+    reason ?? (busy ? '저장 중' : unchanged ? '같은 이름' : undefined);
   const save = async (): Promise<void> => {
-    if (busy || reason !== undefined) return;
-    const saved =
-      kind === 'rename'
-        ? await store.renameLabel(label.name, name.trim())
-        : await store.updateLabels(
-            labels.map(item =>
-              item.name === label.name ? {...item, key} : item,
-            ),
-          );
-    if (saved) onClose();
-  };
-  const record = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (
-      event.key === 'Tab' ||
-      event.key === 'Escape' ||
-      event.key === 'Enter'
-    ) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    if (busy || isComposing(event)) return;
-    if (event.key === 'Backspace' || event.key === 'Delete') {
-      setKey(null);
-      setKeyReason(undefined);
-      return;
-    }
-    let code = event.code;
-    if (/^Numpad[0-9]$/.test(code) && event.getModifierState('NumLock')) {
-      code = code.replace('Numpad', 'Digit');
-    }
-    if (
-      event.ctrlKey ||
-      event.altKey ||
-      event.shiftKey ||
-      event.metaKey ||
-      !/^(Key[A-Z]|Digit[0-9])$/.test(code)
-    ) {
-      setKeyReason(JUMP_KEY_REASON);
-      return;
-    }
-    setKey(code);
-    setKeyReason(undefined);
+    if (busy || reason !== undefined || unchanged) return;
+    if (await store.renameLabel(label.name, name.trim())) onClose();
   };
   return (
     <Dialog
-      title={kind === 'rename' ? '이름표 이름 바꾸기' : '이름표 바로 가기 키'}
+      title="이름표 이름 바꾸기"
       subtitle={{text: label.name}}
       size="s"
       onCancel={onClose}
       primary={{
         label: '저장',
-        onSelect: () => {
-          editorTask(save());
-        },
-        disabled: busy || reason !== undefined || unchangedName,
-        title:
-          unavailableReason ??
-          (kind === 'rename' ? LABEL_RENAME_SCOPE : undefined),
+        onSelect: () => editorTask(save()),
+        disabled: busy || reason !== undefined || unchanged,
+        title: unavailableReason ?? LABEL_RENAME_SCOPE,
       }}
     >
-      {kind === 'rename' ? (
-        <TextField
-          aria-label="이름표 이름"
-          title={LABEL_RENAME_SCOPE}
-          value={name}
-          onChange={setName}
-          autoFocus
-          block
-          readOnly={busy}
-          invalid={reason !== undefined}
-          invalidReason={reason}
-        />
-      ) : (
-        <>
-          <TextField
-            {...shortcutRecordingProps}
-            aria-label="바로 가기 키"
-            value={key?.replace(/^(Key|Digit)/, '') ?? ''}
-            placeholder="없음"
-            onChange={() => undefined}
-            readOnly
-            autoFocus
-            block
-            onKeyDown={record}
-            onKeyUp={event => {
-              if (event.key === 'Alt') {
-                event.preventDefault();
-                event.stopPropagation();
-              }
-            }}
-            invalid={reason !== undefined}
-            invalidReason={reason}
-          />
-          {conflict === undefined ? null : (
-            <KeyCombo
-              keys={key === null ? [] : [key.replace(/^(Key|Digit)/, '')]}
-              state="warning"
-              conflictWith={conflict.name}
-            />
-          )}
-        </>
-      )}
+      <TextField
+        aria-label="이름표 이름"
+        title={LABEL_RENAME_SCOPE}
+        value={name}
+        onChange={setName}
+        autoFocus
+        block
+        readOnly={busy}
+        invalid={reason !== undefined}
+        invalidReason={reason}
+      />
     </Dialog>
   );
 }

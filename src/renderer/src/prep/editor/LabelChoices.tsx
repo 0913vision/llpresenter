@@ -1,8 +1,6 @@
 import type {JSX} from 'react';
 import type {Label} from '@shared/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
-import {KeyText, conflictText} from '@renderer/ui/KeyCap';
-import {Tooltip} from '@renderer/ui/Tooltip';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import menuStyles from '@renderer/ui/Menu.module.css';
@@ -21,7 +19,7 @@ interface ChoicesProps {
   readonly onContext: (context: LabelContext) => void;
 }
 
-/** Menu-sized swatches and text shortcuts, with warnings on both duplicates. */
+/** Menu-sized label choices with their shared colors. */
 export function LabelChoices({
   labels,
   selected,
@@ -46,12 +44,6 @@ export function LabelChoices({
         <span className={menuStyles.label}>이름표 없음</span>
       </button>
       {labels.map(label => {
-        const conflict =
-          label.key === null
-            ? undefined
-            : labels.find(
-                other => other.name !== label.name && other.key === label.key,
-              );
         return (
           <button
             key={label.name}
@@ -98,22 +90,6 @@ export function LabelChoices({
               style={{backgroundColor: `var(--label-${label.color})`}}
             />
             <span className={menuStyles.label}>{label.name}</span>
-            {label.key === null ? null : (
-              <span className={classNames(menuStyles.meta, styles.shortcut)}>
-                <KeyText keys={[label.key.replace(/^(Key|Digit)/, '')]} />
-                {conflict === undefined ? null : (
-                  <Tooltip text={conflictText(conflict.name)}>
-                    <span
-                      role="img"
-                      aria-label={conflictText(conflict.name)}
-                      className={styles.warning}
-                    >
-                      <Icon name="warning" size={14} />
-                    </span>
-                  </Tooltip>
-                )}
-              </span>
-            )}
           </button>
         );
       })}

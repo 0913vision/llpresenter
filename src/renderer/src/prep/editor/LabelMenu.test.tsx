@@ -2,7 +2,6 @@ import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from './editorFixture';
 import {editorSetup, lyrics} from './editorTesting';
-import {JUMP_KEY_REASON} from './LabelDialog';
 import {hoverForTooltip} from '@renderer/ui/tooltipTesting';
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
@@ -139,63 +138,27 @@ describe('song editor label menu', () => {
     expect(screen.getByRole('button', {name: '새 절'})).toBeDefined();
   });
 
-  it('records a physical letter and warns on both conflicting rows', async () => {
+  it('keeps legacy label keys stored without displaying or editing them', async () => {
     const {user, labels} = await editorSetup();
-    await openMenu(user);
-    const dialog = await manage('1절', '바로 가기 키');
-    const field = within(dialog).getByRole('textbox', {name: '바로 가기 키'});
-    expect(field.hasAttribute('data-shortcut-recording')).toBe(true);
-    fireEvent.keyDown(field, {key: 'ㅊ', code: 'KeyC'});
-    expect(field.getAttribute('value')).toBe('C');
-    await user.click(within(dialog).getByRole('button', {name: '저장'}));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(labels().value.labels[0]?.key).toBe('KeyC');
-    expect(screen.getAllByRole('img', {name: /겹침/})).toHaveLength(2);
-  });
-
-  it('rejects modifiers and nonletter keys and clears a jump key', async () => {
-    const {user, labels} = await editorSetup();
-    await openMenu(user);
-    const dialog = await manage('1절', '바로 가기 키');
-    const field = within(dialog).getByRole('textbox', {name: '바로 가기 키'});
-    fireEvent.keyDown(field, {key: 'F1', code: 'F1'});
-    expect(field.getAttribute('aria-invalid')).toBe('true');
+    const menu = await openMenu(user);
+    const row = within(menu).getByRole('menuitemradio', {name: '후렴'});
+    expect(row.textContent).toBe('후렴');
+    fireEvent.contextMenu(row);
+    const management = screen.getByRole('menu', {name: '후렴 관리'});
     expect(
-      within(dialog).getByRole('textbox', {description: JUMP_KEY_REASON}),
-    ).toBe(field);
-    fireEvent.keyDown(field, {key: 'c', code: 'KeyC', ctrlKey: true});
-    expect(field.getAttribute('value')).toBe('');
-    fireEvent.keyDown(field, {key: '1', code: 'Digit1'});
-    expect(field.getAttribute('value')).toBe('1');
-    fireEvent.keyDown(field, {key: 'Backspace', code: 'Backspace'});
-    await user.click(within(dialog).getByRole('button', {name: '저장'}));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(labels().value.labels[0]?.key).toBeNull();
+      within(management).queryByRole('menuitem', {name: '바로 가기 키'}),
+    ).toBeNull();
+    expect(
+      within(management).getByRole('menuitem', {name: '이름 바꾸기'}),
+    ).toBeDefined();
+    expect(
+      within(management).getByRole('menuitem', {name: '삭제'}),
+    ).toBeDefined();
+    await user.keyboard('{Escape}');
+    await user.click(within(menu).getByRole('radio', {name: '초록'}));
+    await waitFor(() => expect(labels().value.labels[0]?.color).toBe('green'));
+    expect(labels().value.labels[1]?.key).toBe('KeyC');
   });
-
-  it('normalizes numpad digits only with Num Lock and ignores an IME recording key', async () => {
-    const {user, labels} = await editorSetup();
-    await openMenu(user);
-    const dialog = await manage('1절', '바로 가기 키');
-    const field = within(dialog).getByRole('textbox', {name: '바로 가기 키'});
-    fireEvent.keyDown(field, {key: 'a', code: 'KeyA', isComposing: true});
-    expect(field.getAttribute('value')).toBe('');
-    fireEvent.keyDown(field, {key: 'End', code: 'Numpad1'});
-    expect(field.getAttribute('aria-invalid')).toBe('true');
-    const event = new KeyboardEvent('keydown', {
-      key: '1',
-      code: 'Numpad1',
-      bubbles: true,
-    });
-    Object.defineProperty(event, 'getModifierState', {
-      value: (modifier: string) => modifier === 'NumLock',
-    });
-    fireEvent(field, event);
-    await user.click(within(dialog).getByRole('button', {name: '저장'}));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(labels().value.labels[0]?.key).toBe('Digit1');
-  });
-
   it('deletes only the definition, keeping the song label without color', async () => {
     const {user, labels, session} = await editorSetup();
     await openMenu(user);
