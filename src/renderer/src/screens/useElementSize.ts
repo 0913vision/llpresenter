@@ -12,16 +12,30 @@ export function useElementSize(): readonly [
 ] {
   const [size, setSize] = useState<BoxSize | undefined>(undefined);
   const observer = useRef<ResizeObserver | null>(null);
-  useEffect(() => () => observer.current?.disconnect(), []);
+  useEffect(
+    () => () => {
+      observer.current?.disconnect();
+      observer.current = null;
+    },
+    [],
+  );
   const watch = useCallback((element: HTMLElement | null) => {
     observer.current?.disconnect();
     observer.current = null;
     if (element === null || typeof ResizeObserver === 'undefined') return;
-    observer.current = new ResizeObserver(entries => {
+    const next = new ResizeObserver(entries => {
+      if (observer.current !== next) return;
       const rect = entries.at(-1)?.contentRect;
-      if (rect !== undefined) setSize({width: rect.width, height: rect.height});
+      if (rect !== undefined) {
+        setSize(previous =>
+          previous?.width === rect.width && previous.height === rect.height
+            ? previous
+            : {width: rect.width, height: rect.height},
+        );
+      }
     });
-    observer.current.observe(element);
+    observer.current = next;
+    next.observe(element);
   }, []);
   return [watch, size];
 }
