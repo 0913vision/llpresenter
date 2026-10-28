@@ -1,4 +1,5 @@
 import {join} from 'node:path';
+import {readFile, writeFile} from 'node:fs/promises';
 import {describe, expect, it} from 'vitest';
 import {parseSong} from '@shared/schema/song';
 import {makeTempDir} from '../../../test/temp-dir';
@@ -28,6 +29,16 @@ describe('readTextFile', () => {
       error: {kind: 'read', file: folder},
     });
   });
+
+  it('keeps valid replacement characters and a byte order mark intact', async () => {
+    const folder = await makeTempDir();
+    const file = join(folder, 'valid.json');
+    await writeFile(file, '\uFEFF{"text":"\uFFFD"}', 'utf8');
+    expect(await readTextFile(file)).toEqual({
+      ok: true,
+      value: '\uFEFF{"text":"\uFFFD"}',
+    });
+  });
 });
 
 describe('loadFile', () => {
@@ -55,6 +66,34 @@ describe('loadFile', () => {
       error: {kind: 'invalid', field: 'title'},
     });
   });
+
+  it.each([
+    {invalid: [0xff]},
+    {invalid: [0xe2, 0x82]},
+    {invalid: [0xc0, 0x80]},
+  ])(
+    'rejects invalid UTF-8 bytes %j in otherwise valid JSON without modifying the file',
+    async ({invalid}) => {
+      const folder = await makeTempDir();
+      const file = join(folder, 'damaged.llsong');
+      const json = JSON.stringify({...hymnOne(), title: 'INVENTED_MARKER'});
+      const [before, after] = json.split('INVENTED_MARKER');
+      if (before === undefined || after === undefined) {
+        throw new Error('Missing fixture marker');
+      }
+      const bytes = Buffer.concat([
+        Buffer.from(before),
+        Buffer.from(invalid),
+        Buffer.from(after),
+      ]);
+      await writeFile(file, bytes);
+      expect(await loadFile(file, parseSong)).toMatchObject({
+        ok: false,
+        error: {kind: 'read', file},
+      });
+      expect(await readFile(file)).toEqual(bytes);
+    },
+  );
 });
 
 describe('listFolder', () => {

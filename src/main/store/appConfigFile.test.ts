@@ -36,6 +36,22 @@ async function readJson(file: string): Promise<unknown> {
 }
 
 describe('openAppConfig with a broken app.json (qa C19)', () => {
+  it('keeps an invalid UTF-8 app.json unchanged after in-memory edits', async () => {
+    const file = await appJson();
+    const bytes = Buffer.concat([
+      Buffer.from('{"format":"llapp","schemaVersion":1,"future":"'),
+      Buffer.from([0xff]),
+      Buffer.from('"}'),
+    ]);
+    await writeFile(file, bytes);
+    const config = await openAppConfig({file, log: fakeLog()});
+    onTestFinished(() => config.dispose());
+    expect(config.isBroken).toBe(true);
+    config.change({mediaStrip: false});
+    await config.flush();
+    expect(await readFile(file)).toEqual(bytes);
+  });
+
   it('keeps the import folder per app data file across UI edits and reopening', async () => {
     const file = await appJson();
     await writeJson(file, {

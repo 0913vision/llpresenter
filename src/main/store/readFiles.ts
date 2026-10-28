@@ -17,7 +17,12 @@ export async function readTextFile(
   file: string,
 ): Promise<Result<string | null, FileError>> {
   try {
-    return {ok: true, value: await readFile(file, 'utf8')};
+    const bytes = await readFile(file);
+    const value = new TextDecoder('utf-8', {
+      fatal: true,
+      ignoreBOM: true,
+    }).decode(bytes);
+    return {ok: true, value};
   } catch (error: unknown) {
     return isMissingFile(error)
       ? {ok: true, value: null}

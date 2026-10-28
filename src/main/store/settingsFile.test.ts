@@ -1,4 +1,4 @@
-import {readFile} from 'node:fs/promises';
+import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {parseLabels} from '@shared/schema/labels';
@@ -103,6 +103,28 @@ describe('readSettingsFile', () => {
       `running from the recovery copy ${join(location.copies, NEWER_COPY)}`,
     );
     expect(await readFile(location.file, 'utf8')).toBe(BROKEN_JSON);
+  });
+
+  it('uses a recovery copy when a JSON string contains invalid UTF-8', async () => {
+    const location = await tempLocation();
+    await writeJson(location.file, labelsFile('placeholder'));
+    await writeJson(join(location.copies, NEWER_COPY), labelsFile('Invented'));
+    const parts = JSON.stringify(labelsFile('MARKER')).split('MARKER');
+    const before = parts[0];
+    const after = parts[1];
+    if (before === undefined || after === undefined) {
+      throw new Error('Missing fixture marker');
+    }
+    const bytes = Buffer.concat([
+      Buffer.from(before),
+      Buffer.from([0xff]),
+      Buffer.from(after),
+    ]);
+    await writeFile(location.file, bytes);
+    const read = await readSettingsFile(location, parseLabels);
+    expect(read.data?.labels.map(({name}) => name)).toEqual(['Invented']);
+    expect(read.problems).toMatchObject([{kind: 'read', file: location.file}]);
+    expect(await readFile(location.file)).toEqual(bytes);
   });
 
   it('reports the parts of the chosen copy that were dropped, with its path', async () => {
