@@ -100,6 +100,64 @@ it('validates names and missing or duplicate targets', () => {
   expect(renamed.ok && renamed.value.lyricStyles[0]?.name).toBe('바뀐 이름');
 });
 
+it('keeps an unchanged normalized name without replacing the document', () => {
+  const original = fixture().value;
+  const file = {
+    ...original,
+    lyricStyles: original.lyricStyles.map(style =>
+      style.id === sourceId ? {...style, name: '기본'} : style,
+    ),
+  };
+  const result = editLyricStyleList(file, {
+    kind: 'rename',
+    id: sourceId,
+    name: ' 기본 ',
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error('Expected unchanged name');
+  expect(result.value).toBe(file);
+});
+
+it('serializes a style name reversion behind a held rename', async () => {
+  const document = fixture();
+  let release: (result: EditResult) => void = () => undefined;
+  const held = new Promise<EditResult>(resolve => {
+    release = resolve;
+  });
+  const writes: SettingsEdit[] = [];
+  const api = fakeLlpApi({
+    settings: {
+      edit: edit => {
+        writes.push(edit);
+        return writes.length === 1
+          ? held
+          : Promise.resolve({ok: true, value: {id: 'looks', revision: 3}});
+      },
+    },
+  });
+  const editor = new LookListEditor(api, vi.fn(), () => ({
+    current: document.value.current,
+    macros: [],
+  }));
+  editor.adopt(document);
+  const first = editor.changeStyleList({
+    kind: 'rename',
+    id: sourceId,
+    name: '임시 스타일',
+  });
+  const second = editor.changeStyleList({
+    kind: 'rename',
+    id: sourceId,
+    name: '기본',
+  });
+  await vi.waitFor(() => expect(writes).toHaveLength(1));
+  release({ok: true, value: {id: 'looks', revision: 2}});
+  expect(await first).toEqual({ok: true, value: true});
+  expect(await second).toEqual({ok: true, value: true});
+  expect(editor.getSnapshot()?.value.lyricStyles[0]?.name).toBe('기본');
+  expect(writes).toHaveLength(2);
+});
+
 it('caps new presets while retaining imported presets', () => {
   const file = fixture().value;
   const prototype = file.lyricStyles[0];

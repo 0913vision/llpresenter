@@ -60,6 +60,7 @@ export function editLyricStyleList(
   if (edit.kind === 'rename') {
     const problem = nameProblem(edit.name, file.lyricStyles, edit.id);
     if (problem !== undefined) return {ok: false, error: problem};
+    if (target.name === edit.name.trim()) return {ok: true, value: file};
     return {
       ok: true,
       value: {

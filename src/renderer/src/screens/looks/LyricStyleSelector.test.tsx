@@ -87,6 +87,22 @@ it('hands focus from a focused keyboard context menu to rename after cleanup', a
   );
 });
 
+it('queues the displayed name when an earlier rename has not published yet', async () => {
+  const {change} = setup();
+  change.mockReturnValue(new Promise(() => undefined));
+  for (const name of ['임시 스타일', '기본']) {
+    fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+    const field = await screen.findByRole('textbox', {name: '스타일 이름'});
+    fireEvent.change(field, {target: {value: name}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+  }
+  expect(change.mock.calls.map(([edit]) => edit)).toEqual([
+    expect.objectContaining({kind: 'rename', name: '임시 스타일'}),
+    expect.objectContaining({kind: 'rename', name: '기본'}),
+  ]);
+});
+
 it.each(['', '다른 스타일'])(
   'keeps invalid style draft %j open on Enter and restores it on blur',
   async draft => {

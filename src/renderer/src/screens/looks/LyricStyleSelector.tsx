@@ -232,7 +232,7 @@ export function LyricStyleSelector({
           looks={looks}
           onFinish={name => {
             setRenaming(null);
-            if (name !== null && name !== renaming.name) {
+            if (name !== null) {
               run({kind: 'rename', id: renaming.id, name});
             }
           }}
