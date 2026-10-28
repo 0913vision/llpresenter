@@ -480,7 +480,11 @@ it('renames and deletes the displayed collection while retaining macros', async 
     screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
   );
   fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
-  expect(screen.getByRole('alertdialog')).toBeDefined();
+  expect(
+    screen.getByRole('alertdialog', {
+      name: '\u2018\uc8fc\uc77c\u2019 \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?',
+    }),
+  ).toBeDefined();
   fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
   await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
   const deletion = next.edit.mock.calls[0]?.[0];

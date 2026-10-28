@@ -710,7 +710,7 @@ export function MacroPanel({
       {collectionDialog?.kind === 'delete' ? (
         <AlertDialog
           icon="warning"
-          title={`?${collectionDialog.item.name}? \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?`}
+          title={`\u2018${collectionDialog.item.name}\u2019 \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?`}
           meta={[
             '\ub9e4\ud06c\ub85c\ub294 \uc0ad\uc81c\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4',
           ]}
