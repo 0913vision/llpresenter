@@ -79,7 +79,7 @@ export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
   }, [anchor]);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isComposing(event)) return;
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && !hasModifier(event)) {
       event.preventDefault();
       event.stopPropagation();
       onEscape();

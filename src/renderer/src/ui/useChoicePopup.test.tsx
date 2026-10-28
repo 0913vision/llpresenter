@@ -101,6 +101,23 @@ it('passes modified navigation keys without moving focus', () => {
   );
 });
 
+it('passes modified Escape without closing the popup', () => {
+  const {onEscape} = setup();
+  const choice = screen.getByRole('menuitemradio', {name: 'Blue'});
+  const keys = vi.fn();
+  window.addEventListener('keydown', keys);
+  for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+    expect(fireEvent.keyDown(choice, {key: 'Escape', [modifier]: true})).toBe(
+      true,
+    );
+  }
+  window.removeEventListener('keydown', keys);
+  expect(keys).toHaveBeenCalledTimes(4);
+  expect(onEscape).not.toHaveBeenCalled();
+  fireEvent.keyDown(choice, {key: 'Escape'});
+  expect(onEscape).toHaveBeenCalledOnce();
+});
+
 it('falls back to the first choice and leaves typing and composing Escape to the input', () => {
   const {onEscape} = setup(false);
   expect(document.activeElement).toBe(
