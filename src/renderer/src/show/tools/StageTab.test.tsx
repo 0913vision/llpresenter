@@ -50,15 +50,15 @@ describe('stage tool', () => {
     const fixture = stageFixture();
     useShowToolTab.setState({tool: 'message'});
     const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
-    await waitFor(() => expect(fixture.count()).toBe(2));
+    await waitFor(() => expect(fixture.count()).toBe(4));
     fixture.get.mockClear();
     fireEvent.click(screen.getByRole('tab', {name: '무대'}));
     expect(
       await screen.findByRole('button', {name: '무대 화면 무대 배치'}),
     ).toBeTruthy();
-    expect(fixture.count()).toBe(5);
+    expect(fixture.count()).toBe(7);
     fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
-    await waitFor(() => expect(fixture.count()).toBe(2));
+    await waitFor(() => expect(fixture.count()).toBe(4));
     unmount();
     expect(fixture.count()).toBe(0);
     expect(fixture.send).not.toHaveBeenCalled();
