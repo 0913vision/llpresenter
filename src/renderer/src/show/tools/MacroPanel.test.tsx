@@ -323,3 +323,45 @@ it('saves an icon chosen from the macro menu', async () => {
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.icon).toBe('sun');
 });
+
+it('selects a color with the keyboard and leaves the menu open', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.contextMenu(tile);
+  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0c9'}));
+  const teal = screen.getByRole('radio', {name: '\uccad\ub85d'});
+  expect(document.activeElement).toBe(teal);
+  fireEvent.keyDown(teal, {key: 'ArrowRight'});
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(edit.value.macros[0]?.color).toBe('green');
+  expect(screen.getByRole('menu', {name: '\ub9e4\ud06c\ub85c'})).toBeDefined();
+});
+
+it.each([
+  ['ArrowUp', '\uc544\uc774\ucf58 \ubc14\uafb8\uae30'],
+  ['ArrowDown', '\ub3d9\uc791 \ucd94\uac00'],
+])(
+  'returns from the color row to menu navigation with %s',
+  async (key, expected) => {
+    Element.prototype.scrollIntoView = vi.fn();
+    fixture();
+    render(<MacroPanel />);
+    const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+    fireEvent.contextMenu(tile);
+    const color = screen.getByRole('menuitem', {name: '\uc0c9'});
+    fireEvent.pointerEnter(color);
+    fireEvent.click(color);
+    const teal = screen.getByRole('radio', {name: '\uccad\ub85d'});
+    expect(document.activeElement).toBe(teal);
+    fireEvent.keyDown(teal, {key});
+    const menu = screen.getByRole('menu', {name: '\ub9e4\ud06c\ub85c'});
+    expect(document.activeElement).toBe(menu);
+    const pointed = document.getElementById(
+      menu.getAttribute('aria-activedescendant') ?? '',
+    );
+    expect(pointed?.textContent).toBe(expected);
+  },
+);

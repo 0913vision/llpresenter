@@ -1,6 +1,6 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(8, 32px);
-  max-height: 320px;
+  grid-template-columns: repeat(8, var(--size-toolbar-button-compact));
+  max-height: calc(var(--size-toolbar-button-compact) * 10);
   overflow: auto;
 }

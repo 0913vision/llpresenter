@@ -7,6 +7,7 @@ import {
   useState,
   type CSSProperties,
   type JSX,
+  type ReactNode,
   type KeyboardEvent,
   type RefObject,
 } from 'react';
@@ -58,6 +59,7 @@ export interface MenuProps {
   readonly width?: number | undefined;
   /** The narrowest the menu may be, such as the width of a Select. */
   readonly minWidth?: number | undefined;
+  readonly footer?: ReactNode | undefined;
 }
 
 const SUBMENU_OPEN_DELAY_MS = 150;
@@ -249,6 +251,7 @@ interface SurfaceProps {
   readonly width?: number | undefined;
   readonly minWidth?: number | undefined;
   readonly autoFocus: boolean;
+  readonly footer?: ReactNode | undefined;
 }
 
 function MenuSurface(props: SurfaceProps): JSX.Element {
@@ -331,6 +334,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
           />
         )}
         <MenuBlocks entries={entries} baseId={baseId} renderItem={renderItem} />
+        {props.footer}
       </div>
       <Submenu nav={nav} parent={surface} onClose={onClose} />
     </>
@@ -389,6 +393,7 @@ export function Menu({
   search,
   width,
   minWidth,
+  footer,
 }: MenuProps): JSX.Element {
   const catcher = useRef<HTMLDivElement>(null);
   const [menubar] = useState(() =>
@@ -441,6 +446,7 @@ export function Menu({
         search={search}
         width={width}
         minWidth={minWidth}
+        footer={footer}
         autoFocus
       />
     </div>,

@@ -9,7 +9,13 @@ import {
 } from '@shared/schema/macros';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {sendLive} from '@renderer/state/live';
-import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
+import {
+  AlertDialog,
+  Dialog,
+  MacroColorPicker,
+  Menu,
+  TextField,
+} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroView, type MacroViewMode} from './MacroView';
@@ -192,6 +198,7 @@ export function MacroPanel({
   const [editor, setEditor] = useState<Editor | null>(null);
   const revision = useRef(0);
   const pendingCount = useRef<AbortController | null>(null);
+  const colorRow = useRef<HTMLDivElement>(null);
   useEffect(() => () => pendingCount.current?.abort(), []);
   const {busy, run} = useToolEditing({
     api: window.llp,
@@ -329,6 +336,50 @@ export function MacroPanel({
           label="매크로"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
+          footer={
+            <div
+              ref={colorRow}
+              onPointerEnter={event => event.stopPropagation()}
+              onKeyDown={event => {
+                if (
+                  (event.key === 'ArrowUp' || event.key === 'ArrowDown') &&
+                  !event.altKey &&
+                  !event.ctrlKey &&
+                  !event.metaKey &&
+                  !event.shiftKey
+                ) {
+                  event.currentTarget
+                    .closest<HTMLElement>('[role="menu"]')
+                    ?.focus();
+                } else if (
+                  [
+                    'ArrowLeft',
+                    'ArrowRight',
+                    'Home',
+                    'End',
+                    'Enter',
+                    ' ',
+                  ].includes(event.key)
+                ) {
+                  event.stopPropagation();
+                }
+              }}
+            >
+              <MacroColorPicker
+                label={'\uc0c9'}
+                name={'\uc0c9'}
+                inMenu
+                disabled={locked}
+                value={
+                  document?.value.macros.find(item => item.id === menu.item.id)
+                    ?.color ?? menu.item.color
+                }
+                onChange={color =>
+                  commit({kind: 'update', id: menu.item.id, changes: {color}})
+                }
+              />
+            </div>
+          }
           entries={[
             {
               kind: 'item',
@@ -349,6 +400,17 @@ export function MacroPanel({
               label: '\uc544\uc774\ucf58 \ubc14\uafb8\uae30',
               disabled: locked,
               onSelect: () => setEditor({kind: 'icon', item: menu.item}),
+            },
+            {
+              kind: 'item',
+              id: 'color',
+              label: '\uc0c9',
+              disabled: locked,
+              keepsOpen: true,
+              onSelect: () =>
+                colorRow.current
+                  ?.querySelector<HTMLElement>('[role=radio][tabindex="0"]')
+                  ?.focus(),
             },
             {
               kind: 'item',

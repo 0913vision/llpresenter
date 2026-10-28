@@ -132,3 +132,12 @@ describe('MacroColorPicker', () => {
     expect(screen.getByText('색')).toBeDefined();
   });
 });
+
+it('does not apply a macro color while disabled', () => {
+  const change = vi.fn();
+  render(
+    <MacroColorPicker label="Color" value="teal" disabled onChange={change} />,
+  );
+  fireEvent.click(screen.getByRole('radio', {name: '\ucd08\ub85d'}));
+  expect(change).not.toHaveBeenCalled();
+});

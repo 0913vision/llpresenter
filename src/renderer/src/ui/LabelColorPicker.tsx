@@ -31,6 +31,7 @@ interface SwatchProps {
   readonly color: LabelColor;
   readonly scope?: string | undefined;
   readonly checked: boolean;
+  readonly disabled: boolean;
   readonly tabIndex: 0 | -1;
   readonly elementRef: (element: HTMLElement | null) => void;
   readonly onSelect: () => void;
@@ -41,6 +42,7 @@ function Swatch({
   color,
   scope,
   checked,
+  disabled,
   tabIndex,
   elementRef,
   onSelect,
@@ -49,7 +51,7 @@ function Swatch({
   const name = labelColorNames[color];
   const {targetProps, tooltip} = useTooltip({text: name, sub: scope});
   const press = useButtonPress<HTMLButtonElement>({
-    disabled: false,
+    disabled,
     onPress: onSelect,
     onKeyDown,
     onBlur: targetProps.onBlur,
@@ -64,6 +66,7 @@ function Swatch({
         type="button"
         role="radio"
         aria-checked={checked}
+        aria-disabled={disabled || undefined}
         aria-label={name}
         tabIndex={tabIndex}
         className={classNames(styles.swatch, isNone && styles.none)}
@@ -93,6 +96,7 @@ export interface SwatchRowProps<T extends LabelColor> {
   readonly name?: string | undefined;
   /** Draws the row inside a menu, lined up with the menu items. */
   readonly inMenu?: boolean | undefined;
+  readonly disabled?: boolean | undefined;
 }
 
 function SwatchRow<T extends LabelColor>({
@@ -103,9 +107,10 @@ function SwatchRow<T extends LabelColor>({
   scope,
   name,
   inMenu = false,
+  disabled = false,
 }: SwatchRowProps<T>): JSX.Element {
   const items = colors.map(color => ({value: color}));
-  const roving = useRovingSelection({items, value, onChange, disabled: false});
+  const roving = useRovingSelection({items, value, onChange, disabled});
   return (
     <div
       role="radiogroup"
@@ -123,6 +128,7 @@ function SwatchRow<T extends LabelColor>({
           color={color}
           scope={scope}
           checked={color === value}
+          disabled={disabled}
           tabIndex={roving.tabIndexOf(index)}
           elementRef={roving.refOf(index)}
           onSelect={() => {
