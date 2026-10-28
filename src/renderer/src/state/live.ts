@@ -53,9 +53,16 @@ function accept(next: LiveState): void {
 export function startLiveSync(): () => void {
   const api = window.llp;
   if (api === undefined) return () => undefined;
-  const unsubscribe = api.live.subscribe(accept);
-  api.live.get().then(accept, () => undefined);
-  return unsubscribe;
+  let stopped = false;
+  const receive = (next: LiveState): void => {
+    if (!stopped) accept(next);
+  };
+  const unsubscribe = api.live.subscribe(receive);
+  api.live.get().then(receive, () => undefined);
+  return () => {
+    stopped = true;
+    unsubscribe();
+  };
 }
 
 export function sendLive(command: LiveCommand): void {
