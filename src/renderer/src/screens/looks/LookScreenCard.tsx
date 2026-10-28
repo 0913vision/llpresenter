@@ -1,5 +1,7 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {Look} from '@shared/schema/looks';
+import type {MessageStyleId} from '@shared/schema/ids';
+import {MessageStyleSelect} from './MessageStyleSelect';
 import type {LookPreviewInput} from './lookPreviewFrame';
 import type {Timer} from '@shared/schema/timers';
 import {CheckRow} from '@renderer/ui/Checkbox';
@@ -75,6 +77,8 @@ export function LookScreenCard({
   reason,
   onChange,
   onProblem,
+  onMessageChange,
+  onMessageCreate,
 }: Omit<LookPreviewInput, 'lookId' | 'state'> & {
   readonly look: Look;
   readonly timers: readonly Timer[];
@@ -82,6 +86,8 @@ export function LookScreenCard({
   readonly reason: string | undefined;
   readonly onChange: (change: LookCardChange) => void;
   readonly onProblem: (title: string) => void;
+  readonly onMessageChange: (id: MessageStyleId | null) => void;
+  readonly onMessageCreate: () => void;
 }): JSX.Element {
   const card = screenCard(look, screen.id);
   const stage = screen.kind === 'stage';
@@ -202,6 +208,17 @@ export function LookScreenCard({
                 }
               />
             )
+          ) : null}
+          {layer === 'message' ? (
+            <MessageStyleSelect
+              file={looks}
+              look={look}
+              screenId={screen.id}
+              screenName={screen.name}
+              reason={reason}
+              onChange={onMessageChange}
+              onCreate={onMessageCreate}
+            />
           ) : null}
           {layer === 'media' && caption ? (
             <SelectMenu

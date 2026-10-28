@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import {parseLookId} from '@shared/schema/ids';
+import {parseLookId, parseMessageStyleId} from '@shared/schema/ids';
 import type {Look} from '@shared/schema/looks';
 import {useLive} from '@renderer/state/live';
 import {Button} from '@renderer/ui/Button';
@@ -198,6 +198,29 @@ export function LookEditor({
                   target={previewCaption(screen, monitors).target}
                   reason={reason}
                   onProblem={editor.report}
+                  onMessageChange={styleId => {
+                    editor
+                      .assignMessage({
+                        lookId: look.id,
+                        screenId: screen.id,
+                        styleId,
+                      })
+                      ?.catch(failed);
+                  }}
+                  onMessageCreate={() => {
+                    const id = parseMessageStyleId(crypto.randomUUID());
+                    if (!id.ok) {
+                      editor.report('메시지 스타일 추가 실패');
+                      return;
+                    }
+                    editor
+                      .createMessage({
+                        lookId: look.id,
+                        screenId: screen.id,
+                        styleId: id.value,
+                      })
+                      ?.catch(failed);
+                  }}
                   onChange={change => {
                     editor
                       .changeCard({

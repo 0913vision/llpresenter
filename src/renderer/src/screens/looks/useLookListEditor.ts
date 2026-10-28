@@ -7,6 +7,10 @@ import {LookListEditor} from './lookListEditor';
 import type {LookListEdit} from './lookListEdits';
 import type {LookCardEdit} from './lookCardEdits';
 import type {LyricStyleEdit} from './lyricStyleEdits';
+import type {
+  assignMessageStyle,
+  createAndAssignMessageStyle,
+} from './messageStyleAssignment';
 import type {LyricStyleListEdit} from './lyricStyleListEdits';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
@@ -79,6 +83,10 @@ export function useLookListEditor(
     change: (edit: LookListEdit) => session.current?.editor.change(edit),
     changeCard: (edit: LookCardEdit) =>
       session.current?.editor.changeCard(edit),
+    assignMessage: (input: Parameters<typeof assignMessageStyle>[1]) =>
+      session.current?.editor.assignMessage(input),
+    createMessage: (input: Parameters<typeof createAndAssignMessageStyle>[1]) =>
+      session.current?.editor.createMessage(input),
     changeStyle: (edit: LyricStyleEdit) =>
       session.current?.editor.changeStyle(edit),
     changeStyleList: (edit: LyricStyleListEdit) =>

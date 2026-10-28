@@ -3,6 +3,10 @@ import type {Result} from '@shared/result';
 import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from './lookCardEdits';
+import {
+  assignMessageStyle,
+  createAndAssignMessageStyle,
+} from './messageStyleAssignment';
 import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
 import {editLyricEffects, type LyricEffectsChange} from './lyricEffectsEdits';
 import type {LyricStyleId} from '@shared/schema/ids';
@@ -52,6 +56,20 @@ export class LookListEditor {
 
   changeCard(edit: LookCardEdit): Promise<boolean> {
     return this.documents.change(value => editLookCard(value, edit));
+  }
+
+  assignMessage(
+    input: Parameters<typeof assignMessageStyle>[1],
+  ): Promise<boolean> {
+    return this.documents.change(value => assignMessageStyle(value, input));
+  }
+
+  createMessage(
+    input: Parameters<typeof createAndAssignMessageStyle>[1],
+  ): Promise<boolean> {
+    return this.documents.change(value =>
+      createAndAssignMessageStyle(value, input),
+    );
   }
 
   changeStyle(edit: LyricStyleEdit): Promise<boolean> {

@@ -239,8 +239,8 @@ it('bounds mounted screen cards for a large configured screen list', async () =>
   await waitFor(() =>
     expect(
       within(screen.getByRole('region', {name: '검사 화면 200'})).getByRole(
-        'checkbox',
-        {name: '메시지'},
+        'button',
+        {name: '검사 화면 200 메시지 스타일 추가'},
       ),
     ).toBe(document.activeElement),
   );
@@ -416,6 +416,11 @@ it('sends no edit from read-only name, duplicate, layer or style controls', asyn
   expect(field.getAttribute('readonly')).not.toBeNull();
   await user.type(field, '변경{Enter}');
   for (const button of screen.getAllByRole('button')) {
+    if (
+      button.getAttribute('aria-label')?.endsWith(' \uc124\uc815 \uc5f4\uae30')
+    ) {
+      continue;
+    }
     expect(button.getAttribute('aria-disabled')).toBe('true');
     await user.click(button);
   }
@@ -438,4 +443,41 @@ it('keeps a Look name draft on modified Enter and Escape', async () => {
   expect(edit).not.toHaveBeenCalled();
   fireEvent.keyDown(field, {key: 'Enter'});
   await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+});
+
+it('creates and assigns a message style only to the chosen screen', async () => {
+  const {user, document} = setup();
+  const card = within(
+    await screen.findByRole('region', {name: '\ubcf8 \ud654\uba74'}),
+  );
+  await user.click(
+    card.getByRole('button', {
+      name: '\ubcf8 \ud654\uba74 \uba54\uc2dc\uc9c0 \uc2a4\ud0c0\uc77c \ucd94\uac00',
+    }),
+  );
+  await waitFor(() => {
+    const saved = document();
+    if (saved.name !== 'looks') throw new Error('Wrong fixture');
+    const id = saved.value.messageStyles?.[0]?.id;
+    expect(id).toBeDefined();
+    expect(saved.value.looks[0]?.screens[mainId]?.messageStyle).toBe(id);
+    expect(
+      saved.value.looks[0]?.screens[captionsId]?.messageStyle,
+    ).toBeUndefined();
+  });
+});
+
+it('reports a meaningful error when generating a message style id fails', async () => {
+  const random = vi
+    .spyOn(crypto, 'randomUUID')
+    .mockReturnValue('bad-bad-bad-bad-bad');
+  const {user, onProblem} = setup();
+  const card = within(await screen.findByRole('region', {name: '본 화면'}));
+  await user.click(
+    card.getByRole('button', {name: '본 화면 메시지 스타일 추가'}),
+  );
+  expect(onProblem).toHaveBeenCalledWith(
+    expect.objectContaining({title: '메시지 스타일 추가 실패'}),
+  );
+  random.mockRestore();
 });
