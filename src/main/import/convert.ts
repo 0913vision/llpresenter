@@ -35,17 +35,18 @@ function parseBracketLabel(
 }
 
 function normalizeLines(text: string): string[] | null {
-  const lines = text
+  const normalized = text
     .replace(/^\uFEFF/u, '')
     .replace(/\r\n?/gu, '\n')
     .replaceAll('\t', ' ')
+    .replace(/^(?:[^\S\n]*\n)*/u, '')
+    .trimEnd();
+  if (normalized === '') return [];
+  const lines = normalized
     .split('\n', TEXT_IMPORT_LIMITS.lines + 1)
     .map(line => line.trimEnd());
   if (lines.length > TEXT_IMPORT_LIMITS.lines) return null;
-  while (lines.at(-1) === '') lines.pop();
-  let first = 0;
-  while (lines[first] === '') first++;
-  return lines.slice(first);
+  return lines;
 }
 
 function* sections(

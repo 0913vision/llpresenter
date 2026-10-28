@@ -88,6 +88,33 @@ describe('text import conversion', () => {
     });
   });
 
+  it('trims boundary blank lines before enforcing the line limit', () => {
+    const text = Array.from(
+      {length: TEXT_IMPORT_LIMITS.lines},
+      () => 'Invented',
+    ).join('\n');
+    const options = {
+      unitsPerSlide: TEXT_IMPORT_LIMITS.unitsPerSlide,
+      labels: 'off' as const,
+    };
+    const result = convertTextImport(
+      request(` \n\t\n${text}\n\n \t\n`, options),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error(result.error.message);
+    }
+    expect(result.value.slides.flatMap(slide => slide.lines)).toHaveLength(
+      TEXT_IMPORT_LIMITS.lines,
+    );
+    expect(
+      convertTextImport(request(`${text}\nAnother\n`, options)),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      draft(`${'\n'.repeat(TEXT_IMPORT_LIMITS.lines)}Invented`).slides,
+    ).toEqual([{lines: ['Invented'], section: 0}]);
+  });
+
   it('groups line breaks without joining across a stanza', () => {
     expect(draft('One\nTwo\nThree\n\nFour\nFive\nSix').slides).toEqual([
       {lines: ['One', 'Two'], section: 0},
@@ -239,9 +266,6 @@ describe('text import conversion', () => {
     for (const value of [
       request('a'.repeat(TEXT_IMPORT_LIMITS.characters + 1)),
       request('a\n'.repeat(TEXT_IMPORT_LIMITS.lines + 1)),
-      request(
-        `${'\n'.repeat(TEXT_IMPORT_LIMITS.lines)}Do not silently lose this`,
-      ),
       request('a\n'.repeat(TEXT_IMPORT_LIMITS.slides + 1), {unitsPerSlide: 1}),
       request('/'.repeat(TEXT_IMPORT_LIMITS.units + 1), {
         split: 'symbol',
