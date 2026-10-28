@@ -286,3 +286,23 @@ it('toggles membership using the current collection state', async () => {
   if (addition?.name !== 'macros') throw new Error('Missing macro edit');
   expect(addition.value.collections[0]?.macroIds).toEqual([id]);
 });
+
+it('creates a new collection containing the selected macro', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  await openActionSubmenu('\ubaa8\uc74c');
+  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0c8 \ubaa8\uc74c'}));
+  const dialog = screen.getByRole('dialog', {name: '\uc0c8 \ubaa8\uc74c'});
+  expect(dialog).toBeDefined();
+  fireEvent.change(screen.getByRole('textbox', {name: '\uc774\ub984'}), {
+    target: {value: 'Team'},
+  });
+  fireEvent.click(screen.getByRole('button', {name: '\ucd94\uac00'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.collections[1]).toMatchObject({
+    name: 'Team',
+    macroIds: [id],
+  });
+});

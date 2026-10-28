@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {parseMacroId} from '@shared/schema/ids';
+import {parseMacroCollectionId, parseMacroId} from '@shared/schema/ids';
 import {
   MACRO_FILE_LIMITS,
   isKnownMacroAction,
@@ -16,12 +16,14 @@ import {MacroView, type MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {countMacroUses} from './macroUsage';
 import {useToolEditing} from './useToolEditing';
+import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import {MacroActionDialog} from './MacroActionDialog';
 import {draftMacroAction} from './macroActionDraft';
 import {MACRO_PALETTE} from './macroPaletteCatalog';
 import {useMacroTargets} from './useMacroTargets';
 
 type Editor =
+  | {kind: 'new-collection'; item: Macro}
   | {
       kind: 'action';
       item: Macro;
@@ -75,6 +77,40 @@ function RenameDialog({
   );
 }
 
+function CollectionDialog({
+  locked,
+  close,
+  save,
+}: {
+  readonly locked: boolean;
+  readonly close: () => void;
+  readonly save: (name: string) => void;
+}): JSX.Element {
+  const [name, setName] = useState('');
+  return (
+    <Dialog
+      title={'\uc0c8 \ubaa8\uc74c'}
+      size="s"
+      onCancel={close}
+      primary={{
+        label: '\ucd94\uac00',
+        disabled: locked || !name.trim() || name.trim().length > 256,
+        onSelect: () => save(name.trim()),
+      }}
+    >
+      <TextField
+        aria-label={'\uc774\ub984'}
+        autoFocus
+        block
+        maxLength={256}
+        readOnly={locked}
+        value={name}
+        onChange={setName}
+      />
+    </Dialog>
+  );
+}
+
 function ActionDialog({
   editor,
   locked,
@@ -96,7 +132,7 @@ function ActionDialog({
   if (!targets) {
     return (
       <Dialog
-        title="\ub3d9\uc791 \uc124\uc815"
+        title={'\ub3d9\uc791 \uc124\uc815'}
         size="s"
         onCancel={close}
         primary={{
@@ -105,7 +141,7 @@ function ActionDialog({
           onSelect: () => undefined,
         }}
       >
-        <span>\ub300\uc0c1\uc744 \ubd88\ub7ec\uc624\ub294 \uc911</span>
+        <span>{'\ub300\uc0c1\uc744 \ubd88\ub7ec\uc624\ub294 \uc911'}</span>
       </Dialog>
     );
   }
@@ -161,7 +197,21 @@ export function MacroPanel({
     onProblem,
     area: {key: 'macros', label: '매크로', log: 'Could not edit macros'},
   });
-  const locked = busy || document?.access !== 'editable' || !window.llp;
+  const collectionEdit = useToolEditing({
+    api: window.llp,
+    write: saveMacroCollectionEdit,
+    onProblem,
+    area: {
+      key: 'macro-collections',
+      label: '\ubaa8\uc74c',
+      log: 'Could not edit macro collections',
+    },
+  });
+  const locked =
+    busy ||
+    collectionEdit.busy ||
+    document?.access !== 'editable' ||
+    !window.llp;
   const currentCollection = document?.value.collections.find(
     item => item.id === collection,
   )?.id;
@@ -376,21 +426,33 @@ export function MacroPanel({
               kind: 'item',
               id: 'collections',
               label: '\ubaa8\uc74c',
-              disabled: locked || !document.value.collections.length,
-              submenu: document?.value.collections.map(collection => ({
-                kind: 'item' as const,
-                id: collection.id,
-                label: collection.name,
-                check: 'checkbox' as const,
-                checked: collection.macroIds.includes(menu.item.id),
-                onSelect: () =>
-                  commit({
-                    kind: 'membership',
-                    id: menu.item.id,
-                    collection: collection.id,
-                    member: !collection.macroIds.includes(menu.item.id),
-                  }),
-              })),
+              disabled: locked,
+              submenu: [
+                ...(document?.value.collections.map(collection => ({
+                  kind: 'item' as const,
+                  id: collection.id,
+                  label: collection.name,
+                  check: 'checkbox' as const,
+                  checked: collection.macroIds.includes(menu.item.id),
+                  onSelect: () =>
+                    commit({
+                      kind: 'membership',
+                      id: menu.item.id,
+                      collection: collection.id,
+                      member: !collection.macroIds.includes(menu.item.id),
+                    }),
+                })) ?? []),
+                {
+                  kind: 'item' as const,
+                  id: 'new-collection',
+                  label: '\uc0c8 \ubaa8\uc74c',
+                  disabled:
+                    (document?.value.collections.length ?? 0) >=
+                    MACRO_FILE_LIMITS.collections,
+                  onSelect: () =>
+                    setEditor({kind: 'new-collection', item: menu.item}),
+                },
+              ],
             },
             {
               kind: 'item',
@@ -440,6 +502,34 @@ export function MacroPanel({
               close,
             )
           }
+        />
+      ) : null}
+      {editor?.kind === 'new-collection' ? (
+        <CollectionDialog
+          locked={locked}
+          close={close}
+          save={name => {
+            const id = parseMacroCollectionId(crypto.randomUUID());
+            if (!id.ok) return;
+            const at = revision.current;
+            collectionEdit
+              .run({
+                kind: 'add',
+                collection: {id: id.value, name, macroIds: [editor.item.id]},
+                requireMember: editor.item.id,
+              })
+              .then(
+                saved => {
+                  if (saved && at === revision.current) close();
+                },
+                (cause: unknown) =>
+                  window.llp?.log.write({
+                    level: 'error',
+                    message: 'Macro collection callback failed',
+                    detail: String(cause),
+                  }),
+              );
+          }}
         />
       ) : null}
       {editor?.kind === 'rename' ? (

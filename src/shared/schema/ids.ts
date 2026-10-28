@@ -141,6 +141,10 @@ export function parseServiceItemId(value: unknown) {
   return parsePayload(serviceItemIdSchema, value);
 }
 
+export function parseMacroCollectionId(value: unknown) {
+  return parsePayload(macroCollectionIdSchema, value);
+}
+
 export function parseMacroId(value: unknown) {
   return parsePayload(macroIdSchema, value);
 }

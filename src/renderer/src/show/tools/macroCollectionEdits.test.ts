@@ -131,3 +131,21 @@ it('rejects missing collections and bad names and reports applied write failures
     }),
   ).rejects.toThrow('Invalid collection name');
 });
+
+it('rejects creating a collection for a macro removed during the read', async () => {
+  const missing = parseSettingsDocument({
+    ...document(),
+    value: {...document().value, macros: []},
+  });
+  if (!missing.ok || missing.value.name !== 'macros') {
+    throw new Error('Invalid fixture');
+  }
+  const edit = vi.fn();
+  const api = fakeLlpApi({settings: {get: async () => missing.value, edit}});
+  const id = document().value.macros[0]?.id;
+  if (!id) throw new Error('Missing macro');
+  await expect(
+    saveMacroCollectionEdit(api, {kind: 'add', collection, requireMember: id}),
+  ).rejects.toThrow('Macro no longer exists');
+  expect(edit).not.toHaveBeenCalled();
+});

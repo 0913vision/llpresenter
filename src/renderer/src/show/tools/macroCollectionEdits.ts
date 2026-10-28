@@ -3,6 +3,7 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,
   serializeMacros,
+  type Macro,
   type MacroCollection,
   type MacrosFile,
 } from '@shared/schema/macros';
@@ -10,7 +11,11 @@ import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 
 export type MacroCollectionEdit =
-  | {readonly kind: 'add'; readonly collection: MacroCollection}
+  | {
+      readonly kind: 'add';
+      readonly collection: MacroCollection;
+      readonly requireMember?: Macro['id'] | undefined;
+    }
   | {
       readonly kind: 'rename';
       readonly id: MacroCollection['id'];
@@ -29,6 +34,13 @@ function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
     };
   }
   if (edit.kind === 'add' && existing) return file;
+  if (
+    edit.kind === 'add' &&
+    edit.requireMember &&
+    !file.macros.some(item => item.id === edit.requireMember)
+  ) {
+    throw new Error('Macro no longer exists');
+  }
   if (
     edit.kind === 'add' &&
     file.collections.length >= MACRO_FILE_LIMITS.collections
