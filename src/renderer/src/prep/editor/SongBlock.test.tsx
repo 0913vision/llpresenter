@@ -197,6 +197,22 @@ describe('SongBlock', () => {
     expect(tooltip).toBeNull();
   });
 
+  it('ignores modified keyboard activation on the new group button', () => {
+    const onOpen = vi.fn();
+    renderBlock(1, createGroupedSong(), {onOpen, active: true});
+    const button = screen.getByRole('button', {name: '새 그룹'});
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of [' ', 'Enter']) {
+        fireEvent.keyDown(button, {key, [modifier]: true});
+        fireEvent.keyUp(button, {key});
+        fireEvent.click(button, {detail: 0});
+      }
+    }
+    expect(onOpen).not.toHaveBeenCalled();
+    fireEvent.click(button, {detail: 1, ctrlKey: true});
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith(button, 1);
+  });
+
   it('opens label menu via Ctrl+G keyboard shortcut on the active slide', () => {
     const onOpen = vi.fn();
     renderBlock(1, createGroupedSong(), {onOpen, active: true});

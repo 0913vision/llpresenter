@@ -14,6 +14,7 @@ import type {Slide} from '@shared/schema/song';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelTag} from '@renderer/ui/LabelChip';
 import {isComposing} from '@renderer/ui/ime';
+import {useButtonPress} from '@renderer/ui/press';
 import {layerContainer} from '@renderer/ui/layers';
 import {placeFloating} from '@renderer/ui/floating';
 import {placeTooltip, viewportSize} from '@renderer/ui/placement';
@@ -80,6 +81,10 @@ export const SongBlock = memo(
 
     const [refused, setRefused] = useState(false);
     const splitButtonRef = useRef<HTMLButtonElement | null>(null);
+    const splitPress = useButtonPress<HTMLButtonElement>({
+      disabled: locked,
+      onPress: event => onOpen(event.currentTarget, block),
+    });
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const refusalTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
       undefined,
@@ -207,13 +212,11 @@ export const SongBlock = memo(
             />
           ) : active && editable ? (
             <button
+              {...splitPress}
               ref={splitButtonRef}
               type="button"
               aria-label="새 그룹"
               className={styles.splitButton}
-              onClick={event => {
-                if (!locked) onOpen(event.currentTarget, block);
-              }}
             >
               <Icon name="plus" size={12} />
               <span>새 그룹</span>
