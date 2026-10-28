@@ -5,3 +5,11 @@
 .body {
   scrollbar-gutter: stable;
 }
+
+.footer > div {
+  height: auto;
+  min-height: var(--size-panel-footer);
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-10);
+  padding-block: var(--space-4);
+}

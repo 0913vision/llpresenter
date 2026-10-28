@@ -762,6 +762,15 @@ that ProPresenter's Edit mode has the same behavior.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
   the selected 슬라이드; the primary button).
+- 앞 절 추가 and 뒤 절 추가 extend the preview's range by one verse, using its
+  translation's chapter counts. They can cross chapters within the book,
+  following
+  [ProPresenter's adjacent-verse controls](https://support.renewedvision.com/hc/en-us/articles/360041347594-Using-Bibles-in-ProPresenter).
+  The selected verse and verse-number option stay; extension alone does not
+  output, edit the 예배 순서, or add recent history. A book boundary stops the
+  extension. A failed or superseded lookup leaves the preview unchanged. Enter
+  from the unchanged reference fields outputs the expanded preview; editing a
+  field starts a new lookup from those fields.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.

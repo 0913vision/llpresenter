@@ -12,6 +12,7 @@ import {
 } from '@renderer/ui/Panel';
 import {SlidePanelBody, SlideSizeControl} from '../SlidePanel';
 import {showBiblePassage} from './actions';
+import {BibleAdjacentButtons} from './BibleAdjacentButtons';
 import styles from './BiblePanel.module.css';
 import {BibleInsertButton} from './BibleInsertButton';
 import type {Notice} from '@renderer/ui/notices';
@@ -36,19 +37,24 @@ export function BiblePanel({
       <PanelBody variant="flush" className={styles.body}>
         <SlidePanelBody sizeClass={sizeClass} />
       </PanelBody>
-      <PanelFooter
-        end={
-          <Button
-            variant="primary"
-            onClick={() => showBiblePassage(source.passage)}
-          >
-            바로 띄우기
-          </Button>
-        }
-      >
-        <SlideSizeControl sizeClass={sizeClass} />
-        <BibleInsertButton source={source} onProblem={onProblem} />
-      </PanelFooter>
+      <div className={styles.footer}>
+        <PanelFooter
+          end={
+            <>
+              <BibleAdjacentButtons key={source.id} source={source} />
+              <Button
+                variant="primary"
+                onClick={() => showBiblePassage(source.passage)}
+              >
+                바로 띄우기
+              </Button>
+            </>
+          }
+        >
+          <SlideSizeControl sizeClass={sizeClass} />
+          <BibleInsertButton source={source} onProblem={onProblem} />
+        </PanelFooter>
+      </div>
     </Panel>
   );
 }

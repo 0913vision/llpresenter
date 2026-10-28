@@ -6,7 +6,11 @@ export interface BibleDisplayOptions {
   readonly verseNumbers: boolean;
 }
 
-export interface BibleSource extends BibleDisplayOptions {
+export interface BiblePreviewOptions extends BibleDisplayOptions {
+  readonly enteredRef?: string | undefined;
+}
+
+export interface BibleSource extends BiblePreviewOptions {
   readonly id: string;
   readonly passage: BibleLookupPassage;
   readonly tiles: readonly SlideTile[];
@@ -18,7 +22,7 @@ export interface BibleSource extends BibleDisplayOptions {
 
 export function bibleSource(
   passage: BibleLookupPassage,
-  options: BibleDisplayOptions = {verseNumbers: true},
+  options: BiblePreviewOptions = {verseNumbers: true},
 ): BibleSource {
   const id = `bible:${passage.translation}:${passage.ref}`;
   const {verseNumbers} = options;
@@ -26,6 +30,9 @@ export function bibleSource(
     id: verseNumbers ? id : `${id}:plain`,
     passage,
     verseNumbers,
+    ...(options.enteredRef === undefined
+      ? {}
+      : {enteredRef: options.enteredRef}),
     tiles: bibleVerseTiles(passage, verseNumbers, 'every'),
   };
 }

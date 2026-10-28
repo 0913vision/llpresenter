@@ -3,7 +3,11 @@ import {outputTile, useShow} from '@renderer/state/show';
 import {beginOutputRequest} from '@renderer/state/showOutput';
 import {useLive} from '@renderer/state/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
-import {bibleSource, type BibleDisplayOptions} from './source';
+import {
+  bibleSource,
+  type BibleDisplayOptions,
+  type BiblePreviewOptions,
+} from './source';
 
 function samePassage(
   first: BibleLookupPassage,
@@ -14,7 +18,7 @@ function samePassage(
 
 export function openBiblePassage(
   passage: BibleLookupPassage,
-  options?: BibleDisplayOptions,
+  options?: BiblePreviewOptions,
 ): void {
   const source = bibleSource(passage, options);
   const view = useShow.getState();
@@ -52,7 +56,7 @@ export function showBiblePassage(
   const display =
     options ??
     (prepared !== null && samePassage(prepared.passage, passage)
-      ? {verseNumbers: prepared.verseNumbers}
+      ? {verseNumbers: prepared.verseNumbers, enteredRef: prepared.enteredRef}
       : undefined);
   openBiblePassage(passage, display);
   const view = useShow.getState();

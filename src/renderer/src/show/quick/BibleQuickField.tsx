@@ -2,7 +2,8 @@ import {useEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {useShow} from '@renderer/state/show';
-import {isBibleSource} from '@renderer/state/showLibrary';
+import {bibleSourceFor, isBibleSource} from '@renderer/state/showLibrary';
+import {beginOutputRequest} from '@renderer/state/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {useBibleVerseNumbers} from '../bible/useBibleVerseNumbers';
@@ -61,13 +62,38 @@ export function BibleQuickField({
           : (translations.find(item => item.default) ?? translations[0])?.id
       }
       recents={document?.value.recents ?? []}
-      onIntent={onIntent}
+      onIntent={() => {
+        beginOutputRequest();
+        onIntent?.();
+      }}
+      onEdit={equivalent => {
+        const view = useShow.getState();
+        const source = view.bibleSource;
+        if (source?.id === view.openItemId && source.enteredRef !== undefined) {
+          if (
+            equivalent?.ref === source.enteredRef &&
+            source.passage.translation === equivalent.translation &&
+            verseNumbers !== null
+          ) {
+            openBiblePassage(equivalent, {verseNumbers});
+          } else {
+            useShow.setState({bibleSource: {...source, enteredRef: undefined}});
+          }
+        }
+      }}
       onPreview={passage => {
         if (verseNumbers !== null) {
           openBiblePassage(passage, {verseNumbers});
         }
       }}
-      onShow={showBiblePassage}
+      onShow={passage => {
+        const view = useShow.getState();
+        const prepared = bibleSourceFor(view, view.openItemId);
+        const expanded =
+          prepared?.enteredRef === passage.ref &&
+          prepared.passage.translation === passage.translation;
+        showBiblePassage(expanded ? prepared.passage : passage);
+      }}
     />
   );
 }

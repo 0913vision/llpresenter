@@ -34,6 +34,8 @@ export interface BibleReferenceFormProps {
   readonly onPreview: (passage: BibleLookupPassage) => void;
   readonly onSubmit: (passage: BibleLookupPassage) => void;
   readonly onIntent?: (() => void) | undefined;
+  readonly onEdit?:
+    ((equivalent: BibleLookupPassage | null) => void) | undefined;
   readonly autoFocus?: boolean;
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
@@ -154,6 +156,18 @@ export function BibleReferenceForm(
   const change = (part: ReferencePart, value: string): void => {
     advancedBook.current = null;
     props.onIntent?.();
+    const nextFields = changeReferenceField(fields, part, value);
+    if (nextFields !== fields || selectedRecent !== undefined) {
+      const nextInput = referenceFieldsState(
+        nextFields,
+        metadata?.bounds,
+      ).input;
+      props.onEdit?.(
+        nextInput !== '' && nextInput === (selectedRecent?.ref ?? state.input)
+          ? (passage ?? null)
+          : null,
+      );
+    }
     setRecent(null);
     setFields(previous => changeReferenceField(previous, part, value));
     setBlocked(null);
@@ -174,6 +188,11 @@ export function BibleReferenceForm(
       return;
     }
     props.onIntent?.();
+    props.onEdit?.(
+      reply?.input === item.ref && reply.translation === item.translation
+        ? (passage ?? null)
+        : null,
+    );
     setFields(EMPTY_REFERENCE);
     setBlocked(null);
     setRecent({
