@@ -43,6 +43,13 @@ jobs:
 
       - run: npm ci
 
+      - name: Cache Prettier results
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules/.cache/prettier
+          key: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-${{ github.sha }}
+          restore-keys: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-
+
       - run: npm run verify
 
       - name: Upload the coverage report
