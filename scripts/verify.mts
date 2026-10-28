@@ -47,10 +47,9 @@ export interface VerifyRun {
 
 const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
-// NOTE(0913vision): The slowest step, test:coverage, took up to 4 minutes on
-// a machine busy with several sessions. Ten minutes ends a hung step without
-// failing a slow one.
-const STEP_DEADLINE_MS = 10 * 60 * MS_PER_SECOND;
+// NOTE(0913vision): Coverage can approach ten minutes on the CI runner.
+// Allow twenty minutes for a slow step while still stopping hung processes.
+const STEP_DEADLINE_MS = 20 * 60 * MS_PER_SECOND;
 const INTERRUPT_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK'] as const;
 
 function passed(outcome: StepOutcome): boolean {
