@@ -16,7 +16,10 @@ import {stageFixture} from './tools/stageTesting';
 let fixture: ReturnType<typeof stageFixture>;
 beforeEach(() => {
   useShowToolTab.setState({tool: 'stage'});
-  fixture = stageFixture([settingsDocument('props', {props: []})]);
+  fixture = stageFixture([
+    settingsDocument('props', {props: []}),
+    settingsDocument('notices', {sets: []}),
+  ]);
 });
 afterEach(() => {
   cleanup();
@@ -40,6 +43,7 @@ it.each(['normal', 'wide', 'narrow'] as const)(
       '무대',
       '타이머',
       '메시지',
+      '공지',
       '소품',
     ]);
     expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
@@ -62,6 +66,7 @@ it.each(
       tab.value !== 'stage' &&
       tab.value !== 'timer' &&
       tab.value !== 'message' &&
+      tab.value !== 'notice' &&
       tab.value !== 'prop',
   ),
 )(
@@ -76,6 +81,7 @@ it.each(
       '무대',
       '타이머',
       '메시지',
+      '공지',
       '소품',
     ]);
     expect(screen.queryByRole('tab', {name: tab.label})).toBeNull();
@@ -144,6 +150,9 @@ it('selects only working panels with arrow keys and releases their subscriptions
   expect(
     screen.getByRole('tabpanel', {name: '메시지'}).childElementCount,
   ).toBeGreaterThan(0);
+  await userEvent.keyboard('{ArrowRight}');
+  await waitFor(() => expect(fixture.count()).toBe(5));
+  expect(screen.getByRole('tabpanel', {name: '공지'})).toBeDefined();
   await userEvent.keyboard('{ArrowRight}');
   await waitFor(() => expect(fixture.count()).toBe(5));
   expect(screen.getByRole('tabpanel', {name: '소품'})).toBeDefined();

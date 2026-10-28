@@ -20,5 +20,6 @@ export const AVAILABLE_TOOL_TABS = SHOW_TOOLS.filter(
     tool.value === 'stage' ||
     tool.value === 'timer' ||
     tool.value === 'message' ||
+    tool.value === 'notice' ||
     tool.value === 'prop',
 );

@@ -1,0 +1,10 @@
+.root {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-8);
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}

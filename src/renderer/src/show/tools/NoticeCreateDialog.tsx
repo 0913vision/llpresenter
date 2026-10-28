@@ -108,6 +108,7 @@ export function NoticeCreateDialog({
               {screens.map(screen => (
                 <Button
                   key={screen.id}
+                  disabled={locked}
                   aria-pressed={targets.includes(screen.id)}
                   onClick={() =>
                     setTargets(current =>
