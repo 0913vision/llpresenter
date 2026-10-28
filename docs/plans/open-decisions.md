@@ -50,7 +50,7 @@ Conventions:
 | 22  | Sound effects playlist               | M3 wave D | T2, P6b              | Like any audio playlist                              | Yes   |
 | 23  | Bible reference frequency            | M3 wave D | T4b, data            | ProPresenter's four options                          |       |
 | 24  | Enter in the Bible field             | M3 wave D | T4b                  | Enter outputs, like 바로 띄우기                      |       |
-| 25  | 메시지 appearance                    | M3, waits | X1a, X1b, X1c        | A 메시지 style per screen in the Look                |       |
+| 25  | 메시지 appearance                    | Answered  | X1a, X1b, X1c        | (a): a 메시지 style per screen in the Look           |       |
 | 26  | Outline and shadow detail            | Answered  | X2a, X2b, X2c        | (c): (b) plus a shadow angle, as in ProPresenter     |       |
 | 27  | The 일반 page                        | M4        | Settings window      | Hide one-option rows, add launch with Windows        |       |
 | 28  | 지금 백업 during a service           | M4        | Settings window      | Unavailable while any output is on                   | Yes   |
@@ -415,6 +415,8 @@ Conventions:
   that 메시지 (S4 p. 123), and Looks turn the 메시지 layer on or off per
   audience screen (p. 38).
 - **From:** question 13.
+- **Answer (2026-10-28):** (a). Each screen shows a 메시지 in the style set for
+  it, which the user finds the most intuitive.
 
 #### 26. Outline and shadow detail
 

@@ -542,5 +542,11 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - The lyric style's outline has a width and a color, and its shadow has a blur,
   a distance, an angle, an opacity, and a color, as in ProPresenter (open
   decision 26, option (c)). This unblocks M3-X2.
-- 메시지 appearance (open decision 25) waits until the user sees drafts of
-  options (a) and (b).
+
+## 2026-10-28: Each screen draws 메시지 in its own style
+
+- The Look picks a 메시지 style for each screen, as it does the lyric style, and
+  a 메시지 sent to several screens draws in each screen's style (open decision
+  25, option (a)). The user chose it over ProPresenter's style per 메시지
+  template after seeing drafts of both, because it is the most intuitive.
+- This unblocks M3-X1.
