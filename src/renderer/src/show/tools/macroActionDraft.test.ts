@@ -1,6 +1,10 @@
 import {expect, it} from 'vitest';
 import {macroActionKinds, parseKnownMacroAction} from '@shared/schema/macros';
-import {prepareMacroAction, type MacroActionDraft} from './macroActionDraft';
+import {
+  draftMacroAction,
+  prepareMacroAction,
+  type MacroActionDraft,
+} from './macroActionDraft';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const drafts: readonly MacroActionDraft[] = [
@@ -62,4 +66,28 @@ it('rejects unsupported actions, bad IDs, operations and message settings', () =
   expect(
     prepareMacroAction({kind: 'message', target: id, targets: []}),
   ).toBeUndefined();
+});
+
+it('round-trips every editable action and its variants', () => {
+  const variants: readonly MacroActionDraft[] = [
+    ...drafts,
+    {kind: 'stageLayout', target: id},
+    {
+      kind: 'clearLayer',
+      clearTarget: 'prop',
+      target: id,
+      transition: {fade: true, durationMs: 500},
+    },
+    {kind: 'clearAll', transition: {fade: true, durationMs: 500}},
+    {kind: 'audio', operation: 'stop'},
+    {kind: 'audio', operation: 'fadeOut'},
+    {kind: 'message', target: id, targets: 'all', duration: null},
+  ];
+  for (const draft of variants) {
+    const action = prepareMacroAction(draft);
+    expect(action).toBeDefined();
+    if (action) {
+      expect(prepareMacroAction(draftMacroAction(action))).toEqual(action);
+    }
+  }
 });
