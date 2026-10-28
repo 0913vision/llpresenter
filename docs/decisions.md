@@ -567,3 +567,12 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Not now: it goes into the M4 shortcut system
   (`docs/spec/10-shortcuts-and-settings.md`), and the user reviews the Bible
   verse flow with the lead before then.
+
+## 2026-10-29: The status bar stays empty when nothing needs attention
+
+- The status bar no longer lists the screen names in the normal state; the
+  toolbar's output buttons already show which screens are on (user decision
+  after a screenshot review, where three dim names read as unexplained text).
+- It shows text only for a problem (for example "무대 화면 창으로 표시 중" or
+  "방송 자막 41fps") or while the app waits in standby ("대기"), so anything in
+  it means something to check. Its text keeps at least 4.5:1 contrast.
