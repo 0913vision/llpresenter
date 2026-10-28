@@ -1,7 +1,10 @@
 import {readFile} from 'node:fs/promises';
 import {matchesGlob, resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import config, {RENDERER_NODE_TESTS} from '../vitest.config.mts';
+import config, {
+  RENDERER_NODE_TESTS,
+  testWorkerLimit,
+} from '../vitest.config.mts';
 
 const RENDERER_NODE_TEST = 'src/renderer/src/styles/assets.node.test.ts';
 const RENDERER_TEST = 'src/renderer/src/styles/assets.test.ts';
@@ -63,5 +66,41 @@ describe('renderer tests that need Node', () => {
 describe('transformed modules', () => {
   it('are not cached between runs, so a glob always sees the current files', () => {
     expect(config.test?.fsModuleCache).toBe(false);
+  });
+});
+
+describe('CI test workers', () => {
+  it('uses all workers only with the explicit CI shard setting', () => {
+    expect(testWorkerLimit({})).toBe('50%');
+    expect(testWorkerLimit({LLP_CI_TEST_WORKERS: '0'})).toBe('50%');
+    expect(testWorkerLimit({LLP_CI_TEST_WORKERS: '1'})).toBe('100%');
+  });
+
+  it('keeps all checks and merges every shard before reporting coverage', async () => {
+    const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
+    const checks = /\n {2}checks:\n([\s\S]*?)\n {2}tests:\n/.exec(
+      workflow,
+    )?.[1];
+    const shards = /\n {2}tests:\n([\s\S]*?)\n {2}coverage:\n/.exec(
+      workflow,
+    )?.[1];
+    const coverage = /\n {2}coverage:\n([\s\S]*?)\n {2}bump:\n/.exec(
+      workflow,
+    )?.[1];
+    if (!checks || !shards || !coverage) throw new Error('CI jobs are missing');
+    for (const command of ['typecheck', 'lint', 'format:check', 'build']) {
+      expect(checks).toContain(`npm run ${command}`);
+    }
+    expect(shards).toContain('shard: [1, 2, 3]');
+    expect(shards).toContain('fail-fast: false');
+    expect(shards).toContain(
+      '--coverage --coverage.reporter=text-summary --reporter=blob',
+    );
+    expect(shards).toContain('--shard=${{ matrix.shard }}/3');
+    expect(shards).toContain('if-no-files-found: error');
+    expect(coverage).toContain('needs: tests');
+    expect(coverage).toContain('pattern: vitest-blob-*');
+    expect(coverage).toContain('merge-multiple: true');
+    expect(coverage).toContain('vitest run --merge-reports --coverage');
   });
 });

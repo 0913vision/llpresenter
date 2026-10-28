@@ -7,6 +7,11 @@ import {configDefaults, defineConfig} from 'vitest/config';
  */
 export const RENDERER_NODE_TESTS = 'src/renderer/**/*.node.test.ts';
 
+/** Keep local concurrent verification bounded; CI shards run on separate runners. */
+export function testWorkerLimit(env: NodeJS.ProcessEnv): '50%' | '100%' {
+  return env['LLP_CI_TEST_WORKERS'] === '1' ? '100%' : '50%';
+}
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -18,7 +23,7 @@ export default defineConfig({
     // NOTE(0913vision): Several sessions run tests on one PC at once. With a
     // worker per core, workers missed Vitest's fixed 60 s start timeout and
     // whole files didn't run; half the cores makes them slower, not lost.
-    maxWorkers: '50%',
+    maxWorkers: testWorkerLimit(process.env),
     // NOTE(0913vision): Worker threads start much cheaper than forked
     // processes on Windows, and forks missed that start timeout under load
     // (bug M1-7). Alternating runs here took 55 to 72 s with threads against
