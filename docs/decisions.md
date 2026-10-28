@@ -550,3 +550,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   25, option (a)). The user chose it over ProPresenter's style per 메시지
   template after seeing drafts of both, because it is the most intuitive.
 - This unblocks M3-X1.
+
+## 2026-10-28: No migrations before the first release
+
+- The app is in development and no user files exist yet (user decision). A
+  change to a file format replaces the format in place: no migration from the
+  earlier version, no backup of old files, and no parallel schema for the next
+  version. First applied to the Looks format for M3-X1 and M3-X2.
