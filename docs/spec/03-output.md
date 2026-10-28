@@ -269,10 +269,13 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
   in 진행 and the song editor's preview in 준비 show the size it really draws at
   (04, 05), so a 슬라이드 that is too long shows there before it goes out
   (proposal).
-- Until the user decides open decisions entry 26 (outline and shadow detail),
-  the switches draw fixed values from 10's defaults: an outline of 3 px, black,
-  and a shadow with 8 px blur, 4 px distance down and to the right, 60 %
-  opacity, black (proposal).
+- The October 28 decision gives the lyric outline a width and color, and the
+  shadow a blur, distance, angle, opacity, and color. These are properties of
+  the lyric style (06, 10). Until M3-X2 activates the staged stored fields, the
+  existing switches draw the provisional defaults: a 3 px black outline and an 8
+  px blur, 4 px distance down and to the right, 60 % opacity, black shadow. See
+  the
+  [decision](../decisions.md#2026-10-28-outline-and-shadow-controls-follow-propresenter).
 
 ### Transitions
 

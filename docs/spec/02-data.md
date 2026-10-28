@@ -438,6 +438,27 @@ Lyric style:
 | `shadow`     | Boolean                             | Shadow.                                                                                    | `Looks` 그림자            |
 | `outline`    | Boolean                             | Outline.                                                                                   | `Looks` 외곽선            |
 
+The active `shadow` and `outline` fields above are Boolean. The staged M3-X2a
+version 2 contract adds outline width and color and shadow blur, distance,
+angle, opacity, and color (03, 06). Its validated values are:
+
+| Field             | Range or type    | Migrated default             |
+| ----------------- | ---------------- | ---------------------------- |
+| `outline.on`      | Boolean          | The previous `outline` value |
+| `outline.width`   | Number, 1 to 10  | 3                            |
+| `outline.color`   | `#RRGGBB`        | `#000000`                    |
+| `shadow.on`       | Boolean          | The previous `shadow` value  |
+| `shadow.blur`     | Number, 0 to 40  | 8                            |
+| `shadow.distance` | Number, 0 to 20  | 4                            |
+| `shadow.angle`    | Number, 0 to 360 | 45                           |
+| `shadow.opacity`  | Number, 0 to 100 | 60                           |
+| `shadow.color`    | `#RRGGBB`        | `#000000`                    |
+
+M3-X2a defines migration and validation, but the current format remains active
+until its consumers are ready. A version 1 `referencePosition` unknown field is
+archived under `legacyV1` during migration; version 2 initializes
+`referencePosition` to `bottomRight`.
+
 Defaults (proposal): one Look, 평상시. The 본 화면 shows background media,
 lyrics (기본), 소품, and 메시지, and hides 공지. The 무대 화면 shows lyrics
 (현재와 다음), the clock, and the stage message, and hides background media and

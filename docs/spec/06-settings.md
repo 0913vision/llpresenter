@@ -204,8 +204,12 @@ Note: the proposal in 10 would add rows to the lyric style properties (굵기,
 | 세로 위치 (vertical position)    | 위 (top), 가운데 (middle), 아래 (bottom)                                          |
 | 최대 줄 수 (maximum lines)       | Number field                                                                      |
 | 여백 (margin)                    | Number field (%)                                                                  |
-| 그림자 (shadow)                  | Switch                                                                            |
-| 외곽선 (outline)                 | Switch                                                                            |
+| 그림자 (shadow)                  | Switch, blur, distance, angle, opacity and color                                  |
+| 외곽선 (outline)                 | Switch, width and color                                                           |
+
+The detailed controls follow the October 28 user decision (10). The current
+Boolean storage and fixed rendering values remain in use until M3-X2 activates
+the staged data contract and implements the controls and rendering (02, 03).
 
 ### Behavior
 
