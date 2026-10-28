@@ -254,3 +254,35 @@ it('edits and removes actions with their original transition and expected list',
   if (removal?.name !== 'macros') throw new Error('Missing edit');
   expect(removal.value.macros[0]?.actions).toEqual([]);
 });
+
+it('toggles membership using the current collection state', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  await openActionSubmenu('\ubaa8\uc74c');
+  const checked = screen.getByRole('menuitemcheckbox', {name: '\uc8fc\uc77c'});
+  expect(checked.getAttribute('aria-checked')).toBe('true');
+  fireEvent.click(checked);
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(edit.value.collections[0]?.macroIds).toEqual([]);
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {macros: [macro], collections: [{...group, macroIds: []}]},
+        2,
+      ),
+    ),
+  );
+  await openActionSubmenu('\ubaa8\uc74c');
+  const unchecked = screen.getByRole('menuitemcheckbox', {
+    name: '\uc8fc\uc77c',
+  });
+  expect(unchecked.getAttribute('aria-checked')).toBe('false');
+  fireEvent.click(unchecked);
+  await waitFor(() => expect(f.edit).toHaveBeenCalledTimes(2));
+  const addition = f.edit.mock.calls[1]?.[0];
+  if (addition?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(addition.value.collections[0]?.macroIds).toEqual([id]);
+});

@@ -374,6 +374,26 @@ export function MacroPanel({
             },
             {
               kind: 'item',
+              id: 'collections',
+              label: '\ubaa8\uc74c',
+              disabled: locked || !document.value.collections.length,
+              submenu: document?.value.collections.map(collection => ({
+                kind: 'item' as const,
+                id: collection.id,
+                label: collection.name,
+                check: 'checkbox' as const,
+                checked: collection.macroIds.includes(menu.item.id),
+                onSelect: () =>
+                  commit({
+                    kind: 'membership',
+                    id: menu.item.id,
+                    collection: collection.id,
+                    member: !collection.macroIds.includes(menu.item.id),
+                  }),
+              })),
+            },
+            {
+              kind: 'item',
               id: 'startup',
               label: '시작할 때 실행',
               check: 'checkbox',
