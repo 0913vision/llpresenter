@@ -57,7 +57,10 @@ describe('stage tool', () => {
       await screen.findByRole('button', {name: '무대 화면 무대 배치'}),
     ).toBeTruthy();
     expect(fixture.count()).toBe(8);
-    fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
+    fireEvent.click(screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}));
+    fireEvent.click(
+      screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
+    );
     await waitFor(() => expect(fixture.count()).toBe(5));
     unmount();
     expect(fixture.count()).toBe(0);

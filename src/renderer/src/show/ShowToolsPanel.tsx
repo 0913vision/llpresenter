@@ -11,11 +11,13 @@ import {MessageTab} from './tools/MessageTab';
 import {TimerTab} from './tools/TimerTab';
 import {PropTab} from './tools/PropTab';
 import {NoticeTab} from './tools/NoticeTab';
+import {MacroTab} from './tools/MacroTab';
 import {useShowingCount} from './tools/showingHooks';
 import styles from './ShowToolsPanel.module.css';
 
 /** Shows the 진행 도구 tabs whose panels have working controls. */
 export function ShowToolsPanel({
+  sizeClass,
   onProblem,
 }: {
   readonly sizeClass: SizeClass;
@@ -32,11 +34,27 @@ export function ShowToolsPanel({
   const tabs = AVAILABLE_TOOL_TABS.map(tab =>
     tab.value === 'showing' ? {...tab, count: showingCount} : tab,
   );
+  const visible = tabs.filter(tab =>
+    sizeClass === 'narrow'
+      ? tab.value === 'showing' || tab.value === 'stage'
+      : tab.value === 'showing' ||
+        tab.value === 'audio' ||
+        tab.value === 'stage' ||
+        tab.value === 'timer',
+  );
+  const more = tabs.filter(
+    tab => !visible.some(item => item.value === tab.value),
+  );
   return (
     <div className={styles.root}>
       <Panel label="진행 도구" className={styles.panel}>
         <PanelHeader>
-          <PanelTabs tabs={tabs} value={selected} onChange={setTool} />
+          <PanelTabs
+            tabs={visible}
+            value={selected}
+            onChange={setTool}
+            more={{label: '\ub354 \ubcf4\uae30', tabs: more}}
+          />
         </PanelHeader>
         <PanelBody variant="flush" tab={selected}>
           {selected === 'showing' ? <ShowingTab onProblem={onProblem} /> : null}
@@ -46,6 +64,7 @@ export function ShowToolsPanel({
           {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}
           {selected === 'notice' ? <NoticeTab onProblem={onProblem} /> : null}
           {selected === 'prop' ? <PropTab onProblem={onProblem} /> : null}
+          {selected === 'macro' ? <MacroTab onProblem={onProblem} /> : null}
         </PanelBody>
       </Panel>
     </div>

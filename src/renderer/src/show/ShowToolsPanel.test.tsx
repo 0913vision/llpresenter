@@ -10,7 +10,6 @@ import {
   STAGE_ID,
 } from '@renderer/screens/testing/documents';
 import {ShowToolsPanel} from './ShowToolsPanel';
-import {SHOW_TOOLS} from './showTools';
 import {stageFixture} from './tools/stageTesting';
 
 let fixture: ReturnType<typeof stageFixture>;
@@ -19,6 +18,18 @@ beforeEach(() => {
   fixture = stageFixture([
     settingsDocument('props', {props: []}),
     settingsDocument('notices', {sets: []}),
+    settingsDocument('macros', {
+      macros: [
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          name: 'Test macro',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+      ],
+      collections: [],
+    }),
   ]);
 });
 afterEach(() => {
@@ -32,67 +43,100 @@ const tabNames = (): readonly string[] =>
     .map(tab => tab.textContent);
 const stageReady = () => waitFor(() => expect(fixture.count()).toBe(8));
 
-it.each(['normal', 'wide', 'narrow'] as const)(
-  'shows only working tabs in a %s window without an empty overflow menu',
-  async sizeClass => {
+it.each([
+  [
+    'normal',
+    [
+      '\ud45c\uc2dc \uc911',
+      '\uc624\ub514\uc624',
+      '\ubb34\ub300',
+      '\ud0c0\uc774\uba38',
+    ],
+    [
+      '\uba54\uc2dc\uc9c0',
+      '\uacf5\uc9c0',
+      '\uc18c\ud488',
+      '\ub9e4\ud06c\ub85c',
+    ],
+  ],
+  [
+    'wide',
+    [
+      '\ud45c\uc2dc \uc911',
+      '\uc624\ub514\uc624',
+      '\ubb34\ub300',
+      '\ud0c0\uc774\uba38',
+    ],
+    [
+      '\uba54\uc2dc\uc9c0',
+      '\uacf5\uc9c0',
+      '\uc18c\ud488',
+      '\ub9e4\ud06c\ub85c',
+    ],
+  ],
+  [
+    'narrow',
+    ['\ud45c\uc2dc \uc911', '\ubb34\ub300'],
+    [
+      '\uc624\ub514\uc624',
+      '\ud0c0\uc774\uba38',
+      '\uba54\uc2dc\uc9c0',
+      '\uacf5\uc9c0',
+      '\uc18c\ud488',
+      '\ub9e4\ud06c\ub85c',
+    ],
+  ],
+] as const)(
+  'keeps every tool accessible in a %s window',
+  async (sizeClass, visible, overflow) => {
     render(<ShowToolsPanel sizeClass={sizeClass} />);
     await stageReady();
-    expect(tabNames()).toEqual([
-      '표시 중',
-      '오디오',
-      '무대',
-      '타이머',
-      '메시지',
-      '공지',
-      '소품',
-    ]);
-    expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+    expect(tabNames()).toEqual(visible);
+    await userEvent.click(
+      screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+    );
+    const menu = screen.getByRole('menu', {name: '\ub354 \ubcf4\uae30'});
     expect(
-      screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
-    ).toBe('true');
+      within(menu)
+        .getAllByRole('menuitemradio')
+        .map(item => item.textContent),
+    ).toEqual(overflow);
+    for (const [index, name] of overflow.entries()) {
+      if (index > 0) {
+        await userEvent.click(
+          screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+        );
+      }
+      await userEvent.click(screen.getByRole('menuitemradio', {name}));
+      expect(screen.getByRole('tabpanel', {name})).toBeDefined();
+    }
     expect(
-      within(screen.getByRole('tabpanel', {name: '무대'})).getByRole('button', {
-        name: '무대 타이머',
-      }),
+      screen.getByRole('tabpanel', {name: '\ub9e4\ud06c\ub85c'}),
     ).toBeDefined();
+    expect(
+      screen
+        .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
+        .hasAttribute('data-active'),
+    ).toBe(true);
   },
 );
 
-it.each(
-  SHOW_TOOLS.filter(
-    tab =>
-      tab.value !== 'showing' &&
-      tab.value !== 'audio' &&
-      tab.value !== 'stage' &&
-      tab.value !== 'timer' &&
-      tab.value !== 'message' &&
-      tab.value !== 'notice' &&
-      tab.value !== 'prop',
-  ),
-)(
-  'opens working stage controls for a previously selected hidden tab: $label',
-  async tab => {
-    useShowToolTab.setState({tool: tab.value});
-    render(<ShowToolsPanel sizeClass="normal" />);
-    await stageReady();
-    expect(tabNames()).toEqual([
-      '표시 중',
-      '오디오',
-      '무대',
-      '타이머',
-      '메시지',
-      '공지',
-      '소품',
-    ]);
-    expect(screen.queryByRole('tab', {name: tab.label})).toBeNull();
-    expect(
-      screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
-    ).toBe('true');
-    expect(
-      screen.getByRole('tabpanel', {name: '무대'}).childElementCount,
-    ).toBeGreaterThan(0);
-  },
-);
+it('opens macro controls and marks the latest live macro', async () => {
+  render(<ShowToolsPanel sizeClass="normal" />);
+  await stageReady();
+  await userEvent.click(
+    screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+  );
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\ub9e4\ud06c\ub85c'}),
+  );
+  const tile = await screen.findByRole('option', {name: 'Test macro'});
+  fixture.live({lastMacroId: '00000000-0000-4000-8000-000000000001'});
+  await waitFor(() => expect(tile.getAttribute('data-state')).toBe('last-run'));
+  expect(
+    screen.getByRole('tabpanel', {name: '\ub9e4\ud06c\ub85c'}),
+  ).toBeDefined();
+});
 
 it('shows the live row count on the 표시 중 tab while stage tab is selected', async () => {
   const singleAudienceLooks = settingsDocument('looks', {
@@ -136,35 +180,30 @@ it('shows the live row count on the 표시 중 tab while stage tab is selected',
   });
 });
 
-it('selects only working panels with arrow keys and releases their subscriptions', async () => {
+it('switches compact tabs and overflow panels and releases subscriptions', async () => {
   const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
-  screen.getByRole('tab', {name: '무대'}).focus();
-  await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(4));
-  expect(
-    screen.getByRole('tabpanel', {name: '타이머'}).childElementCount,
-  ).toBeGreaterThan(0);
-  await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(5));
-  expect(
-    screen.getByRole('tabpanel', {name: '메시지'}).childElementCount,
-  ).toBeGreaterThan(0);
-  await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(5));
-  expect(screen.getByRole('tabpanel', {name: '공지'})).toBeDefined();
-  await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(5));
-  expect(screen.getByRole('tabpanel', {name: '소품'})).toBeDefined();
+  screen.getByRole('tab', {name: '\ubb34\ub300'}).focus();
   await userEvent.keyboard('{ArrowRight}');
   await waitFor(() => expect(fixture.count()).toBe(8));
-  expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();
-  await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(3));
-  expect(screen.getByRole('tabpanel', {name: '오디오'})).toBeDefined();
-  await userEvent.keyboard('{ArrowRight}');
-  await stageReady();
-  expect(screen.getByRole('tabpanel', {name: '무대'})).toBeDefined();
+  expect(
+    screen.getByRole('tabpanel', {name: '\ud45c\uc2dc \uc911'}),
+  ).toBeDefined();
+  for (const [name, count] of [
+    ['\ud0c0\uc774\uba38', 4],
+    ['\uba54\uc2dc\uc9c0', 5],
+    ['\uacf5\uc9c0', 5],
+    ['\uc18c\ud488', 5],
+    ['\ub9e4\ud06c\ub85c', 4],
+    ['\uc624\ub514\uc624', 3],
+  ] as const) {
+    await userEvent.click(
+      screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+    );
+    await userEvent.click(screen.getByRole('menuitemradio', {name}));
+    await waitFor(() => expect(fixture.count()).toBe(count));
+    expect(screen.getByRole('tabpanel', {name})).toBeDefined();
+  }
   unmount();
   expect(fixture.count()).toBe(0);
 });
@@ -172,11 +211,18 @@ it('selects only working panels with arrow keys and releases their subscriptions
 it('keeps the chosen working panel through size changes and remounting', async () => {
   const {rerender, unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
-  await userEvent.click(screen.getByRole('tab', {name: '메시지'}));
+  await userEvent.click(
+    screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+  );
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
+  );
   await waitFor(() => expect(fixture.count()).toBe(5));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(
-    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
+    screen
+      .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
+      .getAttribute('data-active'),
   ).toBe('true');
   unmount();
   expect(fixture.count()).toBe(0);

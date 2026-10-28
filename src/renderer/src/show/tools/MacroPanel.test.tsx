@@ -531,3 +531,11 @@ it('does not reset a newer selection after a cancelled pending deletion', async 
       .textContent,
   ).toContain('Other');
 });
+
+it('divides the macro menu into the specified command groups', async () => {
+  fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  fireEvent.contextMenu(tile);
+  expect(screen.getAllByRole('separator')).toHaveLength(4);
+});

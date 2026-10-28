@@ -23,5 +23,6 @@ it('exposes only panels with working controls', () => {
     {value: 'message', label: '메시지'},
     {value: 'notice', label: '공지'},
     {value: 'prop', label: '소품'},
+    {value: 'macro', label: '\ub9e4\ud06c\ub85c'},
   ]);
 });

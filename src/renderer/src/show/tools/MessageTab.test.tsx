@@ -84,7 +84,10 @@ it('mounts only on the message tab and releases both document subscriptions', as
   const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
   await waitFor(() => expect(fixture.count()).toBe(8));
   fixture.get.mockClear();
-  fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
+  fireEvent.click(screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}));
+  fireEvent.click(
+    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
+  );
   await ready();
   expect(fixture.count()).toBe(5);
   expect(fixture.get.mock.calls.map(([request]) => request.name)).toEqual([

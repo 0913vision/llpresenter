@@ -13,13 +13,4 @@ export const SHOW_TOOLS = [
 export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
 export type ShowTool = ShowToolEntry['value'];
 
-export const AVAILABLE_TOOL_TABS = SHOW_TOOLS.filter(
-  tool =>
-    tool.value === 'showing' ||
-    tool.value === 'audio' ||
-    tool.value === 'stage' ||
-    tool.value === 'timer' ||
-    tool.value === 'message' ||
-    tool.value === 'notice' ||
-    tool.value === 'prop',
-);
+export const AVAILABLE_TOOL_TABS = SHOW_TOOLS;

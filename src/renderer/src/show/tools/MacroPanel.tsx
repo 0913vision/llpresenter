@@ -485,6 +485,7 @@ export function MacroPanel({
               label: '실행',
               onSelect: () => start(menu.item),
             },
+            {kind: 'separator', id: 'separator-run'},
             {
               kind: 'item',
               id: 'rename',
@@ -510,6 +511,7 @@ export function MacroPanel({
                   ?.querySelector<HTMLElement>('[role=radio][tabindex="0"]')
                   ?.focus(),
             },
+            {kind: 'separator', id: 'separator-appearance'},
             {
               kind: 'item',
               id: 'add-action',
@@ -582,6 +584,7 @@ export function MacroPanel({
                   }),
               })),
             },
+            {kind: 'separator', id: 'separator-actions'},
             {
               kind: 'item',
               id: 'duplicate',
@@ -646,6 +649,7 @@ export function MacroPanel({
                   changes: {runOnStartup: !menu.item.runOnStartup},
                 }),
             },
+            {kind: 'separator', id: 'separator-manage'},
             {
               kind: 'item',
               id: 'delete',

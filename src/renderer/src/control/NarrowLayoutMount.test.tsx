@@ -1,4 +1,4 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -74,10 +74,14 @@ it('shows the narrow window layout at 1366 x 768', () => {
   setup(NARROW.width, NARROW.height);
   expect(serviceOrder()).not.toBeNull();
   expect(collapseButton()).not.toBeNull();
-  expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
-  expect(screen.getByRole('tab', {name: '무대'})).toBeDefined();
-  expect(screen.getByRole('tab', {name: '메시지'})).toBeDefined();
-  expect(screen.getByRole('tab', {name: '타이머'})).toBeDefined();
+  expect(screen.getByRole('tab', {name: '\ubb34\ub300'})).toBeDefined();
+  fireEvent.click(screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}));
+  expect(
+    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
+  ).toBeDefined();
+  expect(
+    screen.getByRole('menuitemradio', {name: '\ud0c0\uc774\uba38'}),
+  ).toBeDefined();
 });
 
 it('collapses and expands the left column and saves each choice for narrow windows', async () => {
@@ -164,11 +168,18 @@ it('lets the focus fall to the body after a click, so Space is the next slide', 
 
 it('keeps the chosen 진행 도구 tab through 준비 and back', async () => {
   setup(NARROW.width, NARROW.height);
-  await userEvent.click(screen.getByRole('tab', {name: '메시지'}));
+  await userEvent.click(
+    screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
+  );
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
+  );
   await userEvent.click(screen.getByRole('tab', {name: '준비'}));
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
   expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
   expect(
-    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
+    screen
+      .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
+      .getAttribute('data-active'),
   ).toBe('true');
 });
