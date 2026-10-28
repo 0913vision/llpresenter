@@ -155,6 +155,11 @@ export function createMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
 }
 
+/** Brands a generated notice set UUID; throws unless it is lowercase version 4. */
+export function createNoticeSetId(uuid: string): NoticeSetId {
+  return v.parse(noticeSetIdSchema, uuid);
+}
+
 /** Brands the UUID of one active message, separately from a saved template. */
 export function createMessageId(uuid: string): MessageId {
   return v.parse(messageIdSchema, uuid);
