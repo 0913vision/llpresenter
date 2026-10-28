@@ -13,6 +13,7 @@ import {
   TextField,
 } from '@renderer/ui';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {isComposing} from '@renderer/ui/ime';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from './monitorAssignment';
 import {
@@ -90,7 +91,9 @@ function NameRow({
           onChange={setDraft}
           onBlur={commit}
           onKeyDown={event => {
-            if (event.key === 'Enter') event.currentTarget.blur();
+            if (event.key === 'Enter' && !isComposing(event)) {
+              event.currentTarget.blur();
+            }
           }}
           invalid={problem !== undefined}
           invalidReason={

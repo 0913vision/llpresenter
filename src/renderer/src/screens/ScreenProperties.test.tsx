@@ -1,4 +1,11 @@
-import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {MonitorList} from '@shared/schema/monitors';
@@ -297,6 +304,21 @@ describe('the screen properties', () => {
     release();
     await waitFor(() => expect(edits).toHaveLength(2));
     expect(savedScreens()[0]?.name).toBe('본 화면');
+  });
+
+  it('keeps the screen name focused when Enter confirms an IME composition', async () => {
+    const {edits, savedScreens} = setup();
+    const user = userEvent.setup();
+    const name = await nameField();
+    await user.clear(name);
+    await user.type(name, '본당');
+
+    fireEvent.keyDown(name, {key: 'Enter', isComposing: true});
+    expect(document.activeElement).toBe(name);
+    expect(edits).toEqual([]);
+
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(savedScreens()[0]?.name).toBe('본당'));
   });
 
   it('keeps an empty or taken name out of the file and brings the old name back', async () => {
