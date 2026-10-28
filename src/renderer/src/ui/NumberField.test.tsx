@@ -107,6 +107,29 @@ describe('NumberField', () => {
   });
 
   it.each([
+    {ctrlKey: true},
+    {altKey: true},
+    {metaKey: true},
+    {ctrlKey: true, shiftKey: true},
+  ])('leaves modified arrow keys to their owner: %j', modifiers => {
+    const onChange = vi.fn();
+    render(<DecimalField initial={0.2} step={0.1} onChange={onChange} />);
+    for (const key of ['ArrowUp', 'ArrowDown']) {
+      const event = new KeyboardEvent('keydown', {
+        key,
+        code: key,
+        bubbles: true,
+        cancelable: true,
+        ...modifiers,
+      });
+      fireEvent(spin(), event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    expect(onChange).not.toHaveBeenCalled();
+    expect(spin().value).toBe('0.2');
+  });
+
+  it.each([
     [undefined, '1.90'],
     [0.2, '1.60'],
   ])(
@@ -298,6 +321,25 @@ describe('NumberField', () => {
       expect(spin().getAttribute('aria-valuetext')).toBe(`${bound}${suffix}`);
     },
   );
+
+  it('passes modified Enter and Escape without finishing a commit-mode draft', () => {
+    const onChange = vi.fn();
+    render(<Copies onChange={onChange} updateOn="commit" />);
+    fireEvent.change(spin(), {target: {value: '25'}});
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of ['Enter', 'Escape']) {
+        expect(fireEvent.keyDown(spin(), {key, [modifier]: true})).toBe(true);
+      }
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(8);
+    expect(spin().value).toBe('25');
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.keyDown(spin(), {key: 'Enter'});
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(25);
+  });
 
   it('cancels a commit-mode draft without reporting it on blur', async () => {
     const onChange = vi.fn();

@@ -8,6 +8,7 @@ import {
 import {classNames} from './classNames';
 import {FieldFrame, useFieldReason} from './fieldFrame';
 import {isComposing} from './ime';
+import {hasModifier} from './modifierKeys';
 import {
   clampNumber,
   formatNumberText,
@@ -133,6 +134,12 @@ export function NumberField({
     onKeyDown?.(event);
     if (event.defaultPrevented || readOnly) return;
     if (isComposing(event)) return;
+    if (
+      hasModifier(event) &&
+      (event.key === 'Enter' || event.key === 'Escape')
+    ) {
+      return;
+    }
     if (event.key === 'Escape' && updateOn === 'commit' && draft !== null) {
       event.preventDefault();
       event.stopPropagation();
@@ -145,7 +152,14 @@ export function NumberField({
       return;
     }
     const direction = arrowSteps[event.key];
-    if (direction === undefined) return;
+    if (
+      direction === undefined ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey
+    ) {
+      return;
+    }
     event.preventDefault();
     stepBy(direction, event.shiftKey ? largeStep : step);
   };
