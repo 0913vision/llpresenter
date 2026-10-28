@@ -233,9 +233,9 @@ describe('ShortcutField', () => {
     ['Lang1', {}, '입력기에 쓰는 키'],
     ['Lang2', {}, '입력기에 쓰는 키'],
     ['KeyC', {isComposing: true, ctrlKey: true}, '입력기에 쓰는 키'],
-    ['KeyC', {}, '이름표 바로 가기에 쓰는 키'],
-    ['Digit1', {}, '이름표 바로 가기에 쓰는 키'],
-    ['Numpad1', {}, '이름표 바로 가기에 쓰는 키'],
+    ['KeyC', {}, '슬라이드 바로 가기에 쓰는 키'],
+    ['Digit1', {}, '슬라이드 바로 가기에 쓰는 키'],
+    ['Numpad1', {}, '슬라이드 바로 가기에 쓰는 키'],
     ['Unidentified', {}, '지원하지 않는 키'],
   ])(
     'rejects %s %j, describes the reason, and keeps recording',

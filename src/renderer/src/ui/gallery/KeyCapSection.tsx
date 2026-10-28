@@ -42,7 +42,7 @@ export function KeyCapSection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Live shortcut recording" surface="dialog">
-        <SpecItem label="Recording a key, TextField sm">
+        <SpecItem label="Recording: bare letters and digits are slide keys">
           {recording ? (
             <ShortcutField
               aria-label="로고 화면 단축키"

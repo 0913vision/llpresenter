@@ -130,7 +130,7 @@ function reservedReason(event: KeyboardEvent): string | undefined {
     return '글자 편집에 쓰는 키';
   }
   if (!ctrl && !alt && !shift && /^(Key[A-Z]|Digit\d|Numpad\d)$/.test(code)) {
-    return '이름표 바로 가기에 쓰는 키';
+    return '슬라이드 바로 가기에 쓰는 키';
   }
   return undefined;
 }

@@ -167,16 +167,16 @@ The editor resolves colors from the subscribed app-wide labels document.
 Missing/deleted definitions render with `none`; songs keep their label text. The
 popup has name choices, a color row that stays open, and an inline new-name
 field. ContextMenu or Shift F10 opens the same management menu as right-click.
-Rename and jump-key dialogs reuse the design system's modal/focus behavior.
-Definition deletion uses its confirmation dialog. Read-only label settings leave
-existing label selection available and explain blocked writes in tooltips. Color
-swatch and rename tooltips disclose their library-wide scope. Rename and key
-dialogs identify the current label in the subtitle. Deletion confirmation
-metadata states that every song retains its label, and its action tooltip
-distinguishes shared-list removal from changing song references (P18).
+The rename dialog reuses the design system's modal/focus behavior. Definition
+deletion uses its confirmation dialog. Read-only label settings leave existing
+label selection available and explain blocked writes in tooltips. Color swatch
+and rename tooltips disclose their library-wide scope. The rename dialog
+identifies the current label in the subtitle. Deletion confirmation metadata
+states that every song retains its label, and its action tooltip distinguishes
+shared-list removal from changing song references (P18).
 
-Color, creation, jump keys, and deletion use revision-checked settings updates.
-Rename flushes every cached song's pending edits, then calls main's
+Color, creation, and deletion use revision-checked settings updates. Rename
+flushes every cached song's pending edits, then calls main's
 `settings.edit({type: 'labels.rename', name: 'labels', from, to, baseRevision})`.
 Main rewrites all affected library songs, including songs never opened here. Own
 rename pushes advance each cached session without resetting its history;
@@ -185,11 +185,12 @@ external slide change instead installs its checked document. Global label
 operations temporarily make lyrics read-only, without replacing the picker
 button that owns the popup's anchor and focus.
 
-Jump keys record physical `KeyA` to `KeyZ` or `Digit0` to `Digit9`, without
-modifiers. Numpad digits normalize only with Num Lock, as spec 10 requires for
-label jumps. Backspace/Delete clear the key. The recording marker keeps host
-shortcuts out. Duplicate keys remain allowed and warn on both rows; the runtime
-matcher owns the first-in-list rule.
+Each source slide owns its hot key; label definitions do not. The selected
+slide's recorder accepts physical `KeyA` to `KeyZ` or `Digit0` to `Digit9`
+without modifiers, normalizing numpad digits only with Num Lock. Backspace or
+Delete clears the key. Assigning a key already used by another source slide in
+the song is blocked with a reason. Repeated arrangement entries share the same
+source slide and its key; edits use the song's history and persistence path.
 
 ## Appearance and validation
 

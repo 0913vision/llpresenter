@@ -57,6 +57,11 @@ describe('Gallery', () => {
     expect(document.activeElement).toBe(field);
     await userEvent.keyboard('{Enter}');
     expect(field.getAttribute('aria-invalid')).toBe('true');
+    fireEvent.keyDown(field, {code: 'KeyC', key: 'c'});
+    expect(
+      document.getElementById(field.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toBe('슬라이드 바로 가기에 쓰는 키');
     fireEvent.keyDown(field, {code: 'F2', key: 'F2'});
     expect(
       screen.getByRole('button', {name: '단축키 바꾸기'}).textContent,
