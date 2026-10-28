@@ -11,7 +11,7 @@ import {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {hasModifier} from './modifierKeys';
-import {pressHandler, spaceOnlyKeyHandler} from './press';
+import {useSpaceOnlyPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './Checkbox.module.css';
 
@@ -42,24 +42,30 @@ export function Checkbox({
   disabled = false,
   className,
   onKeyDown,
+  onKeyUp,
+  onBlur,
   title,
   ...rest
 }: CheckboxProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
+  const {onBlur: pressBlur, ...press} = useSpaceOnlyPress({
+    disabled,
+    onPress: () => onChange(nextCheckState(checked)),
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  });
   return (
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
         role="checkbox"
         aria-checked={checked}
         aria-disabled={disabled ? true : undefined}
         className={classNames(styles.check, className)}
-        onClick={pressHandler(disabled, () =>
-          onChange(nextCheckState(checked)),
-        )}
-        onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
+        {...press}
       >
         {checked === true ? <Icon name="check" size={MARK_SIZE} /> : null}
       </button>

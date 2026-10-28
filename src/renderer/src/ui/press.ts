@@ -1,9 +1,11 @@
-import type {
-  KeyboardEvent,
-  KeyboardEventHandler,
-  MouseEvent,
-  MouseEventHandler,
+import {
+  useRef,
+  type FocusEventHandler,
+  type KeyboardEventHandler,
+  type MouseEvent,
+  type MouseEventHandler,
 } from 'react';
+import {hasModifier} from './modifierKeys';
 
 /**
  * Returns a click handler that ignores presses while the control is disabled.
@@ -27,19 +29,59 @@ export function pressHandler<T extends Element>(
   };
 }
 
-/**
- * Returns a key handler for a checkbox or switch, which toggles only on Space.
- *
- * @param onKeyDown - The caller's own key handler, called first.
- */
-export function spaceOnlyKeyHandler<T extends Element>(
-  onKeyDown: KeyboardEventHandler<T> | undefined,
-): KeyboardEventHandler<T> {
-  // NOTE(0913vision): A native button presses on Enter, but checkboxes and
-  // switches toggle only on Space, and Enter belongs to the dialog's primary
-  // button.
-  return (event: KeyboardEvent<T>) => {
-    onKeyDown?.(event);
-    if (event.key === 'Enter') event.preventDefault();
+/** Pass modified Space on without letting the native button synthesize a press. */
+export function useSpaceOnlyPress<T extends Element>({
+  disabled,
+  onPress,
+  onKeyDown,
+  onKeyUp,
+  onBlur,
+}: {
+  readonly disabled: boolean;
+  readonly onPress: MouseEventHandler<T>;
+  readonly onKeyDown: KeyboardEventHandler<T> | undefined;
+  readonly onKeyUp: KeyboardEventHandler<T> | undefined;
+  readonly onBlur: FocusEventHandler<T> | undefined;
+}): {
+  readonly onClick: MouseEventHandler<T>;
+  readonly onKeyDown: KeyboardEventHandler<T>;
+  readonly onKeyUp: KeyboardEventHandler<T>;
+  readonly onBlur: FocusEventHandler<T>;
+} {
+  const pending = useRef({modified: false, version: 0});
+  return {
+    onKeyDown: event => {
+      onKeyDown?.(event);
+      if (event.key === ' ') {
+        pending.current.version++;
+        pending.current.modified =
+          !event.defaultPrevented && hasModifier(event);
+      }
+      // NOTE(0913vision): Enter belongs to the dialog's primary action.
+      if (event.key === 'Enter') event.preventDefault();
+    },
+    onKeyUp: event => {
+      onKeyUp?.(event);
+      if (event.key !== ' ' || !pending.current.modified) return;
+      const version = pending.current.version;
+      setTimeout(() => {
+        if (pending.current.version === version) {
+          pending.current.modified = false;
+        }
+      }, 0);
+    },
+    onClick: event => {
+      const modifiedKeyboardPress =
+        event.detail === 0 && (pending.current.modified || hasModifier(event));
+      pending.current.version++;
+      pending.current.modified = false;
+      if (modifiedKeyboardPress) return;
+      pressHandler(disabled, onPress)(event);
+    },
+    onBlur: event => {
+      pending.current.version++;
+      pending.current.modified = false;
+      onBlur?.(event);
+    },
   };
 }

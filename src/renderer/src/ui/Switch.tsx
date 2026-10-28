@@ -1,6 +1,6 @@
 import type {ComponentPropsWithRef, JSX} from 'react';
 import {classNames} from './classNames';
-import {pressHandler, spaceOnlyKeyHandler} from './press';
+import {useSpaceOnlyPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './Switch.module.css';
 
@@ -24,22 +24,30 @@ export function Switch({
   disabled = false,
   className,
   onKeyDown,
+  onKeyUp,
+  onBlur,
   title,
   ...rest
 }: SwitchProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
+  const {onBlur: pressBlur, ...press} = useSpaceOnlyPress({
+    disabled,
+    onPress: () => onChange(!checked),
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  });
   return (
     <>
       <button
         {...rest}
-        {...withTooltipProps(rest, targetProps)}
+        {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
         role="switch"
         aria-checked={checked}
         aria-disabled={disabled ? true : undefined}
         className={classNames(styles.switch, className)}
-        onClick={pressHandler(disabled, () => onChange(!checked))}
-        onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
+        {...press}
       />
       {tooltip}
     </>
