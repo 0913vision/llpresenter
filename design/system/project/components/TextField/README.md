@@ -56,6 +56,7 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 
 - A click anywhere in the field (icon included) focuses the input.
 - Search field: filter the results on every keystroke. Esc clears the value if there is one, and releases focus if the field is empty. The clear-text button clears the value and keeps focus in the field.
+- Modified Esc passes through without clearing or leaving the search field.
 - 퀵 실행 field: Enter shows that verse. If the verse can't be recognized, show the error ring and give the reason in a tooltip.
 - Number field: `step` defaults to 1 and `largeStep` defaults to ten times `step`. Choose `largeStep` as a whole multiple of `step` so repeated movement stays on the same grid. Up and down arrows add or subtract one step; Shift uses `largeStep`. Count in whole steps so 0.2 with step 0.1 becomes 0.3, without float drift. Round an off-step value or draft to the nearest whole step, apply the arrow movement, and then clamp the result to the range. With step 0.1, Arrow Down from max 0.28 and Arrow Up from min 0.12 both reach 0.2.
 - Number precision follows `step`, including trailing zeroes: step 0.1 displays "0.2", step 0.05 displays "1.40", and step 1 displays "10". Keep any extra digits the actual value needs: a clamped maximum of 0.28 with step 0.1 displays "0.28", including in `aria-valuetext`. An attached suffix follows those digits ("1.00×"); an external unit stays outside ("초").

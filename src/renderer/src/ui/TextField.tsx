@@ -8,6 +8,7 @@ import {classNames} from './classNames';
 import {FieldFrame, useFieldReason} from './fieldFrame';
 import {Icon} from './Icon';
 import {isComposing} from './ime';
+import {hasModifier} from './modifierKeys';
 import type {ControlSize} from './types';
 import styles from './TextField.module.css';
 
@@ -120,7 +121,9 @@ export function TextField({
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     onKeyDown?.(event);
     if (event.defaultPrevented || readOnly || !clearable) return;
-    if (event.key !== 'Escape' || isComposing(event)) return;
+    if (event.key !== 'Escape' || isComposing(event) || hasModifier(event)) {
+      return;
+    }
     event.preventDefault();
     if (value === '') {
       event.currentTarget.blur();

@@ -504,6 +504,12 @@ function NameField({
       onChange={setValue}
       onBlur={() => finish(problem === undefined)}
       onKeyDown={event => {
+        if (
+          hasModifier(event) &&
+          (event.key === 'Enter' || event.key === 'Escape')
+        ) {
+          return;
+        }
         if (ownsFieldKey(event)) event.stopPropagation();
         if (isComposing(event)) return;
         if (event.key === 'Enter') finish(true);

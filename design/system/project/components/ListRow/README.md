@@ -8,6 +8,7 @@ as a list row. Its caption-strong group name and spacing remain the section
 treatment. Tab enters the selected section; arrows/Home/End include it.
 Without `value`, a group label remains passive, as in other grouped lists.
 Renaming stays in place, with Enter/blur to save and Escape to cancel.
+Modified Enter and Escape pass through without finishing the rename.
 
 Selecting a section chooses where 항목 추가 appends content, before the next
 section. The section row remains after content is added. There is no 빈 자리

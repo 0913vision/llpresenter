@@ -88,6 +88,21 @@ describe('TextField', () => {
     expect(document.activeElement).not.toBe(searchBox());
   });
 
+  it('passes modified Escape without clearing search', () => {
+    render(<Search initial="은혜" />);
+    const field = searchBox();
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      expect(fireEvent.keyDown(field, {key: 'Escape', [modifier]: true})).toBe(
+        true,
+      );
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(4);
+    expect(field.value).toBe('은혜');
+  });
+
   it('leaves Esc to the IME while Korean input is composed', async () => {
     render(<Search initial="은혜" />);
     fireEvent.keyDown(searchBox(), {key: 'Escape', isComposing: true});

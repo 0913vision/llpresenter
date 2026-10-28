@@ -529,6 +529,23 @@ describe('ListRow rename', () => {
     };
   }
 
+  it('passes modified Enter and Escape without finishing the rename', () => {
+    const {onCommit, onCancel, field} = renameRow();
+    const keys = vi.fn();
+    window.addEventListener('keydown', keys);
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
+      for (const key of ['Enter', 'Escape']) {
+        expect(fireEvent.keyDown(field, {key, [modifier]: true})).toBe(true);
+      }
+    }
+    window.removeEventListener('keydown', keys);
+    expect(keys).toHaveBeenCalledTimes(8);
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+    fireEvent.keyDown(field, {key: 'Enter'});
+    expect(onCommit).toHaveBeenCalledOnce();
+  });
+
   it('saves the typed name on Enter, once', () => {
     const {onCommit, field} = renameRow();
     expect(document.activeElement).toBe(field);
