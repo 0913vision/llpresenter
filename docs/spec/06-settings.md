@@ -197,7 +197,7 @@ Note: the proposal in 10 would add rows to the lyric style properties (굵기,
 | Property                         | Control                                                                           |
 | -------------------------------- | --------------------------------------------------------------------------------- |
 | 글꼴 (font)                      | Select. Pretendard is bundled. Installed system fonts are also listed (proposal). |
-| 글자색 (text color)              | Color swatch and hex value. Clicking opens a color picker (proposal).             |
+| 글자색 (text color)              | Color swatch and hex value. Clicking the swatch opens the color picker.           |
 | 크기 (size)                      | Number field                                                                      |
 | 줄 간격 (line spacing)           | Number field                                                                      |
 | 가로 정렬 (horizontal alignment) | 왼쪽 (left), 가운데 (center)                                                      |
@@ -206,6 +206,11 @@ Note: the proposal in 10 would add rows to the lyric style properties (굵기,
 | 여백 (margin)                    | Number field (%)                                                                  |
 | 그림자 (shadow)                  | Switch, blur, distance, angle, opacity and color                                  |
 | 외곽선 (outline)                 | Switch, width and color                                                           |
+
+The text color picker opens with the current color. Its color plane and hue,
+saturation and value sliders adjust a preview and hex value. Apply saves the
+chosen color; cancel discards the selection. The hex field also accepts
+`#RRGGBB`, commits on Enter or blur, and discards invalid input on blur.
 
 The detailed controls follow the October 28 user decision (10). The current
 Boolean storage and fixed rendering values remain in use until M3-X2 activates

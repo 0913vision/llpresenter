@@ -459,6 +459,18 @@ until its consumers are ready. A version 1 `referencePosition` unknown field is
 archived under `legacyV1` during migration; version 2 initializes
 `referencePosition` to `bottomRight`.
 
+The staged version 2 Looks schema also defines per-screen message styles. Its
+optional `messageStyles` array holds at most 1,000 unique IDs; each style uses
+the lyric text fields and effect objects above, with an optional `background`
+object containing a `#RRGGBB` color and opacity from 0 to 100. Each Look's
+screen entry may have a `messageStyle` ID. An absent or missing ID resolves to
+the fixed default: Pretendard 700, 84 px, white, centered horizontally and
+vertically, line height 1.4, two lines, 6% margin, outline off and shadow on
+with the migrated defaults above. Migration archives pre-existing unknown
+`messageStyles` and screen `messageStyle` fields under `legacyV1`; it does not
+interpret them as version 2 fields. This schema is staged, and the active store
+and output continue to use version 1 until the consumers are activated.
+
 Defaults (proposal): one Look, 평상시. The 본 화면 shows background media,
 lyrics (기본), 소품, and 메시지, and hides 공지. The 무대 화면 shows lyrics
 (현재와 다음), the clock, and the stage message, and hides background media and
