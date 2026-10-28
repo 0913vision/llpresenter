@@ -32,6 +32,30 @@ const JUSTIFY: Readonly<Record<LyricStyle['vAlign'], string>> = {
 
 type PageIndex = 0 | 1;
 
+function effects(style: LyricStyle) {
+  return {
+    outline:
+      typeof style.outline === 'boolean'
+        ? {
+            on: style.outline,
+            width: LYRIC_EFFECTS.outlineWidth,
+            color: '#000000',
+          }
+        : style.outline,
+    shadow:
+      typeof style.shadow === 'boolean'
+        ? {
+            on: style.shadow,
+            distance: LYRIC_EFFECTS.shadowDistance,
+            blur: LYRIC_EFFECTS.shadowBlur,
+            angle: 45,
+            opacity: LYRIC_EFFECTS.shadowOpacity * 100,
+            color: '#000000',
+          }
+        : style.shadow,
+  };
+}
+
 interface Page {
   readonly element: HTMLDivElement;
   readonly block: HTMLDivElement;
@@ -108,15 +132,11 @@ export class SlideLayerView {
     private style: LyricStyle,
   ) {
     this.element.className = classes.layer;
-    this.element.classList.toggle(classes.shadow, style.shadow);
-    this.element.classList.toggle(classes.outline, style.outline);
+    this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
+    this.element.classList.toggle(classes.outline, effects(style).outline.on);
     this.element.style.setProperty(
       '--slide-dissolve',
       `${SLIDE_DISSOLVE_MS}ms`,
-    );
-    this.element.style.setProperty(
-      '--lyric-shadow-strength',
-      `${LYRIC_EFFECTS.shadowOpacity * 100}%`,
     );
     this.pages = [createPage(style), createPage(style)];
     this.rescale(1);
@@ -156,8 +176,8 @@ export class SlideLayerView {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
     this.style = style;
     this.element.classList.add(classes.instant);
-    this.element.classList.toggle(classes.shadow, style.shadow);
-    this.element.classList.toggle(classes.outline, style.outline);
+    this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
+    this.element.classList.toggle(classes.outline, effects(style).outline.on);
     for (const page of this.pages) applyStyle(page, style);
     this.rescale(this.scale);
   }
@@ -165,18 +185,27 @@ export class SlideLayerView {
   /** Lays the 장 out again at a new screen scale, without a dissolve. */
   rescale(scale: number): void {
     this.scale = scale;
-    this.element.style.setProperty(
-      '--lyric-shadow-offset',
-      `${(LYRIC_EFFECTS.shadowDistance / Math.SQRT2) * scale}px`,
-    );
+    const {shadow, outline} = effects(this.style);
+    const angle = (shadow.angle * Math.PI) / 180;
+    const x = Math.round(Math.cos(angle) * shadow.distance * scale * 1e6) / 1e6;
+    const y = Math.round(Math.sin(angle) * shadow.distance * scale * 1e6) / 1e6;
+    this.element.style.setProperty('--lyric-shadow-offset', `${x}px`);
+    this.element.style.setProperty('--lyric-shadow-x', `${x}px`);
+    this.element.style.setProperty('--lyric-shadow-y', `${y}px`);
     this.element.style.setProperty(
       '--lyric-shadow-blur',
-      `${LYRIC_EFFECTS.shadowBlur * scale}px`,
+      `${shadow.blur * scale}px`,
     );
     this.element.style.setProperty(
       '--lyric-outline-width',
-      `${LYRIC_EFFECTS.outlineWidth * scale}px`,
+      `${outline.width * scale}px`,
     );
+    this.element.style.setProperty(
+      '--lyric-shadow-strength',
+      `${shadow.opacity}%`,
+    );
+    this.element.style.setProperty('--lyric-shadow-color', shadow.color);
+    this.element.style.setProperty('--lyric-outline-color', outline.color);
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 

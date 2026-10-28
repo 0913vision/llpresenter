@@ -28,6 +28,61 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('draws detailed outline and shadow at screen scale and updates without a dissolve', () => {
+    const {parent, view, shownPage} = setUp();
+    view.show(VERSE);
+    const page = shownPage();
+    const style = {
+      ...DEFAULT_LYRIC_STYLE,
+      outline: {on: true, width: 3, color: '#123456'},
+      shadow: {
+        on: true,
+        blur: 8,
+        distance: 8,
+        angle: 90,
+        opacity: 35,
+        color: '#ABCDEF',
+      },
+    };
+    view.rescale(0.5);
+    view.setStyle(style);
+    const element = parent.firstElementChild;
+    if (!(element instanceof HTMLElement)) throw new Error('Missing layer');
+    expect(shownPage()).toBe(page);
+    expect(element.classList.contains(classes.instant)).toBe(true);
+    expect(element.classList.contains(classes.outline)).toBe(true);
+    expect(element.classList.contains(classes.shadow)).toBe(true);
+    expect(element.style.getPropertyValue('--lyric-outline-width')).toBe(
+      '1.5px',
+    );
+    expect(element.style.getPropertyValue('--lyric-outline-color')).toBe(
+      '#123456',
+    );
+    expect(
+      Number.parseFloat(element.style.getPropertyValue('--lyric-shadow-x')),
+    ).toBeCloseTo(0);
+    expect(
+      Number.parseFloat(element.style.getPropertyValue('--lyric-shadow-y')),
+    ).toBeCloseTo(4);
+    expect(element.style.getPropertyValue('--lyric-shadow-blur')).toBe('4px');
+    expect(element.style.getPropertyValue('--lyric-shadow-strength')).toBe(
+      '35%',
+    );
+    expect(element.style.getPropertyValue('--lyric-shadow-color')).toBe(
+      '#ABCDEF',
+    );
+    view.setStyle({
+      ...style,
+      outline: {...style.outline, on: false},
+      shadow: {...style.shadow, on: false},
+    });
+    expect(element.classList.contains(classes.outline)).toBe(false);
+    expect(element.classList.contains(classes.shadow)).toBe(false);
+    view.rescale(2);
+    expect(element.style.getPropertyValue('--lyric-outline-width')).toBe('6px');
+    expect(element.style.getPropertyValue('--lyric-shadow-blur')).toBe('16px');
+    view.dispose();
+  });
   it.each([
     [1280, 720],
     [1920, 1080],

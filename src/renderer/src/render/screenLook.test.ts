@@ -133,6 +133,13 @@ describe('screen Look resolution', () => {
     });
   });
 
+  it('passes the saved outline and shadow details to the renderer', () => {
+    const style = resolveScreenLook(looks(), NORMAL, CAPTIONS_SCREEN).appearance
+      ?.lyricStyle;
+    expect(style?.outline).toEqual(DEFAULT_MESSAGE_STYLE.outline);
+    expect(style?.shadow).toEqual(DEFAULT_MESSAGE_STYLE.shadow);
+  });
+
   it('falls back to the saved current Look for no or a deleted live Look', () => {
     const current = resolveScreenLook(looks(), NORMAL, STAGE_SCREEN);
     expect(resolveScreenLook(looks(), DELETED, STAGE_SCREEN)).toEqual(current);

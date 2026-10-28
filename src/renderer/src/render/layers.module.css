@@ -73,16 +73,16 @@
 }
 
 .shadow .block {
-  text-shadow: var(--lyric-shadow-offset) var(--lyric-shadow-offset)
+  text-shadow: var(--lyric-shadow-x) var(--lyric-shadow-y)
     var(--lyric-shadow-blur)
     color-mix(
       in srgb,
-      var(--output-black) var(--lyric-shadow-strength),
+      var(--lyric-shadow-color) var(--lyric-shadow-strength),
       transparent
     );
 }
 
 .outline .block {
-  -webkit-text-stroke: var(--lyric-outline-width) var(--output-black);
+  -webkit-text-stroke: var(--lyric-outline-width) var(--lyric-outline-color);
   paint-order: stroke fill;
 }

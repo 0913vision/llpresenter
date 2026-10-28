@@ -16,14 +16,14 @@ export interface LyricStyle {
   readonly maxLines: number;
   /** The margin on every side, in percent of the screen. */
   readonly margin: number;
-  readonly shadow: boolean;
-  readonly outline: boolean;
+  readonly shadow: boolean | StoredLyricStyle['shadow'];
+  readonly outline: boolean | StoredLyricStyle['outline'];
 }
 
 // TODO(0913vision): Take the lyric style from the current Look once the
 // settings store sends it.
 /** 기본 (default), with the values of the `Looks` board. */
-export const DEFAULT_LYRIC_STYLE: LyricStyle = {
+export const DEFAULT_LYRIC_STYLE = {
   font: 'Pretendard',
   weight: 700,
   size: 84,
@@ -35,7 +35,7 @@ export const DEFAULT_LYRIC_STYLE: LyricStyle = {
   margin: 6,
   shadow: true,
   outline: false,
-};
+} as const satisfies LyricStyle;
 
 /** The screen size that lyric style sizes are written for. */
 export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
@@ -56,7 +56,7 @@ export function scaleFor(width: number, height: number): number {
   );
 }
 
-/** Retains the existing renderer's fixed effects until it supports v2 details. */
+/** Supplies the stored lyric style to the renderer. */
 export function renderLyricStyle(style: StoredLyricStyle): LyricStyle {
-  return {...style, shadow: style.shadow.on, outline: style.outline.on};
+  return style;
 }
