@@ -1,12 +1,9 @@
 import {memo, useCallback, type JSX} from 'react';
 import {Icon, IconButton, TruncatedText, useTooltip} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
-import {
-  executeDismiss,
-  useShowingGroups,
-  type DismissDescriptor,
-  type ShowingItem,
-} from './showingRows';
+import {executeDismiss} from './showingDismiss';
+import {useShowingGroups} from './showingHooks';
+import type {DismissDescriptor, ShowingItem} from './showingTypes';
 import styles from './ShowingTab.module.css';
 
 function BackgroundStillIcon({

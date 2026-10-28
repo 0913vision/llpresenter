@@ -8,7 +8,7 @@ import {ShowingTab} from './tools/ShowingTab';
 import {StageTab} from './tools/StageTab';
 import {MessageTab} from './tools/MessageTab';
 import {TimerTab} from './tools/TimerTab';
-import {useShowingCount} from './tools/showingRows';
+import {useShowingCount} from './tools/showingHooks';
 import styles from './ShowToolsPanel.module.css';
 
 /** Shows the 진행 도구 tabs whose panels have working controls. */

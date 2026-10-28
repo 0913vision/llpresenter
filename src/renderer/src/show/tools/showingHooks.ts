@@ -1,7 +1,8 @@
-import {useMemo, useState, useEffect} from 'react';
+import {useMemo, useState, useEffect, useLayoutEffect, useRef} from 'react';
 import type {Screen} from '@shared/schema/screens';
 import type {MediaItem} from '@shared/schema/mediaList';
-import type {Notice} from '@renderer/ui/notices';
+import type {MediaDocument} from '@shared/schema/mediaEdit';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
@@ -10,6 +11,44 @@ import {computeShowingCount, computeShowingGroups} from './showingRows';
 import type {ShowingGroup} from './showingTypes';
 
 const EMPTY_SCREENS: readonly Screen[] = [];
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
+function useExpiryClock(
+  liveState: ReturnType<typeof useLive.getState>['state'],
+): number {
+  const [now, setNow] = useState(() => Date.now());
+  const messages = liveState?.layers.message?.items;
+  useEffect(() => {
+    const wall = Date.now();
+    const expiries =
+      messages?.flatMap(message =>
+        message.expiresAt === null ? [] : [message.expiresAt],
+      ) ?? [];
+    const overdue = expiries.some(expiry => expiry > now && expiry <= wall);
+    const next = expiries.reduce<number | undefined>(
+      (first, expiry) =>
+        expiry > wall && (first === undefined || expiry < first)
+          ? expiry
+          : first,
+      undefined,
+    );
+    if (!overdue && next === undefined) return undefined;
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = overdue ? 0 : Math.max(0, (next ?? wall) - Date.now());
+      timer = setTimeout(
+        () => {
+          if (delay > MAX_TIMEOUT_MS) schedule();
+          else setNow(Date.now());
+        },
+        Math.min(delay, MAX_TIMEOUT_MS),
+      );
+    };
+    schedule();
+    return () => clearTimeout(timer);
+  }, [messages, now]);
+  return now;
+}
 
 export interface ShowingGroupsResult {
   readonly groups: readonly ShowingGroup[];
@@ -23,7 +62,7 @@ export function useShowingCount(onProblem?: (notice: Notice) => void): number {
   const screens = screensDoc?.value.screens ?? EMPTY_SCREENS;
   const looks = looksDoc?.value ?? null;
   const liveState = useLive(view => view.state);
-  const now = useShowingClock({screens, looks, liveState});
+  const now = useExpiryClock(liveState);
   return useMemo(
     () => computeShowingCount({screens, looks, liveState, now}),
     [screens, looks, liveState, now],
@@ -53,36 +92,56 @@ export function useShowingGroups(
   const [missingMediaIds, setMissingMediaIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const report = useRef(onProblem);
+  useLayoutEffect(() => {
+    report.current = onProblem;
+  });
 
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
     let active = true;
-
-    api.media
-      .get()
-      .then(res => {
-        if (active) {
-          setMediaItems(res.value.items);
-        }
-      })
-      .catch(() => undefined);
-
-    api.media
-      .missing()
-      .then(missing => {
-        if (active) {
-          setMissingMediaIds(new Set(missing));
-        }
-      })
-      .catch(() => undefined);
-
-    const stopMedia = api.media.subscribe(doc => {
+    let revision = -1;
+    let missingPushed = false;
+    const accept = (doc: MediaDocument): void => {
+      if (!active || doc.revision <= revision) return;
+      revision = doc.revision;
       setMediaItems(doc.value.items);
-    });
+    };
+    const failure = (key: string, message: string, cause: unknown): void => {
+      if (!active) return;
+      api.log.write({
+        level: 'error',
+        message,
+        detail: cause instanceof Error ? cause.message : String(cause),
+      });
+      report.current?.({
+        key: `showing:${key}`,
+        kind: 'warning',
+        icon: 'warning',
+        title: '미디어 정보 불러오기 실패',
+        time: noticeTime(),
+      });
+    };
+    const stopMedia = api.media.subscribe(accept);
     const stopMissing = api.media.subscribeMissing(missing => {
+      if (!active) return;
+      missingPushed = true;
       setMissingMediaIds(new Set(missing));
     });
+    api.media.get().then(accept, (cause: unknown) => {
+      if (revision < 0) failure('media', 'Could not load showing media', cause);
+    });
+    api.media.missing().then(
+      missing => {
+        if (active && !missingPushed) setMissingMediaIds(new Set(missing));
+      },
+      (cause: unknown) => {
+        if (!missingPushed) {
+          failure('missing', 'Could not check showing media files', cause);
+        }
+      },
+    );
     return () => {
       active = false;
       stopMedia();

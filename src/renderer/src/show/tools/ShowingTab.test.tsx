@@ -51,13 +51,9 @@ import {
   areShowingRowPropsEqual,
   type ShowingRowProps,
 } from './ShowingTab';
-import {
-  computeShowingGroups,
-  computeShowingCount,
-  dismissMessage,
-  dismissProp,
-  type ShowingItem,
-} from './showingRows';
+import {computeShowingGroups, computeShowingCount} from './showingRows';
+import {dismissMessage, dismissProp} from './showingDismiss';
+import type {ShowingItem} from './showingTypes';
 
 function parseTestMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
