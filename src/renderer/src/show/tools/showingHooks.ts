@@ -167,7 +167,13 @@ export function useShowingGroups(
   const noticesFile = noticesDoc?.value ?? null;
   const stageLayoutsFile = stageLayoutsDoc?.value ?? null;
 
-  const now = useShowingClock({screens, looks, liveState});
+  const now = useShowingClock({
+    screens,
+    looks,
+    liveState,
+    stageLayoutsFile,
+    mediaItems,
+  });
 
   const groups = useMemo(
     () =>
