@@ -1,0 +1,41 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  height: var(--size-row);
+  padding: 0 var(--panel-inset);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: var(--type-body);
+  text-align: left;
+  cursor: pointer;
+}
+.row:hover:not(:disabled) {
+  background: var(--bg-raised);
+}
+.row:focus-visible {
+  outline: var(--space-2) solid var(--accent);
+  outline-offset: calc(-1 * var(--space-2));
+}
+.row:disabled {
+  color: var(--text-3);
+  cursor: default;
+}
+.number {
+  width: 2em;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.duration {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
