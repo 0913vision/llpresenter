@@ -59,13 +59,25 @@ export interface ShowingGroupsResult {
 export function useShowingCount(onProblem?: (notice: Notice) => void): number {
   const screensDoc = useSettingsDocument('screens', '화면', onProblem);
   const looksDoc = useSettingsDocument('looks', 'Look', onProblem);
+  const layoutsDoc = useSettingsDocument(
+    'stage-layouts',
+    '무대 배치',
+    onProblem,
+  );
   const screens = screensDoc?.value.screens ?? EMPTY_SCREENS;
   const looks = looksDoc?.value ?? null;
   const liveState = useLive(view => view.state);
   const now = useExpiryClock(liveState);
   return useMemo(
-    () => computeShowingCount({screens, looks, liveState, now}),
-    [screens, looks, liveState, now],
+    () =>
+      computeShowingCount({
+        screens,
+        looks,
+        liveState,
+        now,
+        stageLayoutsFile: layoutsDoc?.value ?? null,
+      }),
+    [screens, looks, liveState, now, layoutsDoc],
   );
 }
 

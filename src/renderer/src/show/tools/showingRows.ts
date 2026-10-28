@@ -259,12 +259,13 @@ function clockRow(
   screen: Screen,
   appearance: ScreenAppearance | null,
   options: ComputeShowingOptions,
-): ShowingItem {
+): ShowingItem | null {
   const layoutId =
     options.liveState?.stageLayouts?.[screen.id] ?? appearance?.stageLayout;
   const layout = options.stageLayoutsFile?.layouts.find(l => l.id === layoutId);
   const clockEl = layout?.elements.find(e => e.kind === 'clock');
-  const format = clockEl?.clockFormat ?? '24h';
+  if (!clockEl) return null;
+  const format = clockEl.clockFormat ?? '24h';
   const clockText = stageClockText(options.now, format);
 
   return {
@@ -328,7 +329,8 @@ function computeStageItems(
   }
 
   if (showsLayer(appearance, 'clock')) {
-    items.push(clockRow(screen, appearance, options));
+    const clock = clockRow(screen, appearance, options);
+    if (clock !== null) items.push(clock);
   }
 
   return items;

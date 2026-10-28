@@ -39,7 +39,6 @@ import {
   LOOK_ID,
   LAYOUT_ID,
   screensDocument,
-  stageLayoutsDocument,
   settingsDocument,
 } from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
@@ -127,12 +126,37 @@ const stageLooks: LooksFile = {
             notice: true,
           },
         },
-        [testStageScreen]: {layers: {stageMessage: true, clock: true}},
+        [testStageScreen]: {
+          layers: {stageMessage: true, clock: true},
+          stageLayout: parseTestStageLayoutId(LAYOUT_ID),
+        },
       },
     },
   ],
   lyricStyles: [],
 };
+
+function clockStageDocument() {
+  return settingsDocument('stage-layouts', {
+    format: 'llsettings.stage',
+    layouts: [
+      {
+        id: LAYOUT_ID,
+        name: 'Clock',
+        width: 1920,
+        height: 1080,
+        elements: [
+          {
+            id: 'clock',
+            name: 'Clock',
+            kind: 'clock',
+            frame: {x: 0, y: 0, w: 100, h: 40},
+          },
+        ],
+      },
+    ],
+  });
+}
 
 const testPropsFile: PropsFile = {
   format: 'llsettings.props',
@@ -239,7 +263,7 @@ function setupFixture() {
       );
     }
     if (name === 'stage-layouts') {
-      return Promise.resolve(stageLayoutsDocument());
+      return Promise.resolve(clockStageDocument());
     }
     if (name === 'props') {
       return Promise.resolve(
@@ -393,6 +417,8 @@ describe('ShowingTab', () => {
     const screens =
       screensDoc.name === 'screens' ? screensDoc.value.screens : [];
 
+    const stageDoc = clockStageDocument();
+    if (stageDoc.name !== 'stage-layouts') throw new Error('Expected layouts');
     const groups = computeShowingGroups({
       screens,
       looks: stageLooks,
@@ -471,6 +497,7 @@ describe('ShowingTab', () => {
       ],
       propsFile: testPropsFile,
       noticesFile: testNoticesFile,
+      stageLayoutsFile: stageDoc.value,
     });
 
     const [mainGroup, , stageGroup] = groups;
@@ -490,6 +517,73 @@ describe('ShowingTab', () => {
 
     expect(stageGroup.items.some(i => i.title === '후렴 한 번 더')).toBe(true);
     expect(stageGroup.items.some(i => i.kind === 'clock')).toBe(true);
+  });
+
+  it('counts a stage clock only when the active layout has a clock element', () => {
+    const screensDoc = screensDocument();
+    const clockDoc = clockStageDocument();
+    const emptyDoc = settingsDocument('stage-layouts', {
+      format: 'llsettings.stage',
+      layouts: [
+        {id: LAYOUT_ID, name: 'Empty', width: 1920, height: 1080, elements: []},
+      ],
+    });
+    if (
+      screensDoc.name !== 'screens' ||
+      clockDoc.name !== 'stage-layouts' ||
+      emptyDoc.name !== 'stage-layouts'
+    ) {
+      throw new Error('Invalid fixtures');
+    }
+    const options = {
+      screens: screensDoc.value.screens,
+      looks: stageLooks,
+      liveState: emptyLiveState(),
+      now: 1_700_000_000_000,
+    };
+    const withClock = {...options, stageLayoutsFile: clockDoc.value};
+    const noClock = {...options, stageLayoutsFile: emptyDoc.value};
+    expect(
+      computeShowingGroups(withClock)
+        .flatMap(group => group.items)
+        .some(item => item.kind === 'clock'),
+    ).toBe(true);
+    expect(
+      computeShowingGroups(noClock)
+        .flatMap(group => group.items)
+        .some(item => item.kind === 'clock'),
+    ).toBe(false);
+    expect(computeShowingCount(withClock)).toBe(
+      computeShowingCount(noClock) + 1,
+    );
+    const missing = {
+      ...withClock,
+      liveState: {
+        ...options.liveState,
+        stageLayouts: {
+          [testStageScreen]: parseTestStageLayoutId(
+            '00000000-0000-4000-8000-0000000000b2',
+          ),
+        },
+      },
+    };
+    expect(computeShowingCount(missing)).toBe(computeShowingCount(noClock));
+    const emptyLayout = emptyDoc.value.layouts[0];
+    if (!emptyLayout) throw new Error('Missing empty layout');
+    const override = {
+      ...missing,
+      stageLayoutsFile: {
+        ...clockDoc.value,
+        layouts: [
+          ...clockDoc.value.layouts,
+          {
+            ...emptyLayout,
+            id: parseTestStageLayoutId('00000000-0000-4000-8000-0000000000b2'),
+          },
+        ],
+      },
+    };
+    expect(computeShowingCount(override)).toBe(computeShowingCount(noClock));
   });
 
   it('uses fallback title for unknown media and omits position time on image backgrounds', () => {
@@ -894,7 +988,7 @@ describe('ShowingTab', () => {
       throw new Error('expected screens document');
     }
     const screens = screensDoc.value.screens;
-    const stageDoc = stageLayoutsDocument();
+    const stageDoc = clockStageDocument();
     if (stageDoc.value.format !== 'llsettings.stage') {
       throw new Error('expected stage layouts document');
     }
