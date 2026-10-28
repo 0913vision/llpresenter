@@ -42,7 +42,8 @@ Four small marks: the LIVE badge, the status dot, the count badge, and the progr
 | Dot: healthy | `ok` | | Use `ok` only for the dot |
 | Dot: warning | `warning` | Text next to it is also `warning` | Reason in a tooltip |
 | Dot: live (on) | `live` | | Toolbar output button |
-| Dot: off | `line-strong` | Button text `text-off` | Toolbar output button |
+| Dot: off | `line-strong` | Button text `text-2` | Toolbar output button |
+| Status bar: off | Transparent | Screen name `text-3` | Hollow 6px dot, 1px `text-3` border |
 | Count: 0 | Hidden | | Hide the badge at 0 |
 | Bar: 0–100% | `accent` on `line-strong` | | Remove the bar when the task ends |
 

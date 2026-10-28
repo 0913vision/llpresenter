@@ -108,7 +108,7 @@
 
 .row:has(> .check[aria-disabled='true']),
 .row:has(> .check[aria-disabled='true']) :is(.rowIcon, .value, .meta) {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .list:has(> .check[aria-disabled='true']):hover {

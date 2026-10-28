@@ -107,7 +107,11 @@
   background: var(--bg-control-hover);
 }
 
-.select[aria-disabled='true'],
 .select[aria-disabled='true'] :is(.icon, .meta, .chevron) {
   color: var(--text-off);
+}
+
+.select[aria-disabled='true'],
+.select[aria-disabled='true'] .meta {
+  color: var(--text-2);
 }

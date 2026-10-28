@@ -60,7 +60,7 @@
 }
 
 .row:has(> .control :is(:disabled, [aria-disabled='true'])) > .label {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .control {

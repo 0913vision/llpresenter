@@ -79,7 +79,7 @@
 }
 
 .tab[aria-disabled='true'] {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .more {
@@ -181,7 +181,7 @@
 }
 
 .switch[aria-disabled='true'] {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .actions {

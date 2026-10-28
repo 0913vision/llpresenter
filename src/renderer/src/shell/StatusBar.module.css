@@ -43,14 +43,16 @@
   white-space: nowrap;
 }
 
-.off {
-  color: var(--text-off);
-}
-
 .dot {
   flex: none;
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
   background: var(--ok);
+}
+
+.off .dot {
+  box-sizing: border-box;
+  border: 1px solid var(--text-3);
+  background: transparent;
 }

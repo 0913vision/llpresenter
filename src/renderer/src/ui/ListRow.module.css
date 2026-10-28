@@ -112,6 +112,10 @@
   color: var(--text-3);
 }
 
+.row[data-state~='done'][aria-selected='true'] {
+  color: var(--text-2);
+}
+
 .row[data-state~='done'] .icon {
   color: var(--text-off);
 }
@@ -132,11 +136,15 @@
 
 .row[aria-disabled='true'] {
   background: transparent;
+  color: var(--text-2);
+}
+
+.row[aria-disabled='true'] .icon {
   color: var(--text-off);
 }
 
-.row[aria-disabled='true'] :is(.icon, .meta) {
-  color: var(--text-off);
+.row[aria-disabled='true'] .meta {
+  color: var(--text-2);
 }
 
 .group {

@@ -59,8 +59,8 @@ export function StatusMarksSection(): JSX.Element {
               무대 화면
             </span>
             <span>
-              <StatusDot tone="ok" />
-              방송 자막 60fps
+              <span className={styles.offDot} aria-hidden="true" />
+              방송 자막
             </span>
           </div>
         </SpecItem>

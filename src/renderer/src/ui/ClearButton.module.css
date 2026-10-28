@@ -65,6 +65,10 @@
   color: var(--text-off);
 }
 
+.button[data-state='off'] .label {
+  color: var(--text-3);
+}
+
 .undo[data-state='off'] {
   background: var(--bg-toolbar-hover);
 }

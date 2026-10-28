@@ -62,6 +62,10 @@
   cursor: default;
 }
 
+.button[data-state='off'] .label {
+  color: var(--text-3);
+}
+
 .undo[data-state='off']:hover {
   background: var(--bg-toolbar-hover);
 }

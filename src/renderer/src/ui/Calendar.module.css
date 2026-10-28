@@ -73,6 +73,10 @@
 [role='gridcell']:not([aria-selected='true']) .day:not(:disabled):active {
   background: var(--bg-control-hover);
 }
+[role='gridcell']:not([aria-selected='true'])
+  .day[data-outside]:not(:disabled):is(:hover, :active) {
+  color: var(--text-2);
+}
 [role='gridcell'][aria-selected='true'] .day {
   background: var(--accent-fill);
   color: var(--text-on-fill);
@@ -84,7 +88,7 @@
   outline-offset: var(--radius-hairline);
 }
 .day:disabled {
-  color: var(--text-off);
+  color: var(--text-2);
   box-shadow: none;
 }
 .foot {

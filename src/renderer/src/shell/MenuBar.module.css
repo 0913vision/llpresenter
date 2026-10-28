@@ -47,7 +47,7 @@
 }
 
 .menu[aria-disabled='true'] {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .title {

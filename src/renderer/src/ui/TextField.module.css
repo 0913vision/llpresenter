@@ -118,12 +118,12 @@
 }
 
 .field:has(> .input:disabled) {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .input:disabled,
 .input:disabled::placeholder {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .numberRow {
@@ -179,7 +179,7 @@
 
 .textarea:disabled,
 .textarea:disabled::placeholder {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .description {

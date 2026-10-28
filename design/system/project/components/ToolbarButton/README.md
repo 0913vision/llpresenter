@@ -123,7 +123,7 @@ kind of navigation.
 ## Changes from the drafts
 
 - All boards (assemble.js `toolbar()`): output dot 7px (right −5, top −3) → 6px (right −4, top −3).
-- ShowH, Bible: gray dot (#3a3a3a) on an output that is off → the StatusMarks off dot (`line-strong`), so on, off, and no monitor each keep a dot in the same place. The #6e6e6e text of an output that is off stays `text-off`.
+- ShowH, Bible: gray dot (#3a3a3a) on an output that is off → the StatusMarks off dot (`line-strong`), so on, off, and no monitor each keep a dot in the same place. Output names use `text-2` when off so they remain readable.
 - Problems: no-monitor output with a #2a2210 background and #e3a23b painted all the way to the name → no background, only the icon and the dot in `warning`, name `text`. Dot ring #2a2210 → `ring-dot-cut`. Tooltip "모니터 3 연결 끊김, 창으로 표시 중" → "무대 화면: 모니터 3을 찾을 수 없습니다".
 - All boards: Look arrow 14px → 12px.
 - Compact: removed the track behind the workspace tabs (#161616, padding 2, radius 6). Selected tab #2f2f2f → `bg-raised`. Tab, Look, and output button height 30 → 32, radius 4 → `radius-lg`. Tab name weight 500 → 400. 미디어 34×34 → 32×32.

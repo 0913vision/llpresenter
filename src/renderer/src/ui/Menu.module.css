@@ -124,11 +124,15 @@
 
 .item[aria-disabled='true'] {
   background: transparent;
+  color: var(--text-2);
+}
+
+.item[aria-disabled='true'] :is(.lead, .mark, .chevron) {
   color: var(--text-off);
 }
 
-.item[aria-disabled='true'] :is(.lead, .mark, .meta, .chevron) {
-  color: var(--text-off);
+.item[aria-disabled='true'] .meta {
+  color: var(--text-2);
 }
 
 .separator {

@@ -77,6 +77,11 @@
   color: var(--text-off);
 }
 
+.output[data-state='off'] .label,
+.button[aria-disabled='true'] .label {
+  color: var(--text-2);
+}
+
 .output[data-state='warning'] .outputIcon {
   color: var(--warning);
 }

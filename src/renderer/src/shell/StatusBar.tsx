@@ -6,7 +6,7 @@ import styles from './StatusBar.module.css';
 
 // TODO(0913vision): Show the save state and each output window's frame rate.
 
-/** The 28px status bar: a dot for each screen on output, a dimmed name otherwise. */
+/** The 28px status bar: a filled or hollow dot for each screen's output. */
 export function StatusBar(): JSX.Element {
   const outputs = useOutputs();
   const screens = useScreenSummaries();
@@ -25,8 +25,10 @@ export function StatusBar(): JSX.Element {
             <span
               key={screen.id}
               className={on ? styles.item : `${styles.item} ${styles.off}`}
+              role="img"
+              aria-label={`${screen.statusLabel} 출력 ${on ? '켜짐' : '꺼짐'}`}
             >
-              {on ? <span className={styles.dot} aria-hidden="true" /> : null}
+              <span className={styles.dot} aria-hidden="true" />
               <TruncatedText
                 text={screen.statusLabel}
                 className={styles.name}

@@ -68,12 +68,16 @@
 }
 
 .number {
-  color: var(--text-off);
+  color: var(--text-2);
   font: var(--type-heading);
 }
 
 .control {
   color: var(--text-3);
+}
+
+.selected .control {
+  color: var(--text-2);
 }
 
 .screens {

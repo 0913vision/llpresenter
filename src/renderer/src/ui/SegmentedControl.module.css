@@ -65,6 +65,10 @@
   color: var(--warning);
 }
 
+.segment:is(:hover, :active) .count:not(.warning) {
+  color: var(--text-2);
+}
+
 .segment:not(
     [aria-disabled='true'],
     [aria-checked='true'],
@@ -109,9 +113,9 @@
 }
 
 .segment[aria-disabled='true'] {
-  color: var(--text-off);
+  color: var(--text-2);
 }
 
 .segment[aria-disabled='true'] .count {
-  color: var(--text-off);
+  color: var(--text-2);
 }

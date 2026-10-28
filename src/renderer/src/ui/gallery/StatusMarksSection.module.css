@@ -21,3 +21,11 @@
 .warn {
   color: var(--warning);
 }
+.offDot {
+  box-sizing: border-box;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border: 1px solid var(--text-3);
+  border-radius: var(--radius-full);
+}

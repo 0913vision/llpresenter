@@ -142,7 +142,7 @@
 .ll-btn:focus:not(:focus-visible) { outline: none; }
 
 /* Disabled: a primary button falls back to the secondary background */
-.ll-btn:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
+.ll-btn:is(:disabled, [aria-disabled="true"]) { color: var(--text-2); }
 .ll-btn.ll-btn--primary:is(:disabled, [aria-disabled="true"]) { background: var(--bg-control); }
 
 @media (prefers-reduced-motion: reduce) { .ll-btn, :is(.ll-root, .ll-preview) .ll-btn { transition: none; } }
@@ -210,8 +210,8 @@
 .ll-seg__item:focus:not(:focus-visible) { outline: none; }
 
 /* Disabled: set disabled (or aria-disabled) on each segment. The selected segment keeps its background so the choice stays visible */
-.ll-seg__item.ll-seg__item:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
-.ll-seg__item:is(:disabled, [aria-disabled="true"]) .ll-seg__count.ll-seg__count { color: var(--text-off); }
+.ll-seg__item.ll-seg__item:is(:disabled, [aria-disabled="true"]) { color: var(--text-2); }
+.ll-seg__item:is(:disabled, [aria-disabled="true"]) .ll-seg__count.ll-seg__count { color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) { .ll-seg__item, :is(.ll-root, .ll-preview) .ll-seg__item { transition: none; } }
 
@@ -412,9 +412,8 @@
 .ll-statusbar__dot { flex: none; width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--ok); }
 .ll-statusbar__item[data-state="warning"] { color: var(--warning); }
 .ll-statusbar__item[data-state="warning"] .ll-statusbar__dot { background: var(--warning); }
-/* Screen with output off: no dot, like an off output button on the toolbar */
-.ll-statusbar__item[data-state="off"] { color: var(--text-off); }
-.ll-statusbar__item[data-state="off"] .ll-statusbar__dot { display: none; }
+/* Screen with output off: keep the name readable and show a hollow dot. */
+.ll-statusbar__item[data-state="off"] .ll-statusbar__dot { box-sizing: border-box; border: 1px solid var(--text-3); background: transparent; }
 
 /* ---- 20-textfield.css ---- */
 /* 20 TextField: single-line field (ll-field), multiline field (ll-textarea) */
@@ -472,9 +471,9 @@
 .ll-field:focus-within, .ll-field.is-focus { box-shadow: var(--ring-field-focus); }
 .ll-preview .ll-field.is-focus { outline: none; }
 .ll-field:has(> .ll-field__input[aria-invalid="true"]) { box-shadow: var(--ring-field-error); }
-.ll-field:has(> .ll-field__input:disabled) { color: var(--text-off); }
-.ll-field__input:disabled { color: var(--text-off); }
-.ll-field__input:disabled::placeholder { color: var(--text-off); }
+.ll-field:has(> .ll-field__input:disabled) { color: var(--text-2); }
+.ll-field__input:disabled { color: var(--text-2); }
+.ll-field__input:disabled::placeholder { color: var(--text-2); }
 
 /* Multiline field (notes) */
 .ll-textarea {
@@ -486,8 +485,8 @@
 .ll-textarea:focus, .ll-textarea.is-focus { box-shadow: var(--ring-field-focus); }
 .ll-preview .ll-textarea.is-focus { outline: none; }
 .ll-textarea[aria-invalid="true"] { box-shadow: var(--ring-field-error); }
-.ll-textarea:disabled { color: var(--text-off); }
-.ll-textarea:disabled::placeholder { color: var(--text-off); }
+.ll-textarea:disabled { color: var(--text-2); }
+.ll-textarea:disabled::placeholder { color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) { .ll-field__clear { transition: none; } }
 
@@ -524,7 +523,7 @@
 
 .ll-select:hover, .ll-select.is-hover, .ll-select:active, .ll-select.is-active, .ll-select[aria-expanded="true"] { background: var(--bg-control-hover); }
 .ll-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-select:disabled { background: var(--bg-control); color: var(--text-off); }
+.ll-select:disabled { background: var(--bg-control); color: var(--text-2); }
 .ll-select:disabled .ll-select__icon, .ll-select:disabled .ll-select__meta, .ll-select:disabled .ll-select__chevron { color: var(--text-off); }
 
 /* Macro color tiles */
@@ -573,11 +572,11 @@
 /* Group header row (parent in a tree) */
 .ll-check-row--group { font: var(--type-caption-strong); color: var(--text-3); }
 
-.ll-check-row:has(> .ll-check:disabled) { color: var(--text-off); }
+.ll-check-row:has(> .ll-check:disabled) { color: var(--text-2); }
 .ll-check-row--list:has(> .ll-check:disabled):hover { background: transparent; }
 .ll-check-row:has(> .ll-check:disabled) .ll-check-row__icon,
 .ll-check-row:has(> .ll-check:disabled) .ll-check-row__value,
-.ll-check-row:has(> .ll-check:disabled) .ll-check-row__meta { color: var(--text-off); }
+.ll-check-row:has(> .ll-check:disabled) .ll-check-row__meta { color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) { .ll-check-row { transition: none; } }
 
@@ -600,7 +599,7 @@
 
 /* Name + switch (text import settings row). A click on the name also toggles it */
 .ll-switch-row { display: inline-flex; align-items: center; gap: var(--space-10); font: var(--type-label); color: var(--text-2); }
-.ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-off); }
+.ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-2); }
 
 @media (prefers-reduced-motion: reduce) { .ll-switch, .ll-switch::after { transition: none; } }
 
@@ -630,7 +629,7 @@
 /* Leading icon + slider (thumbnail size, volume) */
 .ll-slider-row { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--text-3); }
 .ll-slider-row > .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
-.ll-slider-row:has(> .ll-slider:disabled) { color: var(--text-off); }
+.ll-slider-row:has(> .ll-slider:disabled) { color: var(--text-2); }
 
 /* ---- 25-labelcolor.css ---- */
 /* 25 LabelColorPicker: 이름표 color picker (ll-swatches, ll-swatch) */
@@ -695,7 +694,7 @@
 
 .ll-prop { display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-prop-row); }
 .ll-prop__label { flex: 0 0 var(--size-prop-label); min-width: 0; font: var(--type-label); color: var(--text-2); }
-.ll-prop:has(> .ll-prop__control :disabled) > .ll-prop__label { color: var(--text-off); }
+.ll-prop:has(> .ll-prop__control :disabled) > .ll-prop__label { color: var(--text-2); }
 .ll-prop__control { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--space-8); }
 .ll-prop__value { min-width: 0; display: inline-flex; align-items: center; gap: var(--space-8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--type-body); color: var(--text-2); font-variant-numeric: tabular-nums; }
 .ll-prop__value .ll-i { flex: none; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-3); }
@@ -733,7 +732,7 @@
 .ll-panel__tab[aria-selected="true"] { color: var(--text); }
 .ll-panel__tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(-1 * var(--space-4)); height: 2px; background: var(--text); }
 .ll-panel__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-panel__tab:disabled { color: var(--text-off); }
+.ll-panel__tab:disabled { color: var(--text-2); }
 
 /* Title header: song title + position or count */
 .ll-panel__title { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
@@ -746,7 +745,7 @@
 .ll-panel__switch:hover, .ll-panel__switch.is-hover { background: var(--bg-raised); }
 .ll-panel__switch:active, .ll-panel__switch.is-active, .ll-panel__switch[aria-expanded="true"] { background: var(--bg-control-hover); color: var(--text); }
 .ll-panel__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-panel__switch:disabled { background: transparent; color: var(--text-off); }
+.ll-panel__switch:disabled { background: transparent; color: var(--text-2); }
 
 /* Controls on the right: sm controls only (icon button, secondary button, dropdown) */
 .ll-panel__actions { flex: none; display: flex; align-items: center; gap: var(--space-8); margin-left: auto; padding-left: var(--space-8); }
@@ -803,7 +802,7 @@
 .ll-row[aria-pressed="true"] .ll-row__meta { color: var(--text-2); }
 
 /* Disabled: no hover */
-.ll-row:disabled, .ll-row[aria-disabled="true"] { background: transparent; color: var(--text-off); }
+.ll-row:disabled, .ll-row[aria-disabled="true"] { background: transparent; color: var(--text-2); }
 .ll-row:disabled .ll-row__icon, .ll-row:disabled .ll-row__meta,
 .ll-row[aria-disabled="true"] .ll-row__icon, .ll-row[aria-disabled="true"] .ll-row__meta { color: var(--text-off); }
 
@@ -872,7 +871,7 @@
 /* Delete items keep the normal text color because red is only for output. Put them at the bottom after a divider, and confirm when they can't be undone. */
 .ll-menu__item.ll-menu__item--danger { color: var(--text); }
 
-.ll-menu__item:disabled, .ll-menu__item[aria-disabled="true"] { background: transparent; color: var(--text-off); }
+.ll-menu__item:disabled, .ll-menu__item[aria-disabled="true"] { background: transparent; color: var(--text-2); }
 .ll-menu__item:disabled .ll-menu__lead, .ll-menu__item:disabled .ll-menu__meta, .ll-menu__item:disabled .ll-menu__chevron,
 .ll-menu__item[aria-disabled="true"] .ll-menu__lead, .ll-menu__item[aria-disabled="true"] .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__chevron { color: var(--text-off); }
 
@@ -1271,9 +1270,10 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-calendar__day[data-outside] { color: var(--text-3); }
 .ll-calendar__day[aria-current="date"] { box-shadow: var(--ring-calendar-today); }
 .ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):hover, .ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):active { background: var(--bg-control-hover); }
+.ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day[data-outside]:not(:disabled):is(:hover, :active) { color: var(--text-2); }
 .ll-calendar__cell[aria-selected="true"] .ll-calendar__day { background: var(--accent-fill); color: var(--text-on-fill); box-shadow: none; }
 .ll-calendar__day:focus-visible, .ll-calendar__day.is-focus { outline: var(--space-2) solid var(--accent); outline-offset: var(--radius-hairline); }
-.ll-calendar__day:disabled { color: var(--text-off); box-shadow: none; }
+.ll-calendar__day:disabled { color: var(--text-2); box-shadow: none; }
 .ll-calendar__foot { display: flex; justify-content: center; margin-top: var(--space-8); padding-top: var(--space-8); border-top: var(--radius-hairline) solid var(--line); }
 @keyframes ll-calendar-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ll-calendar { animation: none; } }
@@ -1284,3 +1284,12 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-smart-guide[data-axis="x"] { top: 0; bottom: 0; width: var(--size-guide-line); }
 .ll-smart-guide[data-axis="y"] { left: 0; right: 0; height: var(--size-guide-line); }
 .ll-smart-guide-overlay[hidden] { display: none; }
+
+/* Readable off-state labels retain their distinct graphical marks. */
+.ll-tbtn--output[data-state="off"] .ll-tbtn__label, .ll-tbtn[aria-disabled="true"] .ll-tbtn__label { color: var(--text-2); }
+.ll-clear[data-state="off"] .ll-clear__label { color: var(--text-3); }
+.ll-statusbar__item[data-state="off"] { color: var(--text-3); }
+.ll-monitor [data-state="off"] .ll-monitor__name { color: var(--text-3); }
+.ll-select:disabled .ll-select__meta, .ll-row:disabled .ll-row__meta, .ll-row[aria-disabled="true"] .ll-row__meta, .ll-menu__item:disabled .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__meta { color: var(--text-2); }
+.ll-row[data-state~="done"][aria-selected="true"] { color: var(--text-2); }
+.ll-seg__item:is(:hover, :active) .ll-seg__count:not(.ll-seg__count--warning) { color: var(--text-2); }

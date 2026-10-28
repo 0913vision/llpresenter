@@ -204,7 +204,7 @@
 }
 
 [data-state='off'] .name {
-  color: var(--text-off);
+  color: var(--text-3);
 }
 
 [data-state='warning'] .frame {

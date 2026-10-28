@@ -86,5 +86,5 @@
 }
 
 .row:has(> .slider:disabled) {
-  color: var(--text-off);
+  color: var(--text-2);
 }

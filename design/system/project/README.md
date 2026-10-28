@@ -32,9 +32,9 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 
 ### Text
 
-- Use `text` for primary text and icons, `text-2` for secondary text and ghost button icons, `text-3` for counts, dates, and shortcuts, and `text-off` for things that are off or disabled.
+- Use `text` for primary text and icons, `text-2` for secondary and disabled text, `text-3` for counts, dates, and shortcuts, and `text-off` for non-text marks that are off or disabled.
 - Use `text-3` only on `bg-panel`, `bg-dialog`, and `bg-raised`. On `bg-control` its contrast is 4.3:1, so use `text-2` or brighter.
-- Don't use `text-off` for text that must be read. Use it only to show an off state.
+- Don't use `text-off` for readable text, including names of controls that are off or disabled. Use a separate state mark or disabled attribute.
 - Text on filled surfaces: use `text-on-fill` on `accent-fill` and `live`, `text-on-label` on 이름표 (label) colors and macro tiles, and `text-on-selection` for secondary text on `selection`.
 
 ### Two blues
@@ -185,7 +185,7 @@ axis. See the component README and reference card before implementing M3-O3.
 | Pressed, on | `bg-control-hover` and `text` |
 | Selected | `selection` in lists, `ring-selected` on thumbnails and tiles |
 | Keyboard focus | 2px `accent` ring with a 1px offset. `ring-field-focus` for text fields |
-| Disabled | `text-off` for text and icons, no hover. Don't lower the opacity |
+| Disabled | `text-2` for readable text, `text-off` for icons, no hover. Don't lower the opacity |
 | Live | `ring-live`, LIVE badge, `live` dot |
 | Problem | `warning` icon or outline, reason in a tooltip |
 
