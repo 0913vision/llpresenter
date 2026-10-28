@@ -1,4 +1,6 @@
 import {expect, it, vi} from 'vitest';
+import * as v from 'valibot';
+import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@shared/schema/looks';
 import type {SettingsEdit} from '@shared/schema/settingsDocuments';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {parseLookId} from '@shared/schema/ids';
@@ -169,5 +171,52 @@ it('shares the close-tracked queue between list and card edits', async () => {
     screens: {
       [screen.id]: {layers: {media: false, slide: false, message: true}},
     },
+  });
+});
+
+it('queues lyric effect updates against the latest saved style', async () => {
+  const loaded = document();
+  const value = v.parse(looksSchema, {
+    ...loaded.value,
+    lyricStyles: [
+      {
+        ...DEFAULT_MESSAGE_STYLE,
+        id: '00000000-0000-4000-8000-000000000301',
+        referencePosition: 'bottomRight',
+      },
+    ],
+  });
+  const initial = {...loaded, value};
+  const style = value.lyricStyles[0];
+  if (style === undefined) throw new Error('Missing style');
+  let release: (result: EditResult) => void = () => undefined;
+  const held = new Promise<EditResult>(resolve => {
+    release = resolve;
+  });
+  const edit = vi
+    .fn()
+    .mockReturnValueOnce(held)
+    .mockResolvedValue({ok: true, value: {id: 'looks', revision: 3}});
+  const editor = new LookListEditor(
+    fakeLlpApi({settings: {edit}}),
+    vi.fn(),
+    () => ({current: initial.value.current, macros: []}),
+  );
+  editor.adopt(initial);
+  const first = editor.changeEffects(style.id, {
+    kind: 'outline',
+    change: {on: true},
+  });
+  const second = editor.changeEffects(style.id, {
+    kind: 'referencePosition',
+    value: 'hidden',
+  });
+  await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+  release({ok: true, value: {id: 'looks', revision: 2}});
+  expect(await first).toBe(true);
+  expect(await second).toBe(true);
+  expect(editor.getSnapshot()?.value.lyricStyles[0]).toMatchObject({
+    outline: {on: true},
+    referencePosition: 'hidden',
   });
 });

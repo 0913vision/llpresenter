@@ -4,6 +4,8 @@ import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from './lookCardEdits';
 import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
+import {editLyricEffects, type LyricEffectsChange} from './lyricEffectsEdits';
+import type {LyricStyleId} from '@shared/schema/ids';
 import {
   editLyricStyleList,
   type LyricStyleListEdit,
@@ -54,6 +56,13 @@ export class LookListEditor {
 
   changeStyle(edit: LyricStyleEdit): Promise<boolean> {
     return this.documents.change(value => editLyricStyle(value, edit));
+  }
+
+  changeEffects(
+    id: LyricStyleId,
+    change: LyricEffectsChange,
+  ): Promise<boolean> {
+    return this.documents.change(value => editLyricEffects(value, id, change));
   }
 
   async changeStyleList(
