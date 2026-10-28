@@ -557,3 +557,13 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   change to a file format replaces the format in place: no migration from the
   earlier version, no backup of old files, and no parallel schema for the next
   version. First applied to the Looks format for M3-X1 and M3-X2.
+
+## 2026-10-28: Run a service from the keyboard
+
+- The operator should be able to run a service without the mouse, the way a
+  PowerPoint slide show runs from the keyboard (for example G for the slide
+  grid). Every frequent 진행 action gets a short, easy shortcut, including the
+  Bible panel's 앞 절 추가 and 뒤 절 추가 (user decision).
+- Not now: it goes into the M4 shortcut system
+  (`docs/spec/10-shortcuts-and-settings.md`), and the user reviews the Bible
+  verse flow with the lead before then.
