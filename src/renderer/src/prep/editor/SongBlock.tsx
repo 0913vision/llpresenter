@@ -266,13 +266,15 @@ export const SongBlock = memo(
           }}
           onPaste={event => {
             if (locked || focus.current.composing) return;
+            const text = event.clipboardData.getData('text/plain');
             event.preventDefault();
+            if (text === '') return;
             select(event.currentTarget);
             focus.current.requested = true;
             focus.current.target = 'lyrics';
             session.edit({
               type: 'paste',
-              text: event.clipboardData.getData('text/plain'),
+              text,
             });
           }}
         />

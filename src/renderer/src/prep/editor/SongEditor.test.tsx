@@ -164,6 +164,23 @@ describe('song editor view', () => {
     expect(document.activeElement).toBe(lyrics(2));
   });
 
+  it.each([{types: ['image/png']}, {types: ['text/plain']}])(
+    'keeps selected lyrics when a paste has empty plain text with types $types',
+    async ({types}) => {
+      const {session, edits} = await editorSetup();
+      const input = lyrics();
+      const text = input.value;
+      const song = session.history.snapshot.song;
+      expect(text.length).toBeGreaterThan(2);
+      cursor(input, 1, 3);
+      fireEvent.paste(input, {clipboardData: {types, getData: () => ''}});
+      expect(input.value).toBe(text);
+      expect([input.selectionStart, input.selectionEnd]).toEqual([1, 3]);
+      expect(session.history.snapshot.song).toBe(song);
+      expect(edits).toHaveLength(0);
+    },
+  );
+
   it('leaves composition and unrelated modifier commands to their owners', async () => {
     const {session, edits} = await editorSetup();
     cursor(lyrics(), 1);
