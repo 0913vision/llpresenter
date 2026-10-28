@@ -91,19 +91,27 @@ function CollectionDialog({
   locked,
   close,
   save,
+  initial = '',
+  mode = 'create',
 }: {
   readonly locked: boolean;
   readonly close: () => void;
   readonly save: (name: string) => void;
+  readonly initial?: string | undefined;
+  readonly mode?: 'create' | 'rename' | undefined;
 }): JSX.Element {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initial);
   return (
     <Dialog
-      title={'\uc0c8 \ubaa8\uc74c'}
+      title={
+        mode === 'rename'
+          ? '\ubaa8\uc74c \uc774\ub984 \ubc14\uafb8\uae30'
+          : '\uc0c8 \ubaa8\uc74c'
+      }
       size="s"
       onCancel={close}
       primary={{
-        label: '\ucd94\uac00',
+        label: mode === 'rename' ? '\uc800\uc7a5' : '\ucd94\uac00',
         disabled: locked || !name.trim() || name.trim().length > 256,
         onSelect: () => save(name.trim()),
       }}
@@ -198,6 +206,10 @@ export function MacroPanel({
     null,
   );
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [collectionDialog, setCollectionDialog] = useState<{
+    kind: 'rename' | 'delete';
+    item: MacroCollection;
+  } | null>(null);
   const [paletteFor, setPaletteFor] = useState<Macro['id']>();
   const [paletteDragging, setPaletteDragging] = useState(false);
   const revision = useRef(0);
@@ -225,9 +237,31 @@ export function MacroPanel({
     collectionEdit.busy ||
     document?.access !== 'editable' ||
     !window.llp;
-  const currentCollection = document?.value.collections.find(
+  const currentGroup = document?.value.collections.find(
     item => item.id === collection,
-  )?.id;
+  );
+  const currentCollection = currentGroup?.id;
+  const closeCollection = (): void => {
+    revision.current++;
+    setCollectionDialog(null);
+  };
+  const commitCollection = (
+    edit: import('./macroCollectionEdits').MacroCollectionEdit,
+    after: () => void,
+  ): void => {
+    const at = revision.current;
+    collectionEdit.run(edit).then(
+      saved => {
+        if (saved && at === revision.current) after();
+      },
+      (cause: unknown) =>
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Macro collection callback failed',
+          detail: String(cause),
+        }),
+    );
+  };
   const close = (): void => {
     revision.current++;
     pendingCount.current?.abort();
@@ -317,6 +351,30 @@ export function MacroPanel({
           mode={mode}
           selectedId={editor?.item.id ?? menu?.item.id}
           lastRunId={lastRunId}
+          collectionActions={
+            currentGroup
+              ? [
+                  {
+                    id: 'rename',
+                    label: '\uc774\ub984 \ubc14\uafb8\uae30',
+                    disabled: locked,
+                    onSelect: () => {
+                      revision.current++;
+                      setCollectionDialog({kind: 'rename', item: currentGroup});
+                    },
+                  },
+                  {
+                    id: 'delete',
+                    label: '\uc0ad\uc81c',
+                    disabled: locked,
+                    onSelect: () => {
+                      revision.current++;
+                      setCollectionDialog({kind: 'delete', item: currentGroup});
+                    },
+                  },
+                ]
+              : []
+          }
           onCollection={id => {
             revision.current++;
             setCollection(id);
@@ -632,6 +690,46 @@ export function MacroPanel({
               close,
             )
           }
+        />
+      ) : null}
+      {collectionDialog?.kind === 'rename' ? (
+        <CollectionDialog
+          mode="rename"
+          key={collectionDialog.item.id}
+          initial={collectionDialog.item.name}
+          locked={locked}
+          close={closeCollection}
+          save={name =>
+            commitCollection(
+              {kind: 'rename', id: collectionDialog.item.id, name},
+              closeCollection,
+            )
+          }
+        />
+      ) : null}
+      {collectionDialog?.kind === 'delete' ? (
+        <AlertDialog
+          icon="warning"
+          title={`?${collectionDialog.item.name}? \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?`}
+          meta={[
+            '\ub9e4\ud06c\ub85c\ub294 \uc0ad\uc81c\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4',
+          ]}
+          onCancel={closeCollection}
+          actions={[
+            {
+              label: '\uc0ad\uc81c',
+              primary: true,
+              disabled: locked,
+              onSelect: () =>
+                commitCollection(
+                  {kind: 'delete', id: collectionDialog.item.id},
+                  () => {
+                    setCollection(undefined);
+                    closeCollection();
+                  },
+                ),
+            },
+          ]}
         />
       ) : null}
       {editor?.kind === 'new-collection' ? (

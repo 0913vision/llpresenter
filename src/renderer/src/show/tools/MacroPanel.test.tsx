@@ -444,3 +444,86 @@ it('ignores unknown external action drops', async () => {
   expect(f.edit).not.toHaveBeenCalled();
   expect(f.send).not.toHaveBeenCalled();
 });
+
+async function selectCollection(name: string) {
+  fireEvent.click(
+    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
+  );
+  fireEvent.click(screen.getByRole('menuitemradio', {name}));
+}
+
+it('renames and deletes the displayed collection while retaining macros', async () => {
+  const f = fixture();
+  const view = render(<MacroPanel />);
+  await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  await selectCollection('\uc8fc\uc77c');
+  fireEvent.click(
+    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
+  );
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: '\uc774\ub984 \ubc14\uafb8\uae30'}),
+  );
+  fireEvent.change(screen.getByRole('textbox', {name: '\uc774\ub984'}), {
+    target: {value: 'Team'},
+  });
+  fireEvent.click(screen.getByRole('button', {name: '\uc800\uc7a5'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const rename = f.edit.mock.calls[0]?.[0];
+  if (rename?.name !== 'macros') throw new Error('Missing edit');
+  expect(rename.value.collections[0]?.name).toBe('Team');
+  view.unmount();
+  const next = fixture();
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  await selectCollection('\uc8fc\uc77c');
+  fireEvent.click(
+    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
+  );
+  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
+  expect(screen.getByRole('alertdialog')).toBeDefined();
+  fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
+  await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
+  const deletion = next.edit.mock.calls[0]?.[0];
+  if (deletion?.name !== 'macros') throw new Error('Missing edit');
+  expect(deletion.value.collections).toEqual([]);
+  expect(deletion.value.macros).toHaveLength(1);
+});
+
+it('does not reset a newer selection after a cancelled pending deletion', async () => {
+  const f = fixture();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
+  const other = {
+    id: '00000000-0000-4000-8000-000000000008',
+    name: 'Other',
+    macroIds: [id],
+  };
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {macros: [macro], collections: [group, other]},
+        2,
+      ),
+    ),
+  );
+  await selectCollection('\uc8fc\uc77c');
+  fireEvent.click(
+    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
+  );
+  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
+  fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  fireEvent.click(screen.getByRole('button', {name: '\ucde8\uc18c'}));
+  await selectCollection('Other');
+  await act(async () => {
+    pending.resolve({ok: true, value: {id: 'macros', revision: 3}});
+    await pending.promise;
+  });
+  expect(
+    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'})
+      .textContent,
+  ).toContain('Other');
+});

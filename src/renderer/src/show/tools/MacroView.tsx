@@ -9,6 +9,7 @@ import {
   MacroRow,
   MacroTile,
   SelectMenu,
+  type SelectAction,
 } from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './MacroView.module.css';
@@ -29,6 +30,7 @@ export function MacroView({
   onMenu,
   onNew,
   onDropAction,
+  collectionActions,
 }: {
   readonly macros: readonly Macro[];
   readonly collections: readonly MacroCollection[];
@@ -41,6 +43,7 @@ export function MacroView({
   readonly onRun: (item: Macro) => void;
   readonly onMenu: (item: Macro, anchor: MenuAnchor) => void;
   readonly onNew?: (() => void) | undefined;
+  readonly collectionActions?: readonly SelectAction[] | undefined;
   readonly onDropAction?:
     ((item: Macro, kind: MacroActionKind) => void) | undefined;
 }): JSX.Element {
@@ -105,6 +108,7 @@ export function MacroView({
         <SelectMenu
           aria-label="매크로 모음"
           value={collection?.id ?? ALL}
+          actions={collectionActions}
           block
           options={[
             {value: ALL, label: '모든 매크로'},
