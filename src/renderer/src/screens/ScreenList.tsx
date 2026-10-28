@@ -1,4 +1,11 @@
-import {useMemo, useRef, type JSX} from 'react';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import {
   ListBox,
   ListDragGhost,
@@ -22,6 +29,7 @@ import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
+import {useScreenListWindow} from './useScreenListWindow';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
@@ -116,10 +124,26 @@ export function ScreenList({
     [screens, statuses, outputs],
   );
   const selected = selectedScreenIn(selection, screens)?.id;
-  const sections = [
-    {kind: 'audience', label: AUDIENCE_LABEL, rows: groups.audience},
-    {kind: 'stage', label: STAGE_LABEL, rows: groups.stage},
-  ] as const;
+  const sections = useMemo(
+    () =>
+      [
+        {kind: 'audience', label: AUDIENCE_LABEL, rows: groups.audience},
+        {kind: 'stage', label: STAGE_LABEL, rows: groups.stage},
+      ] as const,
+    [groups],
+  );
+  const listRoot = useRef<HTMLDivElement>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const selectScreen = useCallback(
+    (id: string) => select('screen', id),
+    [select],
+  );
+  const windowed = useScreenListWindow({
+    root: listRoot,
+    sections,
+    selected,
+    select: selectScreen,
+  });
   const creationReason =
     document === null
       ? '설정을 불러오는 중'
@@ -131,7 +155,25 @@ export function ScreenList({
   const groupOutputs = (kind: Screen['kind']) =>
     screens.filter(screen => screen.kind === kind && screen.method !== 'ndi');
   return (
-    <div {...click.props}>
+    <div
+      {...click.props}
+      ref={listRoot}
+      onKeyDownCapture={windowed.navigate}
+      onFocusCapture={event => {
+        const option = event.target.closest<HTMLElement>(
+          '[role="option"][data-value]',
+        );
+        setFocusedId(option?.dataset['value'] ?? null);
+      }}
+      onBlurCapture={event => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        ) {
+          setFocusedId(null);
+        }
+      }}
+    >
       <ListBox
         label={LIST_LABEL}
         selected={selected}
@@ -139,6 +181,49 @@ export function ScreenList({
       >
         {sections.map(section => {
           const outputsInGroup = groupOutputs(section.kind);
+          const range = windowed.ranges[section.kind];
+          const rows: ReactNode[] = [];
+          let nextIndex = 0;
+          section.rows.forEach((row, index) => {
+            if (
+              (index < range.start || index >= range.end) &&
+              row.id !== focusedId
+            ) {
+              return;
+            }
+            if (index > nextIndex) {
+              rows.push(
+                <div
+                  key={`gap:${index}`}
+                  aria-hidden="true"
+                  style={{
+                    height: `calc(var(--size-row) * ${index - nextIndex})`,
+                  }}
+                />,
+              );
+            }
+            rows.push(
+              <RowView
+                key={`row:${row.id}`}
+                row={row}
+                canDrag={document?.access === 'editable'}
+                rename={actions.renameFor(row.id)}
+                onMenu={actions.open}
+              />,
+            );
+            nextIndex = index + 1;
+          });
+          if (nextIndex < section.rows.length) {
+            rows.push(
+              <div
+                key="gap:end"
+                aria-hidden="true"
+                style={{
+                  height: `calc(var(--size-row) * ${section.rows.length - nextIndex})`,
+                }}
+              />,
+            );
+          }
           return (
             <ListGroup
               key={section.label}
@@ -173,15 +258,9 @@ export function ScreenList({
               {section.rows.length === 0 ? (
                 <div className={styles.empty}>화면 없음</div>
               ) : null}
-              {section.rows.map(row => (
-                <RowView
-                  key={row.id}
-                  row={row}
-                  canDrag={document?.access === 'editable'}
-                  rename={actions.renameFor(row.id)}
-                  onMenu={actions.open}
-                />
-              ))}
+              <div ref={element => windowed.setAnchor(section.kind, element)}>
+                {rows}
+              </div>
             </ListGroup>
           );
         })}

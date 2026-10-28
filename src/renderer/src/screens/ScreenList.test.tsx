@@ -229,12 +229,120 @@ describe('screen creation and group outputs', () => {
       method: 'window',
     }));
     const {edit} = setup(settingsDocument('screens', {screens}));
-    await screen.findByRole('option', {name: 'Screen 199'});
+    await screen.findByRole('option', {name: 'Screen 0'});
     const button = screen.getByRole('button', {name: '새 청중 화면'});
     expect(button.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(button);
     expect(screen.queryByRole('menu')).toBeNull();
     expect(edit).not.toHaveBeenCalled();
+  });
+
+  it('windows long lists and navigates to the last and first rows', async () => {
+    const screens = Array.from({length: 200}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `Screen ${index}`,
+      kind: 'audience',
+      method: 'ndi',
+    }));
+    setup(settingsDocument('screens', {screens}));
+    const first = await screen.findByRole('option', {name: 'Screen 0'});
+    expect(screen.getAllByRole('option').length).toBeLessThan(30);
+    first.focus();
+    fireEvent.keyDown(first, {key: 'End'});
+    const last = await screen.findByRole('option', {name: 'Screen 199'});
+    expect(document.activeElement).toBe(last);
+    expect(last.getAttribute('aria-selected')).toBe('true');
+    expect(screen.getAllByRole('option').length).toBeLessThan(30);
+    fireEvent.keyDown(last, {key: 'Home'});
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('option', {name: 'Screen 0'}),
+      ),
+    );
+  });
+
+  it('retains focused rows while scrolling away and resumes keyboard navigation', async () => {
+    const screens = Array.from({length: 200}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `Screen ${index}`,
+      kind: 'audience',
+      method: 'ndi',
+    }));
+    setup(settingsDocument('screens', {screens}));
+    const first = await screen.findByRole('option', {name: 'Screen 0'});
+    first.focus();
+    const viewport = screen.getByRole('listbox').parentElement?.parentElement;
+    if (viewport === undefined || viewport === null) {
+      throw new Error('Missing viewport');
+    }
+    viewport.scrollTop = 1500;
+    fireEvent.scroll(viewport);
+    await screen.findByRole('option', {name: 'Screen 50'});
+    expect(document.activeElement).toBe(first);
+    expect(screen.getAllByRole('option').length).toBeLessThan(30);
+    fireEvent.keyDown(first, {key: 'ArrowDown'});
+    const next = await screen.findByRole('option', {name: 'Screen 1'});
+    expect(document.activeElement).toBe(next);
+    expect(next.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('reveals a screen selected from outside the list', async () => {
+    const screens = Array.from({length: 100}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `Screen ${index}`,
+      kind: 'audience',
+      method: 'ndi',
+    }));
+    setup(settingsDocument('screens', {screens}));
+    await screen.findByRole('option', {name: 'Screen 0'});
+    const target = screens[99];
+    if (target === undefined) throw new Error('Missing screen');
+    act(() => useScreensSelection.getState().select('screen', target.id));
+    const selected = await screen.findByRole('option', {name: 'Screen 99'});
+    expect(selected.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('keeps the scroll position when output status changes', async () => {
+    const screens = Array.from({length: 100}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `Screen ${index}`,
+      kind: 'audience',
+      method: 'ndi',
+    }));
+    setup(settingsDocument('screens', {screens}));
+    await screen.findByRole('option', {name: 'Screen 0'});
+    const viewport = screen.getByRole('listbox').parentElement?.parentElement;
+    if (viewport === undefined || viewport === null) {
+      throw new Error('Missing viewport');
+    }
+    viewport.scrollTop = 1500;
+    fireEvent.scroll(viewport);
+    await screen.findByRole('option', {name: 'Screen 50'});
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {example: true}},
+      }),
+    );
+    expect(viewport.scrollTop).toBe(1500);
+  });
+
+  it('navigates across groups even when the audience rows are windowed', async () => {
+    const screens = Array.from({length: 101}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `Screen ${index}`,
+      kind: index === 100 ? 'stage' : 'audience',
+      method: 'ndi',
+    }));
+    setup(settingsDocument('screens', {screens}));
+    const first = await screen.findByRole('option', {name: 'Screen 0'});
+    first.focus();
+    fireEvent.keyDown(first, {key: 'End'});
+    const stage = await screen.findByRole('option', {name: 'Screen 100'});
+    expect(document.activeElement).toBe(stage);
+    fireEvent.keyDown(stage, {key: 'ArrowUp'});
+    const lastAudience = await screen.findByRole('option', {name: 'Screen 99'});
+    expect(document.activeElement).toBe(lastAudience);
+    expect(lastAudience.getAttribute('aria-selected')).toBe('true');
   });
 
   it('keeps non-System outputs outside the group toggle', async () => {
