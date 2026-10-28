@@ -16,7 +16,7 @@ import {stageFixture} from './tools/stageTesting';
 let fixture: ReturnType<typeof stageFixture>;
 beforeEach(() => {
   useShowToolTab.setState({tool: 'stage'});
-  fixture = stageFixture();
+  fixture = stageFixture([settingsDocument('props', {props: []})]);
 });
 afterEach(() => {
   cleanup();
@@ -40,6 +40,7 @@ it.each(['normal', 'wide', 'narrow'] as const)(
       '무대',
       '타이머',
       '메시지',
+      '소품',
     ]);
     expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
     expect(
@@ -60,7 +61,8 @@ it.each(
       tab.value !== 'audio' &&
       tab.value !== 'stage' &&
       tab.value !== 'timer' &&
-      tab.value !== 'message',
+      tab.value !== 'message' &&
+      tab.value !== 'prop',
   ),
 )(
   'opens working stage controls for a previously selected hidden tab: $label',
@@ -74,6 +76,7 @@ it.each(
       '무대',
       '타이머',
       '메시지',
+      '소품',
     ]);
     expect(screen.queryByRole('tab', {name: tab.label})).toBeNull();
     expect(
@@ -141,6 +144,9 @@ it('selects only working panels with arrow keys and releases their subscriptions
   expect(
     screen.getByRole('tabpanel', {name: '메시지'}).childElementCount,
   ).toBeGreaterThan(0);
+  await userEvent.keyboard('{ArrowRight}');
+  await waitFor(() => expect(fixture.count()).toBe(5));
+  expect(screen.getByRole('tabpanel', {name: '소품'})).toBeDefined();
   await userEvent.keyboard('{ArrowRight}');
   await waitFor(() => expect(fixture.count()).toBe(8));
   expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();

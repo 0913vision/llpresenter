@@ -4,6 +4,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useAudioMedia(
   onProblem: ((notice: Notice) => void) | undefined,
+  area: 'audio' | 'prop' = 'audio',
 ): MediaDocument | null {
   const [document, setDocument] = useState<MediaDocument | null>(null);
   const report = useRef(onProblem);
@@ -25,14 +26,20 @@ export function useAudioMedia(
       if (!active || revision >= 0) return;
       api.log.write({
         level: 'error',
-        message: 'Could not load audio playlists',
+        message:
+          area === 'audio'
+            ? 'Could not load audio playlists'
+            : 'Could not load prop media',
         detail: cause instanceof Error ? cause.message : String(cause),
       });
       report.current?.({
-        key: 'audio:load',
+        key: `${area}:load`,
         kind: 'warning',
         icon: 'warning',
-        title: '오디오 재생목록 불러오기 실패',
+        title:
+          area === 'audio'
+            ? '오디오 재생목록 불러오기 실패'
+            : '소품 이미지 불러오기 실패',
         time: noticeTime(),
       });
     });
@@ -40,6 +47,6 @@ export function useAudioMedia(
       active = false;
       stop();
     };
-  }, []);
+  }, [area]);
   return document;
 }

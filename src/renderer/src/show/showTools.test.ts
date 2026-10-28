@@ -21,5 +21,6 @@ it('exposes only panels with working controls', () => {
     {value: 'stage', label: '무대'},
     {value: 'timer', label: '타이머'},
     {value: 'message', label: '메시지'},
+    {value: 'prop', label: '소품'},
   ]);
 });

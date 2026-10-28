@@ -4,14 +4,17 @@ import type {Prop} from '@shared/schema/props';
 import type {Screen} from '@shared/schema/screens';
 import {sendLive, useLive} from '@renderer/state/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
+import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './PropGrid.module.css';
 
 export function PropGrid({
   props,
   screens,
+  onMenu,
 }: {
   readonly props: readonly Prop[];
   readonly screens: readonly Screen[];
+  readonly onMenu?: ((prop: Prop, anchor: MenuAnchor) => void) | undefined;
 }): JSX.Element {
   const layer = useLive(view => view.state?.layers.prop);
   const isOn = (prop: Prop): boolean =>
@@ -28,6 +31,10 @@ export function PropGrid({
       arrowsMove="focus"
       spaceKey="press"
       selected={undefined}
+      onMenu={(index, anchor) => {
+        const prop = props[index];
+        if (prop) onMenu?.(prop, anchor);
+      }}
       onActivate={index => {
         const prop = props[index];
         if (!prop) return;
