@@ -25,6 +25,7 @@ const singleCommandOptions = [
   overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
   v.object({type: v.literal('media.show'), media: mediaChoiceSchema}),
+  v.object({type: v.literal('media.properties.refresh')}),
   v.object({type: v.literal('message.show'), message: layerSchemas.message}),
   v.object({
     type: v.literal('layer.clear'),

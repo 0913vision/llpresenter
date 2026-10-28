@@ -19,6 +19,7 @@ export type SingleLiveCommand =
   | OverlayClear
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
   | {readonly type: 'media.show'; readonly media: MediaChoice}
+  | {readonly type: 'media.properties.refresh'}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
   | {
       readonly type: 'layer.clear';
@@ -56,6 +57,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'live.batch':
       return command.commands.some(interruptsSongOutput);
     case 'message.show':
+    case 'media.properties.refresh':
     case 'output.set':
     case 'look.set':
     case 'stage.layout.set':

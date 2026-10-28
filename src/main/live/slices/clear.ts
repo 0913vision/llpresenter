@@ -109,7 +109,7 @@ function undoClear(
     history.state.layers.media === null && undo.layers.media !== null;
   const media = mediaWasCleared
     ? resumedMedia(undo.layers.media, now - undo.clearedAt)
-    : undo.layers.media;
+    : history.state.layers.media;
   const elapsed = Math.max(0, now - undo.clearedAt);
   const message =
     history.state.layers.message === null ||
@@ -117,17 +117,16 @@ function undoClear(
       ? resumedMessages(undo.layers.message, elapsed, undo.clearedMessageIds)
       : undo.layers.message;
   const notice =
-    history.state.layers.notice === null
-      ? resumedNotice(undo.layers.notice, elapsed)
-      : undo.layers.notice;
+    history.state.layers.notice ?? resumedNotice(undo.layers.notice, elapsed);
   const audio =
-    history.state.layers.audio === null && undo.audioClearedAt !== undefined
+    history.state.layers.audio ??
+    (undo.audioClearedAt !== undefined
       ? resumedAudio(undo.layers.audio, {
           now: timerNow,
           clearedAt: undo.audioClearedAt,
           version: nextAudioTrackVersion(history.state, undo.layers.audio),
         })
-      : undo.layers.audio;
+      : undo.layers.audio);
   const restored = withLayers(
     history,
     {...undo.layers, media, message, notice, audio},
@@ -161,7 +160,11 @@ function resumedAudio(
     ...audio,
     playback: {
       ...playback,
-      positionSeconds: audioPositionSeconds(playback, clock.clearedAt),
+      positionSeconds: audioPositionSeconds(
+        playback,
+        clock.clearedAt,
+        audio.properties?.speed,
+      ),
       since: playback.since === null ? null : clock.now,
       trackVersion: clock.version,
       ...(playback.fadeOutSince === undefined
@@ -236,7 +239,9 @@ export const clearSlice = defineSlice({
       case 'layer.clear.toggle':
         return withClearEffects(
           history,
-          toggleClear(history, command.target, context),
+          context.apply(toggleClear(history, command.target, context), {
+            type: 'media.properties.refresh',
+          }),
           {
             transition:
               context.settings?.preferences().clearKeys[command.target],
@@ -246,7 +251,9 @@ export const clearSlice = defineSlice({
       case 'clear.undo':
         return history.undo === null
           ? history
-          : resetClearToggles(undoClear(history, context));
+          : context.apply(resetClearToggles(undoClear(history, context)), {
+              type: 'media.properties.refresh',
+            });
       case 'overlay.clear':
         return withClearEffects(
           history,

@@ -61,10 +61,13 @@ function reader() {
     },
   });
   if (!document.ok) throw new Error('Invalid media fixture');
-  return {get: vi.fn(() => document.value)};
+  return {get: vi.fn(() => document.value), subscribe: vi.fn(() => vi.fn())};
 }
 function setup(
-  media: Promise<Pick<MediaStore, 'get'> | null> = Promise.resolve(reader()),
+  media: Promise<Pick<
+    MediaStore,
+    'get' | 'subscribe'
+  > | null> = Promise.resolve(reader()),
   windowMode: WindowMode = 'normal',
 ) {
   const store = new LiveStore();
@@ -250,10 +253,14 @@ describe('registerAudioOutput', () => {
     stop();
   });
   it('does not connect a late media reader after disposal, and logs unavailable media', async () => {
-    let resolve: (value: Pick<MediaStore, 'get'> | null) => void = () => {};
-    const pending = new Promise<Pick<MediaStore, 'get'> | null>(done => {
-      resolve = done;
-    });
+    let resolve: (
+      value: Pick<MediaStore, 'get' | 'subscribe'> | null,
+    ) => void = () => {};
+    const pending = new Promise<Pick<MediaStore, 'get' | 'subscribe'> | null>(
+      done => {
+        resolve = done;
+      },
+    );
     const first = setup(pending);
     first.stop();
     resolve(reader());

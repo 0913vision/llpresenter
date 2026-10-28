@@ -102,6 +102,43 @@ describe('AudioPlayer', () => {
     expect(first.hasAttribute('src')).toBe(false);
     expect(clear).toHaveBeenCalledOnce();
   });
+  it('multiplies item volume by transport and fade gain, applies speed, and keeps the safety mute', async () => {
+    vi.useFakeTimers();
+    const {player, first, now} = setup();
+    const base = state(1, {}, 50);
+    const configured = {
+      ...base,
+      layers: {
+        ...base.layers,
+        audio: {
+          ...base.layers.audio,
+          mediaId: MEDIA,
+          properties: {speed: 2, fit: 'fill' as const, volume: 40, audio: true},
+        },
+      },
+    };
+    player.show(configured);
+    await ready(first);
+    expect(first.currentTime).toBe(8);
+    expect(first.playbackRate).toBe(2);
+    expect(first.volume).toBeCloseTo(0.2);
+    expect(first.muted).toBe(true);
+    const playback = base.layers.audio?.playback;
+    if (playback === undefined) throw new Error('Missing playback');
+    player.show({
+      ...base,
+      layers: {
+        ...configured.layers,
+        audio: {
+          ...configured.layers.audio,
+          playback: {...playback, fadeOutSince: 5000},
+        },
+      },
+    });
+    now.mockReturnValue(6500);
+    vi.advanceTimersByTime(1500);
+    expect(first.volume).toBeCloseTo(0.1);
+  });
   it('fades both fallback and newly ready replacement for three seconds, then stops without next', async () => {
     vi.useFakeTimers();
     const {root, player, first, second, now, onNext, onFadeEnd} = setup();

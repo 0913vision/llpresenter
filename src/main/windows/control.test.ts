@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '../displays/testing';
 import {createControlWindow} from './control';
 import {loadPage} from './page';
@@ -6,7 +6,9 @@ import {loadPage} from './page';
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class FakeBrowserWindow extends EventEmitter {
-    readonly webContents = new EventEmitter();
+    readonly webContents = Object.assign(new EventEmitter(), {
+      setAudioMuted: vi.fn(),
+    });
     readonly maximize = vi.fn();
     readonly show = vi.fn();
     readonly removeMenu = vi.fn();
@@ -17,11 +19,12 @@ const electron = await vi.hoisted(async () => {
     }
   }
   const created: FakeBrowserWindow[] = [];
-  return {FakeBrowserWindow, created};
+  return {FakeBrowserWindow, created, app: {isPackaged: false}};
 });
 
 vi.mock('electron', () => ({
   BrowserWindow: electron.FakeBrowserWindow,
+  app: electron.app,
   screen: {
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
   },
@@ -40,13 +43,21 @@ function lastWindow(): InstanceType<typeof electron.FakeBrowserWindow> {
 
 beforeEach(() => {
   electron.created.length = 0;
+  electron.app.isPackaged = false;
 });
+afterEach(() => vi.unstubAllEnvs());
 
 describe('createControlWindow', () => {
   it('releases offscreen frames immediately and removes the listener at destruction', () => {
     const zoom = {attachControl: vi.fn()};
     createControlWindow(recordingLogger(), 'offscreen', zoom);
     const win = lastWindow();
+    expect(win.webContents.setAudioMuted).toHaveBeenCalledExactlyOnceWith(true);
+    expect(
+      win.webContents.setAudioMuted.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      vi.mocked(loadPage).mock.invocationCallOrder.at(-1) ?? Infinity,
+    );
     expect(win.removeMenu).toHaveBeenCalledOnce();
     expect(win.removeMenu.mock.invocationCallOrder[0]).toBeLessThan(
       zoom.attachControl.mock.invocationCallOrder[0] ?? Infinity,
@@ -82,5 +93,19 @@ describe('createControlWindow', () => {
     win.emit('ready-to-show');
     expect(win.maximize).toHaveBeenCalledOnce();
     expect(win.show).toHaveBeenCalledOnce();
+  });
+
+  it('mutes development and test windows but allows sound in a packaged normal window', () => {
+    vi.stubEnv('VITEST', undefined);
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('LLP_TEST_WINDOWS', undefined);
+    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+    expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(true);
+    electron.app.isPackaged = true;
+    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+    expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(false);
+    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
+    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+    expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(true);
   });
 });

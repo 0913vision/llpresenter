@@ -59,6 +59,7 @@ export interface RenderLayerOptions {
   readonly onError: (message: string, error: unknown) => void;
   /** A preview keeps one looping video playing; `output` when absent. */
   readonly mode?: RenderMode;
+  readonly muted?: boolean;
 }
 
 /** One persistent layer instance, owned and released by its output renderer. */

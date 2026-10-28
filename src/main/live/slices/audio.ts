@@ -1,5 +1,6 @@
 import type {AudioSource} from '@shared/schema/liveActions';
 import {audioPositionSeconds} from '@shared/schema/audioState';
+import {outputMediaProperties} from '@shared/schema/outputMedia';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
@@ -33,6 +34,7 @@ function play(
   const trackVersion = nextAudioTrackVersion(history.state);
   const next = setLayer(history, 'audio', {
     mediaId,
+    properties: outputMediaProperties(item),
     playback: {
       source,
       trackVersion,
@@ -128,7 +130,11 @@ export const audioSlice = defineSlice({
           ...layer,
           playback: {
             ...layer.playback,
-            positionSeconds: audioPositionSeconds(layer.playback, now),
+            positionSeconds: audioPositionSeconds(
+              layer.playback,
+              now,
+              layer.properties?.speed,
+            ),
             since: null,
           },
         });

@@ -106,8 +106,7 @@ export class AudioPlayer {
         this.attempt(() => fallback.element.pause());
       }
       for (const track of this.tracks) {
-        const volume = this.volume * this.gain;
-        if (track.element.volume !== volume) track.element.volume = volume;
+        this.applyProperties(track);
         if (
           track.layer !== null &&
           track !== this.active &&
@@ -133,6 +132,7 @@ export class AudioPlayer {
       if (existing !== undefined) {
         const previous = existing.layer?.playback;
         existing.layer = layer;
+        this.applyProperties(existing);
         if (
           previous?.since !== playback.since ||
           previous.positionSeconds !== playback.positionSeconds
@@ -148,6 +148,7 @@ export class AudioPlayer {
       if (spare === undefined) return;
       this.unload(spare);
       spare.layer = layer;
+      this.applyProperties(spare);
       spare.element.src = mediaUrl(layer.mediaId);
       spare.element.load();
     });
@@ -267,9 +268,21 @@ export class AudioPlayer {
 
   private setGain(gain: number): void {
     this.gain = gain;
-    const volume = this.volume * gain;
     for (const track of this.tracks) {
-      if (track.element.volume !== volume) track.element.volume = volume;
+      this.applyProperties(track);
+    }
+  }
+
+  private applyProperties(track: Track): void {
+    const properties = track.layer?.properties;
+    const volume =
+      this.volume *
+      this.gain *
+      (properties?.audio === false ? 0 : (properties?.volume ?? 100) / 100);
+    if (track.element.volume !== volume) track.element.volume = volume;
+    const speed = properties?.speed ?? 1;
+    if (track.element.playbackRate !== speed) {
+      track.element.playbackRate = speed;
     }
   }
 
@@ -340,7 +353,11 @@ export class AudioPlayer {
   private seek(track: Track): void {
     const playback = track.layer?.playback;
     if (playback === undefined) return;
-    const position = audioPositionSeconds(playback, this.options.now());
+    const position = audioPositionSeconds(
+      playback,
+      this.options.now(),
+      track.layer?.properties?.speed,
+    );
     const duration = track.element.duration;
     track.element.currentTime = Number.isFinite(duration)
       ? Math.min(position, duration)

@@ -24,9 +24,12 @@ export type AudioPlayback = ReadonlyKnown<
 export function audioPositionSeconds(
   playback: AudioPlayback,
   now: number,
+  speed = 1,
 ): number {
   return (
     playback.positionSeconds +
-    (playback.since === null ? 0 : Math.max(0, now - playback.since) / 1000)
+    (playback.since === null
+      ? 0
+      : (Math.max(0, now - playback.since) / 1000) * speed)
   );
 }

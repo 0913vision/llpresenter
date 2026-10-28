@@ -1,6 +1,7 @@
-import {BrowserWindow, screen} from 'electron';
+import {app, BrowserWindow, screen} from 'electron';
 import type {Logger} from '../log';
 import type {UiZoomRegistration} from '../store/uiZoom';
+import {audioMutedByDefault} from './audioPolicy';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {
   discardTestFrames,
@@ -59,6 +60,9 @@ export function createControlWindow(
   });
   // NOTE(0913vision): Frameless windows retain native menu accelerators,
   // whose zoom roles would bypass the renderer's IME and shortcut rules.
+  win.webContents.setAudioMuted(
+    mode === 'offscreen' || audioMutedByDefault(process.env, app.isPackaged),
+  );
   win.removeMenu();
   discardTestFrames(win.webContents, mode);
   zoom.attachControl(win.webContents);

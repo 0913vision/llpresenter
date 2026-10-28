@@ -3,6 +3,7 @@ import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {AudioPlayer} from '../render/audioPlayer';
 import {MainTimerClock} from '../render/mainTimerClock';
 import {followLiveState} from './liveFeed';
+import {BackgroundAudio} from './backgroundAudio';
 
 /** Runs audio only in main's dedicated hidden window, muted unless explicitly allowed. */
 export function startAudio({
@@ -31,13 +32,23 @@ export function startAudio({
       api.live.send({type: 'audio.fadeOut.complete', trackVersion, since}),
     onError: report,
   });
+  const background = new BackgroundAudio({
+    root,
+    api,
+    muted,
+    report,
+    now: () => clock.now().timer,
+  });
   let stopped = false;
   let stopFollowing: (() => void) | undefined;
   const begin = (): void => {
     if (!stopped) {
       stopFollowing = followLiveState(
         api.live,
-        state => player.show(state),
+        state => {
+          player.show(state);
+          background.show(state);
+        },
         report,
       );
     }
@@ -54,7 +65,11 @@ export function startAudio({
     } catch (error) {
       report('could not release audio output', error);
     } finally {
-      player.dispose();
+      try {
+        player.dispose();
+      } finally {
+        background.dispose();
+      }
     }
   };
   window.addEventListener('pagehide', stop, {once: true});

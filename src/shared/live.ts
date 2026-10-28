@@ -8,6 +8,7 @@ import type {TimerRuns} from './schema/timerState';
 import type {AudioPlayback} from './schema/audioState';
 import type {ClearTarget} from './commands';
 import type {ClearEffect} from './schema/clearFade';
+import type {OutputMediaProperties} from './schema/outputMedia';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -34,6 +35,8 @@ export interface MediaChoice {
 
 /** The background media on output. */
 export interface MediaLayer extends MediaChoice {
+  readonly properties?: OutputMediaProperties;
+  readonly positionSeconds?: number;
   /**
    * When this background started, in milliseconds since the epoch on the main
    * process clock, so a window that opens or reloads later joins it at the
@@ -66,6 +69,7 @@ export interface PropLayer {
 }
 
 export interface AudioLayer {
+  readonly properties?: OutputMediaProperties;
   readonly mediaId: string;
   readonly playback?: AudioPlayback;
 }

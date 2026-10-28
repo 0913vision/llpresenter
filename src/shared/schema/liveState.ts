@@ -21,8 +21,9 @@ import {
 } from './overlayState';
 import {timerRunsSchema} from './timerState';
 import {audioPlaybackSchema} from './audioState';
-import {percent} from './primitives';
+import {percent, seconds} from './primitives';
 import {clearEffectsSchema} from './clearFade';
+import {outputMediaPropertiesSchema} from './outputMedia';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -42,6 +43,8 @@ export const layerSchemas = {
   media: payloadObject({
     ...mediaChoiceEntries,
     startedAt: v.pipe(v.number(), v.finite()),
+    positionSeconds: v.exactOptional(seconds),
+    properties: v.exactOptional(outputMediaPropertiesSchema),
   }),
   slide: payloadObject({
     itemId: id,
@@ -60,6 +63,7 @@ export const layerSchemas = {
   audio: payloadObject({
     mediaId: id,
     playback: v.exactOptional(audioPlaybackSchema),
+    properties: v.exactOptional(outputMediaPropertiesSchema),
   }),
   message: payloadObject({
     messageId: id,

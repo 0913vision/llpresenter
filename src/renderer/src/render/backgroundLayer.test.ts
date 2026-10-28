@@ -156,6 +156,52 @@ describe('BackgroundLayerView', () => {
     expect(videos[0].classList.contains(classes.dissolving)).toBe(true);
     view.dispose();
   });
+  it.each([
+    ['fit', 'contain'],
+    ['fill', 'cover'],
+    ['stretch', 'fill'],
+  ] as const)(
+    'applies %s to both images and videos without restarting the same background',
+    (fit, objectFit) => {
+      const {parent, view, videos} = setUp();
+      view.show(WARM_LIGHT);
+      videos[1].dispatchEvent(new Event('playing'));
+      const properties = {speed: 2, fit, volume: 35, audio: true};
+      view.show({...WARM_LIGHT, properties});
+      expect(videos[1].playbackRate).toBe(2);
+      expect(videos[1].volume).toBe(0.35);
+      expect(videos[1].muted).toBe(true);
+      expect(playsOf(videos[1])).toBe(1);
+      expect(videos[1].style.objectFit).toBe(objectFit);
+      expect(
+        [...parent.querySelectorAll('img')].some(
+          image => image.style.objectFit === objectFit,
+        ),
+      ).toBe(true);
+      view.dispose();
+    },
+  );
+  it('joins the rate-adjusted position and keeps previews muted even when service sound is allowed', () => {
+    const parent = document.createElement('div');
+    const view = new BackgroundLayerView(parent, {
+      mediaUrl: urlOf,
+      onError: vi.fn(),
+      mode: 'preview',
+      muted: false,
+    });
+    const media = {
+      ...WARM_LIGHT,
+      properties: {speed: 2, fit: 'fit' as const, volume: 40, audio: true},
+      positionSeconds: 3,
+      startedAt: 1000,
+    };
+    expect(startOffsetSeconds(media, 100, 3000)).toBe(7);
+    view.show(media);
+    expect(
+      [...parent.querySelectorAll('video')].every(video => video.muted),
+    ).toBe(true);
+    view.dispose();
+  });
   it('starts a background on the spare and dissolves it in once it plays', () => {
     const {view, videos} = setUp();
     view.show(WARM_LIGHT);

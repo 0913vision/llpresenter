@@ -1,4 +1,5 @@
 import type {MediaLayer} from '@shared/live';
+import type {OutputMediaProperties} from '@shared/schema/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {OUTPUT_TRANSITIONS} from './transitions';
@@ -19,6 +20,7 @@ export interface BackgroundLayerOptions {
   readonly onError: (message: string, error: unknown) => void;
   /** `output` when absent. */
   readonly mode?: RenderMode;
+  readonly muted?: boolean;
 }
 
 /** A background less than this far along starts from the beginning instead of seeking. */
@@ -42,7 +44,10 @@ export function startOffsetSeconds(
   now: number,
 ): number {
   if (!Number.isFinite(duration) || duration <= 0) return 0;
-  const elapsed = Math.max(0, (now - media.startedAt) / MS_PER_SECOND);
+  const elapsed =
+    (media.positionSeconds ?? 0) +
+    (Math.max(0, now - media.startedAt) / MS_PER_SECOND) *
+      (media.properties?.speed ?? 1);
   const offset = media.loop ? elapsed % duration : Math.min(elapsed, duration);
   return offset < MIN_SEEK_SECONDS ? 0 : offset;
 }
@@ -117,6 +122,7 @@ export class BackgroundLayerView {
   private transitions = true;
   private failed = false;
   private held = false;
+  private audioGain = 1;
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
   private readonly frameDeadlines: [
@@ -164,6 +170,11 @@ export class BackgroundLayerView {
     }
     const unchanged = media?.mediaId === this.current?.mediaId;
     this.current = media;
+    for (const index of VIDEO_INDEXES) {
+      if (this.holdsCurrent(index)) {
+        this.applyProperties(index, media?.properties);
+      }
+    }
     if (unchanged) {
       this.loopNativelyInPreview();
       return;
@@ -182,6 +193,16 @@ export class BackgroundLayerView {
     this.unloadAt(0);
     this.unloadAt(1);
     this.element.remove();
+  }
+
+  /** Adjusts the sound envelope without changing the picture or playback rate. */
+  setAudioGain(gain: number): void {
+    this.audioGain = Math.max(0, Math.min(1, gain));
+    for (const index of VIDEO_INDEXES) {
+      if (this.holdsCurrent(index)) {
+        this.applyProperties(index, this.current?.properties);
+      }
+    }
   }
 
   /** Freezes the cleared frame until its explicit fade finishes or is restored. */
@@ -225,7 +246,9 @@ export class BackgroundLayerView {
   private seekOnceLoaded(video: HTMLVideoElement, media: MediaLayer): void {
     const onMetadata = (): void => {
       this.cancelSeek();
-      const offset = startOffsetSeconds(media, video.duration, Date.now());
+      const current =
+        this.current?.mediaId === media.mediaId ? this.current : media;
+      const offset = startOffsetSeconds(current, video.duration, Date.now());
       if (offset > 0) video.currentTime = offset;
     };
     video.addEventListener('loadedmetadata', onMetadata);
@@ -249,8 +272,34 @@ export class BackgroundLayerView {
   private load(index: VideoIndex, mediaId: string): void {
     this.cancelFrame(index);
     this.clearImage(index);
+    this.applyProperties(index, this.current?.properties);
     this.videos[index].src = this.options.mediaUrl(mediaId);
     this.holding[index] = mediaId;
+  }
+
+  private applyProperties(
+    index: VideoIndex,
+    properties: OutputMediaProperties | undefined,
+  ): void {
+    const video = this.videos[index];
+    const fit = properties?.fit ?? 'fill';
+    const objectFit =
+      fit === 'fit' ? 'contain' : fit === 'fill' ? 'cover' : 'fill';
+    video.style.objectFit = objectFit;
+    this.images[index].style.objectFit = objectFit;
+    try {
+      video.playbackRate = properties?.speed ?? 1;
+      video.volume = ((properties?.volume ?? 100) / 100) * this.audioGain;
+      video.muted =
+        (this.options.muted ?? true) ||
+        this.isPreview() ||
+        properties?.audio !== true;
+    } catch (error) {
+      this.options.onError(
+        'could not apply background media properties',
+        error,
+      );
+    }
   }
 
   private unloadAt(index: VideoIndex): void {

@@ -2,6 +2,7 @@ import {app, BrowserWindow} from 'electron';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import type {MediaStore} from '../store/mediaStore';
+import {connectMediaPlayback} from '../live/mediaPlayback';
 import {RendererRecovery} from '../outputs/rendererRecovery';
 import {audioMutedByDefault} from './audioPolicy';
 import {
@@ -15,7 +16,7 @@ import type {WindowMode} from './testWindows';
 
 interface AudioOutputOptions {
   readonly store: LiveStore;
-  readonly media: Promise<Pick<MediaStore, 'get'> | null>;
+  readonly media: Promise<Pick<MediaStore, 'get' | 'subscribe'> | null>;
   readonly log: Logger;
   readonly windowMode: WindowMode;
 }
@@ -92,7 +93,7 @@ export function registerAudioOutput({
     .then(reader => {
       if (stopped) return;
       if (reader === null) throw new Error('Audio media is unavailable');
-      releaseMedia = store.connectAudioMedia(() => reader.get().value);
+      releaseMedia = connectMediaPlayback(store, reader, log);
     })
     .catch((error: unknown) =>
       log.error('could not connect audio media', error),
