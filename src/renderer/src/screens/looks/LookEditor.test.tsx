@@ -51,7 +51,11 @@ vi.mock('@renderer/render/outputRenderer', () => ({
   },
 }));
 
-function setup(readOnly = false, beforeSave = () => Promise.resolve()) {
+function setup(
+  readOnly = false,
+  beforeSave = () => Promise.resolve(),
+  screens = screensDocument(),
+) {
   const initial = looksDocument();
   if (initial.name !== 'looks') throw new Error('Wrong document');
   let document: SettingsDocument = {
@@ -87,7 +91,7 @@ function setup(readOnly = false, beforeSave = () => Promise.resolve()) {
       get: request => {
         if (request.name === 'looks') return Promise.resolve(document);
         if (request.name === 'screens') {
-          return Promise.resolve(screensDocument());
+          return Promise.resolve(screens);
         }
         if (request.name === 'stage-layouts') {
           return Promise.resolve(stageLayoutsDocument());
@@ -134,6 +138,115 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--chroma');
   document.documentElement.style.removeProperty('--output-black');
   resetTooltips();
+  vi.unstubAllGlobals();
+});
+
+it('bounds mounted screen cards for a large configured screen list', async () => {
+  const observers: Array<{
+    targets: Set<Element>;
+    notify: (target: Element, visible: boolean) => void;
+    disconnect: ReturnType<typeof vi.fn>;
+  }> = [];
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      readonly root = null;
+      readonly rootMargin = '';
+      readonly scrollMargin = '';
+      readonly thresholds: readonly number[] = [];
+      private readonly targets = new Set<Element>();
+      readonly disconnect = vi.fn(() => this.targets.clear());
+      constructor(callback: IntersectionObserverCallback) {
+        observers.push({
+          targets: this.targets,
+          disconnect: this.disconnect,
+          notify: (target, isIntersecting) =>
+            callback(
+              [
+                {
+                  target,
+                  isIntersecting,
+                  time: 0,
+                  boundingClientRect: new DOMRectReadOnly(),
+                  intersectionRect: new DOMRectReadOnly(),
+                  rootBounds: null,
+                  intersectionRatio: isIntersecting ? 1 : 0,
+                },
+              ],
+              this,
+            ),
+        });
+      }
+      observe(target: Element): void {
+        this.targets.add(target);
+      }
+      unobserve(target: Element): void {
+        this.targets.delete(target);
+      }
+      takeRecords(): IntersectionObserverEntry[] {
+        return [];
+      }
+    },
+  );
+  const screens = settingsDocument('screens', {
+    screens: Array.from({length: 200}, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      name: `검사 화면 ${index + 1}`,
+      kind: 'audience',
+      method: 'window',
+    })),
+  });
+  const {view} = setup(false, () => Promise.resolve(), screens);
+  await screen.findByRole('region', {name: '검사 화면 1'});
+  expect(
+    screen.getAllByRole('region', {name: /^검사 화면/}).length,
+  ).toBeLessThan(30);
+  const shared = observers.find(observer => observer.targets.size === 200);
+  if (shared === undefined) throw new Error('Missing shared observer');
+  const sentinel = screen.getByRole('button', {
+    name: '검사 화면 200 설정 열기',
+  });
+  const slot = sentinel.closest('[data-look-card-slot]');
+  if (slot === null) throw new Error('Missing card slot');
+  act(() => shared.notify(slot, true));
+  const last = await screen.findByRole('region', {name: '검사 화면 200'});
+  expect(within(last).getByRole('checkbox', {name: '가사'})).toBeDefined();
+  act(() => shared.notify(slot, false));
+  await waitFor(() =>
+    expect(screen.queryByRole('region', {name: '검사 화면 200'})).toBeNull(),
+  );
+  const keyboard = screen.getByRole('button', {
+    name: '검사 화면 200 설정 열기',
+  });
+  act(() => keyboard.focus());
+  await waitFor(() =>
+    expect(
+      within(screen.getByRole('region', {name: '검사 화면 200'})).getByRole(
+        'checkbox',
+        {name: '배경 미디어'},
+      ),
+    ).toBe(document.activeElement),
+  );
+  const following = document.createElement('button');
+  document.body.append(following);
+  act(() => following.focus());
+  await waitFor(() =>
+    expect(screen.queryByRole('region', {name: '검사 화면 200'})).toBeNull(),
+  );
+  act(() =>
+    screen.getByRole('button', {name: '검사 화면 200 설정 열기'}).focus(),
+  );
+  await waitFor(() =>
+    expect(
+      within(screen.getByRole('region', {name: '검사 화면 200'})).getByRole(
+        'checkbox',
+        {name: '메시지'},
+      ),
+    ).toBe(document.activeElement),
+  );
+  following.remove();
+  view.unmount();
+  expect(shared.disconnect).toHaveBeenCalled();
 });
 
 it('shows screen-specific layers and saves independent switches in the selected Look', async () => {

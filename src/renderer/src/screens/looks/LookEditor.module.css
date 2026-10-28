@@ -23,6 +23,11 @@
   background: var(--bg-inset);
 }
 
+.cardSlot {
+  position: relative;
+  min-width: 0;
+}
+
 .cardHeader {
   display: flex;
   align-items: center;
@@ -31,10 +36,29 @@
   color: var(--text);
 }
 
+.cardHeader span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .target {
   margin: var(--space-4) 0 var(--space-8);
   font: var(--type-caption);
   color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardSentinel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .preview {

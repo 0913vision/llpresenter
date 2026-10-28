@@ -124,9 +124,11 @@ export function LookScreenCard({
     <section aria-label={screen.name} className={styles.card}>
       <div className={styles.cardHeader}>
         <Icon name={caption ? 'capture' : 'monitor'} />
-        <span>{screen.name}</span>
+        <span title={screen.name}>{screen.name}</span>
       </div>
-      <div className={styles.target}>{target}</div>
+      <div className={styles.target} title={target}>
+        {target}
+      </div>
       <VisiblePreview
         screen={screen}
         lookId={look.id}
