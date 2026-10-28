@@ -13,12 +13,12 @@ Korean.**
 
 ## Read first
 
-1.  `docs/HANDOFF.md`: current state and every decision made so far.
-2.  `docs/WORKFLOW.md`: roles, briefs, review requests, rebasing, when to clear.
-3.  Your brief: `docs/briefs/<name>.md`, and the milestone it belongs to in
-    `docs/MILESTONES.md`.
-4.  As needed: `docs/spec/` (behavior and data), `docs/TECH.md` (stack and
-    quality bar), `design/system/project/README.md` and the component docs (UI).
+1.  The team documents (workflow, your brief, milestones and file ownership, the
+    member and review guides). They live outside the repository; the lead gives
+    you their folder.
+2.  `docs/spec/` (behavior and data), `docs/TECH.md` (stack and quality bar),
+    `docs/decisions.md` (decisions), `design/system/project/README.md` and the
+    component docs (UI).
 
 ## Sources of truth
 
@@ -205,12 +205,13 @@ without exception.
 These rules are fixed until the current milestone is frozen. The lead changes
 the process only at a milestone boundary, never in the middle of one.
 
-- **Your files:** "File ownership" in `docs/MILESTONES.md` names who keeps each
-  path, like code owners: the owner's rules apply to every change there, and the
-  review checks them. You may change any path your request needs without asking
-  first. List every change outside your own paths, with the reason, under
-  "Outside my paths" in your pull request. Keep those changes to what the
-  request needs; a larger change in someone else's area is that owner's request.
+- **Your files:** "File ownership" in the team's milestones document names who
+  keeps each path, like code owners: the owner's rules apply to every change
+  there, and the review checks them. You may change any path your request needs
+  without asking first. List every change outside your own paths, with the
+  reason, under "Outside my paths" in your pull request. Keep those changes to
+  what the request needs; a larger change in someone else's area is that owner's
+  request.
 - **Shared contracts:** `src/shared/` and `src/preload/` are kept by data.
   Additive changes (a new type, an optional field, a new IPC channel or command)
   go in your own request, with schemas, valid and invalid tests, and caps,
@@ -220,32 +221,35 @@ the process only at a milestone boundary, never in the middle of one.
   review, decide for yourself what to do next, as a developer on a real team
   would: start an independent ticket from `main`, stack on the open branch only
   when the next work really builds on it, and wait for the review when the open
-  change is risky or likely to change (`docs/WORKFLOW.md`, "Stacked branches").
+  change is risky or likely to change (the team workflow, "Stacked branches").
   Own your ticket until it merges; don't let it drag.
 - **Checks:** before every push, run the typecheck, the format check, ESLint on
-  your changed files, and the tests related to them (`docs/MEMBER.md`). The full
+  your changed files, and the tests related to them (the member guide). The full
   `npm run verify` runs on GitHub; the review starts only after your branch's CI
   run passes. Never poll CI, and don't run the full verify locally unless the
   lead asks.
 - **Pull request:** one ticket is one branch and one pull request: a short file
-  outside git whose title becomes the one squashed commit on `main`
-  (`docs/MEMBER.md`). Rebase onto the latest `main` once before you open it,
-  resolving conflicts yourself (for `package-lock.json`, take `main`'s file and
-  run `npm install`). Answer findings once, one line each; nits go into your
-  next branch.
+  outside git whose title becomes the one squashed commit on `main` (the member
+  guide). Rebase onto the latest `main` once before you open it, resolving
+  conflicts yourself (for `package-lock.json`, take `main`'s file and run
+  `npm install`). Answer findings once, one line each; nits go into your next
+  branch.
 - **Merging:** the dispatcher, or the lead for sensitive paths, squash-merges
   approved branches onto `main`, one at a time. A conflict comes back to you.
-- **Nothing about the process is committed:** no review files, screenshots,
-  measurements, run logs, or notes. Committed files hold the product: code,
-  tests, specs, plans, and decisions.
+- **Nothing about the process is committed:** no review files, check sheets,
+  sample data for checks, screenshots, measurements, run logs, plans, status
+  pages, briefs, or notes. Committed files hold the product only: code, tests,
+  `docs/spec/`, `docs/TECH.md`, `docs/decisions.md`, the design system, and
+  README. Process documents live in the team folder outside the repository.
 - **Reporting:** send the lead one short message when you open a pull request,
   when you finish a task, when you're blocked, and when you have no work left.
   The lead gives you the next task. Don't wait silently.
 - Use the dev server port and app data folder the lead gives you. Never let a
   window or an error dialog appear on the user's screen; check scripts with
   `node --check` before they start Electron.
-- The lead alone edits `CLAUDE.md` and `docs/` outside `docs/spec/`, `docs/qa/`,
-  and `docs/plans/`. The lead manages and doesn't write code.
+- The lead alone edits `CLAUDE.md`, `docs/TECH.md`, `docs/decisions.md`, and the
+  team documents; members change `docs/spec/` with their requests. The lead
+  manages and doesn't write code.
 
 ## Context and compaction
 
@@ -254,8 +258,8 @@ what you need on disk, not in the conversation.
 
 - Keep working notes in `.llp/notes.md` at your worktree root. Git ignores
   `.llp/`. The SessionStart hook (`scripts/session-context.ts`, set up in
-  `.claude/settings.json`) prints your role, your notes, the git state, and
-  `docs/STATUS.md` at every start, resume, and compaction.
+  `.claude/settings.json`) prints your role, your notes, and the git state at
+  every start, resume, and compaction.
 - Use these sections: Task, Done, Now, Next, Waiting on, Facts not in the
   repository, Open questions. Rewrite what is stale instead of appending, and
   keep the file under 150 lines.
@@ -263,8 +267,8 @@ what you need on disk, not in the conversation.
   before you wait on anything, and as soon as you learn something that isn't
   written in the repository: a decision, an agent or session id, a port, the
   reason behind a choice.
-- Write what other sessions need into the repository (`docs/STATUS.md`,
-  `docs/decisions.md`, review files), not into your notes.
+- Write decisions other sessions need into `docs/decisions.md`; everything else
+  about the process goes to the lead, not into the repository.
 - Never put secrets in the notes.
 - After a compaction, read your notes, your brief, and the files you were
   editing before you change anything. Trust the files over the summary.
