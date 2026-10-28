@@ -1,6 +1,5 @@
 import type {MediaChoice} from '@shared/live';
 import type {RecentPassage} from '@shared/schema/bible';
-import type {SlotKind} from '@shared/schema/service';
 import type {ShowTile, showRowProblems} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
@@ -9,8 +8,7 @@ export type ItemId = string;
 /** Why a row shows a warning; the data layer decides it. */
 export type RowProblem = (typeof showRowProblems)[number];
 
-export type ItemKind =
-  'song' | 'bible' | 'media' | 'notice' | 'slot' | 'unknown';
+export type ItemKind = 'song' | 'bible' | 'media' | 'notice' | 'unknown';
 
 export interface HeaderRow {
   readonly kind: 'header';
@@ -25,8 +23,6 @@ export interface ItemRow {
   readonly problem?: RowProblem;
   readonly background?: MediaChoice;
   readonly bible?: RecentPassage;
-  /** The kind a 빈 자리 accepts. */
-  readonly accepts?: SlotKind;
 }
 
 export type ServiceRow = HeaderRow | ItemRow;

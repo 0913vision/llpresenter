@@ -11,7 +11,7 @@ import {
 const rows: readonly ServiceRow[] = [
   {kind: 'header', id: 'h1', title: 'Before'},
   {kind: 'song', id: 'a', title: 'Song A'},
-  {kind: 'slot', id: 'slot', title: 'Empty slot'},
+  {kind: 'header', id: 'empty-section', title: 'Empty section'},
   {kind: 'header', id: 'h2', title: 'Praise'},
   {kind: 'song', id: 'b', title: 'Song B'},
   {kind: 'bible', id: 'c', title: 'Passage C'},
@@ -25,7 +25,6 @@ const tiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   a: [tile('Verse'), tile('Chorus'), tile('Verse'), tile('Chorus')],
   b: [tile('Verse'), tile(null)],
   c: [tile(null)],
-  slot: [],
 };
 
 function stateOf(overrides: Partial<SequenceState>): SequenceState {
@@ -50,7 +49,7 @@ describe('nextTile', () => {
   });
 
   it('returns nothing when the open item has no tiles', () => {
-    expect(nextTile(stateOf({openItemId: 'slot'}))).toBeNull();
+    expect(nextTile(stateOf({openItemId: 'empty-section'}))).toBeNull();
   });
 
   it('moves to the tile after the live one', () => {
@@ -100,13 +99,18 @@ describe('adjacentItem', () => {
   const find = (current: ItemId | null, direction: 'next' | 'previous') =>
     adjacentItem({rows, tilesOf: stateOf({}).tilesOf, current, direction});
 
-  it('gives the next item that can output and skips headers and slots', () => {
+  it('gives the next item that can output and skips sections', () => {
     expect(find('a', 'next')).toBe('b');
   });
 
-  it('gives the previous item that can output and skips headers and slots', () => {
+  it('gives the previous item that can output and skips sections', () => {
     expect(find('b', 'previous')).toBe('a');
     expect(find('c', 'previous')).toBe('b');
+  });
+
+  it('navigates in both directions from a selected empty section', () => {
+    expect(find('empty-section', 'next')).toBe('b');
+    expect(find('empty-section', 'previous')).toBe('a');
   });
 
   it('skips an item without a 장', () => {
@@ -147,7 +151,7 @@ describe('adjacentItem', () => {
   it('gives nothing for a list without an item that can output', () => {
     const none: readonly ServiceRow[] = [
       {kind: 'header', id: 'h', title: 'H'},
-      {kind: 'slot', id: 's', title: 'S'},
+      {kind: 'header', id: 'empty', title: 'Empty section'},
     ];
     expect(
       adjacentItem({

@@ -68,7 +68,7 @@ function setup(
         'header' in item
           ? {kind: 'header', id: item.id, title: item.header}
           : 'slot' in item
-            ? {kind: 'slot', id: item.id, title: item.title, accepts: item.slot}
+            ? {kind: 'header', id: item.id, title: item.title}
             : {
                 kind: 'song',
                 id: item.id,

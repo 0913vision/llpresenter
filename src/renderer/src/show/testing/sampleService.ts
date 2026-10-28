@@ -11,8 +11,8 @@ const sampleRows: readonly ServiceRow[] = [
   {kind: 'song', id: 'song-river', title: '맑은 시냇물'},
   {kind: 'header', id: 'word', title: '말씀'},
   {kind: 'bible', id: 'psalm-23', title: '시편 23편 1절부터 6절'},
+  {kind: 'header', id: 'offering', title: '헌금 찬양'},
   {kind: 'header', id: 'closing', title: '마무리'},
-  {kind: 'slot', id: 'slot-offering', title: '헌금 찬양'},
   {kind: 'notice', id: 'notice-sunday', title: '주일 광고'},
 ];
 

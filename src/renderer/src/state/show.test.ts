@@ -176,7 +176,7 @@ describe('item keys', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('skips headers and the empty slot', () => {
+  it('skips empty sections', () => {
     openItem('psalm-23');
     openNextItem();
     expect(useShow.getState().openItemId).toBe('notice-sunday');

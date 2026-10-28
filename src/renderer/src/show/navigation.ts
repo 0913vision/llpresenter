@@ -47,12 +47,12 @@ export function previousTile(state: SequenceState): TileCursor | null {
 }
 
 function canOutput(row: ServiceRow, tilesOf: TilesOf): row is ItemRow {
-  return isItemRow(row) && row.kind !== 'slot' && tilesOf(row.id).length > 0;
+  return isItemRow(row) && tilesOf(row.id).length > 0;
 }
 
 /**
  * The item that 다음 항목 or 이전 항목 opens: the next or previous item that
- * can output, skipping headers, slots, and items without a 장. With no item
+ * can output, skipping sections and items without a 장. With no item
  * open, next gives the first such item and previous gives nothing. At the ends
  * of the list it gives nothing, so the selection stays.
  */
