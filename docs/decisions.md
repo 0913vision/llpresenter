@@ -578,3 +578,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   it means something to check. Its text keeps at least 4.5:1 contrast.
 - Each message says plainly what is happening, as a short Korean phrase such as
   "저장을 시도하는 중...", not a code or a bare number (user decision).
+
+## 2026-10-29: `playwright-core` drives the UI tests
+
+- The UI tests (M3-V1) use Playwright's Electron support, as `docs/TECH.md`
+  plans. Only `playwright-core` is added, as a dev dependency: it drives the
+  app's own Electron and downloads no browsers.
