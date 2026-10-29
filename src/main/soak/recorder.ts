@@ -6,6 +6,9 @@ export const SOAK_RECORD_VERSION = 1;
 /** How often the recorder samples the process memory. */
 export const SAMPLE_INTERVAL_MS = 10_000;
 
+/** How long a sample waits for garbage collection before it goes on without. */
+export const GARBAGE_COLLECTION_LIMIT_MS = 3_000;
+
 /** The longest delay `setTimeout` can wait; a longer one fires at once. */
 export const MAX_EXIT_DELAY_MS = 2_147_483_647;
 
@@ -51,6 +54,8 @@ export type SoakSettingsResult =
 /** What the timer loop needs, so tests can replace Electron and the disk. */
 export interface SoakRecording {
   readonly settings: SoakSettings;
+  /** Frees garbage in the app's pages, so a sample holds only retained memory. */
+  readonly collectGarbage: () => Promise<void>;
   /** Builds one record line for the given time since the start. */
   readonly sample: (elapsedMs: number) => string;
   readonly append: (line: string) => Promise<void>;
@@ -160,10 +165,48 @@ export function sampleLine(
   });
 }
 
+async function withinLimit(
+  work: Promise<void>,
+  limitMs: number,
+): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const expired = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`garbage collection took longer than ${limitMs} ms`));
+    }, limitMs);
+  });
+  try {
+    await Promise.race([work, expired]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// NOTE(0913vision): A hung page never answers, and every sample waits in one
+// chain, so an unbounded wait would stop the record and the quit with it.
+async function collectGarbageLogged(recording: SoakRecording): Promise<void> {
+  try {
+    await withinLimit(recording.collectGarbage(), GARBAGE_COLLECTION_LIMIT_MS);
+  } catch (error) {
+    recording.log.warn('soak garbage collection failed', error);
+  }
+}
+
+async function recordSample(
+  recording: SoakRecording,
+  startedAt: number,
+): Promise<void> {
+  await collectGarbageLogged(recording);
+  const line = recording.sample(recording.now() - startedAt);
+  await recording.append(`${line}\n`);
+}
+
 /**
- * Samples every {@link SAMPLE_INTERVAL_MS} and appends each line in order,
- * then quits after `exitAfterMs`, once every queued line is written. A failed
- * write is logged and the recording goes on.
+ * Every {@link SAMPLE_INTERVAL_MS}, collects garbage, samples, and appends the
+ * line, one sample after another, then quits after `exitAfterMs`, once every
+ * queued line is written. A garbage collection that fails or takes longer than
+ * {@link GARBAGE_COLLECTION_LIMIT_MS} is logged and the sample is still taken;
+ * a failed write is logged and the recording goes on.
  *
  * @returns a function that stops the sampling and the quit timer, and resolves
  *   once every queued line is written
@@ -174,9 +217,8 @@ export function startSoakRecording(
   const startedAt = recording.now();
   let writes = Promise.resolve();
   const sampler = setInterval(() => {
-    const line = recording.sample(recording.now() - startedAt);
     writes = writes
-      .then(() => recording.append(`${line}\n`))
+      .then(() => recordSample(recording, startedAt))
       .catch((error: unknown) => {
         recording.log.error('soak record write failed', error);
       });

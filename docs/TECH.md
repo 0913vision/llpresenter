@@ -175,7 +175,10 @@ A pull request is approved only when it meets everything below
 - Cap the size of lists such as logs, undo history, and recent items.
 - Soak tests record the memory of the main process, the control window, and the
   output windows separately. If memory keeps growing for 60 minutes, the test
-  fails.
+  fails. Before each sample the recorder collects garbage in every window, so
+  the test judges memory that stays held, not garbage waiting for collection. An
+  offscreen run reports the GPU process without judging it, because offscreen
+  drawing grows it while real windows don't.
 
 ### Performance
 

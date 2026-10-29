@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
-import {judgeOptionsFor, judgeRun} from './judge.mts';
+import {judgeOptionsFor, judgeRun, type JudgeOptions} from './judge.mts';
 import {
   makeSoakClip,
   prepareSoakMedia,
@@ -133,6 +133,21 @@ export function soakEnvironment(
   };
 }
 
+// NOTE(0913vision): On October 29, 2026 the GPU process grew about 8 MB in 10
+// minutes of fast 장 changes with offscreen windows, while none of Chromium's
+// own GPU allocations grew; with real windows, small or full screen, it stayed
+// flat. The growth comes from offscreen drawing, not from the app, so an
+// offscreen run reports the GPU process without judging it.
+const OFFSCREEN_REPORTED_ONLY: readonly string[] = ['gpu'];
+
+/** The judge thresholds for an offscreen soak run of `minutes`. */
+export function soakJudgeOptions(minutes: number): JudgeOptions {
+  return {
+    ...judgeOptionsFor(minutes * MS_PER_MINUTE),
+    reportedOnly: OFFSCREEN_REPORTED_ONLY,
+  };
+}
+
 async function runApp(minutes: number): Promise<string> {
   const userData = await mkdtemp(join(tmpdir(), 'llp-soak-'));
   const recordPath = join(userData, RECORD_FILE_NAME);
@@ -182,7 +197,7 @@ async function judgeRecord(
     return false;
   }
   const {samples, problems} = parseRecord(await readFile(recordPath, 'utf8'));
-  const verdict = judgeRun(samples, judgeOptionsFor(minutes * MS_PER_MINUTE));
+  const verdict = judgeRun(samples, soakJudgeOptions(minutes));
   console.log(formatReport(verdict, problems));
   return verdict.passed;
 }

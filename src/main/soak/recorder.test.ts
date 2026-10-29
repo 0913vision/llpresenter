@@ -5,6 +5,7 @@ import type {Logger} from '../log';
 import {
   pageProcessName,
   processSamples,
+  GARBAGE_COLLECTION_LIMIT_MS,
   SAMPLE_INTERVAL_MS,
   sampleLine,
   readSoakSettings,
@@ -169,11 +170,15 @@ describe('startSoakRecording', () => {
     exitAfterMs: 35_000,
   };
 
-  function record(append: (line: string) => Promise<void>) {
+  function record(
+    append: (line: string) => Promise<void>,
+    collectGarbage: () => Promise<void> = async () => undefined,
+  ) {
     const log = fakeLog();
     const quit = vi.fn();
     const stop = startSoakRecording({
       settings,
+      collectGarbage,
       sample: elapsedMs => `{"elapsedMs":${elapsedMs}}`,
       append,
       quit,
@@ -204,6 +209,71 @@ describe('startSoakRecording', () => {
       '{"elapsedMs":20000}\n',
       '{"elapsedMs":30000}\n',
     ]);
+  });
+
+  it('collects garbage before each sample', async () => {
+    const clock = installFakeClock();
+    const events: string[] = [];
+    const {stop} = record(
+      async line => {
+        events.push(`line ${line.trim()}`);
+      },
+      async () => {
+        events.push('collect');
+      },
+    );
+    await clock.advance(2 * SAMPLE_INTERVAL_MS);
+    await stop();
+    expect(events).toEqual([
+      'collect',
+      'line {"elapsedMs":10000}',
+      'collect',
+      'line {"elapsedMs":20000}',
+    ]);
+  });
+
+  it('logs a failed garbage collection and still samples', async () => {
+    const clock = installFakeClock();
+    const lines: string[] = [];
+    const failure = new Error('page gone');
+    const {log, stop} = record(
+      async line => {
+        lines.push(line);
+      },
+      async () => {
+        throw failure;
+      },
+    );
+    await clock.advance(SAMPLE_INTERVAL_MS);
+    await stop();
+    expect(log.warn).toHaveBeenCalledWith(
+      'soak garbage collection failed',
+      failure,
+    );
+    expect(lines).toEqual(['{"elapsedMs":10000}\n']);
+  });
+
+  it('samples without a garbage collection that never ends, and still quits', async () => {
+    const clock = installFakeClock();
+    const lines: string[] = [];
+    const {log, quit} = record(
+      async line => {
+        lines.push(line);
+      },
+      () => new Promise<void>(() => undefined),
+    );
+    await clock.advance(SAMPLE_INTERVAL_MS + GARBAGE_COLLECTION_LIMIT_MS);
+    expect(lines).toEqual([
+      `{"elapsedMs":${SAMPLE_INTERVAL_MS + GARBAGE_COLLECTION_LIMIT_MS}}\n`,
+    ]);
+    expect(log.warn).toHaveBeenCalledWith(
+      'soak garbage collection failed',
+      expect.objectContaining({
+        message: `garbage collection took longer than ${GARBAGE_COLLECTION_LIMIT_MS} ms`,
+      }),
+    );
+    await clock.advance(35_000);
+    expect(quit).toHaveBeenCalledOnce();
   });
 
   it('quits after the exit time', async () => {

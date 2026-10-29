@@ -259,6 +259,40 @@ describe('judgeRun', () => {
     expect(verdict.passed).toBe(false);
   });
 
+  it('reports a growing process listed as reported only, without failing', () => {
+    const verdict = judgeRun(
+      soakRun(m => BASE_KB + 1024 * m + sawtooth(m)),
+      {...DEFAULT_JUDGE_OPTIONS, reportedOnly: ['main']},
+    );
+    expect(verdict.passed).toBe(true);
+    expect(verdict.memory[0]?.trend).toBe('reported');
+    expect(verdict.memory[0]?.growthKbPerHour).toBeCloseTo(60 * 1024, -3);
+  });
+
+  it('reports a process listed as reported only even when it is unjudged', () => {
+    const verdict = judgeRun(
+      soakRun(() => BASE_KB, {everyMs: 5 * MINUTE_MS}),
+      {
+        ...DEFAULT_JUDGE_OPTIONS,
+        reportedOnly: ['main'],
+      },
+    );
+    expect(verdict.passed).toBe(true);
+    expect(verdict.memory[0]).toMatchObject({
+      trend: 'reported',
+      growthKbPerHour: null,
+    });
+  });
+
+  it('still fails growth in a process that is not reported only', () => {
+    const verdict = judgeRun(
+      soakRun(m => BASE_KB + 1024 * m + sawtooth(m)),
+      {...DEFAULT_JUDGE_OPTIONS, reportedOnly: ['gpu']},
+    );
+    expect(verdict.passed).toBe(false);
+    expect(verdict.memory[0]?.trend).toBe('growing');
+  });
+
   it('fails a run in which a process relaunched', () => {
     const verdict = judgeRun(
       soakRun(() => BASE_KB, {pidAt: m => (m < 30 ? 100 : 200)}),

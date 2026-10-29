@@ -33,6 +33,48 @@ function rendererNames(): Map<number, string> {
   return names;
 }
 
+const EXPOSE_GC_FLAG = '--expose-gc';
+const COLLECT_PAGE_GARBAGE = 'globalThis.gc?.()';
+
+/**
+ * Lets the recorder collect garbage in the app's pages during a soak run, by
+ * starting every renderer with `gc` exposed. Does nothing outside a soak run.
+ * Call it before the app is ready, so the first window already has it.
+ */
+export function prepareSoakGarbageCollection(
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  if (readSoakSettings(env).kind !== 'on') return;
+  app.commandLine.appendSwitch('js-flags', EXPOSE_GC_FLAG);
+}
+
+// NOTE(0913vision): A hidden page such as the audio window collects garbage
+// rarely, so its private memory rises for minutes before one collection
+// brings it back (October 29, 2026). Collecting before each sample keeps that
+// garbage out of the lowest values the judge reads, while a real leak survives
+// the collection and still shows.
+async function collectPageGarbage(): Promise<void> {
+  const pages = webContents
+    .getAllWebContents()
+    .filter(
+      contents =>
+        !contents.isDestroyed() && pageProcessName(contents.getURL()) !== null,
+    );
+  const results = await Promise.allSettled(
+    pages.map(contents => contents.executeJavaScript(COLLECT_PAGE_GARBAGE)),
+  );
+  const failed = results.filter(
+    (result): result is PromiseRejectedResult => result.status === 'rejected',
+  );
+  const [first] = failed;
+  if (first === undefined) return;
+  const reason: unknown = first.reason;
+  throw new Error(
+    `could not collect garbage in ${failed.length} of ${pages.length} pages`,
+    {cause: reason},
+  );
+}
+
 function sampleApp(
   elapsedMs: number,
   frameRates: () => readonly OutputFrameRate[],
@@ -53,6 +95,7 @@ function startRecording(
   log.info('soak recording started', settings);
   return startSoakRecording({
     settings,
+    collectGarbage: collectPageGarbage,
     sample: elapsedMs => sampleApp(elapsedMs, frameRates),
     append: line => appendFile(settings.recordPath, line, 'utf8'),
     quit: () => app.quit(),

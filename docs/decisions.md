@@ -584,3 +584,19 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - The UI tests (M3-V1) use Playwright's Electron support, as `docs/TECH.md`
   plans. Only `playwright-core` is added, as a dev dependency: it drives the
   app's own Electron and downloads no browsers.
+
+## 2026-10-29: M2-8 is not a leak, and the soak test judges held memory
+
+- M2-8 (GPU process memory growing in soak runs) is closed as not a leak in the
+  app (user decision). Fast 장 changes with real windows, small and full screen,
+  and the unmodified app with the control window, three outputs, and audio kept
+  the GPU process, GPU memory, the control window, and the outputs flat. A heap
+  snapshot diff of the audio window showed no growing object that the app holds.
+- Two things made the soak test fail without a leak. Offscreen drawing grows the
+  GPU process (about 8 MB in 10 minutes of fast changes) while none of
+  Chromium's own GPU allocations grow. The hidden audio window collects garbage
+  rarely, so its memory rose for minutes until one collection brought it back.
+- So the recorder collects garbage in every window before each sample, and an
+  offscreen run reports the GPU process without judging it (user decision: "이런
+  거 실패로 안잡히게 고치자"). A real leak survives the collection and still
+  fails the test.

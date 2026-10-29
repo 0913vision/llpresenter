@@ -227,6 +227,7 @@ vi.mock('./uiState/register', () => ({
 vi.mock('./soak', () => ({
   deferSoakScenario: (_ready: Promise<unknown>, start: () => () => void) =>
     start(),
+  prepareSoakGarbageCollection: () => undefined,
   registerSoakRecorder: (_log: unknown, sources: unknown) => {
     fakes.soakSources.push(sources);
     return fakes.soakStop;

@@ -28,6 +28,7 @@ import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {
   deferSoakScenario,
+  prepareSoakGarbageCollection,
   registerSoakRecorder,
   registerSoakScenario,
 } from './soak';
@@ -53,6 +54,7 @@ const userDataProblem = applyUserDataOverride(
 );
 
 registerMediaScheme();
+prepareSoakGarbageCollection();
 
 const log = createLogger(join(app.getPath('userData'), 'logs'), {
   echo: !app.isPackaged,

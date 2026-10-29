@@ -1,7 +1,8 @@
 import {resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {SOAK_AUDIO_PLAYLIST_ID, SOAK_MEDIA_ID} from './media.mts';
-import {parseSoakArgs, soakEnvironment} from './run.mts';
+import {judgeOptionsFor} from './judge.mts';
+import {parseSoakArgs, soakEnvironment, soakJudgeOptions} from './run.mts';
 
 describe('parseSoakArgs', () => {
   it('runs the app for 60 minutes by default', () => {
@@ -71,5 +72,14 @@ describe('soakEnvironment without NODE_OPTIONS', () => {
       [],
     );
     expect(env['PATH']).toBe('C:/Windows');
+  });
+});
+
+describe('soakJudgeOptions', () => {
+  it('reports the GPU process of an offscreen run without judging it', () => {
+    expect(soakJudgeOptions(20)).toEqual({
+      ...judgeOptionsFor(20 * 60_000),
+      reportedOnly: ['gpu'],
+    });
   });
 });

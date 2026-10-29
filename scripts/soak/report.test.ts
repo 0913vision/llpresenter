@@ -31,6 +31,27 @@ describe('formatReport', () => {
     );
   });
 
+  it('shows a reported-only process with its growth', () => {
+    const report = formatReport(
+      {
+        ...passingVerdict,
+        memory: [
+          {
+            name: 'gpu',
+            trend: 'reported',
+            baselinesKb: [409_600, 419_840],
+            growthKbPerHour: 10_240,
+          },
+        ],
+      },
+      [],
+    );
+    expect(report).toContain(
+      '  reported  gpu: +10.0 MB/h (400.0 MB, 410.0 MB)',
+    );
+    expect(report).toContain('Soak test passed.');
+  });
+
   it('reports why a run failed', () => {
     const report = formatReport(
       {

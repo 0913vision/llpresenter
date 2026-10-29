@@ -23,6 +23,8 @@ export interface JudgeOptions {
   readonly maxGrowthKbPerHour: number;
   /** An output whose median frame rate is below this gets a warning. */
   readonly minFps: number;
+  /** Processes whose memory is reported but can't fail the run. */
+  readonly reportedOnly: readonly string[];
 }
 
 /** The thresholds for the 60-minute soak test in `docs/TECH.md`. */
@@ -33,6 +35,7 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
   minSamplesPerWindow: 3,
   maxGrowthKbPerHour: 4 * KB_PER_MB,
   minFps: 58,
+  reportedOnly: [],
 };
 
 /**
@@ -55,8 +58,12 @@ export function judgeOptionsFor(requiredMs: number): JudgeOptions {
   return {...DEFAULT_JUDGE_OPTIONS, requiredMs, warmUpMs, windowCount};
 }
 
-/** Whether one process's memory stayed flat, kept growing, or can't be judged. */
-export type MemoryTrend = 'flat' | 'growing' | 'unjudged';
+/**
+ * Whether one process's memory stayed flat, kept growing, or can't be judged.
+ * `reported` is a process the options list in `reportedOnly`: its growth is
+ * shown, but it never fails the run.
+ */
+export type MemoryTrend = 'flat' | 'growing' | 'unjudged' | 'reported';
 
 /** The memory verdict for one process. */
 export interface MemoryVerdict {
@@ -166,7 +173,7 @@ function memoryTrend(
   return overall >= maxKbPerHour && later >= maxKbPerHour ? 'growing' : 'flat';
 }
 
-function judgeMemory(
+function measureMemory(
   name: string,
   points: readonly MemoryPoint[],
   options: JudgeOptions,
@@ -185,6 +192,21 @@ function judgeMemory(
     baselinesKb: baselines.map(b => b.privateKb),
     growthKbPerHour: slopeKbPerHour(baselines),
   };
+}
+
+function judgeMemory(
+  name: string,
+  points: readonly MemoryPoint[],
+  options: JudgeOptions,
+): MemoryVerdict {
+  const verdict = measureMemory(name, points, options);
+  return options.reportedOnly.includes(name)
+    ? {...verdict, trend: 'reported'}
+    : verdict;
+}
+
+function passes(verdict: MemoryVerdict): boolean {
+  return verdict.trend === 'flat' || verdict.trend === 'reported';
 }
 
 function countRelaunches(points: readonly MemoryPoint[]): number {
@@ -230,7 +252,8 @@ function summarizeFps(
  * Lowest values are used because garbage collection makes memory rise and fall
  * in between. The windows cover the required time,
  * not the time a process happened to be sampled, so a process that is missing
- * from part of the run can't be judged.
+ * from part of the run can't be judged. A process in `reportedOnly` is
+ * measured the same way but never fails the run.
  */
 export function judgeRun(
   samples: readonly SoakSample[],
@@ -249,7 +272,7 @@ export function judgeRun(
   const passed =
     longEnough &&
     memory.length > 0 &&
-    memory.every(verdict => verdict.trend === 'flat') &&
+    memory.every(passes) &&
     relaunches.length === 0;
   return {
     passed,
