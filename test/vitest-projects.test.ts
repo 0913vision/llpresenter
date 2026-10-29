@@ -76,6 +76,21 @@ describe('CI test workers', () => {
     expect(testWorkerLimit({LLP_CI_TEST_WORKERS: '1'})).toBe('100%');
   });
 
+  it('keeps local lint single-threaded and enables concurrency only in CI', async () => {
+    const packageText = await readFile('package.json', 'utf8');
+    const packageData: unknown = JSON.parse(packageText);
+    if (typeof packageData !== 'object' || packageData === null) {
+      throw new Error('Invalid package metadata');
+    }
+    const scripts: unknown = Reflect.get(packageData, 'scripts');
+    if (typeof scripts !== 'object' || scripts === null) {
+      throw new Error('Missing package scripts');
+    }
+    expect(Reflect.get(scripts, 'lint')).toBe('eslint --max-warnings 0 .');
+    const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
+    expect(workflow).toContain('npm run lint -- --concurrency auto');
+  });
+
   it('keeps all checks and merges every shard before reporting coverage', async () => {
     const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
     const checks = /\n {2}checks:\n([\s\S]*?)\n {2}tests:\n/.exec(
