@@ -7,7 +7,11 @@ import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
 import {judgeOptionsFor, judgeRun} from './judge.mts';
-import {makeSoakClip, prepareSoakMedia} from './media.mts';
+import {
+  makeSoakClip,
+  prepareSoakMedia,
+  SOAK_AUDIO_PLAYLIST_ID,
+} from './media.mts';
 import {parseRecord} from './record.mts';
 import {formatReport} from './report.mts';
 
@@ -124,6 +128,7 @@ export function soakEnvironment(
     LLP_SOAK_RECORD: run.recordPath,
     LLP_SOAK_EXIT_MS: String(run.durationMs),
     LLP_SOAK_MEDIA_ID: run.mediaId,
+    LLP_SOAK_AUDIO_PLAYLIST_ID: SOAK_AUDIO_PLAYLIST_ID,
     LLP_TEST_WINDOWS: TEST_WINDOWS_OFFSCREEN,
   };
 }

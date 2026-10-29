@@ -1,6 +1,10 @@
 import type {LiveCommand} from '@shared/commands';
 import type {SlideLayer} from '@shared/live';
-import {mediaIdSchema} from '@shared/schema/ids';
+import {
+  audioPlaylistIdSchema,
+  mediaIdSchema,
+  type AudioPlaylistId,
+} from '@shared/schema/ids';
 import {parsePayload} from '@shared/schema/payload';
 import type {Logger} from '../log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
@@ -21,6 +25,7 @@ export interface SoakScenario {
   readonly dispatch: (command: LiveCommand) => void;
   /** The looping background's id in the media library, or `null` for none. */
   readonly mediaId: string | null;
+  readonly audioPlaylistId?: AudioPlaylistId | null;
   readonly log: Logger;
 }
 
@@ -66,12 +71,31 @@ export function startSoakScenario(scenario: SoakScenario): () => void {
       media: {mediaId: scenario.mediaId, loop: true},
     });
   }
+  if (scenario.audioPlaylistId != null) {
+    send(scenario, {
+      type: 'audio.play',
+      source: {
+        kind: 'playlist',
+        playlistId: scenario.audioPlaylistId,
+        position: 0,
+      },
+    });
+  }
   send(scenario, {type: 'output.set', screenId: MAIN_SCREEN_ID, on: true});
   let position = 0;
   send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
+  const message = () =>
+    send(scenario, {
+      type: 'message.send',
+      text: `시험 메시지 ${position + 1}`,
+      targets: 'all',
+      duration: 10,
+    });
+  message();
   const changer = setInterval(() => {
     position = (position + 1) % SLIDE_COUNT;
     send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
+    message();
   }, SLIDE_INTERVAL_MS);
   scenario.log.info('soak scenario started', {mediaId: scenario.mediaId});
   return () => clearInterval(changer);
@@ -91,7 +115,44 @@ export function registerSoakScenario(
   env: NodeJS.ProcessEnv = process.env,
 ): () => void {
   if (readSoakSettings(env).kind !== 'on') return () => undefined;
-  return startSoakScenario({dispatch, mediaId: backgroundId(env, log), log});
+  return startSoakScenario({
+    dispatch,
+    mediaId: backgroundId(env, log),
+    audioPlaylistId: audioId(env, log),
+    log,
+  });
+}
+
+/** Wait for the readers that the scenario's commands need. */
+export function deferSoakScenario(
+  ready: Promise<unknown>,
+  start: () => () => void,
+  log: Logger,
+): () => void {
+  let stopped = false;
+  let stop: (() => void) | null = null;
+  void ready
+    .then(() => {
+      if (!stopped) stop = start();
+    })
+    .catch((error: unknown) =>
+      log.error('could not prepare the soak scenario', error),
+    );
+  return () => {
+    stopped = true;
+    stop?.();
+  };
+}
+
+function audioId(env: NodeJS.ProcessEnv, log: Logger): AudioPlaylistId | null {
+  const text = env['LLP_SOAK_AUDIO_PLAYLIST_ID'] ?? '';
+  if (text === '') return null;
+  const parsed = parsePayload(audioPlaylistIdSchema, text);
+  if (parsed.ok) return parsed.value;
+  log.error('LLP_SOAK_AUDIO_PLAYLIST_ID is not an audio playlist id', {
+    value: text,
+  });
+  return null;
 }
 
 function backgroundId(env: NodeJS.ProcessEnv, log: Logger): string | null {

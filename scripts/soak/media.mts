@@ -13,8 +13,32 @@ import {
 
 /** The soak clip's id in the run's media library. */
 export const SOAK_MEDIA_ID = '5a0c4b3e-7d21-4f6a-9b8c-2e1f0d3c4b5a';
+export const SOAK_AUDIO_ID = '5a0c4b3e-7d21-4f6a-9b8c-2e1f0d3c4b5b';
+export const SOAK_AUDIO_PLAYLIST_ID = '5a0c4b3e-7d21-4f6a-9b8c-2e1f0d3c4b5c';
 
 const CLIP_FILE_NAME = 'soak-loop.webm';
+const AUDIO_FILE_NAME = 'soak-silence.wav';
+const AUDIO_RATE = 8000;
+const AUDIO_SECONDS = 2;
+
+/** A small silent PCM wave: exercising playback can never make a sound. */
+export function silentSoakAudio(): Buffer {
+  const dataBytes = AUDIO_RATE * AUDIO_SECONDS * 2;
+  const wave = Buffer.alloc(44 + dataBytes);
+  wave.write('RIFF', 0);
+  wave.writeUInt32LE(36 + dataBytes, 4);
+  wave.write('WAVEfmt ', 8);
+  wave.writeUInt32LE(16, 16);
+  wave.writeUInt16LE(1, 20);
+  wave.writeUInt16LE(1, 22);
+  wave.writeUInt32LE(AUDIO_RATE, 24);
+  wave.writeUInt32LE(AUDIO_RATE * 2, 28);
+  wave.writeUInt16LE(2, 32);
+  wave.writeUInt16LE(16, 34);
+  wave.write('data', 36);
+  wave.writeUInt32LE(dataBytes, 40);
+  return wave;
+}
 const CLIP_NAME = '소크 시험 배경';
 const DATA_FOLDER = 'LoveLight';
 const MEDIA_FOLDER = '미디어';
@@ -78,9 +102,24 @@ export function soakMediaList(
         height: options.height,
         props: {end: 'loop', fit: 'fill'},
       },
+      {
+        id: SOAK_AUDIO_ID,
+        name: '소크 시험 무음',
+        kind: 'audio',
+        file: AUDIO_FILE_NAME,
+        size: 44 + AUDIO_RATE * AUDIO_SECONDS * 2,
+        duration: AUDIO_SECONDS,
+      },
     ],
     playlists: [],
-    audioPlaylists: [],
+    audioPlaylists: [
+      {
+        id: SOAK_AUDIO_PLAYLIST_ID,
+        name: '소크 시험 오디오',
+        items: [SOAK_AUDIO_ID],
+        loop: true,
+      },
+    ],
   };
 }
 
@@ -101,6 +140,7 @@ export async function prepareSoakMedia(
   await mkdir(mediaFolder, {recursive: true});
   await mkdir(settingsFolder, {recursive: true});
   const clip = await makeClip(join(mediaFolder, CLIP_FILE_NAME));
+  await writeFile(join(mediaFolder, AUDIO_FILE_NAME), silentSoakAudio());
   const list = `${JSON.stringify(soakMediaList(clip), null, 2)}\n`;
   await writeFile(join(settingsFolder, MEDIA_LIST_FILE), list, 'utf8');
   return SOAK_MEDIA_ID;

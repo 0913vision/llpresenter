@@ -1,9 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {createAudioPlaylistId} from '@shared/schema/ids';
 import {installFakeClock} from '../../../test/fake-clock';
 import type {Logger} from '../log';
 import {
+  deferSoakScenario,
   registerSoakScenario,
   scenarioSlide,
   SLIDE_COUNT,
@@ -12,7 +14,7 @@ import {
 } from './scenario';
 
 const MEDIA_ID = '3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b';
-const SOAK_ENV = {LLP_SOAK_RECORD: 'D:/soak/record.jsonl'};
+const SOAK_ENV = {LLP_SOAK_RECORD: 'C:/data/record.jsonl'};
 
 function fakeLog(): Logger {
   return {
@@ -39,6 +41,29 @@ describe('scenarioSlide', () => {
 });
 
 describe('startSoakScenario', () => {
+  it('plays the silent looping playlist and cycles bounded overlay messages', async () => {
+    const clock = installFakeClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: MEDIA_ID,
+      audioPlaylistId: createAudioPlaylistId(MEDIA_ID),
+      log: fakeLog(),
+    });
+    await clock.advance(SLIDE_INTERVAL_MS * 3);
+    expect(commands).toContainEqual({
+      type: 'audio.play',
+      source: {kind: 'playlist', playlistId: MEDIA_ID, position: 0},
+    });
+    expect(
+      commands.filter(command => command.type === 'message.send'),
+    ).toHaveLength(4);
+    expect(commands.every(command => parseLiveCommand(command).ok)).toBe(true);
+    stop();
+    const count = commands.length;
+    await clock.advance(SLIDE_INTERVAL_MS);
+    expect(commands).toHaveLength(count);
+  });
   it('starts the looping background, the 본 화면, and the first 장', () => {
     installFakeClock();
     const commands: LiveCommand[] = [];
@@ -51,6 +76,12 @@ describe('startSoakScenario', () => {
       {type: 'media.show', media: {mediaId: MEDIA_ID, loop: true}},
       {type: 'output.set', screenId: 'main', on: true},
       {type: 'slide.show', slide: scenarioSlide(0)},
+      {
+        type: 'message.send',
+        text: '시험 메시지 1',
+        targets: 'all',
+        duration: 10,
+      },
     ]);
     stop();
   });
@@ -120,6 +151,41 @@ describe('startSoakScenario', () => {
 });
 
 describe('registerSoakScenario', () => {
+  it('waits for settings and media connections and cancels a late start', async () => {
+    installFakeClock();
+    let resolve = () => {};
+    const ready = new Promise<void>(done => {
+      resolve = done;
+    });
+    const dispatch = vi.fn<(command: LiveCommand) => void>();
+    const stop = deferSoakScenario(
+      ready,
+      () => registerSoakScenario(fakeLog(), dispatch, SOAK_ENV),
+      fakeLog(),
+    );
+    expect(dispatch).not.toHaveBeenCalled();
+    resolve();
+    await ready;
+    await Promise.resolve();
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({type: 'message.send'}),
+    );
+    stop();
+    let finish = () => {};
+    const delayed = new Promise<void>(done => {
+      finish = done;
+    });
+    const later = vi.fn<(command: LiveCommand) => void>();
+    deferSoakScenario(
+      delayed,
+      () => registerSoakScenario(fakeLog(), later, SOAK_ENV),
+      fakeLog(),
+    )();
+    finish();
+    await delayed;
+    await Promise.resolve();
+    expect(later).not.toHaveBeenCalled();
+  });
   it('does nothing without a soak record', async () => {
     const clock = installFakeClock();
     const dispatch = vi.fn<(command: LiveCommand) => void>();
@@ -165,6 +231,7 @@ describe('registerSoakScenario', () => {
     expect(commands.map(command => command.type)).toEqual([
       'output.set',
       'slide.show',
+      'message.send',
     ]);
     expect(log.error).toHaveBeenCalledWith(
       'LLP_SOAK_MEDIA_ID is not a media id; the soak scenario runs without a background',

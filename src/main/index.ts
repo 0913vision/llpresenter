@@ -26,7 +26,11 @@ import {showOutputsOnLaunch} from './outputs/launch';
 import {registerProblemFeed} from './problemFeed';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
-import {registerSoakRecorder, registerSoakScenario} from './soak';
+import {
+  deferSoakScenario,
+  registerSoakRecorder,
+  registerSoakScenario,
+} from './soak';
 import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
 import {registerUiZoom} from './store/uiZoom';
@@ -213,8 +217,13 @@ function start(): void {
         .catch((error: unknown) =>
           log.error('could not start recovery', error),
         );
-      const stopSoakScenario = registerSoakScenario(log, command =>
-        dispatchLogged(store, command, log),
+      const stopSoakScenario = deferSoakScenario(
+        Promise.all([dataStore.settings, dataStore.media]),
+        () =>
+          registerSoakScenario(log, command =>
+            dispatchLogged(store, command, log),
+          ),
+        log,
       );
       const stopSoakRecorder = registerSoakRecorder(log, {
         frameRates: outputs.frameRates,

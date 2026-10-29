@@ -20,6 +20,9 @@ import {
   prepareSoakMedia,
   runClipMaker,
   SOAK_MEDIA_ID,
+  SOAK_AUDIO_ID,
+  SOAK_AUDIO_PLAYLIST_ID,
+  silentSoakAudio,
   soakMediaList,
 } from './media.mts';
 import type {ClipSummary} from './clip-frames.mts';
@@ -40,7 +43,7 @@ vi.mock(import('../process-tree.mts'), async importOriginal => {
 const EXIT_POLL_MS = 50;
 
 const CLIP: ClipSummary = {
-  file: 'D:/soak/soak-loop.webm',
+  file: 'C:/data/soak-loop.webm',
   bytes: 5_013_551,
   frames: 300,
   durationMs: 10_000,
@@ -63,7 +66,26 @@ describe('soakMediaList', () => {
         height: 1080,
         props: {end: 'loop', fit: 'fill'},
       },
+      {
+        id: SOAK_AUDIO_ID,
+        name: '소크 시험 무음',
+        kind: 'audio',
+        file: 'soak-silence.wav',
+        size: 32044,
+        duration: 2,
+      },
     ]);
+    expect(soakMediaList(CLIP).audioPlaylists).toEqual([
+      {
+        id: SOAK_AUDIO_PLAYLIST_ID,
+        name: '소크 시험 오디오',
+        items: [SOAK_AUDIO_ID],
+        loop: true,
+      },
+    ]);
+    const audio = silentSoakAudio();
+    expect(audio.subarray(0, 4).toString()).toBe('RIFF');
+    expect(audio.subarray(44).every(byte => byte === 0)).toBe(true);
   });
 });
 

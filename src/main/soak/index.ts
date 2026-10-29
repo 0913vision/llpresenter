@@ -12,7 +12,7 @@ import {
   type SoakSettings,
 } from './recorder';
 
-export {registerSoakScenario} from './scenario';
+export {deferSoakScenario, registerSoakScenario} from './scenario';
 
 /** Where the recorder reads what it doesn't measure itself. */
 export interface SoakSources {

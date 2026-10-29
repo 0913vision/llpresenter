@@ -45,12 +45,12 @@ describe('readSoakSettings', () => {
   it('reads the record path and the exit time', () => {
     expect(
       readSoakSettings({
-        LLP_SOAK_RECORD: 'D:\\soak.jsonl',
+        LLP_SOAK_RECORD: 'C:\\data\\soak.jsonl',
         LLP_SOAK_EXIT_MS: '60000',
       }),
     ).toEqual({
       kind: 'on',
-      settings: {recordPath: 'D:\\soak.jsonl', exitAfterMs: 60_000},
+      settings: {recordPath: 'C:\\data\\soak.jsonl', exitAfterMs: 60_000},
     });
   });
 
@@ -89,17 +89,18 @@ describe('readSoakSettings', () => {
 
 describe('pageProcessName', () => {
   it.each([
-    ['http://localhost:5185/index.html', 'control'],
-    ['file:///D:/llp/out/renderer/index.html', 'control'],
-    ['http://localhost:5185/output.html?screen=main', 'output:main'],
-    ['file:///D:/llp/out/renderer/output.html?screen=stage', 'output:stage'],
+    ['https://example.test/index.html', 'control'],
+    ['file:///C:/data/index.html', 'control'],
+    ['https://example.test/output.html?screen=main', 'output:main'],
+    ['file:///C:/data/output.html?screen=stage', 'output:stage'],
+    ['file:///C:/data/output.html?audio=muted', 'audio'],
   ])('names %s as %s', (url, name) => {
     expect(pageProcessName(url)).toBe(name);
   });
 
   it.each([
-    'http://localhost:5185/output.html',
-    'http://localhost:5185/gallery.html',
+    'https://example.test/output.html',
+    'https://example.test/gallery.html',
     'devtools://devtools/bundled/inspector.html',
     'not a url',
   ])('does not track %s', url => {

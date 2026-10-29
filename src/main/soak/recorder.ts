@@ -97,6 +97,7 @@ export function pageProcessName(url: string): string | null {
   const page = parsed.pathname.split('/').at(-1);
   if (page === 'index.html') return 'control';
   if (page !== 'output.html') return null;
+  if (parsed.searchParams.has('audio')) return 'audio';
   const screen = parsed.searchParams.get('screen');
   return screen === null || screen === '' ? null : `output:${screen}`;
 }
