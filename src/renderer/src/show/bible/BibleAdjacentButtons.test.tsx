@@ -9,7 +9,14 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@shared/schema/bibleLookup';
 import {emptyLiveState} from '@shared/live';
-import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
+import {
+  openItem,
+  outputNext,
+  outputPrevious,
+  outputTile,
+  selectTile,
+  useShow,
+} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {beginOutputRequest} from '@renderer/state/showOutput';
@@ -110,6 +117,10 @@ describe('adjacent Bible verses', () => {
         `${verseNumbers ? '17 ' : ''}Invented book 43, chapter 3, verse 17`,
       );
       expect(bibleSourceFor(view, original.id)).toBe(original);
+      const liveTiles = screen
+        .getAllByRole('option')
+        .filter(tile => tile.dataset.state?.split(' ').includes('live'));
+      expect(liveTiles).toEqual([screen.getAllByRole('option')[2]]);
       expect(fixture.send).not.toHaveBeenCalled();
       expect(fixture.edit).not.toHaveBeenCalled();
       expect(
@@ -122,6 +133,48 @@ describe('adjacent Bible verses', () => {
       ]);
     },
   );
+
+  it('goes on from the live verse with the next and previous 장 keys after the passage grows', async () => {
+    const fixture = await setup();
+    const original = currentSource();
+    const live = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...live,
+        layers: {
+          ...live.layers,
+          slide: {
+            itemId: original.id,
+            position: 1,
+            label: '3:17',
+            lines: ['Invented live verse'],
+          },
+        },
+      },
+    });
+    fireEvent.click(button('previous'));
+    await waitFor(() =>
+      expect(currentSource().passage.ref).toBe('요한복음 3:15-18'),
+    );
+    act(() => outputNext());
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {
+        itemId: 'bible:sample:요한복음 3:15-18',
+        position: 3,
+        label: '3:18',
+      },
+    });
+    act(() => outputPrevious());
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {
+        itemId: 'bible:sample:요한복음 3:15-18',
+        position: 1,
+        label: '3:16',
+      },
+    });
+  });
 
   it.each([
     ['previous', '요한복음 3:1-2', '요한복음 2:8-3:2'],

@@ -1,4 +1,7 @@
+import type {SlideLayer} from '@shared/live';
 import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import {passageBook} from '@renderer/show/bible/adjacentVerses';
+import type {BibleSource} from '@renderer/show/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@renderer/show/model';
 import {slideLayerOf} from '@renderer/show/slideLayer';
 import {sendLive, useLive} from './live';
@@ -24,6 +27,44 @@ export function bibleSourceFor(
   return view.requestedBibleSource?.id === itemId
     ? view.requestedBibleSource
     : null;
+}
+
+function showsSameVerses(first: BibleSource, second: BibleSource): boolean {
+  const book = passageBook(first.passage);
+  return (
+    book !== undefined &&
+    book.id === passageBook(second.passage)?.id &&
+    first.passage.translation === second.passage.translation &&
+    first.verseNumbers === second.verseNumbers
+  );
+}
+
+/**
+ * The open tile that shows the live slide: the live tile of the open item, or
+ * the same verse of an open Bible passage drawn like the live one, such as a
+ * live passage with 뒤 절 추가.
+ */
+export function liveTileIndex(
+  view: ShowView,
+  slide: SlideLayer | null,
+): number | null {
+  if (slide === null || view.openItemId === null) return null;
+  if (slide.itemId === view.openItemId) return slide.position;
+  const open = bibleSourceFor(view, view.openItemId);
+  const live = bibleSourceFor(view, slide.itemId);
+  const verse = live?.passage.verses[slide.position];
+  if (!open || !live || !verse || !showsSameVerses(open, live)) return null;
+  const index = open.passage.verses.findIndex(
+    candidate =>
+      candidate.chapter === verse.chapter && candidate.verse === verse.verse,
+  );
+  return index === -1 ? null : index;
+}
+
+/** Follows {@link liveTileIndex} for the open item. */
+export function useLiveTileIndex(): number | null {
+  const slide = useLive(view => view.state?.layers.slide ?? null);
+  return useShow(view => liveTileIndex(view, slide));
 }
 
 /** Namespaces a library source without inventing a service item. */

@@ -330,10 +330,11 @@ after its name, and hides it at 0.
 - The tab groups by screen (본 화면, 무대 화면, 방송 자막) and lists one row for
   each thing showing on that screen now.
 - A row has a kind icon and kind name (가사, 배경, 메시지, 소품, 공지, 무대,
-  시계), the content (song title with "2 / 9", media name, 메시지 text, 소품
-  name, 공지 set name with "3 / 6", stage message text, clock time), a time at
-  the right (playback position "0:12" for a background, time left "0:42" for a
-  메시지), and a 내리기 (take down) button.
+  시계), the content (song title with "2 / 9", a Bible verse with its book such
+  as "요한복음 3:17", media name, 메시지 text, 소품 name, 공지 set name with "3
+  / 6", stage message text, clock time), a time at the right (playback position
+  "0:12" for a background, time left "0:42" for a 메시지), and a 내리기 (take
+  down) button.
 - As in the board, audience screens list lyrics, background, 메시지, 소품, and
   공지. The 무대 화면 lists the stage message and the clock. The 무대 화면's
   lyrics elements don't get rows.
@@ -775,10 +776,12 @@ that ProPresenter's Edit mode has the same behavior.
   following
   [ProPresenter's adjacent-verse controls](https://support.renewedvision.com/hc/en-us/articles/360041347594-Using-Bibles-in-ProPresenter).
   The selected verse and verse-number option stay; extension alone does not
-  output, edit the 예배 순서, or add recent history. A book boundary stops the
-  extension. A failed or superseded lookup leaves the preview unchanged. Enter
-  from the unchanged reference fields outputs the expanded preview; editing a
-  field starts a new lookup from those fields.
+  output, edit the 예배 순서, or add recent history. When the live verse is in
+  the extended preview, its tile keeps the live ring and the next and previous
+  keys go on from it. A book boundary stops the extension. A failed or
+  superseded lookup leaves the preview unchanged. Enter from the unchanged
+  reference fields outputs the expanded preview; editing a field starts a new
+  lookup from those fields.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.

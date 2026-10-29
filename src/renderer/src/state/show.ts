@@ -21,6 +21,7 @@ import {
   bibleSourceFor,
   isBibleSource,
   isLibrarySource,
+  liveTileIndex,
   outputLibraryTile,
   tilesForView,
 } from './showLibrary';
@@ -54,9 +55,20 @@ export function liveCursor(): TileCursor | null {
   return slide ? {itemId: slide.itemId, index: slide.position} : null;
 }
 
+// NOTE(0913vision): A Bible passage that grew around the live verse is a new
+// item, so the next and previous 장 keys go on from that verse inside it
+// instead of starting the passage over.
 function sequenceState(): SequenceState {
-  const {openItemId} = useShow.getState();
-  return {tilesOf, live: liveCursor(), openItemId};
+  const view = useShow.getState();
+  const index = liveTileIndex(
+    view,
+    useLive.getState().state?.layers.slide ?? null,
+  );
+  const live =
+    view.openItemId !== null && index !== null
+      ? {itemId: view.openItemId, index}
+      : liveCursor();
+  return {tilesOf, live, openItemId: view.openItemId};
 }
 
 /**

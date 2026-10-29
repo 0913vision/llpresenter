@@ -3,9 +3,12 @@ import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/shell/sizeClass';
-import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
-import {isLibrarySource, shownTiles} from '@renderer/state/showLibrary';
+import {
+  isLibrarySource,
+  shownTiles,
+  useLiveTileIndex,
+} from '@renderer/state/showLibrary';
 import {
   saveThumbnailScale,
   showThumbnailScale,
@@ -57,10 +60,7 @@ export function SlidePanelMeta(): JSX.Element | null {
       : view.rows.find(row => row.id === openItemId)?.title,
   );
   const count = useShow(view => shownTiles(view)?.length ?? 0);
-  const livePosition = useLive(view => {
-    const slide = view.state?.layers.slide;
-    return slide?.itemId === openItemId ? slide.position : null;
-  });
+  const livePosition = useLiveTileIndex();
   if (title === undefined) return null;
   const position =
     livePosition === null

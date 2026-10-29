@@ -1,19 +1,10 @@
 import {useCallback, useEffect, useRef, type JSX} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/state/show';
-import {shownTiles} from '@renderer/state/showLibrary';
-import {useLive} from '@renderer/state/live';
+import {shownTiles, useLiveTileIndex} from '@renderer/state/showLibrary';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
-import type {ItemId} from './model';
 import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
 import styles from './SlideGrid.module.css';
-
-function useLiveIndex(itemId: ItemId | null): number | null {
-  return useLive(view => {
-    const slide = view.state?.layers.slide;
-    return slide?.itemId === itemId ? slide.position : null;
-  });
-}
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -32,7 +23,7 @@ export function SlideGrid({
   const openItemId = useShow(view => view.openItemId);
   const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(shownTiles);
-  const liveIndex = useLiveIndex(openItemId);
+  const liveIndex = useLiveTileIndex();
   const keeperRef = useRef<HTMLDivElement>(null);
   const {isInside, onFocus, onBlur} = useKeptFocus(keeperRef);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);

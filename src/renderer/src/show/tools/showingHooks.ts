@@ -6,6 +6,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
+import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {useShowingClock} from './showingClock';
 import {computeShowingCount, computeShowingGroups} from './showingRows';
 import type {ShowingGroup} from './showingTypes';
@@ -99,6 +100,9 @@ export function useShowingGroups(
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
   const librarySong = useShow(view => view.librarySong);
+  const liveBibleSource = useShow(view =>
+    bibleSourceFor(view, liveState?.layers.slide?.itemId ?? null),
+  );
 
   const [mediaItems, setMediaItems] = useState<readonly MediaItem[]>([]);
   const [missingMediaIds, setMissingMediaIds] = useState<ReadonlySet<string>>(
@@ -185,6 +189,7 @@ export function useShowingGroups(
         rows,
         openItemId,
         librarySong,
+        liveBibleSource,
         mediaItems,
         missingMediaIds,
         propsFile,
@@ -199,6 +204,7 @@ export function useShowingGroups(
       rows,
       openItemId,
       librarySong,
+      liveBibleSource,
       mediaItems,
       missingMediaIds,
       propsFile,

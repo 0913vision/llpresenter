@@ -1,5 +1,5 @@
 import type {Screen} from '@shared/schema/screens';
-import type {LiveState} from '@shared/live';
+import type {LiveState, SlideLayer} from '@shared/live';
 import type {ScreenId} from '@shared/schema/ids';
 import {
   showsLayer,
@@ -8,6 +8,8 @@ import {
 } from '@renderer/render/screenLook';
 import {stageClockText} from '@renderer/render/stageLayout';
 import {tilesOf} from '@renderer/state/show';
+import {passageBook} from '../bible/adjacentVerses';
+import type {BibleSource} from '../bible/source';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
 import type {
   ShowingItem,
@@ -29,14 +31,19 @@ function songTileCount(itemId: string): number {
   }
 }
 
-function slideRow(
-  screenId: ScreenId,
-  liveState: LiveState,
-  options: ComputeShowingOptions,
-): ShowingItem | null {
-  const slide = liveState.layers.slide;
-  if (slide === null) return null;
+function bibleSlideTitle(
+  slide: SlideLayer,
+  source: BibleSource | null | undefined,
+): string | undefined {
+  if (source?.id !== slide.itemId || slide.label === null) return undefined;
+  const book = passageBook(source.passage);
+  return book === undefined ? undefined : `${book.korean} ${slide.label}`;
+}
 
+function songSlideTitle(
+  slide: SlideLayer,
+  options: ComputeShowingOptions,
+): string {
   const row = options.rows?.find(r => r.id === slide.itemId);
   const songTitle =
     row?.title ??
@@ -44,21 +51,26 @@ function slideRow(
       ? options.librarySong?.title
       : undefined) ??
     '가사';
-
   const total = songTileCount(slide.itemId);
-  let title = songTitle;
-  if (total > 0) {
-    title = `${songTitle} ${slide.position + 1} / ${total}`;
-  } else if (slide.label !== null) {
-    title = `${songTitle} ${slide.label}`;
-  }
+  if (total > 0) return `${songTitle} ${slide.position + 1} / ${total}`;
+  return slide.label === null ? songTitle : `${songTitle} ${slide.label}`;
+}
 
+function slideRow(
+  screenId: ScreenId,
+  liveState: LiveState,
+  options: ComputeShowingOptions,
+): ShowingItem | null {
+  const slide = liveState.layers.slide;
+  if (slide === null) return null;
   return {
     id: `${screenId}-slide-${slide.itemId}-${slide.position}`,
     kind: 'text',
     kindLabel: '가사',
     icon: 'text',
-    title,
+    title:
+      bibleSlideTitle(slide, options.liveBibleSource) ??
+      songSlideTitle(slide, options),
     dismiss: {kind: 'slide'},
   };
 }

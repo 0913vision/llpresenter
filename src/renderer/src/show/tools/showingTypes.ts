@@ -7,6 +7,7 @@ import type {NoticesFile} from '@shared/schema/notices';
 import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
 import type {ServiceRow, ItemId} from '@renderer/show/model';
 import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import type {BibleSource} from '@renderer/show/bible/source';
 
 export type ShowingKind =
   'text' | 'media' | 'msg' | 'prop' | 'notice' | 'stagemsg' | 'clock';
@@ -44,6 +45,8 @@ export interface ComputeShowingOptions {
   readonly rows?: readonly ServiceRow[] | undefined;
   readonly openItemId?: ItemId | null | undefined;
   readonly librarySong?: ShowLibrarySong | null | undefined;
+  /** The Bible passage the live slide comes from, when it is one. */
+  readonly liveBibleSource?: BibleSource | null | undefined;
   readonly mediaItems?: readonly MediaItem[] | undefined;
   readonly missingMediaIds?: ReadonlySet<string> | undefined;
   readonly propsFile?: PropsFile | null | undefined;

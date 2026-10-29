@@ -20,6 +20,7 @@ import {
   propIdSchema,
   screenIdSchema,
   stageLayoutIdSchema,
+  translationIdSchema,
   type LookId,
   type MediaId,
   type MessageId,
@@ -43,6 +44,7 @@ import {
 } from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/showStore';
+import {bibleSource} from '../bible/source';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
 import {
   ShowingTab,
@@ -584,6 +586,46 @@ describe('ShowingTab', () => {
       },
     };
     expect(computeShowingCount(override)).toBe(computeShowingCount(noClock));
+  });
+
+  it('names a live Bible verse by its book and verse', () => {
+    const source = bibleSource({
+      translation: v.parse(translationIdSchema, 'sample'),
+      ref: '요한복음 3:16-19',
+      displayRef: '요한복음 3:16-19',
+      verses: [16, 17, 18, 19].map(verse => ({
+        chapter: 3,
+        verse,
+        text: `Invented verse ${verse}`,
+      })),
+    });
+    const screensDoc = screensDocument();
+    const screens =
+      screensDoc.name === 'screens' ? screensDoc.value.screens : [];
+    const groups = computeShowingGroups({
+      screens,
+      looks: stageLooks,
+      liveState: {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          slide: {
+            itemId: source.id,
+            position: 3,
+            label: '3:19',
+            lines: ['19 Invented verse 19'],
+          },
+        },
+      },
+      now: 5000,
+      liveBibleSource: source,
+    });
+    const titles = groups
+      .flatMap(group => group.items)
+      .filter(item => item.kind === 'text')
+      .map(item => item.title);
+    expect(titles).not.toHaveLength(0);
+    expect(new Set(titles)).toEqual(new Set(['요한복음 3:19']));
   });
 
   it('uses fallback title for unknown media and omits position time on image backgrounds', () => {
