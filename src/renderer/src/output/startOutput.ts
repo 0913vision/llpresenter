@@ -18,6 +18,22 @@ export interface OutputContext {
 type ErrorReport = (message: string, error: unknown) => void;
 export const READY_RECHECK_MS = 100;
 
+/** How often an output that waits to be revealed checks its frame. */
+export const READY_POLL_MS = 16;
+
+function drawnContent(state: LiveState): string {
+  return JSON.stringify([
+    state.layers,
+    state.lookId,
+    state.stageMessage,
+    state.clearEffects,
+    state.timers,
+    state.testPatterns,
+    state.stageLayouts,
+    state.stageTimerId,
+  ]);
+}
+
 function describeError(error: unknown): string {
   const text =
     error instanceof Error
@@ -67,9 +83,13 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let revealPending = true;
   let lastAttempt = -Infinity;
   let enableEpoch = 0;
-  let stableFrame = '';
+  let drawCount = 0;
+  let drawnState = '';
+  let seenFrame = '';
+  let paintedFrame = '';
   let fontsReady = typeof document.fonts === 'undefined';
   let readyInFlight = false;
+  let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
   const draw = (): void => {
     if (latest === null) return;
@@ -79,7 +99,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       ...frame,
       transitions: enabled() && !revealPending,
     });
-    stableFrame = '';
+    drawCount += 1;
   };
   const frames = new ScreenFrames({
     settings: api.settings,
@@ -107,6 +127,24 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         report('could not prepare output fonts', error),
       );
   }
+  const complete = (): boolean =>
+    fontsReady &&
+    latest !== null &&
+    frames.frame(latest) !== undefined &&
+    renderer.ready();
+  const frameKey = (): string =>
+    `${drawCount}/${window.innerWidth}/${window.innerHeight}`;
+  // NOTE(0913vision): An off output is a hidden window, which runs animation
+  // frames about once a second. The page notes what each frame drew while it
+  // is hidden too, so turning it on reveals at once when nothing changed: a
+  // frame is painted once the next frame sees the same drawing.
+  const noteFrame = (time: number): void => {
+    const key = complete() ? frameKey() : '';
+    if (key === '') paintedFrame = '';
+    else if (key === seenFrame) paintedFrame = key;
+    seenFrame = key;
+    reportReady(time);
+  };
   const reportReady = (time: number): void => {
     if (
       stopped ||
@@ -120,14 +158,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     const version = latest.version;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const frameKey = `${version}/${width}/${height}`;
-    const complete =
-      fontsReady && frames.frame(latest) !== undefined && renderer.ready();
-    if (complete && stableFrame !== frameKey) {
-      stableFrame = frameKey;
-      return;
-    }
-    if (!complete) stableFrame = '';
+    const ready = complete();
+    if (ready && paintedFrame !== frameKey()) return;
     if (time - lastAttempt < READY_RECHECK_MS) return;
     lastAttempt = time;
     const epoch = enableEpoch;
@@ -136,7 +168,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       .reportReady({
         screenId,
         version,
-        ready: complete,
+        ready,
         width,
         height,
       })
@@ -153,9 +185,17 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         readyInFlight = false;
       });
   };
+  const watchReadiness = (): void => {
+    if (stopped || readyTimer !== null || !enabled() || !revealPending) return;
+    readyTimer = setTimeout(() => {
+      readyTimer = null;
+      reportReady(performance.now());
+      watchReadiness();
+    }, READY_POLL_MS);
+  };
   const resized = (): void => {
     lastAttempt = -Infinity;
-    stableFrame = '';
+    watchReadiness();
   };
   window.addEventListener('resize', resized);
   const raise = (): void => {
@@ -164,7 +204,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   root.addEventListener('pointerdown', raise);
   const reportFrameRates = (): void => {
     stopMeter ??= startFrameRateMeter({
-      onFrame: reportReady,
+      onFrame: noteFrame,
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
   };
@@ -181,13 +221,19 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         revealPending = true;
         lastAttempt = -Infinity;
       }
-      draw();
+      const content = drawnContent(state);
+      if (content !== drawnState) {
+        drawnState = content;
+        draw();
+      }
       reportFrameRates();
+      watchReadiness();
     },
     report,
   );
   return () => {
     stopped = true;
+    if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
     root.removeEventListener('pointerdown', raise);
     stopMeter?.();

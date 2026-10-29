@@ -49,7 +49,7 @@ export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private looks: LooksFile | null = null;
   private timers: readonly Timer[] = [];
-  private stageLayouts: readonly StageLayout[] = [];
+  private stageLayouts: readonly StageLayout[] | null = null;
   private resolution: Resolution | null = null;
   private readonly reported = new Set<string>();
   private readonly stops: ReadonlyArray<() => void>;
@@ -168,6 +168,9 @@ export class ScreenFrames {
     screen: RenderScreen,
   ): StageFrame | undefined {
     if (layoutId === undefined) return undefined;
+    // NOTE(0913vision): The Looks can arrive before the stage layouts, so a
+    // layout is missing only once the layouts have arrived.
+    if (this.stageLayouts === null) return undefined;
     const layout = this.stageLayouts.find(({id}) => id === layoutId);
     if (layout === undefined) {
       this.report(screen, {kind: 'missing-layout', id: layoutId});

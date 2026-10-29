@@ -47,6 +47,11 @@
   outline: none;
 }
 
+.grid[data-workspace='show']
+  .thumb[aria-selected='true']:not([data-state~='live'], :hover) {
+  box-shadow: none;
+}
+
 .canvas {
   position: relative;
   display: block;

@@ -49,9 +49,9 @@ export function PropGrid({
         const targets = prop.targets
           .map(id => screens.find(screen => screen.id === id)?.name)
           .filter((name): name is string => Boolean(name));
-        const name = [prop.name || '이름 없음', targets.join(', ')]
-          .filter(Boolean)
-          .join(' · ');
+        const title = prop.name || '이름 없음';
+        const name =
+          targets.length === 0 ? title : `${title} (${targets.join(', ')})`;
         return (
           <MediaTile
             key={prop.id}

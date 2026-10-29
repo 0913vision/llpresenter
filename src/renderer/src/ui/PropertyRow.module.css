@@ -53,6 +53,8 @@
   min-width: 0;
   color: var(--text-2);
   font: var(--type-label);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .top .label {

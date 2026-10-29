@@ -32,10 +32,11 @@ describe('PreviewPanel layout rules', () => {
     );
   });
 
-  it('keeps content-sized pictures from shrinking without changing fill sizing', () => {
-    expect(ruleOf('.content')).toContain('grid-template-rows: auto auto');
-    expect(ruleOf('.content')).toContain('height: auto');
-    expect(ruleOf('.content .main .surface')).toContain('flex-shrink: 0');
+  it('lets content-sized pictures shrink to the panel height without changing fill sizing', () => {
+    expect(ruleOf('.content')).toContain(
+      'grid-template-rows: minmax(0, auto) auto',
+    );
+    expect(ruleOf('.content')).not.toContain('height: auto');
     expect(ruleOf('.main .surface')).not.toContain('flex-shrink: 0');
     expect(ruleOf('.monitor')).toContain(
       'grid-template-rows: minmax(0, 1fr) auto',
@@ -50,10 +51,10 @@ describe('PreviewPanel layout rules', () => {
     expect(ruleOf('.monitor')).toContain('--z-slot: 1');
   });
 
-  it('marks selection in blue with an upward arrow and keeps keyboard focus visible', () => {
-    expect(ruleOf('.selected,\n.selected:hover')).toContain(
-      'box-shadow: var(--ring-selected)',
-    );
+  it('marks selection in blue inside the slot with an upward arrow and keeps keyboard focus visible', () => {
+    const selected = ruleOf('.selected,\n.selected:hover');
+    expect(selected).toContain('outline: 2px solid var(--accent)');
+    expect(selected).toContain('outline-offset: -2px');
     expect(ruleOf('.marker')).toContain('color: var(--accent)');
     expect(ruleOf('.arrow')).toContain('transform: rotate(-90deg)');
     expect(ruleOf('.hit:focus-visible')).toContain(

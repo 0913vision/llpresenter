@@ -51,9 +51,11 @@ const LABELS = {
 const ignorePreview = (): void => undefined;
 
 function focusChapter(root: HTMLElement | null): void {
-  root
-    ?.querySelector<HTMLInputElement>('[data-reference-part="chapter"]')
-    ?.focus();
+  const field = root?.querySelector<HTMLInputElement>(
+    '[data-reference-part="chapter"]',
+  );
+  field?.focus();
+  field?.select();
 }
 
 /** Shares book completion and endpoint validation across Show and Prep. */
@@ -185,6 +187,12 @@ export function BibleReferenceForm(
     advancedBook.current = null;
     if (item.ref === undefined || item.translation === undefined) {
       choose(item.input);
+      // NOTE(0913vision): A chosen book moves on to 장, as in copible, the
+      // Bible reference app.
+      focusChapter(root.current);
+      if (item.bookId !== undefined) {
+        advancedBook.current = {bookId: item.bookId, translation};
+      }
       return;
     }
     props.onIntent?.();

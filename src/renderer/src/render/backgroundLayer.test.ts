@@ -3,6 +3,7 @@ import type {MediaLayer} from '@shared/live';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {
   BACKGROUND_DISSOLVE_MS,
+  SPARE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
   BackgroundLayerView,
   type RenderMode,
@@ -215,13 +216,15 @@ describe('BackgroundLayerView', () => {
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
   });
 
-  it('loads the same background into the other video after the dissolve, for the loop', async () => {
+  it('loads the same background into the other video a while after the dissolve, for the loop', async () => {
     const clock = installFakeClock();
     const {view, videos} = setUp();
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
     await clock.advance(BACKGROUND_DISSOLVE_MS);
+    expect(spare.getAttribute('src')).not.toBe(urlOf('warm-light'));
+    await clock.advance(SPARE_DELAY_MS);
     expect(spare.getAttribute('src')).toBe(urlOf('warm-light'));
     expect(isShown(spare)).toBe(false);
     expect(playsOf(spare)).toBe(0);
@@ -233,7 +236,7 @@ describe('BackgroundLayerView', () => {
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
 
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(spare)).toBe(1);
@@ -399,7 +402,7 @@ describe('BackgroundLayerView handovers', () => {
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(front)).toBe(2);
     expect(playsOf(spare)).toBe(0);
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(spare)).toBe(1);
   });
@@ -437,7 +440,7 @@ describe('BackgroundLayerView in a preview', () => {
     view.show(WARM_LIGHT);
     expect(front.loop).toBe(true);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
     expect(spare.hasAttribute('src')).toBe(false);
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(spare)).toBe(0);
@@ -450,13 +453,13 @@ describe('BackgroundLayerView in a preview', () => {
     const [older, first] = videos;
     view.show(WARM_LIGHT);
     first.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
     view.show(STILL_WATER);
     expect(older.getAttribute('src')).toBe(urlOf('still-water'));
     expect(older.loop).toBe(true);
     older.dispatchEvent(new Event('playing'));
     expect(older.classList.contains(classes.dissolving)).toBe(true);
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
     expect(first.hasAttribute('src')).toBe(false);
   });
 
@@ -591,7 +594,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       image.dispatchEvent(new Event('load'));
       expect(isShown(image)).toBe(true);
       expect(image.classList.contains(classes.dissolving)).toBe(true);
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
 
       expect(videos.every(video => !video.hasAttribute('src'))).toBe(true);
       expect(videos.every(video => !video.loop)).toBe(true);
@@ -622,7 +625,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       const {parent, view, videos} = setUp(mode);
       view.show(WARM_LIGHT);
       videos[1].dispatchEvent(new Event('playing'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
       view.show(SUNSET);
       refuseVideoSource(videos[0]);
       const image = incomingImage(parent);
@@ -632,7 +635,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       image.dispatchEvent(new Event('load'));
       expect(image.style.zIndex).toBe('1');
       expect(videos[1].style.zIndex).toBe('0');
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
       expect(videos[1].hasAttribute('src')).toBe(false);
       expect(isShown(videos[1])).toBe(false);
       view.dispose();
@@ -645,7 +648,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       refuseVideoSource(videos[1]);
       const image = incomingImage(parent);
       image.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
       view.show({...SUNSET});
       expect(incomingImage(parent)).toBe(image);
       expect(playsOf(videos[1])).toBe(1);
@@ -654,7 +657,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       expect(isShown(image)).toBe(true);
       videos[0].dispatchEvent(new Event('playing'));
       expect(isShown(videos[0])).toBe(true);
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
       expect(image.hasAttribute('src')).toBe(false);
       expect(isShown(image)).toBe(false);
       view.dispose();
@@ -708,7 +711,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       refuseVideoSource(videos[1]);
       const previous = incomingImage(parent);
       previous.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
 
       const nextId = 'morning-image';
       view.show({...SUNSET, mediaId: nextId});
@@ -719,7 +722,7 @@ describe.each<RenderMode>(['output', 'preview'])(
       if (next === null) throw new Error('expected the next still image');
       expect(isShown(previous)).toBe(true);
       next.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
       expect(isShown(next)).toBe(true);
       expect(previous.hasAttribute('src')).toBe(false);
       expect(parent.querySelectorAll('img')).toHaveLength(2);

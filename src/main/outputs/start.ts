@@ -229,7 +229,13 @@ export function startOutputs({
       Channels.outputFrameRate,
       handleFrameRate(report => {
         const screenId = screenIdFor(report.screenId);
-        frameRates.report({...report, screenId});
+        // NOTE(0913vision): An off output is a hidden window, which draws
+        // about once a second, so only outputs that are on are judged.
+        if (store.state.outputs[screenId] === true) {
+          frameRates.report({...report, screenId});
+        } else {
+          frameRates.forget(screenId);
+        }
         outputs.frameReported(screenId);
         board.refresh();
       }, log),

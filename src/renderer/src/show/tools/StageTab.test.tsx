@@ -305,7 +305,9 @@ describe('stage tool', () => {
       }),
     );
     render(<StageTab />);
-    const group = screen.getByRole('group', {name: '무대 메시지 프리셋'});
+    const group = await screen.findByRole('group', {
+      name: '무대 메시지 프리셋',
+    });
     await waitFor(() =>
       expect(within(group).getAllByRole('button')).toHaveLength(50),
     );

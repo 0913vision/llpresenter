@@ -20,4 +20,11 @@ describe('audioMutedByDefault', () => {
   it('allows sound only for a packaged service run', () => {
     expect(audioMutedByDefault({NODE_ENV: 'production'}, true)).toBe(false);
   });
+  it('allows sound in an unpackaged user check that opts in', () => {
+    expect(audioMutedByDefault({LLP_SOUND: 'on'}, false)).toBe(false);
+    expect(audioMutedByDefault({LLP_SOUND: 'yes'}, false)).toBe(true);
+    expect(audioMutedByDefault({LLP_SOUND: 'on', VITEST: 'true'}, false)).toBe(
+      true,
+    );
+  });
 });

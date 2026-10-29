@@ -16,10 +16,15 @@
   font: var(--type-caption-strong);
 }
 
-.actions {
+.compose {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: var(--space-6);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
 }
 
 .presets {

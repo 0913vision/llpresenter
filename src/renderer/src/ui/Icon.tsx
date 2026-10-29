@@ -19,6 +19,11 @@ const iconUrls: Readonly<Record<string, string>> = Object.fromEntries(
 
 export type IconSize = 12 | 14 | 16 | 18 | 24 | 28;
 
+/** Whether `icons/` has an icon with this file name. */
+export function hasIcon(name: string): boolean {
+  return Object.hasOwn(iconUrls, name);
+}
+
 export interface IconProps {
   /** A file name in `icons/` without the extension (Phosphor Regular). */
   readonly name: string;
@@ -27,7 +32,9 @@ export interface IconProps {
 }
 
 function maskStyle(url: string | undefined, size: IconSize): CSSProperties {
-  if (url === undefined) return {width: size, height: size};
+  if (url === undefined) {
+    return {width: size, height: size, visibility: 'hidden'};
+  }
   // NOTE(0913vision): Small SVGs arrive as data URLs, which break CSS unless
   // the url() argument is quoted.
   const mask = `url("${url}")`;

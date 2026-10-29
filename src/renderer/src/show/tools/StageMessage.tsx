@@ -37,21 +37,22 @@ export function StageMessage({
         <span>무대 메시지</span>
         {live ? <LiveBadge /> : null}
       </div>
-      <TextField
-        aria-label="무대 메시지"
-        block
-        value={text}
-        onChange={setText}
-        maxLength={LIVE_STATE_LIMITS.textCharacters}
-        onKeyDown={event => {
-          if (event.key !== 'Enter' || isComposing(event)) return;
-          event.preventDefault();
-          event.stopPropagation();
-          if (event.repeat) return;
-          send(text);
-        }}
-      />
-      <div className={styles.actions}>
+      <div className={styles.compose}>
+        <TextField
+          aria-label="무대 메시지"
+          block
+          className={styles.text}
+          value={text}
+          onChange={setText}
+          maxLength={LIVE_STATE_LIMITS.textCharacters}
+          onKeyDown={event => {
+            if (event.key !== 'Enter' || isComposing(event)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.repeat) return;
+            send(text);
+          }}
+        />
         <Button
           disabled={!live}
           title={!live ? '표시 중인 무대 메시지가 없습니다' : undefined}
@@ -68,27 +69,29 @@ export function StageMessage({
           보내기
         </Button>
       </div>
-      <div
-        className={styles.presets}
-        role="group"
-        aria-label="무대 메시지 프리셋"
-      >
-        {presets.slice(0, MAX_PRESETS).map((preset, index) => {
-          const reason = messageReason(preset, available);
-          return (
-            <Button
-              key={index}
-              className={styles.preset}
-              aria-pressed={live != null && live === preset.trim()}
-              disabled={reason !== undefined}
-              title={reason}
-              onClick={() => send(preset)}
-            >
-              {preset.trim() || '이름 없음'}
-            </Button>
-          );
-        })}
-      </div>
+      {presets.length > 0 ? (
+        <div
+          className={styles.presets}
+          role="group"
+          aria-label="무대 메시지 프리셋"
+        >
+          {presets.slice(0, MAX_PRESETS).map((preset, index) => {
+            const reason = messageReason(preset, available);
+            return (
+              <Button
+                key={index}
+                className={styles.preset}
+                aria-pressed={live != null && live === preset.trim()}
+                disabled={reason !== undefined}
+                title={reason}
+                onClick={() => send(preset)}
+              >
+                {preset.trim() || '이름 없음'}
+              </Button>
+            );
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }

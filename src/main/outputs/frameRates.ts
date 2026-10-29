@@ -88,6 +88,11 @@ export class FrameRateTracker {
     return rate === undefined ? null : {fps: rate.fps, status: rate.status};
   }
 
+  /** Drops a screen's rate and status, so its next report starts fresh. */
+  forget(screenId: string): void {
+    this.rates.delete(screenId);
+  }
+
   retain(screenIds: readonly string[]): void {
     const known = new Set(screenIds);
     for (const id of this.rates.keys()) {

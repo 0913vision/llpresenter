@@ -15,12 +15,7 @@
 }
 
 .content {
-  height: auto;
-  grid-template-rows: auto auto;
-}
-
-.content .main .surface {
-  flex-shrink: 0;
+  grid-template-rows: minmax(0, auto) auto;
 }
 
 .main {
@@ -146,13 +141,17 @@
   cursor: pointer;
 }
 
+/* NOTE(0913vision): The slot row clips what spills over its edges, so the
+   hover and selection lines are drawn inside the slot. */
 .hit:hover {
-  box-shadow: var(--ring-hover);
+  outline: 1px solid var(--line-control);
+  outline-offset: -1px;
 }
 
 .selected,
 .selected:hover {
-  box-shadow: var(--ring-selected);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .marker {

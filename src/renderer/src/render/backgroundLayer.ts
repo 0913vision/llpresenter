@@ -30,6 +30,9 @@ const MS_PER_SECOND = 1000;
 const UNSUPPORTED_SOURCE = 4;
 export const VIDEO_FRAME_DEADLINE_MS = 250;
 
+/** How long a new background plays before the spare video for its loop loads. */
+export const SPARE_DELAY_MS = 1500;
+
 /**
  * Where a background should be now: the time since it started, wrapped for a
  * loop and held at the end otherwise, so a window that loads late (a relaunch,
@@ -375,15 +378,29 @@ export class BackgroundLayerView {
     this.front = index;
     if (dissolve) {
       this.spareTimer = setTimeout(
-        () => this.prepareSpare(),
+        () => this.finishDissolve(),
         BACKGROUND_DISSOLVE_MS,
       );
     } else {
       hide(previous);
       this.videos[otherOf(index)].pause();
       this.videos[otherOf(index)].currentTime = 0;
-      if (!this.holdsCurrent(otherOf(index))) this.prepareSpare();
+      if (!this.holdsCurrent(otherOf(index))) this.prepareSpareLater();
     }
+  }
+
+  private finishDissolve(): void {
+    const outgoing = otherOf(this.front);
+    this.hideAt(outgoing);
+    this.videos[outgoing].pause();
+    this.prepareSpareLater();
+  }
+
+  // NOTE(0913vision): Loading the spare video holds the output's frames for
+  // about 50 ms while its decoder starts, so it waits until the new
+  // background has played for a while instead of landing on the dissolve.
+  private prepareSpareLater(): void {
+    this.spareTimer = setTimeout(() => this.prepareSpare(), SPARE_DELAY_MS);
   }
 
   private isPreview(): boolean {

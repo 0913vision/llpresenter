@@ -1,7 +1,7 @@
 import {memo, type JSX, type ReactNode} from 'react';
 import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
-import {Icon} from './Icon';
+import {hasIcon, Icon} from './Icon';
 import {labelInk} from './labelInk';
 import type {MenuAnchor} from './Menu';
 import {gridMoves, rowMoves, TileList} from './TileList';
@@ -12,6 +12,11 @@ const TILE_ICON_SIZE = 28;
 const ROW_ICON_SIZE = 14;
 const CLOCK_ICON_SIZE = 12;
 const NEW_ICON_SIZE = 24;
+const DEFAULT_MACRO_ICON = 'macro';
+
+function macroIcon(icon: string): string {
+  return hasIcon(icon) ? icon : DEFAULT_MACRO_ICON;
+}
 const NEW_MACRO = '새 매크로';
 const ONE_COLUMN = 1;
 
@@ -87,7 +92,7 @@ export const MacroTile = memo((props: MacroProps): JSX.Element => {
       className={styles.macro}
     >
       <span className={styles.tile} style={labelInk(color)}>
-        <Icon name={icon} size={TILE_ICON_SIZE} />
+        <Icon name={macroIcon(icon)} size={TILE_ICON_SIZE} />
         {schedule === undefined ? null : (
           <span className={styles.clock}>
             <Icon name="clock" size={CLOCK_ICON_SIZE} />
@@ -119,7 +124,7 @@ export const MacroRow = memo((props: MacroRowProps): JSX.Element => {
       className={styles.row}
     >
       <span className={styles.swatch} style={labelInk(color)}>
-        <Icon name={icon} size={ROW_ICON_SIZE} />
+        <Icon name={macroIcon(icon)} size={ROW_ICON_SIZE} />
       </span>
       <span className={styles.rowName}>{name}</span>
       {schedule === undefined ? null : (

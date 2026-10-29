@@ -1,6 +1,6 @@
 .panel {
   box-sizing: border-box;
-  height: auto;
+  height: 100%;
   min-height: 0;
   padding: var(--panel-inset);
 }
