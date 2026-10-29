@@ -48,8 +48,13 @@
 }
 
 .grid[data-workspace='show']
-  .thumb[aria-selected='true']:not([data-state~='live'], :hover) {
+  .thumb[aria-selected='true']:not([data-state~='live']) {
   box-shadow: none;
+}
+
+.grid[data-workspace='show']
+  .thumb[aria-selected='true']:not([data-state~='live']):hover {
+  box-shadow: var(--ring-hover);
 }
 
 .canvas {

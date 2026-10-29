@@ -52,7 +52,7 @@ describe('PreviewPanel layout rules', () => {
   });
 
   it('marks selection in blue inside the slot with an upward arrow and keeps keyboard focus visible', () => {
-    const selected = ruleOf('.selected,\n.selected:hover');
+    const selected = ruleOf('.selected, .selected:hover');
     expect(selected).toContain('outline: 2px solid var(--accent)');
     expect(selected).toContain('outline-offset: -2px');
     expect(ruleOf('.marker')).toContain('color: var(--accent)');

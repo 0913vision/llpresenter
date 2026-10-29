@@ -4,7 +4,8 @@ import {resolve} from 'node:path';
 
 /**
  * Reads a CSS file and returns a function that finds the body of the rule
- * with the exact selector. The function throws when there is no such rule.
+ * with the exact selector, compared with runs of whitespace collapsed to one
+ * space. The function throws when there is no such rule.
  *
  * @param file - The path from the repository root.
  */
@@ -13,7 +14,7 @@ export function cssRules(file: string): (selector: string) => string {
   return selector => {
     for (const rule of css.split('}')) {
       const start = rule.indexOf('{');
-      if (rule.slice(0, start).trim() === selector) {
+      if (rule.slice(0, start).replace(/\s+/g, ' ').trim() === selector) {
         return rule.slice(start + 1);
       }
     }
