@@ -1,11 +1,15 @@
 import {
+  useEffect,
+  useEffectEvent,
   useRef,
   useState,
   type ComponentPropsWithoutRef,
   type JSX,
   type KeyboardEvent,
 } from 'react';
+import {flushSync} from 'react-dom';
 import {classNames} from './classNames';
+import {onShortcutCommit} from './commitDraft';
 import {FieldFrame, useFieldReason} from './fieldFrame';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
@@ -122,6 +126,16 @@ export function NumberField({
     }
     setDraft(null);
   };
+
+  const commitForShortcut = useEffectEvent(() => {
+    if (!readOnly && draft !== null) flushSync(() => commit());
+  });
+  useEffect(() => {
+    const input = inputRef.current;
+    return input === null
+      ? undefined
+      : onShortcutCommit(input, commitForShortcut);
+  }, []);
 
   const stepBy = (direction: 1 | -1, increment: number): void => {
     const base = parseNumberText(draft ?? shown, suffix) ?? value;

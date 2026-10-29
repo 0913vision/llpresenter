@@ -1,6 +1,7 @@
 import {useEffect, useEffectEvent} from 'react';
 import {isColumnDragActive} from '@renderer/state/drag';
 import {modalStack} from '@renderer/ui/modalStack';
+import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
 
 const POINTER_DRAG_THRESHOLD_PX = 4;
@@ -42,7 +43,10 @@ export function useWindowShortcuts(shortcuts: readonly WindowShortcut[]): void {
     const command = shortcuts.find(shortcut => matches(event, shortcut));
     if (command === undefined || command.when?.(event) === false) return;
     event.preventDefault();
-    if (!event.repeat) command.run();
+    if (!event.repeat) {
+      commitDraftBeforeShortcut(event.target);
+      command.run();
+    }
   });
   useEffect(() => {
     let composing = false;

@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import {clearLayer} from '@renderer/state/clear';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui';
+import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
 import {clearButtons, type ClearCommandId} from './clear';
 
 const defaultCodes: ReadonlyMap<string, ClearCommandId> = new Map(
@@ -38,7 +39,10 @@ export function handleClearKey(event: KeyboardEvent): void {
   const command = defaultCodes.get(event.code);
   if (command === undefined) return;
   event.preventDefault();
-  if (!event.repeat) runClearCommand(command);
+  if (!event.repeat) {
+    if (!event.isComposing) commitDraftBeforeShortcut(event.target);
+    runClearCommand(command);
+  }
 }
 
 /**
