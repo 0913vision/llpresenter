@@ -14,6 +14,9 @@ import {convertTextImport} from './convert';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from './limits';
 
+/** Names the file that stands in for the file dialog when windows are offscreen. */
+export const TEST_IMPORT_FILE_VARIABLE = 'LLP_TEST_IMPORT_FILE';
+
 export interface TextImportRegistration {
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
@@ -37,6 +40,10 @@ function nativeInputs({
 }: TextImportRegistration): TextImportInputs {
   return {
     chooseFile: async () => {
+      if (windowMode === 'offscreen') {
+        const injected = process.env[TEST_IMPORT_FILE_VARIABLE];
+        if (injected) return injected;
+      }
       if (windowMode === 'offscreen' || control.isDestroyed()) {
         throw new Error('The file dialog is unavailable');
       }

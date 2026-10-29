@@ -8,7 +8,7 @@ import {
   parseTextImportPreviewResult,
 } from '@shared/schema/textImport';
 import {makeTempDir} from '../../../test/temp-dir';
-import {registerTextImport} from './register';
+import {registerTextImport, TEST_IMPORT_FILE_VARIABLE} from './register';
 import {TEXT_IMPORT_LIMITS} from './limits';
 
 type Handler = (event: unknown, value: unknown) => unknown;
@@ -211,6 +211,27 @@ describe('text import IPC registration', () => {
       await handler(Channels.textImportRead)({}, readRequest),
     ).toMatchObject({ok: false, error: {reason: 'read-failed'}});
     expect(electron.chooseFile).not.toHaveBeenCalled();
+  });
+
+  it('reads the injected file in offscreen mode and ignores it in normal mode', async () => {
+    const file = join(await makeTempDir(), 'Injected.txt');
+    await writeFile(file, 'Injected lyrics', 'utf8');
+    vi.stubEnv(TEST_IMPORT_FILE_VARIABLE, file);
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
+    const offscreen = setup('offscreen');
+    expect(
+      await handler(Channels.textImportRead)({}, readRequest),
+    ).toMatchObject({
+      ok: true,
+      value: {fileName: 'Injected.txt', text: 'Injected lyrics'},
+    });
+    expect(electron.chooseFile).not.toHaveBeenCalled();
+    offscreen.stop();
+    setup();
+    await handler(Channels.textImportRead)({}, readRequest);
+    expect(electron.chooseFile).toHaveBeenCalledOnce();
   });
 
   it('refuses a native dialog after the control window closes', async () => {
