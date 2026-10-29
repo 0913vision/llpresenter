@@ -57,8 +57,8 @@ describe('stage geometry', () => {
       {x: 1000, y: 1000},
       {handle: 'nw', keepRatio: true},
     );
-    expect(tiny.w).toBeGreaterThanOrEqual(1);
-    expect(tiny.h).toBeGreaterThanOrEqual(1);
+    expect(tiny.w).toBeGreaterThanOrEqual(20);
+    expect(tiny.h).toBeGreaterThanOrEqual(20);
     expect(tiny.x + tiny.w).toBe(frame.x + frame.w);
     expect(tiny.y + tiny.h).toBe(frame.y + frame.h);
     expect(
@@ -67,7 +67,7 @@ describe('stage geometry', () => {
         {x: 10, y: 10},
         {handle: 'se', keepRatio: true},
       ),
-    ).toMatchObject({w: 10, h: 90});
+    ).toMatchObject({w: 20, h: 90});
     expect(
       editFrame(frame, {x: 20, y: 10}, {handle: 'move', keepRatio: true}),
     ).toEqual(editFrame(frame, {x: 20, y: 10}, {handle: 'move'}));
@@ -106,16 +106,27 @@ describe('stage geometry', () => {
   });
   it('prevents flipping and rejects nonfinite input', () => {
     expect(editFrame(frame, {x: 1000, y: 1000}, {handle: 'nw'})).toEqual({
-      x: 109,
-      y: 99,
-      w: 1,
-      h: 1,
+      x: 90,
+      y: 80,
+      w: 20,
+      h: 20,
     });
     expect(editFrame(frame, {x: -1000, y: -1000}, {handle: 'se'})).toEqual({
       ...frame,
-      w: 1,
-      h: 1,
+      w: 20,
+      h: 20,
     });
     expect(editFrame(frame, {x: Infinity, y: 0}, {handle: 'move'})).toBe(frame);
+  });
+  it('uses the same minimum for typed and dragged width and height', () => {
+    const bounds = {width: 1920, height: 1080};
+    const dragged = editFrame(frame, {x: -500, y: -500}, {handle: 'se'});
+    expect(dragged.w).toBe(
+      editFrameValue(frame, {field: 'w', value: 1}, bounds).w,
+    );
+    expect(dragged.h).toBe(
+      editFrameValue(frame, {field: 'h', value: 1}, bounds).h,
+    );
+    expect(dragged).toMatchObject({w: 20, h: 20});
   });
 });

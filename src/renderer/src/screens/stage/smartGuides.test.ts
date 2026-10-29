@@ -145,7 +145,14 @@ it('does not acquire an illegal resize or jump on a zero-distance click', () => 
       delta: {x: 99, y: 0},
       targets: [{x: 200, y: 500, w: 100, h: 100}],
     }),
-  ).toEqual({frame: {...start, x: 199, w: 1}, guides: {}});
+  ).toEqual({frame: {...start, x: 180, w: 20}, guides: {}});
+  expect(
+    move({
+      handle: 'w',
+      delta: {x: 80, y: 0},
+      targets: [{x: 185, y: 500, w: 100, h: 100}],
+    }),
+  ).toEqual({frame: {...start, x: 180, w: 20}, guides: {}});
 });
 it.each(['move', 'nw', 'se'] as const)(
   'retains the exact fractional frame for a stationary %s gesture when Alt changes',

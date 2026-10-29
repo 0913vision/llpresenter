@@ -18,7 +18,7 @@ export interface FrameFieldChange {
   readonly value: number;
   readonly keepRatio?: boolean;
 }
-const MIN_SIZE = 1;
+export const MIN_SIZE = 20;
 
 /** Applies a canvas-pixel gesture without flipping a handle past its opposite edge. */
 export function editFrame(
@@ -117,7 +117,8 @@ export function editFrameValue(
 ): ElementFrame {
   if (!Number.isFinite(value)) return frame;
   const limit = field === 'x' || field === 'w' ? bounds.width : bounds.height;
-  const minimum = field === 'x' || field === 'y' ? 0 : Math.min(20, limit);
+  const minimum =
+    field === 'x' || field === 'y' ? 0 : Math.min(MIN_SIZE, limit);
   const next = Math.round(Math.max(minimum, Math.min(limit, value)));
   if (next === frame[field]) return frame;
   if (
@@ -132,8 +133,8 @@ export function editFrameValue(
   const scale = Math.min(
     Math.max(
       next / frame[field],
-      Math.min(20, bounds.width) / frame.w,
-      Math.min(20, bounds.height) / frame.h,
+      Math.min(MIN_SIZE, bounds.width) / frame.w,
+      Math.min(MIN_SIZE, bounds.height) / frame.h,
     ),
     bounds.width / frame.w,
     bounds.height / frame.h,

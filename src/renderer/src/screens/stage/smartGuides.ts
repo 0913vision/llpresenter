@@ -1,4 +1,9 @@
-import {editFrame, type ElementFrame, type ResizeHandle} from './frameEdit';
+import {
+  editFrame,
+  MIN_SIZE,
+  type ElementFrame,
+  type ResizeHandle,
+} from './frameEdit';
 import {snapToGrid} from './gridSnap';
 
 type Axis = 'x' | 'y';
@@ -21,7 +26,6 @@ interface GuideGesture {
   readonly distance: number;
   readonly targets: readonly ElementFrame[];
 }
-const MIN_SIZE = 1;
 const ALIGNMENT_EPSILON = 0.000001;
 
 function anchors(frame: ElementFrame, axis: Axis): readonly number[] {

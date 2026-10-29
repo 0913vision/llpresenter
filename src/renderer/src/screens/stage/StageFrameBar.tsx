@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {IconButton, NumberField} from '@renderer/ui';
-import type {ElementFrame, FrameField} from './frameEdit';
+import {MIN_SIZE, type ElementFrame, type FrameField} from './frameEdit';
 import {STAGE_READ_ONLY} from './StageTextProperties';
 import styles from './StageFrameBar.module.css';
 
@@ -45,7 +45,9 @@ export function StageFrameBar({
             <NumberField
               aria-label={field.toUpperCase()}
               value={frame?.[field] ?? 0}
-              min={field === 'x' || field === 'y' ? 0 : Math.min(20, limit)}
+              min={
+                field === 'x' || field === 'y' ? 0 : Math.min(MIN_SIZE, limit)
+              }
               max={limit}
               unit="px"
               readOnly={reason !== undefined}

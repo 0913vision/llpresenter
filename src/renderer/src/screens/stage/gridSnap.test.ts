@@ -62,8 +62,8 @@ it.each(['nw', 'se'] as const)(
       {handle, keepRatio: false},
     );
     const next = editFrame(frame, delta, {handle});
-    expect(next.w).toBeGreaterThanOrEqual(1);
-    expect(next.h).toBeGreaterThanOrEqual(1);
+    expect(next.w).toBeGreaterThanOrEqual(20);
+    expect(next.h).toBeGreaterThanOrEqual(20);
     expect((handle === 'nw' ? next.x : next.x + next.w) % 20).toBe(0);
     expect((handle === 'nw' ? next.y : next.y + next.h) % 20).toBe(0);
   },
