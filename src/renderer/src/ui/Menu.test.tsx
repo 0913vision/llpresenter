@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
+import {watchInputModality} from './inputModality';
 import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
 import {maxPopoverHeight} from './placement';
@@ -200,6 +201,23 @@ describe('Menu', () => {
     const menu = screen.getByRole('menu', {name: '파일'});
     expect(document.activeElement).toBe(menu);
     expect(pointedName()).toBe('새 예배Ctrl N');
+  });
+
+  it('points nothing when the pointer opens it and the first item when a key does', async () => {
+    const stopWatching = watchInputModality(window);
+    try {
+      render(<Harness />);
+      await openMenu();
+      expect(pointedName()).toBeNull();
+      await userEvent.keyboard('{ArrowDown}');
+      expect(pointedName()).toBe('새 예배Ctrl N');
+      await userEvent.keyboard('{Escape}');
+      screen.getByRole('button', {name: '파일'}).focus();
+      await userEvent.keyboard('{Enter}');
+      expect(pointedName()).toBe('새 예배Ctrl N');
+    } finally {
+      stopWatching();
+    }
   });
 
   it('moves with the arrows, wraps, and goes to the ends', async () => {

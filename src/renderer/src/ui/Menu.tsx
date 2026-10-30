@@ -15,6 +15,7 @@ import {
 import {createPortal} from 'react-dom';
 import {placeFloating} from './floating';
 import {layerContainer} from './layers';
+import {lastInputWasKeyboard} from './inputModality';
 import {handleMenuKey, openItemMenu, type MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
 import {
@@ -262,13 +263,14 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const {label, entries, place, onClose, onBack, search, autoFocus} = props;
   const baseId = useId();
   const surface = useRef<HTMLDivElement>(null);
+  const [openedByKeyboard] = useState(lastInputWasKeyboard);
   const nav = useMenuNavigation({
     entries,
     searchValue: search?.value,
     surface,
     onClose,
     onBack,
-    pointsFirst: autoFocus,
+    pointsFirst: autoFocus && (openedByKeyboard || search !== undefined),
   });
   const itemId = (index: number): string => `${baseId}-item-${index}`;
   const activeId = nav.pointed >= 0 ? itemId(nav.pointed) : undefined;

@@ -71,4 +71,18 @@ describe('buildMacroTargets', () => {
       }).choices.clearLayer,
     ).toHaveLength(6);
   });
+
+  it('names each layer as its 지우기 button does', () => {
+    const layers = buildMacroTargets(source).choices.clearLayer?.filter(
+      item => item.clearTarget === 'layer',
+    );
+    expect(layers?.map(item => item.name)).toEqual([
+      '미디어',
+      '가사',
+      '소품',
+      '오디오',
+      '메시지',
+      '공지',
+    ]);
+  });
 });

@@ -1,5 +1,7 @@
+import type {ClearTarget} from '@shared/commands';
 import {messageBlankNames} from '@shared/messageText';
 import type {MacroActionKind} from '@shared/schema/macros';
+import {clearName} from '@renderer/ui/ClearButton';
 
 export interface MacroTargetChoice {
   readonly id: string;
@@ -34,14 +36,22 @@ export interface MacroTargetSources {
     Named & {readonly kind: 'stage' | 'audience'}
   >;
 }
-const layers: readonly MacroTargetChoice[] = [
-  {id: 'media', name: '미디어', clearTarget: 'layer'},
-  {id: 'slide', name: '슬라이드', clearTarget: 'layer'},
-  {id: 'prop', name: '소품', clearTarget: 'layer'},
-  {id: 'audio', name: '오디오', clearTarget: 'layer'},
-  {id: 'message', name: '메시지', clearTarget: 'layer'},
-  {id: 'notice', name: '공지', clearTarget: 'layer'},
-];
+const CLEARED_LAYERS = [
+  'media',
+  'slide',
+  'prop',
+  'audio',
+  'message',
+  'notice',
+] as const satisfies readonly ClearTarget[];
+
+// NOTE(0913vision): A layer is named as on its 지우기 button, so the slide
+// layer reads 가사 here too.
+const layers: readonly MacroTargetChoice[] = CLEARED_LAYERS.map(target => ({
+  id: target,
+  name: clearName(target),
+  clearTarget: 'layer',
+}));
 
 function choices(
   items: ReadonlyArray<{readonly id: string; readonly name: string}>,

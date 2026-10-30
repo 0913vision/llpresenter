@@ -28,9 +28,14 @@ const clearLooks: Readonly<Record<ClearTarget, ClearLook>> = {
   notice: {name: '공지', icon: 'notice', shortcut: 'F7'},
 };
 
+/** The one-word name of a layer on its 지우기 button. */
+export function clearName(layer: ClearTarget): string {
+  return clearLooks[layer].name;
+}
+
 /** The name of a 지우기 button, as its tooltip and `aria-label` say it. */
 export function clearLabel(layer: ClearTarget): string {
-  return `${clearLooks[layer].name} 지우기`;
+  return `${clearName(layer)} 지우기`;
 }
 
 /** The default key of a 지우기 button, F1 to F7. */

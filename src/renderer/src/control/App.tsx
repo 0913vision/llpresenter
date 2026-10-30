@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -20,6 +21,7 @@ import {
 import {openItem, useShow} from '@renderer/state/show';
 import {isLibrarySource} from '@renderer/state/showLibrary';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
@@ -122,6 +124,7 @@ function ControlApp({
   ]);
   useClearKeys();
   useUiZoomKeys();
+  useEffect(() => watchInputModality(window), []);
   useOutputNotices(session.api, session);
   const saveFailed = useProblemNotices(session.api, session);
   const closeView = useSyncExternalStore(
