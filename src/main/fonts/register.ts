@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {outputEndpoints} from '@contracts/ipc/output';
 import type {Logger} from '../log';
 import {FontCatalogCache} from './fontCatalog';
 import {readWindowsFonts} from './windowsFonts';
@@ -10,7 +10,7 @@ export function registerFonts(
   log: Logger,
 ): () => void {
   const catalog = new FontCatalogCache({read: readWindowsFonts, log});
-  ipcMain.handle(Channels.fontsGet, (event, ...args: unknown[]) => {
+  ipcMain.handle(outputEndpoints.fonts.channel, (event, ...args: unknown[]) => {
     if (
       event.sender !== control.webContents ||
       event.senderFrame !== control.webContents.mainFrame ||
@@ -22,7 +22,7 @@ export function registerFonts(
     return catalog.get();
   });
   return () => {
-    ipcMain.removeHandler(Channels.fontsGet);
+    ipcMain.removeHandler(outputEndpoints.fonts.channel);
     catalog.dispose();
   };
 }

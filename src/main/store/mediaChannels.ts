@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {mediaEndpoints} from '@contracts/ipc/media';
 import {
   parseMediaEdit,
   parseMediaImportRequest,
@@ -62,7 +62,7 @@ export function registerMediaChannels(
   const subscription = ready.then(store => {
     if (!disposed && store !== null) {
       remove = store.subscribe(document =>
-        broadcast(Channels.mediaChanged, document, log),
+        broadcast(mediaEndpoints.changed.channel, document, log),
       );
     }
   });
@@ -88,13 +88,13 @@ export function registerMediaChannels(
             log.warn('dropped malformed media import progress', parsed.error);
             return false;
           }
-          broadcast(Channels.mediaImportChanged, parsed.value, log);
+          broadcast(mediaEndpoints.importChanged.channel, parsed.value, log);
           return true;
         },
       };
     },
   };
-  ipcMain.handle(Channels.mediaGet, async () => {
+  ipcMain.handle(mediaEndpoints.get.channel, async () => {
     const store = await ready;
     if (disposed || store === null) {
       throw new Error('Media list is unavailable');
@@ -102,7 +102,7 @@ export function registerMediaChannels(
     return store.get();
   });
   ipcMain.handle(
-    Channels.mediaEdit,
+    mediaEndpoints.edit.channel,
     async (_event, value: unknown): Promise<MediaEditResult> => {
       const parsed = parseMediaEdit(value);
       if (!parsed.ok) {
@@ -148,7 +148,7 @@ export function registerMediaChannels(
     },
   );
   ipcMain.handle(
-    Channels.mediaImport,
+    mediaEndpoints.import.channel,
     async (_event, value: unknown): Promise<MediaImportResult> => {
       const parsed = parseMediaImportRequest(value);
       if (!parsed.ok) {
@@ -195,9 +195,9 @@ export function registerMediaChannels(
       backend?.abort.abort();
       backend = null;
       for (const channel of [
-        Channels.mediaGet,
-        Channels.mediaEdit,
-        Channels.mediaImport,
+        mediaEndpoints.get.channel,
+        mediaEndpoints.edit.channel,
+        mediaEndpoints.import.channel,
       ]) {
         ipcMain.removeHandler(channel);
       }

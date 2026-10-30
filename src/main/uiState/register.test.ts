@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {uiEndpoints} from '@contracts/ipc/ui';
 import type {UiFields, UiStateFields} from '../store/appConfigFile';
 import type {Logger} from '../log';
 
@@ -57,23 +57,25 @@ describe('registerUiState', () => {
   it('answers ui:get with the layout of the fields', () => {
     const layout = {wide: {left: 320, right: 560}};
     registerUiState(fieldsOf({layout}).fields, log);
-    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({layout});
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
+      layout,
+    });
   });
 
   it('answers ui:get with an empty state when the fields have no layout', () => {
     registerUiState(fieldsOf({}).fields, log);
-    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({});
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({});
   });
 
   it('hands a layout change to the fields, and ui:get then shows it', () => {
     const {fields, changes} = fieldsOf({});
     registerUiState(fields, log);
-    handlers.on.get(Channels.uiLayoutSet)?.(
+    handlers.on.get(uiEndpoints.setLayout.channel)?.(
       {},
       {sizeClass: 'normal', left: 260, right: 480},
     );
     expect(changes).toEqual([{layout: {normal: {left: 260, right: 480}}}]);
-    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
       layout: {normal: {left: 260, right: 480}},
     });
   });
@@ -81,18 +83,18 @@ describe('registerUiState', () => {
   it('removes its channels when it is disposed', () => {
     const registration = registerUiState(fieldsOf({}).fields, log);
     registration.dispose();
-    expect(handlers.handle.has(Channels.uiGet)).toBe(false);
-    expect(handlers.on.has(Channels.uiLayoutSet)).toBe(false);
-    expect(handlers.on.has(Channels.uiMediaStripSet)).toBe(false);
-    expect(handlers.on.has(Channels.uiPrepMediaSet)).toBe(false);
-    expect(handlers.on.has(Channels.uiMediaBrowserSet)).toBe(false);
+    expect(handlers.handle.has(uiEndpoints.get.channel)).toBe(false);
+    expect(handlers.on.has(uiEndpoints.setLayout.channel)).toBe(false);
+    expect(handlers.on.has(uiEndpoints.setMediaStrip.channel)).toBe(false);
+    expect(handlers.on.has(uiEndpoints.setPrepMedia.channel)).toBe(false);
+    expect(handlers.on.has(uiEndpoints.setMediaBrowser.channel)).toBe(false);
   });
 
   it('saves media and sidebar state through the shared fields', () => {
     const {fields, changes} = fieldsOf({});
     registerUiState(fields, log);
-    handlers.on.get(Channels.uiMediaStripSet)?.({}, {visible: false});
-    handlers.on.get(Channels.uiLayoutSet)?.(
+    handlers.on.get(uiEndpoints.setMediaStrip.channel)?.({}, {visible: false});
+    handlers.on.get(uiEndpoints.setLayout.channel)?.(
       {},
       {sizeClass: 'narrow', leftCollapsed: true},
     );
@@ -100,7 +102,7 @@ describe('registerUiState', () => {
       {mediaStrip: false},
       {layout: {narrow: {leftCollapsed: true}}},
     ]);
-    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
       mediaStrip: false,
       layout: {narrow: {leftCollapsed: true}},
     });
@@ -109,16 +111,16 @@ describe('registerUiState', () => {
   it('routes validated browser patches and the prep choice into shared fields', () => {
     const {fields, changes} = fieldsOf({mediaStrip: true});
     registerUiState(fields, log);
-    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {columns: 6});
-    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {view: 'list'});
-    handlers.on.get(Channels.uiPrepMediaSet)?.({}, {visible: false});
-    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {columns: 99});
+    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {columns: 6});
+    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {view: 'list'});
+    handlers.on.get(uiEndpoints.setPrepMedia.channel)?.({}, {visible: false});
+    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {columns: 99});
     expect(changes).toEqual([
       {mediaBrowser: {columns: 6}},
       {mediaBrowser: {columns: 6, view: 'list'}},
       {prepMedia: false},
     ]);
-    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
       mediaStrip: true,
       prepMedia: false,
       mediaBrowser: {columns: 6, view: 'list'},

@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {ipcMain, type IpcMainEvent} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import {closeStepAfter, type FlushOutcome} from '@core/app/closePolicy';
 import {
   APP_FLUSH_LIMITS,
@@ -80,7 +80,7 @@ class ControlCloseHandshake implements ControlClose {
       this.handleCloseAnyway(event);
     };
     const onProgress = (event: IpcMainEvent, value: unknown): void => {
-      if (!this.fromControl(event, Channels.appFlushProgress)) return;
+      if (!this.fromControl(event, appEndpoints.flushProgress.channel)) return;
       const parsed = parseAppFlushRequest(value);
       if (!parsed.ok) {
         this.options.log.warn('ignored malformed flush progress', parsed.error);
@@ -93,9 +93,9 @@ class ControlCloseHandshake implements ControlClose {
     };
     control.on('close', onClose);
     contents.on('render-process-gone', onGone);
-    ipcMain.on(Channels.appFlushDone, onDone);
-    ipcMain.on(Channels.appCloseAnyway, onCloseAnyway);
-    ipcMain.on(Channels.appFlushProgress, onProgress);
+    ipcMain.on(appEndpoints.flushDone.channel, onDone);
+    ipcMain.on(appEndpoints.closeAnyway.channel, onCloseAnyway);
+    ipcMain.on(appEndpoints.flushProgress.channel, onProgress);
     this.stops.push(
       () => control.removeListener('close', onClose),
       () => {
@@ -103,9 +103,11 @@ class ControlCloseHandshake implements ControlClose {
           contents.removeListener('render-process-gone', onGone);
         }
       },
-      () => ipcMain.removeListener(Channels.appFlushDone, onDone),
-      () => ipcMain.removeListener(Channels.appCloseAnyway, onCloseAnyway),
-      () => ipcMain.removeListener(Channels.appFlushProgress, onProgress),
+      () => ipcMain.removeListener(appEndpoints.flushDone.channel, onDone),
+      () =>
+        ipcMain.removeListener(appEndpoints.closeAnyway.channel, onCloseAnyway),
+      () =>
+        ipcMain.removeListener(appEndpoints.flushProgress.channel, onProgress),
     );
   }
 
@@ -143,7 +145,7 @@ class ControlCloseHandshake implements ControlClose {
   }
 
   private handleReply(event: IpcMainEvent, value: unknown): void {
-    if (!this.fromControl(event, Channels.appFlushDone)) return;
+    if (!this.fromControl(event, appEndpoints.flushDone.channel)) return;
     const pending = this.pending;
     if (pending === null) return;
     const parsed = parseAppFlushDone(value, pending.requestId);
@@ -155,7 +157,7 @@ class ControlCloseHandshake implements ControlClose {
   }
 
   private handleCloseAnyway(event: IpcMainEvent): void {
-    if (!this.fromControl(event, Channels.appCloseAnyway)) return;
+    if (!this.fromControl(event, appEndpoints.closeAnyway.channel)) return;
     if (this.pending !== null) {
       this.options.log.info('closing the control window before its flush ends');
       this.pending.settle('forced');
@@ -197,7 +199,7 @@ class ControlCloseHandshake implements ControlClose {
     this.pending = pending;
     this.armTimeout(pending);
     try {
-      control.webContents.send(Channels.appFlushRequest, {requestId});
+      control.webContents.send(appEndpoints.flushRequests.channel, {requestId});
     } catch (error) {
       log.warn('could not ask the control window to flush', error);
       pending.settle('no-reply');

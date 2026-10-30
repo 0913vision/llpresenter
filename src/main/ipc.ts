@@ -1,5 +1,8 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
-import {Channels, windowActions, type WindowAction} from '@contracts/ipc/api';
+import {windowActions, type WindowAction} from '@contracts/ipc/api';
+import {liveEndpoints} from '@contracts/ipc/live';
+import {outputEndpoints} from '@contracts/ipc/output';
+import {windowEndpoints} from '@contracts/ipc/window';
 import {parseLiveCommandRequest} from '@core/schema/liveCommand';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
@@ -108,9 +111,9 @@ export function registerIpc(
   log: Logger,
   windowMode: WindowMode,
 ): () => void {
-  ipcMain.handle(Channels.liveGet, () => store.state);
-  ipcMain.handle(Channels.liveClock, () => store.timerNow());
-  ipcMain.on(Channels.liveCommand, (_event, value: unknown) => {
+  ipcMain.handle(liveEndpoints.get.channel, () => store.state);
+  ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
+  ipcMain.on(liveEndpoints.command.channel, (_event, value: unknown) => {
     const command = parseLiveCommandRequest(value);
     if (!command.ok) {
       log.warn('dropped a malformed command', command.error);
@@ -121,21 +124,21 @@ export function registerIpc(
     }
     dispatchLogged(store, command.value.command, log);
   });
-  ipcMain.on(Channels.windowControl, controlWindowIn(windowMode, log));
+  ipcMain.on(windowEndpoints.control.channel, controlWindowIn(windowMode, log));
   const stopLogWrites = listenToWindows(
-    Channels.logWrite,
+    outputEndpoints.log.channel,
     handleLogWrite(log, new WindowLogLimiter(log)),
   );
   const unsubscribe = store.subscribe(state =>
-    sendToWindows(Channels.liveChanged, state, log),
+    sendToWindows(liveEndpoints.changed.channel, state, log),
   );
 
   return () => {
     unsubscribe();
     stopLogWrites();
-    ipcMain.removeHandler(Channels.liveGet);
-    ipcMain.removeHandler(Channels.liveClock);
-    ipcMain.removeAllListeners(Channels.liveCommand);
-    ipcMain.removeAllListeners(Channels.windowControl);
+    ipcMain.removeHandler(liveEndpoints.get.channel);
+    ipcMain.removeHandler(liveEndpoints.clock.channel);
+    ipcMain.removeAllListeners(liveEndpoints.command.channel);
+    ipcMain.removeAllListeners(windowEndpoints.control.channel);
   };
 }

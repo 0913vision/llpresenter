@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {parseRecoveryApply, type RecoveryResult} from '@core/schema/recovery';
 import type {Logger} from '../../log';
 import type {RecoveryPort} from './controller';
@@ -24,13 +24,13 @@ export function registerRecoveryChannels(
   recovery: RecoveryPort,
   log: Logger,
 ): () => void {
-  ipcMain.handle(Channels.recoverySummary, () =>
+  ipcMain.handle(recoveryEndpoints.summary.channel, () =>
     recovery.summary().catch((error: unknown) => {
       log.error('could not summarize the recovery record', error);
       return null;
     }),
   );
-  ipcMain.handle(Channels.recoveryApply, (_event, value: unknown) => {
+  ipcMain.handle(recoveryEndpoints.apply.channel, (_event, value: unknown) => {
     const request = parseRecoveryApply(value);
     if (!request.ok) {
       log.warn('refused a malformed recovery answer', request.error);
@@ -41,15 +41,15 @@ export function registerRecoveryChannels(
       return FAILED;
     });
   });
-  ipcMain.handle(Channels.recoveryStartFresh, () =>
+  ipcMain.handle(recoveryEndpoints.startFresh.channel, () =>
     recovery.startFresh().catch((error: unknown) => {
       log.error('could not start fresh after the crash', error);
       return FAILED;
     }),
   );
   return () => {
-    ipcMain.removeHandler(Channels.recoverySummary);
-    ipcMain.removeHandler(Channels.recoveryApply);
-    ipcMain.removeHandler(Channels.recoveryStartFresh);
+    ipcMain.removeHandler(recoveryEndpoints.summary.channel);
+    ipcMain.removeHandler(recoveryEndpoints.apply.channel);
+    ipcMain.removeHandler(recoveryEndpoints.startFresh.channel);
   };
 }

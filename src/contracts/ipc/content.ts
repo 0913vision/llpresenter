@@ -31,7 +31,6 @@ import {
   songIdSchema,
   templateIdSchema,
 } from '@core/schema/ids';
-import {Channels} from './channels';
 import {
   request,
   type IpcPort,
@@ -107,17 +106,17 @@ function documentEndpoints<TEntry, TDocument, TChange>(
 
 /** The calls that edit and read songs, 예배 순서, and 템플릿. */
 export const contentEndpoints = {
-  edit: request<ContentEdit, EditResult>(Channels.contentEdit, {
+  edit: request<ContentEdit, EditResult>('content:edit', {
     request: parseContentEdit,
     reply: parseEditResult,
     refuse: refuseInvalidEdit,
   }),
   songs: documentEndpoints<LibrarySong, SongDocument, SongChange>({
     channels: {
-      list: Channels.songsList,
-      listChanged: Channels.songsListChanged,
-      get: Channels.songsDocumentGet,
-      changed: Channels.songsDocumentChanged,
+      list: 'songs:list',
+      listChanged: 'songs:list:changed',
+      get: 'songs:document:get',
+      changed: 'songs:document:changed',
     },
     id: value => checkPart(songIdSchema, value),
     entries: parseLibrarySongs,
@@ -126,10 +125,10 @@ export const contentEndpoints = {
   }),
   services: documentEndpoints<ServiceEntry, ServiceDocument, ServiceChange>({
     channels: {
-      list: Channels.servicesList,
-      listChanged: Channels.servicesListChanged,
-      get: Channels.servicesDocumentGet,
-      changed: Channels.servicesDocumentChanged,
+      list: 'services:list',
+      listChanged: 'services:list:changed',
+      get: 'services:document:get',
+      changed: 'services:document:changed',
     },
     id: value => checkPart(serviceIdSchema, value),
     entries: parseServiceEntries,
@@ -139,10 +138,10 @@ export const contentEndpoints = {
   templates: documentEndpoints<TemplateEntry, TemplateDocument, TemplateChange>(
     {
       channels: {
-        list: Channels.templatesList,
-        listChanged: Channels.templatesListChanged,
-        get: Channels.templatesDocumentGet,
-        changed: Channels.templatesDocumentChanged,
+        list: 'templates:list',
+        listChanged: 'templates:list:changed',
+        get: 'templates:document:get',
+        changed: 'templates:document:changed',
       },
       id: value => checkPart(templateIdSchema, value),
       entries: parseTemplateEntries,

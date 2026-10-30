@@ -12,31 +12,24 @@ import {
   type SettingsEdit,
   type SettingsReadRequest,
 } from '@core/schema/settingsDocuments';
-import {Channels} from './channels';
 import {push, query, request, type IpcPort} from './endpoint';
 
 /** The calls that read and edit the preferences and the settings files. */
 export const settingsEndpoints = {
-  preferences: query<Preferences>(
-    Channels.preferencesGet,
-    parsePreferencesValue,
-  ),
+  preferences: query<Preferences>('preferences:get', parsePreferencesValue),
   preferencesChanged: push<Preferences>(
-    Channels.preferencesChanged,
+    'preferences:changed',
     parsePreferencesValue,
   ),
-  get: request<SettingsReadRequest, SettingsDocument>(Channels.settingsGet, {
+  get: request<SettingsReadRequest, SettingsDocument>('settings:get', {
     request: parseSettingsReadRequest,
     reply: (value, sent) => parseSettingsReply(sent.name, value),
   }),
-  edit: request<SettingsEdit, EditResult>(Channels.settingsEdit, {
+  edit: request<SettingsEdit, EditResult>('settings:edit', {
     request: parseSettingsEdit,
     reply: parseEditResult,
   }),
-  changed: push<SettingsDocument>(
-    Channels.settingsChanged,
-    parseSettingsDocument,
-  ),
+  changed: push<SettingsDocument>('settings:changed', parseSettingsDocument),
 };
 
 /** The preferences part of `window.llp`. */

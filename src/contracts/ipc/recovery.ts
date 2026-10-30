@@ -6,21 +6,17 @@ import {
   type RecoveryResult,
   type RecoverySummary,
 } from '@core/schema/recovery';
-import {Channels} from './channels';
 import {query, request, type IpcPort} from './endpoint';
 
 /** The calls that restore the live output after a crash. */
 export const recoveryEndpoints = {
-  summary: query<RecoverySummary>(
-    Channels.recoverySummary,
-    parseRecoverySummary,
-  ),
-  apply: request<RecoveryApply, RecoveryResult>(Channels.recoveryApply, {
+  summary: query<RecoverySummary>('recovery:summary', parseRecoverySummary),
+  apply: request<RecoveryApply, RecoveryResult>('recovery:apply', {
     request: parseRecoveryApply,
     reply: parseRecoveryResult,
   }),
   startFresh: query<RecoveryResult>(
-    Channels.recoveryStartFresh,
+    'recovery:start-fresh',
     parseRecoveryResult,
   ),
 };

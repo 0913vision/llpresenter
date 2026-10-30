@@ -4,17 +4,16 @@ import {
   type ServiceOpenRequest,
 } from '@core/schema/serviceOpen';
 import {parseShowService, type ShowService} from '@core/schema/showService';
-import {Channels} from './channels';
 import {push, query, request, type IpcPort} from './endpoint';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */
 export const serviceEndpoints = {
-  get: query<ShowService | null>(Channels.serviceGet, parseShowService),
-  open: request<ServiceOpenRequest, ShowService | null>(Channels.serviceOpen, {
+  get: query<ShowService | null>('service:get', parseShowService),
+  open: request<ServiceOpenRequest, ShowService | null>('service:open', {
     request: parseServiceOpenRequest,
     reply: (value, sent) => parseServiceOpenReply(sent.serviceId, value),
   }),
-  changed: push<ShowService | null>(Channels.serviceChanged, parseShowService),
+  changed: push<ShowService | null>('service:changed', parseShowService),
 };
 
 /** The open 예배 순서 part of `window.llp`. */

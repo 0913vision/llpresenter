@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import {APP_FLUSH_LIMITS} from '@core/schema/appFlush';
 import {recordingLogger} from '../displays/testing';
 import {registerControlClose, type CloseableWindow} from './controlClose';
@@ -85,13 +85,13 @@ function setup() {
   });
   const requestId = (index = 0): unknown => {
     const call = control.webContents.send.mock.calls[index];
-    if (call?.[0] !== Channels.appFlushRequest) {
+    if (call?.[0] !== appEndpoints.flushRequests.channel) {
       throw new Error('No flush request');
     }
     return Reflect.get(Object(call[1]), 'requestId');
   };
   const reply = (result: boolean, senderId = CONTROL_ID, index = 0) => {
-    electron.ipcMain.emit(Channels.appFlushDone, senderId, {
+    electron.ipcMain.emit(appEndpoints.flushDone.channel, senderId, {
       requestId: requestId(index),
       result,
     });
@@ -118,7 +118,11 @@ describe('control window close handshake', () => {
       elapsed < APP_FLUSH_LIMITS.timeoutMs * 2;
       elapsed += APP_FLUSH_LIMITS.progressIntervalMs
     ) {
-      electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, request);
+      electron.ipcMain.emit(
+        appEndpoints.flushProgress.channel,
+        CONTROL_ID,
+        request,
+      );
       await clock.advance(APP_FLUSH_LIMITS.progressIntervalMs);
       expect(control.destroyed).toBe(false);
     }
@@ -135,13 +139,13 @@ describe('control window close handshake', () => {
     const {control, requestId} = setup();
     control.close();
     await clock.advance(APP_FLUSH_LIMITS.timeoutMs - 1);
-    electron.ipcMain.emit(Channels.appFlushProgress, OTHER_ID, {
+    electron.ipcMain.emit(appEndpoints.flushProgress.channel, OTHER_ID, {
       requestId: requestId(),
     });
-    electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, {
+    electron.ipcMain.emit(appEndpoints.flushProgress.channel, CONTROL_ID, {
       requestId: '00000000-0000-4000-8000-000000000001',
     });
-    electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, null);
+    electron.ipcMain.emit(appEndpoints.flushProgress.channel, CONTROL_ID, null);
     await clock.advance(1);
     expect(control.destroyed).toBe(true);
   });
@@ -157,17 +161,17 @@ describe('control window close handshake', () => {
 
   it('keeps the window open after a refused flush until 강제로 닫기', async () => {
     const {control, log, reply} = setup();
-    electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
     control.close();
     reply(false);
     await settled();
     expect(control.destroyed).toBe(false);
-    electron.ipcMain.emit(Channels.appCloseAnyway, OTHER_ID);
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, OTHER_ID);
     expect(control.destroyed).toBe(false);
-    electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
     expect(control.destroyed).toBe(true);
     expect(log.messages('warn')).toEqual([
-      `ignored ${Channels.appCloseAnyway} from another window`,
+      `ignored ${appEndpoints.closeAnyway.channel} from another window`,
     ]);
   });
 
@@ -175,7 +179,7 @@ describe('control window close handshake', () => {
     const {control, log, closing} = setup();
     control.close();
     const quit = closing.confirmClose();
-    electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
     await expect(quit).resolves.toBe(true);
     await settled();
     expect(control.destroyed).toBe(true);
@@ -215,17 +219,17 @@ describe('control window close handshake', () => {
     const {control, log, closing, requestId, reply} = setup();
     const confirmed = closing.confirmClose();
     reply(true, OTHER_ID);
-    electron.ipcMain.emit(Channels.appFlushDone, CONTROL_ID, {
+    electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
       requestId: '00000000-0000-4000-8000-000000000001',
       result: true,
     });
-    electron.ipcMain.emit(Channels.appFlushDone, CONTROL_ID, {
+    electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
       requestId: requestId(),
       result: 'yes',
     });
     await settled();
     expect(log.messages('warn')).toEqual([
-      `ignored ${Channels.appFlushDone} from another window`,
+      `ignored ${appEndpoints.flushDone.channel} from another window`,
       'ignored a malformed flush reply',
       'ignored a malformed flush reply',
     ]);

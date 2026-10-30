@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
 import {recordingLogger} from '../../displays/testing';
 import {registerRecoveryChannels} from './channels';
@@ -53,11 +53,11 @@ function setup() {
 describe('recovery channels', () => {
   it('answers the three recovery calls and removes its handlers', async () => {
     const {port, remove} = setup();
-    expect(await invoke(Channels.recoverySummary)).toEqual(SUMMARY);
+    expect(await invoke(recoveryEndpoints.summary.channel)).toEqual(SUMMARY);
     const answer = {savedAt: SAVED_AT, rows: ['outputs', 'slide']};
-    expect(await invoke(Channels.recoveryApply, answer)).toEqual(OK);
+    expect(await invoke(recoveryEndpoints.apply.channel, answer)).toEqual(OK);
     expect(port.apply).toHaveBeenCalledWith(answer);
-    expect(await invoke(Channels.recoveryStartFresh)).toEqual(OK);
+    expect(await invoke(recoveryEndpoints.startFresh.channel)).toEqual(OK);
     remove();
     expect(handlers.size).toBe(0);
   });
@@ -70,7 +70,9 @@ describe('recovery channels', () => {
       {savedAt: SAVED_AT, rows: ['outputs', 'outputs']},
       {savedAt: 'yesterday', rows: ['outputs']},
     ]) {
-      expect(await invoke(Channels.recoveryApply, value)).toMatchObject({
+      expect(
+        await invoke(recoveryEndpoints.apply.channel, value),
+      ).toMatchObject({
         ok: false,
         error: {reason: 'invalid-selection'},
       });
@@ -85,15 +87,17 @@ describe('recovery channels', () => {
     port.summary.mockRejectedValueOnce(new Error('summary failed'));
     port.apply.mockRejectedValueOnce(new Error('apply failed'));
     port.startFresh.mockRejectedValueOnce(new Error('fresh failed'));
-    expect(await invoke(Channels.recoverySummary)).toBeNull();
+    expect(await invoke(recoveryEndpoints.summary.channel)).toBeNull();
     const failed = {ok: false, error: {reason: 'apply-failed'}};
     expect(
-      await invoke(Channels.recoveryApply, {
+      await invoke(recoveryEndpoints.apply.channel, {
         savedAt: SAVED_AT,
         rows: ['outputs'],
       }),
     ).toMatchObject(failed);
-    expect(await invoke(Channels.recoveryStartFresh)).toMatchObject(failed);
+    expect(await invoke(recoveryEndpoints.startFresh.channel)).toMatchObject(
+      failed,
+    );
     expect(log.messages('error')).toEqual([
       'could not summarize the recovery record',
       'could not restore the output state',

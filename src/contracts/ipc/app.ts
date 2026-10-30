@@ -10,31 +10,27 @@ import {
   parseAppProblems,
   type AppProblem,
 } from '@core/schema/appProblem';
-import {Channels} from './channels';
 import {message, push, query, signal, type IpcPort} from './endpoint';
 
 /** The calls that close the app safely and report its problems. */
 export const appEndpoints = {
-  savePending: query<boolean>(
-    Channels.appSavePending,
-    parseAppSavePendingResult,
-  ),
+  savePending: query<boolean>('app:save-pending', parseAppSavePendingResult),
   flushProgress: message<AppFlushRequest>(
-    Channels.appFlushProgress,
+    'app:flush-progress',
     parseAppFlushRequest,
   ),
   flushRequests: push<AppFlushRequest>(
-    Channels.appFlushRequest,
+    'app:flush-request',
     parseAppFlushRequest,
   ),
-  flushDone: message<AppFlushDone>(Channels.appFlushDone, parseAppFlushDone),
-  closeAnyway: signal(Channels.appCloseAnyway),
+  flushDone: message<AppFlushDone>('app:flush-done', parseAppFlushDone),
+  closeAnyway: signal('app:close-anyway'),
   problemList: query<readonly AppProblem[]>(
-    Channels.appProblemList,
+    'app:problem:list',
     parseAppProblems,
   ),
-  problems: push<AppProblem>(Channels.appProblem, parseAppProblem),
-  retrySaves: signal(Channels.appProblemRetrySaves),
+  problems: push<AppProblem>('app:problem', parseAppProblem),
+  retrySaves: signal('app:problem:retry-saves'),
 };
 
 /** The closing part of `window.llp`. */

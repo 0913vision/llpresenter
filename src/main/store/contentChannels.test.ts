@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {contentEndpoints} from '@contracts/ipc/content';
 import {
   songIdSchema,
   serviceIdSchema,
@@ -61,12 +61,12 @@ describe('content broadcasts', () => {
     electron.windows = [destroyed, goneRenderer, failing, receiving];
     const log = fakeLog();
 
-    broadcast(Channels.songsListChanged, [], log);
+    broadcast(contentEndpoints.songs.listChanged.channel, [], log);
 
     expect(destroyed.webContents.send).not.toHaveBeenCalled();
     expect(goneRenderer.webContents.send).not.toHaveBeenCalled();
     expect(receiving.webContents.send).toHaveBeenCalledWith(
-      Channels.songsListChanged,
+      contentEndpoints.songs.listChanged.channel,
       [],
     );
     expect(log.warn).toHaveBeenCalledTimes(1);

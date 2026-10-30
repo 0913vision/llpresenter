@@ -1,5 +1,5 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {outputEndpoints} from '@contracts/ipc/output';
 import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
 import type {Logger} from '../log';
 import {registerFonts} from './register';
@@ -38,7 +38,7 @@ it('answers only the control main frame, rejects arguments, and removes the hand
   native.read.mockResolvedValue([fontFamilyFixture()]);
   const stop = registerFonts(control, log);
   try {
-    const ask = native.handlers.get(Channels.fontsGet);
+    const ask = native.handlers.get(outputEndpoints.fonts.channel);
     if (ask === undefined) throw new Error('Missing fonts handler');
     expect(() =>
       ask({sender: {}, senderFrame: control.webContents.mainFrame}),
@@ -58,5 +58,5 @@ it('answers only the control main frame, rejects arguments, and removes the hand
   } finally {
     stop();
   }
-  expect(native.handlers.has(Channels.fontsGet)).toBe(false);
+  expect(native.handlers.has(outputEndpoints.fonts.channel)).toBe(false);
 });

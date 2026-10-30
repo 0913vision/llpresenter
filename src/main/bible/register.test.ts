@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {bibleEndpoints} from '@contracts/ipc/bible';
 import {registerBible} from './register';
 import {BibleLookupSession} from './lookup';
 
@@ -28,7 +28,7 @@ describe('Bible IPC registration', () => {
     });
     const stop = registerBible({session, log});
     try {
-      const handler = handlers.get(Channels.bibleLookup);
+      const handler = handlers.get(bibleEndpoints.lookup.channel);
       if (handler === undefined) {
         throw new Error('Missing Bible lookup handler');
       }
@@ -45,6 +45,6 @@ describe('Bible IPC registration', () => {
       stop();
       session.dispose();
     }
-    expect(handlers.has(Channels.bibleLookup)).toBe(false);
+    expect(handlers.has(bibleEndpoints.lookup.channel)).toBe(false);
   });
 });

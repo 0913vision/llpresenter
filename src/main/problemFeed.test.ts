@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import {
   APP_PROBLEM_LIMITS,
   macroDroppedProblem,
@@ -64,7 +64,7 @@ const overflowingMacroSlice = defineSlice({
 });
 
 function list(): unknown {
-  return electron.handlers.get(Channels.appProblemList)?.();
+  return electron.handlers.get(appEndpoints.problemList.channel)?.();
 }
 
 function setup() {
@@ -90,7 +90,7 @@ describe('problem feed', () => {
     store.dispatch({type: 'macro.run', macroId: macroId(7)});
     const dropped = macroDroppedProblem(macroId(7), 'Invented startup');
     expect(electron.send).toHaveBeenCalledExactlyOnceWith(
-      Channels.appProblem,
+      appEndpoints.problems.channel,
       dropped,
     );
     expect(list()).toEqual([dropped]);
@@ -112,8 +112,8 @@ describe('problem feed', () => {
     removeSaves();
     expect(list()).toEqual([]);
     expect(electron.send.mock.calls).toEqual([
-      [Channels.appProblem, dropped],
-      [Channels.appProblem, waiting],
+      [appEndpoints.problems.channel, dropped],
+      [appEndpoints.problems.channel, waiting],
     ]);
   });
 
@@ -149,6 +149,6 @@ describe('problem feed', () => {
     dispose();
     store.dispatch({type: 'macro.run', macroId: macroId(7)});
     expect(electron.send).not.toHaveBeenCalled();
-    expect(electron.handlers.has(Channels.appProblemList)).toBe(false);
+    expect(electron.handlers.has(appEndpoints.problemList.channel)).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import {clipboard, dialog, ipcMain, type BrowserWindow} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {libraryEndpoints} from '@contracts/ipc/library';
 import {
   parseTextImportPreviewRequest,
   parseTextImportReadRequest,
@@ -151,19 +151,20 @@ export function registerTextImport(
   context: TextImportRegistration,
 ): () => void {
   const session = new TextImportSession(nativeInputs(context), context.log);
-  ipcMain.handle(Channels.textImportClipboardAvailable, () =>
+  ipcMain.handle(libraryEndpoints.clipboardAvailable.channel, () =>
     session.clipboardAvailable(),
   );
-  ipcMain.handle(Channels.textImportRead, (_event, value: unknown) =>
+  ipcMain.handle(libraryEndpoints.readText.channel, (_event, value: unknown) =>
     session.read(value),
   );
-  ipcMain.handle(Channels.textImportPreview, (_event, value: unknown) =>
-    session.preview(value),
+  ipcMain.handle(
+    libraryEndpoints.previewText.channel,
+    (_event, value: unknown) => session.preview(value),
   );
   return () => {
     if (!session.close()) return;
-    ipcMain.removeHandler(Channels.textImportRead);
-    ipcMain.removeHandler(Channels.textImportClipboardAvailable);
-    ipcMain.removeHandler(Channels.textImportPreview);
+    ipcMain.removeHandler(libraryEndpoints.readText.channel);
+    ipcMain.removeHandler(libraryEndpoints.clipboardAvailable.channel);
+    ipcMain.removeHandler(libraryEndpoints.previewText.channel);
   };
 }

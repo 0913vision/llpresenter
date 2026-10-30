@@ -5,7 +5,6 @@ import type {LiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import type {PayloadError} from '@core/schema/payload';
 import {parseTimerClockReading} from '@core/schema/timerState';
-import {Channels} from './channels';
 import {
   partialMessage,
   push,
@@ -25,13 +24,10 @@ function parseLiveCommandParts(
 
 /** The live output calls. Main owns the live state; windows send commands. */
 export const liveEndpoints = {
-  get: query<LiveState>(Channels.liveGet, parseLiveState),
-  clock: query<number>(Channels.liveClock, parseTimerClockReading),
-  command: partialMessage<LiveCommand>(
-    Channels.liveCommand,
-    parseLiveCommandParts,
-  ),
-  changed: push<LiveState>(Channels.liveChanged, parseLiveState),
+  get: query<LiveState>('live:get', parseLiveState),
+  clock: query<number>('live:clock', parseTimerClockReading),
+  command: partialMessage<LiveCommand>('live:command', parseLiveCommandParts),
+  changed: push<LiveState>('live:changed', parseLiveState),
 };
 
 /** The live output part of `window.llp`. */

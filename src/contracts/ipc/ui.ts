@@ -17,7 +17,6 @@ import {
   parseUiZoomPercent,
   type UiZoomCommand,
 } from '@core/schema/uiZoom';
-import {Channels} from './channels';
 import {
   message,
   query,
@@ -28,22 +27,22 @@ import {
 
 /** The calls that read and save the control window's UI state and zoom. */
 export const uiEndpoints = {
-  get: query<UiState>(Channels.uiGet, parseUiState),
-  setLayout: message<LayoutChange>(Channels.uiLayoutSet, parseLayoutChange),
+  get: query<UiState>('ui:get', parseUiState),
+  setLayout: message<LayoutChange>('ui:layout:set', parseLayoutChange),
   setMediaStrip: message<MediaStripChange>(
-    Channels.uiMediaStripSet,
+    'ui:media-strip:set',
     parseMediaStripChange,
   ),
   setPrepMedia: message<PrepMediaChange>(
-    Channels.uiPrepMediaSet,
+    'ui:prep-media:set',
     parsePrepMediaChange,
   ),
   setMediaBrowser: message<MediaBrowserChange>(
-    Channels.uiMediaBrowserSet,
+    'ui:media-browser:set',
     parseMediaBrowserChange,
   ),
-  getZoom: query<number>(Channels.uiZoomGet, parseUiZoomPercent),
-  changeZoom: request<UiZoomCommand, number>(Channels.uiZoomChange, {
+  getZoom: query<number>('ui:zoom:get', parseUiZoomPercent),
+  changeZoom: request<UiZoomCommand, number>('ui:zoom:change', {
     request: parseUiZoomCommand,
     reply: parseUiZoomPercent,
   }),

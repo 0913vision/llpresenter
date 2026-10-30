@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {serviceEndpoints} from '@contracts/ipc/service';
 import type {ShowService} from '@core/schema/showService';
 import {parseServiceOpenRequest} from '@core/schema/serviceOpen';
 import type {Logger} from '../log';
@@ -28,14 +28,14 @@ export function registerServiceChannels(
     log.error('could not open service channels', error);
     return null;
   });
-  ipcMain.handle(Channels.serviceGet, async () => {
+  ipcMain.handle(serviceEndpoints.get.channel, async () => {
     const opened = await ready;
     if (disposed || opened === null) return null;
     await opened.feed.refresh();
     return opened.feed.current();
   });
   ipcMain.handle(
-    Channels.serviceOpen,
+    serviceEndpoints.open.channel,
     async (_event, value: unknown): Promise<ShowService | null> => {
       const request = parseServiceOpenRequest(value);
       if (!request.ok) {
@@ -82,8 +82,8 @@ export function registerServiceChannels(
   return {
     dispose: (): Promise<void> => {
       disposed = true;
-      ipcMain.removeHandler(Channels.serviceGet);
-      ipcMain.removeHandler(Channels.serviceOpen);
+      ipcMain.removeHandler(serviceEndpoints.get.channel);
+      ipcMain.removeHandler(serviceEndpoints.open.channel);
       closing ??= switching;
       return closing;
     },

@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {appEndpoints} from './app';
 import {bibleEndpoints} from './bible';
-import {Channels} from './channels';
 import {contentEndpoints} from './content';
 import {libraryEndpoints} from './library';
 import {liveEndpoints} from './live';
@@ -39,6 +38,11 @@ const DECLARED = [
 describe('IPC endpoints', () => {
   it('give every channel to exactly one endpoint', () => {
     expect(new Set(DECLARED).size).toBe(DECLARED.length);
-    expect([...DECLARED].sort()).toEqual(Object.values(Channels).sort());
+  });
+
+  it('name channels as area:name in lowercase words', () => {
+    for (const channel of DECLARED) {
+      expect(channel).toMatch(/^[a-z]+(?:-[a-z]+)*(?::[a-z]+(?:-[a-z]+)*)+$/);
+    }
   });
 });

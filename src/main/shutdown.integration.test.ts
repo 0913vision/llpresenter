@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {uiEndpoints} from '@contracts/ipc/ui';
 import {recordingLogger} from './displays/testing';
 import {ShutdownCoordinator} from './shutdown';
 
@@ -65,7 +65,7 @@ describe('shutdown with the real UI state registration', () => {
       {read: () => ({}), change: () => undefined},
       log,
     );
-    electron.ipcHandlers.get(Channels.uiLayoutSet)?.(
+    electron.ipcHandlers.get(uiEndpoints.setLayout.channel)?.(
       {},
       {sizeClass: 'narrow', left: 220, right: 360},
     );

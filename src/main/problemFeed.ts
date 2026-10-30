@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
 import {sendToWindows} from './ipc';
 import type {LiveStore} from './live/store';
@@ -41,7 +41,7 @@ class WindowProblemFeed implements ProblemFeed {
   }
 
   push(problem: AppProblem): void {
-    sendToWindows(Channels.appProblem, problem, this.log);
+    sendToWindows(appEndpoints.problems.channel, problem, this.log);
   }
 
   addStanding(source: StandingProblems): () => void {
@@ -93,7 +93,7 @@ export function registerProblemFeed({store, log}: ProblemFeedRegistration): {
   readonly dispose: () => void;
 } {
   const feed = new WindowProblemFeed(log);
-  ipcMain.handle(Channels.appProblemList, () => feed.list());
+  ipcMain.handle(appEndpoints.problemList.channel, () => feed.list());
   const stopLive = store.subscribeProblems(problem => {
     feed.report(problem);
   });
@@ -101,7 +101,7 @@ export function registerProblemFeed({store, log}: ProblemFeedRegistration): {
     feed,
     dispose: () => {
       stopLive();
-      ipcMain.removeHandler(Channels.appProblemList);
+      ipcMain.removeHandler(appEndpoints.problemList.channel);
     },
   };
 }

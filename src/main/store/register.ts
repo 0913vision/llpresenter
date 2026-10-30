@@ -1,7 +1,9 @@
 import {join} from 'node:path';
 import {app, ipcMain} from 'electron';
 import type {FileError} from '@core/schema/fileFormat';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
+import {serviceEndpoints} from '@contracts/ipc/service';
+import {settingsEndpoints} from '@contracts/ipc/settings';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '../log';
 import type {ProblemFeed} from '../problemFeed';
@@ -196,7 +198,7 @@ export function registerStore({
   const settingsAccess = createSettingsAccess(settings, log);
   const lookSelection = createLookSelection(settings, log);
   const serviceChannels = registerServiceChannels(opened, appConfig, log);
-  ipcMain.handle(Channels.preferencesGet, async () => {
+  ipcMain.handle(settingsEndpoints.preferences.channel, async () => {
     const ready = await settings;
     return (
       ready?.preferences() ?? (await loading)?.preferences ?? defaultPreferences
@@ -215,7 +217,7 @@ export function registerStore({
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
   );
-  ipcMain.handle(Channels.appSavePending, async () => {
+  ipcMain.handle(appEndpoints.savePending.channel, async () => {
     try {
       const [ready, readySettings, readyMedia] = await Promise.all([
         opened,
@@ -253,8 +255,8 @@ export function registerStore({
       await settingsChannels.dispose();
       await serviceClosing;
       await mediaClosing;
-      ipcMain.removeHandler(Channels.preferencesGet);
-      ipcMain.removeHandler(Channels.appSavePending);
+      ipcMain.removeHandler(settingsEndpoints.preferences.channel);
+      ipcMain.removeHandler(appEndpoints.savePending.channel);
       removeContentChannels();
       removeSearch();
       removeLibrarySong();
@@ -407,7 +409,7 @@ async function createContent(
       backgroundOf: library.backgroundOf,
       bible,
     },
-    service => broadcast(Channels.serviceChanged, service, log),
+    service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
   const removeSettingsListener =

@@ -7,7 +7,18 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
-import {Channels, type LlpApi} from '@contracts/ipc/api';
+import type {LlpApi} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
+import {bibleEndpoints} from '@contracts/ipc/bible';
+import {contentEndpoints} from '@contracts/ipc/content';
+import {libraryEndpoints} from '@contracts/ipc/library';
+import {liveEndpoints} from '@contracts/ipc/live';
+import {mediaEndpoints} from '@contracts/ipc/media';
+import {outputEndpoints} from '@contracts/ipc/output';
+import {recoveryEndpoints} from '@contracts/ipc/recovery';
+import {serviceEndpoints} from '@contracts/ipc/service';
+import {settingsEndpoints} from '@contracts/ipc/settings';
+import {uiEndpoints} from '@contracts/ipc/ui';
 import {emptyLiveState} from '@core/live/state';
 import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -68,16 +79,18 @@ describe('Bible lookup boundary', () => {
     }
     expect(
       electron.send.mock.calls.filter(
-        ([channel]) => channel === Channels.appFlushProgress,
+        ([channel]) => channel === appEndpoints.flushProgress.channel,
       ),
-    ).toEqual([[Channels.appFlushProgress, {requestId}]]);
+    ).toEqual([[appEndpoints.flushProgress.channel, {requestId}]]);
   });
   it('validates disk save results and rejects failed IPC calls', async () => {
     for (const result of [true, false]) {
       electron.invoke.mockResolvedValueOnce(result);
       await expect(api.app.savePending()).resolves.toBe(result);
     }
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.appSavePending);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      appEndpoints.savePending.channel,
+    );
     electron.invoke.mockResolvedValueOnce('true');
     await expect(api.app.savePending()).rejects.toThrow('Bad reply');
     electron.invoke.mockRejectedValueOnce(new Error('Unavailable'));
@@ -100,7 +113,10 @@ describe('Bible lookup boundary', () => {
     };
     electron.invoke.mockResolvedValueOnce(reply);
     await expect(api.bible.lookup(request)).resolves.toEqual(reply);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.bibleLookup, request);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      bibleEndpoints.lookup.channel,
+      request,
+    );
     electron.invoke.mockResolvedValueOnce({...reply, input: '창 1:1'});
     await expect(api.bible.lookup(request)).rejects.toThrow('Bad reply');
     const calls = electron.invoke.mock.calls.length;
@@ -109,7 +125,7 @@ describe('Bible lookup boundary', () => {
     ).rejects.toThrow('Bad request');
     expect(electron.invoke).toHaveBeenCalledTimes(calls);
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.logWrite,
+      outputEndpoints.log.channel,
       expect.objectContaining({level: 'error'}),
     );
   });
@@ -132,7 +148,7 @@ describe('actual control-window zoom factor', () => {
       electron.getZoomFactor.mockReturnValueOnce(factor);
       expect(api.ui.getZoomFactor()).toBe(UI_ZOOM_FACTOR.default);
       expect(electron.send).toHaveBeenCalledWith(
-        Channels.logWrite,
+        outputEndpoints.log.channel,
         expect.objectContaining({level: 'error'}),
       );
     },
@@ -144,7 +160,7 @@ describe('actual control-window zoom factor', () => {
     });
     expect(api.ui.getZoomFactor()).toBe(UI_ZOOM_FACTOR.default);
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.logWrite,
+      outputEndpoints.log.channel,
       expect.objectContaining({level: 'error'}),
     );
   });
@@ -154,10 +170,13 @@ describe('panel visibility boundary', () => {
   it('accepts media and sidebar state and validates the UI read', async () => {
     api.ui.setMediaStrip({visible: false});
     api.ui.setLayout({sizeClass: 'narrow', leftCollapsed: true});
-    expect(electron.send).toHaveBeenCalledWith(Channels.uiMediaStripSet, {
-      visible: false,
-    });
-    expect(electron.send).toHaveBeenCalledWith(Channels.uiLayoutSet, {
+    expect(electron.send).toHaveBeenCalledWith(
+      uiEndpoints.setMediaStrip.channel,
+      {
+        visible: false,
+      },
+    );
+    expect(electron.send).toHaveBeenCalledWith(uiEndpoints.setLayout.channel, {
       sizeClass: 'narrow',
       leftCollapsed: true,
     });
@@ -177,12 +196,12 @@ describe('panel visibility boundary', () => {
       Reflect.apply(api.ui.setMediaStrip, undefined, [value]);
     }
     expect(electron.send).not.toHaveBeenCalledWith(
-      Channels.uiMediaStripSet,
+      uiEndpoints.setMediaStrip.channel,
       expect.anything(),
     );
     expect(electron.send).toHaveBeenCalledTimes(4);
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.logWrite,
+      outputEndpoints.log.channel,
       expect.objectContaining({level: 'error'}),
     );
   });
@@ -217,9 +236,12 @@ describe('standalone library song read', () => {
     await expect(api.library.showSong({songId})).rejects.toThrow(
       'Library unavailable',
     );
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.libraryShowSong, {
-      songId,
-    });
+    expect(electron.invoke).toHaveBeenCalledWith(
+      libraryEndpoints.showSong.channel,
+      {
+        songId,
+      },
+    );
     electron.invoke.mockClear();
     const malformed: unknown = Reflect.apply(api.library.showSong, undefined, [
       {songId: 'bad'},
@@ -227,7 +249,7 @@ describe('standalone library song read', () => {
     await expect(malformed).rejects.toThrow('Bad request');
     expect(electron.invoke).not.toHaveBeenCalled();
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.logWrite,
+      outputEndpoints.log.channel,
       expect.anything(),
     );
   });
@@ -265,7 +287,7 @@ describe('native dropped media file paths', () => {
     });
     expect(Reflect.apply(api.media.pathForFile, undefined, [{}])).toBe('');
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.logWrite,
+      outputEndpoints.log.channel,
       expect.objectContaining({
         level: 'error',
         message: 'Ignored a bad request on media.pathForFile',
@@ -288,13 +310,13 @@ describe('media browser UI boundary', () => {
     expect(
       electron.send.mock.calls.filter(
         ([channel]) =>
-          channel === Channels.uiMediaBrowserSet ||
-          channel === Channels.uiPrepMediaSet,
+          channel === uiEndpoints.setMediaBrowser.channel ||
+          channel === uiEndpoints.setPrepMedia.channel,
       ),
     ).toEqual([
-      [Channels.uiMediaBrowserSet, {columns: 2}],
-      [Channels.uiMediaBrowserSet, {view: 'list'}],
-      [Channels.uiPrepMediaSet, {visible: false}],
+      [uiEndpoints.setMediaBrowser.channel, {columns: 2}],
+      [uiEndpoints.setMediaBrowser.channel, {view: 'list'}],
+      [uiEndpoints.setPrepMedia.channel, {visible: false}],
     ]);
     const state = {prepMedia: true, mediaBrowser: {columns: 8, view: 'list'}};
     electron.invoke.mockResolvedValueOnce(state);
@@ -352,7 +374,7 @@ function showService(revision: number) {
 
 function loggedErrors(): unknown[] {
   return electron.send.mock.calls
-    .filter(([channel]) => channel === Channels.logWrite)
+    .filter(([channel]) => channel === outputEndpoints.log.channel)
     .map(([, entry]: unknown[]) => entry);
 }
 
@@ -360,7 +382,7 @@ describe('preload', () => {
   it('validates live broadcasts without serialization or a second byte-budget pass', () => {
     const listener = vi.fn();
     const remove = api.live.subscribe(listener);
-    const handler = electron.handlers.get(Channels.liveChanged);
+    const handler = electron.handlers.get(liveEndpoints.changed.channel);
     if (handler === undefined) throw new Error('Missing live listener');
     const value = {
       ...emptyLiveState(),
@@ -382,7 +404,7 @@ describe('preload', () => {
     const listener = vi.fn();
     const remove = api.app.subscribeFlushRequests(listener);
     onTestFinished(remove);
-    const handler = electron.handlers.get(Channels.appFlushRequest);
+    const handler = electron.handlers.get(appEndpoints.flushRequests.channel);
     if (handler === undefined) {
       throw new Error('Missing flush request listener');
     }
@@ -394,7 +416,9 @@ describe('preload', () => {
     expect(listener).toHaveBeenCalledTimes(1);
     expect(loggedErrors()).toHaveLength(4);
     remove();
-    expect(electron.handlers.has(Channels.appFlushRequest)).toBe(false);
+    expect(electron.handlers.has(appEndpoints.flushRequests.channel)).toBe(
+      false,
+    );
   });
 
   it('sends schema-checked positive and negative flush replies with the request ID', () => {
@@ -404,9 +428,9 @@ describe('preload', () => {
       {requestId, result: true, extra: true},
     ]);
     expect(electron.send.mock.calls).toEqual([
-      [Channels.appFlushDone, {requestId, result: true}],
-      [Channels.appFlushDone, {requestId, result: false}],
-      [Channels.appFlushDone, {requestId, result: true}],
+      [appEndpoints.flushDone.channel, {requestId, result: true}],
+      [appEndpoints.flushDone.channel, {requestId, result: false}],
+      [appEndpoints.flushDone.channel, {requestId, result: true}],
     ]);
   });
 
@@ -414,7 +438,9 @@ describe('preload', () => {
     const problem = {kind: 'macro-dropped', macroId: SONG_ID, name: 'Opening'};
     electron.invoke.mockResolvedValueOnce([problem]);
     await expect(api.problems.list()).resolves.toEqual([problem]);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.appProblemList);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      appEndpoints.problemList.channel,
+    );
     electron.invoke.mockResolvedValueOnce([{kind: 'unknown'}]);
     await expect(api.problems.list()).rejects.toThrow();
   });
@@ -423,7 +449,7 @@ describe('preload', () => {
     const listener = vi.fn();
     const remove = api.problems.subscribe(listener);
     onTestFinished(remove);
-    const handler = electron.handlers.get(Channels.appProblem);
+    const handler = electron.handlers.get(appEndpoints.problems.channel);
     if (handler === undefined) throw new Error('Missing problem listener');
     const problem = {kind: 'macro-dropped', macroId: SONG_ID, name: 'Opening'};
     handler({}, {...problem, extra: true});
@@ -434,29 +460,33 @@ describe('preload', () => {
     expect(listener).toHaveBeenCalledOnce();
     expect(loggedErrors()).toHaveLength(3);
     remove();
-    expect(electron.handlers.has(Channels.appProblem)).toBe(false);
+    expect(electron.handlers.has(appEndpoints.problems.channel)).toBe(false);
   });
 
   it('reads and follows the missing media and sends a checked file check', async () => {
     electron.invoke.mockResolvedValueOnce([SONG_ID]);
     await expect(api.media.missing()).resolves.toEqual([SONG_ID]);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.mediaMissingGet);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      mediaEndpoints.missing.channel,
+    );
     electron.invoke.mockResolvedValueOnce(['bad']);
     await expect(api.media.missing()).rejects.toThrow();
     const listener = vi.fn();
     const remove = api.media.subscribeMissing(listener);
-    electron.handlers.get(Channels.mediaMissing)?.({}, [SONG_ID]);
-    electron.handlers.get(Channels.mediaMissing)?.({}, 'bad');
+    electron.handlers.get(mediaEndpoints.missingChanged.channel)?.({}, [
+      SONG_ID,
+    ]);
+    electron.handlers.get(mediaEndpoints.missingChanged.channel)?.({}, 'bad');
     expect(listener).toHaveBeenCalledExactlyOnceWith([SONG_ID]);
     remove();
     electron.send.mockClear();
     api.media.check(createMediaId(SONG_ID));
     Reflect.apply(api.media.check, undefined, ['bad']);
     expect(electron.send.mock.calls[0]).toEqual([
-      Channels.mediaCheck,
+      mediaEndpoints.check.channel,
       {mediaId: SONG_ID},
     ]);
-    expect(electron.send.mock.calls[1]?.[0]).toBe(Channels.logWrite);
+    expect(electron.send.mock.calls[1]?.[0]).toBe(outputEndpoints.log.channel);
   });
 
   it('sends a checked reveal of a media file', () => {
@@ -464,20 +494,24 @@ describe('preload', () => {
     api.media.reveal(createMediaId(SONG_ID));
     Reflect.apply(api.media.reveal, undefined, ['bad']);
     expect(electron.send.mock.calls[0]).toEqual([
-      Channels.mediaReveal,
+      mediaEndpoints.reveal.channel,
       {mediaId: SONG_ID},
     ]);
-    expect(electron.send.mock.calls[1]?.[0]).toBe(Channels.logWrite);
+    expect(electron.send.mock.calls[1]?.[0]).toBe(outputEndpoints.log.channel);
   });
 
   it('sends a save retry without a payload', () => {
     api.problems.retrySaves();
-    expect(electron.send.mock.calls).toEqual([[Channels.appProblemRetrySaves]]);
+    expect(electron.send.mock.calls).toEqual([
+      [appEndpoints.retrySaves.channel],
+    ]);
   });
 
   it('sends 강제로 닫기 without a payload', () => {
     api.app.closeAnyway();
-    expect(electron.send.mock.calls).toEqual([[Channels.appCloseAnyway]]);
+    expect(electron.send.mock.calls).toEqual([
+      [appEndpoints.closeAnyway.channel],
+    ]);
   });
 
   it('drops and logs malformed flush replies before IPC', () => {
@@ -492,13 +526,13 @@ describe('preload', () => {
     }
     expect(
       electron.send.mock.calls.every(
-        ([channel]) => channel === Channels.logWrite,
+        ([channel]) => channel === outputEndpoints.log.channel,
       ),
     ).toBe(true);
     expect(loggedErrors()).toHaveLength(5);
     expect(loggedErrors()[0]).toHaveProperty(
       'message',
-      `Ignored a bad request on ${Channels.appFlushDone}`,
+      `Ignored a bad request on ${appEndpoints.flushDone.channel}`,
     );
   });
 
@@ -519,9 +553,9 @@ describe('preload', () => {
     await expect(api.recovery.apply(request)).resolves.toEqual(success);
     await expect(api.recovery.startFresh()).resolves.toEqual(success);
     expect(electron.invoke.mock.calls).toEqual([
-      [Channels.recoverySummary],
-      [Channels.recoveryApply, request],
-      [Channels.recoveryStartFresh],
+      [recoveryEndpoints.summary.channel],
+      [recoveryEndpoints.apply.channel, request],
+      [recoveryEndpoints.startFresh.channel],
     ]);
     expect(loggedErrors()).toEqual([]);
   });
@@ -568,10 +602,10 @@ describe('preload', () => {
     ]);
     expect(
       electron.send.mock.calls.filter(
-        ([channel]) => channel === Channels.liveCommand,
+        ([channel]) => channel === liveEndpoints.command.channel,
       ),
     ).toEqual([
-      [Channels.liveCommand, {type: 'live.batch', commands: [child]}],
+      [liveEndpoints.command.channel, {type: 'live.batch', commands: [child]}],
     ]);
     expect(loggedErrors()).toHaveLength(2);
     expect(loggedErrors()[0]).toHaveProperty(
@@ -593,12 +627,12 @@ describe('preload', () => {
     Reflect.apply(api.live.send, undefined, [{...command, source: []}]);
     expect(
       electron.send.mock.calls.filter(
-        ([channel]) => channel === Channels.liveCommand,
+        ([channel]) => channel === liveEndpoints.command.channel,
       ),
-    ).toEqual([[Channels.liveCommand, command]]);
+    ).toEqual([[liveEndpoints.command.channel, command]]);
     expect(loggedErrors()).toEqual([
       expect.objectContaining({
-        message: `Ignored a bad request on ${Channels.liveCommand}`,
+        message: `Ignored a bad request on ${liveEndpoints.command.channel}`,
       }),
     ]);
   });
@@ -606,10 +640,13 @@ describe('preload', () => {
   it('supplies a bounded search default and refuses an excessive limit', async () => {
     electron.invoke.mockResolvedValueOnce({query: '', matches: []});
     await api.library.search({query: ''});
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.librarySearch, {
-      query: '',
-      limit: 50,
-    });
+    expect(electron.invoke).toHaveBeenCalledWith(
+      libraryEndpoints.search.channel,
+      {
+        query: '',
+        limit: 50,
+      },
+    );
     await expect(api.library.search({query: '', limit: 201})).rejects.toThrow(
       'Bad request on',
     );
@@ -633,8 +670,8 @@ describe('preload', () => {
     await expect(api.settings.get({name: 'labels'})).resolves.toEqual(document);
     await expect(api.settings.edit(edit)).resolves.toEqual(result);
     expect(electron.invoke.mock.calls).toEqual([
-      [Channels.settingsGet, {name: 'labels'}],
-      [Channels.settingsEdit, edit],
+      [settingsEndpoints.get.channel, {name: 'labels'}],
+      [settingsEndpoints.edit.channel, edit],
     ]);
     expect(loggedErrors()).toEqual([]);
   });
@@ -653,7 +690,9 @@ describe('preload', () => {
     await expect(api.settings.edit({...edit, to: ' '})).rejects.toThrow(
       'Bad request on',
     );
-    expect(electron.invoke.mock.calls).toEqual([[Channels.settingsEdit, edit]]);
+    expect(electron.invoke.mock.calls).toEqual([
+      [settingsEndpoints.edit.channel, edit],
+    ]);
     expect(loggedErrors()).toHaveLength(1);
   });
 
@@ -672,9 +711,9 @@ describe('preload', () => {
       value: [],
     });
     expect(electron.invoke.mock.calls).toEqual([
-      [Channels.mediaGet],
-      [Channels.mediaEdit, edit],
-      [Channels.mediaImport, request],
+      [mediaEndpoints.get.channel],
+      [mediaEndpoints.edit.channel, edit],
+      [mediaEndpoints.import.channel, request],
     ]);
     expect(loggedErrors()).toEqual([]);
   });
@@ -779,20 +818,29 @@ describe('preload', () => {
       ...defaultPreferences,
       show: {showClearUndoButton: true},
     };
-    electron.handlers.get(Channels.settingsChanged)?.({}, LABELS_DOCUMENT);
-    electron.handlers.get(Channels.settingsChanged)?.(
+    electron.handlers.get(settingsEndpoints.changed.channel)?.(
+      {},
+      LABELS_DOCUMENT,
+    );
+    electron.handlers.get(settingsEndpoints.changed.channel)?.(
       {},
       {...LABELS_DOCUMENT, value: MEDIA_DOCUMENT.value},
     );
-    electron.handlers.get(Channels.preferencesChanged)?.({}, normalized);
-    electron.handlers.get(Channels.preferencesChanged)?.(
+    electron.handlers.get(settingsEndpoints.preferencesChanged.channel)?.(
+      {},
+      normalized,
+    );
+    electron.handlers.get(settingsEndpoints.preferencesChanged.channel)?.(
       {},
       {...normalized, show: {showClearUndoButton: 'yes'}},
     );
-    electron.handlers.get(Channels.mediaChanged)?.({}, MEDIA_DOCUMENT);
-    electron.handlers.get(Channels.mediaChanged)?.({}, LABELS_DOCUMENT);
-    electron.handlers.get(Channels.mediaImportChanged)?.({}, job);
-    electron.handlers.get(Channels.mediaImportChanged)?.(
+    electron.handlers.get(mediaEndpoints.changed.channel)?.({}, MEDIA_DOCUMENT);
+    electron.handlers.get(mediaEndpoints.changed.channel)?.(
+      {},
+      LABELS_DOCUMENT,
+    );
+    electron.handlers.get(mediaEndpoints.importChanged.channel)?.({}, job);
+    electron.handlers.get(mediaEndpoints.importChanged.channel)?.(
       {},
       {...job, percent: 101},
     );
@@ -803,10 +851,10 @@ describe('preload', () => {
     expect(loggedErrors()).toHaveLength(4);
     for (const stop of stops) stop();
     for (const channel of [
-      Channels.settingsChanged,
-      Channels.preferencesChanged,
-      Channels.mediaChanged,
-      Channels.mediaImportChanged,
+      settingsEndpoints.changed.channel,
+      settingsEndpoints.preferencesChanged.channel,
+      mediaEndpoints.changed.channel,
+      mediaEndpoints.importChanged.channel,
     ]) {
       expect(electron.handlers.has(channel)).toBe(false);
     }
@@ -820,7 +868,9 @@ describe('preload', () => {
     await expect(api.preferences.get()).resolves.toMatchObject({
       show: {showClearUndoButton: true},
     });
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.preferencesGet);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      settingsEndpoints.preferences.channel,
+    );
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -855,10 +905,13 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(result);
     const request = {query: '새', limit: 20, ignored: true};
     await expect(api.library.search(request)).resolves.toEqual(result);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.librarySearch, {
-      query: '새',
-      limit: 20,
-    });
+    expect(electron.invoke).toHaveBeenCalledWith(
+      libraryEndpoints.search.channel,
+      {
+        query: '새',
+        limit: 20,
+      },
+    );
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -877,7 +930,7 @@ describe('preload', () => {
       'Bad reply on',
     );
     expect(electron.invoke).toHaveBeenCalledWith(
-      Channels.textImportClipboardAvailable,
+      libraryEndpoints.clipboardAvailable.channel,
     );
     expect(loggedErrors()).toHaveLength(2);
   });
@@ -906,8 +959,8 @@ describe('preload', () => {
       value: draft,
     });
     expect(electron.invoke.mock.calls).toEqual([
-      [Channels.textImportRead, {source: 'file', encoding: 'auto'}],
-      [Channels.textImportPreview, {source, options}],
+      [libraryEndpoints.readText.channel, {source: 'file', encoding: 'auto'}],
+      [libraryEndpoints.previewText.channel, {source, options}],
     ]);
     expect(loggedErrors()).toEqual([]);
   });
@@ -958,7 +1011,7 @@ describe('preload', () => {
     expect(electron.invoke).not.toHaveBeenCalled();
     expect(loggedErrors()).toHaveLength(3);
     expect(loggedErrors()[0]).toMatchObject({
-      message: `Ignored a bad request on ${Channels.librarySearch}`,
+      message: `Ignored a bad request on ${libraryEndpoints.search.channel}`,
     });
     expect(loggedErrors()[0]).toHaveProperty(
       'detail',
@@ -1002,10 +1055,13 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(120).mockResolvedValueOnce(130);
     await expect(api.ui.getZoom()).resolves.toBe(120);
     await expect(api.ui.changeZoom({type: 'ui.zoomIn'})).resolves.toBe(130);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.uiZoomGet);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.uiZoomChange, {
-      type: 'ui.zoomIn',
-    });
+    expect(electron.invoke).toHaveBeenCalledWith(uiEndpoints.getZoom.channel);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      uiEndpoints.changeZoom.channel,
+      {
+        type: 'ui.zoomIn',
+      },
+    );
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -1014,7 +1070,7 @@ describe('preload', () => {
       .mockResolvedValueOnce(105)
       .mockRejectedValueOnce(new Error('no zoom handler'));
     await expect(api.ui.getZoom()).rejects.toThrow(
-      `Bad reply on ${Channels.uiZoomGet}`,
+      `Bad reply on ${uiEndpoints.getZoom.channel}`,
     );
     await expect(api.ui.changeZoom({type: 'ui.zoomReset'})).rejects.toThrow(
       'no zoom handler',
@@ -1027,7 +1083,7 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(state);
 
     await expect(api.ui.get()).resolves.toEqual(state);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.uiGet);
+    expect(electron.invoke).toHaveBeenCalledWith(uiEndpoints.get.channel);
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -1039,7 +1095,7 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(reply);
 
     await expect(api.ui.get()).rejects.toThrow(
-      `Bad reply on ${Channels.uiGet}`,
+      `Bad reply on ${uiEndpoints.get.channel}`,
     );
     expect(loggedErrors()).toEqual([expect.objectContaining({level: 'error'})]);
   });
@@ -1068,7 +1124,7 @@ describe('preload', () => {
     electron.invoke.mockRejectedValueOnce(new Error('no handler'));
 
     await expect(api.live.get()).rejects.toThrow(
-      `Bad reply on ${Channels.liveGet}`,
+      `Bad reply on ${liveEndpoints.get.channel}`,
     );
     await expect(api.live.get()).rejects.toThrow('no handler');
     expect(loggedErrors()).toHaveLength(2);
@@ -1080,7 +1136,7 @@ describe('preload', () => {
 
     await expect(api.live.clock()).resolves.toBe(1234.5);
     await expect(api.live.clock()).rejects.toThrow(
-      `Bad reply on ${Channels.liveClock}`,
+      `Bad reply on ${liveEndpoints.clock.channel}`,
     );
     expect(loggedErrors()).toHaveLength(1);
   });
@@ -1098,7 +1154,7 @@ describe('preload', () => {
   it('passes only valid pushed states to a subscriber', () => {
     const listener = vi.fn();
     const unsubscribe = api.live.subscribe(listener);
-    const push = electron.handlers.get(Channels.liveChanged);
+    const push = electron.handlers.get(liveEndpoints.changed.channel);
 
     push?.({}, {...emptyLiveState(), version: 3});
     push?.({}, {version: -1});
@@ -1107,7 +1163,7 @@ describe('preload', () => {
     expect(listener).toHaveBeenCalledWith({...emptyLiveState(), version: 3});
     expect(loggedErrors()).toHaveLength(1);
     unsubscribe();
-    expect(electron.handlers.has(Channels.liveChanged)).toBe(false);
+    expect(electron.handlers.has(liveEndpoints.changed.channel)).toBe(false);
   });
 
   it('passes a valid service, and no service, through', async () => {
@@ -1116,7 +1172,7 @@ describe('preload', () => {
 
     await expect(api.service.get()).resolves.toEqual(showService(2));
     await expect(api.service.get()).resolves.toBeNull();
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.serviceGet);
+    expect(electron.invoke).toHaveBeenCalledWith(serviceEndpoints.get.channel);
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -1130,11 +1186,14 @@ describe('preload', () => {
     await expect(api.service.open({serviceId})).resolves.toEqual(shown);
     await expect(api.service.open({serviceId})).resolves.toBeNull();
     await expect(api.service.open({serviceId})).rejects.toThrow(
-      `Bad reply on ${Channels.serviceOpen}: id`,
+      `Bad reply on ${serviceEndpoints.open.channel}: id`,
     );
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.serviceOpen, {
-      serviceId,
-    });
+    expect(electron.invoke).toHaveBeenCalledWith(
+      serviceEndpoints.open.channel,
+      {
+        serviceId,
+      },
+    );
     expect(loggedErrors()).toHaveLength(1);
   });
 
@@ -1143,7 +1202,7 @@ describe('preload', () => {
     electron.invoke.mockRejectedValueOnce(new Error('no handler'));
 
     await expect(api.service.get()).rejects.toThrow(
-      `Bad reply on ${Channels.serviceGet}: rows`,
+      `Bad reply on ${serviceEndpoints.get.channel}: rows`,
     );
     await expect(api.service.get()).rejects.toThrow('no handler');
     expect(loggedErrors()).toHaveLength(2);
@@ -1152,7 +1211,7 @@ describe('preload', () => {
   it('passes only valid pushed services to a subscriber', () => {
     const listener = vi.fn();
     const unsubscribe = api.service.subscribe(listener);
-    const push = electron.handlers.get(Channels.serviceChanged);
+    const push = electron.handlers.get(serviceEndpoints.changed.channel);
 
     push?.({}, showService(3));
     push?.({}, null);
@@ -1161,7 +1220,7 @@ describe('preload', () => {
     expect(listener.mock.calls).toEqual([[showService(3)], [null]]);
     expect(loggedErrors()).toHaveLength(1);
     unsubscribe();
-    expect(electron.handlers.has(Channels.serviceChanged)).toBe(false);
+    expect(electron.handlers.has(serviceEndpoints.changed.channel)).toBe(false);
   });
 
   it('passes valid output statuses through and rejects bad ones', async () => {
@@ -1178,16 +1237,18 @@ describe('preload', () => {
 
     await expect(api.output.getStatus()).resolves.toEqual(statuses);
     await expect(api.output.getStatus()).rejects.toThrow(
-      `Bad reply on ${Channels.outputStatusGet}`,
+      `Bad reply on ${outputEndpoints.status.channel}`,
     );
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.outputStatusGet);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      outputEndpoints.status.channel,
+    );
     expect(loggedErrors()).toHaveLength(1);
   });
 
   it('passes only valid pushed output statuses to a subscriber', () => {
     const listener = vi.fn();
     const unsubscribe = api.output.subscribeStatus(listener);
-    const push = electron.handlers.get(Channels.outputStatusChanged);
+    const push = electron.handlers.get(outputEndpoints.statusChanged.channel);
 
     push?.({}, {});
     push?.({}, []);
@@ -1195,7 +1256,9 @@ describe('preload', () => {
     expect(listener.mock.calls).toEqual([[{}]]);
     expect(loggedErrors()).toHaveLength(1);
     unsubscribe();
-    expect(electron.handlers.has(Channels.outputStatusChanged)).toBe(false);
+    expect(electron.handlers.has(outputEndpoints.statusChanged.channel)).toBe(
+      false,
+    );
   });
 
   it('validates installed font families before exposing them', async () => {
@@ -1209,9 +1272,9 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce([{...family, weights: [0]}]);
     await expect(api.fonts.get()).resolves.toEqual([family]);
     await expect(api.fonts.get()).rejects.toThrow(
-      `Bad reply on ${Channels.fontsGet}`,
+      `Bad reply on ${outputEndpoints.fonts.channel}`,
     );
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.fontsGet);
+    expect(electron.invoke).toHaveBeenCalledWith(outputEndpoints.fonts.channel);
     expect(loggedErrors()).toHaveLength(1);
   });
 
@@ -1230,16 +1293,18 @@ describe('preload', () => {
 
     await expect(api.monitors.get()).resolves.toEqual([monitor]);
     await expect(api.monitors.get()).rejects.toThrow(
-      `Bad reply on ${Channels.monitorsGet}`,
+      `Bad reply on ${outputEndpoints.monitors.channel}`,
     );
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.monitorsGet);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      outputEndpoints.monitors.channel,
+    );
     expect(loggedErrors()).toHaveLength(1);
   });
 
   it('passes only valid pushed monitor lists to a subscriber', () => {
     const listener = vi.fn();
     const unsubscribe = api.monitors.subscribe(listener);
-    const push = electron.handlers.get(Channels.monitorsChanged);
+    const push = electron.handlers.get(outputEndpoints.monitorsChanged.channel);
 
     push?.({}, []);
     push?.({}, {});
@@ -1247,13 +1312,15 @@ describe('preload', () => {
     expect(listener.mock.calls).toEqual([[[]]]);
     expect(loggedErrors()).toHaveLength(1);
     unsubscribe();
-    expect(electron.handlers.has(Channels.monitorsChanged)).toBe(false);
+    expect(electron.handlers.has(outputEndpoints.monitorsChanged.channel)).toBe(
+      false,
+    );
   });
 
   it('sends 다시 시도 for a screen one way', () => {
     api.output.retry('main');
 
-    expect(electron.send).toHaveBeenCalledWith(Channels.outputRetry, {
+    expect(electron.send).toHaveBeenCalledWith(outputEndpoints.retry.channel, {
       screenId: 'main',
     });
   });
@@ -1261,15 +1328,20 @@ describe('preload', () => {
   it('sends 모니터 다시 찾기 one way, with no payload', () => {
     api.output.findMonitors();
 
-    expect(electron.send).toHaveBeenCalledWith(Channels.outputFindMonitors);
+    expect(electron.send).toHaveBeenCalledWith(
+      outputEndpoints.findMonitors.channel,
+    );
   });
 
   it('sends 창 보기 for a screen one way', () => {
     api.output.showWindow('stage');
 
-    expect(electron.send).toHaveBeenCalledWith(Channels.outputShowWindow, {
-      screenId: 'stage',
-    });
+    expect(electron.send).toHaveBeenCalledWith(
+      outputEndpoints.showWindow.channel,
+      {
+        screenId: 'stage',
+      },
+    );
   });
 
   it('sends an edit and passes a valid answer through', async () => {
@@ -1281,7 +1353,10 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(answer);
 
     await expect(api.content.edit(edit)).resolves.toEqual(answer);
-    expect(electron.invoke).toHaveBeenCalledWith(Channels.contentEdit, edit);
+    expect(electron.invoke).toHaveBeenCalledWith(
+      contentEndpoints.edit.channel,
+      edit,
+    );
     expect(loggedErrors()).toEqual([]);
   });
 
@@ -1306,7 +1381,7 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce({ok: true, value: {id: ''}});
 
     await expect(api.content.edit({type: 'song.create'})).rejects.toThrow(
-      `Bad reply on ${Channels.contentEdit}`,
+      `Bad reply on ${contentEndpoints.edit.channel}`,
     );
     expect(loggedErrors()).toHaveLength(1);
   });
@@ -1338,10 +1413,10 @@ describe('preload', () => {
     await expect(api.songs.get(SONG_ID)).resolves.toBeNull();
     await expect(api.services.list()).resolves.toEqual([]);
     await expect(api.templates.list()).rejects.toThrow(
-      `Bad reply on ${Channels.templatesList}`,
+      `Bad reply on ${contentEndpoints.templates.list.channel}`,
     );
     expect(electron.invoke).toHaveBeenCalledWith(
-      Channels.songsDocumentGet,
+      contentEndpoints.songs.get.channel,
       SONG_ID,
     );
   });
@@ -1360,11 +1435,11 @@ describe('preload', () => {
     };
     electron.invoke.mockResolvedValueOnce(legacy);
     await expect(api.songs.get(SONG_ID)).rejects.toThrow(
-      `Bad reply on ${Channels.songsDocumentGet}`,
+      `Bad reply on ${contentEndpoints.songs.get.channel}`,
     );
     const changed = vi.fn();
     const stop = api.songs.subscribe(changed);
-    electron.handlers.get(Channels.songsDocumentChanged)?.(
+    electron.handlers.get(contentEndpoints.songs.changed.channel)?.(
       {},
       {songId: SONG_ID, document: legacy},
     );
@@ -1379,18 +1454,18 @@ describe('preload', () => {
     const stopChanges = api.songs.subscribe(changes);
     const stopLists = api.songs.subscribeList(lists);
 
-    electron.handlers.get(Channels.songsDocumentChanged)?.(
+    electron.handlers.get(contentEndpoints.songs.changed.channel)?.(
       {},
       {
         songId: SONG_ID,
         document: null,
       },
     );
-    electron.handlers.get(Channels.songsDocumentChanged)?.(
+    electron.handlers.get(contentEndpoints.songs.changed.channel)?.(
       {},
       {document: null},
     );
-    electron.handlers.get(Channels.songsDocumentChanged)?.(
+    electron.handlers.get(contentEndpoints.songs.changed.channel)?.(
       {},
       {
         songId: '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
@@ -1413,16 +1488,20 @@ describe('preload', () => {
         },
       },
     );
-    electron.handlers.get(Channels.songsListChanged)?.({}, []);
-    electron.handlers.get(Channels.songsListChanged)?.({}, {});
+    electron.handlers.get(contentEndpoints.songs.listChanged.channel)?.({}, []);
+    electron.handlers.get(contentEndpoints.songs.listChanged.channel)?.({}, {});
 
     expect(changes.mock.calls).toEqual([[{songId: SONG_ID, document: null}]]);
     expect(lists.mock.calls).toEqual([[[]]]);
     expect(loggedErrors()).toHaveLength(3);
     stopChanges();
     stopLists();
-    expect(electron.handlers.has(Channels.songsDocumentChanged)).toBe(false);
-    expect(electron.handlers.has(Channels.songsListChanged)).toBe(false);
+    expect(electron.handlers.has(contentEndpoints.songs.changed.channel)).toBe(
+      false,
+    );
+    expect(
+      electron.handlers.has(contentEndpoints.songs.listChanged.channel),
+    ).toBe(false);
   });
 
   it('sends layout changes, log entries, and frame rates one way', () => {
@@ -1434,10 +1513,16 @@ describe('preload', () => {
     api.log.write(entry);
     api.output.reportFrameRate(report);
 
-    expect(electron.send).toHaveBeenCalledWith(Channels.uiLayoutSet, change);
-    expect(electron.send).toHaveBeenCalledWith(Channels.logWrite, entry);
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.outputFrameRate,
+      uiEndpoints.setLayout.channel,
+      change,
+    );
+    expect(electron.send).toHaveBeenCalledWith(
+      outputEndpoints.log.channel,
+      entry,
+    );
+    expect(electron.send).toHaveBeenCalledWith(
+      outputEndpoints.frameRate.channel,
       report,
     );
   });
@@ -1453,7 +1538,7 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce(true);
     await expect(api.output.reportReady(report)).resolves.toBe(true);
     expect(electron.invoke).toHaveBeenLastCalledWith(
-      Channels.outputFrameReady,
+      outputEndpoints.frameReady.channel,
       report,
     );
     electron.invoke.mockResolvedValueOnce('ready');

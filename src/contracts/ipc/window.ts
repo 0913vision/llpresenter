@@ -1,6 +1,5 @@
 import type {Result} from '@core/common/result';
 import type {PayloadError} from '@core/schema/payload';
-import {Channels} from './channels';
 import {message, type IpcPort} from './endpoint';
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -23,7 +22,7 @@ export function parseWindowAction(
 
 /** The title bar calls. */
 export const windowEndpoints = {
-  control: message<WindowAction>(Channels.windowControl, parseWindowAction),
+  control: message<WindowAction>('window:control', parseWindowAction),
 };
 
 /** The title bar part of `window.llp`. */

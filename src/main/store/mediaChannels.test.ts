@@ -1,6 +1,6 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {mediaEndpoints} from '@contracts/ipc/media';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
@@ -94,7 +94,7 @@ describe('media backend boundary', () => {
     const connected = channels.port.connect(backend);
     try {
       const pending = Array.from({length: MAX_MEDIA_BACKEND_REQUESTS}, () =>
-        handler(Channels.mediaImport)(
+        handler(mediaEndpoints.import.channel)(
           {},
           {source: {kind: 'dialog'}, playlist: null},
         ),
@@ -105,7 +105,7 @@ describe('media backend boundary', () => {
         ),
       );
       expect(
-        await handler(Channels.mediaImport)(
+        await handler(mediaEndpoints.import.channel)(
           {},
           {source: {kind: 'dialog'}, playlist: null},
         ),
@@ -132,9 +132,9 @@ describe('media backend boundary', () => {
       }),
       log,
     );
-    const reading = handler(Channels.mediaGet)({});
+    const reading = handler(mediaEndpoints.get.channel)({});
     const rejected = expect(reading).rejects.toThrow('unavailable');
-    const editing = handler(Channels.mediaEdit)(
+    const editing = handler(mediaEndpoints.edit.channel)(
       {},
       {type: 'media.delete', mediaId: ID},
     );
@@ -152,15 +152,15 @@ describe('media backend boundary', () => {
   it('explicitly refuses import, relink, and cancel while P6a is unavailable', async () => {
     const {store, channels} = setup();
     for (const result of [
-      await handler(Channels.mediaImport)(
+      await handler(mediaEndpoints.import.channel)(
         {},
         {source: {kind: 'dialog'}, playlist: null},
       ),
-      await handler(Channels.mediaEdit)(
+      await handler(mediaEndpoints.edit.channel)(
         {},
         {type: 'media.relink', mediaId: ID},
       ),
-      await handler(Channels.mediaEdit)(
+      await handler(mediaEndpoints.edit.channel)(
         {},
         {type: 'media.import.cancel', mediaId: ID},
       ),
@@ -173,7 +173,7 @@ describe('media backend boundary', () => {
     }
     expect(store.get().revision).toBe(1);
     expect(
-      await handler(Channels.mediaEdit)(
+      await handler(mediaEndpoints.edit.channel)(
         {},
         {type: 'media.delete', mediaId: 'bad'},
       ),
@@ -203,7 +203,7 @@ describe('media backend boundary', () => {
     };
     const connected = channels.port.connect(backend);
     expect(
-      await handler(Channels.mediaImport)(
+      await handler(mediaEndpoints.import.channel)(
         {},
         {source: {kind: 'dialog'}, playlist: null},
       ),
@@ -217,7 +217,7 @@ describe('media backend boundary', () => {
       value: [{...job, percent: 900}],
     });
     expect(
-      await handler(Channels.mediaImport)(
+      await handler(mediaEndpoints.import.channel)(
         {},
         {source: {kind: 'dialog'}, playlist: null},
       ),

@@ -2,7 +2,8 @@ import {EventEmitter} from 'node:events';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
+import {contentEndpoints} from '@contracts/ipc/content';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, parseService} from '@core/schema/service';
 import {APP_FLUSH_LIMITS, parseAppFlushRequest} from '@core/schema/appFlush';
@@ -54,7 +55,7 @@ async function readMemo(file: string) {
 
 async function currentService(serviceId: string) {
   const parsed = parseServiceDocument(
-    await ask(Channels.servicesDocumentGet, serviceId),
+    await ask(contentEndpoints.services.get.channel, serviceId),
   );
   if (!parsed.ok || parsed.value === null) throw new Error('Missing service');
   return parsed.value;
@@ -161,7 +162,9 @@ it.each([
           on: contents.on.bind(contents),
           removeListener: contents.removeListener.bind(contents),
           send: (channel, value) => {
-            if (channel === Channels.appFlushRequest) requestFlush(value);
+            if (channel === appEndpoints.flushRequests.channel) {
+              requestFlush(value);
+            }
           },
         },
       },
@@ -172,7 +175,7 @@ it.each([
       const parsed = parseAppFlushRequest(value);
       if (!parsed.ok) throw new Error('Invalid flush request');
       const progress = (): void => {
-        ipc.emit(Channels.appFlushProgress, {sender}, parsed.value);
+        ipc.emit(appEndpoints.flushProgress.channel, {sender}, parsed.value);
       };
       progress();
       const interval = setInterval(
@@ -181,7 +184,7 @@ it.each([
       );
       try {
         const document = await currentService(serviceId);
-        await ask(Channels.contentEdit, {
+        await ask(contentEndpoints.edit.channel, {
           type: 'service.update',
           baseRevision: document.revision,
           service: {
@@ -191,9 +194,13 @@ it.each([
             ),
           },
         });
-        const result = (await ask(Channels.appSavePending)) === true;
+        const result = (await ask(appEndpoints.savePending.channel)) === true;
         replies.push(result);
-        ipc.emit(Channels.appFlushDone, {sender}, {...parsed.value, result});
+        ipc.emit(
+          appEndpoints.flushDone.channel,
+          {sender},
+          {...parsed.value, result},
+        );
       } finally {
         clearInterval(interval);
       }

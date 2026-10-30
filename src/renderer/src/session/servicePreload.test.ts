@@ -7,7 +7,8 @@ import {
   it,
   vi,
 } from 'vitest';
-import {Channels, type LlpApi} from '@contracts/ipc/api';
+import type {LlpApi} from '@contracts/ipc/api';
+import {outputEndpoints} from '@contracts/ipc/output';
 import type {ShowService} from '@core/schema/showService';
 import {applyService, startServiceSync, useShow} from '@renderer/session/show';
 
@@ -72,7 +73,7 @@ afterEach(() => {
 function loggedErrors(): unknown[] {
   const calls: unknown[][] = electron.send.mock.calls;
   return calls
-    .filter(([channel]) => channel === Channels.logWrite)
+    .filter(([channel]) => channel === outputEndpoints.log.channel)
     .map(([, entry]) => entry);
 }
 

@@ -8,7 +8,7 @@ import {
   type BrowserWindow,
   type IpcMainEvent,
 } from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId} from '@core/schema/ids';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {
@@ -111,7 +111,7 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
       missing = new MissingFiles({
         source: store,
         onChange: value => {
-          broadcast(Channels.mediaMissing, value, log);
+          broadcast(mediaEndpoints.missingChanged.channel, value, log);
         },
       });
       missing.start();
@@ -120,7 +120,7 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
       log.error('could not check the media files', error);
     },
   );
-  ipcMain.handle(Channels.mediaMissingGet, async () => {
+  ipcMain.handle(mediaEndpoints.missing.channel, async () => {
     await ready;
     return missing?.list() ?? [];
   });
@@ -132,14 +132,14 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
     }
     missing?.check(parsed.value.mediaId);
   };
-  ipcMain.on(Channels.mediaCheck, check);
+  ipcMain.on(mediaEndpoints.check.channel, check);
   return {
     files: () => missing,
     dispose: () => {
       stopped = true;
       missing?.dispose();
-      ipcMain.removeHandler(Channels.mediaMissingGet);
-      ipcMain.removeListener(Channels.mediaCheck, check);
+      ipcMain.removeHandler(mediaEndpoints.missing.channel);
+      ipcMain.removeListener(mediaEndpoints.check.channel, check);
     },
   };
 }
@@ -184,9 +184,9 @@ function listenForReveals({
       log.error('could not reveal a media file', error);
     });
   };
-  ipcMain.on(Channels.mediaReveal, reveal);
+  ipcMain.on(mediaEndpoints.reveal.channel, reveal);
   return () => {
-    ipcMain.removeListener(Channels.mediaReveal, reveal);
+    ipcMain.removeListener(mediaEndpoints.reveal.channel, reveal);
   };
 }
 

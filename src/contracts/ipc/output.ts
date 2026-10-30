@@ -17,41 +17,34 @@ import {
   type OutputShowWindowRequest,
   type OutputStatuses,
 } from '@core/schema/outputStatus';
-import {Channels} from './channels';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
   frameRate: message<FrameRateReport>(
-    Channels.outputFrameRate,
+    'output:frame-rate',
     parseFrameRateReport,
   ),
-  frameReady: request<FrameReadyReport, boolean>(Channels.outputFrameReady, {
+  frameReady: request<FrameReadyReport, boolean>('output:frame-ready', {
     request: parseFrameReadyReport,
     reply: parseFrameReadyReply,
     refuse: () => false,
   }),
-  status: query<OutputStatuses>(Channels.outputStatusGet, parseOutputStatuses),
+  status: query<OutputStatuses>('output:status:get', parseOutputStatuses),
   statusChanged: push<OutputStatuses>(
-    Channels.outputStatusChanged,
+    'output:status:changed',
     parseOutputStatuses,
   ),
-  retry: message<OutputRetryRequest>(
-    Channels.outputRetry,
-    parseOutputRetryRequest,
-  ),
-  findMonitors: signal(Channels.outputFindMonitors),
+  retry: message<OutputRetryRequest>('output:retry', parseOutputRetryRequest),
+  findMonitors: signal('output:find-monitors'),
   showWindow: message<OutputShowWindowRequest>(
-    Channels.outputShowWindow,
+    'output:show-window',
     parseOutputShowWindowRequest,
   ),
-  monitors: query<MonitorList>(Channels.monitorsGet, parseMonitorList),
-  monitorsChanged: push<MonitorList>(
-    Channels.monitorsChanged,
-    parseMonitorList,
-  ),
-  fonts: query<FontCatalog>(Channels.fontsGet, parseFontCatalog),
-  log: message<RendererLogEntry>(Channels.logWrite, parseRendererLogEntry),
+  monitors: query<MonitorList>('monitors:get', parseMonitorList),
+  monitorsChanged: push<MonitorList>('monitors:changed', parseMonitorList),
+  fonts: query<FontCatalog>('fonts:get', parseFontCatalog),
+  log: message<RendererLogEntry>('log:write', parseRendererLogEntry),
 };
 
 /** The output window part of `window.llp`. */

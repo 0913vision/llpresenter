@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {Channels} from '@contracts/ipc/api';
+import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@core/schema/testHelpers';
@@ -430,20 +430,21 @@ describe('media backend registration', () => {
     const log = recordingLogger();
     const stop = register(port, await mediaStore(), {log});
     await vi.waitFor(() =>
-      expect(electron.send).toHaveBeenCalledWith(Channels.mediaMissing, [
-        MISSING,
-      ]),
+      expect(electron.send).toHaveBeenCalledWith(
+        mediaEndpoints.missingChanged.channel,
+        [MISSING],
+      ),
     );
-    expect(await electron.handlers.get(Channels.mediaMissingGet)?.()).toEqual([
-      MISSING,
-    ]);
-    const check = electron.listeners.get(Channels.mediaCheck);
+    expect(
+      await electron.handlers.get(mediaEndpoints.missing.channel)?.(),
+    ).toEqual([MISSING]);
+    const check = electron.listeners.get(mediaEndpoints.check.channel);
     check?.({}, {mediaId: MISSING});
     check?.({}, {mediaId: 'not an id'});
     expect(log.messages('warn')).toEqual(['dropped a malformed media check']);
     await stop();
-    expect(electron.handlers.has(Channels.mediaMissingGet)).toBe(false);
-    expect(electron.listeners.has(Channels.mediaCheck)).toBe(false);
+    expect(electron.handlers.has(mediaEndpoints.missing.channel)).toBe(false);
+    expect(electron.listeners.has(mediaEndpoints.check.channel)).toBe(false);
   });
 
   it('shows a media file in Explorer on 파일 위치 열기, and stops listening', async () => {
@@ -452,7 +453,7 @@ describe('media backend registration', () => {
     const store = await mediaStore();
     await writeFile(join(store.folder, 'gone.png'), 'invented');
     const stop = register(port, store, {log});
-    const reveal = electron.listeners.get(Channels.mediaReveal);
+    const reveal = electron.listeners.get(mediaEndpoints.reveal.channel);
     reveal?.({}, {mediaId: MISSING});
     reveal?.({}, {mediaId: 'not an id'});
     await vi.waitFor(() =>
@@ -461,7 +462,7 @@ describe('media backend registration', () => {
     expect(electron.showItemInFolder.mock.calls[0]?.[0]).toMatch(/gone\.png$/);
     expect(log.messages('warn')).toContain('dropped a malformed media reveal');
     await stop();
-    expect(electron.listeners.has(Channels.mediaReveal)).toBe(false);
+    expect(electron.listeners.has(mediaEndpoints.reveal.channel)).toBe(false);
   });
 
   it('opens no Explorer window for 파일 위치 열기 in offscreen mode', async () => {
@@ -472,7 +473,10 @@ describe('media backend registration', () => {
       log,
       windowMode: 'offscreen',
     });
-    electron.listeners.get(Channels.mediaReveal)?.({}, {mediaId: MISSING});
+    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
+      {},
+      {mediaId: MISSING},
+    );
     expect(log.messages('info')).toContain(
       'media file reveal is unavailable in offscreen mode',
     );
@@ -487,7 +491,10 @@ describe('media backend registration', () => {
     const outside = join(await makeTempDir(), 'secret.png');
     await writeFile(outside, 'invented');
     const stop = register(port, {...store, fileOf: () => outside}, {log});
-    electron.listeners.get(Channels.mediaReveal)?.({}, {mediaId: MISSING});
+    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
+      {},
+      {mediaId: MISSING},
+    );
     await vi.waitFor(() =>
       expect(log.messages('info')).toContain(
         'no media file to reveal inside the media folders',
@@ -495,7 +502,10 @@ describe('media backend registration', () => {
     );
     await stop();
     const gone = register(fakePort().port, store, {log});
-    electron.listeners.get(Channels.mediaReveal)?.({}, {mediaId: MISSING});
+    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
+      {},
+      {mediaId: MISSING},
+    );
     await vi.waitFor(() =>
       expect(
         log
@@ -525,6 +535,6 @@ describe('media backend registration', () => {
       'could not connect the media backend',
     ]);
     await expect(stop()).resolves.toBeUndefined();
-    expect(electron.handlers.has(Channels.mediaMissingGet)).toBe(false);
+    expect(electron.handlers.has(mediaEndpoints.missing.channel)).toBe(false);
   });
 });

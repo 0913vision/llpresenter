@@ -1,5 +1,5 @@
 import type {BrowserWindow} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
 import {toMonitorList} from '../displays/monitorList';
@@ -84,21 +84,23 @@ function publishStatus({
   screenIdFor,
 }: StatusPublishing): Array<() => void> {
   return [
-    answerWindows(Channels.outputStatusGet, () => board.snapshot()),
+    answerWindows(outputEndpoints.status.channel, () => board.snapshot()),
     listenToWindows(
-      Channels.outputRetry,
+      outputEndpoints.retry.channel,
       handleRetryRequest(screenId => outputs.retry(screenIdFor(screenId)), log),
     ),
-    listenToWindows(Channels.outputFindMonitors, () => displays.refresh()),
+    listenToWindows(outputEndpoints.findMonitors.channel, () =>
+      displays.refresh(),
+    ),
     listenToWindows(
-      Channels.outputShowWindow,
+      outputEndpoints.showWindow.channel,
       handleShowWindowRequest(
         screenId => outputs.showWindow(screenIdFor(screenId)),
         log,
       ),
     ),
     board.subscribe(statuses =>
-      sendToWindows(Channels.outputStatusChanged, statuses, log),
+      sendToWindows(outputEndpoints.statusChanged.channel, statuses, log),
     ),
   ];
 }
@@ -123,9 +125,10 @@ function publishMonitors({
       assignment: outputs.assignedMonitorIds,
       limit: MONITOR_LIST_MAX,
     });
-  const push = () => sendToWindows(Channels.monitorsChanged, list(), log);
+  const push = () =>
+    sendToWindows(outputEndpoints.monitorsChanged.channel, list(), log);
   return [
-    answerWindows(Channels.monitorsGet, list),
+    answerWindows(outputEndpoints.monitors.channel, list),
     displays.subscribe(push),
     outputs.subscribeAssignment(push),
   ];
@@ -212,7 +215,7 @@ export function startOutputs({
     guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
     stopNormalizing,
-    answerWindows(Channels.outputFrameReady, (_event, value) => {
+    answerWindows(outputEndpoints.frameReady.channel, (_event, value) => {
       const report = parseFrameReadyReport(value);
       if (!report.ok) {
         log.error('invalid output frame ready report', report.error);
@@ -226,7 +229,7 @@ export function startOutputs({
     }),
     screens.subscribe(() => board.refresh()),
     listenToWindows(
-      Channels.outputFrameRate,
+      outputEndpoints.frameRate.channel,
       handleFrameRate(report => {
         const screenId = screenIdFor(report.screenId);
         // NOTE(0913vision): An off output is a hidden window, which draws

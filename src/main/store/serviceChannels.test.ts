@@ -1,6 +1,6 @@
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {serviceEndpoints} from '@contracts/ipc/service';
 import {createServiceId, type ServiceId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {parseService} from '@core/schema/service';
@@ -122,7 +122,7 @@ describe('service open channels', () => {
   it('opens another service without writing over a read-only current service', async () => {
     const {write, content} = setup({readOnlyCurrent: true});
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
     ).toMatchObject({id: SECOND});
     expect(write).not.toHaveBeenCalled();
     expect(content.openServiceId).toBe(SECOND);
@@ -132,7 +132,7 @@ describe('service open channels', () => {
     const {config, content, log} = setup();
     config.flush.mockRejectedValueOnce(new Error('Config unavailable'));
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
     ).toMatchObject({id: SECOND});
     expect(content.openServiceId).toBe(SECOND);
     expect(log.messages('error')).toContain(
@@ -150,16 +150,18 @@ describe('service open channels', () => {
     });
     try {
       const pending = Array.from({length: MAX_PENDING_SERVICE_SWITCHES}, () =>
-        handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+        handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
       );
       await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
       expect(
-        await handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+        await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
       ).toBeNull();
       expect(log.messages('warn')).toContain(
         'too many pending service switches',
       );
-      expect(await handler(Channels.serviceGet)({})).toMatchObject({id: FIRST});
+      expect(await handler(serviceEndpoints.get.channel)({})).toMatchObject({
+        id: FIRST,
+      });
       release();
       await Promise.all(pending);
       expect(config.setLastServiceId).toHaveBeenCalledTimes(
@@ -180,7 +182,7 @@ describe('service open channels', () => {
       baseRevision: 1,
     });
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
     ).toMatchObject({id: SECOND});
     expect(write).toHaveBeenCalledTimes(1);
     expect(write.mock.calls[0]?.[0].target.file).toBe(
@@ -203,10 +205,10 @@ describe('service open channels', () => {
   it('keeps the current service on unknown IDs, malformed requests, and a failed current save', async () => {
     const {content, config, write, locations} = setup();
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: MISSING}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: MISSING}),
     ).toBeNull();
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: 'bad'}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: 'bad'}),
     ).toBeNull();
     expect(write).not.toHaveBeenCalled();
     const current = content.service(FIRST);
@@ -224,12 +226,12 @@ describe('service open channels', () => {
       },
     });
     expect(
-      await handler(Channels.serviceOpen)({}, {serviceId: SECOND}),
+      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
     ).toBeNull();
     expect(write).toHaveBeenCalledOnce();
     expect(content.openServiceId).toBe(FIRST);
     expect(config.setLastServiceId).not.toHaveBeenCalled();
-    expect(await handler(Channels.serviceGet)({})).toMatchObject({
+    expect(await handler(serviceEndpoints.get.channel)({})).toMatchObject({
       id: FIRST,
       name: 'Unsaved current',
     });
@@ -245,8 +247,14 @@ describe('service open channels', () => {
       return {ok: true, value: undefined};
     });
     try {
-      const first = handler(Channels.serviceOpen)({}, {serviceId: SECOND});
-      const second = handler(Channels.serviceOpen)({}, {serviceId: FIRST});
+      const first = handler(serviceEndpoints.open.channel)(
+        {},
+        {serviceId: SECOND},
+      );
+      const second = handler(serviceEndpoints.open.channel)(
+        {},
+        {serviceId: FIRST},
+      );
       await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
       release();
       expect(await first).toMatchObject({id: SECOND});
@@ -270,7 +278,10 @@ describe('service open channels', () => {
       return {ok: true, value: undefined};
     });
     try {
-      const opening = handler(Channels.serviceOpen)({}, {serviceId: SECOND});
+      const opening = handler(serviceEndpoints.open.channel)(
+        {},
+        {serviceId: SECOND},
+      );
       await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
       const closing = channels.dispose();
       expect(handlers.size).toBe(0);
@@ -289,8 +300,11 @@ describe('service open channels', () => {
       config,
       recordingLogger(),
     );
-    const reading = handler(Channels.serviceGet)({});
-    const opening = handler(Channels.serviceOpen)({}, {serviceId: SECOND});
+    const reading = handler(serviceEndpoints.get.channel)({});
+    const opening = handler(serviceEndpoints.open.channel)(
+      {},
+      {serviceId: SECOND},
+    );
     await late.dispose();
     finish(null);
     expect(await reading).toBeNull();

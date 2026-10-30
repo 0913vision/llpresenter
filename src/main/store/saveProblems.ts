@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import type {Logger} from '../log';
 import type {ProblemFeed} from '../problemFeed';
 import type {SaveFailures} from './saveFailures';
@@ -26,9 +26,9 @@ export function registerSaveProblems(
       log.error('could not retry the waiting saves', error);
     });
   };
-  ipcMain.on(Channels.appProblemRetrySaves, retry);
+  ipcMain.on(appEndpoints.retrySaves.channel, retry);
   return () => {
-    ipcMain.removeListener(Channels.appProblemRetrySaves, retry);
+    ipcMain.removeListener(appEndpoints.retrySaves.channel, retry);
     stop();
     removeStanding();
   };

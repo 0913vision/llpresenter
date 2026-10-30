@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {liveEndpoints} from '@contracts/ipc/live';
+import {windowEndpoints} from '@contracts/ipc/window';
 import {registerIpc} from './ipc';
 import {LiveStore} from './live/store';
 import type {Logger} from './log';
@@ -59,11 +60,14 @@ function fakeLog() {
 }
 
 function sendCommand(value: unknown): void {
-  electron.listeners.get(Channels.liveCommand)?.({}, value);
+  electron.listeners.get(liveEndpoints.command.channel)?.({}, value);
 }
 
 function sendWindowAction(value: unknown): void {
-  electron.listeners.get(Channels.windowControl)?.({sender: {}}, value);
+  electron.listeners.get(windowEndpoints.control.channel)?.(
+    {sender: {}},
+    value,
+  );
 }
 
 beforeEach(() => {
@@ -80,9 +84,9 @@ describe('registerIpc live clock', () => {
       timer: () => 4321,
     });
     const dispose = registerIpc(store, fakeLog(), 'offscreen');
-    expect(electron.handlers.get(Channels.liveClock)?.()).toBe(4321);
+    expect(electron.handlers.get(liveEndpoints.clock.channel)?.()).toBe(4321);
     dispose();
-    expect(electron.handlers.has(Channels.liveClock)).toBe(false);
+    expect(electron.handlers.has(liveEndpoints.clock.channel)).toBe(false);
   });
 });
 
@@ -113,13 +117,13 @@ describe('registerIpc live commands', () => {
     );
     for (const send of sends) {
       expect(send).toHaveBeenCalledExactlyOnceWith(
-        Channels.liveChanged,
+        liveEndpoints.changed.channel,
         store.state,
       );
     }
     dispose();
     expect(store.listenerCount).toBe(0);
-    expect(electron.listeners.has(Channels.liveCommand)).toBe(false);
+    expect(electron.listeners.has(liveEndpoints.command.channel)).toBe(false);
   });
 
   it('rejects an invalid batch envelope without applying any command', () => {

@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {settingsEndpoints} from '@contracts/ipc/settings';
 import {recordingLogger} from '../displays/testing';
 import {registerSettingsChannels} from './settingsChannels';
 import {SettingsStore} from './settingsStore';
@@ -47,7 +47,7 @@ describe('settings channel lifetime', () => {
       release({ok: true, value: {id: 'labels', revision: 2}});
       return channels.dispose();
     });
-    const pending = handler(Channels.settingsEdit)(
+    const pending = handler(settingsEndpoints.edit.channel)(
       {},
       {
         type: 'labels.rename',
@@ -79,9 +79,9 @@ describe('settings channel lifetime', () => {
       finish(store);
       return channels.dispose();
     });
-    const read = handler(Channels.settingsGet)({}, {name: 'labels'});
+    const read = handler(settingsEndpoints.get.channel)({}, {name: 'labels'});
     const failedRead = expect(read).rejects.toThrow('Settings unavailable');
-    const edit = handler(Channels.settingsEdit)(
+    const edit = handler(settingsEndpoints.edit.channel)(
       {},
       {
         type: 'settings.update',
@@ -112,10 +112,10 @@ describe('settings channel lifetime', () => {
     );
     onTestFinished(() => channels.dispose());
     await expect(
-      handler(Channels.settingsGet)({}, {name: 'labels'}),
+      handler(settingsEndpoints.get.channel)({}, {name: 'labels'}),
     ).rejects.toThrow('Settings unavailable');
     expect(
-      await handler(Channels.settingsEdit)(
+      await handler(settingsEndpoints.edit.channel)(
         {},
         {
           type: 'settings.update',

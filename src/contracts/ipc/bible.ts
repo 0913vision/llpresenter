@@ -4,12 +4,11 @@ import {
   type BibleLookupReply,
   type BibleLookupRequest,
 } from '@core/schema/bibleLookup';
-import {Channels} from './channels';
 import {request, type IpcPort} from './endpoint';
 
 /** The Bible calls between windows and main. */
 export const bibleEndpoints = {
-  lookup: request<BibleLookupRequest, BibleLookupReply>(Channels.bibleLookup, {
+  lookup: request<BibleLookupRequest, BibleLookupReply>('bible:lookup', {
     request: parseBibleLookupRequest,
     reply: (value, sent) => parseBibleLookupReply(sent, value),
   }),

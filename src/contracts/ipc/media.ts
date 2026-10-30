@@ -19,7 +19,6 @@ import {
   parseMissingMedia,
   type MissingMedia,
 } from '@core/schema/mediaFiles';
-import {Channels} from './channels';
 import {
   message,
   push,
@@ -36,27 +35,24 @@ interface MediaFileRequest {
 
 /** The calls about the media list and its files. */
 export const mediaEndpoints = {
-  get: query<MediaDocument>(Channels.mediaGet, parseMediaDocument),
-  edit: request<MediaEdit, MediaEditResult>(Channels.mediaEdit, {
+  get: query<MediaDocument>('media:get', parseMediaDocument),
+  edit: request<MediaEdit, MediaEditResult>('media:edit', {
     request: parseMediaEdit,
     reply: parseMediaEditResult,
   }),
-  import: request<MediaImportRequest, MediaImportResult>(Channels.mediaImport, {
+  import: request<MediaImportRequest, MediaImportResult>('media:import', {
     request: parseMediaImportRequest,
     reply: parseMediaImportResult,
   }),
-  changed: push<MediaDocument>(Channels.mediaChanged, parseMediaDocument),
+  changed: push<MediaDocument>('media:changed', parseMediaDocument),
   importChanged: push<MediaImportProgress>(
-    Channels.mediaImportChanged,
+    'media:import:changed',
     parseMediaImportProgress,
   ),
-  missing: query<MissingMedia>(Channels.mediaMissingGet, parseMissingMedia),
-  missingChanged: push<MissingMedia>(Channels.mediaMissing, parseMissingMedia),
-  check: message<MediaFileRequest>(Channels.mediaCheck, parseMediaCheckRequest),
-  reveal: message<MediaFileRequest>(
-    Channels.mediaReveal,
-    parseMediaRevealRequest,
-  ),
+  missing: query<MissingMedia>('media:missing:get', parseMissingMedia),
+  missingChanged: push<MissingMedia>('media:missing', parseMissingMedia),
+  check: message<MediaFileRequest>('media:check', parseMediaCheckRequest),
+  reveal: message<MediaFileRequest>('media:reveal', parseMediaRevealRequest),
 };
 
 /** The media part of `window.llp`. */

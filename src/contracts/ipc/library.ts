@@ -21,32 +21,31 @@ import {
   type TextImportReadRequest,
   type TextImportReadResult,
 } from '@core/schema/textImport';
-import {Channels} from './channels';
 import {query, request, type IpcPort} from './endpoint';
 
 /** The calls that search the 라이브러리 and import songs from text. */
 export const libraryEndpoints = {
-  search: request<LibrarySearchRequest, LibrarySearchResult>(
-    Channels.librarySearch,
-    {request: parseLibrarySearchRequest, reply: parseLibrarySearchResult},
-  ),
+  search: request<LibrarySearchRequest, LibrarySearchResult>('library:search', {
+    request: parseLibrarySearchRequest,
+    reply: parseLibrarySearchResult,
+  }),
   showSong: request<ShowLibrarySongRequest, ShowLibrarySong | null>(
-    Channels.libraryShowSong,
+    'library:show-song',
     {
       request: parseShowLibrarySongRequest,
       reply: (value, sent) => parseShowLibrarySongReply(sent.songId, value),
     },
   ),
   clipboardAvailable: query<boolean>(
-    Channels.textImportClipboardAvailable,
+    'import:text:clipboard-available',
     parseTextImportClipboardAvailable,
   ),
   readText: request<TextImportReadRequest, TextImportReadResult>(
-    Channels.textImportRead,
+    'import:text:read',
     {request: parseTextImportReadRequest, reply: parseTextImportReadResult},
   ),
   previewText: request<TextImportPreviewRequest, TextImportPreviewResult>(
-    Channels.textImportPreview,
+    'import:text:preview',
     {
       request: parseTextImportPreviewRequest,
       reply: parseTextImportPreviewResult,

@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {libraryEndpoints} from '@contracts/ipc/library';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {parseSongDocument} from '@core/schema/contentDocuments';
@@ -75,7 +75,7 @@ function registered(ready: Promise<LibrarySongSources | null>) {
   } satisfies Logger;
   const release = registerLibrarySong(ready, log);
   onTestFinished(release);
-  const handler = ipc.handlers.get(Channels.libraryShowSong);
+  const handler = ipc.handlers.get(libraryEndpoints.showSong.channel);
   if (handler === undefined) throw new Error('Handler missing');
   return {log, release, ask: (value: unknown) => handler({}, value)};
 }
@@ -233,7 +233,7 @@ describe('library song projection', () => {
     loaded(sources());
     expect(await pending).toMatchObject({songId, songRevision: 3});
     release();
-    expect(ipc.handlers.has(Channels.libraryShowSong)).toBe(false);
+    expect(ipc.handlers.has(libraryEndpoints.showSong.channel)).toBe(false);
     expect(await ask({songId})).toBeNull();
   });
 

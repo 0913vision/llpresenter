@@ -18,7 +18,12 @@ import {
   vi,
 } from 'vitest';
 import type {AppProblem} from '@core/schema/appProblem';
-import {Channels} from '@contracts/ipc/api';
+import {contentEndpoints} from '@contracts/ipc/content';
+import {libraryEndpoints} from '@contracts/ipc/library';
+import {liveEndpoints} from '@contracts/ipc/live';
+import {mediaEndpoints} from '@contracts/ipc/media';
+import {serviceEndpoints} from '@contracts/ipc/service';
+import {settingsEndpoints} from '@contracts/ipc/settings';
 import {parseEditResult} from '@core/schema/contentEdit';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {parseShowService} from '@core/schema/showService';
@@ -153,7 +158,7 @@ async function register(
 }
 
 function askForService(): Promise<unknown> {
-  return ask(Channels.serviceGet);
+  return ask(serviceEndpoints.get.channel);
 }
 
 function ask(channel: string, value?: unknown): Promise<unknown> {
@@ -163,7 +168,9 @@ function ask(channel: string, value?: unknown): Promise<unknown> {
 }
 
 async function songDocument(id: string) {
-  const parsed = parseSongDocument(await ask(Channels.songsDocumentGet, id));
+  const parsed = parseSongDocument(
+    await ask(contentEndpoints.songs.get.channel, id),
+  );
   if (!parsed.ok || parsed.value === null) {
     throw new Error('Missing grouped fixture');
   }
@@ -267,7 +274,7 @@ describe('registerStore', () => {
     const document = (await store.settings)?.get('bible');
     if (document?.name !== 'bible') throw new Error('Missing Bible document');
     expect(
-      await ask(Channels.settingsEdit, {
+      await ask(settingsEndpoints.edit.channel, {
         type: 'settings.update',
         name: 'bible',
         baseRevision: document.revision,
@@ -306,18 +313,18 @@ describe('registerStore', () => {
     await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
     const store = await register(fakeLog(), context, () => true);
     expect(
-      await ask(Channels.libraryShowSong, {songId: song.id}),
+      await ask(libraryEndpoints.showSong.channel, {songId: song.id}),
     ).toMatchObject({songRevision: 1});
     const current = (await songDocument(song.id)).song;
     expect(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.update',
         baseRevision: 1,
         song,
       }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.update',
         baseRevision: 1,
         song: {
@@ -331,16 +338,21 @@ describe('registerStore', () => {
       }),
     ).toMatchObject({ok: true});
     expect(
-      await ask(Channels.libraryShowSong, {songId: song.id}),
+      await ask(libraryEndpoints.showSong.channel, {songId: song.id}),
     ).toMatchObject({
       songRevision: 2,
       title: 'After edit',
       tiles: [{lines: ['After']}],
     });
     expect(
-      await ask(Channels.contentEdit, {type: 'song.delete', songId: song.id}),
+      await ask(contentEndpoints.edit.channel, {
+        type: 'song.delete',
+        songId: song.id,
+      }),
     ).toMatchObject({ok: true});
-    expect(await ask(Channels.libraryShowSong, {songId: song.id})).toBeNull();
+    expect(
+      await ask(libraryEndpoints.showSong.channel, {songId: song.id}),
+    ).toBeNull();
     await store.dispose();
   });
   it('projects a standalone song, rechecks its background file, and leaves the service unchanged', async () => {
@@ -386,7 +398,7 @@ describe('registerStore', () => {
     const before = await askForService();
     const content = await store.content;
     const serviceId = content?.openServiceId;
-    const shown = await ask(Channels.libraryShowSong, {songId});
+    const shown = await ask(libraryEndpoints.showSong.channel, {songId});
     expect(shown).toMatchObject({
       songId,
       songRevision: 1,
@@ -396,10 +408,10 @@ describe('registerStore', () => {
       background: {mediaId, loop: false},
     });
     expect(
-      await ask(Channels.libraryShowSong, {songId: itemId(99)}),
+      await ask(libraryEndpoints.showSong.channel, {songId: itemId(99)}),
     ).toBeNull();
     await rm(mediaFile);
-    const missing = await ask(Channels.libraryShowSong, {songId});
+    const missing = await ask(libraryEndpoints.showSong.channel, {songId});
     expect(missing).toMatchObject({
       readOnly: true,
       problem: 'missing-background',
@@ -409,7 +421,7 @@ describe('registerStore', () => {
     expect(content?.openServiceId).toBe(serviceId);
     expect(
       electron.send.mock.calls.some(
-        ([channel]) => channel === Channels.liveChanged,
+        ([channel]) => channel === liveEndpoints.changed.channel,
       ),
     ).toBe(false);
     expect(JSON.parse(await readFile(songFile, 'utf8'))).toHaveProperty(
@@ -417,7 +429,9 @@ describe('registerStore', () => {
       'kept',
     );
     await store.dispose();
-    expect(electron.handlers.has(Channels.libraryShowSong)).toBe(false);
+    expect(electron.handlers.has(libraryEndpoints.showSong.channel)).toBe(
+      false,
+    );
   });
   it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {
     const context = await developmentContext();
@@ -467,7 +481,7 @@ describe('registerStore', () => {
       rows: [{background: {mediaId, loop: true}}],
     });
     expect(
-      await ask(Channels.mediaEdit, {
+      await ask(mediaEndpoints.edit.channel, {
         type: 'media.properties.update',
         mediaId,
         baseRevision: 1,
@@ -478,7 +492,7 @@ describe('registerStore', () => {
       rows: [{background: {mediaId, loop: false}}],
     });
     expect(
-      await ask(Channels.mediaEdit, {type: 'media.delete', mediaId}),
+      await ask(mediaEndpoints.edit.channel, {type: 'media.delete', mediaId}),
     ).toMatchObject({ok: true});
     expect(await askForService()).toMatchObject({
       rows: [{problem: 'missing-background'}],
@@ -509,12 +523,12 @@ describe('registerStore', () => {
     };
     await writeJson(file, value);
     const first = await register(fakeLog(), context, () => true);
-    const initial = parseMediaDocument(await ask(Channels.mediaGet));
+    const initial = parseMediaDocument(await ask(mediaEndpoints.get.channel));
     if (!initial.ok) throw new Error(initial.error.message);
     expect(await first.findMediaFile(id)).toBe(join(root, 'Media', 'old.webm'));
     electron.send.mockClear();
     expect(
-      await ask(Channels.mediaEdit, {
+      await ask(mediaEndpoints.edit.channel, {
         type: 'media.properties.update',
         mediaId: id,
         baseRevision: 1,
@@ -522,8 +536,8 @@ describe('registerStore', () => {
       }),
     ).toMatchObject({ok: true, value: {revision: 2}});
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.mediaChanged,
-      await ask(Channels.mediaGet),
+      mediaEndpoints.changed.channel,
+      await ask(mediaEndpoints.get.channel),
     );
     const media = await first.media;
     if (media === null) throw new Error('Missing media store');
@@ -549,12 +563,15 @@ describe('registerStore', () => {
     );
     await first.dispose();
     const second = await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.mediaGet)).toMatchObject({
+    expect(await ask(mediaEndpoints.get.channel)).toMatchObject({
       revision: 1,
       value: {items: [{name: 'After', file: 'new.webm'}]},
     });
     expect(
-      await ask(Channels.mediaEdit, {type: 'media.delete', mediaId: id}),
+      await ask(mediaEndpoints.edit.channel, {
+        type: 'media.delete',
+        mediaId: id,
+      }),
     ).toMatchObject({ok: true});
     expect(await second.findMediaFile(id)).toBeNull();
   });
@@ -564,7 +581,7 @@ describe('registerStore', () => {
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const file = join(root, 'Settings', 'media.json');
     const first = await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.mediaGet)).toMatchObject({
+    expect(await ask(mediaEndpoints.get.channel)).toMatchObject({
       value: {items: [], playlists: [], audioPlaylists: []},
     });
     expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({
@@ -577,8 +594,10 @@ describe('registerStore', () => {
     const stop = second.subscribeSettingsProblems(problem =>
       problems.push(problem.file),
     );
-    await ask(Channels.mediaGet);
-    expect(await ask(Channels.settingsGet, {name: 'notices'})).toMatchObject({
+    await ask(mediaEndpoints.get.channel);
+    expect(
+      await ask(settingsEndpoints.get.channel, {name: 'notices'}),
+    ).toMatchObject({
       name: 'notices',
     });
     expect(problems).toEqual(['media.json']);
@@ -611,21 +630,23 @@ describe('registerStore', () => {
     }
     const first = await register(fakeLog(), context, () => true);
     expect(await askForService()).toMatchObject({id: firstId});
-    expect(await ask(Channels.serviceOpen, {serviceId: itemId(9)})).toBeNull();
+    expect(
+      await ask(serviceEndpoints.open.channel, {serviceId: itemId(9)}),
+    ).toBeNull();
     expect(await askForService()).toMatchObject({id: firstId});
-    const current = await ask(Channels.servicesDocumentGet, firstId);
+    const current = await ask(contentEndpoints.services.get.channel, firstId);
     const parsed = parseServiceDocument(current);
     if (!parsed.ok || parsed.value === null) {
       throw new Error('Missing fixture service');
     }
-    await ask(Channels.contentEdit, {
+    await ask(contentEndpoints.edit.channel, {
       type: 'service.update',
       service: {...parsed.value.service, name: 'Edited current service'},
       baseRevision: 1,
     });
     electron.send.mockClear();
     expect(
-      await ask(Channels.serviceOpen, {serviceId: secondId}),
+      await ask(serviceEndpoints.open.channel, {serviceId: secondId}),
     ).toMatchObject({id: secondId});
     expect(await askForService()).toMatchObject({id: secondId});
     expect(
@@ -639,11 +660,11 @@ describe('registerStore', () => {
       future: 'kept',
     });
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.serviceChanged,
+      serviceEndpoints.changed.channel,
       expect.objectContaining({id: secondId}),
     );
     expect(electron.send).not.toHaveBeenCalledWith(
-      Channels.liveChanged,
+      liveEndpoints.changed.channel,
       expect.anything(),
     );
     await first.dispose();
@@ -687,17 +708,19 @@ describe('registerStore', () => {
     await register(fakeLog(), context, () => true);
     await askForService();
     const parsed = parseServiceDocument(
-      await ask(Channels.servicesDocumentGet, firstId),
+      await ask(contentEndpoints.services.get.channel, firstId),
     );
     if (!parsed.ok || parsed.value === null) {
       throw new Error('Missing fixture service');
     }
-    await ask(Channels.contentEdit, {
+    await ask(contentEndpoints.edit.channel, {
       type: 'service.update',
       service: {...parsed.value.service, name: 'Unsaved current service'},
       baseRevision: 1,
     });
-    expect(await ask(Channels.serviceOpen, {serviceId: secondId})).toBeNull();
+    expect(
+      await ask(serviceEndpoints.open.channel, {serviceId: secondId}),
+    ).toBeNull();
     expect(
       write.mock.calls.filter(([file]) => file === firstFile),
     ).toHaveLength(1);
@@ -733,7 +756,7 @@ describe('registerStore', () => {
       });
     }
     const first = await register(fakeLog(), context, () => true);
-    await ask(Channels.settingsGet, {name: 'labels'});
+    await ask(settingsEndpoints.get.channel, {name: 'labels'});
     const rename = {
       type: 'labels.rename',
       name: 'labels',
@@ -742,24 +765,27 @@ describe('registerStore', () => {
       baseRevision: 1,
     };
     expect(
-      await ask(Channels.settingsEdit, {...rename, to: ' '}),
+      await ask(settingsEndpoints.edit.channel, {...rename, to: ' '}),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     electron.send.mockClear();
-    expect(await ask(Channels.settingsEdit, rename)).toEqual({
+    expect(await ask(settingsEndpoints.edit.channel, rename)).toEqual({
       ok: true,
       value: {id: 'labels', revision: 2},
     });
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.settingsChanged,
+      settingsEndpoints.changed.channel,
       expect.objectContaining({name: 'labels', revision: 2}),
     );
     for (const id of ids) {
       expect(electron.send).toHaveBeenCalledWith(
-        Channels.songsDocumentChanged,
-        {songId: id, document: await ask(Channels.songsDocumentGet, id)},
+        contentEndpoints.songs.changed.channel,
+        {
+          songId: id,
+          document: await ask(contentEndpoints.songs.get.channel, id),
+        },
       );
     }
-    expect(await ask(Channels.settingsEdit, rename)).toMatchObject({
+    expect(await ask(settingsEndpoints.edit.channel, rename)).toMatchObject({
       ok: false,
       error: {reason: 'stale'},
     });
@@ -769,12 +795,14 @@ describe('registerStore', () => {
     });
     await first.dispose();
     await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.settingsGet, {name: 'labels'})).toMatchObject({
+    expect(
+      await ask(settingsEndpoints.get.channel, {name: 'labels'}),
+    ).toMatchObject({
       revision: 1,
       value: {labels: [{name: 'After'}]},
     });
     for (const id of ids) {
-      expect(await ask(Channels.songsDocumentGet, id)).toMatchObject({
+      expect(await ask(contentEndpoints.songs.get.channel, id)).toMatchObject({
         revision: 1,
         song: {groups: [{name: 'After', slides: [{future: 'kept'}]}]},
       });
@@ -814,9 +842,9 @@ describe('registerStore', () => {
     const removeMainChanges = first.subscribeSettingsChanges(document =>
       mainChanges.push(document),
     );
-    await ask(Channels.settingsGet, {name: 'messages'});
+    await ask(settingsEndpoints.get.channel, {name: 'messages'});
     expect(await first.readSettings('messages')).toEqual(
-      await ask(Channels.settingsGet, {name: 'messages'}),
+      await ask(settingsEndpoints.get.channel, {name: 'messages'}),
     );
     electron.send.mockClear();
     const updated = {...template, name: 'After', text: 'New invented message'};
@@ -825,19 +853,22 @@ describe('registerStore', () => {
       templates: [{...updated, future: 'kept'}],
       future: {enabled: true},
     };
-    const pending = ask(Channels.settingsEdit, {
+    const pending = ask(settingsEndpoints.edit.channel, {
       type: 'settings.update',
       name: 'messages',
       value: {...base, templates: [updated]},
       baseRevision: 1,
     });
     await Promise.resolve();
-    expect(electron.send).toHaveBeenCalledWith(Channels.settingsChanged, {
-      name: 'messages',
-      value: expected,
-      revision: 2,
-      access: 'editable',
-    });
+    expect(electron.send).toHaveBeenCalledWith(
+      settingsEndpoints.changed.channel,
+      {
+        name: 'messages',
+        value: expected,
+        revision: 2,
+        access: 'editable',
+      },
+    );
     expect(await pending).toEqual({
       ok: true,
       value: {id: 'messages', revision: 2},
@@ -847,7 +878,9 @@ describe('registerStore', () => {
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(expected);
     await first.dispose();
     await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.settingsGet, {name: 'messages'})).toEqual({
+    expect(
+      await ask(settingsEndpoints.get.channel, {name: 'messages'}),
+    ).toEqual({
       name: 'messages',
       value: expected,
       revision: 1,
@@ -869,22 +902,22 @@ describe('registerStore', () => {
       show: {showClearUndoButton: false, future: 'kept'},
     });
     await register(fakeLog(), context, () => true);
-    await ask(Channels.settingsGet, {name: 'preferences'});
-    const pending = ask(Channels.settingsEdit, {
+    await ask(settingsEndpoints.get.channel, {name: 'preferences'});
+    const pending = ask(settingsEndpoints.edit.channel, {
       type: 'settings.update',
       name: 'preferences',
       value: {...value, show: {showClearUndoButton: true}},
       baseRevision: 1,
     });
     await Promise.resolve();
-    const normalized = await ask(Channels.preferencesGet);
+    const normalized = await ask(settingsEndpoints.preferences.channel);
     expect(parsePreferencesValue(normalized).ok).toBe(true);
     expect(normalized).toMatchObject({
       show: {showClearUndoButton: true, future: 'kept'},
       backupCopies: 10,
     });
     expect(electron.send).toHaveBeenCalledWith(
-      Channels.preferencesChanged,
+      settingsEndpoints.preferencesChanged.channel,
       normalized,
     );
     expect(await pending).toEqual({
@@ -910,10 +943,10 @@ describe('registerStore', () => {
     };
     await writeJson(file, value);
     const store = await register(fakeLog(), context, () => true);
-    await ask(Channels.settingsGet, {name: 'messages'});
+    await ask(settingsEndpoints.get.channel, {name: 'messages'});
     electron.send.mockClear();
     expect(
-      await ask(Channels.settingsEdit, {
+      await ask(settingsEndpoints.edit.channel, {
         type: 'settings.update',
         name: '../app',
         value,
@@ -921,7 +954,7 @@ describe('registerStore', () => {
       }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(
-      await ask(Channels.settingsEdit, {
+      await ask(settingsEndpoints.edit.channel, {
         type: 'settings.update',
         name: 'messages',
         value,
@@ -931,7 +964,7 @@ describe('registerStore', () => {
     expect(electron.send).not.toHaveBeenCalled();
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
     await store.dispose();
-    expect(electron.handlers.has(Channels.settingsEdit)).toBe(false);
+    expect(electron.handlers.has(settingsEndpoints.edit.channel)).toBe(false);
   });
 
   it('creates every missing settings file with valid defaults and serves revisioned reads', async () => {
@@ -939,7 +972,7 @@ describe('registerStore', () => {
     await register(fakeLog(), context, () => true);
     for (const name of settingsNames) {
       const reply = parseSettingsDocument(
-        await ask(Channels.settingsGet, {name}),
+        await ask(settingsEndpoints.get.channel, {name}),
       );
       expect(reply.ok).toBe(true);
       const file = join(
@@ -973,7 +1006,7 @@ describe('registerStore', () => {
         expect(reply.value.value.stagePresets).toHaveLength(7);
       }
     }
-    expect(await ask(Channels.preferencesGet)).toMatchObject({
+    expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
     });
   });
@@ -995,13 +1028,17 @@ describe('registerStore', () => {
     };
     await writeJson(file, value);
     const first = await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.settingsGet, {name: 'messages'})).toMatchObject({
+    expect(
+      await ask(settingsEndpoints.get.channel, {name: 'messages'}),
+    ).toMatchObject({
       value,
       access: 'readOnly',
     });
     await first.dispose();
     await register(fakeLog(), context, () => true);
-    expect(await ask(Channels.settingsGet, {name: 'messages'})).toMatchObject({
+    expect(
+      await ask(settingsEndpoints.get.channel, {name: 'messages'}),
+    ).toMatchObject({
       value,
       access: 'readOnly',
     });
@@ -1025,7 +1062,7 @@ describe('registerStore', () => {
     store.subscribeSettingsProblems(cancelled)();
     const listener = vi.fn<SettingsProblemListener>();
     const unsubscribe = store.subscribeSettingsProblems(listener);
-    await ask(Channels.settingsGet, {name: 'bible'});
+    await ask(settingsEndpoints.get.channel, {name: 'bible'});
     expect(cancelled).not.toHaveBeenCalled();
     expect(listener.mock.calls.map(([problem]) => problem.file)).toEqual([
       'looks.json',
@@ -1046,7 +1083,7 @@ describe('registerStore', () => {
     ).toEqual({format: 'wrong'});
     unsubscribe();
     await store.dispose();
-    expect(electron.handlers.has(Channels.settingsGet)).toBe(false);
+    expect(electron.handlers.has(settingsEndpoints.get.channel)).toBe(false);
     const late = vi.fn();
     store.subscribeSettingsProblems(late);
     await Promise.resolve();
@@ -1055,9 +1092,9 @@ describe('registerStore', () => {
 
   it('refuses malformed settings reads', async () => {
     await register(fakeLog(), await developmentContext(), () => true);
-    await expect(ask(Channels.settingsGet, {name: '../app'})).rejects.toThrow(
-      'Invalid settings read',
-    );
+    await expect(
+      ask(settingsEndpoints.get.channel, {name: '../app'}),
+    ).rejects.toThrow('Invalid settings read');
   });
   it('imports through IPC, keeps the overwritten recovery copy, and persists new labels', async () => {
     const context = await developmentContext();
@@ -1067,7 +1104,7 @@ describe('registerStore', () => {
     await writeJson(file, original);
     await register(fakeLog(), context);
     const result = parseEditResult(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.import',
         draft: {
           title: 'Invented import',
@@ -1104,7 +1141,7 @@ describe('registerStore', () => {
       ),
     ).toHaveLength(0);
     expect(
-      await ask(Channels.librarySearch, {query: 'Invented import'}),
+      await ask(libraryEndpoints.search.channel, {query: 'Invented import'}),
     ).toMatchObject({matches: [{title: 'Invented import'}]});
   });
 
@@ -1119,7 +1156,9 @@ describe('registerStore', () => {
     };
     await writeJson(join(root, 'Songs', 'song.llsong'), original);
     const store = await register(fakeLog(), context, () => true);
-    const initial = await ask(Channels.librarySearch, {query: '아침빛'});
+    const initial = await ask(libraryEndpoints.search.channel, {
+      query: '아침빛',
+    });
     expect(parseLibrarySearchResult(initial)).toMatchObject({
       ok: true,
       value: {
@@ -1143,38 +1182,46 @@ describe('registerStore', () => {
       })),
     };
     expect(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.update',
         song: edited,
         baseRevision: 1,
       }),
     ).toMatchObject({ok: true});
-    expect(await ask(Channels.librarySearch, {query: '햇살'})).toMatchObject({
+    expect(
+      await ask(libraryEndpoints.search.channel, {query: '햇살'}),
+    ).toMatchObject({
       matches: [{title: '바람의 노래'}],
     });
-    expect(await ask(Channels.librarySearch, {query: '아침빛'})).toMatchObject({
+    expect(
+      await ask(libraryEndpoints.search.channel, {query: '아침빛'}),
+    ).toMatchObject({
       matches: [],
     });
     expect(
-      await ask(Channels.librarySearch, {query: '새벽의 길'}),
+      await ask(libraryEndpoints.search.channel, {query: '새벽의 길'}),
     ).toMatchObject({matches: []});
     expect(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.delete',
         songId: HYMN_ONE_ID,
       }),
     ).toMatchObject({ok: true});
-    expect(await ask(Channels.librarySearch, {query: ''})).toMatchObject({
+    expect(
+      await ask(libraryEndpoints.search.channel, {query: ''}),
+    ).toMatchObject({
       matches: [],
     });
     expect(
-      await ask(Channels.contentEdit, {type: 'song.create'}),
+      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
     ).toMatchObject({ok: true});
-    expect(await ask(Channels.librarySearch, {query: '새곡'})).toMatchObject({
+    expect(
+      await ask(libraryEndpoints.search.channel, {query: '새곡'}),
+    ).toMatchObject({
       matches: [{title: '새 곡'}],
     });
     await store.dispose();
-    expect(electron.handlers.has(Channels.librarySearch)).toBe(false);
+    expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
   });
 
   it.each([
@@ -1200,8 +1247,8 @@ describe('registerStore', () => {
       const log = fakeLog();
       await register(log, context, () => true);
       const [first, second] = await Promise.all([
-        ask(Channels.preferencesGet),
-        ask(Channels.preferencesGet),
+        ask(settingsEndpoints.preferences.channel),
+        ask(settingsEndpoints.preferences.channel),
       ]);
       expect(first).toMatchObject({
         show: {showClearUndoButton: show?.showClearUndoButton ?? false},
@@ -1232,7 +1279,7 @@ describe('registerStore', () => {
     const original = await readFile(file, 'utf8');
     const log = fakeLog();
     await register(log, context, () => true);
-    expect(await ask(Channels.preferencesGet)).toMatchObject({
+    expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
     });
     expect(log.warn).toHaveBeenCalled();
@@ -1243,7 +1290,9 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const store = await register(fakeLog(), context, () => true);
     await store.dispose();
-    expect(electron.handlers.has(Channels.preferencesGet)).toBe(false);
+    expect(electron.handlers.has(settingsEndpoints.preferences.channel)).toBe(
+      false,
+    );
   });
 
   it('refreshes background choices, missing-file warnings, and revisions on service reads', async () => {
@@ -1297,7 +1346,7 @@ describe('registerStore', () => {
     });
     expect(
       electron.send.mock.calls.filter(
-        ([channel]) => channel === Channels.serviceChanged,
+        ([channel]) => channel === serviceEndpoints.changed.channel,
       ),
     ).toHaveLength(2);
   });
@@ -1328,7 +1377,7 @@ describe('registerStore', () => {
     };
 
     const answer = parseEditResult(
-      await ask(Channels.contentEdit, {
+      await ask(contentEndpoints.edit.channel, {
         type: 'song.update',
         song: edited,
         baseRevision: 1,
@@ -1349,17 +1398,17 @@ describe('registerStore', () => {
     });
     expect(
       electron.send.mock.calls.filter(
-        ([channel]) => channel === Channels.serviceChanged,
+        ([channel]) => channel === serviceEndpoints.changed.channel,
       ),
     ).toHaveLength(1);
     expect(
       electron.send.mock.calls.some(
-        ([channel]) => channel === Channels.liveChanged,
+        ([channel]) => channel === liveEndpoints.changed.channel,
       ),
     ).toBe(false);
     expect(
       electron.send.mock.calls.some(
-        ([channel]) => channel === Channels.songsDocumentChanged,
+        ([channel]) => channel === contentEndpoints.songs.changed.channel,
       ),
     ).toBe(true);
     await store.dispose();
@@ -1381,16 +1430,16 @@ describe('registerStore', () => {
     const store = await register(fakeLog(), context, () => true);
 
     const created = parseEditResult(
-      await ask(Channels.contentEdit, {type: 'song.create'}),
+      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
     );
     if (!created.ok || !created.value.ok) {
       throw new Error('Could not create a test song');
     }
-    expect(await ask(Channels.songsList)).toMatchObject([
+    expect(await ask(contentEndpoints.songs.list.channel)).toMatchObject([
       {id: created.value.value.id, title: '새 곡'},
     ]);
     expect(
-      await ask(Channels.songsDocumentGet, created.value.value.id),
+      await ask(contentEndpoints.songs.get.channel, created.value.value.id),
     ).toMatchObject({revision: 1, access: 'editable'});
     await store.dispose();
     expect(electron.handlers.size).toBe(0);
@@ -1402,12 +1451,14 @@ describe('registerStore', () => {
     await register(log, context, () => true);
 
     expect(
-      await ask(Channels.contentEdit, {type: 'song.update', song: {}}),
+      await ask(contentEndpoints.edit.channel, {type: 'song.update', song: {}}),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(await ask(Channels.songsDocumentGet, '../outside')).toBeNull();
-    expect(await ask(Channels.servicesDocumentGet, 7)).toBeNull();
-    expect(await ask(Channels.templatesDocumentGet, null)).toBeNull();
-    expect(await ask(Channels.songsList)).toEqual([]);
+    expect(
+      await ask(contentEndpoints.songs.get.channel, '../outside'),
+    ).toBeNull();
+    expect(await ask(contentEndpoints.services.get.channel, 7)).toBeNull();
+    expect(await ask(contentEndpoints.templates.get.channel, null)).toBeNull();
+    expect(await ask(contentEndpoints.songs.list.channel)).toEqual([]);
     expect(log.warn).toHaveBeenCalledTimes(4);
   });
 
@@ -1429,12 +1480,14 @@ describe('registerStore', () => {
     disposers.push(store.dispose);
 
     expect(
-      await ask(Channels.contentEdit, {type: 'song.create'}),
+      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-    expect(await ask(Channels.songsList)).toEqual([]);
-    expect(await ask(Channels.servicesList)).toEqual([]);
-    expect(await ask(Channels.templatesList)).toEqual([]);
-    expect(await ask(Channels.songsDocumentGet, HYMN_ONE_ID)).toBeNull();
+    expect(await ask(contentEndpoints.songs.list.channel)).toEqual([]);
+    expect(await ask(contentEndpoints.services.list.channel)).toEqual([]);
+    expect(await ask(contentEndpoints.templates.list.channel)).toEqual([]);
+    expect(
+      await ask(contentEndpoints.songs.get.channel, HYMN_ONE_ID),
+    ).toBeNull();
   });
 
   it('answers service:get with the open 예배 순서 at its first revision', async () => {
@@ -1455,7 +1508,7 @@ describe('registerStore', () => {
       rows: [{kind: 'song', id: itemId(1), title: '만복의 근원 하나님'}],
     });
     await dispose();
-    expect(electron.handlers.has(Channels.serviceGet)).toBe(false);
+    expect(electron.handlers.has(serviceEndpoints.get.channel)).toBe(false);
   });
 
   it('answers null when there is no 예배 순서', async () => {
@@ -1464,7 +1517,7 @@ describe('registerStore', () => {
     await register(log, context);
 
     expect(await askForService()).toBeNull();
-    expect(await ask(Channels.preferencesGet)).toMatchObject({
+    expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
     });
     expect(log.info).toHaveBeenCalledWith(
@@ -1526,7 +1579,7 @@ describe('registerStore', () => {
     });
     disposers.push(store.dispose);
     await askForService();
-    await ask(Channels.settingsGet, {name: 'looks'});
+    await ask(settingsEndpoints.get.channel, {name: 'looks'});
     const skipped = (): readonly AppProblem[] =>
       sources
         .flatMap(source => source())
@@ -1683,7 +1736,7 @@ describe('registerStore', () => {
       'could not read the data folder',
       expect.any(Error),
     );
-    expect(await ask(Channels.preferencesGet)).toMatchObject({
+    expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
     });
   });

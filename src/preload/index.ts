@@ -1,9 +1,10 @@
 import {contextBridge, ipcRenderer, webFrame, webUtils} from 'electron';
-import {Channels, llpApi} from '@contracts/ipc/api';
+import {llpApi} from '@contracts/ipc/api';
+import {outputEndpoints} from '@contracts/ipc/output';
 import {badValueLog, createIpcPort} from './port';
 import {windowPlatform} from './platform';
 
-const log = badValueLog(ipcRenderer, Channels.logWrite);
+const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 
 contextBridge.exposeInMainWorld(
   'llp',

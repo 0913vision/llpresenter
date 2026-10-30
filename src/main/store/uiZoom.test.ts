@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {uiEndpoints} from '@contracts/ipc/ui';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
@@ -80,7 +80,7 @@ describe('control UI zoom', () => {
     second.setZoomFactor.mockClear();
 
     await expect(
-      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomReset'}),
+      ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomReset'}),
     ).resolves.toBe(100);
 
     expect(control.setZoomFactor).toHaveBeenCalledExactlyOnceWith(1);
@@ -95,9 +95,11 @@ describe('control UI zoom', () => {
       control.setZoomFactor.mock.invocationCallOrder[0] ?? Infinity,
     );
     expect(control.setZoomFactor).toHaveBeenCalledWith(1.5);
-    await expect(ask(Channels.uiZoomGet, control.id)).resolves.toBe(150);
+    await expect(ask(uiEndpoints.getZoom.channel, control.id)).resolves.toBe(
+      150,
+    );
 
-    await ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomIn'});
+    await ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomIn'});
     control.emit('did-finish-load');
 
     expect(control.setZoomFactor).toHaveBeenLastCalledWith(1.6);
@@ -119,25 +121,25 @@ describe('control UI zoom', () => {
     const {control, config} = await setUp();
     await Promise.all(
       Array.from({length: 20}, () =>
-        ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomIn'}),
+        ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomIn'}),
       ),
     );
     expect(config.uiZoomPercent).toBe(200);
     expect(control.setZoomFactor).toHaveBeenLastCalledWith(2);
     await expect(
-      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomReset'}),
+      ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomReset'}),
     ).resolves.toBe(100);
     await Promise.all(
       Array.from({length: 20}, () =>
-        ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomOut'}),
+        ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomOut'}),
       ),
     );
     expect(config.uiZoomPercent).toBe(100);
     await expect(
-      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomReset'}),
+      ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomReset'}),
     ).resolves.toBe(100);
     await expect(
-      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomIn'}),
+      ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomIn'}),
     ).resolves.toBe(110);
   });
 
@@ -147,16 +149,16 @@ describe('control UI zoom', () => {
     const output = new Control(3);
     zoom.attachControl(preferences);
 
-    await ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomIn'});
+    await ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomIn'});
 
     expect(control.setZoomFactor).toHaveBeenLastCalledWith(1.3);
     expect(preferences.setZoomFactor).toHaveBeenLastCalledWith(1.3);
     expect(output.setZoomMode).not.toHaveBeenCalled();
     expect(output.setZoomFactor).not.toHaveBeenCalled();
     await expect(
-      ask(Channels.uiZoomChange, output.id, {type: 'ui.zoomIn'}),
+      ask(uiEndpoints.changeZoom.channel, output.id, {type: 'ui.zoomIn'}),
     ).rejects.toThrow('Only control windows');
-    await expect(ask(Channels.uiZoomGet, output.id)).rejects.toThrow(
+    await expect(ask(uiEndpoints.getZoom.channel, output.id)).rejects.toThrow(
       'Only control windows',
     );
     expect(config.uiZoomPercent).toBe(130);
@@ -167,7 +169,7 @@ describe('control UI zoom', () => {
     async value => {
       const {control, config, log} = await setUp();
       await expect(
-        ask(Channels.uiZoomChange, control.id, value),
+        ask(uiEndpoints.changeZoom.channel, control.id, value),
       ).rejects.toThrow('Invalid UI zoom command');
       expect(config.uiZoomPercent).toBe(120);
       expect(control.setZoomFactor).toHaveBeenCalledTimes(1);
@@ -180,7 +182,7 @@ describe('control UI zoom', () => {
     control.emit('destroyed');
     expect(control.listenerCount('did-finish-load')).toBe(0);
     expect(control.listenerCount('destroyed')).toBe(0);
-    await expect(ask(Channels.uiZoomGet, control.id)).rejects.toThrow(
+    await expect(ask(uiEndpoints.getZoom.channel, control.id)).rejects.toThrow(
       'Only control windows',
     );
     const other = new Control(2);
@@ -217,7 +219,7 @@ describe('control UI zoom', () => {
     });
 
     await expect(
-      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomIn'}),
+      ask(uiEndpoints.changeZoom.channel, control.id, {type: 'ui.zoomIn'}),
     ).resolves.toBe(130);
     expect(log.error).toHaveBeenCalledWith(
       'could not apply control window zoom',

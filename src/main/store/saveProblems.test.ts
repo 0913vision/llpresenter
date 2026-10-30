@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {appEndpoints} from '@contracts/ipc/app';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '../displays/testing';
 import type {StandingProblems} from '../problemFeed';
@@ -52,7 +52,7 @@ describe('save problems', () => {
     const problem = {kind: 'save-failed', name: 'a.json', count: 1};
     expect(push).toHaveBeenCalledExactlyOnceWith(problem);
     expect(listed()).toEqual([problem]);
-    electron.listeners.get(Channels.appProblemRetrySaves)?.();
+    electron.listeners.get(appEndpoints.retrySaves.channel)?.();
     await vi.waitFor(() => expect(push).toHaveBeenCalledTimes(2));
     expect(retry).toHaveBeenCalledOnce();
     remove();

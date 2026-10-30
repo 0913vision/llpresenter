@@ -1,5 +1,5 @@
 import {BrowserWindow, ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {contentEndpoints} from '@contracts/ipc/content';
 import type {Result} from '@core/common/result';
 import {
   parseContentEdit,
@@ -17,13 +17,13 @@ import type {Logger} from '../log';
 import type {ContentEvents, ContentStore} from './contentStore';
 
 const HANDLED = [
-  Channels.contentEdit,
-  Channels.songsList,
-  Channels.servicesList,
-  Channels.templatesList,
-  Channels.songsDocumentGet,
-  Channels.servicesDocumentGet,
-  Channels.templatesDocumentGet,
+  contentEndpoints.edit.channel,
+  contentEndpoints.songs.list.channel,
+  contentEndpoints.services.list.channel,
+  contentEndpoints.templates.list.channel,
+  contentEndpoints.songs.get.channel,
+  contentEndpoints.services.get.channel,
+  contentEndpoints.templates.get.channel,
 ] as const;
 
 const NO_DATA: EditResult = {
@@ -42,29 +42,38 @@ export function registerContentChannels(
   content: Promise<ContentStore | null>,
   log: Logger,
 ): () => void {
-  ipcMain.handle(Channels.contentEdit, async (_event, value: unknown) => {
-    const edit = parseContentEdit(value);
-    if (!edit.ok) {
-      log.warn('dropped a malformed content edit', edit.error);
-      return refuseInvalidEdit(edit.error);
-    }
-    const store = await content;
-    return store === null ? NO_DATA : store.apply(edit.value);
-  });
-  handleRead(Channels.songsList, content, store => store.songList());
-  handleRead(Channels.servicesList, content, store => store.serviceList());
-  handleRead(Channels.templatesList, content, store => store.templateList());
-  handleDocument(Channels.songsDocumentGet, content, {
+  ipcMain.handle(
+    contentEndpoints.edit.channel,
+    async (_event, value: unknown) => {
+      const edit = parseContentEdit(value);
+      if (!edit.ok) {
+        log.warn('dropped a malformed content edit', edit.error);
+        return refuseInvalidEdit(edit.error);
+      }
+      const store = await content;
+      return store === null ? NO_DATA : store.apply(edit.value);
+    },
+  );
+  handleRead(contentEndpoints.songs.list.channel, content, store =>
+    store.songList(),
+  );
+  handleRead(contentEndpoints.services.list.channel, content, store =>
+    store.serviceList(),
+  );
+  handleRead(contentEndpoints.templates.list.channel, content, store =>
+    store.templateList(),
+  );
+  handleDocument(contentEndpoints.songs.get.channel, content, {
     parseId: value => checkPart(songIdSchema, value),
     read: (store, id) => store.song(id),
     log,
   });
-  handleDocument(Channels.servicesDocumentGet, content, {
+  handleDocument(contentEndpoints.services.get.channel, content, {
     parseId: value => checkPart(serviceIdSchema, value),
     read: (store, id) => store.service(id),
     log,
   });
-  handleDocument(Channels.templatesDocumentGet, content, {
+  handleDocument(contentEndpoints.templates.get.channel, content, {
     parseId: value => checkPart(templateIdSchema, value),
     read: (store, id) => store.template(id),
     log,
@@ -91,12 +100,12 @@ export function broadcastEvents(
     onChange();
   };
   return {
-    songChanged: refresh(Channels.songsDocumentChanged),
-    songsListChanged: send(Channels.songsListChanged),
-    serviceChanged: refresh(Channels.servicesDocumentChanged),
-    servicesListChanged: send(Channels.servicesListChanged),
-    templateChanged: send(Channels.templatesDocumentChanged),
-    templatesListChanged: send(Channels.templatesListChanged),
+    songChanged: refresh(contentEndpoints.songs.changed.channel),
+    songsListChanged: send(contentEndpoints.songs.listChanged.channel),
+    serviceChanged: refresh(contentEndpoints.services.changed.channel),
+    servicesListChanged: send(contentEndpoints.services.listChanged.channel),
+    templateChanged: send(contentEndpoints.templates.changed.channel),
+    templatesListChanged: send(contentEndpoints.templates.listChanged.channel),
   };
 }
 

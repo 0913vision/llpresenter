@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {libraryEndpoints} from '@contracts/ipc/library';
 import type {MediaChoice} from '@core/live/state';
 import type {FileAccess} from '@core/schema/fileFormat';
 import type {SongId} from '@core/schema/ids';
@@ -70,25 +70,30 @@ export function registerLibrarySong(
 ): () => void {
   let disposed = false;
   const isDisposed = () => disposed;
-  ipcMain.handle(Channels.libraryShowSong, async (_event, value: unknown) => {
-    const request = parseShowLibrarySongRequest(value);
-    if (!request.ok) {
-      log.warn('dropped a malformed library song request', request.error);
-      throw new Error('Invalid library song request');
-    }
-    try {
-      const sources = await ready;
-      if (isDisposed()) return null;
-      if (sources === null) throw new Error('The song library is unavailable');
-      const shown = await showLibrarySong(sources, request.value.songId);
-      return isDisposed() ? null : shown;
-    } catch (error: unknown) {
-      log.error('could not show a library song', error);
-      throw new Error('Could not show a library song', {cause: error});
-    }
-  });
+  ipcMain.handle(
+    libraryEndpoints.showSong.channel,
+    async (_event, value: unknown) => {
+      const request = parseShowLibrarySongRequest(value);
+      if (!request.ok) {
+        log.warn('dropped a malformed library song request', request.error);
+        throw new Error('Invalid library song request');
+      }
+      try {
+        const sources = await ready;
+        if (isDisposed()) return null;
+        if (sources === null) {
+          throw new Error('The song library is unavailable');
+        }
+        const shown = await showLibrarySong(sources, request.value.songId);
+        return isDisposed() ? null : shown;
+      } catch (error: unknown) {
+        log.error('could not show a library song', error);
+        throw new Error('Could not show a library song', {cause: error});
+      }
+    },
+  );
   return () => {
     disposed = true;
-    ipcMain.removeHandler(Channels.libraryShowSong);
+    ipcMain.removeHandler(libraryEndpoints.showSong.channel);
   };
 }

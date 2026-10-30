@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {uiEndpoints} from '@contracts/ipc/ui';
 import {
   parseUiZoomCommand,
   UI_ZOOM,
@@ -46,11 +46,11 @@ export function registerUiZoom(
     });
     throw new Error('Only control windows may use UI zoom');
   };
-  ipcMain.handle(Channels.uiZoomGet, event => {
+  ipcMain.handle(uiEndpoints.getZoom.channel, event => {
     requireControl(event.sender.id);
     return config.uiZoomPercent;
   });
-  ipcMain.handle(Channels.uiZoomChange, (event, value: unknown) => {
+  ipcMain.handle(uiEndpoints.changeZoom.channel, (event, value: unknown) => {
     requireControl(event.sender.id);
     const command = parseUiZoomCommand(value);
     if (!command.ok) {
@@ -97,8 +97,8 @@ export function registerUiZoom(
       apply();
     },
     dispose: () => {
-      ipcMain.removeHandler(Channels.uiZoomGet);
-      ipcMain.removeHandler(Channels.uiZoomChange);
+      ipcMain.removeHandler(uiEndpoints.getZoom.channel);
+      ipcMain.removeHandler(uiEndpoints.changeZoom.channel);
       for (const control of [...controls.values()]) control.dispose();
     },
   };

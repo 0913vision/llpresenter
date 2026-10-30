@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@contracts/ipc/api';
+import {libraryEndpoints} from '@contracts/ipc/library';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import type {Logger} from '../log';
@@ -28,7 +28,7 @@ function log(): Logger {
 function register(ready: Promise<SongSearchIndex | null>, logger = log()) {
   const stop = registerLibrarySearch(ready, logger);
   stops.push(stop);
-  const handler = electron.handlers.get(Channels.librarySearch);
+  const handler = electron.handlers.get(libraryEndpoints.search.channel);
   if (handler === undefined) throw new Error('Missing search handler');
   return {
     ask: (value: unknown) => Promise.resolve(handler({}, value)),
@@ -109,7 +109,7 @@ describe('registerLibrarySearch', () => {
     const {ask, stop} = register(ready);
     const answer = ask({query: ''});
     stop();
-    expect(electron.handlers.has(Channels.librarySearch)).toBe(false);
+    expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
     const index = new SongSearchIndex();
     const search = vi.spyOn(index, 'search');
     finish(index);

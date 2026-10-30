@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@contracts/ipc/api';
+import {settingsEndpoints} from '@contracts/ipc/settings';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   parseSettingsEdit,
@@ -32,24 +32,31 @@ export function registerSettingsChannels(
   const changes = ready.then(store => {
     if (disposed || store === null) return;
     removeChanges = store.subscribe(document => {
-      broadcast(Channels.settingsChanged, document, log);
+      broadcast(settingsEndpoints.changed.channel, document, log);
       if (document.name === 'preferences') {
-        broadcast(Channels.preferencesChanged, store.preferences(), log);
+        broadcast(
+          settingsEndpoints.preferencesChanged.channel,
+          store.preferences(),
+          log,
+        );
       }
     });
   });
-  ipcMain.handle(Channels.settingsGet, async (_event, value: unknown) => {
-    const request = parseSettingsReadRequest(value);
-    if (!request.ok) {
-      log.warn('dropped a malformed settings read', request.error);
-      throw new Error('Invalid settings read');
-    }
-    const store = await ready;
-    if (disposed || store === null) throw new Error('Settings unavailable');
-    return store.get(request.value.name);
-  });
   ipcMain.handle(
-    Channels.settingsEdit,
+    settingsEndpoints.get.channel,
+    async (_event, value: unknown) => {
+      const request = parseSettingsReadRequest(value);
+      if (!request.ok) {
+        log.warn('dropped a malformed settings read', request.error);
+        throw new Error('Invalid settings read');
+      }
+      const store = await ready;
+      if (disposed || store === null) throw new Error('Settings unavailable');
+      return store.get(request.value.name);
+    },
+  );
+  ipcMain.handle(
+    settingsEndpoints.edit.channel,
     async (_event, value: unknown): Promise<EditResult> => {
       const edit = parseSettingsEdit(value);
       if (!edit.ok) {
@@ -102,8 +109,8 @@ export function registerSettingsChannels(
     dispose: (): Promise<void> => {
       if (closing !== null) return closing;
       disposed = true;
-      ipcMain.removeHandler(Channels.settingsGet);
-      ipcMain.removeHandler(Channels.settingsEdit);
+      ipcMain.removeHandler(settingsEndpoints.get.channel);
+      ipcMain.removeHandler(settingsEndpoints.edit.channel);
       removeChanges?.();
       closing = (async () => {
         await changes;

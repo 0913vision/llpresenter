@@ -48,7 +48,6 @@ import type {
   TemplateEntry,
 } from '@core/schema/contentDocuments';
 
-export {Channels} from './channels';
 export type {DocumentApi} from './content';
 export type {Unsubscribe} from './endpoint';
 export {windowActions, type WindowAction} from './window';
