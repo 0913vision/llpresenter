@@ -18,7 +18,7 @@ import type {
 } from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ScreenList} from './ScreenList';
 import {useScreensSelection} from './selection';

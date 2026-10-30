@@ -3,7 +3,7 @@ import type {SongDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {arrangementOptions} from '@core/songs/songArrangements';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   itemArrangementChange,
   updateServiceItem,

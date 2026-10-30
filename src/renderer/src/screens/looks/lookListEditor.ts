@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
-import type {NamedDocument} from '../useSettingsDocument';
+import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from '@core/looks/lookCardEdits';
 import {

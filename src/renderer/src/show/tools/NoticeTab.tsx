@@ -1,5 +1,5 @@
 import {useRef, useState, type JSX} from 'react';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {IconButton, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {NoticeCreateDialog} from './NoticeCreateDialog';

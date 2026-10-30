@@ -14,7 +14,7 @@ import {SongEditorStore} from '@renderer/prep/editor';
 import {SongSession} from '@renderer/prep/editor/songSession';
 import {editorGroupedSong} from '@renderer/prep/editor/editorFixture';
 import type {Notice} from '@renderer/ui/notices';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   fixtureItems,
   fixtureMacros,

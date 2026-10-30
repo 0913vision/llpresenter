@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/ids';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {selectTile, useShow} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {
   beginOutputRequest,

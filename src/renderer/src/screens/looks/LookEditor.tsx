@@ -1,7 +1,7 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {parseLookId, parseMessageStyleId} from '@core/schema/ids';
 import type {Look} from '@core/schema/looks';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {Button} from '@renderer/ui/Button';
 import {
   Panel,
@@ -17,7 +17,7 @@ import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {Notice} from '@renderer/ui/notices';
 import {nameProblem} from '@core/screens/screenEdits';
 import {useScreensSelection} from '../selection';
-import {useSettingsDocument} from '../useSettingsDocument';
+import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {useMonitors} from '../useMonitors';
 import {previewCaption} from '../previewCaption';
 import {LookScreenCard} from './LookScreenCard';

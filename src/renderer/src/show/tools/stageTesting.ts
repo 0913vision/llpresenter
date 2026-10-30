@@ -14,7 +14,7 @@ import {
   SERMON_LOOK_ID,
   WIDE_LAYOUT_ID,
 } from '@renderer/screens/testing/documents';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 
 export {STAGE_ID, LOOK_ID, SERMON_LOOK_ID, WIDE_LAYOUT_ID};
 export const TIMER_ID = '00000000-0000-4000-8000-000000000011';

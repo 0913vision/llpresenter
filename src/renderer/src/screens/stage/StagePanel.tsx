@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {IconButton} from '@renderer/ui/IconButton';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {type MenuAnchor} from '@renderer/ui/Menu';
@@ -24,7 +24,7 @@ import {ChoiceRows} from '../ChoiceRows';
 import {stageLayoutsInUse} from '../choices';
 import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '@core/screens/screenEdits';
-import {useSettingsDocument} from '../useSettingsDocument';
+import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {StageLayoutContextMenu} from '../SettingsContextMenus';
 import {STAGE_LAYOUT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';

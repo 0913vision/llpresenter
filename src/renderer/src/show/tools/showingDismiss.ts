@@ -1,7 +1,7 @@
 import {messageIdSchema, propIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {clearLayer} from '@renderer/state/clear';
-import {sendLive, useLive} from '@renderer/state/live';
+import {sendLive, useLive} from '@renderer/platform/live';
 import type {DismissDescriptor} from './showingTypes';
 
 export function dismissSlide(): void {

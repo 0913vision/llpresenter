@@ -1,8 +1,8 @@
 import {useLayoutEffect, useRef} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {NamedDocument} from '../useSettingsDocument';
+import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {LookListEditor} from './lookListEditor';
 import type {LookListEdit} from '@core/looks/lookListEdits';
 import type {LookCardEdit} from '@core/looks/lookCardEdits';

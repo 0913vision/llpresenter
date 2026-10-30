@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {useShow, selectTile} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {
   beginOutputRequest,

@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {sendLive, useLive} from '@renderer/state/live';
+import {sendLive, useLive} from '@renderer/platform/live';
 import {
   openItem,
   outputNext,

@@ -27,9 +27,9 @@ writes, and releases sessions. The host must await it before closing the IPC
 connection. Each session owns at most one deferred-save timer. No output
 commands or global keyboard listeners are registered by this feature.
 
-The control window's `CloseFlush` (`src/renderer/src/control/closeFlush.ts`)
-answers main's `app:flush-request` with this `flush()` before the window closes
-or the app quits, and shows the 저장 중 dialog while it runs.
+The control window's `CloseFlush` (`src/renderer/src/app/closeFlush.ts`) answers
+main's `app:flush-request` with this `flush()` before the window closes or the
+app quits, and shows the 저장 중 dialog while it runs.
 
 ## Header
 

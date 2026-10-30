@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {NamedDocument} from './useSettingsDocument';
+import type {NamedDocument} from '../platform/useSettingsDocument';
 import {ScreenEditor} from './screenEditor';
 import type {ScreenChange} from '@core/screens/screenEdits';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';

@@ -11,8 +11,8 @@ import {
   itemFixture,
 } from '@renderer/prep/service/itemFixture';
 import {useShow} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {useLive} from '@renderer/platform/live';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {BiblePanel} from './BiblePanel';
 import {openBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';

@@ -14,7 +14,7 @@ import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
 import {useHeaderRename} from '@renderer/state/headerRename';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {ServiceOrderList} from './ServiceOrderList';
 import {otherItemEntries} from '@renderer/prep/service/quickAddItems';
 import type {ServiceItem} from '@core/schema/service';

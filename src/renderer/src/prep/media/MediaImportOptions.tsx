@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {
   useSettingsDocument,
   type NamedDocument,
-} from '@renderer/screens/useSettingsDocument';
+} from '@renderer/platform/useSettingsDocument';
 import {IconButton, Menu} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {noticeTime, type Notice} from '@renderer/ui/notices';

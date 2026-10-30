@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {settingsDocument} from '@renderer/screens/testing/documents';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {renderedToolMenuRows} from './toolMenuTesting';

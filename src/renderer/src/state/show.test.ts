@@ -3,7 +3,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from './live';
+import {useLive} from '../platform/live';
 import {
   hasSlideHotKey,
   openNextItem,

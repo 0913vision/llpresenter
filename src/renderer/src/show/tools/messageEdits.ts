@@ -3,7 +3,7 @@ import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 
 export const MAX_MESSAGE_TEMPLATES = 500;

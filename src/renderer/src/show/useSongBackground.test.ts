@@ -18,7 +18,7 @@ import {isItemOfKind} from '@core/schema/service';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, openItem, useShow} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {useSongBackground} from './useSongBackground';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');

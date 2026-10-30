@@ -18,7 +18,7 @@ import {backgroundChange} from '@renderer/state/serviceBackground';
 import {
   pendingWritesOf,
   type PendingWrites,
-} from '@renderer/state/pendingWrites';
+} from '@renderer/platform/pendingWrites';
 import {
   updateServiceItem,
   itemArrangementChange,

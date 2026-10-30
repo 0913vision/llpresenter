@@ -7,11 +7,11 @@ import {
   overlaySettings,
 } from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
-import {useLive} from '../state/live';
+import {useLive} from '../platform/live';
 import {PreviewPanel} from '../show/PreviewPanel';
 import {ScreenPreview} from '../show/ScreenPreview';
-import {ScreenSummariesContext} from '../shell/ScreenSummaries';
-import {summarizeScreens} from '../shell/screens';
+import {ScreenSummariesContext} from '../platform/ScreenSummaries';
+import {summarizeScreens} from '../platform/screens';
 import {classes} from './classes';
 
 beforeEach(() => {

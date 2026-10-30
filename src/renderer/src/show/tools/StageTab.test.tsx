@@ -13,7 +13,7 @@ import {
   screensDocument,
 } from '@renderer/screens/testing/documents';
 import {useShowToolTab} from '@renderer/state/showToolTab';
-import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {ShowToolsPanel} from '../ShowToolsPanel';

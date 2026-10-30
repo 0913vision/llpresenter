@@ -11,7 +11,7 @@ import {
 } from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from '../selection';
-import {useSettingsDocument} from '../useSettingsDocument';
+import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {elementNames} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import {StageBoxProperties} from './StageBoxProperties';

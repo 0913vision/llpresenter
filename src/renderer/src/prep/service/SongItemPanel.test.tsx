@@ -20,7 +20,7 @@ import {emptyLiveState} from '@core/live/state';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
 import {SongSession} from '@renderer/prep/editor/songSession';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';

@@ -9,7 +9,7 @@ import type {Screen} from '@core/schema/screens';
 import {MONITOR_SCREEN_ID_MAX, type MonitorList} from '@core/schema/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
-import {sendLive} from '@renderer/state/live';
+import {sendLive} from '@renderer/platform/live';
 import type {Notice} from '@renderer/ui/notices';
 import {
   displayLayout,
@@ -24,7 +24,7 @@ import {
 } from './selection';
 import {useElementSize} from './useElementSize';
 import {useMonitors} from './useMonitors';
-import {useSettingsDocument} from './useSettingsDocument';
+import {useSettingsDocument} from '../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './DisplayLayout.module.css';

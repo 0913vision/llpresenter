@@ -14,7 +14,7 @@ import {
 import type {EditResult} from '@core/schema/contentEdit';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
-import type {NamedDocument} from '@renderer/screens/useSettingsDocument';
+import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {MediaImportOptions} from './MediaImportOptions';
 
 function document(

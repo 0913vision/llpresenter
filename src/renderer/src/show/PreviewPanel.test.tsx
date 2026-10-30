@@ -4,12 +4,12 @@ import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
 import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
 import {PreviewPanel} from './PreviewPanel';
 import {seedSampleService} from './testing/sampleService';
-import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
 
 interface Instance {
   readonly parent: HTMLElement;

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {NumberField, type NumberFieldProps} from './NumberField';
-import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {handleClearKey} from '@renderer/show/clearKeys';
 
 function Copies({

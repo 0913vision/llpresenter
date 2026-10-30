@@ -3,7 +3,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 
 export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {
   readonly update: (

@@ -18,7 +18,7 @@ import {
 } from '@core/songs/songArrangements';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';

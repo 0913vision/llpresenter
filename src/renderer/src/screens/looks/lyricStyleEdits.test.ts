@@ -4,7 +4,7 @@ import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {looksSchema} from '@core/schema/looks';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,

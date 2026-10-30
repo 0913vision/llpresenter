@@ -3,7 +3,7 @@ import type {TimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {
   validTimerConfiguration,

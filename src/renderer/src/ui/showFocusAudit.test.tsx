@@ -4,7 +4,7 @@ import {useState, type JSX, type ReactNode} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useClearKeys} from '@renderer/show/clearKeys';
-import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
+import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import * as clearState from '@renderer/state/clear';
 import * as show from '@renderer/state/show';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';

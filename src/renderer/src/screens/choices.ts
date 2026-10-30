@@ -1,5 +1,5 @@
 import type {LookId} from '@core/schema/ids';
-import type {NamedDocument} from './useSettingsDocument';
+import type {NamedDocument} from '../platform/useSettingsDocument';
 
 type LooksFile = NamedDocument<'looks'>['value'];
 type ScreensFile = NamedDocument<'screens'>['value'];

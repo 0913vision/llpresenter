@@ -1,6 +1,6 @@
 import type {ClearTarget} from '@core/live/commands';
 import {hasSomethingToClear} from '@core/live/clear';
-import {sendLive, useLive} from './live';
+import {sendLive, useLive} from '../platform/live';
 
 /** Whether a layer, or any layer for 모두, has something to clear now. */
 export function useSomethingToClear(target: ClearTarget): boolean {

@@ -6,7 +6,7 @@ import {
   type NoticesFile,
 } from '@core/schema/notices';
 import {MAX_NOTICE_IMAGES, MAX_TARGET_SCREENS} from '@core/schema/overlayState';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 
 export const MAX_NOTICE_SETS = 500;

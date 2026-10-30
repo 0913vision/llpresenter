@@ -6,7 +6,7 @@ import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
-import {sendLive, startLiveSync, useLive} from './live';
+import {sendLive, startLiveSync, useLive} from '../platform/live';
 import {applyService, openItem, outputTile, useShow} from './show';
 
 const first = createServiceItemId('10000000-0000-4000-8000-000000000001');

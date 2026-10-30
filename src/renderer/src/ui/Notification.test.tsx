@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../../test/fake-clock';
-import {cssRules} from '@renderer/shell/testing/cssRules';
+import {cssRules} from '@renderer/app/shell/testing/cssRules';
 import {Dialog} from './Dialog';
 import {modalStack} from './modalStack';
 import {

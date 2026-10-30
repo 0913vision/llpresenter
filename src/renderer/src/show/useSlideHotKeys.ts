@@ -1,7 +1,7 @@
 import {
   useWindowShortcuts,
   type WindowShortcut,
-} from '@renderer/shell/windowShortcuts';
+} from '@renderer/platform/windowShortcuts';
 import {hasSlideHotKey, outputHotKey} from '@renderer/state/show';
 import {isComposingKey} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';

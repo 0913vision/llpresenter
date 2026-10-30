@@ -19,7 +19,7 @@ import {MacroPanel} from './MacroPanel';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 import userEvent from '@testing-library/user-event';
-import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';
 import {useMacroPalette} from '@renderer/state/macroPalette';
 import {LOOK_ID, LAYOUT_ID} from '@renderer/screens/testing/documents';

@@ -5,7 +5,7 @@ import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {ControlSession} from '@renderer/control/controlSession';
+import {ControlSession} from '@renderer/app/controlSession';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
 import {MAIN_ID, screensDocument} from './testing/documents';

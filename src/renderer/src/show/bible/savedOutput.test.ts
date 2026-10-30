@@ -3,7 +3,7 @@ import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {
   applyService,
   openItem,

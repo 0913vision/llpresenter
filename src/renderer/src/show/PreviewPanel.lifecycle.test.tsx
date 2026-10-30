@@ -4,10 +4,10 @@ import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/render/backgroundLayer';
 import {classes} from '@renderer/render/classes';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {usePreview} from '@renderer/state/preview';
 import {PreviewPanel} from './PreviewPanel';
-import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
 
 class FakeResizeObserver {
   observe(): void {}

@@ -8,8 +8,8 @@ import {
 } from 'react';
 import {parseLookId} from '@core/schema/ids';
 import type {Look} from '@core/schema/looks';
-import {useLive} from '@renderer/state/live';
-import {sendLookChange} from '@renderer/shell/lookActions';
+import {useLive} from '@renderer/platform/live';
+import {sendLookChange} from '@renderer/screens/looks/lookActions';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {type MenuAnchor} from '@renderer/ui/Menu';
@@ -23,7 +23,7 @@ import {
 import type {Notice} from '@renderer/ui/notices';
 import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '@core/screens/screenEdits';
-import {useSettingsDocument} from '../useSettingsDocument';
+import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {LookContextMenu} from '../SettingsContextMenus';
 import {lookFontWarnings} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';

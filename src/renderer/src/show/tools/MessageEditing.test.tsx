@@ -12,7 +12,7 @@ import {
   settingsDocument,
   CAPTIONS_ID,
 } from '@renderer/screens/testing/documents';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {stageFixture} from './stageTesting';
 import {MessageTab} from './MessageTab';

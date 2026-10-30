@@ -1,7 +1,7 @@
 import {useLayoutEffect, useRef} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {NamedDocument} from '../useSettingsDocument';
+import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {StageEditor} from './stageEditor';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();

@@ -5,7 +5,7 @@ import type {MonitorInfo} from '@core/schema/monitors';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';
-import type {NamedDocument} from './useSettingsDocument';
+import type {NamedDocument} from '../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 
 /** Creates screens without overriding a newer selection or an unmounted workspace. */

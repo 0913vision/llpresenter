@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {TimerDelete} from '@core/schema/timerDeletion';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 
 export async function deleteTimer(
   api: LlpApi,

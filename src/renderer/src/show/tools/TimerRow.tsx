@@ -2,7 +2,7 @@ import {memo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {Button, Icon, TruncatedText} from '@renderer/ui';
 import {TimerValue} from './TimerValue';
 import {TimerRowMenu} from './TimerRowMenu';

@@ -2,7 +2,7 @@ import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {QuickItem} from '@core/schema/quick';
 import {isItemOfKind} from '@core/schema/service';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor, isLibrarySource} from '@renderer/state/showLibrary';
 import {withinLookupTimeout} from '@renderer/state/showOutput';

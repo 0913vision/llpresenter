@@ -5,7 +5,7 @@ import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {ScreenFrames} from '@renderer/render/screenFrames';
 import type {LookGap} from '@renderer/render/screenLook';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();

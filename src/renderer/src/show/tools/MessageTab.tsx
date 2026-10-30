@@ -11,8 +11,8 @@ import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
 } from '@core/overlays/messageText';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
-import {sendLive} from '@renderer/state/live';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {sendLive} from '@renderer/platform/live';
 import {
   Button,
   ListBox,

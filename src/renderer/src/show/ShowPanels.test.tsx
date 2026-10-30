@@ -10,7 +10,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {
   applyService,
   openItem,

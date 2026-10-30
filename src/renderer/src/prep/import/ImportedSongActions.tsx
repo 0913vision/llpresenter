@@ -4,7 +4,7 @@ import type {SongId} from '@core/schema/ids';
 import {sourceSlideCount} from '@core/schema/groupedSong';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
-import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {editorTask} from '../editor/editorTask';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import {EMPTY_TITLE_REASON, normalizeSongTitle} from '@core/songs/songTitle';

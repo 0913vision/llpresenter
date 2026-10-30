@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import type {Timer} from '@core/schema/timers';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {AlertDialog, IconButton} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {TimerDialog} from './TimerDialog';

@@ -5,7 +5,7 @@ import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useScreenEditor} from './useScreenEditor';
 import {useMonitors} from './useMonitors';
-import type {NamedDocument} from './useSettingsDocument';
+import type {NamedDocument} from '../platform/useSettingsDocument';
 import {MAIN_ID, STAGE_ID, screensDocument} from './testing/documents';
 import {projector} from './testing/monitors';
 

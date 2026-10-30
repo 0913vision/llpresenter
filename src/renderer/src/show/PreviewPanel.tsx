@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {useOutputs} from '@renderer/state/live';
+import {useOutputs} from '@renderer/platform/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
-import {useScreenSummaries} from '@renderer/shell/ScreenSummaries';
+import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
 import {PreviewFrame, type PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {ScreenPreview} from './ScreenPreview';
 import styles from './PreviewPanel.module.css';

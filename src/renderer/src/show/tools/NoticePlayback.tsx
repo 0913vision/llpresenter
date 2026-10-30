@@ -8,7 +8,7 @@ import {
 import type {NoticePlayback as Playback} from '@core/live/state';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {NoticeSet} from '@core/schema/notices';
-import {sendLive, useLive} from '@renderer/state/live';
+import {sendLive, useLive} from '@renderer/platform/live';
 import {Button, MediaTile, TileList, gridMoves} from '@renderer/ui';
 import {noticeReason} from './noticeEdits';
 import styles from './NoticePlayback.module.css';

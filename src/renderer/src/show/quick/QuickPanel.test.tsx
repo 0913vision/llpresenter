@@ -10,9 +10,9 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
-import {Workspace} from '@renderer/shell/Workspace';
-import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
-import {useLive} from '@renderer/state/live';
+import {Workspace} from '@renderer/app/shell/Workspace';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import {useLive} from '@renderer/platform/live';
 import {openItem, useShow} from '@renderer/state/show';
 import {seedSampleService} from '../testing/sampleService';
 import {lookupReply, lookupRequest} from '../bible/testBible';

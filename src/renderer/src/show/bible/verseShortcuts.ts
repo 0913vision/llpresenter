@@ -1,4 +1,4 @@
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {outputTile, useShow} from '@renderer/state/show';
 import {
   bibleSourceFor,

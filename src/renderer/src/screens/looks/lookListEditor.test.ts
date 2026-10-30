@@ -5,7 +5,7 @@ import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import {parseLookId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   looksDocument,
   screensDocument,

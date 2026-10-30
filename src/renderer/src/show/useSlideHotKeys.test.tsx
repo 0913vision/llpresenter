@@ -1,6 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {setColumnDragActive} from '@renderer/state/drag';
+import {setColumnDragActive} from '@renderer/platform/drag';
 import {modalStack} from '@renderer/ui/modalStack';
 import {useSlideHotKeys} from './useSlideHotKeys';
 

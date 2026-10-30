@@ -11,7 +11,7 @@ import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {QuickPanel} from './QuickPanel';
 import {quickDocument, quickFixture, quickId} from './quickTesting';
 

@@ -42,7 +42,7 @@ import {
   screensDocument,
   settingsDocument,
 } from '@renderer/screens/testing/documents';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {useShow} from '@renderer/state/showStore';
 import {bibleSource} from '@core/bible/source';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';

@@ -3,7 +3,7 @@ import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {openItem, useShow} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';

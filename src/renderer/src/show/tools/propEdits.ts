@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/contentEdit';
 import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 
 export const MAX_PROPS = 500;

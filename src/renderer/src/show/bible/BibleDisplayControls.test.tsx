@@ -10,7 +10,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {beginOutputRequest} from '@renderer/state/showOutput';
 import {seedSampleService} from '../testing/sampleService';

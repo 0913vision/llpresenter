@@ -10,7 +10,7 @@ import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {nameProblem} from '@core/screens/screenEdits';
-import type {NamedDocument} from '../useSettingsDocument';
+import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {
   editFrame,
   editFrameValue,

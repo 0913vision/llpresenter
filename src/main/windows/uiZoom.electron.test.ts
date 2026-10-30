@@ -15,7 +15,7 @@ const SYNTAX_MS = 30_000;
 const PROCESS_MS = STARTUP_MS + CHECK_MS + 10_000;
 const TEST_MS = PREPARATION_MS + SYNTAX_MS + PROCESS_MS + 10_000;
 const MAIN = resolve('src/main/windows/fixtures/uiZoom.mts');
-const RENDERER = resolve('src/renderer/src/shell/fixtures/uiZoom');
+const RENDERER = resolve('src/renderer/src/app/shell/fixtures/uiZoom');
 const SHARED = {
   '@core': resolve('src/core'),
   '@contracts': resolve('src/contracts'),

@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {MenuAnchor} from '@renderer/ui/Menu';
-import {sendLive, useOutputs} from '@renderer/state/live';
+import {sendLive, useOutputs} from '@renderer/platform/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from './selection';
-import type {NamedDocument} from './useSettingsDocument';
+import type {NamedDocument} from '../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
 import {nameProblem} from '@core/screens/screenEdits';

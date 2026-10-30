@@ -16,8 +16,8 @@ import type {
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import {useLive} from '@renderer/state/live';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {useLive} from '@renderer/platform/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {

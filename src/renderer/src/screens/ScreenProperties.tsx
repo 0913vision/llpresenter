@@ -29,7 +29,7 @@ import {
 import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useScreenEditor} from './useScreenEditor';
-import {useSettingsDocument} from './useSettingsDocument';
+import {useSettingsDocument} from '../platform/useSettingsDocument';
 import {ScreenDeviceRow} from './ScreenDeviceRow';
 import styles from './ScreenProperties.module.css';
 

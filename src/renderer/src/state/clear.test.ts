@@ -4,7 +4,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLayers, emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {clearLayer, undoClear, useCanUndo} from './clear';
-import {useLive} from './live';
+import {useLive} from '../platform/live';
 
 const sent: LiveCommand[] = [];
 

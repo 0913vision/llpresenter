@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {LayoutChange} from '@core/schema/uiState';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {openItem, useShow} from '@renderer/state/show';
 import {seedThumbnailScale} from '@renderer/state/thumbnailScale';
 import {seedSampleService} from './testing/sampleService';

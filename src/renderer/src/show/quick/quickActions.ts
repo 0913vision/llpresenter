@@ -5,7 +5,7 @@ import {
   type KnownQuickItem,
   type QuickItem,
 } from '@core/schema/quick';
-import {sendLive, useLive} from '@renderer/state/live';
+import {sendLive, useLive} from '@renderer/platform/live';
 import {selectTile, useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
 import {

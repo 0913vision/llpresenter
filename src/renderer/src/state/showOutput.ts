@@ -1,4 +1,4 @@
-import {useLive} from './live';
+import {useLive} from '../platform/live';
 
 /** How long a fresh song read may take before it counts as failed. */
 export const LOOKUP_TIMEOUT_MS = 2000;

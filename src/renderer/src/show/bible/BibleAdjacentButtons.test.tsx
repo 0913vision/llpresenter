@@ -17,7 +17,7 @@ import {
   selectTile,
   useShow,
 } from '@renderer/state/show';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {beginOutputRequest} from '@renderer/state/showOutput';
 import {seedSampleService} from '../testing/sampleService';

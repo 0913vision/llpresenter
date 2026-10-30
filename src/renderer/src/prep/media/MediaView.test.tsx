@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {thumbnailUrl} from '@contracts/ipc/media';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
-import {cssRules} from '@renderer/shell/testing/cssRules';
+import {cssRules} from '@renderer/app/shell/testing/cssRules';
 import {DEFAULT_MEDIA_COLUMNS, MediaView} from './MediaView';
 import {MediaViewProvider, useMediaView} from './MediaViewProvider';
 import type {MediaListChoice} from './mediaEntries';

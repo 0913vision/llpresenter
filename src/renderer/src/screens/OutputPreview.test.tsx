@@ -8,7 +8,7 @@ import {screenIdSchema} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {OutputPreview} from './OutputPreview';
 import {useScreensSelection} from './selection';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {emptyLiveState} from '@core/live/state';
 import {
   CAPTIONS_ID,

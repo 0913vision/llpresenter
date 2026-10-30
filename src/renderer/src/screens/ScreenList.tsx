@@ -14,7 +14,7 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@core/schema/screens';
-import {sendLive, useOutputs} from '@renderer/state/live';
+import {sendLive, useOutputs} from '@renderer/platform/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {useScreenCreation} from './useScreenCreation';
@@ -22,7 +22,7 @@ import {ScreenGroupActions} from './ScreenGroupActions';
 import {screenGroups, type ScreenRow} from './screenRows';
 import {selectedScreenIn, useScreensSelection} from './selection';
 import {useOutputStatuses} from './useOutputStatuses';
-import {useSettingsDocument} from './useSettingsDocument';
+import {useSettingsDocument} from '../platform/useSettingsDocument';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './ScreenList.module.css';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';

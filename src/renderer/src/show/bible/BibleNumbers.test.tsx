@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {useLive} from '@renderer/state/live';
+import {useLive} from '@renderer/platform/live';
 import {
   outputPrevious,
   revealLiveItem,

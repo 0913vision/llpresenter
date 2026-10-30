@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {isColumnDragActive} from '@renderer/state/drag';
+import {isColumnDragActive} from '@renderer/platform/drag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
   openNextItem,

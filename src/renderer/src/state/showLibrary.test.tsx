@@ -16,7 +16,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {SlidePanelBody, SlidePanelMeta} from '@renderer/show/SlidePanel';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {sampleService} from '@renderer/show/testing/sampleService';
-import {useLive} from './live';
+import {useLive} from '../platform/live';
 import {applyService, openItem, outputTile, selectTile, useShow} from './show';
 import {
   librarySourceId,

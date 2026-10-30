@@ -4,8 +4,8 @@ import {
   type QuickItem,
   type QuickItemKind,
 } from '@core/schema/quick';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
-import {useLive} from '@renderer/state/live';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useLive} from '@renderer/platform/live';
 import {useShow} from '@renderer/state/show';
 import {ListActionRow, ListInsertLine} from '@renderer/ui';
 import {

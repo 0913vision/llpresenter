@@ -8,7 +8,7 @@ import {
   createServiceItemId,
   createSongId,
 } from '@core/schema/ids';
-import {pendingWritesOf} from './pendingWrites';
+import {pendingWritesOf} from '../platform/pendingWrites';
 import {updateServiceBackground} from './serviceBackground';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');

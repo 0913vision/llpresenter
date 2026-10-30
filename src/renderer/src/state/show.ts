@@ -16,7 +16,7 @@ import {
 } from '@core/presentation/navigation';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
-import {sendLive, useLive} from './live';
+import {sendLive, useLive} from '../platform/live';
 import {
   bibleSourceFor,
   isBibleSource,

@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {cssRules} from '@renderer/shell/testing/cssRules';
+import {cssRules} from '@renderer/app/shell/testing/cssRules';
 
 const ruleOf = cssRules('src/renderer/src/show/tools/MacroPanel.module.css');
 

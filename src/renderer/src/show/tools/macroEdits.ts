@@ -7,7 +7,7 @@ import {
   type MacroCollection,
   type MacrosFile,
 } from '@core/schema/macros';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {
   editMacroActions,

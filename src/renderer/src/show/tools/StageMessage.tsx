@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {sendLive, useLive} from '@renderer/state/live';
+import {sendLive, useLive} from '@renderer/platform/live';
 import {Button, LiveBadge, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import styles from './StageTab.module.css';

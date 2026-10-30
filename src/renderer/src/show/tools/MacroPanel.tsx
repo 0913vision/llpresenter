@@ -7,9 +7,9 @@ import {
   type Macro,
   type MacroCollection,
 } from '@core/schema/macros';
-import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
-import {sendLive} from '@renderer/state/live';
-import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {sendLive} from '@renderer/platform/live';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {useMacroPalette} from '@renderer/state/macroPalette';
 import {useScreensSelection} from '@renderer/screens/selection';

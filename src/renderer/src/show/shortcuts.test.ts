@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {setColumnDragActive} from '@renderer/state/drag';
+import {setColumnDragActive} from '@renderer/platform/drag';
 import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
 import {seedSampleService} from './testing/sampleService';
 import * as showState from '@renderer/state/show';

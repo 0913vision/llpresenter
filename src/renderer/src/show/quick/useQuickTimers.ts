@@ -8,9 +8,9 @@ import type {TimerId, QuickItemId} from '@core/schema/ids';
 import {
   useSettingsDocument,
   type NamedDocument,
-} from '@renderer/screens/useSettingsDocument';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import {useLive} from '@renderer/state/live';
+} from '@renderer/platform/useSettingsDocument';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {useLive} from '@renderer/platform/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useQuickTimers(

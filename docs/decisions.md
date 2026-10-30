@@ -126,7 +126,7 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   with the repository's options, keeps unknown fields at every level with
   `looseObject`, supports brands and exact optional fields, and puts the field
   path and the received value in its messages. It has no dependencies (MIT).
-  Only `src/shared/schema/` imports it, behind `parse<Format>` and
+  Only `src/core/schema/` imports it, behind `parse<Format>` and
   `serialize<Format>`, so replacing it later touches only that folder. zod
   remains the fallback if valibot stops being maintained.
 - 2026-10-24: The shortcut system and a settings window that covers what

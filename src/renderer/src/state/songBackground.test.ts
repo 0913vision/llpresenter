@@ -4,7 +4,7 @@ import {emptyLiveState} from '@core/live/state';
 import type {ShowService} from '@core/schema/showService';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {LiveStore} from '../../../main/live/store';
-import {sendLive, startLiveSync, useLive} from './live';
+import {sendLive, startLiveSync, useLive} from '../platform/live';
 import {
   applyService,
   openItem,

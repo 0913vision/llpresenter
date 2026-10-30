@@ -10,7 +10,7 @@ const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,
 };
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {looksDocument, MAIN_ID} from '../testing/documents';
 import {editLyricStyleList, LYRIC_STYLE_LIMIT} from './lyricStyleListEdits';
 import {LookListEditor} from './lookListEditor';

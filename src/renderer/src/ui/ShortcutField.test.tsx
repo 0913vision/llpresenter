@@ -5,7 +5,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {serializeShortcuts, type KeyBinding} from '@core/schema/shortcuts';
 import {useClearKeys} from '@renderer/show/clearKeys';
-import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
+import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import {ShortcutField} from './ShortcutField';
 import {Dialog} from './Dialog';
 import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
