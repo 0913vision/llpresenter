@@ -146,6 +146,46 @@ full bar is "Quality bar" in `docs/TECH.md`.
 - Use design token CSS variables (`var(--bg-panel)`) for every color, size, and
   spacing value in the UI.
 
+## Code structure
+
+The layers and their order are in "Code structure" in `docs/TECH.md`, and lint
+(`llp/layer-imports`) enforces them. These rules keep the structure right as it
+grows:
+
+- Imports flow one way: a layer uses only the layers below it. When a lower
+  layer needs something from a higher one, the thing is in the wrong place; move
+  it down instead of reaching up.
+- One rule lives in one place. A rule that needs no I/O goes in `src/core/` with
+  its tests, and every caller uses it. The previews and the output draw with the
+  same rules; never write a second copy for one view.
+- A feature owns its code in its folder. 진행, 준비, and 화면 설정 compose
+  features in `app/`; they don't own them.
+- An IPC call is declared once, in its area's file in `src/contracts/ipc/`, and
+  main answers it with the same endpoint.
+- A change that moves code changes nothing else. Moves and behavior changes go
+  in separate commits.
+- A test lives beside the code it tests, in the same layer. A fixture lives in
+  the lowest layer that uses it. Don't test the same behavior twice.
+
+## UI consistency
+
+The user judges the app by using it, so these hold across every screen:
+
+- One kind of control looks and behaves the same everywhere: every menu has the
+  same indent, highlight, keyboard, and disabled rules; every list row and every
+  dialog likewise. Fix a rule in the shared component, never in one screen.
+- Every action shows its result at once: no wait without feedback, no silent
+  save, no item that vanishes and comes back while it updates.
+- The target of a right-click or a keyboard action is visibly marked while the
+  menu or action is on it.
+- A control sits next to what it acts on, and each workspace looks like itself,
+  so the user always knows where they are.
+- Names are the words the user uses, from the glossary. Don't invent names or
+  translate English UI terms; ask when no word fits.
+- Follow the draft. Compare every UI change with its draft board and the design
+  system by eye, with screenshots, before it merges. A copied ProPresenter
+  layout or shortcut that doesn't fit Windows or this app isn't a reason.
+
 ## Commit messages
 
 - Write one line only:
@@ -286,3 +326,7 @@ what you need on disk, not in the conversation.
   review request needs a green run of its head commit. The lead verifies `main`
   before pushing it (the pre-push hook skips it when a clean stamp covers the
   tree), and a push to `main` only bumps the version on GitHub.
+- Passing checks prove the code, not the product. A UI change is done only when
+  someone has used it in the real app and compared it by eye with its draft: the
+  place it appears, what each click does, and how it fits the screens around it.
+  A script that checks spec rows is not that check.
