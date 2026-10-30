@@ -1,4 +1,4 @@
-import type {StageElement} from '@core/schema/stageLayouts';
+import type {StageElement} from '../schema/stageLayouts';
 
 export const resizeHandles = [
   'nw',

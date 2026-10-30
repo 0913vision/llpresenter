@@ -3,14 +3,14 @@ import type {Look} from '@core/schema/looks';
 import type {MessageStyleId} from '@core/schema/ids';
 import {MessageStyleSelect} from './MessageStyleSelect';
 import {MessageStyleProperties} from './MessageStyleProperties';
-import type {MessageStyleChange} from './messageStyleEdits';
+import type {MessageStyleChange} from '@core/looks/messageStyleEdits';
 import type {LookPreviewInput} from './lookPreviewFrame';
 import type {Timer} from '@core/schema/timers';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {Icon} from '@renderer/ui/Icon';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {LookPreview} from './LookPreview';
-import {screenCard, type LookCardChange} from './lookCardEdits';
+import {screenCard, type LookCardChange} from '@core/looks/lookCardEdits';
 import styles from './LookEditor.module.css';
 
 type Layer = Extract<LookCardChange, {kind: 'layer'}>['layer'];

@@ -12,7 +12,7 @@ import {ColorPicker} from './ColorPicker';
 import {FontPicker} from './FontPicker';
 import {missingFontReason, weightChoices} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
-import type {MessageStyleChange} from './messageStyleEdits';
+import type {MessageStyleChange} from '@core/looks/messageStyleEdits';
 
 const NUMBERS = [
   {key: 'size', label: '크기', min: 12, max: 300, step: 1, suffix: undefined},

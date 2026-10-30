@@ -9,14 +9,14 @@ import type {
 import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import type {NamedDocument} from '../useSettingsDocument';
 import {
   editFrame,
   editFrameValue,
   type ElementFrame,
   type FrameFieldChange,
-} from './frameEdit';
+} from '@core/looks/frameEdit';
 
 export const STAGE_LAYOUT_LIMIT = 1000;
 export const STAGE_ELEMENT_LIMIT = 128;

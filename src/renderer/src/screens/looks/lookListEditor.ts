@@ -2,15 +2,21 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
-import {editLookCard, type LookCardEdit} from './lookCardEdits';
+import {editLookCard, type LookCardEdit} from '@core/looks/lookCardEdits';
 import {
   assignMessageStyle,
   createAndAssignMessageStyle,
-} from './messageStyleAssignment';
-import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
-import {editLyricEffects, type LyricEffectsChange} from './lyricEffectsEdits';
+} from '@core/looks/messageStyleAssignment';
+import {editLyricStyle, type LyricStyleEdit} from '@core/looks/lyricStyleEdits';
+import {
+  editLyricEffects,
+  type LyricEffectsChange,
+} from '@core/looks/lyricEffectsEdits';
 import type {LyricStyleId} from '@core/schema/ids';
-import {editMessageStyle, type MessageStyleChange} from './messageStyleEdits';
+import {
+  editMessageStyle,
+  type MessageStyleChange,
+} from '@core/looks/messageStyleEdits';
 import type {MessageStyleId} from '@core/schema/ids';
 import {
   editLyricStyleList,
@@ -22,7 +28,7 @@ import {
   type LookListContext,
   type LookListEdit,
   type LookListProblem,
-} from './lookListEdits';
+} from '@core/looks/lookListEdits';
 
 type LooksDocument = NamedDocument<'looks'>;
 

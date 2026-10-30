@@ -5,7 +5,7 @@ import {looksDocument, screensDocument} from '../testing/documents';
 import {
   assignMessageStyle,
   createAndAssignMessageStyle,
-} from './messageStyleAssignment';
+} from '@core/looks/messageStyleAssignment';
 import {parseMessageStyleId} from '@core/schema/ids';
 
 function fixture() {

@@ -1,8 +1,8 @@
-import type {Result} from '@core/common/result';
-import type {LookId} from '@core/schema/ids';
-import type {Look, LooksFile} from '@core/schema/looks';
-import {isKnownMacroAction, type Macro} from '@core/schema/macros';
-import {nameProblem} from '../screenEdits';
+import type {Result} from '../common/result';
+import type {LookId} from '../schema/ids';
+import type {Look, LooksFile} from '../schema/looks';
+import {isKnownMacroAction, type Macro} from '../schema/macros';
+import {nameProblem} from '../screens/screenEdits';
 
 /** Bounds newly created Looks without rejecting an existing imported list. */
 export const LOOK_LIST_LIMIT = 1000;

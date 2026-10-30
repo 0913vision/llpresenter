@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import {looksSchema} from '@core/schema/looks';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {looksDocument} from '../testing/documents';
-import {editLyricEffects} from './lyricEffectsEdits';
+import {editLyricEffects} from '@core/looks/lyricEffectsEdits';
 
 function fixture() {
   const document = looksDocument();

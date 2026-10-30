@@ -2,7 +2,7 @@ import {useLayoutEffect, useRef} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from './useSettingsDocument';
 import {ScreenEditor} from './screenEditor';
-import type {ScreenChange} from './screenEdits';
+import type {ScreenChange} from '@core/screens/screenEdits';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditProblemReporter} from './screenEditor';

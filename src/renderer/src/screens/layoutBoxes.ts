@@ -1,7 +1,7 @@
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
-import {monitorAssignment} from './monitorAssignment';
+import {monitorAssignment} from '@core/screens/monitorAssignment';
 import {targetByMethod} from './screenRows';
 
 /** A monitor's box in the display layout, placed in percent of the whole. */

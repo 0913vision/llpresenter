@@ -20,7 +20,7 @@ import {
   resizeHandles,
   type ElementFrame,
   type ResizeHandle,
-} from './frameEdit';
+} from '@core/looks/frameEdit';
 import {elementNames, STAGE_ELEMENT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import {StagePicture} from './StagePicture';

@@ -3,7 +3,11 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {Slider} from '@renderer/ui/Slider';
 import {pressHandler} from '@renderer/ui/press';
 import {useTooltip} from '@renderer/ui/Tooltip';
-import {hexFromHsv, hsvFromHex, type HsvColor} from './colorConversion';
+import {
+  hexFromHsv,
+  hsvFromHex,
+  type HsvColor,
+} from '@core/looks/colorConversion';
 import styles from './ColorPicker.module.css';
 
 const PERCENT_MAX = 100;

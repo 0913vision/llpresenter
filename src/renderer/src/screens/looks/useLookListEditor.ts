@@ -4,16 +4,16 @@ import {useLive} from '@renderer/state/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../useSettingsDocument';
 import {LookListEditor} from './lookListEditor';
-import type {LookListEdit} from './lookListEdits';
-import type {LookCardEdit} from './lookCardEdits';
-import type {LyricStyleEdit} from './lyricStyleEdits';
-import type {MessageStyleChange} from './messageStyleEdits';
+import type {LookListEdit} from '@core/looks/lookListEdits';
+import type {LookCardEdit} from '@core/looks/lookCardEdits';
+import type {LyricStyleEdit} from '@core/looks/lyricStyleEdits';
+import type {MessageStyleChange} from '@core/looks/messageStyleEdits';
 import type {MessageStyleId} from '@core/schema/ids';
 import type {
   assignMessageStyle,
   createAndAssignMessageStyle,
-} from './messageStyleAssignment';
-import type {LyricEffectsChange} from './lyricEffectsEdits';
+} from '@core/looks/messageStyleAssignment';
+import type {LyricEffectsChange} from '@core/looks/lyricEffectsEdits';
 import type {LyricStyleId} from '@core/schema/ids';
 import type {LyricStyleListEdit} from './lyricStyleListEdits';
 

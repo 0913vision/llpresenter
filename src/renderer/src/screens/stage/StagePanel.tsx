@@ -23,7 +23,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {ChoiceRows} from '../ChoiceRows';
 import {stageLayoutsInUse} from '../choices';
 import {selectedIdIn, useScreensSelection} from '../selection';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {StageLayoutContextMenu} from '../SettingsContextMenus';
 import {STAGE_LAYOUT_LIMIT} from './stageEditor';

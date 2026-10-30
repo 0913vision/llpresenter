@@ -8,7 +8,7 @@ import {useScreensSelection} from './selection';
 import type {NamedDocument} from './useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
-import {nameProblem} from './screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import {ScreenContextMenu} from './screenMenuEntries';
 import {NOT_YET} from '@renderer/ui/menuRows';
 

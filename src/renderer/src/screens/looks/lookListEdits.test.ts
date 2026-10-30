@@ -12,7 +12,7 @@ import {
   LOOK_LIST_LIMIT,
   type LookListContext,
   type LookListEdit,
-} from './lookListEdits';
+} from '@core/looks/lookListEdits';
 
 function id(value: string): LookId {
   const parsed = parseLookId(value);

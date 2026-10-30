@@ -2,7 +2,7 @@ import type {Result} from '@core/common/result';
 import type {LyricStyleId} from '@core/schema/ids';
 import type {LooksFile} from '@core/schema/looks';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 
 export const LYRIC_STYLE_LIMIT = 1000;
 

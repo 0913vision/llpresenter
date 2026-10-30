@@ -1,6 +1,10 @@
 import type {JSX} from 'react';
 import {IconButton, NumberField} from '@renderer/ui';
-import {MIN_SIZE, type ElementFrame, type FrameField} from './frameEdit';
+import {
+  MIN_SIZE,
+  type ElementFrame,
+  type FrameField,
+} from '@core/looks/frameEdit';
 import {STAGE_READ_ONLY} from './StageTextProperties';
 import styles from './StageFrameBar.module.css';
 

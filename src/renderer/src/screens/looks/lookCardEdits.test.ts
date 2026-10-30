@@ -9,7 +9,7 @@ import {
   screensDocument,
   settingsDocument,
 } from '../testing/documents';
-import {editLookCard, screenCard} from './lookCardEdits';
+import {editLookCard, screenCard} from '@core/looks/lookCardEdits';
 
 function fixture() {
   const initial = looksDocument();

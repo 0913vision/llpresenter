@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import * as v from 'valibot';
 import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
 import {looksDocument} from '../testing/documents';
-import {editMessageStyle} from './messageStyleEdits';
+import {editMessageStyle} from '@core/looks/messageStyleEdits';
 
 function fixture() {
   const doc = looksDocument();

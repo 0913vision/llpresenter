@@ -16,7 +16,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
-import {monitorAssignment} from './monitorAssignment';
+import {monitorAssignment} from '@core/screens/monitorAssignment';
 import {
   CAPTURE_RESOLUTIONS,
   EDGE_MARGIN_MAX,
@@ -25,7 +25,7 @@ import {
   nameProblem,
   onDisconnectOf,
   type ScreenChange,
-} from './screenEdits';
+} from '@core/screens/screenEdits';
 import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useScreenEditor} from './useScreenEditor';

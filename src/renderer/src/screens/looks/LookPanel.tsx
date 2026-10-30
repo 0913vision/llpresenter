@@ -22,7 +22,7 @@ import {
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {selectedIdIn, useScreensSelection} from '../selection';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {LookContextMenu} from '../SettingsContextMenus';
 import {lookFontWarnings} from './fontAvailability';
@@ -32,7 +32,7 @@ import {
   LOOK_LIST_LIMIT,
   type LookListEdit,
   type LookListProblem,
-} from './lookListEdits';
+} from '@core/looks/lookListEdits';
 import {useLookListEditor} from './useLookListEditor';
 import styles from './LookList.module.css';
 

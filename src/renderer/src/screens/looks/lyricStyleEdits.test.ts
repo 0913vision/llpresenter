@@ -11,7 +11,7 @@ const DEFAULT_LYRIC_STYLE = {
   referencePosition: 'bottomRight' as const,
 };
 import {looksDocument} from '../testing/documents';
-import {editLyricStyle} from './lyricStyleEdits';
+import {editLyricStyle} from '@core/looks/lyricStyleEdits';
 import {LookListEditor} from './lookListEditor';
 
 function fixture() {

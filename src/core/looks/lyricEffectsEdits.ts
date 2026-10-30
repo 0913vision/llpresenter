@@ -1,5 +1,5 @@
-import type {LyricStyleId} from '@core/schema/ids';
-import {parseLooks, type LooksFile, type LyricStyle} from '@core/schema/looks';
+import type {LyricStyleId} from '../schema/ids';
+import {parseLooks, type LooksFile, type LyricStyle} from '../schema/looks';
 export type LyricEffectsChange =
   | {readonly kind: 'outline'; readonly change: Partial<LyricStyle['outline']>}
   | {readonly kind: 'shadow'; readonly change: Partial<LyricStyle['shadow']>}

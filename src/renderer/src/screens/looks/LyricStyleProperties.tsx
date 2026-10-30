@@ -12,11 +12,11 @@ import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import type {LyricStyleEdit} from './lyricStyleEdits';
+import type {LyricStyleEdit} from '@core/looks/lyricStyleEdits';
 import {FontPicker} from './FontPicker';
 import {ColorPicker} from './ColorPicker';
 import {LyricEffectsProperties} from './LyricEffectsProperties';
-import type {LyricEffectsChange} from './lyricEffectsEdits';
+import type {LyricEffectsChange} from '@core/looks/lyricEffectsEdits';
 import {missingFontReason, weightChoices} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
 

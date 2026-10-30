@@ -4,7 +4,7 @@ import {
   changeScreen,
   nameProblem,
   onDisconnectOf,
-} from './screenEdits';
+} from '@core/screens/screenEdits';
 import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
 
 function screens() {

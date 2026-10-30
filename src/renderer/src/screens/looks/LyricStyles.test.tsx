@@ -16,7 +16,7 @@ const DEFAULT_LYRIC_STYLE = {
 };
 import {looksDocument} from '../testing/documents';
 import {LyricStyles} from './LyricStyles';
-import type {LyricStyleEdit} from './lyricStyleEdits';
+import type {LyricStyleEdit} from '@core/looks/lyricStyleEdits';
 
 const drawing = vi.hoisted(() => ({
   render: vi.fn(),

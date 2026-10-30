@@ -9,7 +9,7 @@ import {
   nameProblem,
   type NameProblem,
   type ScreenChange,
-} from './screenEdits';
+} from '@core/screens/screenEdits';
 import {SettingsDocumentEditor} from './settingsDocumentEditor';
 import {addScreen, type NewScreen} from './addScreen';
 

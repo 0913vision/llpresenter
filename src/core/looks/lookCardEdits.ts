@@ -3,8 +3,8 @@ import type {
   LyricStyleId,
   ScreenId,
   StageLayoutId,
-} from '@core/schema/ids';
-import type {Look, LooksFile, ScreenLook} from '@core/schema/looks';
+} from '../schema/ids';
+import type {Look, LooksFile, ScreenLook} from '../schema/looks';
 
 /** The saved switches understood by the Look editor and output renderer. */
 export const LOOK_LAYERS = [

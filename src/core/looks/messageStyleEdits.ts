@@ -1,9 +1,9 @@
-import type {MessageStyleId} from '@core/schema/ids';
+import type {MessageStyleId} from '../schema/ids';
 import {
   serializeLooks,
   type LooksFile,
   type MessageStyle,
-} from '@core/schema/looks';
+} from '../schema/looks';
 
 type BasicFields = Pick<
   MessageStyle,

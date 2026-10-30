@@ -12,7 +12,7 @@ import {ColorPicker} from './ColorPicker';
 
 type Style = LyricStyle;
 
-import type {LyricEffectsChange} from './lyricEffectsEdits';
+import type {LyricEffectsChange} from '@core/looks/lyricEffectsEdits';
 
 const REFERENCE_POSITIONS = [
   {value: 'bottomRight', label: '오른쪽 아래'},

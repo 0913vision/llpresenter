@@ -15,7 +15,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {Notice} from '@renderer/ui/notices';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import {useScreensSelection} from '../selection';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {useMonitors} from '../useMonitors';
@@ -23,7 +23,7 @@ import {previewCaption} from '../previewCaption';
 import {LookScreenCard} from './LookScreenCard';
 import {LookCardSlots} from './LookCardSlots';
 import {LyricStyles} from './LyricStyles';
-import {LOOK_LIST_LIMIT} from './lookListEdits';
+import {LOOK_LIST_LIMIT} from '@core/looks/lookListEdits';
 import {useLookListEditor} from './useLookListEditor';
 import styles from './LookEditor.module.css';
 

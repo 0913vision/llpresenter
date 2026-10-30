@@ -1,4 +1,4 @@
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '../schema/screens';
 
 /** The most the 가장자리 여백 may be, in percent (spec 10, "Screens"). */
 export const EDGE_MARGIN_MAX = 20;

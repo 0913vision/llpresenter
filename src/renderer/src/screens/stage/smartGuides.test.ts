@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {resizeHandles} from './frameEdit';
+import {resizeHandles} from '@core/looks/frameEdit';
 import {guideFrame} from './smartGuides';
 
 const start = {x: 100, y: 100, w: 100, h: 80, future: 7};

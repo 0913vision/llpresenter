@@ -8,7 +8,7 @@ import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {nameProblem} from '../screenEdits';
+import {nameProblem} from '@core/screens/screenEdits';
 import {LyricStyleContextMenu} from '../SettingsContextMenus';
 import {
   LYRIC_STYLE_LIMIT,
