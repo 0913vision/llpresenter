@@ -35,6 +35,7 @@ import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {useMediaImportAction} from './useMediaImportAction';
 import {MediaImportOptions} from './MediaImportOptions';
 import styles from './MediaView.module.css';
+import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
 
 /** The fewest and most grid columns the size slider sets. */
 export const MIN_MEDIA_COLUMNS = 2;
@@ -162,10 +163,11 @@ export function MediaView({
       });
     }
   };
-  const actions = (entry: MediaEntry): TileActions => ({
+  const actions = (entry: MediaEntry): MediaTileActions => ({
     missing: missing(entry),
     editable: view.document?.access === 'editable',
     inPlaylist: playlist !== null,
+    audioPlaylist: playlist?.kind === 'audio',
     cancel: mediaId => {
       library.cancel(mediaId, nameOf(entry)).catch((cause: unknown) => {
         console.error('Stopping a media copy failed:', cause);
@@ -252,7 +254,9 @@ export function MediaView({
             onMenu={(at, anchor) => {
               const entry = entries[at];
               const choices =
-                entry === undefined ? [] : menuEntries(entry, actions(entry));
+                entry === undefined
+                  ? []
+                  : mediaTileMenuEntries(entry, actions(entry));
               if (choices.length > 0) setMenu({entries: choices, anchor});
             }}
             tile={at => {
@@ -327,72 +331,4 @@ export function MediaView({
       )}
     </>
   );
-}
-
-interface TileActions {
-  readonly missing: boolean;
-  readonly editable: boolean;
-  readonly inPlaylist: boolean;
-  readonly cancel: (mediaId: MediaId) => void;
-  readonly relink: (mediaId: MediaId) => void;
-  readonly leave: (mediaId: MediaId) => void;
-  readonly remove: (item: MediaItem) => void;
-}
-
-// NOTE(0913vision): A copying tile offers only 복사 멈추기 (MediaTile README).
-// Other tiles offer 다시 연결 when the file is missing, 재생목록에서 빼기 in a
-// playlist, and 삭제 (spec 05, "Behavior").
-function menuEntries(
-  entry: MediaEntry,
-  actions: TileActions,
-): readonly MenuEntry[] {
-  const copying =
-    entry.kind === 'copy'
-      ? entry.job.mediaId
-      : entry.copying === undefined
-        ? null
-        : entry.item.id;
-  if (copying !== null) {
-    return [
-      {
-        kind: 'item',
-        id: 'cancel',
-        label: '복사 멈추기',
-        icon: 'stop',
-        onSelect: () => actions.cancel(copying),
-      },
-    ];
-  }
-  if (entry.kind !== 'media') return [];
-  const {item} = entry;
-  const entries: MenuEntry[] = [];
-  if (actions.missing) {
-    entries.push({
-      kind: 'item',
-      id: 'relink',
-      label: '다시 연결',
-      icon: 'link',
-      onSelect: () => actions.relink(item.id),
-    });
-  }
-  if (actions.editable && actions.inPlaylist) {
-    entries.push({
-      kind: 'item',
-      id: 'leave',
-      label: '재생목록에서 빼기',
-      icon: 'x',
-      onSelect: () => actions.leave(item.id),
-    });
-  }
-  if (actions.editable) {
-    entries.push({
-      kind: 'item',
-      id: 'delete',
-      label: '삭제',
-      icon: 'trash',
-      danger: true,
-      onSelect: () => actions.remove(item),
-    });
-  }
-  return entries;
 }

@@ -57,6 +57,24 @@ async function row(list: string, name: RegExp | string): Promise<HTMLElement> {
 }
 
 describe('media list panels', () => {
+  it.each([
+    ['미디어 목록', 'Backgrounds'],
+    ['오디오 재생목록', 'Hymns'],
+  ])(
+    'lists the %s playlist menu rows in ProPresenter order',
+    async (list, name) => {
+      setup();
+      fireEvent.contextMenu(await row(list, new RegExp(name)));
+      const menu = screen.getByRole('menu', {name: '재생목록 메뉴'});
+      expect(
+        [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+          item =>
+            item.getAttribute('role') === 'separator' ? '|' : item.textContent,
+        ),
+      ).toEqual(['통신에 사용', '|', '이름 바꾸기', '복제', '삭제']);
+    },
+  );
+
   afterEach(resetTooltips);
 
   it.each([
@@ -73,6 +91,11 @@ describe('media list panels', () => {
     'keeps the focused $kind rename field after $entry menu cleanup',
     async ({kind, list, name, entry}) => {
       const {edit} = setup();
+      const scrollIntoView = HTMLElement.prototype.scrollIntoView;
+      HTMLElement.prototype.scrollIntoView = vi.fn();
+      onTestFinished(() => {
+        HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      });
       const opener = await row(list, new RegExp(name));
       act(() => opener.focus());
       fireEvent.contextMenu(
@@ -83,7 +106,10 @@ describe('media list panels', () => {
         name: '이름 바꾸기',
       });
       if (entry === 'pointer') fireEvent.click(command);
-      else fireEvent.keyDown(command, {key: 'Enter'});
+      else {
+        fireEvent.keyDown(screen.getByRole('menu'), {key: 'ArrowDown'});
+        fireEvent.keyDown(command, {key: 'Enter'});
+      }
       const field = await screen.findByRole('textbox', {name: `${name} 이름`});
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 20));
@@ -341,7 +367,10 @@ describe('media list panels', () => {
     const grid = await screen.findByRole('listbox', {name: 'Backgrounds'});
     fireEvent.contextMenu(within(grid).getByRole('option', {name: 'Waves'}));
     expect(
-      screen.getAllByRole('menuitem').map(item => item.textContent),
+      screen
+        .getAllByRole('menuitem')
+        .filter(item => item.getAttribute('aria-disabled') !== 'true')
+        .map(item => item.textContent),
     ).toEqual(['재생목록에서 빼기', '삭제']);
     fireEvent.click(screen.getByRole('menuitem', {name: '재생목록에서 빼기'}));
     await vi.waitFor(() =>

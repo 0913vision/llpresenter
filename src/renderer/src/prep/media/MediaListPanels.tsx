@@ -22,6 +22,7 @@ import {
 } from './mediaEntries';
 import {useMediaView} from './MediaViewProvider';
 import styles from './MediaListPanels.module.css';
+import {playlistMenuEntries} from './mediaMenuEntries';
 
 const ALL = 'all';
 
@@ -45,8 +46,6 @@ function anchorOf(event: MouseEvent<HTMLElement>, row: Element): MenuAnchor {
     : {kind: 'point', point: {x: event.clientX, y: event.clientY}};
 }
 
-// NOTE(0913vision): A playlist row's menu has 이름 바꾸기 and 삭제; renaming
-// happens in the row, and deleting asks first.
 function usePlaylistEditing(kind: 'media' | 'audio') {
   const {library, view} = useMediaView();
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -87,7 +86,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
         ? event.target.closest('[data-value]')
         : null;
     const key = row?.getAttribute('data-value') ?? '';
-    if (row === null || !editable || !key.startsWith(`${kind}:`)) return;
+    if (row === null || !key.startsWith(`${kind}:`)) return;
     event.preventDefault();
     setMenu({id: key.slice(kind.length + 1), anchor: anchorOf(event, row)});
   };
@@ -100,29 +99,28 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
           label="재생목록 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              icon: 'edit',
-              onSelect: () => {
-                pendingRename.current = menu.id;
-                setMenu(null);
-              },
-            },
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              icon: 'trash',
-              danger: true,
-              onSelect: () => {
-                setDeleting(menu.id);
-                setMenu(null);
-              },
-            },
-          ]}
+          entries={playlistMenuEntries(editable).map(entry => {
+            if (entry.kind !== 'item') return entry;
+            if (entry.id === 'rename') {
+              return {
+                ...entry,
+                onSelect: () => {
+                  pendingRename.current = menu.id;
+                  setMenu(null);
+                },
+              };
+            }
+            if (entry.id === 'delete') {
+              return {
+                ...entry,
+                onSelect: () => {
+                  setDeleting(menu.id);
+                  setMenu(null);
+                },
+              };
+            }
+            return entry;
+          })}
         />
       ) : null}
       {doomed === null ? null : (

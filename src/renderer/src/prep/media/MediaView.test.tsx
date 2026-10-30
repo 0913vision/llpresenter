@@ -61,6 +61,65 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it('uses the audio item menu inside an audio playlist', async () => {
+    const fixture = mediaFixture(
+      mediaDocument(
+        [
+          mediaItem(1, {
+            name: 'Invented audio',
+            kind: 'audio',
+            file: 'invented.mp3',
+          }),
+        ],
+        1,
+        {
+          audioPlaylists: [
+            {
+              id: audioPlaylistId(1),
+              name: 'Hymns',
+              items: [mediaId(1)],
+              loop: false,
+            },
+          ],
+        },
+      ),
+    );
+    setup(fixture, {kind: 'audio', id: audioPlaylistId(1)});
+    fireEvent.click(screen.getByRole('button', {name: 'Choose list'}));
+    const grid = await screen.findByRole('listbox', {name: 'Hymns'});
+    fireEvent.contextMenu(
+      await within(grid).findByRole('option', {name: 'Invented audio'}),
+    );
+    const menu = screen.getByRole('menu', {name: '미디어 메뉴'});
+    expect(
+      [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+        item =>
+          item.getAttribute('role') === 'separator' ? '|' : item.textContent,
+      ),
+    ).toEqual([
+      '탐색기에서 보기',
+      '재생 방식',
+      '효과음으로 지정',
+      '|',
+      '속성…',
+      '이름 바꾸기',
+      '|',
+      '삭제',
+    ]);
+    fireEvent.click(within(menu).getByRole('menuitem', {name: '삭제'}));
+    fireEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
+    await vi.waitFor(() =>
+      expect(fixture.edit).toHaveBeenCalledWith({
+        type: 'media.delete',
+        mediaId: mediaId(1),
+      }),
+    );
+  });
+
   afterEach(resetTooltips);
   it.each(['media', 'audio'] as const)(
     'drops native files into the selected %s playlist and shows copy progress',
@@ -285,7 +344,7 @@ describe('media view', () => {
     fireEvent.doubleClick(missing);
     await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
     fireEvent.contextMenu(missing);
-    fireEvent.click(await screen.findByRole('menuitem', {name: '다시 연결'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '다시 연결…'}));
     expect(edit.mock.calls).toEqual([
       [{type: 'media.relink', mediaId: mediaId(1)}],
       [{type: 'media.relink', mediaId: mediaId(1)}],
@@ -366,7 +425,10 @@ describe('media view', () => {
     const {edit} = setup();
     fireEvent.contextMenu(await tile('Dawn'));
     expect(
-      screen.getAllByRole('menuitem').map(item => item.textContent),
+      screen
+        .getAllByRole('menuitem')
+        .filter(item => item.getAttribute('aria-disabled') !== 'true')
+        .map(item => item.textContent),
     ).toEqual(['삭제']);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
@@ -397,6 +459,10 @@ describe('media view', () => {
       </MediaViewProvider>,
     );
     fireEvent.contextMenu(await tile('Dawn'));
-    expect(screen.queryByRole('menu')).toBeNull();
+    expect(
+      screen
+        .getAllByRole('menuitem')
+        .every(item => item.getAttribute('aria-disabled') === 'true'),
+    ).toBe(true);
   });
 });
