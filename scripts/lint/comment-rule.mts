@@ -1,4 +1,4 @@
-import type {ESLint, Rule, SourceCode} from 'eslint';
+import type {Rule, SourceCode} from 'eslint';
 
 type SourceComment = ReturnType<SourceCode['getAllComments']>[number];
 type LocatedComment = SourceComment & {
@@ -116,9 +116,3 @@ export const allowedCommentsRule: Rule.RuleModule = {
     };
   },
 };
-
-/** The local ESLint plugin that holds the project's own rules. */
-export const llpPlugin = {
-  meta: {name: 'llp'},
-  rules: {'allowed-comments': allowedCommentsRule},
-} satisfies ESLint.Plugin;

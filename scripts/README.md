@@ -83,6 +83,9 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
   comments in `CLAUDE.md`: TSDoc, `// NOTE(0913vision): ...`, and
   `// TODO(0913vision): ...`. Plain `//` lines right under a NOTE or TODO, in
   the same column, continue it. `tsdoc/syntax` checks TSDoc.
+- `llp/layer-imports` (`scripts/lint/layer-rule.mts`) allows an import only
+  along the layers in `scripts/lint/layers.mts` (`docs/TECH.md`, "Code
+  structure"). It resolves both relative and alias imports.
 - Comments can't switch rules off (`noInlineConfig`). When existing code breaks
   a rule, add the narrowest entry to `scripts/lint/legacy-exclusions.mts` with a
   TODO, and the code's author fixes it.

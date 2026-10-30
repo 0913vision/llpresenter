@@ -79,6 +79,36 @@ Utility process (utilityProcess): import conversion, later NDI sending
 - Native modules (NDI and others) run only inside the utility process. If native
   code crashes, the output windows and the main process stay alive.
 
+## Code structure
+
+The code is split into layers. A layer imports only itself and the layers below
+it, and lint enforces the order (`llp/layer-imports`, declared in
+`scripts/lint/layers.mts`).
+
+| Layer                       | Holds                                                                 | May import                                  |
+| --------------------------- | --------------------------------------------------------------------- | ------------------------------------------- |
+| `src/core/`                 | Pure rules and data schemas, with no I/O, Electron, or React          | Nothing else                                |
+| `src/contracts/`            | The IPC API between processes and its test fakes                      | core                                        |
+| `src/main/`, `src/preload/` | The main process and the preload bridges                              | core, contracts                             |
+| `renderer/src/ui/`          | Design system components with no app state                            | core, contracts                             |
+| `renderer/src/rendering/`   | Drawing shared by the previews and the output windows                 | core, contracts                             |
+| `renderer/src/platform/`    | Renderer services shared by features: live mirror, shortcuts, drag    | core, contracts, ui                         |
+| `renderer/src/session/`     | The control window's working session: the open 예배 순서 and the show | core, contracts, ui, platform               |
+| `renderer/src/features/`    | One folder per feature, in the order below                            | The layers above and the features before it |
+| `renderer/src/app/`         | The control window: composes the features into 진행, 준비, 화면 설정  | Everything in the control window            |
+| `renderer/src/output/`      | The output windows                                                    | core, contracts, rendering                  |
+
+The features, from the most basic to the most composed: media, songs, bible,
+service, presentation, screens, tools, quick. A feature that needs another
+feature's action takes it from a feature before it, or the action moves to the
+feature that owns it.
+
+- Put a rule that needs no I/O in `src/core/` and test it there. Renderer and
+  main code call it instead of copying it.
+- 진행 and 준비 are compositions in `app/`, not owners of features. A feature
+  used by both lives once in `features/`.
+- Tests and `testing/` fixtures are not checked yet.
+
 ## Registries (extension points)
 
 | Registry                                         | In v1                                                 | Later                                        |

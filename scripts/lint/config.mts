@@ -4,7 +4,7 @@ import {defineConfig, globalIgnores} from 'eslint/config';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tsdoc from 'eslint-plugin-tsdoc';
 import tseslint from 'typescript-eslint';
-import {llpPlugin} from './comment-rule.mts';
+import {llpPlugin} from './plugin.mts';
 import {legacyExclusions} from './legacy-exclusions.mts';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
@@ -17,6 +17,7 @@ const SOAK_CLIP_PAGE_FILES = ['scripts/soak/clip/*.js'];
 const BOUNDARY_TEST_FILES = ['**/*.test.{ts,tsx}', 'src/**/testing/**'];
 const MAIN_MODULE_FILES = ['src/main/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 const RENDERER_MODULE_FILES = ['src/renderer/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
+const SOURCE_MODULE_FILES = ['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 
 const VALIBOT_IMPORT = {
   regex: '^valibot(?:/|$)',
@@ -281,6 +282,16 @@ export const lintConfig = defineConfig(
         'error',
         {patterns: [VALIBOT_IMPORT, RENDERER_IMPORT]},
       ],
+    },
+  },
+  {
+    files: SOURCE_MODULE_FILES,
+    ignores: BOUNDARY_TEST_FILES,
+    rules: {
+      // NOTE(0913vision): Imports flow one way between the layers in
+      // scripts/lint/layers.mts, so a change in a feature never reaches
+      // the layers below it.
+      'llp/layer-imports': 'error',
     },
   },
   {
