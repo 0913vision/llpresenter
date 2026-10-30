@@ -19,7 +19,7 @@ import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from './fitAspect';
 import {useElementSize} from './useElementSize';
-import {REFERENCE_SCREEN} from '@renderer/rendering/lyricStyle';
+import {REFERENCE_SCREEN} from '@core/looks/lyricStyle';
 
 type PreviewMode = 'content' | 'pattern';
 

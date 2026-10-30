@@ -1,4 +1,4 @@
-import type {LyricStyle as StoredLyricStyle} from '@core/schema/looks';
+import type {LyricStyle as StoredLyricStyle} from '../schema/looks';
 
 /**
  * How the lyrics layer draws a 장: the lyric style fields of a Look

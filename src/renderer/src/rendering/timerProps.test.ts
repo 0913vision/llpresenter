@@ -11,7 +11,7 @@ import {
   TEXT_STYLE,
 } from '../../../main/live/testing/overlays';
 import {classes} from './classes';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 import {MAX_REPORTED_TICK_ERRORS} from './layers/props';
 import {OverlayTextView} from './overlayText';

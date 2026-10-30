@@ -8,7 +8,7 @@ import {
 import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
 import type {Timer} from '@core/schema/timers';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {useLive} from '@renderer/session/live';

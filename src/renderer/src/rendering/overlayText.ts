@@ -1,4 +1,4 @@
-import {DEFAULT_LYRIC_STYLE, type LyricStyle} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE, type LyricStyle} from '@core/looks/lyricStyle';
 import {SlideLayerView} from './slideLayer';
 
 /** One fixed message style until M3-X1; text props can supply their stored style. */

@@ -5,7 +5,7 @@ import {
   showsLayer,
   resolveScreenLook,
   type ScreenAppearance,
-} from '@renderer/rendering/screenLook';
+} from '@core/looks/screenLook';
 import {stageClockText} from '@renderer/rendering/stageLayout';
 import {tilesOf} from '@renderer/session/show';
 import {passageBook} from '@core/bible/adjacentVerses';

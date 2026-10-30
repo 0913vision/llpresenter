@@ -5,7 +5,7 @@ import type {Screen} from '@core/schema/screens';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import type {RenderFrame} from '@renderer/rendering/layer';
 import {resolveRenderScreen} from '@renderer/rendering/screenIdentity';
-import {resolveScreenLook} from '@renderer/rendering/screenLook';
+import {resolveScreenLook} from '@core/looks/screenLook';
 
 export interface LookPreviewInput {
   readonly screen: Screen;

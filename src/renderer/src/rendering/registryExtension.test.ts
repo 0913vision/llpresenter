@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {failProbeDuring} from './fixtures/layers/probe';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 
 vi.mock('./layers', () => import('./fixtures/layers'));

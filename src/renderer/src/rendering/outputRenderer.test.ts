@@ -2,9 +2,9 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {RenderMode} from './backgroundLayer';
 import {classes} from './classes';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
-import type {ScreenAppearance} from './screenLook';
+import type {ScreenAppearance} from '@core/looks/screenLook';
 import {SlideLayerView} from './slideLayer';
 import {MAIN} from '../../../main/live/testing/overlays';
 

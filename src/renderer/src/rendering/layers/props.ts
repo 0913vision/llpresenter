@@ -3,7 +3,7 @@ import {classes} from '../classes';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
 import type {TimerNow} from '@core/timers/timerClock';
-import type {LyricStyle} from '../lyricStyle';
+import type {LyricStyle} from '@core/looks/lyricStyle';
 import {OverlayTextView} from '../overlayText';
 import {
   fillTimerTokens,

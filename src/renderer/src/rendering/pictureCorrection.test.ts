@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {scaleFor} from './lyricStyle';
+import {scaleFor} from '@core/looks/lyricStyle';
 import {pictureTransform} from './pictureCorrection';
 
 const STILL = {x: 0, y: 0};

@@ -5,7 +5,7 @@ import type {Screen} from '@core/schema/screens';
 import {mediaUrl} from '@contracts/ipc/media';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
-import {resolveScreenLook, showsLayer} from '../rendering/screenLook';
+import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
 import {followSettingsDocument} from '../rendering/settingsFeed';
 
 /** Plays background sound once, independently of the preloaded screen windows. */

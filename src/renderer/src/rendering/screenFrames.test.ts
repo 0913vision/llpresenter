@@ -12,9 +12,9 @@ import {
   settingsDocument,
   STAGE,
 } from '../../../main/live/testing/overlays';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
-import type {LookGap} from './screenLook';
+import type {LookGap} from '@core/looks/screenLook';
 
 const NORMAL = lookIdOf(80);
 const VIDEO_ONLY = lookIdOf(81);

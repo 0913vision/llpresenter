@@ -12,9 +12,9 @@ import {
 } from '../../../main/live/testing/overlays';
 import {classes} from './classes';
 import type {RenderFrame} from './layer';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
-import type {ScreenAppearance} from './screenLook';
+import type {ScreenAppearance} from '@core/looks/screenLook';
 import {
   MAX_REPORTED_STAGE_ERRORS,
   STAGE_TICK_MS,

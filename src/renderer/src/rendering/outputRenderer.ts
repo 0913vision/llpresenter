@@ -9,9 +9,13 @@ import type {
   RenderScreen,
 } from './layer';
 import {renderLayers} from './layers';
-import {scaleFor} from './lyricStyle';
+import {scaleFor} from '@core/looks/lyricStyle';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
-import {showsLayer, type LookLayer, type ScreenAppearance} from './screenLook';
+import {
+  showsLayer,
+  type LookLayer,
+  type ScreenAppearance,
+} from '@core/looks/screenLook';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
 

@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {looksSchema} from '@core/schema/looks';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {Properties} from '@renderer/ui/PropertyRow';
 import {looksDocument} from '../testing/documents';
 import {LyricEffectsProperties} from './LyricEffectsProperties';

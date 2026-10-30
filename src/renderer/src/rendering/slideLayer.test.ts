@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import {classes} from './classes';
-import {DEFAULT_LYRIC_STYLE, scaleFor} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE, scaleFor} from '@core/looks/lyricStyle';
 import {SlideLayerView} from './slideLayer';
 import {OUTPUT_TRANSITIONS} from './transitions';
 

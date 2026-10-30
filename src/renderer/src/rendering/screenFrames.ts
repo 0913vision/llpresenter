@@ -6,7 +6,11 @@ import type {Timer} from '@core/schema/timers';
 import type {RenderFrame, RenderScreen, StageFrame} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';
-import {resolveScreenLook, type LookGap, type ResolvedLook} from './screenLook';
+import {
+  resolveScreenLook,
+  type LookGap,
+  type ResolvedLook,
+} from '@core/looks/screenLook';
 import {followSettingsDocument} from './settingsFeed';
 
 /** At most this many Look gaps are logged until `looks.json` changes. */

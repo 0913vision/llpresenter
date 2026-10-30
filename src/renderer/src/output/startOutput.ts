@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/media';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
-import {DEFAULT_LYRIC_STYLE} from '../rendering/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';

@@ -5,10 +5,7 @@ import {parsePayload} from '@core/schema/payload';
 import type {LooksFile} from '@core/schema/looks';
 import type {ScreensFile} from '@core/schema/screens';
 import type {RenderScreen} from '@renderer/rendering/layer';
-import {
-  DEFAULT_LYRIC_STYLE,
-  renderLyricStyle,
-} from '@renderer/rendering/lyricStyle';
+import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from '@core/looks/lyricStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 

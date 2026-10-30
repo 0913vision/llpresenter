@@ -6,7 +6,7 @@ import type {
   StageLayout,
   StageLayoutsFile,
 } from '@core/schema/stageLayouts';
-import {REFERENCE_SCREEN} from '@renderer/rendering/lyricStyle';
+import {REFERENCE_SCREEN} from '@core/looks/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/rendering/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {nameProblem} from '@core/screens/screenEdits';

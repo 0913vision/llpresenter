@@ -9,10 +9,7 @@ import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
 import type {LyricStyle} from '@core/schema/looks';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {
-  DEFAULT_LYRIC_STYLE,
-  renderLyricStyle,
-} from '@renderer/rendering/lyricStyle';
+import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from '@core/looks/lyricStyle';
 import styles from './LookPreview.module.css';
 
 const sample = {

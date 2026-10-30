@@ -4,7 +4,7 @@ import type {LooksFile} from '@core/schema/looks';
 import type {LiveState} from '@core/live/state';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {MediaItem} from '@core/schema/mediaList';
-import {showsLayer, resolveScreenLook} from '@renderer/rendering/screenLook';
+import {showsLayer, resolveScreenLook} from '@core/looks/screenLook';
 
 export function hasMovingSeconds({
   screens,

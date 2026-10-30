@@ -16,7 +16,7 @@ import {
 } from '../../../main/live/testing/overlays';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {classes} from './classes';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 import {OverlayImageView} from './overlayImage';
 import type {RenderScreen} from './layer';

@@ -1,6 +1,6 @@
-import type {LookId, ScreenId, StageLayoutId} from '@core/schema/ids';
-import type {Look, LooksFile, ScreenLook} from '@core/schema/looks';
-import {messageStyleForScreen} from '@core/schema/looks';
+import type {LookId, ScreenId, StageLayoutId} from '../schema/ids';
+import type {Look, LooksFile, ScreenLook} from '../schema/looks';
+import {messageStyleForScreen} from '../schema/looks';
 import {
   DEFAULT_LYRIC_STYLE,
   renderLyricStyle,
