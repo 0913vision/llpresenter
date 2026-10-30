@@ -14,11 +14,33 @@
 .choice:hover,
 .choice:focus-visible {
   outline: none;
-  background: var(--bg-control-hover);
+  background: var(--accent-fill);
+  color: var(--text-on-fill);
 }
 
 .choice[aria-disabled='true'] {
-  color: var(--text-2);
+  background: transparent;
+  color: var(--text-off);
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .colors {

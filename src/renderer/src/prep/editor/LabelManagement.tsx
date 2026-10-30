@@ -1,11 +1,12 @@
 import {useState, type JSX} from 'react';
 import type {Label} from '@shared/schema/labels';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {LabelDeleteDialog} from './LabelDeleteDialog';
+import {labelManagementEntries} from './labelMenuEntries';
 import {Menu} from '@renderer/ui/Menu';
-import {LabelDialog, LABEL_RENAME_SCOPE} from './LabelDialog';
+import {LabelDialog} from './LabelDialog';
 import type {LabelContext} from './LabelChoices';
 import type {SongEditorStore} from './songEditorStore';
-import {editorTask} from './editorTask';
+import {LabelColorPopover} from './LabelColorPopover';
 
 interface ManagementProps {
   readonly context: LabelContext;
@@ -23,34 +24,32 @@ export function LabelManagement({
   locked,
   onClose,
 }: ManagementProps): JSX.Element {
-  const [action, setAction] = useState<'rename' | 'delete' | null>(null);
+  const [action, setAction] = useState<'rename' | 'delete' | 'color' | null>(
+    null,
+  );
+  if (action === 'color') {
+    return (
+      <LabelColorPopover
+        label={
+          labels.find(label => label.name === context.label.name) ??
+          context.label
+        }
+        labels={labels}
+        store={store}
+        anchor={context.trigger}
+        locked={locked}
+        onClose={onClose}
+      />
+    );
+  }
   if (action === 'delete') {
     return (
-      <AlertDialog
-        icon="trash"
-        title="이름표 삭제"
-        meta={[context.label.name, '모든 곡의 이름표 유지']}
-        onCancel={onClose}
-        actions={[
-          {
-            label: '삭제',
-            title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
-            primary: true,
-            disabled: locked,
-            onSelect: () => {
-              const remove = async (): Promise<void> => {
-                if (
-                  await store.updateLabels(
-                    labels.filter(label => label.name !== context.label.name),
-                  )
-                ) {
-                  onClose();
-                }
-              };
-              editorTask(remove());
-            },
-          },
-        ]}
+      <LabelDeleteDialog
+        name={context.label.name}
+        labels={labels}
+        store={store}
+        locked={locked}
+        onClose={onClose}
       />
     );
   }
@@ -72,25 +71,12 @@ export function LabelManagement({
       onClose={reason => {
         if (reason !== 'select') onClose();
       }}
-      entries={[
-        {
-          kind: 'item',
-          id: 'rename',
-          label: '이름 바꾸기',
-          title: LABEL_RENAME_SCOPE,
-          disabled: locked,
-          onSelect: () => setAction('rename'),
-        },
-        {kind: 'separator', id: 'separator'},
-        {
-          kind: 'item',
-          id: 'delete',
-          label: '삭제',
-          title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
-          disabled: locked,
-          onSelect: () => setAction('delete'),
-        },
-      ]}
+      entries={labelManagementEntries({
+        locked,
+        color: () => setAction('color'),
+        rename: () => setAction('rename'),
+        remove: () => setAction('delete'),
+      })}
     />
   );
 }

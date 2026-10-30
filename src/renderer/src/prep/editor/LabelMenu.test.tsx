@@ -19,6 +19,91 @@ async function manage(name: string, action: string) {
 }
 
 describe('song editor label menu', () => {
+  it('lists label choices and management rows in the specified order', async () => {
+    const {user} = await editorSetup();
+    const menu = await openMenu(user);
+    const rows = (element: HTMLElement) =>
+      [
+        ...element.querySelectorAll('[role^="menuitem"], [role="separator"]'),
+      ].map(row =>
+        row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+      );
+    expect(rows(menu)).toEqual([
+      '편집…',
+      '이름표 없음',
+      '|',
+      '1절',
+      '후렴',
+      '|',
+      '새 이름표',
+      '이름표 설정…',
+    ]);
+    expect(
+      within(menu)
+        .getByRole('menuitem', {name: '편집…'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.contextMenu(
+      within(menu).getByRole('menuitemradio', {name: '1절'}),
+    );
+    expect(rows(screen.getByRole('menu', {name: '1절 관리'}))).toEqual([
+      '색 바꾸기',
+      '|',
+      '이름 바꾸기',
+      '|',
+      '삭제',
+    ]);
+  });
+
+  it('lists every shared label in settings and confirms deletion without removing song labels', async () => {
+    const {user, labels, session} = await editorSetup();
+    await openMenu(user);
+    await user.click(screen.getByRole('menuitem', {name: '이름표 설정…'}));
+    const settings = screen.getByRole('dialog', {name: '이름표 설정'});
+    for (const label of labels().value.labels) {
+      const row = within(settings).getByRole('group', {name: label.name});
+      expect(
+        within(row).getByRole('radiogroup', {name: `${label.name} 색`}),
+      ).toBeDefined();
+      expect(
+        within(row).getByRole('button', {name: `${label.name} 삭제`}),
+      ).toBeDefined();
+    }
+    await user.click(within(settings).getByRole('button', {name: '1절 삭제'}));
+    expect(labels().value.labels).toHaveLength(2);
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
+    await waitFor(() => expect(labels().value.labels).toHaveLength(1));
+    expect(session.history.snapshot.song.groups[0]?.name).toBe('1절');
+    expect(within(settings).queryByRole('group', {name: '1절'})).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(document.activeElement).toBe(
+      within(settings).getByRole('button', {name: '확인'}),
+    );
+    await user.keyboard('{Escape}');
+    expect(document.activeElement).toBe(
+      screen.getByRole('menuitem', {name: '이름표 설정…'}),
+    );
+  });
+
+  it('offers eight colors and none from label management and applies the choice globally', async () => {
+    const {user, labels} = await editorSetup();
+    await openMenu(user);
+    fireEvent.contextMenu(screen.getByRole('menuitemradio', {name: '1절'}));
+    await user.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
+    const colors = screen.getByRole('dialog', {name: '1절 색'});
+    expect(within(colors).getAllByRole('radio')).toHaveLength(9);
+    await user.click(screen.getByRole('radio', {name: '없음'}));
+    await waitFor(() => expect(labels().value.labels[0]?.color).toBe('none'));
+    expect(
+      (await hoverForTooltip(within(colors).getByRole('radio', {name: '초록'})))
+        ?.textContent,
+    ).toBe('초록모든 곡에 적용');
+  });
+
   it('ignores modified activation on choices and inline creation', async () => {
     const {user, session, labels} = await editorSetup();
     const menu = await openMenu(user);
@@ -51,7 +136,14 @@ describe('song editor label menu', () => {
   it('discloses shared color scope before applying a color', async () => {
     const {user, labelEdits} = await editorSetup();
     const menu = await openMenu(user);
-    const color = within(menu).getByRole('radio', {name: '초록'});
+    expect(within(menu).queryByRole('radio')).toBeNull();
+    await user.click(
+      within(menu).getByRole('menuitem', {name: '이름표 설정…'}),
+    );
+    const color = within(screen.getByRole('group', {name: '1절'})).getByRole(
+      'radio',
+      {name: '초록'},
+    );
     expect((await hoverForTooltip(color))?.textContent).toBe(
       '초록모든 곡에 적용',
     );
@@ -82,8 +174,16 @@ describe('song editor label menu', () => {
     expect(create.getAttribute('aria-disabled')).toBe('true');
     await user.click(create);
     expect(screen.queryByRole('textbox', {name: '새 이름표 이름'})).toBeNull();
-    await user.click(within(menu).getByRole('radio', {name: '초록'}));
+    await user.click(
+      within(menu).getByRole('menuitem', {name: '이름표 설정…'}),
+    );
+    await user.click(
+      within(screen.getByRole('group', {name: '1절'})).getByRole('radio', {
+        name: '초록',
+      }),
+    );
     expect(fixture.labelEdits).toHaveLength(0);
+    await user.keyboard('{Escape}');
     await user.click(within(menu).getByRole('menuitemradio', {name: /후렴/}));
     expect(session.history.snapshot.song.groups[0]?.name).toBe('후렴');
   });
@@ -103,15 +203,23 @@ describe('song editor label menu', () => {
     expect(session.history.snapshot.song.groups[0]?.name).toBe('');
   });
 
-  it('changes the global color immediately, stays open, and recolors another song', async () => {
+  it('changes the global color in settings and recolors another song', async () => {
     const {user, store, second, labels} = await editorSetup();
     const menu = await openMenu(user);
-    await user.click(within(menu).getByRole('radio', {name: '초록'}));
+    await user.click(
+      within(menu).getByRole('menuitem', {name: '이름표 설정…'}),
+    );
+    await user.click(
+      within(screen.getByRole('group', {name: '1절'})).getByRole('radio', {
+        name: '초록',
+      }),
+    );
     await waitFor(() => expect(labels().value.labels[0]?.color).toBe('green'));
     expect(screen.getByRole('menu', {name: '이름표'})).toBe(menu);
     expect(
       screen.getByRole('button', {name: '1절'}).getAttribute('data-color'),
     ).toBe('green');
+    await user.keyboard('{Escape}');
     await user.keyboard('{Escape}');
     act(() => store.open(second));
     expect(
@@ -184,7 +292,11 @@ describe('song editor label menu', () => {
       within(management).getByRole('menuitem', {name: '삭제'}),
     ).toBeDefined();
     await user.keyboard('{Escape}');
-    await user.click(within(menu).getByRole('radio', {name: '초록'}));
+    fireEvent.contextMenu(
+      within(menu).getByRole('menuitemradio', {name: '1절'}),
+    );
+    await user.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
+    await user.click(screen.getByRole('radio', {name: '초록'}));
     await waitFor(() => expect(labels().value.labels[0]?.color).toBe('green'));
     expect(labels().value.labels[1]?.key).toBe('KeyC');
   });

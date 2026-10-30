@@ -1,8 +1,10 @@
-import type {JSX} from 'react';
+import type {JSX, ReactNode} from 'react';
 import type {Label} from '@shared/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuAnchor} from '@renderer/ui/Menu';
+import {menuItemRole, type MenuEntry} from '@renderer/ui/menuModel';
+import {Tooltip} from '@renderer/ui/Tooltip';
 import {useButtonPress} from '@renderer/ui/press';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import styles from './LabelMenu.module.css';
@@ -13,29 +15,31 @@ export interface LabelContext {
   readonly trigger: HTMLElement;
 }
 
-interface ChoicesProps {
-  readonly labels: readonly Label[];
-  readonly selected: string | undefined;
-  readonly onChoose: (name: string | undefined) => void;
-  readonly onContext: (context: LabelContext) => void;
-}
-
-/** Menu-sized label choices with their shared colors. */
 export function LabelChoices({
+  entries,
   labels,
-  selected,
-  onChoose,
+  creation,
   onContext,
-}: ChoicesProps): JSX.Element {
+}: {
+  readonly entries: readonly MenuEntry[];
+  readonly labels: readonly Label[];
+  readonly creation: ReactNode;
+  readonly onContext: (context: LabelContext) => void;
+}): JSX.Element {
   const press = useButtonPress<HTMLButtonElement>({
     disabled: false,
-    onPress: event => onChoose(event.currentTarget.dataset.labelName),
+    onPress: event => {
+      const row = entries.find(
+        item => item.id === event.currentTarget.dataset.choiceId,
+      );
+      if (row?.kind === 'item' && !row.disabled) row.onSelect?.();
+    },
     onKeyDown: event => {
       const label = labels.find(
-        item => item.name === event.currentTarget.dataset.labelName,
+        item => `label:${item.name}` === event.currentTarget.dataset.choiceId,
       );
       if (
-        label !== undefined &&
+        label &&
         (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey))
       ) {
         event.preventDefault();
@@ -50,56 +54,63 @@ export function LabelChoices({
   });
   return (
     <div className={menuStyles.scroll}>
-      <button
-        {...press}
-        type="button"
-        role="menuitemradio"
-        aria-checked={selected === undefined}
-        data-choice
-        tabIndex={-1}
-        className={classNames(menuStyles.item, styles.choice)}
-      >
-        <span className={menuStyles.lead}>
-          {selected === undefined ? <Icon name="check" size={14} /> : null}
-        </span>
-        <span className={menuStyles.swatch} data-color="none" />
-        <span className={menuStyles.label}>이름표 없음</span>
-      </button>
-      {labels.map(label => {
-        return (
-          <button
-            {...press}
-            key={label.name}
-            type="button"
-            role="menuitemradio"
-            aria-checked={label.name === selected}
-            aria-haspopup="menu"
-            data-choice
-            data-label-name={label.name}
-            tabIndex={-1}
-            className={classNames(menuStyles.item, styles.choice)}
-            onContextMenu={event => {
-              event.preventDefault();
-              onContext({
-                label,
-                trigger: event.currentTarget,
-                anchor: {
-                  kind: 'point',
-                  point: {x: event.clientX, y: event.clientY},
-                },
-              });
-            }}
-          >
-            <span className={menuStyles.lead}>
-              {label.name === selected ? <Icon name="check" size={14} /> : null}
-            </span>
-            <span
-              className={menuStyles.swatch}
-              data-color={label.color}
-              style={{backgroundColor: `var(--label-${label.color})`}}
+      {entries.map(entry => {
+        if (entry.kind === 'separator') {
+          return (
+            <div
+              key={entry.id}
+              role="separator"
+              className={menuStyles.separator}
             />
-            <span className={menuStyles.label}>{label.name}</span>
-          </button>
+          );
+        }
+        if (entry.kind !== 'item') return null;
+        if (entry.id === 'new' && creation) {
+          return <div key={entry.id}>{creation}</div>;
+        }
+        const label = labels.find(item => `label:${item.name}` === entry.id);
+        return (
+          <Tooltip key={entry.id} text={entry.title ?? ''}>
+            <button
+              {...press}
+              type="button"
+              role={menuItemRole(entry)}
+              aria-checked={entry.check ? entry.checked : undefined}
+              aria-disabled={entry.disabled ?? undefined}
+              aria-haspopup={label ? 'menu' : undefined}
+              data-choice
+              data-choice-id={entry.id}
+              data-new={entry.id === 'new' || undefined}
+              tabIndex={-1}
+              className={classNames(menuStyles.item, styles.choice)}
+              onContextMenu={event => {
+                if (!label) return;
+                event.preventDefault();
+                onContext({
+                  label,
+                  trigger: event.currentTarget,
+                  anchor: {
+                    kind: 'point',
+                    point: {x: event.clientX, y: event.clientY},
+                  },
+                });
+              }}
+            >
+              {entry.checked ? (
+                <span className={menuStyles.lead}>
+                  <Icon name="check" size={14} />
+                </span>
+              ) : null}
+              {entry.swatch === undefined ? null : (
+                <span
+                  className={menuStyles.swatch}
+                  data-color={entry.swatch}
+                  style={{backgroundColor: `var(--label-${entry.swatch})`}}
+                />
+              )}
+              <span className={menuStyles.label}>{entry.label}</span>
+            </button>
+          </Tooltip>
         );
       })}
     </div>

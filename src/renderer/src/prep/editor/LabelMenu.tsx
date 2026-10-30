@@ -1,18 +1,16 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import {createPortal} from 'react-dom';
-import {Icon} from '@renderer/ui/Icon';
-import {LabelColorPicker} from '@renderer/ui/LabelColorPicker';
 import {TextField} from '@renderer/ui/TextField';
-import {Tooltip} from '@renderer/ui/Tooltip';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {useButtonPress} from '@renderer/ui/press';
 import {layerContainer} from '@renderer/ui/layers';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import {labelNameReason} from './LabelDialog';
 import {LabelChoices, type LabelContext} from './LabelChoices';
 import {LabelManagement} from './LabelManagement';
+import {LabelSettingsDialog} from './LabelSettingsDialog';
+import {labelMenuEntries} from './labelMenuEntries';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';
@@ -26,7 +24,7 @@ interface LabelMenuProps {
   readonly onClose: (restoreFocus: boolean) => void;
 }
 
-/** Label choices, persistent color row, and inline creation in one popup. */
+/** Label choices, inline creation, and shared settings. */
 export function LabelMenu({
   store,
   anchor,
@@ -40,23 +38,16 @@ export function LabelMenu({
   );
   const labels = document?.value.labels ?? [];
   const locked = busy || document?.access !== 'editable';
-  const lockReason = busy
-    ? '저장 중'
-    : document === null
-      ? '이름표 불러오는 중'
-      : '읽기 전용 이름표';
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [context, setContext] = useState<LabelContext | null>(null);
-  const current = labels.find(label => label.name === selected);
+  const [settings, setSettings] = useState(false);
   const reason = labelNameReason(name, labels);
-  const newPress = useButtonPress<HTMLButtonElement>({
-    disabled: locked,
-    onPress: () => setCreating(true),
-  });
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
-    onClose,
+    onClose: restoreFocus => {
+      if (!settings && context === null) onClose(restoreFocus);
+    },
     onEscape: () => {
       if (creating) {
         setCreating(false);
@@ -105,88 +96,62 @@ export function LabelMenu({
         >
           <LabelChoices
             labels={labels}
-            selected={selected}
-            onChoose={choose}
+            entries={labelMenuEntries({
+              labels,
+              selected,
+              locked,
+              choose,
+              create: () => setCreating(true),
+              settings: () => setSettings(true),
+            })}
             onContext={value => {
               if (!locked) {
                 value.trigger.focus();
                 setContext(value);
               }
             }}
-          />
-          {current === undefined ? null : (
-            <>
-              <div role="separator" className={menuStyles.separator} />
-              <Tooltip text={locked ? lockReason : `${current.name} 색`}>
-                <fieldset disabled={locked} className={styles.colors}>
-                  <LabelColorPicker
-                    label={`${current.name} 색`}
-                    scope="모든 곡에 적용"
-                    name={`${current.name} 색`}
-                    inMenu
-                    value={current.color}
-                    onChange={color =>
-                      editorTask(
-                        store.updateLabels(
-                          labels.map(label =>
-                            label.name === current.name
-                              ? {...label, color}
-                              : label,
-                          ),
-                        ),
-                      )
-                    }
+            creation={
+              creating ? (
+                <div className={styles.create}>
+                  <TextField
+                    aria-label="새 이름표 이름"
+                    value={name}
+                    onChange={setName}
+                    autoFocus
+                    block
+                    size="sm"
+                    readOnly={locked}
+                    invalid={name !== '' && reason !== undefined}
+                    invalidReason={name === '' ? undefined : reason}
+                    onKeyDown={event => {
+                      if (
+                        event.key === 'Enter' &&
+                        !isComposing(event) &&
+                        !hasModifier(event)
+                      ) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        editorTask(create());
+                      }
+                    }}
                   />
-                </fieldset>
-              </Tooltip>
-            </>
-          )}
-          <div role="separator" className={menuStyles.separator} />
-          {creating ? (
-            <div className={styles.create}>
-              <TextField
-                aria-label="새 이름표 이름"
-                value={name}
-                onChange={setName}
-                autoFocus
-                block
-                size="sm"
-                readOnly={locked}
-                invalid={name !== '' && reason !== undefined}
-                invalidReason={name === '' ? undefined : reason}
-                onKeyDown={event => {
-                  if (
-                    event.key === 'Enter' &&
-                    !isComposing(event) &&
-                    !hasModifier(event)
-                  ) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    editorTask(create());
-                  }
-                }}
-              />
-            </div>
-          ) : (
-            <Tooltip text={locked ? lockReason : '새 이름표'}>
-              <button
-                {...newPress}
-                type="button"
-                role="menuitem"
-                data-choice
-                data-new
-                className={classNames(menuStyles.item, styles.choice)}
-                aria-disabled={locked}
-              >
-                <span className={menuStyles.lead}>
-                  <Icon name="plus" size={14} />
-                </span>
-                새 이름표
-              </button>
-            </Tooltip>
-          )}
+                </div>
+              ) : null
+            }
+          />
         </div>
       </div>
+      {settings ? (
+        <LabelSettingsDialog
+          store={store}
+          onClose={() => {
+            setSettings(false);
+            surface.current
+              ?.querySelector<HTMLElement>('[data-choice-id="settings"]')
+              ?.focus();
+          }}
+        />
+      ) : null}
       {context === null ? null : (
         <LabelManagement
           context={context}
