@@ -16,7 +16,10 @@ import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';
 import {VirtualSlides} from '../editor/VirtualSlides';
-import {DUPLICATE_TITLE_REASON, normalizeSongTitle} from '../editor/songTitle';
+import {
+  DUPLICATE_TITLE_REASON,
+  normalizeSongTitle,
+} from '@core/songs/songTitle';
 import {useImportPreview} from './useImportPreview';
 import styles from './TextImportDialog.module.css';
 

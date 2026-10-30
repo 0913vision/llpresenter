@@ -8,7 +8,7 @@ import {
 import type {SongGroupId} from '@core/schema/ids';
 import {playbackOrder} from '@core/songs/songOrder';
 import type {SongPicture} from '@renderer/prep/editor';
-import {linearSlidesOf} from '@renderer/prep/editor/blockEdits';
+import {linearSlidesOf} from '@core/songs/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
 
 /** The 이름표 of a 슬라이드, or `undefined` when it has none. */

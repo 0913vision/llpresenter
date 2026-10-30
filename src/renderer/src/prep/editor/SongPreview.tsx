@@ -16,7 +16,11 @@ import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
-import {linearBlockAddress, linearSlidesOf, slideCountOf} from './blockEdits';
+import {
+  linearBlockAddress,
+  linearSlidesOf,
+  slideCountOf,
+} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';

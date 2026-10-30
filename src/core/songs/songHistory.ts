@@ -1,8 +1,8 @@
-import type {SongGroupId} from '@core/schema/ids';
-import type {SongSlideSource} from '@core/schema/showService';
-import type {Arrangement, Song} from '@core/schema/song';
+import type {SongGroupId} from '../schema/ids';
+import type {SongSlideSource} from '../schema/showService';
+import type {Arrangement, Song} from '../schema/song';
 import {sameOrder} from './songArrangements';
-import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
+import {isGroupedSong, type AnySong} from '../schema/groupedSong';
 import {assignSlideHotKey} from './slideHotKeyEditing';
 import {
   blockSnapshot,

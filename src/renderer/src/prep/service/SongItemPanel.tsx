@@ -7,7 +7,7 @@ import type {SongEditorStore} from '@renderer/prep/editor';
 import {
   ARRANGEMENT_LIMIT_REASON,
   editedOrderWithLimit,
-} from '@renderer/prep/editor/songArrangements';
+} from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';

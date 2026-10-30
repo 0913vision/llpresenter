@@ -3,12 +3,8 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {KeyCombo} from '@renderer/ui/KeyCap';
 import {TextField} from '@renderer/ui/TextField';
 import {shortcutRecordingProps} from '@renderer/ui/shortcutRecording';
+import type {SlideHotKeyAssignment} from '@core/songs/slideHotKeyEditing';
 import {slideHotKeyPress, SLIDE_HOT_KEY_REASON} from './slideHotKeyPress';
-
-export interface SlideHotKeyAssignment {
-  readonly code: string;
-  readonly slideNumber: number;
-}
 
 /** A source slide's key editor; the owner commits through its normal song writer. */
 export function SlideHotKeyDialog({

@@ -24,7 +24,7 @@ import {
   linearBlockAddress,
   linearSlidesOf,
   type EditorSlideItem,
-} from './blockEdits';
+} from '@core/songs/blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';

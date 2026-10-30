@@ -9,7 +9,7 @@ import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import {editorFixture} from './editorFixture';
 import {editorSetup, mockMenuRowHeight} from './editorTesting';
-import {DUPLICATE_TITLE_REASON, SongTitleDraft} from './songTitle';
+import {DUPLICATE_TITLE_REASON, SongTitleDraft} from '@core/songs/songTitle';
 import {MediaPicker} from './MediaPicker';
 
 function media(count = 3) {

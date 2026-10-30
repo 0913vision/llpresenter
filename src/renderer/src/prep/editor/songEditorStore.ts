@@ -14,10 +14,13 @@ import type {
 } from '@core/schema/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {SongSession} from './songSession';
-import {ImportDraftLimitError, importDraftSlides} from './importDraftSlides';
-import {ARRANGEMENT_LIMIT_REASON} from './songArrangements';
+import {
+  ImportDraftLimitError,
+  importDraftSlides,
+} from '@core/songs/importDraftSlides';
+import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {editorTask} from './editorTask';
-import {normalizeSongTitle} from './songTitle';
+import {normalizeSongTitle} from '@core/songs/songTitle';
 
 export type EditorApi = Pick<
   LlpApi,

@@ -14,7 +14,7 @@ import {
   movedOrder,
   withoutPosition,
 } from '../service/songItemModel';
-import {editedOrder, editedOrderWithLimit} from './songArrangements';
+import {editedOrder, editedOrderWithLimit} from '@core/songs/songArrangements';
 import type {SongSession} from './songSession';
 import styles from './ArrangementRow.module.css';
 import {useChipDrag} from '../service/useChipDrag';

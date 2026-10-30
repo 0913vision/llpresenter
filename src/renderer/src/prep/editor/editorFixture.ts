@@ -16,7 +16,7 @@ import {
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {editorPreviewFixture} from './editorPreviewFixture';
 import type {Song} from '@core/schema/song';
-import {importDraftSlides} from './importDraftSlides';
+import {importDraftSlides} from '@core/songs/importDraftSlides';
 
 /** Legacy source shape for migration and compatibility helper tests only. */
 export function editorLegacySong(number: number): Song {

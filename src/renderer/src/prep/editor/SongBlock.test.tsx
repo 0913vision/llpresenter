@@ -10,7 +10,7 @@ import {
   SongBlock,
   type EditorFocus,
 } from './SongBlock';
-import {linearSlidesOf} from './blockEdits';
+import {linearSlidesOf} from '@core/songs/blockEdits';
 import {SongSession} from './songSession';
 
 afterEach(resetTooltips);

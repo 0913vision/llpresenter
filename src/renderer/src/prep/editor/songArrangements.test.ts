@@ -2,7 +2,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {editorFixture, editorSong, editorLegacySong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
-import {editedOrder, newArrangement} from './songArrangements';
+import {editedOrder, newArrangement} from '@core/songs/songArrangements';
 
 function setup(document: SongDocument = editorSong(1)) {
   const fixture = editorFixture();

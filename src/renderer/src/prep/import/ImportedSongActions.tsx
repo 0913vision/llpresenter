@@ -7,7 +7,7 @@ import {AlertDialog, Button} from '@renderer/ui';
 import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
 import {editorTask} from '../editor/editorTask';
 import type {SongEditorStore} from '../editor/songEditorStore';
-import {EMPTY_TITLE_REASON, normalizeSongTitle} from '../editor/songTitle';
+import {EMPTY_TITLE_REASON, normalizeSongTitle} from '@core/songs/songTitle';
 
 function unusedTitle(title: string, titles: readonly string[]): string | null {
   let number = 2;

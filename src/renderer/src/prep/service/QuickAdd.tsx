@@ -11,7 +11,7 @@ import {NEWER_FILE_REASON} from './ItemArrangement';
 import {otherItemEntries} from './quickAddItems';
 import {passageItem, type PassageDefaults} from './quickAddBible';
 import {BibleQuickAdd} from './BibleQuickAdd';
-import {quickAddBefore} from './quickAddPosition';
+import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';

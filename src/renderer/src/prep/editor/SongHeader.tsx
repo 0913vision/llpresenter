@@ -4,7 +4,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {slideCountOf} from './blockEdits';
+import {slideCountOf} from '@core/songs/blockEdits';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongHeader.module.css';

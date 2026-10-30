@@ -14,8 +14,8 @@ import {
   linearSlidesOf,
   slideCountOf,
   type BlockCommand,
-} from './blockEdits';
-import {SongHistory} from './songHistory';
+} from '@core/songs/blockEdits';
+import {SongHistory} from '@core/songs/songHistory';
 
 function song(
   lines: readonly string[] = ['first'],

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {ServiceRow} from '@core/presentation/model';
+import type {ServiceRow} from '../presentation/model';
 import {quickAddBefore} from './quickAddPosition';
 
 const rows: readonly ServiceRow[] = [

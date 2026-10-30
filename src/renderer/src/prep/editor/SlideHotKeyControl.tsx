@@ -2,7 +2,7 @@ import {useCallback, useState, type JSX} from 'react';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import type {SongSlideSource} from '@core/schema/showService';
 import {Button} from '@renderer/ui';
-import {linearBlockAddress} from './blockEdits';
+import {linearBlockAddress} from '@core/songs/blockEdits';
 import {GroupedSlideHotKeyDialog} from './GroupedSlideHotKeyDialog';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';

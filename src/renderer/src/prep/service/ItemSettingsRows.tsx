@@ -13,7 +13,7 @@ import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {ServiceItemOf} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {editorTask} from '@renderer/prep/editor/editorTask';
-import {TYPING_PAUSE_MS} from '@renderer/prep/editor/songHistory';
+import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {
   backgroundEntries,

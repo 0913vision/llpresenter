@@ -15,7 +15,7 @@ import {
   ARRANGEMENT_LIMIT_REASON,
   editedOrder,
   editedOrderWithLimit,
-} from '@renderer/prep/editor/songArrangements';
+} from '@core/songs/songArrangements';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {useLive} from '@renderer/state/live';

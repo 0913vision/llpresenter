@@ -10,7 +10,7 @@ import {
   renderLyricStyle,
 } from '@renderer/render/lyricStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
-import {linearBlockAddress, linearSlidesOf} from './blockEdits';
+import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
   {value: 'main', label: '본 화면'},

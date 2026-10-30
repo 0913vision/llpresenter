@@ -18,7 +18,7 @@ import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import type {AnySong} from '@core/schema/groupedSong';
 import {VirtualSlides} from './VirtualSlides';
-import {ARRANGEMENT_LIMIT_REASON} from './songArrangements';
+import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import styles from './SongPanels.module.css';
 

@@ -2,7 +2,10 @@ import {useEffect, useMemo, useState, type JSX} from 'react';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import type {SongSlideSource} from '@core/schema/showService';
 import {SlideHotKeyDialog} from './SlideHotKeyDialog';
-import {assignSlideHotKey, slideHotKeyView} from './slideHotKeyEditing';
+import {
+  assignSlideHotKey,
+  slideHotKeyView,
+} from '@core/songs/slideHotKeyEditing';
 
 /** Binds the key recorder to a grouped source; commits through its owner's writer. */
 export function GroupedSlideHotKeyDialog({

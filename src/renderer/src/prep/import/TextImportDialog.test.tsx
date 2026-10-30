@@ -20,7 +20,7 @@ import {
 } from '@core/schema/textImport';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {convertTextImport} from '../../../../main/import/convert';
-import {DUPLICATE_TITLE_REASON} from '../editor/songTitle';
+import {DUPLICATE_TITLE_REASON} from '@core/songs/songTitle';
 import {TextImportDialog} from './TextImportDialog';
 import {useImportPreview} from './useImportPreview';
 

@@ -3,7 +3,10 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import {createSongId, createSongGroupId} from '@core/schema/ids';
-import {assignSlideHotKey, slideHotKeyView} from './slideHotKeyEditing';
+import {
+  assignSlideHotKey,
+  slideHotKeyView,
+} from '@core/songs/slideHotKeyEditing';
 import {GroupedSlideHotKeyDialog} from './GroupedSlideHotKeyDialog';
 
 const songId = createSongId('00000000-0000-4000-8000-000000000001');

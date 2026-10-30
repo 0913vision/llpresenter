@@ -12,7 +12,7 @@ import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {AnySong} from '@core/schema/groupedSong';
-import {linearSlidesOf} from './blockEdits';
+import {linearSlidesOf} from '@core/songs/blockEdits';
 import styles from './SongPanels.module.css';
 
 const OVERSCAN_ROWS = 1;

@@ -1,7 +1,7 @@
-import type {GroupedSong} from '@core/schema/groupedSong';
-import type {SongGroupId} from '@core/schema/ids';
-import type {ContentEdit} from '@core/schema/contentEdit';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import type {GroupedSong} from '../schema/groupedSong';
+import type {SongGroupId} from '../schema/ids';
+import type {ContentEdit} from '../schema/contentEdit';
+import {SONG_IMPORT_LIMITS} from '../schema/songImport';
 
 type SongImportDraft = Extract<ContentEdit, {type: 'song.import'}>['draft'];
 

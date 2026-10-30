@@ -3,10 +3,10 @@ import {
   type AnySong,
   type GroupedSong,
   type SongGroup,
-} from '@core/schema/groupedSong';
-import {createSongGroupId, type SongGroupId} from '@core/schema/ids';
-import type {SlideHotKey} from '@core/schema/slideHotKey';
-import type {Slide, Song} from '@core/schema/song';
+} from '../schema/groupedSong';
+import {createSongGroupId, type SongGroupId} from '../schema/ids';
+import type {SlideHotKey} from '../schema/slideHotKey';
+import type {Slide, Song} from '../schema/song';
 
 export interface BlockSelection {
   readonly block: number;

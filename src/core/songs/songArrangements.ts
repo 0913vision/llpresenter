@@ -2,12 +2,12 @@ import {
   DEFAULT_ARRANGEMENT_NAME,
   type Arrangement,
   type Song,
-} from '@core/schema/song';
-import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
+} from '../schema/song';
+import {arrangementGroupIds, type GroupedSong} from '../schema/groupedSong';
 import {
   expandGroupSlidesWithLimit,
   type ExpandedGroupSlides,
-} from '@core/songs/songOrder';
+} from './songOrder';
 
 const NEW_ARRANGEMENT_PREFIX = '구성';
 export const ARRANGEMENT_LIMIT_REASON = '슬라이드 수가 한도를 초과합니다.';

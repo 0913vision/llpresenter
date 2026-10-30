@@ -1,6 +1,9 @@
 import {expect, it} from 'vitest';
 import {editorGroupedSong} from './editorFixture';
-import {ImportDraftLimitError, importDraftSlides} from './importDraftSlides';
+import {
+  ImportDraftLimitError,
+  importDraftSlides,
+} from '@core/songs/importDraftSlides';
 import {parseGroupedSongDraft} from '@core/schema/groupedSong';
 
 it('bounds total wire picks across arrangements without expanding the excess', () => {

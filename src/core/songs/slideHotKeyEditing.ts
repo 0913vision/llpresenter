@@ -1,9 +1,14 @@
-import {checkPart} from '@core/schema/fileFormat';
-import type {Result} from '@core/common/result';
-import type {GroupedSong} from '@core/schema/groupedSong';
-import type {SongSlideSource} from '@core/schema/showService';
-import {slideHotKeySchema} from '@core/schema/slideHotKey';
-import type {SlideHotKeyAssignment} from './SlideHotKeyDialog';
+import {checkPart} from '../schema/fileFormat';
+import type {Result} from '../common/result';
+import type {GroupedSong} from '../schema/groupedSong';
+import type {SongSlideSource} from '../schema/showService';
+import {slideHotKeySchema} from '../schema/slideHotKey';
+
+/** Another source slide that already uses a key. */
+export interface SlideHotKeyAssignment {
+  readonly code: string;
+  readonly slideNumber: number;
+}
 
 /** Source-slide details for the editor, counted once in master group order. */
 export interface SlideHotKeyView {

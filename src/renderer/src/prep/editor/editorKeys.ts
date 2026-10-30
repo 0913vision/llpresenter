@@ -1,5 +1,5 @@
 import type {KeyboardEvent} from 'react';
-import type {BlockCommand, BlockSelection} from './blockEdits';
+import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 
 type EditorCommand = BlockCommand | 'undo' | 'redo';
 

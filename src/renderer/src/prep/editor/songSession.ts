@@ -8,11 +8,14 @@ import {
   type AnySong,
   type GroupedSong,
 } from '@core/schema/groupedSong';
-import type {BlockCommand, BlockSelection} from './blockEdits';
-import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
+import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
+import {SongHistory, TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {editorTask} from './editorTask';
-import {normalizeSongTitle, SongTitleDraft} from './songTitle';
-import {editedOrderWithLimit, newArrangement} from './songArrangements';
+import {normalizeSongTitle, SongTitleDraft} from '@core/songs/songTitle';
+import {
+  editedOrderWithLimit,
+  newArrangement,
+} from '@core/songs/songArrangements';
 
 export interface EditorSongDocument<S extends AnySong = GroupedSong> {
   readonly song: S;

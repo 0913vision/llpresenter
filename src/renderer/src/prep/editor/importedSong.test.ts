@@ -5,7 +5,7 @@ import {createMediaId, createSongId} from '@core/schema/ids';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
-import {importDraftSlides} from './importDraftSlides';
+import {importDraftSlides} from '@core/songs/importDraftSlides';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 

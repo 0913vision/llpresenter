@@ -5,7 +5,10 @@ import {hoverForTooltip} from '@renderer/ui/tooltipTesting';
 import {editorFixture} from './editorFixture';
 import {editorSetup, lyrics} from './editorTesting';
 import {SongEditor} from './SongEditor';
-import {DUPLICATE_TITLE_REASON, EMPTY_TITLE_REASON} from './songTitle';
+import {
+  DUPLICATE_TITLE_REASON,
+  EMPTY_TITLE_REASON,
+} from '@core/songs/songTitle';
 
 function title(): HTMLInputElement {
   const input = screen.getByRole('textbox', {name: '곡 제목'});

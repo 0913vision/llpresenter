@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
-import {arrangementOptions} from '@renderer/prep/editor/songArrangements';
+import {arrangementOptions} from '@core/songs/songArrangements';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {
   itemArrangementChange,

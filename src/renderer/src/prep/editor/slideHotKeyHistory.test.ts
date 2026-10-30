@@ -3,7 +3,7 @@ import type {GroupedSong} from '@core/schema/groupedSong';
 import type {SongSlideSource} from '@core/schema/showService';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {editorGroupedSong, editorLegacySong} from './editorFixture';
-import {SongHistory} from './songHistory';
+import {SongHistory} from '@core/songs/songHistory';
 import {SongSession} from './songSession';
 
 function sourceOf(song: GroupedSong): SongSlideSource {
