@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import type {NoticeSet} from '@core/schema/notices';
-import {screensDocument} from '@renderer/screens/testing/documents';
+import {screensDocument} from '@renderer/features/screens/testing/documents';
 import {NoticeCreateDialog} from './NoticeCreateDialog';
 
 const image = '00000000-0000-4000-8000-000000000001';

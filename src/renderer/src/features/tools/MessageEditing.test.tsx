@@ -11,7 +11,7 @@ import type {EditResult} from '@core/schema/contentEdit';
 import {
   settingsDocument,
   CAPTIONS_ID,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {stageFixture} from './stageTesting';

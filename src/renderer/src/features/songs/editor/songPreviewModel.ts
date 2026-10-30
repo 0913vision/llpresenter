@@ -4,11 +4,11 @@ import {screenIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import type {LooksFile} from '@core/schema/looks';
 import type {ScreensFile} from '@core/schema/screens';
-import type {RenderScreen} from '@renderer/render/layer';
+import type {RenderScreen} from '@renderer/rendering/layer';
 import {
   DEFAULT_LYRIC_STYLE,
   renderLyricStyle,
-} from '@renderer/render/lyricStyle';
+} from '@renderer/rendering/lyricStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 

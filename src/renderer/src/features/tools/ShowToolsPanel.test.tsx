@@ -8,7 +8,7 @@ import {
   LAYOUT_ID,
   LOOK_ID,
   STAGE_ID,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {ShowToolsPanel} from './ShowToolsPanel';
 import {stageFixture} from './stageTesting';
 

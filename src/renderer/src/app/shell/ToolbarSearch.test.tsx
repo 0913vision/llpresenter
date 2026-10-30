@@ -36,7 +36,7 @@ import {
   itemFixture,
 } from '@renderer/features/service/items/itemFixture';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

@@ -11,10 +11,10 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   settingsDocument,
   screensDocument,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {ShowToolsPanel} from './ShowToolsPanel';
 import {StageTab} from './StageTab';

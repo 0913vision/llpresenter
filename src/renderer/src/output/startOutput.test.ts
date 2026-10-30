@@ -7,8 +7,8 @@ import type {
   RendererLogEntry,
 } from '@core/schema/ipcPayloads';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {classes} from '../render/classes';
-import {SlideLayerView} from '../render/slideLayer';
+import {classes} from '../rendering/classes';
+import {SlideLayerView} from '../rendering/slideLayer';
 import {startOutput} from './startOutput';
 import {MAIN, overlaySettings} from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';

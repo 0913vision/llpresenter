@@ -5,7 +5,7 @@ import {
   stageLayoutsDocument,
   settingsDocument,
   WIDE_LAYOUT_ID,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {stageLayoutMenuEntries} from './stageLayoutMenu';
 
 afterEach(cleanup);

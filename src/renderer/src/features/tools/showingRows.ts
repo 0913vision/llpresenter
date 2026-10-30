@@ -5,8 +5,8 @@ import {
   showsLayer,
   resolveScreenLook,
   type ScreenAppearance,
-} from '@renderer/render/screenLook';
-import {stageClockText} from '@renderer/render/stageLayout';
+} from '@renderer/rendering/screenLook';
+import {stageClockText} from '@renderer/rendering/stageLayout';
 import {tilesOf} from '@renderer/features/presentation/state/show';
 import {passageBook} from '@core/bible/adjacentVerses';
 import type {BibleSource} from '@core/bible/source';

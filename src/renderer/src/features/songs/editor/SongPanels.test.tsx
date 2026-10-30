@@ -7,9 +7,9 @@ import {
   within,
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {OutputRendererOptions} from '@renderer/render/outputRenderer';
+import type {OutputRendererOptions} from '@renderer/rendering/outputRenderer';
 import type {LiveLayers} from '@core/live/state';
-import type {RenderFrame} from '@renderer/render/layer';
+import type {RenderFrame} from '@renderer/rendering/layer';
 import {editorSetup, lyrics} from './editorTesting';
 import {editorFixture} from './editorFixture';
 import {editorPreviewFixture} from './editorPreviewFixture';
@@ -21,7 +21,7 @@ const drawing = vi.hoisted(() => ({
   dispose: vi.fn(),
   create: vi.fn<(options: OutputRendererOptions) => void>(),
 }));
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     constructor(_parent: HTMLElement, options: OutputRendererOptions) {
       drawing.create(options);

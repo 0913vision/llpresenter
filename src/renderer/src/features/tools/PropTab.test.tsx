@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {PropTab} from './PropTab';
 import {stageFixture} from './stageTesting';
 import {deferred} from '../quick/quickTesting';

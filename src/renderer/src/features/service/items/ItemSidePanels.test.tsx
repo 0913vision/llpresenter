@@ -16,7 +16,7 @@ import {editorPreviewFixture} from '@renderer/features/songs/editor/editorPrevie
 const drawing = vi.hoisted(() => ({
   render: vi.fn<(layers: LiveLayers) => void>(),
 }));
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = drawing.render;
     dispose = vi.fn();

@@ -30,7 +30,7 @@ vi.mock('@renderer/features/media/SongBackgroundControl', () => ({
     </button>
   ),
 }));
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

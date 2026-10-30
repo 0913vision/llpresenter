@@ -1,10 +1,10 @@
 import {useEffect, useRef, type JSX} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
-import {OutputRenderer} from '@renderer/render/outputRenderer';
-import {ScreenFrames} from '@renderer/render/screenFrames';
-import type {LookGap} from '@renderer/render/screenLook';
+import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import type {LookGap} from '@renderer/rendering/screenLook';
 import {useLive} from '@renderer/platform/live';
 import styles from './ScreenPreview.module.css';
 

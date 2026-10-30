@@ -12,7 +12,7 @@ import {
   parseServiceDocument,
   parseServiceEntries,
 } from '@core/schema/contentDocuments';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {deferred} from '../quick/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
@@ -20,9 +20,9 @@ import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 import userEvent from '@testing-library/user-event';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
-import {LOOK_ID, LAYOUT_ID} from '@renderer/screens/testing/documents';
+import {LOOK_ID, LAYOUT_ID} from '@renderer/features/screens/testing/documents';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const groupId = '00000000-0000-4000-8000-000000000002';

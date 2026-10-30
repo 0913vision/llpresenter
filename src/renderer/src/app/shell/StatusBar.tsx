@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {useOutputStatuses} from '@renderer/screens/useOutputStatuses';
+import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import styles from './StatusBar.module.css';
 

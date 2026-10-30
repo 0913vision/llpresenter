@@ -64,7 +64,9 @@ describe('readable control text', () => {
     expect(css('ListRow')).toMatch(
       /\.row\[data-state~='done'\]\[aria-selected='true'\]\s*\{\s*color:\s*var\(--text-2\)/,
     );
-    const layout = read('src/renderer/src/screens/DisplayLayout.module.css');
+    const layout = read(
+      'src/renderer/src/features/screens/DisplayLayout.module.css',
+    );
     expect(layout).toMatch(/\.number\s*\{\s*color:\s*var\(--text-2\)/);
     expect(layout).toMatch(
       /\.selected \.control\s*\{\s*color:\s*var\(--text-2\)/,

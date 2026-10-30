@@ -12,7 +12,7 @@ import {sendLive} from '@renderer/platform/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';

@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
 import {useLive} from '@renderer/platform/live';
 import {
   showLarge,
@@ -36,7 +36,7 @@ const instances = vi.hoisted(() => {
   return {list};
 });
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     readonly render = vi.fn();
     readonly dispose = vi.fn();

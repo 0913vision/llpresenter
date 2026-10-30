@@ -3,10 +3,10 @@ import type {LookId} from '@core/schema/ids';
 import {Menu, ToolbarButton} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
-import {sendLookChange} from '../../screens/looks/lookActions';
+import {sendLookChange} from '../../features/screens/looks/lookActions';
 import {useLookChoices} from './useLookChoices';
 import {useLive} from '@renderer/platform/live';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {lookMenuEntries} from './lookMenuEntries';
 
 function logProblem(notice: Notice): void {

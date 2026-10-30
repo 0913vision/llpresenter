@@ -18,7 +18,7 @@ import {App} from '../App';
 import {ControlSession} from '../controlSession';
 import {sampleOffer} from './testing';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

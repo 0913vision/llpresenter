@@ -15,7 +15,7 @@ import {NOTICE_LIFETIME_MS} from '@renderer/ui/Notification';
 import {App} from '../App';
 import {ControlSession} from '../controlSession';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

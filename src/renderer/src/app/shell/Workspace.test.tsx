@@ -10,7 +10,7 @@ import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 import {renderWithScreenSummaries as render} from './testing/screenSummaries';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

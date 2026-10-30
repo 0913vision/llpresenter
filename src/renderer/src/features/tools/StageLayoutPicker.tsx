@@ -2,7 +2,7 @@ import {useContext, useState, type JSX} from 'react';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import {Menu, Select} from '@renderer/ui';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {stageLayoutMenuEntries} from './stageLayoutMenu';
 
 export function StageLayoutPicker({

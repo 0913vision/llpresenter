@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {resolveScreenLook} from '@renderer/render/screenLook';
+import {resolveScreenLook} from '@renderer/rendering/screenLook';
 import {sendLive, useLive} from '@renderer/platform/live';
 import {Properties, PropertyGroup, PropertyRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';

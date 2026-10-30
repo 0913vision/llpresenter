@@ -5,7 +5,7 @@ import type {OutputStatuses} from '@core/schema/outputStatus';
 import {StatusBar} from './StatusBar';
 
 const fixture = vi.hoisted((): {statuses: OutputStatuses} => ({statuses: {}}));
-vi.mock('@renderer/screens/useOutputStatuses', () => ({
+vi.mock('@renderer/features/screens/useOutputStatuses', () => ({
   useOutputStatuses: () => fixture.statuses,
 }));
 vi.mock('../../platform/ScreenSummaries', () => ({

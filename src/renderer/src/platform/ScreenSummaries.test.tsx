@@ -16,7 +16,7 @@ import {
   looksDocument,
   MAIN_ID,
   CAPTIONS_ID,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {usePreview} from '@renderer/features/presentation/state/preview';
 import {ScreenSummariesProvider} from './ScreenSummaries';

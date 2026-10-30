@@ -13,7 +13,7 @@ import {
   LOOK_ID,
   SERMON_LOOK_ID,
   WIDE_LAYOUT_ID,
-} from '@renderer/screens/testing/documents';
+} from '@renderer/features/screens/testing/documents';
 import {useLive} from '@renderer/platform/live';
 
 export {STAGE_ID, LOOK_ID, SERMON_LOOK_ID, WIDE_LAYOUT_ID};

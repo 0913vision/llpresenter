@@ -8,7 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';

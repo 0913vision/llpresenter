@@ -21,7 +21,7 @@ import {
   linearSlidesOf,
   slideCountOf,
 } from '@core/songs/blockEdits';
-import {OutputRenderer} from '@renderer/render/outputRenderer';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {

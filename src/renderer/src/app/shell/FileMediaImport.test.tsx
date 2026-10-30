@@ -15,11 +15,11 @@ import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {applyService} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {useFileMediaImport} from './useFileMediaImport';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

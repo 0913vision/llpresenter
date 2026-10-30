@@ -18,7 +18,7 @@ import {ItemSettingsPanel} from './ItemSidePanels';
 import {ServiceItemStore} from './serviceItemStore';
 import type {Notice} from '@renderer/ui/notices';
 
-vi.mock('@renderer/render/outputRenderer', () => ({
+vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();
     dispose = vi.fn();

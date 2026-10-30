@@ -16,7 +16,7 @@ import {
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/platform/live';
 import {parseLookId} from '@core/schema/ids';
-import {useScreensSelection} from '@renderer/screens/selection';
+import {useScreensSelection} from '@renderer/features/screens/selection';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
 

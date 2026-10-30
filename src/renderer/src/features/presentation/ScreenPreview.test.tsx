@@ -1,7 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {classes} from '@renderer/render/classes';
+import {classes} from '@renderer/rendering/classes';
 import {useLive} from '@renderer/platform/live';
 import {ScreenPreview} from './ScreenPreview';
 

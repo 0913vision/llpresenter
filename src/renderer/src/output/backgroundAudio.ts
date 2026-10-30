@@ -3,10 +3,10 @@ import type {LiveState, MediaLayer} from '@core/live/state';
 import type {LooksFile} from '@core/schema/looks';
 import type {Screen} from '@core/schema/screens';
 import {mediaUrl} from '@contracts/ipc/media';
-import {BackgroundLayerView} from '../render/backgroundLayer';
-import {fadeAudio} from '../render/audioFade';
-import {resolveScreenLook, showsLayer} from '../render/screenLook';
-import {followSettingsDocument} from '../render/settingsFeed';
+import {BackgroundLayerView} from '../rendering/backgroundLayer';
+import {fadeAudio} from '../rendering/audioFade';
+import {resolveScreenLook, showsLayer} from '../rendering/screenLook';
+import {followSettingsDocument} from '../rendering/settingsFeed';
 
 /** Plays background sound once, independently of the preloaded screen windows. */
 export class BackgroundAudio {

@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {deferred} from '../quick/quickTesting';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';

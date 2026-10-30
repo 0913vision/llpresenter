@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {screensDocument} from '@renderer/screens/testing/documents';
+import {screensDocument} from '@renderer/features/screens/testing/documents';
 import type {NoticeChanges} from './noticeEdits';
 import {NoticeSettings} from './NoticeSettings';
 

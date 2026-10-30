@@ -7,7 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@renderer/screens/testing/documents';
+import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {stageFixture} from './stageTesting';
 import {MacroPanel} from './MacroPanel';
