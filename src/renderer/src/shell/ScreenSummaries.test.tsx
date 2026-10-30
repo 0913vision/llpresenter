@@ -132,21 +132,33 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
   });
   await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
   expect(
-    screen.getByRole('menuitemcheckbox', {name: '사용자 화면'}),
-  ).toBeTruthy();
+    screen.queryByRole('menuitemcheckbox', {name: '사용자 화면'}),
+  ).toBeNull();
   push(document(3, '바뀐 화면', 'capture'));
   expect(
     screen.queryByRole('menuitemcheckbox', {name: '사용자 화면'}),
   ).toBeNull();
   expect(
-    screen.getByRole('menuitemcheckbox', {name: '바뀐 화면'}),
-  ).toBeTruthy();
+    screen.getAllByRole('menuitemcheckbox').map(item => item.textContent),
+  ).toEqual(['방송 자막 켜기']);
   expect(
     screen.getByRole('menuitem', {name: '바뀐 화면 경고 보기'}),
   ).toBeTruthy();
   expect(screen.getByRole('status').textContent).toBe('');
   expect(lifecycle.mounted).toHaveBeenCalledTimes(2);
   expect(lifecycle.disposed).not.toHaveBeenCalled();
+  send.mockClear();
+  await userEvent.click(
+    screen.getByRole('menuitemcheckbox', {name: '방송 자막 켜기'}),
+  );
+  expect(send).toHaveBeenCalledExactlyOnceWith({
+    type: 'live.batch',
+    commands: [MAIN_ID, CAPTIONS_ID].map(screenId => ({
+      type: 'output.set',
+      screenId,
+      on: true,
+    })),
+  });
   view.unmount();
   expect(listeners.size).toBe(0);
   expect(lifecycle.disposed).toHaveBeenCalledTimes(2);

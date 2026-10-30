@@ -11,6 +11,7 @@ import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {sendLive} from '@renderer/state/live';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
 import {useShowToolTab} from '@renderer/state/showToolTab';
+import {useMacroPalette} from '@renderer/state/macroPalette';
 import {useScreensSelection} from '@renderer/screens/selection';
 import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -199,7 +200,8 @@ export function MacroPanel({
     kind: 'delete';
     item: MacroCollection;
   } | null>(null);
-  const [paletteFor, setPaletteFor] = useState<Macro['id']>();
+  const palette = useMacroPalette();
+  const paletteFor = palette.target;
   const [paletteDragging, setPaletteDragging] = useState(false);
   const revision = useRef(0);
   const pendingCount = useRef<AbortController | null>(null);
@@ -410,7 +412,7 @@ export function MacroPanel({
         id: item.id,
         action: {kind: 'removeAll', expected: item.actions},
       }),
-    openPalette: () => setPaletteFor(item.id),
+    openPalette: () => palette.show(item.id),
     removeAction: index =>
       commit({
         kind: 'action',
@@ -469,7 +471,7 @@ export function MacroPanel({
               : undefined
           }
         />
-        {paletteFor ? (
+        {palette.open ? (
           <div
             className={styles.palette}
             data-dragging={paletteDragging || undefined}
@@ -477,7 +479,7 @@ export function MacroPanel({
             onDragEnd={() => setPaletteDragging(false)}
           >
             <MacroPalette
-              onClose={() => setPaletteFor(undefined)}
+              onClose={palette.close}
               onChoose={actionKind => {
                 const item = document?.value.macros.find(
                   macro => macro.id === paletteFor,

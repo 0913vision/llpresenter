@@ -2,9 +2,13 @@ import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useWindowShortcuts} from './windowShortcuts';
 import {useShowToolTab} from '@renderer/state/showToolTab';
+import {useMacroPalette} from '@renderer/state/macroPalette';
 import {workspaceMenu, workspaceShortcuts} from './workspaceCommands';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  useMacroPalette.getState().close();
+});
 
 describe('workspace defaults from S1', () => {
   it.each([
@@ -112,7 +116,7 @@ describe('workspaceMenu', () => {
       '타임코드 (off)',
       '미디어',
       '캘린더 (off)',
-      '동작 팔레트 (off)',
+      '동작 팔레트',
       '테스트 화면 (off)',
       '|',
       '미리보기 (off)',
@@ -129,5 +133,17 @@ describe('workspaceMenu', () => {
     timer.onSelect?.();
     expect(useShowToolTab.getState().tool).toBe('timer');
     expect(onWorkspace).toHaveBeenCalledWith('show');
+  });
+
+  it('opens the existing palette in the macro tool', () => {
+    const onWorkspace = vi.fn();
+    const item = workspaceMenu({onWorkspace, onMedia: undefined}).find(
+      entry => entry.id === 'palette',
+    );
+    if (item?.kind !== 'item') throw new Error('Missing palette row');
+    item.onSelect?.();
+    expect(useMacroPalette.getState().open).toBe(true);
+    expect(useShowToolTab.getState().tool).toBe('macro');
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('show');
   });
 });

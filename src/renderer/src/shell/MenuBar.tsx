@@ -1,20 +1,13 @@
 import {useState, type JSX} from 'react';
 import type {WindowAction} from '@shared/ipc';
-import {STARTER_SCREEN_IDS} from '@shared/screens';
 import type {TextImportReadRequest} from '@shared/schema/textImport';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
-import {useLive, useOutputs} from '@renderer/state/live';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useButtonPress} from '@renderer/ui/press';
 import type {Notice} from '@renderer/ui/notices';
-import type {ScreenSummary} from './screens';
-import {useScreenSummaries} from './ScreenSummaries';
-import {screenOutputEntries} from './screenOutputEntries';
-import {sendLookChange} from './lookActions';
-import {useLookChoices} from './useLookChoices';
+import {OutputMenuList} from './OutputMenuList';
 import {fileMenuEntries} from './fileMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
@@ -181,105 +174,6 @@ function FileMenu({
   );
 }
 
-function warningEntries(
-  screens: readonly ScreenSummary[],
-  warnings: readonly WarningScreen[],
-  onShowWarning: (screenId: string) => void,
-): readonly MenuEntry[] {
-  return warnings.map(({screenId, screenName}): MenuEntry => {
-    const role = screenId === 'captions' ? 'broadcast' : screenId;
-    const canonicalId =
-      Object.entries(STARTER_SCREEN_IDS).find(
-        ([alias]) => alias === role,
-      )?.[1] ?? screenId;
-    const name =
-      screens.find(screen => screen.id === canonicalId)?.statusLabel ??
-      screenName;
-    return {
-      kind: 'item',
-      id: `warning:${screenId}`,
-      label: `${name} 경고 보기`,
-      onSelect: () => onShowWarning(screenId),
-    };
-  });
-}
-
-/**
- * The 출력 menu, after ProPresenter's Screens menu (spec 11): each group's
- * screens and what they show, then 화면 설정, capture, and warnings.
- */
-function outputEntries({
-  screens,
-  outputs,
-  looks,
-  lookName,
-  warnings,
-  onShowWarning,
-  onWorkspace,
-}: {
-  readonly screens: readonly ScreenSummary[];
-  readonly outputs: Readonly<Record<string, boolean>>;
-  readonly looks: readonly MenuEntry[];
-  readonly lookName: string | undefined;
-  readonly warnings: readonly WarningScreen[];
-  readonly onShowWarning: (screenId: string) => void;
-  readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
-}): readonly MenuEntry[] {
-  const toggles = (kind: 'audience' | 'stage'): readonly MenuEntry[] =>
-    screenOutputEntries(
-      screens.filter(screen => (screen.kind ?? 'audience') === kind),
-      outputs,
-    );
-  const openScreens = (): void => onWorkspace?.('screens');
-  const warningRows = warningEntries(screens, warnings, onShowWarning);
-  return [
-    {kind: 'group', id: 'audience', label: '청중 화면'},
-    ...toggles('audience'),
-    ...(looks.length === 0
-      ? []
-      : [
-          {
-            kind: 'item' as const,
-            id: 'look',
-            label: lookName === undefined ? 'Look' : `Look: ${lookName}`,
-            submenu: looks,
-          },
-        ]),
-    {
-      kind: 'item',
-      id: 'edit-looks',
-      label: 'Look 편집…',
-      disabled: onWorkspace === undefined,
-      onSelect: openScreens,
-    },
-    menuSeparator('stage'),
-    {kind: 'group', id: 'stage-group', label: '무대 화면'},
-    ...toggles('stage'),
-    {
-      kind: 'item',
-      id: 'edit-layouts',
-      label: '무대 배치 편집…',
-      disabled: onWorkspace === undefined,
-      onSelect: openScreens,
-    },
-    menuSeparator('screens'),
-    {
-      kind: 'item',
-      id: 'screens',
-      label: '화면 설정…',
-      meta: 'Ctrl Alt 1',
-      disabled: onWorkspace === undefined,
-      onSelect: openScreens,
-    },
-    menuSeparator('capture'),
-    laterRow('capture', '녹화 시작'),
-    laterRow('capture-settings', '녹화 설정…'),
-    ...(warningRows.length === 0
-      ? []
-      : [menuSeparator('warnings'), ...warningRows]),
-  ];
-}
-
 function ViewMenu({
   control,
   entries,
@@ -302,9 +196,6 @@ function ViewMenu({
   );
 }
 
-// NOTE(0913vision): The 출력 menu holds each screen's output on or off and,
-// while a screen's warning holds, an item that shows its card again (spec
-// 08).
 function OutputMenu({
   warnings,
   onShowWarning,
@@ -318,47 +209,17 @@ function OutputMenu({
   readonly onProblem: (notice: Notice) => void;
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
 }): JSX.Element {
-  const screens = useScreenSummaries();
-  const {anchor} = control;
-  const outputs = useOutputs();
-  const liveLook = useLive(view =>
-    view.state === null ? undefined : (view.state.lookId ?? null),
-  );
-  const {document} = useLookChoices({
-    open: anchor !== null,
-    onProblem,
-  });
-  const choices = document?.value.looks ?? [];
-  const currentLook =
-    liveLook === undefined
-      ? null
-      : (choices.find(look => look.id === liveLook)?.id ??
-        document?.value.current);
-  const looks: readonly MenuEntry[] = choices.map(look => ({
-    kind: 'item',
-    id: `look:${look.id}`,
-    label: look.name || '이름 없는 Look',
-    check: 'radio',
-    checked: look.id === currentLook,
-    onSelect: () => sendLookChange(look.id, onProblem),
-  }));
   return (
     <>
       <MenuTrigger label={OUTPUT_MENU} control={control} />
-      {anchor ? (
-        <Menu
-          label={OUTPUT_MENU}
-          anchor={{kind: 'element', element: anchor}}
+      {control.anchor ? (
+        <OutputMenuList
+          anchor={control.anchor}
           onClose={control.close}
-          entries={outputEntries({
-            screens,
-            outputs,
-            looks,
-            lookName: choices.find(look => look.id === currentLook)?.name,
-            warnings,
-            onShowWarning,
-            onWorkspace,
-          })}
+          warnings={warnings}
+          onShowWarning={onShowWarning}
+          onProblem={onProblem}
+          onWorkspace={onWorkspace}
         />
       ) : null}
     </>

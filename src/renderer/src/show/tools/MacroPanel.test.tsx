@@ -20,6 +20,7 @@ import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';
+import {useMacroPalette} from '@renderer/state/macroPalette';
 import {LOOK_ID, LAYOUT_ID} from '@renderer/screens/testing/documents';
 
 const id = '00000000-0000-4000-8000-000000000001';
@@ -101,8 +102,28 @@ function fixture(actions: readonly object[] = []) {
 }
 afterEach(() => {
   cleanup();
+  useMacroPalette.getState().close();
   delete window.llp;
   vi.restoreAllMocks();
+});
+
+it('shows and closes the palette requested from View without a macro target', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '찬양'});
+  act(() => useMacroPalette.getState().show());
+  expect(screen.getByRole('region', {name: '동작 팔레트'})).toBeDefined();
+  fireEvent.drop(tile, {
+    dataTransfer: {
+      types: ['application/x-llpresenter-macro-action'],
+      getData: () => 'clearAll',
+    },
+  });
+  await screen.findByRole('dialog', {name: '동작 설정'});
+  expect(f.send).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', {name: '취소'}));
+  fireEvent.click(screen.getByRole('button', {name: '동작 팔레트 닫기'}));
+  expect(screen.queryByRole('region', {name: '동작 팔레트'})).toBeNull();
 });
 
 it('runs a macro and asks with the number of service items before deletion', async () => {

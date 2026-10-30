@@ -2,6 +2,7 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {useShowToolTab} from '@renderer/state/showToolTab';
+import {useMacroPalette} from '@renderer/state/macroPalette';
 import {SHOW_TOOLS, type ShowTool} from '@renderer/show/showTools';
 import type {Workspace} from './Toolbar';
 import type {WindowShortcut} from './windowShortcuts';
@@ -114,7 +115,17 @@ export function workspaceMenu({
       onSelect: onMedia,
     },
     laterRow('calendar', '캘린더'),
-    laterRow('palette', '동작 팔레트'),
+    {
+      kind: 'item',
+      id: 'palette',
+      label: '동작 팔레트',
+      disabled: onWorkspace === undefined,
+      onSelect: () => {
+        useMacroPalette.getState().show();
+        useShowToolTab.getState().setTool('macro');
+        onWorkspace?.('show');
+      },
+    },
     laterRow('test-patterns', '테스트 화면'),
     menuSeparator('preview'),
     laterRow('preview', '미리보기', {submenu: true}),

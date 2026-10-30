@@ -7,6 +7,7 @@ import {
   type SettingsDocument,
 } from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {stageLayoutsDocument} from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {MenuBar} from './MenuBar';
 import {renderWithScreenSummaries as render} from './testing/screenSummaries';
@@ -40,14 +41,22 @@ function setup() {
   const send = vi.fn();
   const stop = vi.fn();
   const onProblem = vi.fn();
-  let push: (document: SettingsDocument) => void = () => undefined;
+  const listeners = new Set<(document: SettingsDocument) => void>();
   const api = fakeLlpApi({
     live: {send},
     settings: {
-      get: () => Promise.resolve(looksDocument()),
+      get: request =>
+        Promise.resolve(
+          request.name === 'stage-layouts'
+            ? stageLayoutsDocument()
+            : looksDocument(),
+        ),
       subscribe: listener => {
-        push = listener;
-        return stop;
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+          stop();
+        };
       },
     },
   });
@@ -59,7 +68,9 @@ function setup() {
     stop,
     onProblem,
     view,
-    push: (document: SettingsDocument) => push(document),
+    push: (document: SettingsDocument) => {
+      for (const listener of listeners) listener(document);
+    },
   };
 }
 
@@ -126,15 +137,15 @@ describe('Looks in the 출력 menu', () => {
         item => item.textContent,
       ),
     ).toEqual([
-      '본 화면',
-      '방송 자막',
+      '출력 끄기',
       'Look: 평상시',
       'Look 편집…',
-      '무대 화면',
+      '출력 켜기',
+      '무대 화면: 없음',
       '무대 배치 편집…',
       '화면 설정…Ctrl Alt 1',
-      '녹화 시작',
-      '녹화 설정…',
+      '방송 자막 켜기',
+      '방송 설정…',
     ]);
     expect(
       [
@@ -145,9 +156,9 @@ describe('Looks in the 출력 menu', () => {
     ).toEqual(['평상시', '설교']);
     expect(
       screen
-        .getByRole('menuitemcheckbox', {name: '본 화면'})
+        .getByRole('menuitemcheckbox', {name: '방송 자막 켜기'})
         .getAttribute('aria-checked'),
-    ).toBe('true');
+    ).toBe('false');
   });
 
   it('keeps the live Look check over a settings current value and follows live changes', async () => {
@@ -277,7 +288,7 @@ describe('Looks in the 출력 menu', () => {
     await act(async () => finish(looksDocument()));
     expect(screen.queryByRole('menuitemradio', {name: '평상시'})).toBeNull();
     await userEvent.keyboard('{Escape}{Escape}');
-    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledTimes(2);
     expect(document.activeElement).toBe(
       screen.getByRole('menuitem', {name: '출력'}),
     );
@@ -294,13 +305,13 @@ describe('Looks in the 출력 menu', () => {
         expect.objectContaining({title: 'Look 불러오기 실패'}),
       ),
     );
-    await userEvent.click(
-      screen.getByRole('menuitemcheckbox', {name: '본 화면'}),
-    );
+    await userEvent.click(screen.getByRole('menuitem', {name: '출력 끄기'}));
     expect(send).toHaveBeenCalledExactlyOnceWith({
-      type: 'output.set',
-      screenId: 'main',
-      on: false,
+      type: 'live.batch',
+      commands: [
+        {type: 'output.set', screenId: 'main', on: false},
+        {type: 'output.set', screenId: 'broadcast', on: false},
+      ],
     });
     await openMenu();
     await screen.findByRole('menuitemradio', {name: '평상시'});

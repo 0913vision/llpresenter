@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, screen} from '@testing-library/react';
+import {cleanup, fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -29,7 +29,11 @@ function outputSender() {
 }
 
 function outputItem(name: string): HTMLElement {
-  return screen.getByRole('menuitemcheckbox', {name});
+  return name === '방송 자막'
+    ? screen.getByRole('menuitemcheckbox', {name: '방송 자막 켜기'})
+    : within(screen.getByRole('group', {name})).getByRole('menuitem', {
+        name: /^출력/,
+      });
 }
 
 describe('MenuBar', () => {
@@ -150,12 +154,12 @@ describe('MenuBar', () => {
     expect(control.mock.calls).toEqual([['toggle-maximize'], ['close']]);
   });
 
-  it('checks each screen whose output is on in the 출력 menu', async () => {
+  it('shows group output commands and only a broadcast checkbox', async () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
     expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
-    expect(outputItem('본 화면').getAttribute('aria-checked')).toBe('true');
-    expect(outputItem('무대 화면').getAttribute('aria-checked')).toBe('false');
+    expect(outputItem('본 화면').textContent).toBe('출력 끄기');
+    expect(outputItem('무대 화면').textContent).toBe('출력 켜기');
     expect(outputItem('방송 자막').getAttribute('aria-checked')).toBe('false');
     expect(screen.queryByRole('menuitem', {name: /경고 보기/})).toBeNull();
   });
@@ -172,25 +176,28 @@ describe('MenuBar', () => {
       await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
       await userEvent.click(outputItem(name));
       expect(send).toHaveBeenCalledExactlyOnceWith({
-        type: 'output.set',
-        screenId,
-        on,
+        type: 'live.batch',
+        commands: (name === '본 화면' ? ['main', 'broadcast'] : [screenId]).map(
+          id => ({type: 'output.set', screenId: id, on}),
+        ),
       });
       expect(screen.queryByRole('menu', {name: '출력'})).toBeNull();
     },
   );
 
-  it('opens the 출력 menu and turns an output on with the keyboard', async () => {
+  it('opens the 출력 menu and turns the audience group off with the keyboard', async () => {
     const send = outputSender();
     render(<MenuBar title="" />);
     screen.getByRole('menuitem', {name: '출력'}).focus();
     await userEvent.keyboard('{ArrowDown}');
     expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
-    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await userEvent.keyboard('{Enter}');
     expect(send).toHaveBeenCalledExactlyOnceWith({
-      type: 'output.set',
-      screenId: 'broadcast',
-      on: true,
+      type: 'live.batch',
+      commands: [
+        {type: 'output.set', screenId: 'main', on: false},
+        {type: 'output.set', screenId: 'broadcast', on: false},
+      ],
     });
   });
 
