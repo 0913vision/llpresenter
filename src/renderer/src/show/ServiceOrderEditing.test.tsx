@@ -556,15 +556,48 @@ describe('service panel editing', () => {
     expect(ids()).toEqual([headerId, firstId, lastId]);
   });
 
-  it('opens the selected item in prep through the host, without output', async () => {
+  it('opens a song in prep through the host, without output', async () => {
     const {onOpenPrep, send} = setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
     await userEvent.click(
-      await screen.findByRole('menuitem', {name: '준비에서 열기'}),
+      await screen.findByRole('menuitem', {name: '가사 편집'}),
     );
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();
     expect(useShow.getState().openItemId).toBeNull();
+  });
+
+  it('lists the rows of the ProPresenter playlist item menu for a song', async () => {
+    setup();
+    fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
+    const menu = await screen.findByRole('menu', {name: '예배 순서 항목 메뉴'});
+    const rows = [
+      ...menu.querySelectorAll('[role="menuitem"], [role="separator"]'),
+    ].map(row =>
+      row.getAttribute('role') === 'separator'
+        ? '|'
+        : (row.querySelector('[class*="label"]')?.textContent ?? ''),
+    );
+    expect(rows).toEqual([
+      '항목 숨기기',
+      '다른 예배에 추가',
+      '|',
+      '구성',
+      '출력 대상',
+      '|',
+      '슬라이드 편집',
+      '크기 바꾸기',
+      '가사 편집',
+      '|',
+      '복사',
+      '붙여넣기',
+      '복제',
+      '삭제',
+      '|',
+      '라이브러리에서 보기',
+      '묶음으로 내보내기…',
+      '그림으로 내보내기…',
+    ]);
   });
 
   it('deletes the selected prep item with Delete and keeps focus for Ctrl Z', async () => {

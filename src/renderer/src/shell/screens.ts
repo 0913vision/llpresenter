@@ -11,6 +11,8 @@ export interface ScreenSummary {
   readonly targetKind: PreviewTarget['kind'];
   /** Draws the empty picture green (the 방송 자막). */
   readonly chroma: boolean;
+  /** 청중 or 무대; summaries made without it count as 청중. */
+  readonly kind?: Screen['kind'] | undefined;
 }
 
 /** Saved names and destinations in screen-document order, without role aliases. */
@@ -32,6 +34,7 @@ export function summarizeScreens(
           : `모니터 ${screen.display.number} ${screen.display.name}`
         : targetByMethod[screen.method],
     targetKind: screen.method === 'fullscreen' ? 'display' : screen.method,
+    kind: screen.kind,
     chroma:
       (screen.previewBackground ?? 'green') === 'green' &&
       screen.kind !== 'stage' &&

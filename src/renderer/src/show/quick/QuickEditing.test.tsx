@@ -219,7 +219,7 @@ describe('quick editing', () => {
     failPersistedEdit(fixture.edit);
     fixture.mount();
     await openAddMenu();
-    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머…'}));
     await screen.findByRole('dialog', {name: '타이머 추가'});
     fireEvent.change(screen.getByRole('textbox', {name: '초'}), {
       target: {value: '30'},
@@ -268,7 +268,7 @@ describe('quick editing', () => {
     const fixture = setup();
     fixture.mount();
     await openAddMenu();
-    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머…'}));
     const dialog = await screen.findByRole('dialog', {name: '타이머 추가'});
     expect(dialog).toBeTruthy();
     expect(screen.queryByRole('menu')).toBeNull();
@@ -299,7 +299,7 @@ describe('quick editing', () => {
     const fixture = setup();
     fixture.mount();
     await openAddMenu();
-    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머…'}));
     await screen.findByRole('dialog', {name: '타이머 추가'});
     fireEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(fixture.edit).not.toHaveBeenCalled();

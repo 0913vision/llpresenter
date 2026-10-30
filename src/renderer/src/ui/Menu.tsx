@@ -17,7 +17,6 @@ import {layerContainer} from './layers';
 import {handleMenuKey, type MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
 import {
-  hasLeadSlot,
   isRunnable,
   menuItems,
   type MenuEntry,
@@ -145,17 +144,20 @@ function useMenuNavigation({
   surface,
   onClose,
   onBack,
+  pointsFirst,
 }: {
   readonly entries: readonly MenuEntry[];
   readonly searchValue: string | undefined;
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onClose: (reason: MenuCloseReason) => void;
   readonly onBack: (() => void) | undefined;
+  /** False for a submenu the pointer opened: nothing is pointed yet. */
+  readonly pointsFirst: boolean;
 }): MenuNavigation {
   const items = menuItems(entries);
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
-  const [pointedState, setPointed] = useState(0);
+  const [pointedState, setPointed] = useState(pointsFirst ? 0 : -1);
   // NOTE(0913vision): In a searched menu, a new search term or a new set of
   // results points to the first item again.
   const results = searchValue === undefined ? '' : items.map(i => i.id).join();
@@ -264,6 +266,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
     surface,
     onClose,
     onBack,
+    pointsFirst: autoFocus,
   });
   const itemId = (index: number): string => `${baseId}-item-${index}`;
   const activeId = nav.pointed >= 0 ? itemId(nav.pointed) : undefined;
@@ -284,15 +287,14 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
     return () => window.removeEventListener('resize', refit);
   }, []);
 
-  const lead = hasLeadSlot(nav.items);
-  const renderItem = (item: MenuItem): JSX.Element => {
+  const renderItem = (item: MenuItem, iconColumn: boolean): JSX.Element => {
     const index = nav.items.indexOf(item);
     return (
       <MenuItemRow
         key={item.id}
         item={item}
         id={itemId(index)}
-        lead={lead}
+        iconColumn={iconColumn}
         pointed={index === nav.pointed}
         expanded={nav.submenu?.index === index}
         elementRef={element => {

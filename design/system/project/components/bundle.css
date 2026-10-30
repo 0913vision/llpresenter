@@ -142,7 +142,7 @@
 .ll-btn:focus:not(:focus-visible) { outline: none; }
 
 /* Disabled: a primary button falls back to the secondary background */
-.ll-btn:is(:disabled, [aria-disabled="true"]) { color: var(--text-2); }
+.ll-btn:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
 .ll-btn.ll-btn--primary:is(:disabled, [aria-disabled="true"]) { background: var(--bg-control); }
 
 @media (prefers-reduced-motion: reduce) { .ll-btn, :is(.ll-root, .ll-preview) .ll-btn { transition: none; } }
@@ -210,8 +210,8 @@
 .ll-seg__item:focus:not(:focus-visible) { outline: none; }
 
 /* Disabled: set disabled (or aria-disabled) on each segment. The selected segment keeps its background so the choice stays visible */
-.ll-seg__item.ll-seg__item:is(:disabled, [aria-disabled="true"]) { color: var(--text-2); }
-.ll-seg__item:is(:disabled, [aria-disabled="true"]) .ll-seg__count.ll-seg__count { color: var(--text-2); }
+.ll-seg__item.ll-seg__item:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
+.ll-seg__item:is(:disabled, [aria-disabled="true"]) .ll-seg__count.ll-seg__count { color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) { .ll-seg__item, :is(.ll-root, .ll-preview) .ll-seg__item { transition: none; } }
 
@@ -412,8 +412,9 @@
 .ll-statusbar__dot { flex: none; width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--ok); }
 .ll-statusbar__item[data-state="warning"] { color: var(--warning); }
 .ll-statusbar__item[data-state="warning"] .ll-statusbar__dot { background: var(--warning); }
-/* Screen with output off: keep the name readable and show a hollow dot. */
-.ll-statusbar__item[data-state="off"] .ll-statusbar__dot { box-sizing: border-box; border: 1px solid var(--text-3); background: transparent; }
+/* Screen with output off: no dot, like an off output button on the toolbar */
+.ll-statusbar__item[data-state="off"] { color: var(--text-off); }
+.ll-statusbar__item[data-state="off"] .ll-statusbar__dot { display: none; }
 
 /* ---- 20-textfield.css ---- */
 /* 20 TextField: single-line field (ll-field), multiline field (ll-textarea) */
@@ -471,9 +472,9 @@
 .ll-field:focus-within, .ll-field.is-focus { box-shadow: var(--ring-field-focus); }
 .ll-preview .ll-field.is-focus { outline: none; }
 .ll-field:has(> .ll-field__input[aria-invalid="true"]) { box-shadow: var(--ring-field-error); }
-.ll-field:has(> .ll-field__input:disabled) { color: var(--text-2); }
-.ll-field__input:disabled { color: var(--text-2); }
-.ll-field__input:disabled::placeholder { color: var(--text-2); }
+.ll-field:has(> .ll-field__input:disabled) { color: var(--text-off); }
+.ll-field__input:disabled { color: var(--text-off); }
+.ll-field__input:disabled::placeholder { color: var(--text-off); }
 
 /* Multiline field (notes) */
 .ll-textarea {
@@ -485,8 +486,8 @@
 .ll-textarea:focus, .ll-textarea.is-focus { box-shadow: var(--ring-field-focus); }
 .ll-preview .ll-textarea.is-focus { outline: none; }
 .ll-textarea[aria-invalid="true"] { box-shadow: var(--ring-field-error); }
-.ll-textarea:disabled { color: var(--text-2); }
-.ll-textarea:disabled::placeholder { color: var(--text-2); }
+.ll-textarea:disabled { color: var(--text-off); }
+.ll-textarea:disabled::placeholder { color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) { .ll-field__clear { transition: none; } }
 
@@ -523,7 +524,7 @@
 
 .ll-select:hover, .ll-select.is-hover, .ll-select:active, .ll-select.is-active, .ll-select[aria-expanded="true"] { background: var(--bg-control-hover); }
 .ll-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-select:disabled { background: var(--bg-control); color: var(--text-2); }
+.ll-select:disabled { background: var(--bg-control); color: var(--text-off); }
 .ll-select:disabled .ll-select__icon, .ll-select:disabled .ll-select__meta, .ll-select:disabled .ll-select__chevron { color: var(--text-off); }
 
 /* Macro color tiles */
@@ -572,11 +573,11 @@
 /* Group header row (parent in a tree) */
 .ll-check-row--group { font: var(--type-caption-strong); color: var(--text-3); }
 
-.ll-check-row:has(> .ll-check:disabled) { color: var(--text-2); }
+.ll-check-row:has(> .ll-check:disabled) { color: var(--text-off); }
 .ll-check-row--list:has(> .ll-check:disabled):hover { background: transparent; }
 .ll-check-row:has(> .ll-check:disabled) .ll-check-row__icon,
 .ll-check-row:has(> .ll-check:disabled) .ll-check-row__value,
-.ll-check-row:has(> .ll-check:disabled) .ll-check-row__meta { color: var(--text-2); }
+.ll-check-row:has(> .ll-check:disabled) .ll-check-row__meta { color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) { .ll-check-row { transition: none; } }
 
@@ -599,7 +600,7 @@
 
 /* Name + switch (text import settings row). A click on the name also toggles it */
 .ll-switch-row { display: inline-flex; align-items: center; gap: var(--space-10); font: var(--type-label); color: var(--text-2); }
-.ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-2); }
+.ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) { .ll-switch, .ll-switch::after { transition: none; } }
 
@@ -629,7 +630,7 @@
 /* Leading icon + slider (thumbnail size, volume) */
 .ll-slider-row { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--text-3); }
 .ll-slider-row > .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
-.ll-slider-row:has(> .ll-slider:disabled) { color: var(--text-2); }
+.ll-slider-row:has(> .ll-slider:disabled) { color: var(--text-off); }
 
 /* ---- 25-labelcolor.css ---- */
 /* 25 LabelColorPicker: 이름표 color picker (ll-swatches, ll-swatch) */
@@ -694,7 +695,7 @@
 
 .ll-prop { display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-prop-row); }
 .ll-prop__label { flex: 0 0 var(--size-prop-label); min-width: 0; font: var(--type-label); color: var(--text-2); }
-.ll-prop:has(> .ll-prop__control :disabled) > .ll-prop__label { color: var(--text-2); }
+.ll-prop:has(> .ll-prop__control :disabled) > .ll-prop__label { color: var(--text-off); }
 .ll-prop__control { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--space-8); }
 .ll-prop__value { min-width: 0; display: inline-flex; align-items: center; gap: var(--space-8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--type-body); color: var(--text-2); font-variant-numeric: tabular-nums; }
 .ll-prop__value .ll-i { flex: none; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-3); }
@@ -732,7 +733,7 @@
 .ll-panel__tab[aria-selected="true"] { color: var(--text); }
 .ll-panel__tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(-1 * var(--space-4)); height: 2px; background: var(--text); }
 .ll-panel__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-panel__tab:disabled { color: var(--text-2); }
+.ll-panel__tab:disabled { color: var(--text-off); }
 
 /* Title header: song title + position or count */
 .ll-panel__title { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
@@ -745,7 +746,7 @@
 .ll-panel__switch:hover, .ll-panel__switch.is-hover { background: var(--bg-raised); }
 .ll-panel__switch:active, .ll-panel__switch.is-active, .ll-panel__switch[aria-expanded="true"] { background: var(--bg-control-hover); color: var(--text); }
 .ll-panel__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.ll-panel__switch:disabled { background: transparent; color: var(--text-2); }
+.ll-panel__switch:disabled { background: transparent; color: var(--text-off); }
 
 /* Controls on the right: sm controls only (icon button, secondary button, dropdown) */
 .ll-panel__actions { flex: none; display: flex; align-items: center; gap: var(--space-8); margin-left: auto; padding-left: var(--space-8); }
@@ -802,7 +803,7 @@
 .ll-row[aria-pressed="true"] .ll-row__meta { color: var(--text-2); }
 
 /* Disabled: no hover */
-.ll-row:disabled, .ll-row[aria-disabled="true"] { background: transparent; color: var(--text-2); }
+.ll-row:disabled, .ll-row[aria-disabled="true"] { background: transparent; color: var(--text-off); }
 .ll-row:disabled .ll-row__icon, .ll-row:disabled .ll-row__meta,
 .ll-row[aria-disabled="true"] .ll-row__icon, .ll-row[aria-disabled="true"] .ll-row__meta { color: var(--text-off); }
 
@@ -839,24 +840,26 @@
 /* ---- 32-menu.css ---- */
 /* 32 Menu: menu bar menus, submenus, right-click menus, popover lists (service picker, labels) */
 
-.ll-menu { box-sizing: border-box; display: flex; flex-direction: column; min-width: 180px; max-width: 320px; padding: var(--space-6); border-radius: var(--radius-xl); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font: var(--type-body); z-index: var(--z-popover); animation: ll-menu-in 120ms ease-out; }
+.ll-menu { box-sizing: border-box; display: flex; flex-direction: column; min-width: 180px; max-width: 320px; padding: var(--space-6) 0; border-radius: var(--radius-menu); background: var(--bg-raised); box-shadow: var(--shadow-menu); color: var(--text); font: var(--type-menu-text); z-index: var(--z-popover); animation: ll-menu-in 120ms ease-out; }
 .ll-menu__scroll { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 
-.ll-menu__item, :is(.ll-root, .ll-preview) .ll-menu__item { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row-menu); padding: 0 var(--space-8); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: var(--type-body); text-align: left; white-space: nowrap; cursor: default; transition: none; }
-/* A pointed item (mouse or arrow keys) and the parent of an open submenu share one background. No focus ring inside a menu. */
-.ll-menu__item:hover, .ll-menu__item:focus-visible, .ll-menu__item.is-hover, .ll-menu__item[aria-expanded="true"] { background: var(--bg-control-hover); outline: none; }
-.ll-menu__item:hover .ll-menu__meta, .ll-menu__item:hover .ll-menu__chevron,
-.ll-menu__item:focus-visible .ll-menu__meta, .ll-menu__item:focus-visible .ll-menu__chevron,
-.ll-menu__item.is-hover .ll-menu__meta, .ll-menu__item.is-hover .ll-menu__chevron,
-.ll-menu__item[aria-expanded="true"] .ll-menu__meta, .ll-menu__item[aria-expanded="true"] .ll-menu__chevron { color: var(--text-2); }
+.ll-menu__item, :is(.ll-root, .ll-preview) .ll-menu__item { position: relative; flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-menu-icon-gap); width: calc(100% - 2 * var(--space-menu-inset)); height: var(--size-row-menu); margin: 0 var(--space-menu-inset); padding: 0 var(--space-14) 0 var(--space-menu-text); border: 0; border-radius: var(--radius-menu-item); background: transparent; color: var(--text); font: var(--type-menu-text); text-align: left; white-space: nowrap; cursor: default; transition: none; }
+/* The parent of an open submenu keeps a light fill; a pointed item (mouse or arrow keys) is blue with white text, as in ProPresenter. No focus ring inside a menu. */
+.ll-menu__item[aria-expanded="true"] { background: var(--bg-menu-open); }
+.ll-menu__item:hover, .ll-menu__item:focus-visible, .ll-menu__item.is-hover { background: var(--accent-fill); color: var(--text-on-fill); outline: none; }
+.ll-menu__item:hover :is(.ll-menu__meta, .ll-menu__chevron),
+.ll-menu__item:focus-visible :is(.ll-menu__meta, .ll-menu__chevron),
+.ll-menu__item.is-hover :is(.ll-menu__meta, .ll-menu__chevron) { color: var(--text-on-fill); }
 
-.ll-menu__lead { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-2); }
-.ll-menu__lead .ll-i-check { color: var(--text); }
+/* The check mark sits in the left padding, so text never moves. */
+.ll-menu__lead { position: absolute; top: 50%; left: var(--space-menu-check); display: inline-flex; transform: translateY(-50%); }
+/* Icon column: only rows ProPresenter gives an icon; the other rows of that group keep an empty column. */
+.ll-menu__icon { flex: none; display: inline-flex; width: var(--size-icon-18); height: var(--size-icon-18); }
 .ll-menu__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ll-menu__meta { flex: none; margin-left: var(--space-6); font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; }
-.ll-menu__chevron { flex: none; color: var(--text-3); }
+.ll-menu__chevron { flex: none; margin-right: calc(-1 * var(--space-4)); }
 
-/* Label swatch: after the leading slot, before the name. */
+/* Label swatch: before the name. */
 .ll-menu__swatch { flex: none; width: 18px; height: 12px; border-radius: var(--radius-xs); background: var(--label-none); box-shadow: inset 0 0 0 1px var(--line-control); }
 .ll-menu__swatch[data-color] { box-shadow: none; }
 .ll-menu__swatch[data-color="teal"] { background: var(--label-teal); }
@@ -868,19 +871,20 @@
 .ll-menu__swatch[data-color="slate"] { background: var(--label-slate); }
 .ll-menu__swatch[data-color="gray"] { background: var(--label-gray); }
 
-/* Delete items keep the normal text color because red is only for output. Put them at the bottom after a divider, and confirm when they can't be undone. */
+/* Delete items keep the normal text color because red is only for output. Put them last, and confirm when they can't be undone. */
 .ll-menu__item.ll-menu__item--danger { color: var(--text); }
 
-.ll-menu__item:disabled, .ll-menu__item[aria-disabled="true"] { background: transparent; color: var(--text-2); }
+.ll-menu__item:disabled, .ll-menu__item[aria-disabled="true"] { background: transparent; color: var(--text-off); }
 .ll-menu__item:disabled .ll-menu__lead, .ll-menu__item:disabled .ll-menu__meta, .ll-menu__item:disabled .ll-menu__chevron,
 .ll-menu__item[aria-disabled="true"] .ll-menu__lead, .ll-menu__item[aria-disabled="true"] .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__chevron { color: var(--text-off); }
+.ll-menu__item:disabled:hover, .ll-menu__item[aria-disabled="true"]:hover { background: transparent; color: var(--text-off); }
 
-.ll-menu__sep { flex: none; height: 1px; margin: var(--space-4) var(--space-2); background: var(--line-strong); }
-.ll-menu__group { flex: none; padding: var(--space-6) var(--space-8) var(--space-4); font: var(--type-caption-strong); color: var(--text-3); white-space: nowrap; }
+.ll-menu__sep { flex: none; height: 1px; margin: var(--space-6) var(--space-18); background: var(--line-menu); }
+.ll-menu__group { flex: none; padding: var(--space-6) var(--space-8) var(--space-4) calc(var(--space-menu-inset) + var(--space-8)); font: var(--type-caption-strong); color: var(--text-3); white-space: nowrap; }
 .ll-menu > .ll-menu__group:first-child { padding-top: var(--space-2); }
 
-/* Search field at the top. Its text starts on the same 32px line as the item names. */
-.ll-menu__search { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); height: var(--size-control-md); margin-bottom: var(--space-4); padding: 0 var(--space-8); border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3); }
+/* Search field at the top, inset like the items. */
+.ll-menu__search { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); height: var(--size-control-md); margin: 0 var(--space-menu-inset) var(--space-4); padding: 0 var(--space-8); border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3); }
 .ll-menu__search:focus-within, .ll-menu__search.is-focus { box-shadow: var(--ring-field-focus); outline: none; }
 .ll-menu__search input { flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: var(--type-body); }
 
@@ -1270,10 +1274,9 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-calendar__day[data-outside] { color: var(--text-3); }
 .ll-calendar__day[aria-current="date"] { box-shadow: var(--ring-calendar-today); }
 .ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):hover, .ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):active { background: var(--bg-control-hover); }
-.ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day[data-outside]:not(:disabled):is(:hover, :active) { color: var(--text-2); }
 .ll-calendar__cell[aria-selected="true"] .ll-calendar__day { background: var(--accent-fill); color: var(--text-on-fill); box-shadow: none; }
 .ll-calendar__day:focus-visible, .ll-calendar__day.is-focus { outline: var(--space-2) solid var(--accent); outline-offset: var(--radius-hairline); }
-.ll-calendar__day:disabled { color: var(--text-2); box-shadow: none; }
+.ll-calendar__day:disabled { color: var(--text-off); box-shadow: none; }
 .ll-calendar__foot { display: flex; justify-content: center; margin-top: var(--space-8); padding-top: var(--space-8); border-top: var(--radius-hairline) solid var(--line); }
 @keyframes ll-calendar-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ll-calendar { animation: none; } }
@@ -1284,12 +1287,3 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-smart-guide[data-axis="x"] { top: 0; bottom: 0; width: var(--size-guide-line); }
 .ll-smart-guide[data-axis="y"] { left: 0; right: 0; height: var(--size-guide-line); }
 .ll-smart-guide-overlay[hidden] { display: none; }
-
-/* Readable off-state labels retain their distinct graphical marks. */
-.ll-tbtn--output[data-state="off"] .ll-tbtn__label, .ll-tbtn[aria-disabled="true"] .ll-tbtn__label { color: var(--text-2); }
-.ll-clear[data-state="off"] .ll-clear__label { color: var(--text-3); }
-.ll-statusbar__item[data-state="off"] { color: var(--text-3); }
-.ll-monitor [data-state="off"] .ll-monitor__name { color: var(--text-3); }
-.ll-select:disabled .ll-select__meta, .ll-row:disabled .ll-row__meta, .ll-row[aria-disabled="true"] .ll-row__meta, .ll-menu__item:disabled .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__meta { color: var(--text-2); }
-.ll-row[data-state~="done"][aria-selected="true"] { color: var(--text-2); }
-.ll-seg__item:is(:hover, :active) .ll-seg__count:not(.ll-seg__count--warning) { color: var(--text-2); }

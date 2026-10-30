@@ -26,6 +26,7 @@ import {
   type MessageEdit,
 } from './messageEdits';
 import styles from './MessageTab.module.css';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 type Editor =
   | {readonly kind: 'add'}
@@ -199,9 +200,13 @@ export function MessageEditing({
             {
               kind: 'item',
               id: 'edit',
-              label: '수정',
+              label: '수정…',
               onSelect: () => setEditor({kind: 'edit', item: menu.item}),
             },
+            menuSeparator('copy-separator'),
+            laterRow('duplicate', '복제'),
+            laterRow('rename', '이름 바꾸기'),
+            menuSeparator('delete-separator'),
             {
               kind: 'item',
               id: 'delete',

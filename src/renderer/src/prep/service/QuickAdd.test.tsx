@@ -162,7 +162,7 @@ async function openBibleForm(
   user: ReturnType<typeof userEvent.setup>,
 ): Promise<void> {
   await user.click(screen.getByRole('button', {name: '항목 추가'}));
-  await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+  await user.click(await screen.findByRole('menuitem', {name: '성경 구절…'}));
   await waitFor(() =>
     expect(
       screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).disabled,
@@ -229,7 +229,7 @@ describe('항목 추가', () => {
         );
       } else {
         await user.click(
-          await screen.findByRole('menuitem', {name: '성경 구절'}),
+          await screen.findByRole('menuitem', {name: '성경 구절…'}),
         );
         await waitFor(() =>
           expect(
@@ -416,7 +416,7 @@ describe('항목 추가', () => {
     );
     const length = service().service.order.length;
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절…'}));
     const field = await screen.findByRole<HTMLInputElement>('combobox', {
       name: '책',
     });

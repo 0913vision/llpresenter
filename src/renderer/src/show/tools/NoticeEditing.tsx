@@ -3,6 +3,7 @@ import type {NoticeSet} from '@shared/schema/notices';
 import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {NoticeEdit} from './noticeEdits';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 interface Editor {
   kind: 'rename' | 'delete';
@@ -126,12 +127,14 @@ export function NoticeEditing({
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
+            laterRow('duplicate', '복제'),
             {
               kind: 'item',
               id: 'rename',
               label: '이름 바꾸기',
               onSelect: () => setEditor({kind: 'rename', item: menu.item}),
             },
+            menuSeparator('delete-separator'),
             {
               kind: 'item',
               id: 'delete',

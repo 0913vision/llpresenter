@@ -3,6 +3,7 @@ import type {MediaItem} from '@shared/schema/mediaList';
 import type {ServiceItem} from '@shared/schema/service';
 import {backgroundMedia, mediaName} from '@renderer/show/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 const SECTION_NAME = '새 구역';
 
@@ -46,22 +47,15 @@ export function otherItemEntries({
       kind: 'item',
       id: 'other:header',
       label: '구역 추가',
-      icon: 'rows',
       onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
     },
-    {
-      kind: 'item',
-      id: 'other:bible',
-      label: '성경 구절',
-      icon: 'book',
-      keepsOpen: true,
-      onSelect: onBible,
-    },
+    laterRow('other:placeholder', '자리 표시 추가'),
+    laterRow('other:cue', '큐 추가'),
+    menuSeparator('other:items'),
     {
       kind: 'item',
       id: 'other:media',
       label: '미디어',
-      icon: 'film',
       submenu: submenu(
         'media',
         backgroundMedia(media).map((item): MenuEntry => ({
@@ -75,9 +69,15 @@ export function otherItemEntries({
     },
     {
       kind: 'item',
+      id: 'other:bible',
+      label: '성경 구절…',
+      keepsOpen: true,
+      onSelect: onBible,
+    },
+    {
+      kind: 'item',
       id: 'other:notice',
       label: '공지',
-      icon: 'notice',
       submenu: submenu(
         'notice',
         notices.map((set): MenuEntry => ({
@@ -89,5 +89,7 @@ export function otherItemEntries({
         '공지 없음',
       ),
     },
+    laterRow('other:video-stream', '비디오 스트림 항목…'),
+    laterRow('other:audio-stream', '오디오 스트림 항목…'),
   ];
 }

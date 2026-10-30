@@ -1,4 +1,4 @@
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -73,8 +73,20 @@ afterEach(() => {
   delete window.llp;
 });
 
-async function openMenu(): Promise<void> {
+async function openLooks(): Promise<void> {
+  fireEvent.pointerEnter(
+    await screen.findByRole('menuitem', {name: /^Look(: .*)?$/}),
+  );
+  await screen.findByRole('menu', {name: /^Look(: .*)?$/});
+}
+
+async function openOutput(): Promise<void> {
   await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
+}
+
+async function openMenu(): Promise<void> {
+  await openOutput();
+  await openLooks();
 }
 
 describe('Looks in the 출력 menu', () => {
@@ -84,6 +96,7 @@ describe('Looks in the 출력 menu', () => {
     const output = screen.getByRole('menuitem', {name: '출력'});
     await userEvent.click(file);
     await userEvent.hover(output);
+    await openLooks();
     await screen.findByRole('menuitemradio', {name: '평상시'});
     await userEvent.hover(file);
     vi.spyOn(api.settings, 'get').mockImplementationOnce(
@@ -112,7 +125,24 @@ describe('Looks in the 출력 menu', () => {
       [...menu.querySelectorAll('[role^="menuitem"]')].map(
         item => item.textContent,
       ),
-    ).toEqual(['본 화면', '무대 화면', '방송 자막', '평상시', '설교']);
+    ).toEqual([
+      '본 화면',
+      '방송 자막',
+      'Look: 평상시',
+      'Look 편집…',
+      '무대 화면',
+      '무대 배치 편집…',
+      '화면 설정…Ctrl Alt 1',
+      '녹화 시작',
+      '녹화 설정…',
+    ]);
+    expect(
+      [
+        ...screen
+          .getByRole('menu', {name: /^Look(: .*)?$/})
+          .querySelectorAll('[role^="menuitem"]'),
+      ].map(item => item.textContent),
+    ).toEqual(['평상시', '설교']);
     expect(
       screen
         .getByRole('menuitemcheckbox', {name: '본 화면'})
@@ -231,7 +261,7 @@ describe('Looks in the 출력 menu', () => {
           finish = resolve;
         }),
     );
-    await openMenu();
+    await openOutput();
     const next = looksDocument(2);
     act(() =>
       push({
@@ -242,10 +272,11 @@ describe('Looks in the 출력 menu', () => {
         },
       }),
     );
+    await openLooks();
     await screen.findByRole('menuitemradio', {name: '설교'});
     await act(async () => finish(looksDocument()));
     expect(screen.queryByRole('menuitemradio', {name: '평상시'})).toBeNull();
-    await userEvent.keyboard('{Escape}');
+    await userEvent.keyboard('{Escape}{Escape}');
     expect(stop).toHaveBeenCalledOnce();
     expect(document.activeElement).toBe(
       screen.getByRole('menuitem', {name: '출력'}),
@@ -257,7 +288,7 @@ describe('Looks in the 출력 menu', () => {
     vi.spyOn(api.settings, 'get').mockRejectedValueOnce(
       new Error('Invented read failure'),
     );
-    await openMenu();
+    await openOutput();
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
         expect.objectContaining({title: 'Look 불러오기 실패'}),

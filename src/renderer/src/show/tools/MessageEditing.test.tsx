@@ -117,7 +117,7 @@ it('adds a validated template, selects it, and leaves sends and presets alone', 
 it('edits only name and sentence, preserving defaults and unknown fields', async () => {
   const fixture = setup();
   render(<MessageTab />);
-  await openRow('수정');
+  await openRow('수정…');
   fill('이름', ' 바뀐 안내 ');
   fill('문장', '{차량} 이동해 주세요');
   fireEvent.click(button('저장'));
@@ -188,7 +188,7 @@ it('keeps a refused edit open and reports its failure', async () => {
     error: {reason: 'saves-full', message: 'Invented refusal'},
   });
   render(<MessageTab onProblem={fixture.problem} />);
-  await openRow('수정');
+  await openRow('수정…');
   fill('이름', '새 이름');
   fireEvent.click(button('저장'));
   await waitFor(() => expect(fixture.problem).toHaveBeenCalledOnce());
@@ -202,7 +202,7 @@ it('finishes an in-flight write after unmount without reporting to the old tab',
   const reply = deferred<EditResult>();
   fixture.edit.mockReturnValueOnce(reply.promise);
   const view = render(<MessageTab onProblem={fixture.problem} />);
-  await openRow('수정');
+  await openRow('수정…');
   fill('이름', '새 이름');
   fireEvent.click(button('저장'));
   await waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());

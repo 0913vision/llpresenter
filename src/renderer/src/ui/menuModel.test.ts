@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
-  hasLeadSlot,
+  hasIconColumn,
   menuBlocks,
   menuItemRole,
   menuItems,
@@ -32,11 +32,15 @@ describe('menuItems', () => {
   });
 });
 
-describe('hasLeadSlot', () => {
-  it('is needed when any item has an icon or a check mark', () => {
-    expect(hasLeadSlot([item('a'), item('b')])).toBe(false);
-    expect(hasLeadSlot([item('a'), item('b', {icon: 'filetext'})])).toBe(true);
-    expect(hasLeadSlot([item('a', {check: 'radio'})])).toBe(true);
+describe('hasIconColumn', () => {
+  it('is needed when any item has an icon, never for a check mark', () => {
+    expect(hasIconColumn([item('a'), item('b')])).toBe(false);
+    expect(hasIconColumn([item('a'), item('b', {icon: 'filetext'})])).toBe(
+      true,
+    );
+    expect(hasIconColumn([item('a', {check: 'radio', checked: true})])).toBe(
+      false,
+    );
   });
 });
 

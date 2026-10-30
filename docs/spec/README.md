@@ -69,6 +69,7 @@ Current boards:
 | [08-problems.md](08-problems.md)                             | Problem states, the output state recovery dialog, notifications, and what must never happen during a service.                        |
 | [09-later.md](09-later.md)                                   | Deferred features, the hooks version 1 must leave open, and dropped ideas.                                                           |
 | [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md) | The shortcut system (decided 2026-10-25) and the 환경설정 proposal (open), with ProPresenter research.                               |
+| [11-menus.md](11-menus.md)                                   | Every menu and popover: rows, groups, order, and status, following ProPresenter (decided 2026-10-30).                                |
 
 ## Conventions
 

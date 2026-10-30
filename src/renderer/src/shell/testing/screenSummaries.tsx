@@ -25,6 +25,7 @@ const screens: readonly ScreenSummary[] = [
     target: '창',
     targetKind: 'window',
     chroma: false,
+    kind: 'stage',
   },
   {
     id: 'broadcast',

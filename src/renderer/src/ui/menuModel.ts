@@ -11,11 +11,11 @@ export interface MenuItem {
   readonly label: string;
   /** The part of the label a search matched, drawn strong. */
   readonly match?: SearchRange | undefined;
-  /** A 14px icon in the leading slot. */
+  /** An 18px icon before the name. */
   readonly icon?: string | undefined;
   /** A date or a shortcut at the right end, such as `Ctrl Z`. */
   readonly meta?: string | undefined;
-  /** Makes it a choice; `checked` puts the check mark in the leading slot. */
+  /** Makes it a choice; `checked` puts a check mark in the left padding. */
   readonly check?: MenuCheckKind | undefined;
   readonly checked?: boolean | undefined;
   /** An 이름표 color swatch before the name. */
@@ -50,13 +50,12 @@ export function menuItems(entries: readonly MenuEntry[]): readonly MenuItem[] {
 }
 
 /**
- * Whether every item needs an empty leading slot, because at least one item
- * has an icon or can carry a check mark.
+ * Whether the items between two dividers line up behind an icon column,
+ * because at least one of them has an icon. Check marks sit in the left
+ * padding and never need a column.
  */
-export function hasLeadSlot(items: readonly MenuItem[]): boolean {
-  return items.some(
-    item => item.icon !== undefined || item.check !== undefined,
-  );
+export function hasIconColumn(items: readonly MenuItem[]): boolean {
+  return items.some(item => item.icon !== undefined);
 }
 
 /** A move of the pointed item within a menu. */

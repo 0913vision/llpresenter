@@ -157,11 +157,10 @@ describe('App menu bar title', () => {
       screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
     ).toBe('true');
     await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
-    expect(
-      screen.getByRole('menuitem', {name: /준비Ctrl E \/ Ctrl R/}),
-    ).toBeDefined();
+    expect(screen.getByRole('menuitem', {name: /준비Ctrl R/})).toBeDefined();
+    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
     await userEvent.click(
-      screen.getByRole('menuitem', {name: /화면 설정Ctrl Alt 1/}),
+      screen.getByRole('menuitem', {name: /화면 설정…Ctrl Alt 1/}),
     );
     expect(
       screen

@@ -10,6 +10,11 @@ import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useAudioMedia} from './useAudioMedia';
 import {useToolEditing} from './useToolEditing';
 import styles from './PropGrid.module.css';
+import {
+  laterClipboardRows,
+  laterRow,
+  menuSeparator,
+} from '@renderer/ui/menuRows';
 
 type Editor = {kind: 'add'} | {kind: 'edit' | 'delete'; prop: Prop};
 
@@ -68,16 +73,27 @@ export function PropTab({
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
+            laterRow('add-to', '모음에 추가', {submenu: true}),
+            laterRow('move-to', '모음으로 옮기기', {submenu: true}),
+            menuSeparator('edit-separator'),
             {
               kind: 'item',
               id: 'edit',
-              label: '수정',
+              label: '수정…',
               onSelect: () => setEditor({kind: 'edit', prop: menu.prop}),
             },
+            laterRow('transitions', '전환 효과…'),
+            laterRow('auto-clear', '자동 지우기', {submenu: true}),
+            menuSeparator('clipboard-separator'),
+            ...laterClipboardRows(),
+            laterRow('duplicate', '복제', {icon: 'duplicate'}),
+            laterRow('rename', '이름 바꾸기'),
+            menuSeparator('delete-separator'),
             {
               kind: 'item',
               id: 'delete',
               label: '삭제',
+              icon: 'trash',
               danger: true,
               onSelect: () => setEditor({kind: 'delete', prop: menu.prop}),
             },

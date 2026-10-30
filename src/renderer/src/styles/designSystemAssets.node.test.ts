@@ -48,6 +48,7 @@ const TYPE_SCALE = [
   ['caption-strong', '16px', '22px', 600],
   ['toolbar-label', '14px', '20px', 400],
   ['micro', '14px', '20px', 400],
+  ['menu-text', '16px', '22px', 460],
   ['thumb-lyrics', '4.4cqw', '1.45', 700],
 ] as const;
 

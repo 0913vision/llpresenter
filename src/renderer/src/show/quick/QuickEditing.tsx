@@ -161,7 +161,7 @@ function QuickAddMenu({
             entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
           ) ?? [],
         ),
-        {kind: 'item', id: 'timer', label: '타이머', onSelect: onAddTimer},
+        {kind: 'item', id: 'timer', label: '타이머…', onSelect: onAddTimer},
         group(
           'macros',
           '매크로',

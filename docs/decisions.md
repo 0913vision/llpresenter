@@ -605,3 +605,24 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   offscreen run reports the GPU process without judging it (user decision: "이런
   거 실패로 안잡히게 고치자"). A real leak survives the collection and still
   fails the test.
+
+## 2026-10-30: Menus follow ProPresenter, row for row
+
+- Every menu and popover is rebuilt from ProPresenter's own menus, checked in
+  Renewed Vision's support articles and tutorial videos (user decision, after
+  comparing our 매크로 menu with ProPresenter's: "이게 더 낫잖아 깔끔하고").
+  [spec/11-menus.md](spec/11-menus.md) sets the rows; the `Menu` README sets the
+  look, measured from ProPresenter.
+- A menu has one purpose: it acts on the one thing that was clicked, or adds one
+  kind of thing. No palettes, search fields, or setting rows inside a menu. The
+  매크로 color row becomes 색 바꾸기, which opens a color popover.
+- A ProPresenter row that we don't have yet stays in the menu as a disabled row
+  with the tooltip "아직 없는 기능", so the menu keeps its final shape and the
+  feature has a place later (user decision: "없는 기능도 일단 disable한 채로
+  놔둬야 나중에 기능 개발을 하지").
+- A check mark sits in the left padding, so no row keeps an empty leading slot
+  and text never moves. This replaces the leading slot that the design system
+  added on 2026-10-24.
+- Where no ProPresenter screen was found, the menu uses the shape ProPresenter
+  gives other named things in a list: its own command | 복제, 이름 바꾸기 |
+  삭제.

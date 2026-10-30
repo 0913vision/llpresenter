@@ -9,6 +9,8 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
+import {serviceOrderMenuEntries} from './serviceOrderMenu';
+import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from './useMediaDurations';
 import type {ItemKind, RowProblem, ServiceRow} from './model';
@@ -217,6 +219,33 @@ export function ServiceOrderList({
     list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
   }, [openItemId]);
 
+  const menuEntries = (
+    target: NonNullable<typeof menu>,
+  ): readonly MenuEntry[] => {
+    const row = rows.find(value => value.id === target.id);
+    if (row === undefined) return [];
+    return serviceOrderMenuEntries({
+      row,
+      editable,
+      openInPrep:
+        workspace === 'show' && onOpenPrep !== undefined
+          ? () => {
+              onOpenPrep(target.id);
+              setMenu(null);
+            }
+          : undefined,
+      rename: () => {
+        setPendingRename({id: target.id, serviceId: target.serviceId});
+        setMenu(null);
+      },
+      remove: () => {
+        editing.run((edits, id) =>
+          edits.remove(id, createServiceItemId(target.id)),
+        );
+        setMenu(null);
+      },
+    });
+  };
   return (
     <div
       ref={listRef}
@@ -351,52 +380,7 @@ export function ServiceOrderList({
           label="예배 순서 항목 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            ...(workspace === 'show' && onOpenPrep !== undefined
-              ? [
-                  {
-                    kind: 'item' as const,
-                    id: 'prep',
-                    label: '준비에서 열기',
-                    onSelect: () => {
-                      onOpenPrep(menu.id);
-                      setMenu(null);
-                    },
-                  },
-                ]
-              : []),
-            ...(rows.some(row => row.id === menu.id && row.kind === 'header')
-              ? [
-                  {
-                    kind: 'item' as const,
-                    id: 'rename',
-                    label: '이름 바꾸기',
-                    disabled: !editable,
-                    onSelect: () => {
-                      setPendingRename({
-                        id: menu.id,
-                        serviceId: menu.serviceId,
-                      });
-                      setMenu(null);
-                    },
-                  },
-                ]
-              : []),
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              icon: 'trash',
-              danger: true,
-              disabled: !editable,
-              onSelect: () => {
-                editing.run((edits, id) =>
-                  edits.remove(id, createServiceItemId(menu.id)),
-                );
-                setMenu(null);
-              },
-            },
-          ]}
+          entries={menuEntries(menu)}
         />
       ) : null}
     </div>

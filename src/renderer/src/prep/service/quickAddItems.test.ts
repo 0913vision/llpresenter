@@ -37,15 +37,22 @@ function build(onInsert: (item: ServiceItem) => void) {
 }
 
 describe('quick add other items', () => {
-  it('lists the section command alongside the other item types', () => {
+  it('lists the rows of the ProPresenter playlist + menu in its order', () => {
     const entries = build(() => undefined);
     expect(entries[0]).toMatchObject({kind: 'group', label: '다른 항목'});
-    expect(items(entries).map(item => item.label)).toEqual([
-      '구역 추가',
-      '성경 구절',
-      '미디어',
-      '공지',
+    expect(
+      items(entries).map(item => [item.label, item.disabled === true]),
+    ).toEqual([
+      ['구역 추가', false],
+      ['자리 표시 추가', true],
+      ['큐 추가', true],
+      ['미디어', false],
+      ['성경 구절…', false],
+      ['공지', false],
+      ['비디오 스트림 항목…', true],
+      ['오디오 스트림 항목…', true],
     ]);
+    expect(items(entries).every(item => item.icon === undefined)).toBe(true);
   });
 
   it('inserts a new section with a unique id and the unchanged header field', () => {

@@ -80,6 +80,9 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | copy.svg | copy | Copy, clipboard |
 | calplus.svg | calendar-plus | New service |
 | trash.svg | trash | Delete |
+| scissors.svg | scissors | 잘라내기 (cut) in menus |
+| paste.svg | clipboard | 붙여넣기 (paste) in menus |
+| duplicate.svg | plus-square | 복제 (duplicate) in menus |
 | checkc.svg | check-circle | Done |
 | info.svg | info | Information |
 | textaa.svg | text-aa | Text style |

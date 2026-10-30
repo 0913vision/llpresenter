@@ -192,20 +192,27 @@ it('duplicates the selected macro from its context menu', async () => {
   );
 });
 
-async function openActionSubmenu(name: string) {
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+async function openMenu() {
+  const tile = await screen.findByRole('option', {name: '찬양'});
   fireEvent.contextMenu(tile);
+}
+
+async function openSubmenu(name: string) {
   fireEvent.pointerEnter(screen.getByRole('menuitem', {name}));
   await screen.findByRole('menu', {name});
+}
+
+async function openActionSubmenu(name: string) {
+  await openMenu();
+  await openSubmenu(name);
 }
 
 it('adds an action from the menu after configuring it', async () => {
   const f = fixture();
   render(<MacroPanel />);
-  await openActionSubmenu('\ub3d9\uc791 \ucd94\uac00');
-  fireEvent.click(
-    screen.getByRole('menuitem', {name: '\ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
-  );
+  await openActionSubmenu('동작 추가');
+  await openSubmenu('지우기');
+  fireEvent.click(screen.getByRole('menuitem', {name: '모두 지우기…'}));
   await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
   await waitFor(() =>
     expect(
@@ -225,9 +232,9 @@ it('edits and removes actions with their original transition and expected list',
   const action = {kind: 'clearAll', transition: {fade: true, durationMs: 1200}};
   const f = fixture([action]);
   const view = render(<MacroPanel />);
-  await openActionSubmenu('\ub3d9\uc791 \ud3b8\uc9d1');
+  await openMenu();
   fireEvent.click(
-    screen.getByRole('menuitem', {name: '1. \ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
+    screen.getByRole('menuitem', {name: '동작 편집: 모두 지우기…'}),
   );
   await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
   await waitFor(() =>
@@ -245,9 +252,9 @@ it('edits and removes actions with their original transition and expected list',
   view.unmount();
   const next = fixture([action]);
   render(<MacroPanel />);
-  await openActionSubmenu('\ub3d9\uc791 \ube7c\uae30');
+  await openMenu();
   fireEvent.click(
-    screen.getByRole('menuitem', {name: '1. \ubaa8\ub450 \uc9c0\uc6b0\uae30'}),
+    screen.getByRole('menuitem', {name: '동작 빼기: 모두 지우기'}),
   );
   await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
   const removal = next.edit.mock.calls[0]?.[0];
@@ -255,17 +262,18 @@ it('edits and removes actions with their original transition and expected list',
   expect(removal.value.macros[0]?.actions).toEqual([]);
 });
 
-it('toggles membership using the current collection state', async () => {
+it('adds to a collection only when the macro is not in it yet', async () => {
   const f = fixture();
   render(<MacroPanel />);
-  await openActionSubmenu('\ubaa8\uc74c');
-  const checked = screen.getByRole('menuitemcheckbox', {name: '\uc8fc\uc77c'});
-  expect(checked.getAttribute('aria-checked')).toBe('true');
-  fireEvent.click(checked);
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  expect(edit.value.collections[0]?.macroIds).toEqual([]);
+  await openActionSubmenu('모음에 추가');
+  const member = screen.getByRole('menuitemcheckbox', {name: '주일'});
+  expect(member.getAttribute('aria-checked')).toBe('true');
+  expect(member.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.click(member);
+  expect(f.edit).not.toHaveBeenCalled();
+  fireEvent.keyDown(screen.getByRole('menu', {name: '모음에 추가'}), {
+    key: 'Escape',
+  });
   act(() =>
     f.push(
       settingsDocument(
@@ -275,23 +283,59 @@ it('toggles membership using the current collection state', async () => {
       ),
     ),
   );
-  await openActionSubmenu('\ubaa8\uc74c');
-  const unchecked = screen.getByRole('menuitemcheckbox', {
-    name: '\uc8fc\uc77c',
-  });
-  expect(unchecked.getAttribute('aria-checked')).toBe('false');
-  fireEvent.click(unchecked);
-  await waitFor(() => expect(f.edit).toHaveBeenCalledTimes(2));
-  const addition = f.edit.mock.calls[1]?.[0];
+  await openSubmenu('모음에 추가');
+  const outside = screen.getByRole('menuitemcheckbox', {name: '주일'});
+  expect(outside.getAttribute('aria-checked')).toBe('false');
+  fireEvent.click(outside);
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const addition = f.edit.mock.calls[0]?.[0];
   if (addition?.name !== 'macros') throw new Error('Missing macro edit');
   expect(addition.value.collections[0]?.macroIds).toEqual([id]);
+});
+
+it('moves a macro out of the shown collection into another', async () => {
+  const otherId = '00000000-0000-4000-8000-000000000007';
+  const f = fixture();
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {
+          macros: [macro],
+          collections: [group, {id: otherId, name: '수요', macroIds: []}],
+        },
+        2,
+      ),
+    ),
+  );
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '찬양'});
+  fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
+  fireEvent.click(screen.getByRole('menuitemradio', {name: '주일'}));
+  await openActionSubmenu('모음으로 옮기기');
+  fireEvent.click(screen.getByRole('menuitemcheckbox', {name: '수요'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const last = f.edit.mock.calls[0]?.[0];
+  if (last?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(last.value.collections.map(item => item.macroIds)).toEqual([[], [id]]);
+});
+
+it('cannot move a macro while the tab shows every macro', async () => {
+  fixture();
+  render(<MacroPanel />);
+  await openMenu();
+  expect(
+    screen
+      .getByRole('menuitem', {name: '모음으로 옮기기'})
+      .getAttribute('aria-disabled'),
+  ).toBe('true');
 });
 
 it('creates a new collection containing the selected macro', async () => {
   const f = fixture();
   render(<MacroPanel />);
-  await openActionSubmenu('\ubaa8\uc74c');
-  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0c8 \ubaa8\uc74c'}));
+  await openActionSubmenu('모음에 추가');
+  fireEvent.click(screen.getByRole('menuitem', {name: '새 모음'}));
   const dialog = screen.getByRole('dialog', {name: '\uc0c8 \ubaa8\uc74c'});
   expect(dialog).toBeDefined();
   fireEvent.change(screen.getByRole('textbox', {name: '\uc774\ub984'}), {
@@ -324,47 +368,18 @@ it('saves an icon chosen from the macro menu', async () => {
   expect(edit.value.macros[0]?.icon).toBe('sun');
 });
 
-it('selects a color with the keyboard and leaves the menu open', async () => {
+it('changes the color from the 색 바꾸기 submenu', async () => {
   const f = fixture();
   render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  fireEvent.contextMenu(tile);
-  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0c9'}));
-  const teal = screen.getByRole('radio', {name: '\uccad\ub85d'});
-  expect(document.activeElement).toBe(teal);
-  fireEvent.keyDown(teal, {key: 'ArrowRight'});
+  await openActionSubmenu('색 바꾸기');
+  const teal = screen.getByRole('menuitemradio', {name: '청록'});
+  expect(teal.getAttribute('aria-checked')).toBe('true');
+  fireEvent.click(screen.getByRole('menuitemradio', {name: '초록'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing macro edit');
   expect(edit.value.macros[0]?.color).toBe('green');
-  expect(screen.getByRole('menu', {name: '\ub9e4\ud06c\ub85c'})).toBeDefined();
 });
-
-it.each([
-  ['ArrowUp', '\uc544\uc774\ucf58 \ubc14\uafb8\uae30'],
-  ['ArrowDown', '\ub3d9\uc791 \ucd94\uac00'],
-])(
-  'returns from the color row to menu navigation with %s',
-  async (key, expected) => {
-    Element.prototype.scrollIntoView = vi.fn();
-    fixture();
-    render(<MacroPanel />);
-    const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
-    fireEvent.contextMenu(tile);
-    const color = screen.getByRole('menuitem', {name: '\uc0c9'});
-    fireEvent.pointerEnter(color);
-    fireEvent.click(color);
-    const teal = screen.getByRole('radio', {name: '\uccad\ub85d'});
-    expect(document.activeElement).toBe(teal);
-    fireEvent.keyDown(teal, {key});
-    const menu = screen.getByRole('menu', {name: '\ub9e4\ud06c\ub85c'});
-    expect(document.activeElement).toBe(menu);
-    const pointed = document.getElementById(
-      menu.getAttribute('aria-activedescendant') ?? '',
-    );
-    expect(pointed?.textContent).toBe(expected);
-  },
-);
 
 it('opens the palette and drops an action on the target macro without running it', async () => {
   const f = fixture();
@@ -532,10 +547,62 @@ it('does not reset a newer selection after a cancelled pending deletion', async 
   ).toContain('Other');
 });
 
-it('divides the macro menu into the specified command groups', async () => {
-  fixture();
+it('lists the rows of the ProPresenter macro menu in its order', async () => {
+  fixture([{kind: 'clearAll'}]);
   render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  fireEvent.contextMenu(tile);
-  expect(screen.getAllByRole('separator')).toHaveLength(4);
+  await openMenu();
+  const menu = screen.getByRole('menu', {name: '매크로'});
+  const rows = [
+    ...menu.querySelectorAll('[role^="menuitem"], [role="separator"]'),
+  ].map(row =>
+    row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+  );
+  expect(rows).toEqual([
+    '모음에 추가',
+    '모음으로 옮기기',
+    '|',
+    '이름 바꾸기',
+    '색 바꾸기',
+    '아이콘 바꾸기',
+    '시작할 때 실행',
+    '|',
+    '동작 추가',
+    '미디어 동작 추가…',
+    '|',
+    '동작 편집: 모두 지우기…',
+    '동작 빼기: 모두 지우기',
+    '|',
+    '속성…',
+    '|',
+    '잘라내기',
+    '복사',
+    '붙여넣기',
+    '복제',
+    '|',
+    '삭제',
+  ]);
+  expect(screen.queryByRole('menuitem', {name: '실행'})).toBeNull();
+  for (const name of [
+    '미디어 동작 추가…',
+    '속성…',
+    '잘라내기',
+    '복사',
+    '붙여넣기',
+  ]) {
+    const row = screen.getByRole('menuitem', {name});
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+  }
+});
+
+it('turns the remove row into a submenu with two or more actions', async () => {
+  fixture([{kind: 'clearAll'}, {kind: 'clearAll'}]);
+  render(<MacroPanel />);
+  await openMenu();
+  expect(screen.queryByRole('menuitem', {name: /^동작 빼기:/})).toBeNull();
+  await openSubmenu('동작 빼기');
+  expect(
+    screen
+      .getByRole('menuitem', {name: '모두 빼기'})
+      .getAttribute('aria-disabled'),
+  ).toBe('true');
 });

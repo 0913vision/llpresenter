@@ -41,6 +41,12 @@ export type MacroEdit =
       readonly id: Macro['id'];
       readonly collection: MacroCollection['id'];
       readonly member: boolean;
+    }
+  | {
+      readonly kind: 'move';
+      readonly id: Macro['id'];
+      readonly from: MacroCollection['id'];
+      readonly to: MacroCollection['id'];
     };
 
 function duplicate(
@@ -87,8 +93,29 @@ function duplicate(
   return next;
 }
 
+/** Moves a 매크로 between collections in one write. */
+function move(
+  file: MacrosFile,
+  edit: Extract<MacroEdit, {kind: 'move'}>,
+): MacrosFile {
+  const {id, from, to} = edit;
+  const added = apply(file, {
+    kind: 'membership',
+    id,
+    collection: to,
+    member: true,
+  });
+  return apply(added, {
+    kind: 'membership',
+    id,
+    collection: from,
+    member: false,
+  });
+}
+
 function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
   if (edit.kind === 'duplicate') return duplicate(file, edit.id, edit.copyId);
+  if (edit.kind === 'move') return move(file, edit);
   if (edit.kind === 'delete') {
     return {
       ...file,

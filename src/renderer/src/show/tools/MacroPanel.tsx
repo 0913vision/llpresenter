@@ -9,13 +9,7 @@ import {
 } from '@shared/schema/macros';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {sendLive} from '@renderer/state/live';
-import {
-  AlertDialog,
-  Dialog,
-  MacroColorPicker,
-  Menu,
-  TextField,
-} from '@renderer/ui';
+import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroView, type MacroViewMode} from './MacroView';
@@ -25,10 +19,11 @@ import {useToolEditing} from './useToolEditing';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import {MacroActionDialog} from './MacroActionDialog';
 import {draftMacroAction} from './macroActionDraft';
-import {MACRO_PALETTE} from './macroPaletteCatalog';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
 import {MacroPalette} from './MacroPalette';
+import {MacroMenu} from './MacroMenu';
+import type {MacroMenuHandlers} from './macroMenuEntries';
 import styles from './MacroPanel.module.css';
 
 type Editor =
@@ -184,14 +179,6 @@ function ActionDialog({
   );
 }
 
-function actionLabel(kind: string): string {
-  return (
-    MACRO_PALETTE.flatMap(group => group.actions).find(
-      action => action.kind === kind,
-    )?.label ?? kind
-  );
-}
-
 export function MacroPanel({
   lastRunId,
   onProblem,
@@ -214,7 +201,6 @@ export function MacroPanel({
   const [paletteDragging, setPaletteDragging] = useState(false);
   const revision = useRef(0);
   const pendingCount = useRef<AbortController | null>(null);
-  const colorRow = useRef<HTMLDivElement>(null);
   useEffect(() => () => pendingCount.current?.abort(), []);
   const {busy, run} = useToolEditing({
     api: window.llp,
@@ -341,6 +327,57 @@ export function MacroPanel({
       },
     );
   };
+  const membership = (
+    change: {
+      readonly item: Macro;
+      readonly collection: MacroCollection['id'];
+      readonly member: boolean;
+    },
+    after?: () => void,
+  ): void => {
+    const {item, collection, member} = change;
+    commit({kind: 'membership', id: item.id, collection, member}, after);
+  };
+  const menuHandlers = (item: Macro): MacroMenuHandlers => ({
+    rename: () => setEditor({kind: 'rename', item}),
+    changeIcon: () => setEditor({kind: 'icon', item}),
+    changeColor: color =>
+      commit({kind: 'update', id: item.id, changes: {color}}),
+    toggleStartup: () =>
+      commit({
+        kind: 'update',
+        id: item.id,
+        changes: {runOnStartup: item.runOnStartup !== true},
+      }),
+    addTo: collection => membership({item, collection, member: true}),
+    moveTo: collection => {
+      const from = currentCollection;
+      if (from === undefined) return;
+      commit({kind: 'move', id: item.id, from, to: collection});
+    },
+    newCollection: () => setEditor({kind: 'new-collection', item}),
+    addAction: actionKind => setEditor({kind: 'action', item, actionKind}),
+    openPalette: () => setPaletteFor(item.id),
+    editAction: index => {
+      const action = item.actions[index];
+      if (action !== undefined && isKnownMacroAction(action)) {
+        setEditor({kind: 'action', item, actionKind: action.kind, index});
+      }
+    },
+    removeAction: index =>
+      commit({
+        kind: 'action',
+        id: item.id,
+        action: {kind: 'remove', index, expected: item.actions},
+      }),
+    duplicate: () => {
+      const copyId = parseMacroId(crypto.randomUUID());
+      if (copyId.ok) {
+        commit({kind: 'duplicate', id: item.id, copyId: copyId.value});
+      }
+    },
+    remove: () => askDelete(item),
+  });
   return (
     <>
       <div className={styles.panel}>
@@ -430,234 +467,20 @@ export function MacroPanel({
         ) : null}
       </div>
       {menu ? (
-        <Menu
-          label="매크로"
+        <MacroMenu
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          footer={
-            <div
-              ref={colorRow}
-              onPointerEnter={event => event.stopPropagation()}
-              onKeyDown={event => {
-                if (
-                  (event.key === 'ArrowUp' || event.key === 'ArrowDown') &&
-                  !event.altKey &&
-                  !event.ctrlKey &&
-                  !event.metaKey &&
-                  !event.shiftKey
-                ) {
-                  event.currentTarget
-                    .closest<HTMLElement>('[role="menu"]')
-                    ?.focus();
-                } else if (
-                  [
-                    'ArrowLeft',
-                    'ArrowRight',
-                    'Home',
-                    'End',
-                    'Enter',
-                    ' ',
-                  ].includes(event.key)
-                ) {
-                  event.stopPropagation();
-                }
-              }}
-            >
-              <MacroColorPicker
-                label={'\uc0c9'}
-                name={'\uc0c9'}
-                inMenu
-                disabled={locked}
-                value={
-                  document?.value.macros.find(item => item.id === menu.item.id)
-                    ?.color ?? menu.item.color
-                }
-                onChange={color =>
-                  commit({kind: 'update', id: menu.item.id, changes: {color}})
-                }
-              />
-            </div>
-          }
-          entries={[
-            {
-              kind: 'item',
-              id: 'run',
-              label: '실행',
-              onSelect: () => start(menu.item),
-            },
-            {kind: 'separator', id: 'separator-run'},
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              disabled: locked,
-              onSelect: () => setEditor({kind: 'rename', item: menu.item}),
-            },
-            {
-              kind: 'item',
-              id: 'icon',
-              label: '\uc544\uc774\ucf58 \ubc14\uafb8\uae30',
-              disabled: locked,
-              onSelect: () => setEditor({kind: 'icon', item: menu.item}),
-            },
-            {
-              kind: 'item',
-              id: 'color',
-              label: '\uc0c9',
-              disabled: locked,
-              keepsOpen: true,
-              onSelect: () =>
-                colorRow.current
-                  ?.querySelector<HTMLElement>('[role=radio][tabindex="0"]')
-                  ?.focus(),
-            },
-            {kind: 'separator', id: 'separator-appearance'},
-            {
-              kind: 'item',
-              id: 'add-action',
-              label: '\ub3d9\uc791 \ucd94\uac00',
-              disabled: locked,
-              submenu: [
-                ...MACRO_PALETTE.flatMap(group => group.actions).map(
-                  action => ({
-                    kind: 'item' as const,
-                    id: action.kind,
-                    label: action.label,
-                    disabled:
-                      menu.item.actions.length >= MACRO_FILE_LIMITS.actions,
-                    onSelect: () =>
-                      setEditor({
-                        kind: 'action',
-                        item: menu.item,
-                        actionKind: action.kind,
-                      }),
-                  }),
-                ),
-                {
-                  kind: 'item' as const,
-                  id: 'palette',
-                  label: '\ub3d9\uc791 \ud314\ub808\ud2b8',
-                  onSelect: () => setPaletteFor(menu.item.id),
-                },
-              ],
-            },
-            {
-              kind: 'item',
-              id: 'edit-action',
-              label: '\ub3d9\uc791 \ud3b8\uc9d1',
-              disabled: locked || menu.item.actions.length === 0,
-              submenu: menu.item.actions.map((action, index) => ({
-                kind: 'item' as const,
-                id: String(index),
-                label: `${index + 1}. ${actionLabel(action.kind)}`,
-                disabled: !isKnownMacroAction(action),
-                onSelect: () => {
-                  if (isKnownMacroAction(action)) {
-                    setEditor({
-                      kind: 'action',
-                      item: menu.item,
-                      actionKind: action.kind,
-                      index,
-                    });
-                  }
-                },
-              })),
-            },
-            {
-              kind: 'item',
-              id: 'remove-action',
-              label: '\ub3d9\uc791 \ube7c\uae30',
-              disabled: locked || menu.item.actions.length === 0,
-              submenu: menu.item.actions.map((action, index) => ({
-                kind: 'item' as const,
-                id: String(index),
-                label: `${index + 1}. ${actionLabel(action.kind)}`,
-                onSelect: () =>
-                  commit({
-                    kind: 'action',
-                    id: menu.item.id,
-                    action: {
-                      kind: 'remove',
-                      index,
-                      expected: menu.item.actions,
-                    },
-                  }),
-              })),
-            },
-            {kind: 'separator', id: 'separator-actions'},
-            {
-              kind: 'item',
-              id: 'duplicate',
-              label: '\ubcf5\uc81c',
-              disabled:
-                locked ||
-                document.value.macros.length >= MACRO_FILE_LIMITS.macros,
-              onSelect: () => {
-                const copyId = parseMacroId(crypto.randomUUID());
-                if (copyId.ok) {
-                  commit({
-                    kind: 'duplicate',
-                    id: menu.item.id,
-                    copyId: copyId.value,
-                  });
-                }
-              },
-            },
-            {
-              kind: 'item',
-              id: 'collections',
-              label: '\ubaa8\uc74c',
-              disabled: locked,
-              submenu: [
-                ...(document?.value.collections.map(collection => ({
-                  kind: 'item' as const,
-                  id: collection.id,
-                  label: collection.name,
-                  check: 'checkbox' as const,
-                  checked: collection.macroIds.includes(menu.item.id),
-                  onSelect: () =>
-                    commit({
-                      kind: 'membership',
-                      id: menu.item.id,
-                      collection: collection.id,
-                      member: !collection.macroIds.includes(menu.item.id),
-                    }),
-                })) ?? []),
-                {
-                  kind: 'item' as const,
-                  id: 'new-collection',
-                  label: '\uc0c8 \ubaa8\uc74c',
-                  disabled:
-                    (document?.value.collections.length ?? 0) >=
-                    MACRO_FILE_LIMITS.collections,
-                  onSelect: () =>
-                    setEditor({kind: 'new-collection', item: menu.item}),
-                },
-              ],
-            },
-            {
-              kind: 'item',
-              id: 'startup',
-              label: '시작할 때 실행',
-              check: 'checkbox',
-              checked: menu.item.runOnStartup === true,
-              disabled: locked,
-              onSelect: () =>
-                commit({
-                  kind: 'update',
-                  id: menu.item.id,
-                  changes: {runOnStartup: !menu.item.runOnStartup},
-                }),
-            },
-            {kind: 'separator', id: 'separator-manage'},
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              disabled: locked,
-              onSelect: () => askDelete(menu.item),
-            },
-          ]}
+          onProblem={onProblem}
+          input={{
+            item:
+              document?.value.macros.find(item => item.id === menu.item.id) ??
+              menu.item,
+            collections: document?.value.collections ?? [],
+            shown: currentCollection,
+            macroCount: document?.value.macros.length ?? 0,
+            locked,
+          }}
+          handlersFor={menuHandlers}
         />
       ) : null}
       {editor?.kind === 'icon' ? (

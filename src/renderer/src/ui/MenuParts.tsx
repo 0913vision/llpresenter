@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {Icon} from './Icon';
 import {
+  hasIconColumn,
   menuBlocks,
   menuItemRole,
   type MenuEntry,
@@ -11,8 +12,9 @@ import styles from './Menu.module.css';
 import {useInputCompletion, type InputCompletion} from './useInputCompletion';
 import {useFieldReason} from './fieldFrame';
 
-const ICON_SIZE = 14;
-const CHEVRON_SIZE = 12;
+const ICON_SIZE = 18;
+const CHECK_SIZE = 16;
+const CHEVRON_SIZE = 16;
 const SEARCH_ICON_SIZE = 16;
 const SEARCH_PLACEHOLDER = '검색';
 
@@ -51,14 +53,11 @@ function LabelText({
   );
 }
 
-function ItemLead({item}: {readonly item: MenuItem}): JSX.Element {
+/** The check mark in the left padding of a current or turned-on item. */
+export function MenuCheck(): JSX.Element {
   return (
     <span className={styles.lead}>
-      {item.checked === true ? (
-        <Icon name="check" size={ICON_SIZE} className={styles.mark} />
-      ) : item.icon === undefined ? null : (
-        <Icon name={item.icon} size={ICON_SIZE} />
-      )}
+      <Icon name="check" size={CHECK_SIZE} />
     </span>
   );
 }
@@ -66,8 +65,8 @@ function ItemLead({item}: {readonly item: MenuItem}): JSX.Element {
 export interface MenuItemRowProps {
   readonly item: MenuItem;
   readonly id: string;
-  /** Draws the leading slot, empty when the item has no icon or check. */
-  readonly lead: boolean;
+  /** Draws the icon column, empty when this item has no icon. */
+  readonly iconColumn: boolean;
   readonly pointed: boolean;
   /** Whether the submenu of this item is open. */
   readonly expanded: boolean;
@@ -76,11 +75,14 @@ export interface MenuItemRowProps {
   readonly onRun: () => void;
 }
 
-/** One 28px item: leading slot, swatch, name, extra info, submenu arrow. */
+/**
+ * One 28px item: check mark in the left padding, icon column, swatch, name,
+ * extra info, submenu arrow.
+ */
 export function MenuItemRow({
   item,
   id,
-  lead,
+  iconColumn,
   pointed,
   expanded,
   elementRef,
@@ -109,7 +111,14 @@ export function MenuItemRow({
       }}
       onClick={onRun}
     >
-      {lead ? <ItemLead item={item} /> : null}
+      {item.checked === true ? <MenuCheck /> : null}
+      {iconColumn ? (
+        <span className={styles.icon}>
+          {item.icon === undefined ? null : (
+            <Icon name={item.icon} size={ICON_SIZE} />
+          )}
+        </span>
+      ) : null}
       {item.swatch === undefined ? null : (
         <span
           className={styles.swatch}
@@ -202,8 +211,12 @@ export function MenuBlocks({
 }: {
   readonly entries: readonly MenuEntry[];
   readonly baseId: string;
-  readonly renderItem: (item: MenuItem) => JSX.Element;
+  readonly renderItem: (item: MenuItem, iconColumn: boolean) => JSX.Element;
 }): JSX.Element {
+  const render = (items: readonly MenuItem[]): JSX.Element[] => {
+    const iconColumn = hasIconColumn(items);
+    return items.map(item => renderItem(item, iconColumn));
+  };
   return (
     <div className={styles.scroll}>
       {menuBlocks(entries).map(block => {
@@ -223,12 +236,12 @@ export function MenuBlocks({
                 <div id={labelId} className={styles.group}>
                   {block.label}
                 </div>
-                {block.items.map(renderItem)}
+                {render(block.items)}
               </div>
             );
           }
           case 'items':
-            return block.items.map(renderItem);
+            return render(block.items);
         }
       })}
     </div>

@@ -8,6 +8,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {renameTimer} from './timerRenames';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 function TimerNameDialog({
   timer,
@@ -128,6 +129,7 @@ export function TimerRowMenu({
           anchor={menu}
           onClose={() => setMenu(null)}
           entries={[
+            laterRow('duplicate', '복제'),
             {
               kind: 'item',
               id: 'rename',
@@ -136,6 +138,7 @@ export function TimerRowMenu({
             },
             ...(onRemove
               ? [
+                  menuSeparator('delete-separator'),
                   {
                     kind: 'item' as const,
                     id: 'delete',

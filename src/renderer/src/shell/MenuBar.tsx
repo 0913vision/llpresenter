@@ -6,6 +6,7 @@ import {useServiceActions} from '@renderer/prep/services/useServiceActions';
 import {useLive, useOutputs} from '@renderer/state/live';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useButtonPress} from '@renderer/ui/press';
 import type {Notice} from '@renderer/ui/notices';
@@ -205,44 +206,102 @@ function FileMenu({
   );
 }
 
+function warningEntries(
+  screens: readonly ScreenSummary[],
+  warnings: readonly WarningScreen[],
+  onShowWarning: (screenId: string) => void,
+): readonly MenuEntry[] {
+  return warnings.map(({screenId, screenName}): MenuEntry => {
+    const role = screenId === 'captions' ? 'broadcast' : screenId;
+    const canonicalId =
+      Object.entries(STARTER_SCREEN_IDS).find(
+        ([alias]) => alias === role,
+      )?.[1] ?? screenId;
+    const name =
+      screens.find(screen => screen.id === canonicalId)?.statusLabel ??
+      screenName;
+    return {
+      kind: 'item',
+      id: `warning:${screenId}`,
+      label: `${name} 경고 보기`,
+      onSelect: () => onShowWarning(screenId),
+    };
+  });
+}
+
+/**
+ * The 출력 menu, after ProPresenter's Screens menu (spec 11): each group's
+ * screens and what they show, then 화면 설정, capture, and warnings.
+ */
 function outputEntries({
   screens,
   outputs,
   looks,
+  lookName,
   warnings,
   onShowWarning,
+  onWorkspace,
 }: {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
   readonly looks: readonly MenuEntry[];
+  readonly lookName: string | undefined;
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
+  readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
 }): readonly MenuEntry[] {
-  const toggles = screenOutputEntries(screens, outputs);
+  const toggles = (kind: 'audience' | 'stage'): readonly MenuEntry[] =>
+    screenOutputEntries(
+      screens.filter(screen => (screen.kind ?? 'audience') === kind),
+      outputs,
+    );
+  const openScreens = (): void => onWorkspace?.('screens');
+  const warningRows = warningEntries(screens, warnings, onShowWarning);
   return [
-    ...toggles,
+    {kind: 'group', id: 'audience', label: '청중 화면'},
+    ...toggles('audience'),
     ...(looks.length === 0
       ? []
-      : [{kind: 'separator', id: 'looks'} as const, ...looks]),
-    ...(warnings.length === 0
+      : [
+          {
+            kind: 'item' as const,
+            id: 'look',
+            label: lookName === undefined ? 'Look' : `Look: ${lookName}`,
+            submenu: looks,
+          },
+        ]),
+    {
+      kind: 'item',
+      id: 'edit-looks',
+      label: 'Look 편집…',
+      disabled: onWorkspace === undefined,
+      onSelect: openScreens,
+    },
+    menuSeparator('stage'),
+    {kind: 'group', id: 'stage-group', label: '무대 화면'},
+    ...toggles('stage'),
+    {
+      kind: 'item',
+      id: 'edit-layouts',
+      label: '무대 배치 편집…',
+      disabled: onWorkspace === undefined,
+      onSelect: openScreens,
+    },
+    menuSeparator('screens'),
+    {
+      kind: 'item',
+      id: 'screens',
+      label: '화면 설정…',
+      meta: 'Ctrl Alt 1',
+      disabled: onWorkspace === undefined,
+      onSelect: openScreens,
+    },
+    menuSeparator('capture'),
+    laterRow('capture', '녹화 시작'),
+    laterRow('capture-settings', '녹화 설정…'),
+    ...(warningRows.length === 0
       ? []
-      : [{kind: 'separator', id: 'warnings'} as const]),
-    ...warnings.map(({screenId, screenName}): MenuEntry => {
-      const role = screenId === 'captions' ? 'broadcast' : screenId;
-      const canonicalId =
-        Object.entries(STARTER_SCREEN_IDS).find(
-          ([alias]) => alias === role,
-        )?.[1] ?? screenId;
-      const name =
-        screens.find(screen => screen.id === canonicalId)?.statusLabel ??
-        screenName;
-      return {
-        kind: 'item',
-        id: `warning:${screenId}`,
-        label: `${name} 경고 보기`,
-        onSelect: () => onShowWarning(screenId),
-      };
-    }),
+      : [menuSeparator('warnings'), ...warningRows]),
   ];
 }
 
@@ -276,11 +335,13 @@ function OutputMenu({
   onShowWarning,
   control,
   onProblem,
+  onWorkspace,
 }: {
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
   readonly control: MenuControl;
   readonly onProblem: (notice: Notice) => void;
+  readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
 }): JSX.Element {
   const screens = useScreenSummaries();
   const {anchor} = control;
@@ -318,8 +379,10 @@ function OutputMenu({
             screens,
             outputs,
             looks,
+            lookName: choices.find(look => look.id === currentLook)?.name,
             warnings,
             onShowWarning,
+            onWorkspace,
           })}
         />
       ) : null}
@@ -411,6 +474,7 @@ export function MenuBar({
           onShowWarning={onShowWarning}
           control={controlFor(OUTPUT_MENU)}
           onProblem={onProblem}
+          onWorkspace={onWorkspace}
         />
         {trailingMenus.map(menu => (
           <InertMenu key={menu} label={menu} />

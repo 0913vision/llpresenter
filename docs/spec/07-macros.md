@@ -97,22 +97,13 @@ Source: `MacroTile` README (runs at once, no confirmation), `docs/TECH.md`
 
 ## Right-click menu
 
-| Item                            | Behavior                                                                                                                                                                                                                                 | Source                              |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| 실행 (run)                      | Runs the 매크로.                                                                                                                                                                                                                         | `Macros`                            |
-| 이름 바꾸기 (rename)            | Puts the name into rename mode (proposal).                                                                                                                                                                                               | `Macros`                            |
-| 아이콘 바꾸기 (change icon)     | Opens a grid of design system icons. Choosing one applies it (proposal).                                                                                                                                                                 | `Macros`                            |
-| 색 (color)                      | A row of the eight colors (no "none"). A choice applies at once, and the menu stays open.                                                                                                                                                | `Macros`, `LabelColorPicker` README |
-| 동작 추가 (add action)          | A submenu of action kinds. Each kind opens a submenu of targets. Choosing a target appends the action (proposal for the target submenus).                                                                                                | `Macros`                            |
-| 동작 편집 (edit action)         | A submenu of the 매크로's actions. Choosing one opens its parameters in a popover (proposal).                                                                                                                                            | `Macros`                            |
-| 동작 빼기 (remove action)       | A submenu of the 매크로's actions. Choosing one removes it, without confirmation (proposal).                                                                                                                                             | `Macros`                            |
-| 복제 (duplicate)                | Adds a copy named "<name> 복사본" (copy) right after it (proposal).                                                                                                                                                                      | `Macros`                            |
-| 모음 (collections)              | A submenu of collections with check marks. Choosing one adds the 매크로 to that collection or removes it. The last item is 새 모음 (new collection) (proposal).                                                                          | `Macros`                            |
-| 시작할 때 실행 (run at startup) | A checkable item. See "Run at startup".                                                                                                                                                                                                  | `Macros`                            |
-| 삭제 (delete)                   | Asks in a confirmation dialog, for example "‘예배 시작’ 매크로를 삭제할까요?" (Delete this 매크로?). If 예배 순서 items use it as a start 매크로, the detail says how many ("예배 순서 항목 3곳에서 씀") (proposal). The item isn't red. | `Macros`, `Menu` README             |
+The rows, groups, and order of the 매크로 right-click menu follow ProPresenter
+and are set in [11-menus.md](11-menus.md), "매크로 오른쪽 클릭". 삭제 asks in a
+confirmation dialog, for example "‘예배 시작’ 매크로를 삭제할까요?" (Delete this
+매크로?). If 예배 순서 items use it as a start 매크로, the detail says how many
+("예배 순서 항목 3곳에서 씀") (proposal).
 
-Separators split the menu into these groups: 실행; 이름 바꾸기, 아이콘 바꾸기,
-색; 동작 추가, 동작 편집, 동작 빼기; 복제, 모음, 시작할 때 실행; 삭제.
+Source: `Macros`, 11-menus.md.
 
 ## Action palette
 
@@ -183,9 +174,10 @@ Source: `Macros`, `Overlays`.
 - A 매크로 can be in several collections (proposal). 모든 매크로 shows every
   매크로 (proposal).
 - A 매크로 created while a collection is shown joins that collection (proposal).
-- 새 모음 in the 모음 submenu creates a collection. The collection select's menu
-  has 이름 바꾸기 and 삭제 for the shown collection. Deleting a collection never
-  deletes its 매크로 (proposal).
+- The collection button in the tab header opens the 매크로 모음 popover, and 새
+  모음 at the end of 모음에 추가 › and 모음으로 옮기기 › creates a collection
+  (see [11-menus.md](11-menus.md)). Deleting a collection never deletes its
+  매크로 (proposal).
 
 Source: `Macros` (collection 주일 예배, 8개), `Main` decision "매크로".
 

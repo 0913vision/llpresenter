@@ -189,7 +189,7 @@ describe('MenuBar', () => {
     await userEvent.keyboard('{ArrowDown}{Enter}');
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'output.set',
-      screenId: 'stage',
+      screenId: 'broadcast',
       on: true,
     });
   });
