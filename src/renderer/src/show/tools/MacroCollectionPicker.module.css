@@ -1,0 +1,32 @@
+.trigger {
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-8) var(--space-6) var(--space-menu-text);
+  font: var(--type-caption-strong);
+}
+
+.row {
+  flex: none;
+  outline: none;
+}
+
+.row[aria-selected='true'],
+.row:focus-visible,
+.row:hover {
+  background: var(--accent-fill);
+  color: var(--text-on-fill);
+}
+
+.list {
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--space-8);
+}

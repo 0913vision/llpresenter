@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {
@@ -124,7 +125,7 @@ it('creates a macro in the displayed collection then opens rename', async () => 
   const select = await screen.findByRole('button', {name: '매크로 모음'});
   await screen.findByRole('option', {name: '찬양'});
   fireEvent.click(select);
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '주일'}));
+  fireEvent.click(screen.getByRole('option', {name: '주일'}));
   fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
@@ -147,7 +148,7 @@ it('does not open rename over a newer selection after a delayed creation', async
   fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '주일'}));
+  fireEvent.click(screen.getByRole('option', {name: '주일'}));
   pending.resolve({ok: true, value: {id: 'macros', revision: 2}});
   await screen.findByRole('button', {name: '새 매크로'});
   await waitFor(() =>
@@ -165,7 +166,7 @@ it('creates in all macros after the selected collection is removed', async () =>
   fireEvent.click(
     screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
   );
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '\uc8fc\uc77c'}));
+  fireEvent.click(screen.getByRole('option', {name: '\uc8fc\uc77c'}));
   act(() =>
     f.push(settingsDocument('macros', {macros: [macro], collections: []}, 2)),
   );
@@ -298,7 +299,7 @@ it('moves a macro out of the shown collection into another', async () => {
   render(<MacroPanel />);
   await screen.findByRole('option', {name: '찬양'});
   fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '주일'}));
+  fireEvent.click(screen.getByRole('option', {name: '주일'}));
   await openActionSubmenu('모음으로 옮기기');
   fireEvent.click(screen.getByRole('menuitemcheckbox', {name: '수요'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
@@ -451,7 +452,22 @@ async function selectCollection(name: string) {
   fireEvent.click(
     screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
   );
-  fireEvent.click(screen.getByRole('menuitemradio', {name}));
+  fireEvent.click(
+    within(screen.getByRole('dialog', {name: '매크로 모음'})).getByRole(
+      'option',
+      {name},
+    ),
+  );
+}
+
+function collectionMenu(name: string) {
+  fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
+  fireEvent.contextMenu(
+    within(screen.getByRole('dialog', {name: '매크로 모음'})).getByRole(
+      'option',
+      {name},
+    ),
+  );
 }
 
 it('renames and deletes the displayed collection while retaining macros', async () => {
@@ -459,16 +475,15 @@ it('renames and deletes the displayed collection while retaining macros', async 
   const view = render(<MacroPanel />);
   await screen.findByRole('option', {name: '\ucc2c\uc591'});
   await selectCollection('\uc8fc\uc77c');
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
-  );
+  collectionMenu('주일');
   fireEvent.click(
     screen.getByRole('menuitem', {name: '\uc774\ub984 \ubc14\uafb8\uae30'}),
   );
-  fireEvent.change(screen.getByRole('textbox', {name: '\uc774\ub984'}), {
+  const field = await screen.findByRole('textbox', {name: '모음 이름'});
+  fireEvent.change(field, {
     target: {value: 'Team'},
   });
-  fireEvent.click(screen.getByRole('button', {name: '\uc800\uc7a5'}));
+  fireEvent.keyDown(field, {key: 'Enter'});
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const rename = f.edit.mock.calls[0]?.[0];
   if (rename?.name !== 'macros') throw new Error('Missing edit');
@@ -478,9 +493,7 @@ it('renames and deletes the displayed collection while retaining macros', async 
   render(<MacroPanel />);
   await screen.findByRole('option', {name: '\ucc2c\uc591'});
   await selectCollection('\uc8fc\uc77c');
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
-  );
+  collectionMenu('주일');
   fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
   expect(
     screen.getByRole('alertdialog', {
@@ -492,6 +505,43 @@ it('renames and deletes the displayed collection while retaining macros', async 
   const deletion = next.edit.mock.calls[0]?.[0];
   if (deletion?.name !== 'macros') throw new Error('Missing edit');
   expect(deletion.value.collections).toEqual([]);
+  expect(deletion.value.macros).toHaveLength(1);
+});
+
+it('keeps the selected collection when deleting another collection', async () => {
+  const f = fixture();
+  const other = {
+    ...group,
+    id: '00000000-0000-4000-8000-000000000008',
+    name: 'Other',
+  };
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '찬양'});
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {
+          macros: [macro],
+          collections: [group, other],
+        },
+        2,
+      ),
+    ),
+  );
+  await selectCollection('주일');
+  collectionMenu('Other');
+  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+  const dialog = await screen.findByRole('alertdialog');
+  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+  expect(
+    screen.getByRole('button', {name: '매크로 모음'}).textContent,
+  ).toContain('주일');
+  expect(f.edit).toHaveBeenCalledOnce();
+  const deletion = f.edit.mock.calls[0]?.[0];
+  if (deletion?.name !== 'macros') throw new Error('Missing deletion');
+  expect(deletion.value.collections).toEqual([group]);
   expect(deletion.value.macros).toHaveLength(1);
 });
 
@@ -516,9 +566,7 @@ it('does not reset a newer selection after a cancelled pending deletion', async 
     ),
   );
   await selectCollection('\uc8fc\uc77c');
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
-  );
+  collectionMenu('주일');
   fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
   fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());

@@ -94,27 +94,19 @@ function CollectionDialog({
   locked,
   close,
   save,
-  initial = '',
-  mode = 'create',
 }: {
   readonly locked: boolean;
   readonly close: () => void;
   readonly save: (name: string) => void;
-  readonly initial?: string | undefined;
-  readonly mode?: 'create' | 'rename' | undefined;
 }): JSX.Element {
-  const [name, setName] = useState(initial);
+  const [name, setName] = useState('');
   return (
     <Dialog
-      title={
-        mode === 'rename'
-          ? '\ubaa8\uc74c \uc774\ub984 \ubc14\uafb8\uae30'
-          : '\uc0c8 \ubaa8\uc74c'
-      }
+      title="새 모음"
       size="s"
       onCancel={close}
       primary={{
-        label: mode === 'rename' ? '\uc800\uc7a5' : '\ucd94\uac00',
+        label: '추가',
         disabled: locked || !name.trim() || name.trim().length > 256,
         onSelect: () => save(name.trim()),
       }}
@@ -204,7 +196,7 @@ export function MacroPanel({
   );
   const [editor, setEditor] = useState<Editor | null>(null);
   const [collectionDialog, setCollectionDialog] = useState<{
-    kind: 'rename' | 'delete';
+    kind: 'delete';
     item: MacroCollection;
   } | null>(null);
   const [paletteFor, setPaletteFor] = useState<Macro['id']>();
@@ -443,30 +435,12 @@ export function MacroPanel({
           mode={mode}
           selectedId={editor?.item.id ?? menu?.item.id}
           lastRunId={lastRunId}
-          collectionActions={
-            currentGroup
-              ? [
-                  {
-                    id: 'rename',
-                    label: '\uc774\ub984 \ubc14\uafb8\uae30',
-                    disabled: locked,
-                    onSelect: () => {
-                      revision.current++;
-                      setCollectionDialog({kind: 'rename', item: currentGroup});
-                    },
-                  },
-                  {
-                    id: 'delete',
-                    label: '\uc0ad\uc81c',
-                    disabled: locked,
-                    onSelect: () => {
-                      revision.current++;
-                      setCollectionDialog({kind: 'delete', item: currentGroup});
-                    },
-                  },
-                ]
-              : []
-          }
+          collectionLocked={locked}
+          onCollectionDelete={item => {
+            revision.current++;
+            setCollectionDialog({kind: 'delete', item});
+          }}
+          onProblem={onProblem}
           onCollection={id => {
             revision.current++;
             setCollection(id);
@@ -574,21 +548,6 @@ export function MacroPanel({
           }
         />
       ) : null}
-      {collectionDialog?.kind === 'rename' ? (
-        <CollectionDialog
-          mode="rename"
-          key={collectionDialog.item.id}
-          initial={collectionDialog.item.name}
-          locked={locked}
-          close={closeCollection}
-          save={name =>
-            commitCollection(
-              {kind: 'rename', id: collectionDialog.item.id, name},
-              closeCollection,
-            )
-          }
-        />
-      ) : null}
       {collectionDialog?.kind === 'delete' ? (
         <AlertDialog
           icon="warning"
@@ -606,7 +565,11 @@ export function MacroPanel({
                 commitCollection(
                   {kind: 'delete', id: collectionDialog.item.id},
                   () => {
-                    setCollection(undefined);
+                    setCollection(current =>
+                      current === collectionDialog.item.id
+                        ? undefined
+                        : current,
+                    );
                     closeCollection();
                   },
                 ),

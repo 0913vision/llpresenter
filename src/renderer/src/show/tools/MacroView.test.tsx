@@ -117,6 +117,11 @@ it('shows the chosen collection in list mode with its action count', () => {
   fireEvent.click(screen.getByRole('button', {name: '격자 보기'}));
   expect(mode).toHaveBeenCalledWith('grid');
   fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '모든 매크로'}));
+  fireEvent.click(
+    within(screen.getByRole('dialog', {name: '매크로 모음'})).getByRole(
+      'option',
+      {name: '모든 매크로'},
+    ),
+  );
   expect(collection).toHaveBeenCalledWith(undefined);
 });

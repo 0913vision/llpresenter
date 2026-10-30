@@ -2,19 +2,12 @@ import {useRef, type DragEvent, type JSX} from 'react';
 import type {MacroActionKind} from '@shared/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
 import type {Macro, MacroCollection} from '@shared/schema/macros';
-import {
-  Button,
-  MacroGrid,
-  MacroList,
-  MacroRow,
-  MacroTile,
-  SelectMenu,
-  type SelectAction,
-} from '@renderer/ui';
+import {Button, MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
+import type {Notice} from '@renderer/ui/notices';
+import {MacroCollectionPicker} from './MacroCollectionPicker';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './MacroView.module.css';
 
-const ALL = 'all';
 export type MacroViewMode = 'grid' | 'list';
 
 export function MacroView({
@@ -30,7 +23,9 @@ export function MacroView({
   onMenu,
   onNew,
   onDropAction,
-  collectionActions,
+  collectionLocked = false,
+  onCollectionDelete = () => undefined,
+  onProblem,
 }: {
   readonly macros: readonly Macro[];
   readonly collections: readonly MacroCollection[];
@@ -43,7 +38,9 @@ export function MacroView({
   readonly onRun: (item: Macro) => void;
   readonly onMenu: (item: Macro, anchor: MenuAnchor) => void;
   readonly onNew?: (() => void) | undefined;
-  readonly collectionActions?: readonly SelectAction[] | undefined;
+  readonly collectionLocked?: boolean | undefined;
+  readonly onCollectionDelete?: ((item: MacroCollection) => void) | undefined;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onDropAction?:
     ((item: Macro, kind: MacroActionKind) => void) | undefined;
 }): JSX.Element {
@@ -105,18 +102,13 @@ export function MacroView({
       }}
     >
       <div className={styles.header}>
-        <SelectMenu
-          aria-label="매크로 모음"
-          value={collection?.id ?? ALL}
-          actions={collectionActions}
-          block
-          options={[
-            {value: ALL, label: '모든 매크로'},
-            ...collections.map(item => ({value: item.id, label: item.name})),
-          ]}
-          onChange={id =>
-            onCollection(collections.find(item => item.id === id)?.id)
-          }
+        <MacroCollectionPicker
+          collections={collections}
+          value={collection?.id}
+          locked={collectionLocked}
+          onChange={onCollection}
+          onDelete={onCollectionDelete}
+          onProblem={onProblem}
         />
         <span>{`${shown.length}개`}</span>
         <Button aria-pressed={mode === 'grid'} onClick={() => onMode('grid')}>

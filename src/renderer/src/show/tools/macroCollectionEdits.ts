@@ -21,11 +21,29 @@ export type MacroCollectionEdit =
       readonly id: MacroCollection['id'];
       readonly name: string;
     }
-  | {readonly kind: 'delete'; readonly id: MacroCollection['id']};
+  | {readonly kind: 'delete'; readonly id: MacroCollection['id']}
+  | {
+      readonly kind: 'move';
+      readonly id: MacroCollection['id'];
+      readonly before: MacroCollection['id'] | undefined;
+    };
 
 function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
   const id = edit.kind === 'add' ? edit.collection.id : edit.id;
   const existing = file.collections.find(item => item.id === id);
+  if (edit.kind === 'move') {
+    if (!existing || edit.before === id) return file;
+    const collections = file.collections.filter(item => item.id !== id);
+    const index =
+      edit.before === undefined
+        ? collections.length
+        : collections.findIndex(item => item.id === edit.before);
+    if (index < 0) throw new Error('Collection no longer exists');
+    collections.splice(index, 0, existing);
+    return collections.every((item, at) => item === file.collections[at])
+      ? file
+      : {...file, collections};
+  }
   if (edit.kind === 'delete') {
     if (!existing) return file;
     return {

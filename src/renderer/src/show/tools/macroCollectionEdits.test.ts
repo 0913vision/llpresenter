@@ -149,3 +149,47 @@ it('rejects creating a collection for a macro removed during the read', async ()
   ).rejects.toThrow('Macro no longer exists');
   expect(edit).not.toHaveBeenCalled();
 });
+
+it('retries a move against fresh collections without losing a newly added collection', async () => {
+  const newerRow = {
+    ...raw,
+    id: '00000000-0000-4000-8000-000000000004',
+    name: '새 모음',
+  };
+  const other = {
+    ...raw,
+    id: '00000000-0000-4000-8000-000000000003',
+    name: '평일',
+  };
+  const before = document([raw, other]);
+  const newer = document([raw, newerRow, other], 2);
+  const moving = before.value.collections[1];
+  if (!moving) throw new Error('Missing move fixture');
+  const edit = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'stale'},
+    })
+    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
+  const api = fakeLlpApi({
+    settings: {
+      get: vi.fn().mockResolvedValueOnce(before).mockResolvedValue(newer),
+      edit,
+    },
+  });
+  await saveMacroCollectionEdit(api, {
+    kind: 'move',
+    id: moving.id,
+    before: collection.id,
+  });
+  expect(edit).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      baseRevision: 2,
+      value: {
+        ...newer.value,
+        collections: [other, {...raw, name: ' 주일 '}, newerRow],
+      },
+    }),
+  );
+});
