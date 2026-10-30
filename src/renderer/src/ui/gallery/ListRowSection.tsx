@@ -479,12 +479,12 @@ export function ListRowSection(): JSX.Element {
           <Stateful<string> initial="sunday">
             {(selected, setSelected) => (
               <ListBox
-                label="틀"
+                label="템플릿"
                 selected={selected}
                 onSelect={setSelected}
                 inset
               >
-                <ListGroup label="틀">
+                <ListGroup label="템플릿">
                   <ListRow
                     value="sunday"
                     icon="frame"

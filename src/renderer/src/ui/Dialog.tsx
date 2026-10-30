@@ -43,7 +43,7 @@ export interface DialogProps {
   readonly bottomBar?: ReactNode;
   /** A pick list on the left makes the body two columns. */
   readonly aside?: ReactNode;
-  /** An action under the pick list, such as 지금 예배를 틀로 저장. */
+  /** An action under the pick list, such as 지금 예배를 템플릿으로 저장. */
   readonly asideFoot?: ReactNode;
   readonly children: ReactNode;
 }

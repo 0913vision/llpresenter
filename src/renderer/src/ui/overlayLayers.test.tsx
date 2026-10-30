@@ -63,7 +63,7 @@ function Window({
           onCancel={() => setOpen(false)}
           primary={{label: '만들기', onSelect: () => setOpen(false)}}
         >
-          <MenuButton label="틀" onSelect={onSelect} />
+          <MenuButton label="템플릿" onSelect={onSelect} />
         </Dialog>
       ) : null}
     </>
@@ -87,8 +87,8 @@ describe('Overlays over a dialog', () => {
     const onSelect = vi.fn<() => void>();
     render(<Window onSelect={onSelect} />);
     await openDialog();
-    await userEvent.click(screen.getByRole('button', {name: '틀'}));
-    const menu = screen.getByRole('menu', {name: '틀'});
+    await userEvent.click(screen.getByRole('button', {name: '템플릿'}));
+    const menu = screen.getByRole('menu', {name: '템플릿'});
     expect(menu.closest(OVER_MODAL)).not.toBe(null);
     expect(menu.closest('[inert]')).toBe(null);
     await userEvent.click(screen.getByRole('menuitem', {name: '복사'}));

@@ -59,7 +59,7 @@ function rowOf(
     : {label: kindLabels.unknown, icon: icons.unknown};
 }
 
-/** The rows of a 예배 순서 or 틀, each item under the header before it. */
+/** The rows of a 예배 순서 or 템플릿, each item under the header before it. */
 export function treeRows(
   order: readonly ServiceItem[],
   songTitles: ReadonlyMap<string, string>,

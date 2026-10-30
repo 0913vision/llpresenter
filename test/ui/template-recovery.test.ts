@@ -43,7 +43,7 @@ it(
         format: 'llservice',
         schemaVersion: 1,
         id: SERVICE,
-        name: '점검 틀 원본',
+        name: '점검 템플릿 원본',
         date: '2026-01-01T10:00',
         order: [{id: ITEM, song: SONG}],
       }),
@@ -54,10 +54,12 @@ it(
     await page.getByRole('menuitem', {name: '파일'}).click();
     await page.getByRole('menuitem', {name: '새 예배'}).click();
     const dialog = page.getByRole('dialog', {name: '새 예배'});
-    await dialog.getByRole('button', {name: '지금 예배를 틀로 저장'}).click();
     await dialog
-      .getByRole('group', {name: '틀'})
-      .getByRole('option', {name: /점검 틀 원본/})
+      .getByRole('button', {name: '지금 예배를 템플릿으로 저장'})
+      .click();
+    await dialog
+      .getByRole('group', {name: '템플릿'})
+      .getByRole('option', {name: /점검 템플릿 원본/})
       .click();
     await expect
       .poll(

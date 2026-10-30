@@ -198,7 +198,7 @@ describe('parseContentEdit', () => {
       'from.kind',
     ],
     [
-      'an import from a 틀 without a UUID',
+      'an import from a 템플릿 without a UUID',
       {
         type: 'service.importItems',
         serviceId: SERVICE_ID,

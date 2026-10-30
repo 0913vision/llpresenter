@@ -116,7 +116,7 @@ export const serviceSchema = jsonObject({
   order: orderSchema,
 });
 
-/** A 틀 as its file holds it, checked like {@link serviceSchema}. */
+/** A 템플릿 as its file holds it, checked like {@link serviceSchema}. */
 export const templateSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
@@ -144,8 +144,8 @@ const templateFormat: FileFormat<typeof templateSchema> = {
 export type Service = ReadonlyKnown<v.InferOutput<typeof serviceSchema>>;
 
 /**
- * A 틀: the service file format with no `date` and an optional default `time`.
- * It lives in the 틀 folder.
+ * A 템플릿: the service file format with no `date` and an optional default `time`.
+ * It lives in the 템플릿 folder.
  */
 export type Template = ReadonlyKnown<v.InferOutput<typeof templateSchema>>;
 

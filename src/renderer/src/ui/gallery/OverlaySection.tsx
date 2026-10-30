@@ -203,8 +203,8 @@ function NewServiceDialog({
         title: '이름을 적어야 만들 수 있습니다',
       }}
       aside={
-        <ListBox label="틀" selected={source} onSelect={chooseSource} inset>
-          <ListGroup label="틀">
+        <ListBox label="템플릿" selected={source} onSelect={chooseSource} inset>
+          <ListGroup label="템플릿">
             <ListRow
               value="sunday"
               icon="frame"
@@ -224,7 +224,7 @@ function NewServiceDialog({
       }
       asideFoot={
         <Button variant="ghost" icon="plus">
-          지금 예배를 틀로 저장
+          지금 예배를 템플릿으로 저장
         </Button>
       }
       bottomBar={

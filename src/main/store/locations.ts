@@ -28,7 +28,7 @@ export const FOLDER_NAMES = {
   songs: '곡',
   media: '미디어',
   services: '예배',
-  templates: '틀',
+  templates: '템플릿',
   settings: '설정',
   recovery: '.복구 사본',
 } as const;

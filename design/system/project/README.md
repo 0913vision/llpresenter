@@ -5,7 +5,7 @@ The app has one theme, dark. All values are in `tokens.json`, and each CSS varia
 ## Principles
 
 1. **The screens come first.** Keep the UI dark and quiet. The brightest things on screen must be the 출력 (output) preview and the thumbnails. Pick UI surfaces only from the gray steps between `bg-app` and `bg-control-hover`.
-2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 슬라이드 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 틀 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
+2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 슬라이드 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 템플릿 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
 3. **Show state with shape and color.** Don't add text, chips, or dots that describe a state. Mark something live only with a `ring-live` outline or a LIVE badge, a problem only with a `warning` icon or outline, and a value that can't be saved only with `ring-field-error`. Put the detailed reason in a tooltip.
 4. **Use red only for 출력.** Use `live` only for what is on the screens right now. Use `accent` for selection and keyboard focus, `accent-fill` for the surface of a primary button, `warning` for problems, and an `ok` dot for a healthy state. Don't use red for warnings or deletion.
 5. **Put emphasis in one place.** Give each window or dialog one primary button, at the far right of the footer. Make every other button a secondary or ghost button.
@@ -243,7 +243,7 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 | 슬라이드 | slide | 장 (for a slide) | One screen of lyrics or other content; Bible chapter numbers keep 장 |
 | 예배 순서 | service order | 재생목록, 플레이리스트, 큐시트 | The list of items in one service |
 | 구역 | section | 머리글 | A named group in the 예배 순서; its stored item kind remains `header` |
-| 틀 | template | 템플릿 | A 예배 순서 that you use to create a new 예배 순서 |
+| 템플릿 | template | 틀, 서식 | A 예배 순서 that you use to create a new 예배 순서 |
 | 구성 | arrangement | 편곡, 어레인지먼트 | A named 슬라이드 order saved in a song (기본, 주일용, 짧게) |
 | 이름표 | label | 그룹, 태그 | The name of a 슬라이드, such as 1절, 프리코러스, or 후렴 |
 | 지우기 | clear | 삭제 (for 출력), 클리어 | Taking content off the screens. Only removing a file or an item is "삭제" (delete) |

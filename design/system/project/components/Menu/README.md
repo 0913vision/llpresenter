@@ -77,7 +77,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 
 ## Writing
 
-- Write an item as what it does, ending in a verb ("이름 바꾸기", "지금 예배를 틀로 저장", "다른 예배에서 가져오기"), or as the name of what it opens ("텍스트 파일", "환경설정").
+- Write an item as what it does, ending in a verb ("이름 바꾸기", "지금 예배를 템플릿으로 저장", "다른 예배에서 가져오기"), or as the name of what it opens ("텍스트 파일", "환경설정").
 - End an item that opens a dialog or asks for more input with "…", as ProPresenter does (수정…, 전환 효과…).
 - Write shortcuts as text with spaces: "Ctrl Z", "Ctrl 1", "F2".
 - Write a dangerous item as just "삭제" (delete). If it can't be undone, ask with `AlertDialog` before running it.

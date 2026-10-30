@@ -19,7 +19,7 @@ export const EMPTY_SOURCE: ServiceSource = {kind: 'empty'};
 export interface SourceDocument {
   readonly source: ServiceSource;
   readonly name: string;
-  /** HH:mm: the 틀's default time, or the past service's time. */
+  /** HH:mm: the 템플릿's default time, or the past service's time. */
   readonly time: string | undefined;
   readonly order: readonly ServiceItem[];
 }
@@ -157,8 +157,8 @@ function valueOf<T>(read: ListRead<T>, fallback: T): T {
 }
 
 /**
- * The 틀 and past service lists and the song titles their rows show. The lists
- * follow changes while the dialog is open, so a 틀 saved from it shows up.
+ * The 템플릿 and past service lists and the song titles their rows show. The lists
+ * follow changes while the dialog is open, so a 템플릿 saved from it shows up.
  * Each is read on its own: `ready` turns on when every read has answered, and
  * `failed` tells that one or more failed, which `retry` reads again.
  */
@@ -167,7 +167,7 @@ export function useSourceLists(api: SourcesApi | undefined) {
     api,
     read: readTemplates,
     follow: followTemplates,
-    what: 'the 틀 list',
+    what: 'the 템플릿 list',
   });
   const services = useListRead({
     api,

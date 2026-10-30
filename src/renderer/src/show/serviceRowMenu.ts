@@ -30,7 +30,7 @@ export function serviceRowMenuEntries({
     {
       kind: 'item',
       id: 'save-template',
-      label: '틀로 저장…',
+      label: '템플릿으로 저장…',
       disabled: busy,
       onSelect: save,
     },

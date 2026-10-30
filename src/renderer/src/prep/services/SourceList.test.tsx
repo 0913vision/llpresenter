@@ -18,7 +18,7 @@ function names(): readonly string[] {
 }
 
 describe('SourceList', () => {
-  it('lists 빈 예배, the 틀, and the services newest first with dates and counts', () => {
+  it('lists 빈 예배, the 템플릿, and the services newest first with dates and counts', () => {
     render(
       <SourceList
         templates={templateEntries}
@@ -39,7 +39,7 @@ describe('SourceList', () => {
         .getByRole('option', {name: /^주일 예배/})
         .getAttribute('aria-selected'),
     ).toBe('true');
-    expect(screen.getByRole('group', {name: '틀'})).toBeDefined();
+    expect(screen.getByRole('group', {name: '템플릿'})).toBeDefined();
     expect(screen.getByRole('group', {name: '지난 예배'})).toBeDefined();
   });
 
@@ -73,7 +73,7 @@ describe('SourceList', () => {
       />,
     );
     expect(names()).toEqual(['지난 주일 예배10월 25일 일요일항목 1개']);
-    expect(screen.queryByRole('group', {name: '틀'})).toBeNull();
+    expect(screen.queryByRole('group', {name: '템플릿'})).toBeNull();
   });
 
   it('offers 다시 시도 when a list could not be read', async () => {

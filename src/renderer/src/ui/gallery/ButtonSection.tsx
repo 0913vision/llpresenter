@@ -100,7 +100,7 @@ export function ButtonSection(): JSX.Element {
         </SpecItem>
         <SpecItem label="sm ghost">
           <Button variant="ghost" icon="plus">
-            지금 예배를 틀로 저장
+            지금 예배를 템플릿으로 저장
           </Button>
         </SpecItem>
         <SpecItem label="md text only, horizontal 14">

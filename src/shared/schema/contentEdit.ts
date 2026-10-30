@@ -119,7 +119,7 @@ const editResultSchema = v.pipe(
 );
 
 /**
- * An edit of a song, a 예배 순서, or a 틀 that a window asks the main process
+ * An edit of a song, a 예배 순서, or a 템플릿 that a window asks the main process
  * to apply over `content:edit`. `service.importItems` appends copies of the
  * items, in their source order and with new ids, to the end of the 예배 순서
  * (`docs/spec/05-prep.md`, "Importing from another service"). `*.update` carries the whole document and the

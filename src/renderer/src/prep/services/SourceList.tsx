@@ -61,9 +61,9 @@ function withMenu(
 
 /**
  * The sources on the left of the service dialogs: 빈 예배 when `withEmpty`,
- * then the 틀 and the 지난 예배 groups, newest service first. With `onRetry`,
+ * then the 템플릿 and the 지난 예배 groups, newest service first. With `onRetry`,
  * a line under the list says a list couldn't be read and offers 다시 시도;
- * with `onRowMenu`, a right click on a 틀 or 예배 순서 row opens its menu.
+ * with `onRowMenu`, a right click on a 템플릿 or 예배 순서 row opens its menu.
  */
 export function SourceList({
   templates,
@@ -80,7 +80,7 @@ export function SourceList({
   readonly onSelect: (source: ServiceSource) => void;
   readonly withEmpty: boolean;
   readonly onRetry?: (() => void) | undefined;
-  /** Opens the right-click menu of a 틀 or 예배 순서 row. */
+  /** Opens the right-click menu of a 템플릿 or 예배 순서 row. */
   readonly onRowMenu?:
     ((event: ContextMenuEvent, row: SourceRow) => void) | undefined;
 }): JSX.Element {
@@ -115,7 +115,7 @@ export function SourceList({
           />
         ) : null}
         {templates.length === 0 ? null : (
-          <ListGroup label="틀">
+          <ListGroup label="템플릿">
             {templates.map(entry =>
               withMenu(
                 {

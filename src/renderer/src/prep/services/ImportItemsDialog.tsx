@@ -8,7 +8,7 @@ import {useImportItems} from './useImportItems';
 
 const DIALOG_HEIGHT = 700;
 const MISSING = '예배 순서를 읽을 수 없습니다';
-const NO_SOURCES = '가져올 틀이나 예배 순서가 없습니다';
+const NO_SOURCES = '가져올 템플릿이나 예배 순서가 없습니다';
 
 /**
  * The 다른 예배에서 가져오기 dialog: copy items to the end of the open service.

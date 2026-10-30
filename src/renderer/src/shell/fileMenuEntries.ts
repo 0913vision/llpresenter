@@ -64,7 +64,11 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
     },
     menuSeparator('export'),
     laterRow('export', '내보내기', {submenu: true}),
-    {...service.saveTemplate, label: '예배를 틀로 저장…', icon: undefined},
+    {
+      ...service.saveTemplate,
+      label: '예배를 템플릿으로 저장…',
+      icon: undefined,
+    },
     menuSeparator('print'),
     laterRow('print', '인쇄…'),
   ];

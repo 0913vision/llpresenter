@@ -5,7 +5,7 @@ app stores. Field names are the names used in the JSON. Fields that appear in
 the source samples keep their names. Fields that the sources don't show are
 marked as proposals.
 
-Terms: 슬라이드 (slide), 예배 순서 (service order), 틀 (template), 구성
+Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 소품
 (prop), 공지 (notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch),
 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions).
@@ -13,15 +13,15 @@ See 01 for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                                                     | Source                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                           | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                       | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 틀, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 소품, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                              | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                    | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                       | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                           |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                                                         | Source                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                               | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                           | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 소품, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                                  | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                        | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                           | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                               |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -33,7 +33,7 @@ Documents\LoveLight\                 data folder (default)
   곡\<song ID>.llsong                 location can change in 환경설정 > 라이브러리 > 위치 > 곡
   미디어\                             imported media files; location can change in 환경설정 > 라이브러리 > 위치 > 미디어
   예배\<service ID>.llservice
-  틀\<template ID>.llservice
+  템플릿\<template ID>.llservice
   설정\                               app-wide settings and the media list
   .복구 사본\                         previous versions of each file
 
@@ -251,8 +251,8 @@ Each 예배 순서 is one file. It holds only items. It doesn't hold screens, Lo
 ### Items
 
 Each item has exactly one of the kind keys below. Every item has an `id`
-(proposal). When you copy items from another service or from a 틀, give them new
-item IDs (proposal).
+(proposal). When you copy items from another service or from a 템플릿, give them
+new item IDs (proposal).
 
 | Kind           | Kind key                    | Other fields                                 | Source                                                                   |
 | -------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
@@ -313,14 +313,15 @@ It replaces the slot behavior in the earlier service samples and draft boards.
 
 ## Templates
 
-- A 틀 uses the service file format (`format: "llservice"`). Store it in the
-  `틀\` folder of the data folder (proposal).
-- A 틀 has no `date`. It can have a `time` (`HH:mm`) that sets the default time
-  of a new service (proposal).
-- A 틀 holds empty sections where content will be added later. Empty sections
-  stay in its order and in the 새 예배 source tree. It can also hold content
-  such as songs, media, and 공지. For example, the `NewService` board shows 예배
-  전 카운트다운, 주일 광고, and 축도 in a 틀. It has no slot items.
+- A 템플릿 uses the service file format (`format: "llservice"`). Store it in the
+  `템플릿\` folder of the data folder (proposal).
+- A 템플릿 has no `date`. It can have a `time` (`HH:mm`) that sets the default
+  time of a new service (proposal).
+- A 템플릿 holds empty sections where content will be added later. Empty
+  sections stay in its order and in the 새 예배 source tree. It can also hold
+  content such as songs, media, and 공지. For example, the `NewService` board
+  shows 예배 전 카운트다운, 주일 광고, and 축도 in a 템플릿. It has no slot
+  items.
 
 Source: `Main` service notes (same file format), `NewService`, and the
 [October 26 user check decision](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check)
@@ -1120,9 +1121,9 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   never lose the file's content. Write a log entry and show one warning
   notification. What happens next depends on the file (`docs/TECH.md` "Storage",
   lead decision of October 25, 2026):
-  - **A song, 예배 순서, or 틀 file** isn't touched. It's skipped: it doesn't
-    appear in its list, and items that point to a skipped song show the problem
-    state (08).
+  - **A song, 예배 순서, or 템플릿 file** isn't touched. It's skipped: it
+    doesn't appear in its list, and items that point to a skipped song show the
+    problem state (08).
   - **An app-wide settings file** (a file in the table under "App-wide
     settings") runs its area from the newest recovery copy that reads, or else
     from that area's first-launch defaults, and the app keeps running. Before
@@ -1139,10 +1140,10 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 
 ### Autosave
 
-- Save songs, 예배 순서, 틀, settings, and the media list on every change. When
-  changes come in a burst, such as typing, write once within 0.5 seconds after
-  the last change (proposal). Before the app quits, write everything that is
-  pending.
+- Save songs, 예배 순서, 템플릿, settings, and the media list on every change.
+  When changes come in a burst, such as typing, write once within 0.5 seconds
+  after the last change (proposal). Before the app quits, write everything that
+  is pending.
 - The "HH:MM 저장됨" in the status bar is the time of the last successful write.
 - Save asynchronously in the main process. Saving must never stall output or
   input (implementation requirement).
@@ -1169,9 +1170,9 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 ### Automatic backup
 
 - If 자동 백업 is on, back up once a day, at launch, when no service is running.
-  Copy the song, service, 틀, and settings folders into a folder in the backup
-  location named after the backup's start time, `YYYY-MM-DD HHmmss` (proposal).
-  Leave out media files because of their size (proposal).
+  Copy the song, service, 템플릿, and settings folders into a folder in the
+  backup location named after the backup's start time, `YYYY-MM-DD HHmmss`
+  (proposal). Leave out media files because of their size (proposal).
 - A backup copies into a folder with `.partial` at the end of its name and
   renames it to the final name only when every file is copied, so a folder
   without `.partial` is always a complete backup (proposal).

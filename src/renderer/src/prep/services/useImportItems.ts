@@ -19,7 +19,7 @@ const FAILED = '항목을 가져올 수 없음';
 
 /**
  * The state and actions of the 다른 예배에서 가져오기 dialog. The sources are
- * the 틀 and the other services; picking one checks nothing.
+ * the 템플릿 and the other services; picking one checks nothing.
  */
 export function useImportItems({
   onProblem,

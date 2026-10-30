@@ -144,7 +144,7 @@ export type ServiceEntry = ReadonlyKnown<
   v.InferOutput<typeof serviceEntrySchema>
 >;
 
-/** One 틀, with `itemCount` counted as for a 예배 순서. */
+/** One 템플릿, with `itemCount` counted as for a 예배 순서. */
 export type TemplateEntry = ReadonlyKnown<
   v.InferOutput<typeof templateEntrySchema>
 >;

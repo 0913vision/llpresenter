@@ -23,7 +23,7 @@ function sample<T>(result: Result<T, unknown>): T {
   return result.value;
 }
 
-/** Ids of the sample 틀, past service, songs, and items. */
+/** Ids of the sample 템플릿, past service, songs, and items. */
 export const ids = {
   template: createTemplateId('30000000-0000-4000-8000-000000000001'),
   past: createServiceId('40000000-0000-4000-8000-000000000001'),
@@ -47,7 +47,7 @@ export const titles = {
   second: '저녁 노을 아래서',
 };
 
-/** A 틀 with two populated sections followed by two empty sections. */
+/** A 템플릿 with two populated sections followed by two empty sections. */
 export const templateOrder: readonly ServiceItem[] = [
   {id: ids.praise, header: '찬양'},
   {id: ids.doxology, song: ids.firstSong, arrangement: '주일용'},

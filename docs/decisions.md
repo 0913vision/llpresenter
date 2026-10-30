@@ -629,3 +629,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Where no ProPresenter screen was found, the menu uses the shape ProPresenter
   gives other named things in a list: its own command | 복제, 이름 바꾸기 |
   삭제.
+
+## 2026-10-30: 템플릿 replaces 틀
+
+- The UI calls a reusable 예배 순서 a 템플릿, not a 틀, because most software
+  says 템플릿 and 틀 read as unclear (user decision during the m3-check6 review:
+  "템플릿 하자 걍 보통 템플릿으로 하지 않나?"). 서식 was considered and left
+  out: Korean software mostly uses it for text formatting, which would clash
+  with 가사 스타일 and 글자 모양.
+- 메시지 틀 becomes 메시지 템플릿, so the same word means the same thing.
+- The data folder `틀` becomes `템플릿` now, without a migration, because no
+  installation keeps data yet. The glossary, specs, and component docs use the
+  new word; past entries in this file keep the old one.

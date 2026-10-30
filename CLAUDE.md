@@ -36,7 +36,7 @@ Korean.**
 - Write documents, code comments, test names, log messages, and commit messages
   in English.
 - Keep product UI strings in Korean. Use the glossary in the design system
-  README (출력, 슬라이드, 예배 순서, 틀, 구성, 이름표, 지우기, 본 화면, 무대
+  README (출력, 슬라이드, 예배 순서, 템플릿, 구성, 이름표, 지우기, 본 화면, 무대
   화면, 방송 자막, Look, 진행 도구, 퀵 실행).
 - Reply to the user in polite Korean (합니다체), every time (see the rule at the
   top). Don't use a playful tone.

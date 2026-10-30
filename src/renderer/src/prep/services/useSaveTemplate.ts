@@ -17,7 +17,7 @@ interface TemplateService {
   readonly name: string;
 }
 
-/** A 틀 with the open service's name already exists; the operator decides. */
+/** A 템플릿 with the open service's name already exists; the operator decides. */
 export interface TemplateConflict {
   readonly name: string;
 }
@@ -29,23 +29,23 @@ interface PendingConflict extends TemplateConflict {
 }
 
 const problemTitles = {
-  'not-saved': '틀로 저장할 수 없음',
-  'not-replaced': '기존 틀을 지울 수 없음',
+  'not-saved': '템플릿으로 저장할 수 없음',
+  'not-replaced': '기존 템플릿을 지울 수 없음',
 } as const;
 
 type SaveProblem = keyof typeof problemTitles;
 
 // NOTE(0913vision): The first of `주일 예배 2`, `주일 예배 3`, and so on that no
-// 틀 has, as main names a new song's copy.
+// 템플릿 has, as main names a new song's copy.
 function freeName(base: string, taken: ReadonlySet<string>): string {
   let number = 2;
   while (taken.has(`${base} ${number}`)) number++;
   return `${base} ${number}`;
 }
 
-// NOTE(0913vision): Overwriting saves the new 틀 first and deletes the old one
+// NOTE(0913vision): Overwriting saves the new 템플릿 first and deletes the old one
 // only once the new one is on disk, so a failure or a crash never loses the
-// 틀 the operator had. A new 틀 that main holds only in memory (write-failed)
+// 템플릿 the operator had. A new 템플릿 that main holds only in memory (write-failed)
 // keeps the old one; main's 저장할 수 없음 card tells the operator.
 async function writeTemplate({
   api,
@@ -58,20 +58,20 @@ async function writeTemplate({
   readonly name: string;
   readonly replace?: TemplateId | undefined;
 }): Promise<SaveProblem | null> {
-  const saved = await settle(api, 'Could not save a 틀', () =>
+  const saved = await settle(api, 'Could not save a 템플릿', () =>
     api.content.edit({type: 'service.saveAsTemplate', serviceId, name}),
   );
   if (saved === undefined || appliedId(saved) === null) return 'not-saved';
   if (replace === undefined || !saved.ok) return null;
-  const removed = await settle(api, 'Could not delete a 틀', () =>
+  const removed = await settle(api, 'Could not delete a 템플릿', () =>
     api.content.edit({type: 'template.delete', templateId: replace}),
   );
   return removed !== undefined && editApplied(removed) ? null : 'not-replaced';
 }
 
 /**
- * 지금 예배를 틀로 저장: saves a copy of the open service as a 틀 named after
- * it. When a 틀 has that name, `conflict` asks whether to save a new 틀 (with
+ * 지금 예배를 템플릿으로 저장: saves a copy of the open service as a 템플릿 named after
+ * it. When a 템플릿 has that name, `conflict` asks whether to save a new 템플릿 (with
  * the next free name, such as 주일 예배 2) or overwrite it.
  */
 export function useSaveTemplate({
@@ -110,7 +110,7 @@ export function useSaveTemplate({
         report(problem);
       })
       .catch((cause: unknown) => {
-        console.error('Failed to finish saving a 틀:', cause);
+        console.error('Failed to finish saving a 템플릿:', cause);
       });
   };
 
@@ -119,7 +119,7 @@ export function useSaveTemplate({
     if (api === undefined || id === null || busy) return;
     const name = target?.name ?? currentName;
     setBusy(true);
-    settle(api, 'Could not read the 틀 list', () => api.templates.list())
+    settle(api, 'Could not read the 템플릿 list', () => api.templates.list())
       .then(entries => {
         if (!alive.current) return;
         if (entries === undefined) {
@@ -141,7 +141,7 @@ export function useSaveTemplate({
         });
       })
       .catch((cause: unknown) => {
-        console.error('Failed to start saving a 틀:', cause);
+        console.error('Failed to start saving a 템플릿:', cause);
       });
   };
 

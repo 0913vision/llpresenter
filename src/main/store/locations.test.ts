@@ -29,7 +29,7 @@ describe('resolveLocations', () => {
       songs: join(root, '곡'),
       media: join(root, '미디어'),
       services: join(root, '예배'),
-      templates: join(root, '틀'),
+      templates: join(root, '템플릿'),
       settings: join(root, '설정'),
       recovery: join(root, '.복구 사본'),
       backups: join(DOCUMENTS, 'LoveLight 백업'),

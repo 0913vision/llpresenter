@@ -17,7 +17,7 @@ including the words the app must not use.
 | 지우기          | clear              | Taking a layer off the screens. In prose, this spec uses the English verb "clear". Deleting a file or an item is "삭제" (delete). |
 | 슬라이드        | slide              | One screen of lyrics or other content.                                                                                            |
 | 예배 순서       | service order      | The item list of one service. One `.llservice` file.                                                                              |
-| 틀              | template           | A 예배 순서 that you use to create a new 예배 순서.                                                                               |
+| 템플릿          | template           | A 예배 순서 that you use to create a new 예배 순서.                                                                               |
 | 구성            | arrangement        | A named 슬라이드 order stored in a song, with repeats (기본, 주일용, 짧게).                                                       |
 | 이름표          | label              | The name of a 슬라이드, such as 1절 (verse 1), 프리코러스 (pre-chorus), or 후렴 (chorus).                                         |
 | 본 화면         | main screen        | The main audience screen.                                                                                                         |
@@ -136,7 +136,7 @@ log version 61.
 
 ### Saving is automatic
 
-- Save songs, 예배 순서, 틀, app-wide settings, and the media list on every
+- Save songs, 예배 순서, 템플릿, app-wide settings, and the media list on every
   change. The app has no save button. The 파일 (File) menu has no save, open, or
   recent services items.
 - One exception: an imported song enters the 라이브러리 only when the operator
@@ -259,10 +259,10 @@ READMEs, `Prefs`.
   middle, and the window buttons at the right end. The service name in the
   middle isn't clickable.
 - The 파일 menu has these items: 새 예배 (New service), 다른 예배에서 가져오기
-  (Import from another service), 지금 예배를 틀로 저장 (Save current service as
-  template), 가져오기 (Import, submenu: 텍스트 파일 Text file, 클립보드 텍스트
-  Clipboard text, PowerPoint 파일 PowerPoint file), 내보내기 (Export, submenu),
-  and 환경설정 (Preferences).
+  (Import from another service), 지금 예배를 템플릿으로 저장 (Save current
+  service as template), 가져오기 (Import, submenu: 텍스트 파일 Text file,
+  클립보드 텍스트 Clipboard text, PowerPoint 파일 PowerPoint file), 내보내기
+  (Export, submenu), and 환경설정 (Preferences).
   - In version 1, the PowerPoint file item shows as unavailable, with the reason
     in a tooltip (proposal).
   - No source lists the items of the Export submenu. Version 1 leaves out the
@@ -367,7 +367,7 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 | 구성                           | A named group-ID order stored in the song, with repeats. "기본" expands each master group once and is not stored. | Inside the song file                     | 구성 name                                         |
 | 예배 순서                      | The item list of one service. Name, date, items.                                                                  | One `.llservice` file per service        | Service ID                                        |
 | 예배 순서 item                 | Section (구역, stored as `header`), song, Bible passage, media, or 공지.                                          | Inside the service file                  | Item ID (proposal)                                |
-| 틀                             | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 틀             | 틀 ID                                             |
+| 템플릿                         | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 템플릿         | 템플릿 ID                                         |
 | Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                                          |
 | Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                                       |
 | Screen                         | One output target (본 화면, 무대 화면, 방송 자막).                                                                | App-wide settings                        | Screen ID                                         |

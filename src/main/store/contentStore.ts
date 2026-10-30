@@ -129,11 +129,11 @@ interface Written {
 type Checked<T> = Result<StoredDocument<T>, EditResult>;
 
 /**
- * The songs, 예배 순서, and 틀 in the main process, and the edits windows ask
+ * The songs, 예배 순서, and 템플릿 in the main process, and the edits windows ask
  * for. A whole-document update applies over the stored file, so unknown
  * fields survive, and is saved half a second after the last change. An edit
  * that creates, deletes, or touches several files writes them at once, the
- * document it names first, then 예배 순서 and 틀, each in id order. A failed
+ * document it names first, then 예배 순서 and 템플릿, each in id order. A failed
  * write keeps the edit in memory and is answered with the files that didn't
  * change. Every change goes to the windows with its revision.
  */
@@ -687,7 +687,7 @@ export class ContentStore {
     const template =
       templateId === null ? null : this.templates.get(templateId);
     if (template === undefined) {
-      return refuse('not-found', `No 틀 has the id ${String(templateId)}`);
+      return refuse('not-found', `No 템플릿 has the id ${String(templateId)}`);
     }
     const id = createServiceId(randomUUID());
     const service: Service = {

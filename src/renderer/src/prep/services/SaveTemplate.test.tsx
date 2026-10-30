@@ -108,7 +108,7 @@ function setup({
 }
 
 function saveButton(): HTMLElement {
-  return screen.getByRole('button', {name: '지금 예배를 틀로 저장'});
+  return screen.getByRole('button', {name: '지금 예배를 템플릿으로 저장'});
 }
 
 beforeAll(() => {
@@ -124,8 +124,8 @@ afterEach(() => {
   delete window.llp;
 });
 
-describe('지금 예배를 틀로 저장', () => {
-  it('saves a 틀 named after the open service, with no card', async () => {
+describe('지금 예배를 템플릿으로 저장', () => {
+  it('saves a 템플릿 named after the open service, with no card', async () => {
     const {edits, onProblem} = setup();
     await userEvent.click(saveButton());
     await waitFor(() => expect(edits).toHaveLength(1));
@@ -143,14 +143,16 @@ describe('지금 예배를 틀로 저장', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
-  it('asks when a 틀 has the name, and saves a new one with the next free name', async () => {
+  it('asks when a 템플릿 has the name, and saves a new one with the next free name', async () => {
     const {edits, onProblem} = setup({templates: [existing, second]});
     await userEvent.click(saveButton());
     const prompt = await screen.findByRole('alertdialog', {
-      name: '‘이번 주일 예배’ 틀이 이미 있습니다. 덮어쓸까요?',
+      name: '‘이번 주일 예배’ 템플릿이 이미 있습니다. 덮어쓸까요?',
     });
     expect(prompt).toBeDefined();
-    await userEvent.click(screen.getByRole('button', {name: '새 틀로 저장'}));
+    await userEvent.click(
+      screen.getByRole('button', {name: '새 템플릿으로 저장'}),
+    );
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(onProblem).not.toHaveBeenCalled();
     expect(edits).toEqual([
@@ -163,7 +165,7 @@ describe('지금 예배를 틀로 저장', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
-  it('overwrites by saving the new 틀 first and then deleting the old one', async () => {
+  it('overwrites by saving the new 템플릿 first and then deleting the old one', async () => {
     const {edits, onProblem} = setup({templates: [existing]});
     await userEvent.click(saveButton());
     await userEvent.click(
@@ -181,7 +183,7 @@ describe('지금 예배를 틀로 저장', () => {
     expect(onProblem).not.toHaveBeenCalled();
   });
 
-  it('keeps the old 틀 when the new one is only in memory', async () => {
+  it('keeps the old 템플릿 when the new one is only in memory', async () => {
     const {edits, onProblem} = setup({
       templates: [existing],
       answer: () => ({
@@ -218,7 +220,7 @@ describe('지금 예배를 틀로 저장', () => {
     await waitFor(() => expect(refused.onProblem).toHaveBeenCalled());
     expect(refused.onProblem.mock.calls[0]?.[0]).toMatchObject({
       kind: 'warning',
-      title: '틀로 저장할 수 없음',
+      title: '템플릿으로 저장할 수 없음',
     });
   });
 
@@ -228,11 +230,11 @@ describe('지금 예배를 틀로 저장', () => {
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(edits).toEqual([]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '틀로 저장할 수 없음',
+      title: '템플릿으로 저장할 수 없음',
     });
   });
 
-  it('reports an old 틀 it could not delete after overwriting', async () => {
+  it('reports an old 템플릿 it could not delete after overwriting', async () => {
     const {edits, onProblem} = setup({
       templates: [existing],
       answer: edit =>
@@ -247,16 +249,16 @@ describe('지금 예배를 틀로 저장', () => {
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(edits).toHaveLength(2);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '기존 틀을 지울 수 없음',
+      title: '기존 템플릿을 지울 수 없음',
     });
   });
 
-  it('saves from the 새 예배 dialog, and the new 틀 shows in its list', async () => {
+  it('saves from the 새 예배 dialog, and the new 템플릿 shows in its list', async () => {
     const {edits, push} = setup();
     await userEvent.click(screen.getByRole('button', {name: '새 예배'}));
     const dialog = await screen.findByRole('dialog', {name: '새 예배'});
     await userEvent.click(
-      within(dialog).getByRole('button', {name: '지금 예배를 틀로 저장'}),
+      within(dialog).getByRole('button', {name: '지금 예배를 템플릿으로 저장'}),
     );
     await waitFor(() => expect(edits).toHaveLength(1));
     act(() => push([{...existing, id: savedId}]));

@@ -115,7 +115,7 @@ export class Backups {
 }
 
 /**
- * Copies the songs, 예배 순서, 틀, and settings folders into a new backup
+ * Copies the songs, 예배 순서, 템플릿, and settings folders into a new backup
  * folder named after the local time, then deletes the oldest backups past
  * `keep`. The copy goes into `<time>.partial` first and is renamed once
  * complete, so a backup cut off halfway never counts. Media files are left out
@@ -225,7 +225,7 @@ async function copyFilter(
 
 // NOTE(0913vision): Links are copied as what they point to, so a backup never
 // depends on the data it backs up. Only a source folder that doesn't exist,
-// such as 틀 before the first 틀, is skipped; any other failure fails the
+// such as 템플릿 before the first 템플릿, is skipped; any other failure fails the
 // backup, so an incomplete one never counts.
 async function copyFolder(
   source: string,

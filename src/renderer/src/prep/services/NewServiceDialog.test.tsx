@@ -173,7 +173,7 @@ describe('NewServiceDialog', () => {
     });
   });
 
-  it('starts from the first 틀 with every item checked and its name and time', async () => {
+  it('starts from the first 템플릿 with every item checked and its name and time', async () => {
     setup();
     expect(
       await screen.findByRole('treeitem', {name: titles.first}),
@@ -205,7 +205,7 @@ describe('NewServiceDialog', () => {
     ).toContain('10월 25일 일요일');
   });
 
-  it('creates from the 틀 with the checked items and opens it without an output command', async () => {
+  it('creates from the 템플릿 with the checked items and opens it without an output command', async () => {
     const {edits, sent, open, onClose, onProblem} = setup();
     await userEvent.click(
       await screen.findByRole('treeitem', {name: titles.second}),

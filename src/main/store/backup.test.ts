@@ -65,7 +65,7 @@ describe('backupFolderName', () => {
 });
 
 describe('runBackup', () => {
-  it('copies songs, services, 틀, and settings, and leaves out media', async () => {
+  it('copies songs, services, 템플릿, and settings, and leaves out media', async () => {
     const locations = await dataLocations();
     await writeJson(join(locations.songs, 'a.llsong'), {title: 'a'});
     await writeJson(join(locations.services, 'b.llservice'), {name: 'b'});

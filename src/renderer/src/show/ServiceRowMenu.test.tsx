@@ -107,7 +107,7 @@ it('lists the service menu rows and groups in spec order without opening the ser
     ),
   ).toEqual([
     '이름 바꾸기',
-    '틀로 저장…',
+    '템플릿으로 저장…',
     '|',
     '내보내기',
     '인쇄',
@@ -168,7 +168,7 @@ it.each([true, false])(
     const {edit, open} = setup();
     if (!hasOpenService) act(() => applyService(null));
     fireEvent.click(
-      within(await context()).getByRole('menuitem', {name: '틀로 저장…'}),
+      within(await context()).getByRole('menuitem', {name: '템플릿으로 저장…'}),
     );
     await waitFor(() =>
       expect(edit).toHaveBeenCalledExactlyOnceWith({
@@ -210,10 +210,12 @@ it('uses the existing conflict prompt and saves a new template for the clicked s
     {id: ids.template, name: pastName, access: 'editable'},
   ]);
   fireEvent.click(
-    within(await context()).getByRole('menuitem', {name: '틀로 저장…'}),
+    within(await context()).getByRole('menuitem', {name: '템플릿으로 저장…'}),
   );
   const dialog = await screen.findByRole('alertdialog');
-  fireEvent.click(within(dialog).getByRole('button', {name: '새 틀로 저장'}));
+  fireEvent.click(
+    within(dialog).getByRole('button', {name: '새 템플릿으로 저장'}),
+  );
   await waitFor(() =>
     expect(edit).toHaveBeenCalledExactlyOnceWith({
       type: 'service.saveAsTemplate',

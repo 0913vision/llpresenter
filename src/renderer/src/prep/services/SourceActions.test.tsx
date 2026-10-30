@@ -131,7 +131,7 @@ afterEach(() => {
 
 describe('the service source menu', () => {
   it.each([
-    {kind: 'template', name: /^주일 예배/, reason: '읽기 전용 틀'},
+    {kind: 'template', name: /^주일 예배/, reason: '읽기 전용 템플릿'},
     {kind: 'service', name: /^지난 주일 예배/, reason: '읽기 전용 예배 순서'},
   ])(
     'disables read-only $kind commands with a reason',
@@ -198,7 +198,7 @@ describe('the service source menu', () => {
     },
   );
 
-  it('renames a 틀 with its whole document and revision', async () => {
+  it('renames a 템플릿 with its whole document and revision', async () => {
     const {edits} = setup();
     await openMenu(/^주일 예배/);
     await userEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
@@ -254,7 +254,7 @@ describe('the service source menu', () => {
     expect(screen.getByRole('dialog', {name: '이름 바꾸기'})).toBeDefined();
   });
 
-  it('deletes a 틀 after asking, and the dialog moves on from it', async () => {
+  it('deletes a 템플릿 after asking, and the dialog moves on from it', async () => {
     const {edits, pushTemplates} = setup(() => ({
       ok: true,
       value: {id: ids.template, revision: null},
@@ -262,7 +262,9 @@ describe('the service source menu', () => {
     await openMenu(/^주일 예배/);
     await userEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     expect(
-      screen.getByRole('alertdialog', {name: '‘주일 예배’ 틀을 삭제할까요?'}),
+      screen.getByRole('alertdialog', {
+        name: '‘주일 예배’ 템플릿을 삭제할까요?',
+      }),
     ).toBeDefined();
     await userEvent.click(screen.getByRole('button', {name: '삭제'}));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
@@ -288,7 +290,7 @@ describe('the service source menu', () => {
     ).toBe('true');
   });
 
-  it('keeps the default 틀 and checked items when a rename sorts it after another 틀', async () => {
+  it('keeps the default 템플릿 and checked items when a rename sorts it after another 템플릿', async () => {
     const otherTemplate: TemplateDocument = {
       ...templateDocument,
       template: {

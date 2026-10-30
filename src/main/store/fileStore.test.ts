@@ -107,18 +107,18 @@ describe('loadStore', () => {
 
   it('loads templates separately, preserving their path and unknown item fields', async () => {
     const context = await developmentContext();
-    const file = join(dataRoot(context), '틀', 'original-name.llservice');
+    const file = join(dataRoot(context), '템플릿', 'original-name.llservice');
     await writeJson(file, {
       format: 'llservice',
       schemaVersion: 1,
       id: SUNDAY_ID,
-      name: '주일 틀',
+      name: '주일 템플릿',
       time: '11:00',
       order: [
         {id: itemId(1), slot: 'song', title: '찬양', future: {enabled: true}},
       ],
     });
-    await writeJson(join(dataRoot(context), '틀', 'broken.llservice'), '{');
+    await writeJson(join(dataRoot(context), '템플릿', 'broken.llservice'), '{');
 
     const store = await loadedStore(context);
 
@@ -128,7 +128,10 @@ describe('loadStore', () => {
     });
     expect(store.services.size).toBe(0);
     expect(store.problems).toMatchObject([
-      {file: join(dataRoot(context), '틀', 'broken.llservice'), kind: 'json'},
+      {
+        file: join(dataRoot(context), '템플릿', 'broken.llservice'),
+        kind: 'json',
+      },
     ]);
   });
 

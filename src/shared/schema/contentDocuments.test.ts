@@ -92,13 +92,13 @@ describe('parseSongDocument', () => {
     expect(parsed.ok ? null : parsed.error.field).toBe(field);
   });
 
-  it('rejects a 틀 answer that is a list', () => {
+  it('rejects a 템플릿 answer that is a list', () => {
     expect(parseTemplateDocument([]).ok).toBe(false);
   });
 });
 
 describe('the list checks', () => {
-  it('accepts lists of songs, 예배 순서, and 틀', () => {
+  it('accepts lists of songs, 예배 순서, and 템플릿', () => {
     expect(parseLibrarySongs([librarySong()])).toEqual({
       ok: true,
       value: [librarySong()],

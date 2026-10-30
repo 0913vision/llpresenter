@@ -418,7 +418,7 @@ export interface LlpApi {
   };
 }
 
-/** Reading and following one kind of document: songs, 예배 순서, or 틀. */
+/** Reading and following one kind of document: songs, 예배 순서, or 템플릿. */
 export interface DocumentApi<TEntry, TDocument, TChange> {
   /** The list, as the 라이브러리 or the 예배 순서 list shows it. */
   list(): Promise<readonly TEntry[]>;

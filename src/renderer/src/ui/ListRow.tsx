@@ -579,7 +579,7 @@ export function ListGroup({
   );
 }
 
-/** The dashed box of a 틀 cell that isn't filled yet: 찬양 … 빈 자리. */
+/** The dashed box of a 템플릿 cell that isn't filled yet: 찬양 … 빈 자리. */
 export function ListSlotBox({
   icon,
   label,

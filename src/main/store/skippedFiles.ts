@@ -45,7 +45,7 @@ export class SkippedFiles {
 export interface SkippedFileSources {
   /** The settings and media files, replayed to a new listener. */
   readonly settings: (listener: (skipped: SkippedFile) => void) => () => void;
-  /** The songs, 예배 순서, 틀, labels, and preferences read at startup. */
+  /** The songs, 예배 순서, 템플릿, labels, and preferences read at startup. */
   readonly content: Promise<readonly SkippedFile[]>;
 }
 

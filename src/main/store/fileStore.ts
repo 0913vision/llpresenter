@@ -61,7 +61,7 @@ export interface LoadedStore {
   readonly songs: ReadonlyMap<string, StoredFile<GroupedSong>>;
   /** The 예배 순서, by service id, read-only like the songs. */
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
-  /** The 틀, by template id, read-only like the songs. */
+  /** The 템플릿, by template id, read-only like the songs. */
   readonly templates: ReadonlyMap<string, StoredFile<Template>>;
   readonly labels: readonly Label[];
   /** 환경설정, with the default for every field the file doesn't set. */

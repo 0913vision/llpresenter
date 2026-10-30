@@ -2,10 +2,10 @@
 
 준비 (Prep) is the workspace for preparing songs and services. This document
 covers the 라이브러리 and search, the song editor, 예배 순서 item settings,
-adding items, creating and importing services, saving a 틀, text import, and the
-shared bottom 미디어 bin.
+adding items, creating and importing services, saving a 템플릿, text import, and
+the shared bottom 미디어 bin.
 
-Terms: 슬라이드 (slide), 예배 순서 (service order), 틀 (template), 구성
+Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지
 (notice), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
 captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
@@ -388,10 +388,10 @@ Source: the user's October 26 check decision, recorded under
 - Opens from 파일 > 새 예배 (New service), from the service list, or with the
   shortcut the operator sets.
 - The dialog is "새 예배" (new service).
-  - Left: 빈 예배 (empty service), the 틀 group (two-line rows: name and "항목
-    9개", 9 items), and the 지난 예배 (past services) group (name, date such as
-    "10월 25일 일요일", and item count). Below the list: 지금 예배를 틀로 저장
-    (save the current service as a 틀).
+  - Left: 빈 예배 (empty service), the 템플릿 group (two-line rows: name and
+    "항목 9개", 9 items), and the 지난 예배 (past services) group (name, date
+    such as "10월 25일 일요일", and item count). Below the list: 지금 예배를
+    템플릿으로 저장 (save the current service as a 템플릿).
   - Right: the "예배 순서" box with a check-all box and the count ("항목 9개"),
     and a tree of sections and items with check boxes. Empty sections stay
     visible and can be checked on their own.
@@ -400,20 +400,20 @@ Source: the user's October 26 check decision, recorded under
 - Behavior:
   - 지난 예배 lists every service, including the open service and future-dated
     services, newest first.
-  - The first 틀 is selected initially, or 빈 예배 when there is no 틀.
-  - Choosing a 틀 checks every item.
+  - The first 템플릿 is selected initially, or 빈 예배 when there is no 템플릿.
+  - Choosing a 템플릿 checks every item.
   - Choosing a past service also checks every item. Returning to a source checks
     every item again.
   - 빈 예배 leaves the right box empty.
   - Checking a section checks its children. A section with some children checked
     shows the mixed state. An empty section is checked on its own and is copied
     when checked, so a template's empty sections survive creation.
-  - The name defaults to the name of the chosen 틀 or service, or "새 예배" for
-    빈 예배. The date defaults to today. The time defaults to the 틀's `time` or
-    the past service's time, or the current hour for 빈 예배. In M3, 날짜
-    selects today or one of the next 13 days, retaining a chosen date outside
-    that range. 시간 offers 30-minute steps and retains a chosen time between
-    steps. The calendar popover is a UI follow-up.
+  - The name defaults to the name of the chosen 템플릿 or service, or "새 예배"
+    for 빈 예배. The date defaults to today. The time defaults to the 템플릿's
+    `time` or the past service's time, or the current hour for 빈 예배. In M3,
+    날짜 selects today or one of the next 13 days, retaining a chosen date
+    outside that range. 시간 offers 30-minute steps and retains a chosen time
+    between steps. The calendar popover is a UI follow-up.
   - 만들기 is unavailable while the name is empty, with the reason in a tooltip.
   - 만들기 creates a new service file with the checked items, in order, with new
     item IDs. Song references, 구성 names, background overrides, start 매크로,
@@ -440,7 +440,7 @@ Source: the user's October 26 check decision, recorded under
   - Source lists update while the dialog is open. Keep the selected source id,
     including an automatic choice, when a rename changes its sort order. Keep
     its checks and read its updated contents. If it is deleted, select the first
-    remaining 틀, or 빈 예배 if none remain.
+    remaining 템플릿, or 빈 예배 if none remain.
   - List reads are independent: a failed list doesn't hide successful ones, and
     다시 시도 retries failed reads. Late document reads never replace the
     current source choice.
@@ -451,8 +451,8 @@ Source: the user's October 26 check decision, recorded under
   - While creating, 취소, Escape, and the close button wait for the result.
     Successful operator actions don't add a notification; failures use the
     shared notification list (08).
-- Starting from a 틀 follows ProPresenter's New Playlist from Template (S19).
-  Starting from a past service is this project's addition.
+- Starting from a 템플릿 follows ProPresenter's New Playlist from Template
+  (S19). Starting from a past service is this project's addition.
 
 Source: `NewService`, `Main` decision "새 예배", `Dialog` README, `Checkbox`
 README, product log version 63. Implementation decisions: accepted P4 requests
@@ -463,12 +463,12 @@ lead's date/time choice and source-menu decision recorded in those requests.
 
 - Opens from 파일 > 다른 예배에서 가져오기 (import from another service) or from
   the service list.
-- The dialog "다른 예배에서 가져오기" has the 틀 and 지난 예배 lists on the left
-  (no 빈 예배), and a tree with check boxes on the right. Song rows show the
-  chosen 구성 name as a detail ("주일용").
-- The first 틀 is selected initially, or the first other service if there is no
-  틀. The open service isn't offered as a source. When the operator picks a
-  source, nothing is checked, including when returning to a source.
+- The dialog "다른 예배에서 가져오기" has the 템플릿 and 지난 예배 lists on the
+  left (no 빈 예배), and a tree with check boxes on the right. Song rows show
+  the chosen 구성 name as a detail ("주일용").
+- The first 템플릿 is selected initially, or the first other service if there is
+  no 템플릿. The open service isn't offered as a source. When the operator picks
+  a source, nothing is checked, including when returning to a source.
 - 가져오기 (import) appends the checked items to the end of the current service,
   in source order. A section comes along if it or any of its children is
   checked, so the items keep their group. Items get new IDs.
@@ -478,8 +478,8 @@ lead's date/time choice and source-menu decision recorded in those requests.
 - The source lists, tree keyboard behavior, and late-read handling follow "New
   service" above. Renaming the automatically selected source never changes its
   id or drops checked items when the list reorders. If a selected source is
-  deleted, use the first remaining 틀 or other service, with nothing checked.
-  With no source left, show that there is nothing to import from.
+  deleted, use the first remaining 템플릿 or other service, with nothing
+  checked. With no source left, show that there is nothing to import from.
 - While importing, the dialog waits for the result before closing. A plain
   success or `write-failed` result means the items are already applied in main,
   so the dialog closes. With `write-failed`, main retains the applied items and
@@ -500,31 +500,32 @@ log versions 61 and 63. Implementation decisions: accepted P4 requests
 The service list opens from the service name in the 예배 순서 header in both
 진행 and 준비. See 04.
 
-## Saving the current service as a 틀
+## Saving the current service as a 템플릿
 
-- Opens from 파일 > 지금 예배를 틀로 저장, from the service list, or from the
-  bottom of the left list in the new service dialog.
-- Save a copy of the current service as a new 틀 named after the service. Keep
-  content items and empty sections. The section rows remain even when they
+- Opens from 파일 > 지금 예배를 템플릿으로 저장, from the service list, or from
+  the bottom of the left list in the new service dialog.
+- Save a copy of the current service as a new 템플릿 named after the service.
+  Keep content items and empty sections. The section rows remain even when they
   contain no content. A template has no slot items.
-- If a 틀 with the same name exists, show the confirmation dialog "‘주일 예배’
-  틀이 이미 있습니다. 덮어쓸까요?" (This 틀 already exists. Overwrite it?) with
-  취소, 새 틀로 저장 (save as new 틀), and 덮어쓰기 (overwrite).
-- 새 틀로 저장 uses the first unused numbered name, such as 주일 예배 2, then
-  주일 예배 3. 덮어쓰기 saves the new copy before deleting the previous 틀. Only
-  a successful disk save allows that deletion. If the new copy exists only in
-  memory after a write failure, keep the previous 틀; the app's save failure
-  notification explains the pending save (08).
+- If a 템플릿 with the same name exists, show the confirmation dialog "‘주일
+  예배’ 템플릿이 이미 있습니다. 덮어쓸까요?" (This 템플릿 already exists.
+  Overwrite it?) with 취소, 새 템플릿으로 저장 (save as new 템플릿), and
+  덮어쓰기 (overwrite).
+- 새 템플릿으로 저장 uses the first unused numbered name, such as 주일 예배 2,
+  then 주일 예배 3. 덮어쓰기 saves the new copy before deleting the previous
+  템플릿. Only a successful disk save allows that deletion. If the new copy
+  exists only in memory after a write failure, keep the previous 템플릿; the
+  app's save failure notification explains the pending save (08).
 - The action is unavailable without an open service or while a save is in
   progress. The conflict prompt waits for the write result before closing.
   Success adds no notification; failures use the shared notification list.
 
 ### Renaming and deleting sources
 
-- The 틀 and 지난 예배 rows in both service source dialogs have a right-click
-  menu with 이름 바꾸기 and 삭제. The context-menu key opens the same menu for a
-  focused row. The 새 예배 dialog's 지난 예배 group covers every service; the
-  service picker's rows don't need a second source menu.
+- The 템플릿 and 지난 예배 rows in both service source dialogs have a
+  right-click menu with 이름 바꾸기 and 삭제. The context-menu key opens the
+  same menu for a focused row. The 새 예배 dialog's 지난 예배 group covers every
+  service; the service picker's rows don't need a second source menu.
 - 이름 바꾸기 opens a small dialog with the current name. 바꾸기 is unavailable
   while the trimmed name is empty or unchanged. Rename preserves the whole
   document and uses its current revision, so a concurrent change refuses the

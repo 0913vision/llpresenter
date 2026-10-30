@@ -21,7 +21,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 
 - 예배 순서 (service order), library, 퀵 실행, the media library and playlists, the audio list
 - The pick list on the left of a dialog (new service, import from another service): two-line items
-- Cells of a 틀 (template) that aren't filled yet (the 예배 순서 of a new service): empty slots
+- Cells of a 템플릿 (template) that aren't filled yet (the 예배 순서 of a new service): empty slots
 - Dragging from the library into the 예배 순서: drop position line, drag ghost row
 
 ## Where not to use
@@ -53,9 +53,9 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | One line | 30 | `body` 16/22 + `caption` 14/20 | 예배 순서, library, 퀵 실행, media lists |
-| Group header | 29 (10 + 14 + 5) | `caption-strong` 16/22/600 `text-3` | 예배 전, 찬양, 보관함, 재생목록, 틀, 지난 예배 |
-| Two lines | 52 | `body` + `caption` `text-3` | 틀 and past services in new service and import from another service |
-| Empty slot | 30 (box 24) | `body` `text-3` + `caption` | 틀 items of a new service |
+| Group header | 29 (10 + 14 + 5) | `caption-strong` 16/22/600 `text-3` | 예배 전, 찬양, 보관함, 재생목록, 템플릿, 지난 예배 |
+| Two lines | 52 | `body` + `caption` `text-3` | 템플릿 and past services in new service and import from another service |
+| Empty slot | 30 (box 24) | `body` `text-3` + `caption` | 템플릿 items of a new service |
 | Drop position | 0 (line 2, dot 8) | - | Dragging into the 예배 순서 |
 | Drag ghost row | 30 | `body` | Dragging from the library |
 

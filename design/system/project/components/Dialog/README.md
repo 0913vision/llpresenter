@@ -4,7 +4,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 
 ## Where to use
 
-- 새 예배: `dialog-l`, a two-column body (틀 (template) and past services on the left, 예배 순서 (service order) on the right) + an input bar above the footer (name, date, time)
+- 새 예배: `dialog-l`, a two-column body (템플릿 (template) and past services on the left, 예배 순서 (service order) on the right) + an input bar above the footer (name, date, time)
 - 다른 예배에서 가져오기: `dialog-l`, a two-column body
 - 텍스트 가져오기: `dialog-xl`, an option bar under the header (슬라이드 나누기, 한 슬라이드에, 이름표 인식) + a 슬라이드 (slide) preview
 
@@ -25,7 +25,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 - Option bar and input bar `ll-dialog__bar`: height 52px (same as `size-dialog-footer`), 16px left and right, `space-20` between fields, `space-10` between a field name (`label` 14/20 `text-2`) and its control. Controls are md (30px). Above the footer, it has a 1px `line` at the top; under the header (`--top`), a 1px `line` at the bottom.
 - Body `ll-dialog__body`: 16px padding. It takes the remaining height, and only the body scrolls when it overflows.
   - Two columns `ll-dialog__body--split`: `ll-dialog__aside` on the left, 260px (1px `line` on the right, no token), and `ll-dialog__main` on the right (16px padding, `space-12` between boxes).
-  - The pick list on the left is `ll-rowlist--inset` from `ListRow` (8px padding, 44px two-line items). An action attached under the list is `ll-dialog__aside-foot` (8 left and right, 8 bottom, the ghost sm button "지금 예배를 틀로 저장").
+  - The pick list on the left is `ll-rowlist--inset` from `ListRow` (8px padding, 44px two-line items). An action attached under the list is `ll-dialog__aside-foot` (8 left and right, 8 bottom, the ghost sm button "지금 예배를 템플릿으로 저장").
   - List box `ll-dialog__box`: background `bg-inset`, 1px inner `line` border, corner radius `radius-lg`. Header `ll-dialog__box-header` 34px (`label-strong` 16/22/600, a select-all checkbox in front, the count `ll-dialog__box-meta` in `text-3` on the right). Body `ll-dialog__box-body` (4 top, 8 bottom) holds the check rows from `Checkbox`.
 - Footer `ll-dialog__footer`: height `size-dialog-footer` (52px), 16px left and right, 1px `line` at the top. Buttons are md (30px), aligned right, with `space-8` between them, in the order [취소] … [primary button]. There is one primary button, at the far right.
 

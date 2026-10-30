@@ -62,7 +62,7 @@ export function serviceEntries(
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
-/** The 틀 list by name. */
+/** The 템플릿 list by name. */
 export function templateEntries(
   templates: ReadonlyArray<StoredDocument<Template>>,
 ): readonly TemplateEntry[] {

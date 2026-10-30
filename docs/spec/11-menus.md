@@ -176,17 +176,17 @@ lack), Moved, Removed.
 - Start, pause, and reset stay on the row buttons, as PP keeps them on the timer
   row.
 
-### 메시지 틀 오른쪽 클릭
+### 메시지 템플릿 오른쪽 클릭
 
 - Where: 진행 도구 > 메시지 (MessageEditing)
 - Opens: Right-click, Menu key, or Shift F10 on a template.
-- Purpose: Act on this one 메시지 틀.
+- Purpose: Act on this one 메시지 템플릿.
 - PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
   taken from the PP Look preset, playlist, and prop menus.
 
 | Group | Row         | Does                                    | Status |
 | ----- | ----------- | --------------------------------------- | ------ |
-| 1     | 수정…       | Opens the 메시지 틀 editor.             | Now    |
+| 1     | 수정…       | Opens the 메시지 템플릿 editor.         | Now    |
 | 2     | 복제        | List-row rule.                          | Off    |
 | 2     | 이름 바꾸기 | Today the name is changed inside 수정…. | Off    |
 | 3     | 삭제        | Deletes the template.                   | Now    |
@@ -289,11 +289,11 @@ lack), Moved, Removed.
   (https://support.renewedvision.com/hc/en-us/articles/40377194830995;
   https://support.renewedvision.com/hc/en-us/articles/4408670102419).
 
-| Group | Row                                           | Does                                                                                | Status |
-| ----- | --------------------------------------------- | ----------------------------------------------------------------------------------- | ------ |
-| list  | 검색 and the services with dates              | As today.                                                                           | Now    |
-| cmd   | 새 예배…                                      | Opens the 새 예배 dialog (it already offers 틀).                                    | Now    |
-| cmd   | 다른 예배에서 가져오기, 지금 예배를 틀로 저장 | Moved: to 파일 > 가져오기 > 다른 예배… and to the service right-click (틀로 저장…). | Moved  |
+| Group | Row                                                 | Does                                                                                      | Status |
+| ----- | --------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ |
+| list  | 검색 and the services with dates                    | As today.                                                                                 | Now    |
+| cmd   | 새 예배…                                            | Opens the 새 예배 dialog (it already offers 템플릿).                                      | Now    |
+| cmd   | 다른 예배에서 가져오기, 지금 예배를 템플릿으로 저장 | Moved: to 파일 > 가져오기 > 다른 예배… and to the service right-click (템플릿으로 저장…). | Moved  |
 
 ### 예배 오른쪽 클릭
 
@@ -303,13 +303,13 @@ lack), Moved, Removed.
 - PP: PP playlist right-click
   (https://support.renewedvision.com/hc/en-us/articles/40377194830995).
 
-| Group | Row            | Does                                    | Status |
-| ----- | -------------- | --------------------------------------- | ------ |
-| 1     | 이름 바꾸기    | Rename mode.                            | New    |
-| 1     | 틀로 저장…     | Saves it as a 틀.                       | Moved  |
-| 2     | 내보내기, 인쇄 | PP Export, Print.                       | Off    |
-| 3     | 복제           | PP Duplicate.                           | Off    |
-| 3     | 삭제           | Deletes the service (not the open one). | Now    |
+| Group | Row              | Does                                    | Status |
+| ----- | ---------------- | --------------------------------------- | ------ |
+| 1     | 이름 바꾸기      | Rename mode.                            | New    |
+| 1     | 템플릿으로 저장… | Saves it as a 템플릿.                   | Moved  |
+| 2     | 내보내기, 인쇄   | PP Export, Print.                       | Off    |
+| 3     | 복제             | PP Duplicate.                           | Off    |
+| 3     | 삭제             | Deletes the service (not the open one). | Now    |
 
 ### 라이브러리 곡 오른쪽 클릭
 
@@ -552,15 +552,15 @@ lack), Moved, Removed.
 - Purpose: Make, bring in, and save out files.
 - PP: PP File menu (support article, 2026).
 
-| Group | Row               | Does                                                                                  | Status                                |
-| ----- | ----------------- | ------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1     | 새 곡             | PP New Presentation.                                                                  | Off                                   |
-| 1     | 새 예배           |                                                                                       | Now                                   |
-| 1     | 새 라이브러리     |                                                                                       | Off                                   |
-| 1     | 가져오기 ›        | 텍스트 파일… (Ctrl Shift I), 라이브러리… (off), 미디어…, 클립보드 텍스트…, 다른 예배… | MultiTracks… (off), SongSelect… (off) | PowerPoint를 슬라이드로…, 그림으로…, 개체와 글자로… (off). | Now |
-| 2     | 내보내기 ›        |                                                                                       | Off                                   |
-| 2     | 예배를 틀로 저장… | Was 지금 예배를 틀로 저장.                                                            | Moved                                 |
-| 3     | 인쇄…             |                                                                                       | Off                                   |
+| Group | Row                     | Does                                                                                  | Status                                |
+| ----- | ----------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1     | 새 곡                   | PP New Presentation.                                                                  | Off                                   |
+| 1     | 새 예배                 |                                                                                       | Now                                   |
+| 1     | 새 라이브러리           |                                                                                       | Off                                   |
+| 1     | 가져오기 ›              | 텍스트 파일… (Ctrl Shift I), 라이브러리… (off), 미디어…, 클립보드 텍스트…, 다른 예배… | MultiTracks… (off), SongSelect… (off) | PowerPoint를 슬라이드로…, 그림으로…, 개체와 글자로… (off). | Now |
+| 2     | 내보내기 ›              |                                                                                       | Off                                   |
+| 2     | 예배를 템플릿으로 저장… | Was 지금 예배를 템플릿으로 저장.                                                      | Moved                                 |
+| 3     | 인쇄…                   |                                                                                       | Off                                   |
 
 - No icons in menu bar menus (PP has none).
 
@@ -617,7 +617,7 @@ lack), Moved, Removed.
 - 성경 구절 추천
 - 그룹 넣기 / 슬라이드 넣기
 - 가져오기 설정
-- 틀 and past-service rows in dialogs
+- 템플릿 and past-service rows in dialogs
 - 다른 화면 출력
 - 글꼴
 - 날짜 선택

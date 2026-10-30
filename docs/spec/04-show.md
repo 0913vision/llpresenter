@@ -108,12 +108,12 @@ README, `Main` decision "구성대로 진행".
 - A search field ("검색", search) sits at the top. Each keystroke filters the
   list by name.
 - The list shows one row per 예배 순서, latest date first, with the name and a
-  date such as "11월 1일" (November 1). The current service has a check mark. 틀
-  (templates) aren't in this list.
+  date such as "11월 1일" (November 1). The current service has a check mark.
+  템플릿 (templates) aren't in this list.
 - Remaining work (prep, M3-P4): below the list, add 새 예배 (new service), 다른
-  예배에서 가져오기 (import from another service), and 지금 예배를 틀로 저장
-  (save the current service as a 틀). These three actions are not implemented
-  yet. See 05.
+  예배에서 가져오기 (import from another service), and 지금 예배를 템플릿으로
+  저장 (save the current service as a 템플릿). These three actions are not
+  implemented yet. See 05.
 - Choosing another service makes it the current service at once. There is no
   confirmation, even during output.
   - The output doesn't change. The live 슬라이드, background, and 소품 stay on

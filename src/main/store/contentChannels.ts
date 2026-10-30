@@ -28,7 +28,7 @@ const NO_DATA: EditResult = {
 };
 
 /**
- * Answers the content channels: `content:edit` and the song, 예배 순서, and 틀
+ * Answers the content channels: `content:edit` and the song, 예배 순서, and 템플릿
  * reads. A request that arrives before the data is read waits for it. A
  * malformed edit is logged and refused, never applied.
  *

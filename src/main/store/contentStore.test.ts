@@ -567,7 +567,7 @@ describe('ContentStore save failures', () => {
     ).toMatchObject({ok: true, value: {revision: 3}});
   });
 
-  it('names a waiting 틀 without a name by its file name', async () => {
+  it('names a waiting 템플릿 without a name by its file name', async () => {
     const {store, files} = setUp();
     const template = templateFile();
     files.failing = new Set([template.file]);
@@ -583,7 +583,7 @@ describe('ContentStore save failures', () => {
     );
   });
 
-  it('names a waiting 틀 by its name', async () => {
+  it('names a waiting 템플릿 by its name', async () => {
     const {store, files} = setUp();
     const template = templateFile();
     files.failing = new Set([template.file]);
@@ -1051,7 +1051,7 @@ describe('ContentStore 구성 edits across files', () => {
   });
 });
 
-describe('ContentStore 구성 references in 틀', () => {
+describe('ContentStore 구성 references in 템플릿', () => {
   const OTHER_TEMPLATE_ID = 'd74b3f85-ab4c-4d5e-9f60-718293041526';
   const READONLY_TEMPLATE_ID = 'e85c4096-bc5d-4e6f-8071-829304152637';
   const matching = (id = TEMPLATE_ID) =>
@@ -1069,7 +1069,7 @@ describe('ContentStore 구성 references in 틀', () => {
     );
 
   it.each(['rename', 'delete'] as const)(
-    'updates a 틀 revision and push on 구성 %s, including future creation and import',
+    'updates a 템플릿 revision and push on 구성 %s, including future creation and import',
     async action => {
       const template = matching();
       const {store, files, events} = setUp([serviceFile(SUNDAY_ID, [])], {
@@ -1128,7 +1128,7 @@ describe('ContentStore 구성 references in 틀', () => {
 
       const created = await store.apply({
         type: 'service.create',
-        name: '틀로 만든 예배',
+        name: '템플릿으로 만든 예배',
         date: '2026-11-08T11:00',
         templateId: TEMPLATE,
       });
@@ -1162,7 +1162,7 @@ describe('ContentStore 구성 references in 틀', () => {
     },
   );
 
-  it('continues after a failed 틀 write, names it, and retries only that file', async () => {
+  it('continues after a failed 템플릿 write, names it, and retries only that file', async () => {
     const first = matching();
     const second = matching(OTHER_TEMPLATE_ID);
     const {store, files, events, log} = setUp(
@@ -1215,7 +1215,7 @@ describe('ContentStore 구성 references in 틀', () => {
     expect(files.texts.get(first.file)).toContain('짧게');
   });
 
-  it('leaves read-only and unrelated 틀 unchanged and sends no push for them', async () => {
+  it('leaves read-only and unrelated 템플릿 unchanged and sends no push for them', async () => {
     const readonly = {
       ...matching(READONLY_TEMPLATE_ID),
       access: 'readOnly' as const,
@@ -1249,8 +1249,8 @@ describe('ContentStore 구성 references in 틀', () => {
   });
 });
 
-describe('ContentStore 예배 순서 and 틀 edits', () => {
-  it('creates a 예배 순서 from a 틀 with new item ids, or empty', async () => {
+describe('ContentStore 예배 순서 and 템플릿 edits', () => {
+  it('creates a 예배 순서 from a 템플릿 with new item ids, or empty', async () => {
     const {store} = setUp();
 
     const fromTemplate = await store.apply({
@@ -1276,7 +1276,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
     expect(store.service(emptyId)?.service.order).toEqual([]);
   });
 
-  it('appends imported items in source order with new ids, from a 예배 순서 or a 틀', async () => {
+  it('appends imported items in source order with new ids, from a 예배 순서 or a 템플릿', async () => {
     const {store} = setUp([
       serviceFile(SUNDAY_ID, [{id: itemId(1), header: '말씀'}]),
       serviceFile(EVENING_ID, [
@@ -1322,7 +1322,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
     expect(store.service(SUNDAY)?.service.order).toEqual([]);
   });
 
-  it('saves a 예배 순서 as a 틀 with its time and new item ids', async () => {
+  it('saves a 예배 순서 as a 템플릿 with its time and new item ids', async () => {
     const {store, events} = setUp([
       serviceFile(SUNDAY_ID, [{id: itemId(1), header: '찬양'}]),
     ]);
@@ -1343,7 +1343,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
     expect(events.templatesListChanged).toHaveBeenCalledTimes(1);
   });
 
-  it('updates and deletes a 예배 순서 and a 틀', async () => {
+  it('updates and deletes a 예배 순서 and a 템플릿', async () => {
     const {store, files} = setUp([serviceFile(SUNDAY_ID, [])]);
     const sunday = store.service(SUNDAY);
     const template = store.template(TEMPLATE);
@@ -1363,7 +1363,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
         type: 'template.update',
         template: {
           ...(template?.template ?? templateFile().data),
-          name: '새 틀',
+          name: '새 템플릿',
         },
         baseRevision: 1,
       }),
@@ -1378,7 +1378,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
 });
 
 describe('ContentStore lists', () => {
-  it('counts the items of each 예배 순서 and 틀 without their headers', () => {
+  it('counts the items of each 예배 순서 and 템플릿 without their headers', () => {
     const {store} = setUp([
       serviceFile(SUNDAY, [
         {id: itemId(1), header: '찬양'},
@@ -1603,7 +1603,7 @@ describe('ContentStore persistence and notifications', () => {
     if (before === null) throw new Error('Missing test template');
     await store.apply({
       type: 'template.update',
-      template: {...before.template, name: '새 틀'},
+      template: {...before.template, name: '새 템플릿'},
       baseRevision: 1,
     });
 

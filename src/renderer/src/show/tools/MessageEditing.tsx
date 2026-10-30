@@ -54,7 +54,9 @@ function TemplateDialog({
   const textReason = messageTextReason(text);
   return (
     <Dialog
-      title={editor.kind === 'add' ? '메시지 틀 추가' : '메시지 틀 수정'}
+      title={
+        editor.kind === 'add' ? '메시지 템플릿 추가' : '메시지 템플릿 수정'
+      }
       size="s"
       onCancel={onCancel}
       primary={{
@@ -120,7 +122,7 @@ export function MessageEditing({
     onProblem,
     area: {
       key: 'messages',
-      label: '메시지 틀',
+      label: '메시지 템플릿',
       log: 'Could not edit message templates',
     },
   });
@@ -155,9 +157,9 @@ export function MessageEditing({
       <div className={styles.editingTools}>
         <IconButton
           icon="plus"
-          label="메시지 틀 추가"
+          label="메시지 템플릿 추가"
           disabled={locked || full}
-          title={full ? '메시지 틀이 가득 찼습니다' : undefined}
+          title={full ? '메시지 템플릿이 가득 찼습니다' : undefined}
           onClick={() => setEditor({kind: 'add'})}
         />
       </div>
@@ -193,7 +195,7 @@ export function MessageEditing({
       </div>
       {menu ? (
         <Menu
-          label="메시지 틀"
+          label="메시지 템플릿"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={messageMenuEntries({
@@ -206,7 +208,7 @@ export function MessageEditing({
       {editor?.kind === 'delete' ? (
         <AlertDialog
           icon="msg"
-          title={`‘${editor.item.name}’ 메시지 틀을 삭제할까요?`}
+          title={`‘${editor.item.name}’ 메시지 템플릿을 삭제할까요?`}
           onCancel={() => setEditor(null)}
           actions={[
             {

@@ -16,7 +16,7 @@ const NAME_NEEDED = '이름을 적어야 만들 수 있습니다';
 const MISSING = '예배 순서를 읽을 수 없습니다';
 
 /**
- * The 새 예배 dialog: start empty, from a 틀, or from a past service. 취소,
+ * The 새 예배 dialog: start empty, from a 템플릿, or from a past service. 취소,
  * Esc, and the close button wait while a create is on its way.
  */
 export function NewServiceDialog({
@@ -26,7 +26,7 @@ export function NewServiceDialog({
 }: {
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
-  /** 지금 예배를 틀로 저장 under the source list, when given. */
+  /** 지금 예배를 템플릿으로 저장 under the source list, when given. */
   readonly saveTemplate?:
     | {
         readonly disabled: boolean;
@@ -72,7 +72,7 @@ export function NewServiceDialog({
               title={saveTemplate.reason}
               onClick={saveTemplate.onSave}
             >
-              지금 예배를 틀로 저장
+              지금 예배를 템플릿으로 저장
             </Button>
           )
         }

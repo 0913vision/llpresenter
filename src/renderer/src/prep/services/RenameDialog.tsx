@@ -4,7 +4,7 @@ import {TextField} from '@renderer/ui/TextField';
 
 const NAME_NEEDED = '이름을 적어야 바꿀 수 있습니다';
 
-/** 이름 바꾸기 for a 틀 or a 예배 순서; the field starts with its name. */
+/** 이름 바꾸기 for a 템플릿 or a 예배 순서; the field starts with its name. */
 export function RenameDialog({
   name,
   busy,

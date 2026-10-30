@@ -489,7 +489,7 @@ async function backUpAtLaunch(
   }
 }
 
-// NOTE(0913vision): The songs, 예배 순서, 틀, labels, and preferences files
+// NOTE(0913vision): The songs, 예배 순서, 템플릿, labels, and preferences files
 // skipped at startup; the settings problem feed reports the settings and media
 // files.
 function contentProblems(store: LoadedStore): readonly FileError[] {

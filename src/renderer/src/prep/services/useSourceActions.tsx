@@ -18,7 +18,7 @@ import {contextMenuAnchor, type ContextMenuEvent} from '../contextMenu';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 
-/** A 틀 or 예배 순서 row the operator right-clicked, with its list name. */
+/** A 템플릿 or 예배 순서 row the operator right-clicked, with its list name. */
 export interface SourceRow {
   readonly source: NamedSource;
   readonly name: string;
@@ -37,11 +37,11 @@ const problemTitles = {
 } as const;
 
 function kindName(source: NamedSource): string {
-  return source.kind === 'template' ? '틀' : '예배 순서';
+  return source.kind === 'template' ? '템플릿' : '예배 순서';
 }
 
 function kindObject(source: NamedSource): string {
-  return source.kind === 'template' ? '틀을' : '예배 순서를';
+  return source.kind === 'template' ? '템플릿을' : '예배 순서를';
 }
 
 // NOTE(0913vision): A rename sends the whole document with the revision it
@@ -52,11 +52,11 @@ async function renameSource(
   {source, name}: Pick<SourceRow, 'source' | 'name'>,
 ): Promise<boolean> {
   if (source.kind === 'template') {
-    const document = await settle(api, 'Could not read a 틀', () =>
+    const document = await settle(api, 'Could not read a 템플릿', () =>
       api.templates.get(source.id),
     );
     if (document === undefined || document === null) return false;
-    const result = await settle(api, 'Could not rename a 틀', () =>
+    const result = await settle(api, 'Could not rename a 템플릿', () =>
       api.content.edit({
         type: 'template.update',
         template: {...document.template, name},
@@ -83,7 +83,7 @@ async function deleteSource(
 }
 
 /**
- * The right-click menu of the 틀 and 예배 순서 rows in the service dialogs:
+ * The right-click menu of the 템플릿 and 예배 순서 rows in the service dialogs:
  * 이름 바꾸기 and 삭제, with their dialogs. The open 예배 순서 can't be deleted.
  * `overlays` renders the menu and the dialog that is open.
  */

@@ -17,7 +17,7 @@ const NO_SERVICE = '열린 예배 순서가 없습니다';
 /**
  * The service commands at the end of the service picker, and the dialog the
  * chosen one opens. `onOpen` runs first, such as closing the picker.
- * 지금 예배를 틀로 저장 opens nothing unless a 틀 has the service's name.
+ * 지금 예배를 템플릿으로 저장 opens nothing unless a 템플릿 has the service's name.
  */
 export function useServiceActions({
   onProblem,
@@ -54,7 +54,7 @@ export function useServiceActions({
     saveTemplate: {
       kind: 'item',
       id: 'save-template',
-      label: '지금 예배를 틀로 저장',
+      label: '지금 예배를 템플릿으로 저장',
       icon: 'frame',
       disabled: !saver.canSave,
       title: hasService ? undefined : NO_SERVICE,

@@ -7,7 +7,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 - Footers of dialogs and confirmation dialogs: [취소] … [새 곡으로 저장] [덮어쓰기], [새로 시작] [복구하고 시작] (md)
 - Actions at the end of Preferences rows: 지금 백업, 지금 확인, 바꾸기, 기본값으로, 모두 기본값으로 (md)
 - Actions in panel headers and caption rows: 라이브러리 곡 편집, 가져오기, 버리기, 저장 (sm)
-- Less important commands that add an item at the end of a list: 역본 추가, 지금 예배를 틀로 저장 (ghost)
+- Less important commands that add an item at the end of a list: 역본 추가, 지금 예배를 템플릿으로 저장 (ghost)
 
 ## Where not to use
 
@@ -86,5 +86,5 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 - ImportText: [편집] 32px with horizontal padding 18 → md 30 with horizontal padding 14.
 - Recovery: [새로 시작] [복구하고 시작] height 32 → 30 (md), primary button horizontal padding 16 → 14.
 - Prefs, Shortcuts: 28px buttons (바꾸기, 지금 백업, 지금 확인, 기본값으로, 지우기, 모두 기본값으로) 12px with horizontal padding 12 → md 30, 13px, horizontal padding 14 (with a leading icon, left 12 and icon 14 → 16). "역본 추가" 32px 12px → ghost md 30, 13px, icon 16.
-- NewService: "지금 예배를 틀로 저장" 32px 12px icon 14 → ghost md 30, 13px, icon 16.
+- NewService: "지금 예배를 템플릿으로 저장" 32px 12px icon 14 → ghost md 30, 13px, icon 16.
 - Overlays [보내기], Bible [바로 띄우기]: 30px primary button in the panel → sm 26 (12px 600, leading icon 14, left 8).

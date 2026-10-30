@@ -27,7 +27,7 @@ const template: ServiceSource = {kind: 'template', id: ids.template};
 const past: ServiceSource = {kind: 'service', id: ids.past};
 
 describe('useSourceLists', () => {
-  it('reads the 틀, the services, and the song titles', async () => {
+  it('reads the 템플릿, the services, and the song titles', async () => {
     const api = fakeLlpApi({
       templates: {list: () => Promise.resolve(templateEntries)},
       services: {list: () => Promise.resolve(serviceEntries)},
@@ -116,7 +116,7 @@ describe('useSourceDocument', () => {
     services: {get: () => Promise.resolve(pastDocument)},
   });
 
-  it('reads a 틀 with its name, time, and items', async () => {
+  it('reads a 템플릿 with its name, time, and items', async () => {
     const {result} = renderHook(() => useSourceDocument(api, template));
     expect(result.current.document).toBeNull();
     await waitFor(() => expect(result.current.document).not.toBeNull());
