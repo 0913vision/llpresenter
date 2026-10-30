@@ -9,6 +9,7 @@ import {useButtonPress} from '@renderer/ui/press';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
 import {useServicePicker} from './useServicePicker';
+import {useServiceRowMenu} from './useServiceRowMenu';
 import styles from './ServiceOrderHeader.module.css';
 
 const CHEVRON_SIZE = 12;
@@ -27,6 +28,7 @@ export function ServiceOrderHeader({
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const picker = useServicePicker(onProblem);
   const actions = useServiceActions({onProblem, onOpen: picker.close});
+  const rows = useServiceRowMenu(onProblem, picker.close);
   const currentId = useShow(view => view.serviceId);
   const name = useShow(view =>
     view.serviceId === null ? null : view.serviceName,
@@ -70,7 +72,13 @@ export function ServiceOrderHeader({
           label="예배 순서 선택"
           anchor={{kind: 'element', element: anchor}}
           width={PICKER_WIDTH}
-          onClose={picker.close}
+          onClose={() => {
+            if (document.activeElement instanceof HTMLInputElement) {
+              document.activeElement.blur();
+            }
+            rows.cancelRename();
+            picker.close();
+          }}
           search={{value: picker.query, onChange: picker.setQuery}}
           entries={[
             ...picker.visible.map((entry): MenuEntry => ({
@@ -81,6 +89,8 @@ export function ServiceOrderHeader({
               check: 'radio',
               checked: entry.id === currentId,
               onSelect: () => picker.select(entry),
+              onMenu: anchor => rows.openMenu(entry, anchor),
+              rename: rows.renameFor(entry),
             })),
             ...(picker.visible.length === 0
               ? []
@@ -90,6 +100,7 @@ export function ServiceOrderHeader({
         />
       ) : null}
       {actions.dialogs}
+      {rows.overlays}
     </>
   );
 }

@@ -1,4 +1,6 @@
 import type {ReactNode} from 'react';
+import type {GroupRename} from './ListRow';
+import type {MenuAnchor} from './Menu';
 import type {LabelColor} from '@shared/colors';
 import type {SearchRange} from '@shared/searchText';
 
@@ -32,6 +34,8 @@ export interface MenuItem {
   /** Builds choices only while this submenu is open. */
   readonly loadSubmenu?: (() => readonly MenuEntry[]) | undefined;
   readonly onSelect?: (() => void) | undefined;
+  readonly onMenu?: ((anchor: MenuAnchor) => void) | undefined;
+  readonly rename?: GroupRename | undefined;
   /** Keeps the menu open after the item runs, as a mode switch does. */
   readonly keepsOpen?: boolean | undefined;
 }

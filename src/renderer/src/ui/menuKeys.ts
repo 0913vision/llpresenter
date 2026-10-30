@@ -113,3 +113,28 @@ export function handleMenuKey(
     }
   }
 }
+
+export function openItemMenu(
+  event: KeyboardEvent,
+  item: MenuItem | undefined,
+  element: HTMLElement | null | undefined,
+): boolean {
+  if (isComposing(event) || event.ctrlKey || event.altKey || event.metaKey) {
+    return false;
+  }
+  if (!(
+    event.key === 'ContextMenu' ||
+    (event.key === 'F10' && event.shiftKey)
+  )) {
+    return false;
+  }
+  if (
+    event.target instanceof HTMLInputElement &&
+    event.target.getAttribute('role') !== 'combobox'
+  ) {
+    return false;
+  }
+  if (!item?.onMenu || !element) return false;
+  item.onMenu({kind: 'element', element});
+  return true;
+}

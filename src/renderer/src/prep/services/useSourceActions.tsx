@@ -12,7 +12,12 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from './RenameDialog';
-import {editApplied, settle, warningNotice} from './serviceEdits';
+import {
+  editApplied,
+  renameService,
+  settle,
+  warningNotice,
+} from './serviceEdits';
 import type {ServiceSource} from './useServiceSources';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
@@ -64,18 +69,7 @@ async function renameSource(
     );
     return result !== undefined && editApplied(result);
   }
-  const document = await settle(api, 'Could not read a service', () =>
-    api.services.get(source.id),
-  );
-  if (document === null || document === undefined) return false;
-  const result = await settle(api, 'Could not rename a service', () =>
-    api.content.edit({
-      type: 'service.update',
-      service: {...document.service, name},
-      baseRevision: document.revision,
-    }),
-  );
-  return result !== undefined && editApplied(result);
+  return renameService(api, source.id, name);
 }
 
 async function deleteSource(
@@ -104,6 +98,7 @@ export function useSourceActions({
 }): {
   readonly openMenu: (event: MouseEvent, row: SourceRow) => void;
   readonly overlays: ReactNode;
+  readonly confirmDelete: (row: SourceRow) => void;
 } {
   const api = window.llp;
   const currentId = useShow(view => view.serviceId);
@@ -226,5 +221,9 @@ export function useSourceActions({
       ) : null}
     </>
   );
-  return {openMenu, overlays};
+  return {
+    openMenu,
+    overlays,
+    confirmDelete: row => setDialog({kind: 'delete', row}),
+  };
 }

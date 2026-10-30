@@ -12,6 +12,10 @@ import {
 } from './serviceEdits';
 
 type SaveTemplateApi = Pick<LlpApi, 'content' | 'templates' | 'log'>;
+interface TemplateService {
+  readonly id: ServiceId;
+  readonly name: string;
+}
 
 /** A 틀 with the open service's name already exists; the operator decides. */
 export interface TemplateConflict {
@@ -110,9 +114,10 @@ export function useSaveTemplate({
       });
   };
 
-  const save = (): void => {
-    if (api === undefined || serviceId === null || busy) return;
-    const name = currentName;
+  const save = (target?: TemplateService): void => {
+    const id = target?.id ?? serviceId;
+    if (api === undefined || id === null || busy) return;
+    const name = target?.name ?? currentName;
     setBusy(true);
     settle(api, 'Could not read the 틀 list', () => api.templates.list())
       .then(entries => {
@@ -124,13 +129,13 @@ export function useSaveTemplate({
         }
         const existing = entries.find(entry => entry.name === name);
         if (existing === undefined) {
-          finish(writeTemplate({api, serviceId, name}));
+          finish(writeTemplate({api, serviceId: id, name}));
           return;
         }
         setBusy(false);
         setConflict({
           name,
-          serviceId,
+          serviceId: id,
           existing: existing.id,
           taken: new Set(entries.map(entry => entry.name)),
         });
@@ -164,7 +169,8 @@ export function useSaveTemplate({
 
   return {
     canSave: serviceId !== null && !busy,
-    save,
+    save: () => save(),
+    saveService: (target: TemplateService) => save(target),
     conflict: conflict === null ? null : {name: conflict.name},
     busy,
     saveNew,

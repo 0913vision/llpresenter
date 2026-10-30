@@ -49,3 +49,22 @@ export async function settle<T>(
     return undefined;
   }
 }
+
+export async function renameService(
+  api: Pick<LlpApi, 'services' | 'content' | 'log'>,
+  serviceId: ServiceId,
+  name: string,
+): Promise<boolean> {
+  const document = await settle(api, 'Could not read a service', () =>
+    api.services.get(serviceId),
+  );
+  if (!document) return false;
+  const result = await settle(api, 'Could not rename a service', () =>
+    api.content.edit({
+      type: 'service.update',
+      service: {...document.service, name},
+      baseRevision: document.revision,
+    }),
+  );
+  return result !== undefined && editApplied(result);
+}

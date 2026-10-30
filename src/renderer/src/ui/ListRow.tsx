@@ -471,7 +471,7 @@ function ownsFieldKey(event: KeyboardEvent): boolean {
   return true;
 }
 
-function NameField({
+export function NameField({
   id,
   label,
   rename,

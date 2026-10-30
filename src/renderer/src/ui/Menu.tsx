@@ -15,7 +15,7 @@ import {
 import {createPortal} from 'react-dom';
 import {placeFloating} from './floating';
 import {layerContainer} from './layers';
-import {handleMenuKey, type MenuCloseReason} from './menuKeys';
+import {handleMenuKey, openItemMenu, type MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
 import {
   isRunnable,
@@ -323,7 +323,20 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         tabIndex={-1}
         className={styles.menu}
         style={style}
-        onKeyDown={nav.onKeyDown}
+        onKeyDown={event => {
+          if (
+            openItemMenu(
+              event,
+              nav.items[nav.pointed],
+              nav.itemElements.current[nav.pointed],
+            )
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+          } else {
+            nav.onKeyDown(event);
+          }
+        }}
         onPointerEnter={() => {
           focusMenu(surface.current);
           props.onPointerEnter?.();

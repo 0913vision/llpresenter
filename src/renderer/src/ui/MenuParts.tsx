@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useRef, type JSX} from 'react';
 import {Icon} from './Icon';
 import {
   hasIconColumn,
@@ -12,6 +12,7 @@ import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './Menu.module.css';
 import {useInputCompletion, type InputCompletion} from './useInputCompletion';
 import {useFieldReason} from './fieldFrame';
+import {NameField} from './ListRow';
 
 const ICON_SIZE = 18;
 const CHECK_SIZE = 16;
@@ -91,11 +92,21 @@ export function MenuItemRow({
   onRun,
 }: MenuItemRowProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
+  const row = useRef<HTMLDivElement>(null);
+  const finishRename = (name?: string): void => {
+    if (name === undefined) item.rename?.onCancel();
+    else item.rename?.onCommit(name);
+    const menu = row.current?.closest<HTMLElement>('[role="menu"]');
+    (menu?.querySelector<HTMLElement>('[role="combobox"]') ?? menu)?.focus();
+  };
   const hasSubmenu = hasMenuSubmenu(item);
   return (
     <div
       {...targetProps}
-      ref={elementRef}
+      ref={element => {
+        row.current = element;
+        elementRef(element);
+      }}
       id={id}
       role={menuItemRole(item)}
       aria-checked={
@@ -110,7 +121,16 @@ export function MenuItemRow({
         targetProps.onPointerEnter(event);
         onPoint();
       }}
-      onClick={onRun}
+      onClick={item.rename === undefined ? onRun : undefined}
+      onContextMenu={event => {
+        if (item.onMenu === undefined || item.rename !== undefined) return;
+        event.preventDefault();
+        event.stopPropagation();
+        item.onMenu({
+          kind: 'point',
+          point: {x: event.clientX, y: event.clientY},
+        });
+      }}
     >
       {item.checked === true ? <MenuCheck /> : null}
       {iconColumn ? (
@@ -133,7 +153,18 @@ export function MenuItemRow({
         />
       )}
       <span className={styles.label}>
-        <LabelText label={item.label} match={item.match} />
+        {item.rename === undefined ? (
+          <LabelText label={item.label} match={item.match} />
+        ) : (
+          <NameField
+            label={item.label}
+            rename={{
+              ...item.rename,
+              onCommit: finishRename,
+              onCancel: () => finishRename(),
+            }}
+          />
+        )}
       </span>
       {item.meta === undefined ? null : (
         <span className={styles.meta}>{item.meta}</span>

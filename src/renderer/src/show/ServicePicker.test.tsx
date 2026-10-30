@@ -79,6 +79,23 @@ afterEach(() => {
 });
 
 describe('service picker', () => {
+  it('lists every service, the separator and the new-service command in spec order', async () => {
+    const {user} = setup();
+    await openMenu(user);
+    const menu = screen.getByRole('menu', {name: '예배 순서 선택'});
+    expect(
+      [...menu.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
+        row => [row.getAttribute('role'), row.textContent],
+      ),
+    ).toEqual([
+      ['menuitemradio', '저녁 예배10월 26일'],
+      ['menuitemradio', '주일 예배10월 25일'],
+      ['menuitemradio', '수요 예배10월 24일'],
+      ['separator', ''],
+      ['menuitem', '새 예배…'],
+    ]);
+  });
+
   it('sorts by latest date, checks the current service, filters names, and restores focus on Esc', async () => {
     const {user, stopList} = setup();
     await user.tab();
