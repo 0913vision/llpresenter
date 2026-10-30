@@ -1,5 +1,5 @@
 import type {TextImportReadRequest} from '@core/schema/textImport';
-import type {ServiceActionEntries} from '@renderer/prep/services/useServiceActions';
+import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

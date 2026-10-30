@@ -30,7 +30,7 @@ import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
-} from '@renderer/prep/service/itemFixture';
+} from '@renderer/features/service/items/itemFixture';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {

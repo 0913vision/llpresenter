@@ -5,7 +5,7 @@ import {emptyLiveState} from '@core/live/state';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {sendLive, startLiveSync, useLive} from '../platform/live';
 import {applyService, openItem, outputTile, useShow} from './show';
 

@@ -2,7 +2,7 @@ import {expect, it, vi} from 'vitest';
 import {createServiceId} from '@core/schema/ids';
 import {libraryFixture} from './fixture';
 import {libraryMenuEntries} from './libraryMenuEntries';
-import {serviceEntries} from '../services/testing';
+import {serviceEntries} from '../../features/service/list/testing';
 
 it('groups services newest first and prevents adding to a read-only service', () => {
   const song = libraryFixture().list()[0];

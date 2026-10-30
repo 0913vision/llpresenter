@@ -14,7 +14,7 @@ import type {GroupedSong} from '@core/schema/groupedSong';
 import type {Song} from '@core/schema/song';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
-import {backgroundChange} from '@renderer/state/serviceBackground';
+import {backgroundChange} from '@renderer/features/service/state/serviceBackground';
 import {
   pendingWritesOf,
   type PendingWrites,
@@ -23,7 +23,7 @@ import {
   updateServiceItem,
   itemArrangementChange,
   type ServiceItemChange,
-} from '@renderer/state/serviceItemUpdate';
+} from '@renderer/features/service/state/serviceItemUpdate';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export type ServiceItemStoreApi = Pick<

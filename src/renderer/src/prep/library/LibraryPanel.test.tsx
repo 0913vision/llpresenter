@@ -18,7 +18,10 @@ import {layerContainer} from '@renderer/ui/layers';
 import {fixtureSong, libraryFixture} from './fixture';
 import {LibraryPanel} from './LibraryPanel';
 import {LibraryGalleryHost, LibrarySection} from './LibrarySection';
-import {pastDocument, serviceEntries} from '../services/testing';
+import {
+  pastDocument,
+  serviceEntries,
+} from '../../features/service/list/testing';
 
 class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];

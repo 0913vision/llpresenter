@@ -14,7 +14,7 @@ import {
   type ServiceItem,
 } from '@core/schema/service';
 import {sectionBoundaryIndex} from '@core/services/serviceSections';
-import {pendingWritesOf} from '../platform/pendingWrites';
+import {pendingWritesOf} from '../../../platform/pendingWrites';
 
 const HISTORY_LIMIT = 100;
 type Order = Service['order'];

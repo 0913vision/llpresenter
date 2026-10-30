@@ -14,7 +14,10 @@ import {
   warningNotice,
 } from './serviceEdits';
 import type {ServiceSource} from './useServiceSources';
-import {contextMenuAnchor, type ContextMenuEvent} from '../contextMenu';
+import {
+  contextMenuAnchor,
+  type ContextMenuEvent,
+} from '../../../prep/contextMenu';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 

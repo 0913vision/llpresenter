@@ -11,9 +11,9 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {ids, pastDocument} from '@renderer/prep/services/testing';
+import {ids, pastDocument} from '@renderer/features/service/list/testing';
 import {applyService, useShow} from '@renderer/state/show';
-import {sampleService} from './testing/sampleService';
+import {sampleService} from '../../../show/testing/sampleService';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
 
 const pastName = pastDocument.service.name;

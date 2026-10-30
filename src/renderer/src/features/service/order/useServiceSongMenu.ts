@@ -7,7 +7,7 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   itemArrangementChange,
   updateServiceItem,
-} from '@renderer/state/serviceItemUpdate';
+} from '@renderer/features/service/state/serviceItemUpdate';
 import {useShow} from '@renderer/state/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {MenuEntry} from '@renderer/ui/menuModel';

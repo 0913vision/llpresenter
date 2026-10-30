@@ -9,7 +9,7 @@ import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
-} from '@renderer/prep/service/itemFixture';
+} from '@renderer/features/service/items/itemFixture';
 import {useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/platform/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';

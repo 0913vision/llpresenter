@@ -17,7 +17,7 @@ import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
-import {useHeaderRename} from '@renderer/state/headerRename';
+import {useHeaderRename} from '@renderer/features/service/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
 import {formLookupReply} from '@renderer/show/bible/testing/referenceForm';
 import type {RecentPassage} from '@core/schema/bible';

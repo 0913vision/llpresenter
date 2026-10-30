@@ -13,11 +13,11 @@ import {
   legacyOrderChips,
   movedOrder,
   withoutPosition,
-} from '../service/songItemModel';
+} from '../../features/service/items/songItemModel';
 import {editedOrder, editedOrderWithLimit} from '@core/songs/songArrangements';
 import type {SongSession} from './songSession';
 import styles from './ArrangementRow.module.css';
-import {useChipDrag} from '../service/useChipDrag';
+import {useChipDrag} from '../../features/service/items/useChipDrag';
 
 interface StripProps {
   readonly session: SongSession<AnySong>;

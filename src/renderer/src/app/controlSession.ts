@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {SongEditorStore} from '@renderer/prep/editor';
-import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
+import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {CloseFlush} from './closeFlush';

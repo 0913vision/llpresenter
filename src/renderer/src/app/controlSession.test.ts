@@ -6,7 +6,7 @@ import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
-} from '@renderer/prep/service/itemFixture';
+} from '@renderer/features/service/items/itemFixture';
 import {ControlSession} from './controlSession';
 
 it('refuses close after a memo reaches main but cannot be saved to disk, then retries', async () => {

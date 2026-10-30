@@ -8,7 +8,10 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {createServiceId} from '@core/schema/ids';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
-import {sampleService, seedSampleService} from './testing/sampleService';
+import {
+  sampleService,
+  seedSampleService,
+} from '../../../show/testing/sampleService';
 
 beforeEach(seedSampleService);
 afterEach(() => {

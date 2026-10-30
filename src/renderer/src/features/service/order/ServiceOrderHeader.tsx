@@ -7,7 +7,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useButtonPress} from '@renderer/ui/press';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {useServiceActions} from '@renderer/prep/services/useServiceActions';
+import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';
 import styles from './ServiceOrderHeader.module.css';

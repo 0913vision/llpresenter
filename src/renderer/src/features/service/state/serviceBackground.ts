@@ -1,6 +1,6 @@
 import type {MediaId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
-import {pendingWritesOf} from '../platform/pendingWrites';
+import {pendingWritesOf} from '../../../platform/pendingWrites';
 import {
   updateServiceItem,
   type ServiceItemApi,

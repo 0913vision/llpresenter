@@ -5,7 +5,7 @@ import type {MediaId, SongId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {applyService, useShow} from '@renderer/state/show';
 import {sendLive, useLive} from '@renderer/platform/live';
-import {updateServiceBackground} from '@renderer/state/serviceBackground';
+import {updateServiceBackground} from '@renderer/features/service/state/serviceBackground';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 interface BackgroundView {

@@ -13,10 +13,10 @@ import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
-import {useHeaderRename} from '@renderer/state/headerRename';
+import {useHeaderRename} from '@renderer/features/service/state/headerRename';
 import {useLive} from '@renderer/platform/live';
 import {ServiceOrderList} from './ServiceOrderList';
-import {otherItemEntries} from '@renderer/prep/service/quickAddItems';
+import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
 import type {ServiceItem} from '@core/schema/service';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');

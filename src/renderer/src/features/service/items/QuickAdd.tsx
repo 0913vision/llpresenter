@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {createServiceItemId} from '@core/schema/ids';
-import {useServiceOrderEditing} from '@renderer/show/useServiceOrderEditing';
+import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {useShow} from '@renderer/state/show';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu} from '@renderer/ui/Menu';
@@ -13,7 +13,7 @@ import {passageItem, type PassageDefaults} from './quickAddBible';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOtherSources} from './useOtherSources';
-import {useHeaderRename} from '@renderer/state/headerRename';
+import {useHeaderRename} from '@renderer/features/service/state/headerRename';
 import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
 
 const NO_SERVICE_REASON = '열린 예배 순서가 없습니다';

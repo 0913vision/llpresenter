@@ -1,7 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {cssRules} from '@renderer/app/shell/testing/cssRules';
 
-const ruleOf = cssRules('src/renderer/src/show/ServiceOrderHeader.module.css');
+const ruleOf = cssRules(
+  'src/renderer/src/features/service/order/ServiceOrderHeader.module.css',
+);
 
 describe('ServiceOrderHeader layout rules', () => {
   it('uses the shared title scale independently of the general heading', () => {

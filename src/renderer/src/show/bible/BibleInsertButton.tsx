@@ -1,10 +1,10 @@
 import type {JSX} from 'react';
-import {passageItem} from '@renderer/prep/service/quickAddBible';
-import {NEWER_FILE_REASON} from '@renderer/prep/service/ItemArrangement';
+import {passageItem} from '@renderer/features/service/items/quickAddBible';
+import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
 import {useShow} from '@renderer/state/show';
 import {Button} from '@renderer/ui/Button';
 import type {Notice} from '@renderer/ui/notices';
-import {useServiceOrderEditing} from '../useServiceOrderEditing';
+import {useServiceOrderEditing} from '../../features/service/order/useServiceOrderEditing';
 import {rememberBiblePassage} from './recentWriter';
 import type {BibleSource} from '@core/bible/source';
 

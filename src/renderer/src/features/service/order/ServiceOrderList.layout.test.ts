@@ -1,7 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {cssRules} from '@renderer/app/shell/testing/cssRules';
 
-const ruleOf = cssRules('src/renderer/src/show/ServiceOrderList.module.css');
+const ruleOf = cssRules(
+  'src/renderer/src/features/service/order/ServiceOrderList.module.css',
+);
 
 describe('ServiceOrderList layout rules', () => {
   it('pads the list body 4 at the top and 8 at the bottom, as a Panel list body', () => {

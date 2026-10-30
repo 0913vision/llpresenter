@@ -22,17 +22,17 @@ import {
 import {
   ItemPreviewPanel,
   ItemSettingsPanel,
-} from '@renderer/prep/service/ItemSidePanels';
-import {ServiceQuickAdd} from '@renderer/prep/service/QuickAdd';
+} from '@renderer/features/service/items/ItemSidePanels';
+import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {MediaBin} from '@renderer/prep/media/MediaBin';
 import type {MediaApi} from '@renderer/prep/media/mediaLibrary';
 import {MediaViewProvider} from '@renderer/prep/media/MediaViewProvider';
-import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
-import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
+import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
+import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
-import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
-import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
+import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';

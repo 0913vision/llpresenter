@@ -2,12 +2,12 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {SongEditorStore} from '@renderer/prep/editor/songEditorStore';
-import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
+import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
-} from '@renderer/prep/service/itemFixture';
+} from '@renderer/features/service/items/itemFixture';
 import {useShow} from '@renderer/state/show';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';

@@ -18,7 +18,7 @@ import {
   useShow,
 } from '@renderer/state/show';
 import {sampleService, seedSampleService} from './testing/sampleService';
-import {ServiceOrderList} from './ServiceOrderList';
+import {ServiceOrderList} from '../features/service/order/ServiceOrderList';
 import {SlideGrid} from './SlideGrid';
 
 const sent: LiveCommand[] = [];

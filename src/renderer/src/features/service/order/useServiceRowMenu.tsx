@@ -5,10 +5,10 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   renameService,
   warningNotice,
-} from '@renderer/prep/services/serviceEdits';
-import {useSourceActions} from '@renderer/prep/services/useSourceActions';
-import {useSaveTemplate} from '@renderer/prep/services/useSaveTemplate';
-import {SaveTemplatePrompt} from '@renderer/prep/services/SaveTemplatePrompt';
+} from '@renderer/features/service/list/serviceEdits';
+import {useSourceActions} from '@renderer/features/service/list/useSourceActions';
+import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';
+import {SaveTemplatePrompt} from '@renderer/features/service/list/SaveTemplatePrompt';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import type {Notice} from '@renderer/ui/notices';

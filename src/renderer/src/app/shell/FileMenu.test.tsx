@@ -10,7 +10,7 @@ import {
   templateDocument,
   templateEntries,
   titles,
-} from '@renderer/prep/services/testing';
+} from '@renderer/features/service/list/testing';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {MenuBar} from './MenuBar';
 
