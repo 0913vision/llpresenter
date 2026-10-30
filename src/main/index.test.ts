@@ -47,6 +47,9 @@ vi.mock('node:fs/promises', async importOriginal => {
 
 const ABSOLUTE = process.platform === 'win32' ? 'C:\\data\\qa' : '/data/qa';
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
+// NOTE(0913vision): The quit waits for the log flush, which takes over a
+// second under coverage on a CI runner; the default 1 s wait failed there.
+const EXIT_WAIT = {timeout: ENTRY_TEST_TIMEOUT_MS};
 
 async function loadMain(): Promise<void> {
   const events = ['uncaughtException', 'unhandledRejection'] as const;
@@ -96,7 +99,7 @@ describe(
         expect(electron.app.exit).toHaveBeenCalledWith(
           BAD_ENVIRONMENT_EXIT_CODE,
         );
-      });
+      }, EXIT_WAIT);
       expect(electron.app.setPath).not.toHaveBeenCalled();
       expect(electron.app.requestSingleInstanceLock).not.toHaveBeenCalled();
       expect(electron.dialog.showErrorBox).not.toHaveBeenCalled();
@@ -115,7 +118,7 @@ describe(
         expect(electron.app.exit).toHaveBeenCalledWith(
           BAD_ENVIRONMENT_EXIT_CODE,
         );
-      });
+      }, EXIT_WAIT);
       expect(logAtExit).toContain('Failed to set path');
     });
 
