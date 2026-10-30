@@ -11,7 +11,10 @@ import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {ArrangementPicker} from './ArrangementPicker';
+import {NewArrangementDialog} from './NewArrangementDialog';
+import {SongArrangementStrip} from './SongArrangementStrip';
+import {arrangementManagementEntries} from './arrangementMenuEntries';
 import {isComposing} from '@renderer/ui/ime';
 import {ArrangementDialog} from './ArrangementDialog';
 import {editorTask} from './editorTask';
@@ -35,7 +38,12 @@ export function ArrangementRow({
   readonly store: SongEditorStore;
   readonly session: SongSession<AnySong>;
 }): JSX.Element {
-  const {busy} = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const {busy, labels} = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+  );
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(0);
   const row = useRef<HTMLDivElement>(null);
   const [restore, setRestore] = useState<{target: HTMLElement} | null>(null);
   const [context, setContext] = useState<Context | null>(null);
@@ -101,7 +109,7 @@ export function ArrangementRow({
     ? '저장 중'
     : session.readOnly
       ? '읽기 전용 곡'
-      : '기본 구성은 변경할 수 없습니다';
+      : '기본 구성은 바꿀 수 없습니다';
   return (
     <div
       ref={row}
@@ -119,13 +127,14 @@ export function ArrangementRow({
     >
       <span className={styles.label}>구성</span>
       {options.length > MAX_SEGMENTS ? (
-        <SelectMenu
-          aria-label="구성"
-          size="sm"
-          options={options}
-          value={value}
-          onChange={select}
+        <ArrangementPicker
+          names={names}
+          selected={session.arrangement}
           disabled={busy}
+          createReason={locked ? reason : undefined}
+          choose={name => session.selectArrangement(name)}
+          create={() => setCreating(true)}
+          edit={() => setEditing(value => value + 1)}
         />
       ) : (
         <SegmentedControl
@@ -136,18 +145,22 @@ export function ArrangementRow({
           disabled={busy}
         />
       )}
+      {options.length <= MAX_SEGMENTS ? (
+        <IconButton
+          icon="edit"
+          size="sm"
+          label="구성 편집…"
+          disabled={busy}
+          onClick={() => setEditing(value => value + 1)}
+        />
+      ) : null}
       <IconButton
         icon="plus"
         size="sm"
         label="구성 추가"
         disabled={locked}
         title={locked ? reason : undefined}
-        onClick={event => {
-          const name = session.createArrangement();
-          if (name !== undefined) {
-            setRename({name, opener: event.currentTarget});
-          }
-        }}
+        onClick={() => setCreating(true)}
       />
       {context === null ? null : (
         <Menu
@@ -156,42 +169,52 @@ export function ArrangementRow({
           onClose={why => {
             if (why !== 'select') close(context.opener);
           }}
-          entries={[
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              disabled: menuLocked,
-              title: menuLocked ? reason : undefined,
-              onSelect: () => {
-                if (context.name !== undefined) {
-                  setRename({name: context.name, opener: context.opener});
-                }
-                setContext(null);
-              },
+          entries={arrangementManagementEntries({
+            reason: menuLocked ? reason : undefined,
+            rename: () => {
+              if (context.name !== undefined) {
+                setRename({name: context.name, opener: context.opener});
+              }
+              setContext(null);
             },
-            {kind: 'separator', id: 'separator'},
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              disabled: menuLocked,
-              title: menuLocked ? reason : undefined,
-              onSelect: () => {
-                setContext(null);
-                editorTask(
-                  (async () => {
-                    if (context.name !== undefined) {
-                      await store.deleteArrangement(context.name);
-                    }
-                    close(context.opener);
-                  })(),
-                );
-              },
+            remove: () => {
+              setContext(null);
+              editorTask(
+                (async () => {
+                  if (context.name !== undefined) {
+                    await store.deleteArrangement(context.name);
+                  }
+                  close(context.opener);
+                })(),
+              );
             },
-          ]}
+          })}
         />
       )}
+      {editing ? (
+        <SongArrangementStrip
+          key={editing}
+          session={session}
+          labels={labels?.value.labels ?? []}
+          locked={locked}
+        />
+      ) : null}
+      {creating ? (
+        <NewArrangementDialog
+          names={names}
+          locked={locked}
+          create={name =>
+            Promise.resolve(session.createArrangement(name) !== undefined)
+          }
+          onClose={() => {
+            setCreating(false);
+            const opener = row.current?.querySelector<HTMLElement>(
+              'button[aria-label="구성"], button[aria-label="구성 추가"]',
+            );
+            if (opener) setRestore({target: opener});
+          }}
+        />
+      ) : null}
       {rename === null ? null : (
         <ArrangementDialog
           key={rename.name}

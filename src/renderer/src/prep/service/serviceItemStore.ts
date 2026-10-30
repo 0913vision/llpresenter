@@ -252,21 +252,29 @@ export class ServiceItemStore {
    * 새 구성: adds a 구성 to the song that copies the order the item plays,
    * saves the song, and then picks the new 구성 for the item.
    */
-  createArrangement(): Promise<boolean> {
+  createArrangement(name?: string): Promise<boolean> {
     const {song, arrangement} = this.state;
     const target = this.target;
     if (song === null || target === null) return Promise.resolve(false);
-    return this.operation(() => this.addArrangement(song, arrangement, target));
+    return this.operation(() =>
+      this.addArrangement({song, arrangement, target, name}),
+    );
   }
 
-  private async addArrangement(
-    song: SongSession,
-    arrangement: string | undefined,
-    target: ItemTarget,
-  ): Promise<boolean> {
+  private async addArrangement({
+    song,
+    arrangement,
+    target,
+    name: requestedName,
+  }: {
+    readonly song: SongSession;
+    readonly arrangement: string | undefined;
+    readonly target: ItemTarget;
+    readonly name: string | undefined;
+  }): Promise<boolean> {
     if (!this.alive) return false;
     const songId = song.document.song.id;
-    const name = song.copyArrangement(arrangement);
+    const name = song.copyArrangement(arrangement, requestedName);
     if (name === undefined || !(await song.flush())) return false;
     return this.edit({
       change: item =>

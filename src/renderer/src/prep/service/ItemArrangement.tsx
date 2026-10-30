@@ -1,6 +1,13 @@
-import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useRef,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import type {Label} from '@shared/schema/labels';
-import {DEFAULT_ARRANGEMENT_NAME, type Song} from '@shared/schema/song';
+import type {Song} from '@shared/schema/song';
 import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
 import type {SongGroupId} from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
@@ -15,7 +22,8 @@ import {useLive} from '@renderer/state/live';
 import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {ArrangementPicker} from '../editor/ArrangementPicker';
+import {NewArrangementDialog} from '../editor/NewArrangementDialog';
 import {Icon} from '@renderer/ui/Icon';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -187,13 +195,6 @@ function makeLegacyAdapter({
   };
 }
 
-function arrangementOptions(song: Song | GroupedSong) {
-  return [
-    DEFAULT_ARRANGEMENT_NAME,
-    ...(song.arrangements?.map(arrangement => arrangement.name) ?? []),
-  ].map(value => ({value, label: value}));
-}
-
 function ArrangementStripSection({
   adapter,
   selected,
@@ -265,6 +266,15 @@ export function ItemArrangement({
     items.subscribe,
     items.getSnapshot,
   );
+  const [creating, setCreating] = useState(false);
+  const [editRequest, setEditRequest] = useState(0);
+  const strip = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (editRequest > 0) {
+      strip.current?.focus();
+      strip.current?.scrollIntoView({block: 'nearest'});
+    }
+  }, [editRequest]);
   const live = useLive(view => {
     const slide = view.state?.layers.slide;
     return slide?.itemId === itemId ? slide.position : undefined;
@@ -332,31 +342,16 @@ export function ItemArrangement({
     <div className={styles.arrangement}>
       <div className={styles.choice}>
         <span className={styles.choiceLabel}>구성</span>
-        <SelectMenu
-          aria-label="구성"
-          aria-description={missingReason}
-          size="sm"
-          options={arrangementOptions(song)}
-          value={arrangement ?? DEFAULT_ARRANGEMENT_NAME}
+        <ArrangementPicker
+          names={song.arrangements?.map(value => value.name) ?? []}
+          selected={arrangement}
           disabled={busy || serviceReason !== undefined}
           title={serviceReason ?? missingReason}
-          onChange={value =>
-            editorTask(
-              items.chooseArrangement(
-                value === DEFAULT_ARRANGEMENT_NAME ? undefined : value,
-              ),
-            )
-          }
-          actions={[
-            {
-              id: 'new',
-              label: '새 구성',
-              icon: 'plus',
-              disabled: session.readOnly,
-              title: session.readOnly ? NEWER_FILE_REASON : undefined,
-              onSelect: () => editorTask(items.createArrangement()),
-            },
-          ]}
+          description={missingReason}
+          createReason={session.readOnly ? NEWER_FILE_REASON : undefined}
+          choose={name => editorTask(items.chooseArrangement(name))}
+          create={() => setCreating(true)}
+          edit={() => setEditRequest(value => value + 1)}
         />
         {missingReason === undefined ? null : (
           <Tooltip text={missingReason}>
@@ -370,15 +365,25 @@ export function ItemArrangement({
           </Tooltip>
         )}
       </div>
-      <ArrangementStripSection
-        key={sequence.capped ? 'capped' : 'normal'}
-        adapter={adapter}
-        selected={selected}
-        live={live}
-        orderReason={orderReason}
-        drag={drag}
-        labels={labels}
-      />
+      {creating ? (
+        <NewArrangementDialog
+          names={song.arrangements?.map(value => value.name) ?? []}
+          locked={busy || session.readOnly || serviceReason !== undefined}
+          create={name => items.createArrangement(name)}
+          onClose={() => setCreating(false)}
+        />
+      ) : null}
+      <div ref={strip} tabIndex={-1} role="group" aria-label="구성 편집">
+        <ArrangementStripSection
+          key={sequence.capped ? 'capped' : 'normal'}
+          adapter={adapter}
+          selected={selected}
+          live={live}
+          orderReason={orderReason}
+          drag={drag}
+          labels={labels}
+        />
+      </div>
     </div>
   );
 }

@@ -11,3 +11,8 @@
 .label {
   font: var(--type-caption-strong);
 }
+
+.strip {
+  flex-basis: 100%;
+  min-width: 0;
+}

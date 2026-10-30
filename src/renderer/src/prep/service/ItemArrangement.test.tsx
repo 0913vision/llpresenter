@@ -1,4 +1,11 @@
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
@@ -146,6 +153,7 @@ async function setupGrouped(
     },
   };
   fixture.pushService(updatedService);
+  fixture.documents.set(document.song.id, document);
 
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const session = new SongSession({
@@ -209,6 +217,33 @@ async function setupGrouped(
 }
 
 describe('ItemArrangement with grouped songs', () => {
+  it('opens the item arrangement strip without changing the item or output', async () => {
+    const {user, edits} = await setupGrouped();
+    await user.click(screen.getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '구성 편집…'}));
+    expect(document.activeElement).toBe(
+      screen.getByRole('group', {name: '구성 편집'}),
+    );
+    expect(edits).toHaveLength(0);
+  });
+
+  it('asks for a name before creating and choosing an item arrangement', async () => {
+    const {user, session, service} = await setupGrouped();
+    await user.click(screen.getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '새 구성…'}));
+    expect(session.history.snapshot.song.arrangements).toHaveLength(2);
+    fireEvent.change(screen.getByRole('textbox', {name: '구성 이름'}), {
+      target: {value: '저녁용'},
+    });
+    await user.click(screen.getByRole('button', {name: '확인'}));
+    await waitFor(() =>
+      expect(service().service.order[0]).toMatchObject({arrangement: '저녁용'}),
+    );
+    expect(session.history.snapshot.song.arrangements?.at(-1)?.name).toBe(
+      '저녁용',
+    );
+  });
+
   it.each([false, true])(
     'identifies a missing group arrangement with song readOnly=%s',
     async readOnly => {

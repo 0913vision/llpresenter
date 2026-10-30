@@ -249,7 +249,8 @@ describe('service song item panel', () => {
     mockMenuRowHeight();
     const {panel, user, service, documents, first} = await setup();
     await user.click(within(panel).getByRole('button', {name: '구성'}));
-    await user.click(screen.getByRole('menuitem', {name: '새 구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '새 구성…'}));
+    await user.click(screen.getByRole('button', {name: '확인'}));
     await waitFor(() =>
       expect(
         within(screen.getByRole('region', {name: '예배 순서 항목'})).getByRole(

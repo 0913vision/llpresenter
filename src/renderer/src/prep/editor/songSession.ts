@@ -1,6 +1,7 @@
 import type {LlpApi} from '@shared/ipc';
 import type {MediaId, SongGroupId} from '@shared/schema/ids';
 import type {SongSlideSource} from '@shared/schema/showService';
+import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
 import {
   arrangementGroupIds,
   isGroupedSong,
@@ -133,8 +134,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
   }
 
   /** Creates a discrete undo step and saves it with any pending lyric draft. */
-  createArrangement(): string | undefined {
-    const name = this.copyArrangement(this.arrangement);
+  createArrangement(requestedName?: string): string | undefined {
+    const name = this.copyArrangement(this.arrangement, requestedName);
     if (name !== undefined) {
       this.pickedArrangement = name;
       this.options.changed();
@@ -146,15 +147,26 @@ export class SongSession<S extends AnySong = GroupedSong> {
    * Adds a numbered 구성 that copies the order of `base` (기본 with
    * `undefined`) as one undo step, without changing the editor's view.
    */
-  copyArrangement(base: string | undefined): string | undefined {
+  copyArrangement(
+    base: string | undefined,
+    requestedName?: string,
+  ): string | undefined {
     if (!this.acceptsEdits) return undefined;
     const song = this.history.snapshot.song;
+    if (
+      requestedName !== undefined &&
+      (requestedName.trim() === '' ||
+        requestedName === DEFAULT_ARRANGEMENT_NAME ||
+        song.arrangements?.some(item => item.name === requestedName))
+    ) {
+      return undefined;
+    }
     if (isGroupedSong(song)) {
       // NOTE(0913vision): Grouped song arrangement creation.
       const names = new Set(song.arrangements?.map(({name}) => name));
       let number = 1;
       while (names.has(`구성 ${number}`)) number++;
-      const name = `구성 ${number}`;
+      const name = requestedName ?? `구성 ${number}`;
       const groups = [...arrangementGroupIds(song, base)];
       this.history.setArrangementGroups(name, groups);
       this.dirty = true;
@@ -162,7 +174,10 @@ export class SongSession<S extends AnySong = GroupedSong> {
       this.options.changed();
       return name;
     }
-    const value = newArrangement(song, base);
+    const value = {
+      ...newArrangement(song, base),
+      ...(requestedName === undefined ? {} : {name: requestedName}),
+    };
     this.history.addArrangement(value);
     this.dirty = true;
     this.endTyping();
