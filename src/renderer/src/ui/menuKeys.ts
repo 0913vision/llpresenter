@@ -3,6 +3,7 @@ import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
 import {
   movePointer,
+  hasSubmenu,
   typeaheadTarget,
   type MenuItem,
   type MenuMove,
@@ -91,7 +92,7 @@ export function handleMenuKey(
       run(pointed);
       return true;
     case 'ArrowRight':
-      if (inField || items[pointed]?.submenu === undefined) return false;
+      if (inField || !hasSubmenu(items[pointed])) return false;
       run(pointed);
       return true;
     case 'ArrowLeft':

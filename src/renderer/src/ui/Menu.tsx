@@ -3,6 +3,7 @@ import {
   useEffectEvent,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -18,6 +19,7 @@ import {handleMenuKey, type MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
 import {
   isRunnable,
+  hasSubmenu,
   menuItems,
   type MenuEntry,
   type MenuItem,
@@ -130,7 +132,7 @@ interface MenuNavigation {
 }
 
 function opensSubmenu(item: MenuItem | undefined): boolean {
-  return item?.submenu !== undefined && isRunnable(item);
+  return hasSubmenu(item) && isRunnable(item);
 }
 
 function focusMenu(surface: HTMLElement | null): void {
@@ -181,7 +183,7 @@ function useMenuNavigation({
   const run = (index: number): void => {
     const item = items[index];
     if (!isRunnable(item)) return;
-    if (item.submenu !== undefined) {
+    if (hasSubmenu(item)) {
       openSubmenu(index, true);
       return;
     }
@@ -353,11 +355,17 @@ function Submenu({
   readonly onClose: (reason: MenuCloseReason) => void;
 }): JSX.Element | null {
   const {submenu} = nav;
+  const item = submenu === null ? undefined : nav.items[submenu.index];
+  const entries = useMemo(
+    () =>
+      isRunnable(item) ? (item.submenu ?? item.loadSubmenu?.()) : undefined,
+    [item],
+  );
   if (submenu === null) return null;
-  const item = nav.items[submenu.index];
   const element = nav.itemElements.current[submenu.index];
   if (
-    item?.submenu === undefined ||
+    item === undefined ||
+    entries === undefined ||
     element === null ||
     element === undefined
   ) {
@@ -371,7 +379,7 @@ function Submenu({
   return (
     <MenuSurface
       label={item.label}
-      entries={item.submenu}
+      entries={entries}
       place={place}
       onClose={onClose}
       onBack={nav.closeSubmenu}

@@ -29,6 +29,8 @@ export interface MenuItem {
   /** Tooltip text, such as the reason the item is disabled. */
   readonly title?: string | undefined;
   readonly submenu?: readonly MenuEntry[] | undefined;
+  /** Builds choices only while this submenu is open. */
+  readonly loadSubmenu?: (() => readonly MenuEntry[]) | undefined;
   readonly onSelect?: (() => void) | undefined;
   /** Keeps the menu open after the item runs, as a mode switch does. */
   readonly keepsOpen?: boolean | undefined;
@@ -50,6 +52,11 @@ export type MenuEntry = MenuItem | MenuSeparator | MenuGroupLabel;
 /** The entries of a menu that the pointer and the arrow keys can reach. */
 export function menuItems(entries: readonly MenuEntry[]): readonly MenuItem[] {
   return entries.filter((entry): entry is MenuItem => entry.kind === 'item');
+}
+
+/** Whether a row opens eager or deferred choices. */
+export function hasSubmenu(item: MenuItem | undefined): boolean {
+  return item?.submenu !== undefined || item?.loadSubmenu !== undefined;
 }
 
 /**

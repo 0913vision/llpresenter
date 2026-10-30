@@ -103,6 +103,77 @@ function pointedName(): string | null {
   return document.getElementById(id)?.textContent ?? null;
 }
 
+it('builds deferred choices on opening, caches pointer moves, and releases them on closing', () => {
+  const build = vi.fn((): readonly MenuEntry[] => [
+    {kind: 'item', id: 'child', label: '대상'},
+  ]);
+  render(
+    <Harness
+      entries={[
+        {kind: 'item', id: 'lazy', label: '동작', loadSubmenu: build},
+        {kind: 'item', id: 'other', label: '다른 동작'},
+      ]}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', {name: '파일'}));
+  const parent = screen.getByRole('menu', {name: '파일'});
+  expect(build).not.toHaveBeenCalled();
+  fireEvent.keyDown(parent, {key: 'ArrowRight'});
+  expect(screen.getByRole('menuitem', {name: '대상'})).toBeDefined();
+  expect(build).toHaveBeenCalledOnce();
+  fireEvent.keyDown(parent, {key: 'ArrowDown'});
+  expect(build).toHaveBeenCalledOnce();
+  fireEvent.keyDown(screen.getByRole('menu', {name: '동작'}), {key: 'Escape'});
+  expect(screen.queryByRole('menu', {name: '동작'})).toBeNull();
+  fireEvent.keyDown(parent, {key: 'ArrowUp'});
+  fireEvent.keyDown(parent, {key: 'ArrowRight'});
+  expect(build).toHaveBeenCalledTimes(2);
+});
+
+it('refreshes deferred choices after their source changes and skips disabled rows', () => {
+  const build = vi.fn((): readonly MenuEntry[] => [
+    {kind: 'item', id: 'child', label: '이전 대상'},
+  ]);
+  const {rerender} = render(
+    <Harness
+      entries={[
+        {
+          kind: 'item',
+          id: 'lazy',
+          label: '동작',
+          loadSubmenu: build,
+          disabled: true,
+        },
+      ]}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', {name: '파일'}));
+  const parent = screen.getByRole('menu', {name: '파일'});
+  fireEvent.keyDown(parent, {key: 'ArrowRight'});
+  expect(build).not.toHaveBeenCalled();
+  rerender(
+    <Harness
+      entries={[{kind: 'item', id: 'lazy', label: '동작', loadSubmenu: build}]}
+    />,
+  );
+  fireEvent.keyDown(parent, {key: 'ArrowRight'});
+  expect(screen.getByRole('menuitem', {name: '이전 대상'})).toBeDefined();
+  rerender(
+    <Harness
+      entries={[
+        {
+          kind: 'item',
+          id: 'lazy',
+          label: '동작',
+          loadSubmenu: () => [{kind: 'item', id: 'new', label: '새 대상'}],
+        },
+      ]}
+    />,
+  );
+  expect(screen.queryByRole('menuitem', {name: '이전 대상'})).toBeNull();
+  expect(screen.getByRole('menuitem', {name: '새 대상'})).toBeDefined();
+});
+
 async function openMenu(): Promise<void> {
   await userEvent.click(screen.getByRole('button', {name: '파일'}));
 }

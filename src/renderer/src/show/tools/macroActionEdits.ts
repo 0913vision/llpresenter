@@ -6,6 +6,7 @@ import {
 
 export type MacroActionEdit =
   | {readonly kind: 'append'; readonly action: KnownMacroAction}
+  | {readonly kind: 'removeAll'; readonly expected: readonly MacroAction[]}
   | {
       readonly kind: 'replace';
       readonly index: number;
@@ -37,6 +38,7 @@ export function editMacroActions(
   if (JSON.stringify(current) !== JSON.stringify(edit.expected)) {
     throw new Error('Macro actions changed');
   }
+  if (edit.kind === 'removeAll') return [];
   if (
     !Number.isInteger(edit.index) ||
     edit.index < 0 ||

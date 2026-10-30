@@ -140,6 +140,15 @@ it('does not overwrite a concurrently changed list on a retried removal', async 
   expect(edit).toHaveBeenCalledOnce();
 });
 
+it('removes every action together and refuses a stale remove-all snapshot', () => {
+  expect(
+    editMacroActions(item.actions, {kind: 'removeAll', expected: item.actions}),
+  ).toEqual([]);
+  expect(() =>
+    editMacroActions(item.actions, {kind: 'removeAll', expected: []}),
+  ).toThrow('changed');
+});
+
 it.each(['remove', 'move'] as const)(
   'keeps action identity through the real settings merge after %s',
   operation => {

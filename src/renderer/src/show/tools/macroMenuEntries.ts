@@ -6,10 +6,13 @@ import {
   type MacroAction,
   type MacroActionKind,
   type MacroCollection,
+  type KnownMacroAction,
 } from '@shared/schema/macros';
 import {labelColorNames} from '@renderer/ui/LabelColorPicker';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import type {MacroTargetChoice} from './macroTargets';
+import {macroActionChoices} from './macroActionChoices';
+import type {MacroActionDraft} from './macroActionDraft';
 import {
   laterClipboardRows,
   laterRow,
@@ -26,8 +29,10 @@ export interface MacroMenuHandlers {
   readonly moveTo: (collection: MacroCollection['id']) => void;
   readonly newCollection: () => void;
   readonly addAction: (kind: MacroActionKind) => void;
+  readonly chooseAction: (draft: MacroActionDraft, index?: number) => void;
+  readonly openAction: (action: KnownMacroAction) => void;
+  readonly removeAllActions: () => void;
   readonly openPalette: () => void;
-  readonly editAction: (index: number) => void;
   readonly removeAction: (index: number) => void;
   readonly duplicate: () => void;
   readonly remove: () => void;
@@ -260,16 +265,40 @@ function appearanceEntries(
 
 function kindRow(
   row: ActionKindRow,
-  full: boolean,
+  input: MacroMenuInput,
   handlers: MacroMenuHandlers,
 ): MenuItem {
+  const dialog = row.kind === 'stageLayout';
+  const full = input.item.actions.length >= MACRO_FILE_LIMITS.actions;
+  const empty =
+    !dialog &&
+    row.kind !== 'audio' &&
+    row.kind !== 'clearAll' &&
+    !input.targets?.[row.kind]?.length;
   return {
     kind: 'item',
     id: row.kind,
-    label: `${row.label}…`,
+    label: `${row.label}${dialog ? '…' : ''}`,
     icon: row.icon,
-    disabled: full,
-    onSelect: () => handlers.addAction(row.kind),
+    disabled:
+      full ||
+      empty ||
+      (dialog &&
+        input.item.actions.some(action => action.kind === 'stageLayout')),
+    title: empty
+      ? input.targets === undefined
+        ? '대상을 불러오고 있습니다'
+        : '대상이 없습니다'
+      : undefined,
+    loadSubmenu: dialog
+      ? undefined
+      : () =>
+          macroActionChoices({
+            kind: row.kind,
+            targets: input.targets?.[row.kind],
+            choose: handlers.chooseAction,
+          }),
+    onSelect: dialog ? () => handlers.addAction(row.kind) : undefined,
   };
 }
 
@@ -277,9 +306,8 @@ function addActionEntries(
   input: MacroMenuInput,
   handlers: MacroMenuHandlers,
 ): readonly MenuEntry[] {
-  const full = input.item.actions.length >= MACRO_FILE_LIMITS.actions;
   const row = (kind: MacroActionKind): MenuItem =>
-    kindRow(ACTION_KINDS[kind], full, handlers);
+    kindRow(ACTION_KINDS[kind], input, handlers);
   const {slideDestination, communication, audioInput, videoInput, capture} =
     LATER_KINDS;
   return [
@@ -294,10 +322,15 @@ function addActionEntries(
           id: 'clear',
           label: '지우기',
           icon: 'eraser',
-          submenu: [row('clearAll'), row('clearLayer')].map(clear => ({
-            ...clear,
-            icon: undefined,
-          })),
+          submenu: [
+            {
+              ...row('clearAll'),
+              icon: undefined,
+              loadSubmenu: undefined,
+              onSelect: () => handlers.chooseAction({kind: 'clearAll'}),
+            },
+            {...row('clearLayer'), icon: undefined},
+          ],
         },
         row('look'),
         row('stageLayout'),
@@ -338,14 +371,49 @@ function editEntries(
   const {item, locked, targets} = input;
   const actions = item.actions;
   if (actions.length === 0) return [];
-  const edits = actions.map((action, index): MenuItem => ({
-    kind: 'item',
-    id: `edit-${index}`,
-    label: `동작 편집: ${macroActionName(action, targets)}…`,
-    icon: actionIcon(action),
-    disabled: locked || !isKnownMacroAction(action),
-    onSelect: () => handlers.editAction(index),
-  }));
+  const edits = actions.map((action, index): MenuItem => {
+    const known = isKnownMacroAction(action);
+    return {
+      kind: 'item',
+      id: `edit-${index}`,
+      label: `동작 편집: ${macroActionName(action, targets)}`,
+      icon: actionIcon(action),
+      disabled: locked || !known,
+      loadSubmenu: known
+        ? () => [
+            ...macroActionChoices({
+              kind: action.kind,
+              targets: targets?.[action.kind],
+              current: action,
+              choose: draft => handlers.chooseAction(draft, index),
+            }),
+            separator('action-remove-separator'),
+            {
+              kind: 'item',
+              id: 'remove',
+              label: `동작 빼기: ${macroActionName(action, targets)}`,
+              icon: actionIcon(action),
+              onSelect: () => handlers.removeAction(index),
+            },
+            ...(action.kind === 'clearAll' ||
+            action.kind === 'clearLayer' ||
+            action.kind === 'media'
+              ? []
+              : [
+                  {
+                    kind: 'item' as const,
+                    id: 'open',
+                    label:
+                      action.kind === 'look'
+                        ? 'Look 편집…'
+                        : `${ACTION_KINDS[action.kind].label} 열기…`,
+                    onSelect: () => handlers.openAction(action),
+                  },
+                ]),
+          ]
+        : undefined,
+    };
+  });
   const removes = actions.map((action, index): MenuItem => ({
     kind: 'item',
     id: `remove-${index}`,
@@ -380,7 +448,12 @@ function editEntries(
       submenu: [
         ...removes,
         separator('remove-all-separator'),
-        later('remove-all', '모두 빼기'),
+        {
+          kind: 'item',
+          id: 'remove-all',
+          label: '모두 빼기',
+          onSelect: handlers.removeAllActions,
+        },
       ],
     },
   ];

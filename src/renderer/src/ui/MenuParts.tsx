@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import {Icon} from './Icon';
 import {
   hasIconColumn,
+  hasSubmenu as hasMenuSubmenu,
   menuBlocks,
   menuItemRole,
   type MenuEntry,
@@ -90,7 +91,7 @@ export function MenuItemRow({
   onRun,
 }: MenuItemRowProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
-  const hasSubmenu = item.submenu !== undefined;
+  const hasSubmenu = hasMenuSubmenu(item);
   return (
     <div
       {...targetProps}

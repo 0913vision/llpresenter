@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useContext, useEffect, useRef, useState, type JSX} from 'react';
 import {parseMacroCollectionId, parseMacroId} from '@shared/schema/ids';
 import {
   MACRO_FILE_LIMITS,
@@ -9,6 +9,9 @@ import {
 } from '@shared/schema/macros';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {sendLive} from '@renderer/state/live';
+import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {useShowToolTab} from '@renderer/state/showToolTab';
+import {useScreensSelection} from '@renderer/screens/selection';
 import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -18,7 +21,11 @@ import {countMacroUses} from './macroUsage';
 import {useToolEditing} from './useToolEditing';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import {MacroActionDialog} from './MacroActionDialog';
-import {draftMacroAction} from './macroActionDraft';
+import {
+  draftMacroAction,
+  prepareMacroAction,
+  type MacroActionDraft,
+} from './macroActionDraft';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
 import {MacroPalette} from './MacroPalette';
@@ -34,6 +41,7 @@ type Editor =
       item: Macro;
       actionKind: MacroActionKind;
       index?: number | undefined;
+      initial?: MacroActionDraft | undefined;
     }
   | {kind: 'rename'; item: Macro}
   | {kind: 'delete'; item: Macro; uses: number | null; failed: boolean};
@@ -168,9 +176,10 @@ function ActionDialog({
           : targets.screens
       }
       initial={
-        previous && isKnownMacroAction(previous)
+        editor.initial ??
+        (previous && isKnownMacroAction(previous)
           ? draftMacroAction(previous)
-          : undefined
+          : undefined)
       }
       locked={locked}
       onCancel={close}
@@ -186,6 +195,7 @@ export function MacroPanel({
   readonly lastRunId?: Macro['id'] | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
+  const navigate = useContext(WorkspaceNavigation);
   const document = useSettingsDocument('macros', '매크로', onProblem);
   const [collection, setCollection] = useState<MacroCollection['id']>();
   const [mode, setMode] = useState<MacroViewMode>('grid');
@@ -357,13 +367,58 @@ export function MacroPanel({
     },
     newCollection: () => setEditor({kind: 'new-collection', item}),
     addAction: actionKind => setEditor({kind: 'action', item, actionKind}),
-    openPalette: () => setPaletteFor(item.id),
-    editAction: index => {
-      const action = item.actions[index];
-      if (action !== undefined && isKnownMacroAction(action)) {
-        setEditor({kind: 'action', item, actionKind: action.kind, index});
+    chooseAction: (draft, index) => {
+      if (draft.kind === 'message' || draft.kind === 'stageLayout') {
+        setEditor({
+          kind: 'action',
+          item,
+          actionKind: draft.kind,
+          index,
+          initial: draft,
+        });
+        return;
+      }
+      const action = prepareMacroAction(draft);
+      if (action) {
+        commit({
+          kind: 'action',
+          id: item.id,
+          action:
+            index === undefined
+              ? {kind: 'append', action}
+              : {kind: 'replace', index, action, expected: item.actions},
+        });
       }
     },
+    openAction: action => {
+      if (action.kind === 'look' || action.kind === 'stageLayout') {
+        useScreensSelection
+          .getState()
+          .select(
+            action.kind === 'look' ? 'look' : 'stage',
+            action.kind === 'look' ? action.look : action.layout,
+          );
+        navigate?.('screens');
+      } else if (
+        action.kind === 'timer' ||
+        action.kind === 'prop' ||
+        action.kind === 'message' ||
+        action.kind === 'notice' ||
+        action.kind === 'audio' ||
+        action.kind === 'macro'
+      ) {
+        useShowToolTab.getState().setTool(action.kind);
+      } else if (action.kind === 'audioPlaylist') {
+        useShowToolTab.getState().setTool('audio');
+      }
+    },
+    removeAllActions: () =>
+      commit({
+        kind: 'action',
+        id: item.id,
+        action: {kind: 'removeAll', expected: item.actions},
+      }),
+    openPalette: () => setPaletteFor(item.id),
     removeAction: index =>
       commit({
         kind: 'action',

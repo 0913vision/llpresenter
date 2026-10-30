@@ -17,6 +17,9 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
+import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {useScreensSelection} from '@renderer/screens/selection';
+import {LOOK_ID, LAYOUT_ID} from '@renderer/screens/testing/documents';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const groupId = '00000000-0000-4000-8000-000000000002';
@@ -207,21 +210,13 @@ async function openActionSubmenu(name: string) {
   await openSubmenu(name);
 }
 
-it('adds an action from the menu after configuring it', async () => {
+it('appends clear all directly from the menu without a dialog', async () => {
   const f = fixture();
   render(<MacroPanel />);
   await openActionSubmenu('동작 추가');
   await openSubmenu('지우기');
-  fireEvent.click(screen.getByRole('menuitem', {name: '모두 지우기…'}));
-  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
-  await waitFor(() =>
-    expect(
-      screen
-        .getByRole('button', {name: '\uc644\ub8cc'})
-        .getAttribute('aria-disabled'),
-    ).not.toBe('true'),
-  );
-  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: '모두 지우기'}));
+  expect(screen.queryByRole('dialog')).toBeNull();
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
@@ -233,18 +228,10 @@ it('edits and removes actions with their original transition and expected list',
   const f = fixture([action]);
   const view = render(<MacroPanel />);
   await openMenu();
-  fireEvent.click(
-    screen.getByRole('menuitem', {name: '동작 편집: 모두 지우기…'}),
-  );
-  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
-  await waitFor(() =>
-    expect(
-      screen
-        .getByRole('button', {name: '\uc644\ub8cc'})
-        .getAttribute('aria-disabled'),
-    ).not.toBe('true'),
-  );
-  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  await openSubmenu('동작 편집: 모두 지우기');
+  const current = screen.getByRole('menuitemradio', {name: '모두 지우기'});
+  expect(current.getAttribute('aria-checked')).toBe('true');
+  fireEvent.click(current);
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
@@ -569,7 +556,7 @@ it('lists the rows of the ProPresenter macro menu in its order', async () => {
     '동작 추가',
     '미디어 동작 추가…',
     '|',
-    '동작 편집: 모두 지우기…',
+    '동작 편집: 모두 지우기',
     '동작 빼기: 모두 지우기',
     '|',
     '속성…',
@@ -595,14 +582,124 @@ it('lists the rows of the ProPresenter macro menu in its order', async () => {
 });
 
 it('turns the remove row into a submenu with two or more actions', async () => {
-  fixture([{kind: 'clearAll'}, {kind: 'clearAll'}]);
+  const f = fixture([{kind: 'clearAll'}, {kind: 'clearAll'}]);
   render(<MacroPanel />);
   await openMenu();
   expect(screen.queryByRole('menuitem', {name: /^동작 빼기:/})).toBeNull();
   await openSubmenu('동작 빼기');
+  fireEvent.click(screen.getByRole('menuitem', {name: '모두 빼기'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.actions).toEqual([]);
+});
+
+it('appends a timer operation from nested target menus', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  await openActionSubmenu('동작 추가');
+  await openSubmenu('타이머');
+  await openSubmenu('예배 시작');
+  fireEvent.click(screen.getByRole('menuitem', {name: '일시 정지'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.actions).toEqual([
+    {
+      kind: 'timer',
+      timer: '00000000-0000-4000-8000-000000000011',
+      operation: 'pause',
+    },
+  ]);
+  expect(f.send).not.toHaveBeenCalled();
+});
+
+it('opens the message dialog with the picked template before saving', async () => {
+  const f = fixture();
+  f.documents.set(
+    'messages',
+    settingsDocument('messages', {
+      templates: [{id, name: '안내', icon: 'msg', text: '안녕하세요'}],
+      stagePresets: [],
+    }),
+  );
+  render(<MacroPanel />);
+  await openActionSubmenu('동작 추가');
+  await openSubmenu('메시지');
+  fireEvent.click(screen.getByRole('menuitem', {name: '안내…'}));
+  await screen.findByRole('dialog', {name: '동작 설정'});
+  await waitFor(() =>
+    expect(screen.getByRole('button', {name: '대상'}).textContent).toContain(
+      '안내',
+    ),
+  );
+  expect(f.edit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+});
+
+it('lists action kinds in order and opens the selected Look editor', async () => {
+  fixture([{kind: 'look', look: LOOK_ID}]);
+  const navigate = vi.fn();
+  render(
+    <WorkspaceNavigation value={navigate}>
+      <MacroPanel />
+    </WorkspaceNavigation>,
+  );
+  await openActionSubmenu('동작 추가');
+  const menu = screen.getByRole('menu', {name: '동작 추가'});
+  expect(
+    [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
+    ),
+  ).toEqual([
+    '지우기',
+    'Look 바꾸기',
+    '무대 화면 배치…',
+    '슬라이드 출력 대상',
+    '타이머',
+    '소품',
+    '메시지',
+    '공지',
+    '배경 미디어',
+    '오디오',
+    '오디오 재생 목록',
+    '외부 장치 신호',
+    '오디오 입력',
+    '비디오 입력',
+    '매크로',
+    '녹화와 방송',
+    '|',
+    '동작 팔레트',
+  ]);
+  fireEvent.keyDown(menu, {key: 'Escape'});
+  await openSubmenu('동작 편집: 평상시');
+  const edit = screen.getByRole('menu', {name: '동작 편집: 평상시'});
+  expect(
+    [...edit.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
+      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
+    ),
+  ).toEqual(['평상시', '설교', '|', '동작 빼기: 평상시', 'Look 편집…']);
   expect(
     screen
-      .getByRole('menuitem', {name: '모두 빼기'})
+      .getByRole('menuitemradio', {name: '평상시'})
+      .getAttribute('aria-checked'),
+  ).toBe('true');
+  fireEvent.click(screen.getByRole('menuitem', {name: 'Look 편집…'}));
+  expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'look',
+    id: LOOK_ID,
+  });
+});
+
+it('prevents a second stage-layout action', async () => {
+  fixture([{kind: 'stageLayout', layout: LAYOUT_ID}]);
+  render(<MacroPanel />);
+  await openActionSubmenu('동작 추가');
+  expect(
+    screen
+      .getByRole('menuitem', {name: '무대 화면 배치…'})
       .getAttribute('aria-disabled'),
   ).toBe('true');
 });
