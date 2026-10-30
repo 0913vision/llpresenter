@@ -32,14 +32,14 @@ describe('File menu clipboard availability', () => {
       <MenuBar title="" onImportText={onImport} clipboardAvailable={query} />,
     );
     await openImport();
-    const item = screen.getByRole('menuitem', {name: '클립보드 텍스트'});
+    const item = screen.getByRole('menuitem', {name: '클립보드 텍스트…'});
     expect(item.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(item);
     expect(onImport).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('menuitem', {name: '파일'}));
     query.mockResolvedValueOnce(true);
     await openImport();
-    const available = screen.getByRole('menuitem', {name: '클립보드 텍스트'});
+    const available = screen.getByRole('menuitem', {name: '클립보드 텍스트…'});
     await waitFor(() =>
       expect(available.getAttribute('aria-disabled')).not.toBe('true'),
     );
@@ -66,13 +66,13 @@ describe('File menu clipboard availability', () => {
     expect(query).toHaveBeenCalledOnce();
     expect(
       screen
-        .getByRole('menuitem', {name: '클립보드 텍스트'})
+        .getByRole('menuitem', {name: '클립보드 텍스트…'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     await act(async () => resolve(true));
     expect(
       screen
-        .getByRole('menuitem', {name: '클립보드 텍스트'})
+        .getByRole('menuitem', {name: '클립보드 텍스트…'})
         .getAttribute('aria-disabled'),
     ).not.toBe('true');
   });
@@ -89,7 +89,7 @@ describe('File menu clipboard availability', () => {
     await waitFor(() => expect(console.error).toHaveBeenCalledOnce());
     expect(
       screen
-        .getByRole('menuitem', {name: '클립보드 텍스트'})
+        .getByRole('menuitem', {name: '클립보드 텍스트…'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     view.unmount();

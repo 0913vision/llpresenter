@@ -5,6 +5,20 @@ import type {
 } from '@shared/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
+export function mediaImportFailureNotice(
+  progress: MediaImportProgress,
+): Notice | undefined {
+  if (progress.phase !== 'failed') return undefined;
+  return {
+    key: `media-view:copy:${progress.mediaId}`,
+    kind: 'warning',
+    icon: 'warning',
+    title: '미디어를 가져오지 못함',
+    time: noticeTime(),
+    meta: [progress.fileName, progress.message],
+  };
+}
+
 /** Dispatches the same import command and refusal notice for every media surface. */
 export async function requestMediaImport({
   api,

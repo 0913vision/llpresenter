@@ -11,7 +11,7 @@ import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {MediaProps} from './mediaProps';
-import {requestMediaImport} from './mediaImport';
+import {mediaImportFailureNotice, requestMediaImport} from './mediaImport';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -392,15 +392,8 @@ export class MediaLibrary {
   }
 
   private follow(progress: MediaImportProgress): void {
-    if (progress.phase === 'failed') {
-      this.onProblem(
-        warning(
-          `media-view:copy:${progress.mediaId}`,
-          '미디어를 가져오지 못함',
-          [progress.fileName, progress.message],
-        ),
-      );
-    }
+    const failure = mediaImportFailureNotice(progress);
+    if (failure) this.onProblem(failure);
     if (updateActiveCopies(this.active, progress)) {
       this.update({jobs: [...this.active.values()]});
     }

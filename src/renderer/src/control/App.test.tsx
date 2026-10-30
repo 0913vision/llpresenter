@@ -303,9 +303,7 @@ describe('App menu bar title', () => {
       />,
     );
     fireEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    fireEvent.click(
-      screen.getByRole('menuitem', {name: '지금 예배를 틀로 저장'}),
-    );
+    fireEvent.click(screen.getByRole('menuitem', {name: '예배를 틀로 저장…'}));
     expect(await screen.findByText('틀로 저장할 수 없음')).toBeDefined();
     fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
     expect(screen.queryByText('틀로 저장할 수 없음')).toBeNull();

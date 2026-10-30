@@ -45,7 +45,7 @@ function Actions({
   const actions = useServiceActions({onProblem, onOpen: () => undefined});
   return (
     <>
-      {actions.entries.map(entry => (
+      {Object.values(actions.entries).map(entry => (
         <button
           key={entry.id}
           type="button"

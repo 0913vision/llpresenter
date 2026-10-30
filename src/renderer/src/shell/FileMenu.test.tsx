@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -65,7 +65,7 @@ describe('the 파일 menu', () => {
     setup();
     render(<MenuBar title="" />);
     screen.getByRole('menuitem', {name: '파일'}).focus();
-    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}');
     expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
     expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
   });
@@ -74,17 +74,18 @@ describe('the 파일 menu', () => {
     setup();
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    for (const name of ['다른 예배에서 가져오기', '지금 예배를 틀로 저장']) {
-      const item = screen.getByRole('menuitem', {name});
-      expect(item.getAttribute('aria-disabled')).toBe('true');
-      await userEvent.click(item);
-      expect(screen.queryByRole('dialog')).toBeNull();
-    }
+    const save = screen.getByRole('menuitem', {name: '예배를 틀로 저장…'});
+    expect(save.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    const item = screen.getByRole('menuitem', {name: '다른 예배…'});
+    expect(item.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(item);
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(
       (
         await hoverForTooltip(
           screen.getByRole('menuitem', {
-            name: '다른 예배에서 가져오기',
+            name: '다른 예배…',
           }),
         )
       )?.textContent,
@@ -96,9 +97,8 @@ describe('the 파일 menu', () => {
     applyService({...sampleService, id: ids.past});
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(
-      screen.getByRole('menuitem', {name: '다른 예배에서 가져오기'}),
-    );
+    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '다른 예배…'}));
     expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
     await userEvent.click(
       await screen.findByRole('treeitem', {name: titles.first}),
@@ -120,7 +120,7 @@ describe('the 파일 menu', () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
     await userEvent.click(
-      screen.getByRole('menuitem', {name: '지금 예배를 틀로 저장'}),
+      screen.getByRole('menuitem', {name: '예배를 틀로 저장…'}),
     );
     await waitFor(() =>
       expect(edit).toHaveBeenCalledExactlyOnceWith({
@@ -168,7 +168,13 @@ describe('the 파일 menu', () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
     await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    for (const name of ['텍스트 파일', '클립보드 텍스트', 'PowerPoint 파일']) {
+    for (const name of [
+      '텍스트 파일',
+      '클립보드 텍스트',
+      'PowerPoint를 슬라이드로',
+      'PowerPoint를 그림으로',
+      'PowerPoint를 개체와 글자로',
+    ]) {
       expect(
         screen
           .getByRole('menuitem', {name: new RegExp(`^${name}`)})
@@ -182,5 +188,103 @@ describe('the 파일 menu', () => {
         )
       )?.textContent,
     ).toBe('텍스트 가져오기를 준비 중입니다');
+  });
+
+  it('lists the File and Import menu rows and separators in spec order', async () => {
+    setup();
+    render(<MenuBar title="" />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+    const rows = (menu: HTMLElement): Array<string | null> =>
+      [...menu.querySelectorAll('[role=menuitem], [role=separator]')].map(
+        row =>
+          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+      );
+    expect(rows(screen.getByRole('menu', {name: '파일'}))).toEqual([
+      '새 곡',
+      '새 예배',
+      '새 라이브러리',
+      '가져오기',
+      '|',
+      '내보내기',
+      '예배를 틀로 저장…',
+      '|',
+      '인쇄…',
+    ]);
+    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    expect(rows(screen.getByRole('menu', {name: '가져오기'}))).toEqual([
+      '텍스트 파일…Ctrl Shift I',
+      '라이브러리…',
+      '미디어…',
+      '클립보드 텍스트…',
+      '다른 예배…',
+      '|',
+      'MultiTracks…',
+      'SongSelect…',
+      '|',
+      'PowerPoint를 슬라이드로…',
+      'PowerPoint를 그림으로…',
+      'PowerPoint를 개체와 글자로…',
+    ]);
+    for (const name of ['라이브러리…', 'MultiTracks…', 'SongSelect…']) {
+      expect(
+        screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
+      ).toBe('true');
+    }
+  });
+
+  it('imports media into the library once while the request is pending', async () => {
+    setup();
+    let complete: (() => void) | undefined;
+    const importMedia = vi.fn(
+      () =>
+        new Promise<{ok: true; value: []}>(resolve => {
+          complete = () => resolve({ok: true, value: []});
+        }),
+    );
+    const api = window.llp;
+    if (!api) throw new Error('Missing API');
+    window.llp = fakeLlpApi({
+      ...api,
+      media: {...api.media, import: importMedia},
+    });
+    render(<MenuBar title="" />);
+    const open = (): void => {
+      fireEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+      fireEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    };
+    open();
+    fireEvent.click(screen.getByRole('menuitem', {name: '미디어…'}));
+    expect(screen.queryByRole('menu')).toBeNull();
+    open();
+    const row = screen.getByRole('menuitem', {name: '미디어…'});
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(row);
+    expect(importMedia).toHaveBeenCalledExactlyOnceWith({
+      source: {kind: 'dialog'},
+      playlist: null,
+    });
+    complete?.();
+    await waitFor(() => expect(row.getAttribute('aria-disabled')).toBeNull());
+  });
+
+  it('reports a refused media import through the shared notification callback', async () => {
+    window.llp = fakeLlpApi({
+      media: {
+        import: async () => ({
+          ok: false,
+          error: {reason: 'invalid', message: 'Invented refusal'},
+        }),
+      },
+    });
+    const onProblem = vi.fn();
+    render(<MenuBar title="" onProblem={onProblem} />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '미디어…'}));
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({title: '미디어를 가져올 수 없음'}),
+      ),
+    );
   });
 });

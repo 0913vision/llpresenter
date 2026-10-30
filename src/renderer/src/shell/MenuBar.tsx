@@ -15,6 +15,8 @@ import {useScreenSummaries} from './ScreenSummaries';
 import {screenOutputEntries} from './screenOutputEntries';
 import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
+import {fileMenuEntries} from './fileMenuEntries';
+import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu} from './workspaceCommands';
@@ -25,7 +27,6 @@ const trailingMenus = ['창', '도움말'] as const;
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';
-const IMPORT_UNAVAILABLE = '텍스트 가져오기를 준비 중입니다';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
 type MenuName = typeof FILE_MENU | typeof OUTPUT_MENU | typeof VIEW_MENU;
@@ -158,34 +159,7 @@ function FileMenu({
 }): JSX.Element {
   const {anchor} = control;
   const actions = useServiceActions({onProblem, onOpen: control.close});
-  const imports: readonly MenuEntry[] = [
-    ...(['file', 'clipboard'] as const).map(source => ({
-      kind: 'item' as const,
-      id: `import:${source}`,
-      label: source === 'file' ? '텍스트 파일' : '클립보드 텍스트',
-      icon: source === 'file' ? 'filetext' : 'copy',
-      meta: source === 'file' ? 'Ctrl Shift I' : undefined,
-      disabled:
-        onImportText === undefined ||
-        (source === 'clipboard' && clipboard !== 'ready'),
-      title:
-        onImportText === undefined
-          ? IMPORT_UNAVAILABLE
-          : source !== 'clipboard' || clipboard === 'ready'
-            ? undefined
-            : clipboard === 'checking'
-              ? '클립보드 확인 중'
-              : '가져올 클립보드 텍스트가 없습니다',
-      onSelect: () => onImportText?.(source),
-    })),
-    {
-      kind: 'item',
-      id: 'import:powerpoint',
-      label: 'PowerPoint 파일',
-      disabled: true,
-      title: 'PowerPoint 가져오기는 이후 버전에서 지원합니다',
-    },
-  ];
+  const media = useFileMediaImport(onProblem);
   return (
     <>
       <MenuTrigger label={FILE_MENU} control={control} />
@@ -194,11 +168,12 @@ function FileMenu({
           label={FILE_MENU}
           anchor={{kind: 'element', element: anchor}}
           onClose={control.close}
-          entries={[
-            ...actions.entries,
-            {kind: 'separator', id: 'imports'},
-            {kind: 'item', id: 'import', label: '가져오기', submenu: imports},
-          ]}
+          entries={fileMenuEntries({
+            service: actions.entries,
+            onImportText,
+            clipboard,
+            media,
+          })}
         />
       ) : null}
       {actions.dialogs}

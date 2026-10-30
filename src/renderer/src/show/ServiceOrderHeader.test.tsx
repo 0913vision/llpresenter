@@ -101,7 +101,7 @@ describe('ServiceOrderHeader', () => {
     expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeDefined();
   });
 
-  it('ends the picker with the service commands, which open their dialogs', async () => {
+  it('ends the picker with only New Service and opens its dialog', async () => {
     window.llp = fakeLlpApi({
       services: {
         list: () =>
@@ -122,31 +122,19 @@ describe('ServiceOrderHeader', () => {
     const items = [
       ...screen.getByRole('menu').querySelectorAll('[role^="menuitem"]'),
     ].map(item => item.textContent);
-    expect(items).toEqual([
-      expect.stringContaining('저녁 예배'),
-      '새 예배',
-      '다른 예배에서 가져오기',
-      '지금 예배를 틀로 저장',
-    ]);
-    for (const name of ['새 예배', '다른 예배에서 가져오기']) {
-      if (screen.queryByRole('menu') === null) {
-        await act(async () => {
-          fireEvent.click(screen.getByText(sampleService.name));
-        });
-      }
-      await act(async () => {
-        fireEvent.click(screen.getByRole('menuitem', {name}));
-      });
-      expect(screen.queryByRole('menu')).toBeNull();
-      expect(screen.getByRole('dialog', {name})).toBeDefined();
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', {name: '취소'}));
-      });
-      expect(screen.queryByRole('dialog')).toBeNull();
-    }
+    expect(items).toEqual([expect.stringContaining('저녁 예배'), '새 예배…']);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitem', {name: '새 예배…'}));
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('offers 가져오기 and 틀로 저장 only with a service open', async () => {
+  it('keeps New Service available without an open service', async () => {
     window.llp = fakeLlpApi();
     render(<ServiceOrderHeader />);
     act(() => applyService(null));
@@ -154,18 +142,11 @@ describe('ServiceOrderHeader', () => {
       fireEvent.click(screen.getByText('예배 순서'));
     });
     expect(
-      screen
-        .getByRole('menuitem', {name: '다른 예배에서 가져오기'})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
+      screen.getAllByRole('menuitem').map(item => item.textContent),
+    ).toEqual(['새 예배…']);
     expect(
       screen
-        .getByRole('menuitem', {name: '지금 예배를 틀로 저장'})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
-    expect(
-      screen
-        .getByRole('menuitem', {name: '새 예배'})
+        .getByRole('menuitem', {name: '새 예배…'})
         .getAttribute('aria-disabled'),
     ).toBeNull();
   });

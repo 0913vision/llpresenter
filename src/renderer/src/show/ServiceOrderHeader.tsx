@@ -85,7 +85,7 @@ export function ServiceOrderHeader({
             ...(picker.visible.length === 0
               ? []
               : [{kind: 'separator', id: 'service-actions'} as const]),
-            ...actions.entries,
+            {...actions.entries.newService, label: '새 예배…', icon: undefined},
           ]}
         />
       ) : null}

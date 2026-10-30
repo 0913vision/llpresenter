@@ -8,6 +8,9 @@ import {SaveTemplatePrompt} from './SaveTemplatePrompt';
 import {useSaveTemplate} from './useSaveTemplate';
 
 type ServiceDialog = 'new' | 'import';
+export type ServiceActionEntries = Readonly<
+  Record<'newService' | 'importItems' | 'saveTemplate', MenuItem>
+>;
 
 const NO_SERVICE = '열린 예배 순서가 없습니다';
 
@@ -22,7 +25,7 @@ export function useServiceActions({
 }: {
   readonly onProblem: (notice: Notice) => void;
   readonly onOpen: () => void;
-}): {readonly entries: readonly MenuItem[]; readonly dialogs: ReactNode} {
+}): {readonly entries: ServiceActionEntries; readonly dialogs: ReactNode} {
   const [dialog, setDialog] = useState<ServiceDialog | null>(null);
   const hasService = useShow(view => view.serviceId !== null);
   const saver = useSaveTemplate({onProblem});
@@ -31,15 +34,15 @@ export function useServiceActions({
     setDialog(next);
   };
   const close = (): void => setDialog(null);
-  const entries: readonly MenuItem[] = [
-    {
+  const entries: ServiceActionEntries = {
+    newService: {
       kind: 'item',
       id: 'new-service',
       label: '새 예배',
       icon: 'plus',
       onSelect: () => open('new'),
     },
-    {
+    importItems: {
       kind: 'item',
       id: 'import-items',
       label: '다른 예배에서 가져오기',
@@ -48,7 +51,7 @@ export function useServiceActions({
       title: hasService ? undefined : NO_SERVICE,
       onSelect: () => open('import'),
     },
-    {
+    saveTemplate: {
       kind: 'item',
       id: 'save-template',
       label: '지금 예배를 틀로 저장',
@@ -60,7 +63,7 @@ export function useServiceActions({
         saver.save();
       },
     },
-  ];
+  };
   const dialogs = (
     <>
       {dialog === 'new' ? (

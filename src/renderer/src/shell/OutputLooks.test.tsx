@@ -1,4 +1,4 @@
-import {act, fireEvent, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -74,7 +74,7 @@ afterEach(() => {
 });
 
 async function openLooks(): Promise<void> {
-  fireEvent.pointerEnter(
+  await userEvent.click(
     await screen.findByRole('menuitem', {name: /^Look(: .*)?$/}),
   );
   await screen.findByRole('menu', {name: /^Look(: .*)?$/});
