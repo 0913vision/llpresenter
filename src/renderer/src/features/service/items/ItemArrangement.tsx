@@ -16,14 +16,14 @@ import {
   editedOrder,
   editedOrderWithLimit,
 } from '@core/songs/songArrangements';
-import {editorTask} from '@renderer/prep/editor/editorTask';
-import type {SongSession} from '@renderer/prep/editor/songSession';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {useLive} from '@renderer/platform/live';
 import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {ArrangementPicker} from '../../../prep/editor/ArrangementPicker';
-import {NewArrangementDialog} from '../../../prep/editor/NewArrangementDialog';
+import {ArrangementPicker} from '../../songs/editor/ArrangementPicker';
+import {NewArrangementDialog} from '../../songs/editor/NewArrangementDialog';
 import {Icon} from '@renderer/ui/Icon';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import type {ServiceItemStore} from './serviceItemStore';

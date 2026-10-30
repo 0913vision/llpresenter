@@ -414,7 +414,9 @@ describe('media view', () => {
   });
 
   it('fills its column and scrolls only the grid, so the footer stays', () => {
-    const rule = cssRules('src/renderer/src/prep/media/MediaView.module.css');
+    const rule = cssRules(
+      'src/renderer/src/features/media/MediaView.module.css',
+    );
     expect(rule('.panel')).toContain('height: 100%');
     expect(rule('.body')).toContain('overflow: hidden');
     expect(rule('.viewport')).toContain('min-height: 0');

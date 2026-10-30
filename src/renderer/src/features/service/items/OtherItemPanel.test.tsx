@@ -26,11 +26,11 @@ import {
   mediaDocument,
   mediaFixture,
   mediaItem,
-} from '@renderer/prep/media/mediaTesting';
+} from '@renderer/features/media/mediaTesting';
 import {
   INITIAL_ROWS,
   OVERSCAN_ROWS,
-} from '@renderer/prep/media/VirtualMediaGrid';
+} from '@renderer/features/media/VirtualMediaGrid';
 import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
 import {fixtureMedia, itemMedia} from './itemFixture';
 import {OtherItemPanel} from './OtherItemPanel';

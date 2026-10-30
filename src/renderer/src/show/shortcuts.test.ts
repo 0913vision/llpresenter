@@ -5,7 +5,7 @@ import {setColumnDragActive} from '@renderer/platform/drag';
 import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
 import {seedSampleService} from './testing/sampleService';
 import * as showState from '@renderer/state/show';
-import * as bibleKeys from './bible/verseShortcuts';
+import * as bibleKeys from '../features/bible/verseShortcuts';
 import {
   handleShowFocusIn,
   handleShowKey,

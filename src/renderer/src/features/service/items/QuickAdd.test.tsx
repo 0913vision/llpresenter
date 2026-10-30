@@ -12,14 +12,14 @@ import * as v from 'valibot';
 import {createMediaId, translationIdSchema} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
+import {mockMenuRowHeight} from '@renderer/features/songs/editor/editorTesting';
 import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/features/service/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
-import {formLookupReply} from '@renderer/show/bible/testing/referenceForm';
+import {formLookupReply} from '@renderer/features/bible/testing/referenceForm';
 import type {RecentPassage} from '@core/schema/bible';
 
 afterEach(() => {

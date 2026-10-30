@@ -10,9 +10,9 @@ import {
   type SongId,
 } from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
-import {SongEditorStore} from '@renderer/prep/editor';
-import {SongSession} from '@renderer/prep/editor/songSession';
-import {editorGroupedSong} from '@renderer/prep/editor/editorFixture';
+import {SongEditorStore} from '@renderer/features/songs/editor';
+import {SongSession} from '@renderer/features/songs/editor/songSession';
+import {editorGroupedSong} from '@renderer/features/songs/editor/editorFixture';
 import type {Notice} from '@renderer/ui/notices';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {

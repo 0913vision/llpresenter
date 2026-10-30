@@ -1,7 +1,10 @@
 import {createServiceItemId, type NoticeSetId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
-import {backgroundMedia, mediaName} from '@renderer/show/backgroundChoices';
+import {
+  backgroundMedia,
+  mediaName,
+} from '@renderer/features/media/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

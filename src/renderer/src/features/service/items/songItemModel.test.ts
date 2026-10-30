@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   editorGroupedSong,
   editorLegacySong,
-} from '@renderer/prep/editor/editorFixture';
+} from '@renderer/features/songs/editor/editorFixture';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {

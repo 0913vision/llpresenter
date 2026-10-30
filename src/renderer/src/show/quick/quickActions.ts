@@ -15,7 +15,7 @@ import {
 } from '@renderer/state/showOutput';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {openBiblePassage, showBiblePassage} from '../bible/actions';
+import {openBiblePassage, showBiblePassage} from '../../features/bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
   if (!isKnownQuickItem(item)) return '이 버전에서 지원하지 않는 항목입니다';

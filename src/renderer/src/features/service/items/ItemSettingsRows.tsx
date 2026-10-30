@@ -12,15 +12,15 @@ import {mediaUrl} from '@contracts/ipc/media';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {ServiceItemOf} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {editorTask} from '@renderer/prep/editor/editorTask';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
-import type {SongSession} from '@renderer/prep/editor/songSession';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {
   backgroundEntries,
   backgroundMedia,
   mediaName,
   SONG_DEFAULT_LABEL,
-} from '@renderer/show/backgroundChoices';
+} from '@renderer/features/media/backgroundChoices';
 import {Menu} from '@renderer/ui/Menu';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {Select} from '@renderer/ui/Select';

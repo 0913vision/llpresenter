@@ -12,21 +12,21 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {
   LibraryPanel,
   type LibrarySelectionRequest,
-} from '@renderer/prep/library/LibraryPanel';
+} from '@renderer/features/songs/library/LibraryPanel';
 import {
   SongEditor,
   SongPreviewPanel,
   SongSlidePanel,
   type SongEditorStore,
-} from '@renderer/prep/editor';
+} from '@renderer/features/songs/editor';
 import {
   ItemPreviewPanel,
   ItemSettingsPanel,
 } from '@renderer/features/service/items/ItemSidePanels';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
-import {MediaBin} from '@renderer/prep/media/MediaBin';
-import type {MediaApi} from '@renderer/prep/media/mediaLibrary';
-import {MediaViewProvider} from '@renderer/prep/media/MediaViewProvider';
+import {MediaBin} from '@renderer/features/media/MediaBin';
+import type {MediaApi} from '@renderer/features/media/mediaLibrary';
+import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
@@ -34,10 +34,10 @@ import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
-import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
+import {SongBackgroundControl} from '@renderer/features/media/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {QuickPanel} from '@renderer/show/quick/QuickPanel';
-import {BiblePanel} from '@renderer/show/bible/BiblePanel';
+import {BiblePanel} from '@renderer/features/bible/BiblePanel';
 import {useShow} from '@renderer/state/show';
 import {isBibleSource} from '@renderer/state/showLibrary';
 import {

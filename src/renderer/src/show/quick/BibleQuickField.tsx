@@ -4,9 +4,9 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor, isBibleSource} from '@renderer/state/showLibrary';
 import {beginOutputRequest} from '@renderer/state/showOutput';
-import {BibleReferenceField} from '../bible/BibleReferenceField';
-import {openBiblePassage, showBiblePassage} from '../bible/actions';
-import {useBibleVerseNumbers} from '../bible/useBibleVerseNumbers';
+import {BibleReferenceField} from '../../features/bible/BibleReferenceField';
+import {openBiblePassage, showBiblePassage} from '../../features/bible/actions';
+import {useBibleVerseNumbers} from '../../features/bible/useBibleVerseNumbers';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({

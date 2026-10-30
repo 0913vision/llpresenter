@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {UiState} from '@core/schema/uiState';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
 import {applyService} from '@renderer/state/show';
@@ -21,7 +21,7 @@ import {
   mediaItem,
   mediaId,
   playlistId,
-} from '@renderer/prep/media/mediaTesting';
+} from '@renderer/features/media/mediaTesting';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {

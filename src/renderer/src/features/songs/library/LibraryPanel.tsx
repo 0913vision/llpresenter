@@ -19,7 +19,7 @@ import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
-import {contextMenuAnchor} from '../contextMenu';
+import {contextMenuAnchor} from '../../../ui/contextMenu';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =

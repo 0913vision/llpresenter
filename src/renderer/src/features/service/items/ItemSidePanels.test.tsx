@@ -3,15 +3,15 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveLayers} from '@core/live/state';
 import {createMediaId} from '@core/schema/ids';
-import {SongEditorStore} from '@renderer/prep/editor';
+import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/state/show';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ItemPreviewPanel, ItemSettingsPanel} from './ItemSidePanels';
 import {ServiceItemStore} from './serviceItemStore';
 import {ServiceItemPanel} from './SongItemPanel';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
-import {panelPassage} from '@renderer/show/bible/panelTesting';
-import {editorPreviewFixture} from '@renderer/prep/editor/editorPreviewFixture';
+import {panelPassage} from '@renderer/features/bible/panelTesting';
+import {editorPreviewFixture} from '@renderer/features/songs/editor/editorPreviewFixture';
 
 const drawing = vi.hoisted(() => ({
   render: vi.fn<(layers: LiveLayers) => void>(),

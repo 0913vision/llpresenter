@@ -2,9 +2,9 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/platform/live';
 import {openItem, selectTile, useShow} from '@renderer/state/show';
-import {openBiblePassage} from '../bible/actions';
-import {panelPassage} from '../bible/panelTesting';
-import {lookupRequest} from '../bible/testBible';
+import {openBiblePassage} from '../../features/bible/actions';
+import {panelPassage} from '../../features/bible/panelTesting';
+import {lookupRequest} from '../../features/bible/testBible';
 import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import {
   deferred,

@@ -6,10 +6,7 @@ import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
-import {
-  isContextMenuKey,
-  type ContextMenuEvent,
-} from '../../../prep/contextMenu';
+import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
 
 const names = new Intl.Collator('ko', {numeric: true});
 

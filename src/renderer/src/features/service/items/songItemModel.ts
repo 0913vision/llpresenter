@@ -7,7 +7,7 @@ import {
 } from '@core/schema/groupedSong';
 import type {SongGroupId} from '@core/schema/ids';
 import {playbackOrder} from '@core/songs/songOrder';
-import type {SongPicture} from '@renderer/prep/editor';
+import type {SongPicture} from '@renderer/features/songs/editor';
 import {linearSlidesOf} from '@core/songs/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
 

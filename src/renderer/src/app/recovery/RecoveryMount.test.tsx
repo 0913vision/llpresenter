@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
 import {applyService} from '@renderer/state/show';

@@ -11,7 +11,10 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
-import {editorFixture, editorSong} from '@renderer/prep/editor/editorFixture';
+import {
+  editorFixture,
+  editorSong,
+} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {seedSampleService} from '@renderer/show/testing/sampleService';
 import {useLive} from '@renderer/platform/live';

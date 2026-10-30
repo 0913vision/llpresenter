@@ -17,7 +17,7 @@ import type {ServiceSource} from './useServiceSources';
 import {
   contextMenuAnchor,
   type ContextMenuEvent,
-} from '../../../prep/contextMenu';
+} from '../../../ui/contextMenu';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 

@@ -19,7 +19,7 @@ const problem: Notice = {
   time: '04:00',
 };
 
-vi.mock('@renderer/show/SongBackgroundControl', () => ({
+vi.mock('@renderer/features/media/SongBackgroundControl', () => ({
   SongBackgroundControl: ({
     onProblem,
   }: {

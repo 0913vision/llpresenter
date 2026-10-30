@@ -4,7 +4,7 @@ import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangemen
 import {useShow} from '@renderer/state/show';
 import {Button} from '@renderer/ui/Button';
 import type {Notice} from '@renderer/ui/notices';
-import {useServiceOrderEditing} from '../../features/service/order/useServiceOrderEditing';
+import {useServiceOrderEditing} from '../service/order/useServiceOrderEditing';
 import {rememberBiblePassage} from './recentWriter';
 import type {BibleSource} from '@core/bible/source';
 

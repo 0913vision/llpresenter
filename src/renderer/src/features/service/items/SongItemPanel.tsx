@@ -3,14 +3,14 @@ import type {ServiceItemOf} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
 import {isGroupedSong} from '@core/schema/groupedSong';
 import {playbackOrder} from '@core/songs/songOrder';
-import type {SongEditorStore} from '@renderer/prep/editor';
+import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {
   ARRANGEMENT_LIMIT_REASON,
   editedOrderWithLimit,
 } from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
-import type {SongSession} from '@renderer/prep/editor/songSession';
-import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
+import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {
@@ -28,7 +28,7 @@ import {
   PanelTitle,
 } from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
-import {historyCommand} from '@renderer/prep/editor/editorKeys';
+import {historyCommand} from '@renderer/features/songs/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';

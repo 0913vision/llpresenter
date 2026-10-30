@@ -1,6 +1,6 @@
 import {useCallback, useState} from 'react';
 import type {SongId} from '@core/schema/ids';
-import type {LibrarySelectionRequest} from '@renderer/prep/library/LibraryPanel';
+import type {LibrarySelectionRequest} from '@renderer/features/songs/library/LibraryPanel';
 
 /**
  * The one pending request for 준비's library selection: open a song chosen in

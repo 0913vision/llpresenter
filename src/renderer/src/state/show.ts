@@ -15,7 +15,7 @@ import {
   type SequenceState,
 } from '@core/presentation/navigation';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
+import {rememberBiblePassage} from '@renderer/features/bible/recentWriter';
 import {sendLive, useLive} from '../platform/live';
 import {
   bibleSourceFor,

@@ -13,7 +13,7 @@ import {serviceOrderMenuEntries} from './serviceOrderMenu';
 import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
-import {useMediaDurations} from '../../../show/useMediaDurations';
+import {useMediaDurations} from '../../media/useMediaDurations';
 import type {ItemKind, RowProblem, ServiceRow} from '@core/presentation/model';
 import styles from './ServiceOrderList.module.css';
 

@@ -12,7 +12,7 @@ import {
   useShow,
 } from '@renderer/state/show';
 import {bibleSourceFor, shownTiles} from '@renderer/state/showLibrary';
-import {sampleService} from '../testing/sampleService';
+import {sampleService} from '../../show/testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';
 import {bibleSource} from '@core/bible/source';

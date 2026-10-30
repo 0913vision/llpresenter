@@ -1,6 +1,6 @@
 import {useMemo, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
-import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
+import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {

@@ -10,7 +10,7 @@ import {
   selectTile,
   useShow,
 } from '@renderer/state/show';
-import {BibleQuickField} from '../quick/BibleQuickField';
+import {BibleQuickField} from '../../show/quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {panelApi} from './panelTesting';
 

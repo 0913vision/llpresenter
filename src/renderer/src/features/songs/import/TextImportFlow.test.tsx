@@ -14,7 +14,7 @@ import type {TextImportReadResult} from '@core/schema/textImport';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {parseGroupedSongDraft} from '@core/schema/groupedSong';
-import {convertTextImport} from '../../../../main/import/convert';
+import {convertTextImport} from '../../../../../main/import/convert';
 import {editorFixture, editorSong} from '../editor/editorFixture';
 import {SongEditorStore} from '../editor/songEditorStore';
 import {SongEditor} from '../editor/SongEditor';

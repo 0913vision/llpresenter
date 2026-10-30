@@ -1,7 +1,7 @@
 import {isValidElement, type ReactNode} from 'react';
 import {act, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {ControlSession} from './controlSession';
 
 const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));

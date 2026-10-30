@@ -11,7 +11,7 @@ import {
   PanelTitle,
   PanelTools,
 } from '@renderer/ui/Panel';
-import {SlidePanelBody, SlideSizeControl} from '../SlidePanel';
+import {SlidePanelBody, SlideSizeControl} from '../../show/SlidePanel';
 import {showBiblePassage} from './actions';
 import {BibleAdjacentButtons} from './BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';

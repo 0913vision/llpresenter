@@ -12,8 +12,8 @@ import {
 } from '@core/schema/service';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import type {Song} from '@core/schema/song';
-import {editorTask} from '@renderer/prep/editor/editorTask';
-import type {SongSession} from '@renderer/prep/editor/songSession';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {backgroundChange} from '@renderer/features/service/state/serviceBackground';
 import {
   pendingWritesOf,

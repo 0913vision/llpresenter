@@ -11,7 +11,7 @@ import {
 } from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 
 export const fixtureServiceId = createServiceId(
   '40000000-0000-4000-8000-000000000001',

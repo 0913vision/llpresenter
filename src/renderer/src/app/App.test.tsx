@@ -19,7 +19,7 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {useLive} from '@renderer/platform/live';
 import {applyService, openItem, useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
-import {fixtureSong} from '@renderer/prep/library/fixture';
+import {fixtureSong} from '@renderer/features/songs/library/fixture';
 import {
   sampleService,
   seedSampleService,

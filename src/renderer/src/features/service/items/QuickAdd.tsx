@@ -14,7 +14,7 @@ import {BibleQuickAdd} from './BibleQuickAdd';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/features/service/state/headerRename';
-import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
+import {rememberBiblePassage} from '@renderer/features/bible/recentWriter';
 
 const NO_SERVICE_REASON = '열린 예배 순서가 없습니다';
 

@@ -16,8 +16,8 @@ import {
 } from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import {SongEditorStore} from '@renderer/prep/editor';
-import {SongSession} from '@renderer/prep/editor/songSession';
+import {SongEditorStore} from '@renderer/features/songs/editor';
+import {SongSession} from '@renderer/features/songs/editor/songSession';
 import {useLive} from '@renderer/platform/live';
 import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';

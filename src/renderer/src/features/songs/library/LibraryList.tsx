@@ -8,7 +8,7 @@ import {
 import type {SongId} from '@core/schema/ids';
 import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
-import {isContextMenuKey, type ContextMenuEvent} from '../contextMenu';
+import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';

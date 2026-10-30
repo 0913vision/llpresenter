@@ -15,7 +15,7 @@ import type {
   ServiceDocument,
 } from '@core/schema/contentDocuments';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {sampleService} from '@renderer/show/testing/sampleService';
 import {useLive} from '@renderer/platform/live';

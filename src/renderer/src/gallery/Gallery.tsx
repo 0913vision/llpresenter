@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {LibrarySection} from '@renderer/prep/library/LibrarySection';
+import {LibrarySection} from '@renderer/features/songs/library/LibrarySection';
 import {ButtonSection} from './ButtonSection';
 import {CheckboxSection} from './CheckboxSection';
 import {ClearSection} from './ClearSection';

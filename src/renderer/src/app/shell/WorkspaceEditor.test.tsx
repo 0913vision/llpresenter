@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
-import {SongEditorStore} from '@renderer/prep/editor/songEditorStore';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
+import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
   fixtureItems,

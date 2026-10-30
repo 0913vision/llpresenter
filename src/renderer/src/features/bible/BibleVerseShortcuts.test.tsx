@@ -15,8 +15,8 @@ import {
   beginOutputRequest,
   LOOKUP_TIMEOUT_MS,
 } from '@renderer/state/showOutput';
-import {handleShowKey} from '../shortcuts';
-import {seedSampleService} from '../testing/sampleService';
+import {handleShowKey} from '../../show/shortcuts';
+import {seedSampleService} from '../../show/testing/sampleService';
 import {openBiblePassage} from './actions';
 import {BiblePanel} from './BiblePanel';
 import {panelApi} from './panelTesting';

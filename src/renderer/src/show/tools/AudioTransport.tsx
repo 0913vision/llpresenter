@@ -4,7 +4,7 @@ import type {AudioLayer} from '@core/live/state';
 import type {AudioPlaylist, MediaItem} from '@core/schema/mediaList';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import {Button, Slider, TruncatedText} from '@renderer/ui';
-import {durationText} from '@renderer/prep/media/mediaEntries';
+import {durationText} from '@renderer/features/media/mediaEntries';
 import {useTimerNow} from './useTimerNow';
 import styles from './AudioTransport.module.css';
 

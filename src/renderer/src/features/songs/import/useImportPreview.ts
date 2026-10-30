@@ -6,7 +6,7 @@ import type {
   TextImportSource,
 } from '@core/schema/textImport';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {createLatestRunner} from '../../features/service/items/latestRunner';
+import {createLatestRunner} from '../../service/items/latestRunner';
 
 export function useImportPreview({
   api,

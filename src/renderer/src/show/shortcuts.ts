@@ -10,7 +10,7 @@ import {
 } from '@renderer/state/show';
 import {TEXT_ENTRY_SELECTOR} from '@renderer/ui/textEntry';
 import {useSlideHotKeys} from './useSlideHotKeys';
-import {outputAdjacentBibleVerse} from './bible/verseShortcuts';
+import {outputAdjacentBibleVerse} from '../features/bible/verseShortcuts';
 
 const NEXT_CODES: ReadonlySet<string> = new Set([
   'ArrowRight',

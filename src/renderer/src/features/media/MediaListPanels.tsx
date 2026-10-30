@@ -27,7 +27,7 @@ import {
   contextMenuAnchor,
   isContextMenuKey,
   type ContextMenuEvent,
-} from '../contextMenu';
+} from '../../ui/contextMenu';
 
 const ALL = 'all';
 

@@ -6,7 +6,7 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import {TextImportFlow} from '@renderer/prep/import/TextImportFlow';
+import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import type {UiState} from '@core/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';

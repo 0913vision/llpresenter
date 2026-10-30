@@ -6,7 +6,7 @@ import type {
   OutputScreenStatus,
   OutputStatuses,
 } from '@core/schema/outputStatus';
-import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';

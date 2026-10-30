@@ -21,8 +21,8 @@ import {
 } from '@renderer/state/show';
 import {useLive} from '@renderer/platform/live';
 import {emptyLiveState} from '@core/live/state';
-import {seedSampleService} from '../testing/sampleService';
-import {BibleQuickField} from '../quick/BibleQuickField';
+import {seedSampleService} from '../../show/testing/sampleService';
+import {BibleQuickField} from '../../show/quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {bibleDocument, panelApi, panelPassage} from './panelTesting';
 import {openBiblePassage, showBiblePassage} from './actions';
@@ -82,7 +82,7 @@ describe('Bible panel integration', () => {
     openBiblePassage(panelPassage());
     const style = document.createElement('style');
     const css = readFileSync(
-      'src/renderer/src/show/bible/BiblePanel.module.css',
+      'src/renderer/src/features/bible/BiblePanel.module.css',
       'utf8',
     );
     style.textContent = css.replaceAll('.footer', `.${styles.footer}`);
