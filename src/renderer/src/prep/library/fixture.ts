@@ -79,6 +79,12 @@ export function libraryFixture(
     for (const listener of songListeners) listener(change);
   };
   const api: LibraryApi = {
+    services: {
+      list: () => Promise.resolve([]),
+      get: () => Promise.resolve(null),
+      subscribeList: () => () => undefined,
+      subscribe: () => () => undefined,
+    },
     songs: {
       list: () => Promise.resolve(list()),
       get: id =>

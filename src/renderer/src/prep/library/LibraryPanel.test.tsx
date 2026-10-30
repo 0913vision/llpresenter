@@ -18,6 +18,7 @@ import {layerContainer} from '@renderer/ui/layers';
 import {fixtureSong, libraryFixture} from './fixture';
 import {LibraryPanel} from './LibraryPanel';
 import {LibraryGalleryHost, LibrarySection} from './LibrarySection';
+import {pastDocument, serviceEntries} from '../services/testing';
 
 class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];
@@ -56,6 +57,110 @@ async function setup(fixture = libraryFixture()) {
 }
 
 describe('library panel', () => {
+  it('lists the library song menu rows in ProPresenter order', async () => {
+    await setup();
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    const menu = screen.getByRole('menu', {name: '곡 메뉴'});
+    expect(
+      [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+        row =>
+          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+      ),
+    ).toEqual([
+      '예배 순서에 추가',
+      '라이브러리로 옮기기',
+      '|',
+      '구성',
+      '출력 대상',
+      '|',
+      '슬라이드 편집',
+      '크기 바꾸기',
+      '가사 편집',
+      '|',
+      '복사',
+      '붙여넣기',
+      '복제',
+      '이름 바꾸기',
+      '삭제',
+      '|',
+      '탐색기에서 보기',
+      '묶음으로 내보내기…',
+      '그림으로 내보내기…',
+    ]);
+    expect(
+      [...menu.querySelectorAll('[role="menuitem"]')]
+        .filter(row => row.getAttribute('aria-disabled') !== 'true')
+        .map(row => row.textContent),
+    ).toEqual(['가사 편집', '삭제']);
+  });
+
+  it('opens the right-clicked song in the preparation editor', async () => {
+    const {onOpenSong, user} = await setup();
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    expect(onOpenSong).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('menuitem', {name: '가사 편집'}));
+    await waitFor(() =>
+      expect(onOpenSong).toHaveBeenCalledWith({
+        document: fixtureSong(1, '찬송 10'),
+        focusTitle: false,
+      }),
+    );
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('appends the clicked song to the chosen service after its existing items', async () => {
+    const fixture = libraryFixture();
+    vi.spyOn(fixture.api.services, 'list').mockResolvedValue(serviceEntries);
+    vi.spyOn(fixture.api.services, 'get').mockResolvedValue(pastDocument);
+    const edit = vi.spyOn(fixture.api.content, 'edit').mockResolvedValue({
+      ok: true,
+      value: {id: pastDocument.service.id, revision: 4},
+    });
+    const {user, onOpenSong} = await setup(fixture);
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '예배 순서에 추가'}));
+    await user.click(
+      await screen.findByRole('menuitem', {name: '지난 주일 예배'}),
+    );
+    await waitFor(() =>
+      expect(edit.mock.lastCall?.[0]).toMatchObject({
+        type: 'service.update',
+        baseRevision: pastDocument.revision,
+        service: {
+          ...pastDocument.service,
+          order: [
+            ...pastDocument.service.order,
+            {song: fixtureSong(1, '찬송 10').song.id},
+          ],
+        },
+      }),
+    );
+    expect(onOpenSong).not.toHaveBeenCalled();
+  });
+
+  it('reports a failed append without changing the open editor', async () => {
+    const fixture = libraryFixture();
+    vi.spyOn(fixture.api.services, 'list').mockResolvedValue(serviceEntries);
+    vi.spyOn(fixture.api.services, 'get').mockRejectedValue(
+      new Error('Read failed'),
+    );
+    const {user, onProblem, onOpenSong} = await setup(fixture);
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '예배 순서에 추가'}));
+    await user.click(
+      await screen.findByRole('menuitem', {name: '지난 주일 예배'}),
+    );
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          key: 'library:append',
+          title: '예배 순서에 추가 실패',
+        }),
+      ),
+    );
+    expect(onOpenSong).not.toHaveBeenCalled();
+  });
+
   it('starts ArrowDown at the first row when nothing is selected', async () => {
     const {onOpenSong} = await setup();
     fireEvent.keyDown(screen.getByRole('listbox', {name: '라이브러리 곡'}), {

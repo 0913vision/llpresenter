@@ -1,13 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
 import {createServiceId, type ServiceId} from '@shared/schema/ids';
 import {
-  ServiceOrderEdits,
+  serviceOrderEditsFor,
+  type ServiceOrderEdits,
   type ServiceOrderEditResult,
 } from '@renderer/state/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
-const editors = new WeakMap<LlpApi, ServiceOrderEdits>();
 type Operation = (
   edits: ServiceOrderEdits,
   serviceId: ServiceId,
@@ -33,11 +32,7 @@ export function useServiceOrderEditing(
     pending.current = true;
     setBusy(true);
     try {
-      let editor = editors.get(api);
-      if (editor === undefined) {
-        editor = new ServiceOrderEdits(api);
-        editors.set(api, editor);
-      }
+      const editor = serviceOrderEditsFor(api);
       const result = await operation(editor, createServiceId(serviceId));
       if (!result.ok) {
         onProblem({

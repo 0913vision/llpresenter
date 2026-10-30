@@ -19,6 +19,17 @@ import {pendingWritesOf} from './pendingWrites';
 const HISTORY_LIMIT = 100;
 type Order = Service['order'];
 type EditApi = Pick<LlpApi, 'services' | 'songs' | 'content'>;
+const editors = new WeakMap<EditApi, ServiceOrderEdits>();
+
+/** Shares the service list's undo history with every service order entry point. */
+export function serviceOrderEditsFor(api: EditApi): ServiceOrderEdits {
+  let editor = editors.get(api);
+  if (editor === undefined) {
+    editor = new ServiceOrderEdits(api);
+    editors.set(api, editor);
+  }
+  return editor;
+}
 interface LocalFailure {
   readonly reason: 'busy' | 'request-failed';
   readonly message: string;

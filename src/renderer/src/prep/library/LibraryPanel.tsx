@@ -17,6 +17,8 @@ import {TextField} from '@renderer/ui/TextField';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
+import {libraryMenuEntries} from './libraryMenuEntries';
+import {useLibraryServices} from './useLibraryServices';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =
@@ -42,6 +44,7 @@ export function LibraryPanel({
   onSelectionHandled,
 }: LibraryPanelProps): JSX.Element {
   const library = useLibrary(api, onOpenSong, onProblem);
+  const serviceMenu = useLibraryServices(api, onProblem);
   const selectRequested = useEffectEvent(
     (request: LibrarySelectionRequest): void => {
       if (request.kind === 'clear') {
@@ -125,24 +128,22 @@ export function LibraryPanel({
           label="곡 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              icon: 'trash',
-              danger: true,
-              disabled: library.busy || menuSong.access === 'readOnly',
-              title:
-                menuSong.access === 'readOnly'
-                  ? '읽기 전용 곡입니다'
-                  : undefined,
-              onSelect: () => {
-                setDeleting(menuSong.id);
-                setMenu(null);
-              },
+          entries={libraryMenuEntries({
+            song: menuSong,
+            services: serviceMenu.services,
+            busy: library.busy || serviceMenu.busy,
+            open: () => {
+              library.open(menuSong.id).catch(() => library.report('open'));
             },
-          ]}
+            append: id => {
+              serviceMenu
+                .append(id, menuSong.id)
+                .catch((cause: unknown) =>
+                  console.error('Could not append the library song:', cause),
+                );
+            },
+            remove: () => setDeleting(menuSong.id),
+          })}
         />
       ) : null}
       {candidate ? (
