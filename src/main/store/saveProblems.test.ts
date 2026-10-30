@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import type {AppProblem} from '@shared/schema/appProblem';
+import {Channels} from '@contracts/ipc/api';
+import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '../displays/testing';
 import type {StandingProblems} from '../problemFeed';
 import {SaveFailures} from './saveFailures';

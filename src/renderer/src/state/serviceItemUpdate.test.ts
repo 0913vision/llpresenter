@@ -2,10 +2,10 @@ import {describe, expect, it, vi} from 'vitest';
 import {
   parseServiceDocument,
   type ServiceDocument,
-} from '@shared/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
-import {isItemOfKind} from '@shared/schema/service';
+} from '@core/schema/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
 import {updateServiceItem} from './serviceItemUpdate';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000011');

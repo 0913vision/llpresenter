@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import {APP_PROBLEM_LIMITS, type AppProblem} from '@shared/schema/appProblem';
+import {Channels} from '@contracts/ipc/api';
+import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
 import {sendToWindows} from './ipc';
 import type {LiveStore} from './live/store';
 import type {Logger} from './log';

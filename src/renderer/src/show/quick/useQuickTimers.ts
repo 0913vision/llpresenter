@@ -1,10 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {isKnownQuickItem, type QuickItem} from '@shared/schema/quick';
-import type {Timer} from '@shared/schema/timers';
-import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
-import type {TimerId, QuickItemId} from '@shared/schema/ids';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
+import {isKnownQuickItem, type QuickItem} from '@core/schema/quick';
+import type {Timer} from '@core/schema/timers';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import type {TimerId, QuickItemId} from '@core/schema/ids';
 import {
   useSettingsDocument,
   type NamedDocument,

@@ -1,6 +1,6 @@
-import {findSlideHotKey} from '@shared/slideHotKeys';
-import {parseServiceItemId} from '@shared/schema/ids';
-import type {ShowService} from '@shared/schema/showService';
+import {findSlideHotKey} from '@core/services/slideHotKeys';
+import {parseServiceItemId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
 import {
   type ItemId,
   type ServiceRow,

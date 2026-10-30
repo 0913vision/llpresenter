@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {
   BibleLookupReply,
   BibleLookupRequest,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 import {LatestLookup} from './LatestLookup';
 import {lookupReply, lookupRequest} from './testBible';
 

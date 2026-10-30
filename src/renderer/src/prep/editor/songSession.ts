@@ -1,13 +1,13 @@
-import type {LlpApi} from '@shared/ipc';
-import type {MediaId, SongGroupId} from '@shared/schema/ids';
-import type {SongSlideSource} from '@shared/schema/showService';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {MediaId, SongGroupId} from '@core/schema/ids';
+import type {SongSlideSource} from '@core/schema/showService';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {
   arrangementGroupIds,
   isGroupedSong,
   type AnySong,
   type GroupedSong,
-} from '@shared/schema/groupedSong';
+} from '@core/schema/groupedSong';
 import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';

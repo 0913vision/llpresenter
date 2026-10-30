@@ -1,8 +1,8 @@
-import {MAX_ACTIVE_PROPS} from '@shared/schema/overlayState';
+import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
 import {classes} from '../classes';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
-import type {TimerNow} from '@shared/timerClock';
+import type {TimerNow} from '@core/timers/timerClock';
 import type {LyricStyle} from '../lyricStyle';
 import {OverlayTextView} from '../overlayText';
 import {

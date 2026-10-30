@@ -1,11 +1,11 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import type {Result} from '@shared/result';
-import {createServiceId, type ServiceId} from '@shared/schema/ids';
-import {parseLiveState} from '@shared/schema/liveState';
-import {parseRecoveryRecord} from '@shared/schema/recoveryRecord';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {Result} from '@core/common/result';
+import {createServiceId, type ServiceId} from '@core/schema/ids';
+import {parseLiveState} from '@core/schema/liveState';
+import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
 import {makeTempDir} from '../../../../test/temp-dir';
 import {recordingLogger} from '../../displays/testing';
 import type {WriteProblem} from '../../store/atomicWrite';

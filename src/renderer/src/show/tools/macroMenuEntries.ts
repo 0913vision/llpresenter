@@ -6,7 +6,7 @@ import {
   type MacroActionKind,
   type MacroCollection,
   type KnownMacroAction,
-} from '@shared/schema/macros';
+} from '@core/schema/macros';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import type {MacroTargetChoice} from './macroTargets';
 import {macroActionChoices} from './macroActionChoices';

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {STARTER_SCREEN_IDS} from '@shared/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {editorGroupedSong, editorSong} from './editorFixture';
 import {editorPreviewFixture} from './editorPreviewFixture';
 import {previewAppearance, selectedPreview} from './songPreviewModel';

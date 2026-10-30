@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
-import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
-import {createServiceItemId} from '@shared/schema/ids';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/show/useServiceOrderEditing';
 import {useShow} from '@renderer/state/show';
 import {IconButton} from '@renderer/ui/IconButton';

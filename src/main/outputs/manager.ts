@@ -1,4 +1,4 @@
-import type {LiveState} from '@shared/live';
+import type {LiveState} from '@core/live/state';
 import {assignMonitors, type DisplayRequest} from '../displays/assign';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import {centeredRect, type Rect} from '../displays/rect';
@@ -15,7 +15,7 @@ import {
 } from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
 import type {IdentifiedOutput} from './monitorNumbers';
-import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
+import type {FrameReadyReport} from '@core/schema/ipcPayloads';
 
 /** The connected monitors, kept current. */
 export interface MonitorFeed {

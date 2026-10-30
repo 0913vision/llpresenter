@@ -1,6 +1,6 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
-import {isAnyOutputOn} from '@shared/live';
+import {isAnyOutputOn} from '@core/live/state';
 import {registerBible} from './bible/register';
 import {registerFonts} from './fonts/register';
 import {registerTextImport} from './import/register';

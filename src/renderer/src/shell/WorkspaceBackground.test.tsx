@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/state/live';
 import {openItem} from '@renderer/state/show';
 import {

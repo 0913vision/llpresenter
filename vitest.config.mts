@@ -15,7 +15,8 @@ export function testWorkerLimit(env: NodeJS.ProcessEnv): '50%' | '100%' {
 export default defineConfig({
   resolve: {
     alias: {
-      '@shared': resolve('src/shared'),
+      '@core': resolve('src/core'),
+      '@contracts': resolve('src/contracts'),
       '@renderer': resolve('src/renderer/src'),
     },
   },
@@ -60,7 +61,8 @@ export default defineConfig({
           include: [
             'src/main/**/*.test.ts',
             'src/preload/**/*.test.ts',
-            'src/shared/**/*.test.ts',
+            'src/core/**/*.test.ts',
+            'src/contracts/**/*.test.ts',
             'scripts/**/*.test.ts',
             'test/**/*.test.ts',
             RENDERER_NODE_TESTS,

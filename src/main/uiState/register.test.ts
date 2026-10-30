@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import type {UiFields, UiStateFields} from '../store/appConfigFile';
 import type {Logger} from '../log';
 

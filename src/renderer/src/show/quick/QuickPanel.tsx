@@ -3,7 +3,7 @@ import {
   isKnownQuickItem,
   type QuickItem,
   type QuickItemKind,
-} from '@shared/schema/quick';
+} from '@core/schema/quick';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';

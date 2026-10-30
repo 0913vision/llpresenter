@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {useLive} from '@renderer/state/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../useSettingsDocument';
@@ -8,13 +8,13 @@ import type {LookListEdit} from './lookListEdits';
 import type {LookCardEdit} from './lookCardEdits';
 import type {LyricStyleEdit} from './lyricStyleEdits';
 import type {MessageStyleChange} from './messageStyleEdits';
-import type {MessageStyleId} from '@shared/schema/ids';
+import type {MessageStyleId} from '@core/schema/ids';
 import type {
   assignMessageStyle,
   createAndAssignMessageStyle,
 } from './messageStyleAssignment';
 import type {LyricEffectsChange} from './lyricEffectsEdits';
-import type {LyricStyleId} from '@shared/schema/ids';
+import type {LyricStyleId} from '@core/schema/ids';
 import type {LyricStyleListEdit} from './lyricStyleListEdits';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();

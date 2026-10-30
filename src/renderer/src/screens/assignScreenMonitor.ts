@@ -1,5 +1,5 @@
-import type {MonitorInfo} from '@shared/schema/monitors';
-import type {Screen} from '@shared/schema/screens';
+import type {MonitorInfo} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens';
 
 export interface MonitorAssignmentInput {
   readonly screens: readonly Screen[];

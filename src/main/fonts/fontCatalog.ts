@@ -1,4 +1,4 @@
-import type {FontCatalog} from '@shared/schema/fontCatalog';
+import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {Logger} from '../log';
 
 const CACHE_MS = 60_000;

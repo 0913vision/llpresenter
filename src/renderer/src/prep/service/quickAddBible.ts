@@ -1,8 +1,8 @@
-import {createServiceItemId} from '@shared/schema/ids';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
-import type {ServiceItem} from '@shared/schema/service';
+import {createServiceItemId} from '@core/schema/ids';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
+import type {ServiceItem} from '@core/schema/service';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {bibleBookChoices} from '@shared/bibleCompletion';
+import {bibleBookChoices} from '@core/bible/bibleCompletion';
 
 export interface PassageDefaults {
   readonly translation: BibleLookupReply['translation'];

@@ -9,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {looksSchema} from '@shared/schema/looks';
+import {looksSchema} from '@core/schema/looks';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {Properties} from '@renderer/ui/PropertyRow';
 import {looksDocument} from '../testing/documents';

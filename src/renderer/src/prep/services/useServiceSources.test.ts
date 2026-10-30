@@ -3,9 +3,9 @@ import {describe, expect, it, vi} from 'vitest';
 import type {
   TemplateDocument,
   TemplateEntry,
-} from '@shared/schema/contentDocuments';
-import {createTemplateId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/contentDocuments';
+import {createTemplateId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   EMPTY_SOURCE,
   sourceKey,

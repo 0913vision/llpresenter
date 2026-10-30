@@ -1,6 +1,6 @@
 import {create} from 'zustand';
-import {sizeClasses} from '@shared/schema/appConfig';
-import type {UiState} from '@shared/schema/uiState';
+import {sizeClasses} from '@core/schema/appConfig';
+import type {UiState} from '@core/schema/uiState';
 import type {SizeClass} from '@renderer/shell/sizeClass';
 import {
   clampThumbnailScale,

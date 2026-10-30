@@ -1,16 +1,16 @@
 import {randomUUID} from 'node:crypto';
 import {ipcMain, type IpcMainEvent} from 'electron';
-import {Channels} from '@shared/ipc';
-import {closeStepAfter, type FlushOutcome} from '@shared/closePolicy';
+import {Channels} from '@contracts/ipc/api';
+import {closeStepAfter, type FlushOutcome} from '@core/app/closePolicy';
 import {
   APP_FLUSH_LIMITS,
   parseAppFlushDone,
   parseAppFlushRequest,
-} from '@shared/schema/appFlush';
+} from '@core/schema/appFlush';
 import {
   createAppFlushRequestId,
   type AppFlushRequestId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import type {Logger} from '../log';
 
 type CloseListener = (event: {preventDefault(): void}) => void;

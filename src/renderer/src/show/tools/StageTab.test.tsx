@@ -15,7 +15,7 @@ import {
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {ShowToolsPanel} from '../ShowToolsPanel';
 import {StageTab} from './StageTab';
 import {

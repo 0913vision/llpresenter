@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
 import type {SkippedLiveCommand} from './sliceRegistry';

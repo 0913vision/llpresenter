@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from 'react';
 import {createPortal} from 'react-dom';
-import type {TranslationId} from '@shared/schema/ids';
+import type {TranslationId} from '@core/schema/ids';
 import {placeFloating} from '@renderer/ui/floating';
 import {layerContainer} from '@renderer/ui/layers';
 import {modalStack} from '@renderer/ui/modalStack';

@@ -7,7 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {openItem, useShow} from '@renderer/state/show';
 import {SlideGrid} from './SlideGrid';
 import {seedSampleService} from './testing/sampleService';

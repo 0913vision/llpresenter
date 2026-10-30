@@ -1,11 +1,11 @@
-import {createMediaId} from '@shared/schema/ids';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {createMediaId} from '@core/schema/ids';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
-import {defaultPreferences} from '@shared/schema/preferences';
+} from '@core/schema/settingsDocuments';
+import {defaultPreferences} from '@core/schema/preferences';
 import type {SettingsReader, SettingsListener} from '../../store/settingsStore';
 
 export const overlayUuid = (id: number): string =>

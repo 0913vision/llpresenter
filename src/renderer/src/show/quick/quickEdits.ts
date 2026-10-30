@@ -1,17 +1,17 @@
-import type {LlpApi} from '@shared/ipc';
-import {createQuickItemId} from '@shared/schema/ids';
+import type {LlpApi} from '@contracts/ipc/api';
+import {createQuickItemId} from '@core/schema/ids';
 import type {
   KnownQuickItem,
   QuickItem,
   QuickItemKind,
-} from '@shared/schema/quick';
+} from '@core/schema/quick';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@shared/schema/quick';
-import type {QuickTimerEdit} from '@shared/schema/quickTimerEdit';
+import type {EditResult} from '@core/schema/contentEdit';
+import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
+import type {QuickTimerEdit} from '@core/schema/quickTimerEdit';
 
-export {MAX_QUICK_ITEMS} from '@shared/schema/quick';
+export {MAX_QUICK_ITEMS} from '@core/schema/quick';
 export const QUICK_NAME_LIMIT = 256;
 const SAVE_ATTEMPTS = 2;
 

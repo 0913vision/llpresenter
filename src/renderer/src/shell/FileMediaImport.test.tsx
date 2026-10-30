@@ -8,9 +8,9 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {MediaImportProgress} from '@shared/schema/mediaEdit';
-import {createMediaId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {MediaImportProgress} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {App} from '@renderer/control/App';
 import {ControlSession} from '@renderer/control/controlSession';
 import {applyService} from '@renderer/state/show';

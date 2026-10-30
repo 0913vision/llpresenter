@@ -1,15 +1,15 @@
-import {emptyLayers, type LiveLayers} from '@shared/live';
-import {STARTER_SCREEN_IDS, resolveOutputScreen} from '@shared/screens';
-import {screenIdSchema} from '@shared/schema/ids';
-import {parsePayload} from '@shared/schema/payload';
-import type {LooksFile} from '@shared/schema/looks';
-import type {ScreensFile} from '@shared/schema/screens';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {STARTER_SCREEN_IDS, resolveOutputScreen} from '@core/screens/screens';
+import {screenIdSchema} from '@core/schema/ids';
+import {parsePayload} from '@core/schema/payload';
+import type {LooksFile} from '@core/schema/looks';
+import type {ScreensFile} from '@core/schema/screens';
 import type {RenderScreen} from '@renderer/render/layer';
 import {
   DEFAULT_LYRIC_STYLE,
   renderLyricStyle,
 } from '@renderer/render/lyricStyle';
-import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from './blockEdits';
 
 export const PREVIEW_ROLES = [

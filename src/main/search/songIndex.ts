@@ -1,17 +1,17 @@
 import {setImmediate} from 'node:timers/promises';
-import type {SongChange} from '@shared/schema/contentDocuments';
+import type {SongChange} from '@core/schema/contentDocuments';
 import {
   LIBRARY_SEARCH_LIMITS,
   type LibrarySearchMatch,
   type LibrarySearchRequest,
   type LibrarySearchResult,
-} from '@shared/schema/librarySearch';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/librarySearch';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {
   isInitialQuery,
   normalizeSearch,
   searchInitials,
-} from '@shared/searchText';
+} from '@core/search/searchText';
 
 export const INDEX_CHUNK_SIZE = 25;
 

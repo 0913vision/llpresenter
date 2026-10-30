@@ -1,10 +1,10 @@
 import {expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@shared/schema/looks';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {parseLookId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {parseLookId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {
   looksDocument,

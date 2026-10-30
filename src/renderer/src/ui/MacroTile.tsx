@@ -1,5 +1,5 @@
 import {memo, type JSX, type ReactNode} from 'react';
-import type {MacroColor} from '@shared/colors';
+import type {MacroColor} from '@core/labels/colors';
 import {classNames} from './classNames';
 import {hasIcon, Icon} from './Icon';
 import {labelInk} from './labelInk';

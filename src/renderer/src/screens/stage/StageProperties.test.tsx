@@ -9,9 +9,9 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import type {StageElement} from '@shared/schema/stageLayouts';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {StageElement} from '@core/schema/stageLayouts';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {useScreensSelection} from '../selection';
 import {StageProperties} from './StageProperties';

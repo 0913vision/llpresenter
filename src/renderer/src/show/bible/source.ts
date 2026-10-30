@@ -1,6 +1,6 @@
-import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
-import type {TranslationId} from '@shared/schema/ids';
-import {bibleVerseTiles} from '@shared/bibleTiles';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {TranslationId} from '@core/schema/ids';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import type {SlideTile} from '../model';
 
 export interface BibleDisplayOptions {

@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers} from '@shared/live';
+import {emptyLayers} from '@core/live/state';
 import {LiveStore} from '../../../main/live/store';
 import {
   CAPTIONS,
@@ -14,7 +14,7 @@ import {
   TEXT_STYLE,
   overlayUuid,
 } from '../../../main/live/testing/overlays';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';

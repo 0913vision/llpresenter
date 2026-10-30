@@ -1,9 +1,9 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import {createMediaId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {Channels} from '@contracts/ipc/api';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {MediaStore} from './mediaStore';
 import {

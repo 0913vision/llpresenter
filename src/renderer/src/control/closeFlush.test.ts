@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../../test/fake-clock';
-import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@shared/schema/appFlush';
-import {createAppFlushRequestId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
+import {createAppFlushRequestId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from './closeFlush';
 
 const requestId = createAppFlushRequestId(

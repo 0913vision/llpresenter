@@ -13,10 +13,10 @@ import {
   ListRow,
   StatusDot,
 } from '@renderer/ui';
-import type {Screen} from '@shared/schema/screens';
+import type {Screen} from '@core/schema/screens';
 import {sendLive, useOutputs} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
-import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
+import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
 import {screenGroups, type ScreenRow} from './screenRows';

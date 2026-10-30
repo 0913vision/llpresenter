@@ -4,7 +4,10 @@ import react from '@vitejs/plugin-react';
 
 const DEFAULT_DEV_PORT = 5173;
 
-const shared = {'@shared': resolve('src/shared')};
+const shared = {
+  '@core': resolve('src/core'),
+  '@contracts': resolve('src/contracts'),
+};
 
 // NOTE(0913vision): Each session gets its own dev server port (the table in
 // docs/WORKFLOW.md). strictPort makes a clash fail instead of silently moving.

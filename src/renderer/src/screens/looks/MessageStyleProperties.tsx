@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import type {MessageStyle} from '@shared/schema/looks';
-import {isLyricTextColor} from '@shared/schema/textStyle';
+import type {MessageStyle} from '@core/schema/looks';
+import {isLyricTextColor} from '@core/schema/textStyle';
 import {NumberField} from '@renderer/ui/NumberField';
 import {Properties, PropertyRow} from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';

@@ -1,10 +1,10 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   parseUiZoomCommand,
   UI_ZOOM,
   type UiZoomCommand,
-} from '@shared/schema/uiZoom';
+} from '@core/schema/uiZoom';
 import type {Logger} from '../log';
 import type {AppConfigFile} from './appConfigFile';
 

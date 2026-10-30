@@ -3,7 +3,7 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseMediaList} from '../../src/shared/schema/mediaList';
+import {parseMediaList} from '../../src/core/schema/mediaList';
 import {
   isRunning,
   waitForHungTree,

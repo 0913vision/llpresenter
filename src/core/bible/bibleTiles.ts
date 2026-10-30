@@ -1,0 +1,36 @@
+import {NO_LABEL_COLOR} from '../labels/colors';
+import type {BibleLookupPassage} from '../schema/bibleLookup';
+import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
+import type {ShowTile} from '../schema/showService';
+
+function outputLines(text: string): readonly string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const character of text) {
+    if (line.length + character.length > LIVE_STATE_LIMITS.textCharacters) {
+      lines.push(line);
+      line = '';
+    }
+    line += character;
+  }
+  lines.push(line);
+  return lines;
+}
+
+/** The existing one-verse projection shared by saved and ad hoc passages. */
+export function bibleVerseTiles(
+  passage: BibleLookupPassage,
+  verseNumbers = true,
+  reference: 'every' | 'first' | 'none' = 'none',
+): readonly ShowTile[] {
+  return passage.verses.map((verse, index) => ({
+    label: `${verse.chapter}:${verse.verse}`,
+    labelColor: NO_LABEL_COLOR,
+    ...(reference === 'every' || (reference === 'first' && index === 0)
+      ? {reference: `${verse.chapter}:${verse.verse}`}
+      : {}),
+    lines: outputLines(
+      verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
+    ),
+  }));
+}

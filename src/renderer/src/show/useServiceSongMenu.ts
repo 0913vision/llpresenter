@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
-import type {SongDocument} from '@shared/schema/contentDocuments';
-import {isItemOfKind, type ServiceItemOf} from '@shared/schema/service';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import type {SongDocument} from '@core/schema/contentDocuments';
+import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {arrangementOptions} from '@renderer/prep/editor/songArrangements';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {

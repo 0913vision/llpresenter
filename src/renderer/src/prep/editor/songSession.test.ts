@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {parseSongDocument} from '@core/schema/contentDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 import {SongSession} from './songSession';

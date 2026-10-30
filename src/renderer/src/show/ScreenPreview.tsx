@@ -1,6 +1,6 @@
 import {useEffect, useRef, type JSX} from 'react';
-import {emptyLayers} from '@shared/live';
-import {mediaUrl} from '@shared/media';
+import {emptyLayers} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/media';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {ScreenFrames} from '@renderer/render/screenFrames';

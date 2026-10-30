@@ -1,4 +1,4 @@
-import type {MediaChoice} from '@shared/live';
+import type {MediaChoice} from '@core/live/state';
 import {setLayer, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 

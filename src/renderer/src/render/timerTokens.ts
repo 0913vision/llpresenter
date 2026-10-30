@@ -1,6 +1,10 @@
-import type {Timer} from '@shared/schema/timers';
-import type {TimerRuns} from '@shared/schema/timerState';
-import {isTimerTicking, timerText, type TimerNow} from '@shared/timerClock';
+import type {Timer} from '@core/schema/timers';
+import type {TimerRuns} from '@core/schema/timerState';
+import {
+  isTimerTicking,
+  timerText,
+  type TimerNow,
+} from '@core/timers/timerClock';
 
 /** The 타이머 definitions, live runs, and clocks that 소품 text reads its tokens from. */
 export interface RenderTimers {

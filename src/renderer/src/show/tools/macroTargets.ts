@@ -1,6 +1,6 @@
-import type {ClearTarget} from '@shared/commands';
-import {messageBlankNames} from '@shared/messageText';
-import type {MacroActionKind} from '@shared/schema/macros';
+import type {ClearTarget} from '@core/live/commands';
+import {messageBlankNames} from '@core/overlays/messageText';
+import type {MacroActionKind} from '@core/schema/macros';
 import {clearName} from '@renderer/ui/ClearButton';
 
 export interface MacroTargetChoice {

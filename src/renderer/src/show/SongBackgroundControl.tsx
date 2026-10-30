@@ -1,7 +1,7 @@
 import {useEffect, useId, useRef, useState, type JSX} from 'react';
-import {mediaUrl} from '@shared/media';
-import type {MediaId} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {MediaId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/state/show';
 import {Button, Icon, Menu} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';

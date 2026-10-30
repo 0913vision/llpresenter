@@ -1,18 +1,18 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
   parseActiveMessages,
   parseActiveProps,
   MAX_ACTIVE_PROPS,
   MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
-} from '@shared/schema/overlayState';
+} from '@core/schema/overlayState';
 import {recordingLogger} from '../displays/testing';
 import {
   noticePosition,
   nextNoticeChange,
   MAX_OVERLAY_TIMER_MS,
-} from '@shared/noticeClock';
+} from '@core/overlays/noticeClock';
 import {startOverlays} from './overlays';
 import {dispatchLogged, LiveStore} from './store';
 import {

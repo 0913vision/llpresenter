@@ -1,12 +1,12 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
-import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
 import {looksDocument, screensDocument} from '../testing/documents';
 import {
   assignMessageStyle,
   createAndAssignMessageStyle,
 } from './messageStyleAssignment';
-import {parseMessageStyleId} from '@shared/schema/ids';
+import {parseMessageStyleId} from '@core/schema/ids';
 
 function fixture() {
   const looks = looksDocument();

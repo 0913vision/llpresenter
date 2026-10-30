@@ -7,7 +7,7 @@ import {
   type JSX,
 } from 'react';
 import {TextImportFlow} from '@renderer/prep/import/TextImportFlow';
-import type {UiState} from '@shared/schema/uiState';
+import type {UiState} from '@core/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
 import {MenuBar} from '@renderer/shell/MenuBar';

@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import type {PaletteColor} from '@shared/colors';
+import type {PaletteColor} from '@core/labels/colors';
 import {describe, expect, it, vi} from 'vitest';
 import {SlideThumbnail, ThumbnailGrid} from './SlideThumbnail';
 

@@ -1,5 +1,5 @@
 import {nativeImage} from 'electron';
-import {coverCrop, type PixelSize} from '@shared/coverCrop';
+import {coverCrop, type PixelSize} from '@core/media/coverCrop';
 import type {MediaFacts} from './mediaAnalyser';
 
 /** The JPEG quality of thumbnails drawn in main, from 0 to 100. */

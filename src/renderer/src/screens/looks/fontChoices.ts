@@ -1,4 +1,4 @@
-import type {FontFamily} from '@shared/schema/fontCatalog';
+import type {FontFamily} from '@core/schema/fontCatalog';
 import {
   installedFamily,
   isBundledFont,

@@ -1,11 +1,11 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
+import type {LiveCommand} from '@core/live/commands';
 import {applyService, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {createServiceId} from '@shared/schema/ids';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {createServiceId} from '@core/schema/ids';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
 import {sampleService, seedSampleService} from './testing/sampleService';

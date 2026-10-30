@@ -8,9 +8,9 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {useScreensSelection} from '../selection';

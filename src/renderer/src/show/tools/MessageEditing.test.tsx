@@ -7,7 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   settingsDocument,
   CAPTIONS_ID,

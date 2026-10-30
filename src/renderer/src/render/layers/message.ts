@@ -1,4 +1,4 @@
-import {MAX_ACTIVE_MESSAGES} from '@shared/schema/overlayState';
+import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {defineLayer} from '../layer';
 import {OverlayTextView} from '../overlayText';
 

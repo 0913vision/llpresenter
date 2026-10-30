@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import type {GroupRename} from './ListRow';
 import type {MenuAnchor} from './Menu';
-import type {LabelColor} from '@shared/colors';
-import type {SearchRange} from '@shared/searchText';
+import type {LabelColor} from '@core/labels/colors';
+import type {SearchRange} from '@core/search/searchText';
 
 /** How an item that can be on reports it: one of several, or on and off. */
 export type MenuCheckKind = 'radio' | 'checkbox';

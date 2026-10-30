@@ -9,12 +9,12 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import type {TemplateDocument} from '@shared/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import type {ServiceOpenRequest} from '@shared/schema/serviceOpen';
-import type {ShowService} from '@shared/schema/showService';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import type {TemplateDocument} from '@core/schema/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
+import type {ShowService} from '@core/schema/showService';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
 import {sampleService} from '@renderer/show/testing/sampleService';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';

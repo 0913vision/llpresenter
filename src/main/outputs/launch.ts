@@ -1,4 +1,4 @@
-import type {SingleLiveCommand} from '@shared/commands';
+import type {SingleLiveCommand} from '@core/live/commands';
 import type {Logger} from '../log';
 import {dispatchBatched, type LiveStore} from '../live/store';
 import type {SettingsReader} from '../store/settingsStore';

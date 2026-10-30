@@ -1,7 +1,7 @@
-import {serializeAppConfig, type AppConfig} from '@shared/schema/appConfig';
-import type {FileError} from '@shared/schema/fileFormat';
-import type {ServiceId} from '@shared/schema/ids';
-import {UI_ZOOM} from '@shared/schema/uiZoom';
+import {serializeAppConfig, type AppConfig} from '@core/schema/appConfig';
+import type {FileError} from '@core/schema/fileFormat';
+import type {ServiceId} from '@core/schema/ids';
+import {UI_ZOOM} from '@core/schema/uiZoom';
 import type {Logger} from '../log';
 import {writeFileAtomically} from './atomicWrite';
 import {Autosave} from './autosave';

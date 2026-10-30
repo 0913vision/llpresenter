@@ -1,9 +1,9 @@
-import type {LlpApi} from '@shared/ipc';
-import {mediaUrl} from '@shared/media';
-import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
+import type {LlpApi} from '@contracts/ipc/api';
+import {mediaUrl} from '@contracts/ipc/media';
+import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {DEFAULT_LYRIC_STYLE} from '../render/lyricStyle';
 import {OutputRenderer} from '../render/outputRenderer';
-import type {LiveState} from '@shared/live';
+import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../render/screenFrames';
 import {startFrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';

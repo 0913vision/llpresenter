@@ -1,11 +1,11 @@
-import type {LiveCommand} from '@shared/commands';
-import type {SlideLayer} from '@shared/live';
+import type {LiveCommand} from '@core/live/commands';
+import type {SlideLayer} from '@core/live/state';
 import {
   audioPlaylistIdSchema,
   mediaIdSchema,
   type AudioPlaylistId,
-} from '@shared/schema/ids';
-import {parsePayload} from '@shared/schema/payload';
+} from '@core/schema/ids';
+import {parsePayload} from '@core/schema/payload';
 import type {Logger} from '../log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
 import {readSoakSettings} from './recorder';

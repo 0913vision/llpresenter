@@ -4,7 +4,7 @@ import type {
   ServiceEntry,
   TemplateDocument,
   TemplateEntry,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {
   createMediaId,
   createServiceId,
@@ -13,10 +13,10 @@ import {
   createTemplateId,
   noticeSetIdSchema,
   translationIdSchema,
-} from '@shared/schema/ids';
-import {parsePayload} from '@shared/schema/payload';
-import {parseTemplate, type ServiceItem} from '@shared/schema/service';
-import type {Result} from '@shared/result';
+} from '@core/schema/ids';
+import {parsePayload} from '@core/schema/payload';
+import {parseTemplate, type ServiceItem} from '@core/schema/service';
+import type {Result} from '@core/common/result';
 
 function sample<T>(result: Result<T, unknown>): T {
   if (!result.ok) throw new Error('A sample id is invalid');

@@ -1,10 +1,10 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState} from '@shared/live';
-import {createServiceItemId} from '@shared/schema/ids';
-import type {ShowService} from '@shared/schema/showService';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState} from '@core/live/state';
+import {createServiceItemId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {sendLive, startLiveSync, useLive} from './live';
 import {applyService, openItem, outputTile, useShow} from './show';

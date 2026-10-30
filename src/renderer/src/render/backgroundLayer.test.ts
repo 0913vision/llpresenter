@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {MediaLayer} from '@shared/live';
+import type {MediaLayer} from '@core/live/state';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {
   BACKGROUND_DISSOLVE_MS,

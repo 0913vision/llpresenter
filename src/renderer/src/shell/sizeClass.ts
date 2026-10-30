@@ -1,4 +1,4 @@
-import type {SizeClass} from '@shared/schema/appConfig';
+import type {SizeClass} from '@core/schema/appConfig';
 
 /** Window size classes, in CSS pixels after Windows display scaling. */
 export type {SizeClass};

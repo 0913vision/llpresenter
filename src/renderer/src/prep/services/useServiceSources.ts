@@ -1,11 +1,8 @@
 import {useEffect, useState} from 'react';
-import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import type {
-  ServiceEntry,
-  TemplateEntry,
-} from '@shared/schema/contentDocuments';
-import type {ServiceId, TemplateId} from '@shared/schema/ids';
-import type {ServiceItem} from '@shared/schema/service';
+import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
+import type {ServiceEntry, TemplateEntry} from '@core/schema/contentDocuments';
+import type {ServiceId, TemplateId} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
 
 /** Where a new service's items come from. */
 export type ServiceSource =

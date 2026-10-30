@@ -1,7 +1,7 @@
-import type {Label} from '@shared/schema/labels';
-import type {MediaChoice} from '@shared/live';
-import {isItemOfKind} from '@shared/schema/service';
-import type {ShowService} from '@shared/schema/showService';
+import type {Label} from '@core/schema/labels';
+import type {MediaChoice} from '@core/live/state';
+import {isItemOfKind} from '@core/schema/service';
+import type {ShowService} from '@core/schema/showService';
 import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
 import {resolveServicePassages} from '../bible/servicePassages';

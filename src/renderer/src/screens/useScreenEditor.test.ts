@@ -1,8 +1,8 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {EditResult} from '@shared/schema/contentEdit';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {EditResult} from '@core/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useScreenEditor} from './useScreenEditor';
 import {useMonitors} from './useMonitors';
 import type {NamedDocument} from './useSettingsDocument';

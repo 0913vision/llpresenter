@@ -4,7 +4,7 @@ import type {
   TextImportOptions,
   TextImportPreviewRequest,
   TextImportPreviewResult,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {TEXT_IMPORT_LIMITS} from './limits';
 
 type DraftSlide = TextImportDraft['slides'][number];

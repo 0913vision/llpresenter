@@ -1,14 +1,10 @@
 import {basename} from 'node:path';
-import type {
-  FileAccess,
-  FileError,
-  LoadedFile,
-} from '@shared/schema/fileFormat';
+import type {FileAccess, FileError, LoadedFile} from '@core/schema/fileFormat';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import type {DataLocations} from './locations';
 import type {Saver} from './saver';
 import {settingsCodecs, type SettingsValue} from './settingsCodecs';

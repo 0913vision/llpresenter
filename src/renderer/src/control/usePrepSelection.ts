@@ -1,5 +1,5 @@
 import {useCallback, useState} from 'react';
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import type {LibrarySelectionRequest} from '@renderer/prep/library/LibraryPanel';
 
 /**

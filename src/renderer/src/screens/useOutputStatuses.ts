@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import type {OutputStatuses} from '@shared/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 
 const noStatuses: OutputStatuses = {};
 

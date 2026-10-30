@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/state/live';
 import {openItem, selectTile, useShow} from '@renderer/state/show';
 import {openBiblePassage} from '../bible/actions';

@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {handleUiZoomKey, useUiZoomKeys} from './uiZoomKeys';
 
 const changeZoom = vi.fn(() => Promise.resolve(100));

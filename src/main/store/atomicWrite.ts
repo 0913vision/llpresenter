@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {mkdir, open, rename, rm} from 'node:fs/promises';
 import {basename, dirname, join} from 'node:path';
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 
 // NOTE(0913vision): On Windows, antivirus and search indexers hold a file open
 // for a moment after it changes, so renaming over it can fail with EPERM,

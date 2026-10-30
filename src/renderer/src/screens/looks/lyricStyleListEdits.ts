@@ -1,7 +1,7 @@
-import type {Result} from '@shared/result';
-import type {LyricStyleId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import type {Result} from '@core/common/result';
+import type {LyricStyleId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {nameProblem} from '../screenEdits';
 
 export const LYRIC_STYLE_LIMIT = 1000;

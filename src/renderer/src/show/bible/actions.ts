@@ -1,4 +1,4 @@
-import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {outputTile, useShow} from '@renderer/state/show';
 import {beginOutputRequest} from '@renderer/state/showOutput';
 import {useLive} from '@renderer/state/live';

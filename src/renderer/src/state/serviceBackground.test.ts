@@ -1,13 +1,13 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
-import {parseServiceDocument} from '@shared/schema/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {
   createMediaId,
   createServiceId,
   createServiceItemId,
   createSongId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {pendingWritesOf} from './pendingWrites';
 import {updateServiceBackground} from './serviceBackground';
 

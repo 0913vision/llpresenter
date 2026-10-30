@@ -2,8 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
-import {mediaUrl} from '@shared/media';
-import type {MediaItem} from '@shared/schema/mediaList';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {MediaItem} from '@core/schema/mediaList';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {mediaId, mediaItem} from './mediaTesting';
 

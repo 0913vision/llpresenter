@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {MediaId} from '@shared/schema/ids';
+import type {MediaId} from '@core/schema/ids';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useAudioMissing(

@@ -1,9 +1,9 @@
-import {parseScreenId, type LookId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
-import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
-import type {LiveState} from '@shared/live';
-import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
-import {STARTER_SCREEN_IDS} from '@shared/screens';
+import {parseScreenId, type LookId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
+import type {StageLayoutsFile} from '@core/schema/stageLayouts';
+import type {LiveState} from '@core/live/state';
+import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {sendLive} from '@renderer/state/live';
 import {useScreensSelection} from '@renderer/screens/selection';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';

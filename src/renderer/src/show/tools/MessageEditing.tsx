@@ -1,6 +1,6 @@
 import {useState, type JSX, type ReactNode} from 'react';
-import type {MessageTemplate} from '@shared/schema/messages';
-import {MAX_MESSAGE_CHARACTERS} from '@shared/messageText';
+import type {MessageTemplate} from '@core/schema/messages';
+import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import type {NamedDocument} from '@renderer/screens/useSettingsDocument';
 import {
   AlertDialog,

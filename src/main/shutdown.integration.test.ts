@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {recordingLogger} from './displays/testing';
 import {ShutdownCoordinator} from './shutdown';
 

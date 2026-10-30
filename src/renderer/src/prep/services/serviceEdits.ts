@@ -1,7 +1,7 @@
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {serviceIdSchema, type ServiceId} from '@shared/schema/ids';
-import {parsePayload} from '@shared/schema/payload';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
+import {serviceIdSchema, type ServiceId} from '@core/schema/ids';
+import {parsePayload} from '@core/schema/payload';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {logFailure} from './useServiceSources';
 

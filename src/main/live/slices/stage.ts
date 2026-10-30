@@ -1,4 +1,4 @@
-import type {StageLayoutId} from '@shared/schema/ids';
+import type {StageLayoutId} from '@core/schema/ids';
 import {MissingLiveTargetError} from '../commandErrors';
 import type {LiveHistory} from '../history';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';

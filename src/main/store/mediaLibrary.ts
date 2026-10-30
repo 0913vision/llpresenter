@@ -1,10 +1,10 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {stat} from 'node:fs/promises';
-import type {MediaChoice} from '@shared/live';
-import {mediaLoops} from '@shared/mediaEndRule';
-import type {Result} from '@shared/result';
-import type {FileError} from '@shared/schema/fileFormat';
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {MediaChoice} from '@core/live/state';
+import {mediaLoops} from '@core/media/mediaEndRule';
+import type {Result} from '@core/common/result';
+import type {FileError} from '@core/schema/fileFormat';
+import type {MediaItem} from '@core/schema/mediaList';
 import {isInside} from './locations';
 import {realPathInside} from '../windows/insideRoots';
 

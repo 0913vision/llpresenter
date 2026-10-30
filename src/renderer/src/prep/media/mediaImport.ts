@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   MediaImportProgress,
   MediaImportRequest,
-} from '@shared/schema/mediaEdit';
+} from '@core/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function mediaImportFailureNotice(

@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {ServiceId, TemplateId} from '@shared/schema/ids';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {ServiceId, TemplateId} from '@core/schema/ids';
 import {useShow} from '@renderer/state/show';
 import type {Notice} from '@renderer/ui/notices';
 import {

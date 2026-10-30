@@ -1,7 +1,7 @@
 import type {
   SettingsDocument,
   SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import type {Logger} from '../log';
 import type {SettingsListener, SettingsReader} from './settingsStore';
 

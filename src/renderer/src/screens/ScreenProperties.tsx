@@ -1,6 +1,6 @@
 import {useMemo, useState, type JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
-import type {Screen} from '@shared/schema/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens';
 import {
   NumberField,
   Properties,

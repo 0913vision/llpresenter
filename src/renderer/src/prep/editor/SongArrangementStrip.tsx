@@ -3,8 +3,8 @@ import {
   arrangementGroupIds,
   isGroupedSong,
   type AnySong,
-} from '@shared/schema/groupedSong';
-import type {Label} from '@shared/schema/labels';
+} from '@core/schema/groupedSong';
+import type {Label} from '@core/schema/labels';
 import {ArrangementStrip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';

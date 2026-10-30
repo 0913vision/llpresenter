@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
-import type {LiveState, MediaLayer} from '@shared/live';
-import type {LooksFile} from '@shared/schema/looks';
-import type {Screen} from '@shared/schema/screens';
-import {mediaUrl} from '@shared/media';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LiveState, MediaLayer} from '@core/live/state';
+import type {LooksFile} from '@core/schema/looks';
+import type {Screen} from '@core/schema/screens';
+import {mediaUrl} from '@contracts/ipc/media';
 import {BackgroundLayerView} from '../render/backgroundLayer';
 import {fadeAudio} from '../render/audioFade';
 import {resolveScreenLook, showsLayer} from '../render/screenLook';

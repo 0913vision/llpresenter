@@ -1,7 +1,7 @@
-import type {Result} from '@shared/result';
-import type {LookId} from '@shared/schema/ids';
-import type {Look, LooksFile} from '@shared/schema/looks';
-import {isKnownMacroAction, type Macro} from '@shared/schema/macros';
+import type {Result} from '@core/common/result';
+import type {LookId} from '@core/schema/ids';
+import type {Look, LooksFile} from '@core/schema/looks';
+import {isKnownMacroAction, type Macro} from '@core/schema/macros';
 import {nameProblem} from '../screenEdits';
 
 /** Bounds newly created Looks without rejecting an existing imported list. */

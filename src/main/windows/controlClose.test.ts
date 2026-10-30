@@ -1,8 +1,8 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import {Channels} from '@shared/ipc';
-import {APP_FLUSH_LIMITS} from '@shared/schema/appFlush';
+import {Channels} from '@contracts/ipc/api';
+import {APP_FLUSH_LIMITS} from '@core/schema/appFlush';
 import {recordingLogger} from '../displays/testing';
 import {registerControlClose, type CloseableWindow} from './controlClose';
 

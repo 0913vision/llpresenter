@@ -2,14 +2,14 @@ import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as v from 'valibot';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import type {MonitorList} from '@shared/schema/monitors';
-import {screenIdSchema} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import type {MonitorList} from '@core/schema/monitors';
+import {screenIdSchema} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {OutputPreview} from './OutputPreview';
 import {useScreensSelection} from './selection';
 import {useLive} from '@renderer/state/live';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   CAPTIONS_ID,
   MAIN_ID,

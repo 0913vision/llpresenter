@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
-import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
 import {looksDocument} from '../testing/documents';
 import {editMessageStyle} from './messageStyleEdits';
 

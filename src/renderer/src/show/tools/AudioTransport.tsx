@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {AudioLayer} from '@shared/live';
-import type {AudioPlaylist, MediaItem} from '@shared/schema/mediaList';
-import {audioPositionSeconds} from '@shared/schema/audioState';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {AudioLayer} from '@core/live/state';
+import type {AudioPlaylist, MediaItem} from '@core/schema/mediaList';
+import {audioPositionSeconds} from '@core/schema/audioState';
 import {Button, Slider, TruncatedText} from '@renderer/ui';
 import {durationText} from '@renderer/prep/media/mediaEntries';
 import {useTimerNow} from './useTimerNow';

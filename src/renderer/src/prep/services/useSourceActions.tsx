@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type ReactNode} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useShow} from '@renderer/state/show';
 import {AlertDialog} from '@renderer/ui/AlertDialog';

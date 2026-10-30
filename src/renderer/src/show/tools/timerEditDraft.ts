@@ -1,4 +1,4 @@
-import type {Timer} from '@shared/schema/timers';
+import type {Timer} from '@core/schema/timers';
 import type {TimerConfiguration} from './timerConfiguration';
 
 export type TimerEditDraft =

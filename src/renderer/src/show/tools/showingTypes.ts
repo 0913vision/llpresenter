@@ -1,12 +1,12 @@
-import type {Screen} from '@shared/schema/screens';
-import type {LooksFile} from '@shared/schema/looks';
-import type {LiveState} from '@shared/live';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {PropsFile} from '@shared/schema/props';
-import type {NoticesFile} from '@shared/schema/notices';
-import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
+import type {Screen} from '@core/schema/screens';
+import type {LooksFile} from '@core/schema/looks';
+import type {LiveState} from '@core/live/state';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {PropsFile} from '@core/schema/props';
+import type {NoticesFile} from '@core/schema/notices';
+import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {ServiceRow, ItemId} from '@renderer/show/model';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {BibleSource} from '@renderer/show/bible/source';
 
 export type ShowingKind =

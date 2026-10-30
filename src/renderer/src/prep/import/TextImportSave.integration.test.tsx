@@ -1,8 +1,8 @@
 import {useState} from 'react';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import {contentFixture} from '../../../../../test/content-fixture';
 import {convertTextImport} from '../../../../main/import/convert';
 import {editorFixture} from '../editor/editorFixture';

@@ -9,7 +9,7 @@ import {
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {createMediaId, type MediaId} from '@shared/schema/ids';
+import {createMediaId, type MediaId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {ThumbnailCache} from './thumbnailCache';
 

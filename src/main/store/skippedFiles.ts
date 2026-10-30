@@ -2,7 +2,7 @@ import {
   APP_PROBLEM_LIMITS,
   fileSkippedProblem,
   type AppProblem,
-} from '@shared/schema/appProblem';
+} from '@core/schema/appProblem';
 import type {Logger} from '../log';
 
 /** A data file that couldn't be read, by its path. */

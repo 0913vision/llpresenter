@@ -7,8 +7,8 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
 import {AudioPlayer} from './audioPlayer';
 
 const MEDIA = '00000000-0000-4000-8000-000000000001';

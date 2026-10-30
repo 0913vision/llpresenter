@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';

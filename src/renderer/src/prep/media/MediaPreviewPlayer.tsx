@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {mediaUrl} from '@shared/media';
-import type {MediaItem} from '@shared/schema/mediaList';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {MediaItem} from '@core/schema/mediaList';
 import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/IconButton';
 import {MissingFileMark} from '@renderer/ui/MissingFile';

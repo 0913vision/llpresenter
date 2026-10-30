@@ -9,13 +9,13 @@ import {
   type CSSProperties,
   type JSX,
 } from 'react';
-import type {LlpApi} from '@shared/ipc';
-import {mediaUrl} from '@shared/media';
-import {emptyLayers} from '@shared/live';
-import type {Label} from '@shared/schema/labels';
-import type {ShowTile} from '@shared/schema/showService';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import type {LlpApi} from '@contracts/ipc/api';
+import {mediaUrl} from '@contracts/ipc/media';
+import {emptyLayers} from '@core/live/state';
+import type {Label} from '@core/schema/labels';
+import type {ShowTile} from '@core/schema/showService';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf, slideCountOf} from './blockEdits';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';

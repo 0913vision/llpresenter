@@ -1,7 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {fontFamilyFixture} from '@shared/testing/fontCatalog';
+import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
 import {FontPicker} from './FontPicker';
 import {familyChoices, filterFamilies} from './fontChoices';
 

@@ -1,5 +1,5 @@
 import {extname, join} from 'node:path';
-import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
+import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 
 /** A loaded file, and where it is, so that a change saves to the same file. */

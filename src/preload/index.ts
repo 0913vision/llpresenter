@@ -10,18 +10,18 @@ import {
   type DocumentApi,
   type LlpApi,
   type Unsubscribe,
-} from '@shared/ipc';
-import type {Result} from '@shared/result';
+} from '@contracts/ipc/api';
+import type {Result} from '@core/common/result';
 import {
   parseBibleLookupRequest,
   parseBibleLookupReply,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 import {
   parseAppFlushDone,
   parseAppFlushRequest,
   parseAppSavePendingResult,
-} from '@shared/schema/appFlush';
-import {parseAppProblem, parseAppProblems} from '@shared/schema/appProblem';
+} from '@core/schema/appFlush';
+import {parseAppProblem, parseAppProblems} from '@core/schema/appProblem';
 import {
   parseLibrarySongs,
   parseServiceChange,
@@ -32,51 +32,51 @@ import {
   parseTemplateChange,
   parseTemplateDocument,
   parseTemplateEntries,
-} from '@shared/schema/contentDocuments';
-import {parseEditResult} from '@shared/schema/contentEdit';
+} from '@core/schema/contentDocuments';
+import {parseEditResult} from '@core/schema/contentEdit';
 import {
   RENDERER_LOG_LIMITS,
   parseFrameReadyReply,
-} from '@shared/schema/ipcPayloads';
-import {parseLiveState} from '@shared/schema/liveState';
-import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
-import {parseTimerClockReading} from '@shared/schema/timerState';
+} from '@core/schema/ipcPayloads';
+import {parseLiveState} from '@core/schema/liveState';
+import {parseLiveCommandRequest} from '@core/schema/liveCommand';
+import {parseTimerClockReading} from '@core/schema/timerState';
 import {
   parseRecoveryApply,
   parseRecoveryResult,
   parseRecoverySummary,
-} from '@shared/schema/recovery';
-import type {PayloadError} from '@shared/schema/payload';
-import {parseMonitorList} from '@shared/schema/monitors';
-import {parseFontCatalog} from '@shared/schema/fontCatalog';
-import {parseOutputStatuses} from '@shared/schema/outputStatus';
-import {parseShowService} from '@shared/schema/showService';
+} from '@core/schema/recovery';
+import type {PayloadError} from '@core/schema/payload';
+import {parseMonitorList} from '@core/schema/monitors';
+import {parseFontCatalog} from '@core/schema/fontCatalog';
+import {parseOutputStatuses} from '@core/schema/outputStatus';
+import {parseShowService} from '@core/schema/showService';
 import {
   parseShowLibrarySongRequest,
   parseShowLibrarySongReply,
-} from '@shared/schema/showLibrarySong';
+} from '@core/schema/showLibrarySong';
 import {
   parseServiceOpenRequest,
   parseServiceOpenReply,
-} from '@shared/schema/serviceOpen';
+} from '@core/schema/serviceOpen';
 import {
   parseMediaStripChange,
   parsePrepMediaChange,
   parseUiState,
-} from '@shared/schema/uiState';
-import {parseMediaBrowserChange} from '@shared/schema/mediaBrowser';
+} from '@core/schema/uiState';
+import {parseMediaBrowserChange} from '@core/schema/mediaBrowser';
 import {
   parseUiZoomFactor,
   parseUiZoomPercent,
   UI_ZOOM_FACTOR,
-} from '@shared/schema/uiZoom';
-import {parsePreferencesValue} from '@shared/schema/preferences';
+} from '@core/schema/uiZoom';
+import {parsePreferencesValue} from '@core/schema/preferences';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
   parseSettingsReadRequest,
   parseSettingsReply,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {
   parseMediaDocument,
   parseMediaEdit,
@@ -84,23 +84,23 @@ import {
   parseMediaImportRequest,
   parseMediaImportResult,
   parseMediaImportProgress,
-} from '@shared/schema/mediaEdit';
+} from '@core/schema/mediaEdit';
 import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
   parseMissingMedia,
-} from '@shared/schema/mediaFiles';
+} from '@core/schema/mediaFiles';
 import {
   parseLibrarySearchRequest,
   parseLibrarySearchResult,
-} from '@shared/schema/librarySearch';
+} from '@core/schema/librarySearch';
 import {
   parseTextImportReadRequest,
   parseTextImportClipboardAvailable,
   parseTextImportReadResult,
   parseTextImportPreviewRequest,
   parseTextImportPreviewResult,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 
 type Parse<T> = (value: unknown) => Result<T, PayloadError>;
 

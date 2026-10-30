@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {KnownMacroAction, MacroActionKind} from '@shared/schema/macros';
+import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
 import {
   Button,
   Dialog,
@@ -9,7 +9,10 @@ import {
   TextField,
 } from '@renderer/ui';
 import {prepareMacroAction, type MacroActionDraft} from './macroActionDraft';
-import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@shared/messageText';
+import {
+  fillMessageText,
+  MAX_MESSAGE_CHARACTERS,
+} from '@core/overlays/messageText';
 
 export interface MacroActionChoice {
   readonly id: string;

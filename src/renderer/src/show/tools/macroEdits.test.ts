@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {saveMacroEdit} from './macroEdits';

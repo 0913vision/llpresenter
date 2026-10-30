@@ -1,8 +1,8 @@
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
-import {mediaUrl} from '@shared/media';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/media';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {useLive} from '@renderer/state/live';
 import {showLarge, usePreview} from '@renderer/state/preview';

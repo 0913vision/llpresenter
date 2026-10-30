@@ -1,8 +1,8 @@
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {parseMonitorList} from '@shared/schema/monitors';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {Channels} from '@contracts/ipc/api';
+import {parseMonitorList} from '@core/schema/monitors';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageHandler} from '../rendererMessages';
 import {

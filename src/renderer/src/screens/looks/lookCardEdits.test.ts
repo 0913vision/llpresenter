@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,

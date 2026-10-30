@@ -6,7 +6,7 @@ import {
   type KeyboardEvent,
   type Ref,
 } from 'react';
-import type {LabelColor} from '@shared/colors';
+import type {LabelColor} from '@core/labels/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';

@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {MediaPropertiesPanel} from './MediaPropertiesPanel';
 import {MediaView} from './MediaView';
 import {MediaViewProvider} from './MediaViewProvider';

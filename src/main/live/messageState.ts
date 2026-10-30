@@ -1,4 +1,4 @@
-import type {ActiveMessage, MessageLayer} from '@shared/live';
+import type {ActiveMessage, MessageLayer} from '@core/live/state';
 
 export function messageLayer(
   items: readonly ActiveMessage[],

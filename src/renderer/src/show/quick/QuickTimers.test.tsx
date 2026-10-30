@@ -8,15 +8,15 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {emptyLiveState} from '@shared/live';
+} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/state/live';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';

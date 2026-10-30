@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {MediaId} from '@shared/schema/ids';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {MediaId} from '@core/schema/ids';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {CopyJob} from './mediaCopyJobs';
 import {
   ALL_MEDIA,

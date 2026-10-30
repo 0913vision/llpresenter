@@ -1,13 +1,13 @@
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {parseScreenId} from '@shared/schema/ids';
+import {parseScreenId} from '@core/schema/ids';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {referencedStageLayouts} from '@shared/stageLayoutReferences';
+} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
 import type {DocumentFiles} from './contentPersistence';
 import {SettingsStore} from './settingsStore';
 

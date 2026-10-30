@@ -5,10 +5,10 @@ import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
-import {MAX_TIMER_DEFINITIONS} from '@shared/schema/quickTimerEdit';
-import {MAX_QUICK_ITEMS} from '@shared/schema/quick';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/settingsDocuments';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/quickTimerEdit';
+import {MAX_QUICK_ITEMS} from '@core/schema/quick';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import type {DocumentFiles} from './contentPersistence';
 import {SettingsStore} from './settingsStore';

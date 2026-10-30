@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
-import {createServiceItemId, type SongId} from '@shared/schema/ids';
+import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {openItem, useShow} from '@renderer/state/show';

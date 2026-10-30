@@ -8,7 +8,8 @@ const LOOPBACK_HOST = '127.0.0.1';
 
 /** The aliases of the renderer build, so gallery imports resolve the same way. */
 export const RENDERER_ALIASES = {
-  '@shared': resolve(REPO_ROOT, 'src/shared'),
+  '@core': resolve(REPO_ROOT, 'src/core'),
+  '@contracts': resolve(REPO_ROOT, 'src/contracts'),
   '@renderer': resolve(REPO_ROOT, 'src/renderer/src'),
 };
 

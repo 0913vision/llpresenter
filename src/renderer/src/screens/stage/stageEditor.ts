@@ -1,11 +1,11 @@
-import {parsePayload} from '@shared/schema/payload';
-import type {LlpApi} from '@shared/ipc';
-import {stageElementIdSchema, stageLayoutIdSchema} from '@shared/schema/ids';
+import {parsePayload} from '@core/schema/payload';
+import type {LlpApi} from '@contracts/ipc/api';
+import {stageElementIdSchema, stageLayoutIdSchema} from '@core/schema/ids';
 import type {
   StageElement,
   StageLayout,
   StageLayoutsFile,
-} from '@shared/schema/stageLayouts';
+} from '@core/schema/stageLayouts';
 import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';

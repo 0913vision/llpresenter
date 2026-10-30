@@ -1,5 +1,5 @@
 import {defineSlice} from '../slice';
-import {outputStateKeys, resolveOutputScreen} from '@shared/screens';
+import {outputStateKeys, resolveOutputScreen} from '@core/screens/screens';
 import {MissingLiveTargetError} from '../commandErrors';
 
 /**

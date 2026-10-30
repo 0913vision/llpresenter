@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {LookId} from '@shared/schema/ids';
+import type {LookId} from '@core/schema/ids';
 import {Menu, ToolbarButton} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';

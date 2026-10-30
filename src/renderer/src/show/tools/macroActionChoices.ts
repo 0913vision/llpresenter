@@ -1,4 +1,4 @@
-import type {MacroActionKind, KnownMacroAction} from '@shared/schema/macros';
+import type {MacroActionKind, KnownMacroAction} from '@core/schema/macros';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 import {draftMacroAction, type MacroActionDraft} from './macroActionDraft';

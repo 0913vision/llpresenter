@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import type {LyricStyle} from '@shared/schema/looks';
-import {isLyricTextColor} from '@shared/schema/textStyle';
+import type {LyricStyle} from '@core/schema/looks';
+import {isLyricTextColor} from '@core/schema/textStyle';
 import {NumberField} from '@renderer/ui/NumberField';
 import {
   Properties,

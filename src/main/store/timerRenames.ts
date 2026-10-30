@@ -1,12 +1,12 @@
-import type {Result} from '@shared/result';
-import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
-import {isKnownQuickItem} from '@shared/schema/quick';
+import type {Result} from '@core/common/result';
+import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
+import {isKnownQuickItem} from '@core/schema/quick';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
-import type {TimerRename} from '@shared/schema/timerEdit';
+} from '@core/schema/settingsDocuments';
+import type {TimerRename} from '@core/schema/timerEdit';
 
 interface PreparedRename {
   readonly documents: readonly SettingsDocument[];

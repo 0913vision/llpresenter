@@ -1,10 +1,10 @@
-import type {LlpApi} from '@shared/ipc';
-import type {LiveState} from '@shared/live';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LiveState} from '@core/live/state';
 import {
   isKnownQuickItem,
   type KnownQuickItem,
   type QuickItem,
-} from '@shared/schema/quick';
+} from '@core/schema/quick';
 import {sendLive, useLive} from '@renderer/state/live';
 import {selectTile, useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';

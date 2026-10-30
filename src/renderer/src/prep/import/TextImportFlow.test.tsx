@@ -8,12 +8,12 @@ import {
   within,
 } from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import type {Notice} from '@renderer/ui/notices';
-import type {TextImportReadResult} from '@shared/schema/textImport';
-import type {SongDocument} from '@shared/schema/contentDocuments';
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
-import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
+import type {TextImportReadResult} from '@core/schema/textImport';
+import type {SongDocument} from '@core/schema/contentDocuments';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import {parseGroupedSongDraft} from '@core/schema/groupedSong';
 import {convertTextImport} from '../../../../main/import/convert';
 import {editorFixture, editorSong} from '../editor/editorFixture';
 import {SongEditorStore} from '../editor/songEditorStore';

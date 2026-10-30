@@ -1,5 +1,5 @@
 import {createContext, useContext, type JSX, type ReactNode} from 'react';
-import type {ClearTarget} from '@shared/commands';
+import type {ClearTarget} from '@core/live/commands';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {useButtonPress} from './press';

@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import type {DocumentFiles} from './contentPersistence';
 import {createLookSelection} from './lookSelection';

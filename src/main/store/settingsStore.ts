@@ -3,19 +3,19 @@ import type {
   EditRefusalReason,
   EditResult,
   EditSuccess,
-} from '@shared/schema/contentEdit';
+} from '@core/schema/contentEdit';
 import {
   mergeSettingsDocument,
   settingsNames,
   type SettingsDocument,
   type SettingsEdit,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {
   defaultPreferences,
   withPreferenceDefaults,
   type Preferences,
-} from '@shared/schema/preferences';
+} from '@core/schema/preferences';
 import type {Logger} from '../log';
 import type {DocumentFiles} from './contentPersistence';
 import {documentFiles} from './documentFiles';

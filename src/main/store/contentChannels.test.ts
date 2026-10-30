@@ -1,11 +1,11 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   songIdSchema,
   serviceIdSchema,
   templateIdSchema,
-} from '@shared/schema/ids';
-import {testId} from '@shared/schema/testHelpers';
+} from '@core/schema/ids';
+import {testId} from '@core/schema/testHelpers';
 import type {Logger} from '../log';
 import {broadcast, broadcastEvents} from './contentChannels';
 import {HYMN_ONE_ID, SUNDAY_ID} from './testFiles';

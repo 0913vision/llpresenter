@@ -1,6 +1,6 @@
 import {useMemo, useRef, useState, type JSX} from 'react';
 import {createPortal} from 'react-dom';
-import {FONT_CATALOG_LIMITS} from '@shared/schema/fontCatalog';
+import {FONT_CATALOG_LIMITS} from '@core/schema/fontCatalog';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {layerContainer} from '@renderer/ui/layers';

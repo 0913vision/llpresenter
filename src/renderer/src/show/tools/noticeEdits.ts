@@ -1,14 +1,11 @@
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   serializeNotices,
   type NoticeSet,
   type NoticesFile,
-} from '@shared/schema/notices';
-import {
-  MAX_NOTICE_IMAGES,
-  MAX_TARGET_SCREENS,
-} from '@shared/schema/overlayState';
+} from '@core/schema/notices';
+import {MAX_NOTICE_IMAGES, MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 

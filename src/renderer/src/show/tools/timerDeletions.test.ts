@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {createTimerId} from '@shared/schema/ids';
-import type {EditResult} from '@shared/schema/contentEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {createTimerId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {deleteTimer} from './timerDeletions';

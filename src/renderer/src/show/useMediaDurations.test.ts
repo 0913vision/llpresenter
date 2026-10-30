@@ -3,14 +3,14 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {
   ServiceChange,
   ServiceDocument,
-} from '@shared/schema/contentDocuments';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+} from '@core/schema/contentDocuments';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {
   createMediaId,
   createServiceId,
   createServiceItemId,
-} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useMediaDurations} from './useMediaDurations';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');

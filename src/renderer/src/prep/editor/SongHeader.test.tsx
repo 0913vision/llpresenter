@@ -1,6 +1,6 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {createServiceId} from '@shared/schema/ids';
+import {createServiceId} from '@core/schema/ids';
 import {hoverForTooltip} from '@renderer/ui/tooltipTesting';
 import {editorFixture} from './editorFixture';
 import {editorSetup, lyrics} from './editorTesting';

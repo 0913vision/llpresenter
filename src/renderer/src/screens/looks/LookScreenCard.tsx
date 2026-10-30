@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import type {Look} from '@shared/schema/looks';
-import type {MessageStyleId} from '@shared/schema/ids';
+import type {Look} from '@core/schema/looks';
+import type {MessageStyleId} from '@core/schema/ids';
 import {MessageStyleSelect} from './MessageStyleSelect';
 import {MessageStyleProperties} from './MessageStyleProperties';
 import type {MessageStyleChange} from './messageStyleEdits';
 import type {LookPreviewInput} from './lookPreviewFrame';
-import type {Timer} from '@shared/schema/timers';
+import type {Timer} from '@core/schema/timers';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {Icon} from '@renderer/ui/Icon';
 import {SelectMenu} from '@renderer/ui/SelectMenu';

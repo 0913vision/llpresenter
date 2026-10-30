@@ -4,8 +4,8 @@ import {
   parseSettingsDocument,
   parseSettingsEdit,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
 import type {DocumentFiles} from './contentPersistence';
 import {SettingsStore} from './settingsStore';
 import type {WriteResult} from './fileWriter';

@@ -1,11 +1,11 @@
-import type {AudioLayer, LiveState} from '@shared/live';
-import {mediaUrl} from '@shared/media';
+import type {AudioLayer, LiveState} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/media';
 import {
   AUDIO_MANUAL_FADE_MS,
   audioPositionSeconds,
-} from '@shared/schema/audioState';
+} from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';
-import type {ClearEffect} from '@shared/schema/clearFade';
+import type {ClearEffect} from '@core/schema/clearFade';
 
 interface AudioPlayerOptions {
   readonly now: () => number;

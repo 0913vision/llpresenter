@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {MacroColor} from '@shared/colors';
+import type {MacroColor} from '@core/labels/colors';
 import {
   MacroGrid,
   MacroList,

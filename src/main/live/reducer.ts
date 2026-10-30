@@ -1,4 +1,4 @@
-import type {LiveCommand} from '@shared/commands';
+import type {LiveCommand} from '@core/live/commands';
 import type {LiveHistory} from './history';
 import {liveSlices} from './slices';
 

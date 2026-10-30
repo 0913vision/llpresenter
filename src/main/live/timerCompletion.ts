@@ -1,10 +1,10 @@
-import type {SingleLiveCommand} from '@shared/commands';
+import type {SingleLiveCommand} from '@core/live/commands';
 import type {SettingsReader} from '../store/settingsStore';
 import {
   countdownRemainingMs,
   stopsAtZero,
   type TimerNow,
-} from '@shared/timerClock';
+} from '@core/timers/timerClock';
 import type {LiveStore} from './store';
 
 const RECHECK_MS = 250;

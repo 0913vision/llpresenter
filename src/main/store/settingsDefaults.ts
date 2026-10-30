@@ -1,7 +1,7 @@
-import {defaultPreferences} from '@shared/schema/preferences';
-import type {Screen} from '@shared/schema/screens';
-import type {SettingsName} from '@shared/schema/settingsDocuments';
-import {STARTER_SCREEN_IDS} from '@shared/screens';
+import {defaultPreferences} from '@core/schema/preferences';
+import type {Screen} from '@core/schema/screens';
+import type {SettingsName} from '@core/schema/settingsDocuments';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {DEFAULT_LABELS} from './defaults';
 
 const uuid = (number: number): string =>

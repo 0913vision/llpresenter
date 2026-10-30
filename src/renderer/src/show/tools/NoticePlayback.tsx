@@ -1,13 +1,13 @@
 import {useEffect, useState, type JSX} from 'react';
-import {mediaUrl} from '@shared/media';
+import {mediaUrl} from '@contracts/ipc/media';
 import {
   MAX_OVERLAY_TIMER_MS,
   nextNoticeChange,
   noticePosition,
-} from '@shared/noticeClock';
-import type {NoticePlayback as Playback} from '@shared/live';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {NoticeSet} from '@shared/schema/notices';
+} from '@core/overlays/noticeClock';
+import type {NoticePlayback as Playback} from '@core/live/state';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {NoticeSet} from '@core/schema/notices';
 import {sendLive, useLive} from '@renderer/state/live';
 import {Button, MediaTile, TileList, gridMoves} from '@renderer/ui';
 import {noticeReason} from './noticeEdits';

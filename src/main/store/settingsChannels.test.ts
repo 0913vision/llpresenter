@@ -1,9 +1,9 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {recordingLogger} from '../displays/testing';
 import {registerSettingsChannels} from './settingsChannels';
 import {SettingsStore} from './settingsStore';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 
 type Handler = (event: unknown, value: unknown) => unknown;
 const handlers = vi.hoisted(() => new Map<string, Handler>());

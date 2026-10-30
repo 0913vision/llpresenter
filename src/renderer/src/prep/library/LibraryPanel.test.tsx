@@ -8,10 +8,10 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LibrarySong, SongDocument} from '@shared/schema/contentDocuments';
-import type {LibrarySearchResult} from '@shared/schema/librarySearch';
-import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
-import {readSongDragData, SONG_DRAG_MIME} from '@shared/schema/songDrag';
+import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
+import type {LibrarySearchResult} from '@core/schema/librarySearch';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/notices';
 import {layerContainer} from '@renderer/ui/layers';

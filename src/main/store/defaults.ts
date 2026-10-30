@@ -1,5 +1,5 @@
-import type {Label} from '@shared/schema/labels';
-import type {MediaList} from '@shared/schema/mediaList';
+import type {Label} from '@core/schema/labels';
+import type {MediaList} from '@core/schema/mediaList';
 
 /**
  * The 이름표 list before the operator changes it (`docs/spec/02-data.md`,

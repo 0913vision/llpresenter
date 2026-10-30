@@ -1,6 +1,6 @@
-import type {LlpApi} from '@shared/ipc';
-import type {AudioPlaylistId} from '@shared/schema/ids';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {AudioPlaylistId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 

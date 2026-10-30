@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import type {MacroId} from '@shared/schema/ids';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {MacroId} from '@core/schema/ids';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 
 const READ_BATCH = 8;

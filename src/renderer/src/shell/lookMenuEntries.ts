@@ -1,5 +1,5 @@
-import type {LookId} from '@shared/schema/ids';
-import type {Look} from '@shared/schema/looks';
+import type {LookId} from '@core/schema/ids';
+import type {Look} from '@core/schema/looks';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 

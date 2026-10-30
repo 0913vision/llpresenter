@@ -2,7 +2,7 @@ import styles from './monitorNumber.module.css';
 import {
   parseIdentification,
   type Identification,
-} from '@shared/schema/identification';
+} from '@core/schema/identification';
 
 const MONITOR_NUMBER = /^[1-9][0-9]?$/;
 

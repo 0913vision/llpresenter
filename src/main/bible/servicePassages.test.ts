@@ -2,11 +2,11 @@ import {describe, expect, it, vi} from 'vitest';
 import {
   parseBibleLookupRequest,
   type BibleLookupReply,
-} from '@shared/schema/bibleLookup';
-import {createServiceItemId} from '@shared/schema/ids';
-import type {ServiceItem} from '@shared/schema/service';
-import {isItemOfKind} from '@shared/schema/service';
-import {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
+} from '@core/schema/bibleLookup';
+import {createServiceItemId} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
+import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 import {resolvePassage} from './reference';
 import {passageSource} from './testFiles';
 import {resolveServicePassages} from './servicePassages';

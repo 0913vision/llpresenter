@@ -1,6 +1,6 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {startLiveSync, useLive} from './live';
 
 afterEach(() => {

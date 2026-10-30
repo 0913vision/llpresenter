@@ -1,12 +1,12 @@
 import {act, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {stageLayoutsDocument} from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {MenuBar} from './MenuBar';

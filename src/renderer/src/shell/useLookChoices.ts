@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 type LooksDocument = Extract<SettingsDocument, {name: 'looks'}>;

@@ -3,8 +3,8 @@ import {
   editorGroupedSong,
   editorLegacySong,
 } from '@renderer/prep/editor/editorFixture';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {
   chipIndexForSlide,
   editedGroupOrder,

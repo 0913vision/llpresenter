@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers, type LiveLayers} from '@shared/live';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {RenderMode} from './backgroundLayer';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';

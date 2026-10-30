@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {LiveStore} from './store';
 import {
   CAPTIONS,

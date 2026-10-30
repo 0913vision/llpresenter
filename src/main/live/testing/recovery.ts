@@ -1,13 +1,13 @@
-import {isRecord} from '@shared/guards';
-import {emptyLiveState} from '@shared/live';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
+import {isRecord} from '@core/common/guards';
+import {emptyLiveState} from '@core/live/state';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {
   parseRecoveryRecord,
   type RecoveryRecord,
-} from '@shared/schema/recoveryRecord';
-import {parseService} from '@shared/schema/service';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/recoveryRecord';
+import {parseService} from '@core/schema/service';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import {expectSuccess} from '@core/schema/testHelpers';
 import type {RecoveryContent} from '../recovery/plan';
 import {
   HYMN_ONE_ID,

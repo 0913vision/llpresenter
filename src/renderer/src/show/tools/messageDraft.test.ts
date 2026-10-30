@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {messageBlankNames} from '@shared/messageText';
+import {messageBlankNames} from '@core/overlays/messageText';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {prepareMessage} from './messageDraft';
 

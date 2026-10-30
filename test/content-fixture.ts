@@ -7,11 +7,11 @@ import {
 import {resolveLocations} from '../src/main/store/locations';
 import {recordingLogger} from '../src/main/displays/testing';
 import {SettingsStore} from '../src/main/store/settingsStore';
-import {parseSettingsDocument} from '../src/shared/schema/settingsDocuments';
+import {parseSettingsDocument} from '../src/core/schema/settingsDocuments';
 import type {
   LibrarySong,
   SongChange,
-} from '../src/shared/schema/contentDocuments';
+} from '../src/core/schema/contentDocuments';
 
 /** A real content store with in-memory files and a window-like event feed. */
 export function contentFixture() {

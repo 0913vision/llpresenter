@@ -9,9 +9,9 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {createMediaId, translationIdSchema} from '@shared/schema/ids';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {createMediaId, translationIdSchema} from '@core/schema/ids';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
 import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -20,7 +20,7 @@ import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
 import {formLookupReply} from '@renderer/show/bible/testing/referenceForm';
-import type {RecentPassage} from '@shared/schema/bible';
+import type {RecentPassage} from '@core/schema/bible';
 
 afterEach(() => {
   useShow.setState({

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {sendLive, useOutputs} from '@renderer/state/live';
 import {
   OutputToggle,

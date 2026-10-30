@@ -8,8 +8,8 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {RecoveryResult, RecoverySummary} from '@shared/schema/recovery';
+import {emptyLiveState} from '@core/live/state';
+import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';

@@ -10,10 +10,10 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import type {TemplateEntry} from '@shared/schema/contentDocuments';
-import {createServiceId, createTemplateId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {TemplateEntry} from '@core/schema/contentDocuments';
+import {createServiceId, createTemplateId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService} from '@renderer/state/show';
 import {sampleService} from '@renderer/show/testing/sampleService';
 import type {Notice} from '@renderer/ui/notices';

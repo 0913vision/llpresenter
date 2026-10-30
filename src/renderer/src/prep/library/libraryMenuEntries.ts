@@ -1,5 +1,5 @@
-import type {ServiceEntry, LibrarySong} from '@shared/schema/contentDocuments';
-import type {ServiceId} from '@shared/schema/ids';
+import type {ServiceEntry, LibrarySong} from '@core/schema/contentDocuments';
+import type {ServiceId} from '@core/schema/ids';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

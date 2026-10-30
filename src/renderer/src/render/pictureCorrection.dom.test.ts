@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLayers, type LiveLayers} from '@shared/live';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {MAIN, PROP, TEXT_STYLE} from '../../../main/live/testing/overlays';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';

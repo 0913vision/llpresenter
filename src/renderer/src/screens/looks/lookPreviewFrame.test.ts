@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   looksDocument,
   screensDocument,

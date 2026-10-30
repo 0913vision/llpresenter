@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {createServiceId} from '@shared/schema/ids';
+import {createServiceId} from '@core/schema/ids';
 import {libraryFixture} from './fixture';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {serviceEntries} from '../services/testing';

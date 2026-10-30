@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {LibrarySong, SongDocument} from '@shared/schema/contentDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   LIBRARY_SEARCH_LIMITS,
   type LibrarySearchResult,
-} from '@shared/schema/librarySearch';
-import type {SongId} from '@shared/schema/ids';
+} from '@core/schema/librarySearch';
+import type {SongId} from '@core/schema/ids';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {

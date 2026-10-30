@@ -9,9 +9,9 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   lookIdSchema,
   mediaIdSchema,
@@ -28,11 +28,11 @@ import {
   type PropId,
   type ScreenId,
   type StageLayoutId,
-} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
-import type {PropsFile} from '@shared/schema/props';
-import type {NoticesFile} from '@shared/schema/notices';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
+import type {PropsFile} from '@core/schema/props';
+import type {NoticesFile} from '@core/schema/notices';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {
   MAIN_ID,
   CAPTIONS_ID,

@@ -14,7 +14,7 @@ import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {renderedToolMenuRows} from './toolMenuTesting';
 import {deferred} from '../quick/quickTesting';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 
 afterEach(() => {
   cleanup();

@@ -1,4 +1,4 @@
-import type {TimerNow} from '@shared/timerClock';
+import type {TimerNow} from '@core/timers/timerClock';
 
 /**
  * Main's monotonic 타이머 clock as one window reads it: this window's own

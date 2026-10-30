@@ -1,4 +1,4 @@
-import type {SlideLayer} from '@shared/live';
+import type {SlideLayer} from '@core/live/state';
 import {fitFontSize} from './fitText';
 import {classes} from './classes';
 import {LYRIC_EFFECTS, type LyricStyle} from './lyricStyle';

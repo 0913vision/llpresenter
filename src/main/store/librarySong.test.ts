@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
+import {Channels} from '@contracts/ipc/api';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import {parseSongDocument} from '@core/schema/contentDocuments';
 import type {Logger} from '../log';
 import {
   registerLibrarySong,

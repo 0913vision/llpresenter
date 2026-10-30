@@ -1,7 +1,7 @@
-import type {SingleLiveCommand} from '@shared/commands';
-import type {LiveState, ActiveProp} from '@shared/live';
-import type {Macro, KnownMacroAction} from '@shared/schema/macros';
-import type {MacroId} from '@shared/schema/ids';
+import type {SingleLiveCommand} from '@core/live/commands';
+import type {LiveState, ActiveProp} from '@core/live/state';
+import type {Macro, KnownMacroAction} from '@core/schema/macros';
+import type {MacroId} from '@core/schema/ids';
 import type {MacroCatalog} from './catalog';
 
 export type MacroProblemReason =

@@ -1,10 +1,10 @@
 import {expect, it, vi} from 'vitest';
-import {parseMacroId} from '@shared/schema/ids';
+import {parseMacroId} from '@core/schema/ids';
 import {
   parseServiceDocument,
   parseServiceEntries,
-} from '@shared/schema/contentDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/contentDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {deferred} from '../quick/quickTesting';
 import {countMacroUses} from './macroUsage';
 

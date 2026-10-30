@@ -1,10 +1,10 @@
-import type {LookId, MessageStyleId, ScreenId} from '@shared/schema/ids';
+import type {LookId, MessageStyleId, ScreenId} from '@core/schema/ids';
 import {
   DEFAULT_MESSAGE_STYLE,
   MESSAGE_STYLE_LIMIT,
   type LooksFile,
   type MessageScreenLook,
-} from '@shared/schema/looks';
+} from '@core/schema/looks';
 import {LOOK_LAYERS} from './lookCardEdits';
 
 /** Assigns a validated style only to the chosen screen of the chosen Look. */

@@ -1,9 +1,9 @@
-import type {LyricStyleId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
+import type {LyricStyleId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
 import {
   parseLyricTextStyle,
   type LyricTextChange,
-} from '@shared/schema/textStyle';
+} from '@core/schema/textStyle';
 
 export interface LyricStyleEdit {
   readonly id: LyricStyleId;

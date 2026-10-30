@@ -1,11 +1,11 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import {analysisTokenFromUrl} from '@shared/media';
-import type {PixelSize} from '@shared/coverCrop';
+import {analysisTokenFromUrl} from '@contracts/ipc/media';
+import type {PixelSize} from '@core/media/coverCrop';
 import {
   THUMBNAIL_DATA_URL_PREFIX,
   type AnalysisJob,
-} from '@shared/schema/mediaAnalysis';
+} from '@core/schema/mediaAnalysis';
 import {recordingLogger} from '../displays/testing';
 import {AnalysisFiles} from './analysisFiles';
 import {

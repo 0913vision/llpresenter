@@ -1,10 +1,10 @@
 import type {CheckState} from '@renderer/ui/Checkbox';
-import type {ServiceItemId} from '@shared/schema/ids';
+import type {ServiceItemId} from '@core/schema/ids';
 import {
   isItemOfKind,
   serviceItemKind,
   type ServiceItem,
-} from '@shared/schema/service';
+} from '@core/schema/service';
 
 /** One row of the 예배 순서 tree in the service dialogs. */
 export interface TreeRow {

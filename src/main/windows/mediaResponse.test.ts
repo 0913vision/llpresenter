@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {symlink, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {analysisUrl, mediaUrl, thumbnailUrl} from '@shared/media';
+import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/media';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {

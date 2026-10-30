@@ -1,8 +1,8 @@
 import {useLayoutEffect, useRef, type JSX} from 'react';
-import type {LiveState} from '@shared/live';
-import {emptyLayers} from '@shared/live';
-import type {StageLayout} from '@shared/schema/stageLayouts';
-import type {Timer} from '@shared/schema/timers';
+import type {LiveState} from '@core/live/state';
+import {emptyLayers} from '@core/live/state';
+import type {StageLayout} from '@core/schema/stageLayouts';
+import type {Timer} from '@core/schema/timers';
 import {StageLayoutView} from '@renderer/render/stageLayout';
 import {MainTimerClock} from '@renderer/render/mainTimerClock';
 import {elementNames} from './stageEditor';

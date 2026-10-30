@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {ShowService} from '@shared/schema/showService';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {ShowService} from '@core/schema/showService';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   applyService,
   openItem,

@@ -1,4 +1,4 @@
-import type {AnalysisJob, AnalysisReply} from '@shared/schema/mediaAnalysis';
+import type {AnalysisJob, AnalysisReply} from '@core/schema/mediaAnalysis';
 import {analyseMedia} from './analyseMedia';
 
 declare global {

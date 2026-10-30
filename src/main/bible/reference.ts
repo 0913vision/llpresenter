@@ -1,9 +1,9 @@
-import type {Result} from '@shared/result';
-import {BIBLE_LOOKUP_LIMITS} from '@shared/schema/bibleLookup';
-import type {BibleChunkHeader} from '@shared/schema/bibleChunks';
-import type {TranslationId} from '@shared/schema/ids';
-import type {BibleBook} from '@shared/bibleBooks';
-import {matchBooks} from '@shared/bibleMatching';
+import type {Result} from '@core/common/result';
+import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
+import type {BibleChunkHeader} from '@core/schema/bibleChunks';
+import type {TranslationId} from '@core/schema/ids';
+import type {BibleBook} from '@core/bible/bibleBooks';
+import {matchBooks} from '@core/bible/bibleMatching';
 
 export type ReferenceErrorCode =
   | 'syntax'

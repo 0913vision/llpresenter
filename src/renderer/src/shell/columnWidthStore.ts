@@ -1,4 +1,4 @@
-import type {LayoutChange, UiState} from '@shared/schema/uiState';
+import type {LayoutChange, UiState} from '@core/schema/uiState';
 import {clamp, COLUMN_RANGES} from './columns';
 import type {ColumnWidths, SizeClass} from './sizeClass';
 

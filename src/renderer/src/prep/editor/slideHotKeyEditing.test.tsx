@@ -1,8 +1,8 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
-import {createSongId, createSongGroupId} from '@shared/schema/ids';
+import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import {createSongId, createSongGroupId} from '@core/schema/ids';
 import {assignSlideHotKey, slideHotKeyView} from './slideHotKeyEditing';
 import {GroupedSlideHotKeyDialog} from './GroupedSlideHotKeyDialog';
 

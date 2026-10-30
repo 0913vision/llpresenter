@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {StageElement} from '@shared/schema/stageLayouts';
+import type {StageElement} from '@core/schema/stageLayouts';
 import {
   NumberField,
   PropertyRow,

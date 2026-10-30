@@ -1,8 +1,8 @@
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 import type {
   TextImportFailure,
   TextImportReadRequest,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {decode as decodeLegacy} from 'iconv-lite';
 
 type Encoding = TextImportReadRequest['encoding'];

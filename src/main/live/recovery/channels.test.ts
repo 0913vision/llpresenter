@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import type {RecoveryResult, RecoverySummary} from '@shared/schema/recovery';
+import {Channels} from '@contracts/ipc/api';
+import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
 import {recordingLogger} from '../../displays/testing';
 import {registerRecoveryChannels} from './channels';
 import type {RecoveryPort} from './controller';

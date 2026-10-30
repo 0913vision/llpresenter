@@ -6,8 +6,8 @@ import {
   useState,
   type JSX,
 } from 'react';
-import type {StageLayout} from '@shared/schema/stageLayouts';
-import {referencedStageLayouts} from '@shared/stageLayoutReferences';
+import type {StageLayout} from '@core/schema/stageLayouts';
+import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
 import {useLive} from '@renderer/state/live';
 import {IconButton} from '@renderer/ui/IconButton';
 import {AlertDialog} from '@renderer/ui/AlertDialog';

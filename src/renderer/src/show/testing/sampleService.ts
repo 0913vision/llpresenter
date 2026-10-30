@@ -1,5 +1,5 @@
-import type {LabelColor} from '@shared/colors';
-import type {ShowService} from '@shared/schema/showService';
+import type {LabelColor} from '@core/labels/colors';
+import type {ShowService} from '@core/schema/showService';
 import {applyService} from '@renderer/state/show';
 import type {ItemId, ServiceRow, SlideTile} from '../model';
 

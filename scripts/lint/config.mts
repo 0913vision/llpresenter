@@ -20,7 +20,7 @@ const RENDERER_MODULE_FILES = ['src/renderer/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 
 const VALIBOT_IMPORT = {
   regex: '^valibot(?:/|$)',
-  message: 'Import validation through src/shared/schema/ instead of Valibot.',
+  message: 'Import validation through src/core/schema/ instead of Valibot.',
 };
 const MAIN_IMPORT = {
   regex: '^(?:@main(?:/|$)|src/main(?:/|$)|(?:\\.\\./)+(?:src/)?main(?:/|$))',
@@ -255,7 +255,7 @@ export const lintConfig = defineConfig(
     },
   },
   {
-    ignores: ['src/shared/schema/**', ...BOUNDARY_TEST_FILES],
+    ignores: ['src/core/schema/**', ...BOUNDARY_TEST_FILES],
     rules: {
       // NOTE(0913vision): Keep the validator replaceable behind the schema API.
       'no-restricted-imports': ['error', {patterns: [VALIBOT_IMPORT]}],

@@ -1,7 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
-import type {Result} from '@shared/result';
-import {parseLyricStyleId, type LyricStyleId} from '@shared/schema/ids';
-import type {LooksFile, LyricStyle} from '@shared/schema/looks';
+import type {Result} from '@core/common/result';
+import {parseLyricStyleId, type LyricStyleId} from '@core/schema/ids';
+import type {LooksFile, LyricStyle} from '@core/schema/looks';
 import {IconButton} from '@renderer/ui/IconButton';
 import {type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';

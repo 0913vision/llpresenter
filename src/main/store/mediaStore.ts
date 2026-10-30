@@ -1,16 +1,16 @@
-import type {MediaChoice} from '@shared/live';
-import type {EditRefusalReason} from '@shared/schema/contentEdit';
-import type {FileError} from '@shared/schema/fileFormat';
+import type {MediaChoice} from '@core/live/state';
+import type {EditRefusalReason} from '@core/schema/contentEdit';
+import type {FileError} from '@core/schema/fileFormat';
 import {
   mergeMediaDocument,
   type MediaDocument,
   type MediaEditResult,
-} from '@shared/schema/mediaEdit';
+} from '@core/schema/mediaEdit';
 import {
   MEDIA_LIMITS,
   serializeMediaList,
   type MediaItem,
-} from '@shared/schema/mediaList';
+} from '@core/schema/mediaList';
 import type {Logger} from '../log';
 import type {DocumentFiles} from './contentPersistence';
 import {

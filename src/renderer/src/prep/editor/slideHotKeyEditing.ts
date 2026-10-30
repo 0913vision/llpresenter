@@ -1,8 +1,8 @@
-import {checkPart} from '@shared/schema/fileFormat';
-import type {Result} from '@shared/result';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import type {SongSlideSource} from '@shared/schema/showService';
-import {slideHotKeySchema} from '@shared/schema/slideHotKey';
+import {checkPart} from '@core/schema/fileFormat';
+import type {Result} from '@core/common/result';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import type {SongSlideSource} from '@core/schema/showService';
+import {slideHotKeySchema} from '@core/schema/slideHotKey';
 import type {SlideHotKeyAssignment} from './SlideHotKeyDialog';
 
 /** Source-slide details for the editor, counted once in master group order. */

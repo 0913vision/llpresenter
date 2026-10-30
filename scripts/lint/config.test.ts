@@ -199,12 +199,12 @@ const RESTRICTED_IMPORTS = [
 const ALLOWED_IMPORTS = [
   [
     'valibot in a schema',
-    'src/shared/schema/lint-valibot.ts',
+    'src/core/schema/lint-valibot.ts',
     "import 'valibot';",
   ],
   [
     'valibot in a nested schema module',
-    'src/shared/schema/probes/lint-valibot.mts',
+    'src/core/schema/probes/lint-valibot.mts',
     "import 'valibot/internal';",
   ],
   [
@@ -240,12 +240,12 @@ const ALLOWED_IMPORTS = [
   [
     'a shared main dependency',
     'src/main/lint-shared.ts',
-    "import '@shared/ipc';",
+    "import '../../src/contracts/ipc/api';",
   ],
   [
     'a shared renderer dependency',
     'src/renderer/src/lint-shared.ts',
-    "import '@shared/ipc';",
+    "import '../../src/contracts/ipc/api';",
   ],
   [
     'a local renderer entry',

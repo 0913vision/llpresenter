@@ -9,10 +9,10 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {looksSchema} from '@shared/schema/looks';
-import type {LyricStyleId} from '@shared/schema/ids';
-import type {Result} from '@shared/result';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {looksSchema} from '@core/schema/looks';
+import type {LyricStyleId} from '@core/schema/ids';
+import type {Result} from '@core/common/result';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,

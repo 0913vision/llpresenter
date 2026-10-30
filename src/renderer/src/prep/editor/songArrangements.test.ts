@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {SongDocument} from '@shared/schema/contentDocuments';
+import type {SongDocument} from '@core/schema/contentDocuments';
 import {editorFixture, editorSong, editorLegacySong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 import {editedOrder, newArrangement} from './songArrangements';

@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
-import {parseMacroId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {emptyLiveState} from '@core/live/state';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {parseMacroId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
-import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
+import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {defineSlice} from './slice';
 import {SliceRegistry} from './sliceRegistry';
 import {batchSlice} from './slices/batch';

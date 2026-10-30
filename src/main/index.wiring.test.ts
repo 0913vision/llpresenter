@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
+import type {LiveCommand} from '@core/live/commands';
 import {makeTempDir} from '../../test/temp-dir';
 import type {LiveStore} from './live/store';
 import type {MediaBackendRegistration} from './media/register';

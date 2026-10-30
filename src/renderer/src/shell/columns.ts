@@ -1,4 +1,4 @@
-import {COLUMN_LIMITS} from '@shared/schema/uiState';
+import {COLUMN_LIMITS} from '@core/schema/uiState';
 import type {ColumnWidths} from './sizeClass';
 
 export type DraggableColumn = 'left' | 'right';

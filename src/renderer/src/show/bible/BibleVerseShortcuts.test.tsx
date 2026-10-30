@@ -1,8 +1,8 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {bibleVerseTiles} from '@shared/bibleTiles';
-import {emptyLiveState} from '@shared/live';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {emptyLiveState} from '@core/live/state';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {sendLive, useLive} from '@renderer/state/live';
 import {
   openItem,

@@ -9,12 +9,12 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import type {
   SongDocument,
   ServiceDocument,
-} from '@shared/schema/contentDocuments';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
+} from '@core/schema/contentDocuments';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {sampleService} from '@renderer/show/testing/sampleService';

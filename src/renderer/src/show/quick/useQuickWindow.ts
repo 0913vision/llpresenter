@@ -6,7 +6,7 @@ import {
   type KeyboardEvent,
   type FocusEvent,
 } from 'react';
-import type {QuickItem} from '@shared/schema/quick';
+import type {QuickItem} from '@core/schema/quick';
 
 const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;

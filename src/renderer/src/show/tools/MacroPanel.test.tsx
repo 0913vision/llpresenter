@@ -11,12 +11,12 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {
   parseServiceDocument,
   parseServiceEntries,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {deferred} from '../quick/quickTesting';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 import userEvent from '@testing-library/user-event';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';

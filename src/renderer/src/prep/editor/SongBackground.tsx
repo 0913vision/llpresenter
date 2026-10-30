@@ -1,6 +1,6 @@
 import {useEffect, useId, useMemo, useRef, useState, type JSX} from 'react';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import {mediaUrl} from '@shared/media';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import {mediaUrl} from '@contracts/ipc/media';
 import {Select} from '@renderer/ui/Select';
 import {MediaPicker, NONE_LABEL} from './MediaPicker';
 import type {SongEditorStore} from './songEditorStore';

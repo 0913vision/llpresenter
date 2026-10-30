@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import {createServiceId, type ServiceId} from '@shared/schema/ids';
+import {createServiceId, type ServiceId} from '@core/schema/ids';
 import {
   serviceOrderEditsFor,
   type ServiceOrderEdits,

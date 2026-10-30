@@ -9,7 +9,7 @@ import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongHeader.module.css';
 import {SongBackground} from './SongBackground';
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {ImportedSongActions} from '../import/ImportedSongActions';
 
 /** The library source title and its service usage; edits share the song queue. */

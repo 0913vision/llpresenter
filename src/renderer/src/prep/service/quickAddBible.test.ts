@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
-import {translationIdSchema} from '@shared/schema/ids';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
+import {translationIdSchema} from '@core/schema/ids';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {bibleEntries, passageItem} from './quickAddBible';
 

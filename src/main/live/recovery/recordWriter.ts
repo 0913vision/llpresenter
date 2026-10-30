@@ -1,7 +1,7 @@
-import type {LiveState} from '@shared/live';
-import type {Result} from '@shared/result';
-import type {ServiceId} from '@shared/schema/ids';
-import {serializeRecoveryRecord} from '@shared/schema/recoveryRecord';
+import type {LiveState} from '@core/live/state';
+import type {Result} from '@core/common/result';
+import type {ServiceId} from '@core/schema/ids';
+import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import type {Logger} from '../../log';
 import {writeFileAtomically, type WriteProblem} from '../../store/atomicWrite';
 import type {LiveStore} from '../store';

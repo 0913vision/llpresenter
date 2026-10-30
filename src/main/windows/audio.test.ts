@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import type {MediaStore} from '../store/mediaStore';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';

@@ -1,17 +1,17 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   ServiceDocument,
   SongDocument,
-} from '@shared/schema/contentDocuments';
-import type {MediaId, SongGroupId, SongId} from '@shared/schema/ids';
-import {isGroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/contentDocuments';
+import type {MediaId, SongGroupId, SongId} from '@core/schema/ids';
+import {isGroupedSong} from '@core/schema/groupedSong';
 import {
   isItemOfKind,
   type ServiceItem,
   type ServiceItemOf,
-} from '@shared/schema/service';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import type {Song} from '@shared/schema/song';
+} from '@core/schema/service';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {backgroundChange} from '@renderer/state/serviceBackground';

@@ -9,8 +9,8 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {AppFlushRequest} from '@shared/schema/appFlush';
-import {createAppFlushRequestId} from '@shared/schema/ids';
+import type {AppFlushRequest} from '@core/schema/appFlush';
+import {createAppFlushRequestId} from '@core/schema/ids';
 import {editorFixture, editorSong} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {seedSampleService} from '@renderer/show/testing/sampleService';

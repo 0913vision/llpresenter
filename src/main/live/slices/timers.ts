@@ -1,11 +1,11 @@
-import type {TimerId} from '@shared/schema/ids';
-import {MAX_LIVE_TIMERS, type TimerRun} from '@shared/schema/timerState';
+import type {TimerId} from '@core/schema/ids';
+import {MAX_LIVE_TIMERS, type TimerRun} from '@core/schema/timerState';
 import {
   countedMs,
   countdownRemainingMs,
   localDay,
   stopsAtZero,
-} from '@shared/timerClock';
+} from '@core/timers/timerClock';
 import {MissingLiveTargetError} from '../commandErrors';
 import type {LiveHistory} from '../history';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';

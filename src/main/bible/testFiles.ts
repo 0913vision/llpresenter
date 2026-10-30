@@ -1,5 +1,5 @@
-import {parseBibleTranslation} from '@shared/schema/bibleTranslation';
-import {BIBLE_BOOKS} from '@shared/bibleBooks';
+import {parseBibleTranslation} from '@core/schema/bibleTranslation';
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {BiblePassageSource} from './reference';
 
 export function translationFile(ids: readonly number[] = [43]) {

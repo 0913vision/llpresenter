@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import type {UiZoomCommand} from '@shared/schema/uiZoom';
+import type {UiZoomCommand} from '@core/schema/uiZoom';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui';
 
 function commandFor(event: KeyboardEvent): UiZoomCommand | null {

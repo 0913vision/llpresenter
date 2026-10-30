@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
   hasSlideHotKey,

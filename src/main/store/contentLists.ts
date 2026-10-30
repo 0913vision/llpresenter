@@ -6,13 +6,9 @@ import {
   type SongDocument,
   type TemplateDocument,
   type TemplateEntry,
-} from '@shared/schema/contentDocuments';
-import {
-  isItemOfKind,
-  type Service,
-  type Template,
-} from '@shared/schema/service';
-import {sourceSlideCount, type GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/contentDocuments';
+import {isItemOfKind, type Service, type Template} from '@core/schema/service';
+import {sourceSlideCount, type GroupedSong} from '@core/schema/groupedSong';
 import type {StoredDocument} from './documents';
 
 const TITLES = new Intl.Collator('ko', {numeric: true});

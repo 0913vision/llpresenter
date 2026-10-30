@@ -1,5 +1,5 @@
-import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import type {LiveState} from '@shared/live';
+import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
+import type {LiveState} from '@core/live/state';
 
 /**
  * Follows the live state that the main process sends, starting with the

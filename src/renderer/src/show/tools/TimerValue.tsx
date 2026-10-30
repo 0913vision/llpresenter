@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {Timer} from '@shared/schema/timers';
-import type {TimerRun} from '@shared/schema/timerState';
-import {isTimerTicking, timerText} from '@shared/timerClock';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Timer} from '@core/schema/timers';
+import type {TimerRun} from '@core/schema/timerState';
+import {isTimerTicking, timerText} from '@core/timers/timerClock';
 import {useTimerNow} from './useTimerNow';
 
 export function TimerValue({

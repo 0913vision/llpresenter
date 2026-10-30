@@ -1,5 +1,5 @@
 import {useState, type JSX, type MouseEvent} from 'react';
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog} from '../AlertDialog';
 import {Button} from '../Button';
 import {CheckRow} from '../Checkbox';

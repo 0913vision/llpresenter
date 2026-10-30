@@ -1,4 +1,4 @@
-import type {AudioLayer, LiveState} from '@shared/live';
+import type {AudioLayer, LiveState} from '@core/live/state';
 
 /** Allocates independently of the state version, which a batch compresses. */
 export function nextAudioTrackVersion(

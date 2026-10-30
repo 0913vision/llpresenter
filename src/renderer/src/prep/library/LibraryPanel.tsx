@@ -1,5 +1,5 @@
 import {useEffect, useEffectEvent, useState, type JSX} from 'react';
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';

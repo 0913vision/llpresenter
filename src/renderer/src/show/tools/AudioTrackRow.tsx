@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {Icon, TruncatedText} from '@renderer/ui';
 import {durationText} from '@renderer/prep/media/mediaEntries';
 import type {AudioTrack} from './audioTracks';

@@ -1,5 +1,5 @@
-import type {MessageLayer, PropLayer} from '@shared/live';
-import type {OverlayClear} from '@shared/schema/overlayClear';
+import type {MessageLayer, PropLayer} from '@core/live/state';
+import type {OverlayClear} from '@core/schema/overlayClear';
 import {withLayers, type LiveHistory} from './history';
 import {messageLayer} from './messageState';
 import {propLayer} from './propState';

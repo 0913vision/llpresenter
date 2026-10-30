@@ -1,5 +1,5 @@
-import type {MediaId} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {MediaId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 
 export const SONG_DEFAULT_LABEL = '곡 기본값';

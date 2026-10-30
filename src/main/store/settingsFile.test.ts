@@ -1,7 +1,7 @@
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {parseLabels} from '@shared/schema/labels';
+import {parseLabels} from '@core/schema/labels';
 import {makeTempDir} from '../../../test/temp-dir';
 import {resolveLocations} from './locations';
 import {

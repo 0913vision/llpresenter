@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 
 export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {

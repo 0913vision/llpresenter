@@ -1396,9 +1396,9 @@ For the shortcut part now, and for the settings part once the user decides:
   note: number field steps").
 - Spec: update 02, 03, 04, and 06 as "What this proposal would replace" says,
   and move the answered README open questions.
-- Code: the command registry types and the key matcher go in `src/shared/`,
-  which data owns (`docs/MILESTONES.md`, "File ownership"). The member who
-  builds shortcuts sends data the shapes first.
+- Code: the command registry types and the key matcher go in `src/core/`, which
+  data owns (`docs/MILESTONES.md`, "File ownership"). The member who builds
+  shortcuts sends data the shapes first.
 
 ### Design system note: number field steps
 

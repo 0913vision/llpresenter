@@ -1,6 +1,6 @@
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import type {TimerDelete} from '@shared/schema/timerDeletion';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
+import type {TimerDelete} from '@core/schema/timerDeletion';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 
 export async function deleteTimer(

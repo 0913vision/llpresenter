@@ -1,6 +1,6 @@
-import type {MessageExpiry} from '@shared/schema/overlayState';
+import type {MessageExpiry} from '@core/schema/overlayState';
 import type {LiveStore} from './store';
-import {MAX_OVERLAY_TIMER_MS} from '@shared/noticeClock';
+import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/noticeClock';
 
 /** Runs at most one main-process timer, rechecking deadlines after early wakes. */
 export function followMessageExpiry(options: {

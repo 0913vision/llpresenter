@@ -7,8 +7,8 @@ import {
   it,
   vi,
 } from 'vitest';
-import {Channels, type LlpApi} from '@shared/ipc';
-import type {ShowService} from '@shared/schema/showService';
+import {Channels, type LlpApi} from '@contracts/ipc/api';
+import type {ShowService} from '@core/schema/showService';
 import {applyService, startServiceSync, useShow} from '@renderer/state/show';
 
 const electron = vi.hoisted(() => ({

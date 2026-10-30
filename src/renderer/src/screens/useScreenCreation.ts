@@ -1,7 +1,7 @@
 import {useLayoutEffect, useRef} from 'react';
-import {parseScreenId} from '@shared/schema/ids';
-import type {Screen} from '@shared/schema/screens';
-import type {MonitorInfo} from '@shared/schema/monitors';
+import {parseScreenId} from '@core/schema/ids';
+import type {Screen} from '@core/schema/screens';
+import type {MonitorInfo} from '@core/schema/monitors';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';

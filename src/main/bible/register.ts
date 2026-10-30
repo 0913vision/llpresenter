@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
+import {Channels} from '@contracts/ipc/api';
+import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
 import type {BibleLookupSession} from './lookup';
 import type {Logger} from '../log';
 

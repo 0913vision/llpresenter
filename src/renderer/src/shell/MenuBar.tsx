@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
-import type {WindowAction} from '@shared/ipc';
-import type {TextImportReadRequest} from '@shared/schema/textImport';
+import type {WindowAction} from '@contracts/ipc/api';
+import type {TextImportReadRequest} from '@core/schema/textImport';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';

@@ -8,8 +8,8 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
-import type {SongId} from '@shared/schema/ids';
-import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
+import type {SongId} from '@core/schema/ids';
+import type {LibrarySearchMatch} from '@core/schema/librarySearch';
 import {Icon, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
@@ -20,7 +20,7 @@ import styles from './ToolbarSearch.module.css';
 import {useShow} from '@renderer/state/show';
 import {useServiceOrderEditing} from '@renderer/show/useServiceOrderEditing';
 import {quickAddBefore} from '@renderer/prep/service/quickAddPosition';
-import {createServiceItemId} from '@shared/schema/ids';
+import {createServiceItemId} from '@core/schema/ids';
 import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;

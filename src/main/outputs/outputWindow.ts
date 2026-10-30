@@ -1,5 +1,5 @@
 import {sameRect, type Rect, type Size} from '../displays/rect';
-import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
+import type {FrameReadyReport} from '@core/schema/ipcPayloads';
 import type {Logger} from '../log';
 import type {ShownPlacement} from './placement';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';

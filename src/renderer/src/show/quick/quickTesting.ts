@@ -1,14 +1,14 @@
 import {vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import {isKnownQuickItem, type QuickItemKind} from '@shared/schema/quick';
+import type {LlpApi} from '@contracts/ipc/api';
+import {isKnownQuickItem, type QuickItemKind} from '@core/schema/quick';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {parseShowLibrarySong} from '@shared/schema/showLibrarySong';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
+} from '@core/schema/settingsDocuments';
+import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
 import {panelApi} from '../bible/panelTesting';
 
 export const quickId = (value: number): string =>

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {
   arrangementNameReason,
   DUPLICATE_ARRANGEMENT_NAME_REASON,

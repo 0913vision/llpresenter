@@ -6,15 +6,15 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {LlpApi} from '@shared/ipc';
-import {findBibleBooks} from '@shared/bibleMatching';
-import {recentPassages} from '@shared/bibleRecents';
-import type {RecentPassage} from '@shared/schema/bible';
+import type {LlpApi} from '@contracts/ipc/api';
+import {findBibleBooks} from '@core/bible/bibleMatching';
+import {recentPassages} from '@core/bible/bibleRecents';
+import type {RecentPassage} from '@core/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
-} from '@shared/schema/bibleLookup';
-import type {TranslationId} from '@shared/schema/ids';
+} from '@core/schema/bibleLookup';
+import type {TranslationId} from '@core/schema/ids';
 import {TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import {BibleSuggestions, type BibleSuggestion} from './BibleSuggestions';

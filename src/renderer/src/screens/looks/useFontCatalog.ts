@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import type {FontCatalog} from '@shared/schema/fontCatalog';
+import type {FontCatalog} from '@core/schema/fontCatalog';
 
 export type FontCatalogState =
   | {readonly status: 'loading' | 'failed'}

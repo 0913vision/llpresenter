@@ -1,7 +1,7 @@
 import {join} from 'node:path';
 import {readFile, writeFile} from 'node:fs/promises';
 import {describe, expect, it} from 'vitest';
-import {parseSong} from '@shared/schema/song';
+import {parseSong} from '@core/schema/song';
 import {makeTempDir} from '../../../test/temp-dir';
 import {listFolder, loadFile, readTextFile} from './readFiles';
 import {HYMN_ONE_ID, hymnOne, writeJson} from './testFiles';

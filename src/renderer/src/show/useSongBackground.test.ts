@@ -1,22 +1,22 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {
   ServiceDocument,
   SongDocument,
-} from '@shared/schema/contentDocuments';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import type {ShowService} from '@shared/schema/showService';
+} from '@core/schema/contentDocuments';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {ShowService} from '@core/schema/showService';
 import {
   createMediaId,
   createServiceId,
   createServiceItemId,
   createSongGroupId,
   createSongId,
-} from '@shared/schema/ids';
-import {isItemOfKind} from '@shared/schema/service';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {useSongBackground} from './useSongBackground';

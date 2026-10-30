@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
-import type {ServiceId, SongId} from '@shared/schema/ids';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
+import type {ServiceId, SongId} from '@core/schema/ids';
 import {serviceOrderEditsFor} from '@renderer/state/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';

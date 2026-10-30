@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {LabelColor} from '@shared/colors';
+import type {LabelColor} from '@core/labels/colors';
 import {LabelColorPicker, MacroColorPicker} from './LabelColorPicker';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 

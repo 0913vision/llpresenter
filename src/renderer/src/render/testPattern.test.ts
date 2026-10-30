@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers} from '@shared/live';
+import {emptyLayers} from '@core/live/state';
 import {MAIN} from '../../../main/live/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';

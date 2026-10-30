@@ -9,13 +9,13 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLookId} from '@shared/schema/ids';
+import {emptyLiveState} from '@core/live/state';
+import {parseLookId} from '@core/schema/ids';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';

@@ -1,10 +1,10 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
-import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
-import {createMediaId, createSongId} from '@shared/schema/ids';
-import type {ContentEdit} from '@shared/schema/contentEdit';
-import type {TextImportDraft} from '@shared/schema/textImport';
-import {migrateImportedSongGroups} from '@shared/schema/songGroupMigration';
+import {parseSongDocument} from '@core/schema/contentDocuments';
+import {parseGroupedSongDraft} from '@core/schema/groupedSong';
+import {createMediaId, createSongId} from '@core/schema/ids';
+import type {ContentEdit} from '@core/schema/contentEdit';
+import type {TextImportDraft} from '@core/schema/textImport';
+import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
 import {importDraftSlides} from './importDraftSlides';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';

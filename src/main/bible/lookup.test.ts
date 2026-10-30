@@ -4,9 +4,9 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
   parseBibleLookupRequest,
   BIBLE_LOOKUP_LIMITS,
-} from '@shared/schema/bibleLookup';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {defaultPreferences} from '@shared/schema/preferences';
+} from '@core/schema/bibleLookup';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {defaultPreferences} from '@core/schema/preferences';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {SettingsReader} from '../store/settingsStore';
 import {BibleLookupSession} from './lookup';

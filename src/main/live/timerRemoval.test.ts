@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
-import {createTimerId} from '@shared/schema/ids';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
 import {dispatchLogged, LiveStore} from './store';

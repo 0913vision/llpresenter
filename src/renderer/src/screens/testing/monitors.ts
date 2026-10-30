@@ -1,4 +1,4 @@
-import type {MonitorInfo} from '@shared/schema/monitors';
+import type {MonitorInfo} from '@core/schema/monitors';
 import {MAIN_ID} from './documents';
 
 export const projector: MonitorInfo = {

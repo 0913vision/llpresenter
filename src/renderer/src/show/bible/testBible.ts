@@ -3,7 +3,7 @@ import {
   parseBibleLookupRequest,
   type BibleLookupRequest,
   type BibleLookupReply,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 
 export function lookupRequest(input = '요 3:16', translation = 'sample') {
   const request = parseBibleLookupRequest({input, translation});

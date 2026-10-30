@@ -1,4 +1,4 @@
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

@@ -1,6 +1,6 @@
 import {readdir, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
-import {parseMediaId, type MediaId} from '@shared/schema/ids';
+import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {Logger} from '../log';
 import {writeFileAtomically} from '../store/atomicWrite';
 import {fileExists} from './missingFiles';

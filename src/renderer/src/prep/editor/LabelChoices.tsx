@@ -1,5 +1,5 @@
 import type {JSX, ReactNode} from 'react';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuAnchor} from '@renderer/ui/Menu';

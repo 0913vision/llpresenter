@@ -1,18 +1,18 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import {emptyLiveState, type LiveState} from '@shared/live';
+import type {LlpApi} from '@contracts/ipc/api';
+import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {
   FrameRateReport,
   FrameReadyReport,
   RendererLogEntry,
-} from '@shared/schema/ipcPayloads';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/ipcPayloads';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {classes} from '../render/classes';
 import {SlideLayerView} from '../render/slideLayer';
 import {startOutput} from './startOutput';
 import {MAIN, overlaySettings} from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {settingsDocument} from '../../../main/live/testing/overlays';
 
 const SHOWING: LiveState = {

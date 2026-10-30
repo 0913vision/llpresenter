@@ -1,8 +1,8 @@
-import {bibleVerseTiles} from '@shared/bibleTiles';
-import type {RecentPassage} from '@shared/schema/bible';
-import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
-import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
-import {SHOW_SERVICE_LIMITS, type ShowTile} from '@shared/schema/showService';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import type {RecentPassage} from '@core/schema/bible';
+import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {SHOW_SERVICE_LIMITS, type ShowTile} from '@core/schema/showService';
 import type {BibleLookupSession} from './lookup';
 
 export interface ServicePassages {

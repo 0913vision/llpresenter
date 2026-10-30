@@ -1,10 +1,10 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import {createMessageId, createMediaId, parseLookId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {parseLiveState} from '@shared/schema/liveState';
-import {MAX_ACTIVE_MESSAGES} from '@shared/schema/overlayState';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {createMessageId, createMediaId, parseLookId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseLiveState} from '@core/schema/liveState';
+import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from './store';
 import {messageLayer} from './messageState';

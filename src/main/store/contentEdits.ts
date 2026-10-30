@@ -3,13 +3,13 @@ import {
   createServiceItemId,
   type ServiceItemId,
   type SongId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {
   isItemOfKind,
   type ServiceItem,
   type ServiceItemOf,
-} from '@shared/schema/service';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/service';
+import type {GroupedSong} from '@core/schema/groupedSong';
 
 /** A fresh version 4 id, checked against the schema of its kind. */
 export function newItemId(): ServiceItemId {

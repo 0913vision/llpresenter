@@ -1,9 +1,9 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {parseServiceItemId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {parseService} from '@shared/schema/service';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseServiceItemId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {parseService} from '@core/schema/service';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {LiveStore, dispatchLogged} from '../live/store';
 import {SliceRegistry} from '../live/sliceRegistry';
 import {batchSlice} from '../live/slices/batch';

@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
-import type {TimerId} from '@shared/schema/ids';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {MAX_TIMER_DEFINITIONS} from '@shared/schema/timers';
-import {nextTimerName} from '@shared/timerNames';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {TimerId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/contentEdit';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
+import {nextTimerName} from '@core/timers/timerNames';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {

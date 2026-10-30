@@ -1,5 +1,5 @@
-import type {LiveLayers} from '@shared/live';
-import type {StageElement, StageLayout} from '@shared/schema/stageLayouts';
+import type {LiveLayers} from '@core/live/state';
+import type {StageElement, StageLayout} from '@core/schema/stageLayouts';
 import {fitFontSize} from './fitText';
 import type {RenderFrame} from './layer';
 import {DEFAULT_LYRIC_STYLE, REFERENCE_SCREEN} from './lyricStyle';

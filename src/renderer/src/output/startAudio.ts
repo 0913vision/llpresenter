@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
+import type {LlpApi} from '@contracts/ipc/api';
+import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {AudioPlayer} from '../render/audioPlayer';
 import {MainTimerClock} from '../render/mainTimerClock';
 import {followLiveState} from './liveFeed';

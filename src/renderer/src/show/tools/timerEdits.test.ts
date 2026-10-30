@@ -1,8 +1,8 @@
 import {expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {createTimerId} from '@shared/schema/ids';
-import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@shared/schema/timers';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {createTimerId} from '@core/schema/ids';
+import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@core/schema/timers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {saveNewCountdown, saveNewTimer} from './timerEdits';

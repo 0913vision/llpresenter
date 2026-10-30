@@ -1,7 +1,7 @@
-import type {ScreenId} from '@shared/schema/ids';
-import type {Screen} from '@shared/schema/screens';
-import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
-import type {MonitorInfo} from '@shared/schema/monitors';
+import type {ScreenId} from '@core/schema/ids';
+import type {Screen} from '@core/schema/screens';
+import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import type {MonitorInfo} from '@core/schema/monitors';
 import {assignScreenMonitor} from './assignScreenMonitor';
 
 export interface NewScreen {

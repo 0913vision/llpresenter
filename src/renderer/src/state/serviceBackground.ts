@@ -1,5 +1,5 @@
-import type {MediaId} from '@shared/schema/ids';
-import {isItemOfKind} from '@shared/schema/service';
+import type {MediaId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
 import {pendingWritesOf} from './pendingWrites';
 import {
   updateServiceItem,

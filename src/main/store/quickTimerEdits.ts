@@ -1,18 +1,18 @@
-import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
+import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
 import {randomUUID} from 'node:crypto';
-import {createTimerId, type TimerId} from '@shared/schema/ids';
-import type {Timer} from '@shared/schema/timers';
-import {nextTimerName} from '@shared/timerNames';
-import type {Result} from '@shared/result';
-import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@shared/schema/quick';
+import {createTimerId, type TimerId} from '@core/schema/ids';
+import type {Timer} from '@core/schema/timers';
+import {nextTimerName} from '@core/timers/timerNames';
+import type {Result} from '@core/common/result';
+import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
 import {
   MAX_TIMER_DEFINITIONS,
   type QuickTimerEdit,
-} from '@shared/schema/quickTimerEdit';
+} from '@core/schema/quickTimerEdit';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 
 type QuickDocument = Extract<SettingsDocument, {name: 'quick'}>;
 type TimerDocument = Extract<SettingsDocument, {name: 'timers'}>;

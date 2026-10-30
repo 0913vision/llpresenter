@@ -1,18 +1,18 @@
-import type {LlpApi} from '@shared/ipc';
-import {isRecord} from '@shared/guards';
-import type {Result} from '@shared/result';
-import type {EditFailure} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import {isRecord} from '@core/common/guards';
+import type {Result} from '@core/common/result';
+import type {EditFailure} from '@core/schema/contentEdit';
 import {
   createServiceItemId,
   type ServiceId,
   type ServiceItemId,
   type SongId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {
   isItemOfKind,
   type Service,
   type ServiceItem,
-} from '@shared/schema/service';
+} from '@core/schema/service';
 import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
 import {pendingWritesOf} from './pendingWrites';
 

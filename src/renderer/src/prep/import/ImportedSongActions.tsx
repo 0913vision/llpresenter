@@ -1,8 +1,8 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
-import type {SongDocument} from '@shared/schema/contentDocuments';
-import type {SongId} from '@shared/schema/ids';
-import {sourceSlideCount} from '@shared/schema/groupedSong';
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+import type {SongDocument} from '@core/schema/contentDocuments';
+import type {SongId} from '@core/schema/ids';
+import {sourceSlideCount} from '@core/schema/groupedSong';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
 import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
 import {editorTask} from '../editor/editorTask';

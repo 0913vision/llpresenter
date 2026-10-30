@@ -1,5 +1,5 @@
 import type {ShowView} from '@renderer/state/showStore';
-import type {ShowTile} from '@shared/schema/showService';
+import type {ShowTile} from '@core/schema/showService';
 
 const NO_TILES: readonly ShowTile[] = [];
 

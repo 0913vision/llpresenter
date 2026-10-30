@@ -1,9 +1,9 @@
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState, type LiveState} from '@shared/live';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {LiveHistory} from './history';
-import type {PayloadError} from '@shared/schema/payload';
-import {parseLiveState} from '@shared/schema/liveState';
-import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
+import type {PayloadError} from '@core/schema/payload';
+import {parseLiveState} from '@core/schema/liveState';
+import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {fitsLiveStateByteBudget} from './stateBudget';
 import {MissingLiveTargetError} from './commandErrors';
 import {

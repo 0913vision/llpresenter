@@ -1,6 +1,6 @@
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {parseSong} from '@shared/schema/song';
+import {parseSong} from '@core/schema/song';
 import {makeTempDir} from '../../../test/temp-dir';
 import {loadFolder} from './library';
 import {HYMN_ONE_ID, hymnOne, writeJson} from './testFiles';

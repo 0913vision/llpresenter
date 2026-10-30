@@ -8,13 +8,13 @@ import {
   type BrowserWindow,
   type IpcMainEvent,
 } from 'electron';
-import {Channels} from '@shared/ipc';
-import {createMediaId} from '@shared/schema/ids';
-import type {MediaImportProgress} from '@shared/schema/mediaEdit';
+import {Channels} from '@contracts/ipc/api';
+import {createMediaId} from '@core/schema/ids';
+import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
-} from '@shared/schema/mediaFiles';
+} from '@core/schema/mediaFiles';
 import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';

@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {sendLive, useLive} from '@renderer/state/live';
 import {Button, LiveBadge, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';

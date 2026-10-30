@@ -8,14 +8,14 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {parseServiceDocument} from '@shared/schema/contentDocuments';
-import {createQuickItemId, createAppFlushRequestId} from '@shared/schema/ids';
-import type {AppFlushRequest} from '@shared/schema/appFlush';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {isKnownQuickItem} from '@shared/schema/quick';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {createQuickItemId, createAppFlushRequestId} from '@core/schema/ids';
+import type {AppFlushRequest} from '@core/schema/appFlush';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {isKnownQuickItem} from '@core/schema/quick';
 import {useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {openLibrarySong} from '@renderer/state/showLibrary';

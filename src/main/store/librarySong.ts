@@ -1,15 +1,15 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import type {MediaChoice} from '@shared/live';
-import type {FileAccess} from '@shared/schema/fileFormat';
-import type {SongId} from '@shared/schema/ids';
-import type {Label} from '@shared/schema/labels';
+import {Channels} from '@contracts/ipc/api';
+import type {MediaChoice} from '@core/live/state';
+import type {FileAccess} from '@core/schema/fileFormat';
+import type {SongId} from '@core/schema/ids';
+import type {Label} from '@core/schema/labels';
 import {
   parseShowLibrarySongReply,
   parseShowLibrarySongRequest,
   type ShowLibrarySong,
-} from '@shared/schema/showLibrarySong';
-import type {AnySong} from '@shared/schema/groupedSong';
+} from '@core/schema/showLibrarySong';
+import type {AnySong} from '@core/schema/groupedSong';
 import type {Logger} from '../log';
 import {jumpKeysOf, projectSongTiles} from './showService';
 

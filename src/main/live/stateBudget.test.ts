@@ -1,8 +1,8 @@
 import {Buffer} from 'node:buffer';
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {LIVE_STATE_BYTE_BUDGET} from '@shared/schema/liveLimits';
-import {serializeRecoveryRecord} from '@shared/schema/recoveryRecord';
+import {emptyLiveState} from '@core/live/state';
+import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
+import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {liveStateBytes, fitsLiveStateByteBudget} from './stateBudget';
 
 describe('live state byte counting', () => {

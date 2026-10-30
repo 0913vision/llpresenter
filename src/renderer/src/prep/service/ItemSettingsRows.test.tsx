@@ -1,7 +1,7 @@
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {createServiceItemId} from '@shared/schema/ids';
+import {createServiceItemId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
 import {useShow} from '@renderer/state/show';

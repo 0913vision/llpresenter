@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react';
-import type {Screen} from '@shared/schema/screens';
-import type {LooksFile} from '@shared/schema/looks';
-import type {LiveState} from '@shared/live';
-import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {Screen} from '@core/schema/screens';
+import type {LooksFile} from '@core/schema/looks';
+import type {LiveState} from '@core/live/state';
+import type {StageLayoutsFile} from '@core/schema/stageLayouts';
+import type {MediaItem} from '@core/schema/mediaList';
 import {showsLayer, resolveScreenLook} from '@renderer/render/screenLook';
 
 export function hasMovingSeconds({

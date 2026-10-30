@@ -6,8 +6,8 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {Timer} from '@shared/schema/timers';
-import type {LlpApi} from '@shared/ipc';
+import type {Timer} from '@core/schema/timers';
+import type {LlpApi} from '@contracts/ipc/api';
 import {TimerRow} from './TimerRow';
 import type {Notice} from '@renderer/ui/notices';
 import styles from './TimerTab.module.css';

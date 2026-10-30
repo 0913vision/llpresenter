@@ -1,12 +1,12 @@
 import {useContext, useEffect, useRef, useState, type JSX} from 'react';
-import {parseMacroCollectionId, parseMacroId} from '@shared/schema/ids';
+import {parseMacroCollectionId, parseMacroId} from '@core/schema/ids';
 import {
   MACRO_FILE_LIMITS,
   isKnownMacroAction,
   type MacroActionKind,
   type Macro,
   type MacroCollection,
-} from '@shared/schema/macros';
+} from '@core/schema/macros';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {sendLive} from '@renderer/state/live';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
@@ -139,7 +139,7 @@ function ActionDialog({
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly close: () => void;
   readonly save: (
-    action: import('@shared/schema/macros').KnownMacroAction,
+    action: import('@core/schema/macros').KnownMacroAction,
   ) => void;
 }): JSX.Element {
   const targets = useMacroTargets(onProblem);

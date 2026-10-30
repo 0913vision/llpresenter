@@ -1,10 +1,10 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {defaultPreferences} from '@shared/schema/preferences';
-import {createServiceItemId} from '@shared/schema/ids';
-import {parseServiceDocument} from '@shared/schema/contentDocuments';
+import {emptyLiveState} from '@core/live/state';
+import {defaultPreferences} from '@core/schema/preferences';
+import {createServiceItemId} from '@core/schema/ids';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {
   fixtureItems,
   fixtureServiceId,

@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {LabelDeleteDialog} from './LabelDeleteDialog';
 import {labelManagementEntries} from './labelMenuEntries';
 import {Menu} from '@renderer/ui/Menu';

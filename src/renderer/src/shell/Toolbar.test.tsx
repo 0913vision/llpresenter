@@ -1,9 +1,9 @@
 import {act, cleanup, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';

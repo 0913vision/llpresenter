@@ -7,8 +7,8 @@ import {
   type JSX,
 } from 'react';
 import {createPortal} from 'react-dom';
-import {parseMacroCollectionId} from '@shared/schema/ids';
-import {MACRO_FILE_LIMITS, type MacroCollection} from '@shared/schema/macros';
+import {parseMacroCollectionId} from '@core/schema/ids';
+import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {Button, Icon, IconButton} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {layerContainer} from '@renderer/ui/layers';

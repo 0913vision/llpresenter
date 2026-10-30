@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState, layerKinds, type SlideLayer} from '@shared/live';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState, layerKinds, type SlideLayer} from '@core/live/state';
 import {
   applyCommand as applyAt,
   initialHistory,

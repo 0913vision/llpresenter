@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {parseScreenId} from '@shared/schema/ids';
-import {parseScreens, type Screen} from '@shared/schema/screens';
-import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
+import {parseScreenId} from '@core/schema/ids';
+import {parseScreens, type Screen} from '@core/schema/screens';
+import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {addScreen} from './addScreen';
 
 function screenId(index: number) {

@@ -2,14 +2,14 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {
   ServiceDocument,
   SongDocument,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {
   createServiceId,
   createServiceItemId,
   createSongGroupId,
   type SongId,
-} from '@shared/schema/ids';
-import {isItemOfKind} from '@shared/schema/service';
+} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {SongSession} from '@renderer/prep/editor/songSession';
 import {editorGroupedSong} from '@renderer/prep/editor/editorFixture';

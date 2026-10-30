@@ -2,7 +2,7 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 /** One settings document, narrowed by its file name. */

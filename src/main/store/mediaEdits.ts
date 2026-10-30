@@ -1,16 +1,16 @@
 import {randomUUID} from 'node:crypto';
-import type {Result} from '@shared/result';
-import type {EditFailure, EditRefusalReason} from '@shared/schema/contentEdit';
-import {createAudioPlaylistId, createMediaPlaylistId} from '@shared/schema/ids';
-import type {MediaEdit} from '@shared/schema/mediaEdit';
-import type {MediaList, MediaItem} from '@shared/schema/mediaList';
+import type {Result} from '@core/common/result';
+import type {EditFailure, EditRefusalReason} from '@core/schema/contentEdit';
+import {createAudioPlaylistId, createMediaPlaylistId} from '@core/schema/ids';
+import type {MediaEdit} from '@core/schema/mediaEdit';
+import type {MediaList, MediaItem} from '@core/schema/mediaList';
 
 export type MediaListEdit = Exclude<
   MediaEdit,
   {readonly type: 'media.relink' | 'media.import.cancel'}
 >;
 export type PlaylistRef = NonNullable<
-  import('@shared/schema/mediaEdit').MediaImportRequest['playlist']
+  import('@core/schema/mediaEdit').MediaImportRequest['playlist']
 >;
 
 export interface MediaChange {

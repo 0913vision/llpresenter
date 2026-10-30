@@ -1,6 +1,6 @@
 import {useSyncExternalStore} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {TimerNow} from '@shared/timerClock';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {TimerNow} from '@core/timers/timerClock';
 import {MainTimerClock} from '@renderer/render/mainTimerClock';
 
 const TIMER_TICK_MS = 250;

@@ -1,5 +1,5 @@
-import {audioPositionSeconds} from '@shared/schema/audioState';
-import {outputMediaProperties} from '@shared/schema/outputMedia';
+import {audioPositionSeconds} from '@core/schema/audioState';
+import {outputMediaProperties} from '@core/schema/outputMedia';
 import {withLayers} from '../history';
 import {defineSlice} from '../slice';
 

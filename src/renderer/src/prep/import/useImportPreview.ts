@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   TextImportOptions,
   TextImportPreviewResult,
   TextImportSource,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {createLatestRunner} from '../service/latestRunner';
 

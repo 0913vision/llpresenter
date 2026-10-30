@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 
 interface SettingsFeedOptions<TValue> {
   readonly settings: LlpApi['settings'];

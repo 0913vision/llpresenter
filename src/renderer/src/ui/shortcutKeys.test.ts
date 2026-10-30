@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {serializeShortcuts} from '@shared/schema/shortcuts';
+import {serializeShortcuts} from '@core/schema/shortcuts';
 import {shortcutNames, shortcutPress} from './shortcutKeys';
 
 describe('shortcut keys', () => {

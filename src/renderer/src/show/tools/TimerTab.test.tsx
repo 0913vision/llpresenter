@@ -11,7 +11,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
-import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
 import {
   hoverForTooltip,
   pointAway,

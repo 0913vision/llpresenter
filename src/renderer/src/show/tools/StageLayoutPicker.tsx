@@ -1,5 +1,5 @@
 import {useContext, useState, type JSX} from 'react';
-import type {StageLayout} from '@shared/schema/stageLayouts';
+import type {StageLayout} from '@core/schema/stageLayouts';
 import {Menu, Select} from '@renderer/ui';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';

@@ -7,8 +7,8 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
+import {emptyLiveState} from '@core/live/state';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {bibleSourceFor} from '@renderer/state/showLibrary';

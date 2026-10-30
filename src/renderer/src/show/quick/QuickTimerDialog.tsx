@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {createQuickItemId, createTimerId} from '@shared/schema/ids';
+import {createQuickItemId, createTimerId} from '@core/schema/ids';
 import {CountdownDialog} from '../tools/CountdownDialog';
 import type {QuickEdit} from './quickEdits';
 

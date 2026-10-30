@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {MAX_TIMER_SECONDS} from '@shared/schema/timers';
+import {MAX_TIMER_SECONDS} from '@core/schema/timers';
 import {PropertyRow, TextField} from '@renderer/ui';
 
 const SECONDS_PER_MINUTE = 60;

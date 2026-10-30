@@ -1,5 +1,5 @@
 import {Fragment, useState, type JSX, type KeyboardEvent} from 'react';
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {MediaItem} from '@core/schema/mediaList';
 import {NumberField} from '@renderer/ui/NumberField';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import {

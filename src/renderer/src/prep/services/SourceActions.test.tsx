@@ -21,10 +21,10 @@ import type {
   ServiceEntry,
   TemplateDocument,
   TemplateEntry,
-} from '@shared/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import {createTemplateId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import {createTemplateId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {applyService} from '@renderer/state/show';
 import {sampleService} from '@renderer/show/testing/sampleService';

@@ -19,7 +19,7 @@ import {
 } from '@renderer/shell/sizeClass';
 import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
-import type {AnySong} from '@shared/schema/groupedSong';
+import type {AnySong} from '@core/schema/groupedSong';
 import {VirtualSlides} from './VirtualSlides';
 import {ARRANGEMENT_LIMIT_REASON} from './songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';

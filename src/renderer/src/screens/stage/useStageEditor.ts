@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../useSettingsDocument';
 import {StageEditor} from './stageEditor';

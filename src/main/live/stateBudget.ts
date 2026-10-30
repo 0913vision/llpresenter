@@ -1,6 +1,6 @@
 import {Buffer} from 'node:buffer';
-import {LIVE_STATE_BYTE_BUDGET} from '@shared/schema/liveLimits';
-import {isJsonObject} from '@shared/schema/primitives';
+import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
+import {isJsonObject} from '@core/schema/primitives';
 
 const MAX_DEPTH = 64;
 const JSON_INDENT = 2;

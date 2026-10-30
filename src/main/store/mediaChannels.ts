@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   parseMediaEdit,
   parseMediaImportRequest,
@@ -9,8 +9,8 @@ import {
   type MediaEditResult,
   type MediaImportRequest,
   type MediaImportResult,
-} from '@shared/schema/mediaEdit';
-import type {MediaId} from '@shared/schema/ids';
+} from '@core/schema/mediaEdit';
+import type {MediaId} from '@core/schema/ids';
 import type {Logger} from '../log';
 import {broadcast} from './contentChannels';
 import {mediaRefusal} from './mediaEdits';

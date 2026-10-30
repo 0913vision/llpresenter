@@ -8,11 +8,11 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState} from '@shared/live';
-import {createMediaId, createSongId} from '@shared/schema/ids';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState} from '@core/live/state';
+import {createMediaId, createSongId} from '@core/schema/ids';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {SlidePanelBody, SlidePanelMeta} from '@renderer/show/SlidePanel';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {sampleService} from '@renderer/show/testing/sampleService';

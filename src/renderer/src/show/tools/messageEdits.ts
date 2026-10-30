@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
-import type {MessageTemplate, MessagesFile} from '@shared/schema/messages';
-import {createMessageTemplateId} from '@shared/schema/ids';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {MAX_MESSAGE_CHARACTERS} from '@shared/messageText';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
+import {createMessageTemplateId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/contentEdit';
+import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 

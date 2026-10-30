@@ -3,7 +3,7 @@ import {
   paletteColors,
   type LabelColor,
   type PaletteColor,
-} from '@shared/colors';
+} from '@core/labels/colors';
 import {
   ArrangementStrip,
   LabelSwatch,

@@ -10,7 +10,7 @@ import {
 import {readFileSync} from 'node:fs';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {Workspace} from '@renderer/shell/Workspace';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {
@@ -20,7 +20,7 @@ import {
   selectTile,
 } from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {seedSampleService} from '../testing/sampleService';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';

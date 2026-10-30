@@ -1,6 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {defaultPreferences, type Preferences} from '@shared/schema/preferences';
+import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {useBibleVerseNumbers} from './useBibleVerseNumbers';
 
 function preferences(verseNumbers: boolean): Preferences {

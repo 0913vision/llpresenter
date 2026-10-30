@@ -4,7 +4,7 @@ import {
   paletteColors,
   type LabelColor,
   type PaletteColor,
-} from '@shared/colors';
+} from '@core/labels/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';

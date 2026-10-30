@@ -6,12 +6,12 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {Song} from '@shared/schema/song';
-import type {Label} from '@shared/schema/labels';
+import type {Song} from '@core/schema/song';
+import type {Label} from '@core/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
-import type {AnySong} from '@shared/schema/groupedSong';
+import type {AnySong} from '@core/schema/groupedSong';
 import {linearSlidesOf} from './blockEdits';
 import styles from './SongPanels.module.css';
 

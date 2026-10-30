@@ -1,6 +1,6 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {classes} from '@renderer/render/classes';
 import {editorFixture} from './editorFixture';
 import {editorPreviewFixture} from './editorPreviewFixture';

@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import type * as FsPromises from 'node:fs/promises';
 import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {MEDIA_SCHEME} from '@shared/media';
+import {MEDIA_SCHEME} from '@contracts/ipc/media';
 import {makeTempDir} from '../../test/temp-dir';
 
 const WRITE_DELAY_MS = 50;

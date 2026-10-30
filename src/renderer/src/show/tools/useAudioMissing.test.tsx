@@ -1,9 +1,9 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaList} from '@shared/schema/mediaList';
-import type {MediaId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseMediaList} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {deferred} from '../quick/quickTesting';
 import {useAudioMissing} from './useAudioMissing';
 

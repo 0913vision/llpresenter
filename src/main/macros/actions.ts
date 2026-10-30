@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@shared/commands';
-import {mediaLoops} from '@shared/mediaEndRule';
+import type {SingleLiveCommand} from '@core/live/commands';
+import {mediaLoops} from '@core/media/mediaEndRule';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {defineMacroAction, MacroActionRegistry} from './actionRegistry';
 import {fillMacroMessage} from './messageText';

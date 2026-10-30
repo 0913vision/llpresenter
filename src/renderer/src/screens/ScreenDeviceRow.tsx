@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
-import type {Screen} from '@shared/schema/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens';
 import {PropertyRow, SelectMenu} from '@renderer/ui';
 
 /** The saved full screen device; the control monitor is never offered. */

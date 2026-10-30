@@ -1,6 +1,6 @@
-import type {LlpApi} from '@shared/ipc';
-import {rememberPassage} from '@shared/bibleRecents';
-import type {RecentPassage} from '@shared/schema/bible';
+import type {LlpApi} from '@contracts/ipc/api';
+import {rememberPassage} from '@core/bible/bibleRecents';
+import type {RecentPassage} from '@core/schema/bible';
 
 const SAVE_ATTEMPTS = 2;
 let owner: LlpApi['settings'] | undefined;

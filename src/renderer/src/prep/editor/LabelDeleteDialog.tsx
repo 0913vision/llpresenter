@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';

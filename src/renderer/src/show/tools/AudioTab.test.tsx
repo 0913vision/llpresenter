@@ -9,9 +9,9 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseMediaDocument, type MediaDocument} from '@shared/schema/mediaEdit';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {AudioTab} from './AudioTab';
 

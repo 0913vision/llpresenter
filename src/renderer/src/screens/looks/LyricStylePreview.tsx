@@ -5,9 +5,9 @@ import {
   useRef,
   type JSX,
 } from 'react';
-import {emptyLayers} from '@shared/live';
-import {mediaUrl} from '@shared/media';
-import type {LyricStyle} from '@shared/schema/looks';
+import {emptyLayers} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {LyricStyle} from '@core/schema/looks';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {
   DEFAULT_LYRIC_STYLE,

@@ -5,8 +5,8 @@ import {
   type JSX,
   type PointerEvent,
 } from 'react';
-import type {StageElement, StageLayout} from '@shared/schema/stageLayouts';
-import {stageElementKinds} from '@shared/schema/stageLayouts';
+import type {StageElement, StageLayout} from '@core/schema/stageLayouts';
+import {stageElementKinds} from '@core/schema/stageLayouts';
 import {Button} from '@renderer/ui';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';

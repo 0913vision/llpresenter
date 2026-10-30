@@ -1,11 +1,11 @@
-import type {EditFailure} from '@shared/schema/contentEdit';
-import type {LooksFile} from '@shared/schema/looks';
+import type {EditFailure} from '@core/schema/contentEdit';
+import type {LooksFile} from '@core/schema/looks';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@shared/schema/settingsDocuments';
-import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
-import {referencedStageLayouts} from '@shared/stageLayoutReferences';
+} from '@core/schema/settingsDocuments';
+import type {StageLayoutsFile} from '@core/schema/stageLayouts';
+import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
 
 const refuse = (
   reason: 'invalid' | 'not-found',

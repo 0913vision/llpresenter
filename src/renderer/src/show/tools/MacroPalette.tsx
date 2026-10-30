@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {MacroActionKind} from '@shared/schema/macros';
+import type {MacroActionKind} from '@core/schema/macros';
 import {Button, IconButton, TextField} from '@renderer/ui';
 import {MACRO_ACTION_MIME, searchMacroPalette} from './macroPaletteCatalog';
 import styles from './MacroPalette.module.css';

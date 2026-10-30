@@ -1,8 +1,8 @@
-import {parseNoticePlayback} from '@shared/schema/overlayState';
-import type {NoticePlayback} from '@shared/live';
+import {parseNoticePlayback} from '@core/schema/overlayState';
+import type {NoticePlayback} from '@core/live/state';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer, type LiveHistory} from '../history';
-import {noticePosition} from '@shared/noticeClock';
+import {noticePosition} from '@core/overlays/noticeClock';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
 
 function start(

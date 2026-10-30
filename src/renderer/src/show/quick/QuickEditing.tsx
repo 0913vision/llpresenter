@@ -1,7 +1,7 @@
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {QuickItem} from '@shared/schema/quick';
-import {isItemOfKind} from '@shared/schema/service';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {QuickItem} from '@core/schema/quick';
+import {isItemOfKind} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor, isLibrarySource} from '@renderer/state/showLibrary';

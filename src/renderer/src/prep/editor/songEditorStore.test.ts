@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {parseSongDocument} from '@core/schema/contentDocuments';
 import {editorFixture, editorSong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 import type {Notice} from '@renderer/ui/notices';

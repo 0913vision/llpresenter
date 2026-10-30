@@ -1,6 +1,6 @@
 import {EventEmitter} from 'node:events';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {MAIN, overlaySettings, STAGE} from '../live/testing/overlays';

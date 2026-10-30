@@ -1,11 +1,11 @@
 import {vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {
   createAudioPlaylistId,
   createMediaId,
   createMediaPlaylistId,
   type MediaId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import type {
   MediaDocument,
   MediaEdit,
@@ -13,14 +13,14 @@ import type {
   MediaImportProgress,
   MediaImportRequest,
   MediaImportResult,
-} from '@shared/schema/mediaEdit';
-import type {MissingMedia} from '@shared/schema/mediaFiles';
+} from '@core/schema/mediaEdit';
+import type {MissingMedia} from '@core/schema/mediaFiles';
 import type {
   AudioPlaylist,
   MediaItem,
   MediaPlaylist,
-} from '@shared/schema/mediaList';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/mediaList';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 
 export const mediaId = (index: number): MediaId =>
   createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);

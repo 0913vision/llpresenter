@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import type {MonitorList} from '@shared/schema/monitors';
+import type {MonitorList} from '@core/schema/monitors';
 import {adoptScreenMonitors} from './useScreenEditor';
 
 const noMonitors: MonitorList = [];

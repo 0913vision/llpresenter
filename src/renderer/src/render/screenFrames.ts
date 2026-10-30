@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
-import type {LiveState} from '@shared/live';
-import type {LooksFile} from '@shared/schema/looks';
-import type {StageLayout} from '@shared/schema/stageLayouts';
-import type {Timer} from '@shared/schema/timers';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LiveState} from '@core/live/state';
+import type {LooksFile} from '@core/schema/looks';
+import type {StageLayout} from '@core/schema/stageLayouts';
+import type {Timer} from '@core/schema/timers';
 import type {RenderFrame, RenderScreen, StageFrame} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';

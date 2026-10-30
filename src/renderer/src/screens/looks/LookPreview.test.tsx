@@ -1,7 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {looksDocument, screensDocument} from '../testing/documents';
 import {LookPreview} from './LookPreview';

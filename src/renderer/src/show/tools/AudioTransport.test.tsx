@@ -1,8 +1,8 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {parseMediaList} from '@shared/schema/mediaList';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {parseMediaList} from '@core/schema/mediaList';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {AudioTransport} from './AudioTransport';
 
 afterEach(cleanup);

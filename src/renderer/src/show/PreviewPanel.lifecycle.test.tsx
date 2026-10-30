@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/render/backgroundLayer';
 import {classes} from '@renderer/render/classes';
 import {useLive} from '@renderer/state/live';

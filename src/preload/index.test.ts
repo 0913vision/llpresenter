@@ -7,20 +7,20 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
-import {Channels, type LlpApi} from '@shared/ipc';
-import {emptyLiveState} from '@shared/live';
-import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
-import {createSongId} from '@shared/schema/ids';
+import {Channels, type LlpApi} from '@contracts/ipc/api';
+import {emptyLiveState} from '@core/live/state';
+import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {createSongId} from '@core/schema/ids';
 import {
   songIdSchema,
   createAppFlushRequestId,
   createMediaId,
   createServiceId,
-} from '@shared/schema/ids';
-import {testId} from '@shared/schema/testHelpers';
-import {defaultPreferences} from '@shared/schema/preferences';
-import {UI_ZOOM_FACTOR} from '@shared/schema/uiZoom';
+} from '@core/schema/ids';
+import {testId} from '@core/schema/testHelpers';
+import {defaultPreferences} from '@core/schema/preferences';
+import {UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
 
 type Handler = (event: unknown, value: unknown) => void;
 

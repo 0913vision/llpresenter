@@ -1,6 +1,6 @@
-import type {Screen} from '@shared/schema/screens';
-import type {LiveState, SlideLayer} from '@shared/live';
-import type {ScreenId} from '@shared/schema/ids';
+import type {Screen} from '@core/schema/screens';
+import type {LiveState, SlideLayer} from '@core/live/state';
+import type {ScreenId} from '@core/schema/ids';
 import {
   showsLayer,
   resolveScreenLook,

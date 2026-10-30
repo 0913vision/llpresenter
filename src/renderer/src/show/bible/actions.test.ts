@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
+import {emptyLiveState} from '@core/live/state';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {useLive} from '@renderer/state/live';
 import {
   applyService,

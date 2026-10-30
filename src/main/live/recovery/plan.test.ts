@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createMediaId, createMessageId} from '@shared/schema/ids';
+import {createMediaId, createMessageId} from '@core/schema/ids';
 import {
   CAPTIONS,
   IMAGES,

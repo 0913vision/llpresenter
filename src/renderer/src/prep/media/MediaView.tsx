@@ -1,9 +1,9 @@
 import {useMemo, useState, type DragEvent, type JSX} from 'react';
-import {thumbnailUrl} from '@shared/media';
-import {mediaLoops} from '@shared/mediaEndRule';
-import type {MediaId} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
-import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+import {thumbnailUrl} from '@contracts/ipc/media';
+import {mediaLoops} from '@core/media/mediaEndRule';
+import type {MediaId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {sendLive, useLive} from '@renderer/state/live';
 import {
   Button,

@@ -1,4 +1,4 @@
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 
 export const TEXT_IMPORT_LIMITS = {
   bytes: 4 * 1024 * 1024,

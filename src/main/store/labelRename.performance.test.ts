@@ -4,9 +4,9 @@ import {expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   type LabelRename,
-} from '@shared/schema/settingsDocuments';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/settingsDocuments';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {ContentStore} from './contentStore';

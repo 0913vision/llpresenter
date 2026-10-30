@@ -1,8 +1,5 @@
 import {useMemo, type JSX, type ReactNode} from 'react';
-import type {
-  ServiceEntry,
-  TemplateEntry,
-} from '@shared/schema/contentDocuments';
+import type {ServiceEntry, TemplateEntry} from '@core/schema/contentDocuments';
 import {Button} from '@renderer/ui/Button';
 import {ListBox, ListGroup, ListRow} from '@renderer/ui/ListRow';
 import {dateLabel} from './serviceDates';

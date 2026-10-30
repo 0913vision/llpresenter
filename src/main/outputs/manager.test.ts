@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
+import type {LiveCommand} from '@core/live/commands';
 import {installFakeClock} from '../../../test/fake-clock';
 import type {Monitor} from '../displays/monitor';
 import {

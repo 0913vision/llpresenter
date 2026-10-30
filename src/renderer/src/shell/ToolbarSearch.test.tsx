@@ -8,14 +8,14 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {createSongId} from '@shared/schema/ids';
+import {emptyLiveState} from '@core/live/state';
+import {createSongId} from '@core/schema/ids';
 import type {
   LibrarySearchMatch,
   LibrarySearchResult,
-} from '@shared/schema/librarySearch';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/librarySearch';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {App} from '@renderer/control/App';
 import {ControlSession} from '@renderer/control/controlSession';
 import {sampleService} from '@renderer/show/testing/sampleService';

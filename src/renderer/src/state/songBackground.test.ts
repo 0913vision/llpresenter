@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState} from '@shared/live';
-import type {ShowService} from '@shared/schema/showService';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState} from '@core/live/state';
+import type {ShowService} from '@core/schema/showService';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {LiveStore} from '../../../main/live/store';
 import {sendLive, startLiveSync, useLive} from './live';
 import {

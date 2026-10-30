@@ -1,5 +1,5 @@
-import {emptyLiveState, type LiveState} from '../../src/shared/live';
-import {parseLiveState} from '../../src/shared/schema/liveState';
+import {emptyLiveState, type LiveState} from '../../src/core/live/state';
+import {parseLiveState} from '../../src/core/schema/liveState';
 
 /** An invented UUID v4 for fixture ids. */
 export const uuid = (index: number) =>

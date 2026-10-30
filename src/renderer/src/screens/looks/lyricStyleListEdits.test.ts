@@ -1,11 +1,11 @@
 import {expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {parseLyricStyleId, screenIdSchema} from '@shared/schema/ids';
-import {looksSchema} from '@shared/schema/looks';
-import type {EditResult} from '@shared/schema/contentEdit';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {parseLyricStyleId, screenIdSchema} from '@core/schema/ids';
+import {looksSchema} from '@core/schema/looks';
+import type {EditResult} from '@core/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,

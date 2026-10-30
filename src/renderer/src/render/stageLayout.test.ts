@@ -1,9 +1,9 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers, type LiveLayers} from '@shared/live';
-import {parseStageLayouts, type StageLayout} from '@shared/schema/stageLayouts';
-import {parseTimers} from '@shared/schema/timers';
-import type {TimerRuns} from '@shared/schema/timerState';
-import {parseLiveState} from '@shared/schema/liveState';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {parseStageLayouts, type StageLayout} from '@core/schema/stageLayouts';
+import {parseTimers} from '@core/schema/timers';
+import type {TimerRuns} from '@core/schema/timerState';
+import {parseLiveState} from '@core/schema/liveState';
 import {
   MAIN,
   overlayUuid,

@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/state/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 

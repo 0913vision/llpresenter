@@ -1,8 +1,8 @@
-import type {LiveState} from '@shared/live';
-import type {LookId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
-import type {Screen} from '@shared/schema/screens';
-import type {StageLayout} from '@shared/schema/stageLayouts';
+import type {LiveState} from '@core/live/state';
+import type {LookId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
+import type {Screen} from '@core/schema/screens';
+import type {StageLayout} from '@core/schema/stageLayouts';
 import type {RenderFrame} from '@renderer/render/layer';
 import {resolveRenderScreen} from '@renderer/render/screenIdentity';
 import {resolveScreenLook} from '@renderer/render/screenLook';

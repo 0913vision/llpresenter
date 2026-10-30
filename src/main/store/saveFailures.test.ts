@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import type {AppProblem} from '@shared/schema/appProblem';
+import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '../displays/testing';
 import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from './saveFailures';
 

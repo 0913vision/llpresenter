@@ -1,7 +1,7 @@
 import {act, fireEvent, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 import {editorSetup, lyrics} from './editorTesting';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
+import {parseSongDocument} from '@core/schema/contentDocuments';
 
 const COUNT = 5000;
 async function largeEditor() {

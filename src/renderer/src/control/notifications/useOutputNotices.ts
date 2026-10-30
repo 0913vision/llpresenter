@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {OutputStatuses} from '@shared/schema/outputStatus';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 import {
   dropOutputWarning,
   keepOutputWarning,

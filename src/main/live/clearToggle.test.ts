@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import type {ClearTarget} from '@shared/commands';
-import {emptyLiveState, layerKinds} from '@shared/live';
+import type {ClearTarget} from '@core/live/commands';
+import {emptyLiveState, layerKinds} from '@core/live/state';
 import {LiveStore} from './store';
 import {NOTICE, overlaySettings} from './testing/overlays';
 

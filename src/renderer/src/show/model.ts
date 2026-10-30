@@ -1,9 +1,9 @@
-import type {MediaChoice} from '@shared/live';
+import type {MediaChoice} from '@core/live/state';
 import type {
   ShowRow,
   ShowTile,
   showRowProblems,
-} from '@shared/schema/showService';
+} from '@core/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;

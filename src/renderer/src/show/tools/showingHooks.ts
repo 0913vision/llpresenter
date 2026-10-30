@@ -1,7 +1,7 @@
 import {useMemo, useState, useEffect, useLayoutEffect, useRef} from 'react';
-import type {Screen} from '@shared/schema/screens';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {Screen} from '@core/schema/screens';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';

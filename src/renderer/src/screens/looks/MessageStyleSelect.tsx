@@ -1,7 +1,7 @@
 import {useId, type JSX} from 'react';
-import type {MessageStyleId, ScreenId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
-import {MESSAGE_STYLE_LIMIT} from '@shared/schema/looks';
+import type {MessageStyleId, ScreenId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
+import {MESSAGE_STYLE_LIMIT} from '@core/schema/looks';
 import {IconButton} from '@renderer/ui/IconButton';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import styles from './MessageStyleSelect.module.css';

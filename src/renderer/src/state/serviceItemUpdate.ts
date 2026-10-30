@@ -1,7 +1,7 @@
-import type {LlpApi} from '@shared/ipc';
-import type {Result} from '@shared/result';
-import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
-import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Result} from '@core/common/result';
+import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 
 interface RequestFailure {
   readonly reason: 'request-failed';

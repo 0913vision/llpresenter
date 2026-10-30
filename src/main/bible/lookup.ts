@@ -3,11 +3,11 @@ import {
   parseBibleLookupReply,
   type BibleLookupReply,
   type BibleLookupRequest,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import {BibleLibrary, loadBibleLibrary} from './library';
-import {matchBooks} from '@shared/bibleMatching';
+import {matchBooks} from '@core/bible/bibleMatching';
 
 const BOOK_PREFIX = /^((?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
 const WARNED_FILE_LIMIT = 128;

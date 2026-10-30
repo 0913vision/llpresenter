@@ -4,7 +4,7 @@ import {
   FONT_CATALOG_LIMITS,
   parseFontCatalog,
   type FontCatalog,
-} from '@shared/schema/fontCatalog';
+} from '@core/schema/fontCatalog';
 
 export const FONT_QUERY_TIMEOUT_MS = 10_000;
 const MAX_REPLY_BYTES = 2 * 1024 * 1024;

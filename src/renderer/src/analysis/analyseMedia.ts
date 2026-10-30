@@ -1,10 +1,10 @@
-import {coverCrop, type Crop, type PixelSize} from '@shared/coverCrop';
+import {coverCrop, type Crop, type PixelSize} from '@core/media/coverCrop';
 import {
   MAX_ANALYSIS_MESSAGE_LENGTH,
   type AnalysisFailureReason,
   type AnalysisJob,
   type AnalysisReply,
-} from '@shared/schema/mediaAnalysis';
+} from '@core/schema/mediaAnalysis';
 
 /** Where a video's thumbnail is taken, or half way through a shorter video. */
 export const THUMBNAIL_FRAME_SECONDS = 1;

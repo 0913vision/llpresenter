@@ -6,11 +6,11 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {Label} from '@shared/schema/labels';
-import type {Song} from '@shared/schema/song';
-import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
-import type {SongGroupId} from '@shared/schema/ids';
-import {isItemOfKind} from '@shared/schema/service';
+import type {Label} from '@core/schema/labels';
+import type {Song} from '@core/schema/song';
+import {isGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import type {SongGroupId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
 import {
   ARRANGEMENT_LIMIT_REASON,
   editedOrder,

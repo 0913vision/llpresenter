@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
-import {createPropId} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {Prop} from '@shared/schema/props';
-import type {Screen} from '@shared/schema/screens';
+import {createPropId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {Prop} from '@core/schema/props';
+import type {Screen} from '@core/schema/screens';
 import {
   Button,
   Dialog,

@@ -1,12 +1,12 @@
-import type {PixelSize} from '@shared/coverCrop';
-import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+import type {PixelSize} from '@core/media/coverCrop';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {
   THUMBNAIL_DATA_URL_PREFIX,
   parseAnalysisReply,
   type AnalysisFailureReason,
   type AnalysisJob,
   type AnalysisReply,
-} from '@shared/schema/mediaAnalysis';
+} from '@core/schema/mediaAnalysis';
 import type {Logger} from '../log';
 import type {AnalysisFiles} from './analysisFiles';
 import type {MediaKind} from './mediaKinds';

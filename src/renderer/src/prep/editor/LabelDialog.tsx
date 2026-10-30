@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
 import type {SongEditorStore} from './songEditorStore';

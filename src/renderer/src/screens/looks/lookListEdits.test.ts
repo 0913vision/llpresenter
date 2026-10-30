@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {parseLookId, type LookId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
+import {parseLookId, type LookId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
 import {
   LOOK_ID,
   SERMON_LOOK_ID,

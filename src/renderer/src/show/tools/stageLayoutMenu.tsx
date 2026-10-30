@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {StageLayout} from '@shared/schema/stageLayouts';
+import type {StageLayout} from '@core/schema/stageLayouts';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 import styles from './StageLayoutPicker.module.css';

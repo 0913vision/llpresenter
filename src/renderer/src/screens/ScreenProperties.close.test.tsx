@@ -1,10 +1,10 @@
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {AppFlushRequest} from '@shared/schema/appFlush';
-import {createAppFlushRequestId} from '@shared/schema/ids';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {AppFlushRequest} from '@core/schema/appFlush';
+import {createAppFlushRequestId} from '@core/schema/ids';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ControlSession} from '@renderer/control/controlSession';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';

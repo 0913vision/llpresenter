@@ -1,6 +1,6 @@
-import {closeStepAfter} from '@shared/closePolicy';
-import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@shared/schema/appFlush';
+import {closeStepAfter} from '@core/app/closePolicy';
+import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
+import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
 
 /**
  * How long a close flush may run before the 저장 중 dialog shows, so a normal

@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {useShallow} from 'zustand/react/shallow';
-import {interruptsSongOutput, type LiveCommand} from '@shared/commands';
-import type {LiveState} from '@shared/live';
+import {interruptsSongOutput, type LiveCommand} from '@core/live/commands';
+import type {LiveState} from '@core/live/state';
 
 interface LiveView {
   /** Null until the first state arrives, and always outside Electron. */

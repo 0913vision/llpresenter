@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {KnownMacroAction, MacroActionKind} from '@shared/schema/macros';
+import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
 import {MacroActionDialog, type MacroActionChoices} from './MacroActionDialog';
 
 const id = '00000000-0000-4000-8000-000000000001';

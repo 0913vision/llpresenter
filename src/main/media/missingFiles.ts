@@ -1,7 +1,7 @@
 import {stat} from 'node:fs/promises';
-import type {MediaId} from '@shared/schema/ids';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import type {MissingMedia} from '@shared/schema/mediaFiles';
+import type {MediaId} from '@core/schema/ids';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MissingMedia} from '@core/schema/mediaFiles';
 
 /** How many media files the check reads at once. */
 export const MAX_PARALLEL_FILE_CHECKS = 8;

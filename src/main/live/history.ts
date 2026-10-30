@@ -3,9 +3,9 @@ import {
   type LayerKind,
   type LiveLayers,
   type LiveState,
-} from '@shared/live';
-import type {ClearTarget} from '@shared/commands';
-import type {MessageId} from '@shared/schema/ids';
+} from '@core/live/state';
+import type {ClearTarget} from '@core/live/commands';
+import type {MessageId} from '@core/schema/ids';
 import {retainClearEffects} from './clearEffects';
 
 /** What the last clear took down, and when, so it can be undone. */

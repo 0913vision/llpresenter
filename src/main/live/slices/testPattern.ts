@@ -1,5 +1,5 @@
-import {resolveOutputScreen} from '@shared/screens';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
+import {resolveOutputScreen} from '@core/screens/screens';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {MissingLiveTargetError} from '../commandErrors';
 import {defineSlice} from '../slice';
 

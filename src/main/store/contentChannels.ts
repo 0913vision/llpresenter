@@ -1,14 +1,14 @@
 import {BrowserWindow, ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import type {Result} from '@shared/result';
-import {parseContentEdit, type EditResult} from '@shared/schema/contentEdit';
-import {checkPart} from '@shared/schema/fileFormat';
+import {Channels} from '@contracts/ipc/api';
+import type {Result} from '@core/common/result';
+import {parseContentEdit, type EditResult} from '@core/schema/contentEdit';
+import {checkPart} from '@core/schema/fileFormat';
 import {
   songIdSchema,
   serviceIdSchema,
   templateIdSchema,
-} from '@shared/schema/ids';
-import type {PayloadError} from '@shared/schema/payload';
+} from '@core/schema/ids';
+import type {PayloadError} from '@core/schema/payload';
 import type {Logger} from '../log';
 import type {ContentEvents, ContentStore} from './contentStore';
 

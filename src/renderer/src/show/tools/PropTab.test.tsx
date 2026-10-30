@@ -6,12 +6,12 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {PropTab} from './PropTab';
 import {stageFixture} from './stageTesting';
 import {deferred} from '../quick/quickTesting';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const image = '00000000-0000-4000-8000-000000000002';

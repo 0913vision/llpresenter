@@ -1,6 +1,6 @@
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {serializeProps, type Prop, type PropsFile} from '@shared/schema/props';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
+import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 

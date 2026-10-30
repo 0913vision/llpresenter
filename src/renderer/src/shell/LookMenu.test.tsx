@@ -8,14 +8,14 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
-import {parseLookId} from '@shared/schema/ids';
+import {parseLookId} from '@core/schema/ids';
 import {useScreensSelection} from '@renderer/screens/selection';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';

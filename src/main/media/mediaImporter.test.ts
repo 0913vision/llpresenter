@@ -7,14 +7,14 @@ import {
   createMediaId,
   createMediaPlaylistId,
   type MediaId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {
   parseMediaDocument,
   type MediaEditResult,
   type MediaImportProgress,
-} from '@shared/schema/mediaEdit';
-import type {MediaItem} from '@shared/schema/mediaList';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/mediaEdit';
+import type {MediaItem} from '@core/schema/mediaList';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import {MediaStore, type MediaItemsCommit} from '../store/mediaStore';

@@ -2,7 +2,7 @@ import {equal, ok} from 'node:assert/strict';
 import {readFile, writeFile} from 'node:fs/promises';
 import {isAbsolute, join} from 'node:path';
 import {app, BrowserWindow, Menu} from 'electron';
-import {parseAppConfig} from '@shared/schema/appConfig';
+import {parseAppConfig} from '@core/schema/appConfig';
 import type {Logger} from '../../log';
 import {openAppConfig, type AppConfigFile} from '../../store/appConfigFile';
 import {registerUiZoom, type UiZoomRegistration} from '../../store/uiZoom';

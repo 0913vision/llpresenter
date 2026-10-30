@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {
   StageEditor,

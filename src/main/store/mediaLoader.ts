@@ -1,11 +1,11 @@
 import {basename} from 'node:path';
-import type {FileAccess, LoadedFile} from '@shared/schema/fileFormat';
-import {parseMediaDocument, type MediaDocument} from '@shared/schema/mediaEdit';
+import type {FileAccess, LoadedFile} from '@core/schema/fileFormat';
+import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {
   parseMediaList,
   serializeMediaList,
   type MediaList,
-} from '@shared/schema/mediaList';
+} from '@core/schema/mediaList';
 import type {Logger} from '../log';
 import {EMPTY_MEDIA_LIST} from './defaults';
 import {documentFiles} from './documentFiles';

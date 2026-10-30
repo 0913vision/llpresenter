@@ -2,15 +2,15 @@ import {
   parseServiceDocument,
   type ServiceChange,
   type ServiceDocument,
-} from '@shared/schema/contentDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
+} from '@core/schema/contentDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   createMediaId,
   createServiceId,
   createServiceItemId,
-} from '@shared/schema/ids';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
+} from '@core/schema/ids';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 
 export const fixtureServiceId = createServiceId(

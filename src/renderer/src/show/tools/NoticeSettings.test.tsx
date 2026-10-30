@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {screensDocument} from '@renderer/screens/testing/documents';
 import type {NoticeChanges} from './noticeEdits';
 import {NoticeSettings} from './NoticeSettings';

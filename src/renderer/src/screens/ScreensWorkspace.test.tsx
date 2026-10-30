@@ -8,12 +8,12 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {LiveCommand} from '@shared/commands';
-import type {MonitorList} from '@shared/schema/monitors';
-import type {OutputStatuses} from '@shared/schema/outputStatus';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import type {LiveCommand} from '@core/live/commands';
+import type {MonitorList} from '@core/schema/monitors';
+import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {Workspace} from '@renderer/shell/Workspace';
 import {useLive} from '@renderer/state/live';

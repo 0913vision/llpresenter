@@ -1,17 +1,14 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {parseLiveState} from '@shared/schema/liveState';
-import {
-  LIVE_STATE_LIMITS,
-  LIVE_OUTPUT_ALIASES,
-} from '@shared/schema/liveLimits';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {defaultPreferences} from '@shared/schema/preferences';
-import {MAX_ACTIVE_MESSAGES} from '@shared/schema/overlayState';
-import {serializeRecoveryRecord} from '@shared/schema/recoveryRecord';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {parseMacroId} from '@shared/schema/ids';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseLiveState} from '@core/schema/liveState';
+import {LIVE_STATE_LIMITS, LIVE_OUTPUT_ALIASES} from '@core/schema/liveLimits';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {defaultPreferences} from '@core/schema/preferences';
+import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
+import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {parseMacroId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {settingsDefaults} from '../store/settingsDefaults';
 import {LiveStore, dispatchLogged} from './store';
@@ -23,7 +20,7 @@ import {propsSlice} from './slices/props';
 import {macrosSlice} from './slices/macros';
 import {screenSettingsSlice} from './slices/screenSettings';
 import * as budget from './stateBudget';
-import * as liveSchema from '@shared/schema/liveState';
+import * as liveSchema from '@core/schema/liveState';
 import type {MacroCommandPort, ScreenSettingsPort} from './slice';
 import {MissingLiveTargetError} from './commandErrors';
 

@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
-import type {SlideLayer} from '@shared/live';
-import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
-import {translationIdSchema} from '@shared/schema/ids';
+import type {SlideLayer} from '@core/live/state';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import {translationIdSchema} from '@core/schema/ids';
 import {bibleSource, type BibleSource} from '@renderer/show/bible/source';
 import {liveTileIndex} from './showLibrary';
 import {useShow, type ShowView} from './showStore';

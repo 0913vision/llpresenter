@@ -7,7 +7,7 @@ import {useClearKeys} from '@renderer/show/clearKeys';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import * as clearState from '@renderer/state/clear';
 import * as show from '@renderer/state/show';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {CheckRow} from './Checkbox';
 import {Dialog} from './Dialog';
 import {ListBox, ListRow} from './ListRow';

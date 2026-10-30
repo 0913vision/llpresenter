@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import type {ShowService} from '@shared/schema/showService';
-import {parseServiceOpenRequest} from '@shared/schema/serviceOpen';
+import {Channels} from '@contracts/ipc/api';
+import type {ShowService} from '@core/schema/showService';
+import {parseServiceOpenRequest} from '@core/schema/serviceOpen';
 import type {Logger} from '../log';
 import type {AppConfigFile} from './appConfigFile';
 import type {ContentStore} from './contentStore';

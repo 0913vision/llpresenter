@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {startAudio} from './startAudio';
 
 beforeEach(() => {

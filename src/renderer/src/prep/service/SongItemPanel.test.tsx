@@ -8,15 +8,15 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {
   createServiceItemId,
   createSongGroupId,
   createSongId,
   type SongId,
-} from '@shared/schema/ids';
-import {emptyLiveState} from '@shared/live';
+} from '@core/schema/ids';
+import {emptyLiveState} from '@core/live/state';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
 import {SongSession} from '@renderer/prep/editor/songSession';

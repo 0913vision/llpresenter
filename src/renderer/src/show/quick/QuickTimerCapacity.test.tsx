@@ -7,10 +7,10 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {useLive} from '@renderer/state/live';
 import {QuickPanel} from './QuickPanel';
 import {quickDocument, quickFixture, quickId} from './quickTesting';

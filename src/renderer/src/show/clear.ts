@@ -1,5 +1,5 @@
-import type {ClearTarget} from '@shared/commands';
-import {hasAnyLayer, type LiveLayers} from '@shared/live';
+import type {ClearTarget} from '@core/live/commands';
+import {hasAnyLayer, type LiveLayers} from '@core/live/state';
 
 /** Command IDs of the clear commands, as in `docs/spec/10-shortcuts-and-settings.md`. */
 export type ClearCommandId =

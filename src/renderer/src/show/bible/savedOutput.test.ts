@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {bibleVerseTiles} from '@shared/bibleTiles';
-import {emptyLiveState} from '@shared/live';
-import {createServiceItemId} from '@shared/schema/ids';
-import type {ShowService} from '@shared/schema/showService';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {emptyLiveState} from '@core/live/state';
+import {createServiceItemId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
 import {useLive} from '@renderer/state/live';
 import {
   applyService,

@@ -2,11 +2,11 @@ import {
   parseFrameRateReport,
   parseRendererLogEntry,
   type FrameRateReport,
-} from '@shared/schema/ipcPayloads';
+} from '@core/schema/ipcPayloads';
 import {
   parseOutputRetryRequest,
   parseOutputShowWindowRequest,
-} from '@shared/schema/outputStatus';
+} from '@core/schema/outputStatus';
 import type {Logger} from './log';
 
 /** A window's web contents id, which tells windows apart. */

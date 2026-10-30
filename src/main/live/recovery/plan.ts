@@ -1,21 +1,21 @@
-import type {LabelColor} from '@shared/colors';
-import type {SingleLiveCommand} from '@shared/commands';
-import type {ActiveMessage, LiveState} from '@shared/live';
-import {noticePosition} from '@shared/noticeClock';
-import type {ScreenId} from '@shared/schema/ids';
-import type {RecoverySummary} from '@shared/schema/recovery';
-import type {RecoveryRecord} from '@shared/schema/recoveryRecord';
-import type {Screen} from '@shared/schema/screens';
+import type {LabelColor} from '@core/labels/colors';
+import type {SingleLiveCommand} from '@core/live/commands';
+import type {ActiveMessage, LiveState} from '@core/live/state';
+import {noticePosition} from '@core/overlays/noticeClock';
+import type {ScreenId} from '@core/schema/ids';
+import type {RecoverySummary} from '@core/schema/recovery';
+import type {RecoveryRecord} from '@core/schema/recoveryRecord';
+import type {Screen} from '@core/schema/screens';
 import {
   isItemOfKind,
   type Service,
   type ServiceItemOf,
-} from '@shared/schema/service';
-import type {ServiceId} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/service';
+import type {ServiceId} from '@core/schema/ids';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import type {SettingsReader} from '../../store/settingsStore';
 import {songTiles} from '../../store/showService';
-import {outputStateKeys} from '@shared/screens';
+import {outputStateKeys} from '@core/screens/screens';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;

@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
 import {editorTask} from './editorTask';

@@ -1,23 +1,23 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {
   createServiceId,
   createServiceItemId,
   createSongGroupId,
   createSongId,
-} from '@shared/schema/ids';
-import {SONG_DRAG_MIME} from '@shared/schema/songDrag';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/ids';
+import {SONG_DRAG_MIME} from '@core/schema/songDrag';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {useLive} from '@renderer/state/live';
 import {ServiceOrderList} from './ServiceOrderList';
 import {otherItemEntries} from '@renderer/prep/service/quickAddItems';
-import type {ServiceItem} from '@shared/schema/service';
+import type {ServiceItem} from '@core/schema/service';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const headerId = createServiceItemId('10000000-0000-4000-8000-000000000001');

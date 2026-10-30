@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import type {Result} from '@shared/result';
-import type {LooksFile} from '@shared/schema/looks';
-import type {LyricStyleId} from '@shared/schema/ids';
+import type {Result} from '@core/common/result';
+import type {LooksFile} from '@core/schema/looks';
+import type {LyricStyleId} from '@core/schema/ids';
 import type {LyricEffectsChange} from './lyricEffectsEdits';
 import type {LyricStyleEdit} from './lyricStyleEdits';
 import {LyricStylePreview} from './LyricStylePreview';

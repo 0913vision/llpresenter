@@ -1,6 +1,6 @@
-import {createServiceItemId, type NoticeSetId} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {ServiceItem} from '@shared/schema/service';
+import {createServiceItemId, type NoticeSetId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {ServiceItem} from '@core/schema/service';
 import {backgroundMedia, mediaName} from '@renderer/show/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';

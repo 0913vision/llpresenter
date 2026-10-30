@@ -1,10 +1,10 @@
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {createServiceId, type ServiceId} from '@shared/schema/ids';
-import type {ShowService} from '@shared/schema/showService';
-import {parseService} from '@shared/schema/service';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {Channels} from '@contracts/ipc/api';
+import {createServiceId, type ServiceId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
+import {parseService} from '@core/schema/service';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {ContentStore, type DocumentFiles} from './contentStore';
 import {resolveLocations} from './locations';

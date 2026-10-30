@@ -9,16 +9,16 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import {createSongId} from '@shared/schema/ids';
-import {defaultPreferences} from '@shared/schema/preferences';
+import type {LlpApi} from '@contracts/ipc/api';
+import {createSongId} from '@core/schema/ids';
+import {defaultPreferences} from '@core/schema/preferences';
 import {
   parseTextImportPreviewRequest,
   type TextImportOptions,
   type TextImportPreviewResult,
   type TextImportSource,
-} from '@shared/schema/textImport';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/textImport';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {convertTextImport} from '../../../../main/import/convert';
 import {DUPLICATE_TITLE_REASON} from '../editor/songTitle';
 import {TextImportDialog} from './TextImportDialog';

@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import {emptyLiveState, type LiveState} from '@shared/live';
+import type {LlpApi} from '@contracts/ipc/api';
+import {emptyLiveState, type LiveState} from '@core/live/state';
 import {followLiveState} from './liveFeed';
 
 function stateAt(version: number): LiveState {

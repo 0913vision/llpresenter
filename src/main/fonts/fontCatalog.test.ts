@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import type {FontCatalog} from '@shared/schema/fontCatalog';
-import {fontFamilyFixture} from '@shared/testing/fontCatalog';
+import type {FontCatalog} from '@core/schema/fontCatalog';
+import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
 import {FontCatalogCache} from './fontCatalog';
 
 it('coalesces reads, refreshes expired data, and retains the last good list after failure', async () => {

@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {registerIpc} from './ipc';
 import {LiveStore} from './live/store';
 import type {Logger} from './log';

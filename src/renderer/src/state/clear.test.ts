@@ -1,8 +1,8 @@
 import {renderHook, act} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLayers, emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLayers, emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {clearLayer, undoClear, useCanUndo} from './clear';
 import {useLive} from './live';
 

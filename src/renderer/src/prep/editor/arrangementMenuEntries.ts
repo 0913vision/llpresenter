@@ -1,4 +1,4 @@
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   BibleLookupReply,
   BibleLookupRequest,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 
 /** Keeps one read in flight and replaces waiting input with the newest request. */
 export class LatestLookup {

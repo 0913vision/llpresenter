@@ -7,7 +7,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -20,7 +20,7 @@ import {ArrangementDialog} from './ArrangementDialog';
 import {editorTask} from './editorTask';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
-import type {AnySong} from '@shared/schema/groupedSong';
+import type {AnySong} from '@core/schema/groupedSong';
 import styles from './ArrangementRow.module.css';
 
 const MAX_SEGMENTS = 5;

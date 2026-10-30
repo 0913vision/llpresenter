@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 
 /** Shares loading/read-only checks and the synchronous double-click guard. */
 export function useMediaImportAction(

@@ -1,4 +1,4 @@
-import type {LookId} from '@shared/schema/ids';
+import type {LookId} from '@core/schema/ids';
 import type {NamedDocument} from './useSettingsDocument';
 
 type LooksFile = NamedDocument<'looks'>['value'];

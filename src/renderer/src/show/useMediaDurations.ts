@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import {isItemOfKind} from '@shared/schema/service';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import {isItemOfKind} from '@core/schema/service';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const MINUTE_SECONDS = 60;

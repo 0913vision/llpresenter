@@ -1,4 +1,4 @@
-import type {AppProblemOf} from '@shared/schema/appProblem';
+import type {AppProblemOf} from '@core/schema/appProblem';
 import type {Notice} from '@renderer/ui/notices';
 
 /** One card stands for every data file skipped so far. */

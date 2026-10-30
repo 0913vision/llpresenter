@@ -1,12 +1,12 @@
-import type {LooksFile} from '@shared/schema/looks';
-import type {MacrosFile} from '@shared/schema/macros';
-import type {MediaList} from '@shared/schema/mediaList';
-import type {MessagesFile} from '@shared/schema/messages';
-import type {NoticesFile} from '@shared/schema/notices';
-import type {PropsFile} from '@shared/schema/props';
-import type {ScreensFile} from '@shared/schema/screens';
-import type {StageLayoutsFile} from '@shared/schema/stageLayouts';
-import type {TimersFile} from '@shared/schema/timers';
+import type {LooksFile} from '@core/schema/looks';
+import type {MacrosFile} from '@core/schema/macros';
+import type {MediaList} from '@core/schema/mediaList';
+import type {MessagesFile} from '@core/schema/messages';
+import type {NoticesFile} from '@core/schema/notices';
+import type {PropsFile} from '@core/schema/props';
+import type {ScreensFile} from '@core/schema/screens';
+import type {StageLayoutsFile} from '@core/schema/stageLayouts';
+import type {TimersFile} from '@core/schema/timers';
 import type {SettingsReader} from '../store/settingsStore';
 
 export interface MacroCatalog {

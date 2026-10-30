@@ -1,7 +1,7 @@
 import {cleanup, render, screen} from '@testing-library/react';
 import {readFileSync} from 'node:fs';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {OutputStatuses} from '@shared/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 import {StatusBar} from './StatusBar';
 
 const fixture = vi.hoisted((): {statuses: OutputStatuses} => ({statuses: {}}));

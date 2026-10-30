@@ -17,29 +17,29 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
-import type {AppProblem} from '@shared/schema/appProblem';
-import {Channels} from '@shared/ipc';
-import {parseEditResult} from '@shared/schema/contentEdit';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {parseShowService} from '@shared/schema/showService';
+import type {AppProblem} from '@core/schema/appProblem';
+import {Channels} from '@contracts/ipc/api';
+import {parseEditResult} from '@core/schema/contentEdit';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseShowService} from '@core/schema/showService';
 import {
   parseServiceDocument,
   parseSongDocument,
-} from '@shared/schema/contentDocuments';
-import {createMediaId} from '@shared/schema/ids';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import {parsePreferencesValue} from '@shared/schema/preferences';
+} from '@core/schema/contentDocuments';
+import {createMediaId} from '@core/schema/ids';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parsePreferencesValue} from '@core/schema/preferences';
 import {
   parseSettingsDocument,
   settingsNames,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
+} from '@core/schema/settingsDocuments';
+import {parseLibrarySearchResult} from '@core/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {chunkedTranslationFile} from '../bible/testFiles';
 import * as chapterFile from '../bible/chapterFile';
-import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
+import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
 import * as atomicWrite from './atomicWrite';
 import {openAppConfig} from './appConfigFile';
 import {DATA_FOLDER_NAME} from './locations';

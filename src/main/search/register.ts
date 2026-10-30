@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import {parseLibrarySearchRequest} from '@shared/schema/librarySearch';
+import {Channels} from '@contracts/ipc/api';
+import {parseLibrarySearchRequest} from '@core/schema/librarySearch';
 import type {Logger} from '../log';
 import type {SongSearchIndex} from './songIndex';
 

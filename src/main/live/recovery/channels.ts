@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import {parseRecoveryApply, type RecoveryResult} from '@shared/schema/recovery';
+import {Channels} from '@contracts/ipc/api';
+import {parseRecoveryApply, type RecoveryResult} from '@core/schema/recovery';
 import type {Logger} from '../../log';
 import type {RecoveryPort} from './controller';
 

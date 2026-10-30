@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument, type MediaDocument} from '@shared/schema/mediaEdit';
+import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {stageFixture} from './stageTesting';
 import {useMacroTargets} from './useMacroTargets';

@@ -1,8 +1,8 @@
 import {describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {createMediaId, noticeSetIdSchema} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {ServiceItem} from '@shared/schema/service';
+import {createMediaId, noticeSetIdSchema} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {ServiceItem} from '@core/schema/service';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {otherItemEntries} from './quickAddItems';
 

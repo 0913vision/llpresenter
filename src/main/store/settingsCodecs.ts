@@ -1,22 +1,22 @@
-import type {Result} from '@shared/result';
-import type {FileError} from '@shared/schema/fileFormat';
-import * as bible from '@shared/schema/bible';
-import * as labels from '@shared/schema/labels';
-import * as looks from '@shared/schema/looks';
-import * as macros from '@shared/schema/macros';
-import * as messages from '@shared/schema/messages';
-import * as notices from '@shared/schema/notices';
-import * as preferences from '@shared/schema/preferences';
-import * as props from '@shared/schema/props';
-import * as quick from '@shared/schema/quick';
-import * as screens from '@shared/schema/screens';
-import * as shortcuts from '@shared/schema/shortcuts';
-import * as stage from '@shared/schema/stageLayouts';
-import * as timers from '@shared/schema/timers';
+import type {Result} from '@core/common/result';
+import type {FileError} from '@core/schema/fileFormat';
+import * as bible from '@core/schema/bible';
+import * as labels from '@core/schema/labels';
+import * as looks from '@core/schema/looks';
+import * as macros from '@core/schema/macros';
+import * as messages from '@core/schema/messages';
+import * as notices from '@core/schema/notices';
+import * as preferences from '@core/schema/preferences';
+import * as props from '@core/schema/props';
+import * as quick from '@core/schema/quick';
+import * as screens from '@core/schema/screens';
+import * as shortcuts from '@core/schema/shortcuts';
+import * as stage from '@core/schema/stageLayouts';
+import * as timers from '@core/schema/timers';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import type {ParseFile} from './readFiles';
 
 export type SettingsValue = SettingsDocument['value'];

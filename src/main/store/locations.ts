@@ -8,10 +8,10 @@ import {
   resolve,
   sep,
 } from 'node:path';
-import {isRecord} from '@shared/guards';
-import type {Result} from '@shared/result';
-import {parseAppConfig, type AppConfig} from '@shared/schema/appConfig';
-import type {FileError} from '@shared/schema/fileFormat';
+import {isRecord} from '@core/common/guards';
+import type {Result} from '@core/common/result';
+import {parseAppConfig, type AppConfig} from '@core/schema/appConfig';
+import type {FileError} from '@core/schema/fileFormat';
 import {isMissingFile} from './fsErrors';
 
 /** The name of the data folder in Documents, and in the development folder. */

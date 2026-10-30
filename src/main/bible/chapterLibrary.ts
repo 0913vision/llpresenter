@@ -1,6 +1,6 @@
 import {basename, extname, join} from 'node:path';
-import type {Translation} from '@shared/schema/bible';
-import type {FileError} from '@shared/schema/fileFormat';
+import type {Translation} from '@core/schema/bible';
+import type {FileError} from '@core/schema/fileFormat';
 import {BibleChapterCache} from './chapterCache';
 import {
   readBibleChapter,

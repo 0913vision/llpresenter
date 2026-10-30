@@ -2,7 +2,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 
 export const MAIN_ID = '00000000-0000-4000-8000-000000000001';
 export const CAPTIONS_ID = '00000000-0000-4000-8000-000000000002';

@@ -2,11 +2,11 @@ import {writeFileSync} from 'node:fs';
 import {cpus} from 'node:os';
 import {performance} from 'node:perf_hooks';
 import {describe, expect, it} from 'vitest';
-import type {LiveState} from '../../src/shared/live';
+import type {LiveState} from '../../src/core/live/state';
 import {
   parseRecoveryRecord,
   serializeRecoveryRecord,
-} from '../../src/shared/schema/recoveryRecord';
+} from '../../src/core/schema/recoveryRecord';
 import {heavyState, typicalState} from './liveFixtures';
 
 const SAMPLES = 7;

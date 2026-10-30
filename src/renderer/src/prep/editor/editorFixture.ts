@@ -1,21 +1,21 @@
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import {sourceSlideCount} from '@shared/schema/groupedSong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {sourceSlideCount} from '@core/schema/groupedSong';
 import type {EditorSongDocument} from './songSession';
 import {
   parseSongDocument,
   type SongChange,
   type LibrarySong,
   type SongDocument,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
+} from '@core/schema/settingsDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {editorPreviewFixture} from './editorPreviewFixture';
-import type {Song} from '@shared/schema/song';
+import type {Song} from '@core/schema/song';
 import {importDraftSlides} from './importDraftSlides';
 
 /** Legacy source shape for migration and compatibility helper tests only. */

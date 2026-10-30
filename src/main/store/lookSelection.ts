@@ -1,6 +1,6 @@
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import {parseLookId, type LookId} from '@shared/schema/ids';
-import type {EditRefusalReason, EditResult} from '@shared/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {parseLookId, type LookId} from '@core/schema/ids';
+import type {EditRefusalReason, EditResult} from '@core/schema/contentEdit';
 import type {Logger} from '../log';
 import type {SettingsReader} from './settingsStore';
 

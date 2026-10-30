@@ -4,10 +4,10 @@ import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {createTimerId} from '@shared/schema/ids';
+} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {startOverlays} from '../live/overlays';

@@ -1,6 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {MessageStyleProperties} from './MessageStyleProperties';
 import type {MessageStyleChange} from './messageStyleEdits';
 

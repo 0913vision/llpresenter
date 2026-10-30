@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {Menu} from '@renderer/ui/Menu';
 import {Select} from '@renderer/ui/Select';
 import {

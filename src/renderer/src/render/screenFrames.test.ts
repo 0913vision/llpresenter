@@ -1,9 +1,9 @@
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@shared/live';
-import {parseLookId} from '@shared/schema/ids';
-import {parseLiveState} from '@shared/schema/liveState';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {parseLookId} from '@core/schema/ids';
+import {parseLiveState} from '@core/schema/liveState';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {
   CAPTIONS,
   MAIN,

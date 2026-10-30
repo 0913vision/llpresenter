@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
-import type {SongDocument} from '@shared/schema/contentDocuments';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import type {MediaId, SongId} from '@shared/schema/ids';
-import {isItemOfKind, type ServiceItemOf} from '@shared/schema/service';
+import type {SongDocument} from '@core/schema/contentDocuments';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaId, SongId} from '@core/schema/ids';
+import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {applyService, useShow} from '@renderer/state/show';
 import {sendLive, useLive} from '@renderer/state/live';
 import {updateServiceBackground} from '@renderer/state/serviceBackground';

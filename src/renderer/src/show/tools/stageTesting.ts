@@ -1,9 +1,9 @@
 import {vi} from 'vitest';
-import type {LlpApi} from '@shared/ipc';
-import {emptyLiveState} from '@shared/live';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {parseLiveState} from '@shared/schema/liveState';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LlpApi} from '@contracts/ipc/api';
+import {emptyLiveState} from '@core/live/state';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {parseLiveState} from '@core/schema/liveState';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   settingsDocument,
   screensDocument,

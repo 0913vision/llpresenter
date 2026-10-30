@@ -1,4 +1,4 @@
-import type {LlpApi} from '../shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 
 declare global {
   interface Window {

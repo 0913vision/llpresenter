@@ -3,10 +3,10 @@ import {
   parseGroupedSong,
   serializeGroupedSong,
   type GroupedSong,
-} from '@shared/schema/groupedSong';
-import {createSongGroupId} from '@shared/schema/ids';
-import {parseSong, serializeSong} from '@shared/schema/song';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/groupedSong';
+import {createSongGroupId} from '@core/schema/ids';
+import {parseSong, serializeSong} from '@core/schema/song';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {
   blockSnapshot,
   editBlocks,

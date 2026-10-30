@@ -1,12 +1,12 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
-import {createServiceId} from '@shared/schema/ids';
-import type {ShowService} from '@shared/schema/showService';
-import type {ServiceOpenRequest} from '@shared/schema/serviceOpen';
-import {emptyLiveState} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
+import {createServiceId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
+import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
+import {emptyLiveState} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {ServiceOrderHeader} from './ServiceOrderHeader';

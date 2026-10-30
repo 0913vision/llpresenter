@@ -1,6 +1,6 @@
-import type {SlideLayer} from '@shared/live';
-import type {RecentPassage} from '@shared/schema/bible';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import type {SlideLayer} from '@core/live/state';
+import type {RecentPassage} from '@core/schema/bible';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {passageBook} from '@renderer/show/bible/adjacentVerses';
 import type {BibleSource} from '@renderer/show/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@renderer/show/model';

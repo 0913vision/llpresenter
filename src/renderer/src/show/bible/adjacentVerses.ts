@@ -1,8 +1,8 @@
-import {exactBibleBook} from '@shared/bibleMatching';
+import {exactBibleBook} from '@core/bible/bibleMatching';
 import type {
   BibleLookupPassage,
   BibleLookupReply,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 
 export type VerseDirection = 'previous' | 'next';
 

@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import type {Logger} from '../log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {UiStateStore} from './uiStateStore';

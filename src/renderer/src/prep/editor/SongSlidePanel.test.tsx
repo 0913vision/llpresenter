@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import {editorGroupedSong} from './editorFixture';
 import {SongSession} from './songSession';
 import {SongSlidePanel, type SongSlideStore} from './SongSlidePanel';

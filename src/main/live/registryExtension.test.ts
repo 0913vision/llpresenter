@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {LiveStore} from './store';
 
 vi.mock('./slices', () => import('./fixtures/slices'));

@@ -8,10 +8,10 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState} from '@shared/live';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import {emptyLiveState} from '@core/live/state';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';

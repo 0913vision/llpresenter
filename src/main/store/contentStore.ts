@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {basename, join} from 'node:path';
-import {NO_LABEL_COLOR} from '@shared/colors';
-import type {Result} from '@shared/result';
+import {NO_LABEL_COLOR} from '@core/labels/colors';
+import type {Result} from '@core/common/result';
 import type {
   LibrarySong,
   ServiceChange,
@@ -9,16 +9,16 @@ import type {
   SongChange,
   TemplateChange,
   TemplateEntry,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import type {
   ContentEdit,
   EditRefusalReason,
   EditResult,
   EditSuccess,
-} from '@shared/schema/contentEdit';
-import {checkPart, type FileError} from '@shared/schema/fileFormat';
-import {preserveUnknownFields} from '@shared/schema/preserveUnknown';
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+} from '@core/schema/contentEdit';
+import {checkPart, type FileError} from '@core/schema/fileFormat';
+import {preserveUnknownFields} from '@core/schema/preserveUnknown';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {
   createServiceId,
   createSongGroupId,
@@ -27,7 +27,7 @@ import {
   type ServiceId,
   type SongId,
   type TemplateId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {
   serializeService,
   serializeTemplate,
@@ -35,18 +35,18 @@ import {
   type Service,
   type ServiceItem,
   type Template,
-} from '@shared/schema/service';
+} from '@core/schema/service';
 import {
   serializeGroupedSong,
   groupedSongSchema,
   sourceSlideCount,
   type GroupedSong,
-} from '@shared/schema/groupedSong';
-import {migrateImportedSongGroups} from '@shared/schema/songGroupMigration';
+} from '@core/schema/groupedSong';
+import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
 import {
   parseSettingsEdit,
   type LabelRename,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import type {SettingsStore} from './settingsStore';
 import type {Logger} from '../log';
 import {Autosave} from './autosave';

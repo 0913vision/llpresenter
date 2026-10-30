@@ -1,11 +1,11 @@
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {
   LIBRARY_SEARCH_LIMITS,
   parseLibrarySearchResult,
-} from '@shared/schema/librarySearch';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/librarySearch';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {buildSongSearchIndex, SongSearchIndex} from './songIndex';
 
 function song(

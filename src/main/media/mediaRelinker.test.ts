@@ -2,14 +2,14 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {createMediaId, type MediaId} from '@shared/schema/ids';
+import {createMediaId, type MediaId} from '@core/schema/ids';
 import {
   parseMediaDocument,
   type MediaDocument,
   type MediaEditResult,
-} from '@shared/schema/mediaEdit';
-import {MEDIA_LIMITS, type MediaItem} from '@shared/schema/mediaList';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/mediaEdit';
+import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import type {MediaItemsCommit} from '../store/mediaStore';

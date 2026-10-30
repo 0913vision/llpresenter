@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {timerText} from '@shared/timerClock';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
 import {followTimerCompletion} from './timerCompletion';

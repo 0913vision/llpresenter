@@ -1,13 +1,13 @@
 import type {BrowserWindow} from 'electron';
-import {Channels} from '@shared/ipc';
-import {MONITOR_LIST_MAX} from '@shared/schema/monitors';
+import {Channels} from '@contracts/ipc/api';
+import {MONITOR_LIST_MAX} from '@core/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
 import {toMonitorList} from '../displays/monitorList';
 import {DisplayRegistry} from '../displays/registry';
 import type {Rect} from '../displays/rect';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
-import {parseFrameReadyReport} from '@shared/schema/ipcPayloads';
+import {parseFrameReadyReport} from '@core/schema/ipcPayloads';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';

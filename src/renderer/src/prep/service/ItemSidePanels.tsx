@@ -1,5 +1,5 @@
 import {useSyncExternalStore, type JSX} from 'react';
-import {isItemOfKind} from '@shared/schema/service';
+import {isItemOfKind} from '@core/schema/service';
 import {SongPreviewFrame, type SongEditorStore} from '@renderer/prep/editor';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {IconButton} from '@renderer/ui/IconButton';

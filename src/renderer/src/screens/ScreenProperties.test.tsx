@@ -8,13 +8,13 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {MonitorList} from '@shared/schema/monitors';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {MonitorList} from '@core/schema/monitors';
+import type {EditResult} from '@core/schema/contentEdit';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';

@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {LayoutChange} from '@shared/schema/uiState';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LayoutChange} from '@core/schema/uiState';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   createIpcColumnWidthStore,
   createMemoryColumnWidthStore,

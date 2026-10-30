@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {WindowAction} from '@shared/ipc';
+import type {WindowAction} from '@contracts/ipc/api';
 import {
   allowsWindowAction,
   windowModeFrom,

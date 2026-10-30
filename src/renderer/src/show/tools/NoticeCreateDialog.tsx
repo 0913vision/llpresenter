@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
-import {createNoticeSetId} from '@shared/schema/ids';
-import type {MediaList} from '@shared/schema/mediaList';
-import {MAX_NOTICE_IMAGES} from '@shared/schema/overlayState';
-import type {NoticeSet} from '@shared/schema/notices';
-import type {Screen} from '@shared/schema/screens';
+import {createNoticeSetId} from '@core/schema/ids';
+import type {MediaList} from '@core/schema/mediaList';
+import {MAX_NOTICE_IMAGES} from '@core/schema/overlayState';
+import type {NoticeSet} from '@core/schema/notices';
+import type {Screen} from '@core/schema/screens';
 import {
   Button,
   Dialog,

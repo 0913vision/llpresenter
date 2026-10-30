@@ -1,4 +1,4 @@
-import type {MonitorList} from '@shared/schema/monitors';
+import type {MonitorList} from '@core/schema/monitors';
 import {MAIN_ID} from './documents';
 
 /** The two-monitor geometry from the M3-C3-8 live check. */

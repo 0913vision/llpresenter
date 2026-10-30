@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {defaultPreferences} from '@shared/schema/preferences';
+import {defaultPreferences} from '@core/schema/preferences';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {

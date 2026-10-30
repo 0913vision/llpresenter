@@ -1,6 +1,6 @@
-import type {FontCatalog, FontFamily} from '@shared/schema/fontCatalog';
-import type {LooksFile} from '@shared/schema/looks';
-import type {Screen} from '@shared/schema/screens';
+import type {FontCatalog, FontFamily} from '@core/schema/fontCatalog';
+import type {LooksFile} from '@core/schema/looks';
+import type {Screen} from '@core/schema/screens';
 import type {SelectOption} from '@renderer/ui/SelectMenu';
 import type {FontCatalogState} from './useFontCatalog';
 

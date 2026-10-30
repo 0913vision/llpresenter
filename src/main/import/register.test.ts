@@ -2,11 +2,11 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   parseTextImportReadResult,
   parseTextImportPreviewResult,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {makeTempDir} from '../../../test/temp-dir';
 import {registerTextImport, TEST_IMPORT_FILE_VARIABLE} from './register';
 import {TEXT_IMPORT_LIMITS} from './limits';

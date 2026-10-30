@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {BibleSource} from '@renderer/show/bible/source';
 import type {ItemId, ServiceRow, SlideTile} from '@renderer/show/model';
 

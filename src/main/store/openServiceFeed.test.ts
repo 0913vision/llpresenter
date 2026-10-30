@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
-import {parseService} from '@shared/schema/service';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import type {MediaChoice} from '@shared/live';
+import {parseService} from '@core/schema/service';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import type {MediaChoice} from '@core/live/state';
 import type {OpenServiceSources} from './openServiceFeed';
 import {OpenServiceFeed} from './openServiceFeed';
 import type {StoredDocument} from './documents';
@@ -9,8 +9,8 @@ import {service, SUNDAY_ID, HYMN_ONE_ID, hymnOne, itemId} from './testFiles';
 import {
   parseBibleLookupRequest,
   type BibleLookupReply,
-} from '@shared/schema/bibleLookup';
-import {createServiceItemId} from '@shared/schema/ids';
+} from '@core/schema/bibleLookup';
+import {createServiceItemId} from '@core/schema/ids';
 
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,

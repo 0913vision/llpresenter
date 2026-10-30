@@ -1,4 +1,4 @@
-import {macroActionKinds, type MacroActionKind} from '@shared/schema/macros';
+import {macroActionKinds, type MacroActionKind} from '@core/schema/macros';
 
 export const MACRO_ACTION_MIME = 'application/x-llpresenter-macro-action';
 

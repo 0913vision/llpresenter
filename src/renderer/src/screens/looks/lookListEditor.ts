@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import type {Result} from '@shared/result';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Result} from '@core/common/result';
 import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from './lookCardEdits';
@@ -9,9 +9,9 @@ import {
 } from './messageStyleAssignment';
 import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
 import {editLyricEffects, type LyricEffectsChange} from './lyricEffectsEdits';
-import type {LyricStyleId} from '@shared/schema/ids';
+import type {LyricStyleId} from '@core/schema/ids';
 import {editMessageStyle, type MessageStyleChange} from './messageStyleEdits';
-import type {MessageStyleId} from '@shared/schema/ids';
+import type {MessageStyleId} from '@core/schema/ids';
 import {
   editLyricStyleList,
   type LyricStyleListEdit,

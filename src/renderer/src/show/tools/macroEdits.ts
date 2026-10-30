@@ -1,12 +1,12 @@
-import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,
   serializeMacros,
   type Macro,
   type MacroCollection,
   type MacrosFile,
-} from '@shared/schema/macros';
+} from '@core/schema/macros';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {editMacroActions, type MacroActionEdit} from './macroActionEdits';

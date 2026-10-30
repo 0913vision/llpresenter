@@ -2,11 +2,8 @@ import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {
-  arrangementGroupIds,
-  type GroupedSong,
-} from '@shared/schema/groupedSong';
-import {createSongId} from '@shared/schema/ids';
+import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
+import {createSongId} from '@core/schema/ids';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
 import {ContentStore, type ContentEvents} from './contentStore';

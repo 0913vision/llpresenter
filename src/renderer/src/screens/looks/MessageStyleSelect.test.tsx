@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
 import {looksDocument, screensDocument} from '../testing/documents';
 import {MessageStyleSelect} from './MessageStyleSelect';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';

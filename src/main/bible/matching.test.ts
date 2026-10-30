@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {BIBLE_BOOKS} from '@shared/bibleBooks';
-import {BOOK_SUGGESTION_LIMIT, matchBooks} from '@shared/bibleMatching';
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {BOOK_SUGGESTION_LIMIT, matchBooks} from '@core/bible/bibleMatching';
 
 describe('Bible book metadata and matching', () => {
   it('contains all 66 books in canonical order with 1189 chapters', () => {

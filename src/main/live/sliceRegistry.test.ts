@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {recordingLogger} from '../displays/testing';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import {defineSlice} from './slice';

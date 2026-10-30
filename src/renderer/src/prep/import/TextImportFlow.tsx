@@ -5,9 +5,9 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {TextImportSource} from '@shared/schema/textImport';
-import type {Preferences} from '@shared/schema/preferences';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {TextImportSource} from '@core/schema/textImport';
+import type {Preferences} from '@core/schema/preferences';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import {TextImportDialog} from './TextImportDialog';

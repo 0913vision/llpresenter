@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {MonitorList} from '@shared/schema/monitors';
+import type {MonitorList} from '@core/schema/monitors';
 import {previewCaption, signalText} from './previewCaption';
 import {
   CAPTIONS_ID,

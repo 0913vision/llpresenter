@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import type {TranslationId} from '@shared/schema/ids';
+import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {selectTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';

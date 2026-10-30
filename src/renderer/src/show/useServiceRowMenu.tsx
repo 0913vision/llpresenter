@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {useShow} from '@renderer/state/show';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {

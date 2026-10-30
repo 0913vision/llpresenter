@@ -1,4 +1,4 @@
-import type {LookId} from '@shared/schema/ids';
+import type {LookId} from '@core/schema/ids';
 import {sendLive} from '@renderer/state/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 

@@ -1,4 +1,4 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';

@@ -1,6 +1,6 @@
-import {STARTER_SCREEN_IDS} from '@shared/screens';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,

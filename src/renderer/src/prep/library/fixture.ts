@@ -2,16 +2,16 @@ import type {
   LibrarySong,
   SongChange,
   SongDocument,
-} from '@shared/schema/contentDocuments';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
+import {parseSongDocument} from '@core/schema/contentDocuments';
 import {
   createServiceId,
   createSongId,
   createSongGroupId,
-} from '@shared/schema/ids';
-import {sourceSlideCount} from '@shared/schema/groupedSong';
-import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
-import type {EditResult} from '@shared/schema/contentEdit';
+} from '@core/schema/ids';
+import {sourceSlideCount} from '@core/schema/groupedSong';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import type {EditResult} from '@core/schema/contentEdit';
 import type {LibraryApi} from './useLibrary';
 
 export function fixtureSong(number: number, title: string): SongDocument {

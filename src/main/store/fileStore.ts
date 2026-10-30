@@ -1,20 +1,20 @@
-import type {Result} from '@shared/result';
-import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
-import {parseLabels, type Label} from '@shared/schema/labels';
-import {parseMediaList} from '@shared/schema/mediaList';
+import type {Result} from '@core/common/result';
+import type {FileError, LoadedFile} from '@core/schema/fileFormat';
+import {parseLabels, type Label} from '@core/schema/labels';
+import {parseMediaList} from '@core/schema/mediaList';
 import {
   defaultPreferences,
   parsePreferences,
   withPreferenceDefaults,
   type Preferences,
-} from '@shared/schema/preferences';
+} from '@core/schema/preferences';
 import {
   parseService,
   parseTemplate,
   type Service,
   type Template,
-} from '@shared/schema/service';
-import {parseGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
+} from '@core/schema/service';
+import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import type {AppConfigFile} from './appConfigFile';
 import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
 import {loadFolder, type StoredFile} from './library';

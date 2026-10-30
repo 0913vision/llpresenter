@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import type {LayoutChange, UiState} from '@shared/schema/uiState';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LayoutChange, UiState} from '@core/schema/uiState';
 import {
   createIpcColumnWidthStore,
   createMemoryColumnWidthStore,

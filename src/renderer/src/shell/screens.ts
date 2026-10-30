@@ -1,4 +1,4 @@
-import type {Screen} from '@shared/schema/screens';
+import type {Screen} from '@core/schema/screens';
 import {UNASSIGNED_TARGET, targetByMethod} from '@renderer/screens/screenRows';
 import type {PreviewTarget} from '@renderer/ui/PreviewFrame';
 

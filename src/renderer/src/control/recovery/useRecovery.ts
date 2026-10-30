@@ -1,10 +1,10 @@
 import {useEffect, useEffectEvent, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   RecoveryResult,
   RecoveryRowKind,
   RecoverySummary,
-} from '@shared/schema/recovery';
+} from '@core/schema/recovery';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 type Offer = NonNullable<RecoverySummary>;

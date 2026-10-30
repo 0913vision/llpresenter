@@ -1,13 +1,13 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsEdit} from '@shared/schema/settingsDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {ScreenEditor} from './screenEditor';
 import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
 import {STAGE_ID} from './testing/documents';
 import {projector} from './testing/monitors';
-import {parseScreenId} from '@shared/schema/ids';
+import {parseScreenId} from '@core/schema/ids';
 
 function screensAt(revision: number) {
   const document = screensDocument(revision);

@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {Dialog} from '@renderer/ui/Dialog';
 import {BibleReferenceForm} from '@renderer/show/bible/BibleReferenceForm';
 import {useBibleDefaults} from './useBibleDefaults';

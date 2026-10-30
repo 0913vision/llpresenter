@@ -1,4 +1,4 @@
-import type {RecoveryRowKind, RecoverySummary} from '@shared/schema/recovery';
+import type {RecoveryRowKind, RecoverySummary} from '@core/schema/recovery';
 
 type Summary = NonNullable<RecoverySummary>;
 type Row = Summary['rows'][number];

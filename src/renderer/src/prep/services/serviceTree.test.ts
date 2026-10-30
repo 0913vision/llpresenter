@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseService} from '@shared/schema/service';
+import {parseService} from '@core/schema/service';
 import {
   allState,
   checkAll,

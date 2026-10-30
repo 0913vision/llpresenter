@@ -1,6 +1,6 @@
 import {useEffect, type JSX} from 'react';
 import {createPortal} from 'react-dom';
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import {LabelColorPicker} from '@renderer/ui/LabelColorPicker';
 import {classNames} from '@renderer/ui/classNames';
 import {layerContainer} from '@renderer/ui/layers';

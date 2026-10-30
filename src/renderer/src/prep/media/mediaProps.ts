@@ -1,4 +1,4 @@
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {MediaItem} from '@core/schema/mediaList';
 
 /** A media item's playback properties as stored. */
 export type MediaProps = NonNullable<MediaItem['props']>;

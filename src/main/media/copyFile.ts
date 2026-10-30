@@ -4,7 +4,7 @@ import {access, mkdir, rename, rm, stat} from 'node:fs/promises';
 import {basename, dirname, extname, join} from 'node:path';
 import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 
 /** How many numbered names a copy tries before it gives up. */
 export const MAX_NAME_TRIES = 1000;

@@ -1,10 +1,10 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {TimerValue} from './TimerValue';
 
 const id = '00000000-0000-4000-8000-000000000001';

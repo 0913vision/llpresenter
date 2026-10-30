@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
-import type {Screen} from '@shared/schema/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens';
 import {Menu, type MenuProps} from '@renderer/ui/Menu';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';

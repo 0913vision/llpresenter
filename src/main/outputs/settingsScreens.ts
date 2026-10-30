@@ -1,11 +1,11 @@
-import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
-import type {Screen} from '@shared/schema/screens';
-import type {ScreenId} from '@shared/schema/ids';
+import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import type {Screen} from '@core/schema/screens';
+import type {ScreenId} from '@core/schema/ids';
 import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import type {ScreenSettingsPort} from '../live/slice';
-import {outputStateKeys} from '@shared/screens';
+import {outputStateKeys} from '@core/screens/screens';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {

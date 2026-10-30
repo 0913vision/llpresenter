@@ -1,6 +1,6 @@
 import {lstat, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 import {isTemporaryFileName, type WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
 

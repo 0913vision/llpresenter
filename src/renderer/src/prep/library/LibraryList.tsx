@@ -5,11 +5,8 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {SongId} from '@shared/schema/ids';
-import {
-  SONG_DRAG_MIME,
-  serializeSongDragPayload,
-} from '@shared/schema/songDrag';
+import type {SongId} from '@core/schema/ids';
+import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
 import {isContextMenuKey, type ContextMenuEvent} from '../contextMenu';
 import type {LibraryRow} from './useLibrary';

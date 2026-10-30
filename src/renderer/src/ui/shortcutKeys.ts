@@ -1,8 +1,4 @@
-import {
-  isKeyCode,
-  keyModifiers,
-  type KeyBinding,
-} from '@shared/schema/shortcuts';
+import {isKeyCode, keyModifiers, type KeyBinding} from '@core/schema/shortcuts';
 
 const keyNames: Readonly<Record<string, string>> = {
   ArrowRight: '→',

@@ -1,9 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SingleLiveCommand} from '@shared/commands';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
-import {localDay, timerText} from '@shared/timerClock';
-import {parseTimers} from '@shared/schema/timers';
+import type {SingleLiveCommand} from '@core/live/commands';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {localDay, timerText} from '@core/timers/timerClock';
+import {parseTimers} from '@core/schema/timers';
 import {recordingLogger} from '../displays/testing';
 import {dispatchLogged, LiveStore} from './store';
 import {

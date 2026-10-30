@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {createMediaId, type MediaId} from '@shared/schema/ids';
-import {parseMediaDocument, type MediaDocument} from '@shared/schema/mediaEdit';
-import type {MissingMedia} from '@shared/schema/mediaFiles';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {createMediaId, type MediaId} from '@core/schema/ids';
+import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import type {MissingMedia} from '@core/schema/mediaFiles';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import {
   MAX_PARALLEL_FILE_CHECKS,

@@ -1,4 +1,4 @@
-import type {SlideLayer} from '@shared/live';
+import type {SlideLayer} from '@core/live/state';
 import type {TileCursor} from './model';
 import type {TilesOf} from './navigation';
 

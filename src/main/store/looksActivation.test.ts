@@ -2,11 +2,11 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname} from 'node:path';
 import {expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {resolveLocations} from './locations';
 import {RecoveryCopies} from './recoveryCopies';
 import {Saver} from './saver';

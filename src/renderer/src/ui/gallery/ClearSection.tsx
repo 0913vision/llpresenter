@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {ClearTarget} from '@shared/commands';
+import type {ClearTarget} from '@core/live/commands';
 import {ClearButton, ClearRow, ClearUndo} from '../ClearButton';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 

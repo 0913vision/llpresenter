@@ -1,10 +1,10 @@
 import {join} from 'node:path';
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 import type {
   DroppedValue,
   FileError,
   LoadedFile,
-} from '@shared/schema/fileFormat';
+} from '@core/schema/fileFormat';
 import type {DataLocations} from './locations';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 

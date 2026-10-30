@@ -1,8 +1,8 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {isRecord} from '@shared/guards';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
+import {isRecord} from '@core/common/guards';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {openAppConfig} from './appConfigFile';
@@ -11,9 +11,9 @@ import {settingsCodecs} from './settingsCodecs';
 import {openSettingsStore} from './settingsStore';
 import {writeJson} from './testFiles';
 
-vi.mock('@shared/schema/settingsDocuments', async importOriginal => {
+vi.mock('@core/schema/settingsDocuments', async importOriginal => {
   const actual =
-    await importOriginal<typeof import('@shared/schema/settingsDocuments')>();
+    await importOriginal<typeof import('@core/schema/settingsDocuments')>();
   return {
     ...actual,
     parseSettingsDocument: vi.fn(actual.parseSettingsDocument),
@@ -78,8 +78,8 @@ describe('independent settings area loading', () => {
     });
     await writeFile(file, original);
     const actual = await vi.importActual<
-      typeof import('@shared/schema/settingsDocuments')
-    >('@shared/schema/settingsDocuments');
+      typeof import('@core/schema/settingsDocuments')
+    >('@core/schema/settingsDocuments');
     vi.mocked(parseSettingsDocument).mockImplementation(value => {
       if (
         isRecord(value) &&

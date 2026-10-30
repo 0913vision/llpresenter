@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {Screen} from '@shared/schema/screens';
+import type {Screen} from '@core/schema/screens';
 
 /** The list that holds the selected row of 화면 설정. */
 export type ScreensSelectionKind = 'screen' | 'look' | 'stage';

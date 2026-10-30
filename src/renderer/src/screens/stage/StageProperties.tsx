@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {stageElementKinds} from '@shared/schema/stageLayouts';
+import {stageElementKinds} from '@core/schema/stageLayouts';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {
   Button,

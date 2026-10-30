@@ -1,11 +1,11 @@
-import type {AppLayout} from '@shared/schema/appConfig';
+import type {AppLayout} from '@core/schema/appConfig';
 import {
   parseLayoutChange,
   parseMediaStripChange,
   parsePrepMediaChange,
   type UiState,
-} from '@shared/schema/uiState';
-import {parseMediaBrowserChange} from '@shared/schema/mediaBrowser';
+} from '@core/schema/uiState';
+import {parseMediaBrowserChange} from '@core/schema/mediaBrowser';
 import type {Logger} from '../log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {withLayoutChange} from './layout';

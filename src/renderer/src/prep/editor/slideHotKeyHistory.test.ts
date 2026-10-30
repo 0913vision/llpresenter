@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import type {SongSlideSource} from '@shared/schema/showService';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import type {SongSlideSource} from '@core/schema/showService';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {editorGroupedSong, editorLegacySong} from './editorFixture';
 import {SongHistory} from './songHistory';
 import {SongSession} from './songSession';

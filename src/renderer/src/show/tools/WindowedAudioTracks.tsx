@@ -6,7 +6,7 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {AudioTrackRow} from './AudioTrackRow';
 import type {AudioTrack} from './audioTracks';
 import styles from './WindowedAudioTracks.module.css';

@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import {emptyLiveState, layerKinds} from '@shared/live';
-import {defaultPreferences} from '@shared/schema/preferences';
+import {emptyLiveState, layerKinds} from '@core/live/state';
+import {defaultPreferences} from '@core/schema/preferences';
 import {LiveStore} from './store';
 import {
   PROP,
@@ -11,7 +11,7 @@ import {
   MAIN,
   TEXT_STYLE,
 } from './testing/overlays';
-import {MAX_CLEAR_EFFECTS} from '@shared/schema/clearFade';
+import {MAX_CLEAR_EFFECTS} from '@core/schema/clearFade';
 
 const slide = {
   itemId: 'fade-check',

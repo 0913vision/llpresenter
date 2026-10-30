@@ -1,9 +1,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {parseGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {
   BACKSPACE_REFUSAL_MESSAGE,

@@ -1,17 +1,17 @@
-import type {LlpApi} from '@shared/ipc';
-import type {ContentEdit} from '@shared/schema/contentEdit';
-import {parseSongDocument} from '@shared/schema/contentDocuments';
-import type {LibrarySong, SongDocument} from '@shared/schema/contentDocuments';
-import type {SongId} from '@shared/schema/ids';
-import {createSongId} from '@shared/schema/ids';
-import type {TextImportDraft} from '@shared/schema/textImport';
-import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
-import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
-import type {Label} from '@shared/schema/labels';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {ContentEdit} from '@core/schema/contentEdit';
+import {parseSongDocument} from '@core/schema/contentDocuments';
+import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
+import type {SongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/ids';
+import type {TextImportDraft} from '@core/schema/textImport';
+import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
+import {parseGroupedSongDraft} from '@core/schema/groupedSong';
+import type {Label} from '@core/schema/labels';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {SongSession} from './songSession';
 import {ImportDraftLimitError, importDraftSlides} from './importDraftSlides';

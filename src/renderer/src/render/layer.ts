@@ -1,12 +1,12 @@
-import type {LayerKind, LiveLayers} from '@shared/live';
-import type {ClearEffect} from '@shared/schema/clearFade';
+import type {LayerKind, LiveLayers} from '@core/live/state';
+import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
 import type {LookLayer, ScreenAppearance} from './screenLook';
 import type {RenderTimers} from './timerTokens';
-import type {ScreenId, TimerId} from '@shared/schema/ids';
-import type {StageElement, StageLayout} from '@shared/schema/stageLayouts';
-import type {Screen} from '@shared/schema/screens';
+import type {ScreenId, TimerId} from '@core/schema/ids';
+import type {StageElement, StageLayout} from '@core/schema/stageLayouts';
+import type {Screen} from '@core/schema/screens';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
 export interface PictureCorrection {

@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   settingsDocument,
   screensDocument,
@@ -9,10 +9,10 @@ import {
   LAYOUT_ID,
 } from '@renderer/screens/testing/documents';
 import {useShowingClock} from './showingClock';
-import {parseMediaList} from '@shared/schema/mediaList';
-import {expectSuccess} from '@shared/schema/testHelpers';
+import {parseMediaList} from '@core/schema/mediaList';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {MAIN_ID} from '@renderer/screens/testing/documents';
-import {parseLiveState} from '@shared/schema/liveState';
+import {parseLiveState} from '@core/schema/liveState';
 
 afterEach(() => {
   cleanup();

@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import type {RecentPassage} from '@shared/schema/bible';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {RecentPassage} from '@core/schema/bible';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {
   adjacentVerseRange,

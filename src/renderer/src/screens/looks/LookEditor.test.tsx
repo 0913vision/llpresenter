@@ -9,16 +9,16 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {EditResult} from '@shared/schema/contentEdit';
+import {emptyLiveState} from '@core/live/state';
+import type {EditResult} from '@core/schema/contentEdit';
 import * as v from 'valibot';
-import {screenIdSchema} from '@shared/schema/ids';
+import {screenIdSchema} from '@core/schema/ids';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,

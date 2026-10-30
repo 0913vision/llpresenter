@@ -1,19 +1,19 @@
 import {basename, join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {Result} from '@shared/result';
-import type {ContentEdit} from '@shared/schema/contentEdit';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
+import type {Result} from '@core/common/result';
+import type {ContentEdit} from '@core/schema/contentEdit';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {
   createSongId,
   serviceIdSchema,
   serviceItemIdSchema,
   songIdSchema,
   templateIdSchema,
-} from '@shared/schema/ids';
-import {parseService, parseTemplate} from '@shared/schema/service';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
-import {testId} from '@shared/schema/testHelpers';
+} from '@core/schema/ids';
+import {parseService, parseTemplate} from '@core/schema/service';
+import {parseGroupedSong} from '@core/schema/groupedSong';
+import {testId} from '@core/schema/testHelpers';
 import type {Logger} from '../log';
 import {
   ContentStore,

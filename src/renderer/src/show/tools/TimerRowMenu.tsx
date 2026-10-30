@@ -1,7 +1,7 @@
 import {useState, type JSX, type ReactNode} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {Timer} from '@shared/schema/timers';
-import {TIMER_NAME_LIMIT} from '@shared/schema/quickTimerEdit';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Timer} from '@core/schema/timers';
+import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {Dialog, TextField, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';

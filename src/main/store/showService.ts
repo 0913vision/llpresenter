@@ -1,30 +1,30 @@
-import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
-import type {MediaChoice} from '@shared/live';
-import type {LoadedFile} from '@shared/schema/fileFormat';
+import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
+import type {MediaChoice} from '@core/live/state';
+import type {LoadedFile} from '@core/schema/fileFormat';
 import {
   isGroupedSong,
   type AnySong,
   type GroupedSong,
   type SongGroup,
-} from '@shared/schema/groupedSong';
-import type {Label} from '@shared/schema/labels';
+} from '@core/schema/groupedSong';
+import type {Label} from '@core/schema/labels';
 import {
   isItemOfKind,
   type Service,
   type ServiceItem,
   type ServiceItemOf,
-} from '@shared/schema/service';
+} from '@core/schema/service';
 import {
   SHOW_SERVICE_LIMITS,
   type ShowRow,
   type ShowService,
   type ShowTile,
-} from '@shared/schema/showService';
-import type {Slide} from '@shared/schema/song';
-import {playbackGroupIds, playbackOrder} from '@shared/songOrder';
+} from '@core/schema/showService';
+import type {Slide} from '@core/schema/song';
+import {playbackGroupIds, playbackOrder} from '@core/songs/songOrder';
 import type {ServicePassages} from '../bible/servicePassages';
 
-export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
+export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;

@@ -1,20 +1,20 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {
   ServiceDocument,
   SongDocument,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {
   parseServiceDocument,
   parseSongDocument,
-} from '@shared/schema/contentDocuments';
+} from '@core/schema/contentDocuments';
 import {
   createServiceId,
   createServiceItemId,
   createSongId,
   createSongGroupId,
-} from '@shared/schema/ids';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/ids';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from './pendingWrites';
 import {ServiceOrderEdits} from './serviceOrderEdits';
 

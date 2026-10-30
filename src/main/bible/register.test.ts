@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {registerBible} from './register';
 import {BibleLookupSession} from './lookup';
 

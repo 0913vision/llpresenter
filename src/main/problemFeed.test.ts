@@ -1,13 +1,13 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   APP_PROBLEM_LIMITS,
   macroDroppedProblem,
   type AppProblem,
-} from '@shared/schema/appProblem';
-import {parseMacroId} from '@shared/schema/ids';
-import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/appProblem';
+import {parseMacroId} from '@core/schema/ids';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from './displays/testing';
 import {defineSlice} from './live/slice';
 import {SliceRegistry} from './live/sliceRegistry';

@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import * as mediaListSchema from '@shared/schema/mediaList';
+import * as mediaListSchema from '@core/schema/mediaList';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {openAppConfig} from './appConfigFile';

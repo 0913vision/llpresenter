@@ -2,7 +2,7 @@ import {selectedBook} from '../referenceFields';
 import type {
   BibleLookupRequest,
   BibleLookupReply,
-} from '@shared/schema/bibleLookup';
+} from '@core/schema/bibleLookup';
 import {resolvePassage} from '../../../../../main/bible/reference';
 import {
   passageSource,

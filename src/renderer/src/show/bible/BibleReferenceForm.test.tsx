@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@shared/schema/bibleLookup';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {BibleReferenceForm} from './BibleReferenceForm';
 import {formLookupReply} from './testing/referenceForm';
 import {lookupRequest} from './testBible';

@@ -1,12 +1,12 @@
-import type {Label} from '@shared/schema/labels';
-import type {Song} from '@shared/schema/song';
+import type {Label} from '@core/schema/labels';
+import type {Song} from '@core/schema/song';
 import {
   arrangementGroupIds,
   isGroupedSong,
   type GroupedSong,
-} from '@shared/schema/groupedSong';
-import type {SongGroupId} from '@shared/schema/ids';
-import {playbackOrder} from '@shared/songOrder';
+} from '@core/schema/groupedSong';
+import type {SongGroupId} from '@core/schema/ids';
+import {playbackOrder} from '@core/songs/songOrder';
 import type {SongPicture} from '@renderer/prep/editor';
 import {linearSlidesOf} from '@renderer/prep/editor/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';

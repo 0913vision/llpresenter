@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   CAPTIONS,
   MAIN,

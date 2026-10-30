@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {MonitorList} from '@shared/schema/monitors';
+import type {MonitorList} from '@core/schema/monitors';
 import {displayLayout} from './layoutBoxes';
 import {wideMonitorArrangement} from './testing/monitorArrangement';
 import {

@@ -3,9 +3,9 @@ import {
   mergeSettingsDocument,
   parseSettingsDocument,
   parseSettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@shared/schema/macros';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/macros';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {editMacroActions} from './macroActionEdits';
 import {saveMacroEdit} from './macroEdits';
 

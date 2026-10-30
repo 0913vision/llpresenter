@@ -1,15 +1,15 @@
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {LiveLayers} from '@shared/live';
-import {createMediaId} from '@shared/schema/ids';
+import type {LiveLayers} from '@core/live/state';
+import {createMediaId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {useShow} from '@renderer/state/show';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ItemPreviewPanel, ItemSettingsPanel} from './ItemSidePanels';
 import {ServiceItemStore} from './serviceItemStore';
 import {ServiceItemPanel} from './SongItemPanel';
-import {bibleVerseTiles} from '@shared/bibleTiles';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@renderer/show/bible/panelTesting';
 import {editorPreviewFixture} from '@renderer/prep/editor/editorPreviewFixture';
 

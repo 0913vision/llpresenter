@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {CSSProperties} from 'react';
-import type {Slide} from '@shared/schema/song';
+import type {Slide} from '@core/schema/song';
 import {useSongBlockWindow} from './useSongBlockWindow';
 
 const rowStyle: CSSProperties & {'--size-control-xs': string} = {

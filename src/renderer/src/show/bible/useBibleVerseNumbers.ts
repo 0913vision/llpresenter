@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {Preferences} from '@shared/schema/preferences';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Preferences} from '@core/schema/preferences';
 
 /** Follows the Bible default without replacing a push with a stale startup read. */
 export function useBibleVerseNumbers(

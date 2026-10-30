@@ -13,9 +13,9 @@ import {
   createSongGroupId,
   createSongId,
   type SongId,
-} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
+} from '@core/schema/ids';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {SongSession} from '@renderer/prep/editor/songSession';
 import {useLive} from '@renderer/state/live';

@@ -9,8 +9,8 @@ import {
   type RefObject,
 } from 'react';
 import {createPortal} from 'react-dom';
-import type {LabelColor} from '@shared/colors';
-import type {Slide} from '@shared/schema/song';
+import type {LabelColor} from '@core/labels/colors';
+import type {Slide} from '@core/schema/song';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelTag} from '@renderer/ui/LabelChip';
 import {isComposing} from '@renderer/ui/ime';
@@ -19,7 +19,7 @@ import {layerContainer} from '@renderer/ui/layers';
 import {placeFloating} from '@renderer/ui/floating';
 import {placeTooltip, viewportSize} from '@renderer/ui/placement';
 import tooltipStyles from '@renderer/ui/Tooltip.module.css';
-import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {
   linearBlockAddress,
   linearSlidesOf,

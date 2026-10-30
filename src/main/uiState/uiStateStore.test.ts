@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {AppLayout} from '@shared/schema/appConfig';
+import type {AppLayout} from '@core/schema/appConfig';
 import type {UiFields, UiStateFields} from '../store/appConfigFile';
 import type {Logger} from '../log';
 import {UiStateStore} from './uiStateStore';

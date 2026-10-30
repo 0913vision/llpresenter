@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {SlideLayer} from '@shared/live';
+import type {SlideLayer} from '@core/live/state';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE, scaleFor} from './lyricStyle';
 import {SlideLayerView} from './slideLayer';

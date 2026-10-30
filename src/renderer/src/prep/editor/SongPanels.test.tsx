@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {OutputRendererOptions} from '@renderer/render/outputRenderer';
-import type {LiveLayers} from '@shared/live';
+import type {LiveLayers} from '@core/live/state';
 import type {RenderFrame} from '@renderer/render/layer';
 import {editorSetup, lyrics} from './editorTesting';
 import {editorFixture} from './editorFixture';

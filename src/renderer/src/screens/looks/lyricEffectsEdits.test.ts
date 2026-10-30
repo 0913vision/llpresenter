@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
-import {looksSchema} from '@shared/schema/looks';
+import {looksSchema} from '@core/schema/looks';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {looksDocument} from '../testing/documents';
 import {editLyricEffects} from './lyricEffectsEdits';

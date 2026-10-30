@@ -1,5 +1,5 @@
-import type {OutputStatuses} from '@shared/schema/outputStatus';
-import type {Screen} from '@shared/schema/screens';
+import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {Screen} from '@core/schema/screens';
 
 /** A screen row's health dot: none while the output is off. */
 export type ScreenHealth = 'ok' | 'warning' | 'none';

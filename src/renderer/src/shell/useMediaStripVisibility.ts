@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import {UI_ZOOM_FACTOR} from '@shared/schema/uiZoom';
+import type {LlpApi} from '@contracts/ipc/api';
+import {UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
 import type {SizeClass} from './sizeClass';
 
 const DEFAULT_MEDIA_MIN_HEIGHT_DIP = 900;

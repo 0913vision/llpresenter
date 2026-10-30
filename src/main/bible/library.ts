@@ -1,5 +1,5 @@
-import type {Result} from '@shared/result';
-import {exactBibleBook, matchBooks} from '@shared/bibleMatching';
+import type {Result} from '@core/common/result';
+import {exactBibleBook, matchBooks} from '@core/bible/bibleMatching';
 import {
   loadBibleChapterLibrary,
   type BibleChapterLibrary,

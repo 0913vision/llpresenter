@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {createAudioPlaylistId} from '@shared/schema/ids';
+import type {LiveCommand} from '@core/live/commands';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {createAudioPlaylistId} from '@core/schema/ids';
 import {installFakeClock} from '../../../test/fake-clock';
 import type {Logger} from '../log';
 import {

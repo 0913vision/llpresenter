@@ -10,9 +10,9 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import type {NamedDocument} from '@renderer/screens/useSettingsDocument';
 import {MediaImportOptions} from './MediaImportOptions';

@@ -1,8 +1,8 @@
 import {readFile} from 'node:fs/promises';
 import {describe, expect, it} from 'vitest';
-import {parseScreens} from '@shared/schema/screens';
-import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
-import {resolveOutputScreen, STARTER_SCREEN_IDS} from '@shared/screens';
+import {parseScreens} from '@core/schema/screens';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {resolveOutputScreen, STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {makeTempDir} from '../../../test/temp-dir';
 import {resolveLocations} from './locations';
 import {RecoveryCopies} from './recoveryCopies';

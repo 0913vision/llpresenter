@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {buildMacroTargets} from './macroTargets';

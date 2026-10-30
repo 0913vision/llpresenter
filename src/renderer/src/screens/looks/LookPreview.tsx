@@ -5,9 +5,9 @@ import {
   useRef,
   type JSX,
 } from 'react';
-import {emptyLayers} from '@shared/live';
-import {mediaUrl} from '@shared/media';
-import type {Timer} from '@shared/schema/timers';
+import {emptyLayers} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {Timer} from '@core/schema/timers';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {MainTimerClock} from '@renderer/render/mainTimerClock';
 import {OutputRenderer} from '@renderer/render/outputRenderer';

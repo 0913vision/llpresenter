@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import type {Result} from '@shared/result';
-import type {MediaChoice} from '@shared/live';
-import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
-import type {Label} from '@shared/schema/labels';
-import {parseService, type Service} from '@shared/schema/service';
-import {parseSong, type Song} from '@shared/schema/song';
+import type {Result} from '@core/common/result';
+import type {MediaChoice} from '@core/live/state';
+import type {FileError, LoadedFile} from '@core/schema/fileFormat';
+import type {Label} from '@core/schema/labels';
+import {parseService, type Service} from '@core/schema/service';
+import {parseSong, type Song} from '@core/schema/song';
 import {DEFAULT_LABELS} from './defaults';
 import {
   buildShowService,
@@ -13,8 +13,8 @@ import {
   songTiles,
 } from './showService';
 import {HYMN_ONE_ID, hymnOne, itemId, service, SUNDAY_ID} from './testFiles';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import type {GroupedSong} from '@shared/schema/groupedSong';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {resolveServicePassages} from '../bible/servicePassages';
 import {resolvePassage} from '../bible/reference';
 import {passageSource} from '../bible/testFiles';

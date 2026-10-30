@@ -1,4 +1,4 @@
-import type {LiveLayers} from '@shared/live';
+import type {LiveLayers} from '@core/live/state';
 import {classes} from './classes';
 import {ClearFades} from './clearFades';
 import type {

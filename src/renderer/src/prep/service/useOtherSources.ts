@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {NoticesFile} from '@shared/schema/notices';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {NoticesFile} from '@core/schema/notices';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 
 export function useOtherSources(open: boolean) {
   const api = window.llp;

@@ -120,8 +120,8 @@ LLP_DEV_PORT=5186 npm run gallery
   instead of moving.
 - It listens on `127.0.0.1` only, so the Windows firewall never asks, and it
   never opens a browser.
-- The aliases (`@shared`, `@renderer`) match the renderer build; a test checks
-  them against `electron.vite.config.ts`.
+- The aliases (`@core`, `@contracts`, `@renderer`) match the renderer build; a
+  test checks them against `electron.vite.config.ts`.
 - The config is `scripts/gallery/vite.config.mts`. A test starts it under a hook
   that records any import of `electron` or `electron-vite` and expects none.
 

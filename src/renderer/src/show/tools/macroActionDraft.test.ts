@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {macroActionKinds, parseKnownMacroAction} from '@shared/schema/macros';
+import {macroActionKinds, parseKnownMacroAction} from '@core/schema/macros';
 import {
   draftMacroAction,
   prepareMacroAction,

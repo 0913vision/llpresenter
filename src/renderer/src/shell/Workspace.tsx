@@ -1,4 +1,4 @@
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {
   Fragment,
   useCallback,
@@ -8,7 +8,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import {
   LibraryPanel,
   type LibrarySelectionRequest,

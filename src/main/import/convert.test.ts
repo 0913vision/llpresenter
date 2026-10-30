@@ -2,12 +2,12 @@ import {describe, expect, it} from 'vitest';
 import {
   parseGroupedSongDraft,
   serializeGroupedSong,
-} from '@shared/schema/groupedSong';
-import {parseContentEdit} from '@shared/schema/contentEdit';
+} from '@core/schema/groupedSong';
+import {parseContentEdit} from '@core/schema/contentEdit';
 import type {
   TextImportOptions,
   TextImportPreviewRequest,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {convertTextImport} from './convert';
 import {TEXT_IMPORT_LIMITS} from './limits';
 

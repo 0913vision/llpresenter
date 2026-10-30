@@ -1,8 +1,8 @@
 import {beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
   CAPTIONS_ID,
   LOOK_ID,

@@ -1,5 +1,5 @@
-import type {Identification} from '@shared/schema/identification';
-import {MONITOR_NAME_MAX} from '@shared/schema/monitors';
+import type {Identification} from '@core/schema/identification';
+import {MONITOR_NAME_MAX} from '@core/schema/monitors';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {OutputScreen} from './screens';
 import type {ShownPlacement} from './placement';

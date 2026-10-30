@@ -9,19 +9,19 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {thumbnailUrl} from '@shared/media';
+import {thumbnailUrl} from '@contracts/ipc/media';
 import {
   createServiceItemId,
   noticeSetIdSchema,
   screenIdSchema,
   type MediaId,
-} from '@shared/schema/ids';
+} from '@core/schema/ids';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@shared/schema/settingsDocuments';
-import type {ServiceItem} from '@shared/schema/service';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+} from '@core/schema/settingsDocuments';
+import type {ServiceItem} from '@core/schema/service';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {
   mediaDocument,
   mediaFixture,

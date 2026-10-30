@@ -8,8 +8,8 @@ import {
   type KeyboardEvent,
 } from 'react';
 import {createPortal} from 'react-dom';
-import type {MediaItem} from '@shared/schema/mediaList';
-import type {MediaId} from '@shared/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/ids';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';

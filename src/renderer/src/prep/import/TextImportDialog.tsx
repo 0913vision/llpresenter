@@ -1,16 +1,16 @@
 import {useMemo, useState, type JSX} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {LibrarySong} from '@shared/schema/contentDocuments';
-import {createSongGroupId, createSongId} from '@shared/schema/ids';
-import type {AnySong, SongGroup} from '@shared/schema/groupedSong';
-import type {Label} from '@shared/schema/labels';
-import type {Preferences} from '@shared/schema/preferences';
-import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {LibrarySong} from '@core/schema/contentDocuments';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import type {AnySong, SongGroup} from '@core/schema/groupedSong';
+import type {Label} from '@core/schema/labels';
+import type {Preferences} from '@core/schema/preferences';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import type {
   TextImportDraft,
   TextImportOptions,
   TextImportSource,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {Checkbox, NumberField, TextField} from '@renderer/ui';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {SelectMenu} from '@renderer/ui/SelectMenu';

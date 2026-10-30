@@ -1,4 +1,4 @@
-import type {ClearTarget} from '@shared/commands';
+import type {ClearTarget} from '@core/live/commands';
 import {
   emptyLayers,
   hasAnyLayer,
@@ -8,9 +8,9 @@ import {
   type MessageLayer,
   type NoticeLayer,
   type AudioLayer,
-} from '@shared/live';
-import {audioPositionSeconds} from '@shared/schema/audioState';
-import type {MessageId} from '@shared/schema/ids';
+} from '@core/live/state';
+import {audioPositionSeconds} from '@core/schema/audioState';
+import type {MessageId} from '@core/schema/ids';
 import {clearOverlay} from '../clearOverlay';
 import {withClearEffects} from '../clearEffects';
 import {nextAudioTrackVersion} from '../audioTrackVersion';

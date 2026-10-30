@@ -8,11 +8,11 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@shared/commands';
-import type {LlpApi} from '@shared/ipc';
-import {defaultPreferences} from '@shared/schema/preferences';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {LiveCommand} from '@core/live/commands';
+import type {LlpApi} from '@contracts/ipc/api';
+import {defaultPreferences} from '@core/schema/preferences';
+import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {startLiveSync, useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {hasSomethingToClear} from './clear';

@@ -1,7 +1,7 @@
 import {useMemo, type JSX} from 'react';
-import {thumbnailUrl} from '@shared/media';
-import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
-import type {MediaItem} from '@shared/schema/mediaList';
+import {thumbnailUrl} from '@contracts/ipc/media';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import type {MediaItem} from '@core/schema/mediaList';
 import {mediaName} from '@renderer/show/backgroundChoices';
 import {
   defaultThumbnailColumns,

@@ -1,7 +1,7 @@
 import {pathToFileURL} from 'node:url';
-import {parseLatestRun, type CiRun} from '../../src/shared/schema/ciStatus.mts';
+import {parseLatestRun, type CiRun} from '../../src/core/schema/ciStatus.mts';
 
-export type {CiRun} from '../../src/shared/schema/ciStatus.mts';
+export type {CiRun} from '../../src/core/schema/ciStatus.mts';
 
 const API_URL =
   'https://api.github.com/repos/0913vision/llpresenter/actions/workflows/ci.yml/runs';

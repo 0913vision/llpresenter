@@ -6,8 +6,8 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {parseLookId} from '@shared/schema/ids';
-import type {Look} from '@shared/schema/looks';
+import {parseLookId} from '@core/schema/ids';
+import type {Look} from '@core/schema/looks';
 import {useLive} from '@renderer/state/live';
 import {sendLookChange} from '@renderer/shell/lookActions';
 import {AlertDialog} from '@renderer/ui/AlertDialog';

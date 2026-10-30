@@ -1,15 +1,15 @@
 import {rm, stat} from 'node:fs/promises';
 import {basename, extname} from 'node:path';
-import type {MediaId} from '@shared/schema/ids';
+import type {MediaId} from '@core/schema/ids';
 import type {
   MediaDocument,
   MediaEditResult,
   MediaImportProgress,
   MediaImportRequest,
   MediaImportResult,
-} from '@shared/schema/mediaEdit';
-import type {AnalysisFailureReason} from '@shared/schema/mediaAnalysis';
-import {MEDIA_LIMITS, type MediaItem} from '@shared/schema/mediaList';
+} from '@core/schema/mediaEdit';
+import type {AnalysisFailureReason} from '@core/schema/mediaAnalysis';
+import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import type {Logger} from '../log';
 import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';

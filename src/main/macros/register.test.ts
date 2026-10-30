@@ -1,7 +1,7 @@
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {parseService} from '@shared/schema/service';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseService} from '@core/schema/service';
 import {LiveStore, dispatchLogged} from '../live/store';
 import {SliceRegistry} from '../live/sliceRegistry';
 import {batchSlice} from '../live/slices/batch';

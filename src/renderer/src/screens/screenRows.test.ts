@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {OutputStatuses} from '@shared/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 import {screenGroups} from './screenRows';
 import {
   CAPTIONS_ID,

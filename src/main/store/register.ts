@@ -1,8 +1,8 @@
 import {join} from 'node:path';
 import {app, ipcMain} from 'electron';
-import type {FileError} from '@shared/schema/fileFormat';
-import {Channels} from '@shared/ipc';
-import {defaultPreferences} from '@shared/schema/preferences';
+import type {FileError} from '@core/schema/fileFormat';
+import {Channels} from '@contracts/ipc/api';
+import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '../log';
 import type {ProblemFeed} from '../problemFeed';
 import {registerLibrarySearch} from '../search/register';
@@ -33,7 +33,7 @@ import {registerSaveProblems} from './saveProblems';
 import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
 import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
-import {settingsNames} from '@shared/schema/settingsDocuments';
+import {settingsNames} from '@core/schema/settingsDocuments';
 import {settingsLocation} from './settingsFile';
 import {
   openSettingsStore,

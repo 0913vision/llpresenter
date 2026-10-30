@@ -1,7 +1,7 @@
 import {useRef, type DragEvent, type JSX} from 'react';
-import type {MacroActionKind} from '@shared/schema/macros';
+import type {MacroActionKind} from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
-import type {Macro, MacroCollection} from '@shared/schema/macros';
+import type {Macro, MacroCollection} from '@core/schema/macros';
 import {Button, MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroCollectionPicker} from './MacroCollectionPicker';

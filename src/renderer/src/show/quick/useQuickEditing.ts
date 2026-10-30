@@ -1,4 +1,4 @@
-import type {LlpApi} from '@shared/ipc';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {Notice} from '@renderer/ui/notices';
 import {useToolEditing} from '../tools/useToolEditing';
 import {saveQuickEdit} from './quickEdits';

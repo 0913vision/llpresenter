@@ -1,11 +1,11 @@
 import {ipcMain} from 'electron';
-import {Channels} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
+import {Channels} from '@contracts/ipc/api';
+import type {EditResult} from '@core/schema/contentEdit';
 import {
   parseSettingsEdit,
   parseSettingsReadRequest,
   type LabelRename,
-} from '@shared/schema/settingsDocuments';
+} from '@core/schema/settingsDocuments';
 import type {Logger} from '../log';
 import {broadcast} from './contentChannels';
 import type {SettingsProblemListener, SettingsStore} from './settingsStore';

@@ -1,7 +1,7 @@
-import type {LlpApi} from '@shared/ipc';
-import type {Screen} from '@shared/schema/screens';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Screen} from '@core/schema/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
-import {resolveOutputScreen} from '@shared/screens';
+import {resolveOutputScreen} from '@core/screens/screens';
 import {followSettingsDocument} from './settingsFeed';
 
 function pictureCorrection(screen: Screen): PictureCorrection | undefined {

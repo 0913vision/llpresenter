@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {RecoveryRowKind, RecoverySummary} from '@shared/schema/recovery';
+import type {RecoveryRowKind, RecoverySummary} from '@core/schema/recovery';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {recoveryRows, recoveryTime} from './recoveryView';

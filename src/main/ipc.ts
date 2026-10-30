@@ -1,6 +1,6 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
-import {Channels, windowActions, type WindowAction} from '@shared/ipc';
-import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
+import {Channels, windowActions, type WindowAction} from '@contracts/ipc/api';
+import {parseLiveCommandRequest} from '@core/schema/liveCommand';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
 import {

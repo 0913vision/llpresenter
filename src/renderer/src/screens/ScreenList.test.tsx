@@ -9,15 +9,15 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import type {MonitorList} from '@shared/schema/monitors';
+import {emptyLiveState} from '@core/live/state';
+import type {MonitorList} from '@core/schema/monitors';
 import {wideMonitorArrangement} from './testing/monitorArrangement';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@shared/schema/settingsDocuments';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ScreenList} from './ScreenList';

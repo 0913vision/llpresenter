@@ -1,13 +1,13 @@
 import {clipboard, dialog, ipcMain, type BrowserWindow} from 'electron';
-import {Channels} from '@shared/ipc';
+import {Channels} from '@contracts/ipc/api';
 import {
   parseTextImportPreviewRequest,
   parseTextImportReadRequest,
   type TextImportFailure,
   type TextImportPreviewResult,
   type TextImportReadResult,
-} from '@shared/schema/textImport';
-import type {PayloadError} from '@shared/schema/payload';
+} from '@core/schema/textImport';
+import type {PayloadError} from '@core/schema/payload';
 import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
 import {convertTextImport} from './convert';

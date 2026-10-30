@@ -1,6 +1,6 @@
 import {useEffect, useState, type JSX} from 'react';
-import type {LlpApi} from '@shared/ipc';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor, isBibleSource} from '@renderer/state/showLibrary';
 import {beginOutputRequest} from '@renderer/state/showOutput';

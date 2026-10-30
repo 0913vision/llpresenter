@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState, type JSX} from 'react';
-import type {GroupedSong} from '@shared/schema/groupedSong';
-import type {SongSlideSource} from '@shared/schema/showService';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import type {SongSlideSource} from '@core/schema/showService';
 import {SlideHotKeyDialog} from './SlideHotKeyDialog';
 import {assignSlideHotKey, slideHotKeyView} from './slideHotKeyEditing';
 

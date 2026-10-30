@@ -1,11 +1,11 @@
 import {open, type FileHandle} from 'node:fs/promises';
 import {basename} from 'node:path';
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 import type {
   TextImportFailure,
   TextImportReadRequest,
   TextImportReadResult,
-} from '@shared/schema/textImport';
+} from '@core/schema/textImport';
 import {decodeTextImport} from './decode';
 import {TEXT_IMPORT_LIMITS} from './limits';
 

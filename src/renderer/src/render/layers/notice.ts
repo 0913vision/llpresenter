@@ -2,10 +2,10 @@ import {
   MAX_OVERLAY_TIMER_MS,
   nextNoticeChange,
   noticePosition,
-} from '@shared/noticeClock';
+} from '@core/overlays/noticeClock';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
-import type {NoticePlayback} from '@shared/live';
+import type {NoticePlayback} from '@core/live/state';
 
 export const noticeLayer = defineLayer({
   kind: 'notice',

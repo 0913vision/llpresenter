@@ -16,9 +16,9 @@ import {SlideHotKeyControl} from './SlideHotKeyControl';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
-import type {SongId} from '@shared/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
-import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearSlidesOf} from './blockEdits';
 import {useSongBlockWindow} from './useSongBlockWindow';
 

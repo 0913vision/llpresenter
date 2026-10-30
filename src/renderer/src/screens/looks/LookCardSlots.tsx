@@ -8,7 +8,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {Screen} from '@shared/schema/screens';
+import type {Screen} from '@core/schema/screens';
 import styles from './LookEditor.module.css';
 
 const INITIAL_CARDS = 6;

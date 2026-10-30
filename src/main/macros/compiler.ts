@@ -1,15 +1,15 @@
-import type {SingleLiveCommand} from '@shared/commands';
+import type {SingleLiveCommand} from '@core/live/commands';
 import {
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
-} from '@shared/schema/liveCommand';
+} from '@core/schema/liveCommand';
 import {
   isKnownMacroAction,
   type Macro,
   type MacroAction,
-} from '@shared/schema/macros';
-import type {MacroId} from '@shared/schema/ids';
-import {parseActiveProps} from '@shared/schema/overlayState';
+} from '@core/schema/macros';
+import type {MacroId} from '@core/schema/ids';
+import {parseActiveProps} from '@core/schema/overlayState';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {macroActions} from './actions';
 import type {MacroActionRegistry} from './actionRegistry';

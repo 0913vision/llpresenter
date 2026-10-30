@@ -3,7 +3,7 @@ import {
   mediaImportFailureNotice,
   requestMediaImport,
 } from '@renderer/prep/media/mediaImport';
-import type {MediaImportProgress} from '@shared/schema/mediaEdit';
+import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import type {MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
 

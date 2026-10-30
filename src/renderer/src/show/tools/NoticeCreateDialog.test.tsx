@@ -1,7 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import type {NoticeSet} from '@shared/schema/notices';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import type {NoticeSet} from '@core/schema/notices';
 import {screensDocument} from '@renderer/screens/testing/documents';
 import {NoticeCreateDialog} from './NoticeCreateDialog';
 

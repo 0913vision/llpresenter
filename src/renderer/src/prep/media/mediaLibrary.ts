@@ -1,12 +1,12 @@
-import type {LlpApi} from '@shared/ipc';
-import type {MediaId} from '@shared/schema/ids';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {MediaId} from '@core/schema/ids';
 import type {
   MediaDocument,
   MediaImportProgress,
   MediaImportRequest,
-} from '@shared/schema/mediaEdit';
-import type {MissingMedia} from '@shared/schema/mediaFiles';
-import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+} from '@core/schema/mediaEdit';
+import type {MissingMedia} from '@core/schema/mediaFiles';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';

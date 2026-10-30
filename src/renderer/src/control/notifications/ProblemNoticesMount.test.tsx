@@ -1,15 +1,15 @@
 import {act, cleanup, render, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import {
   APP_PROBLEM_LIMITS,
   fileSkippedProblem,
   macroDroppedProblem,
   saveFailedProblem,
   type AppProblem,
-} from '@shared/schema/appProblem';
-import {parseMacroId} from '@shared/schema/ids';
-import {expectSuccess} from '@shared/schema/testHelpers';
+} from '@core/schema/appProblem';
+import {parseMacroId} from '@core/schema/ids';
+import {expectSuccess} from '@core/schema/testHelpers';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';

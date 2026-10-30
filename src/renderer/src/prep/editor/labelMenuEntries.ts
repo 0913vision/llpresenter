@@ -1,4 +1,4 @@
-import type {Label} from '@shared/schema/labels';
+import type {Label} from '@core/schema/labels';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 

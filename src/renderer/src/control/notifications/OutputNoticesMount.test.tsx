@@ -1,11 +1,11 @@
 import {act, cleanup, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
+import {emptyLiveState} from '@core/live/state';
 import type {
   OutputScreenStatus,
   OutputStatuses,
-} from '@shared/schema/outputStatus';
+} from '@core/schema/outputStatus';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';

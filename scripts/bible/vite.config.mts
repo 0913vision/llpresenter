@@ -4,7 +4,12 @@ import {defineConfig} from 'vite';
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 
 export default defineConfig({
-  resolve: {alias: {'@shared': resolve(REPO_ROOT, 'src/shared')}},
+  resolve: {
+    alias: {
+      '@core': resolve(REPO_ROOT, 'src/core'),
+      '@contracts': resolve(REPO_ROOT, 'src/contracts'),
+    },
+  },
   build: {
     ssr: resolve(import.meta.dirname, 'main.ts'),
     target: 'node24',

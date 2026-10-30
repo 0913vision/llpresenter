@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {Prop} from '@shared/schema/props';
+import type {Prop} from '@core/schema/props';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {AlertDialog, IconButton, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';

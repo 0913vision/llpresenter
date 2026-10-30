@@ -1,6 +1,6 @@
 import {useState, type JSX, type ReactNode} from 'react';
-import type {NoticeSet} from '@shared/schema/notices';
-import type {Screen} from '@shared/schema/screens';
+import type {NoticeSet} from '@core/schema/notices';
+import type {Screen} from '@core/schema/screens';
 import {Button, Dialog, TextField} from '@renderer/ui';
 import type {NoticeChanges} from './noticeEdits';
 import styles from './NoticeSettings.module.css';

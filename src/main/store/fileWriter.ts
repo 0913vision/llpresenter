@@ -1,4 +1,4 @@
-import type {Result} from '@shared/result';
+import type {Result} from '@core/common/result';
 import type {WriteProblem} from './atomicWrite';
 
 export type WriteResult = Result<void, WriteProblem>;

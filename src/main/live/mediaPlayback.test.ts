@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import {parseLiveState} from '@shared/schema/liveState';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {createMediaId} from '@shared/schema/ids';
-import {audioPositionSeconds} from '@shared/schema/audioState';
+import {emptyLiveState} from '@core/live/state';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseLiveState} from '@core/schema/liveState';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {createMediaId} from '@core/schema/ids';
+import {audioPositionSeconds} from '@core/schema/audioState';
 import {recordingLogger} from '../displays/testing';
 import {connectMediaPlayback} from './mediaPlayback';
 import {LiveStore} from './store';

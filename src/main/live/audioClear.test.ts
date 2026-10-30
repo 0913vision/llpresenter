@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {audioPositionSeconds} from '@shared/schema/audioState';
+import {emptyLiveState} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {audioPositionSeconds} from '@core/schema/audioState';
 import {LiveStore} from './store';
 
 function setup(

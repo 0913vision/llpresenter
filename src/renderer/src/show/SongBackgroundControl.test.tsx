@@ -2,13 +2,13 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {ComponentProps} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {mediaUrl} from '@shared/media';
+import {mediaUrl} from '@contracts/ipc/media';
 import {
   createMediaId,
   createServiceItemId,
   createSongId,
-} from '@shared/schema/ids';
-import type {MediaItem} from '@shared/schema/mediaList';
+} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
 import {applyService, openItem} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import * as backgroundHook from './useSongBackground';

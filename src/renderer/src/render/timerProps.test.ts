@@ -1,9 +1,9 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveLayers} from '@shared/live';
-import {parseLiveState} from '@shared/schema/liveState';
-import {parseTimers, type Timer} from '@shared/schema/timers';
-import type {TimerRuns} from '@shared/schema/timerState';
-import type {TimerNow} from '@shared/timerClock';
+import {emptyLiveState, type LiveLayers} from '@core/live/state';
+import {parseLiveState} from '@core/schema/liveState';
+import {parseTimers, type Timer} from '@core/schema/timers';
+import type {TimerRuns} from '@core/schema/timerState';
+import type {TimerNow} from '@core/timers/timerClock';
 import {
   MAIN,
   overlayUuid,

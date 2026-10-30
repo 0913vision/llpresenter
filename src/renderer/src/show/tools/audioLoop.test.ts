@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {setAudioLoop} from './audioLoop';

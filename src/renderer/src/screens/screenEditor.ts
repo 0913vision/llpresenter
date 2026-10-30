@@ -1,8 +1,8 @@
-import type {LlpApi} from '@shared/ipc';
-import type {Result} from '@shared/result';
-import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
-import type {Screen} from '@shared/schema/screens';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Result} from '@core/common/result';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {
   changeScreen,

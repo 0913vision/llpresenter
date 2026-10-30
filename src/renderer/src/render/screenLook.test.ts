@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {parseLookId} from '@shared/schema/ids';
-import type {LooksFile} from '@shared/schema/looks';
+import {parseLookId} from '@core/schema/ids';
+import type {LooksFile} from '@core/schema/looks';
 import {
   CAPTIONS,
   MAIN,
@@ -9,7 +9,7 @@ import {
   STAGE,
 } from '../../../main/live/testing/overlays';
 import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from './lyricStyle';
-import {DEFAULT_MESSAGE_STYLE} from '@shared/schema/looks';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {resolveScreenLook, showsLayer} from './screenLook';
 
 const NORMAL = lookIdOf(70);

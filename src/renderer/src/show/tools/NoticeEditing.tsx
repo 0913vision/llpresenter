@@ -1,5 +1,5 @@
 import {useRef, useState, type JSX, type ReactNode} from 'react';
-import type {NoticeSet} from '@shared/schema/notices';
+import type {NoticeSet} from '@core/schema/notices';
 import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {NoticeEdit} from './noticeEdits';

@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useAudioMedia(

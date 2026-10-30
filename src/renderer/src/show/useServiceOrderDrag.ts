@@ -1,6 +1,6 @@
 import {useRef, useState, type DragEvent} from 'react';
-import type {SongId} from '@shared/schema/ids';
-import {readSongDragData, SONG_DRAG_MIME} from '@shared/schema/songDrag';
+import type {SongId} from '@core/schema/ids';
+import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import type {ServiceRow} from './model';
 import {sectionBoundaryIndex} from './serviceSections';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';

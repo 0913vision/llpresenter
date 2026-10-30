@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {createMediaId} from '@shared/schema/ids';
-import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+import {createMediaId} from '@core/schema/ids';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 
 function queued(index: number): CopyJob {

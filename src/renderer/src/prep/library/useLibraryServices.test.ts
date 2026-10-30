@@ -1,9 +1,9 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
-import {parseServiceDocument} from '@shared/schema/contentDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {createServiceItemId} from '@shared/schema/ids';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/show/useServiceOrderEditing';
 import {libraryFixture} from './fixture';
 import {pastDocument, serviceEntries} from '../services/testing';

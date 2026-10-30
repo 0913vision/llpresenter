@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
-import {parseGroupedSong} from '@shared/schema/groupedSong';
+import {Channels} from '@contracts/ipc/api';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import type {Logger} from '../log';
 import {hymnOne} from '../store/testFiles';
 import {registerLibrarySearch} from './register';

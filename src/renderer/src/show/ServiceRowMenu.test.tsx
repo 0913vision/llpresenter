@@ -8,9 +8,9 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
-import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ServiceEntry} from '@core/schema/contentDocuments';
+import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ids, pastDocument} from '@renderer/prep/services/testing';
 import {applyService, useShow} from '@renderer/state/show';
 import {sampleService} from './testing/sampleService';

@@ -1,4 +1,4 @@
-import type {ClearTarget} from '@shared/commands';
+import type {ClearTarget} from '@core/live/commands';
 import {hasSomethingToClear} from '@renderer/show/clear';
 import {sendLive, useLive} from './live';
 

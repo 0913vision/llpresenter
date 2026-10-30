@@ -1,8 +1,8 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
-import type {ServiceItemOf} from '@shared/schema/service';
-import {isItemOfKind} from '@shared/schema/service';
-import {isGroupedSong} from '@shared/schema/groupedSong';
-import {playbackOrder} from '@shared/songOrder';
+import type {ServiceItemOf} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
+import {isGroupedSong} from '@core/schema/groupedSong';
+import {playbackOrder} from '@core/songs/songOrder';
 import type {SongEditorStore} from '@renderer/prep/editor';
 import {
   ARRANGEMENT_LIMIT_REASON,

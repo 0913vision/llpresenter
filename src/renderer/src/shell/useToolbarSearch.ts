@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
-import type {SongId} from '@shared/schema/ids';
-import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
+import type {SongId} from '@core/schema/ids';
+import type {LibrarySearchMatch} from '@core/schema/librarySearch';
 import {useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
 import {withinLookupTimeout} from '@renderer/state/showOutput';

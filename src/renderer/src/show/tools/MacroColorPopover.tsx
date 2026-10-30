@@ -1,6 +1,6 @@
 import {useEffect, useRef, type JSX} from 'react';
 import {createPortal} from 'react-dom';
-import type {PaletteColor} from '@shared/colors';
+import type {PaletteColor} from '@core/labels/colors';
 import {MacroColorPicker} from '@renderer/ui/LabelColorPicker';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import {layerContainer} from '@renderer/ui/layers';

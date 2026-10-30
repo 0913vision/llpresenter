@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {mediaUrl} from '@shared/media';
-import type {Prop} from '@shared/schema/props';
-import type {Screen} from '@shared/schema/screens';
+import {mediaUrl} from '@contracts/ipc/media';
+import type {Prop} from '@core/schema/props';
+import type {Screen} from '@core/schema/screens';
 import {sendLive, useLive} from '@renderer/state/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';

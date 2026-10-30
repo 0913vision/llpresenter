@@ -1,6 +1,6 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {Channels} from '@shared/ipc';
-import {fontFamilyFixture} from '@shared/testing/fontCatalog';
+import {Channels} from '@contracts/ipc/api';
+import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
 import type {Logger} from '../log';
 import {registerFonts} from './register';
 

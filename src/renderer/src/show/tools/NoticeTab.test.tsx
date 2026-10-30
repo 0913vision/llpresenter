@@ -8,10 +8,10 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {settingsDocument, MAIN_ID} from '@renderer/screens/testing/documents';
 import {deferred} from '../quick/quickTesting';
-import type {EditResult} from '@shared/schema/contentEdit';
+import type {EditResult} from '@core/schema/contentEdit';
 import {NoticeTab} from './NoticeTab';
 import {stageFixture} from './stageTesting';
 import {renderedToolMenuRows} from './toolMenuTesting';
