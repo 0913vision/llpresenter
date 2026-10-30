@@ -1,6 +1,7 @@
 import {useLayoutEffect, useRef} from 'react';
 import {parseScreenId} from '@shared/schema/ids';
 import type {Screen} from '@shared/schema/screens';
+import type {MonitorInfo} from '@shared/schema/monitors';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';
@@ -35,7 +36,11 @@ export function useScreenCreation(
       time: noticeTime(),
     });
   };
-  return (kind: Screen['kind'], method: NewScreen['method']): void => {
+  return (
+    kind: Screen['kind'],
+    method: NewScreen['method'],
+    monitor?: MonitorInfo,
+  ): void => {
     const id = parseScreenId(crypto.randomUUID());
     if (!id.ok) {
       report(new Error('Invalid generated screen ID'));
@@ -44,7 +49,12 @@ export function useScreenCreation(
     const previous = useScreensSelection.getState().selection;
     latest.current = id.value;
     editor
-      .add({id: id.value, kind, method})
+      .add({
+        id: id.value,
+        kind,
+        method,
+        ...(monitor === undefined ? {} : {monitor}),
+      })
       .then(saved => {
         const current = useScreensSelection.getState();
         if (

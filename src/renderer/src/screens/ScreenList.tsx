@@ -30,6 +30,7 @@ import type {GroupRename} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
+import {useMonitors} from './useMonitors';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
@@ -116,6 +117,7 @@ export function ScreenList({
   const click = useDragClickGuard();
   const statuses = useOutputStatuses();
   const outputs = useOutputs();
+  const monitors = useMonitors();
   const selection = useScreensSelection(view => view.selection);
   const select = useScreensSelection(view => view.select);
   const screens = document?.value.screens ?? noScreens;
@@ -231,6 +233,7 @@ export function ScreenList({
               actions={
                 <ScreenGroupActions
                   kind={section.kind}
+                  monitors={monitors}
                   label={section.label}
                   reason={creationReason}
                   outputReason={

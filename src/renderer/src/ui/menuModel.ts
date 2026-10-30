@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import type {LabelColor} from '@shared/colors';
 import type {SearchRange} from '@shared/searchText';
 
@@ -13,6 +14,8 @@ export interface MenuItem {
   readonly match?: SearchRange | undefined;
   /** An 18px icon before the name. */
   readonly icon?: string | undefined;
+  /** A noninteractive preview before the name, such as a monitor arrangement. */
+  readonly preview?: ReactNode | undefined;
   /** A date or a shortcut at the right end, such as `Ctrl Z`. */
   readonly meta?: string | undefined;
   /** Makes it a choice; `checked` puts a check mark in the left padding. */

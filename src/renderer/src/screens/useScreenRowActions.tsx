@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import type {MenuAnchor} from '@renderer/ui/Menu';
+import {sendLive, useOutputs} from '@renderer/state/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from './selection';
@@ -8,6 +9,8 @@ import type {NamedDocument} from './useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
 import {nameProblem} from './screenEdits';
+import {ScreenContextMenu} from './screenMenuEntries';
+import {NOT_YET} from '@renderer/ui/menuRows';
 
 const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {
   empty: '이름이 비어 있음',
@@ -21,6 +24,7 @@ export function useScreenRowActions(
   onProblem: ((notice: Notice) => void) | undefined,
 ) {
   const editor = useScreenEditor(document, onProblem);
+  const outputs = useOutputs();
   const [menu, setMenu] = useState<{id: string; anchor: MenuAnchor} | null>(
     null,
   );
@@ -96,33 +100,46 @@ export function useScreenRowActions(
     overlays: (
       <>
         {menu === null || target === undefined ? null : (
-          <Menu
+          <ScreenContextMenu
             label="화면 메뉴"
             anchor={menu.anchor}
             onClose={() => setMenu(null)}
-            entries={[
-              {
-                kind: 'item',
-                id: 'rename',
-                label: '이름 변경',
-                disabled: reason !== undefined,
-                title: reason,
-                onSelect: () => {
-                  pendingAction.current = {kind: 'rename', id: target.id};
-                },
+            actions={{
+              reason,
+              outputReason:
+                window.llp === undefined
+                  ? '출력에 연결되지 않음'
+                  : target.method === 'ndi' && outputs[target.id] !== true
+                    ? NOT_YET
+                    : undefined,
+              canDelete:
+                (document?.value.screens.filter(
+                  screen => screen.kind === target.kind,
+                ).length ?? 0) > 1,
+              on: outputs[target.id] === true,
+              rename: () => {
+                pendingAction.current = {kind: 'rename', id: target.id};
               },
-              {
-                kind: 'item',
-                id: 'delete',
-                label: '삭제',
-                danger: true,
-                disabled: reason !== undefined,
-                title: reason,
-                onSelect: () => {
-                  pendingAction.current = {kind: 'delete', id: target.id};
-                },
+              remove: () => {
+                pendingAction.current = {kind: 'delete', id: target.id};
               },
-            ]}
+              toggle: () => {
+                try {
+                  sendLive({
+                    type: 'output.set',
+                    screenId: target.id,
+                    on: outputs[target.id] !== true,
+                  });
+                } catch (cause) {
+                  window.llp?.log.write({
+                    level: 'error',
+                    message: 'Could not toggle a screen output',
+                    detail: String(cause),
+                  });
+                  report('화면 출력 변경 실패');
+                }
+              },
+            }}
           />
         )}
         {confirmedTarget === undefined ? null : (

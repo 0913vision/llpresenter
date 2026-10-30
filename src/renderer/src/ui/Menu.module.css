@@ -98,6 +98,12 @@
   text-overflow: ellipsis;
 }
 
+.preview {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+
 .match {
   color: var(--text);
   font: var(--type-body-strong);

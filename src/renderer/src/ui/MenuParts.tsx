@@ -119,6 +119,11 @@ export function MenuItemRow({
           )}
         </span>
       ) : null}
+      {item.preview === undefined ? null : (
+        <span aria-hidden="true" className={styles.preview}>
+          {item.preview}
+        </span>
+      )}
       {item.swatch === undefined ? null : (
         <span
           className={styles.swatch}

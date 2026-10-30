@@ -82,9 +82,13 @@ export class ScreenEditor {
 
   /** Creates one screen against the newest queued settings revision. */
   add(input: NewScreen): Promise<boolean> {
+    const observedScreens =
+      input.monitor === undefined
+        ? undefined
+        : this.observedScreensFor(input.monitor);
     return this.documents.change(value => ({
       ...value,
-      screens: addScreen(value.screens, input),
+      screens: addScreen(value.screens, input, observedScreens),
     }));
   }
 
@@ -127,11 +131,18 @@ export class ScreenEditor {
 
   /** Assigns a monitor and clears its old assignment in one revision. */
   assign(screenId: string, monitor: MonitorInfo): Promise<void> {
-    const observedScreens =
-      this.monitorSnapshots.get(monitor)?.screens ??
-      this.documents.getSnapshot()?.value.screens;
+    const observedScreens = this.observedScreensFor(monitor);
     return this.enqueue(screens =>
       assignScreenMonitor({screens, screenId, monitor, observedScreens}),
+    );
+  }
+
+  private observedScreensFor(
+    monitor: MonitorInfo,
+  ): readonly Screen[] | undefined {
+    return (
+      this.monitorSnapshots.get(monitor)?.screens ??
+      this.documents.getSnapshot()?.value.screens
     );
   }
 

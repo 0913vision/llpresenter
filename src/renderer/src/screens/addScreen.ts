@@ -1,17 +1,21 @@
 import type {ScreenId} from '@shared/schema/ids';
 import type {Screen} from '@shared/schema/screens';
 import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
+import type {MonitorInfo} from '@shared/schema/monitors';
+import {assignScreenMonitor} from './assignScreenMonitor';
 
 export interface NewScreen {
   readonly id: ScreenId;
   readonly kind: Screen['kind'];
   readonly method: Exclude<Screen['method'], 'ndi'>;
+  readonly monitor?: MonitorInfo;
 }
 
-/** Appends an unassigned screen with an explicit off default, preserving siblings. */
+/** Appends a screen and assigns its chosen monitor in the same settings revision. */
 export function addScreen(
   screens: readonly Screen[],
   input: NewScreen,
+  observedScreens?: readonly Screen[],
 ): readonly Screen[] {
   if (screens.length >= MAX_TARGET_SCREENS) {
     throw new Error('화면은 200개까지 추가할 수 있음');
@@ -23,10 +27,12 @@ export function addScreen(
   const names = new Set(screens.map(screen => screen.name.trim()));
   let name = base;
   for (let suffix = 2; names.has(name); suffix++) name = `${base} (${suffix})`;
-  return [
+  const next = [
     ...screens,
     {
-      ...input,
+      id: input.id,
+      kind: input.kind,
+      method: input.method,
       name,
       alwaysOnTop: false,
       ...(input.method === 'capture'
@@ -34,4 +40,12 @@ export function addScreen(
         : {}),
     },
   ];
+  return input.monitor === undefined
+    ? next
+    : assignScreenMonitor({
+        screens: next,
+        screenId: input.id,
+        monitor: input.monitor,
+        observedScreens,
+      });
 }

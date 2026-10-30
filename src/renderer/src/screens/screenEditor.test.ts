@@ -41,6 +41,27 @@ const saved = (revision: number): EditResult => ({
 });
 
 describe('ScreenEditor', () => {
+  it('keeps a newer assignment when a new screen uses a stale monitor feed', async () => {
+    const {editor, edits} = setup([saved(2), saved(3)]);
+    editor.adopt(screensAt(1));
+    const monitor3 = {...projector, id: 3, number: 3, screenIds: []};
+    editor.observeMonitors([projector, monitor3]);
+    await editor.assign(MAIN_ID, monitor3);
+    const id = parseScreenId('00000000-0000-4000-8000-000000000201');
+    if (!id.ok) throw new Error('Invalid fixture');
+    await editor.add({
+      id: id.value,
+      kind: 'audience',
+      method: 'fullscreen',
+      monitor: projector,
+    });
+    const last = edits[1];
+    if (last?.name !== 'screens') throw new Error('Missing creation');
+    expect(last.value.screens[0]?.display?.id).toBe(3);
+    expect(last.value.screens.at(-1)?.display?.id).toBe(2);
+    expect(last.value.screens.at(-1)).not.toHaveProperty('monitor');
+  });
+
   it('checks rapid row renames against the latest queued names without writing a refusal', async () => {
     const {editor, edits} = setup([saved(2)]);
     editor.adopt(screensAt(1));
