@@ -18,7 +18,7 @@ import {
 } from '@core/songs/songArrangements';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
@@ -37,8 +37,8 @@ import {
   sameSequence,
   slideLabel,
   withoutPosition,
-} from './songItemModel';
-import {useChipDrag} from './useChipDrag';
+} from '../../songs/editor/songItemModel';
+import {useChipDrag} from '../../songs/editor/useChipDrag';
 import styles from './SongItemPanel.module.css';
 
 export const DEFAULT_ORDER_REASON = '기본 구성은 변경할 수 없습니다';

@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {RecentPassage} from '@core/schema/bible';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {
   adjacentVerseRange,
   passageBook,

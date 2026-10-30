@@ -5,7 +5,7 @@ import type {
   QuickItem,
   QuickItemKind,
 } from '@core/schema/quick';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {EditResult} from '@core/schema/contentEdit';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';

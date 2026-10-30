@@ -18,8 +18,8 @@ import {
   useOutputWarnings,
   warningScreens,
 } from '@renderer/platform/outputWarnings';
-import {openItem, useShow} from '@renderer/features/presentation/state/show';
-import {isLibrarySource} from '@renderer/features/presentation/state/showLibrary';
+import {openItem, useShow} from '@renderer/session/show';
+import {isLibrarySource} from '@renderer/session/showLibrary';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';

@@ -1,9 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {
-  applyService,
-  useShow,
-} from '@renderer/features/presentation/state/show';
+import {applyService, useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const names = new Intl.Collator('ko', {numeric: true});

@@ -8,7 +8,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {stageLayoutsDocument} from '@renderer/features/screens/testing/documents';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {MenuBar} from './MenuBar';
 import {renderWithScreenSummaries as render} from './testing/screenSummaries';
 

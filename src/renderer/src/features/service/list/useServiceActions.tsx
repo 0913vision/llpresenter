@@ -1,5 +1,5 @@
 import {useState, type ReactNode} from 'react';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import type {MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';

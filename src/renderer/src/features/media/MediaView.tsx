@@ -4,7 +4,7 @@ import {mediaLoops} from '@core/media/mediaEndRule';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
-import {sendLive, useLive} from '@renderer/platform/live';
+import {sendLive, useLive} from '@renderer/session/live';
 import {
   Button,
   MediaTile,

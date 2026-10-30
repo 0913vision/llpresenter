@@ -7,8 +7,8 @@ import {ControlSession} from './controlSession';
 const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
 const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));
 vi.mock('react-dom/client', () => ({createRoot: () => root}));
-vi.mock('@renderer/platform/live', () => ({startLiveSync: () => stops.live}));
-vi.mock('@renderer/features/presentation/state/show', () => ({
+vi.mock('@renderer/session/live', () => ({startLiveSync: () => stops.live}));
+vi.mock('@renderer/session/show', () => ({
   startServiceSync: () => stops.service,
 }));
 

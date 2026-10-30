@@ -17,7 +17,7 @@ import type {
 } from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {

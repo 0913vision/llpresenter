@@ -42,10 +42,10 @@ import {
   screensDocument,
   settingsDocument,
 } from '@renderer/features/screens/testing/documents';
-import {useLive} from '@renderer/platform/live';
-import {useShow} from '@renderer/features/presentation/state/showStore';
+import {useLive} from '@renderer/session/live';
+import {useShow} from '@renderer/session/showStore';
 import {bibleSource} from '@core/bible/source';
-import {MISSING_STILL_BACKGROUND_TIP} from '../presentation/problemReasons';
+import {MISSING_STILL_BACKGROUND_TIP} from '../../platform/problemReasons';
 import {
   ShowingTab,
   ShowingRow,

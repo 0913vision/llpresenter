@@ -24,7 +24,7 @@ const DEFAULT_LYRIC_STYLE = {
   referencePosition: 'bottomRight' as const,
 };
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {

@@ -16,18 +16,14 @@ import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {useLive} from '@renderer/platform/live';
-import {
-  applyService,
-  openItem,
-  useShow,
-} from '@renderer/features/presentation/state/show';
-import {openLibrarySong} from '@renderer/features/presentation/state/showLibrary';
+import {useLive} from '@renderer/session/live';
+import {applyService, openItem, useShow} from '@renderer/session/show';
+import {openLibrarySong} from '@renderer/session/showLibrary';
 import {fixtureSong} from '@renderer/features/songs/library/fixture';
 import {
   sampleService,
   seedSampleService,
-} from '@renderer/features/presentation/testing/sampleService';
+} from '@renderer/session/testing/sampleService';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 

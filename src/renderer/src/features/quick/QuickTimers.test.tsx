@@ -17,7 +17,7 @@ import {
 import {expectSuccess} from '@core/schema/testHelpers';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {emptyLiveState} from '@core/live/state';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';

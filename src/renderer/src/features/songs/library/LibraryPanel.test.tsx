@@ -17,7 +17,10 @@ import type {Notice} from '@renderer/ui/notices';
 import {layerContainer} from '@renderer/ui/layers';
 import {fixtureSong, libraryFixture} from './fixture';
 import {LibraryPanel} from './LibraryPanel';
-import {LibraryGalleryHost, LibrarySection} from './LibrarySection';
+import {
+  LibraryGalleryHost,
+  LibrarySection,
+} from '../../../gallery/LibrarySection';
 import {pastDocument, serviceEntries} from '../../service/list/testing';
 
 class FixedObserver implements ResizeObserver {

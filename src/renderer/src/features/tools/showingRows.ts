@@ -7,10 +7,10 @@ import {
   type ScreenAppearance,
 } from '@renderer/rendering/screenLook';
 import {stageClockText} from '@renderer/rendering/stageLayout';
-import {tilesOf} from '@renderer/features/presentation/state/show';
+import {tilesOf} from '@renderer/session/show';
 import {passageBook} from '@core/bible/adjacentVerses';
 import type {BibleSource} from '@core/bible/source';
-import {MISSING_STILL_BACKGROUND_TIP} from '../presentation/problemReasons';
+import {MISSING_STILL_BACKGROUND_TIP} from '../../platform/problemReasons';
 import type {
   ShowingItem,
   ShowingGroup,

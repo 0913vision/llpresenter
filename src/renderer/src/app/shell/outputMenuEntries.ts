@@ -4,7 +4,7 @@ import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {LiveState} from '@core/live/state';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {sendLive} from '@renderer/platform/live';
+import {sendLive} from '@renderer/session/live';
 import {useScreensSelection} from '@renderer/features/screens/selection';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';

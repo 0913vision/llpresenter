@@ -10,7 +10,7 @@ import {
   type NamedDocument,
 } from '@renderer/platform/useSettingsDocument';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useQuickTimers(

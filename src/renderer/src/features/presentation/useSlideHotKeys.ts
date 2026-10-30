@@ -2,10 +2,7 @@ import {
   useWindowShortcuts,
   type WindowShortcut,
 } from '@renderer/platform/windowShortcuts';
-import {
-  hasSlideHotKey,
-  outputHotKey,
-} from '@renderer/features/presentation/state/show';
+import {hasSlideHotKey, outputHotKey} from '@renderer/session/show';
 import {isComposingKey} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 

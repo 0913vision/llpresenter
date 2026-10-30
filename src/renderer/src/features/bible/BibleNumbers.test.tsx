@@ -3,15 +3,15 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {
   outputPrevious,
   revealLiveItem,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
+} from '@renderer/session/show';
 import {BibleQuickField} from '../quick/BibleQuickField';
-import {BiblePanel} from './BiblePanel';
+import {BiblePanel} from '../presentation/BiblePanel';
 import {panelApi} from './panelTesting';
 
 function fixture(verseNumbers: boolean) {

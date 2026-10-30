@@ -2,12 +2,12 @@ import {useMemo, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
-} from '@renderer/features/presentation/state/thumbnailScale';
+} from '@renderer/platform/thumbnailScale';
 import {
   Panel,
   PanelBody,
@@ -17,7 +17,7 @@ import {
 } from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
-import {shownPosition} from './songItemModel';
+import {shownPosition} from '../../songs/editor/songItemModel';
 import {savedPassageTiles} from './bibleItemModel';
 import styles from './OtherItemPanel.module.css';
 

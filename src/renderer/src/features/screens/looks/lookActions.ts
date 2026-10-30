@@ -1,5 +1,5 @@
 import type {LookId} from '@core/schema/ids';
-import {sendLive} from '@renderer/platform/live';
+import {sendLive} from '@renderer/session/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 /** Sends a Look change and reports a transport failure through its host. */

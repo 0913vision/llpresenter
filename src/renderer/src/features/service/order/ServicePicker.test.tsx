@@ -7,11 +7,8 @@ import type {ShowService} from '@core/schema/showService';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {
-  applyService,
-  useShow,
-} from '@renderer/features/presentation/state/show';
-import {useLive} from '@renderer/platform/live';
+import {applyService, useShow} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
 
 const first = createServiceId('00000000-0000-4000-8000-000000000001');

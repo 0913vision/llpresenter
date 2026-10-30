@@ -1,12 +1,12 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {useLive} from '@renderer/platform/live';
-import {openItem} from '@renderer/features/presentation/state/show';
+import {useLive} from '@renderer/session/live';
+import {openItem} from '@renderer/session/show';
 import {
   sampleService,
   seedSampleService,
-} from '@renderer/features/presentation/testing/sampleService';
+} from '@renderer/session/testing/sampleService';
 import type {Notice} from '@renderer/ui/notices';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
@@ -19,7 +19,7 @@ const problem: Notice = {
   time: '04:00',
 };
 
-vi.mock('@renderer/features/media/SongBackgroundControl', () => ({
+vi.mock('@renderer/features/service/items/SongBackgroundControl', () => ({
   SongBackgroundControl: ({
     onProblem,
   }: {

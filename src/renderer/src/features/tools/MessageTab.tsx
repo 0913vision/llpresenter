@@ -12,7 +12,7 @@ import {
   MAX_MESSAGE_CHARACTERS,
 } from '@core/overlays/messageText';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {sendLive} from '@renderer/platform/live';
+import {sendLive} from '@renderer/session/live';
 import {
   Button,
   ListBox,

@@ -4,7 +4,7 @@ import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {
   validTimerConfiguration,
   type TimerConfiguration,

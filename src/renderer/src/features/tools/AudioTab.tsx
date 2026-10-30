@@ -1,5 +1,5 @@
 import {useMemo, useState, type JSX} from 'react';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {SelectMenu, Switch} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import type {AudioPlaylistId} from '@core/schema/ids';

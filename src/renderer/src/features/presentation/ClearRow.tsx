@@ -6,7 +6,7 @@ import {
   useCanUndo,
   useSomethingToClear,
   useClearRestores,
-} from '@renderer/features/presentation/state/clear';
+} from '@renderer/session/clear';
 import {clearButtons, type ClearButtonSpec} from '@core/live/clear';
 import styles from './ClearRow.module.css';
 

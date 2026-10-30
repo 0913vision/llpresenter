@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {MenuAnchor} from '@renderer/ui/Menu';
-import {sendLive, useOutputs} from '@renderer/platform/live';
+import {sendLive, useOutputs} from '@renderer/session/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from './selection';

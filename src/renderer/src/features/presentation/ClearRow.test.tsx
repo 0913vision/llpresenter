@@ -13,7 +13,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {defaultPreferences} from '@core/schema/preferences';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {startLiveSync, useLive} from '@renderer/platform/live';
+import {startLiveSync, useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {hasSomethingToClear} from '@core/live/clear';
 import {ClearRow} from './ClearRow';

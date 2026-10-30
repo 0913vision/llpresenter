@@ -1,4 +1,4 @@
-import {sendLive} from '@renderer/platform/live';
+import {sendLive} from '@renderer/session/live';
 import {outputTooltip} from '@renderer/ui/OutputToggle';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import type {ScreenSummary} from '../../platform/screens';

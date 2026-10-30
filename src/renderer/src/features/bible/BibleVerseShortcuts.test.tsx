@@ -3,22 +3,22 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {sendLive, useLive} from '@renderer/platform/live';
+import {sendLive, useLive} from '@renderer/session/live';
 import {
   openItem,
   outputNext,
   outputPrevious,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
+} from '@renderer/session/show';
 import {
   beginOutputRequest,
   LOOKUP_TIMEOUT_MS,
-} from '@renderer/features/presentation/state/showOutput';
+} from '@renderer/session/showOutput';
 import {handleShowKey} from '../presentation/shortcuts';
-import {seedSampleService} from '../presentation/testing/sampleService';
+import {seedSampleService} from '../../session/testing/sampleService';
 import {openBiblePassage} from './actions';
-import {BiblePanel} from './BiblePanel';
+import {BiblePanel} from '../presentation/BiblePanel';
 import {panelApi} from './panelTesting';
 import {lookupRequest} from './testBible';
 import {formLookupReply} from './testing/referenceForm';

@@ -10,7 +10,7 @@ import {stageElementKinds} from '@core/schema/stageLayouts';
 import {Button} from '@renderer/ui';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {useSettingsDocument} from '../../../platform/useSettingsDocument';
 import {useScreensSelection} from '../selection';
 import {useElementSize} from '../useElementSize';

@@ -5,7 +5,7 @@ import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
 import {sendLookChange} from '../../features/screens/looks/lookActions';
 import {useLookChoices} from './useLookChoices';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {useScreensSelection} from '@renderer/features/screens/selection';
 import {lookMenuEntries} from './lookMenuEntries';
 

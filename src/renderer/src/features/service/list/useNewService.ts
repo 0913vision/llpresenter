@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {applyService} from '@renderer/features/presentation/state/show';
+import {applyService} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import {localDate} from './serviceDates';
 import {

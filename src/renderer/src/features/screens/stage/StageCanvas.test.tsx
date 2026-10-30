@@ -11,7 +11,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {useScreensSelection} from '../selection';
 import {StageCanvas} from './StageCanvas';

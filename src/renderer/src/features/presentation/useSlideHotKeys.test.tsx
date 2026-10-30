@@ -5,7 +5,7 @@ import {modalStack} from '@renderer/ui/modalStack';
 import {useSlideHotKeys} from './useSlideHotKeys';
 
 const dispatch = vi.hoisted(() => ({keys: new Set<string>(), output: vi.fn()}));
-vi.mock('@renderer/features/presentation/state/show', () => ({
+vi.mock('@renderer/session/show', () => ({
   hasSlideHotKey: (code: string) => dispatch.keys.has(code),
   outputHotKey: dispatch.output,
 }));

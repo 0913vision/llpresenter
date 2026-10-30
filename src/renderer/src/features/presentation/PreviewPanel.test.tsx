@@ -4,19 +4,16 @@ import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/media';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
-import {useLive} from '@renderer/platform/live';
-import {
-  showLarge,
-  usePreview,
-} from '@renderer/features/presentation/state/preview';
+import {useLive} from '@renderer/session/live';
+import {showLarge, usePreview} from '@renderer/session/preview';
 import {
   openItem,
   outputTile,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
+} from '@renderer/session/show';
 import {PreviewPanel} from './PreviewPanel';
-import {seedSampleService} from './testing/sampleService';
+import {seedSampleService} from '../../session/testing/sampleService';
 import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
 
 interface Instance {

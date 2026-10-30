@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {createServiceItemId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {mockMenuRowHeight} from '@renderer/features/songs/editor/editorTesting';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {resetTooltips, hoverForTooltip} from '@renderer/ui/tooltipTesting';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {

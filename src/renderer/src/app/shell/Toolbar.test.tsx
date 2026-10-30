@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
 import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';

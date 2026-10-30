@@ -12,10 +12,10 @@ import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
 import {shortcutNames} from './shortcutKeys';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
-vi.mock('@renderer/features/presentation/state/clear', () => ({
+vi.mock('@renderer/session/clear', () => ({
   clearLayer: vi.fn(),
 }));
-import {clearLayer} from '@renderer/features/presentation/state/clear';
+import {clearLayer} from '@renderer/session/clear';
 
 afterEach(() => {
   resetTooltips();

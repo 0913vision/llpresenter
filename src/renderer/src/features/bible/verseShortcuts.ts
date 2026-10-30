@@ -1,14 +1,14 @@
-import {useLive} from '@renderer/platform/live';
-import {outputTile, useShow} from '@renderer/features/presentation/state/show';
+import {useLive} from '@renderer/session/live';
+import {outputTile, useShow} from '@renderer/session/show';
 import {
   bibleSourceFor,
   liveTileIndex,
   tilesForView,
-} from '@renderer/features/presentation/state/showLibrary';
+} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/features/presentation/state/showOutput';
+} from '@renderer/session/showOutput';
 import {openBiblePassage} from './actions';
 import type {VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';

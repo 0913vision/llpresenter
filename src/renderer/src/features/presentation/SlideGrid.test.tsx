@@ -8,9 +8,9 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {openItem, useShow} from '@renderer/features/presentation/state/show';
+import {openItem, useShow} from '@renderer/session/show';
 import {SlideGrid} from './SlideGrid';
-import {seedSampleService} from './testing/sampleService';
+import {seedSampleService} from '../../session/testing/sampleService';
 
 beforeEach(() => {
   seedSampleService();

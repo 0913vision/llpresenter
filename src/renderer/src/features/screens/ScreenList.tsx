@@ -14,12 +14,12 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@core/schema/screens';
-import {sendLive, useOutputs} from '@renderer/platform/live';
+import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
-import {screenGroups, type ScreenRow} from './screenRows';
+import {screenGroups, type ScreenRow} from '@core/screens/screenRows';
 import {selectedScreenIn, useScreensSelection} from './selection';
 import {useOutputStatuses} from './useOutputStatuses';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';

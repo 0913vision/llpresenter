@@ -15,7 +15,7 @@ import type {
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {

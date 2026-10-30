@@ -8,7 +8,7 @@ import {
 } from 'react';
 import {parseLookId} from '@core/schema/ids';
 import type {Look} from '@core/schema/looks';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {sendLookChange} from '@renderer/features/screens/looks/lookActions';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';

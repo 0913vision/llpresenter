@@ -8,7 +8,7 @@ import {
   type MacrosFile,
 } from '@core/schema/macros';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 
 export type MacroCollectionEdit =
   | {

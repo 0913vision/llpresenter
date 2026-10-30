@@ -3,7 +3,7 @@ import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {
   applyService,
   openItem,
@@ -12,8 +12,8 @@ import {
   outputTile,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
-import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
+} from '@renderer/session/show';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {panelApi, panelPassage} from './panelTesting';
 
 const saved = createServiceItemId('00000000-0000-4000-8000-000000000001');

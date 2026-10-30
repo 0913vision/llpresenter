@@ -2,7 +2,7 @@ import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {classes} from '@renderer/rendering/classes';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {ScreenPreview} from './ScreenPreview';
 
 beforeEach(() => {

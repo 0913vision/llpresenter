@@ -2,7 +2,7 @@ import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from '@core/screens/monitorAssignment';
-import {UNASSIGNED_TARGET, targetByMethod} from './screenRows';
+import {UNASSIGNED_TARGET, targetByMethod} from '@core/screens/screenRows';
 
 /** The caption under the output preview, one line per part. */
 export interface PreviewCaption {

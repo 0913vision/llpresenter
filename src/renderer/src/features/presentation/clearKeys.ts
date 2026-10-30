@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {clearLayer} from '@renderer/features/presentation/state/clear';
+import {clearLayer} from '@renderer/session/clear';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui';
 import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
 import {clearButtons, type ClearCommandId} from '@core/live/clear';

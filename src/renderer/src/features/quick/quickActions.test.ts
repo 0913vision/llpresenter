@@ -1,11 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {useLive} from '@renderer/platform/live';
-import {
-  openItem,
-  selectTile,
-  useShow,
-} from '@renderer/features/presentation/state/show';
+import {useLive} from '@renderer/session/live';
+import {openItem, selectTile, useShow} from '@renderer/session/show';
 import {openBiblePassage} from '../bible/actions';
 import {panelPassage} from '../bible/panelTesting';
 import {lookupRequest} from '../bible/testBible';

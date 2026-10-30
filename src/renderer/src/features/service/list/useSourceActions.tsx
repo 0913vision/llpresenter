@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';

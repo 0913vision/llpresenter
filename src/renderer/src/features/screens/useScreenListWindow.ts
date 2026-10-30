@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
-import type {ScreenRow} from './screenRows';
+import type {ScreenRow} from '@core/screens/screenRows';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;

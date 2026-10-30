@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {IconButton} from '@renderer/ui/IconButton';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {type MenuAnchor} from '@renderer/ui/Menu';

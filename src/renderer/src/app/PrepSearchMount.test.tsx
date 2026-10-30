@@ -17,12 +17,9 @@ import type {
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {sampleService} from '@renderer/features/presentation/testing/sampleService';
-import {useLive} from '@renderer/platform/live';
-import {
-  applyService,
-  useShow,
-} from '@renderer/features/presentation/state/show';
+import {sampleService} from '@renderer/session/testing/sampleService';
+import {useLive} from '@renderer/session/live';
+import {applyService, useShow} from '@renderer/session/show';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 

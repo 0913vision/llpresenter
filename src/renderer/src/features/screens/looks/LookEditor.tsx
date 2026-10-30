@@ -1,7 +1,7 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {parseLookId, parseMessageStyleId} from '@core/schema/ids';
 import type {Look} from '@core/schema/looks';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {Button} from '@renderer/ui/Button';
 import {
   Panel,

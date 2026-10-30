@@ -1,20 +1,23 @@
 import type {JSX} from 'react';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
   shownTiles,
   useLiveTileIndex,
-} from '@renderer/features/presentation/state/showLibrary';
+} from '@renderer/session/showLibrary';
 import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
-} from '@renderer/features/presentation/state/thumbnailScale';
+} from '@renderer/platform/thumbnailScale';
 import {Icon, ThumbnailSizeControl} from '@renderer/ui';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
-import {MISSING_BACKGROUND_TIP, READ_ONLY_TIP} from './problemReasons';
+import {
+  MISSING_BACKGROUND_TIP,
+  READ_ONLY_TIP,
+} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 
 const PROBLEM_ICON_SIZE = 14;

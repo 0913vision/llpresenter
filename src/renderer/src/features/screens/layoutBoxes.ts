@@ -2,7 +2,7 @@ import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from '@core/screens/monitorAssignment';
-import {targetByMethod} from './screenRows';
+import {targetByMethod} from '@core/screens/screenRows';
 
 /** A monitor's box in the display layout, placed in percent of the whole. */
 export interface MonitorBox {

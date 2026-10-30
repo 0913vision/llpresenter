@@ -10,14 +10,17 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {
   applyService,
   openItem,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
-import {sampleService, seedSampleService} from './testing/sampleService';
+} from '@renderer/session/show';
+import {
+  sampleService,
+  seedSampleService,
+} from '../../session/testing/sampleService';
 import {ServiceOrderList} from '../service/order/ServiceOrderList';
 import {SlideGrid} from './SlideGrid';
 

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroPanel} from './MacroPanel';
 

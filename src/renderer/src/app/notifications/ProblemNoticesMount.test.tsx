@@ -12,8 +12,8 @@ import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {useLive} from '@renderer/platform/live';
-import {applyService} from '@renderer/features/presentation/state/show';
+import {useLive} from '@renderer/session/live';
+import {applyService} from '@renderer/session/show';
 import {App} from '../App';
 import {ControlSession} from '../controlSession';
 

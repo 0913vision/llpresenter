@@ -1,9 +1,9 @@
 import '@renderer/styles/base.css';
 import {StrictMode} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
-import {startLiveSync} from '@renderer/platform/live';
-import {startServiceSync} from '@renderer/features/presentation/state/show';
-import {seedThumbnailScale} from '@renderer/features/presentation/state/thumbnailScale';
+import {startLiveSync} from '@renderer/session/live';
+import {startServiceSync} from '@renderer/session/show';
+import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {
   createColumnWidthStore,
   loadUiState,

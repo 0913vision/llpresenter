@@ -4,7 +4,7 @@ import {
   serviceOrderEditsFor,
   type ServiceOrderEdits,
   type ServiceOrderEditResult,
-} from '@renderer/features/service/state/serviceOrderEdits';
+} from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 type Operation = (

@@ -19,8 +19,8 @@ import {
   type ServiceItemStore,
   type StartItem,
 } from './serviceItemStore';
-import {itemPicture, shownPosition} from './songItemModel';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {itemPicture, shownPosition} from '../../songs/editor/songItemModel';
+import {useShow} from '@renderer/session/show';
 import {savedPassageTiles} from './bibleItemModel';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;

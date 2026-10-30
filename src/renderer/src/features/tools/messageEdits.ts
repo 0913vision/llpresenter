@@ -4,7 +4,7 @@ import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 
 export const MAX_MESSAGE_TEMPLATES = 500;
 export const MESSAGE_NAME_LIMIT = 256;

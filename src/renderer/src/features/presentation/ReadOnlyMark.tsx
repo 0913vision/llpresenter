@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
-import {useShow} from '@renderer/features/presentation/state/show';
-import {READ_ONLY_TIP} from './problemReasons';
+import {useShow} from '@renderer/session/show';
+import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './ReadOnlyMark.module.css';
 
 /** The warning on the 예배 순서 panel while the service can't be edited. */

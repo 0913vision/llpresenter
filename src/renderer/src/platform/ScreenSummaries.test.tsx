@@ -18,7 +18,7 @@ import {
   CAPTIONS_ID,
 } from '@renderer/features/screens/testing/documents';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
-import {usePreview} from '@renderer/features/presentation/state/preview';
+import {usePreview} from '@renderer/session/preview';
 import {ScreenSummariesProvider} from './ScreenSummaries';
 import {MenuBar} from '../app/shell/MenuBar';
 import {Toolbar} from '../app/shell/Toolbar';

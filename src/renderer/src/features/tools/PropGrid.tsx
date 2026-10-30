@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/media';
 import type {Prop} from '@core/schema/props';
 import type {Screen} from '@core/schema/screens';
-import {sendLive, useLive} from '@renderer/platform/live';
+import {sendLive, useLive} from '@renderer/session/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './PropGrid.module.css';

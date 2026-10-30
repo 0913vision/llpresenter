@@ -16,7 +16,7 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from './selection';
 import {wideMonitorArrangement} from './testing/monitorArrangement';

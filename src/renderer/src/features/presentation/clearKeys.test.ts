@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import * as clearState from '@renderer/features/presentation/state/clear';
+import * as clearState from '@renderer/session/clear';
 import {handleClearKey, useClearKeys} from './clearKeys';
 
 function press(

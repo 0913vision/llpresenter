@@ -182,17 +182,17 @@ const RESTRICTED_IMPORTS = [
   [
     'a renderer alias',
     'src/main/lint-renderer-alias.ts',
-    "import '@renderer/platform/live';",
+    "import '@renderer/session/live';",
   ],
   [
     'a renderer re-export',
     'src/main/lint-renderer-export.ts',
-    "export * from '../renderer/src/platform/live';",
+    "export * from '../renderer/src/session/live';",
   ],
   [
     'a renderer import in a main test',
     'src/main/lint-renderer.test.ts',
-    "import '@renderer/platform/live';",
+    "import '@renderer/session/live';",
   ],
 ] as const;
 

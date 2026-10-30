@@ -4,8 +4,8 @@ import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
-import {useLive} from '@renderer/platform/live';
-import {usePreview} from '@renderer/features/presentation/state/preview';
+import {useLive} from '@renderer/session/live';
+import {usePreview} from '@renderer/session/preview';
 import {PreviewPanel} from './PreviewPanel';
 import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
 

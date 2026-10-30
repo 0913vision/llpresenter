@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   renameService,

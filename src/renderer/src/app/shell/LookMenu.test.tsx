@@ -14,7 +14,7 @@ import {
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {parseLookId} from '@core/schema/ids';
 import {useScreensSelection} from '@renderer/features/screens/selection';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';

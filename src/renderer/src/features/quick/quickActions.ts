@@ -5,14 +5,14 @@ import {
   type KnownQuickItem,
   type QuickItem,
 } from '@core/schema/quick';
-import {sendLive, useLive} from '@renderer/platform/live';
-import {selectTile, useShow} from '@renderer/features/presentation/state/show';
-import {openLibrarySong} from '@renderer/features/presentation/state/showLibrary';
+import {sendLive, useLive} from '@renderer/session/live';
+import {selectTile, useShow} from '@renderer/session/show';
+import {openLibrarySong} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
   withinLookupTimeout,
-} from '@renderer/features/presentation/state/showOutput';
+} from '@renderer/session/showOutput';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';

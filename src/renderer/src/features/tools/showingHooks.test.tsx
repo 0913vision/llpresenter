@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {settingsDocument} from '@renderer/features/screens/testing/documents';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaId} from '@core/schema/ids';

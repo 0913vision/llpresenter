@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {useShow, selectTile} from '@renderer/features/presentation/state/show';
-import {useLive} from '@renderer/platform/live';
-import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
+import {useShow, selectTile} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/features/presentation/state/showOutput';
+} from '@renderer/session/showOutput';
 import {Button} from '@renderer/ui/Button';
 import {openBiblePassage} from './actions';
 import {passageBook, type VerseDirection} from '@core/bible/adjacentVerses';

@@ -1,6 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import * as showState from '@renderer/features/presentation/state/show';
+import * as showState from '@renderer/session/show';
 import {modalStack} from '@renderer/ui/modalStack';
 import {useShowKeys} from './shortcuts';
 

@@ -7,8 +7,8 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   itemArrangementChange,
   updateServiceItem,
-} from '@renderer/features/service/state/serviceItemUpdate';
-import {useShow} from '@renderer/features/presentation/state/show';
+} from '@renderer/session/serviceItemUpdate';
+import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 

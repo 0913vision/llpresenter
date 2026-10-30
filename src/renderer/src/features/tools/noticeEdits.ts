@@ -7,7 +7,7 @@ import {
 } from '@core/schema/notices';
 import {MAX_NOTICE_IMAGES, MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 
 export const MAX_NOTICE_SETS = 500;
 const MAX_NAME = 256;

@@ -11,7 +11,7 @@ import type {Timer} from '@core/schema/timers';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/rendering/lyricStyle';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {lookPreviewFrame, type LookPreviewInput} from './lookPreviewFrame';
 import styles from './LookPreview.module.css';
 

@@ -7,7 +7,7 @@ import {
   overlaySettings,
 } from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
-import {useLive} from '../platform/live';
+import {useLive} from '../session/live';
 import {PreviewPanel} from '../features/presentation/PreviewPanel';
 import {ScreenPreview} from '../features/presentation/ScreenPreview';
 import {ScreenSummariesContext} from '../platform/ScreenSummaries';

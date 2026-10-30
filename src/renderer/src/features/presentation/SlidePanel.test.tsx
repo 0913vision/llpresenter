@@ -3,10 +3,10 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {LayoutChange} from '@core/schema/uiState';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {useLive} from '@renderer/platform/live';
-import {openItem, useShow} from '@renderer/features/presentation/state/show';
-import {seedThumbnailScale} from '@renderer/features/presentation/state/thumbnailScale';
-import {seedSampleService} from './testing/sampleService';
+import {useLive} from '@renderer/session/live';
+import {openItem, useShow} from '@renderer/session/show';
+import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {seedSampleService} from '../../session/testing/sampleService';
 import {SlidePanelBody, SlidePanelMeta, SlideSizeControl} from './SlidePanel';
 
 const GRID_WIDTH = 600;

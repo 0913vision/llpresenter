@@ -1,12 +1,9 @@
 import {useEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {useShow} from '@renderer/features/presentation/state/show';
-import {
-  bibleSourceFor,
-  isBibleSource,
-} from '@renderer/features/presentation/state/showLibrary';
-import {beginOutputRequest} from '@renderer/features/presentation/state/showOutput';
+import {useShow} from '@renderer/session/show';
+import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
+import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {useBibleVerseNumbers} from '../bible/useBibleVerseNumbers';

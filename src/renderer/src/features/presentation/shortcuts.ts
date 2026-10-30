@@ -7,7 +7,7 @@ import {
   outputNext,
   outputPrevious,
   revealLiveItem,
-} from '@renderer/features/presentation/state/show';
+} from '@renderer/session/show';
 import {TEXT_ENTRY_SELECTOR} from '@renderer/ui/textEntry';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';

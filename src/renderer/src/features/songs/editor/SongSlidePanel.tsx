@@ -12,7 +12,7 @@ import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
-} from '@renderer/features/presentation/state/thumbnailScale';
+} from '@renderer/platform/thumbnailScale';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';

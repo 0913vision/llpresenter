@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/platform/drag';
 import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
-import {seedSampleService} from './testing/sampleService';
-import * as showState from '@renderer/features/presentation/state/show';
+import {seedSampleService} from '../../session/testing/sampleService';
+import * as showState from '@renderer/session/show';
 import * as bibleKeys from '../bible/verseShortcuts';
 import {
   handleShowFocusIn,

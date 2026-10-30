@@ -34,12 +34,12 @@ import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
-import {SongBackgroundControl} from '@renderer/features/media/SongBackgroundControl';
+import {SongBackgroundControl} from '@renderer/features/service/items/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
-import {BiblePanel} from '@renderer/features/bible/BiblePanel';
-import {useShow} from '@renderer/features/presentation/state/show';
-import {isBibleSource} from '@renderer/features/presentation/state/showLibrary';
+import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {useShow} from '@renderer/session/show';
+import {isBibleSource} from '@renderer/session/showLibrary';
 import {
   SlidePanelBody,
   SlidePanelMeta,

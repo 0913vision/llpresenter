@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {SongId} from '@core/schema/ids';
-import {sendLive, useOutputs} from '@renderer/platform/live';
+import {sendLive, useOutputs} from '@renderer/session/live';
 import {
   OutputToggle,
   ToolbarButton,

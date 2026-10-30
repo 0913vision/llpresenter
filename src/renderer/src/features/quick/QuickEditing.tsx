@@ -3,12 +3,9 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {QuickItem} from '@core/schema/quick';
 import {isItemOfKind} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useShow} from '@renderer/features/presentation/state/show';
-import {
-  bibleSourceFor,
-  isLibrarySource,
-} from '@renderer/features/presentation/state/showLibrary';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {useShow} from '@renderer/session/show';
+import {bibleSourceFor, isLibrarySource} from '@renderer/session/showLibrary';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {
   Dialog,
   IconButton,

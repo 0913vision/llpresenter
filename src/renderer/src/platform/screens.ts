@@ -1,8 +1,5 @@
 import type {Screen} from '@core/schema/screens';
-import {
-  UNASSIGNED_TARGET,
-  targetByMethod,
-} from '@renderer/features/screens/screenRows';
+import {UNASSIGNED_TARGET, targetByMethod} from '@core/screens/screenRows';
 import type {PreviewTarget} from '@renderer/ui/PreviewFrame';
 
 export interface ScreenSummary {

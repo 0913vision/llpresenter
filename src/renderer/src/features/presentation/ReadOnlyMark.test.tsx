@@ -1,8 +1,8 @@
 import {cleanup, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
-import {applyService} from '@renderer/features/presentation/state/show';
+import {applyService} from '@renderer/session/show';
 import {ReadOnlyMark} from './ReadOnlyMark';
-import {sampleService} from './testing/sampleService';
+import {sampleService} from '../../session/testing/sampleService';
 
 afterEach(() => {
   cleanup();

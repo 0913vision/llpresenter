@@ -1,13 +1,6 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
-import {
-  outputTile,
-  selectTile,
-  useShow,
-} from '@renderer/features/presentation/state/show';
-import {
-  shownTiles,
-  useLiveTileIndex,
-} from '@renderer/features/presentation/state/showLibrary';
+import {outputTile, selectTile, useShow} from '@renderer/session/show';
+import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';

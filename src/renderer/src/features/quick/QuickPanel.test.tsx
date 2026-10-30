@@ -12,9 +12,9 @@ import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
 import {Workspace} from '@renderer/app/shell/Workspace';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {useLive} from '@renderer/platform/live';
-import {openItem, useShow} from '@renderer/features/presentation/state/show';
-import {seedSampleService} from '../presentation/testing/sampleService';
+import {useLive} from '@renderer/session/live';
+import {openItem, useShow} from '@renderer/session/show';
+import {seedSampleService} from '../../session/testing/sampleService';
 import {lookupReply, lookupRequest} from '../bible/testBible';
 import {QuickPanel} from './QuickPanel';
 import {

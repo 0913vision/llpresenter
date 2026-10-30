@@ -1,9 +1,9 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {SongId} from '@core/schema/ids';
 import type {LibrarySearchMatch} from '@core/schema/librarySearch';
-import {useShow} from '@renderer/features/presentation/state/show';
-import {openLibrarySong} from '@renderer/features/presentation/state/showLibrary';
-import {withinLookupTimeout} from '@renderer/features/presentation/state/showOutput';
+import {useShow} from '@renderer/session/show';
+import {openLibrarySong} from '@renderer/session/showLibrary';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;

@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {
   applyService,
   openItem,
@@ -10,12 +10,9 @@ import {
   revealLiveItem,
   selectTile,
   useShow,
-} from '@renderer/features/presentation/state/show';
-import {
-  bibleSourceFor,
-  shownTiles,
-} from '@renderer/features/presentation/state/showLibrary';
-import {sampleService} from '../presentation/testing/sampleService';
+} from '@renderer/session/show';
+import {bibleSourceFor, shownTiles} from '@renderer/session/showLibrary';
+import {sampleService} from '../../session/testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';
 import {bibleSource} from '@core/bible/source';

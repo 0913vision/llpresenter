@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {NoticePlayback} from './NoticePlayback';
 import {stageFixture} from './stageTesting';
 

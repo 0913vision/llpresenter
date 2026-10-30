@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useLive, useOutputs} from '@renderer/platform/live';
+import {useLive, useOutputs} from '@renderer/session/live';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';

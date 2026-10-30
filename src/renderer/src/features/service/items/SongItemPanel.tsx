@@ -12,12 +12,12 @@ import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
-import {useShow} from '@renderer/features/presentation/state/show';
+import {useShow} from '@renderer/session/show';
 import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
-} from '@renderer/features/presentation/state/thumbnailScale';
+} from '@renderer/platform/thumbnailScale';
 import {Button} from '@renderer/ui/Button';
 import {
   Panel,
@@ -34,7 +34,7 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
-import {shownPosition} from './songItemModel';
+import {shownPosition} from '../../songs/editor/songItemModel';
 import styles from './SongItemPanel.module.css';
 import {BibleItemPanel} from './BibleItemPanel';
 

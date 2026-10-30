@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it} from 'vitest';
 import {parseProps} from '@core/schema/props';
-import {useLive} from '@renderer/platform/live';
+import {useLive} from '@renderer/session/live';
 import {PropGrid} from './PropGrid';
 import {stageFixture} from './stageTesting';
 
