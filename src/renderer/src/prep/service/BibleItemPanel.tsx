@@ -1,10 +1,7 @@
 import {useMemo, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {
   saveThumbnailScale,

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SizeClass} from '@renderer/shell/sizeClass';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {Button} from '@renderer/ui';

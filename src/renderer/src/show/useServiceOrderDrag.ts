@@ -1,8 +1,8 @@
 import {useRef, useState, type DragEvent} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
-import type {ServiceRow} from './model';
-import {sectionBoundaryIndex} from './serviceSections';
+import type {ServiceRow} from '@core/presentation/model';
+import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 

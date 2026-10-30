@@ -13,10 +13,7 @@ import {
   showThumbnailScale,
   useThumbnailScale,
 } from '@renderer/state/thumbnailScale';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import type {AnySong} from '@core/schema/groupedSong';

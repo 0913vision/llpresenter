@@ -14,7 +14,7 @@ import {
   withinLookupTimeout,
 } from '@renderer/state/showOutput';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {slideLayerOf} from '../slideLayer';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {

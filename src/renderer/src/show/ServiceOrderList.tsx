@@ -14,7 +14,7 @@ import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from './useMediaDurations';
-import type {ItemKind, RowProblem, ServiceRow} from './model';
+import type {ItemKind, RowProblem, ServiceRow} from '@core/presentation/model';
 import styles from './ServiceOrderList.module.css';
 
 const iconByKind: Readonly<Record<ItemKind, string>> = {

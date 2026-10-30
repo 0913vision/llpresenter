@@ -5,7 +5,7 @@ import {
   adjacentVerseRange,
   passageBook,
   type VerseDirection,
-} from './adjacentVerses';
+} from '@core/bible/adjacentVerses';
 
 /** Reads one additional verse without applying a stale lookup to the view. */
 export async function lookupAdjacentPassage({

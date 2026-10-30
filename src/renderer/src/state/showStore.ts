@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import type {BibleSource} from '@renderer/show/bible/source';
-import type {ItemId, ServiceRow, SlideTile} from '@renderer/show/model';
+import type {BibleSource} from '@core/bible/source';
+import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
 
 export interface ShowView {
   readonly bibleSource: BibleSource | null;

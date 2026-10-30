@@ -6,15 +6,15 @@ import {
   type ServiceRow,
   type SlideTile,
   type TileCursor,
-} from '@renderer/show/model';
+} from '@core/presentation/model';
 import {
   adjacentItem,
   liveItem,
   nextTile,
   previousTile,
   type SequenceState,
-} from '@renderer/show/navigation';
-import {slideLayerOf} from '@renderer/show/slideLayer';
+} from '@core/presentation/navigation';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/show/bible/recentWriter';
 import {sendLive, useLive} from './live';
 import {

@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {clearLayer} from '@renderer/state/clear';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui';
 import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
-import {clearButtons, type ClearCommandId} from './clear';
+import {clearButtons, type ClearCommandId} from '@core/live/clear';
 
 const defaultCodes: ReadonlyMap<string, ClearCommandId> = new Map(
   clearButtons.map(spec => [spec.code, spec.command]),

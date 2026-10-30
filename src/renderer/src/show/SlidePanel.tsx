@@ -1,8 +1,5 @@
 import type {JSX} from 'react';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {
   isLibrarySource,

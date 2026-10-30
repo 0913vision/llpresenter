@@ -8,9 +8,9 @@ import {
 } from '@renderer/state/showOutput';
 import {Button} from '@renderer/ui/Button';
 import {openBiblePassage} from './actions';
-import {passageBook, type VerseDirection} from './adjacentVerses';
+import {passageBook, type VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
-import type {BibleSource} from './source';
+import type {BibleSource} from '@core/bible/source';
 
 /** Extends the preview without changing the selected verse or live output. */
 export function BibleAdjacentButtons({

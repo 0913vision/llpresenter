@@ -1,6 +1,10 @@
 import {dragColumn, fitToWindow, type DraggableColumn} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
-import {defaultColumns, type ColumnWidths, type SizeClass} from './sizeClass';
+import {
+  defaultColumns,
+  type ColumnWidths,
+  type SizeClass,
+} from '../ui/sizeClass';
 
 // NOTE(0913vision): After a resize fits the widths mid-drag, the pointer
 // movement counts from `widthsAtLastFit`. `pointerMoved` stays true when the

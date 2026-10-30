@@ -10,7 +10,7 @@ import {
   isOutputRequestCurrent,
 } from '@renderer/state/showOutput';
 import {openBiblePassage} from './actions';
-import type {VerseDirection} from './adjacentVerses';
+import type {VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 
 /**

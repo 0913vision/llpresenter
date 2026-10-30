@@ -1,6 +1,6 @@
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import type {ServiceRow} from './model';
+import type {ServiceRow} from '@core/presentation/model';
 
 /** What the 예배 순서 item menu can ask the list to do. */
 export interface ServiceOrderMenuInput {

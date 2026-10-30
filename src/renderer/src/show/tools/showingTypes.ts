@@ -5,9 +5,9 @@ import type {MediaItem} from '@core/schema/mediaList';
 import type {PropsFile} from '@core/schema/props';
 import type {NoticesFile} from '@core/schema/notices';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
-import type {ServiceRow, ItemId} from '@renderer/show/model';
+import type {ServiceRow, ItemId} from '@core/presentation/model';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import type {BibleSource} from '@renderer/show/bible/source';
+import type {BibleSource} from '@core/bible/source';
 
 export type ShowingKind =
   'text' | 'media' | 'msg' | 'prop' | 'notice' | 'stagemsg' | 'clock';

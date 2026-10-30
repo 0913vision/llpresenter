@@ -15,7 +15,7 @@ import {bibleSourceFor, shownTiles} from '@renderer/state/showLibrary';
 import {sampleService} from '../testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';
-import {bibleSource} from './source';
+import {bibleSource} from '@core/bible/source';
 
 beforeEach(() => {
   useShow.setState({

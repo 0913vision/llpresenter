@@ -1,10 +1,10 @@
 import type {SlideLayer} from '@core/live/state';
 import type {RecentPassage} from '@core/schema/bible';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {passageBook} from '@renderer/show/bible/adjacentVerses';
-import type {BibleSource} from '@renderer/show/bible/source';
-import type {ItemId, SlideTile, TileCursor} from '@renderer/show/model';
-import {slideLayerOf} from '@renderer/show/slideLayer';
+import {passageBook} from '@core/bible/adjacentVerses';
+import type {BibleSource} from '@core/bible/source';
+import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {sendLive, useLive} from './live';
 import {
   beginOutputRequest,

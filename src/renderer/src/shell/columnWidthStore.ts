@@ -1,6 +1,6 @@
 import type {LayoutChange, UiState} from '@core/schema/uiState';
 import {clamp, COLUMN_RANGES} from './columns';
-import type {ColumnWidths, SizeClass} from './sizeClass';
+import type {ColumnWidths, SizeClass} from '../ui/sizeClass';
 
 /** Remembers the column widths that the operator set, per size class. */
 export interface ColumnWidthStore {

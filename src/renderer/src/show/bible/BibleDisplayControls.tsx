@@ -12,7 +12,7 @@ import {
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from './actions';
-import type {BibleSource} from './source';
+import type {BibleSource} from '@core/bible/source';
 import styles from './BiblePanel.module.css';
 
 /** Changes this preview's supported display options without changing defaults. */

@@ -44,7 +44,7 @@ import {
 } from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/showStore';
-import {bibleSource} from '../bible/source';
+import {bibleSource} from '@core/bible/source';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
 import {
   ShowingTab,

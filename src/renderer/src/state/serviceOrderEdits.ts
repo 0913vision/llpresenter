@@ -13,7 +13,7 @@ import {
   type Service,
   type ServiceItem,
 } from '@core/schema/service';
-import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
+import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {pendingWritesOf} from './pendingWrites';
 
 const HISTORY_LIMIT = 100;

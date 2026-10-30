@@ -3,7 +3,7 @@ import {NotificationStack} from '@renderer/ui/Notification';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {TextField} from '@renderer/ui/TextField';
-import {Section} from '@renderer/ui/gallery/Spec';
+import {Section} from '@renderer/gallery/Spec';
 import {libraryFixture} from './fixture';
 import {LibraryPanel} from './LibraryPanel';
 import type {LibraryApi, LibrarySelection} from './useLibrary';

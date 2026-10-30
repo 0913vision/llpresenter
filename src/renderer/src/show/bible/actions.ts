@@ -7,7 +7,7 @@ import {
   bibleSource,
   type BibleDisplayOptions,
   type BiblePreviewOptions,
-} from './source';
+} from '@core/bible/source';
 
 function samePassage(
   first: BibleLookupPassage,

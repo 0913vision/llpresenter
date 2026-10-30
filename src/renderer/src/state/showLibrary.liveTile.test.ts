@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {translationIdSchema} from '@core/schema/ids';
-import {bibleSource, type BibleSource} from '@renderer/show/bible/source';
+import {bibleSource, type BibleSource} from '@core/bible/source';
 import {liveTileIndex} from './showLibrary';
 import {useShow, type ShowView} from './showStore';
 

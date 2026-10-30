@@ -1,5 +1,5 @@
 import type {ClearTarget} from '@core/live/commands';
-import {hasSomethingToClear} from '@renderer/show/clear';
+import {hasSomethingToClear} from '@core/live/clear';
 import {sendLive, useLive} from './live';
 
 /** Whether a layer, or any layer for 모두, has something to clear now. */

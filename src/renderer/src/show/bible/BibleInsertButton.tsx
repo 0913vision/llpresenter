@@ -6,7 +6,7 @@ import {Button} from '@renderer/ui/Button';
 import type {Notice} from '@renderer/ui/notices';
 import {useServiceOrderEditing} from '../useServiceOrderEditing';
 import {rememberBiblePassage} from './recentWriter';
-import type {BibleSource} from './source';
+import type {BibleSource} from '@core/bible/source';
 
 function logProblem(notice: Notice): void {
   console.error('Could not insert the Bible passage', notice.key);

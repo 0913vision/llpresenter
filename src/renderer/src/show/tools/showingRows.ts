@@ -8,8 +8,8 @@ import {
 } from '@renderer/render/screenLook';
 import {stageClockText} from '@renderer/render/stageLayout';
 import {tilesOf} from '@renderer/state/show';
-import {passageBook} from '../bible/adjacentVerses';
-import type {BibleSource} from '../bible/source';
+import {passageBook} from '@core/bible/adjacentVerses';
+import type {BibleSource} from '@core/bible/source';
 import {MISSING_STILL_BACKGROUND_TIP} from '../problemReasons';
 import type {
   ShowingItem,

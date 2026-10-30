@@ -12,7 +12,7 @@ import {OutputOverflow} from './OutputOverflow';
 import {LookMenu} from './LookMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/notices';
-import type {SizeClass} from './sizeClass';
+import type {SizeClass} from '../ui/sizeClass';
 import styles from './Toolbar.module.css';
 
 export type Workspace = 'show' | 'prep' | 'screens';

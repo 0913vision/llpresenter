@@ -3,10 +3,7 @@ import {thumbnailUrl} from '@contracts/ipc/media';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {MediaItem} from '@core/schema/mediaList';
 import {mediaName} from '@renderer/show/backgroundChoices';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {MediaTile} from '@renderer/ui/MediaTile';
 import {VirtualMediaGrid} from '@renderer/prep/media/VirtualMediaGrid';
 import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';

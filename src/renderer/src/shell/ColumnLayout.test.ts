@@ -5,7 +5,11 @@ import {
   createMemoryColumnWidthStore,
   type ColumnWidthStore,
 } from './columnWidthStore';
-import {defaultColumns, type ColumnWidths, type SizeClass} from './sizeClass';
+import {
+  defaultColumns,
+  type ColumnWidths,
+  type SizeClass,
+} from '../ui/sizeClass';
 
 interface Harness {
   readonly layout: ColumnLayout;

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SizeClass} from '@renderer/shell/sizeClass';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';

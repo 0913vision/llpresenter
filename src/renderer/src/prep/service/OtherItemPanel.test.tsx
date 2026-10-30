@@ -31,7 +31,7 @@ import {
   INITIAL_ROWS,
   OVERSCAN_ROWS,
 } from '@renderer/prep/media/VirtualMediaGrid';
-import {defaultThumbnailColumns} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
 import {fixtureMedia, itemMedia} from './itemFixture';
 import {OtherItemPanel} from './OtherItemPanel';
 import {useOtherSources} from './useOtherSources';

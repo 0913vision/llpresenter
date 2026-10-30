@@ -11,10 +11,7 @@ import {
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/state/show';
 import {
   saveThumbnailScale,

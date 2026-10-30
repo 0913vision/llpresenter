@@ -7,7 +7,7 @@ import {
   useSomethingToClear,
   useClearRestores,
 } from '@renderer/state/clear';
-import {clearButtons, type ClearButtonSpec} from './clear';
+import {clearButtons, type ClearButtonSpec} from '@core/live/clear';
 import styles from './ClearRow.module.css';
 
 function ClearButton({

@@ -1,4 +1,4 @@
-import type {ServiceRow} from '@renderer/show/model';
+import type {ServiceRow} from '@core/presentation/model';
 
 /**
  * Where quick add puts an item: before the header that ends the selected

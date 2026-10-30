@@ -8,7 +8,7 @@ import {
 import {ColumnLayout} from './ColumnLayout';
 import type {ColumnDrag} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
-import type {ColumnWidths, SizeClass} from './sizeClass';
+import type {ColumnWidths, SizeClass} from '../ui/sizeClass';
 
 const LEFT_VARIABLE = '--ll-col-left';
 const RIGHT_VARIABLE = '--ll-col-right';

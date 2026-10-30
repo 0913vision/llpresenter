@@ -24,7 +24,7 @@ import {seedSampleService} from '../testing/sampleService';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {openBiblePassage, showBiblePassage} from './actions';
-import {adjacentVerseRange} from './adjacentVerses';
+import {adjacentVerseRange} from '@core/bible/adjacentVerses';
 import {panelApi} from './panelTesting';
 import {lookupRequest} from './testBible';
 import {formLookupReply} from './testing/referenceForm';

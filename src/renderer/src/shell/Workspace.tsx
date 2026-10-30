@@ -61,7 +61,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
 import {CollapsedSidebar, SidebarCollapseButton} from './SidebarToggle';
 import type {ColumnWidthStore} from './columnWidthStore';
-import type {SizeClass} from './sizeClass';
+import type {SizeClass} from '../ui/sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';

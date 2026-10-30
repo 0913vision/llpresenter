@@ -1,7 +1,7 @@
 import type {LabelColor} from '@core/labels/colors';
 import type {ShowService} from '@core/schema/showService';
 import {applyService} from '@renderer/state/show';
-import type {ItemId, ServiceRow, SlideTile} from '../model';
+import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
 
 const sampleRows: readonly ServiceRow[] = [
   {kind: 'header', id: 'before', title: '예배 전'},

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {sizeClassFor, type SizeClass} from './sizeClass';
+import {sizeClassFor, type SizeClass} from '../ui/sizeClass';
 
 /** Re-renders only when the window crosses a size class boundary. */
 export function useSizeClass(): SizeClass {
