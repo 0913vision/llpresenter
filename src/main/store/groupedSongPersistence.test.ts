@@ -76,7 +76,7 @@ function events(): ContentEvents {
 
 async function scenario(source: unknown = legacy) {
   const folder = await makeTempDir();
-  const file = join(folder, DATA_FOLDER_NAME, '곡', `${SONG_ID}.llsong`);
+  const file = join(folder, DATA_FOLDER_NAME, 'Songs', `${SONG_ID}.llsong`);
   const original = `${JSON.stringify(source, null, 2)}\n`;
   await mkdir(dirname(file), {recursive: true});
   await writeFile(file, original, 'utf8');

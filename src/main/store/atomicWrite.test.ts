@@ -38,7 +38,7 @@ describe('writeFileAtomically', () => {
 
   it('creates a missing folder', async () => {
     const folder = await makeTempDir();
-    const file = join(folder, '곡', 'song.llsong');
+    const file = join(folder, 'Songs', 'song.llsong');
 
     expect((await writeFileAtomically(file, 'text')).ok).toBe(true);
     expect(await readFile(file, 'utf8')).toBe('text');

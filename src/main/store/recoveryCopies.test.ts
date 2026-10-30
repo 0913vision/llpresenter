@@ -10,7 +10,7 @@ const START = Date.UTC(2026, 9, 25, 10, 0, 0);
 async function setUp(keep = 10) {
   const folder = await makeTempDir();
   const file = join(folder, 'song.llsong');
-  const recovery = join(folder, '.복구 사본');
+  const recovery = join(folder, '.recovery');
   let now = START;
   const copies = new RecoveryCopies({
     folder: recovery,

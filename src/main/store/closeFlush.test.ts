@@ -73,7 +73,7 @@ it.each([
     const file = join(
       folder,
       DATA_FOLDER_NAME,
-      '예배',
+      'Services',
       `${serviceId}.llservice`,
     );
     const oldMemo = 'Earlier persisted memo';

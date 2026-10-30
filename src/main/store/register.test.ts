@@ -203,7 +203,7 @@ describe('registerStore', () => {
       },
     };
     await writeJson(
-      join(root, '예배', `${SUNDAY_ID}.llservice`),
+      join(root, 'Services', `${SUNDAY_ID}.llservice`),
       service(SUNDAY_ID, '2026-11-01T11:00', [
         bibleItem,
         {
@@ -213,7 +213,7 @@ describe('registerStore', () => {
         },
       ]),
     );
-    await writeJson(join(root, '설정', 'bible.json'), {
+    await writeJson(join(root, 'Settings', 'bible.json'), {
       format: 'llsettings.bible',
       schemaVersion: 1,
       recents: [],
@@ -303,7 +303,7 @@ describe('registerStore', () => {
       title: 'Standalone editable song',
       slides: [{lines: ['Before']}],
     };
-    await writeJson(join(root, '곡', `${song.id}.llsong`), song);
+    await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
     const store = await register(fakeLog(), context, () => true);
     expect(
       await ask(Channels.libraryShowSong, {songId: song.id}),
@@ -348,10 +348,10 @@ describe('registerStore', () => {
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const mediaId = createMediaId(itemId(80));
     const songId = itemId(81);
-    const songFile = join(root, '곡', `${songId}.llsong`);
-    const mediaFile = join(root, '미디어', 'standalone.webm');
+    const songFile = join(root, 'Songs', `${songId}.llsong`);
+    const mediaFile = join(root, 'Media', 'standalone.webm');
     await writeJson(mediaFile, 'Invented media bytes');
-    await writeJson(join(root, '설정', 'media.json'), {
+    await writeJson(join(root, 'Settings', 'media.json'), {
       format: 'llmedia',
       schemaVersion: 1,
       items: [
@@ -424,9 +424,9 @@ describe('registerStore', () => {
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const mediaId = createMediaId(itemId(1));
     const songId = itemId(2);
-    const mediaFile = join(root, '미디어', 'invented.webm');
+    const mediaFile = join(root, 'Media', 'invented.webm');
     await writeJson(mediaFile, 'Invented file bytes');
-    await writeJson(join(root, '설정', 'media.json'), {
+    await writeJson(join(root, 'Settings', 'media.json'), {
       format: 'llmedia',
       schemaVersion: 1,
       items: [
@@ -441,7 +441,7 @@ describe('registerStore', () => {
       playlists: [],
       audioPlaylists: [],
     });
-    await writeJson(join(root, '곡', `${songId}.llsong`), {
+    await writeJson(join(root, 'Songs', `${songId}.llsong`), {
       format: 'llsong',
       schemaVersion: 1,
       id: songId,
@@ -449,7 +449,7 @@ describe('registerStore', () => {
       background: mediaId,
       slides: [{lines: ['Invented line']}],
     });
-    await writeJson(join(root, '예배', `${itemId(3)}.llservice`), {
+    await writeJson(join(root, 'Services', `${itemId(3)}.llservice`), {
       format: 'llservice',
       schemaVersion: 1,
       id: itemId(3),
@@ -489,7 +489,7 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const id = createMediaId(itemId(1));
-    const file = join(root, '설정', 'media.json');
+    const file = join(root, 'Settings', 'media.json');
     const value = {
       format: 'llmedia',
       schemaVersion: 1,
@@ -511,9 +511,7 @@ describe('registerStore', () => {
     const first = await register(fakeLog(), context, () => true);
     const initial = parseMediaDocument(await ask(Channels.mediaGet));
     if (!initial.ok) throw new Error(initial.error.message);
-    expect(await first.findMediaFile(id)).toBe(
-      join(root, '미디어', 'old.webm'),
-    );
+    expect(await first.findMediaFile(id)).toBe(join(root, 'Media', 'old.webm'));
     electron.send.mockClear();
     expect(
       await ask(Channels.mediaEdit, {
@@ -539,10 +537,8 @@ describe('registerStore', () => {
         })
       ).ok,
     ).toBe(true);
-    expect(await first.findMediaFile(id)).toBe(
-      join(root, '미디어', 'new.webm'),
-    );
-    expect(first.mediaRoots()).toEqual([join(root, '미디어')]);
+    expect(await first.findMediaFile(id)).toBe(join(root, 'Media', 'new.webm'));
+    expect(first.mediaRoots()).toEqual([join(root, 'Media')]);
     expect(JSON.parse(await readFile(file, 'utf8'))).toHaveProperty(
       'future',
       'kept',
@@ -566,7 +562,7 @@ describe('registerStore', () => {
   it('creates missing media data and replays one media problem while other settings stay readable', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const file = join(root, '설정', 'media.json');
+    const file = join(root, 'Settings', 'media.json');
     const first = await register(fakeLog(), context, () => true);
     expect(await ask(Channels.mediaGet)).toMatchObject({
       value: {items: [], playlists: [], audioPlaylists: []},
@@ -604,7 +600,7 @@ describe('registerStore', () => {
       future: 'kept',
     });
     for (const [index, id] of ids.entries()) {
-      await writeJson(join(root, '예배', `${id}.llservice`), {
+      await writeJson(join(root, 'Services', `${id}.llservice`), {
         format: 'llservice',
         schemaVersion: 1,
         id,
@@ -634,7 +630,7 @@ describe('registerStore', () => {
     expect(await askForService()).toMatchObject({id: secondId});
     expect(
       JSON.parse(
-        await readFile(join(root, '예배', `${firstId}.llservice`), 'utf8'),
+        await readFile(join(root, 'Services', `${firstId}.llservice`), 'utf8'),
       ),
     ).toMatchObject({name: 'Edited current service'});
     expect(JSON.parse(await readFile(appFile, 'utf8'))).toMatchObject({
@@ -661,14 +657,14 @@ describe('registerStore', () => {
     const firstId = itemId(1);
     const secondId = itemId(2);
     const appFile = join(context.appDataFolder, 'app.json');
-    const firstFile = join(root, '예배', `${firstId}.llservice`);
+    const firstFile = join(root, 'Services', `${firstId}.llservice`);
     await writeJson(appFile, {
       format: 'llapp',
       schemaVersion: 1,
       lastServiceId: firstId,
     });
     for (const [index, id] of [firstId, secondId].entries()) {
-      await writeJson(join(root, '예배', `${id}.llservice`), {
+      await writeJson(join(root, 'Services', `${id}.llservice`), {
         format: 'llservice',
         schemaVersion: 1,
         id,
@@ -719,7 +715,7 @@ describe('registerStore', () => {
   it('renames a label through settings IPC, pushes the changed songs, and retains the files across restart', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const labelFile = join(root, '설정', 'labels.json');
+    const labelFile = join(root, 'Settings', 'labels.json');
     await writeJson(labelFile, {
       format: 'llsettings.labels',
       schemaVersion: 1,
@@ -728,7 +724,7 @@ describe('registerStore', () => {
     });
     const ids = [itemId(1), itemId(2)];
     for (const [index, id] of ids.entries()) {
-      await writeJson(join(root, '곡', `${id}.llsong`), {
+      await writeJson(join(root, 'Songs', `${id}.llsong`), {
         format: 'llsong',
         schemaVersion: 1,
         id,
@@ -783,7 +779,7 @@ describe('registerStore', () => {
         song: {groups: [{name: 'After', slides: [{future: 'kept'}]}]},
       });
       expect(
-        JSON.parse(await readFile(join(root, '곡', `${id}.llsong`), 'utf8')),
+        JSON.parse(await readFile(join(root, 'Songs', `${id}.llsong`), 'utf8')),
       ).toMatchObject({groups: [{name: 'After'}]});
     }
   });
@@ -792,7 +788,7 @@ describe('registerStore', () => {
     const file = join(
       context.appDataFolder,
       DATA_FOLDER_NAME,
-      '설정',
+      'Settings',
       'messages.json',
     );
     const template = {
@@ -864,7 +860,7 @@ describe('registerStore', () => {
     const file = join(
       context.appDataFolder,
       DATA_FOLDER_NAME,
-      '설정',
+      'Settings',
       'preferences.json',
     );
     const value = {format: 'llsettings.preferences', schemaVersion: 1};
@@ -902,7 +898,7 @@ describe('registerStore', () => {
     const file = join(
       context.appDataFolder,
       DATA_FOLDER_NAME,
-      '설정',
+      'Settings',
       'messages.json',
     );
     const value = {
@@ -949,7 +945,7 @@ describe('registerStore', () => {
       const file = join(
         context.appDataFolder,
         DATA_FOLDER_NAME,
-        '설정',
+        'Settings',
         `${name}.json`,
       );
       const value: unknown = JSON.parse(await readFile(file, 'utf8'));
@@ -987,7 +983,7 @@ describe('registerStore', () => {
     const file = join(
       context.appDataFolder,
       DATA_FOLDER_NAME,
-      '설정',
+      'Settings',
       'messages.json',
     );
     const value = {
@@ -1014,7 +1010,7 @@ describe('registerStore', () => {
 
   it('emits and warns once per broken file, keeps it untouched, and still loads the others', async () => {
     const context = await developmentContext();
-    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, '설정');
+    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, 'Settings');
     await writeJson(join(folder, 'labels.json'), {format: 'wrong'});
     await writeJson(join(folder, 'looks.json'), {format: 'wrong'});
     await writeJson(join(folder, 'preferences.json'), {
@@ -1066,7 +1062,7 @@ describe('registerStore', () => {
   it('imports through IPC, keeps the overwritten recovery copy, and persists new labels', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const file = join(root, '곡', 'song.llsong');
+    const file = join(root, 'Songs', 'song.llsong');
     const original = {...hymnOne(), future: 'kept'};
     await writeJson(file, original);
     await register(fakeLog(), context);
@@ -1088,14 +1084,14 @@ describe('registerStore', () => {
       title: 'Invented import',
       future: 'kept',
     });
-    const copies = join(root, '.복구 사본', 'song', HYMN_ONE_ID);
+    const copies = join(root, '.recovery', 'song', HYMN_ONE_ID);
     const [copy] = await readdir(copies);
     if (copy === undefined) throw new Error('Missing recovery copy');
     expect(JSON.parse(await readFile(join(copies, copy), 'utf8'))).toEqual(
       original,
     );
     expect(
-      JSON.parse(await readFile(join(root, '설정', 'labels.json'), 'utf8')),
+      JSON.parse(await readFile(join(root, 'Settings', 'labels.json'), 'utf8')),
     ).toHaveProperty(
       'labels',
       expect.arrayContaining([
@@ -1103,7 +1099,9 @@ describe('registerStore', () => {
       ]),
     );
     expect(
-      (await readdir(join(root, '곡'))).filter(name => name.endsWith('.tmp')),
+      (await readdir(join(root, 'Songs'))).filter(name =>
+        name.endsWith('.tmp'),
+      ),
     ).toHaveLength(0);
     expect(
       await ask(Channels.librarySearch, {query: 'Invented import'}),
@@ -1119,7 +1117,7 @@ describe('registerStore', () => {
       slides: [{lines: ['돌아온 아침빛']}],
       arrangements: [],
     };
-    await writeJson(join(root, '곡', 'song.llsong'), original);
+    await writeJson(join(root, 'Songs', 'song.llsong'), original);
     const store = await register(fakeLog(), context, () => true);
     const initial = await ask(Channels.librarySearch, {query: '아침빛'});
     expect(parseLibrarySearchResult(initial)).toMatchObject({
@@ -1193,7 +1191,7 @@ describe('registerStore', () => {
           join(
             context.appDataFolder,
             DATA_FOLDER_NAME,
-            '설정',
+            'Settings',
             'preferences.json',
           ),
           {format: 'llsettings.preferences', schemaVersion: 1, show},
@@ -1223,7 +1221,7 @@ describe('registerStore', () => {
     const file = join(
       context.appDataFolder,
       DATA_FOLDER_NAME,
-      '설정',
+      'Settings',
       'preferences.json',
     );
     await writeJson(file, {
@@ -1252,9 +1250,9 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const mediaId = itemId(90);
-    const video = join(root, '미디어', 'background.webm');
+    const video = join(root, 'Media', 'background.webm');
     await writeJson(video, 'video');
-    await writeJson(join(root, '설정', 'media.json'), {
+    await writeJson(join(root, 'Settings', 'media.json'), {
       format: 'llmedia',
       schemaVersion: 1,
       items: [
@@ -1269,12 +1267,12 @@ describe('registerStore', () => {
       playlists: [],
       audioPlaylists: [],
     });
-    await writeJson(join(root, '곡', 'song.llsong'), {
+    await writeJson(join(root, 'Songs', 'song.llsong'), {
       ...hymnOne(),
       background: mediaId,
     });
     await writeJson(
-      join(root, '예배', 'open.llservice'),
+      join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
@@ -1307,10 +1305,10 @@ describe('registerStore', () => {
   it('pushes edited song tiles without a live-state push and flushes before disposal', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const file = join(root, '곡', 'original-name.llsong');
+    const file = join(root, 'Songs', 'original-name.llsong');
     await writeJson(file, {...hymnOne(), future: {enabled: true}});
     await writeJson(
-      join(root, '예배', 'open.llservice'),
+      join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
@@ -1442,9 +1440,9 @@ describe('registerStore', () => {
   it('answers service:get with the open 예배 순서 at its first revision', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    await writeJson(join(root, '곡', 'a.llsong'), hymnOne());
+    await writeJson(join(root, 'Songs', 'a.llsong'), hymnOne());
     await writeJson(
-      join(root, '예배', 'a.llservice'),
+      join(root, 'Services', 'a.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
@@ -1502,8 +1500,8 @@ describe('registerStore', () => {
   it('lists and pushes the files skipped at startup, settings and content, once each', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    await writeJson(join(root, '곡', 'broken.llsong'), '{"format": ');
-    await writeJson(join(root, '설정', 'looks.json'), '{broken looks');
+    await writeJson(join(root, 'Songs', 'broken.llsong'), '{"format": ');
+    await writeJson(join(root, 'Settings', 'looks.json'), '{broken looks');
     const sources: Array<() => readonly AppProblem[]> = [];
     const push = vi.fn<(problem: AppProblem) => void>();
     const store = registerStore({
@@ -1553,7 +1551,7 @@ describe('registerStore', () => {
 
   it('logs at most 50 problems and counts the rest', async () => {
     const context = await developmentContext();
-    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, '곡');
+    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, 'Songs');
     await Promise.all(
       Array.from({length: 52}, (_value, index) =>
         writeJson(join(songs, `${index}.llsong`), '{"format": '),
@@ -1596,7 +1594,7 @@ describe('registerStore', () => {
     await dispose();
 
     const backups = await readdir(
-      join(context.appDataFolder, 'LoveLight 백업'),
+      join(context.appDataFolder, 'LoveLightBackups'),
     );
     expect(backups).toHaveLength(1);
     expect(log.info.mock.calls.map(([message]) => message)).toContain(
@@ -1608,7 +1606,7 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const mediaId = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-    await writeJson(join(root, '설정', 'media.json'), {
+    await writeJson(join(root, 'Settings', 'media.json'), {
       format: 'llmedia',
       schemaVersion: 1,
       items: [
@@ -1620,15 +1618,15 @@ describe('registerStore', () => {
     const store = await register(fakeLog(), context, () => true);
 
     expect(await store.findMediaFile(mediaId)).toBe(
-      join(root, '미디어', '빛.mp4'),
+      join(root, 'Media', '빛.mp4'),
     );
     expect(await store.findMediaFile('unknown')).toBeNull();
-    expect(store.mediaRoots()).toEqual([join(root, '미디어')]);
+    expect(store.mediaRoots()).toEqual([join(root, 'Media')]);
   });
 
   it('removes temporary files that a cut-off write left, before the backup', async () => {
     const context = await developmentContext();
-    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, '곡');
+    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, 'Songs');
     const leftover = join(
       songs,
       '.a.llsong.3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293.tmp',
@@ -1642,11 +1640,11 @@ describe('registerStore', () => {
 
     expect(await readdir(songs)).toEqual([]);
     const [backup = ''] = await readdir(
-      join(context.appDataFolder, 'LoveLight 백업'),
+      join(context.appDataFolder, 'LoveLightBackups'),
     );
     expect(
       await readdir(
-        join(context.appDataFolder, 'LoveLight 백업', backup, '곡'),
+        join(context.appDataFolder, 'LoveLightBackups', backup, 'Songs'),
       ),
     ).toEqual([]);
   });

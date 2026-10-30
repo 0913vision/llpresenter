@@ -86,7 +86,7 @@ describe('removeStaleTempFiles', () => {
 
   it('reports a folder it cannot read', async () => {
     const folder = await makeTempDir();
-    const notAFolder = join(folder, '곡');
+    const notAFolder = join(folder, 'Songs');
     await writeJson(notAFolder, 'a file where the folder should be');
 
     expect(await removeStaleTempFiles(notAFolder, NOW)).toEqual([
@@ -97,6 +97,6 @@ describe('removeStaleTempFiles', () => {
   it('finds nothing in a folder that does not exist yet', async () => {
     const folder = await makeTempDir();
 
-    expect(await removeStaleTempFiles(join(folder, '곡'), NOW)).toEqual([]);
+    expect(await removeStaleTempFiles(join(folder, 'Songs'), NOW)).toEqual([]);
   });
 });

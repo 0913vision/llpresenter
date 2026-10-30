@@ -13,7 +13,7 @@ import {
 
 const PARTIAL_SUFFIX = '.partial';
 const KEEP_LIMITS = {min: 1, max: 365} as const;
-const BACKUP_NAME = /^(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2})$/;
+const BACKUP_NAME = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$/;
 
 /** A finished backup, and the old backups it couldn't delete. */
 export interface BackupDone {
@@ -167,7 +167,7 @@ export async function lastBackupTime(
 export function backupFolderName(time: Date): string {
   const date = [time.getFullYear(), time.getMonth() + 1, time.getDate()];
   const clock = [time.getHours(), time.getMinutes(), time.getSeconds()];
-  return `${date.map(twoDigits).join('-')} ${clock.map(twoDigits).join('')}`;
+  return `${date.map(twoDigits).join('-')}_${clock.map(twoDigits).join('')}`;
 }
 
 // NOTE(0913vision): The staging folder is created, never taken over, so a file

@@ -10,7 +10,7 @@ import {
 } from './song';
 import {expectFailure, expectSuccess, TestRandom} from './testHelpers';
 
-const FILE = '곡/6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab.llsong';
+const FILE = 'Songs/6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab.llsong';
 const RANDOM_SONGS = 200;
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';

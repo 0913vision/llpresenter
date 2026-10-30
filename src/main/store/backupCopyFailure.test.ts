@@ -37,7 +37,7 @@ describe('runBackup when a copy fails halfway', () => {
       {documents: join(folder, 'unused'), developmentFolder: folder},
     );
     await writeJson(join(locations.songs, 'a.llsong'), {title: 'a'});
-    const older = '2026-10-24 210000';
+    const older = '2026-10-24_210000';
     await mkdir(join(locations.backups, older), {recursive: true});
     copyFailures.codes = ['ENOENT'];
 

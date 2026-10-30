@@ -23,7 +23,7 @@ describe('Saver', () => {
     const folder = await makeTempDir();
     const file = join(folder, 'song.llsong');
     await writeFile(file, 'version 1');
-    const recovery = join(folder, '.복구 사본');
+    const recovery = join(folder, '.recovery');
     const saver = new Saver({
       copies: new RecoveryCopies({folder: recovery, keep: () => 10}),
       reportCopyProblem: vi.fn(),

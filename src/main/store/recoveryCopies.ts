@@ -19,7 +19,7 @@ export interface RecoveryTarget {
 }
 
 export interface RecoveryCopiesOptions {
-  /** The `.복구 사본` folder of the data folder. */
+  /** The `.recovery` folder of the data folder. */
   readonly folder: string;
   /** How many copies to keep per file: 환경설정 복구 사본, 10 by default. */
   readonly keep: () => number;
@@ -28,7 +28,7 @@ export interface RecoveryCopiesOptions {
 
 /**
  * Keeps the previous version of a file before it is overwritten, as
- * `.복구 사본/<kind>/<id>/<time>.json`. It keeps at most one copy of the same
+ * `.recovery/<kind>/<id>/<time>.json`. It keeps at most one copy of the same
  * file every 5 minutes, so typing doesn't make a copy per keystroke, and
  * deletes the oldest copies past the count to keep.
  */

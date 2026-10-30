@@ -8,7 +8,7 @@ import {
 } from './skippedFiles';
 
 const LOOKS = 'D:/data/settings/looks.json';
-const SONG = 'D:/data/곡/a1.llsong';
+const SONG = 'D:/data/Songs/a1.llsong';
 
 function settingsFeed() {
   const listeners = new Set<(skipped: SkippedFile) => void>();
@@ -52,7 +52,7 @@ describe('SkippedFiles', () => {
     const log = recordingLogger();
     const skipped = new SkippedFiles(log);
     for (let index = 0; index < APP_PROBLEM_LIMITS.listed + 3; index += 1) {
-      skipped.addSkippedFile(`D:/data/곡/${index}.llsong`);
+      skipped.addSkippedFile(`D:/data/Songs/${index}.llsong`);
     }
     expect(skipped.list()).toHaveLength(APP_PROBLEM_LIMITS.listed);
     expect(log.messages('warn')).toEqual([

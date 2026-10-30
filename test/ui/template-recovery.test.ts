@@ -15,8 +15,8 @@ it(
   async () => {
     const app = await offscreenApp();
     const root = join(app.data, 'LoveLight');
-    await mkdir(join(root, '곡'), {recursive: true});
-    await mkdir(join(root, '예배'), {recursive: true});
+    await mkdir(join(root, 'Songs'), {recursive: true});
+    await mkdir(join(root, 'Services'), {recursive: true});
     await writeFile(
       join(app.data, 'app.json'),
       JSON.stringify({
@@ -27,7 +27,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '곡', `${SONG}.llsong`),
+      join(root, 'Songs', `${SONG}.llsong`),
       JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
@@ -38,7 +38,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '예배', `${SERVICE}.llservice`),
+      join(root, 'Services', `${SERVICE}.llservice`),
       JSON.stringify({
         format: 'llservice',
         schemaVersion: 1,

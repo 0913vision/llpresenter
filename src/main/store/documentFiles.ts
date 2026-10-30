@@ -16,7 +16,7 @@ export interface DocumentFilesOptions {
 /**
  * Saves documents through the saver, which keeps a recovery copy and writes
  * atomically, and deletes them after keeping a last recovery copy, so a
- * deleted song can still be found in `.복구 사본`. A failed copy keeps the
+ * deleted song can still be found in `.recovery`. A failed copy keeps the
  * original and returns a failure for retry. Never throws.
  */
 export function documentFiles({

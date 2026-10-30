@@ -151,7 +151,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
 
   it('still uses the location fields of a broken file', async () => {
     const file = await appJson();
-    const songs = join(file, '..', '곡');
+    const songs = join(file, '..', 'Songs');
     await writeJson(file, {
       format: 'llapp',
       schemaVersion: 1,

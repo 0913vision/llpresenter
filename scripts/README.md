@@ -145,8 +145,8 @@ that lists it in the new `LLP_USER_DATA` folder:
   loop point. `scripts/soak/webm.mts` wraps the frames in a 10-second WebM with
   its duration, which MediaRecorder leaves out. The maker then plays and seeks
   the file in Chromium before it reports the clip.
-- `LoveLight/미디어/soak-loop.webm` holds the clip, and
-  `LoveLight/설정/media.json` lists it with `end: loop` and `fit: fill`.
+- `LoveLight/Media/soak-loop.webm` holds the clip, and
+  `LoveLight/Settings/media.json` lists it with `end: loop` and `fit: fill`.
 
 The runner then starts Electron with these environment variables. In the app,
 `registerSoakRecorder` (`src/main/soak/`) samples `app.getAppMetrics()` and each

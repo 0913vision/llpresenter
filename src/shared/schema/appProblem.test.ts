@@ -133,7 +133,7 @@ describe('app problem payloads', () => {
 
 describe('fileSkippedProblem', () => {
   it.each([
-    ['D:\\예배 데이터\\곡\\a1.llsong', 'a1.llsong'],
+    ['D:\\예배 데이터\\Songs\\a1.llsong', 'a1.llsong'],
     ['/data/settings/screens.json', 'screens.json'],
     ['looks.json', 'looks.json'],
   ])('names %s by its file name %s', (file, name) => {

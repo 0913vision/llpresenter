@@ -15,7 +15,7 @@ it(
   async () => {
     const app = await offscreenApp();
     const root = join(app.data, 'LoveLight');
-    for (const folder of ['곡', '예배', '설정']) {
+    for (const folder of ['Songs', 'Services', 'Settings']) {
       await mkdir(join(root, folder), {recursive: true});
     }
     await writeFile(
@@ -28,7 +28,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '곡', `${SONG}.llsong`),
+      join(root, 'Songs', `${SONG}.llsong`),
       JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
@@ -39,7 +39,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '예배', `${SERVICE}.llservice`),
+      join(root, 'Services', `${SERVICE}.llservice`),
       JSON.stringify({
         format: 'llservice',
         schemaVersion: 1,
@@ -51,7 +51,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '설정', 'macros.json'),
+      join(root, 'Settings', 'macros.json'),
       JSON.stringify({
         format: 'llsettings.macros',
         schemaVersion: 1,
@@ -69,7 +69,7 @@ it(
       'utf8',
     );
     await writeFile(
-      join(root, '설정', 'preferences.json'),
+      join(root, 'Settings', 'preferences.json'),
       JSON.stringify({
         format: 'llsettings.preferences',
         schemaVersion: 1,

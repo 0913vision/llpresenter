@@ -1292,7 +1292,7 @@ describe('preload', () => {
         reason: 'write-failed',
         message: 'disk full',
         applied: {id: SONG_ID, revision: 1},
-        unchangedFiles: ['D:/LoveLight/곡/a.llsong'],
+        unchangedFiles: ['D:/LoveLight/Songs/a.llsong'],
       },
     };
     electron.invoke.mockResolvedValueOnce(answer);

@@ -294,7 +294,7 @@ describe('parseEditResult', () => {
           reason: 'write-failed',
           message: 'disk full',
           applied: {id: SONG_ID, revision: 2},
-          unchangedFiles: ['D:\\LoveLight\\예배\\a.llservice'],
+          unchangedFiles: ['D:\\LoveLight\\Services\\a.llservice'],
         },
       },
       {ok: false, error: {reason: 'stale', message: 'revision 3, not 2'}},

@@ -41,8 +41,8 @@ export function silentSoakAudio(): Buffer {
 }
 const CLIP_NAME = '소크 시험 배경';
 const DATA_FOLDER = 'LoveLight';
-const MEDIA_FOLDER = '미디어';
-const SETTINGS_FOLDER = '설정';
+const MEDIA_FOLDER = 'Media';
+const SETTINGS_FOLDER = 'Settings';
 const MEDIA_LIST_FILE = 'media.json';
 const CLIP_MAKER_DATA = '.clip-maker';
 const CLIP_MAKER_MAIN = join(import.meta.dirname, 'clip', 'main.mts');

@@ -79,7 +79,7 @@ afterEach(async () => {
 it('shows the files skipped before the window loaded as one card', async () => {
   setup([
     fileSkippedProblem(1, 'D:/data/settings/looks.json'),
-    fileSkippedProblem(2, 'D:/data/곡/a1.llsong'),
+    fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'),
   ]);
   const card = await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
   expect(within(card).getByText('looks.json 외 1개')).toBeDefined();
@@ -91,7 +91,7 @@ it('counts a file that arrives by push and by the list only once', async () => {
   await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
   push(fileSkippedProblem(1, 'D:/data/settings/looks.json'));
   expect(within(skippedCard()).getByText('looks.json')).toBeDefined();
-  push(fileSkippedProblem(2, 'D:/data/곡/a1.llsong'));
+  push(fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'));
   expect(within(skippedCard()).getByText('looks.json 외 1개')).toBeDefined();
   expect(screen.getAllByRole('alert')).toHaveLength(1);
 });
@@ -99,7 +99,7 @@ it('counts a file that arrives by push and by the list only once', async () => {
 it('counts at most the listed limit of skipped files', () => {
   const {push} = setup();
   for (let index = 0; index < APP_PROBLEM_LIMITS.listed + 5; index += 1) {
-    push(fileSkippedProblem(index + 1, `D:/data/곡/${index}.llsong`));
+    push(fileSkippedProblem(index + 1, `D:/data/Songs/${index}.llsong`));
   }
   expect(
     within(skippedCard()).getByText(
@@ -110,16 +110,16 @@ it('counts at most the listed limit of skipped files', () => {
 
 it('counts two skipped files that share a file name as two', () => {
   const {push} = setup();
-  push(fileSkippedProblem(1, 'D:/data/곡/a1.llsong'));
-  push(fileSkippedProblem(2, 'D:/backup/곡/a1.llsong'));
+  push(fileSkippedProblem(1, 'D:/data/Songs/a1.llsong'));
+  push(fileSkippedProblem(2, 'D:/backup/Songs/a1.llsong'));
   expect(within(skippedCard()).getByText('a1.llsong 외 1개')).toBeDefined();
 });
 
 it('counts two skipped files whose long names clip to the same text as two', () => {
   const {push} = setup();
   const stem = '가'.repeat(APP_PROBLEM_LIMITS.nameCharacters);
-  push(fileSkippedProblem(1, `D:/data/곡/${stem}1.llsong`));
-  push(fileSkippedProblem(2, `D:/data/곡/${stem}2.llsong`));
+  push(fileSkippedProblem(1, `D:/data/Songs/${stem}1.llsong`));
+  push(fileSkippedProblem(2, `D:/data/Songs/${stem}2.llsong`));
   expect(within(skippedCard()).getByText(`${stem} 외 1개`)).toBeDefined();
 });
 

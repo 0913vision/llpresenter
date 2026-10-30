@@ -13,8 +13,8 @@ import {resolveLocations, type DataLocations} from './locations';
 import {writeJson} from './testFiles';
 
 const NOW = new Date(2026, 9, 25, 7, 58, 0);
-const NOW_NAME = '2026-10-25 075800';
-const YESTERDAY_NAME = '2026-10-24 210000';
+const NOW_NAME = '2026-10-25_075800';
+const YESTERDAY_NAME = '2026-10-24_210000';
 
 async function dataLocations(): Promise<DataLocations> {
   const folder = await makeTempDir();
@@ -59,7 +59,7 @@ describe('backupFolderName', () => {
   it('names a backup after the local time', () => {
     expect(backupFolderName(NOW)).toBe(NOW_NAME);
     expect(backupFolderName(new Date(2027, 0, 2, 3, 4, 5))).toBe(
-      '2027-01-02 030405',
+      '2027-01-02_030405',
     );
   });
 });
@@ -77,8 +77,12 @@ describe('runBackup', () => {
 
     const folder = join(locations.backups, NOW_NAME);
     expect(backup).toEqual({ok: true, value: {folder, problems: []}});
-    expect((await readdir(folder)).sort()).toEqual(['곡', '설정', '예배']);
-    expect(await readFile(join(folder, '곡', 'a.llsong'), 'utf8')).toBe(
+    expect((await readdir(folder)).sort()).toEqual([
+      'Services',
+      'Settings',
+      'Songs',
+    ]);
+    expect(await readFile(join(folder, 'Songs', 'a.llsong'), 'utf8')).toBe(
       '{"title":"a"}',
     );
     expect(await backupNames(locations)).toEqual([NOW_NAME]);
@@ -86,15 +90,15 @@ describe('runBackup', () => {
 
   it('keeps the newest backups and removes cut-off ones, and nothing else', async () => {
     const locations = await dataLocations();
-    const older = ['2026-10-20 070000', '2026-10-21 070000'];
-    for (const name of [...older, '2026-10-22 070000.partial', '내 백업']) {
+    const older = ['2026-10-20_070000', '2026-10-21_070000'];
+    for (const name of [...older, '2026-10-22_070000.partial', '내 백업']) {
       await mkdir(join(locations.backups, name), {recursive: true});
     }
 
     await backUp(locations, 2);
 
     expect(await backupNames(locations)).toEqual([
-      '2026-10-21 070000',
+      '2026-10-21_070000',
       NOW_NAME,
       '내 백업',
     ]);
@@ -104,23 +108,23 @@ describe('runBackup', () => {
     const locations = await dataLocations();
     const elsewhere = await makeTempDir();
     await writeJson(join(elsewhere, 'keep.txt'), 'not a backup');
-    const link = join(locations.backups, '2026-10-03 070000');
-    await mkdir(join(locations.backups, '2026-13-40 250000'), {
+    const link = join(locations.backups, '2026-10-03_070000');
+    await mkdir(join(locations.backups, '2026-13-40_250000'), {
       recursive: true,
     });
-    await writeJson(join(locations.backups, '2026-10-01 070000'), 'a file');
-    await writeJson(join(locations.backups, '2026-10-02 070000.partial'), 'x');
+    await writeJson(join(locations.backups, '2026-10-01_070000'), 'a file');
+    await writeJson(join(locations.backups, '2026-10-02_070000.partial'), 'x');
     await symlink(elsewhere, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
 
     await backUp(locations, 1);
 
     expect(await backupNames(locations)).toEqual([
-      '2026-10-01 070000',
-      '2026-10-02 070000.partial',
-      '2026-10-03 070000',
+      '2026-10-01_070000',
+      '2026-10-02_070000.partial',
+      '2026-10-03_070000',
       NOW_NAME,
-      '2026-13-40 250000',
+      '2026-13-40_250000',
     ]);
     expect(await readdir(elsewhere)).toEqual(['keep.txt']);
   });
@@ -140,7 +144,7 @@ describe('runBackup', () => {
     await backUp(locations, 30);
     await rm(original, {recursive: true, force: true});
 
-    const copy = join(locations.backups, NOW_NAME, '곡', 'a.llsong');
+    const copy = join(locations.backups, NOW_NAME, 'Songs', 'a.llsong');
     expect(await readFile(copy, 'utf8')).toBe('{"title":"a"}');
   });
 
@@ -182,7 +186,7 @@ describe('runBackup', () => {
     const copy = join(
       locations.backups,
       NOW_NAME,
-      '곡',
+      'Songs',
       'linked',
       'real.llsong',
     );
@@ -224,7 +228,7 @@ describe('runBackup', () => {
 
     await backUp(locations);
 
-    expect(await readdir(join(locations.backups, NOW_NAME, '곡'))).toEqual([
+    expect(await readdir(join(locations.backups, NOW_NAME, 'Songs'))).toEqual([
       'a.llsong',
     ]);
     expect((await readdir(locations.songs)).sort()).toEqual(
@@ -280,8 +284,8 @@ describe('lastBackupTime', () => {
 
   it('counts only folders with a valid time as backups', async () => {
     const locations = await dataLocations();
-    await writeJson(join(locations.backups, '2026-10-25 060000'), 'a file');
-    await mkdir(join(locations.backups, '2026-02-30 060000'), {
+    await writeJson(join(locations.backups, '2026-10-25_060000'), 'a file');
+    await mkdir(join(locations.backups, '2026-02-30_060000'), {
       recursive: true,
     });
 
@@ -314,7 +318,7 @@ describe('Backups', () => {
 
   it('backs up once a day at launch', async () => {
     const locations = await dataLocations();
-    await mkdir(join(locations.backups, '2026-10-25 060000'), {
+    await mkdir(join(locations.backups, '2026-10-25_060000'), {
       recursive: true,
     });
 
@@ -348,7 +352,7 @@ describe('Backups', () => {
       reason: 'output-on',
     });
     expect(await readdir(join(locations.backups, '..'))).not.toContain(
-      'LoveLight 백업',
+      'LoveLightBackups',
     );
   });
 

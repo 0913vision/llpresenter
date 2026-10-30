@@ -21,16 +21,19 @@ export const DATA_FOLDER_NAME = 'LoveLight';
  * The name of the backup folder next to the data folder, outside it, so the
  * backups survive when the data folder is lost or damaged.
  */
-export const BACKUP_FOLDER_NAME = 'LoveLight 백업';
+export const BACKUP_FOLDER_NAME = 'LoveLightBackups';
 
+// NOTE(0913vision): Names on disk are ASCII with no spaces, so zip, backup,
+// and sync tools and the command line handle them; the UI shows Korean words
+// (user decision, October 30).
 /** The folders inside the data folder. A backup keeps the same names. */
 export const FOLDER_NAMES = {
-  songs: '곡',
-  media: '미디어',
-  services: '예배',
-  templates: '템플릿',
-  settings: '설정',
-  recovery: '.복구 사본',
+  songs: 'Songs',
+  media: 'Media',
+  services: 'Services',
+  templates: 'Templates',
+  settings: 'Settings',
+  recovery: '.recovery',
 } as const;
 
 const BYTE_ORDER_MARK = /^\uFEFF/;

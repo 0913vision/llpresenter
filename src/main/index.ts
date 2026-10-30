@@ -36,7 +36,11 @@ import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
 import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
-import {applyUserDataOverride, type UserDataProblem} from './userData';
+import {
+  applyUserDataOverride,
+  defaultUserDataPath,
+  type UserDataProblem,
+} from './userData';
 import {createControlWindow} from './windows/control';
 import {registerAudioOutput} from './windows/audio';
 import {registerControlClose} from './windows/controlClose';
@@ -51,6 +55,7 @@ const THUMBNAIL_FOLDER = join('cache', 'thumbnails');
 const userDataProblem = applyUserDataOverride(
   process.env['LLP_USER_DATA'],
   path => app.setPath('userData', path),
+  defaultUserDataPath(app.getPath('appData')),
 );
 
 registerMediaScheme();

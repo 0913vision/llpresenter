@@ -10,7 +10,7 @@ it(
   {timeout: 240_000},
   async () => {
     const app = await offscreenApp();
-    const settings = join(app.data, 'LoveLight', '설정');
+    const settings = join(app.data, 'LoveLight', 'Settings');
     await mkdir(settings, {recursive: true});
     await writeFile(
       join(settings, 'messages.json'),

@@ -10,7 +10,7 @@ import {makeTempDir} from '../../../test/temp-dir';
 
 const MEDIA = resolve('/data/LoveLight/미디어');
 const ELSEWHERE = resolve('/Volumes/영상/배경');
-const LIST_FILE = resolve('/data/LoveLight/설정/media.json');
+const LIST_FILE = resolve('/data/LoveLight/Settings/media.json');
 
 const WARM = v.parse(mediaIdSchema, itemId(1));
 const LIGHT = v.parse(mediaIdSchema, itemId(2));
@@ -102,7 +102,7 @@ describe('buildMediaLibrary', () => {
 
   it('refuses a relative path that leaves the media folder', () => {
     const {library, problems} = build([
-      item(ESCAPE, join('..', '설정', 'app.json')),
+      item(ESCAPE, join('..', 'Settings', 'app.json')),
     ]);
 
     expect(library.fileOf(ESCAPE)).toBeNull();

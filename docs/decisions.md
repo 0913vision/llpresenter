@@ -641,3 +641,16 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - The data folder `틀` becomes `템플릿` now, without a migration, because no
   installation keeps data yet. The glossary, specs, and component docs use the
   new word; past entries in this file keep the old one.
+
+## 2026-10-30: Folder names on disk are ASCII
+
+- The data folders are Songs, Media, Services, Templates, Settings, and
+  .recovery; the backup folder is LoveLightBackups; the app data folder is
+  %APPDATA%\LoveLightPresenter; each backup is named `YYYY-MM-DD_HHmmss`. Korean
+  names and spaces in paths break old zip and backup tools, Mac and cloud sync
+  (which can split Hangul into letters), and typed paths in remote support (user
+  decision: "당연히 영어로 해야지", "백업 폴더도 왜 공백이 있어"). The UI keeps
+  the Korean words.
+- No migration: no installation keeps data yet. This replaces the Korean folder
+  names that 02-data proposed on 2026-10-25 and the 템플릿 folder name from
+  earlier the same day.

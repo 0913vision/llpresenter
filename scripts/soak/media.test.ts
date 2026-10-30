@@ -90,7 +90,7 @@ describe('soakMediaList', () => {
 });
 
 describe('prepareSoakMedia', () => {
-  it('makes the clip in the media folder and lists it in 설정/media.json', async () => {
+  it('makes the clip in the media folder and lists it in Settings/media.json', async () => {
     const userData = await makeTempDir();
     const made: string[] = [];
     const mediaId = await prepareSoakMedia(userData, async file => {
@@ -98,11 +98,11 @@ describe('prepareSoakMedia', () => {
       await writeFile(file, 'clip');
       return {...CLIP, file};
     });
-    const clipPath = join(userData, 'LoveLight', '미디어', 'soak-loop.webm');
+    const clipPath = join(userData, 'LoveLight', 'Media', 'soak-loop.webm');
     expect(made).toEqual([clipPath]);
     expect(await readFile(clipPath, 'utf8')).toBe('clip');
     const listText = await readFile(
-      join(userData, 'LoveLight', '설정', 'media.json'),
+      join(userData, 'LoveLight', 'Settings', 'media.json'),
       'utf8',
     );
     expect(parseMediaList(listText, 'media.json').ok).toBe(true);

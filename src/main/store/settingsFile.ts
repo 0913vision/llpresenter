@@ -16,7 +16,7 @@ const DEFAULTS_FALLBACK = 'running with the defaults';
 /** Where an app-wide settings file and its recovery copies are. */
 export interface SettingsLocation {
   readonly file: string;
-  /** The file's folder in `.복구 사본`. */
+  /** The file's folder in `.recovery`. */
   readonly copies: string;
 }
 
@@ -39,7 +39,7 @@ export function settingsFileName(area: string): string {
 
 /**
  * Where the settings file of an area is, such as `labels` for
- * `설정/labels.json`, with its copies in `.복구 사본/settings/labels`.
+ * `Settings/labels.json`, with its copies in `.recovery/settings/labels`.
  */
 export function settingsLocation(
   locations: DataLocations,

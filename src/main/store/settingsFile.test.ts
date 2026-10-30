@@ -26,8 +26,8 @@ function labelsFile(name: string, key: string | null = null) {
 async function tempLocation(): Promise<SettingsLocation> {
   const folder = await makeTempDir();
   return {
-    file: join(folder, '설정', 'labels.json'),
-    copies: join(folder, '.복구 사본', 'settings', 'labels'),
+    file: join(folder, 'Settings', 'labels.json'),
+    copies: join(folder, '.recovery', 'settings', 'labels'),
   };
 }
 
@@ -37,7 +37,7 @@ async function namesIn(location: SettingsLocation) {
 }
 
 describe('settingsLocation', () => {
-  it('puts the file in 설정 and its copies under settings in .복구 사본', () => {
+  it('puts the file in 설정 and its copies under settings in .recovery', () => {
     const {locations} = resolveLocations(
       {},
       {documents: join('C:', 'Docs'), developmentFolder: null},

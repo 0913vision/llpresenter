@@ -13,7 +13,7 @@ import {
 } from './service';
 import {expectFailure, expectSuccess, TestRandom} from './testHelpers';
 
-const FILE = '예배/a41e0c52-7e1f-4a2b-8c3d-4e5f60718293.llservice';
+const FILE = 'Services/a41e0c52-7e1f-4a2b-8c3d-4e5f60718293.llservice';
 const RANDOM_SERVICES = 200;
 const SERVICE_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
@@ -136,7 +136,7 @@ describe('parseService', () => {
     ['a slot without a title', {id: itemId(1), slot: 'song'}, 'order.0.title'],
     [
       'a song item with a song path',
-      {id: itemId(1), song: '곡/a.llsong'},
+      {id: itemId(1), song: 'Songs/a.llsong'},
       'order.0.song',
     ],
     [

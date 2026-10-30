@@ -1,19 +1,28 @@
 import {describe, expect, it, vi} from 'vitest';
-import {applyUserDataOverride} from './userData';
+import {applyUserDataOverride, defaultUserDataPath} from './userData';
 
 const ABSOLUTE = process.platform === 'win32' ? 'C:\\data\\qa' : '/data/qa';
+const DEFAULT = defaultUserDataPath(ABSOLUTE);
+
+describe('defaultUserDataPath', () => {
+  it('names the app data folder without spaces or non-ASCII letters', () => {
+    const folder = defaultUserDataPath(ABSOLUTE);
+    expect(folder.startsWith(ABSOLUTE)).toBe(true);
+    expect(folder.slice(ABSOLUTE.length + 1)).toMatch(/^[A-Za-z]+$/);
+  });
+});
 
 describe('applyUserDataOverride', () => {
-  it('keeps the default folder when the value is unset or empty', () => {
+  it('uses the default folder when the value is unset or empty', () => {
     const setPath = vi.fn();
-    expect(applyUserDataOverride(undefined, setPath)).toBeNull();
-    expect(applyUserDataOverride('', setPath)).toBeNull();
-    expect(setPath).not.toHaveBeenCalled();
+    expect(applyUserDataOverride(undefined, setPath, DEFAULT)).toBeNull();
+    expect(applyUserDataOverride('', setPath, DEFAULT)).toBeNull();
+    expect(setPath.mock.calls).toEqual([[DEFAULT], [DEFAULT]]);
   });
 
   it('moves the folder to an absolute path', () => {
     const setPath = vi.fn();
-    expect(applyUserDataOverride(ABSOLUTE, setPath)).toBeNull();
+    expect(applyUserDataOverride(ABSOLUTE, setPath, DEFAULT)).toBeNull();
     expect(setPath).toHaveBeenCalledWith(ABSOLUTE);
   });
 
@@ -21,7 +30,7 @@ describe('applyUserDataOverride', () => {
     'reports %s as not absolute without moving the folder',
     value => {
       const setPath = vi.fn();
-      expect(applyUserDataOverride(value, setPath)).toEqual({
+      expect(applyUserDataOverride(value, setPath, DEFAULT)).toEqual({
         value,
         reason: 'the path is not absolute',
       });
@@ -33,7 +42,7 @@ describe('applyUserDataOverride', () => {
     const setPath = vi.fn(() => {
       throw new Error('Failed to set path');
     });
-    expect(applyUserDataOverride(ABSOLUTE, setPath)).toEqual({
+    expect(applyUserDataOverride(ABSOLUTE, setPath, DEFAULT)).toEqual({
       value: ABSOLUTE,
       reason: 'Failed to set path',
     });

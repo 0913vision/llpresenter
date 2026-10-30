@@ -30,14 +30,14 @@ Keep data that only makes sense on this computer in the app data folder.
 
 ```
 Documents\LoveLight\                 data folder (default)
-  곡\<song ID>.llsong                 location can change in 환경설정 > 라이브러리 > 위치 > 곡
-  미디어\                             imported media files; location can change in 환경설정 > 라이브러리 > 위치 > 미디어
-  예배\<service ID>.llservice
-  템플릿\<template ID>.llservice
-  설정\                               app-wide settings and the media list
-  .복구 사본\                         previous versions of each file
+  Songs\<song ID>.llsong              location can change in 환경설정 > 라이브러리 > 위치 > 곡
+  Media\                              imported media files; location can change in 환경설정 > 라이브러리 > 위치 > 미디어
+  Services\<service ID>.llservice
+  Templates\<template ID>.llservice
+  Settings\                           app-wide settings and the media list
+  .recovery\                          previous versions of each file
 
-%APPDATA%\LoveLight Presenter\       app data folder
+%APPDATA%\LoveLightPresenter\        app data folder
   app.json                           data folder, song, media, and backup locations, window layout
   recovery\live.json                 recovery record
   recovery\session.lock              clean-exit marker
@@ -46,6 +46,10 @@ Documents\LoveLight\                 data folder (default)
   logs\                              log files
 ```
 
+- Name every folder and file that the app creates in ASCII with no spaces
+  (Songs, Templates, LoveLightBackups), so zip, backup, and sync tools and the
+  command line handle them. The UI shows the Korean words (user decision,
+  October 30). Media files keep the names the operator gave them.
 - Name each file by its ID. Then a title change or a duplicate title never
   changes a file name (proposal).
 - If `LLP_USER_DATA` is set for development, put both the app data folder and
@@ -314,7 +318,7 @@ It replaces the slot behavior in the earlier service samples and draft boards.
 ## Templates
 
 - A 템플릿 uses the service file format (`format: "llservice"`). Store it in the
-  `템플릿\` folder of the data folder (proposal).
+  `Templates\` folder of the data folder (proposal).
 - A 템플릿 has no `date`. It can have a `time` (`HH:mm`) that sets the default
   time of a new service (proposal).
 - A 템플릿 holds empty sections where content will be added later. Empty
@@ -332,22 +336,22 @@ Source: `Main` service notes (same file format), `NewService`, and the
 Split the app-wide settings into one JSON file per area (proposal). If one file
 breaks, the other areas still work. File names and `format` values (proposal):
 
-| File (in the data folder `설정\`) | `format`                 | Content                                    |
-| --------------------------------- | ------------------------ | ------------------------------------------ |
-| `screens.json`                    | `llsettings.screens`     | Screens                                    |
-| `looks.json`                      | `llsettings.looks`       | Looks, lyric styles, the current Look      |
-| `stage-layouts.json`              | `llsettings.stage`       | Stage layouts                              |
-| `macros.json`                     | `llsettings.macros`      | 매크로 and collections                     |
-| `quick.json`                      | `llsettings.quick`       | 퀵 실행 items                              |
-| `messages.json`                   | `llsettings.messages`    | 메시지 templates and stage message presets |
-| `notices.json`                    | `llsettings.notices`     | 공지 sets                                  |
-| `props.json`                      | `llsettings.props`       | 소품                                       |
-| `timers.json`                     | `llsettings.timers`      | 타이머                                     |
-| `labels.json`                     | `llsettings.labels`      | 이름표 list                                |
-| `preferences.json`                | `llsettings.preferences` | 환경설정                                   |
-| `shortcuts.json`                  | `llsettings.shortcuts`   | Changed shortcuts                          |
-| `bible.json`                      | `llsettings.bible`       | Installed translations, recent passages    |
-| `media.json`                      | `llmedia`                | Media list                                 |
+| File (in the data folder `Settings\`) | `format`                 | Content                                    |
+| ------------------------------------- | ------------------------ | ------------------------------------------ |
+| `screens.json`                        | `llsettings.screens`     | Screens                                    |
+| `looks.json`                          | `llsettings.looks`       | Looks, lyric styles, the current Look      |
+| `stage-layouts.json`                  | `llsettings.stage`       | Stage layouts                              |
+| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                     |
+| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                              |
+| `messages.json`                       | `llsettings.messages`    | 메시지 templates and stage message presets |
+| `notices.json`                        | `llsettings.notices`     | 공지 sets                                  |
+| `props.json`                          | `llsettings.props`       | 소품                                       |
+| `timers.json`                         | `llsettings.timers`      | 타이머                                     |
+| `labels.json`                         | `llsettings.labels`      | 이름표 list                                |
+| `preferences.json`                    | `llsettings.preferences` | 환경설정                                   |
+| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                          |
+| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages    |
+| `media.json`                          | `llmedia`                | Media list                                 |
 
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
@@ -758,7 +762,7 @@ change this picker preference.
 | `macroView`, `macroCollection`                  | View and collection of the 매크로 tab.                                                                                                                                                                                    |
 | `mediaStrip`                                    | Saved open or closed choice. When present, it wins over the size class and height defaults. With no saved choice, use the defaults in 04.                                                                                 |
 
-## Media list (`설정\media.json`)
+## Media list (`Settings\media.json`)
 
 | Field                     | Type                                | Meaning                                                                                                                                                                                           | Source                          |
 | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
@@ -1160,7 +1164,7 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 ### Recovery copies (implementation requirement)
 
 - Before you overwrite a file, keep the previous version as
-  `.복구 사본\<kind>\<ID>\<time>.json` (proposed location).
+  `.recovery\<kind>\<ID>\<time>.json` (proposed location).
 - Keep as many copies per file as the 환경설정 option 복구 사본 says (default
   10). Delete the oldest first. So that typing doesn't create a copy per
   keystroke, make at most one copy of the same file every 5 minutes (proposal).
@@ -1171,7 +1175,7 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 
 - If 자동 백업 is on, back up once a day, at launch, when no service is running.
   Copy the song, service, 템플릿, and settings folders into a folder in the
-  backup location named after the backup's start time, `YYYY-MM-DD HHmmss`
+  backup location named after the backup's start time, `YYYY-MM-DD_HHmmss`
   (proposal). Leave out media files because of their size (proposal).
 - A backup copies into a folder with `.partial` at the end of its name and
   renames it to the final name only when every file is copied, so a folder

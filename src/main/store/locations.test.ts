@@ -26,13 +26,13 @@ describe('resolveLocations', () => {
     const root = join(DOCUMENTS, DATA_FOLDER_NAME);
     expect(locations).toEqual({
       dataRoot: root,
-      songs: join(root, '곡'),
-      media: join(root, '미디어'),
-      services: join(root, '예배'),
-      templates: join(root, '템플릿'),
-      settings: join(root, '설정'),
-      recovery: join(root, '.복구 사본'),
-      backups: join(DOCUMENTS, 'LoveLight 백업'),
+      songs: join(root, 'Songs'),
+      media: join(root, 'Media'),
+      services: join(root, 'Services'),
+      templates: join(root, 'Templates'),
+      settings: join(root, 'Settings'),
+      recovery: join(root, '.recovery'),
+      backups: join(DOCUMENTS, 'LoveLightBackups'),
     });
     expect(ignored).toEqual([]);
   });
@@ -44,7 +44,7 @@ describe('resolveLocations', () => {
     );
 
     expect(locations.dataRoot).toBe(join(DEVELOPMENT, DATA_FOLDER_NAME));
-    expect(locations.backups).toBe(join(DEVELOPMENT, 'LoveLight 백업'));
+    expect(locations.backups).toBe(join(DEVELOPMENT, 'LoveLightBackups'));
     const folders = [
       locations.dataRoot,
       locations.songs,
@@ -67,7 +67,7 @@ describe('resolveLocations', () => {
     );
 
     expect(locations.dataRoot).toBe(join(DEVELOPMENT, DATA_FOLDER_NAME));
-    expect(locations.songs).toBe(join(locations.dataRoot, '곡'));
+    expect(locations.songs).toBe(join(locations.dataRoot, 'Songs'));
     expect(locations.backups).toBe(IN_DEVELOPMENT);
     expect(ignored).toEqual(['dataRoot', 'songsPath']);
   });
@@ -81,7 +81,7 @@ describe('resolveLocations', () => {
 
     expect(locations.dataRoot).toBe(join(DOCUMENTS, DATA_FOLDER_NAME));
     expect(locations.songs).toBe(songs);
-    expect(locations.media).toBe(join(locations.dataRoot, '미디어'));
+    expect(locations.media).toBe(join(locations.dataRoot, 'Media'));
   });
 
   it('ignores a folder that is not absolute', () => {
@@ -90,7 +90,7 @@ describe('resolveLocations', () => {
       {documents: DOCUMENTS, developmentFolder: null},
     );
 
-    expect(locations.media).toBe(join(locations.dataRoot, '미디어'));
+    expect(locations.media).toBe(join(locations.dataRoot, 'Media'));
     expect(ignored).toEqual(['mediaPath']);
   });
 });
@@ -175,7 +175,9 @@ function developmentLocations(
 describe('confineLocations', () => {
   it('passes folders inside LLP_USER_DATA, existing or not yet', async () => {
     const development = await makeTempDir();
-    await mkdir(join(development, DATA_FOLDER_NAME, '곡'), {recursive: true});
+    await mkdir(join(development, DATA_FOLDER_NAME, 'Songs'), {
+      recursive: true,
+    });
     const locations = developmentLocations(development);
 
     expect(await confineLocations(locations, development)).toEqual({
@@ -220,7 +222,7 @@ describe('confineLocations', () => {
     const outside = await makeTempDir();
     const link = join(development, 'link');
     await linkFolder(outside, link);
-    const songs = join(link, 'not-yet', '곡');
+    const songs = join(link, 'not-yet', 'Songs');
 
     const confined = await confineLocations(
       developmentLocations(development, {songsPath: songs}),

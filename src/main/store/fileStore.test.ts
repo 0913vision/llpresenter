@@ -81,14 +81,14 @@ describe('loadStore', () => {
   it('loads songs, services, and 이름표 from the data folder', async () => {
     const context = await developmentContext();
     const root = dataRoot(context);
-    await writeJson(join(root, '곡', `${HYMN_ONE_ID}.llsong`), hymnOne());
+    await writeJson(join(root, 'Songs', `${HYMN_ONE_ID}.llsong`), hymnOne());
     await writeJson(
-      join(root, '예배', `${SUNDAY_ID}.llservice`),
+      join(root, 'Services', `${SUNDAY_ID}.llservice`),
       service(SUNDAY_ID, '2026-11-01T11:00', [
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    await writeJson(join(root, '설정', 'labels.json'), {
+    await writeJson(join(root, 'Settings', 'labels.json'), {
       format: 'llsettings.labels',
       schemaVersion: 1,
       labels: [{name: '후렴', color: 'yellow', key: 'KeyC'}],
@@ -107,7 +107,11 @@ describe('loadStore', () => {
 
   it('loads templates separately, preserving their path and unknown item fields', async () => {
     const context = await developmentContext();
-    const file = join(dataRoot(context), '템플릿', 'original-name.llservice');
+    const file = join(
+      dataRoot(context),
+      'Templates',
+      'original-name.llservice',
+    );
     await writeJson(file, {
       format: 'llservice',
       schemaVersion: 1,
@@ -118,7 +122,10 @@ describe('loadStore', () => {
         {id: itemId(1), slot: 'song', title: '찬양', future: {enabled: true}},
       ],
     });
-    await writeJson(join(dataRoot(context), '템플릿', 'broken.llservice'), '{');
+    await writeJson(
+      join(dataRoot(context), 'Templates', 'broken.llservice'),
+      '{',
+    );
 
     const store = await loadedStore(context);
 
@@ -129,7 +136,7 @@ describe('loadStore', () => {
     expect(store.services.size).toBe(0);
     expect(store.problems).toMatchObject([
       {
-        file: join(dataRoot(context), '템플릿', 'broken.llservice'),
+        file: join(dataRoot(context), 'Templates', 'broken.llservice'),
         kind: 'json',
       },
     ]);
@@ -137,7 +144,7 @@ describe('loadStore', () => {
 
   it('opens the last opened service, or else the newest one', async () => {
     const context = await developmentContext();
-    const services = join(dataRoot(context), '예배');
+    const services = join(dataRoot(context), 'Services');
     await writeJson(
       join(services, 'a.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', []),
@@ -164,7 +171,7 @@ describe('loadStore', () => {
       'future.llsong',
     );
     if (!grouped.ok) throw new Error('Invalid grouped fixture');
-    await writeJson(join(dataRoot(context), '곡', 'a.llsong'), {
+    await writeJson(join(dataRoot(context), 'Songs', 'a.llsong'), {
       ...grouped.value.data,
       schemaVersion: 99,
     });
@@ -178,7 +185,7 @@ describe('loadStore', () => {
   it('reads nothing when a junction leads the data folder outside', async () => {
     const context = await developmentContext();
     const outside = await makeTempDir();
-    await writeJson(join(outside, '곡', 'a.llsong'), hymnOne());
+    await writeJson(join(outside, 'Songs', 'a.llsong'), hymnOne());
     const link = dataRoot(context);
     await symlink(outside, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
@@ -190,7 +197,7 @@ describe('loadStore', () => {
 
   it('skips a broken song and reports it', async () => {
     const context = await developmentContext();
-    const songs = join(dataRoot(context), '곡');
+    const songs = join(dataRoot(context), 'Songs');
     await writeJson(join(songs, 'good.llsong'), hymnOne());
     await writeJson(join(songs, 'bad.llsong'), {...hymnOne(), title: ''});
 
@@ -207,7 +214,7 @@ describe('loadStore', () => {
 
   it('keeps the folders of a broken app.json and reports nothing more', async () => {
     const context = await developmentContext();
-    const songs = join(context.appDataFolder, 'elsewhere', '곡');
+    const songs = join(context.appDataFolder, 'elsewhere', 'Songs');
     await writeJson(join(context.appDataFolder, 'app.json'), {
       format: 'llapp',
       schemaVersion: 1,
@@ -241,7 +248,7 @@ describe('loadStore', () => {
   it('uses the default 이름표 when labels.json is broken, and reports it', async () => {
     const context = await developmentContext();
     await writeJson(
-      join(dataRoot(context), '설정', 'labels.json'),
+      join(dataRoot(context), 'Settings', 'labels.json'),
       '{"labels": ',
     );
 
@@ -254,9 +261,9 @@ describe('loadStore', () => {
   it('runs a broken labels.json from its newest recovery copy', async () => {
     const context = await developmentContext();
     const root = dataRoot(context);
-    await writeJson(join(root, '설정', 'labels.json'), '{"labels": ');
+    await writeJson(join(root, 'Settings', 'labels.json'), '{"labels": ');
     await writeJson(
-      join(root, '.복구 사본', 'settings', 'labels', '2026-10-25.json'),
+      join(root, '.recovery', 'settings', 'labels', '2026-10-25.json'),
       {
         format: 'llsettings.labels',
         schemaVersion: 1,
@@ -274,7 +281,7 @@ describe('loadStore', () => {
 
   it('reads 환경설정 with the defaults for the fields it leaves out', async () => {
     const context = await developmentContext();
-    await writeJson(join(dataRoot(context), '설정', 'preferences.json'), {
+    await writeJson(join(dataRoot(context), 'Settings', 'preferences.json'), {
       format: 'llsettings.preferences',
       schemaVersion: 1,
       backup: {keep: 5},
@@ -290,7 +297,7 @@ describe('loadStore', () => {
   it('finds media files from media.json in the media folder', async () => {
     const context = await developmentContext();
     const root = dataRoot(context);
-    await writeJson(join(root, '설정', 'media.json'), {
+    await writeJson(join(root, 'Settings', 'media.json'), {
       format: 'llmedia',
       schemaVersion: 1,
       items: [
@@ -309,15 +316,15 @@ describe('loadStore', () => {
     const store = await loadedStore(context);
 
     expect(store.media.fileOf('3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293')).toBe(
-      join(root, '미디어', '따뜻한 빛.mp4'),
+      join(root, 'Media', '따뜻한 빛.mp4'),
     );
-    expect(store.media.roots).toEqual([join(root, '미디어')]);
+    expect(store.media.roots).toEqual([join(root, 'Media')]);
     expect(store.problems).toEqual([]);
   });
 
   it('reports a jump key that labels.json drops', async () => {
     const context = await developmentContext();
-    await writeJson(join(dataRoot(context), '설정', 'labels.json'), {
+    await writeJson(join(dataRoot(context), 'Settings', 'labels.json'), {
       format: 'llsettings.labels',
       schemaVersion: 1,
       labels: [{name: '후렴', color: 'yellow', key: 'C'}],

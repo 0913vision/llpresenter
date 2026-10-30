@@ -39,7 +39,7 @@ ${LINE}`,
     await title.press('Enter');
     await page.getByRole('button', {name: '저장'}).click();
 
-    const directory = join(app.data, 'LoveLight', '곡');
+    const directory = join(app.data, 'LoveLight', 'Songs');
     const saved = async (): Promise<string | undefined> => {
       const files = await readdir(directory).catch(() => []);
       const name = files.find(file => file.endsWith('.llsong'));

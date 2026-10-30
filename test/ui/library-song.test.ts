@@ -11,7 +11,7 @@ async function seedSong(
   data: string,
   song: {id: string; title: string; text: string},
 ): Promise<void> {
-  const directory = join(data, 'LoveLight', '곡');
+  const directory = join(data, 'LoveLight', 'Songs');
   await mkdir(directory, {recursive: true});
   await writeFile(
     join(directory, `${song.id}.llsong`),
@@ -74,7 +74,7 @@ it(
     await title.press('Enter');
     await lyrics.fill('새로 만든 점검 문장');
     await lyrics.press('Tab');
-    const file = join(app.data, 'LoveLight', '곡', `${FIRST}.llsong`);
+    const file = join(app.data, 'LoveLight', 'Songs', `${FIRST}.llsong`);
     await expect
       .poll(
         async () => {
