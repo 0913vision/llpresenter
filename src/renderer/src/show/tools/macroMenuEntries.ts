@@ -10,7 +10,7 @@ import {
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import type {MacroTargetChoice} from './macroTargets';
 import {macroActionChoices} from './macroActionChoices';
-import type {MacroActionDraft} from './macroActionDraft';
+import type {MacroActionDraft} from '@core/macros/macroActionDraft';
 import {
   laterClipboardRows,
   laterRow,

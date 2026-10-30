@@ -8,7 +8,7 @@ import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {
   validTimerConfiguration,
   type TimerConfiguration,
-} from './timerConfiguration';
+} from '@core/timers/timerConfiguration';
 
 const SAVE_ATTEMPTS = 2;
 export interface NewCountdown {

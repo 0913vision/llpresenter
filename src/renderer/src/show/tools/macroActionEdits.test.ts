@@ -6,7 +6,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/macros';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {editMacroActions} from './macroActionEdits';
+import {editMacroActions} from '@core/macros/macroActionEdits';
 import {saveMacroEdit} from './macroEdits';
 
 const id = '00000000-0000-4000-8000-000000000001';

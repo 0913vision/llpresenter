@@ -1,6 +1,6 @@
-import {checkPart} from '@core/schema/fileFormat';
-import {calendarDate, timeOfDay} from '@core/schema/primitives';
-import {MAX_TIMER_SECONDS} from '@core/schema/timers';
+import {checkPart} from '../schema/fileFormat';
+import {calendarDate, timeOfDay} from '../schema/primitives';
+import {MAX_TIMER_SECONDS} from '../schema/timers';
 
 export type TimerConfiguration =
   | {

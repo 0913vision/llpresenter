@@ -26,7 +26,7 @@ import {
   draftMacroAction,
   prepareMacroAction,
   type MacroActionDraft,
-} from './macroActionDraft';
+} from '@core/macros/macroActionDraft';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
 import {MacroColorPopover} from './MacroColorPopover';

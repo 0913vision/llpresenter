@@ -5,8 +5,11 @@ import {
   type SettingsDocument,
   type SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {timerTimeReason, validTimerConfiguration} from './timerConfiguration';
-import type {TimerEditDraft} from './timerEditDraft';
+import {
+  timerTimeReason,
+  validTimerConfiguration,
+} from '@core/timers/timerConfiguration';
+import type {TimerEditDraft} from '@core/timers/timerEditDraft';
 
 type TimerDocument = Extract<SettingsDocument, {name: 'timers'}>;
 type TimerUpdate = Extract<

@@ -28,7 +28,7 @@ import {
   toggleMessageScreen,
   prepareMessage,
   type DraftTargets,
-} from './messageDraft';
+} from '@core/overlays/messageDraft';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 

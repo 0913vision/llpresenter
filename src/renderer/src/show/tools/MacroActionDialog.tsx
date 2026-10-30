@@ -8,7 +8,10 @@ import {
   SelectMenu,
   TextField,
 } from '@renderer/ui';
-import {prepareMacroAction, type MacroActionDraft} from './macroActionDraft';
+import {
+  prepareMacroAction,
+  type MacroActionDraft,
+} from '@core/macros/macroActionDraft';
 import {
   fillMessageText,
   MAX_MESSAGE_CHARACTERS,

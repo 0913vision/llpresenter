@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {parseMediaList} from '@core/schema/mediaList';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {parseMediaList} from '../schema/mediaList';
+import {expectSuccess} from '../schema/testHelpers';
 import {audioTracks} from './audioTracks';
 
 const id = (number: number) =>

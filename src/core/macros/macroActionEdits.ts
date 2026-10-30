@@ -2,7 +2,7 @@ import {
   MACRO_FILE_LIMITS,
   type KnownMacroAction,
   type MacroAction,
-} from '@core/schema/macros';
+} from '../schema/macros';
 
 export type MacroActionEdit =
   | {readonly kind: 'append'; readonly action: KnownMacroAction}

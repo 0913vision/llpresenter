@@ -2,7 +2,10 @@ import {expect, it, vi} from 'vitest';
 import type {MacroActionKind} from '@core/schema/macros';
 import {menuItems} from '@renderer/ui/menuModel';
 import {macroActionChoices} from './macroActionChoices';
-import {prepareMacroAction, type MacroActionDraft} from './macroActionDraft';
+import {
+  prepareMacroAction,
+  type MacroActionDraft,
+} from '@core/macros/macroActionDraft';
 
 const id = '00000000-0000-4000-8000-000000000001';
 

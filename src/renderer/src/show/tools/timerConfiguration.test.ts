@@ -5,7 +5,7 @@ import {
   timerDateReason,
   timerTimeReason,
   validTimerConfiguration,
-} from './timerConfiguration';
+} from '@core/timers/timerConfiguration';
 import {parseTimerDuration} from './TimerDurationFields';
 
 it('checks real calendar dates and strict 24-hour times with the persisted schemas', () => {

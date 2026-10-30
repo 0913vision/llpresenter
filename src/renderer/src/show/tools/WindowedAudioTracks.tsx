@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {AudioTrackRow} from './AudioTrackRow';
-import type {AudioTrack} from './audioTracks';
+import type {AudioTrack} from '@core/media/audioTracks';
 import styles from './WindowedAudioTracks.module.css';
 
 const INITIAL_ROWS = 12;

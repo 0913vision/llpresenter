@@ -6,7 +6,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {saveNewCountdown, saveNewTimer} from './timerEdits';
-import type {TimerConfiguration} from './timerConfiguration';
+import type {TimerConfiguration} from '@core/timers/timerConfiguration';
 
 const id = createTimerId('00000000-0000-4000-8000-000000000001');
 const fields = {id, duration: 30, overrun: false};

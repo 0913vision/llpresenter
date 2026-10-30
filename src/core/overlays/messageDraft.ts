@@ -1,11 +1,11 @@
-import type {MessageTemplate} from '@core/schema/messages';
-import type {Screen} from '@core/schema/screens';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import type {MessageTemplate} from '../schema/messages';
+import type {Screen} from '../schema/screens';
+import {MAX_TARGET_SCREENS} from '../schema/overlayState';
 import {
   fillMessageText,
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
-} from '@core/overlays/messageText';
+} from './messageText';
 
 export type DraftTargets = Exclude<MessageTemplate['targets'], undefined>;
 

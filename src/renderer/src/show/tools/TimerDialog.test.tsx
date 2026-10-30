@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {TimerDialog} from './TimerDialog';
-import type {TimerConfiguration} from './timerConfiguration';
+import type {TimerConfiguration} from '@core/timers/timerConfiguration';
 
 afterEach(() => {
   cleanup();

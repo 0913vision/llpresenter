@@ -13,8 +13,8 @@ import {
   timerDateReason,
   timerTimeReason,
   type TimerConfiguration,
-} from './timerConfiguration';
-import type {TimerEditDraft} from './timerEditDraft';
+} from '@core/timers/timerConfiguration';
+import type {TimerEditDraft} from '@core/timers/timerEditDraft';
 
 const KINDS = [
   {value: 'countdown', label: '카운트다운'},

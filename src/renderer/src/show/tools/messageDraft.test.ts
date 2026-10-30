@@ -1,7 +1,7 @@
 import {expect, it} from 'vitest';
 import {messageBlankNames} from '@core/overlays/messageText';
 import {settingsDocument} from '@renderer/screens/testing/documents';
-import {prepareMessage} from './messageDraft';
+import {prepareMessage} from '@core/overlays/messageDraft';
 
 const document = settingsDocument('messages', {
   templates: [

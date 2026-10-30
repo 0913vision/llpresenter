@@ -1,5 +1,5 @@
-import type {AudioSource} from '@core/schema/liveActions';
-import type {AudioPlaylist, MediaItem} from '@core/schema/mediaList';
+import type {AudioSource} from '../schema/liveActions';
+import type {AudioPlaylist, MediaItem} from '../schema/mediaList';
 
 export interface AudioTrack {
   readonly position: number;
