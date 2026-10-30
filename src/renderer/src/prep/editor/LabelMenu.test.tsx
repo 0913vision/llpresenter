@@ -162,6 +162,40 @@ describe('song editor label menu', () => {
     expect(labelEdits).toHaveLength(0);
   });
 
+  it.each(['pointer', 'ContextMenu', 'F10'])(
+    'exposes disabled read-only label management through %s',
+    async entry => {
+      const fixture = editorFixture();
+      vi.spyOn(fixture.api.settings, 'get').mockResolvedValue({
+        ...fixture.labels(),
+        access: 'readOnly',
+      });
+      const {user} = await editorSetup(fixture);
+      await openMenu(user);
+      const opener = screen.getByRole('menuitemradio', {name: '1절'});
+      if (entry === 'pointer') fireEvent.contextMenu(opener);
+      else fireEvent.keyDown(opener, {key: entry, shiftKey: entry === 'F10'});
+      const menu = screen.getByRole('menu', {name: '1절 관리'});
+      const rows = within(menu).getAllByRole('menuitem');
+      expect(rows.map(row => row.textContent)).toEqual([
+        '색 바꾸기',
+        '이름 바꾸기',
+        '삭제',
+      ]);
+      for (const row of rows) {
+        expect(row.getAttribute('aria-disabled')).toBe('true');
+        expect((await hoverForTooltip(row))?.textContent).toBe(
+          '읽기 전용 이름표 목록',
+        );
+        fireEvent.click(row);
+      }
+      expect(fixture.labelEdits).toHaveLength(0);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(document.activeElement).toBe(opener);
+    },
+  );
+
   it('allows label selection but protects a read-only global list', async () => {
     const fixture = editorFixture();
     vi.spyOn(fixture.api.settings, 'get').mockResolvedValue({

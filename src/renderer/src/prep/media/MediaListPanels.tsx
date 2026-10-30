@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX, type MouseEvent} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {
@@ -23,6 +23,11 @@ import {
 import {useMediaView} from './MediaViewProvider';
 import styles from './MediaListPanels.module.css';
 import {playlistMenuEntries} from './mediaMenuEntries';
+import {
+  contextMenuAnchor,
+  isContextMenuKey,
+  type ContextMenuEvent,
+} from '../contextMenu';
 
 const ALL = 'all';
 
@@ -36,14 +41,6 @@ function choiceOf(key: string): MediaListChoice {
     return {kind, id};
   }
   return {kind: 'all'};
-}
-
-function anchorOf(event: MouseEvent<HTMLElement>, row: Element): MenuAnchor {
-  return event.clientX === 0 &&
-    event.clientY === 0 &&
-    row instanceof HTMLElement
-    ? {kind: 'element', element: row}
-    : {kind: 'point', point: {x: event.clientX, y: event.clientY}};
 }
 
 function usePlaylistEditing(kind: 'media' | 'audio') {
@@ -80,7 +77,8 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
           onCancel: () => setRenaming(null),
         }
       : undefined;
-  const onContextMenu = (event: MouseEvent<HTMLElement>): void => {
+  const onContextMenu = (event: ContextMenuEvent): void => {
+    if (!('clientX' in event) && !isContextMenuKey(event)) return;
     const row =
       event.target instanceof Element
         ? event.target.closest('[data-value]')
@@ -88,7 +86,8 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     const key = row?.getAttribute('data-value') ?? '';
     if (row === null || !key.startsWith(`${kind}:`)) return;
     event.preventDefault();
-    setMenu({id: key.slice(kind.length + 1), anchor: anchorOf(event, row)});
+    event.stopPropagation();
+    setMenu({id: key.slice(kind.length + 1), anchor: contextMenuAnchor(event)});
   };
   const menuPlaylist = playlistOf(menu?.id ?? null);
   const doomed = playlistOf(deleting);
@@ -210,7 +209,11 @@ export function MediaListsPanel(): JSX.Element {
         </PanelActions>
       </PanelHeader>
       <PanelBody tab="media" variant="list">
-        <div className={styles.lists} onContextMenu={editing.onContextMenu}>
+        <div
+          className={styles.lists}
+          onContextMenu={editing.onContextMenu}
+          onKeyDown={editing.onContextMenu}
+        >
           <ListBox
             label="미디어 목록"
             selected={choice.kind === 'audio' ? undefined : keyOf(choice)}
@@ -273,7 +276,11 @@ export function AudioListsPanel(): JSX.Element {
         </PanelActions>
       </PanelHeader>
       <PanelBody tab="audio" variant="list">
-        <div className={styles.lists} onContextMenu={editing.onContextMenu}>
+        <div
+          className={styles.lists}
+          onContextMenu={editing.onContextMenu}
+          onKeyDown={editing.onContextMenu}
+        >
           <ListBox
             label="오디오 재생목록"
             selected={choice.kind === 'audio' ? keyOf(choice) : undefined}

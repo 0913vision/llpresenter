@@ -1,4 +1,4 @@
-import {useMemo, type JSX, type MouseEvent, type ReactNode} from 'react';
+import {useMemo, type JSX, type ReactNode} from 'react';
 import type {
   ServiceEntry,
   TemplateEntry,
@@ -9,6 +9,7 @@ import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
+import {isContextMenuKey, type ContextMenuEvent} from '../contextMenu';
 
 const names = new Intl.Collator('ko', {numeric: true});
 
@@ -38,7 +39,7 @@ function serviceSource(entry: ServiceEntry): SourceRow['source'] {
 // has focus, opens the row's menu; without `onRowMenu` the row stays as is.
 function withMenu(
   row: SourceRow,
-  onRowMenu: ((event: MouseEvent, row: SourceRow) => void) | undefined,
+  onRowMenu: ((event: ContextMenuEvent, row: SourceRow) => void) | undefined,
   children: ReactNode,
 ): ReactNode {
   if (onRowMenu === undefined) return children;
@@ -46,6 +47,12 @@ function withMenu(
     <div
       key={sourceKey(row.source)}
       onContextMenu={event => onRowMenu(event, row)}
+      onKeyDown={event => {
+        if (!isContextMenuKey(event)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onRowMenu(event, row);
+      }}
     >
       {children}
     </div>
@@ -75,7 +82,7 @@ export function SourceList({
   readonly onRetry?: (() => void) | undefined;
   /** Opens the right-click menu of a 틀 or 예배 순서 row. */
   readonly onRowMenu?:
-    ((event: MouseEvent, row: SourceRow) => void) | undefined;
+    ((event: ContextMenuEvent, row: SourceRow) => void) | undefined;
 }): JSX.Element {
   const sorted = useMemo(() => newestFirst(services), [services]);
   const sources = useMemo(
@@ -111,7 +118,11 @@ export function SourceList({
           <ListGroup label="틀">
             {templates.map(entry =>
               withMenu(
-                {source: templateSource(entry), name: entry.name},
+                {
+                  source: templateSource(entry),
+                  name: entry.name,
+                  access: entry.access,
+                },
                 onRowMenu,
                 <ListRow
                   key={entry.id}
@@ -128,7 +139,11 @@ export function SourceList({
           <ListGroup label="지난 예배">
             {sorted.map(entry =>
               withMenu(
-                {source: serviceSource(entry), name: entry.name},
+                {
+                  source: serviceSource(entry),
+                  name: entry.name,
+                  access: entry.access,
+                },
                 onRowMenu,
                 <ListRow
                   key={entry.id}

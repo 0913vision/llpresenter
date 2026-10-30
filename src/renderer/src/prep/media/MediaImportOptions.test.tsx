@@ -81,6 +81,17 @@ afterEach(() => {
   resetTooltips();
 });
 
+it('lists only the copy-on-import checkbox with no separator', async () => {
+  setup();
+  await open();
+  const menu = screen.getByRole('menu', {name: '가져오기 설정'});
+  expect(
+    [...menu.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
+      row => row.textContent,
+    ),
+  ).toEqual(['미디어 폴더로 복사']);
+});
+
 it('shows the absent setting off and preserves the newest document when changing it', async () => {
   const {edit, push} = setup();
   expect((await open()).getAttribute('aria-checked')).toBe('false');

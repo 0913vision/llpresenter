@@ -58,6 +58,28 @@ async function row(list: string, name: RegExp | string): Promise<HTMLElement> {
 
 describe('media list panels', () => {
   it.each([
+    {list: '미디어 목록', name: 'Backgrounds', key: 'ContextMenu'},
+    {list: '미디어 목록', name: 'Backgrounds', key: 'F10'},
+    {list: '오디오 재생목록', name: 'Hymns', key: 'ContextMenu'},
+    {list: '오디오 재생목록', name: 'Hymns', key: 'F10'},
+  ])(
+    'opens $list with $key and restores focus without choosing it',
+    async ({list, name, key}) => {
+      const {edit} = setup();
+      const opener = await row(list, new RegExp(name));
+      const selected = opener.getAttribute('aria-selected');
+      act(() => opener.focus());
+      fireEvent.keyDown(opener, {key, shiftKey: key === 'F10'});
+      const menu = screen.getByRole('menu', {name: '재생목록 메뉴'});
+      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      expect(edit).not.toHaveBeenCalled();
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    },
+  );
+
+  it.each([
     ['미디어 목록', 'Backgrounds'],
     ['오디오 재생목록', 'Hymns'],
   ])(
@@ -98,10 +120,9 @@ describe('media list panels', () => {
       });
       const opener = await row(list, new RegExp(name));
       act(() => opener.focus());
-      fireEvent.contextMenu(
-        opener,
-        entry === 'pointer' ? {clientX: 50, clientY: 50} : {},
-      );
+      if (entry === 'pointer') {
+        fireEvent.contextMenu(opener, {clientX: 50, clientY: 50});
+      } else fireEvent.keyDown(opener, {key: 'ContextMenu'});
       const command = await screen.findByRole('menuitem', {
         name: '이름 바꾸기',
       });
@@ -117,6 +138,8 @@ describe('media list panels', () => {
       expect(document.activeElement).toBe(field);
       expect(field.isConnected).toBe(true);
       expect(edit).not.toHaveBeenCalled();
+      fireEvent.keyDown(field, {key: 'ContextMenu'});
+      expect(screen.queryByRole('menu')).toBeNull();
       fireEvent.change(field, {target: {value: 'Invented revised list'}});
       fireEvent.keyDown(field, {key: 'Enter'});
       await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());

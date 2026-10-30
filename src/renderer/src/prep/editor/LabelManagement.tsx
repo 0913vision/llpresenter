@@ -12,7 +12,7 @@ interface ManagementProps {
   readonly context: LabelContext;
   readonly store: SongEditorStore;
   readonly labels: readonly Label[];
-  readonly locked: boolean;
+  readonly disabledReason: string | undefined;
   readonly onClose: () => void;
 }
 
@@ -21,9 +21,10 @@ export function LabelManagement({
   context,
   store,
   labels,
-  locked,
+  disabledReason,
   onClose,
 }: ManagementProps): JSX.Element {
+  const locked = disabledReason !== undefined;
   const [action, setAction] = useState<'rename' | 'delete' | 'color' | null>(
     null,
   );
@@ -72,7 +73,7 @@ export function LabelManagement({
         if (reason !== 'select') onClose();
       }}
       entries={labelManagementEntries({
-        locked,
+        disabledReason,
         color: () => setAction('color'),
         rename: () => setAction('rename'),
         remove: () => setAction('delete'),

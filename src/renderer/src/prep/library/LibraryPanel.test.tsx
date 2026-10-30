@@ -57,6 +57,39 @@ async function setup(fixture = libraryFixture()) {
 }
 
 describe('library panel', () => {
+  it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
+    'opens the focused song menu with $key without selecting it',
+    async key => {
+      const {onOpenSong} = await setup();
+      const opener = screen.getByRole('option', {name: '찬송 10'});
+      const selected = opener.getAttribute('aria-selected');
+      act(() => opener.focus());
+      fireEvent.keyDown(opener, key);
+      const menu = screen.getByRole('menu', {name: '곡 메뉴'});
+      expect(onOpenSong).not.toHaveBeenCalled();
+      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    },
+  );
+
+  it('ignores extra modifiers and composition when opening a song menu', async () => {
+    await setup();
+    const opener = screen.getByRole('option', {name: '찬송 10'});
+    for (const key of [
+      {key: 'F10'},
+      {key: 'F10', shiftKey: true, altKey: true},
+      {key: 'ContextMenu', ctrlKey: true},
+      {key: 'ContextMenu', metaKey: true},
+      {key: 'ContextMenu', shiftKey: true},
+      {key: 'ContextMenu', isComposing: true},
+    ]) {
+      fireEvent.keyDown(opener, key);
+      expect(screen.queryByRole('menu')).toBeNull();
+    }
+  });
+
   it('lists the library song menu rows in ProPresenter order', async () => {
     await setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));

@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {
   afterEach,
   beforeAll,
@@ -124,10 +125,79 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetTooltips();
   delete window.llp;
 });
 
 describe('the service source menu', () => {
+  it.each([
+    {kind: 'template', name: /^주일 예배/, reason: '읽기 전용 틀'},
+    {kind: 'service', name: /^지난 주일 예배/, reason: '읽기 전용 예배 순서'},
+  ])(
+    'disables read-only $kind commands with a reason',
+    async ({kind, name, reason}) => {
+      const {edits, pushTemplates, pushServices} = setup();
+      await screen.findByRole('option', {name});
+      act(() => {
+        if (kind === 'template') {
+          pushTemplates(
+            templateEntries.map(entry => ({...entry, access: 'readOnly'})),
+          );
+        } else {
+          pushServices(
+            serviceEntries.map(entry => ({...entry, access: 'readOnly'})),
+          );
+        }
+      });
+      await openMenu(name);
+      for (const command of within(screen.getByRole('menu')).getAllByRole(
+        'menuitem',
+      )) {
+        expect(command.getAttribute('aria-disabled')).toBe('true');
+        expect((await hoverForTooltip(command))?.textContent).toBe(reason);
+        fireEvent.click(command);
+      }
+      expect(edits).toHaveLength(0);
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    },
+  );
+
+  it.each([
+    {name: /^주일 예배/, key: 'ContextMenu'},
+    {name: /^주일 예배/, key: 'F10'},
+    {name: /^지난 주일 예배/, key: 'ContextMenu'},
+    {name: /^지난 주일 예배/, key: 'F10'},
+  ])(
+    'opens the focused $name source with $key in list-row order',
+    async ({name, key}) => {
+      const {edits} = setup();
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('option', {name: /^주일 예배/})
+            .getAttribute('aria-selected'),
+        ).toBe('true'),
+      );
+      const opener = await screen.findByRole('option', {name});
+      const selected = opener.getAttribute('aria-selected');
+      act(() => opener.focus());
+      fireEvent.keyDown(opener, {key, shiftKey: key === 'F10'});
+      const menu = screen.getByRole('menu');
+      expect(
+        [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+          row => row.textContent,
+        ),
+      ).toEqual(['이름 바꾸기', '삭제']);
+      expect(menu.querySelector('svg')).toBeNull();
+      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      expect(edits).toHaveLength(0);
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    },
+  );
+
   it('renames a 틀 with its whole document and revision', async () => {
     const {edits} = setup();
     await openMenu(/^주일 예배/);

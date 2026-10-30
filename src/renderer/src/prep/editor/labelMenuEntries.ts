@@ -50,22 +50,24 @@ export function labelMenuEntries({
 }
 
 export function labelManagementEntries({
-  locked,
+  disabledReason,
   color,
   rename,
   remove,
 }: {
-  readonly locked: boolean;
+  readonly disabledReason: string | undefined;
   readonly color: () => void;
   readonly rename: () => void;
   readonly remove: () => void;
 }): readonly MenuEntry[] {
+  const locked = disabledReason !== undefined;
   return [
     {
       kind: 'item',
       id: 'color',
       label: '색 바꾸기',
       disabled: locked,
+      title: disabledReason,
       onSelect: color,
     },
     menuSeparator('rename-separator'),
@@ -74,7 +76,7 @@ export function labelManagementEntries({
       id: 'rename',
       label: '이름 바꾸기',
       disabled: locked,
-      title: '모든 곡에서 이 이름표의 이름을 바꿉니다',
+      title: disabledReason ?? '모든 곡에서 이 이름표의 이름을 바꿉니다',
       onSelect: rename,
     },
     menuSeparator('delete-separator'),
@@ -83,7 +85,8 @@ export function labelManagementEntries({
       id: 'delete',
       label: '삭제',
       disabled: locked,
-      title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
+      title:
+        disabledReason ?? '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
       onSelect: remove,
     },
   ];

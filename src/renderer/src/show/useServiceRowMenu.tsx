@@ -96,6 +96,7 @@ export function useServiceRowMenu(
               sources.confirmDelete({
                 source: {kind: 'service', id: menu.entry.id},
                 name: menu.entry.name,
+                access: menu.entry.access,
               });
             },
           })}

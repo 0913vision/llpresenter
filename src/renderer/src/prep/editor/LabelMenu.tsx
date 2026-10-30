@@ -37,7 +37,12 @@ export function LabelMenu({
     store.getSnapshot,
   );
   const labels = document?.value.labels ?? [];
-  const locked = busy || document?.access !== 'editable';
+  const disabledReason = busy
+    ? '이름표 저장 중'
+    : document?.access !== 'editable'
+      ? '읽기 전용 이름표 목록'
+      : undefined;
+  const locked = disabledReason !== undefined;
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [context, setContext] = useState<LabelContext | null>(null);
@@ -105,10 +110,8 @@ export function LabelMenu({
               settings: () => setSettings(true),
             })}
             onContext={value => {
-              if (!locked) {
-                value.trigger.focus();
-                setContext(value);
-              }
+              value.trigger.focus();
+              setContext(value);
             }}
             creation={
               creating ? (
@@ -157,7 +160,7 @@ export function LabelMenu({
           context={context}
           store={store}
           labels={labels}
-          locked={locked}
+          disabledReason={disabledReason}
           onClose={() => {
             setContext(null);
             (

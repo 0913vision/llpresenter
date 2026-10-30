@@ -19,6 +19,7 @@ import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
+import {contextMenuAnchor} from '../contextMenu';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =
@@ -118,10 +119,7 @@ export function LibraryPanel({
                 event.preventDefault();
                 setMenu({
                   id,
-                  anchor: {
-                    kind: 'point',
-                    point: {x: event.clientX, y: event.clientY},
-                  },
+                  anchor: contextMenuAnchor(event),
                 });
               }}
             />

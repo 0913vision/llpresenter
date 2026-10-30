@@ -4,7 +4,6 @@ import {
   useState,
   type JSX,
   type KeyboardEvent,
-  type MouseEvent,
 } from 'react';
 import type {SongId} from '@shared/schema/ids';
 import {
@@ -12,6 +11,7 @@ import {
   serializeSongDragPayload,
 } from '@shared/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
+import {isContextMenuKey, type ContextMenuEvent} from '../contextMenu';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
@@ -23,7 +23,7 @@ interface LibraryListProps {
   readonly rows: readonly LibraryRow[];
   readonly selected: SongId | null;
   readonly onSelect: (id: SongId) => void;
-  readonly onContextMenu: (event: MouseEvent, id: SongId) => void;
+  readonly onContextMenu: (event: ContextMenuEvent, id: SongId) => void;
 }
 
 /** Keeps the full library scrollable while mounting only the visible rows. */
@@ -141,6 +141,12 @@ export function LibraryList({
             key={song.id}
             draggable
             onContextMenu={event => onContextMenu(event, song.id)}
+            onKeyDown={event => {
+              if (!isContextMenuKey(event)) return;
+              event.preventDefault();
+              event.stopPropagation();
+              onContextMenu(event, song.id);
+            }}
             onDragStart={event => {
               const result = serializeSongDragPayload({
                 kind: 'song',

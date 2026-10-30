@@ -1,15 +1,10 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@shared/ipc';
+import type {ServiceEntry} from '@shared/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useShow} from '@renderer/state/show';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {Menu} from '@renderer/ui/Menu';
+import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from './RenameDialog';
 import {
@@ -19,6 +14,7 @@ import {
   warningNotice,
 } from './serviceEdits';
 import type {ServiceSource} from './useServiceSources';
+import {contextMenuAnchor, type ContextMenuEvent} from '../contextMenu';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 
@@ -26,6 +22,7 @@ type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 export interface SourceRow {
   readonly source: NamedSource;
   readonly name: string;
+  readonly access: ServiceEntry['access'];
 }
 
 type SourceActionsApi = Pick<
@@ -33,7 +30,6 @@ type SourceActionsApi = Pick<
   'content' | 'services' | 'templates' | 'log'
 >;
 
-const MENU_WIDTH = 200;
 const OPEN_SERVICE = '열린 예배 순서는 삭제할 수 없습니다';
 const problemTitles = {
   rename: '이름을 바꿀 수 없음',
@@ -53,7 +49,7 @@ function kindObject(source: NamedSource): string {
 // document changed in between.
 async function renameSource(
   api: SourceActionsApi,
-  {source, name}: SourceRow,
+  {source, name}: Pick<SourceRow, 'source' | 'name'>,
 ): Promise<boolean> {
   if (source.kind === 'template') {
     const document = await settle(api, 'Could not read a 틀', () =>
@@ -96,7 +92,7 @@ export function useSourceActions({
 }: {
   readonly onProblem: (notice: Notice) => void;
 }): {
-  readonly openMenu: (event: MouseEvent, row: SourceRow) => void;
+  readonly openMenu: (event: ContextMenuEvent, row: SourceRow) => void;
   readonly overlays: ReactNode;
   readonly confirmDelete: (row: SourceRow) => void;
 } {
@@ -104,8 +100,7 @@ export function useSourceActions({
   const currentId = useShow(view => view.serviceId);
   const [menu, setMenu] = useState<{
     readonly row: SourceRow;
-    readonly x: number;
-    readonly y: number;
+    readonly anchor: MenuAnchor;
   } | null>(null);
   const [dialog, setDialog] = useState<{
     readonly kind: 'rename' | 'delete';
@@ -149,27 +144,31 @@ export function useSourceActions({
   const closeDialog = (): void => {
     if (!busy) setDialog(null);
   };
-  const openMenu = (event: MouseEvent, row: SourceRow): void => {
+  const openMenu = (event: ContextMenuEvent, row: SourceRow): void => {
     event.preventDefault();
-    setMenu({row, x: event.clientX, y: event.clientY});
+    setMenu({row, anchor: contextMenuAnchor(event)});
   };
   const isOpen = (row: SourceRow): boolean =>
     row.source.kind === 'service' && row.source.id === currentId;
+  const readOnlyReason =
+    menu?.row.access === 'readOnly'
+      ? `읽기 전용 ${kindName(menu.row.source)}`
+      : undefined;
 
   const overlays = (
     <>
       {menu === null ? null : (
         <Menu
           label={`${menu.row.name} ${kindName(menu.row.source)}`}
-          anchor={{kind: 'point', point: {x: menu.x, y: menu.y}}}
-          width={MENU_WIDTH}
+          anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
             {
               kind: 'item',
               id: 'rename',
               label: '이름 바꾸기',
-              icon: 'edit',
+              disabled: readOnlyReason !== undefined,
+              title: readOnlyReason,
               onSelect: () => {
                 setMenu(null);
                 setDialog({kind: 'rename', row: menu.row});
@@ -179,10 +178,10 @@ export function useSourceActions({
               kind: 'item',
               id: 'delete',
               label: '삭제',
-              icon: 'trash',
               danger: true,
-              disabled: isOpen(menu.row),
-              title: isOpen(menu.row) ? OPEN_SERVICE : undefined,
+              disabled: readOnlyReason !== undefined || isOpen(menu.row),
+              title:
+                readOnlyReason ?? (isOpen(menu.row) ? OPEN_SERVICE : undefined),
               onSelect: () => {
                 setMenu(null);
                 setDialog({kind: 'delete', row: menu.row});

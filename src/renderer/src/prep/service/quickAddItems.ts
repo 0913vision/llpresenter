@@ -42,7 +42,6 @@ export function otherItemEntries({
   onBible,
 }: OtherItemChoices): readonly MenuEntry[] {
   return [
-    {kind: 'group', id: 'other', label: '다른 항목'},
     {
       kind: 'item',
       id: 'other:header',

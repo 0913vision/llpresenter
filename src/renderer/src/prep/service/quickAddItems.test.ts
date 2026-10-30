@@ -39,7 +39,19 @@ function build(onInsert: (item: ServiceItem) => void) {
 describe('quick add other items', () => {
   it('lists the rows of the ProPresenter playlist + menu in its order', () => {
     const entries = build(() => undefined);
-    expect(entries[0]).toMatchObject({kind: 'group', label: '다른 항목'});
+    expect(
+      entries.map(entry => (entry.kind === 'separator' ? '|' : entry.label)),
+    ).toEqual([
+      '구역 추가',
+      '자리 표시 추가',
+      '큐 추가',
+      '|',
+      '미디어',
+      '성경 구절…',
+      '공지',
+      '비디오 스트림 항목…',
+      '오디오 스트림 항목…',
+    ]);
     expect(
       items(entries).map(item => [item.label, item.disabled === true]),
     ).toEqual([

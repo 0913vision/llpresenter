@@ -23,6 +23,14 @@ describe('arrangement row', () => {
     await user.click(screen.getByRole('button', {name: '구성 편집…'}));
     const strip = screen.getByRole('group', {name: '구성 편집'});
     expect(document.activeElement).toBe(strip);
+    await user.click(within(strip).getByRole('button', {name: '그룹 넣기'}));
+    const insertMenu = screen.getByRole('menu', {name: '그룹 넣기'});
+    expect(
+      [
+        ...insertMenu.querySelectorAll('[role="menuitem"], [role="separator"]'),
+      ].map(row => row.textContent),
+    ).toEqual(['1절', '후렴']);
+    fireEvent.keyDown(insertMenu, {key: 'Escape'});
     const chips = within(strip).getAllByRole('option');
     chips.forEach((chip, index) => {
       vi.spyOn(chip, 'getBoundingClientRect').mockReturnValue(
