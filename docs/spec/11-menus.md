@@ -240,15 +240,15 @@ lack), Moved, Removed.
   (https://support.renewedvision.com/hc/en-us/articles/360050786794;
   https://support.renewedvision.com/hc/en-us/articles/55789101197587).
 
-| Group | Row                                       | Does                                                                                                                                                                                                 | Status |
-| ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                                                                                                  | Now    |
-| 1     | 자리 표시 추가, 큐 추가                   | PP New Placeholder, New Cue.                                                                                                                                                                         | Off    |
-| 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                                                                                                          | Now    |
-| 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                                                                                                          | Now    |
-| 2     | 공지 ›                                    | Submenu of 공지 sets.                                                                                                                                                                                | Now    |
-| 2     | 비디오 스트림 항목…, 오디오 스트림 항목…  | PP stream items.                                                                                                                                                                                     | Off    |
-| -     | Search field and the 라이브러리 song list | Leaves this menu once songs can come in from the 라이브러리 right-click (예배 순서에 추가) and from the toolbar 곡 검색 with Ctrl Enter, as in PP. Until then (M3) it stays on top, above 다른 항목. | Moved  |
+| Group | Row                                       | Does                                                                                                                   | Status  |
+| ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                    | Now     |
+| 1     | 자리 표시 추가, 큐 추가                   | PP New Placeholder, New Cue.                                                                                           | Off     |
+| 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                            | Now     |
+| 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                            | Now     |
+| 2     | 공지 ›                                    | Submenu of 공지 sets.                                                                                                  | Now     |
+| 2     | 비디오 스트림 항목…, 오디오 스트림 항목…  | PP stream items.                                                                                                       | Off     |
+| -     | Search field and the 라이브러리 song list | Removed from this menu. Songs come from 라이브러리 right-click (예배 순서에 추가) and toolbar 곡 검색 with Ctrl Enter. | Removed |
 
 ### 예배 순서 항목 오른쪽 클릭
 

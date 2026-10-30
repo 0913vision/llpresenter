@@ -26,6 +26,11 @@ import {LOOKUP_TIMEOUT_MS} from '@renderer/state/showOutput';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {nextPointed, ToolbarSearch} from './ToolbarSearch';
 import {TOOLBAR_SEARCH_LIMIT} from './useToolbarSearch';
+import {
+  fixtureItems,
+  fixtureServiceId,
+  itemFixture,
+} from '@renderer/prep/service/itemFixture';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {
@@ -97,6 +102,158 @@ beforeEach(() => {
     lastSlideItemId: null,
     commandVersion: 0,
   });
+});
+
+function setupAdding() {
+  const fixture = itemFixture();
+  const song = fixture.second.song;
+  const api = {
+    ...fixture.api,
+    library: {
+      ...fixture.api.library,
+      search: async ({query}: {query: string}) => ({
+        query,
+        matches: [
+          {
+            songId: song.id,
+            title: song.title,
+            slideCount: 2,
+            match: {kind: 'title' as const},
+          },
+        ],
+      }),
+    },
+  };
+  window.llp = api;
+  const current = fixture.service();
+  fixture.pushService({
+    ...current,
+    service: {
+      ...current.service,
+      order: current.service.order.map(item =>
+        item.id === fixtureItems.slot
+          ? {id: item.id, header: 'Next section'}
+          : item,
+      ),
+    },
+  });
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    readOnly: false,
+    openItemId: fixtureItems.arranged,
+    rows: [
+      {kind: 'header', id: fixtureItems.header, title: 'First section'},
+      {
+        kind: 'song',
+        id: fixtureItems.arranged,
+        title: fixture.first.song.title,
+      },
+      {kind: 'song', id: fixtureItems.plain, title: song.title},
+      {kind: 'header', id: fixtureItems.slot, title: 'Next section'},
+      {kind: 'song', id: fixtureItems.lost, title: 'Last song'},
+    ],
+  });
+  const report = vi.fn();
+  const send = vi.spyOn(api.live, 'send');
+  const open = vi.spyOn(api.library, 'showSong');
+  render(<ToolbarSearch enabled onProblem={report} />);
+  return {...fixture, api, report, send, open};
+}
+
+it.each(['section', 'end'])(
+  'adds the pointed song at the %s insertion point with Ctrl Enter only once',
+  async location => {
+    const {service, second, send, open} = setupAdding();
+    if (location === 'end') act(() => useShow.setState({openItemId: null}));
+    const field = screen.getByRole('combobox', {name: '검색'});
+    await userEvent.type(field, '노래');
+    await screen.findByRole('option', {name: new RegExp(second.song.title)});
+    expect(screen.getByText('Enter 열기')).toBeDefined();
+    expect(screen.getByText('Ctrl Enter 예배 순서에 추가')).toBeDefined();
+    await userEvent.keyboard('{ArrowDown}');
+    fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
+    fireEvent.keyDown(field, {
+      key: 'Enter',
+      code: 'Enter',
+      ctrlKey: true,
+      repeat: true,
+    });
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(
+      service().service.order[location === 'section' ? 3 : 5],
+    ).toMatchObject({song: second.song.id});
+    expect(
+      service().service.order[location === 'section' ? 4 : 3],
+    ).toMatchObject({id: fixtureItems.slot, header: 'Next section'});
+    expect(open).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+    expect(useShow.getState().openItemId).toBe(
+      location === 'section' ? fixtureItems.arranged : null,
+    );
+  },
+);
+
+it.each([{readOnly: true}, {serviceId: null}])(
+  'keeps Ctrl Enter unavailable for %j',
+  async state => {
+    const {mount, api, showSong} = setup();
+    const get = vi.spyOn(api.services, 'get');
+    act(() => useShow.setState(state));
+    mount();
+    const field = screen.getByRole('combobox', {name: '검색'});
+    await userEvent.type(field, '새벽');
+    await screen.findByRole('option', {name: /새벽빛/});
+    await userEvent.keyboard('{ArrowDown}');
+    fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
+    expect(get).not.toHaveBeenCalled();
+    expect(showSong).not.toHaveBeenCalled();
+    expect(screen.getByRole('listbox', {name: '곡 검색 결과'})).toBeDefined();
+  },
+);
+
+it.each([
+  {shiftKey: true},
+  {altKey: true},
+  {metaKey: true},
+  {isComposing: true},
+  {repeat: true},
+])('ignores modified, composing or held Ctrl Enter %j', async extra => {
+  const {mount, api, showSong} = setup();
+  const get = vi.spyOn(api.services, 'get');
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '새벽');
+  await screen.findByRole('option', {name: /새벽빛/});
+  await userEvent.keyboard('{ArrowDown}');
+  fireEvent.keyDown(field, {
+    key: 'Enter',
+    code: 'Enter',
+    ctrlKey: true,
+    ...extra,
+  });
+  expect(get).not.toHaveBeenCalled();
+  expect(showSong).not.toHaveBeenCalled();
+});
+
+it('reports a refused Ctrl Enter insertion without opening or outputting the song', async () => {
+  const {api, report, send, open, service, second} = setupAdding();
+  vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
+    ok: false,
+    error: {reason: 'read-only', message: 'Invented refusal'},
+  });
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '노래');
+  await screen.findByRole('option', {name: new RegExp(second.song.title)});
+  await userEvent.keyboard('{ArrowDown}');
+  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
+  await waitFor(() =>
+    expect(report).toHaveBeenCalledWith(
+      expect.objectContaining({title: '예배 순서 변경 실패'}),
+    ),
+  );
+  expect(service().service.order).toHaveLength(5);
+  expect(open).not.toHaveBeenCalled();
+  expect(send).not.toHaveBeenCalled();
 });
 
 afterEach(async () => {

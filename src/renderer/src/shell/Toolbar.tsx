@@ -128,7 +128,11 @@ export function Toolbar({
         onOpenPrepSong={workspace === 'prep' ? onOpenPrepSong : undefined}
         onProblem={onProblem}
       />
-      <LookMenu compact={compact} onProblem={onProblem} />
+      <LookMenu
+        compact={compact}
+        onProblem={onProblem}
+        onEdit={() => onWorkspace('screens')}
+      />
       <span className={styles.divider} />
       <OutputToggles compact={compact} />
     </header>

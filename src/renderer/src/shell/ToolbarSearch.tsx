@@ -17,6 +17,11 @@ import type {Notice} from '@renderer/ui/notices';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
+import {useShow} from '@renderer/state/show';
+import {useServiceOrderEditing} from '@renderer/show/useServiceOrderEditing';
+import {quickAddBefore} from '@renderer/prep/service/quickAddPosition';
+import {createServiceItemId} from '@shared/schema/ids';
+import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;
@@ -133,6 +138,18 @@ export function ToolbarSearch({
   readonly onSearchFocused?: (() => void) | undefined;
 }): JSX.Element {
   const search = useToolbarSearch(enabled, onProblem, onOpenPrepSong);
+  const serviceId = useShow(view => view.serviceId);
+  const readOnly = useShow(view => view.readOnly);
+  const editing = useServiceOrderEditing(serviceId, onProblem);
+  const addReason =
+    serviceId === null
+      ? '열린 예배 순서가 없습니다'
+      : readOnly
+        ? '읽기 전용 예배 순서'
+        : editing.busy
+          ? '예배 순서를 변경하는 중'
+          : undefined;
+  const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -165,7 +182,30 @@ export function ToolbarSearch({
       );
   };
   const keys = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (isComposing(event) || hasModifier(event)) return;
+    if (isComposing(event)) return;
+    if (
+      event.code === 'Enter' &&
+      event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      if (!expanded || !selected) return;
+      event.preventDefault();
+      if (event.repeat || addReason !== undefined) return;
+      const {rows, openItemId} = useShow.getState();
+      const before = quickAddBefore(rows, openItemId);
+      editing.run((edits, id) =>
+        edits.insertSong(
+          id,
+          selected.songId,
+          before === null ? null : createServiceItemId(before),
+        ),
+      );
+      setOpen(false);
+      return;
+    }
+    if (hasModifier(event)) return;
     if (search.matches.length === 0) return;
     if (isResultKey(event.code)) {
       event.preventDefault();
@@ -245,6 +285,16 @@ export function ToolbarSearch({
                 {statusLabel(search)}
               </div>
             ) : null}
+            <div className={styles.footer}>
+              <span>Enter 열기</span>
+              <span
+                {...addTooltip.targetProps}
+                aria-disabled={addReason !== undefined}
+              >
+                Ctrl Enter 예배 순서에 추가
+              </span>
+            </div>
+            {addTooltip.tooltip}
           </div>
         ) : null}
       </div>

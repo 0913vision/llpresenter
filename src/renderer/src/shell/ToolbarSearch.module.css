@@ -73,3 +73,16 @@
 .status {
   padding: var(--space-8) var(--space-10);
 }
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  padding: var(--space-8) var(--space-10);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.footer [aria-disabled='true'] {
+  color: var(--text-off);
+}

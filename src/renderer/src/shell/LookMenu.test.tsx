@@ -15,11 +15,19 @@ import {
 } from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
-import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
+import {parseLookId} from '@shared/schema/ids';
+import {useScreensSelection} from '@renderer/screens/selection';
+import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
 
 const first = '00000000-0000-4000-8000-000000000001';
 const second = '00000000-0000-4000-8000-000000000002';
+
+function checkedLookId(value: string) {
+  const parsed = parseLookId(value);
+  if (!parsed.ok) throw new Error('Invalid test Look ID');
+  return parsed.value;
+}
 
 function looksDocument(revision = 1, current = first) {
   const parsed = parseSettingsDocument({
@@ -48,6 +56,7 @@ function setup() {
   const stop = vi.fn();
   const send = vi.fn();
   const onProblem = vi.fn();
+  const onWorkspace = vi.fn();
   const api = fakeLlpApi({
     settings: {
       get: async () => looksDocument(),
@@ -59,13 +68,13 @@ function setup() {
     live: {send},
   });
   window.llp = api;
-  const live = emptyLiveState();
+  const live = {...emptyLiveState(), lookId: checkedLookId(first)};
   useLive.setState({state: live});
   const view = render(
     <Toolbar
       sizeClass="normal"
       workspace="show"
-      onWorkspace={() => undefined}
+      onWorkspace={onWorkspace}
       onProblem={onProblem}
     />,
   );
@@ -73,6 +82,7 @@ function setup() {
     api,
     send,
     onProblem,
+    onWorkspace,
     live,
     view,
     stop,
@@ -84,11 +94,12 @@ function setup() {
 afterEach(() => {
   cleanup();
   useLive.setState({state: null});
+  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
   delete window.llp;
   resetTooltips();
 });
 
-it('sends the Look command without turning persisted settings into a confirmed live check', async () => {
+it('checks the confirmed live Look and waits for live acknowledgement after choosing', async () => {
   const {api, user, send, live, push} = setup();
   const edit = vi.spyOn(api.settings, 'edit');
   const button = screen.getByRole('button', {name: 'Look'});
@@ -96,9 +107,10 @@ it('sends the Look command without turning persisted settings into a confirmed l
   await user.keyboard('{ArrowDown}');
   const entries = await screen.findAllByRole('menuitemradio');
   expect(entries.map(entry => entry.textContent)).toEqual(['평상시', '설교']);
-  expect(
-    entries.every(entry => entry.getAttribute('aria-checked') === 'false'),
-  ).toBe(true);
+  expect(entries.map(entry => entry.getAttribute('aria-checked'))).toEqual([
+    'true',
+    'false',
+  ]);
   await user.click(screen.getByRole('menuitemradio', {name: '설교'}));
   expect(send).toHaveBeenCalledExactlyOnceWith({
     type: 'look.set',
@@ -113,8 +125,16 @@ it('sends the Look command without turning persisted settings into a confirmed l
   expect(
     screen
       .getAllByRole('menuitemradio')
-      .every(entry => entry.getAttribute('aria-checked') === 'false'),
-  ).toBe(true);
+      .map(entry => entry.getAttribute('aria-checked')),
+  ).toEqual(['true', 'false']);
+  act(() =>
+    useLive.setState({state: {...live, lookId: checkedLookId(second)}}),
+  );
+  expect(
+    screen
+      .getAllByRole('menuitemradio')
+      .map(entry => entry.getAttribute('aria-checked')),
+  ).toEqual(['false', 'true']);
   expect(button.textContent).toContain('Look');
   await user.keyboard('{Escape}');
   expect(document.activeElement).toBe(button);
@@ -204,7 +224,7 @@ it('reports a command transport failure without claiming the new Look is live', 
   expect(useLive.getState().state).toBe(live);
 });
 
-it('explains the missing confirmation in a tooltip and stays disabled outside Electron', async () => {
+it('stays disabled outside Electron without a stale confirmation warning', () => {
   delete window.llp;
   render(
     <Toolbar
@@ -218,7 +238,39 @@ it('explains the missing confirmation in a tooltip and stays disabled outside El
   fireEvent.click(button);
   fireEvent.keyDown(button, {key: 'ArrowDown'});
   expect(screen.queryByRole('menu')).toBeNull();
-  expect((await hoverForTooltip(button))?.textContent).toBe(
-    '현재 버전에서는 Look 적용을 확인할 수 없음',
-  );
+  expect(screen.queryByRole('tooltip')).toBeNull();
+});
+
+it('lists Look choices, a separator and Edit Looks in spec order', async () => {
+  const {user, onWorkspace, send} = setup();
+  await user.click(screen.getByRole('button', {name: 'Look'}));
+  await screen.findAllByRole('menuitemradio');
+  const menu = screen.getByRole('menu', {name: 'Look 선택'});
+  expect(
+    [...menu.querySelectorAll('[role^=menuitem], [role=separator]')].map(row =>
+      row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+    ),
+  ).toEqual(['평상시', '설교', '|', 'Look 편집…']);
+  await user.click(screen.getByRole('menuitem', {name: 'Look 편집…'}));
+  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('screens');
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'look',
+    id: first,
+  });
+  expect(screen.queryByRole('menu')).toBeNull();
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('uses the configured default when live state has no explicit Look and leaves unknown state unchecked', async () => {
+  const {user} = setup();
+  act(() => useLive.setState({state: emptyLiveState()}));
+  await user.click(screen.getByRole('button', {name: 'Look'}));
+  const firstRow = await screen.findByRole('menuitemradio', {name: '평상시'});
+  expect(firstRow.getAttribute('aria-checked')).toBe('true');
+  act(() => useLive.setState({state: null}));
+  expect(
+    screen
+      .getAllByRole('menuitemradio')
+      .every(row => row.getAttribute('aria-checked') === 'false'),
+  ).toBe(true);
 });

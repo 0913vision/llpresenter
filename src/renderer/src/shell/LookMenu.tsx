@@ -5,24 +5,36 @@ import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
 import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
-
-const CONFIRMATION_UNAVAILABLE = '현재 버전에서는 Look 적용을 확인할 수 없음';
+import {useLive} from '@renderer/state/live';
+import {useScreensSelection} from '@renderer/screens/selection';
+import {lookMenuEntries} from './lookMenuEntries';
 
 function logProblem(notice: Notice): void {
   console.error('Toolbar Look failed:', notice.key);
 }
 
-/** Sends Look commands without claiming a settings value confirms live output. */
+/** Picks the effective live Look and opens its editor in 화면 설정. */
 export function LookMenu({
   compact,
   onProblem = logProblem,
+  onEdit,
 }: {
   readonly compact: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onEdit?: (() => void) | undefined;
 }): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const open = anchor !== null;
   const {document, loading} = useLookChoices({open, onProblem});
+  const liveLook = useLive(view =>
+    view.state === null ? undefined : (view.state.lookId ?? null),
+  );
+  const looks = document?.value.looks ?? [];
+  const current =
+    liveLook === undefined
+      ? null
+      : (looks.find(look => look.id === liveLook)?.id ??
+        document?.value.current);
   const disabled = window.llp === undefined;
   const setExpanded = (next: boolean, button: HTMLButtonElement): void => {
     setAnchor(next ? button : null);
@@ -41,7 +53,6 @@ export function LookMenu({
         expanded={open}
         disabled={disabled}
         aria-busy={open && loading}
-        title={CONFIRMATION_UNAVAILABLE}
         onClick={event => setExpanded(!open, event.currentTarget)}
         onKeyDown={event =>
           openOnArrowDown(event, {
@@ -56,15 +67,22 @@ export function LookMenu({
           label="Look 선택"
           anchor={{kind: 'element', element: anchor}}
           onClose={() => setAnchor(null)}
-          entries={(document?.value.looks ?? []).map(look => ({
-            kind: 'item',
-            id: look.id,
-            label: look.name || '이름 없는 Look',
-            check: 'radio',
-            // TODO(0913vision): Bind the name and check to O4's live confirmation.
-            checked: false,
-            onSelect: () => choose(look.id),
-          }))}
+          entries={lookMenuEntries({
+            looks,
+            current,
+            choose,
+            edit: () => {
+              const id = current ?? looks[0]?.id;
+              if (id) {
+                useScreensSelection.getState().select('look', id);
+              } else {
+                useScreensSelection.setState({
+                  selection: {kind: 'look', id: null},
+                });
+              }
+              onEdit?.();
+            },
+          })}
         />
       ) : null}
     </>
