@@ -5,6 +5,7 @@ import {sendLive, useLive} from '@renderer/state/live';
 import {Properties, PropertyGroup, PropertyRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {StageMessage} from './StageMessage';
+import {StageLayoutPicker} from './StageLayoutPicker';
 import styles from './StageTab.module.css';
 
 const NO_TIMER = 'none';
@@ -42,30 +43,15 @@ export function StageTab({
               stageLayouts?.[screen.id] ??
               resolveScreenLook(looks?.value ?? null, lookId, screen).appearance
                 ?.stageLayout;
-            const missing =
-              layoutId !== undefined &&
-              layouts !== null &&
-              !layouts.value.layouts.some(l => l.id === layoutId);
             return (
               <PropertyRow key={screen.id} label={screen.name || '무대 화면'}>
                 {({controlId}) => (
-                  <SelectMenu
+                  <StageLayoutPicker
                     id={controlId}
-                    aria-label={`${screen.name || '무대 화면'} 무대 배치`}
-                    block
+                    label={`${screen.name || '무대 화면'} 무대 배치`}
                     value={layoutId}
-                    valueText={missing ? '삭제된 배치' : undefined}
-                    title={
-                      layoutReason ??
-                      (missing ? '무대 배치를 찾을 수 없습니다' : undefined)
-                    }
-                    disabled={layoutReason !== undefined}
-                    options={
-                      layouts?.value.layouts.map(l => ({
-                        value: l.id,
-                        label: l.name || '이름 없음',
-                      })) ?? []
-                    }
+                    reason={layoutReason}
+                    layouts={layouts?.value.layouts ?? null}
                     onChange={layoutId =>
                       sendLive({
                         type: 'stage.layout.set',

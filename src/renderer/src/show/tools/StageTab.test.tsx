@@ -13,6 +13,8 @@ import {
   screensDocument,
 } from '@renderer/screens/testing/documents';
 import {useShowToolTab} from '@renderer/state/showToolTab';
+import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
+import {useScreensSelection} from '@renderer/screens/selection';
 import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {ShowToolsPanel} from '../ShowToolsPanel';
 import {StageTab} from './StageTab';
@@ -46,6 +48,95 @@ async function choose(label: string, option: string): Promise<void> {
 }
 
 describe('stage tool', () => {
+  it('lists editing before layout thumbnails and checks the current layout', async () => {
+    const fixture = stageFixture();
+    const navigate = vi.fn();
+    render(
+      <WorkspaceNavigation value={navigate}>
+        <StageTab />
+      </WorkspaceNavigation>,
+    );
+    const select = await screen.findByRole('button', {
+      name: '무대 화면 무대 배치',
+    });
+    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
+    fireEvent.click(select);
+    const menu = screen.getByRole('menu', {name: '무대 화면 무대 배치'});
+    expect(
+      [...menu.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
+        row =>
+          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
+      ),
+    ).toEqual(['선택한 배치 편집…', '|', '현재와 다음', '하단 자막']);
+    expect(menu.querySelectorAll('svg[viewBox="0 0 1920 1080"]')).toHaveLength(
+      2,
+    );
+    expect(
+      screen
+        .getByRole('menuitemradio', {name: '현재와 다음'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    act(() => fixture.live({stageLayouts: {[STAGE_ID]: WIDE_LAYOUT_ID}}));
+    expect(
+      screen
+        .getByRole('menuitemradio', {name: '하단 자막'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('menuitem', {name: '선택한 배치 편집…'}));
+    expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
+    expect(useScreensSelection.getState().selection).toEqual({
+      kind: 'stage',
+      id: WIDE_LAYOUT_ID,
+    });
+    expect(fixture.send).not.toHaveBeenCalled();
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('disables editing when the current layout is removed while the menu is open', async () => {
+    const fixture = stageFixture();
+    render(
+      <WorkspaceNavigation value={vi.fn()}>
+        <StageTab />
+      </WorkspaceNavigation>,
+    );
+    const select = await screen.findByRole('button', {
+      name: '무대 화면 무대 배치',
+    });
+    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
+    fireEvent.click(select);
+    act(() =>
+      fixture.push(
+        settingsDocument(
+          'stage-layouts',
+          {
+            format: 'llsettings.stage',
+            layouts: [
+              {
+                id: WIDE_LAYOUT_ID,
+                name: '하단 자막',
+                width: 1920,
+                height: 1080,
+                elements: [],
+              },
+            ],
+          },
+          2,
+        ),
+      ),
+    );
+    expect(
+      screen
+        .getByRole('menuitem', {name: '선택한 배치 편집…'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('menuitemradio', {name: '하단 자막'}));
+    expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
+      type: 'stage.layout.set',
+      screenId: STAGE_ID,
+      layoutId: WIDE_LAYOUT_ID,
+    });
+  });
+
   it('mounts only on its tab and releases all five document subscriptions', async () => {
     const fixture = stageFixture();
     useShowToolTab.setState({tool: 'message'});

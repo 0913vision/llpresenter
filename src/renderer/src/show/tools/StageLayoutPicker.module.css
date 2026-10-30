@@ -1,0 +1,11 @@
+.thumbnail {
+  flex: none;
+  width: calc(var(--space-20) * 2);
+  height: var(--space-24);
+  overflow: hidden;
+  outline: var(--space-2) solid var(--line-strong);
+  outline-offset: calc(-1 * var(--space-2));
+  border-radius: var(--radius-xs);
+  background: var(--bg-app);
+  fill: var(--text-3);
+}

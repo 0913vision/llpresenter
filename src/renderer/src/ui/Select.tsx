@@ -26,7 +26,7 @@ export type SelectLead =
   | {readonly kind: 'tile'; readonly color: MacroColor; readonly icon: string};
 
 /** What the button opens: a list of choices, or a popover such as a calendar. */
-export type SelectPopup = 'listbox' | 'dialog';
+export type SelectPopup = 'listbox' | 'dialog' | 'menu';
 
 export interface SelectProps extends Omit<
   ComponentPropsWithRef<'button'>,
