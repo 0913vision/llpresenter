@@ -2,8 +2,8 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {applyService} from '@renderer/state/show';
-import {sampleService} from '@renderer/show/testing/sampleService';
+import {applyService} from '@renderer/features/presentation/state/show';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
 import {
   ids,
   librarySongs,

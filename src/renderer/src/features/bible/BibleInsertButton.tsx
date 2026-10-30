@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {passageItem} from '@renderer/features/service/items/quickAddBible';
 import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {Button} from '@renderer/ui/Button';
 import type {Notice} from '@renderer/ui/notices';
 import {useServiceOrderEditing} from '../service/order/useServiceOrderEditing';

@@ -1,4 +1,4 @@
-import type {ShowView} from '@renderer/state/showStore';
+import type {ShowView} from '@renderer/features/presentation/state/showStore';
 import type {ShowTile} from '@core/schema/showService';
 
 const NO_TILES: readonly ShowTile[] = [];

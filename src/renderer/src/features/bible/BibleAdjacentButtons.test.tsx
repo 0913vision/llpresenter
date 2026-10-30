@@ -16,12 +16,12 @@ import {
   outputTile,
   selectTile,
   useShow,
-} from '@renderer/state/show';
+} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
-import {beginOutputRequest} from '@renderer/state/showOutput';
-import {seedSampleService} from '../../show/testing/sampleService';
-import {BibleQuickField} from '../../show/quick/BibleQuickField';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
+import {beginOutputRequest} from '@renderer/features/presentation/state/showOutput';
+import {seedSampleService} from '../presentation/testing/sampleService';
+import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {adjacentVerseRange} from '@core/bible/adjacentVerses';

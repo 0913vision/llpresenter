@@ -2,12 +2,12 @@ import {useMemo, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
-} from '@renderer/state/thumbnailScale';
+} from '@renderer/features/presentation/state/thumbnailScale';
 import {
   Panel,
   PanelBody,

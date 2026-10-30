@@ -18,11 +18,11 @@ import {
   openItem,
   revealLiveItem,
   selectTile,
-} from '@renderer/state/show';
+} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
 import {emptyLiveState} from '@core/live/state';
-import {seedSampleService} from '../../show/testing/sampleService';
-import {BibleQuickField} from '../../show/quick/BibleQuickField';
+import {seedSampleService} from '../presentation/testing/sampleService';
+import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {bibleDocument, panelApi, panelPassage} from './panelTesting';
 import {openBiblePassage, showBiblePassage} from './actions';
@@ -30,8 +30,12 @@ import {lookupReply, lookupRequest} from './testBible';
 import styles from './BiblePanel.module.css';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 
-vi.mock('@renderer/show/PreviewPanel', () => ({PreviewPanel: () => null}));
-vi.mock('@renderer/show/ShowToolsPanel', () => ({ShowToolsPanel: () => null}));
+vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
+  PreviewPanel: () => null,
+}));
+vi.mock('@renderer/features/tools/ShowToolsPanel', () => ({
+  ShowToolsPanel: () => null,
+}));
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   useShow.setState({

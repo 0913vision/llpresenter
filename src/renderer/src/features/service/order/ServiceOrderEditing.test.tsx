@@ -12,7 +12,10 @@ import {
 import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {applyService, useShow} from '@renderer/state/show';
+import {
+  applyService,
+  useShow,
+} from '@renderer/features/presentation/state/show';
 import {useHeaderRename} from '@renderer/features/service/state/headerRename';
 import {useLive} from '@renderer/platform/live';
 import {ServiceOrderList} from './ServiceOrderList';

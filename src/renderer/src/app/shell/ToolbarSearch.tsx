@@ -17,7 +17,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {createServiceItemId} from '@core/schema/ids';

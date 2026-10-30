@@ -13,7 +13,7 @@ import {createMediaId, translationIdSchema} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {mockMenuRowHeight} from '@renderer/features/songs/editor/editorTesting';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';

@@ -8,7 +8,7 @@ const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
 const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));
 vi.mock('react-dom/client', () => ({createRoot: () => root}));
 vi.mock('@renderer/platform/live', () => ({startLiveSync: () => stops.live}));
-vi.mock('@renderer/state/show', () => ({
+vi.mock('@renderer/features/presentation/state/show', () => ({
   startServiceSync: () => stops.service,
 }));
 

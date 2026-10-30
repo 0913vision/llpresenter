@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {Icon} from '@renderer/ui/Icon';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {Menu} from '@renderer/ui/Menu';

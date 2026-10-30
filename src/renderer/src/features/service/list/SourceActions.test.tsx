@@ -26,8 +26,8 @@ import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createTemplateId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {applyService} from '@renderer/state/show';
-import {sampleService} from '@renderer/show/testing/sampleService';
+import {applyService} from '@renderer/features/presentation/state/show';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
 import {NewServiceDialog} from './NewServiceDialog';
 import {
   ids,

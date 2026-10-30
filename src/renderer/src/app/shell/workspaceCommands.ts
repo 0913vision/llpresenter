@@ -1,9 +1,9 @@
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {useShowToolTab} from '@renderer/state/showToolTab';
-import {useMacroPalette} from '@renderer/state/macroPalette';
-import {SHOW_TOOLS, type ShowTool} from '@renderer/show/showTools';
+import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
+import {SHOW_TOOLS, type ShowTool} from '@renderer/features/tools/showTools';
 import type {Workspace} from './Toolbar';
 import type {WindowShortcut} from '../../platform/windowShortcuts';
 

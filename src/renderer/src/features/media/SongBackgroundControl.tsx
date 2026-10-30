@@ -2,7 +2,7 @@ import {useEffect, useId, useRef, useState, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/media';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {Button, Icon, Menu} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useTooltip} from '@renderer/ui/Tooltip';
@@ -15,7 +15,7 @@ import {
   SONG_DEFAULT_LABEL,
 } from './backgroundChoices';
 import {useSongBackground} from './useSongBackground';
-import {MISSING_BACKGROUND_TIP} from '../../show/problemReasons';
+import {MISSING_BACKGROUND_TIP} from '../presentation/problemReasons';
 import styles from './SongBackgroundControl.module.css';
 
 const ICON_SIZE = 14;

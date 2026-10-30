@@ -17,8 +17,8 @@ import {
   MAIN_ID,
   CAPTIONS_ID,
 } from '@renderer/screens/testing/documents';
-import {PreviewPanel} from '@renderer/show/PreviewPanel';
-import {usePreview} from '@renderer/state/preview';
+import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {usePreview} from '@renderer/features/presentation/state/preview';
 import {ScreenSummariesProvider} from './ScreenSummaries';
 import {MenuBar} from '../app/shell/MenuBar';
 import {Toolbar} from '../app/shell/Toolbar';
@@ -26,7 +26,7 @@ import {StatusBar} from '../app/shell/StatusBar';
 import {summarizeScreens} from './screens';
 
 const lifecycle = vi.hoisted(() => ({mounted: vi.fn(), disposed: vi.fn()}));
-vi.mock('@renderer/show/ScreenPreview', () => ({
+vi.mock('@renderer/features/presentation/ScreenPreview', () => ({
   ScreenPreview: ({screenId}: {screenId: string}) => {
     useEffect(() => {
       lifecycle.mounted(screenId);

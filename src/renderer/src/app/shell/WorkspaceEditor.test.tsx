@@ -8,7 +8,7 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@renderer/features/service/items/itemFixture';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 

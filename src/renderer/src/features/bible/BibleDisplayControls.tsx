@@ -1,14 +1,14 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {selectTile, useShow} from '@renderer/state/show';
+import {selectTile, useShow} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
   withinLookupTimeout,
-} from '@renderer/state/showOutput';
+} from '@renderer/features/presentation/state/showOutput';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from './actions';

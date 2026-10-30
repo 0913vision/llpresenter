@@ -9,7 +9,7 @@ import {
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import type {UiState} from '@core/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {useClearKeys} from '@renderer/show/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
 import {StatusBar} from '@renderer/app/shell/StatusBar';
@@ -18,8 +18,8 @@ import {
   useOutputWarnings,
   warningScreens,
 } from '@renderer/platform/outputWarnings';
-import {openItem, useShow} from '@renderer/state/show';
-import {isLibrarySource} from '@renderer/state/showLibrary';
+import {openItem, useShow} from '@renderer/features/presentation/state/show';
+import {isLibrarySource} from '@renderer/features/presentation/state/showLibrary';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';

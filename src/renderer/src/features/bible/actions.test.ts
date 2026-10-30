@@ -10,9 +10,12 @@ import {
   revealLiveItem,
   selectTile,
   useShow,
-} from '@renderer/state/show';
-import {bibleSourceFor, shownTiles} from '@renderer/state/showLibrary';
-import {sampleService} from '../../show/testing/sampleService';
+} from '@renderer/features/presentation/state/show';
+import {
+  bibleSourceFor,
+  shownTiles,
+} from '@renderer/features/presentation/state/showLibrary';
+import {sampleService} from '../presentation/testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';
 import {bibleSource} from '@core/bible/source';

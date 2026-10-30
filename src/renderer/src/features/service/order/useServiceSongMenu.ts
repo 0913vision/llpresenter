@@ -8,7 +8,7 @@ import {
   itemArrangementChange,
   updateServiceItem,
 } from '@renderer/features/service/state/serviceItemUpdate';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 

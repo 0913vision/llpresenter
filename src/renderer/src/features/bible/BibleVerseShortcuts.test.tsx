@@ -10,13 +10,13 @@ import {
   outputPrevious,
   selectTile,
   useShow,
-} from '@renderer/state/show';
+} from '@renderer/features/presentation/state/show';
 import {
   beginOutputRequest,
   LOOKUP_TIMEOUT_MS,
-} from '@renderer/state/showOutput';
-import {handleShowKey} from '../../show/shortcuts';
-import {seedSampleService} from '../../show/testing/sampleService';
+} from '@renderer/features/presentation/state/showOutput';
+import {handleShowKey} from '../presentation/shortcuts';
+import {seedSampleService} from '../presentation/testing/sampleService';
 import {openBiblePassage} from './actions';
 import {BiblePanel} from './BiblePanel';
 import {panelApi} from './panelTesting';

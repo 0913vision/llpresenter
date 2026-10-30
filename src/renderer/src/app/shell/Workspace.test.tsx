@@ -1,11 +1,11 @@
 import {cleanup, fireEvent, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/platform/drag';
-import * as showState from '@renderer/state/show';
+import * as showState from '@renderer/features/presentation/state/show';
 import {
   sampleService,
   seedSampleService,
-} from '@renderer/show/testing/sampleService';
+} from '@renderer/features/presentation/testing/sampleService';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 import {renderWithScreenSummaries as render} from './testing/screenSummaries';

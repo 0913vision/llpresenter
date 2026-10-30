@@ -7,9 +7,9 @@ import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
 import type {LiveCommand} from '@core/live/commands';
-import {sampleService} from '@renderer/show/testing/sampleService';
-import {applyService} from '@renderer/state/show';
-import {useShowToolTab} from '@renderer/state/showToolTab';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
+import {applyService} from '@renderer/features/presentation/state/show';
+import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 

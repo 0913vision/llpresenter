@@ -12,7 +12,7 @@ import type {MediaDocument, MediaImportResult} from '@core/schema/mediaEdit';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {playlistId, audioPlaylistId} from './mediaTesting';
 import {INITIAL_ROWS, OVERSCAN_ROWS} from './VirtualMediaGrid';
-import {useShowKeys} from '@renderer/show/shortcuts';
+import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 
 function ShowKeys() {
   useShowKeys();

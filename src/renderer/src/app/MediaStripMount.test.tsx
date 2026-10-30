@@ -13,7 +13,7 @@ import type {UiState} from '@core/schema/uiState';
 import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
-import {applyService} from '@renderer/state/show';
+import {applyService} from '@renderer/features/presentation/state/show';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 import {

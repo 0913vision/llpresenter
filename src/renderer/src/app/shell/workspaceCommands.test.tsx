@@ -1,8 +1,8 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useWindowShortcuts} from '../../platform/windowShortcuts';
-import {useShowToolTab} from '@renderer/state/showToolTab';
-import {useMacroPalette} from '@renderer/state/macroPalette';
+import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {workspaceMenu, workspaceShortcuts} from './workspaceCommands';
 
 afterEach(() => {

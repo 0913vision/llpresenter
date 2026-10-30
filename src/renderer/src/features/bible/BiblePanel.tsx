@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {SizeClass} from '@renderer/ui/sizeClass';
-import {useShow} from '@renderer/state/show';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
+import {useShow} from '@renderer/features/presentation/state/show';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
 import {Button} from '@renderer/ui';
 import {
   Panel,
@@ -11,7 +11,7 @@ import {
   PanelTitle,
   PanelTools,
 } from '@renderer/ui/Panel';
-import {SlidePanelBody, SlideSizeControl} from '../../show/SlidePanel';
+import {SlidePanelBody, SlideSizeControl} from '../presentation/SlidePanel';
 import {showBiblePassage} from './actions';
 import {BibleAdjacentButtons} from './BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';

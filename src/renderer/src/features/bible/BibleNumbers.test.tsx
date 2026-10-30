@@ -9,8 +9,8 @@ import {
   revealLiveItem,
   selectTile,
   useShow,
-} from '@renderer/state/show';
-import {BibleQuickField} from '../../show/quick/BibleQuickField';
+} from '@renderer/features/presentation/state/show';
+import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {panelApi} from './panelTesting';
 

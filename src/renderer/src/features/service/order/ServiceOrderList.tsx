@@ -2,7 +2,7 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useHeaderRename} from '@renderer/features/service/state/headerRename';
-import {openItem, useShow} from '@renderer/state/show';
+import {openItem, useShow} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
 import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';

@@ -4,7 +4,7 @@ import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {NumberField, type NumberFieldProps} from './NumberField';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {handleClearKey} from '@renderer/show/clearKeys';
+import {handleClearKey} from '@renderer/features/presentation/clearKeys';
 
 function Copies({
   onChange = () => {},

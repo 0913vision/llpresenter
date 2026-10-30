@@ -9,7 +9,10 @@ import {
   createSongId,
 } from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {applyService, openItem} from '@renderer/state/show';
+import {
+  applyService,
+  openItem,
+} from '@renderer/features/presentation/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import * as backgroundHook from './useSongBackground';
 import {

@@ -1,7 +1,10 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {applyService, useShow} from '@renderer/state/show';
+import {
+  applyService,
+  useShow,
+} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
@@ -11,7 +14,7 @@ import {ServiceOrderHeader} from './ServiceOrderHeader';
 import {
   sampleService,
   seedSampleService,
-} from '../../../show/testing/sampleService';
+} from '../../presentation/testing/sampleService';
 
 beforeEach(seedSampleService);
 afterEach(() => {

@@ -9,12 +9,17 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
+import {
+  openItem,
+  outputTile,
+  selectTile,
+  useShow,
+} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
-import {beginOutputRequest} from '@renderer/state/showOutput';
-import {seedSampleService} from '../../show/testing/sampleService';
-import {BibleQuickField} from '../../show/quick/BibleQuickField';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
+import {beginOutputRequest} from '@renderer/features/presentation/state/showOutput';
+import {seedSampleService} from '../presentation/testing/sampleService';
+import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {bibleDocument, panelApi, panelPassage} from './panelTesting';

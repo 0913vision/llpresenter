@@ -15,8 +15,11 @@ import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
 import type {ShowService} from '@core/schema/showService';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {applyService, useShow} from '@renderer/state/show';
-import {sampleService} from '@renderer/show/testing/sampleService';
+import {
+  applyService,
+  useShow,
+} from '@renderer/features/presentation/state/show';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {NewServiceDialog} from './NewServiceDialog';
 import {

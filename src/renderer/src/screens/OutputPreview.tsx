@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useState, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import {sendLive} from '@renderer/platform/live';
-import {ScreenPreview} from '@renderer/show/ScreenPreview';
+import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {SegmentedControl} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {

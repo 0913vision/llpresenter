@@ -21,7 +21,7 @@ import {SongEditorStore} from '@renderer/features/songs/editor';
 import {mockMenuRowHeight} from '@renderer/features/songs/editor/editorTesting';
 import {SongSession} from '@renderer/features/songs/editor/songSession';
 import {useLive} from '@renderer/platform/live';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';

@@ -12,8 +12,11 @@ import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ids, pastDocument} from '@renderer/features/service/list/testing';
-import {applyService, useShow} from '@renderer/state/show';
-import {sampleService} from '../../../show/testing/sampleService';
+import {
+  applyService,
+  useShow,
+} from '@renderer/features/presentation/state/show';
+import {sampleService} from '../../presentation/testing/sampleService';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
 
 const pastName = pastDocument.service.name;

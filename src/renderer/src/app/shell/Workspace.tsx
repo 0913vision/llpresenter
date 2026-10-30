@@ -29,24 +29,24 @@ import type {MediaApi} from '@renderer/features/media/mediaLibrary';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
-import {ClearRow} from '@renderer/show/ClearRow';
-import {PreviewPanel} from '@renderer/show/PreviewPanel';
+import {ClearRow} from '@renderer/features/presentation/ClearRow';
+import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
-import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
+import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/features/media/SongBackgroundControl';
-import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
-import {QuickPanel} from '@renderer/show/quick/QuickPanel';
+import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
+import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {BiblePanel} from '@renderer/features/bible/BiblePanel';
-import {useShow} from '@renderer/state/show';
-import {isBibleSource} from '@renderer/state/showLibrary';
+import {useShow} from '@renderer/features/presentation/state/show';
+import {isBibleSource} from '@renderer/features/presentation/state/showLibrary';
 import {
   SlidePanelBody,
   SlidePanelMeta,
   SlideSizeControl,
-} from '@renderer/show/SlidePanel';
-import {useShowKeys} from '@renderer/show/shortcuts';
-import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
+} from '@renderer/features/presentation/SlidePanel';
+import {useShowKeys} from '@renderer/features/presentation/shortcuts';
+import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {DisplayLayout} from '@renderer/screens/DisplayLayout';
 import {StageCanvas} from '@renderer/screens/stage/StageCanvas';
 import {StageProperties} from '@renderer/screens/stage/StageProperties';

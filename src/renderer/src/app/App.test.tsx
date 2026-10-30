@@ -17,13 +17,17 @@ import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
-import {applyService, openItem, useShow} from '@renderer/state/show';
-import {openLibrarySong} from '@renderer/state/showLibrary';
+import {
+  applyService,
+  openItem,
+  useShow,
+} from '@renderer/features/presentation/state/show';
+import {openLibrarySong} from '@renderer/features/presentation/state/showLibrary';
 import {fixtureSong} from '@renderer/features/songs/library/fixture';
 import {
   sampleService,
   seedSampleService,
-} from '@renderer/show/testing/sampleService';
+} from '@renderer/features/presentation/testing/sampleService';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 

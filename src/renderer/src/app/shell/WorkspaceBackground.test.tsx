@@ -2,11 +2,11 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/platform/live';
-import {openItem} from '@renderer/state/show';
+import {openItem} from '@renderer/features/presentation/state/show';
 import {
   sampleService,
   seedSampleService,
-} from '@renderer/show/testing/sampleService';
+} from '@renderer/features/presentation/testing/sampleService';
 import type {Notice} from '@renderer/ui/notices';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';

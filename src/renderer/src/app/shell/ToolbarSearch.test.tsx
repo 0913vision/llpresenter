@@ -18,11 +18,15 @@ import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
-import {sampleService} from '@renderer/show/testing/sampleService';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
 import {useLive} from '@renderer/platform/live';
-import {applyService, openItem, useShow} from '@renderer/state/show';
-import {librarySourceId} from '@renderer/state/showLibrary';
-import {LOOKUP_TIMEOUT_MS} from '@renderer/state/showOutput';
+import {
+  applyService,
+  openItem,
+  useShow,
+} from '@renderer/features/presentation/state/show';
+import {librarySourceId} from '@renderer/features/presentation/state/showLibrary';
+import {LOOKUP_TIMEOUT_MS} from '@renderer/features/presentation/state/showOutput';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {nextPointed, ToolbarSearch} from './ToolbarSearch';
 import {TOOLBAR_SEARCH_LIMIT} from './useToolbarSearch';

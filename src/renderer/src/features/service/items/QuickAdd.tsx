@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu} from '@renderer/ui/Menu';
 import {menuButtonProps} from '@renderer/ui/menuButton';

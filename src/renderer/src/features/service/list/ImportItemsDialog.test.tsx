@@ -18,8 +18,8 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createServiceId, createTemplateId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {applyService} from '@renderer/state/show';
-import {sampleService} from '@renderer/show/testing/sampleService';
+import {applyService} from '@renderer/features/presentation/state/show';
+import {sampleService} from '@renderer/features/presentation/testing/sampleService';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ImportItemsDialog} from './ImportItemsDialog';
 import {

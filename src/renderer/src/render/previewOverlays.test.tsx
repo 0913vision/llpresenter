@@ -8,8 +8,8 @@ import {
 } from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import {useLive} from '../platform/live';
-import {PreviewPanel} from '../show/PreviewPanel';
-import {ScreenPreview} from '../show/ScreenPreview';
+import {PreviewPanel} from '../features/presentation/PreviewPanel';
+import {ScreenPreview} from '../features/presentation/ScreenPreview';
 import {ScreenSummariesContext} from '../platform/ScreenSummaries';
 import {summarizeScreens} from '../platform/screens';
 import {classes} from './classes';

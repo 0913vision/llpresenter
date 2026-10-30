@@ -12,8 +12,8 @@ import {
   outputTile,
   selectTile,
   useShow,
-} from '@renderer/state/show';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
+} from '@renderer/features/presentation/state/show';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
 import {panelApi, panelPassage} from './panelTesting';
 
 const saved = createServiceItemId('00000000-0000-4000-8000-000000000001');

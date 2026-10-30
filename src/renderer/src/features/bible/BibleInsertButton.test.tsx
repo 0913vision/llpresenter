@@ -10,7 +10,7 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@renderer/features/service/items/itemFixture';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {BiblePanel} from './BiblePanel';

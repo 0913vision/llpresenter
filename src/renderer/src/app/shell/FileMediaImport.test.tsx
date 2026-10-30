@@ -13,7 +13,7 @@ import {createMediaId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
-import {applyService} from '@renderer/state/show';
+import {applyService} from '@renderer/features/presentation/state/show';
 import {useLive} from '@renderer/platform/live';
 import {settingsDocument} from '@renderer/screens/testing/documents';
 import {createMemoryColumnWidthStore} from './columnWidthStore';

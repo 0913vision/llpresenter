@@ -10,7 +10,7 @@ import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/platform/live';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
-import {applyService} from '@renderer/state/show';
+import {applyService} from '@renderer/features/presentation/state/show';
 import {NOTICE_LIFETIME_MS} from '@renderer/ui/Notification';
 import {App} from '../App';
 import {ControlSession} from '../controlSession';

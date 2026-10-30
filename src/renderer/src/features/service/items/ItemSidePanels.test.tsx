@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveLayers} from '@core/live/state';
 import {createMediaId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/features/songs/editor';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ItemPreviewPanel, ItemSettingsPanel} from './ItemSidePanels';
 import {ServiceItemStore} from './serviceItemStore';

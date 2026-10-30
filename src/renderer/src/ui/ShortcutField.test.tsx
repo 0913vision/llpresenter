@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {serializeShortcuts, type KeyBinding} from '@core/schema/shortcuts';
-import {useClearKeys} from '@renderer/show/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import {ShortcutField} from './ShortcutField';
 import {Dialog} from './Dialog';
@@ -12,8 +12,10 @@ import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
 import {shortcutNames} from './shortcutKeys';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
-vi.mock('@renderer/state/clear', () => ({clearLayer: vi.fn()}));
-import {clearLayer} from '@renderer/state/clear';
+vi.mock('@renderer/features/presentation/state/clear', () => ({
+  clearLayer: vi.fn(),
+}));
+import {clearLayer} from '@renderer/features/presentation/state/clear';
 
 afterEach(() => {
   resetTooltips();

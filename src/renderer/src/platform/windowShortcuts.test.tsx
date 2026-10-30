@@ -11,7 +11,7 @@ import {setColumnDragActive} from '@renderer/platform/drag';
 import {modalStack} from '@renderer/ui/modalStack';
 import {useWindowShortcuts} from './windowShortcuts';
 import {workspaceShortcuts} from '../app/shell/workspaceCommands';
-import {useQuickDrag} from '@renderer/show/quick/useQuickDrag';
+import {useQuickDrag} from '@renderer/features/quick/useQuickDrag';
 
 function press(
   options: KeyboardEventInit = {},

@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/features/presentation/state/show';
 import type {Notice} from '@renderer/ui/notices';
 import {asServiceId, editApplied, warningNotice} from './serviceEdits';
 import {selectedIds, treeRows, type TreeSelection} from './serviceTree';

@@ -1,8 +1,8 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {outputTile, useShow} from '@renderer/state/show';
-import {beginOutputRequest} from '@renderer/state/showOutput';
+import {outputTile, useShow} from '@renderer/features/presentation/state/show';
+import {beginOutputRequest} from '@renderer/features/presentation/state/showOutput';
 import {useLive} from '@renderer/platform/live';
-import {bibleSourceFor} from '@renderer/state/showLibrary';
+import {bibleSourceFor} from '@renderer/features/presentation/state/showLibrary';
 import {
   bibleSource,
   type BibleDisplayOptions,
