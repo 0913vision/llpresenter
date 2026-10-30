@@ -18,6 +18,7 @@ import {
   warningScreens,
 } from '@renderer/state/outputWarnings';
 import {openItem, useShow} from '@renderer/state/show';
+import {isLibrarySource} from '@renderer/state/showLibrary';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
@@ -183,12 +184,21 @@ function ControlApp({
               }
             : undefined
         }
-        onOpenPrep={itemId => {
+        onOpenPrep={(itemId, position) => {
           onWorkspace('prep');
           const open = (): void => {
+            const view = useShow.getState();
+            if (isLibrarySource(view, itemId)) {
+              prepSelection.openSong(view.librarySong.songId, position);
+              return;
+            }
             prepSelection.clear();
             openItem(itemId);
             session.editor?.open(null);
+            if (position !== undefined && view.serviceId !== null) {
+              session.items?.show({serviceId: view.serviceId, itemId});
+              session.items?.selectPosition(position);
+            }
           };
           if (session.editor === undefined) open();
           else session.editor.requestLeave(open);

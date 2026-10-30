@@ -25,13 +25,17 @@ const PROBLEM_ICON_SIZE = 14;
 /** The 슬라이드 grid at the size chosen for the current size class. */
 export function SlidePanelBody({
   sizeClass,
+  onOpenPrep,
 }: {
   readonly sizeClass: SizeClass;
+  readonly onOpenPrep?:
+    ((itemId: string, position?: number) => void) | undefined;
 }): JSX.Element {
   return (
     <SlideGrid
       columns={defaultThumbnailColumns[sizeClass]}
       scalePercent={useThumbnailScale(sizeClass)}
+      onOpenPrep={onOpenPrep}
     />
   );
 }

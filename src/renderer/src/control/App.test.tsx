@@ -1,4 +1,12 @@
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
@@ -9,7 +17,9 @@ import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';
-import {applyService} from '@renderer/state/show';
+import {applyService, openItem, useShow} from '@renderer/state/show';
+import {openLibrarySong} from '@renderer/state/showLibrary';
+import {fixtureSong} from '@renderer/prep/library/fixture';
 import {
   sampleService,
   seedSampleService,
@@ -48,6 +58,7 @@ function createSession(): ControlSession {
 }
 
 beforeEach(() => {
+  HTMLElement.prototype.scrollIntoView = vi.fn();
   applyService(null);
 });
 
@@ -60,6 +71,111 @@ afterEach(async () => {
 });
 
 describe('App menu bar title', () => {
+  it('opens the clicked service slide in prep at its arrangement position', () => {
+    window.llp = fakeLlpApi();
+    seedSampleService();
+    openItem('song-morning');
+    const session = createSession();
+    session.startEditor();
+    const items = session.items;
+    if (!items) throw new Error('Missing item store');
+    const show = vi.spyOn(items, 'show');
+    const select = vi.spyOn(items, 'selectPosition');
+    render(
+      <App
+        session={session}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    const tile = within(grid).getAllByRole('option')[2];
+    if (!tile) throw new Error('Missing slide');
+    fireEvent.contextMenu(tile);
+    fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 편집'}));
+    expect(
+      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(show).toHaveBeenCalledWith({
+      serviceId: 'sample',
+      itemId: 'song-morning',
+    });
+    expect(select).toHaveBeenCalledWith(2);
+    expect(items.getSnapshot().position).toBe(2);
+    expect(useShow.getState().openItemId).toBe('song-morning');
+  });
+
+  it('opens a library source slide in prep without inventing a service item', async () => {
+    const base = fixtureSong(1, 'Invented song');
+    const document = {
+      ...base,
+      song: {
+        ...base.song,
+        arrangements: [
+          {
+            name: 'Repeated',
+            groups: base.song.groups.flatMap(group => [group.id, group.id]),
+          },
+        ],
+        groups: base.song.groups.map(group => ({
+          ...group,
+          slides: [{lines: ['First']}, {lines: ['Second']}, {lines: ['Third']}],
+        })),
+      },
+    };
+    window.llp = fakeLlpApi({
+      songs: {
+        get: async () => document,
+        list: async () => [
+          {
+            id: document.song.id,
+            title: document.song.title,
+            slideCount: 3,
+            access: 'editable',
+            usedBy: [],
+          },
+        ],
+      },
+    });
+    openLibrarySong({
+      songId: document.song.id,
+      songRevision: 1,
+      title: document.song.title,
+      readOnly: false,
+      tiles: ['First', 'Second', 'Third'].map(line => ({
+        lines: [line],
+        label: null,
+        labelColor: 'none',
+      })),
+      jumpKeys: {},
+    });
+    const session = createSession();
+    session.startEditor();
+    session.editor?.open(document);
+    session.editor?.getSnapshot().session?.selectArrangement('Repeated');
+    render(
+      <App
+        session={session}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    const tile = within(
+      screen.getByRole('listbox', {name: '슬라이드'}),
+    ).getAllByRole('option')[2];
+    if (!tile) throw new Error('Missing slide');
+    fireEvent.contextMenu(tile);
+    fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 편집'}));
+    await waitFor(() =>
+      expect(
+        session.editor?.getSnapshot().session?.history.snapshot.selection.block,
+      ).toBe(2),
+    );
+    expect(session.editor?.getSnapshot().session?.document.song.id).toBe(
+      document.song.id,
+    );
+    expect(session.editor?.getSnapshot().session?.arrangement).toBeUndefined();
+    expect(session.items?.getSnapshot().item).toBeNull();
+  });
+
   it('focuses and selects toolbar search from every workspace with Ctrl F', () => {
     const send = vi.fn();
     window.llp = fakeLlpApi({live: {send}});

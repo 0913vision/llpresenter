@@ -175,12 +175,15 @@ function showPanelParts({
   onProblem,
   bibleOpen,
   bibleSelection,
+  onOpenPrep,
 }: {
   readonly title: string;
   readonly sizeClass: SizeClass;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly bibleOpen: boolean;
   readonly bibleSelection: number;
+  readonly onOpenPrep:
+    ((itemId: string, position?: number) => void) | undefined;
 }): PanelParts {
   switch (title) {
     case '퀵 실행':
@@ -217,7 +220,7 @@ function showPanelParts({
         };
       }
       return {
-        body: <SlidePanelBody sizeClass={sizeClass} />,
+        body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
         meta: (
           <>
             <SlidePanelMeta />
@@ -324,6 +327,15 @@ function prepPanelParts({
             prep.editor.open(selection.document, {
               focusTitle: selection.focusTitle,
             });
+            if (selection.position !== undefined) {
+              const session = prep.editor.getSnapshot().session;
+              session?.selectArrangement(undefined);
+              const number =
+                session?.arrangementOrder.slides[selection.position];
+              if (number !== undefined) {
+                session?.select({block: number - 1, start: 0, end: 0});
+              }
+            }
           }}
         />
       ),
@@ -455,7 +467,8 @@ export function Workspace({
   readonly sizeClass: SizeClass;
   readonly store: ColumnWidthStore;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
-  readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+  readonly onOpenPrep?:
+    ((itemId: string, position?: number) => void) | undefined;
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
@@ -507,7 +520,14 @@ export function Workspace({
     }
     if (id === 'screens') return screensPanelParts(title, onProblem);
     return id === 'show'
-      ? showPanelParts({title, sizeClass, onProblem, bibleOpen, bibleSelection})
+      ? showPanelParts({
+          title,
+          sizeClass,
+          onProblem,
+          bibleOpen,
+          bibleSelection,
+          onOpenPrep,
+        })
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
   };
   const panelColumns = columns.map((panels, column) => (

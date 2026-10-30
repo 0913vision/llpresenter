@@ -1,9 +1,11 @@
-import {useCallback, useEffect, useRef, type JSX} from 'react';
+import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/state/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/state/showLibrary';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
+import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {slideMenuEntries} from './slideMenuEntries';
 import styles from './SlideGrid.module.css';
 
 const GRID_SELECTOR = '[role="listbox"]';
@@ -13,17 +15,25 @@ export interface SlideGridProps {
   readonly columns: number;
   /** The 슬라이드 size in percent, 50 to 200. */
   readonly scalePercent: number;
+  readonly onOpenPrep?:
+    ((itemId: string, position?: number) => void) | undefined;
 }
 
 /** The 슬라이드 grid of the open item. A click outputs a tile. */
 export function SlideGrid({
   columns,
   scalePercent,
+  onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShow(view => view.openItemId);
   const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(shownTiles);
   const liveIndex = useLiveTileIndex();
+  const [menu, setMenu] = useState<{
+    itemId: string;
+    index: number;
+    anchor: MenuAnchor;
+  } | null>(null);
   const keeperRef = useRef<HTMLDivElement>(null);
   const {isInside, onFocus, onBlur} = useKeptFocus(keeperRef);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
@@ -61,6 +71,9 @@ export function SlideGrid({
         selected={tiles === undefined ? undefined : selectedTile}
         onSelect={selectTile}
         onOutput={onOutput}
+        onMenu={(index, anchor) => {
+          if (openItemId !== null) setMenu({itemId: openItemId, index, anchor});
+        }}
         className={styles.grid}
       >
         {tiles?.map((tile, index) => (
@@ -76,6 +89,18 @@ export function SlideGrid({
           />
         ))}
       </ThumbnailGrid>
+      {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
+        <Menu
+          label="슬라이드"
+          anchor={menu.anchor}
+          entries={slideMenuEntries(
+            onOpenPrep === undefined
+              ? undefined
+              : () => onOpenPrep(menu.itemId, menu.index),
+          )}
+          onClose={() => setMenu(null)}
+        />
+      ) : null}
     </div>
   );
 }

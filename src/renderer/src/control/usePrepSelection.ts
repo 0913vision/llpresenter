@@ -9,8 +9,8 @@ import type {LibrarySelectionRequest} from '@renderer/prep/library/LibraryPanel'
  */
 export function usePrepSelection() {
   const [request, setRequest] = useState<LibrarySelectionRequest>();
-  const openSong = useCallback((songId: SongId): void => {
-    setRequest({kind: 'open', songId});
+  const openSong = useCallback((songId: SongId, position?: number): void => {
+    setRequest({kind: 'open', songId, position});
   }, []);
   const clear = useCallback((): void => {
     setRequest({kind: 'clear'});

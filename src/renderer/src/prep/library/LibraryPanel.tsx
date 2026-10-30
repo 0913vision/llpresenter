@@ -22,7 +22,12 @@ import {useLibraryServices} from './useLibraryServices';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =
-  {readonly kind: 'open'; readonly songId: SongId} | {readonly kind: 'clear'};
+  | {
+      readonly kind: 'open';
+      readonly songId: SongId;
+      readonly position?: number | undefined;
+    }
+  | {readonly kind: 'clear'};
 
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
@@ -52,7 +57,7 @@ export function LibraryPanel({
       } else {
         library.setQuery('');
         library
-          .open(request.songId)
+          .open(request.songId, request.position)
           .catch((cause: unknown) =>
             console.error('Requested library selection failed:', cause),
           );

@@ -13,6 +13,7 @@ import {
 } from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import type {Workspace} from './workspace';
+import type {TileListBaseProps} from './TileList';
 import styles from './SlideThumbnail.module.css';
 
 const workspaceMoves: Readonly<Record<Workspace, TileMoves>> = {
@@ -27,6 +28,7 @@ const workspaceSpaceKey: Readonly<Record<Workspace, TileSpaceKey>> = {
 
 /** The props that both workspaces' 슬라이드 grids take. */
 export interface ThumbnailGridBaseProps extends TileListPosition {
+  readonly onMenu?: TileListBaseProps['onMenu'];
   /** The grid name for assistive technology, such as 슬라이드. */
   readonly label: string;
   /** Baseline columns for sizing; filled tracks when tileWidth is absent. */
@@ -98,6 +100,7 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       arrowsMove="selection"
       selected={props.selected}
       onSelect={onSelect}
+      onMenu={props.onMenu}
       onActivate={props.workspace === 'show' ? props.onOutput : onSelect}
       className={classNames(
         styles.grid,

@@ -16,6 +16,7 @@ export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
 export interface LibrarySelection {
   readonly document: SongDocument;
   readonly focusTitle: boolean;
+  readonly position?: number | undefined;
 }
 
 export interface LibraryRow {
@@ -213,7 +214,7 @@ export function useLibrary(
     });
   }, [songs, query, search]);
 
-  const open = async (songId: SongId): Promise<void> => {
+  const open = async (songId: SongId, position?: number): Promise<void> => {
     const version = ++requests.current.open;
     opening.current = songId;
     setSelected(songId);
@@ -224,7 +225,11 @@ export function useLibrary(
         report('missing');
         return;
       }
-      onOpenSong({document, focusTitle: false});
+      onOpenSong({
+        document,
+        focusTitle: false,
+        ...(position === undefined ? {} : {position}),
+      });
     } catch {
       if (version === requests.current.open) report('open');
     }

@@ -28,6 +28,7 @@ import {bibleDocument, panelApi, panelPassage} from './panelTesting';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {lookupReply, lookupRequest} from './testBible';
 import styles from './BiblePanel.module.css';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 
 vi.mock('@renderer/show/PreviewPanel', () => ({PreviewPanel: () => null}));
 vi.mock('@renderer/show/ShowToolsPanel', () => ({ShowToolsPanel: () => null}));
@@ -46,6 +47,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  resetTooltips();
   delete window.llp;
   useShow.setState({
     bibleSource: null,
@@ -56,6 +58,24 @@ afterEach(() => {
 });
 
 describe('Bible panel integration', () => {
+  it('disables slide editing for a Bible preview without a prep handoff', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    openBiblePassage(panelPassage());
+    render(<BiblePanel sizeClass="normal" />);
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    const tile = within(grid).getAllByRole('option')[0];
+    if (!tile) throw new Error('Missing Bible slide');
+    fireEvent.contextMenu(tile);
+    const edit = screen.getByRole('menuitem', {name: '슬라이드 편집'});
+    expect(edit.getAttribute('aria-disabled')).toBe('true');
+    expect((await hoverForTooltip(edit))?.textContent).toBe(
+      '이 슬라이드는 준비에서 편집할 수 없습니다',
+    );
+    fireEvent.click(edit);
+    expect(screen.getByRole('menu', {name: '슬라이드'})).toBeTruthy();
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
   it('allows all footer actions to wrap in a 560px panel', () => {
     const fixture = panelApi();
     window.llp = fixture.api;
