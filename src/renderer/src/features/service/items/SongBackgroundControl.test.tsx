@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {ComponentProps} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {
   createMediaId,
   createServiceItemId,

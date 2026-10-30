@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import {analysisTokenFromUrl} from '@contracts/ipc/media';
+import {analysisTokenFromUrl} from '@contracts/ipc/mediaUrls';
 import type {PixelSize} from '@core/media/coverCrop';
 import {
   THUMBNAIL_DATA_URL_PREFIX,

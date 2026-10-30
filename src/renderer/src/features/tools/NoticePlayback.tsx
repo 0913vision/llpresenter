@@ -1,5 +1,5 @@
 import {useEffect, useState, type JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {
   MAX_OVERLAY_TIMER_MS,
   nextNoticeChange,

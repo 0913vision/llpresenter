@@ -9,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {thumbnailUrl} from '@contracts/ipc/media';
+import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {
   createServiceItemId,
   noticeSetIdSchema,

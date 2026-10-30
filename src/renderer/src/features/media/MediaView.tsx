@@ -1,5 +1,5 @@
 import {useMemo, useState, type DragEvent, type JSX} from 'react';
-import {thumbnailUrl} from '@contracts/ipc/media';
+import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';

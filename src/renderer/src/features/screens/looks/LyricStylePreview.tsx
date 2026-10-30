@@ -6,7 +6,7 @@ import {
   type JSX,
 } from 'react';
 import {emptyLayers} from '@core/live/state';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {LyricStyle} from '@core/schema/looks';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from '@core/looks/lyricStyle';

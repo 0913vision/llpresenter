@@ -10,7 +10,7 @@ import {
   type JSX,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {emptyLayers} from '@core/live/state';
 import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';

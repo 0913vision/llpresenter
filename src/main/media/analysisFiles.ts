@@ -1,5 +1,5 @@
 import {randomUUID} from 'node:crypto';
-import {analysisUrl} from '@contracts/ipc/media';
+import {analysisUrl} from '@contracts/ipc/mediaUrls';
 
 /**
  * How many files the analysis page may borrow at once. It reads one file at a

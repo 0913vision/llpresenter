@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {analysisTokenFromUrl} from '@contracts/ipc/media';
+import {analysisTokenFromUrl} from '@contracts/ipc/mediaUrls';
 import {AnalysisFiles} from './analysisFiles';
 
 const A = '/media/a.mp4';

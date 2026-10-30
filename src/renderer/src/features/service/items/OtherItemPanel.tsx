@@ -1,5 +1,5 @@
 import {useMemo, type JSX} from 'react';
-import {thumbnailUrl} from '@contracts/ipc/media';
+import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {MediaItem} from '@core/schema/mediaList';
 import {mediaName} from '@renderer/features/media/backgroundChoices';

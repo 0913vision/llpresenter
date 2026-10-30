@@ -6,7 +6,7 @@ import {
   analysisTokenFromUrl,
   mediaIdFromUrl,
   thumbnailIdFromUrl,
-} from '@contracts/ipc/media';
+} from '@contracts/ipc/mediaUrls';
 import type {Logger} from '../log';
 import {realPathInside} from './insideRoots';
 

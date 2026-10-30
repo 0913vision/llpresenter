@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {Prop} from '@core/schema/props';
 import type {Screen} from '@core/schema/screens';
 import {sendLive, useLive} from '@renderer/session/live';

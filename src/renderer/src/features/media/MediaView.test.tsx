@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
-import {thumbnailUrl} from '@contracts/ipc/media';
+import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
 import {cssRules} from '@renderer/app/shell/testing/cssRules';
 import {DEFAULT_MEDIA_COLUMNS, MediaView} from './MediaView';

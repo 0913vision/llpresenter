@@ -3,7 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {EditResult} from '@core/schema/contentEdit';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {editorFixture} from './editorFixture';
 import {editorSetup, mockMenuRowHeight} from './editorTesting';
 import {SongEditor} from './SongEditor';

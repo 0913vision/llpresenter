@@ -7,7 +7,7 @@ import {
   mediaUrl,
   thumbnailIdFromUrl,
   thumbnailUrl,
-} from './media';
+} from './mediaUrls';
 
 describe('mediaUrl', () => {
   it('puts the encoded id after llp-media://media/', () => {

@@ -1,5 +1,5 @@
 import {useEffect, useId, useRef, useState, type JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';

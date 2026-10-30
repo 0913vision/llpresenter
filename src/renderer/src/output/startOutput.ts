@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';

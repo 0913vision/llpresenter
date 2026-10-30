@@ -1,5 +1,5 @@
 import {protocol} from 'electron';
-import {MEDIA_SCHEME} from '@contracts/ipc/media';
+import {MEDIA_SCHEME} from '@contracts/ipc/mediaUrls';
 import {createMediaHandler, type MediaHandlerOptions} from './mediaResponse';
 
 /**

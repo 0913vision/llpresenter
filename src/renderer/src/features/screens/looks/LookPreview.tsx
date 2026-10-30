@@ -6,7 +6,7 @@ import {
   type JSX,
 } from 'react';
 import {emptyLayers} from '@core/live/state';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {Timer} from '@core/schema/timers';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';

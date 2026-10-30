@@ -8,7 +8,7 @@ import {
   type JSX,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {ServiceItemOf} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';

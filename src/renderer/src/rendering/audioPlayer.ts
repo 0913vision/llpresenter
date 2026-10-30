@@ -1,5 +1,5 @@
 import type {AudioLayer, LiveState} from '@core/live/state';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {
   AUDIO_MANUAL_FADE_MS,
   audioPositionSeconds,

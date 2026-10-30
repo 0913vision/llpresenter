@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState, MediaLayer} from '@core/live/state';
 import type {LooksFile} from '@core/schema/looks';
 import type {Screen} from '@core/schema/screens';
-import {mediaUrl} from '@contracts/ipc/media';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
 import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
