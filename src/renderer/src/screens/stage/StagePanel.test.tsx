@@ -130,6 +130,18 @@ async function confirmDelete(user: ReturnType<typeof userEvent.setup>) {
   await user.click(within(dialog).getByRole('button', {name: '삭제'}));
 }
 
+it('lists the stage layout menu rows in spec order without icons', async () => {
+  setup();
+  await menu();
+  const surface = screen.getByRole('menu', {name: '무대 배치 메뉴'});
+  expect(
+    [...surface.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
+    ),
+  ).toEqual(['복제', '이름 바꾸기', '|', '삭제']);
+  expect(surface.querySelector('svg')).toBeNull();
+});
+
 it('asks about the named layout and leaves it intact on cancel', async () => {
   const {current, edit, user} = setup();
   await menu('Other 1');
@@ -270,7 +282,7 @@ it('duplicates and selects a layout without changing live output', async () => {
 it('focuses rename, restores invalid drafts on blur and cancels composing input', async () => {
   const {current, edit, user} = setup();
   await menu();
-  await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+  await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const input = await screen.findByRole('textbox', {name: 'Source 이름'});
   await waitFor(() => expect(document.activeElement).toBe(input));
   await user.clear(input);
@@ -286,14 +298,14 @@ it('focuses rename, restores invalid drafts on blur and cancels composing input'
   expect(screen.getByRole('option', {name: 'Source'})).toBeDefined();
   expect(edit).not.toHaveBeenCalled();
   await menu();
-  await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+  await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const cancelled = await screen.findByRole('textbox', {name: 'Source 이름'});
   fireEvent.change(cancelled, {target: {value: 'Other 1'}});
   fireEvent.keyDown(cancelled, {key: 'Escape'});
   expect(screen.queryByRole('textbox')).toBeNull();
   expect(edit).not.toHaveBeenCalled();
   await menu();
-  await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+  await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const valid = await screen.findByRole('textbox', {name: 'Source 이름'});
   fireEvent.change(valid, {target: {value: '  Renamed  '}});
   fireEvent.keyDown(valid, {key: 'Enter', isComposing: true});
@@ -331,7 +343,7 @@ it('keeps future-version menus read-only and leaves rename available at the copy
   ).toBe('true');
   expect(
     screen
-      .getByRole('menuitem', {name: '이름 변경'})
+      .getByRole('menuitem', {name: '이름 바꾸기'})
       .getAttribute('aria-disabled'),
   ).toBe('true');
   expect(
@@ -345,7 +357,7 @@ it('keeps future-version menus read-only and leaves rename available at the copy
   ).toBe('true');
   expect(
     screen
-      .getByRole('menuitem', {name: '이름 변경'})
+      .getByRole('menuitem', {name: '이름 바꾸기'})
       .getAttribute('aria-disabled'),
   ).toBeNull();
 });

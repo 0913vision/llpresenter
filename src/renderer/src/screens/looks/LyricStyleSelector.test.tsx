@@ -75,12 +75,27 @@ function setup(reason?: string) {
   return {...render(<Fixture />), change, select};
 }
 
+it('lists only rename and delete in the style menu and keeps creation on plus', async () => {
+  const {change} = setup();
+  fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
+  const menu = await screen.findByRole('menu', {name: '가사 스타일 메뉴'});
+  expect(
+    [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+      row => row.textContent,
+    ),
+  ).toEqual(['이름 바꾸기', '삭제']);
+  expect(menu.querySelector('svg')).toBeNull();
+  fireEvent.keyDown(menu, {key: 'Escape'});
+  fireEvent.click(screen.getByRole('button', {name: '새 가사 스타일'}));
+  expect(change).toHaveBeenCalledWith(expect.objectContaining({kind: 'add'}));
+});
+
 it('hands focus from a focused keyboard context menu to rename after cleanup', async () => {
   const {change} = setup();
   const tab = screen.getByRole('tab', {name: '기본'});
   tab.focus();
   fireEvent.keyDown(tab, {key: 'ContextMenu'});
-  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '스타일 이름'});
   await waitFor(() => expect(document.activeElement).toBe(field));
   expect(change).not.toHaveBeenCalled();
@@ -96,7 +111,7 @@ it('queues the displayed name when an earlier rename has not published yet', asy
   change.mockReturnValue(new Promise(() => undefined));
   for (const name of ['임시 스타일', '기본']) {
     fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
-    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
     const field = await screen.findByRole('textbox', {name: '스타일 이름'});
     fireEvent.change(field, {target: {value: name}});
     fireEvent.keyDown(field, {key: 'Enter'});
@@ -112,7 +127,7 @@ it.each(['', '다른 스타일'])(
   async draft => {
     const {change} = setup();
     fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
-    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
     const field = await screen.findByRole('textbox', {name: '스타일 이름'});
     fireEvent.change(field, {target: {value: draft}});
     expect(field.getAttribute('aria-invalid')).toBe('true');
@@ -129,7 +144,7 @@ it.each(['', '다른 스타일'])(
 it('cancels invalid or escaped names without writing', async () => {
   const {change} = setup();
   fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
-  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 변경'}));
+  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '스타일 이름'});
   fireEvent.change(field, {target: {value: '다른 스타일'}});
   fireEvent.blur(field);
@@ -156,7 +171,7 @@ it('disables lifecycle actions for read-only settings', async () => {
   const {change} = setup('읽기 전용');
   fireEvent.click(screen.getByRole('button', {name: '새 가사 스타일'}));
   fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
-  const rename = await screen.findByRole('menuitem', {name: '이름 변경'});
+  const rename = await screen.findByRole('menuitem', {name: '이름 바꾸기'});
   expect(rename.getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(rename);
   expect(change).not.toHaveBeenCalled();
@@ -167,9 +182,7 @@ it('keeps a style rename draft on modified Enter and Escape', async () => {
   const tab = screen.getAllByRole('tab')[0];
   if (tab === undefined) throw new Error('Missing style');
   fireEvent.contextMenu(tab);
-  fireEvent.click(
-    await screen.findByRole('menuitem', {name: '\uC774\uB984 \uBCC0\uACBD'}),
-  );
+  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {
     name: '\uC2A4\uD0C0\uC77C \uC774\uB984',
   });

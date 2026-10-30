@@ -3,12 +3,13 @@ import type {Result} from '@shared/result';
 import {parseLyricStyleId, type LyricStyleId} from '@shared/schema/ids';
 import type {LooksFile, LyricStyle} from '@shared/schema/looks';
 import {IconButton} from '@renderer/ui/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {nameProblem} from '../screenEdits';
+import {LyricStyleContextMenu} from '../SettingsContextMenus';
 import {
   LYRIC_STYLE_LIMIT,
   lyricStyleIsUsed,
@@ -240,39 +241,22 @@ export function LyricStyleSelector({
         />
       )}
       {menu === null || target === undefined ? null : (
-        <Menu
+        <LyricStyleContextMenu
           label="가사 스타일 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'add',
-              label: '새 스타일',
-              disabled: creationReason !== undefined,
-              title: creationReason,
-              onSelect: () => add(target.id),
-            },
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 변경',
-              disabled: reason !== undefined,
-              title: reason,
-              onSelect: () => {
+          actions={{
+            rename: {
+              reason,
+              run: () => {
                 pendingRename.current = target;
               },
             },
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              disabled: deleteReason !== undefined,
-              title: deleteReason,
-              onSelect: () => run({kind: 'delete', id: target.id}),
+            remove: {
+              reason: deleteReason,
+              run: () => run({kind: 'delete', id: target.id}),
             },
-          ]}
+          }}
         />
       )}
     </>

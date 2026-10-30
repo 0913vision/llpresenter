@@ -9,9 +9,10 @@ import {
 import {parseLookId} from '@shared/schema/ids';
 import type {Look} from '@shared/schema/looks';
 import {useLive} from '@renderer/state/live';
+import {sendLookChange} from '@renderer/shell/lookActions';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {type MenuAnchor} from '@renderer/ui/Menu';
 import {
   Panel,
   PanelActions,
@@ -23,6 +24,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '../screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
+import {LookContextMenu} from '../SettingsContextMenus';
 import {lookFontWarnings} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
 import {ChoiceRows} from '../ChoiceRows';
@@ -220,39 +222,29 @@ export function LookPanel({
         </PanelBody>
       </Panel>
       {menu === null || target === undefined ? null : (
-        <Menu
+        <LookContextMenu
           label="Look 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'duplicate',
-              label: '복제',
-              disabled: creationReason !== undefined,
-              title: creationReason,
-              onSelect: () => copy(target),
+          actions={{
+            apply: {
+              reason:
+                window.llp === undefined ? '출력에 연결되지 않음' : undefined,
+              run: () =>
+                sendLookChange(target.id, notice => onProblem?.(notice)),
             },
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 변경',
-              disabled: reason !== undefined,
-              title: reason,
-              onSelect: () => {
+            duplicate: {reason: creationReason, run: () => copy(target)},
+            rename: {
+              reason,
+              run: () => {
                 pendingRename.current = target;
               },
             },
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              disabled: deleteReason !== undefined,
-              title: deleteReason,
-              onSelect: () => run({kind: 'delete', id: target.id}),
+            remove: {
+              reason: deleteReason,
+              run: () => run({kind: 'delete', id: target.id}),
             },
-          ]}
+          }}
         />
       )}
       {confirmation === null ? null : (

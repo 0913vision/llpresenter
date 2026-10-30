@@ -11,7 +11,7 @@ import {referencedStageLayouts} from '@shared/stageLayoutReferences';
 import {useLive} from '@renderer/state/live';
 import {IconButton} from '@renderer/ui/IconButton';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {type MenuAnchor} from '@renderer/ui/Menu';
 import {
   Panel,
   PanelActions,
@@ -25,6 +25,7 @@ import {stageLayoutsInUse} from '../choices';
 import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '../screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
+import {StageLayoutContextMenu} from '../SettingsContextMenus';
 import {STAGE_LAYOUT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import styles from '../looks/LookList.module.css';
@@ -176,41 +177,28 @@ export function StagePanel({
         </PanelBody>
       </Panel>
       {menu === null || target === undefined ? null : (
-        <Menu
+        <StageLayoutContextMenu
           label="무대 배치 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'duplicate',
-              label: '복제',
-              disabled: creationReason !== undefined,
-              title: creationReason,
-              onSelect: () => addLayout(target),
+          actions={{
+            duplicate: {
+              reason: creationReason,
+              run: () => addLayout(target),
             },
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 변경',
-              disabled: reason !== undefined,
-              title: reason,
-              onSelect: () => {
+            rename: {
+              reason,
+              run: () => {
                 pendingRename.current = target.id;
               },
             },
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              disabled: deleteReason !== undefined,
-              title: deleteReason,
-              onSelect: () => {
+            remove: {
+              reason: deleteReason,
+              run: () => {
                 setDeleting({id: target.id, name: target.name});
               },
             },
-          ]}
+          }}
         />
       )}
       {deleting === null ? null : (

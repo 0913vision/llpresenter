@@ -10,6 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import {parseLookId} from '@shared/schema/ids';
 import type {
   SettingsDocument,
   SettingsEdit,
@@ -131,6 +132,66 @@ async function menu(name: string): Promise<void> {
   await screen.findByRole('menu', {name: 'Look 메뉴'});
 }
 
+it('lists the Look menu rows in spec order without icons', async () => {
+  setup();
+  await menu('설교');
+  const surface = screen.getByRole('menu', {name: 'Look 메뉴'});
+  expect(
+    [...surface.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
+    ),
+  ).toEqual(['지금 적용', '|', '복제', '이름 바꾸기', '삭제']);
+  expect(surface.querySelector('svg')).toBeNull();
+});
+
+it('applies the clicked Look through main without changing editor selection', async () => {
+  const id = parseLookId(SERMON_LOOK_ID);
+  if (!id.ok) throw new Error('Invalid Look fixture');
+  const {user, send, edit, document} = setup();
+  useScreensSelection.getState().select('look', LOOK_ID);
+  await menu('설교');
+  await user.click(screen.getByRole('menuitem', {name: '지금 적용'}));
+  expect(send).toHaveBeenCalledExactlyOnceWith({
+    type: 'look.set',
+    lookId: SERMON_LOOK_ID,
+  });
+  expect(useLive.getState().state?.lookId).toBeUndefined();
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'look',
+    id: LOOK_ID,
+  });
+  expect(document().value).toHaveProperty('current', LOOK_ID);
+  expect(edit).not.toHaveBeenCalled();
+  expect(screen.queryByRole('menu')).toBeNull();
+  act(() =>
+    useLive.setState({
+      state: {...emptyLiveState(), lookId: id.value},
+    }),
+  );
+  await menu('설교');
+  expect(
+    screen.getByRole('menuitem', {name: '삭제'}).getAttribute('aria-disabled'),
+  ).toBe('true');
+});
+
+it('allows applying a read-only Look and reports a failed send', async () => {
+  const {user, send, onProblem, edit} = setup({
+    initial: {...looksDocument(), access: 'readOnly'},
+  });
+  send.mockImplementation(() => {
+    throw new Error('Transport failed');
+  });
+  await menu('설교');
+  await user.click(screen.getByRole('menuitem', {name: '지금 적용'}));
+  expect(onProblem).toHaveBeenCalledWith(
+    expect.objectContaining({
+      title: 'Look 변경 실패',
+    }),
+  );
+  expect(edit).not.toHaveBeenCalled();
+  expect(useLive.getState().state?.lookId).toBeUndefined();
+});
+
 it('adds and duplicates without changing live output or the saved current Look', async () => {
   const {user, document, send, edit} = setup();
   await screen.findByRole('option', {name: '평상시'});
@@ -195,7 +256,7 @@ it('waits for the latest queued Look creation before changing selection', async 
 it('commits a focused name during close flushing', async () => {
   const {user, api, edit, onProblem} = setup();
   await menu('설교');
-  await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+  await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '설교 이름'});
   await user.clear(field);
   await user.type(field, '새 이름');
@@ -217,7 +278,7 @@ it.each([
   async ({draft, reason}) => {
     const {user, edit, onProblem} = setup();
     await menu('설교');
-    await user.click(screen.getByRole('menuitem', {name: '이름 변경'}));
+    await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
     const field = await screen.findByRole('textbox', {name: '설교 이름'});
     await user.clear(field);
     if (draft !== '') await user.type(field, draft);
@@ -249,7 +310,7 @@ it('hands keyboard-menu focus to the rename field after the menu restores its op
   for (const item of screen.getAllByRole('menuitem')) {
     item.scrollIntoView = vi.fn();
   }
-  await user.keyboard('{ArrowDown}{Enter}');
+  await user.keyboard('{ArrowDown}{ArrowDown}{Enter}');
   const field = await screen.findByRole('textbox', {name: '설교 이름'});
   expect(document.activeElement).toBe(field);
   expect(edit).not.toHaveBeenCalled();
@@ -286,7 +347,7 @@ it('keeps read-only Looks selectable while every edit command is disabled', asyn
     initial: {...looksDocument(), access: 'readOnly'},
   });
   await menu('설교');
-  for (const item of screen.getAllByRole('menuitem')) {
+  for (const item of screen.getAllByRole('menuitem').slice(1)) {
     expect(item.getAttribute('aria-disabled')).toBe('true');
     await user.click(item);
   }
