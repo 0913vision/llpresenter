@@ -17,16 +17,18 @@ describe('local song preview model', () => {
     expect(
       previewAppearance('broadcast', looks.value, screens.value).background,
     ).toBe('var(--chroma)');
-    const uncheckedBinding = previewAppearance(
-      'main',
-      {
-        ...looks.value,
-        looks: looks.value.looks.map(look => ({...look, screens: {}})),
-      },
-      screens.value,
-    );
-    expect(uncheckedBinding.slide).toBe(false);
-    expect(uncheckedBinding.media).toBe(false);
+  });
+
+  it('draws a screen whose Look has no card the way the output does', () => {
+    const {looks, screens} = editorPreviewFixture();
+    const noCards = {
+      ...looks.value,
+      looks: looks.value.looks.map(look => ({...look, screens: {}})),
+    };
+    const main = previewAppearance('main', noCards, screens.value);
+    expect(main.slide).toBe(true);
+    expect(main.media).toBe(true);
+    expect(main.styleName).toBe('기본');
   });
 
   it('lets a solid Look background replace media and checker, with safe missing-setting fallbacks', () => {

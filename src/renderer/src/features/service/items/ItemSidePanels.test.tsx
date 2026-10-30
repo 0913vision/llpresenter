@@ -2,6 +2,7 @@ import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveLayers} from '@core/live/state';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createMediaId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
@@ -172,7 +173,13 @@ describe('service item preview and 항목 설정', () => {
         revision: 2,
         value: {
           ...looks.value,
-          looks: looks.value.looks.map(look => ({...look, screens: {}})),
+          looks: looks.value.looks.map(look => ({
+            ...look,
+            screens: {
+              ...look.screens,
+              [STARTER_SCREEN_IDS.broadcast]: {layers: {media: true}},
+            },
+          })),
         },
       }),
     );

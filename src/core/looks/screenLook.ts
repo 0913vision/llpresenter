@@ -15,6 +15,8 @@ export interface ScreenAppearance {
   /** The card's layer switches; an absent switch hides its layer. */
   readonly layers: ScreenLook['layers'];
   readonly lyricStyle: LyricStyle;
+  /** The stored lyric style's name; absent when the 기본 style draws. */
+  readonly lyricStyleName?: string;
   /** The message appearance for this screen, when supplied by the Look. */
   readonly messageStyle?: LyricStyle;
   /** A solid color in place of the background media, or null for the media. */
@@ -80,6 +82,7 @@ export function resolveScreenLook(
       layers: card.layers,
       lyricStyle:
         style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
+      ...(style === undefined ? {} : {lyricStyleName: style.name}),
       ...(card.messageStyle === undefined ? {} : {messageStyle}),
       background:
         card.background?.kind === 'color' ? card.background.color : null,

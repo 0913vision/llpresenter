@@ -135,6 +135,7 @@ describe('screen Look resolution', () => {
       appearance: {
         layers: {media: true, slide: true},
         lyricStyle: renderLyricStyle(style),
+        lyricStyleName: style.name,
         background: GREEN,
       },
       gap: null,

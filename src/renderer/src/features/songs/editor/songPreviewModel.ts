@@ -5,7 +5,8 @@ import {parsePayload} from '@core/schema/payload';
 import type {LooksFile} from '@core/schema/looks';
 import type {ScreensFile} from '@core/schema/screens';
 import type {RenderScreen} from '@renderer/rendering/layer';
-import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
@@ -16,7 +17,10 @@ export const PREVIEW_ROLES = [
 ] as const;
 export type PreviewRole = (typeof PREVIEW_ROLES)[number]['value'];
 
-/** Resolves the checked current Look without subscribing to or changing output. */
+/**
+ * The current Look as the output would draw this screen (the same rules as
+ * the output windows), without subscribing to or changing output.
+ */
 export function previewAppearance(
   role: PreviewRole,
   looks: LooksFile | undefined,
@@ -29,30 +33,24 @@ export function previewAppearance(
     id: configured?.id ?? starter.value,
     kind: configured?.kind ?? (role === 'stage' ? 'stage' : 'audience'),
   };
-  const look = looks?.looks.find(item => item.id === looks.current);
-  const binding = look?.screens[screen.id];
-  const style = looks?.lyricStyles.find(
-    item => item.id === binding?.lyricStyle,
-  );
+  const {appearance} = resolveScreenLook(looks ?? null, looks?.current, screen);
   const backdrop =
     role === 'broadcast' ? (configured?.previewBackground ?? 'green') : 'black';
+  const color = appearance?.background ?? null;
   return {
     screen,
-    style: style === undefined ? DEFAULT_LYRIC_STYLE : renderLyricStyle(style),
-    styleName: style?.name ?? '기본',
-    slide: look === undefined || binding?.layers.slide === true,
-    media:
-      (look === undefined || binding?.layers.media === true) &&
-      binding?.background?.kind !== 'color',
+    style: appearance?.lyricStyle ?? DEFAULT_LYRIC_STYLE,
+    styleName: appearance?.lyricStyleName ?? '기본',
+    slide: showsLayer(appearance, 'slide'),
+    media: showsLayer(appearance, 'media'),
     background:
-      binding?.background?.kind === 'color'
-        ? binding.background.color
-        : backdrop === 'green'
-          ? 'var(--chroma)'
-          : backdrop === 'checker'
-            ? 'transparent'
-            : 'var(--output-black)',
-    checker: backdrop === 'checker' && binding?.background?.kind !== 'color',
+      color ??
+      (backdrop === 'green'
+        ? 'var(--chroma)'
+        : backdrop === 'checker'
+          ? 'transparent'
+          : 'var(--output-black)'),
+    checker: backdrop === 'checker' && color === null,
   };
 }
 
