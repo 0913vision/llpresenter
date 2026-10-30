@@ -1,10 +1,41 @@
-import type {LiveCommand} from '@core/live/commands';
-import type {
-  BibleLookupReply,
-  BibleLookupRequest,
-} from '@core/schema/bibleLookup';
-import type {AppFlushDone, AppFlushRequest} from '@core/schema/appFlush';
-import type {AppProblem} from '@core/schema/appProblem';
+import {appApi, problemsApi, type AppApi, type ProblemsApi} from './app';
+import {bibleApi, type BibleApi} from './bible';
+import {
+  contentApi,
+  contentEndpoints,
+  documentApi,
+  type ContentApi,
+  type DocumentApi,
+} from './content';
+import type {IpcPort, WindowPlatform} from './endpoint';
+import {
+  libraryApi,
+  textImportApi,
+  type LibraryApi,
+  type TextImportApi,
+} from './library';
+import {liveApi, type LiveApi} from './live';
+import {mediaApi, type MediaApi} from './media';
+import {
+  fontsApi,
+  logApi,
+  monitorsApi,
+  outputApi,
+  type FontsApi,
+  type LogApi,
+  type MonitorsApi,
+  type OutputApi,
+} from './output';
+import {recoveryApi, type RecoveryApi} from './recovery';
+import {serviceApi, type ServiceApi} from './service';
+import {
+  preferencesApi,
+  settingsApi,
+  type PreferencesApi,
+  type SettingsApi,
+} from './settings';
+import {uiApi, type UiApi} from './ui';
+import {windowApi, type WindowApi} from './window';
 import type {
   LibrarySong,
   ServiceChange,
@@ -16,317 +47,29 @@ import type {
   TemplateDocument,
   TemplateEntry,
 } from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {LiveState} from '@core/live/state';
-import type {
-  FrameRateReport,
-  FrameReadyReport,
-  RendererLogEntry,
-} from '@core/schema/ipcPayloads';
-import type {MonitorList} from '@core/schema/monitors';
-import type {FontCatalog} from '@core/schema/fontCatalog';
-import type {OutputStatuses} from '@core/schema/outputStatus';
-import type {ShowService} from '@core/schema/showService';
-import type {
-  ShowLibrarySong,
-  ShowLibrarySongRequest,
-} from '@core/schema/showLibrarySong';
-import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
-import type {
-  LayoutChange,
-  MediaStripChange,
-  PrepMediaChange,
-  UiState,
-} from '@core/schema/uiState';
-import type {MediaBrowserChange} from '@core/schema/mediaBrowser';
-import type {Preferences} from '@core/schema/preferences';
-import type {
-  SettingsDocument,
-  SettingsEdit,
-  SettingsReadRequest,
-} from '@core/schema/settingsDocuments';
-import type {
-  MediaDocument,
-  MediaEdit,
-  MediaEditResult,
-  MediaImportRequest,
-  MediaImportResult,
-  MediaImportProgress,
-} from '@core/schema/mediaEdit';
-import type {
-  LibrarySearchRequest,
-  LibrarySearchResult,
-} from '@core/schema/librarySearch';
-import type {
-  TextImportReadRequest,
-  TextImportReadResult,
-  TextImportPreviewRequest,
-  TextImportPreviewResult,
-} from '@core/schema/textImport';
-import type {UiZoomCommand} from '@core/schema/uiZoom';
-import type {
-  RecoveryApply,
-  RecoveryResult,
-  RecoverySummary,
-} from '@core/schema/recovery';
-import type {MediaId} from '@core/schema/ids';
-import type {MissingMedia} from '@core/schema/mediaFiles';
 
-export const Channels = {
-  bibleLookup: 'bible:lookup',
-  appFlushRequest: 'app:flush-request',
-  appFlushDone: 'app:flush-done',
-  appFlushProgress: 'app:flush-progress',
-  appSavePending: 'app:save-pending',
-  appCloseAnyway: 'app:close-anyway',
-  appProblem: 'app:problem',
-  appProblemList: 'app:problem:list',
-  appProblemRetrySaves: 'app:problem:retry-saves',
-  liveGet: 'live:get',
-  liveClock: 'live:clock',
-  liveCommand: 'live:command',
-  liveChanged: 'live:changed',
-  windowControl: 'window:control',
-  uiGet: 'ui:get',
-  uiLayoutSet: 'ui:layout:set',
-  uiMediaStripSet: 'ui:media-strip:set',
-  uiPrepMediaSet: 'ui:prep-media:set',
-  uiMediaBrowserSet: 'ui:media-browser:set',
-  uiZoomGet: 'ui:zoom:get',
-  uiZoomChange: 'ui:zoom:change',
-  logWrite: 'log:write',
-  outputFrameRate: 'output:frame-rate',
-  outputFrameReady: 'output:frame-ready',
-  serviceGet: 'service:get',
-  serviceOpen: 'service:open',
-  serviceChanged: 'service:changed',
-  outputStatusGet: 'output:status:get',
-  outputStatusChanged: 'output:status:changed',
-  outputRetry: 'output:retry',
-  outputFindMonitors: 'output:find-monitors',
-  monitorsGet: 'monitors:get',
-  fontsGet: 'fonts:get',
-  monitorsChanged: 'monitors:changed',
-  outputShowWindow: 'output:show-window',
-  contentEdit: 'content:edit',
-  songsList: 'songs:list',
-  songsListChanged: 'songs:list:changed',
-  songsDocumentGet: 'songs:document:get',
-  songsDocumentChanged: 'songs:document:changed',
-  servicesList: 'services:list',
-  servicesListChanged: 'services:list:changed',
-  servicesDocumentGet: 'services:document:get',
-  servicesDocumentChanged: 'services:document:changed',
-  templatesList: 'templates:list',
-  templatesListChanged: 'templates:list:changed',
-  templatesDocumentGet: 'templates:document:get',
-  templatesDocumentChanged: 'templates:document:changed',
-  librarySearch: 'library:search',
-  libraryShowSong: 'library:show-song',
-  textImportRead: 'import:text:read',
-  textImportClipboardAvailable: 'import:text:clipboard-available',
-  textImportPreview: 'import:text:preview',
-  preferencesGet: 'preferences:get',
-  preferencesChanged: 'preferences:changed',
-  settingsGet: 'settings:get',
-  settingsEdit: 'settings:edit',
-  settingsChanged: 'settings:changed',
-  mediaGet: 'media:get',
-  mediaEdit: 'media:edit',
-  mediaChanged: 'media:changed',
-  mediaImport: 'media:import',
-  mediaImportChanged: 'media:import:changed',
-  mediaMissing: 'media:missing',
-  mediaMissingGet: 'media:missing:get',
-  mediaCheck: 'media:check',
-  mediaReveal: 'media:reveal',
-  recoverySummary: 'recovery:summary',
-  recoveryApply: 'recovery:apply',
-  recoveryStartFresh: 'recovery:start-fresh',
-} as const;
+export {Channels} from './channels';
+export type {DocumentApi} from './content';
+export type {Unsubscribe} from './endpoint';
+export {windowActions, type WindowAction} from './window';
 
-export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
-
-export const windowActions: readonly WindowAction[] = [
-  'minimize',
-  'toggle-maximize',
-  'close',
-];
-
-export type Unsubscribe = () => void;
-
-/** The API that the preload script exposes to windows as `window.llp`. */
+/**
+ * The API that the preload script exposes to windows as `window.llp`. Each
+ * part is declared with its calls in its own file in this folder.
+ */
 export interface LlpApi {
-  readonly bible: {
-    /** Resolves offline text and book suggestions without changing live output. */
-    lookup(request: BibleLookupRequest): Promise<BibleLookupReply>;
-  };
-  readonly app: {
-    /** Returns a function that removes the control window's flush listener. */
-    subscribeFlushRequests(
-      listener: (request: AppFlushRequest) => void,
-    ): Unsubscribe;
-    /** Replies with the editor's flush result for one request. */
-    flushDone(reply: AppFlushDone): void;
-    /** Keeps the close request alive while the responsive window awaits saves. */
-    flushProgress(request: AppFlushRequest): void;
-    /** Writes accepted edits to disk; false while any file remains unsaved. */
-    savePending(): Promise<boolean>;
-    /**
-     * 강제로 닫기: closes the control window without waiting for its flush, or
-     * without another one after main kept it open for a refusal. Main ignores
-     * it at any other time.
-     */
-    closeAnyway(): void;
-  };
-  readonly problems: {
-    /**
-     * Reads what a window that loads late must show: the standing problems,
-     * such as files skipped at startup, then, once, the newest one-shot
-     * problems that no window has read yet (at most 16), such as a
-     * `macro-dropped` from a startup 매크로. The read clears those, so
-     * subscribe first and then list, and nothing falls between the two.
-     * Rejects, after logging, when the call fails or the answer is malformed.
-     */
-    list(): Promise<readonly AppProblem[]>;
-    /**
-     * Calls the listener for each problem main reports for a notification
-     * card, such as 매크로 적용 실패.
-     *
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (problem: AppProblem) => void): Unsubscribe;
-    /**
-     * 다시 시도 of 저장할 수 없음: writes every waiting file again at once. A
-     * later push says how it went.
-     */
-    retrySaves(): void;
-  };
-  readonly live: {
-    /**
-     * Reads the live state once. Rejects, after logging, when the call fails or
-     * the answer is malformed; a push brings the state later.
-     */
-    get(): Promise<LiveState>;
-    send(command: LiveCommand): void;
-    /**
-     * Calls the listener on every state change.
-     *
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (state: LiveState) => void): Unsubscribe;
-    /**
-     * Reads main's monotonic 타이머 clock, in epoch-like milliseconds, so a
-     * window can read 타이머 runs. Rejects, after logging, when the call fails.
-     */
-    clock(): Promise<number>;
-  };
-  readonly window: {
-    control(action: WindowAction): void;
-  };
-  readonly ui: {
-    /**
-     * Reads the UI state once, before the first render. Rejects, after logging,
-     * when the call fails or the answer is malformed.
-     */
-    get(): Promise<UiState>;
-    /**
-     * Saves a size class's layout: the column widths when a drag ends, or the
-     * thumbnail scale percentage, or sidebar state.
-     */
-    setLayout(change: LayoutChange): void;
-    /** Saves the media strip choice through the single app.json writer. */
-    setMediaStrip(change: MediaStripChange): void;
-    /** Saves 준비's media mode independently of 진행's media strip. */
-    setPrepMedia(change: PrepMediaChange): void;
-    /** Changes only the supplied media browser fields through app.json. */
-    setMediaBrowser(change: MediaBrowserChange): void;
-    /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
-    getZoom(): Promise<number>;
-    /** Reads this window's actual zoom factor synchronously, bounded to 1 to 2. */
-    getZoomFactor(): number;
-    /** Applies one clamped zoom command in main; rejects after logging on failure. */
-    changeZoom(command: UiZoomCommand): Promise<number>;
-  };
-  readonly log: {
-    write(entry: RendererLogEntry): void;
-  };
-  readonly monitors: {
-    /**
-     * Reads the connected monitors once. Rejects, after logging, when the call
-     * fails or the answer is malformed.
-     */
-    get(): Promise<MonitorList>;
-    /**
-     * Calls the listener whenever the monitor list changes, with every
-     * monitor.
-     *
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (monitors: MonitorList) => void): Unsubscribe;
-  };
-  readonly fonts: {
-    /** Reads installed family names and weights; rejects after logging on failure. */
-    get(): Promise<FontCatalog>;
-  };
-  readonly output: {
-    /** Reports an output window's measured frame rate, once a second. */
-    reportFrameRate(report: FrameRateReport): void;
-    reportReady(report: FrameReadyReport): Promise<boolean>;
-    /**
-     * Reads the status of every screen's output once. Rejects, after logging,
-     * when the call fails or the answer is malformed.
-     */
-    getStatus(): Promise<OutputStatuses>;
-    /**
-     * Calls the listener whenever a screen's output status changes, with
-     * every screen's status.
-     *
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribeStatus(listener: (statuses: OutputStatuses) => void): Unsubscribe;
-    /**
-     * 다시 시도: tries the screen's output window again at once while the
-     * restart limit holds.
-     */
-    retry(screenId: string): void;
-    /**
-     * 모니터 다시 찾기: reads the monitor list again at once and matches each
-     * screen's saved monitor again.
-     */
-    findMonitors(): void;
-    /**
-     * 창 보기: brings the screen's output window to the front without taking
-     * focus, when it shows as a window.
-     */
-    showWindow(screenId: string): void;
-  };
-  readonly service: {
-    /**
-     * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.
-     * It waits while the main process reads the data at launch. Rejects, after
-     * logging, when the call fails or the answer is malformed, so a failed
-     * read is never taken for "no 예배 순서".
-     */
-    get(): Promise<ShowService | null>;
-    /** Saves the current service and opens another without changing live output; null means it stayed open. */
-    open(request: ServiceOpenRequest): Promise<ShowService | null>;
-    /**
-     * Calls the listener when the open 예배 순서 changes, or another one opens.
-     *
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (service: ShowService | null) => void): Unsubscribe;
-  };
-  readonly content: {
-    /**
-     * Asks the main process to apply an edit and answers how it went. The
-     * window's draft, such as the text being typed, is its own UI state; its
-     * copy of the document changes only on this answer or on a push. Rejects,
-     * after logging, when the call fails or the answer is malformed.
-     */
-    edit(edit: ContentEdit): Promise<EditResult>;
-  };
+  readonly bible: BibleApi;
+  readonly app: AppApi;
+  readonly problems: ProblemsApi;
+  readonly live: LiveApi;
+  readonly window: WindowApi;
+  readonly ui: UiApi;
+  readonly log: LogApi;
+  readonly monitors: MonitorsApi;
+  readonly fonts: FontsApi;
+  readonly output: OutputApi;
+  readonly service: ServiceApi;
+  readonly content: ContentApi;
   /** The 라이브러리 songs. Each read rejects, after logging, on a failure. */
   readonly songs: DocumentApi<LibrarySong, SongDocument, SongChange>;
   /**
@@ -339,109 +82,37 @@ export interface LlpApi {
     TemplateDocument,
     TemplateChange
   >;
-  readonly preferences: {
-    /**
-     * Waits for the existing settings load and reads normalized preferences.
-     * Rejects and logs a failed call or malformed reply.
-     */
-    get(): Promise<Preferences>;
-    /**
-     * Follows normalized preference changes without replacing the startup read.
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (preferences: Preferences) => void): Unsubscribe;
-  };
-  readonly settings: {
-    /** Reads one named settings document with its revision and access. */
-    get(request: SettingsReadRequest): Promise<SettingsDocument>;
-    /** Updates a whole file against its base revision; media has dedicated edits. */
-    edit(edit: SettingsEdit): Promise<EditResult>;
-    /**
-     * Follows each changed settings document with its new revision.
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (document: SettingsDocument) => void): Unsubscribe;
-  };
-  readonly media: {
-    /** Reads a native dropped File's path, or an empty string when unavailable. */
-    pathForFile(file: File): string;
-    get(): Promise<MediaDocument>;
-    edit(edit: MediaEdit): Promise<MediaEditResult>;
-    /** Starts copy jobs; an empty success means the file dialog was cancelled. */
-    import(request: MediaImportRequest): Promise<MediaImportResult>;
-    /**
-     * Follows the media list after applied edits, with its revision.
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribe(listener: (document: MediaDocument) => void): Unsubscribe;
-    /**
-     * Follows one copy job's progress, including failure and cancellation.
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribeImports(
-      listener: (progress: MediaImportProgress) => void,
-    ): Unsubscribe;
-    /**
-     * Reads the media whose file main can't find now. Rejects, after logging,
-     * when the call fails or the answer is malformed.
-     */
-    missing(): Promise<MissingMedia>;
-    /**
-     * Follows that set as main checks the files again.
-     * @returns A function that removes the listener. Always call it.
-     */
-    subscribeMissing(listener: (missing: MissingMedia) => void): Unsubscribe;
-    /** Asks main to check one media file again, as after it failed to play. */
-    check(mediaId: MediaId): void;
-    /** Shows the media file in Explorer (파일 위치 열기). */
-    reveal(mediaId: MediaId): void;
-  };
-  readonly library: {
-    /** Searches main's index; rejects and logs malformed requests or replies. */
-    search(request: LibrarySearchRequest): Promise<LibrarySearchResult>;
-    showSong(request: ShowLibrarySongRequest): Promise<ShowLibrarySong | null>;
-  };
-  readonly textImport: {
-    /** Checks for usable clipboard text without opening or reserving a file read. */
-    clipboardAvailable(): Promise<boolean>;
-    /** Reads decoded text; a null success means the file dialog was cancelled. */
-    read(request: TextImportReadRequest): Promise<TextImportReadResult>;
-    /** Rebuilds an unsaved draft from retained text and options; never saves. */
-    preview(
-      request: TextImportPreviewRequest,
-    ): Promise<TextImportPreviewResult>;
-  };
-  readonly recovery: {
-    /** Reads eligible restore rows. Null means there is no dialog to show. */
-    summary(): Promise<RecoverySummary>;
-    /** Restores the checked rows of the offered record without start macros. */
-    apply(request: RecoveryApply): Promise<RecoveryResult>;
-    /** Discards crash state and follows normal launch preferences and macros. */
-    startFresh(): Promise<RecoveryResult>;
-  };
+  readonly preferences: PreferencesApi;
+  readonly settings: SettingsApi;
+  readonly media: MediaApi;
+  readonly library: LibraryApi;
+  readonly textImport: TextImportApi;
+  readonly recovery: RecoveryApi;
 }
 
-/** Reading and following one kind of document: songs, 예배 순서, or 템플릿. */
-export interface DocumentApi<TEntry, TDocument, TChange> {
-  /** The list, as the 라이브러리 or the 예배 순서 list shows it. */
-  list(): Promise<readonly TEntry[]>;
-  /** One document with its revision, or `null` when there is none. */
-  get(id: string): Promise<TDocument | null>;
-  /**
-   * Calls the listener with the whole list whenever an entry is added,
-   * removed, or changes what the list shows; typing lyrics doesn't change it.
-   *
-   * @returns A function that removes the listener. Always call it.
-   */
-  subscribeList(listener: (entries: readonly TEntry[]) => void): Unsubscribe;
-  /**
-   * Calls the listener once for every change the main process applies to a
-   * document, with its new revision. While someone types, that is as often as
-   * the editor sends its updates; a window that shows a document follows only
-   * the one it shows and skips the change whose revision answered its own
-   * edit.
-   *
-   * @returns A function that removes the listener. Always call it.
-   */
-  subscribe(listener: (change: TChange) => void): Unsubscribe;
+/** Builds `window.llp` on the preload script's port. */
+export function llpApi(port: IpcPort, platform: WindowPlatform): LlpApi {
+  return {
+    bible: bibleApi(port),
+    app: appApi(port),
+    problems: problemsApi(port),
+    live: liveApi(port),
+    window: windowApi(port),
+    ui: uiApi(port, platform),
+    log: logApi(port),
+    monitors: monitorsApi(port),
+    fonts: fontsApi(port),
+    output: outputApi(port),
+    service: serviceApi(port),
+    content: contentApi(port),
+    songs: documentApi(port, contentEndpoints.songs),
+    services: documentApi(port, contentEndpoints.services),
+    templates: documentApi(port, contentEndpoints.templates),
+    preferences: preferencesApi(port),
+    settings: settingsApi(port),
+    media: mediaApi(port, platform),
+    library: libraryApi(port),
+    textImport: textImportApi(port),
+    recovery: recoveryApi(port),
+  };
 }

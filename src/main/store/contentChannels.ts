@@ -1,7 +1,11 @@
 import {BrowserWindow, ipcMain} from 'electron';
 import {Channels} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
-import {parseContentEdit, type EditResult} from '@core/schema/contentEdit';
+import {
+  parseContentEdit,
+  refuseInvalidEdit,
+  type EditResult,
+} from '@core/schema/contentEdit';
 import {checkPart} from '@core/schema/fileFormat';
 import {
   songIdSchema,
@@ -42,7 +46,7 @@ export function registerContentChannels(
     const edit = parseContentEdit(value);
     if (!edit.ok) {
       log.warn('dropped a malformed content edit', edit.error);
-      return refuseInvalid(edit.error.field, edit.error.message);
+      return refuseInvalidEdit(edit.error);
     }
     const store = await content;
     return store === null ? NO_DATA : store.apply(edit.value);
@@ -143,9 +147,4 @@ function handleDocument(
     const store = await content;
     return store === null ? null : read(store, checked.value);
   });
-}
-
-function refuseInvalid(field: string, message: string): EditResult {
-  const detail = field === '' ? message : `${field}: ${message}`;
-  return {ok: false, error: {reason: 'invalid', message: detail}};
 }

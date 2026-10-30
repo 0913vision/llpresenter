@@ -170,3 +170,9 @@ export function parseEditResult(
 ): Result<EditResult, PayloadError> {
   return checkPart(editResultSchema, value);
 }
+
+/** The answer to an edit that fails its check: refused, never applied. */
+export function refuseInvalidEdit({field, message}: PayloadError): EditResult {
+  const detail = field === '' ? message : `${field}: ${message}`;
+  return {ok: false, error: {reason: 'invalid', message: detail}};
+}

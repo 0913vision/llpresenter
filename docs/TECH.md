@@ -107,6 +107,10 @@ feature that owns it.
   main code call it instead of copying it.
 - 진행 and 준비 are compositions in `app/`, not owners of features. A feature
   used by both lives once in `features/`.
+- An IPC call is declared once, in its area's file in `src/contracts/ipc/`: the
+  channel, the parsers for the request and the reply, and the member of
+  `window.llp` built on the preload script's port. The preload script and its
+  checks don't change per call.
 - Tests and `testing/` fixtures are not checked yet.
 
 ## Registries (extension points)

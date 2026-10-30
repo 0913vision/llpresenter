@@ -29,6 +29,8 @@ vi.mock('electron', () => ({
     on: () => undefined,
     removeListener: () => undefined,
   },
+  webFrame: {getZoomFactor: () => 1},
+  webUtils: {getPathForFile: () => ''},
 }));
 
 let preloadApi: LlpApi;
