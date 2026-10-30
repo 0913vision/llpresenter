@@ -12,6 +12,9 @@ import {settingsDocument} from '@renderer/screens/testing/documents';
 import {useLive} from '@renderer/state/live';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
+import {renderedToolMenuRows} from './toolMenuTesting';
+import {deferred} from '../quick/quickTesting';
+import type {EditResult} from '@shared/schema/contentEdit';
 
 afterEach(() => {
   cleanup();
@@ -114,12 +117,54 @@ it('blocks empty and unchanged names, cancels, and leaves a refused rename open'
   expect(screen.queryByRole('dialog')).toBeNull();
 });
 
-it('does not open editing on a read-only timer document', async () => {
+it('opens the complete read-only timer menu with disabled commands', async () => {
   const f = setup(true);
   render(<TimerTab />);
   fireEvent.contextMenu(await screen.findByRole('group', {name: '기존'}));
-  expect(screen.queryByRole('menu')).toBeNull();
+  const menu = screen.getByRole('menu', {name: '타이머'});
+  expect(renderedToolMenuRows(menu)).toEqual([
+    '복제',
+    '이름 바꾸기',
+    '|',
+    '삭제',
+  ]);
+  for (const row of screen.getAllByRole('menuitem')) {
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(row);
+  }
+  expect(screen.queryByRole('dialog')).toBeNull();
   expect(f.edit).not.toHaveBeenCalled();
+});
+
+it('keeps the menu visible and disabled during a pending rename', async () => {
+  const f = setup();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
+  render(<TimerTab />);
+  await open();
+  fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
+    target: {value: '새 이름'},
+  });
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  fireEvent.click(screen.getByRole('button', {name: '취소'}));
+  fireEvent.contextMenu(screen.getByRole('group', {name: '기존'}));
+  expect(
+    screen
+      .getByRole('menuitem', {name: '이름 바꾸기'})
+      .getAttribute('aria-disabled'),
+  ).toBe('true');
+  await act(async () => {
+    pending.resolve({ok: true, value: {id, revision: 2}});
+    await pending.promise;
+  });
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('menuitem', {name: '이름 바꾸기'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
 });
 
 it('locks an open draft when a newer read-only document arrives', async () => {

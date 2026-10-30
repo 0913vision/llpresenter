@@ -16,6 +16,7 @@ import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
 import {stageFixture} from './stageTesting';
 import {MessageTab} from './MessageTab';
+import {renderedToolMenuRows} from './toolMenuTesting';
 import {
   MAX_MESSAGE_TEMPLATES,
   newMessageTemplate,
@@ -86,6 +87,34 @@ afterEach(() => {
   delete window.llp;
   vi.restoreAllMocks();
 });
+
+it.each([false, true])(
+  'lists message-template rows in order when locked=%s',
+  async locked => {
+    const fixture = setup();
+    if (locked) {
+      fixture.documents.set('messages', {
+        ...fixture.current(),
+        access: 'readOnly',
+      });
+    }
+    render(<MessageTab />);
+    fireEvent.contextMenu(
+      await screen.findByRole('option', {name: '차량 이동'}),
+    );
+    expect(
+      renderedToolMenuRows(screen.getByRole('menu', {name: '메시지 틀'})),
+    ).toEqual(['수정…', '|', '복제', '이름 바꾸기', '|', '삭제']);
+    if (locked) {
+      for (const row of screen.getAllByRole('menuitem')) {
+        expect(row.getAttribute('aria-disabled')).toBe('true');
+        fireEvent.click(row);
+      }
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(fixture.edit).not.toHaveBeenCalled();
+    }
+  },
+);
 
 it('adds a validated template, selects it, and leaves sends and presets alone', async () => {
   const fixture = setup();

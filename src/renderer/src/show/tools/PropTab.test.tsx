@@ -210,3 +210,22 @@ it('lists the rows of the ProPresenter prop menu in its order', async () => {
     .map(row => row.textContent);
   expect(enabled).toEqual(['수정…', '삭제']);
 });
+
+it('opens disabled editing commands on a read-only prop list', async () => {
+  const f = fixture();
+  const document = settingsDocument('props', {
+    props: [
+      {id, name: '로고', content: {kind: 'image', media: image}, targets: []},
+    ],
+  });
+  f.documents.set('props', {...document, access: 'readOnly'});
+  render(<PropTab />);
+  fireEvent.contextMenu(await screen.findByRole('option', {name: '로고'}));
+  expect(screen.getByRole('menu', {name: '소품'})).toBeDefined();
+  for (const row of screen.getAllByRole('menuitem')) {
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(row);
+  }
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(f.edit).not.toHaveBeenCalled();
+});

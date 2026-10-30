@@ -29,12 +29,14 @@ import {
 } from './macroActionDraft';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
+import {MacroColorPopover} from './MacroColorPopover';
 import {MacroPalette} from './MacroPalette';
 import {MacroMenu} from './MacroMenu';
 import type {MacroMenuHandlers} from './macroMenuEntries';
 import styles from './MacroPanel.module.css';
 
 type Editor =
+  | {kind: 'color'; item: Macro; anchor: HTMLElement}
   | {kind: 'icon'; item: Macro}
   | {kind: 'new-collection'; item: Macro}
   | {
@@ -192,9 +194,11 @@ export function MacroPanel({
   const document = useSettingsDocument('macros', '매크로', onProblem);
   const [collection, setCollection] = useState<MacroCollection['id']>();
   const [mode, setMode] = useState<MacroViewMode>('grid');
-  const [menu, setMenu] = useState<{item: Macro; anchor: MenuAnchor} | null>(
-    null,
-  );
+  const [menu, setMenu] = useState<{
+    item: Macro;
+    anchor: MenuAnchor;
+    trigger: HTMLElement | undefined;
+  } | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [collectionDialog, setCollectionDialog] = useState<{
     kind: 'delete';
@@ -345,8 +349,9 @@ export function MacroPanel({
   const menuHandlers = (item: Macro): MacroMenuHandlers => ({
     rename: () => setEditor({kind: 'rename', item}),
     changeIcon: () => setEditor({kind: 'icon', item}),
-    changeColor: color =>
-      commit({kind: 'update', id: item.id, changes: {color}}),
+    changeColor: () => {
+      if (menu?.trigger) setEditor({kind: 'color', item, anchor: menu.trigger});
+    },
     toggleStartup: () =>
       commit({
         kind: 'update',
@@ -452,9 +457,9 @@ export function MacroPanel({
             setMode(value);
           }}
           onRun={start}
-          onMenu={(item, anchor) => {
+          onMenu={(item, anchor, trigger) => {
             revision.current++;
-            setMenu({item, anchor});
+            setMenu({item, anchor, trigger});
           }}
           onDropAction={
             locked
@@ -521,6 +526,20 @@ export function MacroPanel({
           close={close}
           save={icon =>
             commit({kind: 'update', id: editor.item.id, changes: {icon}}, close)
+          }
+        />
+      ) : null}
+      {editor?.kind === 'color' ? (
+        <MacroColorPopover
+          anchor={editor.anchor}
+          value={editor.item.color}
+          locked={locked}
+          onClose={close}
+          onChange={color =>
+            commit(
+              {kind: 'update', id: editor.item.id, changes: {color}},
+              close,
+            )
           }
         />
       ) : null}

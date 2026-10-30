@@ -3,7 +3,7 @@ import type {NoticeSet} from '@shared/schema/notices';
 import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {NoticeEdit} from './noticeEdits';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 interface Editor {
   kind: 'rename' | 'delete';
@@ -89,7 +89,7 @@ export function NoticeEditing({
     <>
       <div
         onContextMenu={event => {
-          if (!item || locked) return;
+          if (!item) return;
           event.preventDefault();
           event.stopPropagation();
           setMenu({
@@ -103,7 +103,6 @@ export function NoticeEditing({
         onKeyDown={event => {
           if (
             !item ||
-            locked ||
             !(
               event.key === 'ContextMenu' ||
               (event.shiftKey && event.key === 'F10')
@@ -121,28 +120,16 @@ export function NoticeEditing({
       >
         {children}
       </div>
-      {menu && !locked ? (
+      {menu ? (
         <Menu
           label="공지 세트"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            laterRow('duplicate', '복제'),
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              onSelect: () => setEditor({kind: 'rename', item: menu.item}),
-            },
-            menuSeparator('delete-separator'),
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              onSelect: () => setEditor({kind: 'delete', item: menu.item}),
-            },
-          ]}
+          entries={namedToolMenuEntries({
+            reason: toolMenuReason(locked),
+            rename: () => setEditor({kind: 'rename', item: menu.item}),
+            remove: () => setEditor({kind: 'delete', item: menu.item}),
+          })}
         />
       ) : null}
       {editor?.kind === 'rename' ? (

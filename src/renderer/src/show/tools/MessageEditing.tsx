@@ -26,7 +26,7 @@ import {
   type MessageEdit,
 } from './messageEdits';
 import styles from './MessageTab.module.css';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {messageMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 type Editor =
   | {readonly kind: 'add'}
@@ -128,9 +128,9 @@ export function MessageEditing({
     document?.access !== 'editable' || window.llp === undefined || busy;
   const full = (document?.value.templates.length ?? 0) >= MAX_MESSAGE_TEMPLATES;
   const openMenu = (target: EventTarget, anchor: MenuAnchor): boolean => {
-    if (locked || !(target instanceof Element)) return false;
+    if (!(target instanceof Element)) return false;
     const id = target.closest<HTMLElement>('[role="option"]')?.dataset['value'];
-    const item = document.value.templates.find(item => item.id === id);
+    const item = document?.value.templates.find(item => item.id === id);
     if (item === undefined) return false;
     setMenu({anchor, item});
     return true;
@@ -191,30 +191,16 @@ export function MessageEditing({
       >
         {children}
       </div>
-      {menu && !locked ? (
+      {menu ? (
         <Menu
           label="메시지 틀"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'edit',
-              label: '수정…',
-              onSelect: () => setEditor({kind: 'edit', item: menu.item}),
-            },
-            menuSeparator('copy-separator'),
-            laterRow('duplicate', '복제'),
-            laterRow('rename', '이름 바꾸기'),
-            menuSeparator('delete-separator'),
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              onSelect: () => setEditor({kind: 'delete', item: menu.item}),
-            },
-          ]}
+          entries={messageMenuEntries({
+            reason: toolMenuReason(locked, busy),
+            edit: () => setEditor({kind: 'edit', item: menu.item}),
+            remove: () => setEditor({kind: 'delete', item: menu.item}),
+          })}
         />
       ) : null}
       {editor?.kind === 'delete' ? (

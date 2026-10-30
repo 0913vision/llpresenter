@@ -10,11 +10,7 @@ import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useAudioMedia} from './useAudioMedia';
 import {useToolEditing} from './useToolEditing';
 import styles from './PropGrid.module.css';
-import {
-  laterClipboardRows,
-  laterRow,
-  menuSeparator,
-} from '@renderer/ui/menuRows';
+import {propMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 type Editor = {kind: 'add'} | {kind: 'edit' | 'delete'; prop: Prop};
 
@@ -64,40 +60,19 @@ export function PropTab({
         props={document?.value.props ?? []}
         screens={screens?.value.screens ?? []}
         onMenu={(prop, anchor) => {
-          if (!locked) setMenu({prop, anchor});
+          setMenu({prop, anchor});
         }}
       />
-      {menu && !locked ? (
+      {menu ? (
         <Menu
           label="소품"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            laterRow('add-to', '모음에 추가', {submenu: true}),
-            laterRow('move-to', '모음으로 옮기기', {submenu: true}),
-            menuSeparator('edit-separator'),
-            {
-              kind: 'item',
-              id: 'edit',
-              label: '수정…',
-              onSelect: () => setEditor({kind: 'edit', prop: menu.prop}),
-            },
-            laterRow('transitions', '전환 효과…'),
-            laterRow('auto-clear', '자동 지우기', {submenu: true}),
-            menuSeparator('clipboard-separator'),
-            ...laterClipboardRows(),
-            laterRow('duplicate', '복제', {icon: 'duplicate'}),
-            laterRow('rename', '이름 바꾸기'),
-            menuSeparator('delete-separator'),
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              icon: 'trash',
-              danger: true,
-              onSelect: () => setEditor({kind: 'delete', prop: menu.prop}),
-            },
-          ]}
+          entries={propMenuEntries({
+            reason: toolMenuReason(locked, busy),
+            edit: () => setEditor({kind: 'edit', prop: menu.prop}),
+            remove: () => setEditor({kind: 'delete', prop: menu.prop}),
+          })}
         />
       ) : null}
       {editor?.kind === 'delete' ? (

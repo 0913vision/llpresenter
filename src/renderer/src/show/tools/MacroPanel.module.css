@@ -2,6 +2,11 @@
   position: relative;
   min-height: 0;
 }
+
+.colors {
+  min-width: max-content;
+  padding: var(--space-8);
+}
 .palette {
   position: absolute;
   z-index: var(--z-popover);

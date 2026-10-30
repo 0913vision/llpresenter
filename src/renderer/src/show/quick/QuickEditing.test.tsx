@@ -22,6 +22,8 @@ import {openLibrarySong} from '@renderer/state/showLibrary';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {ControlSession} from '@renderer/control/controlSession';
 import {QuickPanel} from './QuickPanel';
+import {QuickRowEditor} from './QuickEditing';
+import {renderedToolMenuRows} from '../tools/toolMenuTesting';
 import {openBiblePassage} from '../bible/actions';
 import {panelPassage} from '../bible/panelTesting';
 import {MAX_QUICK_ITEMS, newQuickItem, saveQuickEdit} from './quickEdits';
@@ -211,6 +213,48 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it('lists every quick-add row and separator in order', async () => {
+    const fixture = setup();
+    fixture.mount();
+    await openAddMenu();
+    expect(
+      renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 추가'})),
+    ).toEqual([
+      '현재 항목 추가',
+      '|',
+      '소품',
+      '타이머…',
+      '매크로',
+      '검은 화면',
+    ]);
+  });
+
+  it.each([false, true])(
+    'opens the complete quick-item menu when locked=%s',
+    async locked => {
+      const save = vi.fn(async () => true);
+      render(
+        <QuickRowEditor item={quickItem('black')} locked={locked} save={save}>
+          <button>항목</button>
+        </QuickRowEditor>,
+      );
+      fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {
+        key: 'F10',
+        shiftKey: true,
+      });
+      expect(
+        renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
+      ).toEqual(['이름 바꾸기', '삭제']);
+      if (locked) {
+        for (const row of screen.getAllByRole('menuitem')) {
+          expect(row.getAttribute('aria-disabled')).toBe('true');
+          fireEvent.click(row);
+        }
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(save).not.toHaveBeenCalled();
+      }
+    },
+  );
   it('closes an applied timer addition with its persistence warning and no retry', async () => {
     vi.mocked(crypto.randomUUID)
       .mockReturnValueOnce('00000000-0000-4000-8000-000000000998')

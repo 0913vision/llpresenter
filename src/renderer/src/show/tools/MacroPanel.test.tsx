@@ -18,6 +18,7 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
+import userEvent from '@testing-library/user-event';
 import {WorkspaceNavigation} from '@renderer/state/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/screens/selection';
 import {useMacroPalette} from '@renderer/state/macroPalette';
@@ -138,6 +139,38 @@ it('runs a macro and asks with the number of service items before deletion', asy
   expect(f.edit).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', {name: '삭제'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+});
+
+it('opens eight color swatches at the macro tile, restores focus, and saves a choice', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '찬양'});
+  const box = vi
+    .spyOn(tile, 'getBoundingClientRect')
+    .mockReturnValue(new DOMRect(80, 100, 100, 50));
+  fireEvent.contextMenu(tile, {clientX: 400, clientY: 300});
+  fireEvent.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
+  const popup = screen.getByRole('dialog', {name: '매크로 색'});
+  expect(screen.queryByRole('menu')).toBeNull();
+  expect(box).toHaveBeenCalled();
+  expect(screen.getAllByRole('radio')).toHaveLength(8);
+  const selected = screen.getByRole('radio', {name: '청록'});
+  expect(selected.getAttribute('aria-checked')).toBe('true');
+  expect(document.activeElement).toBe(selected);
+  fireEvent.keyDown(popup, {key: 'Escape'});
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(document.activeElement).toBe(tile);
+  fireEvent.contextMenu(tile);
+  fireEvent.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
+  await userEvent.click(screen.getByRole('radio', {name: '분홍'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
+  expect(edit.value.macros[0]?.color).toBe('rose');
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', {name: '매크로 색'})).toBeNull(),
+  );
+  expect(document.activeElement).toBe(tile);
 });
 
 it('creates a macro in the displayed collection then opens rename', async () => {
@@ -375,19 +408,6 @@ it('saves an icon chosen from the macro menu', async () => {
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.icon).toBe('sun');
-});
-
-it('changes the color from the 색 바꾸기 submenu', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  await openActionSubmenu('색 바꾸기');
-  const teal = screen.getByRole('menuitemradio', {name: '청록'});
-  expect(teal.getAttribute('aria-checked')).toBe('true');
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '초록'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  expect(edit.value.macros[0]?.color).toBe('green');
 });
 
 it('opens the palette and drops an action on the target macro without running it', async () => {

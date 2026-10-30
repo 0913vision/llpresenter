@@ -14,6 +14,7 @@ import {deferred} from '../quick/quickTesting';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {NoticeTab} from './NoticeTab';
 import {stageFixture} from './stageTesting';
+import {renderedToolMenuRows} from './toolMenuTesting';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const image = '00000000-0000-4000-8000-000000000002';
@@ -102,6 +103,31 @@ function fixture(sets: readonly object[] = [notice]) {
   f.edit.mockResolvedValue({ok: true, value: {id: 'notices', revision: 2}});
   return f;
 }
+
+it.each([false, true])(
+  'lists notice-set rows in order when locked=%s',
+  async locked => {
+    const f = fixture();
+    const stored = f.documents.get('notices');
+    if (!stored) throw new Error('Missing notice fixture');
+    if (locked) f.documents.set('notices', {...stored, access: 'readOnly'});
+    render(<NoticeTab />);
+    const target = await screen.findByRole('button', {name: '공지 세트'});
+    await waitFor(() => expect(target.textContent).toContain('주일 공지'));
+    fireEvent.contextMenu(target);
+    expect(
+      renderedToolMenuRows(screen.getByRole('menu', {name: '공지 세트'})),
+    ).toEqual(['복제', '이름 바꾸기', '|', '삭제']);
+    if (locked) {
+      for (const row of screen.getAllByRole('menuitem')) {
+        expect(row.getAttribute('aria-disabled')).toBe('true');
+        fireEvent.click(row);
+      }
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(f.edit).not.toHaveBeenCalled();
+    }
+  },
+);
 afterEach(() => {
   cleanup();
   delete window.llp;

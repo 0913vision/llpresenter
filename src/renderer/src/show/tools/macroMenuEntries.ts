@@ -1,4 +1,3 @@
-import {paletteColors, type PaletteColor} from '@shared/colors';
 import {
   MACRO_FILE_LIMITS,
   isKnownMacroAction,
@@ -8,7 +7,6 @@ import {
   type MacroCollection,
   type KnownMacroAction,
 } from '@shared/schema/macros';
-import {labelColorNames} from '@renderer/ui/LabelColorPicker';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import type {MacroTargetChoice} from './macroTargets';
 import {macroActionChoices} from './macroActionChoices';
@@ -23,7 +21,7 @@ import {
 export interface MacroMenuHandlers {
   readonly rename: () => void;
   readonly changeIcon: () => void;
-  readonly changeColor: (color: PaletteColor) => void;
+  readonly changeColor: () => void;
   readonly toggleStartup: () => void;
   readonly addTo: (collection: MacroCollection['id']) => void;
   readonly moveTo: (collection: MacroCollection['id']) => void;
@@ -234,15 +232,7 @@ function appearanceEntries(
       id: 'color',
       label: '색 바꾸기',
       disabled: locked,
-      submenu: paletteColors.map((color): MenuItem => ({
-        kind: 'item',
-        id: color,
-        label: labelColorNames[color],
-        swatch: color,
-        check: 'radio',
-        checked: item.color === color,
-        onSelect: () => handlers.changeColor(color),
-      })),
+      onSelect: handlers.changeColor,
     },
     {
       kind: 'item',

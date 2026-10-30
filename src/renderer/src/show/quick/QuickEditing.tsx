@@ -25,6 +25,7 @@ import {
   type QuickEdit,
 } from './quickEdits';
 import {QuickTimerDialog} from './QuickTimerDialog';
+import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 
 type Save = (edit: QuickEdit) => Promise<boolean>;
 
@@ -262,18 +263,13 @@ export function QuickRowEditor({
       data-quick-id={item.id}
       onContextMenu={event => {
         event.preventDefault();
-        if (!locked) {
-          setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
-        }
+        setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
       }}
       onKeyDown={event => {
-        if (
-          locked ||
-          !(
-            event.key === 'ContextMenu' ||
-            (event.shiftKey && event.key === 'F10')
-          )
-        ) {
+        if (!(
+          event.key === 'ContextMenu' ||
+          (event.shiftKey && event.key === 'F10')
+        )) {
           return;
         }
         event.preventDefault();
@@ -283,33 +279,23 @@ export function QuickRowEditor({
     >
       {insertBefore ? <ListInsertLine /> : null}
       {children}
-      {menu && !locked ? (
+      {menu ? (
         <Menu
           label="퀵 실행 항목"
           anchor={menu}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              onSelect: () => {
-                setName(item.name);
-                setRenaming(true);
-              },
+          entries={quickItemMenuEntries({
+            reason: toolMenuReason(locked),
+            rename: () => {
+              setName(item.name);
+              setRenaming(true);
             },
-            {
-              kind: 'item',
-              id: 'delete',
-              label: '삭제',
-              danger: true,
-              onSelect: () => {
-                save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
-                  console.error('Quick delete callback failed:', cause),
-                );
-              },
+            remove: () => {
+              save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
+                console.error('Quick delete callback failed:', cause),
+              );
             },
-          ]}
+          })}
         />
       ) : null}
       {renaming ? (

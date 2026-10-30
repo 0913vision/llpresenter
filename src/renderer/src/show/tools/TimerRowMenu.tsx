@@ -8,7 +8,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {renameTimer} from './timerRenames';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 function TimerNameDialog({
   timer,
@@ -103,18 +103,13 @@ export function TimerRowMenu({
       onContextMenu={event => {
         event.preventDefault();
         event.stopPropagation();
-        if (!locked) {
-          setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
-        }
+        setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
       }}
       onKeyDown={event => {
-        if (
-          locked ||
-          !(
-            event.key === 'ContextMenu' ||
-            (event.shiftKey && event.key === 'F10')
-          )
-        ) {
+        if (!(
+          event.key === 'ContextMenu' ||
+          (event.shiftKey && event.key === 'F10')
+        )) {
           return;
         }
         event.preventDefault();
@@ -123,32 +118,16 @@ export function TimerRowMenu({
       }}
     >
       {children}
-      {menu && !locked ? (
+      {menu ? (
         <Menu
           label="타이머"
           anchor={menu}
           onClose={() => setMenu(null)}
-          entries={[
-            laterRow('duplicate', '복제'),
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              onSelect: () => setRenaming(true),
-            },
-            ...(onRemove
-              ? [
-                  menuSeparator('delete-separator'),
-                  {
-                    kind: 'item' as const,
-                    id: 'delete',
-                    label: '삭제',
-                    danger: true,
-                    onSelect: () => onRemove(timer),
-                  },
-                ]
-              : []),
-          ]}
+          entries={namedToolMenuEntries({
+            reason: toolMenuReason(locked, editing.busy),
+            rename: () => setRenaming(true),
+            remove: onRemove ? () => onRemove(timer) : undefined,
+          })}
         />
       ) : null}
       {renaming ? (

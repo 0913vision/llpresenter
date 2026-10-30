@@ -36,7 +36,11 @@ export function MacroView({
   readonly onCollection: (id: MacroCollection['id'] | undefined) => void;
   readonly onMode: (mode: MacroViewMode) => void;
   readonly onRun: (item: Macro) => void;
-  readonly onMenu: (item: Macro, anchor: MenuAnchor) => void;
+  readonly onMenu: (
+    item: Macro,
+    anchor: MenuAnchor,
+    trigger: HTMLElement | undefined,
+  ) => void;
   readonly onNew?: (() => void) | undefined;
   readonly collectionLocked?: boolean | undefined;
   readonly onCollectionDelete?: ((item: MacroCollection) => void) | undefined;
@@ -67,7 +71,13 @@ export function MacroView({
     },
     onMenu: (index: number, anchor: MenuAnchor) => {
       const item = shown[index];
-      if (item) onMenu(item, anchor);
+      if (item) {
+        onMenu(
+          item,
+          anchor,
+          root.current?.querySelectorAll<HTMLElement>('[role="option"]')[index],
+        );
+      }
     },
   };
   return (
