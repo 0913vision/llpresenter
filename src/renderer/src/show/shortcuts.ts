@@ -10,6 +10,7 @@ import {
 } from '@renderer/state/show';
 import {TEXT_ENTRY_SELECTOR} from '@renderer/ui/textEntry';
 import {useSlideHotKeys} from './useSlideHotKeys';
+import {outputAdjacentBibleVerse} from './bible/verseShortcuts';
 
 const NEXT_CODES: ReadonlySet<string> = new Set([
   'ArrowRight',
@@ -147,6 +148,28 @@ export function handleShowKey(event: KeyboardEvent): void {
   if (event.defaultPrevented || ownsEveryKey(event)) return;
   if (isControlOnly(event)) {
     runItemCommand(event);
+    return;
+  }
+  if (
+    event.shiftKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey &&
+    ARROW_CODES.has(event.code) &&
+    !belongsToFocusedControl(event)
+  ) {
+    event.preventDefault();
+    if (!event.repeat) {
+      outputAdjacentBibleVerse(
+        event.code === 'ArrowRight' ? 'next' : 'previous',
+      ).catch((cause: unknown) =>
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Could not handle the Bible verse key',
+          detail: String(cause),
+        }),
+      );
+    }
     return;
   }
   if (hasModifier(event) || belongsToFocusedControl(event)) return;

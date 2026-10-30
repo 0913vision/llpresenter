@@ -5,15 +5,11 @@ import {bibleSourceFor} from '@renderer/state/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-  withinLookupTimeout,
 } from '@renderer/state/showOutput';
 import {Button} from '@renderer/ui/Button';
 import {openBiblePassage} from './actions';
-import {
-  adjacentVerseRange,
-  passageBook,
-  type VerseDirection,
-} from './adjacentVerses';
+import {passageBook, type VerseDirection} from './adjacentVerses';
+import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import type {BibleSource} from './source';
 
 /** Extends the preview without changing the selected verse or live output. */
@@ -56,34 +52,17 @@ export function BibleAdjacentButtons({
       );
     };
     try {
-      const metadata = await withinLookupTimeout(() =>
-        api.bible.lookup({
-          translation: source.passage.translation,
-          input: book.korean,
-        }),
-      );
-      if (!current()) return;
-      if (!metadata.bounds) {
-        throw new Error('Bible chapter counts are unavailable');
-      }
-      const input = adjacentVerseRange(
-        source.passage,
-        metadata.bounds,
+      const passage = await lookupAdjacentPassage({
+        passage: source.passage,
         direction,
-      );
-      if (input === null) {
+        lookup: request => api.bible.lookup(request),
+        current,
+      });
+      if (!current()) return;
+      if (passage === null) {
         setEdge(direction);
         return;
       }
-      const reply = await withinLookupTimeout(() =>
-        api.bible.lookup({
-          translation: source.passage.translation,
-          input,
-        }),
-      );
-      if (!current()) return;
-      if (!reply.result.ok) throw new Error(reply.result.error.message);
-      const passage = reply.result.value;
       const shift =
         direction === 'previous'
           ? passage.verses.length - source.passage.verses.length

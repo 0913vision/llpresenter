@@ -6,13 +6,13 @@ import type {
 
 export type VerseDirection = 'previous' | 'next';
 
-export function passageBook(passage: BibleLookupPassage) {
+export function passageBook(passage: Pick<BibleLookupPassage, 'ref'>) {
   return exactBibleBook(passage.ref.split(' ')[0] ?? '');
 }
 
 /** Extends one endpoint inside the same book using the translation's counts. */
 export function adjacentVerseRange(
-  passage: BibleLookupPassage,
+  passage: Pick<BibleLookupPassage, 'ref'>,
   bounds: BibleLookupReply['bounds'],
   direction: VerseDirection,
 ): string | null {

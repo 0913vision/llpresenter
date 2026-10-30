@@ -26,6 +26,45 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it.each([true, false])('retains saved Bible numbering %s', verseNumbers => {
+    const bible = {
+      ref: '요한복음 3:16-18',
+      translation: 'sample',
+      verseNumbers,
+    };
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [{kind: 'bible', id: 'saved', title: '', bible}],
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {rows: [{bible}]},
+    });
+  });
+
+  it.each([null, 'false', 0])(
+    'rejects invalid saved Bible numbering %j',
+    verseNumbers => {
+      expect(
+        parseShowService({
+          ...showService(),
+          rows: [
+            {
+              kind: 'bible',
+              id: 'saved',
+              title: '',
+              bible: {
+                ref: '요한복음 3:16-18',
+                translation: 'sample',
+                verseNumbers,
+              },
+            },
+          ],
+        }).ok,
+      ).toBe(false);
+    },
+  );
   it('retains a Bible reference on a projected tile', () => {
     const tile = {
       label: '3:16',

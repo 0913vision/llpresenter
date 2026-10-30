@@ -1,6 +1,9 @@
 import type {MediaChoice} from '@shared/live';
-import type {RecentPassage} from '@shared/schema/bible';
-import type {ShowTile, showRowProblems} from '@shared/schema/showService';
+import type {
+  ShowRow,
+  ShowTile,
+  showRowProblems,
+} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;
@@ -22,7 +25,7 @@ export interface ItemRow {
   readonly title: string;
   readonly problem?: RowProblem;
   readonly background?: MediaChoice;
-  readonly bible?: RecentPassage;
+  readonly bible?: NonNullable<Extract<ShowRow, {kind: 'bible'}>['bible']>;
 }
 
 export type ServiceRow = HeaderRow | ItemRow;

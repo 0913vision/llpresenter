@@ -1,4 +1,5 @@
 import type {SlideLayer} from '@shared/live';
+import type {RecentPassage} from '@shared/schema/bible';
 import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
 import {passageBook} from '@renderer/show/bible/adjacentVerses';
 import type {BibleSource} from '@renderer/show/bible/source';
@@ -29,7 +30,10 @@ export function bibleSourceFor(
     : null;
 }
 
-function showsSameVerses(first: BibleSource, second: BibleSource): boolean {
+function showsSameVerses(
+  first: BibleSource,
+  second: {readonly passage: RecentPassage; readonly verseNumbers: boolean},
+): boolean {
   const book = passageBook(first.passage);
   return (
     book !== undefined &&
@@ -52,11 +56,21 @@ export function liveTileIndex(
   if (slide.itemId === view.openItemId) return slide.position;
   const open = bibleSourceFor(view, view.openItemId);
   const live = bibleSourceFor(view, slide.itemId);
-  const verse = live?.passage.verses[slide.position];
-  if (!open || !live || !verse || !showsSameVerses(open, live)) return null;
-  const index = open.passage.verses.findIndex(
-    candidate =>
-      candidate.chapter === verse.chapter && candidate.verse === verse.verse,
+  const row = view.rows.find(candidate => candidate.id === slide.itemId);
+  const saved = row?.kind === 'bible' ? row.bible : undefined;
+  const passage = live?.passage ?? saved;
+  const verseNumbers = live?.verseNumbers ?? saved?.verseNumbers ?? true;
+  const tile = (live?.tiles ?? view.tiles[slide.itemId])?.[slide.position];
+  if (
+    !open ||
+    !passage ||
+    !tile ||
+    !showsSameVerses(open, {passage, verseNumbers})
+  ) {
+    return null;
+  }
+  const index = open.tiles.findIndex(
+    candidate => candidate.label === tile.label,
   );
   return index === -1 ? null : index;
 }

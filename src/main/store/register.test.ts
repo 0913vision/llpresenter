@@ -198,7 +198,7 @@ describe('registerStore', () => {
         ref: '요한복음 3:16-18',
         split: 'verse',
         reference: 'every',
-        verseNumbers: true,
+        verseNumbers: false,
         translationName: false,
       },
     };
@@ -234,7 +234,7 @@ describe('registerStore', () => {
       throw new Error('Missing projected service');
     }
     expect(shown.value.tiles[itemId(60)]).toMatchObject([
-      {label: '3:16', lines: ['16 Invented book 43, chapter 3, verse 16']},
+      {label: '3:16', lines: ['Invented book 43, chapter 3, verse 16']},
       {label: '3:17'},
       {label: '3:18'},
     ]);
@@ -243,7 +243,11 @@ describe('registerStore', () => {
         kind: 'bible',
         id: itemId(60),
         title: '요한복음 3:16-18',
-        bible: {ref: '요한복음 3:16-18', translation: 'sample'},
+        bible: {
+          ref: '요한복음 3:16-18',
+          translation: 'sample',
+          verseNumbers: false,
+        },
       },
       {
         kind: 'bible',

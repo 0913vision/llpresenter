@@ -5,6 +5,7 @@ import {setColumnDragActive} from '@renderer/state/drag';
 import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
 import {seedSampleService} from './testing/sampleService';
 import * as showState from '@renderer/state/show';
+import * as bibleKeys from './bible/verseShortcuts';
 import {
   handleShowFocusIn,
   handleShowKey,
@@ -63,6 +64,7 @@ beforeEach(() => {
   vi.spyOn(showState, 'openNextItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'openPreviousItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'revealLiveItem').mockImplementation(() => undefined);
+  vi.spyOn(bibleKeys, 'outputAdjacentBibleVerse').mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -70,6 +72,58 @@ afterEach(() => {
   release('Space');
   vi.restoreAllMocks();
   document.body.replaceChildren();
+});
+
+describe('handleShowKey Bible verse keys', () => {
+  it.each([
+    ['ArrowRight', 'next'],
+    ['ArrowLeft', 'previous'],
+  ])('adds and outputs the %s endpoint once per press', (code, direction) => {
+    expect(press(code, {shiftKey: true}).defaultPrevented).toBe(true);
+    expect(press(code, {shiftKey: true, repeat: true}).defaultPrevented).toBe(
+      true,
+    );
+    expect(bibleKeys.outputAdjacentBibleVerse).toHaveBeenCalledExactlyOnceWith(
+      direction,
+    );
+    expect(showState.outputNext).not.toHaveBeenCalled();
+    expect(showState.outputPrevious).not.toHaveBeenCalled();
+  });
+
+  it('leaves text selection, focused controls, dialogs and other modifiers alone', () => {
+    for (const target of [
+      appendTo('input'),
+      appendTo('textarea'),
+      appendTo('div', {contenteditable: 'true'}),
+      appendTo('div', {role: 'tab'}),
+      appendTo('div', {role: 'radio'}),
+      appendTo('div', {role: 'dialog'}),
+      appendTo('div', {role: 'menu'}),
+    ]) {
+      expect(
+        press('ArrowRight', {shiftKey: true}, target).defaultPrevented,
+      ).toBe(false);
+    }
+    press('ArrowRight', {shiftKey: true, ctrlKey: true});
+    press('ArrowLeft', {shiftKey: true, altKey: true});
+    press('ArrowRight', {shiftKey: true, metaKey: true});
+    press('ArrowRight', {shiftKey: true, isComposing: true});
+    setColumnDragActive(true);
+    press('ArrowRight', {shiftKey: true});
+    expect(bibleKeys.outputAdjacentBibleVerse).not.toHaveBeenCalled();
+  });
+
+  it('passes Shift arrows from the slide grid and service list', () => {
+    const grid = appendTo('div', {role: 'listbox'});
+    press(
+      'ArrowRight',
+      {shiftKey: true},
+      grid.appendChild(document.createElement('button')),
+    );
+    expect(bibleKeys.outputAdjacentBibleVerse).toHaveBeenCalledExactlyOnceWith(
+      'next',
+    );
+  });
 });
 
 describe('handleShowKey next and previous', () => {

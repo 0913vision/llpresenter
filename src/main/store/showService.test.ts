@@ -58,51 +58,54 @@ function build(
 }
 
 describe('buildShowService', () => {
-  it('projects normalized saved Bible identity with its tiles and no identity for an unavailable book', async () => {
-    const document = loadedService(
-      ['John 3 : 16 - 18', '시편 1:1'].map((ref, index) => ({
-        id: itemId(index + 1),
-        bible: {
-          translation: 'sample',
-          ref,
-          split: 'verse',
-          reference: 'every',
-          verseNumbers: false,
-          translationName: false,
+  it.each([true, false])(
+    'projects normalized saved Bible identity and numbering %s with its tiles',
+    async verseNumbers => {
+      const document = loadedService(
+        ['John 3 : 16 - 18', '시편 1:1'].map((ref, index) => ({
+          id: itemId(index + 1),
+          bible: {
+            translation: 'sample',
+            ref,
+            split: 'verse',
+            reference: 'every',
+            verseNumbers,
+            translationName: false,
+          },
+        })),
+      );
+      const passages = await resolveServicePassages(
+        document.data.order,
+        {
+          lookup: async request => ({
+            ...request,
+            suggestions: [],
+            result: await resolvePassage(passageSource(), request.input),
+          }),
         },
-      })),
-    );
-    const passages = await resolveServicePassages(
-      document.data.order,
-      {
-        lookup: async request => ({
-          ...request,
-          suggestions: [],
-          result: await resolvePassage(passageSource(), request.input),
-        }),
-      },
-      {
-        reportError: error => {
-          throw error;
+        {
+          reportError: error => {
+            throw error;
+          },
         },
-      },
-    );
-    const show = buildShowService({
-      service: document,
-      songs: new Map(),
-      labels: [],
-      revision: 1,
-      passages,
-    });
-    expect(show.rows[0]).toMatchObject({
-      id: itemId(1),
-      title: 'John 3 : 16 - 18',
-      bible: {ref: '요한복음 3:16-18', translation: 'sample'},
-    });
-    expect(show.tiles[itemId(1)]).toHaveLength(3);
-    expect(show.rows[1]).toMatchObject({problem: 'missing-bible'});
-    expect(show.rows[1]).not.toHaveProperty('bible');
-  });
+      );
+      const show = buildShowService({
+        service: document,
+        songs: new Map(),
+        labels: [],
+        revision: 1,
+        passages,
+      });
+      expect(show.rows[0]).toMatchObject({
+        id: itemId(1),
+        title: 'John 3 : 16 - 18',
+        bible: {ref: '요한복음 3:16-18', translation: 'sample', verseNumbers},
+      });
+      expect(show.tiles[itemId(1)]).toHaveLength(3);
+      expect(show.rows[1]).toMatchObject({problem: 'missing-bible'});
+      expect(show.rows[1]).not.toHaveProperty('bible');
+    },
+  );
 
   it('resolves the item override before the song default without fallback', () => {
     const defaultMedia = {mediaId: MEDIA_ID, loop: true};
