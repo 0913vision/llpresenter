@@ -21,6 +21,7 @@ import {
 } from '@renderer/state/pendingWrites';
 import {
   updateServiceItem,
+  itemArrangementChange,
   type ServiceItemChange,
 } from '@renderer/state/serviceItemUpdate';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -100,17 +101,6 @@ function draftKey({serviceId, itemId}: ItemTarget): string {
 
 function sameTarget(left: ItemTarget | null, right: ItemTarget | null) {
   return left?.serviceId === right?.serviceId && left?.itemId === right?.itemId;
-}
-
-function withArrangement(
-  item: ServiceItemOf<'song'>,
-  name: string | undefined,
-): ServiceItemOf<'song'> {
-  if (item.arrangement === name) return item;
-  const updated = {...item};
-  if (name === undefined) delete updated.arrangement;
-  else updated.arrangement = name;
-  return updated;
 }
 
 const startKinds = ['song', 'bible', 'media', 'notice'] as const;
@@ -240,8 +230,7 @@ export class ServiceItemStore {
     const target = this.target;
     return this.operation(() =>
       this.edit({
-        change: item =>
-          isItemOfKind(item, 'song') ? withArrangement(item, name) : null,
+        change: itemArrangementChange(name),
         failure: '구성 변경 실패',
         target,
       }),
@@ -279,7 +268,7 @@ export class ServiceItemStore {
     return this.edit({
       change: item =>
         isItemOfKind(item, 'song') && item.song === songId
-          ? withArrangement(item, name)
+          ? itemArrangementChange(name)(item)
           : null,
       failure: '구성 변경 실패',
       target,

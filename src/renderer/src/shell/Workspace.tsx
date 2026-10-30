@@ -398,6 +398,7 @@ function serviceOrderParts({
   onOpenPrep,
   actions,
   onShowSelection,
+  onShowInLibrary,
 }: {
   readonly id: Exclude<WorkspaceId, 'screens'>;
   readonly prep: PrepBinding | undefined;
@@ -405,6 +406,7 @@ function serviceOrderParts({
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly actions: ReactNode;
   readonly onShowSelection: () => void;
+  readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): PanelParts {
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
@@ -413,6 +415,7 @@ function serviceOrderParts({
         workspace={id}
         onProblem={onProblem}
         onOpenPrep={onOpenPrep}
+        onShowInLibrary={onShowInLibrary}
         onOpenItem={id === 'prep' ? () => openPrepItem(prep) : onShowSelection}
       />
     ),
@@ -457,6 +460,7 @@ export function Workspace({
   store,
   onProblem,
   onOpenPrep,
+  onShowInLibrary,
   prep,
   warningHeight = 0,
   mediaVisible = true,
@@ -469,6 +473,7 @@ export function Workspace({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?:
     ((itemId: string, position?: number) => void) | undefined;
+  readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
@@ -509,6 +514,7 @@ export function Workspace({
         prep,
         onProblem,
         onOpenPrep,
+        onShowInLibrary,
         onShowSelection: () => setBibleSelection(value => value + 1),
         actions: toggle.collapsible ? (
           <SidebarCollapseButton

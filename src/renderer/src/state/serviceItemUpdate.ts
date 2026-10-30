@@ -1,7 +1,7 @@
 import type {LlpApi} from '@shared/ipc';
 import type {Result} from '@shared/result';
 import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
-import type {ServiceItem} from '@shared/schema/service';
+import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
 
 interface RequestFailure {
   readonly reason: 'request-failed';
@@ -19,6 +19,20 @@ export type ServiceItemApi = Pick<LlpApi, 'services' | 'content'>;
  * when the item can't take the change, such as a header asked for a 구성.
  */
 export type ServiceItemChange = (item: ServiceItem) => ServiceItem | null;
+
+/** The same item-only arrangement choice in its setting and context menu. */
+export function itemArrangementChange(
+  name: string | undefined,
+): ServiceItemChange {
+  return item => {
+    if (!isItemOfKind(item, 'song')) return null;
+    if (item.arrangement === name) return item;
+    const updated = {...item};
+    if (name === undefined) delete updated.arrangement;
+    else updated.arrangement = name;
+    return updated;
+  };
+}
 
 export interface ServiceItemUpdate {
   readonly serviceId: string;

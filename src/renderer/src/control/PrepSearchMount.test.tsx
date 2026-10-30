@@ -1,6 +1,7 @@
 import {
   act,
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -9,7 +10,11 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
-import type {SongDocument} from '@shared/schema/contentDocuments';
+import type {
+  SongDocument,
+  ServiceDocument,
+} from '@shared/schema/contentDocuments';
+import {createServiceId, createServiceItemId} from '@shared/schema/ids';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {sampleService} from '@renderer/show/testing/sampleService';
@@ -80,6 +85,71 @@ afterEach(async () => {
   applyService(null);
   delete window.llp;
 });
+
+it.each(['show', 'prep'] as const)(
+  'reveals a service song in the library from %s without edits or output',
+  async workspace => {
+    const {api, first, edit, send} = await setup();
+    const id = createServiceItemId('10000000-0000-4000-8000-000000000001');
+    const document: ServiceDocument = {
+      service: {
+        format: 'llservice',
+        schemaVersion: 1,
+        id: createServiceId('20000000-0000-4000-8000-000000000001'),
+        name: 'Invented service',
+        date: '2026-10-30T09:00',
+        order: [{id, song: first.song.id}],
+      },
+      revision: 1,
+      access: 'editable',
+    };
+    vi.spyOn(api.services, 'get').mockResolvedValue(document);
+    act(() =>
+      applyService({
+        ...sampleService,
+        id: document.service.id,
+        revision: 2,
+        rows: [{id, kind: 'song', title: '예배 곡'}],
+        tiles: {},
+      }),
+    );
+    const rows = useShow.getState().rows;
+    await userEvent.type(
+      screen.getByRole('textbox', {name: '라이브러리 검색'}),
+      '숨김',
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: first.song.title})).toBeNull(),
+    );
+    if (workspace === 'show') {
+      await userEvent.click(screen.getByRole('tab', {name: '진행'}));
+    }
+    fireEvent.contextMenu(screen.getByRole('option', {name: '예배 곡'}));
+    const reveal = await screen.findByRole('menuitem', {
+      name: '라이브러리에서 보기',
+    });
+    await waitFor(() =>
+      expect(reveal.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    await userEvent.click(reveal);
+    expect(
+      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('option', {name: first.song.title})
+          .getAttribute('aria-selected'),
+      ).toBe('true'),
+    );
+    expect(
+      screen.getByRole('textbox', {name: '라이브러리 검색'}),
+    ).toHaveProperty('value', '');
+    expect(useShow.getState().rows).toBe(rows);
+    expect(edit).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+  },
+);
 
 it('selects a prep toolbar result in the library and opens the editor without service edits or output', async () => {
   const {first, send, edit, showSong} = await setup();

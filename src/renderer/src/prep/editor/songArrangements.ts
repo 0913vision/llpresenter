@@ -1,4 +1,8 @@
-import type {Arrangement, Song} from '@shared/schema/song';
+import {
+  DEFAULT_ARRANGEMENT_NAME,
+  type Arrangement,
+  type Song,
+} from '@shared/schema/song';
 import {
   arrangementGroupIds,
   type GroupedSong,
@@ -10,6 +14,14 @@ import {
 
 const NEW_ARRANGEMENT_PREFIX = '구성';
 export const ARRANGEMENT_LIMIT_REASON = '슬라이드 수가 한도를 초과합니다.';
+
+/** The implicit default order followed by the song's named arrangements. */
+export function arrangementOptions(song: Song | GroupedSong) {
+  return [
+    DEFAULT_ARRANGEMENT_NAME,
+    ...(song.arrangements?.map(item => item.name) ?? []),
+  ].map(value => ({value, label: value}));
+}
 
 /** Default order is implicit; named orders retain repeats and empty orders. */
 export function editedOrder(

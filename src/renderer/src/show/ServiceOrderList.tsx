@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
-import {createServiceItemId} from '@shared/schema/ids';
+import {createServiceItemId, type SongId} from '@shared/schema/ids';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {openItem, useShow} from '@renderer/state/show';
@@ -10,6 +10,7 @@ import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
 import {serviceOrderMenuEntries} from './serviceOrderMenu';
+import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from './useMediaDurations';
@@ -123,11 +124,13 @@ export function ServiceOrderList({
   onProblem = logProblem,
   onOpenPrep,
   onOpenItem,
+  onShowInLibrary,
 }: {
   readonly workspace?: Workspace | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
   readonly onOpenItem?: (() => void) | undefined;
+  readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
@@ -179,6 +182,11 @@ export function ServiceOrderList({
     serviceId: string | null;
     anchor: MenuAnchor;
   } | null>(null);
+  const menuRow = rows.find(row => row.id === menu?.id);
+  const songMenu = useServiceSongMenu(
+    menu?.serviceId === serviceId && menuRow?.kind === 'song' ? menu : null,
+    onProblem,
+  );
   const [pendingRename, setPendingRename] = useState<{
     readonly id: string;
     readonly serviceId: string | null;
@@ -227,6 +235,18 @@ export function ServiceOrderList({
     return serviceOrderMenuEntries({
       row,
       editable,
+      song: {
+        arrangements: songMenu.entries,
+        reason: songMenu.reason,
+        locked: songMenu.locked,
+        showInLibrary:
+          songMenu.songId && onShowInLibrary
+            ? () => {
+                if (songMenu.songId) onShowInLibrary(songMenu.songId);
+                setMenu(null);
+              }
+            : undefined,
+      },
       openInPrep:
         workspace === 'show' && onOpenPrep !== undefined
           ? () => {

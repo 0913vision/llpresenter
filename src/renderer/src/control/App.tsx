@@ -172,6 +172,14 @@ function ControlApp({
           id={workspace}
           sizeClass={sizeClass}
           store={columnWidthStore}
+          onShowInLibrary={songId => {
+            const reveal = (): void => {
+              onWorkspace('prep');
+              prepSelection.openSong(songId);
+            };
+            if (session.editor) session.editor.requestLeave(reveal);
+            else reveal();
+          }}
           onProblem={session.report}
           prep={
             session.api && session.editor && session.items

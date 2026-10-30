@@ -10,6 +10,12 @@ export interface ServiceOrderMenuInput {
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
   readonly remove: () => void;
+  readonly song?: {
+    readonly arrangements: readonly MenuEntry[];
+    readonly locked: boolean;
+    readonly reason: string | undefined;
+    readonly showInLibrary: (() => void) | undefined;
+  };
 }
 
 function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
@@ -19,7 +25,17 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
       return [laterRow('color', '색 바꾸기')];
     case 'song':
       return [
-        laterRow('arrangement', '구성', {submenu: true}),
+        {
+          kind: 'item',
+          id: 'arrangement',
+          label: '구성',
+          submenu: input.song?.arrangements ?? [],
+          disabled:
+            !input.editable ||
+            input.song?.locked !== false ||
+            input.song.reason !== undefined,
+          title: input.song?.reason,
+        },
         laterRow('destination', '출력 대상', {submenu: true}),
         menuSeparator('edit-separator'),
         laterRow('edit-slides', '슬라이드 편집'),
@@ -74,11 +90,20 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
   }
 }
 
-function exportRows(row: ServiceRow): readonly MenuEntry[] {
-  if (row.kind !== 'song') return [];
+function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
+  if (input.row.kind !== 'song') return [];
   return [
     menuSeparator('export-separator'),
-    laterRow('show-in-library', '라이브러리에서 보기'),
+    {
+      kind: 'item',
+      id: 'show-in-library',
+      label: '라이브러리에서 보기',
+      disabled:
+        input.song?.showInLibrary === undefined ||
+        input.song.reason !== undefined,
+      title: input.song?.reason,
+      onSelect: input.song?.showInLibrary,
+    },
     laterRow('export-bundle', '묶음으로 내보내기…'),
     laterRow('export-images', '그림으로 내보내기…'),
   ];
@@ -110,6 +135,6 @@ export function serviceOrderMenuEntries(
       disabled: !input.editable,
       onSelect: input.remove,
     },
-    ...exportRows(input.row),
+    ...exportRows(input),
   ];
 }
