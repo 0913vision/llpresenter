@@ -13,7 +13,11 @@ import {openBiblePassage} from './actions';
 import type {VerseDirection} from './adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 
-/** Adds and outputs an endpoint of the open passage when it contains the live verse. */
+/**
+ * Outputs the verse beside the live one in the open passage. On the passage's
+ * first or last verse, it adds the adjacent verse to the passage first, so no
+ * verse is skipped (user decision, October 30).
+ */
 export async function outputAdjacentBibleVerse(
   direction: VerseDirection,
 ): Promise<void> {
@@ -21,13 +25,19 @@ export async function outputAdjacentBibleVerse(
   const initial = useShow.getState();
   const slide = useLive.getState().state?.layers.slide ?? null;
   const itemId = initial.openItemId;
-  if (!api || itemId === null || liveTileIndex(initial, slide) === null) return;
+  const liveIndex = liveTileIndex(initial, slide);
+  if (!api || itemId === null || liveIndex === null) return;
+  const count = tilesForView(initial, itemId).length;
+  const beside = direction === 'previous' ? liveIndex - 1 : liveIndex + 1;
+  if (beside >= 0 && beside < count) {
+    outputTile({itemId, index: beside});
+    return;
+  }
   const source = bibleSourceFor(initial, itemId);
   const row = initial.rows.find(candidate => candidate.id === itemId);
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
   if (!passage) return;
-  const count = tilesForView(initial, itemId).length;
   const request = beginOutputRequest();
   const commandVersion = useLive.getState().commandVersion;
   const current = (): boolean => {

@@ -782,13 +782,15 @@ that ProPresenter's Edit mode has the same behavior.
   superseded lookup leaves the preview unchanged. Enter from the unchanged
   reference fields outputs the expanded preview; editing a field starts a new
   lookup from those fields.
-- Shift+→ adds the next verse to the open live passage and outputs the added
-  verse; Shift+← does the same at the previous endpoint (user decision, October
-  30). The open passage must contain the live verse. These keys keep the
-  translation and verse-number option, cross chapters within the book, and leave
-  a saved 예배 순서 passage unchanged. A plain → on the last verse does nothing.
-  Text fields and dialogs keep their keys, and holding a key adds only one
-  verse. A failed or superseded lookup keeps the last good output.
+- Shift+→ outputs the verse after the live one in the open passage; on the
+  passage's last verse it first adds the next verse to the passage. Shift+← does
+  the same toward the first verse (user decision, October 30). In the middle of
+  a passage the keys move like → and ←, so no verse is skipped. The open passage
+  must contain the live verse. These keys keep the translation and verse-number
+  option, cross chapters within the book, and leave a saved 예배 순서 passage
+  unchanged. A plain → on the last verse does nothing. Text fields and dialogs
+  keep their keys, and holding a key adds only one verse. A failed or superseded
+  lookup keeps the last good output.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.

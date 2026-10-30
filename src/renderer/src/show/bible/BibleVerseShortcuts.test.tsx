@@ -24,7 +24,18 @@ import {lookupRequest} from './testBible';
 import {formLookupReply} from './testing/referenceForm';
 import {outputAdjacentBibleVerse} from './verseShortcuts';
 
-async function setup(input = '요한복음 3:16-18', verseNumbers = true) {
+/** The live tile of a passage: its first, its last, or the one at an index. */
+type LivePlace = 'first' | 'last' | number;
+
+function endpointFor(direction: 'previous' | 'next'): LivePlace {
+  return direction === 'previous' ? 'first' : 'last';
+}
+
+async function setup(
+  input = '요한복음 3:16-18',
+  verseNumbers = true,
+  live: LivePlace = 'last',
+) {
   const fixture = panelApi();
   window.llp = fixture.api;
   const reply = await formLookupReply(lookupRequest(input));
@@ -33,7 +44,8 @@ async function setup(input = '요한복음 3:16-18', verseNumbers = true) {
   openBiblePassage(passage, {verseNumbers});
   const source = useShow.getState().bibleSource;
   if (!source) throw Error('Missing Bible source');
-  const position = source.tiles.length - 1;
+  const position =
+    live === 'first' ? 0 : live === 'last' ? source.tiles.length - 1 : live;
   const state = emptyLiveState();
   useLive.setState({
     state: {
@@ -62,8 +74,9 @@ function acceptOutput(fixture: ReturnType<typeof panelApi>): void {
   });
 }
 
-async function setupSaved(verseNumbers = true) {
+async function setupSaved(verseNumbers = true, live: LivePlace = 'last') {
   const fixture = await setup(undefined, verseNumbers);
+  const position = live === 'first' ? 0 : live === 'last' ? 2 : live;
   const id = 'saved-bible';
   const rows = [
     {
@@ -89,7 +102,7 @@ async function setupSaved(verseNumbers = true) {
       ...state,
       layers: {
         ...state.layers,
-        slide: {itemId: id, position: 2, label: '3:18', lines: []},
+        slide: {itemId: id, position, label: `3:${16 + position}`, lines: []},
       },
     },
   });
@@ -206,7 +219,7 @@ describe('Bible verse shortcuts', () => {
   ] as const)(
     'extends the $direction endpoint across chapters and outputs it',
     async ({direction, input, ref, label}) => {
-      const fixture = await setup(input);
+      const fixture = await setup(input, true, endpointFor(direction));
       await outputAdjacentBibleVerse(direction);
       expect(useShow.getState().bibleSource?.passage.ref).toBe(ref);
       expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
@@ -215,6 +228,36 @@ describe('Bible verse shortcuts', () => {
       });
     },
   );
+
+  it.each([
+    {direction: 'next', label: '3:18'},
+    {direction: 'previous', label: '3:16'},
+  ] as const)(
+    'outputs the $direction verse inside the passage without adding one',
+    async ({direction, label}) => {
+      const fixture = await setup(undefined, true, 1);
+      await outputAdjacentBibleVerse(direction);
+      expect(fixture.lookup).not.toHaveBeenCalled();
+      expect(useShow.getState().bibleSource?.passage.ref).toBe(
+        '요한복음 3:16-18',
+      );
+      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        type: 'slide.show',
+        slide: {label},
+      });
+    },
+  );
+
+  it('outputs the next verse of a saved passage from a middle verse', async () => {
+    const fixture = await setupSaved(true, 1);
+    await outputAdjacentBibleVerse('next');
+    expect(fixture.lookup).not.toHaveBeenCalled();
+    expect(useShow.getState().rows).toBe(fixture.rows);
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {label: '3:18'},
+    });
+  });
 
   it('extends a saved service Bible passage without editing the service', async () => {
     const fixture = await setupSaved();
@@ -231,7 +274,7 @@ describe('Bible verse shortcuts', () => {
   it.each(['previous', 'next'] as const)(
     'keeps saved verse numbering disabled when adding the %s verse',
     async direction => {
-      const fixture = await setupSaved(false);
+      const fixture = await setupSaved(false, endpointFor(direction));
       await outputAdjacentBibleVerse(direction);
       const verse = direction === 'previous' ? 15 : 19;
       expect(useShow.getState().bibleSource?.verseNumbers).toBe(false);
@@ -249,7 +292,7 @@ describe('Bible verse shortcuts', () => {
   it.each(['previous', 'next'] as const)(
     'keeps the saved live verse mapped after an omitted %s endpoint',
     async direction => {
-      const fixture = await setupSaved(false);
+      const fixture = await setupSaved(false, endpointFor(direction));
       const omitted = direction === 'previous' ? 15 : 19;
       fixture.lookup.mockImplementation(async request => {
         const reply = await formLookupReply(request);
@@ -275,7 +318,9 @@ describe('Bible verse shortcuts', () => {
       const liveTiles = screen
         .getAllByRole('option')
         .filter(tile => tile.dataset.state?.split(' ').includes('live'));
-      expect(liveTiles).toEqual([screen.getAllByRole('option')[2]]);
+      expect(liveTiles).toEqual([
+        screen.getAllByRole('option')[direction === 'previous' ? 0 : 2],
+      ]);
       await act(() => outputAdjacentBibleVerse(direction));
       const verse = direction === 'previous' ? 14 : 20;
       expect(fixture.send).toHaveBeenCalledTimes(1);

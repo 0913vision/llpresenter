@@ -567,11 +567,14 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Not now: it goes into the M4 shortcut system
   (`docs/spec/10-shortcuts-and-settings.md`), and the user reviews the Bible
   verse flow with the lead before then.
-- Bible verse keys, reviewed on 2026-10-30 (user decision): Shift+→ adds the
-  next verse and outputs it at once, and Shift+← does the same for the previous
-  verse. A plain → on the passage's last verse does nothing, as in copible, so a
-  stray press never outputs an unplanned verse. Built with the M4 shortcut
-  system.
+- Bible verse keys, reviewed on 2026-10-30 (user decision): on the last verse of
+  the open passage, Shift+→ adds the next verse and outputs it at once, and
+  Shift+← does the same on the first verse for the previous verse. In the middle
+  of the passage both keys move like the plain arrows, so no verse is skipped
+  (user decision during the m3-check6 review, option C over "add the next
+  endpoint and jump to it" and "add without output"). A plain → on the passage's
+  last verse does nothing, as in copible, so a stray press never outputs an
+  unplanned verse. Built with the M4 shortcut system.
 
 ## 2026-10-29: The status bar stays empty when nothing needs attention
 
