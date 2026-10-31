@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {buildMacroTargets, type MacroTargetSources} from './macroTargets';
 
 const source: MacroTargetSources = {
+  themes: {themes: [{id: 'theme', name: 'Theme'}]},
   looks: {looks: [{id: 'look', name: 'Look'}]},
   layouts: {layouts: [{id: 'layout', name: 'Layout'}]},
   props: {props: [{id: 'prop-id', name: 'Prop'}]},
@@ -30,6 +31,7 @@ const source: MacroTargetSources = {
 describe('buildMacroTargets', () => {
   it('maps each action to its current targets, separating audio and visual media', () => {
     const {choices} = buildMacroTargets(source);
+    expect(choices.theme).toEqual([{id: 'theme', name: 'Theme'}]);
     expect(choices.look).toEqual([{id: 'look', name: 'Look'}]);
     expect(choices.stageLayout).toEqual([{id: 'layout', name: 'Layout'}]);
     expect(choices.media?.map(item => item.id)).toEqual(['image', 'video']);

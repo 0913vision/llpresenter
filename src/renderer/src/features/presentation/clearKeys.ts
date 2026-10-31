@@ -1,4 +1,4 @@
-import {clearLayer, undoClear} from '@renderer/session/clear';
+import {clearLayer, toggleItem, undoClear} from '@renderer/session/clear';
 import {clearButtons} from '@core/live/clear';
 import {
   dispatchShortcut,
@@ -7,6 +7,7 @@ import {
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = [
+  {id: 'item.stop', run: toggleItem},
   ...clearButtons.map(spec => ({
     id: spec.command,
     run: () => clearLayer(spec.target),

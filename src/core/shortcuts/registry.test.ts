@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseShortcuts} from '../schema/shortcuts';
-import {commandBindings, shortcutConflicts} from './bindings';
+import {commandBindings, shortcutCommand, shortcutConflicts} from './bindings';
 import {shortcutCommands} from './registry';
 import {
   editsText,
@@ -10,6 +10,22 @@ import {
   type PhysicalKeyPress,
 } from './matching';
 import {shortcutNames} from './keys';
+
+it('registers Item Off without a default key and accepts assigned theme commands', () => {
+  expect(shortcutCommand('item.stop')).toMatchObject({
+    defaults: [],
+    contexts: ['control'],
+    output: true,
+    priority: 'normal',
+    repeat: false,
+  });
+  expect(
+    commandBindings('item.stop', {'item.stop': [{code: 'F8', mods: []}]}),
+  ).toEqual([{code: 'F8', mods: []}]);
+  expect(
+    shortcutCommand('theme.00000000-0000-4000-8000-000000000001'),
+  ).toMatchObject({group: '테마', defaults: []});
+});
 
 function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
   return {

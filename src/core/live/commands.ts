@@ -28,6 +28,7 @@ export type SingleLiveCommand =
     }
   | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
+  | {readonly type: 'item.restore'}
   | {
       readonly type: 'output.set';
       readonly screenId: string;
@@ -51,6 +52,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'media.show':
     case 'clear.undo':
     case 'item.stop':
+    case 'item.restore':
       return true;
     case 'layer.clear':
     case 'layer.clear.toggle':

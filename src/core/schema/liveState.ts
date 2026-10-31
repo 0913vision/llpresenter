@@ -113,6 +113,7 @@ export const liveStateSchema = payloadObject({
   }),
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),
+  canRestoreItem: v.exactOptional(v.boolean()),
   clearEffects: v.exactOptional(clearEffectsSchema),
   clearToggles: v.exactOptional(
     v.pipe(

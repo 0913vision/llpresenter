@@ -24,6 +24,7 @@ import {
   screenIdSchema,
   stageLayoutIdSchema,
   timerIdSchema,
+  themeIdSchema,
 } from './ids';
 import {isKnownKind, kindsWithUnknown} from './kinds';
 import {messageDurationSchema, messageTargetsSchema} from './messages';
@@ -60,6 +61,7 @@ export const macroActionKinds = [
   'audioPlaylist',
   'timer',
   'macro',
+  'theme',
 ] as const;
 
 export type MacroActionKind = (typeof macroActionKinds)[number];
@@ -81,6 +83,7 @@ const clearBothSchema = v.never(
 );
 
 const actionSchemas = {
+  theme: jsonObject({kind: v.literal('theme'), theme: themeIdSchema}),
   look: jsonObject({kind: v.literal('look'), look: lookIdSchema}),
   stageLayout: jsonObject({
     kind: v.literal('stageLayout'),
@@ -143,6 +146,7 @@ const actionSchemas = {
 };
 
 const knownActionSchema = v.union([
+  actionSchemas.theme,
   actionSchemas.look,
   actionSchemas.stageLayout,
   actionSchemas.clearAll,

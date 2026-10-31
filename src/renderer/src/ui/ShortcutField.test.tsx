@@ -15,6 +15,8 @@ import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 vi.mock('@renderer/session/clear', () => ({
   clearLayer: vi.fn(),
   undoClear: vi.fn(),
+  stopItem: vi.fn(),
+  toggleItem: vi.fn(),
 }));
 import {clearLayer} from '@renderer/session/clear';
 

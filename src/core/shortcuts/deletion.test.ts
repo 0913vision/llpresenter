@@ -1,9 +1,36 @@
 import {expect, it} from 'vitest';
 import {settingsDocument} from '../testing/settingsDocument';
+import {themeFile} from '../testing/themeOutput';
 import type {SettingsDocument, SettingsName} from '../schema/settingsDocuments';
 import {deletedObjectShortcuts} from './deletion';
 
 const ID = '44000000-0000-4000-8000-000000000001';
+
+it('removes only a deleted theme binding and keeps Item Off and future commands', () => {
+  const file = themeFile();
+  const theme = file.themes[0];
+  if (!theme) throw new Error('Missing theme fixture');
+  const shortcuts = settingsDocument('shortcuts', {
+    bindings: {
+      [`theme.${theme.id}`]: [{code: 'F8', mods: []}],
+      'item.stop': [{code: 'F9', mods: []}],
+      'future.command': [{code: 'KeyM', mods: ['ctrl']}],
+    },
+  });
+  const current = new Map<SettingsName, SettingsDocument>([
+    ['themes', settingsDocument('themes', file)],
+    ['shortcuts', shortcuts],
+  ]);
+  const updated = settingsDocument(
+    'themes',
+    {...file, themes: file.themes.filter(item => item.id !== theme.id)},
+    2,
+  );
+  expect(deletedObjectShortcuts(current, [updated])?.value.bindings).toEqual({
+    'item.stop': [{code: 'F9', mods: []}],
+    'future.command': [{code: 'KeyM', mods: ['ctrl']}],
+  });
+});
 
 it('removes deleted object bindings and keeps unknown IDs and fields', () => {
   const macros = settingsDocument('macros', {

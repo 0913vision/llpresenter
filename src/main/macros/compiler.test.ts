@@ -9,6 +9,35 @@ import {macroActionHandlers} from './actions';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
 
 describe('macro compiler', () => {
+  it('compiles a theme action and skips a deleted theme without removing legacy Look execution', () => {
+    const initial = environment();
+    const theme = initial.catalog.themes.themes[0];
+    if (!theme) throw new Error('Missing theme fixture');
+    const {catalog} = environment([
+      macro(IDS.macro, [
+        {kind: 'theme', theme: theme.id},
+        {kind: 'theme', theme: uuid(999)},
+        {kind: 'look', look: IDS.look},
+      ]),
+    ]);
+    const plan = compileMacro({
+      catalog,
+      macro: findMacro(catalog),
+      state: emptyLiveState(),
+      supports: () => true,
+    });
+    expect(plan.commands).toEqual([
+      {type: 'theme.set', themeId: theme.id},
+      {type: 'look.set', lookId: IDS.look},
+    ]);
+    expect(plan.problems).toEqual([
+      expect.objectContaining({
+        action: 1,
+        reason: 'missing-target',
+        target: {kind: 'theme', id: uuid(999)},
+      }),
+    ]);
+  });
   it('stops expansion once the command budget is reached and reports it once', () => {
     const compile = vi.fn(() => ({
       kind: 'commands' as const,

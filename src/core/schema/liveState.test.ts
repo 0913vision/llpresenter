@@ -28,6 +28,21 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it.each([true, false])(
+    'accepts an item restore flag of %s',
+    canRestoreItem => {
+      const state = {...emptyLiveState(), canRestoreItem};
+      expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    },
+  );
+  it.each([undefined, null, 1, 'true', []])(
+    'rejects malformed item restore flag %j',
+    canRestoreItem => {
+      expect(parseLiveState({...emptyLiveState(), canRestoreItem}).ok).toBe(
+        false,
+      );
+    },
+  );
   it('accepts a bounded last macro ID and rejects malformed IDs', () => {
     const lastMacroId = screenUuid(7);
     expect(parseLiveState({...emptyLiveState(), lastMacroId}).ok).toBe(true);

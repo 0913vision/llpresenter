@@ -26,6 +26,8 @@ describe('live theme payloads', () => {
     };
     expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
     expect(parseLiveCommand({type: 'item.stop'}).ok).toBe(true);
+    expect(parseLiveCommand({type: 'item.restore'}).ok).toBe(true);
+    expect(parseLiveCommand({type: 'item.restores'}).ok).toBe(false);
     expect(parseLiveCommand({type: 'themes.refresh'}).ok).toBe(true);
     expect(parseLiveCommand({type: 'theme.set', themeId: 'missing'}).ok).toBe(
       false,

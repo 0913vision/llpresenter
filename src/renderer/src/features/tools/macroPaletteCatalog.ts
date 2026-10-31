@@ -15,7 +15,7 @@ export const MACRO_PALETTE: readonly PaletteGroup[] = [
   {
     label: '화면',
     actions: [
-      {kind: 'look', label: 'Look 바꾸기'},
+      {kind: 'theme', label: '테마 바꾸기'},
       {kind: 'stageLayout', label: '무대 화면 배치'},
     ],
   },
@@ -54,7 +54,7 @@ export const MACRO_PALETTE: readonly PaletteGroup[] = [
 export function readMacroActionDrag(
   value: string,
 ): MacroActionKind | undefined {
-  return macroActionKinds.find(kind => kind === value);
+  return macroActionKinds.find(kind => kind === value && kind !== 'look');
 }
 
 export function searchMacroPalette(query: string): readonly PaletteGroup[] {

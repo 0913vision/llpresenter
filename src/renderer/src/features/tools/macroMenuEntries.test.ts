@@ -8,6 +8,53 @@ import {
 } from './macroMenuEntries';
 import {MACRO_FILE_LIMITS} from '@core/schema/macros';
 
+it('offers theme targets and explains why legacy Look actions cannot be edited', () => {
+  const id = '00000000-0000-4000-8000-000000000001';
+  const doc = settingsDocument('macros', {
+    macros: [
+      {
+        id,
+        name: 'Macro',
+        icon: 'macro',
+        color: 'teal',
+        actions: [{kind: 'look', look: id}],
+      },
+    ],
+    collections: [],
+  });
+  if (doc.name !== 'macros') throw new Error('Invalid fixture');
+  const item = doc.value.macros[0];
+  if (!item) throw new Error('Missing macro fixture');
+  const handlers = mockHandlers();
+  const rows = menuItems(
+    macroMenuEntries(
+      {
+        item,
+        collections: [],
+        shown: undefined,
+        macroCount: 1,
+        locked: false,
+        targets: {theme: [{id, name: 'Theme'}]},
+      },
+      handlers,
+    ),
+  );
+  expect(rows.find(row => row.id === 'edit-0')).toMatchObject({
+    disabled: true,
+    title: 'Look 동작은 테마 바꾸기로 교체되었습니다',
+  });
+  const add = menuItems(
+    rows.find(row => row.id === 'add-action')?.submenu ?? [],
+  );
+  expect(add.some(row => row.id === 'look')).toBe(false);
+  menuItems(
+    add.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [],
+  )[0]?.onSelect?.();
+  expect(handlers.chooseAction).toHaveBeenCalledWith(
+    expect.objectContaining({kind: 'theme', target: id}),
+  );
+});
+
 function mockHandlers(): MacroMenuHandlers {
   const mockRun = vi.fn();
   return {
@@ -82,14 +129,14 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
   expect(kinds.find(row => row.id === 'stageLayout')?.title).toBe(
     '무대 배치 동작이 이미 있음',
   );
-  expect(kinds.find(row => row.id === 'look')?.title).toBe(
+  expect(kinds.find(row => row.id === 'theme')?.title).toBe(
     '대상을 불러오고 있습니다',
   );
   const empty = menuItems(
-    rows({targets: {look: []}}).find(row => row.id === 'add-action')?.submenu ??
-      [],
+    rows({targets: {theme: []}}).find(row => row.id === 'add-action')
+      ?.submenu ?? [],
   );
-  expect(empty.find(row => row.id === 'look')?.title).toBe('대상이 없습니다');
+  expect(empty.find(row => row.id === 'theme')?.title).toBe('대상이 없습니다');
   const full = menuItems(
     rows({
       item: {
@@ -100,7 +147,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
       },
     }).find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  for (const id of ['clear', 'look', 'stageLayout']) {
+  for (const id of ['clear', 'theme', 'stageLayout']) {
     expect(full.find(row => row.id === id)?.title).toBe('동작 한도 도달');
   }
   expect(

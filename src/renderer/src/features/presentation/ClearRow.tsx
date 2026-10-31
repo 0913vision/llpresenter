@@ -1,14 +1,51 @@
 import {useEffect, useState, type JSX} from 'react';
 import {Icon, useTooltip} from '@renderer/ui';
+import {useButtonPress} from '@renderer/ui/press';
+import {withTooltipProps} from '@renderer/ui/Tooltip';
 import {
   clearLayer,
   undoClear,
   useCanUndo,
   useSomethingToClear,
   useClearRestores,
+  toggleItem,
 } from '@renderer/session/clear';
+import {useLive} from '@renderer/session/live';
 import {clearButtons, type ClearButtonSpec} from '@core/live/clear';
 import styles from './ClearRow.module.css';
+
+function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
+  const hasItem = useLive(view => view.state?.themeItem != null);
+  const restores = useLive(view => view.state?.canRestoreItem ?? false);
+  const active = hasItem || restores;
+  const name = restores ? '항목 복원' : '항목 끄기';
+  const {targetProps, tooltip} = useTooltip({
+    text: name,
+    command: 'item.stop',
+  });
+  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
+    disabled: !active,
+    onPress: toggleItem,
+  });
+  return (
+    <>
+      <button
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
+        type="button"
+        className={styles.button}
+        aria-label={name}
+        aria-pressed={restores}
+        aria-disabled={!active}
+        data-state={active ? undefined : 'off'}
+        {...press}
+      >
+        <Icon name="slides" size={compact ? 16 : 18} />
+        {compact ? null : <span className={styles.label}>항목</span>}
+      </button>
+      {tooltip}
+    </>
+  );
+}
 
 function ClearButton({
   spec,
@@ -109,6 +146,7 @@ export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
       aria-label="지우기"
       className={compact ? `${styles.row} ${styles.compact}` : styles.row}
     >
+      <ItemOffButton compact={compact} />
       {clearButtons.map(spec => (
         <ClearButton key={spec.target} spec={spec} compact={compact} />
       ))}

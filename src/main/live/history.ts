@@ -11,6 +11,7 @@ import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
 
 /** What the last clear took down, and when, so it can be undone. */
 export interface UndoEntry {
+  readonly itemOnly?: true;
   readonly themeItem?: LiveThemeItem | null;
   readonly themeMode?: LiveThemeMode;
   readonly layers: LiveLayers;
@@ -29,6 +30,7 @@ export interface LiveHistory {
    */
   readonly undo: UndoEntry | null;
   readonly clearSnapshots?: Readonly<Partial<Record<ClearTarget, UndoEntry>>>;
+  readonly stoppedItem?: UndoEntry | null;
 }
 
 export function initialHistory(state: LiveState): LiveHistory {
@@ -36,11 +38,14 @@ export function initialHistory(state: LiveState): LiveHistory {
   const sessionState = state.lastMacroId === undefined ? state : restored;
   return {
     state:
-      sessionState.clearToggles?.length || sessionState.clearEffects?.length
+      sessionState.clearToggles?.length ||
+      sessionState.clearEffects?.length ||
+      sessionState.canRestoreItem
         ? {
             ...sessionState,
             ...(sessionState.clearToggles?.length ? {clearToggles: []} : {}),
             ...(sessionState.clearEffects?.length ? {clearEffects: []} : {}),
+            ...(sessionState.canRestoreItem ? {canRestoreItem: false} : {}),
           }
         : sessionState,
     undo: null,
@@ -82,9 +87,21 @@ export function withClearSnapshots(
 
 /** New output content invalidates every clear key's captured picture. */
 export function resetClearToggles(history: LiveHistory): LiveHistory {
-  return history.state.clearToggles?.length
+  const reset = history.state.clearToggles?.length
     ? withClearSnapshots(history, {})
     : history;
+  return reset.stoppedItem == null && !reset.state.canRestoreItem
+    ? reset
+    : {
+        ...reset,
+        stoppedItem: null,
+        ...(reset.undo?.itemOnly ? {undo: null} : {}),
+        state: {
+          ...reset.state,
+          canRestoreItem: false,
+          ...(reset.undo?.itemOnly ? {canUndo: false} : {}),
+        },
+      };
 }
 
 /**

@@ -110,6 +110,13 @@ function undoClear(
   const media = mediaWasCleared
     ? resumedMedia(undo.layers.media, now - undo.clearedAt)
     : history.state.layers.media;
+  if (undo.itemOnly) {
+    return withLayers(
+      history,
+      {...history.state.layers, slide: undo.layers.slide, media},
+      null,
+    );
+  }
   const elapsed = Math.max(0, now - undo.clearedAt);
   const message =
     history.state.layers.message === null ||
@@ -222,6 +229,7 @@ export const clearSlice = defineSlice({
     'layer.clear',
     'layer.clear.toggle',
     'clear.undo',
+    'item.restore',
     'overlay.clear',
   ],
   initial: {canUndo: false},
@@ -254,6 +262,23 @@ export const clearSlice = defineSlice({
           : context.apply(resetClearToggles(undoClear(history, context)), {
               type: 'media.properties.refresh',
             });
+      case 'item.restore': {
+        if (history.stoppedItem == null || history.state.themeItem != null) {
+          return history;
+        }
+        const restored = undoClear(
+          {...history, undo: history.stoppedItem},
+          context,
+        );
+        return context.apply(
+          {
+            ...restored,
+            stoppedItem: null,
+            state: {...restored.state, canRestoreItem: false},
+          },
+          {type: 'media.properties.refresh'},
+        );
+      }
       case 'overlay.clear':
         return withClearEffects(
           history,

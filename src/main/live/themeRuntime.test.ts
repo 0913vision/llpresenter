@@ -5,6 +5,7 @@ import {
   createServiceItemId,
   createItemOverlayId,
   createMediaId,
+  createMessageId,
   parseLookId,
 } from '@core/schema/ids';
 import type {SettingsReader} from '@core/schema/settingsReader';
@@ -20,10 +21,14 @@ import {ThemeRuntime} from './themeRuntime';
 import {LiveStore} from './store';
 import {defaultPreferences} from '@core/schema/preferences';
 import {themeOverlay} from '@core/themes/content';
+import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 
 const ITEM = createServiceItemId('00000000-0000-4000-8000-000000000201');
 
-function setup(overlays?: LiveThemeItem['overlays']) {
+function setup(
+  overlays?: LiveThemeItem['overlays'],
+  layers?: Partial<LiveLayers>,
+) {
   let file = themeFile();
   let revision = 1;
   const bible = file.defaults.bible;
@@ -52,7 +57,12 @@ function setup(overlays?: LiveThemeItem['overlays']) {
     onError: vi.fn(),
   });
   let now = 1000;
-  const store = new LiveStore(undefined, () => now);
+  const store = new LiveStore(
+    layers === undefined
+      ? undefined
+      : {...emptyLiveState(), layers: {...emptyLayers(), ...layers}},
+    () => now,
+  );
   store.connectThemes(runtime);
   store.connectSettings({
     ...settings,
@@ -102,6 +112,188 @@ function setup(overlays?: LiveThemeItem['overlays']) {
 }
 
 describe('main-process theme runtime', () => {
+  it.each(['item.restore', 'clear.undo'] as const)(
+    'restores only the stopped item through %s and resumes its media and overlay',
+    type => {
+      const overlay = {
+        id: createItemOverlayId('00000000-0000-4000-8000-000000000301'),
+        name: 'Invented overlay',
+        from: 1,
+        to: 2,
+        screens: [THEME_MAIN],
+        content: {
+          media: createMediaId('00000000-0000-4000-8000-000000000302'),
+          loop: true,
+          sound: true,
+        },
+      };
+      const {store, dispatch, slide, advance, current} = setup([overlay], {
+        media: {mediaId: 'background', loop: true, startedAt: 500},
+        prop: {propId: 'prop'},
+        notice: {noticeId: 'notice'},
+        audio: {mediaId: 'audio'},
+        message: {
+          messageId: 'message',
+          text: 'Independent message',
+          items: [
+            {
+              messageId: createMessageId(
+                '00000000-0000-4000-8000-000000000303',
+              ),
+              text: 'Independent message',
+              targets: 'all',
+              excludedTargets: [],
+              startedAt: 500,
+              expiresAt: 10000,
+            },
+          ],
+        },
+      });
+      slide();
+      const themeId = current().defaults.song;
+      if (themeId === undefined) throw new Error('Missing theme');
+      dispatch({type: 'theme.set', themeId});
+      const layers = store.state.layers;
+      for (let cycle = 1; cycle <= 2; cycle++) {
+        dispatch({type: 'item.stop'});
+        expect(store.state.canRestoreItem).toBe(true);
+        expect(store.state.layers.slide).toBeNull();
+        expect(store.state.layers.media).toBeNull();
+        expect(
+          themeOverlay(
+            store.state.themeItem ?? null,
+            store.state.layers,
+            THEME_MAIN,
+          ),
+        ).toBeUndefined();
+        advance(1000);
+        dispatch({type});
+        expect(store.state.canRestoreItem).toBe(false);
+        expect(store.state.themeItem?.id).toBe(ITEM);
+        expect(store.state.themeItem?.overlayStartedAt).toBe(
+          1000 + cycle * 1000,
+        );
+        expect(
+          themeOverlay(
+            store.state.themeItem ?? null,
+            store.state.layers,
+            THEME_MAIN,
+          ),
+        ).toEqual(overlay);
+        expect(store.state.layers.slide).toBe(layers.slide);
+        expect(store.state.layers.media?.startedAt).toBe(500 + cycle * 1000);
+        for (const kind of ['prop', 'notice', 'message', 'audio'] as const) {
+          expect(store.state.layers[kind]).toBe(layers[kind]);
+        }
+        expect(store.state.themeOutput?.themeId).toBe(themeId);
+      }
+      const restored = store.state;
+      expect(store.dispatch({type: 'item.restore'})).toBe(false);
+      expect(store.state).toBe(restored);
+    },
+  );
+
+  it('keeps independent layers cleared and their key captures when restoring the item', () => {
+    const {store, dispatch, slide} = setup(undefined, {
+      prop: {propId: 'prop'},
+      notice: {noticeId: 'notice'},
+      message: {messageId: 'message', text: 'Independent message'},
+    });
+    slide();
+    dispatch({type: 'item.stop'});
+    for (const target of ['prop', 'notice', 'message'] as const) {
+      dispatch({type: 'layer.clear.toggle', target});
+    }
+    dispatch({type: 'item.restore'});
+    expect(store.state.layers.slide?.itemId).toBe(ITEM);
+    for (const kind of ['prop', 'notice', 'message'] as const) {
+      expect(store.state.layers[kind]).toBeNull();
+    }
+    expect(store.state.clearToggles).toEqual(['prop', 'message', 'notice']);
+  });
+
+  it('preserves independent clear-key captures made before stopping and restoring the item', () => {
+    const {store, dispatch, slide} = setup(undefined, {
+      prop: {propId: 'prop'},
+      audio: {mediaId: 'audio'},
+      message: {messageId: 'message', text: 'Independent message'},
+      notice: {noticeId: 'notice'},
+    });
+    slide();
+    const original = store.state.layers;
+    const targets = ['prop', 'audio', 'message', 'notice'] as const;
+    for (const target of targets) {
+      dispatch({type: 'layer.clear.toggle', target});
+    }
+    dispatch({type: 'item.stop'});
+    expect(store.state.clearToggles).toEqual(targets);
+    dispatch({type: 'item.restore'});
+    expect(store.state.clearToggles).toEqual(targets);
+    for (const target of targets) {
+      expect(store.state.layers[target]).toBeNull();
+      dispatch({type: 'layer.clear.toggle', target});
+      expect(store.state.layers[target]).toEqual(original[target]);
+    }
+    expect(store.state.layers.slide).toBe(original.slide);
+    expect(store.state.clearToggles).toEqual([]);
+  });
+
+  it('preserves a restored item when the all key restores only the independent layers it cleared', () => {
+    const {store, dispatch, slide} = setup(undefined, {prop: {propId: 'prop'}});
+    slide();
+    dispatch({type: 'item.stop'});
+    dispatch({type: 'layer.clear.toggle', target: 'all'});
+    dispatch({type: 'item.restore'});
+    dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.themeItem?.id).toBe(ITEM);
+    expect(store.state.layers.slide?.itemId).toBe(ITEM);
+    expect(store.state.layers.prop?.propId).toBe('prop');
+  });
+
+  it('drops an item restore flag without a capture when initializing a recovered session', () => {
+    const store = new LiveStore({...emptyLiveState(), canRestoreItem: true});
+    expect(store.state.canRestoreItem).toBe(false);
+    expect(store.dispatch({type: 'item.restore'})).toBe(false);
+  });
+
+  it.each(['item', 'slide', 'media', 'message'] as const)(
+    'invalidates the item capture when new %s content arrives',
+    kind => {
+      const {store, dispatch, slide} = setup();
+      slide();
+      dispatch({type: 'item.stop'});
+      const stopped = store.state;
+      dispatch({type: 'item.stop'});
+      expect(store.state).toBe(stopped);
+      if (kind === 'item') dispatch({type: 'item.start', itemId: ITEM});
+      else if (kind === 'slide') slide();
+      else if (kind === 'media') {
+        dispatch({type: 'media.show', media: {mediaId: 'new', loop: false}});
+      } else {
+        dispatch({
+          type: 'message.show',
+          message: {messageId: 'new', text: 'New message'},
+        });
+      }
+      expect(store.state.canRestoreItem).toBe(false);
+      const latest = store.state;
+      dispatch({type: 'item.restore'});
+      expect(store.state).toBe(latest);
+    },
+  );
+
+  it('holds a manual theme across service slides until the next item start', () => {
+    const {store, dispatch, slide, current} = setup();
+    slide();
+    const themeId = current().defaults.song;
+    if (!themeId) throw new Error('Missing song theme');
+    dispatch({type: 'theme.set', themeId});
+    slide(ITEM, undefined, 1);
+    expect(store.state.themeOutput?.themeId).toBe(themeId);
+    dispatch({type: 'item.start', itemId: ITEM});
+    expect(store.state.themeOutput?.themeId).toBe(current().defaults.bible);
+    expect(store.state.themeMode).toBeUndefined();
+  });
   it('starts with standby and selects the service theme inside the same batch as its slide', () => {
     const {store, dispatch, current} = setup();
     dispatch({type: 'themes.refresh'});

@@ -113,6 +113,8 @@ export interface LiveLayers {
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
   readonly themeItem?: LiveThemeItem | null;
+  /** Whether the item button can restore its session-only stopped item. */
+  readonly canRestoreItem?: boolean;
   readonly themeMode?: LiveThemeMode;
   readonly themeOutput?: LiveThemeOutput;
   /** The most recently run macro in this session, if one has run. */

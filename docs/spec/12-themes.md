@@ -132,8 +132,9 @@ element.
 
 ### 테마 바꾸기
 
-- The toolbar button that was Look shows the live 테마's name. Its menu lists
-  the 테마 as radio rows, a separator, and 테마 편집…, which opens the 테마
+- The toolbar button that was Look shows only the live 테마's name under its
+  icon, with 테마 바꾸기 in its tooltip and accessible name. Its menu lists the
+  테마 as radio rows, a separator, and 테마 편집…, which opens the 테마
   workspace. The 출력 menu rows follow it.
 - The 매크로 action Look 바꾸기 becomes 테마 바꾸기, with a 테마 as its target.
 - A 테마 picked by hand or by a 매크로 holds until the next item starts; then
@@ -259,6 +260,11 @@ an item uses the 테마; its items fall back to their kind's default. The 대기
   출력 menu row. Its shortcut comes with the shortcut review (B7). Unlike 지우기
   모두, it leaves 공지, 그래픽, and 메시지 on screen. 실행 취소 (undo) brings
   the item back, as for a clear (03, "Undo").
+- After stopping, the 항목 button stays bright and pressed with the tooltip 항목
+  복원. Pressing it again restores that item's 슬라이드, 배경, and 오버레이,
+  resuming captured playback positions. It does not change the current 공지,
+  그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
+  and new output content invalidates it, as for the other clear keys.
 - With nothing live, every screen shows the 대기 화면 테마, for example the
   church logo on the 본 화면, the clock on the 무대 화면, and nothing on the
   방송 자막. The same screens show at launch when outputs turn on and nothing is

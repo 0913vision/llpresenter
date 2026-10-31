@@ -110,43 +110,46 @@ Source: `Macros`, 11-menus.md.
 - The 동작 팔레트 (action palette) is a panel with a close button, a search
   field (placeholder "동작 찾기", find action), and groups of draggable rows:
 
-| Group          | Actions                                                         |
-| -------------- | --------------------------------------------------------------- |
-| 화면 (screen)  | Look 바꾸기 (change Look), 무대 화면 배치 (stage screen layout) |
-| 지우기 (clear) | 모두 지우기 (clear all), 레이어 지우기 (clear layer)            |
-| 내용 (content) | 배경 미디어 (background media), 그래픽, 메시지, 공지            |
-| 소리 (sound)   | 오디오 (audio), 오디오 재생 목록 (audio playlist)               |
-| 진행 (show)    | 타이머, 매크로                                                  |
+| Group          | Actions                                                          |
+| -------------- | ---------------------------------------------------------------- |
+| 화면 (screen)  | 테마 바꾸기 (change theme), 무대 화면 배치 (stage screen layout) |
+| 지우기 (clear) | 모두 지우기 (clear all), 레이어 지우기 (clear layer)             |
+| 내용 (content) | 배경 미디어 (background media), 그래픽, 메시지, 공지             |
+| 소리 (sound)   | 오디오 (audio), 오디오 재생 목록 (audio playlist)                |
+| 진행 (show)    | 타이머, 매크로                                                   |
 
 - Dragging an action onto a 매크로 tile appends it. A popover then asks for the
-  target, for example which Look (proposal).
+  target, for example which theme (12).
 - No board shows how to open the palette (open question). Version 1 adds "동작
   팔레트" as the last item of the 동작 추가 submenu. The palette floats over the
   진행 도구 panel (proposal).
 
 Source: `Macros`.
 
+Legacy Look actions remain readable and executable until Look removal. Their
+edit rows are unavailable with a reason; new actions select a theme.
+
 ## Action kinds
 
 The 동작 추가 submenu lists the same kinds as the palette, with short names:
-Look, 지우기, 미디어, 오디오, 그래픽, 메시지, 공지, 무대, 타이머, 매크로.
+테마, 지우기, 미디어, 오디오, 그래픽, 메시지, 공지, 무대, 타이머, 매크로.
 Register action kinds in a registry, so that later kinds (such as turning on a
 camera input) are additions, not changes (see `docs/TECH.md` and 09).
 
-| Action           | Parameters                                                                                                           | Effect                                                                                         | Example in the board                                                                         |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Look 바꾸기      | Look ID                                                                                                              | Sets the current Look (see 03).                                                                | "Look 평상시", "Look 설교"                                                                   |
-| 무대 화면 배치   | Screen ID (default: the 무대 화면) and stage layout ID                                                               | Changes the current stage layout. Not saved (see 03).                                          | None                                                                                         |
-| 모두 지우기      | None                                                                                                                 | Same as F1.                                                                                    | "지우기 모두"                                                                                |
-| 레이어 지우기    | A layer (가사 lyrics, 미디어 media, 그래픽, 오디오 audio, 메시지, 공지), or one 그래픽 (proposal)                    | Same as F2 to F7 for that layer, or turns off that one 그래픽.                                 | "지우기 가사"; "지우기 카운트다운" read as turning off the 시작 카운트다운 그래픽 (proposal) |
-| 배경 미디어      | Media ID                                                                                                             | Outputs the media as the background (see 03).                                                  | "배경 따뜻한 빛"                                                                             |
-| 그래픽           | 그래픽 ID and a mode: 켜기 (on, default), 끄기 (off), 바꾸기 (toggle) (proposal for the mode)                        | Turns the 그래픽 on, off, or over.                                                             | "그래픽 설교 본문 자막", "그래픽 로고"                                                       |
-| 메시지           | Template ID, blank values, target screens, display time                                                              | Sends the 메시지 (see 04).                                                                     | None                                                                                         |
-| 공지             | 공지 set ID                                                                                                          | Starts the 공지 set on its target screens from its first image (proposal for the start image). | "공지 주일 광고"                                                                             |
-| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 멈춤 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                              | "오디오 페이드 아웃", "오디오 헌금 연주"                                                     |
-| 오디오 재생 목록 | Audio playlist ID                                                                                                    | Plays the playlist from its first track.                                                       | None                                                                                         |
-| 타이머           | 타이머 ID and an operation: 시작 (start, default), 일시 정지 (pause), 처음으로 (reset) (proposal for the operations) | Controls the 타이머.                                                                           | "타이머 예배 경과", "타이머 설교"                                                            |
-| 매크로           | 매크로 ID                                                                                                            | Runs that 매크로 (see the loop rule above).                                                    | None                                                                                         |
+| Action           | Parameters                                                                                                           | Effect                                                                                            | Example in the board                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 테마 바꾸기      | Theme ID                                                                                                             | Sets the live theme until the next item starts or a slide from outside the service goes out (12). | "테마 찬양", "테마 설교"                                                                     |
+| 무대 화면 배치   | Screen ID (default: the 무대 화면) and stage layout ID                                                               | Changes the current stage layout. Not saved (see 03).                                             | None                                                                                         |
+| 모두 지우기      | None                                                                                                                 | Same as F1.                                                                                       | "지우기 모두"                                                                                |
+| 레이어 지우기    | A layer (가사 lyrics, 미디어 media, 그래픽, 오디오 audio, 메시지, 공지), or one 그래픽 (proposal)                    | Same as F2 to F7 for that layer, or turns off that one 그래픽.                                    | "지우기 가사"; "지우기 카운트다운" read as turning off the 시작 카운트다운 그래픽 (proposal) |
+| 배경 미디어      | Media ID                                                                                                             | Outputs the media as the background (see 03).                                                     | "배경 따뜻한 빛"                                                                             |
+| 그래픽           | 그래픽 ID and a mode: 켜기 (on, default), 끄기 (off), 바꾸기 (toggle) (proposal for the mode)                        | Turns the 그래픽 on, off, or over.                                                                | "그래픽 설교 본문 자막", "그래픽 로고"                                                       |
+| 메시지           | Template ID, blank values, target screens, display time                                                              | Sends the 메시지 (see 04).                                                                        | None                                                                                         |
+| 공지             | 공지 set ID                                                                                                          | Starts the 공지 set on its target screens from its first image (proposal for the start image).    | "공지 주일 광고"                                                                             |
+| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 멈춤 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                                 | "오디오 페이드 아웃", "오디오 헌금 연주"                                                     |
+| 오디오 재생 목록 | Audio playlist ID                                                                                                    | Plays the playlist from its first track.                                                          | None                                                                                         |
+| 타이머           | 타이머 ID and an operation: 시작 (start, default), 일시 정지 (pause), 처음으로 (reset) (proposal for the operations) | Controls the 타이머.                                                                              | "타이머 예배 경과", "타이머 설교"                                                            |
+| 매크로           | 매크로 ID                                                                                                            | Runs that 매크로 (see the loop rule above).                                                       | None                                                                                         |
 
 ### The board's sample 매크로
 

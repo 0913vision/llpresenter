@@ -26,6 +26,7 @@ const drafts: readonly MacroActionDraft[] = [
   {kind: 'audioPlaylist', target: id},
   {kind: 'timer', target: id, operation: 'pause'},
   {kind: 'macro', target: id},
+  {kind: 'theme', target: id},
 ];
 
 it('prepares all supported action kinds through the shared schema', () => {

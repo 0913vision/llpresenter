@@ -4,7 +4,7 @@ import {sendLive, useOutputs} from '@renderer/session/live';
 import {OutputToggle, ToolbarTabs, type ToolbarTab} from '@renderer/ui';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
-import {LookMenu} from './LookMenu';
+import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '../../ui/sizeClass';
@@ -71,7 +71,7 @@ function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
   );
 }
 
-/** The toolbar: workspace tabs, search, the Look picker, and output toggles. */
+/** The toolbar: workspace tabs, search, the theme picker, and output toggles. */
 export function Toolbar({
   sizeClass,
   workspace,
@@ -105,7 +105,7 @@ export function Toolbar({
         onOpenPrepSong={workspace === 'prep' ? onOpenPrepSong : undefined}
         onProblem={onProblem}
       />
-      <LookMenu
+      <ThemeMenu
         compact={compact}
         onProblem={onProblem}
         onEdit={() => onWorkspace('screens')}

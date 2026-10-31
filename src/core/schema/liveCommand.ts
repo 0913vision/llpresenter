@@ -37,6 +37,7 @@ const singleCommandOptions = [
     target: v.picklist(['all', ...layerKinds]),
   }),
   v.object({type: v.literal('clear.undo')}),
+  v.object({type: v.literal('item.restore')}),
   v.object({
     type: v.literal('output.set'),
     screenId: v.pipe(v.string(), v.nonEmpty()),

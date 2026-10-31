@@ -119,7 +119,7 @@ export function ToolbarButton({
         {...rest}
         {...withTooltipProps({...rest, onBlur: pressBlur}, targetProps)}
         type="button"
-        aria-label={labelHidden ? label : undefined}
+        aria-label={rest['aria-label'] ?? (labelHidden ? label : undefined)}
         aria-pressed={pressed}
         aria-haspopup={menu ? 'menu' : undefined}
         aria-expanded={menu ? expanded : undefined}

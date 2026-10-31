@@ -28,6 +28,17 @@ function screenExists(context: ActionContext, id: string): void {
 
 export const macroActionHandlers = [
   defineMacroAction({
+    kind: 'theme',
+    compile: (action, {catalog}) => {
+      requireMacroTarget(
+        catalog.themes.themes.find(item => item.id === action.theme),
+        'theme',
+        action.theme,
+      );
+      return command({type: 'theme.set', themeId: action.theme});
+    },
+  }),
+  defineMacroAction({
     kind: 'look',
     compile: (action, {catalog}) => {
       requireMacroTarget(

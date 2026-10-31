@@ -4,7 +4,7 @@ import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
 import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
 import {resolveThemeOutput} from '@core/themes/output';
-import type {LiveHistory} from './history';
+import {resetClearToggles, type LiveHistory, type UndoEntry} from './history';
 import type {ThemeReduction} from './slice';
 
 const THEME_COMMANDS = [
@@ -18,6 +18,7 @@ const THEME_COMMANDS = [
   'layer.clear.toggle',
   'clear.undo',
   'item.stop',
+  'item.restore',
 ] as const;
 type ThemeCommand = Extract<
   LiveCommand,
@@ -70,6 +71,7 @@ export class ThemeRuntime {
     let mode = after.state.themeMode;
     switch (command.type) {
       case 'item.start':
+        after = resetClearToggles(after);
         item = this.options.item(command.itemId) ?? item;
         if (item !== null) item = {...item, startedAt: context.now};
         mode = undefined;
@@ -151,7 +153,7 @@ export class ThemeRuntime {
             command.type === 'layer.clear.toggle'
               ? before.clearSnapshots?.all
               : undefined;
-          if (restored?.themeItem !== undefined) {
+          if (restored?.themeItem != null && item.contentCleared) {
             item = this.resumedItem(
               restored.themeItem,
               context.now - restored.clearedAt,
@@ -159,6 +161,7 @@ export class ThemeRuntime {
             mode = restored.themeMode;
             break;
           }
+          if (restored !== undefined) break;
           if (item.contentCleared) break;
           const undo = {
             ...(after === before || after.undo === null
@@ -193,25 +196,40 @@ export class ThemeRuntime {
           mode = before.undo.themeMode;
         }
         break;
-      case 'item.stop':
+      case 'item.restore': {
+        const saved = before.stoppedItem;
+        if (saved == null || after === before) return after;
+        item = this.resumedItem(
+          saved.themeItem ?? null,
+          context.now - saved.clearedAt,
+        );
+        mode = saved.themeMode;
+        break;
+      }
+      case 'item.stop': {
         if (item === null) return after;
+        const undo: UndoEntry = {
+          layers: after.state.layers,
+          clearedAt: context.now,
+          themeItem: item,
+          itemOnly: true,
+          ...(mode === undefined ? {} : {themeMode: mode}),
+        };
         after = {
           ...after,
-          undo: {
-            layers: after.state.layers,
-            clearedAt: context.now,
-            themeItem: item,
-            ...(mode === undefined ? {} : {themeMode: mode}),
-          },
+          undo,
+          stoppedItem: undo,
           state: {
             ...after.state,
             canUndo: true,
+            canRestoreItem: true,
             layers: {...after.state.layers, slide: null, media: null},
           },
         };
         item = null;
         mode = undefined;
         break;
+      }
       default:
         return after;
     }

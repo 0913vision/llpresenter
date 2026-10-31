@@ -25,8 +25,10 @@ it('offers every action kind exactly once in the specified groups', () => {
   const actions = MACRO_PALETTE.flatMap(group =>
     group.actions.map(item => item.kind),
   );
-  expect(actions).toHaveLength(macroActionKinds.length);
-  expect(new Set(actions)).toEqual(new Set(macroActionKinds));
+  expect(actions).toHaveLength(macroActionKinds.length - 1);
+  expect(new Set(actions)).toEqual(
+    new Set(macroActionKinds.filter(kind => kind !== 'look')),
+  );
   expect(MACRO_PALETTE.map(group => group.label)).toEqual([
     '화면',
     '지우기',

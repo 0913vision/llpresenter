@@ -26,6 +26,14 @@
   max-width: calc(var(--size-toolbar-button-min) + var(--space-16) * 2);
 }
 
+.theme {
+  max-width: calc(var(--size-toolbar-button-min) + var(--space-16) * 8);
+}
+
+.theme > span {
+  max-width: 100%;
+}
+
 .divider {
   flex: none;
   width: 1px;

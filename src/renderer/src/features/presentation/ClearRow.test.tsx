@@ -1,4 +1,5 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
   afterEach,
   beforeEach,
@@ -81,6 +82,103 @@ function setLayers(layers: Partial<LiveLayers>): void {
 const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 const media = {mediaId: 'm', loop: true, startedAt: 0};
 
+function renderActiveItemOff() {
+  const send = vi.fn();
+  window.llp = mockLlpApi({live: {send}});
+  useLive.setState({
+    state: {
+      ...emptyLiveState(),
+      themeItem: {id: 'item', kind: 'song', source: 'service'},
+    },
+  });
+  render(<ClearRow compact={false} />);
+  const button = screen.getByRole('button', {name: '항목 끄기'});
+  return {button, send};
+}
+
+it('places Item Off first, sends the shared command, and disables it in standby', () => {
+  const {button, send} = renderActiveItemOff();
+  expect(screen.getAllByRole('button')[0]).toBe(button);
+  expect(button.textContent).toBe('항목');
+  fireEvent.click(button);
+  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+  act(() => useLive.setState({state: {...emptyLiveState(), themeItem: null}}));
+  expect(button.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.click(button);
+  expect(send).toHaveBeenCalledOnce();
+});
+
+it('offers Item Restore after a stop, preserving its pressed state until main acknowledges the restore', async () => {
+  const {button, send} = renderActiveItemOff();
+  fireEvent.click(button);
+  act(() =>
+    useLive.setState({
+      state: {...emptyLiveState(), themeItem: null, canRestoreItem: true},
+    }),
+  );
+  expect(screen.getByRole('button', {name: '항목 복원'})).toBe(button);
+  expect(button.getAttribute('aria-disabled')).toBe('false');
+  expect(button.getAttribute('aria-pressed')).toBe('true');
+  expect((await hoverForTooltip(button))?.textContent).toBe('항목 복원');
+  fireEvent.click(button);
+  expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
+  expect(button.getAttribute('aria-pressed')).toBe('true');
+  act(() =>
+    useLive.setState({
+      state: {
+        ...emptyLiveState(),
+        themeItem: {id: 'item', kind: 'song', source: 'service'},
+        canRestoreItem: false,
+      },
+    }),
+  );
+  expect(screen.getByRole('button', {name: '항목 끄기'})).toBe(button);
+  expect(button.getAttribute('aria-pressed')).toBe('false');
+});
+
+it.each(['ctrlKey', 'altKey', 'metaKey', 'shiftKey'] as const)(
+  'ignores native Item Off keyboard clicks with %s while allowing pointer activation',
+  modifier => {
+    const {button, send} = renderActiveItemOff();
+    button.focus();
+    for (const key of [' ', 'Enter']) {
+      const event = new KeyboardEvent('keydown', {
+        key,
+        bubbles: true,
+        cancelable: true,
+        [modifier]: true,
+      });
+      fireEvent(button, event);
+      expect(event.defaultPrevented).toBe(false);
+      if (key === ' ') fireEvent.keyUp(button, {key});
+      fireEvent.click(button, {detail: 0});
+      expect(send).not.toHaveBeenCalled();
+    }
+    fireEvent.click(button, {detail: 1, [modifier]: true});
+    expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+  },
+);
+
+it('activates Item Off with unmodified Space and Enter', async () => {
+  const {button, send} = renderActiveItemOff();
+  button.focus();
+  await userEvent.keyboard(' {Enter}');
+  expect(send.mock.calls).toEqual([
+    [{type: 'item.stop'}],
+    [{type: 'item.stop'}],
+  ]);
+});
+
+it('dismisses the Item Off tooltip and clears pending activation on blur', async () => {
+  const {button, send} = renderActiveItemOff();
+  expect(await hoverForTooltip(button)).not.toBeNull();
+  fireEvent.keyDown(button, {key: 'Enter', ctrlKey: true});
+  fireEvent.blur(button);
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  fireEvent.click(button, {detail: 0});
+  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+});
+
 beforeEach(() => {
   sent.length = 0;
   installApi();
@@ -104,13 +202,14 @@ describe('hasSomethingToClear', () => {
 });
 
 describe('ClearRow', () => {
-  it('has a group with the seven clear buttons by default, in order', () => {
+  it('has a group with the item button and seven clear buttons by default, in order', () => {
     render(<ClearRow compact={false} />);
     const group = screen.getByRole('group', {name: '지우기'});
     const names = Array.from(group.querySelectorAll('button')).map(button =>
       button.getAttribute('aria-label'),
     );
     expect(names).toEqual([
+      '항목 끄기',
       '모두 지우기',
       '가사 지우기',
       '미디어 지우기',
@@ -130,7 +229,7 @@ describe('ClearRow', () => {
       render(<ClearRow compact={false} />);
       await act(async () => undefined);
       const group = screen.getByRole('group', {name: '지우기'});
-      expect(group.querySelectorAll('button')).toHaveLength(7);
+      expect(group.querySelectorAll('button')).toHaveLength(8);
       expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
       expect(group.querySelector('[aria-hidden="true"]')).toBeNull();
       expect(useLive.getState().state).toBe(state);
@@ -142,7 +241,7 @@ describe('ClearRow', () => {
     delete window.llp;
     render(<ClearRow compact={false} />);
     expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-    expect(screen.getAllByRole('button')).toHaveLength(7);
+    expect(screen.getAllByRole('button')).toHaveLength(8);
   });
 
   it('shows only undo and its divider after an enabled preference arrives', async () => {

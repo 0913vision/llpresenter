@@ -1,4 +1,5 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {themeFile} from '@core/testing/themeOutput';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState} from '@core/live/state';
@@ -26,6 +27,7 @@ export function stageFixture(overrides: readonly SettingsDocument[] = []) {
     [
       screensDocument(),
       looksDocument(),
+      settingsDocument('themes', themeFile()),
       stageLayoutsDocument(),
       settingsDocument('timers', {
         timers: [{id: TIMER_ID, name: '예배 시작', kind: 'clock'}],

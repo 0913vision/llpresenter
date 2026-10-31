@@ -97,7 +97,10 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
       <StatusBar />
     </ScreenSummariesProvider>,
   );
-  expect(get).toHaveBeenCalledExactlyOnceWith({name: 'screens'});
+  expect(get.mock.calls.map(([request]) => request.name).sort()).toEqual([
+    'screens',
+    'themes',
+  ]);
   expect(
     within(screen.getByRole('group', {name: '화면 출력'})).queryAllByRole(
       'button',

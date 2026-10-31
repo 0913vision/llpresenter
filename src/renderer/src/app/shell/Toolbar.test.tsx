@@ -51,7 +51,7 @@ describe('saved output overflow', () => {
     expect(tab.getAttribute('aria-selected')).toBe('true');
     const icon = tab.querySelector('[aria-hidden="true"]');
     const lookIcon = screen
-      .getByRole('button', {name: 'Look'})
+      .getByRole('button', {name: /^테마 바꾸기:/})
       .querySelector('[aria-hidden="true"]');
     expect(icon).not.toBeNull();
     expect(icon?.getAttribute('style')).toBe(lookIcon?.getAttribute('style'));
@@ -231,7 +231,9 @@ describe('Toolbar design system parts', () => {
       <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,
     );
     expect(
-      screen.getByRole('button', {name: 'Look'}).getAttribute('aria-haspopup'),
+      screen
+        .getByRole('button', {name: /^테마 바꾸기:/})
+        .getAttribute('aria-haspopup'),
     ).toBe('menu');
   });
 

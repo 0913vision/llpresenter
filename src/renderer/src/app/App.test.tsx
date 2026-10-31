@@ -1,5 +1,6 @@
 import {mediaBinToggle} from '@renderer/features/media/mediaTesting';
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {themeFile} from '@core/testing/themeOutput';
 import {
   act,
   cleanup,
@@ -52,7 +53,9 @@ function createSession(): ControlSession {
     vi.spyOn(api.settings, 'get').mockImplementation(request =>
       request.name === 'screens'
         ? Promise.resolve(settingsDocument('screens', {screens: []}))
-        : get(request),
+        : request.name === 'themes'
+          ? Promise.resolve(settingsDocument('themes', themeFile()))
+          : get(request),
     );
   }
   const session = new ControlSession(window.llp);

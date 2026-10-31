@@ -1,6 +1,10 @@
 import {shortcutText} from '@renderer/ui/commandBindings';
-import {parseScreenId, type LookId} from '@core/schema/ids';
+import {parseScreenId, type LookId, type ThemeId} from '@core/schema/ids';
+import {sendThemeChange} from '@renderer/features/screens/themeActions';
 import type {LooksFile} from '@core/schema/looks';
+import type {ThemesFile} from '@core/schema/themes';
+import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
+import {stopItem} from '@renderer/session/clear';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {LiveState} from '@core/live/state';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
@@ -14,7 +18,6 @@ import {
 } from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {Notice} from '@renderer/ui/notices';
-import {sendLookChange} from '../../features/screens/looks/lookActions';
 import type {ScreenSummary} from '../../platform/screens';
 import type {Workspace} from './Toolbar';
 import type {WarningScreen} from './MenuBar';
@@ -23,6 +26,9 @@ interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
   readonly looks: LooksFile | null;
+  readonly themes: ThemesFile | null;
+  readonly themeId: ThemeId | undefined;
+  readonly hasItem: boolean;
   readonly layouts: StageLayoutsFile | null;
   readonly lookId: LookId | null | undefined;
   readonly stageLayouts: LiveState['stageLayouts'];
@@ -66,7 +72,7 @@ function outputGroup(
   };
 }
 
-/** Spec 11's grouped output commands, active Look/layout choices, and warnings. */
+/** Spec 11's grouped output commands, theme/layout choices, and warnings. */
 export function outputMenuEntries(
   input: OutputMenuInput,
 ): readonly MenuEntry[] {
@@ -124,39 +130,26 @@ export function outputMenuEntries(
     },
     {
       kind: 'item',
-      id: 'look',
-      label: `Look: ${current ? current.name || '이름 없는 Look' : '없음'}`,
-      ...menuAvailability(
-        looks === null
-          ? 'Look 불러오는 중'
-          : looks.looks.length === 0
-            ? 'Look 없음'
-            : undefined,
-      ),
+      id: 'theme',
+      label: `테마 바꾸기: ${liveThemeName(input.themes, input.themeId)}`,
       loadSubmenu: () =>
-        looks?.looks.map(look => ({
-          kind: 'item',
-          id: look.id,
-          command: `look.${look.id}`,
-          label: look.name || '이름 없는 Look',
-          check: 'radio',
-          checked: lookId !== undefined && look.id === current?.id,
-          onSelect: () => sendLookChange(look.id, input.onProblem),
-        })) ?? [],
+        themeMenuEntries({
+          themes: input.themes?.themes ?? [],
+          current: input.themeId,
+          choose: themeId => sendThemeChange(themeId, input.onProblem),
+          edit:
+            onWorkspace === undefined
+              ? undefined
+              : () => onWorkspace('screens'),
+        }),
     },
     {
       kind: 'item',
-      id: 'edit-look',
-      command: 'workspace.looks',
-      label: 'Look 편집…',
-      ...menuAvailability(
-        onWorkspace === undefined
-          ? '화면 설정 연결 안 됨'
-          : current === undefined
-            ? '선택한 Look 없음'
-            : undefined,
-      ),
-      onSelect: () => edit('look', current?.id),
+      id: 'item-stop',
+      command: 'item.stop',
+      label: '항목 끄기',
+      ...menuAvailability(input.hasItem ? undefined : '출력 중인 항목 없음'),
+      onSelect: stopItem,
     },
     menuSeparator('stage'),
     {kind: 'group', id: 'stage-group', label: '무대 화면'},

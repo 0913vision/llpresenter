@@ -391,7 +391,9 @@ export function MacroPanel({
       }
     },
     openAction: action => {
-      if (action.kind === 'look' || action.kind === 'stageLayout') {
+      if (action.kind === 'theme') {
+        navigate?.('screens');
+      } else if (action.kind === 'look' || action.kind === 'stageLayout') {
         useScreensSelection
           .getState()
           .select(

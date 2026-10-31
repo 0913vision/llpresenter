@@ -2,6 +2,19 @@ import type {ClearTarget} from '@core/live/commands';
 import {hasSomethingToClear} from '@core/live/clear';
 import {sendLive, useLive} from './live';
 
+/** Stops the live item while leaving independent overlays and audio running. */
+export function stopItem(): void {
+  if (useLive.getState().state?.themeItem) sendLive({type: 'item.stop'});
+}
+
+/** Restores the item button's capture, or takes the active item off. */
+export function toggleItem(): void {
+  const state = useLive.getState().state;
+  if (state?.canRestoreItem && state.themeItem == null) {
+    sendLive({type: 'item.restore'});
+  } else stopItem();
+}
+
 /** Whether a layer, or any layer for 모두, has something to clear now. */
 export function useSomethingToClear(target: ClearTarget): boolean {
   return useLive(view =>

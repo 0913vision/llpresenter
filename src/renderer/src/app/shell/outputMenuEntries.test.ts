@@ -1,3 +1,5 @@
+import {themeFile} from '@core/testing/themeOutput';
+import {useLive} from '@renderer/session/live';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
@@ -33,6 +35,9 @@ function fixture() {
   const input = {
     screens: summarizeScreens(screens.value.screens),
     looks: looks.value,
+    themes: themeFile(),
+    themeId: undefined,
+    hasItem: false,
     layouts: layouts.value,
     outputs: {[screens.value.screens[0]?.id ?? '']: true},
     lookId: null,
@@ -67,8 +72,8 @@ it.each([false, true])(
     ).toEqual([
       '[본 화면]',
       '출력 끄기',
-      'Look: 평상시',
-      'Look 편집…',
+      '테마 바꾸기: 없음',
+      '항목 끄기',
       '|',
       '[무대 화면]',
       '출력 켜기',
@@ -159,7 +164,7 @@ it('toggles whole output groups and broadcast through bounded transactions', () 
   });
 });
 
-it('selects Look and layout editors, changes one stage screen, and preserves warning actions', () => {
+it('selects theme and layout editors, changes one stage screen, and preserves warning actions', () => {
   const {input, send, onWorkspace, onShowWarning} = fixture();
   const live = parseLiveState({
     ...emptyLiveState(),
@@ -169,11 +174,9 @@ it('selects Look and layout editors, changes one stage screen, and preserves war
   const rows = menuItems(
     outputMenuEntries({...input, stageLayouts: live.value.stageLayouts}),
   );
-  rows.find(row => row.id === 'edit-look')?.onSelect?.();
-  expect(useScreensSelection.getState().selection).toEqual({
-    kind: 'look',
-    id: input.looks.current,
-  });
+  menuItems(rows.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [])
+    .find(row => row.id === 'edit')
+    ?.onSelect?.();
   rows.find(row => row.id === 'edit-layout')?.onSelect?.();
   expect(useScreensSelection.getState().selection).toEqual({
     kind: 'stage',
@@ -204,13 +207,9 @@ it('keeps output commands usable before settings load and disables unavailable e
     outputMenuEntries({...input, looks: null, layouts: null}),
   );
   expect(rows.find(row => row.id === 'audience-output')?.disabled).toBe(false);
-  for (const id of ['look', 'edit-look', 'edit-layout', `layout:${STAGE_ID}`]) {
+  for (const id of ['edit-layout', `layout:${STAGE_ID}`]) {
     expect(rows.find(row => row.id === id)?.disabled).toBe(true);
   }
-  expect(rows.find(row => row.id === 'look')?.title).toBe('Look 불러오는 중');
-  expect(rows.find(row => row.id === 'edit-look')?.title).toBe(
-    '선택한 Look 없음',
-  );
   expect(rows.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
     '무대 배치 불러오는 중',
   );
@@ -228,14 +227,13 @@ it('explains empty choices and unavailable editor callbacks separately', () => {
       layouts: {...input.layouts, layouts: []},
     }),
   );
-  expect(empty.find(row => row.id === 'look')?.title).toBe('Look 없음');
   expect(empty.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
     '무대 배치 없음',
   );
   const disconnected = menuItems(
     outputMenuEntries({...input, onWorkspace: undefined}),
   );
-  for (const id of ['edit-look', 'edit-layout']) {
+  for (const id of ['edit-layout']) {
     expect(disconnected.find(row => row.id === id)).toMatchObject({
       disabled: true,
       title: '화면 설정 연결 안 됨',
@@ -277,4 +275,30 @@ it('keeps the saved broadcast output available when its destination is a window'
       row => row.id === 'broadcast',
     )?.disabled,
   ).toBe(false);
+});
+
+it('selects a live theme and stops an item through Output commands', () => {
+  const {input, send} = fixture();
+  const theme = input.themes.themes[0];
+  if (!theme) throw new Error('Missing fixture theme');
+  const live = {
+    ...emptyLiveState(),
+    themeItem: {id: 'item', kind: 'song' as const, source: 'service' as const},
+    themeOutput: {themeId: theme.id, revision: 1, missing: [], screens: {}},
+  };
+  useLive.setState({state: live});
+  const rows = menuItems(
+    outputMenuEntries({...input, themeId: theme.id, hasItem: true}),
+  );
+  const choices = menuItems(
+    rows.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [],
+  );
+  expect(choices.find(row => row.id === theme.id)?.checked).toBe(true);
+  choices.find(row => row.id === theme.id)?.onSelect?.();
+  rows.find(row => row.id === 'item-stop')?.onSelect?.();
+  expect(send.mock.calls).toEqual([
+    [{type: 'theme.set', themeId: theme.id}],
+    [{type: 'item.stop'}],
+  ]);
+  useLive.setState({state: null});
 });

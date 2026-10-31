@@ -16,6 +16,8 @@ import type {
 } from '@core/schema/librarySearch';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
+import {settingsDocument} from '@core/testing/settingsDocument';
+import {themeFile} from '@core/testing/themeOutput';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {sampleService} from '@renderer/session/testing/sampleService';
@@ -60,7 +62,9 @@ const matches: readonly LibrarySearchMatch[] = [
 const sessions: ControlSession[] = [];
 
 function setup() {
-  const api = mockLlpApi();
+  const api = mockLlpApi({
+    settings: {get: async () => settingsDocument('themes', themeFile())},
+  });
   const search = vi
     .spyOn(api.library, 'search')
     .mockImplementation(async ({query}) => ({query, matches}));

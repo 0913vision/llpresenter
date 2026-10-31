@@ -14,6 +14,7 @@ describe('interruptsSongOutput', () => {
       },
       {type: 'media.show', media: {mediaId: 'a', loop: false}},
       {type: 'clear.undo'},
+      {type: 'item.restore'},
       {type: 'layer.clear', target: 'all'},
       {type: 'layer.clear', target: 'slide'},
       {type: 'layer.clear', target: 'media'},

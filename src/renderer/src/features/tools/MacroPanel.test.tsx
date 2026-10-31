@@ -1,3 +1,4 @@
+import {themeFile} from '@core/testing/themeOutput';
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
@@ -20,9 +21,8 @@ import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {stageFixture} from './stageTesting';
 import userEvent from '@testing-library/user-event';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {useScreensSelection} from '@renderer/features/screens/selection';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
-import {LOOK_ID, LAYOUT_ID} from '@core/testing/screenDocuments';
+import {LAYOUT_ID} from '@core/testing/screenDocuments';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const groupId = '00000000-0000-4000-8000-000000000002';
@@ -886,8 +886,11 @@ it('opens the message dialog with the picked template before saving', async () =
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
 });
 
-it('lists action kinds in order and opens the selected Look editor', async () => {
-  fixture([{kind: 'look', look: LOOK_ID}]);
+it('lists action kinds in order and opens the theme workspace', async () => {
+  const themes = themeFile().themes;
+  const first = themes[0];
+  if (!first) throw new Error('Missing theme fixture');
+  fixture([{kind: 'theme', theme: first.id}]);
   const navigate = vi.fn();
   render(
     <WorkspaceNavigation value={navigate}>
@@ -902,7 +905,7 @@ it('lists action kinds in order and opens the selected Look editor', async () =>
     ),
   ).toEqual([
     '지우기',
-    'Look 바꾸기',
+    '테마 바꾸기',
     '무대 화면 배치…',
     '슬라이드 출력 대상',
     '타이머',
@@ -921,24 +924,25 @@ it('lists action kinds in order and opens the selected Look editor', async () =>
     '동작 팔레트',
   ]);
   fireEvent.keyDown(menu, {key: 'Escape'});
-  await openSubmenu('동작 편집: 평상시');
-  const edit = screen.getByRole('menu', {name: '동작 편집: 평상시'});
+  await openSubmenu(`동작 편집: ${first.name}`);
+  const edit = screen.getByRole('menu', {name: `동작 편집: ${first.name}`});
   expect(
     [...edit.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
       row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
     ),
-  ).toEqual(['평상시', '설교', '|', '동작 빼기: 평상시', 'Look 편집…']);
+  ).toEqual([
+    ...themes.map(theme => theme.name),
+    '|',
+    `동작 빼기: ${first.name}`,
+    '테마 편집…',
+  ]);
   expect(
     screen
-      .getByRole('menuitemradio', {name: '평상시'})
+      .getByRole('menuitemradio', {name: first.name})
       .getAttribute('aria-checked'),
   ).toBe('true');
-  fireEvent.click(screen.getByRole('menuitem', {name: 'Look 편집…'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: '테마 편집…'}));
   expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
-  expect(useScreensSelection.getState().selection).toEqual({
-    kind: 'look',
-    id: LOOK_ID,
-  });
 });
 
 it('prevents a second stage-layout action', async () => {

@@ -5,6 +5,7 @@ import {
   isKnownMacroAction,
   macroActionKinds,
   parseMacros,
+  parseKnownMacroAction,
   serializeMacros,
   type KnownMacroAction,
   type MacroAction,
@@ -16,6 +17,13 @@ import {
 } from './testHelpers';
 
 const codec = {parse: parseMacros, serialize: serializeMacros};
+
+it('requires a valid theme ID in a theme macro action', () => {
+  expect(parseKnownMacroAction({kind: 'theme', theme: 'missing'}).ok).toBe(
+    false,
+  );
+  expect(parseKnownMacroAction({kind: 'theme'}).ok).toBe(false);
+});
 const SERVICE_START = 'd1d2d3d4-1111-4222-8333-444455556666';
 const PRAISE = 'd1d2d3d4-2222-4222-8333-444455556666';
 const NORMAL_LOOK = '44444444-4444-4444-8444-444444444444';
@@ -50,6 +58,7 @@ function everyAction() {
     {kind: 'audioPlaylist', playlist: PRE_SERVICE_MUSIC},
     {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
     {kind: 'macro', macro: PRAISE},
+    {kind: 'theme', theme: NORMAL_LOOK},
   ];
 }
 

@@ -17,6 +17,7 @@ interface Named {
 }
 
 export interface MacroTargetSources {
+  readonly themes: {readonly themes: readonly Named[]};
   readonly looks: {readonly looks: readonly Named[]};
   readonly layouts: {readonly layouts: readonly Named[]};
   readonly props: {readonly props: readonly Named[]};
@@ -68,6 +69,7 @@ export function buildMacroTargets(source: MacroTargetSources): {
 } {
   return {
     choices: {
+      theme: choices(source.themes.themes),
       look: choices(source.looks.looks),
       stageLayout: choices(source.layouts.layouts),
       clearLayer: [

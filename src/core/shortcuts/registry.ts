@@ -61,6 +61,7 @@ function command([
           : 'normal',
     output:
       /^(clear|show|output|audio|notice|stage)\./.test(id) ||
+      id === 'item.stop' ||
       [
         'service.nextItem',
         'service.previousItem',
@@ -134,12 +135,15 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['clear.message', '메시지 지우기 / 복원', '지우기', ['control'], ['F6']],
     ['clear.notice', '공지 지우기 / 복원', '지우기', ['control'], ['F7']],
     ['clear.undo', '되돌리기', '지우기', ['control'], []],
+    ['item.stop', '항목 끄기', '지우기', ['control'], []],
     ['stage.hideMessage', '무대 메시지 내리기', '지우기', ['control'], []],
     ['output.audience', '청중 화면 출력', '화면', ['control'], []],
     ['output.stage', '무대 화면 출력', '화면', ['control'], []],
     ['screens.redetect', '모니터 다시 찾기', '화면', ['control'], []],
     ['screens.showFallbackWindow', '창 보기', '화면', ['control'], []],
     ['look.menu', 'Look 메뉴', 'Look', ['control'], []],
+    ['theme.menu', '테마 바꾸기', '테마', ['control'], []],
+    ['workspace.themes', '테마 편집', '작업 공간', ['control'], []],
     ['media.nextBackground', '다음 배경', '진행 도구', ['show'], []],
     ['media.previousBackground', '이전 배경', '진행 도구', ['show'], []],
     ['tools.showing', '표시 중 탭', '진행 도구', ['show'], []],

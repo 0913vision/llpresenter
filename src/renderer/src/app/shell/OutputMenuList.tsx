@@ -4,6 +4,7 @@ import {parseScreenId} from '@core/schema/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
 import {sendLookChange} from '@renderer/features/screens/looks/lookActions';
+import {sendThemeChange} from '@renderer/features/screens/themeActions';
 import {sendLive} from '@renderer/session/live';
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
@@ -44,10 +45,17 @@ export function OutputMenuList({
     anchor !== null ||
     Object.keys(bindings).some(
       id =>
-        /^(output.|look.|workspace.(looks|stage)$)/.test(id) &&
+        /^(output.|look.|theme.|workspace.(looks|themes|stage)$)/.test(id) &&
         (bindings[id]?.length ?? 0) > 0,
     );
   const looks = useSettingsDocument(needed ? 'looks' : null, 'Look', onProblem);
+  const themes = useSettingsDocument(
+    needed ? 'themes' : null,
+    '테마',
+    onProblem,
+  );
+  const themeId = useLive(view => view.state?.themeOutput?.themeId);
+  const hasItem = useLive(view => view.state?.themeItem != null);
   const layouts = useSettingsDocument(
     needed ? 'stage-layouts' : null,
     '무대 배치',
@@ -56,6 +64,9 @@ export function OutputMenuList({
   const entries = outputMenuEntries({
     screens,
     outputs,
+    themes: themes?.value ?? null,
+    themeId,
+    hasItem,
     looks: looks?.value ?? null,
     layouts: layouts?.value ?? null,
     lookId,
@@ -67,6 +78,15 @@ export function OutputMenuList({
   });
   useMenuShortcuts(entries);
   useWindowShortcuts([
+    {
+      id: 'workspace.themes',
+      when: () => onWorkspace !== undefined,
+      run: () => onWorkspace?.('screens'),
+    },
+    ...(themes?.value.themes ?? []).map(theme => ({
+      id: `theme.${theme.id}`,
+      run: () => sendThemeChange(theme.id, onProblem),
+    })),
     ...(looks?.value.looks ?? []).map(look => ({
       id: `look.${look.id}`,
       run: () => sendLookChange(look.id, onProblem),

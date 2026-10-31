@@ -76,6 +76,22 @@ describe('ToolbarTabs', () => {
 });
 
 describe('ToolbarButton', () => {
+  it.each([false, true])(
+    'keeps an explicit accessible name separate from its visible label with compact=%s',
+    compact => {
+      render(
+        <ToolbarButton
+          icon="layers"
+          label="찬양"
+          aria-label="테마 바꾸기: 찬양"
+          compact={compact}
+        />,
+      );
+      expect(
+        screen.getByRole('button', {name: '테마 바꾸기: 찬양'}).textContent,
+      ).toBe('찬양');
+    },
+  );
   it('reports the opposite value on each press of a view toggle', async () => {
     const onPressedChange = vi.fn();
     render(

@@ -8,8 +8,10 @@ import type {PropsFile} from '@core/schema/props';
 import type {ScreensFile} from '@core/schema/screens';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {TimersFile} from '@core/schema/timers';
+import type {ThemesFile} from '@core/schema/themes';
 
 export interface MacroCatalog {
+  readonly themes: ThemesFile;
   readonly macros: MacrosFile;
   readonly looks: LooksFile;
   readonly media: MediaList;
@@ -26,6 +28,7 @@ export function readMacroCatalog(
   media: MediaList,
 ): MacroCatalog {
   const macros = settings.get('macros');
+  const themes = settings.get('themes');
   const looks = settings.get('looks');
   const messages = settings.get('messages');
   const notices = settings.get('notices');
@@ -35,6 +38,7 @@ export function readMacroCatalog(
   const timers = settings.get('timers');
   if (
     macros.name !== 'macros' ||
+    themes.name !== 'themes' ||
     looks.name !== 'looks' ||
     messages.name !== 'messages' ||
     notices.name !== 'notices' ||
@@ -47,6 +51,7 @@ export function readMacroCatalog(
   }
   return {
     macros: macros.value,
+    themes: themes.value,
     looks: looks.value,
     media,
     messages: messages.value,

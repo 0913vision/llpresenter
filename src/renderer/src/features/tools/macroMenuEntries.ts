@@ -62,6 +62,7 @@ interface ActionKindRow {
 
 /** The kinds a 매크로 can run, with their names and icons. */
 export const ACTION_KINDS: Readonly<Record<MacroActionKind, ActionKindRow>> = {
+  theme: {kind: 'theme', label: '테마 바꾸기', icon: 'layers'},
   clearAll: {kind: 'clearAll', label: '모두 지우기', icon: 'eraser'},
   clearLayer: {kind: 'clearLayer', label: '레이어 지우기', icon: 'eraser'},
   look: {kind: 'look', label: 'Look 바꾸기', icon: 'layers'},
@@ -98,6 +99,8 @@ function later(id: string, label: string, icon?: string): MenuItem {
 function targetId(action: MacroAction): string | undefined {
   if (!isKnownMacroAction(action)) return undefined;
   switch (action.kind) {
+    case 'theme':
+      return action.theme;
     case 'look':
       return action.look;
     case 'stageLayout':
@@ -344,7 +347,7 @@ function addActionEntries(
             }),
           ],
         },
-        row('look'),
+        row('theme'),
         row('stageLayout'),
         laterRow('slide-destination', slideDestination.label, {
           icon: slideDestination.icon,
@@ -399,7 +402,13 @@ function editEntries(
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
       ...menuAvailability(
-        locked ? '매크로 목록 잠김' : !known ? '지원하지 않는 동작' : undefined,
+        locked
+          ? '매크로 목록 잠김'
+          : action.kind === 'look'
+            ? 'Look 동작은 테마 바꾸기로 교체되었습니다'
+            : !known
+              ? '지원하지 않는 동작'
+              : undefined,
       ),
       loadSubmenu: known
         ? () => [
@@ -426,9 +435,11 @@ function editEntries(
                     kind: 'item' as const,
                     id: 'open',
                     label:
-                      action.kind === 'look'
-                        ? 'Look 편집…'
-                        : `${ACTION_KINDS[action.kind].label} 열기…`,
+                      action.kind === 'theme'
+                        ? '테마 편집…'
+                        : action.kind === 'look'
+                          ? 'Look 편집…'
+                          : `${ACTION_KINDS[action.kind].label} 열기…`,
                     onSelect: () => handlers.openAction(action),
                   },
                 ]),

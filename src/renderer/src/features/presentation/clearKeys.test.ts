@@ -1,7 +1,111 @@
-import {renderHook} from '@testing-library/react';
+import {act, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as clearState from '@renderer/session/clear';
 import {handleClearKey, useClearKeys} from './clearKeys';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {emptyLiveState} from '@core/live/state';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
+import {useLive} from '@renderer/session/live';
+
+it('dispatches an assigned Item Off and Restore key with no default binding', () => {
+  const send = vi.fn();
+  window.llp = mockLlpApi({live: {send}});
+  useLive.setState({
+    state: {
+      ...emptyLiveState(),
+      themeItem: {id: 'item', kind: 'song', source: 'service'},
+    },
+  });
+  appendTo('section', {'data-workspace-layout': 'show'});
+  const {unmount} = renderHook(() => useClearKeys());
+  const pressItemOff = (target: Element): KeyboardEvent => {
+    const event = new KeyboardEvent('keydown', {
+      code: 'F8',
+      key: 'F8',
+      bubbles: true,
+      cancelable: true,
+    });
+    target.dispatchEvent(event);
+    return event;
+  };
+  expect(pressItemOff(document.body).defaultPrevented).toBe(false);
+  act(() => commandBindingStore.set({'item.stop': [{code: 'F8', mods: []}]}));
+  try {
+    expect(pressItemOff(document.body).defaultPrevented).toBe(true);
+    expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), themeItem: null, canRestoreItem: true},
+      }),
+    );
+    expect(pressItemOff(document.body).defaultPrevented).toBe(true);
+    expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
+  } finally {
+    unmount();
+    commandBindingStore.set({});
+    useLive.setState({state: null});
+    delete window.llp;
+  }
+});
+
+it.each([
+  ['input', 'input', {}],
+  ['textarea', 'textarea', {}],
+  ['editable text', 'div', {contenteditable: 'true', tabindex: '0'}],
+  ['menu', 'div', {role: 'menu', tabindex: '0'}],
+  ['dialog', 'div', {role: 'dialog', tabindex: '0'}],
+  ['alert dialog', 'div', {role: 'alertdialog', tabindex: '0'}],
+] as const)(
+  'leaves assigned Item Off to a focused %s and resumes it in Show',
+  (_name, tag, attributes) => {
+    const send = vi.fn();
+    window.llp = mockLlpApi({live: {send}});
+    useLive.setState({
+      state: {
+        ...emptyLiveState(),
+        themeItem: {id: 'item', kind: 'song', source: 'service'},
+      },
+    });
+    commandBindingStore.set({'item.stop': [{code: 'F8', mods: []}]});
+    appendTo('section', {'data-workspace-layout': 'show'});
+    const {unmount} = renderHook(() => useClearKeys());
+    const owner = appendTo(tag, attributes);
+    owner.focus();
+    try {
+      expect(document.activeElement).toBe(owner);
+      const event = new KeyboardEvent('keydown', {
+        code: 'F8',
+        key: 'F8',
+        bubbles: true,
+        cancelable: true,
+      });
+      owner.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(send).not.toHaveBeenCalled();
+      if (owner.getAttribute('role')) {
+        document.body.dispatchEvent(
+          new KeyboardEvent('keydown', {code: 'F8', key: 'F8', bubbles: true}),
+        );
+        expect(send).not.toHaveBeenCalled();
+      }
+      owner.remove();
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'F8',
+          key: 'F8',
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+    } finally {
+      unmount();
+      commandBindingStore.set({});
+      useLive.setState({state: null});
+      delete window.llp;
+    }
+  },
+);
 
 function press(
   code: string,
