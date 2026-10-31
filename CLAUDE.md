@@ -176,6 +176,13 @@ grows:
 - Keep real outside communication, such as real git, real files, or a real
   Electron window, to the few integration tests that prove the wiring, not one
   per case.
+- `test/ui` starts the real app, so it holds wiring checks only: the app starts
+  and quits, a window opens, a file survives save and restart, an edit in a
+  focused field is saved on close, crash recovery. Feature behavior goes in unit
+  or component tests. How a screen looks is checked by eye against its draft,
+  not by measuring a real window.
+- Fix a flaky test by removing its race, not by waiting longer. A longer wait
+  needs measured times in a `NOTE(0913vision)`.
 - Each test sets up what it needs and cleans up after itself. It never depends
   on another test or on what one left behind.
 - Test behavior that can break. Code without logic (wiring, constants, types,

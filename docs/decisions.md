@@ -697,3 +697,19 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   registry, physical-key matching, focus precedence, remapping through
   `shortcuts.json`), so that any mapping works. Menu shortcut text stays muted
   (`--text-3`).
+
+## 2026-11-01: Real app tests check wiring only
+
+- The real-app tests in `test/ui` had grown from six to ten in one day, each a
+  long scenario with many waits, and four commits loosened timing to keep them
+  green (user: "테스트가 점점 이상해지는 거 아냐?"). From now on `test/ui` holds
+  wiring checks only (start and quit, a window opens, save and restart, close
+  saves a focused edit, crash recovery); feature behavior is tested in unit or
+  component tests, and screen looks are checked by eye against drafts (CLAUDE.md
+  "Tests").
+- Planned cleanup: keep `electron-cleanup`, `template-recovery`, and
+  `text-import`; shrink `library-song` to save and restart, `shortcuts` to one
+  remap from a real settings file, and merge the close-saves parts of
+  `screens-message` and `theme-editor` into one test; move `macro-run` and
+  `overlay-range` coverage to unit tests. `stop-electron.test.ts` stays (mocked
+  unit tests of the helper).
