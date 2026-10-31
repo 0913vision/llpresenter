@@ -396,7 +396,7 @@ describe('media list panels', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['재생목록에서 빼기', '삭제']);
+    ).toEqual(['속성…', '재생목록에서 빼기', '삭제']);
     fireEvent.click(screen.getByRole('menuitem', {name: '재생목록에서 빼기'}));
     await vi.waitFor(() =>
       expect(edit).toHaveBeenCalledWith({

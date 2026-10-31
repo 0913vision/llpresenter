@@ -686,11 +686,14 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
   information live inside the bin in both workspaces. The full structure and
   copy/relink rules are in 05, "Shared bottom 미디어 bin". There is one 가져오기
   action; it opens immediately in the last import folder (02).
-- Keep the existing workspace activation rules during this layout move: clicking
-  a playable tile in 진행 selects it, updates its bin properties and outputs
-  that media as the background at once (03). In 준비, one click only selects;
-  double-clicking outputs (05). Selection and LIVE marks are distinct. A copying
-  tile cannot output; a missing tile offers 다시 연결 (08).
+- In 진행, clicking a playable tile outputs it as the background at once (03)
+  without changing the bin's selection or properties. Enter on a focused tile
+  does the same. LIVE marks the media on output. In both workspaces, the tile's
+  right-click 속성… selects it and shows its properties without output. In 준비,
+  one click selects and shows properties; double-clicking outputs (05). A
+  copying tile cannot output; a missing tile offers 다시 연결 (08). This follows
+  the October 31 user decision and ProPresenter's click-to-fire and right-click
+  Inspector actions (S4 in 10, pp. 21 and 104).
 
 Source: the user's October 26 decision, "Media lives in one bottom 미디어 bin"
 in

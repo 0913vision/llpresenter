@@ -715,8 +715,13 @@ and 59.
 
 - In 준비, clicking a tile selects it and shows exactly one item's properties
   inside the bin. Double-clicking outputs it as the background (03). In 진행,
-  the existing single-click output rule applies (04). Playing the local preview
-  does not affect output. Changing playlists clears an excluded selection.
+  clicking a playable tile or pressing Enter on a focused tile outputs it
+  without changing selection or properties (04). LIVE marks what is on output.
+  In both workspaces, right-click 속성… selects the tile and shows its
+  properties without output. These actions follow the October 31 user decision
+  and ProPresenter's click-to-fire and right-click Inspector actions (S4 in 10,
+  pp. 21 and 104). Playing the local preview does not affect output. Changing
+  playlists clears an excluded selection.
 - The same 가져오기 action in both workspaces opens a file dialog immediately
   for one or more video, image, or audio files, starting in the last import
   folder (02). Cancellation keeps that folder. Supported formats come from the

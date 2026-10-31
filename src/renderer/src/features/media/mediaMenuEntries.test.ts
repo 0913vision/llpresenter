@@ -13,6 +13,7 @@ function actions(overrides: Partial<MediaTileActions> = {}): MediaTileActions {
     editable: true,
     inPlaylist: false,
     audioPlaylist: false,
+    properties: vi.fn(),
     cancel: vi.fn(),
     relink: vi.fn(),
     leave: vi.fn(),
@@ -60,7 +61,7 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
       .map(row => row.id),
   ).toEqual(['cut', 'copy', 'paste', 'duplicate', 'delete']);
   for (const row of entries) {
-    if (row.kind === 'item' && row.id !== 'delete') {
+    if (row.kind === 'item' && !['delete', 'properties'].includes(row.id)) {
       expect(row).toMatchObject({disabled: true, title: '아직 없는 기능'});
     }
   }
@@ -129,7 +130,7 @@ it('lists playlist commands in ProPresenter order and protects read-only lists',
   ).toBe(true);
   expect(
     mediaTileMenuEntries(entry, actions({editable: false})).every(
-      row => row.kind !== 'item' || row.disabled,
+      row => row.kind !== 'item' || row.id === 'properties' || row.disabled,
     ),
   ).toBe(true);
 });

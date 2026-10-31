@@ -100,8 +100,9 @@ function EntryTile({
 /**
  * The center of the media view in 준비 (spec 05, "Media view"): the list the
  * playlist panels chose, as a grid of tiles, 가져오기 into it with each file's
- * copy progress, and the size slider. A click selects a tile, a double click
- * outputs it as the background, and a missing file's tile opens 다시 연결.
+ * copy progress, and the size slider. In 준비, a click selects and a double
+ * click outputs. In 진행, a click outputs without changing selection.
+ * A missing file's tile opens 다시 연결.
  */
 export function MediaView({
   onProblem,
@@ -132,10 +133,8 @@ export function MediaView({
     const entry = entries[at];
     if (entry === undefined || entry.kind === 'copy') return;
     if (missing(entry)) relink(entry.item.id, nameOf(entry));
-    else {
-      setSelected(entry.id);
-      if (workspace === 'show') output(at);
-    }
+    else if (workspace === 'show') output(at);
+    else setSelected(entry.id);
   };
   const output = (at: number): void => {
     const entry = entries[at];
@@ -168,6 +167,7 @@ export function MediaView({
     editable: view.document?.access === 'editable',
     inPlaylist: playlist !== null,
     audioPlaylist: playlist?.kind === 'audio',
+    properties: setSelected,
     cancel: mediaId => {
       library.cancel(mediaId, nameOf(entry)).catch((cause: unknown) => {
         console.error('Stopping a media copy failed:', cause);

@@ -13,10 +13,20 @@ export interface MediaTileActions {
   readonly editable: boolean;
   readonly inPlaylist: boolean;
   readonly audioPlaylist: boolean;
+  readonly properties: (id: MediaId) => void;
   readonly cancel: (id: MediaId) => void;
   readonly relink: (id: MediaId) => void;
   readonly leave: (id: MediaId) => void;
   readonly remove: (item: MediaItem) => void;
+}
+
+function propertiesRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return {
+    kind: 'item',
+    id: 'properties',
+    label: '속성…',
+    onSelect: () => actions.properties(item.id),
+  };
 }
 
 function deleteRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
@@ -41,7 +51,7 @@ function audioRows(
     laterRow('playback', '재생 방식', {submenu: true}),
     laterRow('sound-effect', '효과음으로 지정'),
     menuSeparator('properties-separator'),
-    laterRow('properties', '속성…'),
+    propertiesRow(item, actions),
     laterRow('rename', '이름 바꾸기'),
     menuSeparator('delete-separator'),
     deleteRow(item, actions),
@@ -53,7 +63,7 @@ function mediaRows(
   actions: MediaTileActions,
 ): readonly MenuEntry[] {
   return [
-    laterRow('properties', '속성…'),
+    propertiesRow(item, actions),
     laterRow('transition', '전환 효과…'),
     menuSeparator('behavior-separator'),
     laterRow('behavior', '동작 방식', {submenu: true}),

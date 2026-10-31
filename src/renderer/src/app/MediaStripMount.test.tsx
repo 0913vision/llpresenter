@@ -287,7 +287,8 @@ it('keeps the bin playlist and selected properties across workspace and visibili
   await userEvent.click(
     await within(playlists).findByRole('option', {name: /Target/}),
   );
-  await userEvent.click(within(bin).getByRole('option', {name: 'First image'}));
+  fireEvent.contextMenu(within(bin).getByRole('option', {name: 'First image'}));
+  await userEvent.click(screen.getByRole('menuitem', {name: '속성…'}));
   const sent = send.mock.calls.length;
   await userEvent.click(screen.getByRole('tab', {name: '준비'}));
   expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);

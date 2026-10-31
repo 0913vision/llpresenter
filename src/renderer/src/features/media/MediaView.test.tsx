@@ -302,6 +302,7 @@ describe('media view', () => {
     const video = await tile('Dawn');
     fireEvent.click(video);
     expect(video.getAttribute('aria-selected')).toBe('true');
+    expect(send).not.toHaveBeenCalled();
     fireEvent.doubleClick(video);
     expect(send).toHaveBeenCalledWith({
       type: 'media.show',
@@ -311,8 +312,11 @@ describe('media view', () => {
     expect(send).toHaveBeenCalledOnce();
   });
 
-  it('keeps 진행 click focus and outputs on activation while arrows only select', async () => {
+  it('outputs in 진행 without changing selection on click or Enter', async () => {
     const {send} = setup(undefined, undefined, 'show');
+    const selected = await tile('Notice');
+    fireEvent.keyDown(await tile('Dawn'), {key: 'ArrowRight'});
+    expect(selected.getAttribute('aria-selected')).toBe('true');
     const prior = document.createElement('input');
     document.body.append(prior);
     onTestFinished(() => prior.remove());
@@ -320,39 +324,67 @@ describe('media view', () => {
     const video = await tile('Dawn');
     await userEvent.click(video);
     expect(document.activeElement).toBe(prior);
-    expect(video.getAttribute('aria-selected')).toBe('true');
+    expect(video.getAttribute('aria-selected')).toBe('false');
+    expect(selected.getAttribute('aria-selected')).toBe('true');
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'media.show',
       media: {mediaId: mediaId(1), loop: true},
     });
-    fireEvent.keyDown(video, {key: 'ArrowRight'});
-    expect(send).toHaveBeenCalledOnce();
-    const selected = await tile('Notice');
+    video.focus();
+    fireEvent.keyDown(video, {key: 'Enter'});
+    expect(document.activeElement).toBe(video);
+    expect(video.getAttribute('aria-selected')).toBe('false');
     expect(selected.getAttribute('aria-selected')).toBe('true');
-    fireEvent.keyDown(selected, {key: 'Enter'});
     expect(send).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenLastCalledWith({
+      type: 'media.show',
+      media: {mediaId: mediaId(1), loop: true},
+    });
   });
 
-  it('relinks a missing file from a click or its menu', async () => {
-    const {edit, pushMissing, send} = setup();
-    await tile('Dawn');
-    act(() => {
-      pushMissing([mediaId(1)]);
-    });
-    const missing = await tile('Dawn');
-    expect(missing.getAttribute('data-state')).toBe('warning');
-    fireEvent.click(missing);
-    fireEvent.click(missing);
-    fireEvent.doubleClick(missing);
-    await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
-    fireEvent.contextMenu(missing);
-    fireEvent.click(await screen.findByRole('menuitem', {name: '다시 연결…'}));
-    expect(edit.mock.calls).toEqual([
-      [{type: 'media.relink', mediaId: mediaId(1)}],
-      [{type: 'media.relink', mediaId: mediaId(1)}],
-    ]);
-    expect(send).not.toHaveBeenCalled();
-  });
+  it.each(['show', 'prep'] as const)(
+    'selects properties from the context menu without output in %s',
+    async workspace => {
+      const {send} = setup(undefined, undefined, workspace);
+      const selected = await tile('Notice');
+      const video = await tile('Dawn');
+      fireEvent.keyDown(video, {key: 'ArrowRight'});
+      fireEvent.contextMenu(video);
+      expect(selected.getAttribute('aria-selected')).toBe('true');
+      const properties = screen.getByRole('menuitem', {name: '속성…'});
+      expect(properties.getAttribute('aria-disabled')).not.toBe('true');
+      fireEvent.click(properties);
+      expect(video.getAttribute('aria-selected')).toBe('true');
+      expect(selected.getAttribute('aria-selected')).toBe('false');
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['show', 'prep'] as const)(
+    'relinks a missing file from a click or its menu in %s',
+    async workspace => {
+      const {edit, pushMissing, send} = setup(undefined, undefined, workspace);
+      await tile('Dawn');
+      act(() => {
+        pushMissing([mediaId(1)]);
+      });
+      const missing = await tile('Dawn');
+      expect(missing.getAttribute('data-state')).toBe('warning');
+      fireEvent.click(missing);
+      fireEvent.click(missing);
+      fireEvent.doubleClick(missing);
+      await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      fireEvent.contextMenu(missing);
+      fireEvent.click(
+        await screen.findByRole('menuitem', {name: '다시 연결…'}),
+      );
+      expect(edit.mock.calls).toEqual([
+        [{type: 'media.relink', mediaId: mediaId(1)}],
+        [{type: 'media.relink', mediaId: mediaId(1)}],
+      ]);
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
 
   it('stops a copy from its menu', async () => {
     const {edit, pushProgress} = setup();
@@ -435,7 +467,7 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['삭제']);
+    ).toEqual(['속성…', '삭제']);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain('Dawn');
@@ -450,7 +482,7 @@ describe('media view', () => {
     });
   });
 
-  it('offers no changes for a list a newer version wrote', async () => {
+  it('offers only properties for a list a newer version wrote', async () => {
     const fixture = mediaFixture({
       ...mediaDocument([mediaItem(1, {name: 'Dawn'})]),
       access: 'readOnly',
@@ -468,7 +500,8 @@ describe('media view', () => {
     expect(
       screen
         .getAllByRole('menuitem')
-        .every(item => item.getAttribute('aria-disabled') === 'true'),
-    ).toBe(true);
+        .filter(item => item.getAttribute('aria-disabled') !== 'true')
+        .map(item => item.textContent),
+    ).toEqual(['속성…']);
   });
 });
