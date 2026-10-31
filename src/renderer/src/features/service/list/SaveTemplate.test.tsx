@@ -1,4 +1,11 @@
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {
@@ -110,6 +117,28 @@ function setup({
 function saveButton(): HTMLElement {
   return screen.getByRole('button', {name: '지금 예배를 템플릿으로 저장'});
 }
+
+it('explains a missing service connection and a template name prompt already in progress', () => {
+  delete window.llp;
+  const {result, unmount} = renderHook(() =>
+    useServiceActions({onProblem: vi.fn(), onOpen: vi.fn()}),
+  );
+  expect(result.current.entries.saveTemplate).toMatchObject({
+    disabled: true,
+    title: '예배 순서 연결 안 됨',
+  });
+  unmount();
+  window.llp = mockLlpApi();
+  const connected = renderHook(() =>
+    useServiceActions({onProblem: vi.fn(), onOpen: vi.fn()}),
+  );
+  act(() => connected.result.current.entries.saveTemplate.onSelect?.());
+  expect(connected.result.current.entries.saveTemplate).toMatchObject({
+    disabled: true,
+    title: '템플릿 저장 진행 중',
+  });
+  connected.unmount();
+});
 
 async function confirmName(): Promise<void> {
   const dialog = await screen.findByRole('dialog', {name: '템플릿으로 저장'});

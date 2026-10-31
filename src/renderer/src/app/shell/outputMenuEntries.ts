@@ -6,7 +6,11 @@ import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {sendLive} from '@renderer/session/live';
 import {useScreensSelection} from '@renderer/features/screens/selection';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {Notice} from '@renderer/ui/notices';
 import {sendLookChange} from '../../features/screens/looks/lookActions';
@@ -44,8 +48,7 @@ function outputGroup(
     kind: 'item',
     id: 'output',
     label: on ? '출력 끄기' : '출력 켜기',
-    disabled: screens.length === 0,
-    title: screens.length === 0 ? '화면이 없습니다' : undefined,
+    ...menuAvailability(screens.length === 0 ? '화면이 없습니다' : undefined),
     onSelect: () => {
       const commands = screens.map(screen => ({
         type: 'output.set' as const,
@@ -118,7 +121,13 @@ export function outputMenuEntries(
       kind: 'item',
       id: 'look',
       label: `Look: ${current ? current.name || '이름 없는 Look' : '없음'}`,
-      disabled: !looks?.looks.length,
+      ...menuAvailability(
+        looks === null
+          ? 'Look 불러오는 중'
+          : looks.looks.length === 0
+            ? 'Look 없음'
+            : undefined,
+      ),
       loadSubmenu: () =>
         looks?.looks.map(look => ({
           kind: 'item',
@@ -133,7 +142,13 @@ export function outputMenuEntries(
       kind: 'item',
       id: 'edit-look',
       label: 'Look 편집…',
-      disabled: current === undefined || onWorkspace === undefined,
+      ...menuAvailability(
+        onWorkspace === undefined
+          ? '화면 설정 연결 안 됨'
+          : current === undefined
+            ? '선택한 Look 없음'
+            : undefined,
+      ),
       onSelect: () => edit('look', current?.id),
     },
     menuSeparator('stage'),
@@ -147,7 +162,15 @@ export function outputMenuEntries(
         kind: 'item',
         id: `layout:${screen.id}`,
         label: `${screen.statusLabel}: ${selected ? selected.name || '이름 없음' : id ? '삭제된 배치' : '없음'}`,
-        disabled: target === undefined || !layouts?.layouts.length,
+        ...menuAvailability(
+          target === undefined
+            ? '화면을 찾을 수 없음'
+            : layouts === null
+              ? '무대 배치 불러오는 중'
+              : layouts.layouts.length === 0
+                ? '무대 배치 없음'
+                : undefined,
+        ),
         loadSubmenu: () =>
           layouts?.layouts.map(item => ({
             kind: 'item',
@@ -170,7 +193,13 @@ export function outputMenuEntries(
       kind: 'item',
       id: 'edit-layout',
       label: '무대 배치 편집…',
-      disabled: layout === undefined || onWorkspace === undefined,
+      ...menuAvailability(
+        onWorkspace === undefined
+          ? '화면 설정 연결 안 됨'
+          : layout === undefined
+            ? '선택한 배치 없음'
+            : undefined,
+      ),
       onSelect: () => edit('stage', layout),
     },
     menuSeparator('broadcast'),
@@ -186,7 +215,9 @@ export function outputMenuEntries(
       id: 'screens',
       label: '화면 설정…',
       meta: 'Ctrl Alt 1',
-      disabled: onWorkspace === undefined,
+      ...menuAvailability(
+        onWorkspace === undefined ? '화면 설정 연결 안 됨' : undefined,
+      ),
       onSelect: () => onWorkspace?.('screens'),
     },
   ];

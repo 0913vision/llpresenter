@@ -17,8 +17,47 @@ import {ids, pastDocument} from '@core/testing/serviceList';
 import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '../../../session/testing/sampleService';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
+import {serviceRowMenuEntries} from './serviceRowMenu';
+import {menuItems} from '@renderer/ui/menuModel';
 
 const pastName = pastDocument.service.name;
+
+it('explains busy commands without hiding read-only and open-service protections', () => {
+  const entry: ServiceEntry = {
+    id: ids.past,
+    name: pastName,
+    date: pastDocument.service.date,
+    access: 'editable',
+  };
+  const input = {
+    entry,
+    currentId: null,
+    busy: true,
+    rename: vi.fn(),
+    save: vi.fn(),
+    remove: vi.fn(),
+  };
+  const busy = menuItems(serviceRowMenuEntries(input));
+  for (const id of ['rename', 'save-template', 'delete']) {
+    expect(busy.find(row => row.id === id)).toMatchObject({
+      disabled: true,
+      title: '예배 순서 저장 중',
+    });
+  }
+  const protectedRows = menuItems(
+    serviceRowMenuEntries({
+      ...input,
+      entry: {...entry, access: 'readOnly'},
+      currentId: entry.id,
+    }),
+  );
+  expect(protectedRows.find(row => row.id === 'rename')?.title).toBe(
+    '읽기 전용 예배 순서',
+  );
+  expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
+    '열린 예배 순서는 삭제할 수 없습니다',
+  );
+});
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   applyService(null);

@@ -2,6 +2,7 @@ import type {FontCatalog, FontFamily} from '@core/schema/fontCatalog';
 import type {LooksFile} from '@core/schema/looks';
 import type {Screen} from '@core/schema/screens';
 import type {SelectOption} from '@renderer/ui/SelectMenu';
+import {menuAvailability} from '@renderer/ui/menuModel';
 import type {FontCatalogState} from './useFontCatalog';
 
 const BUNDLED_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -80,8 +81,9 @@ export function weightChoices(
     .map(value => ({
       value: String(value),
       label: String(value),
-      disabled: value === weight && !supported,
-      title: value === weight && !supported ? '이 글꼴에 없는 굵기' : undefined,
+      ...menuAvailability(
+        value === weight && !supported ? '이 글꼴에 없는 굵기' : undefined,
+      ),
     }));
 }
 

@@ -1,5 +1,5 @@
 import type {ServiceEntry} from '@core/schema/contentDocuments';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 export function serviceRowMenuEntries({
@@ -23,15 +23,20 @@ export function serviceRowMenuEntries({
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: busy || entry.access === 'readOnly',
-      title: entry.access === 'readOnly' ? '읽기 전용 예배 순서' : undefined,
+      ...menuAvailability(
+        entry.access === 'readOnly'
+          ? '읽기 전용 예배 순서'
+          : busy
+            ? '예배 순서 저장 중'
+            : undefined,
+      ),
       onSelect: rename,
     },
     {
       kind: 'item',
       id: 'save-template',
       label: '템플릿으로 저장…',
-      disabled: busy,
+      ...menuAvailability(busy ? '예배 순서 저장 중' : undefined),
       onSelect: save,
     },
     menuSeparator('export'),
@@ -43,8 +48,13 @@ export function serviceRowMenuEntries({
       kind: 'item',
       id: 'delete',
       label: '삭제',
-      disabled: busy || open,
-      title: open ? '열린 예배 순서는 삭제할 수 없습니다' : undefined,
+      ...menuAvailability(
+        open
+          ? '열린 예배 순서는 삭제할 수 없습니다'
+          : busy
+            ? '예배 순서 저장 중'
+            : undefined,
+      ),
       onSelect: remove,
     },
   ];

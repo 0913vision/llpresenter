@@ -15,6 +15,8 @@ import {createQuickItemId, createAppFlushRequestId} from '@core/schema/ids';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {settingsDocument} from '@core/testing/settingsDocument';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {isKnownQuickItem} from '@core/schema/quick';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -206,6 +208,7 @@ beforeEach(() => {
   useLive.setState({state: quickLive()});
 });
 afterEach(() => {
+  resetTooltips();
   Reflect.deleteProperty(document, 'elementFromPoint');
   cleanup();
   delete window.llp;
@@ -213,6 +216,52 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it('explains pending targets, empty lists and an unavailable current item', async () => {
+    const fixture = setup();
+    const original = fixture.get.getMockImplementation();
+    if (!original) throw new Error('Missing settings fixture');
+    const props = deferred<Awaited<ReturnType<LlpApi['settings']['get']>>>();
+    const macros = deferred<Awaited<ReturnType<LlpApi['settings']['get']>>>();
+    fixture.get.mockImplementation(request =>
+      request.name === 'props'
+        ? props.promise
+        : request.name === 'macros'
+          ? macros.promise
+          : original(request),
+    );
+    const source = deferred<Awaited<ReturnType<LlpApi['services']['get']>>>();
+    vi.spyOn(fixture.api.services, 'get').mockReturnValue(source.promise);
+    useShow.setState({serviceId: quickId(1), openItemId: quickId(2)});
+    fixture.mount();
+    await openAddMenu();
+    for (const [name, reason] of [
+      ['소품', '소품 불러오는 중'],
+      ['매크로', '매크로 불러오는 중'],
+      ['현재 항목 추가', '현재 항목 불러오는 중'],
+    ] as const) {
+      expect(
+        (await hoverForTooltip(screen.getByRole('menuitem', {name})))
+          ?.textContent,
+      ).toContain(reason);
+      resetTooltips();
+    }
+    await act(async () => {
+      props.resolve(settingsDocument('props', {props: []}));
+      macros.resolve(settingsDocument('macros', {macros: [], collections: []}));
+      source.resolve(null);
+    });
+    for (const [name, reason] of [
+      ['소품', '소품 없음'],
+      ['매크로', '매크로 없음'],
+      ['현재 항목 추가', '추가할 현재 항목 없음'],
+    ] as const) {
+      expect(
+        (await hoverForTooltip(screen.getByRole('menuitem', {name})))
+          ?.textContent,
+      ).toContain(reason);
+      resetTooltips();
+    }
+  });
   it('lists every quick-add row and separator in order', async () => {
     const fixture = setup();
     fixture.mount();

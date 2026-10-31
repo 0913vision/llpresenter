@@ -34,7 +34,15 @@ function submenu(
 ): readonly MenuEntry[] {
   return entries.length > 0
     ? entries
-    : [{kind: 'item', id: `${prefix}:none`, label: empty, disabled: true}];
+    : [
+        {
+          kind: 'item',
+          id: `${prefix}:none`,
+          label: empty,
+          disabled: true,
+          title: empty,
+        },
+      ];
 }
 
 /** Commands in the service order's other-items group. */

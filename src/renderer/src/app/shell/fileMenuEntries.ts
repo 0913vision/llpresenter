@@ -1,6 +1,10 @@
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
@@ -22,10 +26,7 @@ function textImportRow(
     id: `import:${source}`,
     label: source === 'file' ? '텍스트 파일…' : '클립보드 텍스트…',
     meta: source === 'file' ? 'Ctrl Shift I' : undefined,
-    disabled:
-      onImportText === undefined ||
-      (source === 'clipboard' && clipboard !== 'ready'),
-    title:
+    ...menuAvailability(
       onImportText === undefined
         ? '텍스트 가져오기를 준비 중입니다'
         : source === 'file' || clipboard === 'ready'
@@ -33,6 +34,7 @@ function textImportRow(
           : clipboard === 'checking'
             ? '클립보드 확인 중'
             : '가져올 클립보드 텍스트가 없습니다',
+    ),
     onSelect: () => onImportText?.(source),
   };
 }

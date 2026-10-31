@@ -79,12 +79,17 @@ it('draws element frames in layout coordinates without exposing sample output', 
 
 it('disables editing for a deleted selection and for an unavailable editor', () => {
   for (const input of [
-    {value: undefined, onEdit: vi.fn()},
-    {value: layouts()[0]?.id, onEdit: undefined},
+    {value: undefined, onEdit: vi.fn(), reason: '선택한 배치 없음'},
+    {
+      value: layouts()[0]?.id,
+      onEdit: undefined,
+      reason: '배치 편집 연결 안 됨',
+    },
   ]) {
     const [edit] = menuItems(
       stageLayoutMenuEntries({layouts: layouts(), onChange: vi.fn(), ...input}),
     );
     expect(edit?.disabled).toBe(true);
+    expect(edit?.title).toBe(input.reason);
   }
 });

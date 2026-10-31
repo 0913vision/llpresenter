@@ -47,6 +47,7 @@
   --label-slate: #7d8fd6;
   --label-gray: #a3a3a3;
   --label-none: var(--bg-control);
+  --outline-menu-target: 2px dashed var(--accent);
   --shadow-popover: 0 0 0 1px #3a3a3a, 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-menu: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.6), 0 12px 32px rgba(0, 0, 0, 0.55);
   --shadow-dialog: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6);

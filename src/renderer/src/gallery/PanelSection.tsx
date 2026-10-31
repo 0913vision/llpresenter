@@ -82,7 +82,14 @@ function SingleTab({
     <Panel label={label}>
       <PanelHeader>
         <PanelTabs
-          tabs={[{value: 'only', label, disabled}]}
+          tabs={[
+            {
+              value: 'only',
+              label,
+              disabled,
+              title: '사용 불가',
+            },
+          ]}
           value={selected ? 'only' : 'none'}
           onChange={ignore}
         />

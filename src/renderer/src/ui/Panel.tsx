@@ -10,6 +10,7 @@ import {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {Menu} from './Menu';
+import type {MenuAvailability} from './menuModel';
 import {menuButtonProps} from './menuButton';
 import {useButtonPress} from './press';
 import {useRovingSelection} from './roving';
@@ -86,15 +87,12 @@ export function PanelHeader({
   return <div className={styles.header}>{children}</div>;
 }
 
-export interface PanelTab<T extends string> {
+export type PanelTab<T extends string> = MenuAvailability & {
   readonly value: T;
   readonly label: string;
   /** A count badge after the name; hidden at zero. */
   readonly count?: number | undefined;
-  readonly disabled?: boolean | undefined;
-  /** Tooltip text, such as the reason the tab is disabled. */
-  readonly title?: string | undefined;
-}
+};
 
 interface PanelTabButtonProps<T extends string> {
   readonly tab: PanelTab<T>;
@@ -243,13 +241,12 @@ function PanelMoreTabs<T extends string>({
           anchor={{kind: 'element', element: button}}
           onClose={() => setExpanded(false)}
           entries={more.tabs.map(tab => ({
+            ...tab,
             kind: 'item',
             id: tab.value,
             label: tab.label,
             check: 'radio',
             checked: tab.value === value,
-            disabled: tab.disabled,
-            title: tab.title,
             onSelect: () => onChange(tab.value),
           }))}
         />

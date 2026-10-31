@@ -105,7 +105,7 @@ export function LabelMenu({
             entries={labelMenuEntries({
               labels,
               selected,
-              locked,
+              disabledReason,
               choose,
               create: () => setCreating(true),
               settings: () => setSettings(true),

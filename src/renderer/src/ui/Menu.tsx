@@ -353,7 +353,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         key={item.id}
         item={
           nav.renaming && item.rename === undefined
-            ? {...item, disabled: true}
+            ? {...item, disabled: true, title: '이름 편집 중'}
             : item
         }
         id={itemId(index)}

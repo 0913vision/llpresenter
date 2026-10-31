@@ -7,7 +7,11 @@ import {
   type MacroCollection,
   type KnownMacroAction,
 } from '@core/schema/macros';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import type {MacroTargetChoice} from './macroTargets';
 import {macroActionChoices} from './macroActionChoices';
 import type {MacroActionDraft} from '@core/macros/macroActionDraft';
@@ -165,7 +169,7 @@ function collectionRows(
       label: collection.name,
       check: 'checkbox',
       checked: marked(collection),
-      disabled: marked(collection),
+      ...menuAvailability(marked(collection) ? '현재 포함된 모음' : undefined),
       onSelect: () => choose(collection.id),
     })),
     ...(input.collections.length > 0 ? [separator('new-separator')] : []),
@@ -173,7 +177,7 @@ function collectionRows(
       kind: 'item',
       id: 'new',
       label: '새 모음',
-      disabled: full,
+      ...menuAvailability(full ? '모음 한도 도달' : undefined),
       onSelect: onNew,
     },
   ];
@@ -191,7 +195,7 @@ function collectionEntries(
       kind: 'item',
       id: 'add-to',
       label: '모음에 추가',
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       submenu: collectionRows(input, {
         marked: holds,
         choose: handlers.addTo,
@@ -202,9 +206,13 @@ function collectionEntries(
       kind: 'item',
       id: 'move-to',
       label: '모음으로 옮기기',
-      disabled: locked || shown === undefined,
-      title:
-        shown === undefined ? '모든 매크로에서는 옮길 수 없습니다' : undefined,
+      ...menuAvailability(
+        locked
+          ? '매크로 목록 잠김'
+          : shown === undefined
+            ? '모든 매크로에서는 옮길 수 없습니다'
+            : undefined,
+      ),
       submenu: collectionRows(input, {
         marked: collection => collection.id === shown,
         choose: handlers.moveTo,
@@ -224,21 +232,21 @@ function appearanceEntries(
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       onSelect: handlers.rename,
     },
     {
       kind: 'item',
       id: 'color',
       label: '색 바꾸기',
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       onSelect: handlers.changeColor,
     },
     {
       kind: 'item',
       id: 'icon',
       label: '아이콘 바꾸기',
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       onSelect: handlers.changeIcon,
     },
     {
@@ -247,7 +255,7 @@ function appearanceEntries(
       label: '시작할 때 실행',
       check: 'checkbox',
       checked: item.runOnStartup === true,
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       onSelect: handlers.toggleStartup,
     },
   ];
@@ -270,16 +278,18 @@ function kindRow(
     id: row.kind,
     label: `${row.label}${dialog ? '…' : ''}`,
     icon: row.icon,
-    disabled:
-      full ||
-      empty ||
-      (dialog &&
-        input.item.actions.some(action => action.kind === 'stageLayout')),
-    title: empty
-      ? input.targets === undefined
-        ? '대상을 불러오고 있습니다'
-        : '대상이 없습니다'
-      : undefined,
+    ...menuAvailability(
+      full
+        ? '동작 한도 도달'
+        : empty
+          ? input.targets === undefined
+            ? '대상을 불러오고 있습니다'
+            : '대상이 없습니다'
+          : dialog &&
+              input.item.actions.some(action => action.kind === 'stageLayout')
+            ? '무대 배치 동작이 이미 있음'
+            : undefined,
+    ),
     loadSubmenu: dialog
       ? undefined
       : () =>
@@ -305,14 +315,18 @@ function addActionEntries(
       kind: 'item',
       id: 'add-action',
       label: '동작 추가',
-      disabled: input.locked,
+      ...menuAvailability(input.locked ? '매크로 목록 잠김' : undefined),
       submenu: [
         {
           kind: 'item',
           id: 'clear',
           label: '지우기',
           icon: 'eraser',
-          disabled: input.item.actions.length >= MACRO_FILE_LIMITS.actions,
+          ...menuAvailability(
+            input.item.actions.length >= MACRO_FILE_LIMITS.actions
+              ? '동작 한도 도달'
+              : undefined,
+          ),
           loadSubmenu: () => [
             {
               ...row('clearAll'),
@@ -376,7 +390,9 @@ function editEntries(
       id: `edit-${index}`,
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
-      disabled: locked || !known,
+      ...menuAvailability(
+        locked ? '매크로 목록 잠김' : !known ? '지원하지 않는 동작' : undefined,
+      ),
       loadSubmenu: known
         ? () => [
             ...macroActionChoices({
@@ -429,7 +445,7 @@ function editEntries(
         id: 'remove-0',
         label: `동작 빼기: ${macroActionName(only, targets)}`,
         icon: actionIcon(only),
-        disabled: locked,
+        ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
         onSelect: () => handlers.removeAction(0),
       },
     ];
@@ -442,7 +458,7 @@ function editEntries(
       kind: 'item',
       id: 'remove-actions',
       label: '동작 빼기',
-      disabled: locked,
+      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       submenu: [
         ...removes,
         separator('remove-all-separator'),
@@ -471,7 +487,13 @@ function clipboardEntries(
       id: 'duplicate',
       label: '복제',
       icon: 'duplicate',
-      disabled: input.locked || full,
+      ...menuAvailability(
+        input.locked
+          ? '매크로 목록 잠김'
+          : full
+            ? '매크로 한도 도달'
+            : undefined,
+      ),
       onSelect: handlers.duplicate,
     },
     separator('delete-separator'),
@@ -481,7 +503,7 @@ function clipboardEntries(
       label: '삭제',
       icon: 'trash',
       danger: true,
-      disabled: input.locked,
+      ...menuAvailability(input.locked ? '매크로 목록 잠김' : undefined),
       onSelect: handlers.remove,
     },
   ];

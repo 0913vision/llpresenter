@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
@@ -31,8 +32,7 @@ export function arrangementMenuEntries(
       kind: 'item',
       id: 'new',
       label: '새 구성…',
-      disabled: input.createReason !== undefined,
-      title: input.createReason,
+      ...menuAvailability(input.createReason),
       onSelect: input.create,
     },
     {kind: 'item', id: 'edit', label: '구성 편집…', onSelect: input.edit},
@@ -54,8 +54,7 @@ export function arrangementManagementEntries({
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: reason !== undefined,
-      title: reason,
+      ...menuAvailability(reason),
       onSelect: rename,
     },
     menuSeparator('delete-separator'),
@@ -63,8 +62,7 @@ export function arrangementManagementEntries({
       kind: 'item',
       id: 'delete',
       label: '삭제',
-      disabled: reason !== undefined,
-      title: reason,
+      ...menuAvailability(reason),
       onSelect: remove,
     },
   ];

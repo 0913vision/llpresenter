@@ -37,7 +37,6 @@ function FontPopup({
     choices,
     visible,
     start,
-    active,
     activeId,
     row,
     query,
@@ -104,7 +103,6 @@ function FontPopup({
                   aria-posinset={index + 1}
                   aria-setsize={choices.length}
                   className={classNames(menu.item, styles.option)}
-                  data-pointed={index === active}
                   style={{top: index * row}}
                   onPointerMove={() => setPointed(choice.value)}
                   onMouseDown={event => event.preventDefault()}

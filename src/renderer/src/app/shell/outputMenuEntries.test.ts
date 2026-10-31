@@ -208,6 +208,51 @@ it('keeps output commands usable before settings load and disables unavailable e
   for (const id of ['look', 'edit-look', 'edit-layout', `layout:${STAGE_ID}`]) {
     expect(rows.find(row => row.id === id)?.disabled).toBe(true);
   }
+  expect(rows.find(row => row.id === 'look')?.title).toBe('Look 불러오는 중');
+  expect(rows.find(row => row.id === 'edit-look')?.title).toBe(
+    '선택한 Look 없음',
+  );
+  expect(rows.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
+    '무대 배치 불러오는 중',
+  );
+  expect(rows.find(row => row.id === 'edit-layout')?.title).toBe(
+    '선택한 배치 없음',
+  );
+});
+
+it('explains empty choices and unavailable editor callbacks separately', () => {
+  const {input} = fixture();
+  const empty = menuItems(
+    outputMenuEntries({
+      ...input,
+      looks: {...input.looks, looks: []},
+      layouts: {...input.layouts, layouts: []},
+    }),
+  );
+  expect(empty.find(row => row.id === 'look')?.title).toBe('Look 없음');
+  expect(empty.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
+    '무대 배치 없음',
+  );
+  const disconnected = menuItems(
+    outputMenuEntries({...input, onWorkspace: undefined}),
+  );
+  for (const id of ['edit-look', 'edit-layout', 'screens']) {
+    expect(disconnected.find(row => row.id === id)).toMatchObject({
+      disabled: true,
+      title: '화면 설정 연결 안 됨',
+    });
+  }
+  const screen = input.screens[0];
+  if (!screen) throw new Error('Missing screen fixture');
+  const invalid = menuItems(
+    outputMenuEntries({
+      ...input,
+      screens: [{...screen, id: 'invalid', kind: 'stage', statusLabel: '무대'}],
+    }),
+  );
+  expect(invalid.find(row => row.id === 'layout:invalid')?.title).toBe(
+    '화면을 찾을 수 없음',
+  );
 });
 
 it('keeps the saved broadcast output available when its destination is a window', () => {

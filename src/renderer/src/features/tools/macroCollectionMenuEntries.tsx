@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import type {JSX} from 'react';
 import {Menu, type MenuProps} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
@@ -18,8 +19,7 @@ export function macroCollectionMenuEntries(
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: actions.reason !== undefined,
-      title: actions.reason,
+      ...menuAvailability(actions.reason),
       onSelect: actions.rename,
     },
     menuSeparator('delete-separator'),
@@ -27,8 +27,7 @@ export function macroCollectionMenuEntries(
       kind: 'item',
       id: 'delete',
       label: '삭제',
-      disabled: actions.reason !== undefined,
-      title: actions.reason,
+      ...menuAvailability(actions.reason),
       onSelect: actions.remove,
     },
   ];

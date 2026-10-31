@@ -1,4 +1,8 @@
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {ServiceRow} from '@core/presentation/model';
 
@@ -30,11 +34,14 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
           id: 'arrangement',
           label: '구성',
           submenu: input.song?.arrangements ?? [],
-          disabled:
-            !input.editable ||
-            input.song?.locked !== false ||
-            input.song.reason !== undefined,
-          title: input.song?.reason,
+          ...menuAvailability(
+            !input.editable
+              ? '예배 순서 편집 불가'
+              : (input.song?.reason ??
+                  (input.song?.locked !== false
+                    ? '구성 변경 불가'
+                    : undefined)),
+          ),
         },
         laterRow('destination', '출력 대상', {submenu: true}),
         menuSeparator('edit-separator'),
@@ -75,7 +82,9 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
           kind: 'item',
           id: 'rename',
           label: '이름 바꾸기',
-          disabled: !input.editable,
+          ...menuAvailability(
+            input.editable ? undefined : '예배 순서 편집 불가',
+          ),
           onSelect: input.rename,
         },
       ];
@@ -97,10 +106,12 @@ function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
       kind: 'item',
       id: 'show-in-library',
       label: '라이브러리에서 보기',
-      disabled:
-        input.song?.showInLibrary === undefined ||
-        input.song.reason !== undefined,
-      title: input.song?.reason,
+      ...menuAvailability(
+        input.song?.reason ??
+          (input.song?.showInLibrary === undefined
+            ? '라이브러리 연결 안 됨'
+            : undefined),
+      ),
       onSelect: input.song?.showInLibrary,
     },
     laterRow('export-bundle', '묶음으로 내보내기…'),
@@ -131,7 +142,7 @@ export function serviceOrderMenuEntries(
       id: 'delete',
       label: '삭제',
       danger: true,
-      disabled: !input.editable,
+      ...menuAvailability(input.editable ? undefined : '예배 순서 편집 불가'),
       onSelect: input.remove,
     },
     ...exportRows(input),

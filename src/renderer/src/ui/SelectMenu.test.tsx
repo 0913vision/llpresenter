@@ -13,7 +13,7 @@ type Interval = 'one' | 'five' | 'off';
 const intervals: ReadonlyArray<SelectOption<Interval>> = [
   {value: 'one', label: '1분마다'},
   {value: 'five', label: '5분마다'},
-  {value: 'off', label: '끄기', disabled: true},
+  {value: 'off', label: '끄기', disabled: true, title: '사용 불가'},
 ];
 
 function Autosave({

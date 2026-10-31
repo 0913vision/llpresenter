@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {StageLayout} from '@core/schema/stageLayouts';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 import styles from './StageLayoutPicker.module.css';
 
@@ -46,8 +46,13 @@ export function stageLayoutMenuEntries({
       kind: 'item',
       id: 'edit',
       label: '선택한 배치 편집…',
-      disabled:
-        onEdit === undefined || !layouts.some(layout => layout.id === value),
+      ...menuAvailability(
+        onEdit === undefined
+          ? '배치 편집 연결 안 됨'
+          : !layouts.some(layout => layout.id === value)
+            ? '선택한 배치 없음'
+            : undefined,
+      ),
       onSelect: onEdit,
     },
     menuSeparator('layouts'),

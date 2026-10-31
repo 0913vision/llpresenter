@@ -14,11 +14,13 @@ function Choices({
   onClose,
   onEscape,
   checked = true,
+  blocked = false,
 }: {
   readonly anchor: HTMLElement;
   readonly onClose: (restore: boolean) => void;
   readonly onEscape: () => void;
   readonly checked?: boolean;
+  readonly blocked?: boolean;
 }) {
   const {surface, onKeyDown} = useChoicePopup({anchor, onClose, onEscape});
   return (
@@ -41,12 +43,22 @@ function Choices({
           Blue
         </button>
         <input aria-label="Search" />
+        {blocked ? (
+          <>
+            <button type="button" data-choice disabled>
+              Native disabled
+            </button>
+            <button type="button" data-choice aria-disabled="true">
+              ARIA disabled
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function setup(checked = true) {
+function setup(checked = true, blocked = false) {
   const anchor = document.createElement('button');
   document.body.append(anchor);
   anchors.add(anchor);
@@ -58,10 +70,57 @@ function setup(checked = true) {
       onClose={onClose}
       onEscape={onEscape}
       checked={checked}
+      blocked={blocked}
     />,
   );
   return {view, anchor, onClose, onEscape};
 }
+
+it('never points or navigates to disabled choices and clears pointer emphasis between rows', () => {
+  const {view} = setup(true, true);
+  const amber = screen.getByRole('menuitemradio', {name: 'Amber'});
+  const blue = screen.getByRole('menuitemradio', {name: 'Blue'});
+  const native = screen.getByRole('button', {name: 'Native disabled'});
+  const aria = screen.getByRole('button', {name: 'ARIA disabled'});
+  fireEvent.pointerMove(amber);
+  expect(amber.getAttribute('data-pointed')).toBe('true');
+  fireEvent.pointerOut(amber, {relatedTarget: screen.getByLabelText('Search')});
+  expect(amber.hasAttribute('data-pointed')).toBe(false);
+  for (const disabled of [native, aria]) {
+    fireEvent.pointerMove(disabled);
+    expect(disabled.hasAttribute('data-pointed')).toBe(false);
+  }
+  fireEvent.keyDown(blue, {key: 'ArrowDown'});
+  expect(document.activeElement).toBe(amber);
+  fireEvent.keyDown(amber, {key: 'End'});
+  expect(document.activeElement).toBe(blue);
+  fireEvent.pointerLeave(screen.getByRole('menu'));
+  expect(blue.getAttribute('data-pointed')).toBe('true');
+  view.unmount();
+  expect(blue.hasAttribute('data-pointed')).toBe(false);
+});
+
+it('shows keyboard pointing after shifted typeahead or focus returning from another popup', () => {
+  setup();
+  const amber = screen.getByRole('menuitemradio', {name: 'Amber'});
+  const blue = screen.getByRole('menuitemradio', {name: 'Blue'});
+  const menu = screen.getByRole('menu');
+  fireEvent.pointerMove(blue);
+  fireEvent.pointerLeave(menu);
+  fireEvent.keyDown(blue, {key: 'A', shiftKey: true});
+  expect(document.activeElement).toBe(amber);
+  expect(amber.getAttribute('data-pointed')).toBe('true');
+  fireEvent.pointerMove(blue);
+  fireEvent.pointerLeave(menu);
+  const other = document.createElement('button');
+  anchors.add(other);
+  document.body.append(other);
+  other.focus();
+  fireEvent.keyDown(other, {key: 'Escape'});
+  amber.focus();
+  fireEvent.pointerLeave(menu);
+  expect(amber.getAttribute('data-pointed')).toBe('true');
+});
 
 it('focuses the checked choice and retains wrapping navigation, endpoints and typeahead', () => {
   setup();

@@ -97,6 +97,7 @@ export function MediaPicker({
     anchor,
     onClose,
     onEscape: () => onClose(true),
+    activeId: `${id}-${active}`,
   });
   useLayoutEffect(() => {
     const element = viewport.current;
@@ -205,7 +206,6 @@ export function MediaPicker({
                   aria-posinset={index + 1}
                   aria-setsize={choices.length}
                   className={classNames(menu.item, styles.option)}
-                  data-pointed={index === active}
                   data-index={index}
                   style={{top: index * row}}
                   onPointerMove={() => setActive(index)}

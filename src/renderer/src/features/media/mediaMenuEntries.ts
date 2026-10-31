@@ -1,6 +1,6 @@
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {
   laterClipboardRows,
   laterRow,
@@ -36,8 +36,7 @@ function deleteRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
     label: '삭제',
     icon: actions.audioPlaylist ? undefined : 'trash',
     danger: true,
-    disabled: !actions.editable,
-    title: actions.editable ? undefined : '읽기 전용 미디어 목록',
+    ...menuAvailability(actions.editable ? undefined : '읽기 전용 미디어 목록'),
     onSelect: () => actions.remove(item),
   };
 }
@@ -85,8 +84,9 @@ function mediaRows(
             kind: 'item' as const,
             id: 'leave',
             label: '재생목록에서 빼기',
-            disabled: !actions.editable,
-            title: actions.editable ? undefined : '읽기 전용 미디어 목록',
+            ...menuAvailability(
+              actions.editable ? undefined : '읽기 전용 미디어 목록',
+            ),
             onSelect: () => actions.leave(item.id),
           },
         ]
@@ -147,8 +147,7 @@ export function playlistMenuEntries(editable: boolean): readonly MenuEntry[] {
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: !editable,
-      title,
+      ...menuAvailability(title),
     },
     laterRow('duplicate', '복제'),
     {
@@ -156,8 +155,7 @@ export function playlistMenuEntries(editable: boolean): readonly MenuEntry[] {
       id: 'delete',
       label: '삭제',
       danger: true,
-      disabled: !editable,
-      title,
+      ...menuAvailability(title),
     },
   ];
 }

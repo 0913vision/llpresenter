@@ -1,18 +1,18 @@
 import type {Label} from '@core/schema/labels';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 export function labelMenuEntries({
   labels,
   selected,
-  locked,
+  disabledReason,
   choose,
   create,
   settings,
 }: {
   readonly labels: readonly Label[];
   readonly selected: string | undefined;
-  readonly locked: boolean;
+  readonly disabledReason: string | undefined;
   readonly choose: (name: string | undefined) => void;
   readonly create: () => void;
   readonly settings: () => void;
@@ -42,7 +42,7 @@ export function labelMenuEntries({
       kind: 'item',
       id: 'new',
       label: '새 이름표',
-      disabled: locked,
+      ...menuAvailability(disabledReason),
       onSelect: create,
     },
     {kind: 'item', id: 'settings', label: '이름표 설정…', onSelect: settings},
@@ -66,8 +66,7 @@ export function labelManagementEntries({
       kind: 'item',
       id: 'color',
       label: '색 바꾸기',
-      disabled: locked,
-      title: disabledReason,
+      ...menuAvailability(disabledReason),
       onSelect: color,
     },
     menuSeparator('rename-separator'),

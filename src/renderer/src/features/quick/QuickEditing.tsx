@@ -16,7 +16,7 @@ import {
 } from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
   newQuickItem,
@@ -128,16 +128,22 @@ function QuickAddMenu({
     label: target.name || '이름 없음',
     onSelect: () => onAdd(target),
   });
-  const group = (
-    id: string,
-    label: string,
-    submenu: readonly MenuEntry[],
-  ): MenuEntry => ({
+  const group = ({
+    id,
+    label,
+    submenu,
+    reason,
+  }: {
+    readonly id: string;
+    readonly label: string;
+    readonly submenu: readonly MenuEntry[];
+    readonly reason: string;
+  }): MenuEntry => ({
     kind: 'item',
     id,
     label,
     submenu,
-    disabled: submenu.length === 0,
+    ...menuAvailability(submenu.length === 0 ? reason : undefined),
   });
   return (
     <Menu
@@ -150,27 +156,37 @@ function QuickAddMenu({
           id: 'current',
           label: '현재 항목 추가',
           meta: choice?.name,
-          disabled: choice === null,
+          ...menuAvailability(
+            choice === null
+              ? current?.view === view
+                ? '추가할 현재 항목 없음'
+                : '현재 항목 불러오는 중'
+              : undefined,
+          ),
           onSelect: () => {
             if (choice) onAdd(choice);
           },
         },
         {kind: 'separator', id: 'targets'},
-        group(
-          'props',
-          '소품',
-          props?.value.props.map(item =>
-            entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
-          ) ?? [],
-        ),
+        group({
+          id: 'props',
+          label: '소품',
+          submenu:
+            props?.value.props.map(item =>
+              entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
+            ) ?? [],
+          reason: props === null ? '소품 불러오는 중' : '소품 없음',
+        }),
         {kind: 'item', id: 'timer', label: '타이머…', onSelect: onAddTimer},
-        group(
-          'macros',
-          '매크로',
-          macros?.value.macros.map(item =>
-            entry(item.id, {kind: 'macro', name: item.name, ref: item.id}),
-          ) ?? [],
-        ),
+        group({
+          id: 'macros',
+          label: '매크로',
+          submenu:
+            macros?.value.macros.map(item =>
+              entry(item.id, {kind: 'macro', name: item.name, ref: item.id}),
+            ) ?? [],
+          reason: macros === null ? '매크로 불러오는 중' : '매크로 없음',
+        }),
         entry('black', {kind: 'black', name: '검은 화면'}),
       ]}
     />

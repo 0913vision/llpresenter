@@ -19,6 +19,24 @@ import {useLive} from '@renderer/session/live';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {useFileMediaImport} from './useFileMediaImport';
 
+it('explains a missing import connection and a pending import request', async () => {
+  delete window.llp;
+  const {result, unmount} = renderHook(() => useFileMediaImport(vi.fn()));
+  expect(result.current).toMatchObject({
+    disabled: true,
+    title: '미디어 가져오기 연결 안 됨',
+  });
+  unmount();
+  window.llp = mockLlpApi({media: {import: () => new Promise(() => {})}});
+  const pending = renderHook(() => useFileMediaImport(vi.fn()));
+  act(() => pending.result.current.onSelect?.());
+  expect(pending.result.current).toMatchObject({
+    disabled: true,
+    title: '미디어를 가져오는 중',
+  });
+  pending.unmount();
+});
+
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();

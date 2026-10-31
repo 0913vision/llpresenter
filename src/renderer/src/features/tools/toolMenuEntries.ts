@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {
   laterClipboardRows,
@@ -20,8 +21,7 @@ function command(
   return {
     kind: 'item',
     ...item,
-    disabled: reason !== undefined,
-    title: reason,
+    ...menuAvailability(reason),
   };
 }
 

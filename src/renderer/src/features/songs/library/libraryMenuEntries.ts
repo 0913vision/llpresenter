@@ -1,5 +1,5 @@
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 export function libraryMenuEntries({
@@ -22,8 +22,9 @@ export function libraryMenuEntries({
       kind: 'item',
       id: 'add-to',
       label: '예배 순서에 추가',
-      disabled: busy || appendDisabledReason !== undefined,
-      title: appendDisabledReason,
+      ...menuAvailability(
+        appendDisabledReason ?? (busy ? '곡 작업 중' : undefined),
+      ),
       onSelect: append,
     },
     laterRow('move-to', '라이브러리로 옮기기', {submenu: true}),
@@ -36,7 +37,7 @@ export function libraryMenuEntries({
       kind: 'item',
       id: 'lyrics',
       label: '가사 편집',
-      disabled: busy,
+      ...menuAvailability(busy ? '곡 작업 중' : undefined),
       onSelect: open,
     },
     menuSeparator('clipboard-separator'),
@@ -49,8 +50,13 @@ export function libraryMenuEntries({
       id: 'delete',
       label: '삭제',
       danger: true,
-      disabled: busy || song.access === 'readOnly',
-      title: song.access === 'readOnly' ? '읽기 전용 곡입니다' : undefined,
+      ...menuAvailability(
+        song.access === 'readOnly'
+          ? '읽기 전용 곡입니다'
+          : busy
+            ? '곡 작업 중'
+            : undefined,
+      ),
       onSelect: remove,
     },
     menuSeparator('export-separator'),

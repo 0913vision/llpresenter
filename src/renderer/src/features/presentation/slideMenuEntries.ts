@@ -1,4 +1,4 @@
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {
   laterClipboardRows,
   laterRow,
@@ -14,11 +14,11 @@ export function slideMenuEntries(
       kind: 'item',
       id: 'edit',
       label: '가사 편집',
-      disabled: edit === undefined,
-      title:
+      ...menuAvailability(
         edit === undefined
           ? '이 슬라이드는 준비에서 편집할 수 없습니다'
           : undefined,
+      ),
       onSelect: edit,
     },
     menuSeparator('disable-separator'),

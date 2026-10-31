@@ -8,7 +8,7 @@ import type {SearchRange} from '@core/search/searchText';
 export type MenuCheckKind = 'radio' | 'checkbox';
 
 /** A command, a choice, or the parent of a submenu. */
-export interface MenuItem {
+interface MenuItemContent {
   readonly kind: 'item';
   readonly id: string;
   readonly label: string;
@@ -27,9 +27,6 @@ export interface MenuItem {
   readonly swatch?: LabelColor | undefined;
   /** A delete item; it keeps the normal text color. */
   readonly danger?: boolean | undefined;
-  readonly disabled?: boolean | undefined;
-  /** Tooltip text, such as the reason the item is disabled. */
-  readonly title?: string | undefined;
   readonly submenu?: readonly MenuEntry[] | undefined;
   /** Builds choices only while this submenu is open. */
   readonly loadSubmenu?: (() => readonly MenuEntry[]) | undefined;
@@ -38,6 +35,19 @@ export interface MenuItem {
   readonly rename?: GroupRename | undefined;
   /** Keeps the menu open after the item runs, as a mode switch does. */
   readonly keepsOpen?: boolean | undefined;
+}
+
+export type MenuAvailability =
+  | {readonly disabled?: false | undefined; readonly title?: string | undefined}
+  | {readonly disabled: boolean; readonly title: string};
+
+export type MenuItem = MenuItemContent & MenuAvailability;
+
+/** Derives unavailable menu state and its tooltip from the same reason. */
+export function menuAvailability(reason: string | undefined): MenuAvailability {
+  return reason === undefined
+    ? {disabled: false}
+    : {disabled: true, title: reason};
 }
 
 export interface MenuSeparator {

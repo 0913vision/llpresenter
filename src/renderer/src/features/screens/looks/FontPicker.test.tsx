@@ -10,6 +10,26 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--size-row-menu');
 });
 
+it('clears pointer highlighting on leave, preserves selection and retains keyboard pointing', () => {
+  renderPicker();
+  fireEvent.click(screen.getByRole('button', {name: '글꼴'}));
+  const search = screen.getByRole('combobox', {name: '글꼴 검색'});
+  const first = screen.getByRole('option', {name: 'Pretendard'});
+  const next = screen.getByRole('option', {name: fontFamilyFixture().label});
+  fireEvent.pointerMove(next);
+  expect(next.getAttribute('data-pointed')).toBe('true');
+  expect(first.getAttribute('data-pointed')).not.toBe('true');
+  fireEvent.pointerLeave(
+    next.closest('[role="listbox"]')?.parentElement ?? next,
+  );
+  expect(next.getAttribute('data-pointed')).not.toBe('true');
+  expect(first.getAttribute('aria-selected')).toBe('true');
+  fireEvent.keyDown(search, {key: 'ArrowDown'});
+  fireEvent.pointerLeave(first);
+  expect(first.getAttribute('data-pointed')).toBe('true');
+  expect(search.getAttribute('aria-activedescendant')).toBe(first.id);
+});
+
 function renderPicker(
   options: {
     readonly font?: string;

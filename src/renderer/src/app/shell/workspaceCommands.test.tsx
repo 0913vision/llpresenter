@@ -4,6 +4,7 @@ import {useWindowShortcuts} from '../../platform/windowShortcuts';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {workspaceMenu, workspaceShortcuts} from './workspaceCommands';
+import {menuItems} from '@renderer/ui/menuModel';
 
 afterEach(() => {
   cleanup();
@@ -84,6 +85,26 @@ describe('workspace defaults from S1', () => {
 });
 
 describe('workspaceMenu', () => {
+  it('explains unavailable workspace and media handlers', () => {
+    const rows = menuItems(
+      workspaceMenu({onWorkspace: undefined, onMedia: undefined}),
+    );
+    for (const id of [
+      'workspace.show',
+      'workspace.prep',
+      'tool.timer',
+      'palette',
+    ]) {
+      expect(rows.find(row => row.id === id)).toMatchObject({
+        disabled: true,
+        title: '작업 화면 연결 안 됨',
+      });
+    }
+    expect(rows.find(row => row.id === 'workspace.media')).toMatchObject({
+      disabled: true,
+      title: '미디어 화면 연결 안 됨',
+    });
+  });
   it('lists the rows of the ProPresenter View menu in its order', () => {
     const entries = workspaceMenu({
       onWorkspace: () => undefined,

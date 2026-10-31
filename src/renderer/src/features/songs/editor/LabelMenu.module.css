@@ -11,8 +11,7 @@
   cursor: default;
 }
 
-.choice:hover,
-.choice:focus-visible {
+.choice[data-pointed='true'] {
   outline: none;
   background: var(--accent-fill);
   color: var(--text-on-fill);

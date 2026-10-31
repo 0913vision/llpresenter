@@ -9,6 +9,7 @@ import {
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {placeFloating} from '@renderer/ui/floating';
+import {usePopupPointing} from './usePopupPointing';
 import {
   maxPopoverHeight,
   placeBelow,
@@ -19,14 +20,21 @@ interface PopupOptions {
   readonly anchor: HTMLElement;
   readonly onClose: (restoreFocus: boolean) => void;
   readonly onEscape: () => void;
+  readonly activeId?: string | undefined;
 }
 
 /** Initializes focus and releases every outside/viewport listener on close. */
-export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
+export function useChoicePopup({
+  anchor,
+  onClose,
+  onEscape,
+  activeId,
+}: PopupOptions): {
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
 } {
   const surface = useRef<HTMLDivElement>(null);
+  usePopupPointing(surface, activeId);
   const close = useEffectEvent(onClose);
   useLayoutEffect(() => {
     const element = surface.current;
@@ -38,8 +46,12 @@ export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
   });
   useLayoutEffect(() => {
     (
-      surface.current?.querySelector<HTMLElement>('[aria-checked="true"]') ??
-      surface.current?.querySelector<HTMLElement>('[data-choice]')
+      surface.current?.querySelector<HTMLElement>(
+        '[aria-checked="true"]:not(:disabled):not([aria-disabled="true"])',
+      ) ??
+      surface.current?.querySelector<HTMLElement>(
+        '[data-choice]:not(:disabled):not([aria-disabled="true"])',
+      )
     )?.focus();
   }, []);
   useEffect(() => {
@@ -92,8 +104,9 @@ export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
       return;
     }
     const items = [
-      ...(surface.current?.querySelectorAll<HTMLElement>('[data-choice]') ??
-        []),
+      ...(surface.current?.querySelectorAll<HTMLElement>(
+        '[data-choice]:not(:disabled):not([aria-disabled="true"])',
+      ) ?? []),
     ];
     const index = items.indexOf(event.target);
     const target =

@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {
   useSettingsDocument,
@@ -144,8 +145,7 @@ function ImportOptionsMenu({
           label: '미디어 폴더로 복사',
           check: 'checkbox',
           checked: document?.value.media?.copyOnImport ?? false,
-          disabled: reason !== undefined,
-          title: reason,
+          ...menuAvailability(reason),
           onSelect: () => {
             if (document !== null) onChange(document);
           },

@@ -251,6 +251,7 @@ it('refreshes deferred choices after their source changes and skips disabled row
           label: '동작',
           loadSubmenu: build,
           disabled: true,
+          title: '사용 불가',
         },
       ]}
     />,

@@ -19,8 +19,7 @@
 }
 
 .row[aria-selected='true'],
-.row:focus-visible,
-.row:hover {
+.row[data-pointed='true'] {
   background: var(--accent-fill);
   color: var(--text-on-fill);
 }

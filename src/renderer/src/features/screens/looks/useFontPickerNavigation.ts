@@ -50,6 +50,7 @@ export function useFontPickerNavigation({
     anchor,
     onClose,
     onEscape: () => onClose(true),
+    activeId: choices[active] === undefined ? undefined : `${id}-${active}`,
   });
   useLayoutEffect(() => {
     const element = viewport.current;

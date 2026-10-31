@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
   hasIconColumn,
   menuBlocks,
@@ -8,13 +8,31 @@ import {
   typeaheadTarget,
   type MenuEntry,
   type MenuItem,
+  type MenuAvailability,
 } from './menuModel';
 
-const item = (label: string, extra: Partial<MenuItem> = {}): MenuItem => ({
+const item = (
+  label: string,
+  extra: Partial<Omit<MenuItem, 'disabled' | 'title'>> & MenuAvailability = {},
+): MenuItem => ({
   kind: 'item',
   id: label,
   label,
   ...extra,
+});
+
+it('requires a tooltip reason for disabled menu rows, including dynamic flags', () => {
+  interface Row {
+    kind: 'item';
+    id: 'row';
+    label: 'Row';
+  }
+  expectTypeOf<Row & {disabled: true}>().not.toExtend<MenuItem>();
+  expectTypeOf<
+    Row & {disabled: boolean; title: string | undefined}
+  >().not.toExtend<MenuItem>();
+  expectTypeOf<Row & {disabled: true; title: string}>().toExtend<MenuItem>();
+  expectTypeOf<Row & {disabled: false}>().toExtend<MenuItem>();
 });
 
 describe('menuItems', () => {

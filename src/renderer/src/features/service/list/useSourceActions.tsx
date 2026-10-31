@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
@@ -170,8 +171,7 @@ export function useSourceActions({
               kind: 'item',
               id: 'rename',
               label: '이름 바꾸기',
-              disabled: readOnlyReason !== undefined,
-              title: readOnlyReason,
+              ...menuAvailability(readOnlyReason),
               onSelect: () => {
                 setMenu(null);
                 setDialog({kind: 'rename', row: menu.row});
@@ -182,9 +182,9 @@ export function useSourceActions({
               id: 'delete',
               label: '삭제',
               danger: true,
-              disabled: readOnlyReason !== undefined || isOpen(menu.row),
-              title:
+              ...menuAvailability(
                 readOnlyReason ?? (isOpen(menu.row) ? OPEN_SERVICE : undefined),
+              ),
               onSelect: () => {
                 setMenu(null);
                 setDialog({kind: 'delete', row: menu.row});

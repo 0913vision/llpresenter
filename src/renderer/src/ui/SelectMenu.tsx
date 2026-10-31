@@ -1,31 +1,25 @@
 import {useState, type JSX} from 'react';
 import {Menu} from './Menu';
-import type {MenuEntry} from './menuModel';
+import type {MenuAvailability, MenuEntry} from './menuModel';
 import {Select, type SelectProps} from './Select';
 
 /** One choice in a Select list. */
-export interface SelectOption<T extends string> {
+export type SelectOption<T extends string> = MenuAvailability & {
   readonly value: T;
   readonly label: string;
   /** A 14px icon in the leading slot of the list. */
   readonly icon?: string | undefined;
   /** Short extra info at the right end of the list row. */
   readonly meta?: string | undefined;
-  readonly disabled?: boolean | undefined;
-  /** Tooltip text, such as the reason the choice is disabled. */
-  readonly title?: string | undefined;
-}
+};
 
 /** A command below the choices, such as 새 구성, after a separator. */
-export interface SelectAction {
+export type SelectAction = MenuAvailability & {
   readonly id: string;
   readonly label: string;
   readonly icon?: string | undefined;
-  readonly disabled?: boolean | undefined;
-  /** Tooltip text, such as the reason the command is disabled. */
-  readonly title?: string | undefined;
   readonly onSelect: () => void;
-}
+};
 
 export interface SelectMenuProps<T extends string> extends Omit<
   SelectProps,
@@ -49,13 +43,12 @@ function optionEntries<T extends string>(
   onChange: (value: T) => void,
 ): readonly MenuEntry[] {
   return options.map(option => ({
+    ...option,
     kind: 'item',
     id: option.value,
     label: option.label,
     icon: option.icon,
     meta: option.meta,
-    disabled: option.disabled,
-    title: option.title,
     check: 'radio',
     checked: option.value === value,
     onSelect: () => onChange(option.value),
@@ -67,12 +60,11 @@ function actionEntries(actions: readonly SelectAction[]): readonly MenuEntry[] {
   return [
     {kind: 'separator', id: 'actions'},
     ...actions.map((action): MenuEntry => ({
+      ...action,
       kind: 'item',
       id: `action:${action.id}`,
       label: action.label,
       icon: action.icon,
-      disabled: action.disabled,
-      title: action.title,
       onSelect: action.onSelect,
     })),
   ];

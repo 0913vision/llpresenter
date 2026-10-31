@@ -1,5 +1,9 @@
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
@@ -51,7 +55,9 @@ function workspaceRow(
     id: `workspace.${row.id}`,
     label: row.label,
     meta: row.meta,
-    disabled: onWorkspace === undefined,
+    ...menuAvailability(
+      onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+    ),
     onSelect: () => onWorkspace?.(row.id),
   };
 }
@@ -74,7 +80,9 @@ function toolRows(
     kind: 'item',
     id: `tool.${tool}`,
     label: SHOW_TOOLS.find(entry => entry.value === tool)?.label ?? tool,
-    disabled: onWorkspace === undefined,
+    ...menuAvailability(
+      onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+    ),
     onSelect: () => {
       useShowToolTab.getState().setTool(tool);
       onWorkspace?.('show');
@@ -111,7 +119,9 @@ export function workspaceMenu({
       id: 'workspace.media',
       label: '미디어',
       meta: 'Ctrl Shift V',
-      disabled: onMedia === undefined,
+      ...menuAvailability(
+        onMedia === undefined ? '미디어 화면 연결 안 됨' : undefined,
+      ),
       onSelect: onMedia,
     },
     laterRow('calendar', '캘린더'),
@@ -119,7 +129,9 @@ export function workspaceMenu({
       kind: 'item',
       id: 'palette',
       label: '동작 팔레트',
-      disabled: onWorkspace === undefined,
+      ...menuAvailability(
+        onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+      ),
       onSelect: () => {
         useMacroPalette.getState().show();
         useShowToolTab.getState().setTool('macro');

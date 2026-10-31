@@ -4,7 +4,7 @@ import {
   requestMediaImport,
 } from '@renderer/features/media/mediaImport';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import type {MenuItem} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
 
 export function useFileMediaImport(
@@ -58,8 +58,13 @@ export function useFileMediaImport(
     kind: 'item',
     id: 'import-media',
     label: '미디어…',
-    disabled: window.llp === undefined || busy,
-    title: busy ? '미디어를 가져오는 중' : undefined,
+    ...menuAvailability(
+      window.llp === undefined
+        ? '미디어 가져오기 연결 안 됨'
+        : busy
+          ? '미디어를 가져오는 중'
+          : undefined,
+    ),
     onSelect: start,
   };
 }

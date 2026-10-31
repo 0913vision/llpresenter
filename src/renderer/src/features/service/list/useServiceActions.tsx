@@ -1,6 +1,6 @@
 import {useState, type ReactNode} from 'react';
 import {useShow} from '@renderer/session/show';
-import type {MenuItem} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';
 import {NewServiceDialog} from './NewServiceDialog';
@@ -47,8 +47,7 @@ export function useServiceActions({
       id: 'import-items',
       label: '다른 예배에서 가져오기',
       icon: 'listplus',
-      disabled: !hasService,
-      title: hasService ? undefined : NO_SERVICE,
+      ...menuAvailability(hasService ? undefined : NO_SERVICE),
       onSelect: () => open('import'),
     },
     saveTemplate: {
@@ -56,8 +55,15 @@ export function useServiceActions({
       id: 'save-template',
       label: '지금 예배를 템플릿으로 저장',
       icon: 'frame',
-      disabled: !saver.canSave,
-      title: hasService ? undefined : NO_SERVICE,
+      ...menuAvailability(
+        !hasService
+          ? NO_SERVICE
+          : window.llp === undefined
+            ? '예배 순서 연결 안 됨'
+            : !saver.canSave
+              ? '템플릿 저장 진행 중'
+              : undefined,
+      ),
       onSelect: () => {
         onOpen();
         saver.save();

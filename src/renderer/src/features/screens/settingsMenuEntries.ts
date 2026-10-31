@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 
@@ -16,8 +17,7 @@ function actionRow(id: string, label: string, action: MenuAction): MenuItem {
     kind: 'item',
     id,
     label,
-    disabled: action.reason !== undefined,
-    title: action.reason,
+    ...menuAvailability(action.reason),
     onSelect: action.run,
   };
 }

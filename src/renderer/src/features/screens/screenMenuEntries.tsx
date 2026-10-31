@@ -1,3 +1,4 @@
+import {menuAvailability} from '@renderer/ui/menuModel';
 import type {JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
@@ -37,8 +38,7 @@ export function screenAddMenuEntries({
         label: `모니터 ${monitor.number}`,
         meta: `(${sizeText(monitorPixelSize(monitor))})`,
         preview: <MonitorThumbnail layout={layout} number={monitor.number} />,
-        disabled: unavailable !== undefined,
-        title: unavailable,
+        ...menuAvailability(unavailable),
         onSelect: () => add('fullscreen', monitor),
       };
     }),
@@ -47,16 +47,14 @@ export function screenAddMenuEntries({
       kind: 'item',
       id: 'window',
       label: '새 창',
-      disabled: reason !== undefined,
-      title: reason,
+      ...menuAvailability(reason),
       onSelect: () => add('window'),
     },
     {
       kind: 'item',
       id: 'capture',
       label: '새 캡처 창',
-      disabled: reason !== undefined,
-      title: reason,
+      ...menuAvailability(reason),
       onSelect: () => add('capture'),
     },
     {kind: 'group', id: 'ndi', label: 'NDI'},
@@ -91,8 +89,7 @@ export function screenMenuEntries(
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      disabled: actions.reason !== undefined,
-      title: actions.reason,
+      ...menuAvailability(actions.reason),
       onSelect: actions.rename,
     },
     ...(actions.canDelete
@@ -101,8 +98,7 @@ export function screenMenuEntries(
             kind: 'item',
             id: 'delete',
             label: '삭제',
-            disabled: actions.reason !== undefined,
-            title: actions.reason,
+            ...menuAvailability(actions.reason),
             onSelect: actions.remove,
           } as const,
         ]
@@ -111,8 +107,7 @@ export function screenMenuEntries(
       kind: 'item',
       id: 'toggle',
       label: actions.on ? '사용 안 함' : '사용',
-      disabled: actions.outputReason !== undefined,
-      title: actions.outputReason,
+      ...menuAvailability(actions.outputReason),
       onSelect: actions.toggle,
     },
   ];
