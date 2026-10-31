@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useMemo, useState, type JSX} from 'react';
 import {
   isKnownQuickItem,
@@ -88,6 +89,23 @@ export function QuickPanel({
         }
       }),
     [runner],
+  );
+  useWindowShortcuts(
+    items.filter(isKnownQuickItem).map(item => ({
+      id: `quick.${item.id}`,
+      when: () =>
+        quickItemUnavailable(item) === undefined &&
+        timers.reason(item) === undefined,
+      run: () => {
+        runner?.run(item).catch((error: unknown) =>
+          api?.log.write({
+            level: 'error',
+            message: 'Could not run quick shortcut',
+            detail: String(error),
+          }),
+        );
+      },
+    })),
   );
   if (api === undefined) return null;
   return (

@@ -58,6 +58,7 @@ const RESERVED_KEYS: readonly ReservedKey[] = [
   {code: 'Escape', mods: []},
   {code: 'Escape', mods: ['ctrl']},
   {code: 'Enter', mods: []},
+  {code: 'NumpadEnter', mods: []},
   {code: 'Backspace', mods: []},
   {code: 'F10', mods: []},
   {code: 'F10', mods: ['shift']},
@@ -108,12 +109,24 @@ const keyBindingSchema = v.pipe(
   ),
 );
 
-const bindingListSchema = v.array(keyBindingSchema);
+export const MAX_COMMAND_BINDINGS = 16;
+export const MAX_SHORTCUT_COMMANDS = 20_000;
+const commandIdSchema = v.pipe(nonBlankText, v.maxLength(200));
+const bindingListSchema = v.pipe(
+  v.array(keyBindingSchema),
+  v.maxLength(MAX_COMMAND_BINDINGS),
+);
 
 export const shortcutsSchema = jsonObject({
   format: v.literal('llsettings.shortcuts'),
   schemaVersion: positiveInteger,
-  bindings: jsonRecord(nonBlankText, bindingListSchema),
+  bindings: v.pipe(
+    jsonRecord(commandIdSchema, bindingListSchema),
+    v.check(
+      bindings => Object.keys(bindings).length <= MAX_SHORTCUT_COMMANDS,
+      'Too many shortcut commands',
+    ),
+  ),
 });
 
 const shortcutsMigrations: readonly MigrationStep[] = [];
@@ -181,7 +194,7 @@ function dropInvalidBindings(
 
 function bindingProblem(command: string, keys: unknown): DroppedValue | null {
   const field = `bindings.${command}`;
-  const name = checkPart(nonBlankText, command);
+  const name = checkPart(commandIdSchema, command);
   if (!name.ok) {
     return {field, message: name.error.message};
   }

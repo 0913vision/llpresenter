@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useContext, useEffect, useRef, useState, type JSX} from 'react';
@@ -282,6 +283,10 @@ export function MacroPanel({
       () => setSelected(current => (current === item.id ? selected : current)),
     );
   };
+  useWindowShortcuts([
+    {id: 'macro.new', run: create},
+    ...macros.map(item => ({id: `macro.${item.id}`, run: () => start(item)})),
+  ]);
   const createCollection = (): void => {
     const parsed = parseMacroCollectionId(crypto.randomUUID());
     if (locked || !parsed.ok) return;

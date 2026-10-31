@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
+import {useAudioSelection} from './state/audioSelection';
 import {emptyLiveState} from '@core/live/state';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
@@ -16,6 +17,7 @@ import {useLive} from '@renderer/session/live';
 import {AudioTab} from './AudioTab';
 
 afterEach(() => {
+  useAudioSelection.setState({chosen: undefined});
   cleanup();
   delete window.llp;
   useLive.setState({state: null});

@@ -28,6 +28,8 @@ import {
 import {App} from './App';
 import {ControlSession} from './controlSession';
 import {layerContainer} from '@renderer/ui/layers';
+import {stageFixture, STAGE_ID} from '@renderer/features/tools/stageTesting';
+import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -73,6 +75,80 @@ afterEach(async () => {
 });
 
 describe('App', () => {
+  it('runs assigned live-state actions while the stage and notice tabs are closed', async () => {
+    const previousTool = useShowToolTab.getState().tool;
+    const noticeId = '44000000-0000-4000-8000-000000000021';
+    const media = ['44000000-0000-4000-8000-000000000022'];
+    const fixture = stageFixture([
+      settingsDocument('shortcuts', {
+        bindings: {
+          'notice.pauseResume': [{code: 'F8', mods: []}],
+          'stage.hideMessage': [{code: 'F9', mods: []}],
+        },
+      }),
+      settingsDocument('macros', {macros: [], collections: []}),
+      settingsDocument('quick', {items: []}),
+    ]);
+    const startedAt = Date.now();
+    const active = (pausedAt: number | null): void =>
+      fixture.live({
+        stageMessage: '창작 무대 안내',
+        layers: {
+          ...emptyLiveState().layers,
+          notice: {
+            noticeId,
+            playback: {
+              media,
+              position: 0,
+              interval: 8,
+              loop: true,
+              targets: [STAGE_ID],
+              startedAt,
+              pausedAt,
+            },
+          },
+        },
+      });
+    active(null);
+    useShowToolTab.getState().setTool('macro');
+    const session = new ControlSession(window.llp);
+    sessions.push(session);
+    const view = render(
+      <App
+        session={session}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    try {
+      await waitFor(() =>
+        expect(fixture.get).toHaveBeenCalledWith({name: 'shortcuts'}),
+      );
+      expect(screen.queryByRole('textbox', {name: '무대 메시지'})).toBeNull();
+      expect(screen.queryByRole('button', {name: '일시 정지'})).toBeNull();
+      fireEvent.keyDown(document.body, {code: 'F8'});
+      expect(fixture.send).toHaveBeenLastCalledWith({type: 'notice.pause'});
+      act(() => active(Date.now()));
+      fireEvent.keyDown(document.body, {code: 'F8'});
+      expect(fixture.send).toHaveBeenLastCalledWith({
+        type: 'notice.start',
+        noticeId,
+      });
+      fireEvent.keyDown(document.body, {code: 'F9'});
+      expect(fixture.send).toHaveBeenLastCalledWith({
+        type: 'stage.message.set',
+        text: null,
+      });
+      fixture.send.mockClear();
+      act(() => fixture.live({}));
+      fireEvent.keyDown(document.body, {code: 'F8'});
+      fireEvent.keyDown(document.body, {code: 'F9'});
+      expect(fixture.send).not.toHaveBeenCalled();
+    } finally {
+      view.unmount();
+      useShowToolTab.getState().setTool(previousTool);
+    }
+  });
+
   it('scopes the palette to each workspace including portals and restores the previous scope', () => {
     window.llp = mockLlpApi();
     const root = document.documentElement;
@@ -312,11 +388,11 @@ describe('App', () => {
       screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
     ).toBe('true');
     await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
-    expect(screen.getByRole('menuitem', {name: /준비Ctrl R/})).toBeDefined();
-    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
-    await userEvent.click(
-      screen.getByRole('menuitem', {name: /화면 설정…Ctrl Alt 1/}),
+    expect(screen.getByRole('menuitem', {name: '준비'}).textContent).toContain(
+      'Ctrl R',
     );
+    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '화면 설정…'}));
     expect(
       screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
     ).toBe('true');

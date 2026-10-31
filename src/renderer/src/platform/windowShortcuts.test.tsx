@@ -74,7 +74,7 @@ describe('window shortcuts', () => {
     'releases pointer drag precedence after %s',
     ending => {
       const run = vi.fn();
-      renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
+      renderHook(() => useWindowShortcuts([{id: 'workspace.prep', run}]));
       fireEvent.pointerDown(document.body, {
         pointerId: 1,
         button: 0,
@@ -93,7 +93,7 @@ describe('window shortcuts', () => {
 
   it('matches physical modifiers exactly and swallows held repeats without rerunning', () => {
     const run = vi.fn();
-    renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
+    renderHook(() => useWindowShortcuts([{id: 'workspace.prep', run}]));
     expect(press().defaultPrevented).toBe(true);
     expect(press({repeat: true}).defaultPrevented).toBe(true);
     for (const modifiers of [
@@ -109,7 +109,7 @@ describe('window shortcuts', () => {
 
   it('passes commands to a composing field, including key events without the composition flag', () => {
     const run = vi.fn();
-    renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
+    renderHook(() => useWindowShortcuts([{id: 'workspace.prep', run}]));
     press({isComposing: true});
     fireEvent.compositionStart(document.body);
     press();
@@ -121,7 +121,7 @@ describe('window shortcuts', () => {
 
   it('leaves a recorder, open menu, modal, and drag in control', () => {
     const run = vi.fn();
-    renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
+    renderHook(() => useWindowShortcuts([{id: 'workspace.prep', run}]));
     const recorder = document.createElement('input');
     recorder.setAttribute('data-shortcut-recording', '');
     document.body.append(recorder);
@@ -151,7 +151,7 @@ describe('window shortcuts', () => {
     const first = vi.fn();
     const second = vi.fn();
     const view = renderHook(
-      ({run}) => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]),
+      ({run}) => useWindowShortcuts([{id: 'workspace.prep', run}]),
       {initialProps: {run: first}},
     );
     view.rerender({run: second});

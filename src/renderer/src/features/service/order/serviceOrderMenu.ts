@@ -133,11 +133,12 @@ export function serviceOrderMenuEntries(
     menuSeparator('clipboard-separator'),
     laterRow('copy', '복사', {meta: 'Ctrl C'}),
     laterRow('paste', '붙여넣기', {meta: 'Ctrl V'}),
-    laterRow('duplicate', '복제', {meta: 'Ctrl D'}),
+    laterRow('duplicate', '복제', {command: 'edit.duplicate'}),
     ...renameRow(input),
     {
       kind: 'item',
       id: 'delete',
+      command: 'edit.delete',
       label: '삭제',
       danger: true,
       ...menuAvailability(input.editable ? undefined : '예배 순서 편집 불가'),

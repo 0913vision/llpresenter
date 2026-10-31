@@ -1,8 +1,10 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {sendLive, useLive} from '@renderer/session/live';
 import {Button, LiveBadge, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
+import {hideStageMessage} from './toolCommands';
 import styles from './StageTab.module.css';
 
 const MAX_PRESETS = 50;
@@ -31,6 +33,7 @@ export function StageMessage({
       sendLive({type: 'stage.message.set', text: value.trim()});
     }
   };
+  useWindowShortcuts([{id: 'stage.sendMessage', run: () => send(text)}]);
   return (
     <section aria-label="무대 메시지" className={styles.message}>
       <div className={styles.heading}>
@@ -46,7 +49,16 @@ export function StageMessage({
           onChange={setText}
           maxLength={LIVE_STATE_LIMITS.textCharacters}
           onKeyDown={event => {
-            if (event.key !== 'Enter' || isComposing(event)) return;
+            if (
+              event.code !== 'Enter' ||
+              event.ctrlKey ||
+              event.altKey ||
+              event.shiftKey ||
+              event.metaKey ||
+              isComposing(event)
+            ) {
+              return;
+            }
             event.preventDefault();
             event.stopPropagation();
             if (event.repeat) return;
@@ -56,7 +68,7 @@ export function StageMessage({
         <Button
           disabled={!live}
           title={!live ? '표시 중인 무대 메시지가 없습니다' : undefined}
-          onClick={() => sendLive({type: 'stage.message.set', text: null})}
+          onClick={hideStageMessage}
         >
           내리기
         </Button>

@@ -1,3 +1,4 @@
+import {deletedObjectShortcuts} from '@core/shortcuts/deletion';
 import type {
   SettingsListener,
   SettingsReader,
@@ -275,8 +276,16 @@ export class SettingsStore implements SettingsReader {
     if (this.disposed || saving === undefined || saves === null) {
       return Promise.resolve(refuse('not-found', 'Settings are unavailable'));
     }
+    const shortcuts = deletedObjectShortcuts(this.documents, documents);
+    const changes =
+      shortcuts === null
+        ? documents
+        : [
+            ...documents.filter(document => document.name !== 'shortcuts'),
+            shortcuts,
+          ];
     const requests: SaveRequest[] = [];
-    for (const document of documents) {
+    for (const document of changes) {
       const file = join(saving.folder, settingsFileName(document.name));
       const text = settingsCodecs[document.name].serialize(
         document.value,
@@ -290,11 +299,11 @@ export class SettingsStore implements SettingsReader {
         text: text.value,
       });
     }
-    for (const document of documents) {
+    for (const document of changes) {
       this.documents.set(document.name, document);
     }
     const written = requests.map(request => saves.save(request));
-    for (const document of documents) this.announce(document);
+    for (const document of changes) this.announce(document);
     if (documents.length === 0 && completion === 'saved') {
       return saves.retryPending().then(results =>
         this.commitResult(

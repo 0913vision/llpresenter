@@ -1,5 +1,6 @@
 import {useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
+import {PhysicalModifiers} from '@core/shortcuts/matching';
 import {classNames} from './classNames';
 import {shortcutPress} from './shortcutKeys';
 import {shortcutRecordingProps} from './shortcutRecording';
@@ -34,12 +35,14 @@ export function ShortcutField({
   ...rest
 }: ShortcutFieldProps): JSX.Element {
   const recording = useRef(true);
+  const modifiers = useRef(new PhysicalModifiers());
   const altOnly = useRef(false);
   const [active, setActive] = useState(true);
   const [reason, setReason] = useState<string>();
 
   const finish = (input: HTMLInputElement, action: () => void): void => {
     recording.current = false;
+    modifiers.current.reset();
     altOnly.current = false;
     setActive(false);
     input.blur();
@@ -48,7 +51,10 @@ export function ShortcutField({
 
   const keyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (!recording.current) return;
-    const press = shortcutPress(event.nativeEvent);
+    modifiers.current.press(event.code);
+    const press = modifiers.current.isInputMethod(event.nativeEvent)
+      ? {kind: 'reject' as const, reason: '입력기에 쓰는 키'}
+      : shortcutPress(event.nativeEvent);
     if (press.kind === 'tab') return;
     event.stopPropagation();
     event.preventDefault();
@@ -100,6 +106,7 @@ export function ShortcutField({
       }}
       onKeyDown={keyDown}
       onKeyUp={event => {
+        modifiers.current.release(event.code);
         if (!recording.current) return;
         event.preventDefault();
         event.stopPropagation();

@@ -100,8 +100,8 @@ export function ImportedSongActions({
   };
   useWindowShortcuts([
     {
-      code: 'KeyS',
-      ctrl: true,
+      id: 'import.save',
+      context: 'import',
       when: () => state.imported,
       run: () => editorTask(beginSave()),
     },

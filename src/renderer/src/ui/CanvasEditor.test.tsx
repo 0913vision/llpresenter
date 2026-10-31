@@ -357,8 +357,12 @@ it('snaps scaled pointer moves while leaving numeric values and arrows precise',
   fireEvent.pointerMove(canvas, {pointerId: 5, clientX: 13, clientY: 7});
   fireEvent.pointerUp(canvas, {pointerId: 5});
   await waitFor(() => expect(frame()).toMatchObject({x: 120, y: 120}));
-  fireEvent.keyDown(canvas, {key: 'ArrowRight'});
-  fireEvent.keyDown(canvas, {key: 'ArrowDown', shiftKey: true});
+  fireEvent.keyDown(canvas, {key: 'ArrowRight', code: 'ArrowRight'});
+  fireEvent.keyDown(canvas, {
+    key: 'ArrowDown',
+    code: 'ArrowDown',
+    shiftKey: true,
+  });
   expect(mockActions.nudge.mock.calls).toEqual([
     ['first', {x: 1, y: 0}],
     ['first', {x: 0, y: 10}],
@@ -437,7 +441,10 @@ it('cancels a draft on Escape and keeps read-only elements selectable', async ()
     screen.getByRole('button', {name: '요소'}).getAttribute('aria-pressed'),
   ).toBe('true');
   expect(screen.queryAllByRole('button', {name: /크기 조절/})).toHaveLength(0);
-  fireEvent.keyDown(screen.getByLabelText('테스트 캔버스'), {key: 'Delete'});
+  fireEvent.keyDown(screen.getByLabelText('테스트 캔버스'), {
+    key: 'Delete',
+    code: 'Delete',
+  });
   expect(readOnly.edit).not.toHaveBeenCalled();
   const grid = screen.getByRole('button', {name: '격자에 맞추기'});
   expect(grid.getAttribute('aria-disabled')).toBe('true');

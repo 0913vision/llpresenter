@@ -24,7 +24,7 @@ function ClearButton({
     spec.target === 'all' ? `${styles.button} ${styles.all}` : styles.button;
   const {targetProps, tooltip} = useTooltip({
     text: name,
-    shortcut: spec.shortcut,
+    command: spec.command,
   });
   return (
     <>
@@ -48,7 +48,10 @@ function ClearButton({
 
 function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
   const canUndo = useCanUndo();
-  const {targetProps, tooltip} = useTooltip({text: '되돌리기'});
+  const {targetProps, tooltip} = useTooltip({
+    text: '되돌리기',
+    command: 'clear.undo',
+  });
   return (
     <>
       <button

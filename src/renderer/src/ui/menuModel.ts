@@ -20,6 +20,7 @@ interface MenuItemContent {
   readonly preview?: ReactNode | undefined;
   /** A date or a shortcut at the right end, such as `Ctrl Z`. */
   readonly meta?: string | undefined;
+  readonly command?: string | undefined;
   /** Makes it a choice; `checked` puts a check mark in the left padding. */
   readonly check?: MenuCheckKind | undefined;
   readonly checked?: boolean | undefined;

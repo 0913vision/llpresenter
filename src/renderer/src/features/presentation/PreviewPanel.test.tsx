@@ -15,6 +15,10 @@ import {
 import {PreviewPanel} from './PreviewPanel';
 import {seedSampleService} from '../../session/testing/sampleService';
 import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
+import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
+import type {ScreenSummary} from '@renderer/platform/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 
 interface Instance {
   readonly parent: HTMLElement;
@@ -106,10 +110,60 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  commandBindingStore.set({});
   delete window.llp;
 });
 
 describe('PreviewPanel layout', () => {
+  it('runs an assigned screen-preview shortcut through the same selection action without output', () => {
+    const send = vi.fn();
+    window.llp = mockLlpApi({live: {send}});
+    const summaries: readonly ScreenSummary[] = [
+      {
+        id: STARTER_SCREEN_IDS.main,
+        icon: 'mplay',
+        toolbarLabel: '본 화면',
+        statusLabel: '본 화면',
+        target: '창',
+        targetKind: 'window',
+        chroma: false,
+      },
+      {
+        id: STARTER_SCREEN_IDS.stage,
+        icon: 'mplay',
+        toolbarLabel: '무대',
+        statusLabel: '무대 화면',
+        target: '창',
+        targetKind: 'window',
+        chroma: false,
+        kind: 'stage',
+      },
+    ];
+    commandBindingStore.set({
+      [`preview.focus.${STARTER_SCREEN_IDS.stage}`]: [
+        {code: 'KeyP', mods: ['ctrl', 'alt']},
+      ],
+    });
+    showLarge(STARTER_SCREEN_IDS.main);
+    const {container} = render(
+      <ScreenSummariesContext value={summaries}>
+        <PreviewPanel compact={false} />
+      </ScreenSummariesContext>,
+    );
+    fireEvent.keyDown(document.body, {
+      code: 'KeyP',
+      ctrlKey: true,
+      altKey: true,
+    });
+    expect(usePreview.getState().largeScreenId).toBe(STARTER_SCREEN_IDS.stage);
+    expect(screensWithRole(container, 'large')).toEqual([
+      STARTER_SCREEN_IDS.stage,
+    ]);
+    fireEvent.click(screen.getByRole('button', {name: /본 화면/}));
+    expect(usePreview.getState().largeScreenId).toBe(STARTER_SCREEN_IDS.main);
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('shows the 본 화면 large and the other two small, in order', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);

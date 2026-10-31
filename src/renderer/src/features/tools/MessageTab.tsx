@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
   useState,
@@ -111,6 +112,17 @@ function Composer({
     targets,
     screenCount: screens.length,
   });
+  const send = (): void => {
+    if (ready.reason === undefined) {
+      sendLive({
+        type: 'message.send',
+        text: ready.text,
+        targets,
+        duration,
+      });
+    }
+  };
+  useWindowShortcuts([{id: 'message.send', run: send}]);
   const durations = [
     {value: 'until', label: '계속'},
     ...[30, 60, 120].map(value => ({
@@ -200,16 +212,7 @@ function Composer({
               event.stopPropagation();
             }
           }}
-          onClick={() => {
-            if (ready.reason === undefined) {
-              sendLive({
-                type: 'message.send',
-                text: ready.text,
-                targets,
-                duration,
-              });
-            }
-          }}
+          onClick={send}
         >
           보내기
         </Button>

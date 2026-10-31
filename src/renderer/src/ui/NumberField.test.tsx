@@ -75,8 +75,8 @@ function DecimalField({
 
 function ShortcutField({run}: {readonly run: () => void}): JSX.Element {
   useWindowShortcuts([
-    {code: 'KeyS', ctrl: true, run},
-    {code: 'KeyE', ctrl: true, run},
+    {id: 'workspace.show', run},
+    {id: 'workspace.prep', run},
   ]);
   return <Copies updateOn="commit" />;
 }

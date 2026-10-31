@@ -106,7 +106,8 @@ const ENDED = new Set(['complete', 'failed', 'cancelled']);
 
 // NOTE(0913vision): Jobs copy real files, which can take over the default
 // second when the whole suite runs at once.
-const JOB_END_TIMEOUT_MS = 5_000;
+// NOTE(0913vision): Real file copies can wait behind concurrent Windows I/O.
+const JOB_END_TIMEOUT_MS = 30_000;
 
 async function ended(reports: readonly MediaImportProgress[], count: number) {
   await vi.waitFor(

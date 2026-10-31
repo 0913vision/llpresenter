@@ -18,10 +18,6 @@ export interface ClearButtonSpec {
   readonly label: string;
   /** The file name of the icon in `ui/icons/`. */
   readonly icon: string;
-  /** The `KeyboardEvent.code` of the shortcut. */
-  readonly code: string;
-  /** The shortcut as it is written in tooltips and `aria-keyshortcuts`. */
-  readonly shortcut: string;
 }
 
 /** The buttons of the 지우기 row, in the order of the design system. */
@@ -31,56 +27,42 @@ export const clearButtons: readonly ClearButtonSpec[] = [
     target: 'all',
     label: '모두',
     icon: 'layers',
-    code: 'F1',
-    shortcut: 'F1',
   },
   {
     command: 'clear.slide',
     target: 'slide',
     label: '가사',
     icon: 'text',
-    code: 'F2',
-    shortcut: 'F2',
   },
   {
     command: 'clear.media',
     target: 'media',
     label: '미디어',
     icon: 'image',
-    code: 'F3',
-    shortcut: 'F3',
   },
   {
     command: 'clear.prop',
     target: 'prop',
     label: '그래픽',
     icon: 'prop',
-    code: 'F4',
-    shortcut: 'F4',
   },
   {
     command: 'clear.audio',
     target: 'audio',
     label: '오디오',
     icon: 'audio',
-    code: 'F5',
-    shortcut: 'F5',
   },
   {
     command: 'clear.message',
     target: 'message',
     label: '메시지',
     icon: 'msg',
-    code: 'F6',
-    shortcut: 'F6',
   },
   {
     command: 'clear.notice',
     target: 'notice',
     label: '공지',
     icon: 'notice',
-    code: 'F7',
-    shortcut: 'F7',
   },
 ];
 

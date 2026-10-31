@@ -82,7 +82,14 @@ function SongBlocks({
     menu?.block,
   );
   const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.key !== 'Tab' || focus.current.composing || isComposing(event)) {
+    if (
+      event.code !== 'Tab' ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey ||
+      focus.current.composing ||
+      isComposing(event)
+    ) {
       return;
     }
     const target = event.target;

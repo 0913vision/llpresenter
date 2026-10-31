@@ -1,3 +1,4 @@
+import {useCommandShortcuts} from './commandDispatcher';
 import {
   useLayoutEffect,
   useRef,
@@ -112,6 +113,78 @@ export function CanvasEditor<T extends CanvasElement>({
   } | null>(null);
   const gesture = useRef<Gesture | null>(null);
   const canvas = useRef<HTMLDivElement>(null);
+  const ownsCommand = (event: KeyboardEvent): boolean =>
+    event.target instanceof Node &&
+    canvas.current?.contains(event.target) === true &&
+    !readOnly &&
+    gesture.current === null;
+  const nudge = (x: number, y: number): void => {
+    if (selected === null) return;
+    setDraft(null);
+    actions.nudge(selected, {x, y});
+  };
+  useCommandShortcuts([
+    {
+      id: 'edit.delete',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => {
+        if (selected === null) return;
+        setDraft(null);
+        actions.remove(selected);
+        select(null);
+      },
+    },
+    {
+      id: 'stageEditor.moveLeft',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(-1, 0),
+    },
+    {
+      id: 'stageEditor.moveLeftLarge',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(-10, 0),
+    },
+    {
+      id: 'stageEditor.moveRight',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(1, 0),
+    },
+    {
+      id: 'stageEditor.moveRightLarge',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(10, 0),
+    },
+    {
+      id: 'stageEditor.moveUp',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(0, -1),
+    },
+    {
+      id: 'stageEditor.moveUpLarge',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(0, -10),
+    },
+    {
+      id: 'stageEditor.moveDown',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(0, 1),
+    },
+    {
+      id: 'stageEditor.moveDownLarge',
+      context: 'canvas',
+      when: ownsCommand,
+      run: () => nudge(0, 10),
+    },
+  ]);
+
   const active = useRef(true);
   const saveSequence = useRef(0);
   useLayoutEffect(() => {
@@ -232,6 +305,7 @@ export function CanvasEditor<T extends CanvasElement>({
       <div ref={watchSpace} className={styles.space}>
         <div
           ref={canvas}
+          data-command-context="canvas"
           className={styles.canvas}
           style={{width: size.width, height: size.height}}
           data-canvas
@@ -292,43 +366,6 @@ export function CanvasEditor<T extends CanvasElement>({
             if (event.key === 'Escape') {
               stop(false);
               return;
-            }
-            if (
-              readOnly ||
-              gesture.current !== null ||
-              event.repeat ||
-              event.ctrlKey ||
-              event.altKey ||
-              event.metaKey
-            ) {
-              return;
-            }
-            const element = layout.elements.find(
-              element => element.id === selected,
-            );
-            if (element === undefined) return;
-            if (event.key === 'Delete') {
-              setDraft(null);
-              event.preventDefault();
-              actions.remove(element.id);
-              select(null);
-              return;
-            }
-            const step = event.shiftKey ? 10 : 1;
-            const delta = {
-              ArrowLeft: {x: -step, y: 0},
-              ArrowRight: {x: step, y: 0},
-              ArrowUp: {x: 0, y: -step},
-              ArrowDown: {x: 0, y: step},
-            };
-            if (!(event.key in delta)) return;
-            const direction = Object.entries(delta).find(
-              ([key]) => key === event.key,
-            )?.[1];
-            if (direction !== undefined) {
-              setDraft(null);
-              event.preventDefault();
-              actions.nudge(element.id, direction);
             }
           }}
           onKeyUp={event => {

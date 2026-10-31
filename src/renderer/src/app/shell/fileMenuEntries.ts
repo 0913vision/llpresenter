@@ -1,3 +1,4 @@
+import {shortcutText} from '@renderer/ui/commandBindings';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
 import {
@@ -25,7 +26,10 @@ function textImportRow(
     kind: 'item',
     id: `import:${source}`,
     label: source === 'file' ? '텍스트 파일…' : '클립보드 텍스트…',
-    meta: source === 'file' ? 'Ctrl Shift I' : undefined,
+    command: source === 'file' ? 'import.textFile' : 'import.clipboard',
+    meta: shortcutText(
+      source === 'file' ? 'import.textFile' : 'import.clipboard',
+    ),
     ...menuAvailability(
       onImportText === undefined
         ? '텍스트 가져오기를 준비 중입니다'
@@ -42,8 +46,8 @@ function textImportRow(
 export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
   const {service, media} = input;
   return [
-    laterRow('new-song', '새 곡'),
-    {...service.newService, icon: undefined},
+    laterRow('new-song', '새 곡', {command: 'library.newSong'}),
+    {...service.newService, command: 'service.new', icon: undefined},
     laterRow('new-library', '새 라이브러리'),
     {
       kind: 'item',
@@ -52,9 +56,14 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
       submenu: [
         textImportRow(input, 'file'),
         laterRow('import-library', '라이브러리…'),
-        media,
+        {...media, command: 'media.import'},
         textImportRow(input, 'clipboard'),
-        {...service.importItems, label: '다른 예배…', icon: undefined},
+        {
+          ...service.importItems,
+          command: 'service.importItems',
+          label: '다른 예배…',
+          icon: undefined,
+        },
         menuSeparator('providers'),
         laterRow('multitracks', 'MultiTracks…'),
         laterRow('songselect', 'SongSelect…'),
@@ -68,6 +77,7 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
     laterRow('export', '내보내기', {submenu: true}),
     {
       ...service.saveTemplate,
+      command: 'service.saveAsTemplate',
       label: '예배를 템플릿으로 저장…',
       icon: undefined,
     },

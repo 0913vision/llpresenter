@@ -249,13 +249,13 @@ describe('stage tool', () => {
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '  마지막 후렴  '}});
     fireEvent.click(screen.getByRole('button', {name: '보내기'}));
-    fireEvent.keyDown(input, {key: 'Enter', isComposing: true});
+    fireEvent.keyDown(input, {key: 'Enter', code: 'Enter', isComposing: true});
     fireEvent.keyDown(input, {key: 'Process'});
     expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
       type: 'stage.message.set',
       text: '마지막 후렴',
     });
-    fireEvent.keyDown(input, {key: 'Enter'});
+    fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
     expect(fixture.send).toHaveBeenCalledTimes(2);
     expect(fixture.send.mock.calls[1]).toEqual(fixture.send.mock.calls[0]);
   });
@@ -272,7 +272,12 @@ describe('stage tool', () => {
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '마지막 후렴'}});
     const enter = (repeat: boolean): boolean =>
-      fireEvent.keyDown(input, {key: 'Enter', repeat, cancelable: true});
+      fireEvent.keyDown(input, {
+        key: 'Enter',
+        code: 'Enter',
+        repeat,
+        cancelable: true,
+      });
     expect(enter(false)).toBe(false);
     expect(enter(true)).toBe(false);
     expect(enter(true)).toBe(false);
@@ -281,7 +286,7 @@ describe('stage tool', () => {
       text: '마지막 후렴',
     });
     expect(bubbled).not.toHaveBeenCalled();
-    fireEvent.keyUp(input, {key: 'Enter'});
+    fireEvent.keyUp(input, {key: 'Enter', code: 'Enter'});
     expect(enter(false)).toBe(false);
     expect(fixture.send).toHaveBeenCalledTimes(2);
     expect(bubbled).not.toHaveBeenCalled();
@@ -301,12 +306,12 @@ describe('stage tool', () => {
       const send = screen.getByRole('button', {name: '보내기'});
       expect(send.getAttribute('aria-disabled')).toBe('true');
       fireEvent.click(send);
-      fireEvent.keyDown(input, {key: 'Enter'});
+      fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
     }
     expect(fixture.send).not.toHaveBeenCalled();
     const text = 'x'.repeat(LIVE_STATE_LIMITS.textCharacters);
     fireEvent.change(input, {target: {value: text}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
     expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
       type: 'stage.message.set',
       text,
@@ -368,7 +373,7 @@ describe('stage tool', () => {
     act(() => fixture.push(settingsDocument('screens', {screens: []}, 2)));
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '마지막 후렴'}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
     fireEvent.click(screen.getByRole('button', {name: '보내기'}));
     fireEvent.click(screen.getByRole('button', {name: '마무리'}));
     expect(fixture.send).not.toHaveBeenCalled();

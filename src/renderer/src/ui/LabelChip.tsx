@@ -1,3 +1,4 @@
+import {useCommandShortcuts} from './commandDispatcher';
 import {
   useEffectEvent,
   useLayoutEffect,
@@ -10,7 +11,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
-import {hasModifier, isAltOnly} from './modifierKeys';
+import {hasModifier} from './modifierKeys';
 import {useButtonPress} from './press';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './LabelChip.module.css';
@@ -82,11 +83,6 @@ const selectKeys: Readonly<Record<string, StripKey>> = {
   End: (_index, count) => count - 1,
 };
 
-const moveKeys: Readonly<Record<string, -1 | 1>> = {
-  ArrowLeft: -1,
-  ArrowRight: 1,
-};
-
 interface ChipKeyActions {
   readonly count: number;
   readonly readOnly: boolean;
@@ -127,18 +123,8 @@ function handleChipKey(
   index: number,
   actions: ChipKeyActions,
 ): boolean {
-  const {count, readOnly, select, onMove, onRemove} = actions;
-  const step = moveKeys[event.key];
-  if (step !== undefined && isAltOnly(event)) {
-    const to = index + step;
-    if (!readOnly && to >= 0 && to < count) onMove(index, to);
-    return true;
-  }
+  const {count, select} = actions;
   if (hasModifier(event)) return false;
-  if (event.key === 'Delete') {
-    if (!readOnly) onRemove(index);
-    return true;
-  }
   const target = selectKeys[event.key];
   if (target === undefined) return false;
   select(target(index, count));
@@ -204,6 +190,46 @@ export function ArrangementStrip({
     onRemove?.(index);
     if (next !== null) onSelect(next);
   };
+  const ownsCommand = (event: globalThis.KeyboardEvent): boolean =>
+    chipElements.current.some(
+      element => element !== null && element === event.target,
+    );
+  const runCommand = (
+    action: 'left' | 'right' | 'delete',
+    event: globalThis.KeyboardEvent,
+  ): void => {
+    const index = chipElements.current.findIndex(
+      element => element === event.target,
+    );
+    if (readOnly || index < 0) return;
+    if (action === 'delete') {
+      remove(index);
+      return;
+    }
+    const to = index + (action === 'left' ? -1 : 1);
+    if (to >= 0 && to < chips.length) move(index, to);
+  };
+  useCommandShortcuts([
+    {
+      id: 'arrangement.moveLeft',
+      context: 'arrangement',
+      when: ownsCommand,
+      run: event => runCommand('left', event),
+    },
+    {
+      id: 'arrangement.moveRight',
+      context: 'arrangement',
+      when: ownsCommand,
+      run: event => runCommand('right', event),
+    },
+    {
+      id: 'edit.delete',
+      context: 'arrangement',
+      when: ownsCommand,
+      run: event => runCommand('delete', event),
+    },
+  ]);
+
   const onKeyDown = (
     index: number,
     event: KeyboardEvent<HTMLButtonElement>,
@@ -222,6 +248,7 @@ export function ArrangementStrip({
     <div className={styles.strip}>
       <div
         role="listbox"
+        data-command-context="arrangement"
         aria-label={label}
         aria-orientation="horizontal"
         aria-readonly={readOnly ? true : undefined}

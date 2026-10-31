@@ -1,4 +1,5 @@
-import {useMemo, useState, type JSX} from 'react';
+import {useAudioSelection} from './state/audioSelection';
+import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/session/live';
 import {SelectMenu, Switch} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
@@ -23,7 +24,7 @@ export function AudioTab({
   const api = window.llp;
   const document = useAudioMedia(onProblem);
   const missing = useAudioMissing(onProblem);
-  const [chosen, setChosen] = useState<AudioPlaylistId | undefined>();
+  const {chosen, setChosen} = useAudioSelection();
   const playlists = document?.value.audioPlaylists ?? [];
   const selected =
     playlists.find(playlist => playlist.id === chosen) ?? playlists[0];

@@ -19,6 +19,7 @@ export function laterRow(
     readonly submenu?: boolean | undefined;
     /** A shortcut shown at the right, as ProPresenter shows it. */
     readonly meta?: string | undefined;
+    readonly command?: string | undefined;
   } = {},
 ): MenuItem {
   return {
@@ -27,6 +28,7 @@ export function laterRow(
     label,
     icon: options.icon,
     meta: options.meta,
+    command: options.command,
     disabled: true,
     title: NOT_YET,
     submenu: options.submenu === true ? [] : undefined,

@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
   useCallback,
@@ -146,25 +147,50 @@ export const SongBlock = memo(
       });
     };
 
+    useWindowShortcuts([
+      ...(
+        [
+          'edit.undo',
+          'edit.redo',
+          'editor.newSlide',
+          'editor.splitSlide',
+          'editor.labelMenu',
+        ] as const
+      ).map(id => ({
+        id,
+        context: 'song' as const,
+        when: (event: globalThis.KeyboardEvent) =>
+          !locked &&
+          !focus.current.composing &&
+          event.target === focus.current.inputs[block] &&
+          (id !== 'editor.labelMenu' || editable),
+        run: () => {
+          const input = focus.current.inputs[block];
+          if (input === null || input === undefined) return;
+          select(input);
+          if (id === 'editor.labelMenu') {
+            onOpen(
+              splitButtonRef.current ?? labelButtonRef.current ?? input,
+              block,
+            );
+            return;
+          }
+          focus.current.requested = true;
+          focus.current.target = 'lyrics';
+          session.edit(
+            id === 'edit.undo'
+              ? 'undo'
+              : id === 'edit.redo'
+                ? 'redo'
+                : {type: id === 'editor.newSlide' ? 'insert' : 'split'},
+          );
+        },
+      })),
+    ]);
+
     const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
       if (locked || focus.current.composing || isComposing(event)) return;
       select(event.currentTarget);
-      if (
-        editable &&
-        event.code === 'KeyG' &&
-        event.ctrlKey &&
-        !event.altKey &&
-        !event.shiftKey
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        const anchor =
-          splitButtonRef.current ??
-          labelButtonRef.current ??
-          event.currentTarget;
-        onOpen(anchor, block);
-        return;
-      }
       const command = editorCommand(event);
       const adjacent = adjacentBlock(
         event,

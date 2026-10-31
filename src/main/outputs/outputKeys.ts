@@ -65,7 +65,7 @@ export function forwardOutputKeys(
       cancelable: true,
     };
     pending.push(
-      `(document.activeElement ?? window).dispatchEvent(new KeyboardEvent(${JSON.stringify(input.type.toLowerCase())},${JSON.stringify(init)}))`,
+      `(()=>{const event=new KeyboardEvent(${JSON.stringify(input.type.toLowerCase())},${JSON.stringify(init)});Object.defineProperty(event,'llpOutput',{value:true});document.body.dispatchEvent(event)})()`,
     );
     send().catch(report);
   };

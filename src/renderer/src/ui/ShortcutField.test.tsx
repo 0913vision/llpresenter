@@ -14,6 +14,7 @@ import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 vi.mock('@renderer/session/clear', () => ({
   clearLayer: vi.fn(),
+  undoClear: vi.fn(),
 }));
 import {clearLayer} from '@renderer/session/clear';
 
@@ -37,6 +38,21 @@ function setup() {
 }
 
 describe('ShortcutField', () => {
+  it('does not record a chord held with the Korean right Alt or Ctrl', () => {
+    const {field, onRecord} = setup();
+    fireEvent.keyDown(field, {code: 'AltRight', altKey: true});
+    fireEvent.keyDown(field, {code: 'KeyK', altKey: true});
+    fireEvent.keyUp(field, {code: 'AltRight'});
+    fireEvent.keyDown(field, {code: 'ControlRight', ctrlKey: true});
+    fireEvent.keyDown(field, {code: 'KeyK', ctrlKey: true});
+    expect(onRecord).not.toHaveBeenCalled();
+    fireEvent.keyUp(field, {code: 'ControlRight'});
+    fireEvent.keyDown(field, {code: 'KeyK', ctrlKey: true});
+    expect(onRecord).toHaveBeenCalledExactlyOnceWith({
+      code: 'KeyK',
+      mods: ['ctrl'],
+    });
+  });
   it('marks a mounted session before its first focus notification', () => {
     const onRecord = vi.fn();
     render(

@@ -1,3 +1,4 @@
+import {useShortcutText} from './commandBindings';
 import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useRef, type JSX} from 'react';
 import {Icon} from './Icon';
@@ -9,7 +10,7 @@ import {
   type MenuEntry,
   type MenuItem,
 } from './menuModel';
-import {titleTooltip, useTooltip} from './Tooltip';
+import {ariaShortcut, titleTooltip, useTooltip} from './Tooltip';
 import styles from './Menu.module.css';
 import {useInputCompletion, type InputCompletion} from './useInputCompletion';
 import {useFieldReason} from './fieldFrame';
@@ -94,6 +95,8 @@ export function MenuItemRow({
   onLeave,
   onRun,
 }: MenuItemRowProps): JSX.Element {
+  const shortcut = useShortcutText(item.command);
+  const meta = item.command === undefined ? item.meta : shortcut;
   const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
   const row = useRef<HTMLDivElement>(null);
   const finishRename = (): void => {
@@ -111,6 +114,11 @@ export function MenuItemRow({
       }}
       id={id}
       role={menuItemRole(item)}
+      aria-keyshortcuts={
+        item.command === undefined || shortcut === undefined
+          ? undefined
+          : ariaShortcut(shortcut)
+      }
       aria-checked={
         item.check === undefined ? undefined : item.checked === true
       }
@@ -175,8 +183,13 @@ export function MenuItemRow({
           />
         )}
       </span>
-      {item.meta === undefined ? null : (
-        <span className={styles.meta}>{item.meta}</span>
+      {meta === undefined ? null : (
+        <span
+          className={styles.meta}
+          aria-hidden={item.command === undefined ? undefined : true}
+        >
+          {meta}
+        </span>
       )}
       {hasSubmenu ? (
         <Icon name="right" size={CHEVRON_SIZE} className={styles.chevron} />

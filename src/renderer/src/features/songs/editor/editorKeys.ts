@@ -1,30 +1,11 @@
 import type {KeyboardEvent} from 'react';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 
-type EditorCommand = BlockCommand | 'undo' | 'redo';
-
-/** Ctrl Z undoes a song edit, and Ctrl Y or Ctrl Shift Z redoes it. */
-export function historyCommand(
-  event: KeyboardEvent,
-): 'undo' | 'redo' | undefined {
-  if (!event.ctrlKey || event.altKey || event.metaKey) return undefined;
-  if (event.code === 'KeyZ') return event.shiftKey ? 'redo' : 'undo';
-  if (event.code === 'KeyY' && !event.shiftKey) return 'redo';
-  return undefined;
-}
-
-/** Editing commands use physical modifier keys and leave Alt/IME to Windows. */
+/** Field-local line breaks and block merging keep their native keys. */
 export function editorCommand(
   event: KeyboardEvent<HTMLTextAreaElement>,
-): EditorCommand | undefined {
-  if (event.altKey || event.metaKey) return undefined;
-  if (event.ctrlKey) {
-    const history = historyCommand(event);
-    if (history !== undefined) return history;
-    if (event.code === 'KeyN' && event.shiftKey) return {type: 'insert'};
-    if (event.key === 'Enter' && !event.shiftKey) return {type: 'split'};
-    return undefined;
-  }
+): BlockCommand | undefined {
+  if (event.ctrlKey || event.altKey || event.metaKey) return undefined;
   if (event.shiftKey) return undefined;
   if (event.key === 'Enter') return {type: 'enter'};
   const {selectionStart, selectionEnd} = event.currentTarget;

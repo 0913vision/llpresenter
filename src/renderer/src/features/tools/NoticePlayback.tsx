@@ -12,6 +12,7 @@ import {sendLive, useLive} from '@renderer/session/live';
 import {clearLayer} from '@renderer/session/clear';
 import {Button, MediaTile, TileList, gridMoves} from '@renderer/ui';
 import {noticeReason} from './noticeEdits';
+import {toggleNotice} from './toolCommands';
 import styles from './NoticePlayback.module.css';
 
 function usePosition(playback: Playback | undefined): number | undefined {
@@ -47,10 +48,7 @@ export function NoticePlayback({
   const position = usePosition(playback);
   const paused = playback?.pausedAt !== null && playback !== undefined;
   const reason = noticeReason(item);
-  const toggle = (): void => {
-    if (playback && !paused) sendLive({type: 'notice.pause'});
-    else sendLive({type: 'notice.start', noticeId: item.id});
-  };
+  const toggle = (): void => toggleNotice(item.id);
   return (
     <div>
       <div className={styles.controls}>

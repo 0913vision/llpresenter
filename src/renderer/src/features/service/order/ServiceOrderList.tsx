@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   contextMenuAnchor,
@@ -225,6 +226,49 @@ export function ServiceOrderList({
     list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
   }, [openItemId]);
 
+  const ownsCommand = (event: KeyboardEvent): boolean =>
+    event.target instanceof Node &&
+    !isInTextEntry(event.target) &&
+    listRef.current?.contains(event.target) === true;
+  const deleteFromKey = (): void => {
+    if (editable && openItemId !== null) {
+      listRef.current?.focus();
+      editing.run((edits, service) =>
+        edits.remove(service, createServiceItemId(openItemId)),
+      );
+    }
+  };
+  useWindowShortcuts([
+    {
+      id: 'edit.undo',
+      context: 'service',
+      when: ownsCommand,
+      run: () => {
+        if (editable) editing.run((edits, service) => edits.undo(service));
+      },
+    },
+    {
+      id: 'edit.redo',
+      context: 'service',
+      when: ownsCommand,
+      run: () => {
+        if (editable) editing.run((edits, service) => edits.redo(service));
+      },
+    },
+    {
+      id: 'edit.delete',
+      context: 'service',
+      when: event =>
+        ownsCommand(event) &&
+        workspace === 'prep' &&
+        event.target instanceof Node &&
+        listRef.current
+          ?.querySelector('[role="listbox"]')
+          ?.contains(event.target) === true,
+      run: deleteFromKey,
+    },
+  ]);
+
   const menuEntries = (
     target: NonNullable<typeof menu>,
   ): readonly MenuEntry[] => {
@@ -295,41 +339,6 @@ export function ServiceOrderList({
           setMenu({id, serviceId, anchor: contextMenuAnchor(event)});
           return;
         }
-        if (
-          workspace === 'prep' &&
-          event.code === 'Delete' &&
-          !event.ctrlKey &&
-          !event.altKey &&
-          !event.metaKey &&
-          !event.shiftKey &&
-          event.target instanceof Node &&
-          listRef.current
-            ?.querySelector('[role="listbox"]')
-            ?.contains(event.target)
-        ) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (editable && !event.repeat && openItemId !== null) {
-            event.currentTarget.focus();
-            editing.run((edits, id) =>
-              edits.remove(id, createServiceItemId(openItemId)),
-            );
-          }
-          return;
-        }
-        if (
-          !event.ctrlKey ||
-          event.altKey ||
-          event.metaKey ||
-          !['KeyZ', 'KeyY'].includes(event.code)
-        ) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        if (!editable || event.repeat) return;
-        const redo = event.code === 'KeyY' || event.shiftKey;
-        editing.run((edits, id) => (redo ? edits.redo(id) : edits.undo(id)));
       }}
     >
       <ListBox

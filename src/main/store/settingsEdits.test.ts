@@ -8,11 +8,15 @@ import {
 import {expectSuccess} from '@core/schema/testHelpers';
 import type {DocumentFiles} from './contentPersistence';
 import {SettingsStore} from './settingsStore';
+import {settingsDocument} from '@core/testing/settingsDocument';
 import type {WriteResult} from './fileWriter';
 
 const value = {format: 'llsettings.labels', schemaVersion: 1, labels: []};
 
-function setup(access: 'editable' | 'readOnly' = 'editable') {
+function setup(
+  access: 'editable' | 'readOnly' = 'editable',
+  extra: readonly SettingsDocument[] = [],
+) {
   vi.useFakeTimers();
   const write = vi
     .fn<DocumentFiles['write']>()
@@ -27,7 +31,10 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
     parseSettingsDocument({name: 'labels', value, revision: 1, access}),
   );
   const store = new SettingsStore({
-    documents: new Map([['labels', current]]),
+    documents: new Map([
+      ['labels', current],
+      ...extra.map(document => [document.name, document] as const),
+    ]),
     problems: [],
     log,
     saving: {
@@ -54,6 +61,49 @@ function edit(label: string, baseRevision: number) {
 }
 
 describe('settings edits and saves', () => {
+  it('broadcasts and persists shortcut removal in the same object deletion batch', async () => {
+    const id = '44000000-0000-4000-8000-000000000001';
+    const macros = settingsDocument('macros', {
+      macros: [{id, name: '점검', icon: 'macro', color: 'teal', actions: []}],
+      collections: [],
+    });
+    const shortcuts = settingsDocument('shortcuts', {
+      bindings: {
+        [`macro.${id}`]: [{code: 'F8', mods: []}],
+        'future.command': [],
+      },
+    });
+    const {store, write} = setup('editable', [macros, shortcuts]);
+    const changed = vi.fn<(document: SettingsDocument) => void>();
+    store.subscribe(changed);
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'macros',
+        baseRevision: 1,
+        value: {...macros.value, macros: []},
+      }),
+    );
+    const result = store.apply(edit);
+    expect(changed.mock.calls.map(([document]) => document.name)).toEqual([
+      'macros',
+      'shortcuts',
+    ]);
+    expect(store.get('shortcuts')).toMatchObject({
+      revision: 2,
+      value: {bindings: {'future.command': []}},
+    });
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await result).ok).toBe(true);
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(
+      write.mock.calls.some(
+        ([request]) =>
+          request.text.includes('future.command') &&
+          !request.text.includes(`macro.${id}`),
+      ),
+    ).toBe(true);
+  });
   it('persists the latest burst while an earlier write is held', async () => {
     const {store, write} = setup();
     let release: (value: WriteResult) => void = () => undefined;

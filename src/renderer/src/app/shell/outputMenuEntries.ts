@@ -1,3 +1,4 @@
+import {shortcutText} from '@renderer/ui/commandBindings';
 import {parseScreenId, type LookId} from '@core/schema/ids';
 import type {LooksFile} from '@core/schema/looks';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
@@ -116,7 +117,11 @@ export function outputMenuEntries(
   const capture = outputGroup(captions, outputs);
   return [
     {kind: 'group', id: 'audience', label: '본 화면'},
-    {...outputGroup(audience, outputs), id: 'audience-output'},
+    {
+      ...outputGroup(audience, outputs),
+      id: 'audience-output',
+      command: 'output.audience',
+    },
     {
       kind: 'item',
       id: 'look',
@@ -132,6 +137,7 @@ export function outputMenuEntries(
         looks?.looks.map(look => ({
           kind: 'item',
           id: look.id,
+          command: `look.${look.id}`,
           label: look.name || '이름 없는 Look',
           check: 'radio',
           checked: lookId !== undefined && look.id === current?.id,
@@ -141,6 +147,7 @@ export function outputMenuEntries(
     {
       kind: 'item',
       id: 'edit-look',
+      command: 'workspace.looks',
       label: 'Look 편집…',
       ...menuAvailability(
         onWorkspace === undefined
@@ -153,7 +160,11 @@ export function outputMenuEntries(
     },
     menuSeparator('stage'),
     {kind: 'group', id: 'stage-group', label: '무대 화면'},
-    {...outputGroup(stage, outputs), id: 'stage-output'},
+    {
+      ...outputGroup(stage, outputs),
+      id: 'stage-output',
+      command: 'output.stage',
+    },
     ...stage.map((screen): MenuItem => {
       const target = screenId(screen.id);
       const id = currentLayout(screen);
@@ -214,7 +225,8 @@ export function outputMenuEntries(
       kind: 'item',
       id: 'screens',
       label: '화면 설정…',
-      meta: 'Ctrl Alt 1',
+      command: 'workspace.screens',
+      meta: shortcutText('workspace.screens'),
       ...menuAvailability(
         window.llp === undefined ? '화면 설정 연결 안 됨' : undefined,
       ),

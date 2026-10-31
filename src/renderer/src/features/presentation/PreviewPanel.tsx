@@ -14,6 +14,7 @@ import {resolveOutputScreen} from '@core/screens/screens';
 import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
@@ -78,6 +79,12 @@ function PreviewPanelFrame({
   const largeScreenId = usePreview(view => view.largeScreenId);
   const outputs = useOutputs();
   const summaries = useScreenSummaries();
+  useWindowShortcuts(
+    summaries.map(screen => ({
+      id: `preview.focus.${screen.id}`,
+      run: () => showLarge(screen.id),
+    })),
+  );
   const large = summaries.some(screen => screen.id === largeScreenId)
     ? largeScreenId
     : (summaries[0]?.id ?? '');

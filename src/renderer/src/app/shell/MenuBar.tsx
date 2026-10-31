@@ -1,3 +1,5 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
 import {useState, type JSX} from 'react';
 import type {WindowAction} from '@contracts/ipc/api';
 import type {TextImportReadRequest} from '@core/schema/textImport';
@@ -62,10 +64,18 @@ function WindowButton({
 }: {
   readonly control: WindowControl;
 }): JSX.Element {
-  const {targetProps, tooltip} = useTooltip({text: control.label});
+  const command =
+    control.action === 'minimize'
+      ? 'window.minimize'
+      : control.action === 'toggle-maximize'
+        ? 'window.maximize'
+        : 'app.quit';
+  const run = (): void => window.llp?.window.control(control.action);
+  useWindowShortcuts([{id: command, run}]);
+  const {targetProps, tooltip} = useTooltip({text: control.label, command});
   const press = useButtonPress<HTMLButtonElement>({
     disabled: false,
-    onPress: () => window.llp?.window.control(control.action),
+    onPress: run,
     onBlur: targetProps.onBlur,
   });
   return (
@@ -153,6 +163,13 @@ function FileMenu({
   const {anchor} = control;
   const actions = useServiceActions({onProblem, onOpen: control.close});
   const media = useFileMediaImport(onProblem);
+  const entries = fileMenuEntries({
+    service: actions.entries,
+    onImportText,
+    clipboard,
+    media,
+  });
+  useMenuShortcuts(entries);
   return (
     <>
       <MenuTrigger label={FILE_MENU} control={control} />
@@ -161,12 +178,7 @@ function FileMenu({
           label={FILE_MENU}
           anchor={{kind: 'element', element: anchor}}
           onClose={control.close}
-          entries={fileMenuEntries({
-            service: actions.entries,
-            onImportText,
-            clipboard,
-            media,
-          })}
+          entries={entries}
         />
       ) : null}
       {actions.dialogs}
@@ -212,16 +224,14 @@ function OutputMenu({
   return (
     <>
       <MenuTrigger label={OUTPUT_MENU} control={control} />
-      {control.anchor ? (
-        <OutputMenuList
-          anchor={control.anchor}
-          onClose={control.close}
-          warnings={warnings}
-          onShowWarning={onShowWarning}
-          onProblem={onProblem}
-          onWorkspace={onWorkspace}
-        />
-      ) : null}
+      <OutputMenuList
+        anchor={control.anchor}
+        onClose={control.close}
+        warnings={warnings}
+        onShowWarning={onShowWarning}
+        onProblem={onProblem}
+        onWorkspace={onWorkspace}
+      />
     </>
   );
 }

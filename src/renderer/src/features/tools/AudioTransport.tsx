@@ -1,3 +1,5 @@
+import {audioPlayCommand} from '@core/media/audioPlayCommand';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {AudioLayer} from '@core/live/state';
@@ -33,14 +35,19 @@ export function AudioTransport({
   const shown =
     duration === undefined ? position : Math.min(position, duration);
   const play = (): void => {
-    if (playback) api.live.send({type: running ? 'audio.pause' : 'audio.play'});
-    else if (selected && selected.items.length > 0 && firstPlayable) {
-      api.live.send({
-        type: 'audio.play',
-        source: {kind: 'playlist', playlistId: selected.id, position: 0},
-      });
-    }
+    const command = audioPlayCommand({audio, selected, firstPlayable});
+    if (command !== null) api.live.send(command);
   };
+
+  useWindowShortcuts([
+    {id: 'audio.playPause', run: play},
+    ...(['next', 'previous', 'fadeOut'] as const).map(action => ({
+      id: `audio.${action}`,
+      run: () => {
+        if (playback) api.live.send({type: `audio.${action}`});
+      },
+    })),
+  ]);
   return (
     <div className={styles.root}>
       <div className={styles.reading}>

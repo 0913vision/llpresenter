@@ -1,3 +1,6 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useShortcutText} from '@renderer/ui/commandBindings';
+import {ariaShortcut} from '@renderer/ui/Tooltip';
 import {
   useEffect,
   useEffectEvent,
@@ -181,30 +184,34 @@ export function ToolbarSearch({
         console.error('Toolbar result callback failed:', cause),
       );
   };
+  const searchShortcut = useShortcutText('search.focus');
+  const addShortcut = useShortcutText('search.addToService');
+  useWindowShortcuts([
+    {
+      id: 'search.addToService',
+      context: 'search',
+      when: event =>
+        expanded &&
+        selected !== undefined &&
+        event.target instanceof HTMLInputElement &&
+        root.current?.contains(event.target) === true,
+      run: () => {
+        if (!selected || addReason !== undefined) return;
+        const {rows, openItemId} = useShow.getState();
+        const before = quickAddBefore(rows, openItemId);
+        editing.run((edits, id) =>
+          edits.insertSong(
+            id,
+            selected.songId,
+            before === null ? null : createServiceItemId(before),
+          ),
+        );
+        setOpen(false);
+      },
+    },
+  ]);
   const keys = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (isComposing(event)) return;
-    if (
-      event.code === 'Enter' &&
-      event.ctrlKey &&
-      !event.shiftKey &&
-      !event.altKey &&
-      !event.metaKey
-    ) {
-      if (!expanded || !selected) return;
-      event.preventDefault();
-      if (event.repeat || addReason !== undefined) return;
-      const {rows, openItemId} = useShow.getState();
-      const before = quickAddBefore(rows, openItemId);
-      editing.run((edits, id) =>
-        edits.insertSong(
-          id,
-          selected.songId,
-          before === null ? null : createServiceItemId(before),
-        ),
-      );
-      setOpen(false);
-      return;
-    }
     if (hasModifier(event)) return;
     if (search.matches.length === 0) return;
     if (isResultKey(event.code)) {
@@ -241,7 +248,11 @@ export function ToolbarSearch({
           block
           placeholder="곡, 가사, 초성"
           aria-label="검색"
-          aria-keyshortcuts="Control+F"
+          aria-keyshortcuts={
+            searchShortcut === undefined
+              ? undefined
+              : ariaShortcut(searchShortcut)
+          }
           disabled={!enabled || !window.llp}
           title={!enabled ? WORKSPACE_UNAVAILABLE_TIP : undefined}
           role="combobox"
@@ -291,7 +302,8 @@ export function ToolbarSearch({
                 {...addTooltip.targetProps}
                 aria-disabled={addReason !== undefined}
               >
-                Ctrl Enter 예배 순서에 추가
+                {addShortcut === undefined ? '' : `${addShortcut} `}예배 순서에
+                추가
               </span>
             </div>
             {addTooltip.tooltip}

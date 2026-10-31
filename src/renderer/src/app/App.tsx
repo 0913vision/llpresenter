@@ -1,3 +1,5 @@
+import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
+import {useObjectShortcuts} from './useObjectShortcuts';
 import {
   useCallback,
   useEffect,
@@ -11,6 +13,7 @@ import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import type {UiState} from '@core/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
 import {StatusBar} from '@renderer/app/shell/StatusBar';
@@ -32,6 +35,7 @@ import {useSizeClass} from '@renderer/app/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/app/shell/useMediaStripVisibility';
 import {useSidebarCollapse} from '@renderer/app/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
+import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {workspaceShortcuts} from '@renderer/app/shell/workspaceCommands';
 import {Workspace} from '@renderer/app/shell/Workspace';
@@ -114,6 +118,8 @@ function ControlApp({
     session.editor?.subscribe ?? noEditorSubscription,
     () => session.editor?.getSnapshot().imported ?? false,
   );
+  useShortcutSettings(session.api);
+  useObjectShortcuts(session.api, session.report);
   useWindowShortcuts([
     ...workspaceShortcuts({
       onWorkspace,
@@ -121,22 +127,20 @@ function ControlApp({
       imported: workspace === 'prep' && imported,
     }),
     {
-      code: 'KeyF',
-      ctrl: true,
+      id: 'search.focus',
       run: () => {
         if (workspace === 'screens') onWorkspace('show');
         setFocusSearch(true);
       },
     },
     {
-      code: 'KeyI',
-      ctrl: true,
-      shift: true,
+      id: 'import.textFile',
       when: () => session.api !== undefined && importSource === null,
       run: () => importText('file'),
     },
   ]);
   useClearKeys();
+  useLiveStateShortcuts();
   useUiZoomKeys();
   useEffect(() => watchInputModality(window), []);
   useOutputNotices(session.api, session);
@@ -153,6 +157,7 @@ function ControlApp({
         : undefined;
   return (
     <div className={styles.app} data-size={sizeClass}>
+      <AudioShortcuts onProblem={session.report} />
       <MenuBar
         onWorkspace={onWorkspace}
         onMedia={onMedia}

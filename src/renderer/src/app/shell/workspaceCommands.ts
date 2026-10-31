@@ -1,4 +1,7 @@
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {shortcutText} from '@renderer/ui/commandBindings';
+import {commandBindings} from '@core/shortcuts/bindings';
+import {matchesBinding} from '@core/shortcuts/matching';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {
   menuAvailability,
   type MenuEntry,
@@ -25,41 +28,38 @@ export function workspaceShortcuts({
 }: WorkspaceActions): readonly WindowShortcut[] {
   return [
     {
-      code: 'KeyS',
-      ctrl: true,
-      when: () => !imported,
+      id: 'workspace.show',
+      when: event =>
+        !imported ||
+        !commandBindings('import.save', commandBindingStore.get()).some(
+          binding => matchesBinding(event, binding),
+        ),
       run: () => onWorkspace('show'),
     },
-    ...['KeyE', 'KeyR'].map(code => ({
-      code,
-      ctrl: true,
-      run: () => onWorkspace('prep'),
+    {id: 'workspace.prep', run: () => onWorkspace('prep')},
+    {id: 'workspace.screens', run: () => window.llp?.window.openScreens()},
+    ...SHOW_TOOLS.map(tool => ({
+      id: toolCommands[tool.value],
+      run: () => openTool(tool.value, onWorkspace),
     })),
+    {id: 'tools.actionPalette', run: () => openPalette(onWorkspace)},
     {
-      code: 'Digit1',
-      ctrl: true,
-      alt: true,
-      run: () => window.llp?.window.openScreens(),
-    },
-    {
-      code: 'KeyV',
-      ctrl: true,
-      shift: true,
-      when: event => !isInTextEntry(event.target),
+      id: 'workspace.media',
       run: onMedia,
     },
   ];
 }
 
 function workspaceRow(
-  row: {readonly id: Workspace; readonly label: string; readonly meta: string},
+  row: {readonly id: Workspace; readonly label: string; readonly meta?: string},
   onWorkspace: ((workspace: Workspace) => void) | undefined,
 ): MenuItem {
   return {
     kind: 'item',
     id: `workspace.${row.id}`,
     label: row.label,
-    meta: row.meta,
+    meta: shortcutText(`workspace.${row.id}`),
+    command: `workspace.${row.id}`,
     ...menuAvailability(
       onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
     ),
@@ -78,19 +78,44 @@ const VIEW_TOOLS: readonly ShowTool[] = [
   'macro',
 ];
 
+const toolCommands: Readonly<Record<ShowTool, string>> = {
+  audio: 'tools.audio',
+  stage: 'tools.stage',
+  timer: 'tools.timers',
+  message: 'tools.messages',
+  notice: 'tools.notices',
+  prop: 'tools.props',
+  macro: 'tools.macros',
+};
+
+function openTool(
+  tool: ShowTool,
+  onWorkspace: ((workspace: Workspace) => void) | undefined,
+): void {
+  useShowToolTab.getState().setTool(tool);
+  onWorkspace?.('show');
+}
+
+function openPalette(
+  onWorkspace: ((workspace: Workspace) => void) | undefined,
+): void {
+  useMacroPalette.getState().show();
+  openTool('macro', onWorkspace);
+}
+
 function toolRows(
   onWorkspace: ((workspace: Workspace) => void) | undefined,
 ): readonly MenuItem[] {
   return VIEW_TOOLS.map(tool => ({
     kind: 'item',
     id: `tool.${tool}`,
+    command: toolCommands[tool],
     label: SHOW_TOOLS.find(entry => entry.value === tool)?.label ?? tool,
     ...menuAvailability(
       onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
     ),
     onSelect: () => {
-      useShowToolTab.getState().setTool(tool);
-      onWorkspace?.('show');
+      openTool(tool, onWorkspace);
     },
   }));
 }
@@ -107,9 +132,9 @@ export function workspaceMenu({
   readonly onMedia: (() => void) | undefined;
 }): readonly MenuEntry[] {
   return [
-    workspaceRow({id: 'show', label: '진행', meta: 'Ctrl S'}, onWorkspace),
+    workspaceRow({id: 'show', label: '진행'}, onWorkspace),
     laterRow('workspace.slides', '슬라이드 편집기'),
-    workspaceRow({id: 'prep', label: '준비', meta: 'Ctrl R'}, onWorkspace),
+    workspaceRow({id: 'prep', label: '준비'}, onWorkspace),
     laterRow('workspace.bible', '성경'),
     menuSeparator('playback'),
     laterRow('continuous', '이어서 진행'),
@@ -123,7 +148,8 @@ export function workspaceMenu({
       kind: 'item',
       id: 'workspace.media',
       label: '미디어',
-      meta: 'Ctrl Shift V',
+      command: 'workspace.media',
+      meta: shortcutText('workspace.media'),
       ...menuAvailability(
         onMedia === undefined ? '미디어 화면 연결 안 됨' : undefined,
       ),
@@ -133,14 +159,13 @@ export function workspaceMenu({
     {
       kind: 'item',
       id: 'palette',
+      command: 'tools.actionPalette',
       label: '동작 팔레트',
       ...menuAvailability(
         onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
       ),
       onSelect: () => {
-        useMacroPalette.getState().show();
-        useShowToolTab.getState().setTool('macro');
-        onWorkspace?.('show');
+        openPalette(onWorkspace);
       },
     },
     laterRow('test-patterns', '테스트 화면'),

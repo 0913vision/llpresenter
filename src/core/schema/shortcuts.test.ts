@@ -2,6 +2,8 @@ import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
   parseShortcuts,
   serializeShortcuts,
+  MAX_COMMAND_BINDINGS,
+  MAX_SHORTCUT_COMMANDS,
   type KeyBinding,
   type KeyModifier,
 } from './shortcuts';
@@ -41,6 +43,32 @@ function load(bindings: object) {
 }
 
 describe('parseShortcuts', () => {
+  it('caps command IDs, aliases, and the total binding list', () => {
+    expect(load({['x'.repeat(201)]: []}).dropped).toHaveLength(1);
+    expect(
+      load({
+        command: Array.from({length: MAX_COMMAND_BINDINGS + 1}, () => ({
+          code: 'F8',
+          mods: [],
+        })),
+      }).dropped,
+    ).toHaveLength(1);
+    expect(
+      parseShortcuts(
+        JSON.stringify({
+          format: 'llsettings.shortcuts',
+          schemaVersion: 1,
+          bindings: Object.fromEntries(
+            Array.from({length: MAX_SHORTCUT_COMMANDS + 1}, (_, index) => [
+              `command.${index}`,
+              [],
+            ]),
+          ),
+        }),
+        'shortcuts.json',
+      ).ok,
+    ).toBe(false);
+  });
   it('reads physical keys, removed keys, and unknown commands', () => {
     expectRoundTrip(codec, changedShortcuts());
     expect(load(changedShortcuts().bindings).dropped).toEqual([]);
@@ -92,6 +120,7 @@ describe('parseShortcuts', () => {
     ['Shift Tab', {code: 'Tab', mods: ['shift']}],
     ['Esc alone', {code: 'Escape', mods: []}],
     ['Enter alone', {code: 'Enter', mods: []}],
+    ['Numpad Enter alone', {code: 'NumpadEnter', mods: []}],
     ['Ctrl C', {code: 'KeyC', mods: ['ctrl']}],
     ['Alt F4', {code: 'F4', mods: ['alt']}],
     ['Ctrl Alt Delete', {code: 'Delete', mods: ['ctrl', 'alt']}],

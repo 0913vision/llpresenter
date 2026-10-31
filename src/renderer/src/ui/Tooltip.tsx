@@ -1,3 +1,4 @@
+import {useShortcutText} from './commandBindings';
 import {
   cloneElement,
   useEffect,
@@ -24,6 +25,7 @@ export interface TooltipContent {
   readonly text: string;
   /** A text shortcut, such as `F2` or `Ctrl Z`. */
   readonly shortcut?: string | undefined;
+  readonly command?: string | undefined;
   /** One more fact, on a second line in `text-3`. */
   readonly sub?: string | undefined;
 }
@@ -115,7 +117,9 @@ function TooltipSurface({
  * pointer rests on it or keyboard focus enters it, at once when another
  * tooltip just showed. Pass `undefined` for no tooltip.
  */
-export function useTooltip(content: TooltipContent | undefined): TooltipHook {
+export function useTooltip(input: TooltipContent | undefined): TooltipHook {
+  const shortcut = useShortcutText(input?.command);
+  const content = input?.command === undefined ? input : {...input, shortcut};
   const owner = useId();
   const tooltipId = `${owner}-tooltip`;
   const shown = useSyncExternalStore(tooltipController.subscribe, () => {

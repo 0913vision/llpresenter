@@ -1,3 +1,6 @@
+import {commandBindings} from '@core/shortcuts/bindings';
+import {shortcutNames} from '@core/shortcuts/keys';
+import {useShortcutText} from './commandBindings';
 import {createContext, useContext, type JSX, type ReactNode} from 'react';
 import type {ClearTarget} from '@core/live/commands';
 import {classNames} from './classNames';
@@ -15,17 +18,16 @@ const COMPACT_ICON_SIZE: IconSize = 16;
 interface ClearLook {
   readonly name: string;
   readonly icon: string;
-  readonly shortcut: string;
 }
 
 const clearLooks: Readonly<Record<ClearTarget, ClearLook>> = {
-  all: {name: '모두', icon: 'layers', shortcut: 'F1'},
-  slide: {name: '가사', icon: 'text', shortcut: 'F2'},
-  media: {name: '미디어', icon: 'image', shortcut: 'F3'},
-  prop: {name: '그래픽', icon: 'prop', shortcut: 'F4'},
-  audio: {name: '오디오', icon: 'audio', shortcut: 'F5'},
-  message: {name: '메시지', icon: 'msg', shortcut: 'F6'},
-  notice: {name: '공지', icon: 'notice', shortcut: 'F7'},
+  all: {name: '모두', icon: 'layers'},
+  slide: {name: '가사', icon: 'text'},
+  media: {name: '미디어', icon: 'image'},
+  prop: {name: '그래픽', icon: 'prop'},
+  audio: {name: '오디오', icon: 'audio'},
+  message: {name: '메시지', icon: 'msg'},
+  notice: {name: '공지', icon: 'notice'},
 };
 
 /** The one-word name of a layer on its 지우기 button. */
@@ -40,7 +42,8 @@ export function clearLabel(layer: ClearTarget): string {
 
 /** The default key of a 지우기 button, F1 to F7. */
 export function defaultClearShortcut(layer: ClearTarget): string {
-  return clearLooks[layer].shortcut;
+  const binding = commandBindings(`clear.${layer}`, {})[0];
+  return binding === undefined ? '' : shortcutNames(binding).join(' ');
 }
 
 const CompactRow = createContext(false);
@@ -122,15 +125,16 @@ export function ClearButton({
   layer,
   active,
   onClear,
-  shortcut = defaultClearShortcut(layer),
+  shortcut,
 }: ClearButtonProps): JSX.Element {
+  const current = useShortcutText(`clear.${layer}`);
   const look = clearLooks[layer];
   return (
     <ClearControl
       name={look.name}
       icon={look.icon}
       label={clearLabel(layer)}
-      shortcut={shortcut}
+      shortcut={shortcut ?? current}
       available={active}
       onPress={onClear}
       className={layer === 'all' ? styles.all : undefined}

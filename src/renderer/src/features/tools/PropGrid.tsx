@@ -1,8 +1,10 @@
+import {toggleProp} from './toolCommands';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {Prop} from '@core/schema/props';
 import type {Screen} from '@core/schema/screens';
-import {sendLive, useLive} from '@renderer/session/live';
+import {useLive} from '@renderer/session/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './PropGrid.module.css';
@@ -21,6 +23,10 @@ export function PropGrid({
     layer?.items
       ? layer.items.some(item => item.propId === prop.id)
       : layer?.propId === prop.id;
+  const toggle = (prop: Prop): void => toggleProp(prop.id);
+  useWindowShortcuts(
+    props.map(prop => ({id: `prop.${prop.id}`, run: () => toggle(prop)})),
+  );
   return (
     <TileList
       label="그래픽"
@@ -37,12 +43,7 @@ export function PropGrid({
       }}
       onActivate={index => {
         const prop = props[index];
-        if (!prop) return;
-        const current = useLive.getState().state?.layers.prop;
-        const on = current?.items
-          ? current.items.some(item => item.propId === prop.id)
-          : current?.propId === prop.id;
-        sendLive({type: 'prop.set', propId: prop.id, on: !on});
+        if (prop) toggle(prop);
       }}
     >
       {props.map(prop => {

@@ -1,3 +1,5 @@
+import {toggleTimer, resetTimer} from './toolCommands';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import {memo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -50,6 +52,14 @@ export const TimerRow = memo(
       run === undefined && full
         ? '시작할 수 있는 타이머가 가득 찼습니다'
         : undefined;
+    const toggle = (): void =>
+      toggleTimer(timer, command => api.live.send(command));
+    const reset = (): void =>
+      resetTimer(timer, command => api.live.send(command));
+    useWindowShortcuts([
+      {id: `timer.${timer.id}.toggle`, run: toggle},
+      {id: `timer.${timer.id}.reset`, run: reset},
+    ]);
     return (
       <TimerRowMenu
         api={api}
@@ -75,21 +85,14 @@ export const TimerRow = memo(
               <Button
                 disabled={reason !== undefined}
                 title={reason}
-                onClick={() =>
-                  api.live.send({
-                    type: running ? 'timer.pause' : 'timer.start',
-                    timerId: timer.id,
-                  })
-                }
+                onClick={toggle}
               >
                 {running ? timerCommandLabels.pause : timerCommandLabels.start}
               </Button>
               <Button
                 disabled={run === undefined}
                 title={run === undefined ? '타이머가 멈춰 있습니다' : undefined}
-                onClick={() =>
-                  api.live.send({type: 'timer.reset', timerId: timer.id})
-                }
+                onClick={reset}
               >
                 {timerCommandLabels.reset}
               </Button>

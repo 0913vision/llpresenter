@@ -13,6 +13,10 @@ import panelStyles from './shell/Workspace.module.css';
 import styles from './ScreensWindow.module.css';
 import type {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
+import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
+import {useUiZoomKeys} from './shell/uiZoomKeys';
+import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 
 /** The screen and monitor settings, separate from the theme workspace. */
 export function ScreensWindow({
@@ -23,6 +27,10 @@ export function ScreensWindow({
   readonly closeFlush?: CloseFlush | undefined;
 }): JSX.Element {
   const [notices, setNotices] = useState<readonly Notice[]>([]);
+  useShortcutSettings(window.llp);
+  useClearKeys();
+  useLiveStateShortcuts();
+  useUiZoomKeys();
   const report = useCallback(
     (notice: Notice) => {
       setNotices(current => addNotice(current, notice));
@@ -33,7 +41,7 @@ export function ScreensWindow({
   useEffect(() => watchInputModality(window), []);
   return (
     <ScreenSummariesProvider onProblem={report}>
-      <div className={styles.window}>
+      <div className={styles.window} data-workspace-layout="screens">
         <header className={styles.titlebar}>
           <span>화면 설정</span>
           <div className={styles.controls}>

@@ -141,8 +141,12 @@ it('selects, previews a scaled drag, saves once, nudges cumulatively, and delete
   fireEvent.pointerUp(canvas, {pointerId: 1});
   await waitFor(() => expect(frame()).toMatchObject({x: 120, y: 140}));
   expect(edit).toHaveBeenCalledTimes(1);
-  fireEvent.keyDown(item, {key: 'ArrowRight'});
-  fireEvent.keyDown(item, {key: 'ArrowDown', shiftKey: true});
+  fireEvent.keyDown(item, {key: 'ArrowRight', code: 'ArrowRight'});
+  fireEvent.keyDown(item, {
+    key: 'ArrowDown',
+    code: 'ArrowDown',
+    shiftKey: true,
+  });
   await waitFor(() => expect(frame()).toMatchObject({x: 121, y: 150}));
   const handle = screen.getByRole('button', {
     name: '현재 가사 오른쪽 아래 크기 조절',
@@ -157,7 +161,7 @@ it('selects, previews a scaled drag, saves once, nudges cumulatively, and delete
   fireEvent.pointerMove(canvas, {pointerId: 2, clientX: 20, clientY: 10});
   fireEvent.pointerUp(canvas, {pointerId: 2});
   await waitFor(() => expect(frame()).toMatchObject({w: 440, h: 220}));
-  fireEvent.keyDown(item, {key: 'Delete'});
+  fireEvent.keyDown(item, {key: 'Delete', code: 'Delete'});
   await waitFor(() => expect(frame()).toBeUndefined());
   view.unmount();
   expect(listeners.size).toBe(0);
