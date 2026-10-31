@@ -2,7 +2,12 @@ import type {ChildProcess} from 'node:child_process';
 import type {ElectronApplication} from 'playwright-core';
 import {killProcessTree} from '../../scripts/process-tree.mts';
 
-const CLOSE_GRACE_MS = 5000;
+// NOTE(0913vision): With coverage and CI's software renderer, a loaded theme
+// close spent 0.53 s flushing, 0.38 s closing windows, then 4.47 s exiting
+// Chromium. Another normal quit took 9.74 s; even 15 s forced one loaded run.
+// Allow 30 s of grace, then force and report a hung quit instead of hiding it.
+export const CLOSE_GRACE_MS = 30_000;
+const KILL_GRACE_MS = 5000;
 
 function hasExited(child: ChildProcess): boolean {
   return child.exitCode !== null || child.signalCode !== null;
@@ -25,7 +30,9 @@ function within(promise: Promise<unknown>, timeout: number): Promise<boolean> {
 }
 
 /** Waits for a normal quit, then ends the process tree if the app refuses. */
-export async function stopElectron(app: ElectronApplication): Promise<boolean> {
+export async function stopElectron(
+  app: Pick<ElectronApplication, 'process' | 'close'>,
+): Promise<boolean> {
   const child = app.process();
   if (hasExited(child)) return false;
   const exited = new Promise<void>(resolve =>
@@ -42,13 +49,13 @@ export async function stopElectron(app: ElectronApplication): Promise<boolean> {
     // already gone or ending, even though the app itself is stopped. Whether
     // Electron exited is the result that matters, so the reason is kept only
     // for the error below.
-    if (!hasExited(child) && !(await within(exited, CLOSE_GRACE_MS))) {
+    if (!hasExited(child) && !(await within(exited, KILL_GRACE_MS))) {
       const reason = killed.ok ? 'its process tree was stopped' : killed.reason;
       throw new Error(`Electron did not exit: ${reason}`);
     }
     return forced;
   }
-  if (!hasExited(child) && !(await within(exited, CLOSE_GRACE_MS))) {
+  if (!hasExited(child) && !(await within(exited, KILL_GRACE_MS))) {
     throw new Error('Electron did not exit after its process tree was stopped');
   }
   return forced;

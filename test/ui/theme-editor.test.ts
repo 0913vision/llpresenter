@@ -138,7 +138,11 @@ it(
     await page
       .getByRole('textbox', {name: '내용', exact: true})
       .fill('종료 저장 문장');
-    expect(await app.stop()).toBe(false);
+    const stopStarted = performance.now();
+    const forced = await app.stop();
+    const quitMs = Math.round(performance.now() - stopStarted);
+    console.info('Theme editor quit', {quitMs, forced});
+    expect(forced, `Theme editor quit took ${quitMs} ms`).toBe(false);
     const reopened = await app.start();
     await expect
       .poll(
