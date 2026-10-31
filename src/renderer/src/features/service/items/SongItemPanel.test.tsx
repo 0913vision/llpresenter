@@ -223,7 +223,7 @@ describe('service song item panel', () => {
   it('opens the source song in the editor', async () => {
     const {panel, user, editor, first} = await setup();
     await user.click(chip(panel, 2));
-    await user.click(within(panel).getByRole('button', {name: '가사 편집'}));
+    await user.click(within(panel).getByRole('button', {name: '곡 편집'}));
     expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
     expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
       1,
@@ -356,7 +356,7 @@ describe('service song item panel', () => {
     expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
 
     const editBtn = within(panel).getByRole('button', {
-      name: '가사 편집',
+      name: '곡 편집',
     });
     expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
     const user = userEvent.setup();

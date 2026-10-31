@@ -74,7 +74,7 @@ export function PropDialog({
   const reason = prop ? propReason(prop) : '이미지를 선택하세요';
   return (
     <Dialog
-      title={initial ? '소품 수정' : '소품 추가'}
+      title={initial ? '그래픽 수정' : '그래픽 추가'}
       size="s"
       onCancel={onCancel}
       primary={{

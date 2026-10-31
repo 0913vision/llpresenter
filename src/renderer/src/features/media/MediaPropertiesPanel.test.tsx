@@ -54,7 +54,7 @@ function setup(document: MediaDocument = mediaDocument(ITEMS, 5)) {
 async function choose(name: string): Promise<HTMLElement> {
   const grid = screen.getByRole('listbox', {name: '모든 미디어'});
   fireEvent.click(await within(grid).findByRole('option', {name}));
-  return screen.getByRole('region', {name: '속성'});
+  return screen.getByRole('region', {name: '미디어 속성'});
 }
 
 function groups(panel: HTMLElement): ReadonlyArray<string | null> {
@@ -78,6 +78,11 @@ describe('media properties panel', () => {
         ]),
       );
       const panel = await choose('Dawn');
+      expect(
+        within(panel)
+          .getByRole('tab', {name: '미디어 속성'})
+          .getAttribute('aria-selected'),
+      ).toBe('true');
       const videoCount = panel.querySelectorAll('*').length;
       await choose('Notice');
       const imageCount = panel.querySelectorAll('*').length;
@@ -213,7 +218,7 @@ describe('media properties panel', () => {
   it('says nothing is selected until a tile is', () => {
     setup();
     expect(
-      within(screen.getByRole('region', {name: '속성'})).getByText(
+      within(screen.getByRole('region', {name: '미디어 속성'})).getByText(
         '선택한 미디어 없음',
       ),
     ).toBeDefined();

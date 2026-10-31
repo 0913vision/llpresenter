@@ -22,7 +22,7 @@ const clearLooks: Readonly<Record<ClearTarget, ClearLook>> = {
   all: {name: '모두', icon: 'layers', shortcut: 'F1'},
   slide: {name: '가사', icon: 'text', shortcut: 'F2'},
   media: {name: '미디어', icon: 'image', shortcut: 'F3'},
-  prop: {name: '소품', icon: 'prop', shortcut: 'F4'},
+  prop: {name: '그래픽', icon: 'prop', shortcut: 'F4'},
   audio: {name: '오디오', icon: 'audio', shortcut: 'F5'},
   message: {name: '메시지', icon: 'msg', shortcut: 'F6'},
   notice: {name: '공지', icon: 'notice', shortcut: 'F7'},

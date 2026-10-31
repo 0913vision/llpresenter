@@ -23,7 +23,7 @@ export function PropGrid({
       : layer?.propId === prop.id;
   return (
     <TileList
-      label="소품"
+      label="그래픽"
       className={styles.grid}
       workspace="show"
       moves={gridMoves}

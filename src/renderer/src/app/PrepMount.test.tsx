@@ -274,7 +274,7 @@ it('opens and closes the shared media bin while keeping the library mounted', as
   expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('true');
   expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
   expect(screen.getByRole('region', {name: '오디오'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '속성'})).toBeDefined();
+  expect(screen.getByRole('region', {name: '미디어 속성'})).toBeDefined();
   expect(screen.getByRole('region', {name: '라이브러리'})).toBe(library);
   fireEvent.click(mediaBinToggle());
   expect(screen.queryByRole('listbox', {name: '모든 미디어'})).toBeNull();

@@ -406,7 +406,7 @@ it('appends clear all directly from the menu without a dialog', async () => {
     '가사',
     '미디어',
     '공지',
-    '소품',
+    '그래픽',
     '메시지',
     '오디오',
   ]);
@@ -906,7 +906,7 @@ it('lists action kinds in order and opens the selected Look editor', async () =>
     '무대 화면 배치…',
     '슬라이드 출력 대상',
     '타이머',
-    '소품',
+    '그래픽',
     '메시지',
     '공지',
     '배경 미디어',

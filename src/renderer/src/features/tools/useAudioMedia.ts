@@ -39,7 +39,7 @@ export function useAudioMedia(
         title:
           area === 'audio'
             ? '오디오 재생목록 불러오기 실패'
-            : '소품 이미지 불러오기 실패',
+            : '그래픽 이미지 불러오기 실패',
         time: noticeTime(),
       });
     });

@@ -15,7 +15,7 @@ export interface RecoveryRowView {
 
 const showingOrder = [
   ['messages', '메시지'],
-  ['props', '소품'],
+  ['props', '그래픽'],
   ['stageMessages', '무대 메시지'],
   ['notices', '공지'],
   ['stageLayouts', '무대 배치'],

@@ -5,6 +5,33 @@ import {
   type ServiceOrderMenuInput,
 } from './serviceOrderMenu';
 
+it('omits the unavailable editor group without an empty separator in prep', () => {
+  const entries = serviceOrderMenuEntries({
+    row: {kind: 'song', id: 'row', title: '곡'},
+    editable: true,
+    openInPrep: undefined,
+    rename: vi.fn(),
+    remove: vi.fn(),
+  });
+  expect(
+    entries.map(entry => (entry.kind === 'separator' ? '|' : entry.id)),
+  ).toEqual([
+    'hide',
+    '|',
+    'arrangement',
+    'destination',
+    '|',
+    'copy',
+    'paste',
+    'duplicate',
+    'delete',
+    '|',
+    'show-in-library',
+    'export-bundle',
+    'export-images',
+  ]);
+});
+
 it('explains protected edits and unavailable arrangement and library actions', () => {
   const input: ServiceOrderMenuInput = {
     row: {kind: 'header', id: 'row', title: '구역'},

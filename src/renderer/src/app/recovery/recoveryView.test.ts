@@ -20,7 +20,7 @@ it('names each offered row with what it would restore', () => {
       kind: 'showing',
       icon: 'layers',
       label: '표시 중이던 항목',
-      value: '메시지 1, 소품 1, 무대 메시지 1',
+      value: '메시지 1, 그래픽 1, 무대 메시지 1',
     },
   ]);
 });

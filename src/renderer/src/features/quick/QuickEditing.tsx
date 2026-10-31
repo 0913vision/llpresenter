@@ -86,7 +86,7 @@ function QuickAddMenu({
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
-  const props = useSettingsDocument('props', '소품', onProblem);
+  const props = useSettingsDocument('props', '그래픽', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
   const view = useShow();
   const [current, setCurrent] = useState<{
@@ -169,12 +169,12 @@ function QuickAddMenu({
         {kind: 'separator', id: 'targets'},
         group({
           id: 'props',
-          label: '소품',
+          label: '그래픽',
           submenu:
             props?.value.props.map(item =>
               entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
             ) ?? [],
-          reason: props === null ? '소품 불러오는 중' : '소품 없음',
+          reason: props === null ? '그래픽 불러오는 중' : '그래픽 없음',
         }),
         {kind: 'item', id: 'timer', label: '타이머…', onSelect: onAddTimer},
         group({

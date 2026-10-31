@@ -57,7 +57,7 @@ afterEach(() => {
 it('adds a text prop with a target and sends a settings edit', async () => {
   const f = fixture();
   render(<PropTab />);
-  const add = await screen.findByRole('button', {name: '소품 추가'});
+  const add = await screen.findByRole('button', {name: '그래픽 추가'});
   await waitFor(() => expect(add.hasAttribute('disabled')).toBe(false));
   fireEvent.click(add);
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
@@ -106,7 +106,7 @@ it('opens the keyboard context menu and confirms deletion', async () => {
 it('adds an image prop only after choosing an image and target', async () => {
   const f = fixture();
   render(<PropTab />);
-  const add = await screen.findByRole('button', {name: '소품 추가'});
+  const add = await screen.findByRole('button', {name: '그래픽 추가'});
   await waitFor(() => expect(add.hasAttribute('disabled')).toBe(false));
   fireEvent.click(add);
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
@@ -140,7 +140,7 @@ it('locks every draft control until an outstanding save finishes', async () => {
   const pending = deferred<EditResult>();
   f.edit.mockReturnValueOnce(pending.promise);
   render(<PropTab />);
-  const add = await screen.findByRole('button', {name: '소품 추가'});
+  const add = await screen.findByRole('button', {name: '그래픽 추가'});
   await waitFor(() => expect(add.hasAttribute('disabled')).toBe(false));
   fireEvent.click(add);
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
@@ -185,7 +185,7 @@ it('lists the rows of the ProPresenter prop menu in its order', async () => {
   const contextTarget = tile;
   fireEvent.contextMenu(contextTarget);
   expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-  const menu = await screen.findByRole('menu', {name: '소품'});
+  const menu = await screen.findByRole('menu', {name: '그래픽'});
   const rows = [
     ...menu.querySelectorAll('[role="menuitem"], [role="separator"]'),
   ].map(row =>
@@ -223,7 +223,7 @@ it('opens disabled editing commands on a read-only prop list', async () => {
   f.documents.set('props', {...document, access: 'readOnly'});
   render(<PropTab />);
   fireEvent.contextMenu(await screen.findByRole('option', {name: '로고'}));
-  expect(screen.getByRole('menu', {name: '소품'})).toBeDefined();
+  expect(screen.getByRole('menu', {name: '그래픽'})).toBeDefined();
   for (const row of screen.getAllByRole('menuitem')) {
     expect(row.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(row);

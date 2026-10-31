@@ -53,7 +53,7 @@ export const clearButtons: readonly ClearButtonSpec[] = [
   {
     command: 'clear.prop',
     target: 'prop',
-    label: '소품',
+    label: '그래픽',
     icon: 'prop',
     code: 'F4',
     shortcut: 'F4',

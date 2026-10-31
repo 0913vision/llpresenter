@@ -30,7 +30,7 @@ export const MACRO_PALETTE: readonly PaletteGroup[] = [
     label: '내용',
     actions: [
       {kind: 'media', label: '배경 미디어'},
-      {kind: 'prop', label: '소품'},
+      {kind: 'prop', label: '그래픽'},
       {kind: 'message', label: '메시지'},
       {kind: 'notice', label: '공지'},
     ],

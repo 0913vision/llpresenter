@@ -6,7 +6,7 @@ layout, test pattern, output method), the 테마 workspace, the 환경설정
 
 Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 본 화면 (main screen),
 무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show
-tools), 퀵 실행 (quick launch), 소품 (prop), 공지 (notice), 메시지 (message),
+tools), 퀵 실행 (quick launch), 그래픽 (prop), 공지 (notice), 메시지 (message),
 타이머 (timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
 The full shortcut system and a proposal for the 환경설정 pages are in
@@ -188,11 +188,11 @@ Note: the proposal in 10 would add rows to the lyric style properties (굵기,
 - One card per screen. A card shows the screen icon, name, and target, a preview
   of that screen with this Look, and a layer checklist:
 
-| Screen    | Layer rows (check boxes)                                                                           |
-| --------- | -------------------------------------------------------------------------------------------------- |
-| 본 화면   | 배경 미디어 (background media), 가사 (lyrics, with a lyric style select), 공지, 소품, 메시지       |
-| 무대 화면 | 배경 미디어, 가사 (with a stage layout select), 시계 (clock), 무대 메시지 (stage message), 메시지  |
-| 방송 자막 | 배경 (background, with a color select, 초록), 가사 (with a lyric style select), 공지, 소품, 메시지 |
+| Screen    | Layer rows (check boxes)                                                                             |
+| --------- | ---------------------------------------------------------------------------------------------------- |
+| 본 화면   | 배경 미디어 (background media), 가사 (lyrics, with a lyric style select), 공지, 그래픽, 메시지       |
+| 무대 화면 | 배경 미디어, 가사 (with a stage layout select), 시계 (clock), 무대 메시지 (stage message), 메시지    |
+| 방송 자막 | 배경 (background, with a color select, 초록), 가사 (with a lyric style select), 공지, 그래픽, 메시지 |
 
 - Below the cards: the 가사 스타일 (lyric style) section, with a segmented
   control for the styles (기본, 현재와 다음, 하단 자막), a style preview, and a
@@ -365,7 +365,7 @@ full command list.
   전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
   count).
 - A table with the columns 명령 (command) and 단축키 (shortcut), grouped as in
-  10's command list. Each Look, 소품, 매크로, and 타이머 has its own row under
+  10's command list. Each Look, 그래픽, 매크로, and 타이머 has its own row under
   its group. Bare letters/digits are reserved for source-slide hot keys, which
   are edited on that song's particular source slide (05), not in a global 이름표
   binding group (October 27 S26 user decision).

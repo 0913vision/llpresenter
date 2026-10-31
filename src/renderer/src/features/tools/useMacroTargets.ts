@@ -55,7 +55,7 @@ export function useMacroTargets(
     '\ubb34\ub300 \ub808\uc774\uc544\uc6c3',
     onProblem,
   );
-  const props = useSettingsDocument('props', '\uc18c\ud488', onProblem);
+  const props = useSettingsDocument('props', '그래픽', onProblem);
   const messages = useSettingsDocument(
     'messages',
     '\uba54\uc2dc\uc9c0',

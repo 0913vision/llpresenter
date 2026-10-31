@@ -19,7 +19,7 @@ export function PropTab({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
-  const document = useSettingsDocument('props', '소품', onProblem);
+  const document = useSettingsDocument('props', '그래픽', onProblem);
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const media = useAudioMedia(onProblem, 'prop');
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -30,7 +30,7 @@ export function PropTab({
     api: window.llp,
     write: savePropEdit,
     onProblem,
-    area: {key: 'props', label: '소품', log: 'Could not edit props'},
+    area: {key: 'props', label: '그래픽', log: 'Could not edit props'},
   });
   const locked = busy || document?.access !== 'editable' || !screens || !media;
   const save = (edit: PropEdit): void => {
@@ -51,7 +51,7 @@ export function PropTab({
       <div className={styles.tools}>
         <IconButton
           icon="plus"
-          label="소품 추가"
+          label="그래픽 추가"
           disabled={locked || document.value.props.length >= MAX_PROPS}
           onClick={() => setEditor({kind: 'add'})}
         />
@@ -65,7 +65,7 @@ export function PropTab({
       />
       {menu ? (
         <Menu
-          label="소품"
+          label="그래픽"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={propMenuEntries({
@@ -78,7 +78,7 @@ export function PropTab({
       {editor?.kind === 'delete' ? (
         <AlertDialog
           icon="component"
-          title={`‘${editor.prop.name}’ 소품을 삭제할까요?`}
+          title={`‘${editor.prop.name}’ 그래픽을 삭제할까요?`}
           onCancel={() => setEditor(null)}
           actions={[
             {

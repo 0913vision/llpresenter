@@ -67,7 +67,7 @@ export const ACTION_KINDS: Readonly<Record<MacroActionKind, ActionKindRow>> = {
   look: {kind: 'look', label: 'Look 바꾸기', icon: 'layers'},
   stageLayout: {kind: 'stageLayout', label: '무대 화면 배치', icon: 'monitor'},
   timer: {kind: 'timer', label: '타이머', icon: 'timer'},
-  prop: {kind: 'prop', label: '소품', icon: 'prop'},
+  prop: {kind: 'prop', label: '그래픽', icon: 'prop'},
   message: {kind: 'message', label: '메시지', icon: 'msg'},
   notice: {kind: 'notice', label: '공지', icon: 'notice'},
   media: {kind: 'media', label: '배경 미디어', icon: 'image'},

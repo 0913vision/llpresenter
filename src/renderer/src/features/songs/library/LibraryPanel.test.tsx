@@ -109,13 +109,11 @@ describe('library panel', () => {
       ),
     ).toEqual([
       '예배 순서에 추가',
-      '라이브러리로 옮기기',
       '|',
       '구성',
       '출력 대상',
       '|',
-      '크기 바꾸기',
-      '가사 편집',
+      '곡 편집',
       '|',
       '복사',
       '붙여넣기',
@@ -131,14 +129,14 @@ describe('library panel', () => {
       [...menu.querySelectorAll('[role="menuitem"]')]
         .filter(row => row.getAttribute('aria-disabled') !== 'true')
         .map(row => row.textContent),
-    ).toEqual(['가사 편집', '삭제']);
+    ).toEqual(['곡 편집', '삭제']);
   });
 
   it('opens the right-clicked song in the preparation editor', async () => {
     const {onOpenSong, user} = await setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
     expect(onOpenSong).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('menuitem', {name: '가사 편집'}));
+    await user.click(screen.getByRole('menuitem', {name: '곡 편집'}));
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({
         document: fixtureSong(1, '찬송 10'),

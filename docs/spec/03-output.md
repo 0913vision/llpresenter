@@ -8,7 +8,7 @@ document is a command that the main process handles.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 구성 (arrangement), 이름표 (label), 본 화면 (main screen), 무대 화면
-(stage screen), 방송 자막 (broadcast captions), 소품 (prop), 공지 (notice),
+(stage screen), 방송 자막 (broadcast captions), 그래픽 (prop), 공지 (notice),
 메시지 (message), 타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵
 실행 (quick launch), 진행 (Show workspace), 준비 (Prep workspace), 화면 설정
 (Screen settings workspace).
@@ -92,7 +92,7 @@ screen's output on and off. There is no confirmation.
   모니터 2 (monitor 2), 캡처용 창, or NDI.
 - Clicking a button in the monitor missing state turns the output off.
 - Turning an output off keeps the output state (the live 슬라이드, background,
-  소품, and so on). Turning it back on shows that content at once. While the
+  그래픽, and so on). Turning it back on shows that content at once. While the
   output is off, the preview keeps showing the same picture.
 - Preload and size hidden outputs before they are needed. Reveal a complete
   current frame without a dissolve. An output requested on must never remain
@@ -128,15 +128,15 @@ its Look's background setting says.
 | 1                    | Media (background media)                      | Yes                        | Yes, when the Look turns it on     |
 | 2                    | Lyrics                                        | Drawn with the lyric style | Drawn by the stage layout elements |
 | 3                    | 공지                                          | Yes                        | No (proposal)                      |
-| 4                    | 소품                                          | Yes                        | No (proposal)                      |
+| 4                    | 그래픽                                        | Yes                        | No (proposal)                      |
 | 5                    | Stage layout clock, 타이머, and stage message | No                         | Yes                                |
 | 6                    | 메시지                                        | Yes                        | Yes, when the Look turns it on     |
 
 - The order follows the layer list order of the `Looks` board: background media,
-  lyrics, 공지, 소품, 메시지.
+  lyrics, 공지, 그래픽, 메시지.
 - Audio is a layer without a picture. It exists only as a unit for clearing.
-- The 무대 화면 card in the `Looks` board has no 공지 or 소품 rows. So the 무대
-  화면 never draws 공지 or 소품 (proposal).
+- The 무대 화면 card in the `Looks` board has no 공지 or 그래픽 rows. So the
+  무대 화면 never draws 공지 or 그래픽 (proposal).
 
 Source: `Looks`, `Outputs`, `ClearButton` README, design system README (output
 colors).
@@ -147,7 +147,7 @@ colors).
 
 A Look is an app-wide setting. For each screen, it decides:
 
-- Whether each layer shows: background media, lyrics, 공지, 소품, 메시지, and
+- Whether each layer shows: background media, lyrics, 공지, 그래픽, 메시지, and
   for the 무대 화면 also the clock and the stage message.
 - The lyric style of an audience screen, for example 기본 (default) on the 본
   화면 and 하단 자막 (lower third) on the 방송 자막.
@@ -175,7 +175,7 @@ screen shows that content.
 Something shows on a screen only if both of these are true (proposal):
 
 - It was sent to that screen. 슬라이드 and backgrounds go to every screen.
-  메시지, 공지, and 소품 go only to their chosen screens (see 04).
+  메시지, 공지, and 그래픽 go only to their chosen screens (see 04).
 - The current Look turns that layer on for that screen.
 
 - Hiding by a Look isn't clearing. The content stays in the output state, its
@@ -347,7 +347,7 @@ duration clears at once; an enabled fade uses its configured duration, capped at
 | F1       | 모두 (all)     | Every layer below that has something to clear                            |
 | F2       | 가사 (lyrics)  | The live 슬라이드 (lyrics layer). After this, there is no live 슬라이드. |
 | F3       | 미디어 (media) | Background media and media items (media layer)                           |
-| F4       | 소품           | Every 소품 that is on                                                    |
+| F4       | 그래픽         | Every 그래픽 that is on                                                  |
 | F5       | 오디오 (audio) | Audio that is playing, at once by default or with its configured fade    |
 | F6       | 메시지         | Every 메시지 that is showing                                             |
 | F7       | 공지           | The 공지, and stops its rotation                                         |
@@ -413,8 +413,8 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   - Lyrics: the same 슬라이드 becomes the live 슬라이드 again.
   - Media: the same media plays again from the position at the moment of the
     clear (proposal).
-  - 소품 and 공지: the same ones turn on again. A 공지 resumes rotating from the
-    image it showed (proposal).
+  - 그래픽 and 공지: the same ones turn on again. A 공지 resumes rotating from
+    the image it showed (proposal).
   - 메시지: the same 메시지 shows again with the display time it had left
     (proposal).
   - Audio: the same track plays again from the position at the moment of the
@@ -438,20 +438,20 @@ Source: M2 check 1 feedback rows 7 and 8, S1 (Edit Undo), S21 (clear controls),
 레이어 지우기는 v1에서 뺌", `Dialog` README, `AlertDialog` README. The feedback
 supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
-## Where 메시지, 공지, 소품, and stage messages go
+## Where 메시지, 공지, 그래픽, and stage messages go
 
 | Content       | Sent to                                                          | Layer                                         | Controlled from               |
 | ------------- | ---------------------------------------------------------------- | --------------------------------------------- | ----------------------------- |
 | 메시지        | Chosen screens (모든 화면 all screens, 본 화면, 무대, 방송 자막) | 메시지                                        | 진행 도구 메시지 tab (see 04) |
 | 공지          | Chosen screens (본 화면, 무대, 방송 자막)                        | 공지                                          | 진행 도구 공지 tab            |
-| 소품          | The screens set for each 소품                                    | 소품                                          | 진행 도구 소품 tab, 퀵 실행   |
+| 그래픽        | The screens set for each 그래픽                                  | 그래픽                                        | 진행 도구 그래픽 tab, 퀵 실행 |
 | Stage message | 무대 화면                                                        | The stage message element of the stage layout | 진행 도구 무대 tab            |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).
 - One 공지 set runs at a time. Starting another set replaces the previous one
   (proposal).
-- Several 소품 can be on at the same time (proposal).
+- Several 그래픽 can be on at the same time (proposal).
 - A 메시지 with a set display time comes down by itself when the time ends.
 
 Source: `Overlays`, `ShowH` (target screens in the showing list), product log
@@ -467,7 +467,7 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   chroma key.
 - The in-app preview of the 방송 자막 also has a green background.
 - The default Look card for the 방송 자막 shows only the background (green) and
-  the lyrics (하단 자막). It hides 공지, 소품, and 메시지.
+  the lyrics (하단 자막). It hides 공지, 그래픽, and 메시지.
 - The target method is NDI with an alpha channel, which needs no chroma key. The
   capture window is the fallback for setups without NDI. NDI comes after version
   1 (see 09). The 화면 설정 boards and the other boards already label the 방송

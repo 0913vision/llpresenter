@@ -20,7 +20,7 @@ it('exposes only panels with working controls', () => {
     {value: 'timer', label: '타이머'},
     {value: 'message', label: '메시지'},
     {value: 'notice', label: '공지'},
-    {value: 'prop', label: '소품'},
+    {value: 'prop', label: '그래픽'},
     {value: 'macro', label: '\ub9e4\ud06c\ub85c'},
   ]);
 });

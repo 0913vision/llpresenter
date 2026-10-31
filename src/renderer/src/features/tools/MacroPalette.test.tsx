@@ -44,7 +44,7 @@ it('filters by search and supports keyboard selection and closing', async () => 
   fireEvent.change(screen.getByRole('textbox', {name: '동작 찾기'}), {
     target: {value: '오디오'},
   });
-  expect(screen.queryByRole('button', {name: '소품'})).toBeNull();
+  expect(screen.queryByRole('button', {name: '그래픽'})).toBeNull();
   const group = screen.getByRole('region', {name: '소리'});
   const row = within(group).getByRole('button', {name: '오디오 재생 목록'});
   row.focus();
@@ -58,7 +58,7 @@ it('writes a recognized drag kind and rejects unknown external values', () => {
   render(<MacroPalette onChoose={() => undefined} onClose={() => undefined} />);
   const setData = vi.fn();
   const transfer = {setData, effectAllowed: ''};
-  fireEvent.dragStart(screen.getByRole('button', {name: '소품'}), {
+  fireEvent.dragStart(screen.getByRole('button', {name: '그래픽'}), {
     dataTransfer: transfer,
   });
   expect(setData).toHaveBeenCalledExactlyOnceWith(MACRO_ACTION_MIME, 'prop');

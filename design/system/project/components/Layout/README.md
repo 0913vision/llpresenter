@@ -73,7 +73,7 @@ the scrolling fallback, preserving the saved visibility choice.
 | Regular window | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | Open | All 8 | Two cells | Icon + name | 4 |
 | Wide window | 2400 or more | 56 | 320 | 560 | Open | All 8 | Two cells | Icon + name | 6 |
 
-The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the remaining tabs (오디오, 타이머, 메시지, 공지, 소품, 매크로) as a menu.
+The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the remaining tabs (오디오, 타이머, 메시지, 공지, 그래픽, 매크로) as a menu.
 
 | Screen | Scaling | CSS pixels | Class |
 |---|---|---|---|

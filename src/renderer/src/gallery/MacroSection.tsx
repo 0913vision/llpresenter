@@ -51,7 +51,7 @@ const toolTabs = [
   {value: 'timer', label: '타이머'},
   {value: 'message', label: '메시지'},
   {value: 'notice', label: '공지'},
-  {value: 'prop', label: '소품'},
+  {value: 'prop', label: '그래픽'},
   {value: 'macro', label: '매크로'},
 ];
 

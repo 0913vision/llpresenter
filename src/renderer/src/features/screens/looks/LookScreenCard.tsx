@@ -32,7 +32,7 @@ const LAYER_LABELS: Readonly<Record<Layer, string>> = {
   media: '배경 미디어',
   slide: '가사',
   notice: '공지',
-  prop: '소품',
+  prop: '그래픽',
   message: '메시지',
   clock: '시계',
   stageMessage: '무대 메시지',

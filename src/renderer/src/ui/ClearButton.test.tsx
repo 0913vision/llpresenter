@@ -61,7 +61,7 @@ describe('ClearRow', () => {
       '모두 지우기',
       '가사 지우기',
       '미디어 지우기',
-      '소품 지우기',
+      '그래픽 지우기',
       '오디오 지우기',
       '메시지 지우기',
       '공지 지우기',
@@ -166,6 +166,6 @@ describe('ClearRow', () => {
   });
 
   it('writes the name as the layer name and 지우기', () => {
-    expect(clearLabel('prop')).toBe('소품 지우기');
+    expect(clearLabel('prop')).toBe('그래픽 지우기');
   });
 });

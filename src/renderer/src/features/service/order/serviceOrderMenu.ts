@@ -44,15 +44,14 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
           ),
         },
         laterRow('destination', '출력 대상', {submenu: true}),
-        menuSeparator('edit-separator'),
-        laterRow('resize', '크기 바꾸기', {submenu: true}),
         ...(openInPrep === undefined
           ? []
           : [
+              menuSeparator('edit-separator'),
               {
                 kind: 'item',
                 id: 'prep',
-                label: '가사 편집',
+                label: '곡 편집',
                 onSelect: openInPrep,
               } as const,
             ]),
@@ -121,8 +120,8 @@ function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
 
 /**
  * The right-click menu of one 예배 순서 row, after ProPresenter's playlist
- * item menu (spec 11): hide and add to another service, the rows for this
- * kind of item, then copy, rename, and delete.
+ * item menu (spec 11): hide, the rows for this kind of item, then copy,
+ * rename, and delete.
  */
 export function serviceOrderMenuEntries(
   input: ServiceOrderMenuInput,
@@ -130,7 +129,6 @@ export function serviceOrderMenuEntries(
   const open = openRows(input);
   return [
     laterRow('hide', '항목 숨기기'),
-    laterRow('add-to', '다른 예배에 추가', {submenu: true}),
     ...(open.length > 0 ? [menuSeparator('open-separator'), ...open] : []),
     menuSeparator('clipboard-separator'),
     laterRow('copy', '복사', {meta: 'Ctrl C'}),

@@ -643,7 +643,7 @@ describe('service panel editing', () => {
     const {onOpenPrep, send} = setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
     await userEvent.click(
-      await screen.findByRole('menuitem', {name: '가사 편집'}),
+      await screen.findByRole('menuitem', {name: '곡 편집'}),
     );
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();
@@ -663,13 +663,11 @@ describe('service panel editing', () => {
     );
     expect(rows).toEqual([
       '항목 숨기기',
-      '다른 예배에 추가',
       '|',
       '구성',
       '출력 대상',
       '|',
-      '크기 바꾸기',
-      '가사 편집',
+      '곡 편집',
       '|',
       '복사',
       '붙여넣기',

@@ -5,7 +5,7 @@ points on October 31 (the approval page, accepted as proposed).
 
 This file replaces the Looks section of 03, the lyric styles and stage layouts
 of 02 and 06, and the 화면 설정 parts that edit them. 메시지 styles, 공지 sets,
-and 소품 keep their own files and behavior.
+and 그래픽 keep their own files and behavior.
 
 ## Why
 
@@ -70,9 +70,9 @@ pp. 37 to 38), so it has the same limit.
   sees them. The editor offers them only there, and a paste onto another screen
   is refused.
 - A Bible verse is a 슬라이드, so 현재 가사 shows it. Only 성경 출처 is extra.
-- 공지, 메시지, and 소품 are not elements. Each keeps its own look and the
+- 공지, 메시지, and 그래픽 are not elements. Each keeps its own look and the
   screens it is sent to, and they always draw on top of the 테마 in the order
-  공지, 소품, 메시지. A 테마 can't hide them.
+  공지, 그래픽, 메시지. A 테마 can't hide them.
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 본 화면, the item's settings show a warning mark
   with the reason in its tooltip and a 테마 편집… button.
@@ -142,8 +142,8 @@ until the operator or an action changes it (S4 pp. 37 to 38).
    screen's composition; the editor never lets two screens point at each other.
 2. In 직접 배치, draw the elements from the bottom of the element list to the
    top. The top of the list is in front.
-3. Draw 공지, 소품, and 메시지 above them, each only on the screens it was sent
-   to.
+3. Draw 공지, 그래픽, and 메시지 above them, each only on the screens it was
+   sent to.
 4. A cleared layer draws nothing in the elements that show it: 지우기 가사
    empties 현재 가사, 다음 가사, 이름표, and 성경 출처; 지우기 미디어 empties
    미디어 and 배경; 지우기 모두 empties every element that shows live content.
@@ -248,8 +248,8 @@ an item uses the 테마; its items fall back to their kind's default. The 대기
   배경, and its 오버레이. Its control is a 항목 button first in 진행's 지우기
   row, shaped like the other clear buttons, with the tooltip 항목 끄기, and a
   출력 menu row. Its shortcut comes with the shortcut review (B7). Unlike 지우기
-  모두, it leaves 공지, 소품, and 메시지 on screen. 실행 취소 (undo) brings the
-  item back, as for a clear (03, "Undo").
+  모두, it leaves 공지, 그래픽, and 메시지 on screen. 실행 취소 (undo) brings
+  the item back, as for a clear (03, "Undo").
 - With nothing live, every screen shows the 대기 화면 테마, for example the
   church logo on the 본 화면, the clock on the 무대 화면, and nothing on the
   방송 자막. The same screens show at launch when outputs turn on and nothing is

@@ -89,7 +89,7 @@ describe('App', () => {
       expect(layerContainer('popover').closest('[data-workspace]')).toBe(root);
       for (const [name, scope] of [
         ['준비', 'prep'],
-        ['화면 설정', 'screens'],
+        ['테마', 'screens'],
         ['진행', 'show'],
       ] as const) {
         fireEvent.click(screen.getByRole('tab', {name}));
@@ -125,7 +125,7 @@ describe('App', () => {
     const tile = within(grid).getAllByRole('option')[2];
     if (!tile) throw new Error('Missing slide');
     fireEvent.contextMenu(tile);
-    fireEvent.click(screen.getByRole('menuitem', {name: '가사 편집'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '곡 편집'}));
     expect(
       screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
     ).toBe('true');
@@ -197,7 +197,7 @@ describe('App', () => {
     ).getAllByRole('option')[2];
     if (!tile) throw new Error('Missing slide');
     fireEvent.contextMenu(tile);
-    fireEvent.click(screen.getByRole('menuitem', {name: '가사 편집'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '곡 편집'}));
     await waitFor(() =>
       expect(
         session.editor?.getSnapshot().session?.history.snapshot.selection.block,

@@ -89,7 +89,7 @@ it('opens the selected item source slide in the song editor', async () => {
   ).getAllByRole('option')[2];
   if (!selected) throw new Error('Missing repeated item slide');
   fireEvent.click(selected);
-  fireEvent.click(within(panel).getByRole('button', {name: '가사 편집'}));
+  fireEvent.click(within(panel).getByRole('button', {name: '곡 편집'}));
   expect(await screen.findByRole('region', {name: '곡 편집'})).toBeDefined();
   expect(screen.queryByRole('region', {name: '예배 순서 항목'})).toBeNull();
   expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(

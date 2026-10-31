@@ -59,7 +59,7 @@ function setup() {
           props: [
             {
               id: quickId(103),
-              name: '소품 대상',
+              name: '그래픽 대상',
               content: {kind: 'image', media: quickId(111)},
               targets: [],
             },
@@ -235,7 +235,7 @@ describe('quick editing', () => {
     fixture.mount();
     await openAddMenu();
     for (const [name, reason] of [
-      ['소품', '소품 불러오는 중'],
+      ['그래픽', '그래픽 불러오는 중'],
       ['매크로', '매크로 불러오는 중'],
       ['현재 항목 추가', '현재 항목 불러오는 중'],
     ] as const) {
@@ -251,7 +251,7 @@ describe('quick editing', () => {
       source.resolve(null);
     });
     for (const [name, reason] of [
-      ['소품', '소품 없음'],
+      ['그래픽', '그래픽 없음'],
       ['매크로', '매크로 없음'],
       ['현재 항목 추가', '추가할 현재 항목 없음'],
     ] as const) {
@@ -271,7 +271,7 @@ describe('quick editing', () => {
     ).toEqual([
       '현재 항목 추가',
       '|',
-      '소품',
+      '그래픽',
       '타이머…',
       '매크로',
       '검은 화면',
@@ -445,7 +445,7 @@ describe('quick editing', () => {
     expect(screen.getByRole('menuitem', {name: '현재 항목 추가'})).toBeTruthy();
   });
   it.each([
-    {group: '소품', name: '소품 대상', kind: 'prop'},
+    {group: '그래픽', name: '그래픽 대상', kind: 'prop'},
     {group: '매크로', name: '매크로 대상', kind: 'macro'},
   ])(
     'adds a $kind from its submenu without output',

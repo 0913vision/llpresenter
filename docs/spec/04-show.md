@@ -7,7 +7,7 @@ boards.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
 (label), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
-captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 소품 (prop), 공지
+captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 공지
 (notice), 메시지 (message), 타이머 (timer), 매크로 (macro), 라이브러리
 (library), 준비 (Prep workspace). See 01.
 
@@ -116,7 +116,7 @@ README, `Main` decision "구성대로 진행".
   implemented yet. See 05.
 - Choosing another service makes it the current service at once. There is no
   confirmation, even during output.
-  - The output doesn't change. The live 슬라이드, background, and 소품 stay on
+  - The output doesn't change. The live 슬라이드, background, and 그래픽 stay on
     the screens until the operator clicks a 슬라이드 in the new service.
   - If the live 슬라이드 came from an item that isn't in the new service, no row
     shows the LIVE badge.
@@ -193,10 +193,10 @@ source was found.
   precedence").
 - A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
   grid, or the 예배 순서 list. A click on any other button or tile, such as a
-  매크로 or a 소품, leaves keyboard focus where it was (10). So after a click on
-  a 슬라이드, focus is on the 슬라이드 grid and Space outputs the next 슬라이드,
-  and after a click on a 매크로, Space still outputs the next 슬라이드 instead
-  of running the 매크로 again.
+  매크로 or a 그래픽, leaves keyboard focus where it was (10). So after a click
+  on a 슬라이드, focus is on the 슬라이드 grid and Space outputs the next
+  슬라이드, and after a click on a 매크로, Space still outputs the next 슬라이드
+  instead of running the 매크로 again.
 - Next and previous are the tiles after and before the live 슬라이드 in the
   current item's sequence. If there is no live 슬라이드, or the item open in the
   슬라이드 panel isn't the current item, next outputs the first tile of the item
@@ -262,7 +262,7 @@ each preview follows ProPresenter's rule: it shows what goes out.
   window has no next slide preview (guide pp. 24 to 26).
 - A layer that the current Look hides on a screen doesn't show in that screen's
   preview (03, "Looks"). For example, the default Look shows only the background
-  and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 소품, or
+  and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 그래픽, or
   메시지. A Look that turns those layers on for the 방송 자막 shows them there
   and in its preview.
 - A live background video whose file is missing shows a pause mark on every
@@ -319,14 +319,14 @@ Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
 
 ## Clear row
 
-The row holds 모두 (all), 가사 (lyrics), 미디어 (media), 소품, 오디오 (audio),
+The row holds 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽, 오디오 (audio),
 메시지, and 공지, in that order. When 지우기 되돌리기 단추 보이기 is on, append
 a separator and 되돌리기 (undo); the default is off (proposal). 03 defines the
 behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구
 
-The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 공지, 소품, and
+The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 공지, 그래픽, and
 매크로, in that order. Fit complete tab labels to the actual panel width; keep
 the selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
 output state belongs in the previews, whole-layer take-down in the 지우기 row,
@@ -389,7 +389,7 @@ and per-item controls in the owning tool tab (October 31 B16).
 ### 타이머
 
 - Each timer has its own ID, configuration and running state. Starting, stopping
-  or resetting one timer never changes another. 퀵 실행, the timer tab, 소품
+  or resetting one timer never changes another. 퀵 실행, the timer tab, 그래픽
   tokens and the stage timer picker refer to that same timer by ID; the operator
   sees its name (user decision from the October 26 check).
 - One row per 타이머: an icon, the name and kind ("10:30까지" until 10:30,
@@ -445,7 +445,7 @@ and per-item controls in the owning tool tab (October 31 B16).
   against that target.
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
-- 타이머 keep running regardless of clears. They show in 소품 text and in the
+- 타이머 keep running regardless of clears. They show in 그래픽 text and in the
   stage layout's 타이머 element.
 - Adding a timer from 퀵 실행 creates a new fixed-duration countdown after
   asking for minutes and seconds. Its initial name is 타이머 1, 타이머 2, and so
@@ -543,16 +543,16 @@ T03, T07 and T09.
   Version 1 has a plus button in the tab that makes a 공지 set from a media
   image playlist. Clicking the interval value changes it (proposal).
 
-### 소품
+### 그래픽
 
-- A grid of 소품 tiles: the 소품's picture, name, and target screen name. A 소품
-  that is on has a red ring.
+- A grid of 그래픽 tiles: the 그래픽's picture, name, and target screen name. A
+  그래픽 that is on has a red ring.
 - Clicking a tile turns it on. Clicking again turns it off (proposal). Several
-  소품 can be on at the same time.
-- The 소품 clear (F4) turns every 소품 off.
-- No board shows where to create or edit a 소품 (open question). Version 1 has a
-  plus button in the tab and a right-click menu to set the name, content (image
-  or text), and target screens (proposal).
+  그래픽 can be on at the same time.
+- The 그래픽 clear (F4) turns every 그래픽 off.
+- No board shows where to create or edit a 그래픽 (open question). Version 1 has
+  a plus button in the tab and a right-click menu to set the name, content
+  (image or text), and target screens (proposal).
 
 ### 매크로
 
@@ -602,15 +602,15 @@ row while it's on. Clicking it again turns it off.
 | ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                                    |
 | Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
-| Black screen  | 검은 화면                  | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                                   |
-| 소품          | 로고 화면 (logo screen)    | Turns that 소품 on or off.                                                                                                                                                 | Yes                                   |
+| Black screen  | 검은 화면                  | Turns on or off a built-in 그래픽 that covers every audience screen with black (proposal).                                                                                 | Yes                                   |
+| 그래픽        | 로고 화면 (logo screen)    | Turns that 그래픽 on or off.                                                                                                                                               | Yes                                   |
 | 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                         | Yes, while running; never for a clock |
 | 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                               | No                                    |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
-- The black screen sits on the 소품 layer, so the 소품 clear (F4) also takes it
-  down (proposal).
+- The black screen sits on the 그래픽 layer, so the 그래픽 clear (F4) also takes
+  it down (proposal).
 
 ### Adding and editing (proposal)
 
@@ -618,7 +618,7 @@ No board shows how to add a 퀵 실행 item (open question). Version 1 works lik
 this:
 
 - 퀵 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or Bible
-  passage), 소품 (submenu), 타이머, 매크로 (submenu), 검은 화면.
+  passage), 그래픽 (submenu), 타이머, 매크로 (submenu), 검은 화면.
 - 타이머 opens a duration dialog with minutes and seconds. Both are whole
   numbers, minutes are nonnegative, seconds run from 0 to 59, and the total must
   be positive. An invalid value has the design system error ring and a reason in
@@ -679,7 +679,8 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 - Playlists, importing, file drops, preview, selected-item properties and file
   information live inside the bin in both workspaces. The full structure and
   copy/relink rules are in 05, "Shared bottom 미디어 bin". There is one 가져오기
-  action; it opens immediately in the last import folder (02).
+  action; it opens immediately in the last import folder (02). The properties
+  panel and its properties tab are titled 미디어 속성.
 - In 진행, clicking a playable tile outputs it as the background at once (03)
   without changing the bin's selection or properties. Enter on a focused tile
   does the same. LIVE marks the media on output. In both workspaces, the tile's
@@ -840,7 +841,7 @@ The features are the same. Only the layout differs.
 | Media strip         | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
 | 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
-| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 공지, 소품 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                   | `Compact`, `Layout` README       |
+| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 공지, 그래픽 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                 | `Compact`, `Layout` README       |
 | Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
 | 퀵 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
 | 예배 순서 header    | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |
@@ -860,11 +861,11 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)                  | No ProPresenter source found                                                             |
 | Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)                 | Follows ProPresenter (Show Triggered Presentation, S1)                                   |
 | Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |
-| F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지                      | Follows ProPresenter (S1)                                                                |
+| F1 to F7                                         | Clear all, lyrics, media, 그래픽, audio, 메시지, 공지                    | Follows ProPresenter (S1)                                                                |
 | Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)                  | M2 check 1 row 8; never restores cleared output (03, 10)                                 |
 | Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off                | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
-| Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette          | Follows ProPresenter (S1)                                                                |
+| Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
 | Ctrl Alt B                                       | The Bible field in 퀵 실행                                               | Follows ProPresenter (Open Bibles Mode, S1)                                              |
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
-| A key set for a Look, 소품, 매크로, or 타이머    | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 소품 and 매크로 (S2, S3)        |
+| A key set for a Look, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |

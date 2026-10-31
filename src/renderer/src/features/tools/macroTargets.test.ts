@@ -53,7 +53,7 @@ describe('buildMacroTargets', () => {
     const targets = buildMacroTargets(source);
     expect(targets.choices.clearLayer).toContainEqual({
       id: 'prop',
-      name: '소품',
+      name: '그래픽',
       clearTarget: 'layer',
     });
     expect(targets.choices.clearLayer).toContainEqual({
@@ -80,7 +80,7 @@ describe('buildMacroTargets', () => {
       '가사',
       '미디어',
       '공지',
-      '소품',
+      '그래픽',
       '메시지',
       '오디오',
     ]);

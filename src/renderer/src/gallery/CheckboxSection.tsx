@@ -134,7 +134,7 @@ export function CheckboxSection(): JSX.Element {
             <Row
               icon="layers"
               label="표시 중이던 항목"
-              value="메시지 1, 소품 1, 무대 메시지 1"
+              value="메시지 1, 그래픽 1, 무대 메시지 1"
               initial={false}
             />
           </div>

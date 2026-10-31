@@ -6,22 +6,22 @@ the source samples keep their names. Fields that the sources don't show are
 marked as proposals.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
-(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 소품
+(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 그래픽
 (prop), 공지 (notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch),
 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions).
 See 01 for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                                                         | Source                                                           |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                               | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                           | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 소품, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                                  | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                        | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                           | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                               |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                                                           | Source                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                                 | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                             | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                                    | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                          | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                             | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                                 |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -345,7 +345,7 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                              |
 | `messages.json`                       | `llsettings.messages`    | 메시지 templates and stage message presets |
 | `notices.json`                        | `llsettings.notices`     | 공지 sets                                  |
-| `props.json`                          | `llsettings.props`       | 소품                                       |
+| `props.json`                          | `llsettings.props`       | 그래픽                                     |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                     |
 | `labels.json`                         | `llsettings.labels`      | 이름표 list                                |
 | `preferences.json`                    | `llsettings.preferences` | 환경설정                                   |
@@ -365,7 +365,7 @@ sections below don't say otherwise):
 | `quick.json`         | One item, 검은 화면 (`"black"`).                                                                                                                        |
 | `messages.json`      | No templates. `stagePresets` holds the seven presets of the 무대 tab: 후렴 한 번 더, 마지막 후렴, 처음부터, 천천히, 조금 빠르게, 5분 남음, 마무리 (04). |
 | `notices.json`       | No sets.                                                                                                                                                |
-| `props.json`         | No 소품. The 검은 화면 is built in and isn't stored here (04).                                                                                          |
+| `props.json`         | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                                        |
 | `timers.json`        | No 타이머.                                                                                                                                              |
 | `labels.json`        | See "이름표 list" below.                                                                                                                                |
 | `preferences.json`   | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show.                   |
@@ -419,7 +419,7 @@ Screen Look:
 | `layers.media`        | Boolean                                                            | Show the background media layer.                                                                        | `Looks`                                                  |
 | `layers.slide`        | Boolean                                                            | Show the lyrics layer.                                                                                  | `Looks`                                                  |
 | `layers.notice`       | Boolean                                                            | Show the 공지 layer.                                                                                    | `Looks`                                                  |
-| `layers.prop`         | Boolean                                                            | Show the 소품 layer.                                                                                    | `Looks`                                                  |
+| `layers.prop`         | Boolean                                                            | Show the 그래픽 layer.                                                                                  | `Looks`                                                  |
 | `layers.message`      | Boolean                                                            | Show the 메시지 layer.                                                                                  | `Looks`                                                  |
 | `layers.clock`        | Boolean                                                            | Clock (무대 화면).                                                                                      | `Looks` 무대 화면 card                                   |
 | `layers.stageMessage` | Boolean                                                            | Stage message (무대 화면).                                                                              | `Looks` 무대 화면 card                                   |
@@ -478,11 +478,11 @@ interpret them as version 2 fields. This schema is staged, and the active store
 and output continue to use version 1 until the consumers are activated.
 
 Defaults (proposal): one Look, 평상시. The 본 화면 shows background media,
-lyrics (기본), 소품, and 메시지, and hides 공지. The 무대 화면 shows lyrics
+lyrics (기본), 그래픽, and 메시지, and hides 공지. The 무대 화면 shows lyrics
 (현재와 다음), the clock, and the stage message, and hides background media and
 메시지. The 방송 자막 shows the background (green) and lyrics (하단 자막), and
-hides 공지, 소품, and 메시지. These values copy the 평상시 Look from the `Looks`
-board.
+hides 공지, 그래픽, and 메시지. These values copy the 평상시 Look from the
+`Looks` board.
 
 ### Stage layouts (`stage-layouts.json`)
 
@@ -522,12 +522,12 @@ follow the `StageEditor` board.
 
 ### 퀵 실행 (`quick.json`)
 
-| Field          | Type                                                                     | Meaning                                                                                                                 | Source                                                                                                        |
-| -------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `items[]`      | Array                                                                    | The 퀵 실행 items, in display order.                                                                                    | `ShowH`                                                                                                       |
-| `.id`, `.name` | String                                                                   | ID and display name.                                                                                                    | `ShowH`                                                                                                       |
-| `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` \| `"black"` | Kind (see 04).                                                                                                          | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
-| `.ref`         | String or object                                                         | What the item points to: a song ID, a Bible passage object, a 소품 ID, a 타이머 ID, or a 매크로 ID. `"black"` has none. | Proposal                                                                                                      |
+| Field          | Type                                                                     | Meaning                                                                                                                   | Source                                                                                                        |
+| -------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `items[]`      | Array                                                                    | The 퀵 실행 items, in display order.                                                                                      | `ShowH`                                                                                                       |
+| `.id`, `.name` | String                                                                   | ID and display name.                                                                                                      | `ShowH`                                                                                                       |
+| `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` \| `"black"` | Kind (see 04).                                                                                                            | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
+| `.ref`         | String or object                                                         | What the item points to: a song ID, a Bible passage object, a 그래픽 ID, a 타이머 ID, or a 매크로 ID. `"black"` has none. | Proposal                                                                                                      |
 
 Version 1 has no 퀵 실행 shortcuts (see 09).
 
@@ -573,14 +573,14 @@ from stage selections and prop tokens keep their IDs and meaning.
 | `.loop`        | Boolean             | Loop.                                                    | `Overlays` loop button    |
 | `.targets`     | Array of screen IDs | Target screens.                                          | `Overlays` 보낼 화면      |
 
-### 소품 (`props.json`)
+### 그래픽 (`props.json`)
 
 | Field          | Type                | Meaning                                                                                                                                                                                                     | Source                                                                                   |
 | -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `props[]`      | Array               | 소품, for example 로고 (logo), 설교 본문 자막 (sermon text caption), 시작 카운트다운 (start countdown), 온라인 헌금 안내 (online giving).                                                                   | `Overlays` 소품 tab                                                                      |
+| `props[]`      | Array               | 그래픽, for example 로고 (logo), 설교 본문 자막 (sermon text caption), 시작 카운트다운 (start countdown), 온라인 헌금 안내 (online giving).                                                                 | `Overlays` 그래픽 tab                                                                    |
 | `.id`, `.name` | String              | ID and name.                                                                                                                                                                                                | `Overlays`                                                                               |
 | `.content`     | Object              | `{ "kind": "image", "media": media ID }` or `{ "kind": "text", "text": string, "style": the same fields as a lyric style }`. A `{timer:<timer ID>}` token in the text draws that 타이머's value (proposal). | `Overlays` (a logo image, text such as "예배 시작까지 04:32"). The format is a proposal. |
-| `.targets`     | Array of screen IDs | Target screens.                                                                                                                                                                                             | `Overlays` (each 소품 shows its target screen)                                           |
+| `.targets`     | Array of screen IDs | Target screens.                                                                                                                                                                                             | `Overlays` (each 그래픽 shows its target screen)                                         |
 
 ### 타이머 (`timers.json`)
 
@@ -612,14 +612,14 @@ after a stop/reset. The October 27 modes add optional countdown fields and the
 distinct `elapsed` kind; earlier kinds and fields keep their original meaning.
 
 Names are for display in 퀵 실행, the timer tab and stage pickers. References
-stay ID-based, so 이름 바꾸기 does not break a stage selection or a 소품 token.
-Renaming from either a quick row or the timer tab applies the timer name and
-linked quick-row names together, preserving unknown fields and running state.
-Quick start/reset changes only the referenced timer's live state. Passing zero
-does not rewrite `.duration`: `.overrun` determines whether the timer stops or
-continues with "-". A finished run holds zero and is not running; a fresh start
-of a finished duration timer starts from its configured duration. Completion and
-pause remain live state, never fields in this settings file.
+stay ID-based, so 이름 바꾸기 does not break a stage selection or a 그래픽
+token. Renaming from either a quick row or the timer tab applies the timer name
+and linked quick-row names together, preserving unknown fields and running
+state. Quick start/reset changes only the referenced timer's live state. Passing
+zero does not rewrite `.duration`: `.overrun` determines whether the timer stops
+or continues with "-". A finished run holds zero and is not running; a fresh
+start of a finished duration timer starts from its configured duration.
+Completion and pause remain live state, never fields in this settings file.
 
 Existing `elapsedFrom` records retain their `HH:mm` reference and remain
 distinct from `elapsed`. New elapsed records use `.start`, keep counting on
@@ -1223,7 +1223,7 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `state.outputs`         | Screen ID to output on or off                                                                  | 화면 출력 (screen output)                  |
 | `state.layers.slide`    | Complete live 슬라이드: source item ID, position, label, and displayed lines                   | 마지막 슬라이드                            |
 | `state.layers.media`    | Background media choice, loop setting, and playback start time                                 | 마지막 슬라이드 (proposal)                 |
-| `state.layers.prop`     | Complete active 소품 layer, including captured item payloads when present                      | 표시 중이던 항목 (items that were showing) |
+| `state.layers.prop`     | Complete active 그래픽 layer, including captured item payloads when present                    | 표시 중이던 항목 (items that were showing) |
 | `state.layers.message`  | Complete active 메시지 layer, including displayed text and captured item payloads when present | 표시 중이던 항목                           |
 | `state.stageMessage`    | Captured stage message text when present                                                       | 표시 중이던 항목                           |
 | `state.layers.notice`   | Complete active 공지 layer, including captured playback state when present                     | 표시 중이던 항목                           |

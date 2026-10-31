@@ -7,7 +7,7 @@ must never happen during a service.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
-captions), 소품 (prop), 공지 (notice), 메시지 (message), 매크로 (macro), 진행
+captions), 그래픽 (prop), 공지 (notice), 메시지 (message), 매크로 (macro), 진행
 도구 (show tools). See 01.
 
 ## Problem states
@@ -218,11 +218,11 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 | Group   | "복구할 상태" (states to restore), with three check rows, all checked by default              |
 | Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.               |
 
-| Row                                        | Value example                     | Restores                                                                                                                                                                                 |
-| ------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"   | Turns on the outputs that were on.                                                                                                                                                       |
-| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"              | The live 슬라이드 (same item and position) and its background (proposal for the background).                                                                                             |
-| 표시 중이던 항목 (items that were showing) | "메시지 1, 소품 1, 무대 메시지 1" | 소품, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed), and, later, the stage layouts (once M3-O5 adds them to the state). |
+| Row                                        | Value example                       | Restores                                                                                                                                                                                   |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"     | Turns on the outputs that were on.                                                                                                                                                         |
+| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background).                                                                                               |
+| 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed), and, later, the stage layouts (once M3-O5 adds them to the state). |
 
 - Hide a row that has nothing to restore (proposal). If the record has nothing
   at all to restore, don't show the dialog, and launch normally (proposal).

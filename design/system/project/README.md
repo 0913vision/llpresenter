@@ -196,7 +196,7 @@ axis. See the component README and reference card before implementing M3-O3.
 | Problem | `warning` icon or outline, reason in a tooltip |
 
 - Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
-- In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 슬라이드 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 소품 still go to 다음 슬라이드 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
+- In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 슬라이드 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 그래픽 still go to 다음 슬라이드 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
 - Don't add UI motion to the output screens. Look and the settings decide the transitions when a 슬라이드 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
@@ -257,7 +257,7 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 | Look | Look | 룩, 레이아웃 | A set that decides which layers each screen shows |
 | 진행 도구 | show tools | 쇼 컨트롤 | The group of tabs at the bottom right of the 진행 workspace |
 | 퀵 실행 | quick launch | 단축 목록 | Frequently used items at the bottom left of the 진행 workspace |
-| 소품, 공지, 메시지, 타이머 | prop, notice, message, timer | Props, 배너 | Layers placed over the lyrics |
+| 그래픽, 공지, 메시지, 타이머 | prop, notice, message, timer | Props, 배너 | Layers placed over the lyrics |
 | 라이브러리 | library | 곡 목록, DB | Where the source songs are kept |
 | 매크로 | macro | 스크립트 | A button that runs several actions at once |
 

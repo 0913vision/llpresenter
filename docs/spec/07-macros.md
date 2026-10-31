@@ -6,7 +6,7 @@ and action kinds, collections, start 매크로 on 예배 순서 items, and the d
 to replace Clear Groups with 매크로 in version 1.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
-order), 진행 도구 (show tools), Look, 소품 (prop), 공지 (notice), 메시지
+order), 진행 도구 (show tools), Look, 그래픽 (prop), 공지 (notice), 메시지
 (message), 타이머 (timer), 무대 화면 (stage screen), 준비 (Prep workspace).
 See 01.
 
@@ -114,7 +114,7 @@ Source: `Macros`, 11-menus.md.
 | -------------- | --------------------------------------------------------------- |
 | 화면 (screen)  | Look 바꾸기 (change Look), 무대 화면 배치 (stage screen layout) |
 | 지우기 (clear) | 모두 지우기 (clear all), 레이어 지우기 (clear layer)            |
-| 내용 (content) | 배경 미디어 (background media), 소품, 메시지, 공지              |
+| 내용 (content) | 배경 미디어 (background media), 그래픽, 메시지, 공지            |
 | 소리 (sound)   | 오디오 (audio), 오디오 재생 목록 (audio playlist)               |
 | 진행 (show)    | 타이머, 매크로                                                  |
 
@@ -129,24 +129,24 @@ Source: `Macros`.
 ## Action kinds
 
 The 동작 추가 submenu lists the same kinds as the palette, with short names:
-Look, 지우기, 미디어, 오디오, 소품, 메시지, 공지, 무대, 타이머, 매크로. Register
-action kinds in a registry, so that later kinds (such as turning on a camera
-input) are additions, not changes (see `docs/TECH.md` and 09).
+Look, 지우기, 미디어, 오디오, 그래픽, 메시지, 공지, 무대, 타이머, 매크로.
+Register action kinds in a registry, so that later kinds (such as turning on a
+camera input) are additions, not changes (see `docs/TECH.md` and 09).
 
-| Action           | Parameters                                                                                                           | Effect                                                                                         | Example in the board                                                                       |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Look 바꾸기      | Look ID                                                                                                              | Sets the current Look (see 03).                                                                | "Look 평상시", "Look 설교"                                                                 |
-| 무대 화면 배치   | Screen ID (default: the 무대 화면) and stage layout ID                                                               | Changes the current stage layout. Not saved (see 03).                                          | None                                                                                       |
-| 모두 지우기      | None                                                                                                                 | Same as F1.                                                                                    | "지우기 모두"                                                                              |
-| 레이어 지우기    | A layer (가사 lyrics, 미디어 media, 소품, 오디오 audio, 메시지, 공지), or one 소품 (proposal)                        | Same as F2 to F7 for that layer, or turns off that one 소품.                                   | "지우기 가사"; "지우기 카운트다운" read as turning off the 시작 카운트다운 소품 (proposal) |
-| 배경 미디어      | Media ID                                                                                                             | Outputs the media as the background (see 03).                                                  | "배경 따뜻한 빛"                                                                           |
-| 소품             | 소품 ID and a mode: 켜기 (on, default), 끄기 (off), 바꾸기 (toggle) (proposal for the mode)                          | Turns the 소품 on, off, or over.                                                               | "소품 설교 본문 자막", "소품 로고"                                                         |
-| 메시지           | Template ID, blank values, target screens, display time                                                              | Sends the 메시지 (see 04).                                                                     | None                                                                                       |
-| 공지             | 공지 set ID                                                                                                          | Starts the 공지 set on its target screens from its first image (proposal for the start image). | "공지 주일 광고"                                                                           |
-| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 멈춤 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                              | "오디오 페이드 아웃", "오디오 헌금 연주"                                                   |
-| 오디오 재생 목록 | Audio playlist ID                                                                                                    | Plays the playlist from its first track.                                                       | None                                                                                       |
-| 타이머           | 타이머 ID and an operation: 시작 (start, default), 일시 정지 (pause), 처음으로 (reset) (proposal for the operations) | Controls the 타이머.                                                                           | "타이머 예배 경과", "타이머 설교"                                                          |
-| 매크로           | 매크로 ID                                                                                                            | Runs that 매크로 (see the loop rule above).                                                    | None                                                                                       |
+| Action           | Parameters                                                                                                           | Effect                                                                                         | Example in the board                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Look 바꾸기      | Look ID                                                                                                              | Sets the current Look (see 03).                                                                | "Look 평상시", "Look 설교"                                                                   |
+| 무대 화면 배치   | Screen ID (default: the 무대 화면) and stage layout ID                                                               | Changes the current stage layout. Not saved (see 03).                                          | None                                                                                         |
+| 모두 지우기      | None                                                                                                                 | Same as F1.                                                                                    | "지우기 모두"                                                                                |
+| 레이어 지우기    | A layer (가사 lyrics, 미디어 media, 그래픽, 오디오 audio, 메시지, 공지), or one 그래픽 (proposal)                    | Same as F2 to F7 for that layer, or turns off that one 그래픽.                                 | "지우기 가사"; "지우기 카운트다운" read as turning off the 시작 카운트다운 그래픽 (proposal) |
+| 배경 미디어      | Media ID                                                                                                             | Outputs the media as the background (see 03).                                                  | "배경 따뜻한 빛"                                                                             |
+| 그래픽           | 그래픽 ID and a mode: 켜기 (on, default), 끄기 (off), 바꾸기 (toggle) (proposal for the mode)                        | Turns the 그래픽 on, off, or over.                                                             | "그래픽 설교 본문 자막", "그래픽 로고"                                                       |
+| 메시지           | Template ID, blank values, target screens, display time                                                              | Sends the 메시지 (see 04).                                                                     | None                                                                                         |
+| 공지             | 공지 set ID                                                                                                          | Starts the 공지 set on its target screens from its first image (proposal for the start image). | "공지 주일 광고"                                                                             |
+| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 멈춤 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                              | "오디오 페이드 아웃", "오디오 헌금 연주"                                                     |
+| 오디오 재생 목록 | Audio playlist ID                                                                                                    | Plays the playlist from its first track.                                                       | None                                                                                         |
+| 타이머           | 타이머 ID and an operation: 시작 (start, default), 일시 정지 (pause), 처음으로 (reset) (proposal for the operations) | Controls the 타이머.                                                                           | "타이머 예배 경과", "타이머 설교"                                                            |
+| 매크로           | 매크로 ID                                                                                                            | Runs that 매크로 (see the loop rule above).                                                    | None                                                                                         |
 
 ### The board's sample 매크로
 
@@ -158,12 +158,12 @@ The `Macros` and `Overlays` boards show these 매크로 in the collection 주일
 | ------------------------------------------ | ------ | -------------------------------------------------------------------- |
 | 예배 시작 (service start), scheduled 10:30 | green  | Look 평상시, 지우기 카운트다운, 오디오 페이드 아웃, 타이머 예배 경과 |
 | 찬양 (praise), last run                    | teal   | Look 평상시, 배경 따뜻한 빛                                          |
-| 말씀 (sermon)                              | slate  | Look 설교, 소품 설교 본문 자막, 타이머 설교                          |
+| 말씀 (sermon)                              | slate  | Look 설교, 그래픽 설교 본문 자막, 타이머 설교                        |
 | 광고 (announcements)                       | yellow | Look 광고, 공지 주일 광고                                            |
-| 헌금 (offering)                            | orange | 오디오 헌금 연주, 소품 온라인 헌금 안내                              |
+| 헌금 (offering)                            | orange | 오디오 헌금 연주, 그래픽 온라인 헌금 안내                            |
 | 영상 (video)                               | rose   | Look 영상만, 지우기 가사                                             |
-| 축도 (benediction)                         | violet | 지우기 모두, 소품 로고                                               |
-| 예배 끝 (service end)                      | gray   | 오디오 축도 후 연주, 소품 로고                                       |
+| 축도 (benediction)                         | violet | 지우기 모두, 그래픽 로고                                             |
+| 예배 끝 (service end)                      | gray   | 오디오 축도 후 연주, 그래픽 로고                                     |
 
 Source: `Macros`, `Overlays`.
 
@@ -222,8 +222,8 @@ Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라�
 - To clear several layers at once, put several 레이어 지우기 actions in a
   매크로. If the clear belongs to a moment in the service, set that 매크로 as
   the start 매크로 of the 예배 순서 item. For example, a 매크로 with 레이어
-  지우기 가사, 레이어 지우기 소품, and Look 설교, set as the start 매크로 of the
-  sermon item.
+  지우기 가사, 레이어 지우기 그래픽, and Look 설교, set as the start 매크로 of
+  the sermon item.
 - The comparison board moved to the backup page. The `ClearButton` README says
   the same.
 

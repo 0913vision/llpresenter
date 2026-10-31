@@ -284,11 +284,11 @@ export function MediaPropertiesPanel(): JSX.Element {
     view.document?.value.items.find(({id}) => id === selected) ?? null;
   const disabled = view.document?.access !== 'editable';
   return (
-    <Panel label="속성" className={styles.panel}>
+    <Panel label="미디어 속성" className={styles.panel}>
       <PanelHeader>
         <PanelTabs<Tab>
           tabs={[
-            {value: 'props', label: '속성'},
+            {value: 'props', label: '미디어 속성'},
             {value: 'info', label: '정보'},
           ]}
           value={tab}

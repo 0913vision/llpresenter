@@ -167,7 +167,7 @@ it('updates the collapsed list count without mounting player panels', async () =
   );
   act(() => accept(mediaDocument([mediaItem(1), mediaItem(2)], 2)));
   expect(mediaBinToggle().textContent).toBe('미디어모든 미디어 2');
-  expect(screen.queryByRole('region', {name: '속성'})).toBeNull();
+  expect(screen.queryByRole('region', {name: '미디어 속성'})).toBeNull();
 });
 
 it.each([
@@ -360,7 +360,7 @@ it('keeps the bin playlist and selected properties across workspace and visibili
   expect(
     await screen.findByRole('option', {name: 'Second image', selected: true}),
   ).toBeDefined();
-  const properties = screen.getByRole('region', {name: '속성'});
+  const properties = screen.getByRole('region', {name: '미디어 속성'});
   expect(within(properties).getByText('Second image')).toBeDefined();
   expect(properties.querySelectorAll('img')).toHaveLength(1);
   expect(saveLegacy).not.toHaveBeenCalled();

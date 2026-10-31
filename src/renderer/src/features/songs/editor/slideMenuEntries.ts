@@ -5,7 +5,7 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 
-export const SONG_EDIT_LABEL = '가사 편집';
+export const SONG_EDIT_LABEL = '곡 편집';
 
 export function slideMenuEntries(
   edit: (() => void) | undefined,

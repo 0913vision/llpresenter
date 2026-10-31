@@ -99,7 +99,7 @@ it('distinguishes layers and individual props and keeps the clear transition', (
     macroActionChoices({
       kind: 'clearLayer',
       targets: [
-        {id: 'prop', name: '소품', clearTarget: 'layer'},
+        {id: 'prop', name: '그래픽', clearTarget: 'layer'},
         {id, name: '로고', clearTarget: 'prop'},
       ],
       current: {kind: 'clearLayer', layer: 'prop', transition},

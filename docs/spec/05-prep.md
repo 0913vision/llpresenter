@@ -276,8 +276,8 @@ settings) panel.
 ### Item panel (center)
 
 - Header: the song title, the sequence length ("슬라이드 9개"), and the same
-  edit label as the slide menu (가사 편집 until the names change). That button
-  opens the song editor at the selected occurrence's source slide.
+  edit label as the slide menu (곡 편집). That button opens the song editor at
+  the selected occurrence's source slide.
 - 구성 row: the label "구성" and a select that shows the chosen 구성 ("주일용").
   Its menu is the song editor's menu above. Choosing a 구성 changes only this
   item. Every source-management action first opens the song editor at the
@@ -680,8 +680,8 @@ and 59.
   (picture, duration chip with a loop icon when the media loops, name). Footer:
   count and total size ("7개 2.1GB") and a thumbnail size slider (2 to 8
   columns).
-- Right inside the bin: the media properties panel with the tabs 속성
-  (properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
+- Right inside the bin: the 미디어 속성 panel with the tabs 미디어 속성 (media
+  properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
   groups: a preview player with a play button, the position ("0:12"), the time
   left ("0:18 남음"), the media name, the file path, and 파일 위치 열기 (open
   file location).
