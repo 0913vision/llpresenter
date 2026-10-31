@@ -167,6 +167,23 @@ grows:
 - A test lives beside the code it tests, in the same layer. A fixture lives in
   the lowest layer that uses it. Don't test the same behavior twice.
 
+## Tests
+
+- A unit test checks one unit: the function, module, or component under test.
+  Other units and outside systems (git, the file system, Electron, another
+  process) are replaced by mocks. Name every test double a mock (`mockLlpApi`,
+  `installMockClock`), never a fake.
+- Keep real outside communication, such as real git, real files, or a real
+  Electron window, to the few integration tests that prove the wiring, not one
+  per case.
+- Each test sets up what it needs and cleans up after itself. It never depends
+  on another test or on what one left behind.
+- Test behavior that can break. Code without logic (wiring, constants, types,
+  re-exports, one-line adapters that the types already check) is not a test
+  target.
+- Test each behavior once, where it is owned. Don't repeat a parser's cases in
+  every caller.
+
 ## UI consistency
 
 The user judges the app by using it, so these hold across every screen:
