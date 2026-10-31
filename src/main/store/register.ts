@@ -1,65 +1,38 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {join} from 'node:path';
-import {app, ipcMain} from 'electron';
-import type {FileError} from '@core/schema/fileFormat';
 import {appEndpoints} from '@contracts/ipc/app';
-import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {defaultPreferences} from '@core/schema/preferences';
+import type {SettingsReader} from '@core/schema/settingsReader';
+import {app, ipcMain} from 'electron';
+import {join} from 'node:path';
+import {BibleLookupSession} from '../bible/lookup';
 import type {Logger} from '../log';
 import type {ProblemFeed} from '../problemFeed';
 import {registerLibrarySearch} from '../search/register';
-import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
-import {Backups, type BackupOutcome} from './backup';
-import {
-  broadcast,
-  broadcastEvents,
-  registerContentChannels,
-} from './contentChannels';
+import type {AppConfigFile} from './appConfigFile';
+import {registerContentChannels} from './contentChannels';
 import {ContentStore} from './contentStore';
-import {documentFiles} from './documentFiles';
 import {
   loadStore,
   type AppConfigView,
   type LoadedStore,
   type StoreContext,
 } from './fileStore';
-import {dataFileFolders, type LocationContext} from './locations';
+import {registerLibrarySong} from './librarySong';
+import {type LocationContext} from './locations';
+import {createLookSelection, type LookSelectionPort} from './lookSelection';
+import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
-import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import type {MediaStore} from './mediaStore';
-import {OpenServiceFeed} from './openServiceFeed';
-import {RecoveryCopies} from './recoveryCopies';
-import {SaveFailures, type SaveFailureSink} from './saveFailures';
+import {openContent, type OpenedContent} from './openContent';
+import {SaveFailures} from './saveFailures';
 import {registerSaveProblems} from './saveProblems';
-import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
-import {Saver} from './saver';
-import {removeStaleTempFiles} from './staleTempFiles';
-import {settingsNames} from '@core/schema/settingsDocuments';
-import {settingsLocation} from './settingsFile';
-import {
-  openSettingsStore,
-  type SettingsProblemListener,
-  type SettingsStore,
-} from './settingsStore';
-import {registerSettingsChannels} from './settingsChannels';
-import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
-import {createLookSelection, type LookSelectionPort} from './lookSelection';
 import {registerServiceChannels} from './serviceChannels';
-import type {AppConfigFile} from './appConfigFile';
-import {registerLibrarySong, type LibrarySongSources} from './librarySong';
-import {BibleLookupSession} from '../bible/lookup';
-
-const MAX_LOGGED_PROBLEMS = 50;
-
-interface OpenedContent {
-  readonly library: LibrarySongSources;
-  readonly content: ContentStore;
-  readonly feed: OpenServiceFeed;
-  readonly search: SongSearchIndex;
-  readonly removeSettings: () => void;
-}
+import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
+import {registerSettingsChannels} from './settingsChannels';
+import {openSettingsStore, type SettingsProblemListener} from './settingsStore';
+import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
+import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
 
 export interface StoreRegistration {
   readonly log: Logger;
@@ -309,230 +282,8 @@ async function readStore(
   }
 }
 
-async function openContent(
-  loading: Promise<LoadedStore | null>,
-  log: Logger,
-  readers: {
-    readonly settings: Promise<SettingsStore | null>;
-    readonly media: Promise<MediaStore | null>;
-    readonly failures: SaveFailureSink;
-    readonly bible: Pick<BibleLookupSession, 'lookup'>;
-  },
-): Promise<OpenedContent | null> {
-  const store = await loading;
-  if (store === null) {
-    return null;
-  }
-  try {
-    return await createContent(store, log, {
-      settings: await readers.settings,
-      media: await readers.media,
-      failures: readers.failures,
-      bible: readers.bible,
-    });
-  } catch (error: unknown) {
-    log.error('could not open the songs and 예배 순서', error);
-    return null;
-  }
-}
-
-async function createContent(
-  store: LoadedStore,
-  log: Logger,
-  {
-    settings,
-    media,
-    failures,
-    bible,
-  }: {
-    readonly settings: SettingsStore | null;
-    readonly media: MediaStore | null;
-    readonly failures: SaveFailureSink;
-    readonly bible: Pick<BibleLookupSession, 'lookup'>;
-  },
-): Promise<OpenedContent> {
-  const search = await buildSongSearchIndex(
-    [...store.songs.values()].map(({data}) => data),
-  );
-  const copies = new RecoveryCopies({
-    folder: store.locations.recovery,
-    keep: () =>
-      settings?.preferences().backupCopies ?? store.preferences.backupCopies,
-  });
-  const saver = new Saver({
-    copies,
-    reportCopyProblem: problem =>
-      log.warn('could not keep a recovery copy', problem),
-  });
-  let feed: OpenServiceFeed | null = null;
-  const events = broadcastEvents(log, () => {
-    feed
-      ?.refresh()
-      .catch((error: unknown) =>
-        log.error('could not refresh the open service', error),
-      );
-  });
-  const content = new ContentStore({
-    settings,
-    locations: store.locations,
-    songs: store.songs,
-    services: store.services,
-    templates: store.templates,
-    openServiceId: store.openServiceId,
-    files: documentFiles({saver, copies, log, failures}),
-    events: {
-      ...events,
-      songChanged: change => {
-        search.change(change);
-        events.songChanged(change);
-      },
-    },
-    log,
-  });
-  const library: LibrarySongSources = {
-    song: id => content.song(id),
-    get labels() {
-      const document = settings?.get('labels');
-      return document?.name === 'labels' ? document.value.labels : store.labels;
-    },
-    backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
-  };
-  feed = new OpenServiceFeed(
-    {
-      get serviceId() {
-        return content.openServiceId;
-      },
-      get labels() {
-        return library.labels;
-      },
-      content,
-      backgroundOf: library.backgroundOf,
-      bible,
-    },
-    service => broadcast(serviceEndpoints.changed.channel, service, log),
-    error => log.error('could not refresh the open 예배 순서', error),
-  );
-  const removeSettingsListener =
-    settings?.subscribe(document => {
-      if (document.name === 'labels' || document.name === 'bible') {
-        feed
-          .refresh()
-          .catch((error: unknown) =>
-            log.error(
-              'could not refresh item sources in the open service',
-              error,
-            ),
-          );
-      }
-    }) ?? (() => undefined);
-  const removeMedia =
-    media?.subscribe(() => {
-      feed
-        .refresh()
-        .catch((error: unknown) =>
-          log.error('could not refresh media in the open service', error),
-        );
-    }) ?? (() => undefined);
-  const removeSettings = () => {
-    removeSettingsListener();
-    removeMedia();
-  };
-  await feed.refresh();
-  return {content, feed, search, removeSettings, library};
-}
-
 async function contentOf(
   opened: Promise<OpenedContent | null>,
 ): Promise<ContentStore | null> {
   return (await opened)?.content ?? null;
-}
-
-// NOTE(0913vision): Leftover temporary files go before the backup, so a backup
-// never copies them.
-async function upkeepAtLaunch(
-  loading: Promise<LoadedStore | null>,
-  isAnyOutputOn: () => boolean,
-  log: Logger,
-): Promise<void> {
-  const store = await loading;
-  if (store === null) {
-    return;
-  }
-  await removeLeftoverTempFiles(store, log);
-  await backUpAtLaunch(store, isAnyOutputOn, log);
-}
-
-async function removeLeftoverTempFiles(
-  store: LoadedStore,
-  log: Logger,
-): Promise<void> {
-  for (const name of dataFileFolders) {
-    for (const problem of await removeStaleTempFiles(store.locations[name])) {
-      log.warn('could not remove a leftover temporary file', problem);
-    }
-  }
-}
-
-async function backUpAtLaunch(
-  store: LoadedStore,
-  isAnyOutputOn: () => boolean,
-  log: Logger,
-): Promise<void> {
-  try {
-    const backups = new Backups({
-      locations: store.locations,
-      developmentFolder: store.developmentFolder,
-      preferences: () => store.preferences.backup,
-      isAnyOutputOn,
-    });
-    logBackupOutcome(await backups.atLaunch(), log);
-  } catch (error: unknown) {
-    log.error('the launch backup failed', error);
-  }
-}
-
-// NOTE(0913vision): The songs, 예배 순서, 템플릿, labels, and preferences files
-// skipped at startup; the settings problem feed reports the settings and media
-// files.
-function contentProblems(store: LoadedStore): readonly FileError[] {
-  return store.problems.filter(
-    problem =>
-      ![...settingsNames, 'media'].some(
-        name => settingsLocation(store.locations, name).file === problem.file,
-      ),
-  );
-}
-
-function logLoadedStore(store: LoadedStore, log: Logger): void {
-  log.info('read the data folder', {
-    dataRoot: store.locations.dataRoot,
-    songs: store.songs.size,
-    services: store.services.size,
-    openServiceId: store.openServiceId,
-  });
-  const problems = contentProblems(store);
-  for (const problem of problems.slice(0, MAX_LOGGED_PROBLEMS)) {
-    log.warn('skipped a data file or a part of one', problem);
-  }
-  const unlogged = problems.length - MAX_LOGGED_PROBLEMS;
-  if (unlogged > 0) {
-    log.warn(`skipped ${unlogged} more data files or parts of them`);
-  }
-}
-
-function logBackupOutcome(outcome: BackupOutcome, log: Logger): void {
-  switch (outcome.kind) {
-    case 'done':
-      log.info('backed up the data', {folder: outcome.backup.folder});
-      for (const problem of outcome.backup.problems) {
-        log.warn('could not delete an old backup', problem);
-      }
-      return;
-    case 'skipped':
-      log.info('skipped the launch backup', {reason: outcome.reason});
-      return;
-    case 'failed':
-      log.warn('the launch backup failed', outcome.problem);
-      return;
-  }
 }
