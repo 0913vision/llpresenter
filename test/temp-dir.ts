@@ -6,8 +6,10 @@ import {onTestFinished} from 'vitest';
 const TEMP_DIR_PREFIX = 'llp-test-';
 
 // NOTE(0913vision): Windows can hold a file open for a moment after a stream
-// closes, so removal retries instead of failing the test.
-const REMOVE_RETRIES = 5;
+// closes or a process is killed, and longer on a busy machine, so removal
+// retries for a few seconds instead of failing the test.
+const REMOVE_RETRIES = 10;
+const REMOVE_RETRY_DELAY_MS = 200;
 
 /**
  * Creates an empty folder under the system temp folder and deletes it with
@@ -19,7 +21,12 @@ const REMOVE_RETRIES = 5;
 export async function makeTempDir(): Promise<string> {
   const path = await mkdtemp(join(tmpdir(), TEMP_DIR_PREFIX));
   onTestFinished(async () => {
-    await rm(path, {recursive: true, force: true, maxRetries: REMOVE_RETRIES});
+    await rm(path, {
+      recursive: true,
+      force: true,
+      maxRetries: REMOVE_RETRIES,
+      retryDelay: REMOVE_RETRY_DELAY_MS,
+    });
   });
   return path;
 }
