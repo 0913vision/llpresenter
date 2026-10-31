@@ -37,10 +37,16 @@ export async function stopElectron(app: ElectronApplication): Promise<boolean> {
   if (!hasExited(child)) {
     if (child.pid === undefined) throw new Error('Electron process has no pid');
     const killed = await killProcessTree(child.pid);
-    if (!killed.ok) {
-      throw new Error(`Could not stop Electron: ${killed.reason}`);
-    }
     forced = true;
+    // NOTE(0913vision): taskkill /t /f exits 255 when a child in the tree is
+    // already gone or ending, even though the app itself is stopped. Whether
+    // Electron exited is the result that matters, so the reason is kept only
+    // for the error below.
+    if (!hasExited(child) && !(await within(exited, CLOSE_GRACE_MS))) {
+      const reason = killed.ok ? 'its process tree was stopped' : killed.reason;
+      throw new Error(`Electron did not exit: ${reason}`);
+    }
+    return forced;
   }
   if (!hasExited(child) && !(await within(exited, CLOSE_GRACE_MS))) {
     throw new Error('Electron did not exit after its process tree was stopped');
