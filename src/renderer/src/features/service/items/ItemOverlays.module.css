@@ -179,16 +179,20 @@
   position: absolute;
   left: var(--space-4);
   top: 0;
-  bottom: 0;
+  bottom: calc(-1 * var(--radius-hairline));
   width: var(--space-4);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--accent);
 }
 .span[data-start]::before {
-  top: 50%;
+  top: var(--space-2);
+  border-top-left-radius: var(--radius-sm);
+  border-top-right-radius: var(--radius-sm);
 }
 .span[data-end]::before {
-  bottom: 50%;
+  bottom: calc(var(--space-2) - var(--radius-hairline));
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
 }
 .span > span:not(:empty) {
   max-width: 100%;

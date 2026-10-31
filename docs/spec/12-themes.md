@@ -234,7 +234,9 @@ an item uses the 테마; its items fall back to their kind's default. The 대기
   item (복제, then add the element).
 - Edit it in the item's 오버레이 table (draft K): one row per 슬라이드, one
   오버레이 column. The start row holds the 오버레이's name and a vertical bar
-  runs to its end row.
+  covers every row of the range, from the top of the start row to the bottom of
+  the end row, through the row borders. A small spacing-token gap at each outer
+  end separates adjacent ranges; a one-row range also spans its row.
 - When an item has 오버레이 rows but its 테마 has no 오버레이 element on a
   screen the 오버레이 targets, the table header shows a warning mark with the
   reason in its tooltip and 테마 편집….
