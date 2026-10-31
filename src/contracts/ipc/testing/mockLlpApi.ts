@@ -92,6 +92,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       send: () => undefined,
       subscribe: () => () => undefined,
       clock: () => Promise.resolve(performance.timeOrigin + performance.now()),
+      mediaProgress: () => Promise.resolve(null),
+      subscribeMediaProgress: () => () => undefined,
       ...overrides.live,
     },
     window: {

@@ -1,6 +1,14 @@
 .panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
   box-sizing: border-box;
   height: 100%;
   min-height: 0;
   padding: var(--panel-inset);
+}
+
+.screens {
+  flex: 1;
+  min-height: 0;
 }

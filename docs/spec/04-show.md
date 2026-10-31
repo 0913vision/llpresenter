@@ -273,6 +273,15 @@ each preview follows ProPresenter's rule: it shows what goes out.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
+- While a background video is live, one thin progress line below the preview
+  shows its position ("0:12") and remaining source time ("0:42 남음") in the
+  caption style. A loop wraps within its duration; a nonlooping video holds at
+  the end. Images and a cleared background show no line. Until duration metadata
+  arrives, show the position with an indeterminate line and omit remaining time.
+  Main samples its existing background timeline twice a second; the renderer
+  displays those samples without another clock, releases its subscription on
+  unmount, and offers no transport buttons or scrubbing (October 31 N2).
+
 ### Clears in the previews
 
 - A clear removes its layer from the previews at the same moment as from the

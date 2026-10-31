@@ -12,6 +12,7 @@ import {
   type MessageHandler,
 } from './rendererMessages';
 import {allowsWindowAction, type WindowMode} from './windows/testWindows';
+import {startMediaProgress} from './live/mediaProgress';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
@@ -113,6 +114,9 @@ export function registerIpc(
 ): () => void {
   ipcMain.handle(liveEndpoints.get.channel, () => store.state);
   ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
+  ipcMain.handle(liveEndpoints.mediaProgress.channel, () =>
+    store.mediaProgress(),
+  );
   ipcMain.on(liveEndpoints.command.channel, (_event, value: unknown) => {
     const command = parseLiveCommandRequest(value);
     if (!command.ok) {
@@ -132,12 +136,20 @@ export function registerIpc(
   const unsubscribe = store.subscribe(state =>
     sendToWindows(liveEndpoints.changed.channel, state, log),
   );
+  const stopProgress = startMediaProgress(
+    store,
+    value =>
+      sendToWindows(liveEndpoints.mediaProgressChanged.channel, value, log),
+    log,
+  );
 
   return () => {
     unsubscribe();
+    stopProgress();
     stopLogWrites();
     ipcMain.removeHandler(liveEndpoints.get.channel);
     ipcMain.removeHandler(liveEndpoints.clock.channel);
+    ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);
   };

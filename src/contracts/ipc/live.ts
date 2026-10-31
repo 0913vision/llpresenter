@@ -6,6 +6,10 @@ import {parseLiveState} from '@core/schema/liveState';
 import type {PayloadError} from '@core/schema/payload';
 import {parseTimerClockReading} from '@core/schema/timerState';
 import {
+  parseMediaProgress,
+  type MediaProgress,
+} from '@core/schema/mediaProgress';
+import {
   partialMessage,
   push,
   query,
@@ -28,6 +32,14 @@ export const liveEndpoints = {
   clock: query<number>('live:clock', parseTimerClockReading),
   command: partialMessage<LiveCommand>('live:command', parseLiveCommandParts),
   changed: push<LiveState>('live:changed', parseLiveState),
+  mediaProgress: query<MediaProgress | null>(
+    'live:media-progress',
+    parseMediaProgress,
+  ),
+  mediaProgressChanged: push<MediaProgress | null>(
+    'live:media-progress-changed',
+    parseMediaProgress,
+  ),
 };
 
 /** The live output part of `window.llp`. */
@@ -38,6 +50,9 @@ export function liveApi(port: IpcPort) {
      * the answer is malformed; a push brings the state later.
      */
     get: port.query(liveEndpoints.get),
+    /** Reads main's current background position without a renderer clock. */
+    mediaProgress: port.query(liveEndpoints.mediaProgress),
+    subscribeMediaProgress: port.subscribe(liveEndpoints.mediaProgressChanged),
     /**
      * Sends a command. The parts of a batch that fail their check are logged
      * and dropped; the rest is sent.

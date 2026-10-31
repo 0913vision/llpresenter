@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {followLiveState} from './liveFeed';
 
@@ -10,6 +11,7 @@ function stateAt(version: number): LiveState {
 function mockLive(current: Promise<LiveState>) {
   const listeners = new Set<(state: LiveState) => void>();
   const live: LlpApi['live'] = {
+    ...mockLlpApi().live,
     get: () => current,
     send: () => undefined,
     clock: () => Promise.resolve(0),

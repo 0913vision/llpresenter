@@ -13,6 +13,7 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {resolveOutputScreen} from '@core/screens/screens';
 import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
+import {LiveMediaProgress} from './LiveMediaProgress';
 
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
@@ -97,14 +98,17 @@ function PreviewPanelFrame({
   );
   return (
     <div className={styles.panel}>
-      <PreviewFrame
-        screens={screens}
-        big={large}
-        compact={compact}
-        sizing="content"
-        onBigChange={showLarge}
-        renderScreen={renderScreen}
-      />
+      <div className={styles.screens}>
+        <PreviewFrame
+          screens={screens}
+          big={large}
+          compact={compact}
+          sizing="content"
+          onBigChange={showLarge}
+          renderScreen={renderScreen}
+        />
+      </div>
+      <LiveMediaProgress />
     </div>
   );
 }

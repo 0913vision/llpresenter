@@ -1,0 +1,26 @@
+.progress {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+.progress progress {
+  display: block;
+  width: 100%;
+  height: var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  appearance: none;
+  overflow: hidden;
+}
+.progress progress::-webkit-progress-bar {
+  background: var(--bg-sunken);
+}
+.progress progress::-webkit-progress-value {
+  background: var(--accent);
+}
+.times {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  font-variant-numeric: tabular-nums;
+}

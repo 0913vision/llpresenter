@@ -7,6 +7,8 @@ import {macroDroppedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {LiveState} from '@core/live/state';
 import type {Logger} from '../log';
 import type {MediaList} from '@core/schema/mediaList';
+import {backgroundProgress} from '@core/media/backgroundPosition';
+import type {MediaProgress} from '@core/schema/mediaProgress';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
@@ -59,6 +61,14 @@ export class LiveStore {
 
   get state(): LiveState {
     return this.history.state;
+  }
+
+  mediaProgress(): MediaProgress | null {
+    return backgroundProgress(
+      this.state.layers.media,
+      this.audioMedia?.().items ?? [],
+      this.readClock().now,
+    );
   }
 
   connectAudioMedia(read: () => MediaList): () => void {

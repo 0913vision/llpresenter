@@ -3,6 +3,7 @@ import type {OutputMediaProperties} from '@core/schema/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {OUTPUT_TRANSITIONS} from './transitions';
+import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
 
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
 export const BACKGROUND_DISSOLVE_MS = OUTPUT_TRANSITIONS.backgroundMs;
@@ -26,7 +27,6 @@ export interface BackgroundLayerOptions {
 /** A background less than this far along starts from the beginning instead of seeking. */
 export const MIN_SEEK_SECONDS = 0.5;
 
-const MS_PER_SECOND = 1000;
 const UNSUPPORTED_SOURCE = 4;
 export const VIDEO_FRAME_DEADLINE_MS = 250;
 
@@ -47,10 +47,7 @@ export function startOffsetSeconds(
   now: number,
 ): number {
   if (!Number.isFinite(duration) || duration <= 0) return 0;
-  const elapsed =
-    (media.positionSeconds ?? 0) +
-    (Math.max(0, now - media.startedAt) / MS_PER_SECOND) *
-      (media.properties?.speed ?? 1);
+  const elapsed = backgroundElapsedSeconds(media, now);
   const offset = media.loop ? elapsed % duration : Math.min(elapsed, duration);
   return offset < MIN_SEEK_SECONDS ? 0 : offset;
 }
