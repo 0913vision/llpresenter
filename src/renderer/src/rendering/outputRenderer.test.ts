@@ -40,13 +40,14 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
 
-function setUp() {
+function setUp({mode}: {mode?: RenderMode} = {}) {
   const parent = document.createElement('div');
   const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
     lyricStyle: DEFAULT_LYRIC_STYLE,
     mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
     onError,
+    ...(mode === undefined ? {} : {mode}),
   });
   return {parent, renderer, onError};
 }
@@ -156,6 +157,32 @@ describe('OutputRenderer', () => {
     );
     renderer.dispose();
   });
+
+  it.each<RenderMode>(['output', 'preview'])(
+    'updates the saved empty color without replacing layers in %s',
+    mode => {
+      const {parent, renderer} = setUp({mode});
+      const screen = {
+        id: MAIN,
+        kind: 'audience',
+        method: 'capture',
+        emptyColor: '#123456',
+      } as const;
+      renderer.render(WITH_SLIDE, {screen});
+      const root = parent.firstElementChild;
+      expect(
+        root instanceof HTMLElement &&
+          root.style.getPropertyValue('--output-background'),
+      ).toBe('#123456');
+      renderer.render(WITH_SLIDE, {screen: {...screen, emptyColor: '#654321'}});
+      expect(
+        root instanceof HTMLElement &&
+          root.style.getPropertyValue('--output-background'),
+      ).toBe('#654321');
+      expect(parent.firstElementChild).toBe(root);
+      renderer.dispose();
+    },
+  );
 
   it.each<RenderMode>(['output', 'preview'])(
     'draws an image under the lyrics and clears it in the same call in %s mode',

@@ -179,12 +179,11 @@ it('selects Look and layout editors, changes one stage screen, and preserves war
     kind: 'stage',
     id: WIDE_LAYOUT_ID,
   });
+  const openScreens = vi.fn();
+  window.llp = mockLlpApi({window: {openScreens}, live: {send}});
   rows.find(row => row.id === 'screens')?.onSelect?.();
-  expect(onWorkspace.mock.calls).toEqual([
-    ['screens'],
-    ['screens'],
-    ['screens'],
-  ]);
+  expect(openScreens).toHaveBeenCalledOnce();
+  expect(onWorkspace.mock.calls).toEqual([['screens'], ['screens']]);
   const choices = menuItems(
     rows.find(row => row.id === `layout:${STAGE_ID}`)?.loadSubmenu?.() ?? [],
   );

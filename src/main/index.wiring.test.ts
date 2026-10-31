@@ -52,6 +52,8 @@ const mocks = vi.hoisted(() => {
     settings: Promise.resolve(null),
     textImportContexts: new Array<unknown>(),
     textImportStop: vi.fn<() => void>(),
+    screensWindowContexts: new Array<unknown>(),
+    screensWindowStop: vi.fn<() => void>(),
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
@@ -118,6 +120,12 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => mocks.electron);
+vi.mock('./windows/screens', () => ({
+  registerScreensWindow: (context: unknown) => {
+    mocks.screensWindowContexts.push(context);
+    return mocks.screensWindowStop;
+  },
+}));
 vi.mock('./bible/register', () => ({
   registerBible: (context: unknown) => {
     mocks.bibleContexts.push(context);
@@ -321,6 +329,8 @@ function deferred(): {promise: Promise<void>; resolve: () => void} {
 }
 
 beforeEach(async () => {
+  mocks.screensWindowContexts.length = 0;
+  mocks.screensWindowStop.mockClear();
   mocks.electron.app.getPath.mockReturnValue(await makeTempDir());
   mocks.electron.app.quit.mockReset();
   mocks.electron.app.releaseSingleInstanceLock.mockClear();
@@ -567,6 +577,24 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(mocks.textImportStop).toHaveBeenCalledOnce());
+  });
+
+  it('registers the screens window owner and disposes it before saving app.json', async () => {
+    await startMain();
+    expect(mocks.screensWindowContexts).toEqual([
+      expect.objectContaining({
+        control: mocks.opened.control,
+        config: mocks.appConfig,
+        zoom: mocks.zoom,
+        mode: 'normal',
+      }),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(mocks.appConfig.flush).toHaveBeenCalled());
+    expect(mocks.screensWindowStop).toHaveBeenCalledOnce();
+    expect(mocks.screensWindowStop.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.appConfig.flush.mock.invocationCallOrder.at(-1) ?? -Infinity,
+    );
   });
 
   it('asks the control window to flush before saving and keeps running when it refuses', async () => {

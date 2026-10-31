@@ -36,6 +36,28 @@ async function readJson(file: string): Promise<unknown> {
 }
 
 describe('openAppConfig with a broken app.json (qa C19)', () => {
+  it('persists the screen settings window without overwriting other UI fields', async () => {
+    const file = await appJson();
+    const config = await openAppConfig({file, log: mockLog()});
+    onTestFinished(() => config.dispose());
+    const placement = {
+      x: -1400,
+      y: 20,
+      width: 1400,
+      height: 800,
+      maximized: false,
+    };
+    config.setScreensWindow(placement);
+    config.change({mediaStrip: false});
+    await config.flush();
+    expect(await readJson(file)).toMatchObject({
+      screensWindow: placement,
+      mediaStrip: false,
+    });
+    const reopened = await openAppConfig({file, log: mockLog()});
+    onTestFinished(() => reopened.dispose());
+    expect(reopened.screensWindow).toEqual(placement);
+  });
   it('keeps an invalid UTF-8 app.json unchanged after in-memory edits', async () => {
     const file = await appJson();
     const bytes = Buffer.concat([

@@ -109,6 +109,39 @@ async function nameField(): Promise<HTMLElement> {
 }
 
 describe('the screen properties', () => {
+  it('shows black for regular output and green for capture, and saves a chosen empty color', async () => {
+    const {savedScreens} = setup();
+    expect(
+      (await screen.findByRole('textbox', {name: '빈 화면 색'})).getAttribute(
+        'value',
+      ),
+    ).toBe('#000000');
+    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    const color = await screen.findByRole('textbox', {name: '빈 화면 색'});
+    expect(color.getAttribute('value')).toBe('#00B140');
+    await userEvent.clear(color);
+    await userEvent.type(color, '#123456{Enter}');
+    await waitFor(() =>
+      expect(
+        savedScreens().find(item => item.id === CAPTIONS_ID)?.emptyColor,
+      ).toBe('#123456'),
+    );
+    expect(
+      savedScreens().find(item => item.id === MAIN_ID)?.emptyColor,
+    ).toBeUndefined();
+  });
+
+  it('keeps the empty color read-only in newer settings', async () => {
+    const {edits} = setup({access: 'readOnly'});
+    const color = await screen.findByRole('textbox', {name: '빈 화면 색'});
+    expect(color.hasAttribute('readonly')).toBe(true);
+    expect(
+      screen
+        .getByRole('button', {name: '빈 화면 색 선택'})
+        .hasAttribute('disabled'),
+    ).toBe(true);
+    expect(edits).toEqual([]);
+  });
   it('locks the device select for a read-only document', async () => {
     const {edits} = setup({access: 'readOnly'});
     await nameField();

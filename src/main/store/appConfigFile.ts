@@ -111,6 +111,15 @@ export class AppConfigFile implements UiStateFields {
     this.scheduleSave();
   }
 
+  get screensWindow(): AppConfig['screensWindow'] {
+    return this.config.screensWindow;
+  }
+
+  setScreensWindow(placement: NonNullable<AppConfig['screensWindow']>): void {
+    this.config = {...this.config, screensWindow: placement};
+    this.scheduleSave();
+  }
+
   /** Whether the file couldn't be read or failed its check. */
   get isBroken(): boolean {
     return this.opened.problem !== null;

@@ -53,6 +53,23 @@ function withScreen(screen: object) {
 }
 
 describe('parseScreens', () => {
+  it.each(['#000000', '#00B140', '#abC123'])(
+    'keeps empty color %s',
+    emptyColor => {
+      expectRoundTrip(codec, withScreen({...mainScreen(), emptyColor}));
+    },
+  );
+
+  it.each(['green', '#fff', '#00000000', '#GG0000', '', null, 42])(
+    'rejects invalid empty color %j',
+    emptyColor => {
+      expectInvalidField(
+        codec,
+        withScreen({...mainScreen(), emptyColor}),
+        'screens.0.emptyColor',
+      );
+    },
+  );
   it('reads the three default screens', () => {
     expectRoundTrip(codec, defaultScreens());
   });

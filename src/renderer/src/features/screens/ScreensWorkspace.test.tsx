@@ -17,6 +17,7 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
+import {ScreensWindow} from '@renderer/app/ScreensWindow';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from './selection';
@@ -68,12 +69,14 @@ function setup({
   read = readDocument,
   monitors = [],
   warningHeight = 0,
+  themes = false,
 }: {
   readonly statuses?: OutputStatuses;
   readonly outputs?: Readonly<Record<string, boolean>>;
   readonly read?: (name: string) => Promise<SettingsDocument>;
   readonly monitors?: MonitorList;
   readonly warningHeight?: number;
+  readonly themes?: boolean;
 } = {}) {
   const settingsListeners = new Set<(document: SettingsDocument) => void>();
   let pushStatus: (next: OutputStatuses) => void = () => undefined;
@@ -102,13 +105,17 @@ function setup({
   });
   useLive.setState({state: {...emptyLiveState(), outputs}});
   const view = render(
-    <Workspace
-      id="screens"
-      sizeClass="normal"
-      store={createMemoryColumnWidthStore()}
-      onProblem={onProblem}
-      warningHeight={warningHeight}
-    />,
+    themes ? (
+      <Workspace
+        id="screens"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+        onProblem={onProblem}
+        warningHeight={warningHeight}
+      />
+    ) : (
+      <ScreensWindow onProblem={onProblem} />
+    ),
   );
   return {
     view,
@@ -184,7 +191,7 @@ describe('the 화면 list', () => {
   });
 
   it('opens the selected Look editor and keeps output warnings above its column', async () => {
-    setup({warningHeight: 96});
+    setup({warningHeight: 96, themes: true});
     await screen.findByRole('option', {name: '설교'});
     await userEvent.click(option('설교'));
     const editor = await screen.findByRole('region', {name: 'Look 편집'});
@@ -203,134 +210,15 @@ describe('the 화면 list', () => {
       editor.closest('[style*="padding-top"]')?.getAttribute('style'),
     ).toContain('96px');
   });
-  it('reports a failed Look list save after leaving its editor for a screen', async () => {
-    const {onProblem} = setup();
-    const api = window.llp;
-    if (api === undefined) throw new Error('Missing window API');
-    const edit = vi
-      .spyOn(api.settings, 'edit')
-      .mockRejectedValue(new Error('disk'));
-    const user = userEvent.setup();
-    await screen.findByRole('option', {name: '설교'});
-    await user.click(option('설교'));
-    await screen.findByRole('region', {name: 'Look 편집'});
-    await user.click(option('본 화면'));
-    await waitFor(() =>
-      expect(screen.queryByRole('region', {name: 'Look 편집'})).toBeNull(),
-    );
-    await user.click(screen.getByRole('button', {name: '새 Look'}));
-    await waitFor(() =>
-      expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: 'Look 저장 실패'}),
-      ),
-    );
-    expect(edit).toHaveBeenCalledOnce();
-    expect(onProblem).toHaveBeenCalledOnce();
-  });
-  it.each(['현재와 다음'])(
-    'stops the retained-screen pattern on opening %s and restores correction controls on return',
-    async label => {
-      const {send} = setup();
-      const api = window.llp;
-      if (api === undefined) throw new Error('Missing window API');
-      const edit = vi
-        .spyOn(api.settings, 'edit')
-        .mockResolvedValue({ok: true, value: {id: 'screens', revision: 2}});
-      const user = userEvent.setup();
-      await screen.findByRole('option', {name: '방송 자막'});
-      await user.click(option('방송 자막'));
-      await user.click(screen.getByRole('radio', {name: '테스트 패턴'}));
-      await user.click(option(label));
-      expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
-      await user.click(option('방송 자막'));
-      await user.click(screen.getByRole('radio', {name: '테스트 패턴'}));
-      const x = screen.getByRole('spinbutton', {name: '가로 위치'});
-      await user.clear(x);
-      await user.type(x, '20{Enter}');
-      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
-      const request = edit.mock.calls[0]?.[0];
-      if (request?.name !== 'screens') {
-        throw new Error('Missing correction edit');
-      }
-      expect(
-        request.value.screens.find(screen => screen.id === CAPTIONS_ID)?.offset
-          ?.x,
-      ).toBe(20);
-      expect(useScreensSelection.getState().selection).toEqual({
-        kind: 'screen',
-        id: CAPTIONS_ID,
-      });
-      expect(
-        screen
-          .getByRole('radio', {name: '테스트 패턴'})
-          .getAttribute('aria-checked'),
-      ).toBe('true');
-      expect(
-        send.mock.calls
-          .map(([command]) => command)
-          .filter(command => command.type === 'screen.testPattern.set'),
-      ).toEqual([
-        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: true},
-        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: false},
-        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: true},
-      ]);
-    },
-  );
-  it('retains the screen view when the workspace remounts with a layout selected', async () => {
-    const {view} = setup();
-    await screen.findByRole('option', {name: '방송 자막'});
-    await userEvent.click(option('방송 자막'));
-    await userEvent.click(option('현재와 다음'));
-    view.unmount();
-    setup();
-    await screen.findByRole('option', {name: '방송 자막'});
-    expect(useScreensSelection.getState().selection.kind).toBe('stage');
-    expect(useScreensSelection.getState().lastScreenId).toBe(CAPTIONS_ID);
-    expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
-    await userEvent.click(option('방송 자막'));
-    await waitFor(() =>
-      expect(
-        screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
-      ).toBe('방송 자막'),
-    );
-    expect(useScreensSelection.getState().selection).toEqual({
-      kind: 'screen',
-      id: CAPTIONS_ID,
-    });
-  });
-  it.each(['현재와 다음'])(
-    'restores the chosen screen view after editing %s',
-    async label => {
-      setup();
-      await screen.findByRole('option', {name: '방송 자막'});
-      const user = userEvent.setup();
-      await user.click(option('방송 자막'));
-      await user.click(option(label));
-      expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
-      expect(useScreensSelection.getState().lastScreenId).toBe(CAPTIONS_ID);
-      expect(selectedOf(label)).toBe('true');
-      expect(selectedOf('방송 자막')).toBe('false');
-      await user.click(option('방송 자막'));
-      const properties = screen.getByRole('region', {name: '속성'});
-      expect(
-        within(properties)
-          .getByRole('textbox', {name: '이름'})
-          .getAttribute('value'),
-      ).toBe('방송 자막');
-      const preview = screen.getAllByRole('region', {name: '출력 미리보기'})[0];
-      if (preview === undefined) throw new Error('Missing screen preview');
-      expect(within(preview).getByText('방송 자막')).toBeDefined();
-      expect(selectedOf(label)).toBe('false');
-      expect(selectedOf('방송 자막')).toBe('true');
-    },
-  );
-  it('stacks 화면, Look, and 무대 배치 in the left column', async () => {
+  it('keeps only screens in the settings window', async () => {
     setup();
     await screen.findByRole('option', {name: '본 화면'});
     const labels = screen
       .getAllByRole('listbox')
       .map(list => list.getAttribute('aria-label'));
-    expect(labels).toEqual(['화면', 'Look', '무대 배치']);
+    expect(labels).toEqual(['화면']);
+    expect(screen.queryByRole('region', {name: 'Look 편집'})).toBeNull();
+    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
   });
 
   it('mounts the display layout in the center column', async () => {
@@ -376,7 +264,6 @@ describe('the 화면 list', () => {
     setup({
       read: name => (name === 'screens' ? pending : readDocument(name)),
     });
-    await screen.findByRole('option', {name: '평상시'});
     expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull();
 
     if (resolveScreens === undefined) throw new Error('Missing resolver');
@@ -471,7 +358,7 @@ describe('the 화면 list', () => {
 
 describe('the Look and 무대 배치 lists', () => {
   it('marks the Look and the stage layout in use with the LIVE badge', async () => {
-    setup();
+    setup({themes: true});
     await screen.findByRole('option', {name: '평상시'});
     await waitFor(() =>
       expect(option('현재와 다음').textContent).toContain('LIVE'),
@@ -482,7 +369,7 @@ describe('the Look and 무대 배치 lists', () => {
   });
 
   it('moves the marks with the Look selected on output', async () => {
-    setup();
+    setup({themes: true});
     await screen.findByRole('option', {name: '평상시'});
     await waitFor(() =>
       expect(option('현재와 다음').textContent).toContain('LIVE'),
@@ -565,12 +452,22 @@ describe('the Look and 무대 배치 lists', () => {
     });
   });
 
-  it('keeps one selection across the three lists', async () => {
-    setup();
-    await screen.findByRole('option', {name: '본 화면'});
-    await userEvent.setup().click(option('설교'));
-    expect(useScreensSelection.getState().selection.kind).toBe('look');
-    expect(selectedOf('설교')).toBe('true');
-    expect(selectedOf('본 화면')).toBe('false');
+  it('keeps the theme workspace limited to Look and stage editors', async () => {
+    setup({themes: true});
+    await screen.findByRole('option', {name: '설교'});
+    expect(
+      screen
+        .getAllByRole('listbox')
+        .map(list => list.getAttribute('aria-label')),
+    ).toEqual(['Look', '무대 배치']);
+    expect(screen.queryByRole('listbox', {name: '화면'})).toBeNull();
+    expect(screen.queryByRole('region', {name: '출력 미리보기'})).toBeNull();
+    await userEvent.click(option('설교'));
+    expect(
+      await screen.findByRole('region', {name: 'Look 편집'}),
+    ).toBeDefined();
+    await userEvent.click(option('현재와 다음'));
+    expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
+    expect(useScreensSelection.getState().selection.kind).toBe('stage');
   });
 });

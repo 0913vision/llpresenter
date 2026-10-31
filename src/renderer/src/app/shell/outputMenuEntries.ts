@@ -186,8 +186,8 @@ export function outputMenuEntries(
       id: 'screens',
       label: '화면 설정…',
       meta: 'Ctrl Alt 1',
-      disabled: onWorkspace === undefined,
-      onSelect: () => onWorkspace?.('screens'),
+      disabled: window.llp === undefined,
+      onSelect: () => window.llp?.window.openScreens(),
     },
   ];
 }

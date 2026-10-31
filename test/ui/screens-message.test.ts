@@ -1,10 +1,37 @@
 import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import type {ElectronApplication, Page} from 'playwright-core';
 import {expect, it} from 'vitest';
 import {offscreenApp} from './electron-app';
 import {openToolTab} from './tool-tab';
 
 const WAIT = 30_000;
+
+async function openScreenSettings(
+  control: Page,
+  app: ElectronApplication,
+): Promise<Page> {
+  await control.getByRole('menuitem', {name: '출력', exact: true}).click();
+  await control.getByRole('menuitem', {name: '화면 설정…'}).click();
+  const findSettings = () =>
+    app.windows().find(page => page.url().includes('window=screens'));
+  await expect
+    .poll(() => findSettings() !== undefined, {timeout: WAIT})
+    .toBe(true);
+  const settings = findSettings();
+  if (settings === undefined) {
+    throw new Error('Screen settings window not found');
+  }
+  await settings
+    .getByRole('main', {name: '화면 설정'})
+    .waitFor({timeout: WAIT});
+  expect(
+    await app.evaluate(({BrowserWindow}) =>
+      BrowserWindow.getAllWindows().every(window => !window.isVisible()),
+    ),
+  ).toBe(true);
+  return settings;
+}
 
 it(
   'saves screen changes, applies a Look and expires a timed message',
@@ -34,11 +61,11 @@ it(
     );
 
     const page = await app.start();
-    await page.getByRole('tab', {name: '화면 설정'}).click();
-    const name = page.getByRole('textbox', {name: '이름'});
+    const screenSettings = await openScreenSettings(page, app.electron());
+    const name = screenSettings.getByRole('textbox', {name: '이름'});
     await name.fill('점검 화면');
     await name.press('Enter');
-    const offset = page.getByRole('spinbutton', {name: '가로 위치'});
+    const offset = screenSettings.getByRole('spinbutton', {name: '가로 위치'});
     await offset.fill('12');
     await offset.press('Enter');
     await expect
@@ -50,8 +77,17 @@ it(
       )
       .toBe(true);
 
+    await Promise.all([
+      screenSettings.waitForEvent('close'),
+      screenSettings.getByRole('button', {name: '닫기', exact: true}).click(),
+    ]);
+    await page.getByRole('tab', {name: '테마'}).click();
+
     await page.getByRole('button', {name: '새 Look'}).click();
     const lookName = page.getByRole('textbox', {name: 'Look 이름'});
+    await expect
+      .poll(() => lookName.inputValue(), {timeout: WAIT})
+      .toBe('새 Look');
     await lookName.fill('점검 Look');
     await lookName.press('Enter');
     await expect
@@ -64,15 +100,18 @@ it(
       .toBe(true);
     await page.getByRole('button', {name: 'Look', exact: true}).click();
     await page.getByRole('menuitemradio', {name: '점검 Look'}).click();
+    const selectedLook =
+      await page.evaluate<string>(`window.llp.settings.get({name:'looks'}).then(d =>
+      d.value.looks.find(look => look.name === '점검 Look').id)`);
     await expect
       .poll(
         () =>
-          page.evaluate<boolean>(`Promise.all([window.llp.settings.get({name:'looks'}),
-            window.llp.live.get()]).then(([d, live]) =>
-              d.value.looks.find(look => look.name === '점검 Look')?.id === live.lookId)`),
+          page.evaluate<string | null>(
+            `window.llp.live.get().then(live => live.lookId ?? null)`,
+          ),
         {timeout: WAIT},
       )
-      .toBe(true);
+      .toBe(selectedLook);
 
     await page.getByRole('tab', {name: '진행'}).click();
     await openToolTab(page, '메시지');
@@ -94,12 +133,14 @@ it(
 
     await app.stop();
     const reopened = await app.start();
-    await reopened.getByRole('tab', {name: '화면 설정'}).click();
+    const restoredSettings = await openScreenSettings(reopened, app.electron());
     expect(
-      await reopened.getByRole('textbox', {name: '이름'}).inputValue(),
+      await restoredSettings.getByRole('textbox', {name: '이름'}).inputValue(),
     ).toBe('점검 화면');
     expect(
-      await reopened.getByRole('spinbutton', {name: '가로 위치'}).inputValue(),
+      await restoredSettings
+        .getByRole('spinbutton', {name: '가로 위치'})
+        .inputValue(),
     ).toBe('12');
   },
 );

@@ -334,7 +334,7 @@ describe('startOutput', () => {
     root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
     expect(raise).toHaveBeenCalledOnce();
   });
-  it('follows capture method changes in place without replacing the live content', async () => {
+  it('follows method defaults and saved empty colors without replacing live content', async () => {
     const settings = overlaySettings();
     const screenDocument = settings.reader.get('screens');
     if (screenDocument.name !== 'screens') throw new Error('Missing screens');
@@ -377,14 +377,30 @@ describe('startOutput', () => {
     expect(
       output instanceof HTMLElement &&
         output.style.getPropertyValue('--output-background'),
-    ).toBe('var(--chroma)');
+    ).toBe('#00B140');
     receive(settingsDocument('screens', {screens}, 3));
     expect(root.firstElementChild).toBe(output);
     expect(root.querySelector(`.${classes.shown}`)).toBe(text);
     expect(
       output instanceof HTMLElement &&
         output.style.getPropertyValue('--output-background'),
-    ).toBe('');
+    ).toBe('#000000');
+    receive(
+      settingsDocument(
+        'screens',
+        {
+          screens: screens.map(screen =>
+            screen.id === MAIN ? {...screen, emptyColor: '#123456'} : screen,
+          ),
+        },
+        4,
+      ),
+    );
+    expect(
+      output instanceof HTMLElement &&
+        output.style.getPropertyValue('--output-background'),
+    ).toBe('#123456');
+    expect(root.querySelector(`.${classes.shown}`)).toBe(text);
     stop();
     expect(unsubscribe).toHaveBeenCalledTimes(listeners.size);
   });

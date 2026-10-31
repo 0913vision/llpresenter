@@ -1,8 +1,8 @@
 # 06. Settings
 
-This document covers the 화면 설정 (Screen settings) workspace (screens, display
-layout, test pattern, output method, Look editor, stage layout editor), the
-환경설정 (Preferences) window, and shortcuts.
+This document covers the 화면 설정 (Screen settings) window (screens, display
+layout, test pattern, output method), the 테마 workspace, the 환경설정
+(Preferences) window, and shortcuts.
 
 Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 본 화면 (main screen),
 무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show
@@ -16,25 +16,28 @@ to 10 for the full command list. Its settings part is still a proposal, so this
 document stays the spec for settings. The settings sections that 10 would
 replace say so in a note.
 
-## The 화면 설정 workspace
+## The 화면 설정 window and 테마 workspace
 
 ### Layout and navigation
 
-| Column | Content                                                                                                                               | Source                            |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Left   | The 화면 (screens) panel and the Look panel. In the stage layout editor, the 무대 배치 (stage layouts) panel and the 무대 화면 panel. | `Screens`, `Looks`, `StageEditor` |
-| Center | Display layout and output preview, the Look editor, or the layout editor                                                              | `Screens`, `Looks`, `StageEditor` |
-| Right  | Properties of the selected screen or stage layout element                                                                             | `Screens`, `StageEditor`          |
+출력 > 화면 설정… (Ctrl Alt 1) opens the separate 화면 설정 window, or focuses
+its existing instance. Closing it leaves the control and output windows running.
+It closes with the app and remembers its normal size, position, and maximized
+state in the computer-local `app.json`. A saved position on a disconnected
+monitor is brought into the current work area.
 
-- The boards don't show how the operator moves between screens, Looks, and stage
-  layouts. Version 1 stacks three panels in the left column (화면, Look, 무대
-  배치). Selecting a row switches the center and right columns to the matching
-  editor (proposal, open question).
-- The boards mark the current Look and the stage layout in use with a "사용 중"
-  (in use) chip. The design system forbids status chips. Mark them in the way
-  the design system allows (open question).
-- Changes in 화면 설정 save at once. Changes that affect what is on output (Look
-  edits, screen properties) apply to the output at once (proposal).
+| Column | 화면 설정 window                                                                      | 테마 workspace until the theme editor lands                    |
+| ------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Left   | 화면 list, grouped into 청중 and 무대                                                 | Look and 무대 배치 lists                                       |
+| Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | Look editor or 무대 배치 canvas                                |
+| Right  | Selected screen properties                                                            | Selected stage element properties, when editing a stage layout |
+
+- The toolbar workspace tab is 테마, with the layers icon used by Look.
+- The window contains no Look or 무대 배치 panels. These editors stay in 테마
+  until the theme editor in 12 replaces them.
+- Changes save at once and apply to output at once. Closing the window takes its
+  test pattern off the output.
+- The current Look and stage layout carry the LIVE mark.
 
 Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Look
 편집, 무대 화면 배치 편집).
@@ -110,7 +113,7 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   screen's real output (proposal: ProPresenter shows a test pattern on the
   audience screens with Show and removes it with Clear, S4 p. 45; tying it to
   this preview is our design). It returns to the content when the operator
-  chooses 화면 내용 or leaves 화면 설정 (proposal).
+  chooses 화면 내용 or closes the 화면 설정 window.
 - The pattern (proposal): the top two thirds hold seven vertical bars at full
   strength, white, yellow, cyan, green, magenta, red, and blue; the bottom third
   holds a gray ramp in 11 steps from black to white; a 2 px white border runs
@@ -136,19 +139,20 @@ Note: the proposal in 10 would remove the 절전 막기 row (fixed on while any
 output is on). 항상 위 defaults off for every method and can be enabled in the
 screen's properties (user decision, m3-check3).
 
-| Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                   |
-| ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                           |
-| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | 무대 screens use a stage layout. 청중 screens use a lyric style (proposal).                                                                                |
-| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                   |
-| 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                               |
-| 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal). |
-| 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                            |
-| 안정성 (stability) | 연결이 끊기면 (when disconnected)     | Select: 창으로 바꾸기 (switch to a window), and turning the output off (proposal) | See 03.                                                                                                                                                    |
-| 안정성             | 항상 위 (always on top)               | Switch                                                                            | Default off. Changes only this output's stacking, without taking focus or moving any window. See 03, M3-C3-9 (user decision).                              |
-| 안정성             | 절전 막기 (prevent sleep)             | Switch                                                                            | See 03.                                                                                                                                                    |
-| 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                    |
-| 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                    |
+| Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                                               |
+| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | 무대 screens use a stage layout. 청중 screens use a lyric style (proposal).                                                                                                                                                                                                    |
+| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                                                       |
+| 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                                                   |
+| 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal).                                                                                                                     |
+| 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                                                                                                                                                |
+| 출력               | 빈 화면 색 (empty color)              | Color swatch and hex field                                                        | Optional `emptyColor` in `screens.json`, as `#RRGGBB`. Defaults to black, or `#00B140` for 캡처용 창. The output and preview use it for empty areas, including picture correction margins. An explicit Look background still takes precedence until themes replace Looks (12). |
+| 안정성 (stability) | 연결이 끊기면 (when disconnected)     | Select: 창으로 바꾸기 (switch to a window), and turning the output off (proposal) | See 03.                                                                                                                                                                                                                                                                        |
+| 안정성             | 항상 위 (always on top)               | Switch                                                                            | Default off. Changes only this output's stacking, without taking focus or moving any window. See 03, M3-C3-9 (user decision).                                                                                                                                                  |
+| 안정성             | 절전 막기 (prevent sleep)             | Switch                                                                            | See 03.                                                                                                                                                                                                                                                                        |
+| 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                                                                                                                                        |
+| 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                                                                                                                                        |
 
 ### NDI properties (later)
 

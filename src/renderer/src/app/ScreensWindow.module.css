@@ -1,0 +1,43 @@
+.window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-app);
+}
+
+.titlebar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--size-menubar);
+  padding: 0 var(--space-12);
+  font: var(--type-label);
+  -webkit-app-region: drag;
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-8);
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+}
+
+.columns {
+  flex: 1;
+  display: grid;
+  min-height: 0;
+  grid-template-columns:
+    var(--col-left-compact) minmax(var(--col-center-min), 1fr)
+    var(--col-right);
+  gap: var(--panel-gap);
+  padding: var(--panel-gap);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: var(--panel-gap);
+}

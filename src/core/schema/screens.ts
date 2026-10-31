@@ -12,6 +12,7 @@ import {screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
+  hexColor,
   listWithUniqueIds,
   percent,
   pixelCount,
@@ -49,6 +50,7 @@ export const screenSchema = jsonObject({
   name: v.string(),
   kind: v.picklist(['audience', 'stage']),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
+  emptyColor: v.exactOptional(hexColor),
   display: v.exactOptional(displaySchema),
   resolution: v.exactOptional(pixelSize),
   onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),

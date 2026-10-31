@@ -257,7 +257,8 @@ describe('App menu bar title', () => {
 
   it('opens existing workspaces by S1 keys and View menu without sending live commands', async () => {
     const send = vi.fn();
-    window.llp = mockLlpApi({live: {send}});
+    const openScreens = vi.fn();
+    window.llp = mockLlpApi({live: {send}, window: {openScreens}});
     render(
       <App
         session={createSession()}
@@ -270,10 +271,9 @@ describe('App menu bar title', () => {
     ).toBe('true');
     fireEvent.keyDown(window, {code: 'Digit1', ctrlKey: true, altKey: true});
     expect(
-      screen
-        .getByRole('tab', {name: '화면 설정'})
-        .getAttribute('aria-selected'),
-    ).toBe('true');
+      screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
+    ).toBe('false');
+    expect(openScreens).toHaveBeenCalledOnce();
     fireEvent.keyDown(window, {code: 'KeyS', ctrlKey: true});
     expect(
       screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
@@ -285,14 +285,13 @@ describe('App menu bar title', () => {
       screen.getByRole('menuitem', {name: /화면 설정…Ctrl Alt 1/}),
     );
     expect(
-      screen
-        .getByRole('tab', {name: '화면 설정'})
-        .getAttribute('aria-selected'),
+      screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
     ).toBe('true');
     fireEvent.keyDown(window, {code: 'KeyV', ctrlKey: true, shiftKey: true});
     expect(
       screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
     ).toBe('true');
+    expect(openScreens).toHaveBeenCalledTimes(2);
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -481,7 +480,7 @@ describe('App UI zoom', () => {
         columnWidthStore={createMemoryColumnWidthStore()}
       />,
     );
-    for (const workspace of ['진행', '준비', '화면 설정']) {
+    for (const workspace of ['진행', '준비', '테마']) {
       fireEvent.click(screen.getByRole('tab', {name: workspace}));
       fireEvent.keyDown(document.body, {code: 'Equal', ctrlKey: true});
       fireEvent.keyDown(document.body, {code: 'Minus', ctrlKey: true});

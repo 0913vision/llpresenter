@@ -108,6 +108,7 @@ export class OutputRenderer {
     this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
       look?.background ??
+        frame.screen?.emptyColor ??
         (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );
     this.setScreen(frame.screen);

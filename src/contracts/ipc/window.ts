@@ -1,6 +1,6 @@
 import type {Result} from '@core/common/result';
 import type {PayloadError} from '@core/schema/payload';
-import {message, type IpcPort} from './endpoint';
+import {message, signal, type IpcPort} from './endpoint';
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
 
@@ -22,12 +22,15 @@ export function parseWindowAction(
 
 /** The title bar calls. */
 export const windowEndpoints = {
+  openScreens: signal('window:open-screens'),
   control: message<WindowAction>('window:control', parseWindowAction),
 };
 
 /** The title bar part of `window.llp`. */
 export function windowApi(port: IpcPort) {
   return {
+    /** Opens or focuses the screen configuration window. */
+    openScreens: port.signal(windowEndpoints.openScreens),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
   };

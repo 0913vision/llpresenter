@@ -42,6 +42,7 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {registerScreensWindow} from './windows/screens';
 import {registerAudioOutput} from './windows/audio';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
@@ -168,6 +169,13 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const stopScreensWindow = registerScreensWindow({
+        control: win,
+        config: appConfig,
+        zoom,
+        mode: windowMode,
+        log,
+      });
       const stopFonts = registerFonts(win, log);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(() => closing.confirmClose());
@@ -255,6 +263,7 @@ function start(): void {
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
+      shutdown.add({name: 'stop screen configuration', run: stopScreensWindow});
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop font enumeration', run: stopFonts});
       shutdown.add({name: 'stop the media backend', run: stopMediaBackend});

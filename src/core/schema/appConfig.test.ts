@@ -41,6 +41,42 @@ function parse(json: unknown) {
 }
 
 describe('parseAppConfig', () => {
+  it('round trips the screen settings window placement', () => {
+    const screensWindow = {
+      x: -1400,
+      y: 20,
+      width: 1400,
+      height: 800,
+      maximized: false,
+    };
+    const loaded = expectSuccess(parse({...fullConfig(), screensWindow}));
+    expect(loaded.data.screensWindow).toEqual(screensWindow);
+    expect(expectSuccess(serializeAppConfig(loaded.data, FILE))).toContain(
+      'screensWindow',
+    );
+  });
+
+  it.each([
+    {x: 'left'},
+    {width: 0},
+    {height: 40000},
+    {y: Infinity},
+    {maximized: 'yes'},
+  ])('rejects an invalid screen window placement %j', change => {
+    expectFailure(
+      parse({
+        ...fullConfig(),
+        screensWindow: {
+          x: 0,
+          y: 0,
+          width: 1400,
+          height: 800,
+          maximized: false,
+          ...change,
+        },
+      }),
+    );
+  });
   it.each([null, 42, {}, []])(
     'rejects an invalid import folder %j',
     mediaImportFolder => {

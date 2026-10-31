@@ -4,19 +4,42 @@ import {useWindowShortcuts} from '../../platform/windowShortcuts';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {workspaceMenu, workspaceShortcuts} from './workspaceCommands';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 
 afterEach(() => {
   cleanup();
+  delete window.llp;
   useMacroPalette.getState().close();
 });
 
 describe('workspace defaults from S1', () => {
+  it('opens screen settings with Ctrl Alt 1 without changing workspace', () => {
+    const openScreens = vi.fn();
+    window.llp = mockLlpApi({window: {openScreens}});
+    const onWorkspace = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      ),
+    );
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'Digit1',
+          ctrlKey: true,
+          altKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(openScreens).toHaveBeenCalledOnce();
+    expect(onWorkspace).not.toHaveBeenCalled();
+  });
   it.each([
     {code: 'KeyS', workspace: 'show'},
     {code: 'KeyE', workspace: 'prep'},
     {code: 'KeyR', workspace: 'prep'},
-    {code: 'Digit1', workspace: 'screens', altKey: true},
-  ])('routes $code to $workspace', ({code, workspace, altKey = false}) => {
+  ])('routes $code to $workspace', ({code, workspace}) => {
     const onWorkspace = vi.fn();
     renderHook(() =>
       useWindowShortcuts(
@@ -28,7 +51,6 @@ describe('workspace defaults from S1', () => {
         new KeyboardEvent('keydown', {
           code,
           ctrlKey: true,
-          altKey,
           cancelable: true,
         }),
       );

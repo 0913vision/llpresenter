@@ -43,6 +43,20 @@ const manyScreens: readonly ScreenSummary[] = Array.from(
 );
 
 describe('saved output overflow', () => {
+  it('labels the theme workspace with the Look layers icon', () => {
+    render(
+      <Toolbar sizeClass="normal" workspace="screens" onWorkspace={vi.fn()} />,
+    );
+    const tab = screen.getByRole('tab', {name: '테마'});
+    expect(tab.getAttribute('aria-selected')).toBe('true');
+    const icon = tab.querySelector('[aria-hidden="true"]');
+    const lookIcon = screen
+      .getByRole('button', {name: 'Look'})
+      .querySelector('[aria-hidden="true"]');
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute('style')).toBe(lookIcon?.getAttribute('style'));
+    expect(screen.queryByRole('tab', {name: '화면 설정'})).toBeNull();
+  });
   it('keeps three inline outputs at 1280 and exposes all additional long names with live toggles', async () => {
     vi.stubGlobal('innerWidth', 1280);
     const send = vi.fn();

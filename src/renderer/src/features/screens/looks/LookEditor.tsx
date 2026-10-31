@@ -111,7 +111,11 @@ export function LookEditor({
   const selection = useScreensSelection(view => view.selection);
   const live = useLive(view => view.state?.lookId);
   const monitors = useMonitors();
-  const look = document?.value.looks.find(item => item.id === selection.id);
+  const look = document?.value.looks.find(
+    item =>
+      item.id ===
+      (selection.kind === 'screen' ? document.value.current : selection.id),
+  );
   const reason = document?.access === 'readOnly' ? READ_ONLY_REASON : undefined;
   const copyReason =
     reason ??
