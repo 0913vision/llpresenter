@@ -654,3 +654,25 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - No migration: no installation keeps data yet. This replaces the Korean folder
   names that 02-data proposed on 2026-10-25 and the 템플릿 folder name from
   earlier the same day.
+
+## 2026-10-31: 테마 replaces Look, 가사 스타일, and 무대 배치
+
+- Every 예배 순서 item uses one 테마 that lays out all three screens: each
+  screen is 직접 배치 (its own canvas of fixed element kinds), `<screen>`과 동일
+  (a live link), or 비움. The item's 테마 applies with its first 슬라이드. A
+  Look only showed or hid layers over one shared 배경, so two videos on two
+  screens with lyrics on the third was impossible (user, October 30). The full
+  rules are in spec 12.
+- 오버레이 carries content across a range of 슬라이드 in one item; the 대기 화면
+  shows when nothing is live; 항목 끄기 takes the live item off every screen.
+- The user accepted the approval page as proposed (October 31): the 화면 설정
+  workspace becomes 테마 and screens move to a 화면 설정 window (as
+  ProPresenter's Configure Screens, S4 p. 32); 테마 바꾸기 holds until the next
+  item; 항목 is the first 지우기 button; 빈 화면 색 is per screen; the slide
+  transition also covers 테마 changes; 슬라이드 from outside the 예배 순서 use
+  their kind's default; 영상 남은 시간 and 다음 이름표 are elements, 다음 항목
+  이름 is not; at most 10 elements per screen; the defaults are 찬양, 말씀,
+  광고, and 영상. The live 테마 shows LIVE left of its kind tags, and on and off
+  properties are checkboxes (comments on the same page).
+- No migration from `looks.json` and `stage-layouts.json`: no installation keeps
+  data yet.
