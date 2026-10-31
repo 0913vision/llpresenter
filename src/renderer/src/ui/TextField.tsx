@@ -1,8 +1,10 @@
 import {
+  useImperativeHandle,
   useRef,
   type ComponentPropsWithoutRef,
   type JSX,
   type KeyboardEvent,
+  type Ref,
 } from 'react';
 import {classNames} from './classNames';
 import {FieldFrame, useFieldReason} from './fieldFrame';
@@ -19,6 +21,7 @@ export interface TextFieldProps extends Omit<
   ComponentPropsWithoutRef<'input'>,
   'value' | 'onChange' | 'size' | 'type' | 'className' | 'title'
 > {
+  readonly ref?: Ref<HTMLInputElement> | undefined;
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly size?: ControlSize | undefined;
@@ -84,6 +87,7 @@ function frameClass({
 
 /** A single-line text field: search, Bible verses, names, and titles. */
 export function TextField({
+  ref: externalRef,
   value,
   onChange,
   size = 'md',
@@ -105,6 +109,11 @@ export function TextField({
   ...rest
 }: TextFieldProps): JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle<HTMLInputElement | null, HTMLInputElement | null>(
+    externalRef,
+    () => inputRef.current,
+    [],
+  );
   const reason = useFieldReason({
     invalid,
     reason: invalidReason,

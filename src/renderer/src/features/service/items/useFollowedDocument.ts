@@ -19,9 +19,11 @@ export interface FollowedDocument<T> {
 /**
  * Reads a document and follows its newer revisions while mounted. A read that
  * answers after a newer push is dropped. Pass a stable source (`useMemo`).
+ * When disabled, it neither reads nor subscribes.
  */
 export function useFollowedDocument<T extends Revisioned>(
   source: DocumentSource<T>,
+  enabled = true,
 ): FollowedDocument<T> {
   const [state, setState] = useState<{
     readonly document: T | null;
@@ -29,6 +31,7 @@ export function useFollowedDocument<T extends Revisioned>(
   }>({document: null, failed: false});
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    if (!enabled) return undefined;
     let alive = true;
     const accept = (document: T): void => {
       if (!alive) return;
@@ -52,7 +55,7 @@ export function useFollowedDocument<T extends Revisioned>(
       alive = false;
       stop();
     };
-  }, [source, attempt]);
+  }, [source, attempt, enabled]);
   return {
     ...state,
     retry: () => {

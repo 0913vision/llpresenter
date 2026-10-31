@@ -10,24 +10,17 @@ import {
 } from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
-import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
-import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
-import {
-  saveThumbnailScale,
-  showThumbnailScale,
-  useThumbnailScale,
-} from '@renderer/platform/thumbnailScale';
 import {Button} from '@renderer/ui/Button';
 import {
   Panel,
   PanelActions,
   PanelBody,
-  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui/Panel';
-import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
+import {ItemOverlayTable} from './ItemOverlayTable';
 import {openItemSong} from './openItemSong';
 import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
@@ -70,11 +63,17 @@ export function ServiceItemPanel({
         position={position}
         onSelect={index => items.selectPosition(index)}
         sizeClass={sizeClass}
-      />
+      >
+        <ItemOverlayTable items={items} editor={editor} />
+      </BibleItemPanel>
     );
   }
   if (item === null || !isItemOfKind(item, 'song') || song === null) {
-    return <OtherItemPanel item={item} sizeClass={sizeClass} />;
+    return (
+      <OtherItemPanel item={item} sizeClass={sizeClass}>
+        <ItemOverlayTable items={items} editor={editor} />
+      </OtherItemPanel>
+    );
   }
   return (
     <SongItemView
@@ -83,7 +82,6 @@ export function ServiceItemPanel({
       editor={editor}
       item={item}
       session={song}
-      sizeClass={sizeClass}
     />
   );
 }
@@ -93,7 +91,6 @@ interface SongItemViewProps {
   readonly editor: SongEditorStore;
   readonly item: ServiceItemOf<'song'>;
   readonly session: SongSession;
-  readonly sizeClass: SizeClass;
 }
 
 function SongItemView({
@@ -101,7 +98,6 @@ function SongItemView({
   editor,
   item,
   session,
-  sizeClass,
 }: SongItemViewProps): JSX.Element {
   const {arrangement, position} = useSyncExternalStore(
     items.subscribe,
@@ -110,7 +106,6 @@ function SongItemView({
   const labels =
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
       .labels ?? [];
-  const scale = useThumbnailScale(sizeClass);
   const {song} = session.history.snapshot;
   const {slides: sequence, capped} = isGroupedSong(song)
     ? editedOrderWithLimit(song, arrangement)
@@ -158,30 +153,8 @@ function SongItemView({
           onEditSong={action => openItemSong({items, editor, action})}
         />
         <PanelBody variant="flush">
-          <VirtualSlides
-            song={song}
-            numbers={sequence}
-            labels={labels}
-            selected={shown}
-            baseline={defaultThumbnailColumns[sizeClass]}
-            scale={scale}
-            onSelect={select}
-            onEdit={index => openItemSong({items, editor, position: index})}
-            onHotKey={index =>
-              openItemSong({items, editor, position: index, action: 'hot-key'})
-            }
-            hotKeyReason={editReason}
-          />
+          <ItemOverlayTable items={items} editor={editor} />
         </PanelBody>
-        <PanelFooter
-          end={
-            <ThumbnailSizeControl
-              value={scale}
-              onChange={value => showThumbnailScale(sizeClass, value)}
-              onCommit={value => saveThumbnailScale(sizeClass, value)}
-            />
-          }
-        />
       </Panel>
     </div>
   );

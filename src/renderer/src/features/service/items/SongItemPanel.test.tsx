@@ -71,11 +71,11 @@ function chip(panel: HTMLElement, index: number): HTMLElement {
 }
 
 function selectedThumbnail(panel: HTMLElement): number {
-  const thumbnails = within(panel)
-    .getAllByRole('option')
-    .filter(option => option.closest('[aria-label="구성 순서"]') === null);
+  const thumbnails = within(panel).getAllByRole('button', {
+    name: /^슬라이드 \d+$/,
+  });
   return thumbnails.findIndex(
-    option => option.getAttribute('aria-selected') === 'true',
+    option => option.getAttribute('aria-pressed') === 'true',
   );
 }
 
@@ -257,8 +257,12 @@ describe('service song item panel', () => {
 
   it('uses the shared slide menu to hand off the clicked repeated slide and its key', async () => {
     const {panel, user, editor, service, edits} = await setup();
-    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
-    const third = within(grid).getAllByRole('option')[2];
+    const grid = within(panel).getByRole('table', {
+      name: '슬라이드와 오버레이',
+    });
+    const third = within(grid).getAllByRole('button', {
+      name: /^슬라이드 \d+$/,
+    })[2];
     if (!third) throw new Error('Missing repeated thumbnail');
     fireEvent.contextMenu(third);
     expect(third.hasAttribute('data-menu-target')).toBe(true);

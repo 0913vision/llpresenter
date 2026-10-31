@@ -84,10 +84,7 @@ it('opens the selected item source slide in the song editor', async () => {
     ),
   ).toBeDefined();
   const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-  const selected = within(
-    within(panel).getByRole('listbox', {name: '슬라이드'}),
-  ).getAllByRole('option')[2];
-  if (!selected) throw new Error('Missing repeated item slide');
+  const selected = within(panel).getByRole('button', {name: '슬라이드 3'});
   fireEvent.click(selected);
   fireEvent.click(within(panel).getByRole('button', {name: '곡 편집'}));
   expect(await screen.findByRole('region', {name: '곡 편집'})).toBeDefined();

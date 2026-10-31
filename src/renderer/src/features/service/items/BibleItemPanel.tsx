@@ -1,4 +1,4 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, type JSX, type ReactNode} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
@@ -28,12 +28,14 @@ export function BibleItemPanel({
   position,
   onSelect,
   sizeClass,
+  children,
 }: {
   readonly item: ServiceItemOf<'bible'>;
   readonly serviceId: string;
   readonly position: number;
   readonly onSelect: (index: number) => void;
   readonly sizeClass: SizeClass;
+  readonly children?: ReactNode;
 }): JSX.Element {
   const tiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
   const scale = useThumbnailScale(sizeClass);
@@ -57,25 +59,29 @@ export function BibleItemPanel({
         />
       </PanelHeader>
       <PanelBody variant="flush">
-        <VirtualSlides
-          song={projected}
-          numbers={numbers}
-          labels={[]}
-          selected={shownPosition(position, tiles.length)}
-          onSelect={onSelect}
-          baseline={defaultThumbnailColumns[sizeClass]}
-          scale={scale}
-        />
-      </PanelBody>
-      <PanelFooter
-        end={
-          <ThumbnailSizeControl
-            value={scale}
-            onChange={value => showThumbnailScale(sizeClass, value)}
-            onCommit={value => saveThumbnailScale(sizeClass, value)}
+        {children ?? (
+          <VirtualSlides
+            song={projected}
+            numbers={numbers}
+            labels={[]}
+            selected={shownPosition(position, tiles.length)}
+            onSelect={onSelect}
+            baseline={defaultThumbnailColumns[sizeClass]}
+            scale={scale}
           />
-        }
-      />
+        )}
+      </PanelBody>
+      {children === undefined ? (
+        <PanelFooter
+          end={
+            <ThumbnailSizeControl
+              value={scale}
+              onChange={value => showThumbnailScale(sizeClass, value)}
+              onCommit={value => saveThumbnailScale(sizeClass, value)}
+            />
+          }
+        />
+      ) : null}
     </Panel>
   );
 }

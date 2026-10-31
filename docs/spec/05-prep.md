@@ -291,9 +291,12 @@ settings) panel.
   - Selecting a chip selects the first thumbnail of that occurrence. The chip
     containing the live slide has the on-output ring. Repeated occurrences have
     distinct sequence positions even though they reference one group.
-- Thumbnail grid: the 슬라이드 in sequence order. Clicking only selects. A
-  thumbnail size slider sits in the footer. Item and song-editor thumbnails use
+- 슬라이드와 오버레이 table (12, draft K): one row per sequence position, with
+  its number, thumbnail, 이름표, first line, and overlay span. Clicking selects
+  locally; an overlay selects its settings in the right column. The header's +
+  adds one at the selected position. Item rows and song-editor thumbnails use
   the same 슬라이드 menu model as 진행, with supported source actions enabled.
+  진행 keeps its thumbnail grid.
 
 ### Preview and 항목 설정 (right)
 

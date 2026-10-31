@@ -60,6 +60,22 @@ describe('useFollowedDocument', () => {
     expect(result.current.document?.name).toBe('again');
   });
 
+  it('reads and follows only while enabled and discards a disabled pending read', async () => {
+    const doc = source();
+    const view = renderHook(
+      ({enabled}) => useFollowedDocument(doc.value, enabled),
+      {initialProps: {enabled: false}},
+    );
+    expect(doc.read).not.toHaveBeenCalled();
+    view.rerender({enabled: true});
+    await waitFor(() => expect(doc.read).toHaveBeenCalledOnce());
+    view.rerender({enabled: false});
+    expect(doc.stop).toHaveBeenCalledOnce();
+    await act(async () => doc.answer({revision: 1, name: 'late'}));
+    expect(view.result.current.document).toBeNull();
+    view.unmount();
+  });
+
   it('stops following on unmount', () => {
     const doc = source();
     const {unmount} = renderHook(() => useFollowedDocument(doc.value));

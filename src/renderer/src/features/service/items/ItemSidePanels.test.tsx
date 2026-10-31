@@ -112,14 +112,16 @@ function lastLayers(): LiveLayers | undefined {
 describe('service item preview and 항목 설정', () => {
   it('selects saved Bible verses by pointer and keyboard with local preview and no output', async () => {
     const {user, output, edits} = await setupBible();
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    expect(within(grid).getAllByRole('option')).toHaveLength(3);
+    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
+    expect(
+      within(grid).getAllByRole('button', {name: /^슬라이드 \d+$/}),
+    ).toHaveLength(3);
     expect(caption()).toContain('3:161 / 3');
     expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
-    await user.click(within(grid).getAllByRole('option')[2] ?? grid);
+    await user.click(within(grid).getByRole('button', {name: '슬라이드 3'}));
     expect(caption()).toContain('3:183 / 3');
     expect(lastLayers()?.slide?.lines).toEqual(['18 Invented verse 18']);
-    await user.keyboard('{Home}{ArrowRight}');
+    await user.keyboard('{Home}{ArrowDown}');
     expect(caption()).toContain('3:172 / 3');
     expect(lastLayers()?.slide?.lines).toEqual(['17 Invented verse 17']);
     expect(screen.queryByRole('button', {name: '바로 띄우기'})).toBeNull();
@@ -129,35 +131,40 @@ describe('service item preview and 항목 설정', () => {
 
   it('clamps a saved Bible selection after projection shrink and clears an unavailable preview', async () => {
     const {user, output, tiles} = await setupBible();
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    await user.click(within(grid).getAllByRole('option')[2] ?? grid);
+    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
+    await user.click(within(grid).getByRole('button', {name: '슬라이드 3'}));
     act(() =>
       useShow.setState({tiles: {[fixtureItems.arranged]: tiles.slice(0, 1)}}),
     );
-    expect(within(grid).getAllByRole('option')).toHaveLength(1);
+    expect(
+      within(grid).getAllByRole('button', {name: /^슬라이드 \d+$/}),
+    ).toHaveLength(1);
     expect(caption()).toContain('3:161 / 1');
     expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
     act(() => useShow.setState({tiles: {}}));
-    expect(within(grid).queryAllByRole('option')).toHaveLength(0);
+    expect(
+      within(grid).queryAllByRole('button', {name: /^슬라이드 \d+$/}),
+    ).toHaveLength(0);
     expect(caption()).toBe('미리보기');
     expect(output).not.toHaveBeenCalled();
   });
 
   it('starts another saved Bible item at its first tile and resets the old scroll position', async () => {
     const {output} = await setupBible();
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    const viewport = grid.parentElement?.parentElement;
-    if (!viewport) throw new Error('Missing Bible viewport');
+    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
+    const viewport = within(grid).getByRole('rowgroup');
     const initialScrollTop = viewport.scrollTop;
     viewport.scrollTop = 500;
     act(() => useShow.setState({openItemId: fixtureItems.plain}));
     await waitFor(() => expect(caption()).toContain('3:171 / 2'));
-    const nextGrid = screen.getByRole('listbox', {name: '슬라이드'});
-    expect(nextGrid.parentElement?.parentElement?.scrollTop).toBe(
+    const nextGrid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
+    expect(within(nextGrid).getByRole('rowgroup').scrollTop).toBe(
       initialScrollTop,
     );
     expect(
-      within(nextGrid).getAllByRole('option')[0]?.getAttribute('aria-selected'),
+      within(nextGrid)
+        .getByRole('button', {name: '슬라이드 1'})
+        .getAttribute('aria-pressed'),
     ).toBe('true');
     expect(output).not.toHaveBeenCalled();
   });

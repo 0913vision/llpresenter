@@ -1,0 +1,213 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.controls > * {
+  min-width: 0;
+}
+.controls > button {
+  flex: none;
+}
+.theme {
+  width: 100%;
+}
+.theme > :first-child {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 0;
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.warning {
+  display: inline-flex;
+  color: var(--warning);
+}
+.table {
+  --item-row-height: calc(
+    var(--size-row-double) + var(--space-24) + var(--space-8)
+  );
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+}
+.measure {
+  position: absolute;
+  width: 0;
+  height: var(--item-row-height);
+  pointer-events: none;
+}
+.heading,
+.row {
+  display: grid;
+  grid-template-columns: var(--size-row) minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: center;
+}
+.heading {
+  flex: none;
+  min-height: var(--size-row-menu);
+  color: var(--text-3);
+  font: var(--type-caption-strong);
+  border-bottom: var(--radius-hairline) solid var(--line);
+  padding: var(--space-4) var(--panel-inset);
+}
+.heading > :last-child {
+  justify-content: space-between;
+}
+.viewport {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+.row {
+  height: var(--item-row-height);
+  padding: 0 var(--panel-inset);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+.row > :first-child {
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+.row > * {
+  min-width: 0;
+}
+.row[data-selected] {
+  background: var(--selection);
+}
+.slide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  background: none;
+  border: 0;
+  color: var(--text);
+  padding: var(--space-4);
+  width: 100%;
+  text-align: left;
+  font: var(--type-body);
+  border-radius: var(--radius-sm);
+}
+.slide:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-selected);
+}
+.slide[data-menu-target] {
+  outline: var(--outline-menu-target);
+}
+.thumbnail {
+  flex: none;
+  width: calc(var(--size-row-double) * 2 + var(--space-12));
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--output-black);
+  border-radius: var(--radius-sm);
+  white-space: pre-line;
+  text-align: center;
+  color: var(--text-on-fill);
+}
+.thumbnailText {
+  font: var(--type-thumb-lyrics);
+}
+.range > :nth-child(odd) {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.range > :nth-child(even) {
+  flex: none;
+  white-space: nowrap;
+}
+.contentThumbnail {
+  width: calc(var(--space-24) + var(--space-20));
+  aspect-ratio: 16 / 9;
+  flex: none;
+  background: var(--bg-control);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.summary > :first-child {
+  align-self: flex-start;
+}
+.overlayCell {
+  height: 100%;
+  position: relative;
+}
+.span {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  padding: 0 var(--space-12);
+  font: var(--type-label);
+  text-align: left;
+}
+.span::before {
+  content: '';
+  position: absolute;
+  left: var(--space-4);
+  top: 0;
+  bottom: 0;
+  width: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+}
+.span[data-start]::before {
+  top: 50%;
+}
+.span[data-end]::before {
+  bottom: 50%;
+}
+.span > span:not(:empty) {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: var(--space-6) var(--space-8);
+  border-radius: var(--radius-sm);
+  background: var(--bg-control);
+}
+.targets {
+  margin-left: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-caption);
+}
+.span[aria-pressed='true'] > span:not(:empty) {
+  box-shadow: var(--ring-selected);
+}
+.span:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-selected);
+}

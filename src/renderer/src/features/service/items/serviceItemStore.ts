@@ -3,7 +3,9 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@core/schema/contentDocuments';
-import type {MediaId, SongId} from '@core/schema/ids';
+import type {ItemOverlayId, MediaId, SongId, ThemeId} from '@core/schema/ids';
+import {itemOverlaysSchema, type ItemOverlay} from '@core/schema/itemOverlays';
+import {checkPart} from '@core/schema/fileFormat';
 import {
   isItemOfKind,
   type ServiceItem,
@@ -66,6 +68,7 @@ export interface ServiceItemState {
    * thumbnails, and preview. Readers clamp it to the order's length.
    */
   readonly position: number;
+  readonly overlay: ItemOverlayId | null;
   readonly busy: boolean;
 }
 
@@ -76,6 +79,7 @@ const NO_ITEM: ServiceItemState = {
   songStatus: null,
   arrangement: undefined,
   position: 0,
+  overlay: null,
   busy: false,
 };
 
@@ -167,6 +171,7 @@ export class ServiceItemStore {
   private songId: SongId | null = null;
   private songStatus: ItemSongStatus = 'loading';
   private position = 0;
+  private overlay: ItemOverlayId | null = null;
   private queue: Promise<unknown> = Promise.resolve();
   private running = 0;
   private readonly memoDrafts = new Map<
@@ -208,6 +213,7 @@ export class ServiceItemStore {
     const otherService = target?.serviceId !== this.target?.serviceId;
     this.target = target;
     this.position = 0;
+    this.overlay = null;
     if (otherService) {
       this.service = null;
       if (target !== null) editorTask(this.readService(target.serviceId));
@@ -232,6 +238,59 @@ export class ServiceItemStore {
         change: itemArrangementChange(name),
         failure: '구성 변경 실패',
         target,
+      }),
+    );
+  }
+
+  selectOverlay(id: ItemOverlayId | null): void {
+    if (!this.alive || this.overlay === id) return;
+    if (
+      id !== null &&
+      !this.currentItem()?.overlays?.some(row => row.id === id)
+    ) {
+      return;
+    }
+    this.overlay = id;
+    this.publish();
+  }
+
+  /** Omitting the theme follows the item's kind default. */
+  setTheme(theme: ThemeId | undefined): Promise<boolean> {
+    const target = this.target;
+    return this.operation(() =>
+      this.edit({
+        target,
+        failure: '테마 변경 실패',
+        change: item => {
+          if (!isStartItem(item)) return null;
+          const updated = {...item};
+          if (theme === undefined) delete updated.theme;
+          else updated.theme = theme;
+          return updated;
+        },
+      }),
+    );
+  }
+
+  /** Applies an overlay edit to the fresh item, preserving unrelated fields. */
+  changeOverlays(
+    change: (rows: readonly ItemOverlay[]) => readonly ItemOverlay[],
+    target: ItemTarget | null = this.target,
+  ): Promise<boolean> {
+    return this.operation(() =>
+      this.edit({
+        target,
+        failure: '오버레이 변경 실패',
+        change: item => {
+          if (!isStartItem(item)) return null;
+          const rows = change(item.overlays ?? []);
+          const checked = checkPart(itemOverlaysSchema, rows);
+          if (!checked.ok) return null;
+          const updated = {...item};
+          if (rows.length === 0) delete updated.overlays;
+          else updated.overlays = checked.value;
+          return updated;
+        },
       }),
     );
   }
@@ -537,6 +596,12 @@ export class ServiceItemStore {
       this.songId === null
         ? null
         : (this.editor.sessionOf(this.songId) ?? null);
+    if (
+      this.overlay !== null &&
+      !item?.overlays?.some(row => row.id === this.overlay)
+    ) {
+      this.overlay = null;
+    }
     this.state = {
       service: this.service,
       item,
@@ -544,6 +609,10 @@ export class ServiceItemStore {
       songStatus: this.songId === null ? null : this.songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
+      overlay:
+        item?.overlays?.some(row => row.id === this.overlay) === true
+          ? this.overlay
+          : null,
       busy: this.running > 0 || this.writes.isStopped,
     };
     for (const listener of this.listeners) listener();

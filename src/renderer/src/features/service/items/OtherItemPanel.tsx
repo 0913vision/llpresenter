@@ -1,4 +1,4 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, type JSX, type ReactNode} from 'react';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -25,9 +25,11 @@ function Empty(): JSX.Element {
 function NoticePanel({
   setId,
   sizeClass,
+  children,
 }: {
   readonly setId: string;
   readonly sizeClass: SizeClass;
+  readonly children?: ReactNode;
 }): JSX.Element {
   const {media, notices} = useOtherSources(true);
   const set = notices.find(candidate => candidate.id === setId);
@@ -49,30 +51,32 @@ function NoticePanel({
         <PanelTitle title={set.name} meta={`슬라이드 ${tiles.length}개`} />
       </PanelHeader>
       <PanelBody variant="flush" className={styles.body}>
-        <VirtualMediaGrid
-          key={setId}
-          arrowsMove="focus"
-          label={set.name}
-          count={tiles.length}
-          selected={undefined}
-          columns={defaultThumbnailColumns[sizeClass]}
-          onSelect={NOTHING}
-          onActivate={NOTHING}
-          onOutput={NOTHING}
-          onMenu={NOTHING}
-          tile={index => {
-            const tile = tiles[index];
-            return tile === undefined ? null : (
-              <MediaTile
-                key={tile.id}
-                name={mediaName(tile)}
-                picture={
-                  tile.kind === 'audio' ? undefined : thumbnailUrl(tile.id)
-                }
-              />
-            );
-          }}
-        />
+        {children ?? (
+          <VirtualMediaGrid
+            key={setId}
+            arrowsMove="focus"
+            label={set.name}
+            count={tiles.length}
+            selected={undefined}
+            columns={defaultThumbnailColumns[sizeClass]}
+            onSelect={NOTHING}
+            onActivate={NOTHING}
+            onOutput={NOTHING}
+            onMenu={NOTHING}
+            tile={index => {
+              const tile = tiles[index];
+              return tile === undefined ? null : (
+                <MediaTile
+                  key={tile.id}
+                  name={mediaName(tile)}
+                  picture={
+                    tile.kind === 'audio' ? undefined : thumbnailUrl(tile.id)
+                  }
+                />
+              );
+            }}
+          />
+        )}
       </PanelBody>
     </Panel>
   );
@@ -85,20 +89,32 @@ function NoticePanel({
 export function OtherItemPanel({
   item,
   sizeClass,
+  children,
 }: {
   readonly item: ServiceItem | null;
   readonly sizeClass: SizeClass;
+  readonly children?: ReactNode;
 }): JSX.Element {
   if (item !== null && isItemOfKind(item, 'notice')) {
-    return <NoticePanel setId={item.notice} sizeClass={sizeClass} />;
+    return (
+      <NoticePanel setId={item.notice} sizeClass={sizeClass}>
+        {children}
+      </NoticePanel>
+    );
   }
   if (item !== null && isItemOfKind(item, 'media')) {
-    return <MediaItemPanel mediaId={item.media} />;
+    return <MediaItemPanel mediaId={item.media}>{children}</MediaItemPanel>;
   }
   return <Empty />;
 }
 
-function MediaItemPanel({mediaId}: {readonly mediaId: string}): JSX.Element {
+function MediaItemPanel({
+  mediaId,
+  children,
+}: {
+  readonly mediaId: string;
+  readonly children?: ReactNode;
+}): JSX.Element {
   const {media} = useOtherSources(true);
   const found = media.find(candidate => candidate.id === mediaId);
   // TODO(0913vision): Show the media properties of the media (spec 05, 예배
@@ -108,6 +124,9 @@ function MediaItemPanel({mediaId}: {readonly mediaId: string}): JSX.Element {
       <PanelHeader>
         <PanelTitle title={found === undefined ? '' : mediaName(found)} />
       </PanelHeader>
+      <PanelBody variant="flush" className={styles.body}>
+        {children}
+      </PanelBody>
     </Panel>
   );
 }
