@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {git, gitSucceeds} from '../git.mts';
 import {readStamp, type VerifyStamp} from '../verify/stamp.mts';
-import {readCommitMessages} from '../version/commits.mts';
+import {readCommitMessages, type CommitMessage} from '../version/commits.mts';
 import {classifySubject} from '../version/subject.mts';
 
 /** One line that git writes to the pre-push hook's standard input. */
@@ -12,6 +12,35 @@ export interface RefUpdate {
   readonly localSha: string;
   readonly remoteRef: string;
   readonly remoteSha: string;
+}
+
+/** What the hook reads from the repository it pushes from. */
+export interface PushedRepository {
+  /** The checked-out commit. */
+  head(): string;
+  /** Whether the working tree has no changes. */
+  isClean(): boolean;
+  /** Whether `ancestor` is in the history of `commit`. */
+  isAncestor(ancestor: string, commit: string): boolean;
+  /** The tree of a commit. */
+  treeOf(commit: string): string;
+  /** The messages of the commits `git log` lists for these revisions. */
+  messages(revisions: readonly string[]): CommitMessage[];
+  /** The last passing verify, or `null` when none is recorded. */
+  stamp(): VerifyStamp | null;
+}
+
+/** The repository in `cwd`, read with git. */
+export function repositoryAt(cwd: string): PushedRepository {
+  return {
+    head: () => git(cwd, ['rev-parse', 'HEAD']),
+    isClean: () => git(cwd, ['status', '--porcelain']) === '',
+    isAncestor: (ancestor, commit) =>
+      gitSucceeds(cwd, ['merge-base', '--is-ancestor', ancestor, commit]),
+    treeOf: commit => git(cwd, ['rev-parse', `${commit}^{tree}`]),
+    messages: revisions => readCommitMessages(cwd, revisions),
+    stamp: () => readStamp(cwd),
+  };
 }
 
 const MAIN_REF = 'refs/heads/main';
@@ -52,19 +81,22 @@ function pushedRevisions(update: RefUpdate): string[] {
   return [`${update.remoteSha}..${update.localSha}`];
 }
 
-function badMessages(cwd: string, update: RefUpdate): string[] {
-  return readCommitMessages(cwd, pushedRevisions(update)).flatMap(
-    ({hash, subject, body}) => {
+function badMessages(repo: PushedRepository, update: RefUpdate): string[] {
+  return repo
+    .messages(pushedRevisions(update))
+    .flatMap(({hash, subject, body}) => {
       if (classifySubject(subject).kind === 'invalid') {
         return [`${hash} "${subject}"`];
       }
       return body === '' ? [] : [`${hash} has a body or trailers`];
-    },
-  );
+    });
 }
 
-function checkCommitMessages(cwd: string, update: RefUpdate): string | null {
-  const bad = badMessages(cwd, update);
+function checkCommitMessages(
+  repo: PushedRepository,
+  update: RefUpdate,
+): string | null {
+  const bad = badMessages(repo, update);
   return bad.length > 0
     ? `fix these commit messages first: ${bad.join(', ')}`
     : null;
@@ -76,25 +108,23 @@ function checkCommitMessages(cwd: string, update: RefUpdate): string | null {
  *
  * @returns the reason to stop the push, or `null` when it may go on
  */
-export function checkMainPush(cwd: string, update: RefUpdate): string | null {
-  if (git(cwd, ['rev-parse', 'HEAD']) !== update.localSha) {
+export function checkMainPush(
+  repo: PushedRepository,
+  update: RefUpdate,
+): string | null {
+  if (repo.head() !== update.localSha) {
     return 'check out the main you push; verify runs on the checked-out tree';
   }
-  if (git(cwd, ['status', '--porcelain']) !== '') {
+  if (!repo.isClean()) {
     return 'commit or stash your changes first; verify runs on the working tree';
   }
   const fastForward =
     NULL_COMMIT.test(update.remoteSha) ||
-    gitSucceeds(cwd, [
-      'merge-base',
-      '--is-ancestor',
-      update.remoteSha,
-      update.localSha,
-    ]);
+    repo.isAncestor(update.remoteSha, update.localSha);
   if (!fastForward) {
     return 'main on origin has commits this push lacks; pull the version bot commit first';
   }
-  return checkCommitMessages(cwd, update);
+  return checkCommitMessages(repo, update);
 }
 
 /** Whether the hook runs verify for a push, and why. */
@@ -106,9 +136,12 @@ export type VerifyDecision =
  * Skips verify only when the stamp says the pushed commit's tree already
  * passed `npm run verify` on a clean working tree. Anything else runs it.
  */
-export function decideVerify(cwd: string, update: RefUpdate): VerifyDecision {
-  const tree = git(cwd, ['rev-parse', `${update.localSha}^{tree}`]);
-  const stamp = readStamp(cwd);
+export function decideVerify(
+  repo: PushedRepository,
+  update: RefUpdate,
+): VerifyDecision {
+  const tree = repo.treeOf(update.localSha);
+  const stamp = repo.stamp();
   if (stamp === null) {
     return {kind: 'run', reason: 'no passing verify is recorded'};
   }
@@ -137,7 +170,7 @@ function runVerify(): boolean {
 
 /** Checks every pushed branch's messages and verifies only a main update. */
 export function runPrePush(
-  cwd: string,
+  repo: PushedRepository,
   updates: readonly RefUpdate[],
   verify: () => boolean = runVerify,
 ): number {
@@ -149,8 +182,8 @@ export function runPrePush(
   for (const update of branches) {
     const problem =
       update.remoteRef === MAIN_REF
-        ? checkMainPush(cwd, update)
-        : checkCommitMessages(cwd, update);
+        ? checkMainPush(repo, update)
+        : checkCommitMessages(repo, update);
     if (problem !== null) {
       console.error(`pre-push: push stopped: ${problem}`);
       return FAILURE_EXIT_CODE;
@@ -165,7 +198,7 @@ export function runPrePush(
     }
     return 0;
   }
-  const decision = decideVerify(cwd, update);
+  const decision = decideVerify(repo, update);
   if (decision.kind === 'skip') {
     console.log(
       `pre-push: verify skipped: this tree passed npm run verify on a clean tree at ${decision.stamp.verifiedAt}`,
@@ -184,7 +217,7 @@ export function runPrePush(
 
 function main(): void {
   process.exitCode = runPrePush(
-    process.cwd(),
+    repositoryAt(process.cwd()),
     parseRefUpdates(readFileSync(0, 'utf8')),
   );
 }
