@@ -2,6 +2,7 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
 import {offscreenApp} from './electron-app';
+import {openToolTab} from './tool-tab';
 
 const SERVICE = '44000000-0000-4000-8000-000000000001';
 const SONG = '44000000-0000-4000-8000-000000000002';
@@ -90,8 +91,7 @@ it(
       page.evaluate<boolean>(`window.llp.live.get().then(live =>
         live.layers.slide?.itemId === '${ITEM}')`);
     await expect.poll(showing, {timeout: WAIT}).toBe(true);
-    await page.getByRole('button', {name: '더 보기'}).click();
-    await page.getByRole('menuitemradio', {name: '매크로'}).click();
+    await openToolTab(page, '매크로');
     await page
       .getByRole('listbox', {name: '매크로'})
       .getByRole('option', {name: '점검 지우기'})

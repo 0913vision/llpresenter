@@ -2,6 +2,7 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
 import {offscreenApp} from './electron-app';
+import {openToolTab} from './tool-tab';
 
 const WAIT = 30_000;
 
@@ -74,8 +75,7 @@ it(
       .toBe(true);
 
     await page.getByRole('tab', {name: '진행'}).click();
-    await page.getByRole('button', {name: '더 보기'}).click();
-    await page.getByRole('menuitemradio', {name: '메시지'}).click();
+    await openToolTab(page, '메시지');
     expect(await page.getByLabel('메시지 미리보기').innerText()).toBe(
       '창작 안내 문장',
     );
