@@ -15,6 +15,11 @@ import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
 import type {ClearEffect} from '../schema/clearFade';
 import type {OutputMediaProperties} from '../schema/outputMedia';
+import type {
+  LiveThemeItem,
+  LiveThemeMode,
+  LiveThemeOutput,
+} from '../schema/liveTheme';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -37,6 +42,8 @@ export type LayerKind = (typeof layerKinds)[number];
 export interface MediaChoice {
   readonly mediaId: string;
   readonly loop: boolean;
+  readonly itemId?: string;
+  readonly title?: string;
 }
 
 /** The background media on output. */
@@ -65,6 +72,9 @@ export interface SlideLayer {
   readonly lines: readonly string[];
   /** A Bible reference, separate from the operator's slide label. */
   readonly reference?: string;
+  readonly kind?: LiveThemeItem['kind'];
+  readonly title?: string;
+  readonly memo?: string;
   /** The next 장 when the sender knows one; absent after the item's last. */
   readonly next?: NextSlide;
 }
@@ -102,6 +112,9 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  readonly themeItem?: LiveThemeItem | null;
+  readonly themeMode?: LiveThemeMode;
+  readonly themeOutput?: LiveThemeOutput;
   /** The most recently run macro in this session, if one has run. */
   readonly lastMacroId?: MacroId;
   /** Last allocated audio track version, retained across clears and batches. */

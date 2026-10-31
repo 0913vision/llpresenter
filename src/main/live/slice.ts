@@ -39,7 +39,17 @@ export interface MonitorNumbersPort {
   identify(): void;
 }
 
+export interface ThemeReduction {
+  readonly before: LiveHistory;
+  readonly after: LiveHistory;
+  readonly command: LiveCommand;
+  readonly context: SliceContext;
+}
+
 export interface SliceInputs {
+  readonly themes?: {
+    reduce(request: ThemeReduction): LiveHistory;
+  };
   readonly audioMedia?: () => MediaList;
   readonly now: number;
   /** The monotonic 타이머 clock; absent uses `now`. */

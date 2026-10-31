@@ -30,6 +30,8 @@ const mocks = vi.hoisted(() => {
     audioStop: vi.fn<() => void>(),
     lookSelectionContexts: new Array<unknown>(),
     lookSelectionStop: vi.fn<() => void>(),
+    themeOutputContexts: new Array<unknown>(),
+    themeOutputStop: vi.fn<() => void>(),
     selectLook: vi.fn(),
     recovery: {
       crashed: false,
@@ -197,6 +199,12 @@ vi.mock('./live/lookSelection', () => ({
     return mocks.lookSelectionStop;
   },
 }));
+vi.mock('./live/themes', () => ({
+  registerThemeOutput: (context: unknown) => {
+    mocks.themeOutputContexts.push(context);
+    return mocks.themeOutputStop;
+  },
+}));
 vi.mock('./media/analysis', () => ({
   startMediaAnalysis: (options: unknown) => {
     mocks.analysisOptions.push(options);
@@ -345,6 +353,8 @@ beforeEach(async () => {
   mocks.audioStop.mockReset();
   mocks.lookSelectionContexts.length = 0;
   mocks.lookSelectionStop.mockReset();
+  mocks.themeOutputContexts.length = 0;
+  mocks.themeOutputStop.mockReset();
   mocks.selectLook.mockReset();
   mocks.recovery.crashed = false;
   mocks.recovery.markQuitting.mockReset();
@@ -663,7 +673,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
-  it('registers the required Look writer and releases it before closing data', async () => {
+  it('registers Look selection and theme output and releases both before closing data', async () => {
     await startMain();
     expect(mocks.lookSelectionContexts).toMatchObject([
       {
@@ -671,9 +681,16 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
         selection: {selectLook: mocks.selectLook},
       },
     ]);
+    expect(mocks.themeOutputContexts).toMatchObject([
+      {store: mocks.outputContexts[0]?.store},
+    ]);
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
     expect(mocks.lookSelectionStop).toHaveBeenCalledOnce();
+    expect(mocks.themeOutputStop).toHaveBeenCalledOnce();
+    expect(mocks.themeOutputStop.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
     expect(mocks.lookSelectionStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );

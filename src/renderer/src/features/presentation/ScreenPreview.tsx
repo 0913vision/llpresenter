@@ -59,6 +59,7 @@ export function ScreenPreview({
       api === undefined
         ? null
         : new ScreenFrames({
+            fonts: api.fonts,
             settings: api.settings,
             clock: () => api.live.clock(),
             screenId,

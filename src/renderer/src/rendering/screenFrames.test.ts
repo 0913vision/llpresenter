@@ -15,6 +15,8 @@ import {
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
 import type {LookGap} from '@core/looks/screenLook';
+import {resolveThemeOutput} from '@core/themes/output';
+import {themeFile, themeScreens} from '@core/testing/themeOutput';
 
 const NORMAL = lookIdOf(80);
 const VIDEO_ONLY = lookIdOf(81);
@@ -105,6 +107,33 @@ function stateWith(fields: Partial<LiveState>): LiveState {
 }
 
 describe('ScreenFrames', () => {
+  it('uses the main process composition for output and previews without resolving a legacy Look', async () => {
+    const {frames, onGap} = await framesFor(STAGE);
+    const output = resolveThemeOutput({
+      file: themeFile(),
+      screens: themeScreens,
+      item: {id: 'invented', kind: 'song', source: 'external'},
+      revision: 7,
+    });
+    if (output === undefined) throw new Error('Missing theme');
+    onGap.mockClear();
+    const frame = frames.frame(
+      stateWith({
+        themeOutput: output,
+        themeItem: {id: 'invented', kind: 'song', source: 'external'},
+      }),
+    );
+    expect(frame?.theme).toMatchObject({
+      ...output.screens[STAGE],
+      themeId: output.themeId,
+      revision: 7,
+      item: {id: 'invented'},
+    });
+    expect(frame?.look).toBeUndefined();
+    expect(frame?.stage).toBeUndefined();
+    expect(onGap).not.toHaveBeenCalled();
+    frames.dispose();
+  });
   it('has no frame until the screen is known', () => {
     const settings = mockSettings();
     const frames = new ScreenFrames({

@@ -204,6 +204,7 @@ export class SliceRegistry {
         return before;
       }
       const mark = record.mark();
+      const outcome = {rejected: false};
       const context: SliceContext = {
         ...inputs,
         apply,
@@ -214,6 +215,7 @@ export class SliceRegistry {
           record.ranMacro(macro);
         },
         reject: error => {
+          outcome.rejected = true;
           record.skip(mark, {
             type: next.type,
             reason: 'invalid-overlay',
@@ -223,7 +225,15 @@ export class SliceRegistry {
         },
       };
       try {
-        return slice.apply(before, next, context);
+        const reduced = slice.apply(before, next, context);
+        return outcome.rejected
+          ? reduced
+          : (inputs.themes?.reduce({
+              before,
+              after: reduced,
+              command: next,
+              context,
+            }) ?? reduced);
       } catch (error) {
         record.skip(
           mark,

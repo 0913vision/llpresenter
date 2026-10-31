@@ -7,6 +7,19 @@ import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
 import type {StageElement, StageLayout} from '@core/schema/stageLayouts';
 import type {Screen} from '@core/schema/screens';
+import type {
+  LiveThemeItem,
+  LiveThemeOutput,
+  ThemeComposition,
+} from '@core/schema/liveTheme';
+import type {FontCatalog} from '@core/schema/fontCatalog';
+
+export interface ThemeFrame extends ThemeComposition {
+  readonly themeId: LiveThemeOutput['themeId'];
+  readonly revision: number;
+  readonly missing: readonly string[];
+  readonly item: LiveThemeItem | null;
+}
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
 export interface PictureCorrection {
@@ -36,6 +49,9 @@ export interface StageFrame {
 }
 
 export interface RenderFrame {
+  readonly stageTimerId?: TimerId;
+  readonly theme?: ThemeFrame;
+  readonly fonts?: FontCatalog;
   readonly clearEffects?: readonly ClearEffect[];
   readonly clearOpacity?: Readonly<Partial<Record<LayerKind, number>>>;
   readonly propOpacity?: ReadonlyMap<string, number>;

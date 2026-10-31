@@ -11,6 +11,7 @@ import {
   serviceItemIdSchema,
   stageLayoutIdSchema,
   timerIdSchema,
+  themeIdSchema,
 } from './ids';
 import {messageDurationSchema} from './messages';
 import {epochMillisecondsSchema, messageTargetsSchema} from './overlayState';
@@ -36,6 +37,9 @@ export type AudioSource = ReadonlyKnown<
 
 /** M3 commands remain unsupported until their owning live slices register. */
 export const liveActionOptions = [
+  v.object({type: v.literal('theme.set'), themeId: themeIdSchema}),
+  v.object({type: v.literal('themes.refresh')}),
+  v.object({type: v.literal('item.stop')}),
   v.object({type: v.literal('look.set'), lookId: lookIdSchema}),
   v.object({
     type: v.literal('stage.layout.set'),

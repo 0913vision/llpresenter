@@ -7,10 +7,14 @@ import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
 import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
 import {followSettingsDocument} from '../rendering/settingsFeed';
+import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 
 /** Plays background sound once, independently of the preloaded screen windows. */
 export class BackgroundAudio {
   private readonly view: BackgroundLayerView;
+  private overlay: BackgroundLayerView | null = null;
+  private overlayStartedAt: number | null = null;
+  private readonly createOverlay: () => BackgroundLayerView;
   private readonly stops: ReadonlyArray<() => void>;
   private screens: readonly Screen[] | null = null;
   private looks: LooksFile | null = null;
@@ -43,6 +47,12 @@ export class BackgroundAudio {
       muted,
       onError: report,
     });
+    this.createOverlay = () =>
+      new BackgroundLayerView(root, {
+        mediaUrl,
+        muted,
+        onError: report,
+      });
     this.stops = [
       followSettingsDocument({
         settings: api.settings,
@@ -81,22 +91,37 @@ export class BackgroundAudio {
     this.fade?.cancel();
     for (const stop of this.stops) stop();
     this.view.dispose();
+    this.overlay?.dispose();
   }
 
   private draw(): void {
     if (this.disposed || this.state === null) return;
     try {
       const state = this.state;
+      const overlay = themeOverlayAudio(state);
+      if (overlay !== null) this.overlay ??= this.createOverlay();
+      if (
+        overlay !== null &&
+        this.overlayStartedAt !== null &&
+        this.overlayStartedAt !== overlay.startedAt
+      ) {
+        this.overlay?.show(null, false);
+      }
+      this.overlayStartedAt = overlay?.startedAt ?? null;
+      this.overlay?.show(overlay, false);
       const audible =
-        this.looks !== null &&
-        this.screens?.some(
-          screen =>
-            state.outputs[screen.id] === true &&
-            showsLayer(
-              resolveScreenLook(this.looks, state.lookId, screen).appearance,
-              'media',
-            ),
-        ) === true;
+        state.themeOutput !== undefined
+          ? themeMediaAudible(state)
+          : this.looks !== null &&
+            this.screens?.some(
+              screen =>
+                state.outputs[screen.id] === true &&
+                showsLayer(
+                  resolveScreenLook(this.looks, state.lookId, screen)
+                    .appearance,
+                  'media',
+                ),
+            ) === true;
       const media = state.layers.media;
       if (!audible) {
         this.stopFade();

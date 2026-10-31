@@ -5,7 +5,9 @@ import {
 } from '../looks/starterLayout';
 import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {createScreenId} from '../schema/ids';
-import {builtInTheme} from './defaults';
+import {builtInTheme, createDefaultThemes} from './defaults';
+import {resolveThemeOutput} from './output';
+import {themeItemKinds} from './elementRules';
 
 it('converts the starter audience styles and stage geometry into theme elements', () => {
   const main = createScreenId(STARTER_SCREEN_IDS.main);
@@ -28,13 +30,9 @@ it('converts the starter audience styles and stage geometry into theme elements'
     ],
   });
   expect(theme.screens[broadcast]).toMatchObject({
-    background: '#00B140',
-    elements: [
-      {kind: 'background'},
-      {kind: 'media'},
-      {kind: 'currentText', text: {vAlign: 'bottom'}},
-    ],
+    elements: [{kind: 'currentText', text: {vAlign: 'bottom'}}],
   });
+  expect(theme.screens[broadcast]?.background).toBeUndefined();
   expect(theme.screens[stage]?.elements.map(element => element.frame)).toEqual(
     STARTER_STAGE_ELEMENTS.map(element => element.frame),
   );
@@ -48,6 +46,35 @@ it('converts the starter audience styles and stage geometry into theme elements'
     'stageMessage',
   ]);
 });
+
+it.each(themeItemKinds)(
+  'keeps the default %s capture layout free of item backgrounds and inherits the empty color',
+  kind => {
+    const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
+    const screens = [
+      {
+        id,
+        name: 'Capture',
+        kind: 'audience',
+        method: 'capture',
+        emptyColor: '#123456',
+      },
+    ] as const;
+    const output = resolveThemeOutput({
+      file: createDefaultThemes(screens),
+      screens,
+      item: {id: 'invented', kind, source: 'external'},
+      revision: 1,
+    });
+    expect(output?.screens[id]?.emptyColor).toBe('#123456');
+    expect(output?.screens[id]?.layout.background).toBeUndefined();
+    expect(
+      output?.screens[id]?.layout.elements.map(element => element.kind),
+    ).toEqual(
+      kind === 'bible' ? ['currentText', 'reference'] : ['currentText'],
+    );
+  },
+);
 
 it('adds a reference only for Bible layouts and adapts to configured screen IDs', () => {
   const id = createScreenId('00000000-0000-4000-8000-000000000999');

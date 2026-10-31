@@ -20,6 +20,7 @@ import {
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
 import {registerLookSelection} from './live/lookSelection';
+import {registerThemeOutput} from './live/themes';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {showOutputsOnLaunch} from './outputs/launch';
@@ -155,6 +156,11 @@ function start(): void {
         selection: dataStore,
         log,
       });
+      const stopThemeOutput = registerThemeOutput({
+        store,
+        data: dataStore,
+        log,
+      });
       const analysis = startMediaAnalysis({
         media: dataStore.media,
         thumbnailFolder: join(app.getPath('userData'), THUMBNAIL_FOLDER),
@@ -279,6 +285,7 @@ function start(): void {
       shutdown.add({name: 'stop audio', run: stopAudio});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop Look selection', run: stopLookSelection});
+      shutdown.add({name: 'stop theme output', run: stopThemeOutput});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

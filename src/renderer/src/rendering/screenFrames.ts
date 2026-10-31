@@ -3,6 +3,7 @@ import type {LiveState} from '@core/live/state';
 import type {LooksFile} from '@core/schema/looks';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import type {Timer} from '@core/schema/timers';
+import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen, StageFrame} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';
@@ -24,6 +25,7 @@ const GAP_MESSAGES: Record<LookGap['kind'], string> = {
 };
 
 interface ScreenFramesOptions {
+  readonly fonts?: LlpApi['fonts'];
   readonly settings: LlpApi['settings'];
   readonly clock: LlpApi['live']['clock'];
   readonly screenId: string;
@@ -50,6 +52,9 @@ interface Resolution {
  * the live Look, or the screen change.
  */
 export class ScreenFrames {
+  private fonts: FontCatalog | undefined;
+  private disposed = false;
+  private themed = false;
   private screen: RenderScreen | undefined;
   private looks: LooksFile | null = null;
   private timers: readonly Timer[] = [];
@@ -62,6 +67,18 @@ export class ScreenFrames {
   constructor(private readonly options: ScreenFramesOptions) {
     const {settings, screenId, onError} = options;
     this.timerClock = new MainTimerClock(options.clock, onError);
+    options.fonts?.get().then(
+      fonts => {
+        if (this.disposed) return;
+        this.fonts = fonts;
+        if (this.themed) options.onChange();
+      },
+      (error: unknown) => {
+        if (!this.disposed) {
+          onError('could not read output font catalog', error);
+        }
+      },
+    );
     this.stops = [
       followRenderScreen({
         settings,
@@ -116,9 +133,24 @@ export class ScreenFrames {
   frame(state: LiveState | null): RenderFrame | undefined {
     const {screen} = this;
     if (screen === undefined) return undefined;
-    const {appearance} = this.resolve(state?.lookId, screen);
+    const composition = state?.themeOutput?.screens[screen.id];
+    const theme =
+      composition === undefined || state?.themeOutput === undefined
+        ? undefined
+        : {
+            ...composition,
+            themeId: state.themeOutput.themeId,
+            revision: state.themeOutput.revision,
+            missing: state.themeOutput.missing,
+            item: state.themeItem ?? null,
+          };
+    this.themed = theme !== undefined;
+    const appearance =
+      theme === undefined
+        ? this.resolve(state?.lookId, screen).appearance
+        : null;
     const stage =
-      screen.kind === 'stage'
+      theme === undefined && screen.kind === 'stage'
         ? this.stageFrame(
             state?.stageLayouts?.[screen.id] ?? appearance?.stageLayout,
             state,
@@ -126,6 +158,13 @@ export class ScreenFrames {
           )
         : undefined;
     return {
+      ...(theme === undefined ? {} : {theme}),
+      ...(theme === undefined || this.fonts === undefined
+        ? {}
+        : {fonts: this.fonts}),
+      ...(state?.stageTimerId === undefined
+        ? {}
+        : {stageTimerId: state.stageTimerId}),
       screen,
       ...(state?.clearEffects === undefined
         ? {}
@@ -145,6 +184,7 @@ export class ScreenFrames {
   }
 
   dispose(): void {
+    this.disposed = true;
     for (const stop of this.stops) stop();
   }
 

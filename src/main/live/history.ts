@@ -7,9 +7,12 @@ import {
 import type {ClearTarget} from '@core/live/commands';
 import type {MessageId} from '@core/schema/ids';
 import {retainClearEffects} from './clearEffects';
+import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
 
 /** What the last clear took down, and when, so it can be undone. */
 export interface UndoEntry {
+  readonly themeItem?: LiveThemeItem | null;
+  readonly themeMode?: LiveThemeMode;
   readonly layers: LiveLayers;
   readonly clearedAt: number;
   readonly audioClearedAt?: number;

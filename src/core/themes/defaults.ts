@@ -106,9 +106,14 @@ function audienceElements(
     ...lyricFrame,
     h: lyricFrame.h - (kind === 'bible' ? referenceHeight + referenceGap : 0),
   };
+  const media: ThemeElement[] = lowerThird
+    ? []
+    : [
+        {...base, id: createThemeElementId(uuid(1)), kind: 'background'},
+        {...base, id: createThemeElementId(uuid(2)), kind: 'media'},
+      ];
   return [
-    {...base, id: createThemeElementId(uuid(1)), kind: 'background'},
-    {...base, id: createThemeElementId(uuid(2)), kind: 'media'},
+    ...media,
     {
       id: createThemeElementId(uuid(3)),
       kind: 'currentText',
@@ -141,7 +146,6 @@ function layoutFor(
   return {
     mode: {kind: 'own'},
     elements,
-    ...(lowerThird ? {background: '#00B140'} : {}),
   };
 }
 

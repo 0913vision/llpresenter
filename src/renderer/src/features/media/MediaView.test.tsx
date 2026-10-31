@@ -306,7 +306,12 @@ describe('media view', () => {
     fireEvent.doubleClick(video);
     expect(send).toHaveBeenCalledWith({
       type: 'media.show',
-      media: {mediaId: mediaId(1), loop: true},
+      media: {
+        mediaId: mediaId(1),
+        loop: true,
+        itemId: `media:${mediaId(1)}`,
+        title: 'Dawn',
+      },
     });
     fireEvent.doubleClick(await tile('Hymn'));
     expect(send).toHaveBeenCalledOnce();
@@ -328,7 +333,12 @@ describe('media view', () => {
     expect(selected.getAttribute('aria-selected')).toBe('true');
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'media.show',
-      media: {mediaId: mediaId(1), loop: true},
+      media: {
+        mediaId: mediaId(1),
+        loop: true,
+        itemId: `media:${mediaId(1)}`,
+        title: 'Dawn',
+      },
     });
     video.focus();
     fireEvent.keyDown(video, {key: 'Enter'});
@@ -338,7 +348,12 @@ describe('media view', () => {
     expect(send).toHaveBeenCalledTimes(2);
     expect(send).toHaveBeenLastCalledWith({
       type: 'media.show',
-      media: {mediaId: mediaId(1), loop: true},
+      media: {
+        mediaId: mediaId(1),
+        loop: true,
+        itemId: `media:${mediaId(1)}`,
+        title: 'Dawn',
+      },
     });
   });
 

@@ -50,6 +50,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'slide.show':
     case 'media.show':
     case 'clear.undo':
+    case 'item.stop':
       return true;
     case 'layer.clear':
     case 'layer.clear.toggle':
@@ -82,6 +83,8 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'audio.volume.set':
     case 'macro.run':
     case 'item.start':
+    case 'theme.set':
+    case 'themes.refresh':
     case 'screen.testPattern.set':
     case 'monitors.identify':
     case 'screen.settings.apply':

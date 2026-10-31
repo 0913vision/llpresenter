@@ -11,11 +11,83 @@ import {
   screensDocument,
 } from '@core/testing/screenDocuments';
 import {BackgroundAudio} from './backgroundAudio';
+import {resolveThemeOutput} from '@core/themes/output';
+import {
+  themeFile,
+  themeScreens,
+  THEME_MAIN,
+  THEME_CAPTURE,
+} from '@core/testing/themeOutput';
 
 beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
+});
+
+it('plays one soundtrack for several themed screens even when their legacy Looks hide media', async () => {
+  const output = resolveThemeOutput({
+    file: themeFile(),
+    screens: themeScreens,
+    item: {id: 'song', kind: 'song', source: 'external'},
+    revision: 1,
+  });
+  if (output === undefined) throw new Error('Missing theme');
+  const state = {
+    ...emptyLiveState(),
+    themeOutput: output,
+    themeItem: {id: 'song', kind: 'song', source: 'external'} as const,
+    outputs: {[THEME_MAIN]: true, [THEME_CAPTURE]: true},
+    layers: {
+      ...emptyLiveState().layers,
+      media: {
+        mediaId: '00000000-0000-4000-8000-000000000004',
+        loop: true,
+        startedAt: 1000,
+        properties: {speed: 1, fit: 'fit', volume: 50, audio: true} as const,
+      },
+    },
+  };
+  const root = document.createElement('div');
+  const api = mockLlpApi({
+    settings: {
+      get: ({name}) =>
+        Promise.resolve(
+          name === 'screens'
+            ? screensDocument()
+            : settingsDocument('looks', {
+                current: LOOK_ID,
+                lyricStyles: [],
+                looks: [
+                  {
+                    id: LOOK_ID,
+                    name: 'Hidden media',
+                    screens: {
+                      [MAIN_ID]: {layers: {media: false}},
+                      [CAPTIONS_ID]: {layers: {media: false}},
+                    },
+                  },
+                ],
+              }),
+        ),
+    },
+  });
+  const audio = new BackgroundAudio({
+    root,
+    api,
+    muted: false,
+    report: vi.fn(),
+    now: () => 1000,
+  });
+  audio.show(state);
+  await vi.waitFor(() =>
+    expect(root.querySelectorAll('video[src]')).toHaveLength(1),
+  );
+  expect(root.querySelector<HTMLVideoElement>('video[src]')?.muted).toBe(false);
+  audio.show({...state, outputs: {}});
+  expect(root.querySelectorAll('video[src]')).toHaveLength(0);
+  audio.dispose();
+  expect(root.children).toHaveLength(0);
 });
 
 it('plays background sound once for multiple outputs, respects Looks, and releases it', async () => {

@@ -186,6 +186,13 @@ export class BackgroundLayerView {
     else this.start(media);
   }
 
+  remaining(): number | undefined {
+    const video = this.videos[this.front];
+    return this.current === null || !Number.isFinite(video.duration)
+      ? undefined
+      : Math.max(0, video.duration - video.currentTime);
+  }
+
   dispose(): void {
     this.cancelSpare();
     this.cancelSeek();

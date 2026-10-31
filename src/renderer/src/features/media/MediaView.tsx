@@ -151,7 +151,12 @@ export function MediaView({
     try {
       sendLive({
         type: 'media.show',
-        media: {mediaId: entry.item.id, loop: mediaLoops(entry.item)},
+        media: {
+          mediaId: entry.item.id,
+          loop: mediaLoops(entry.item),
+          itemId: `media:${entry.item.id}`,
+          title: nameOf(entry),
+        },
       });
     } catch (cause: unknown) {
       console.error('Media output failed:', cause);

@@ -12,8 +12,10 @@ type Handler = (event: Event, ...args: unknown[]) => unknown;
 const native = vi.hoisted(() => ({
   handlers: new Map<string, Handler>(),
   read: vi.fn(),
+  fromWebContents: vi.fn(),
 }));
 vi.mock('electron', () => ({
+  BrowserWindow: {fromWebContents: native.fromWebContents},
   ipcMain: {
     handle: (name: string, handler: Handler) =>
       native.handlers.set(name, handler),
@@ -27,8 +29,10 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-it('answers only the control main frame, rejects arguments, and removes the handler', async () => {
-  const control = {webContents: {mainFrame: {}}};
+it('answers trusted main frames, rejects foreign output pages and arguments, and removes the handler', async () => {
+  const control = {
+    webContents: {mainFrame: {}, getURL: () => 'file:///app/index.html'},
+  };
   const log: Logger = {
     info: vi.fn(),
     warn: vi.fn(),
@@ -54,6 +58,30 @@ it('answers only the control main frame, rejects arguments, and removes the hand
     expect(native.read).not.toHaveBeenCalled();
     await expect(ask(event)).resolves.toEqual([fontFamilyFixture()]);
     await expect(ask(event)).resolves.toEqual([fontFamilyFixture()]);
+    const output = {
+      mainFrame: {},
+      getURL: () => 'file:///app/output.html?screen=main',
+    };
+    native.fromWebContents.mockReturnValue({});
+    await expect(
+      ask({sender: output, senderFrame: output.mainFrame}),
+    ).resolves.toEqual([fontFamilyFixture()]);
+    const screens = {
+      ...output,
+      getURL: () => 'file:///app/index.html?window=screens',
+    };
+    await expect(
+      ask({sender: screens, senderFrame: screens.mainFrame}),
+    ).resolves.toEqual([fontFamilyFixture()]);
+    expect(() => ask({sender: output, senderFrame: {}})).toThrow('Invalid');
+    const foreign = {...output, getURL: () => 'file:///other/output.html'};
+    expect(() =>
+      ask({sender: foreign, senderFrame: foreign.mainFrame}),
+    ).toThrow('Invalid');
+    native.fromWebContents.mockReturnValue(null);
+    expect(() => ask({sender: output, senderFrame: output.mainFrame})).toThrow(
+      'Invalid',
+    );
     expect(native.read).toHaveBeenCalledOnce();
   } finally {
     stop();

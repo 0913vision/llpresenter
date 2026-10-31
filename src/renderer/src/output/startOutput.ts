@@ -31,6 +31,8 @@ function drawnContent(state: LiveState): string {
     state.testPatterns,
     state.stageLayouts,
     state.stageTimerId,
+    state.themeItem,
+    state.themeOutput,
   ]);
 }
 
@@ -102,6 +104,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     drawCount += 1;
   };
   const frames = new ScreenFrames({
+    fonts: api.fonts,
     settings: api.settings,
     clock: () => api.live.clock(),
     screenId,

@@ -25,11 +25,22 @@ import {audioPlaybackSchema} from './audioState';
 import {percent, seconds} from './primitives';
 import {clearEffectsSchema} from './clearFade';
 import {outputMediaPropertiesSchema} from './outputMedia';
+import {
+  liveThemeItemSchema,
+  liveThemeModeSchema,
+  liveThemeOutputSchema,
+} from './liveTheme';
+import {themeItemKinds} from '../themes/elementRules';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 
-const mediaChoiceEntries = {mediaId: id, loop: v.boolean()};
+const mediaChoiceEntries = {
+  mediaId: id,
+  loop: v.boolean(),
+  itemId: v.exactOptional(liveNonBlankTextSchema),
+  title: v.exactOptional(liveTextSchema),
+};
 
 const slideLinesSchema = v.pipe(
   v.array(liveTextSchema),
@@ -53,6 +64,9 @@ export const layerSchemas = {
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     reference: v.exactOptional(liveTextSchema),
+    kind: v.exactOptional(v.picklist(themeItemKinds)),
+    title: v.exactOptional(liveTextSchema),
+    memo: v.exactOptional(liveTextSchema),
     next: v.exactOptional(
       payloadObject({
         label: v.nullable(liveTextSchema),
@@ -78,6 +92,9 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
+  themeItem: v.exactOptional(v.nullable(liveThemeItemSchema)),
+  themeMode: v.exactOptional(liveThemeModeSchema),
+  themeOutput: v.exactOptional(liveThemeOutputSchema),
   lastMacroId: v.exactOptional(macroIdSchema),
   audioTrackVersion: v.exactOptional(
     v.pipe(count, v.maxValue(Number.MAX_SAFE_INTEGER)),

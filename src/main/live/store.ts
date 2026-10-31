@@ -29,6 +29,7 @@ export type ProblemListener = (problem: AppProblem) => void;
  */
 export class LiveStore {
   private history: LiveHistory;
+  private themes: SliceInputs['themes'];
   private readonly listeners = new Set<LiveListener>();
   private readonly problemListeners = new Set<ProblemListener>();
   private settings: SettingsReader | undefined;
@@ -69,6 +70,13 @@ export class LiveStore {
       this.audioMedia?.().items ?? [],
       this.readClock().now,
     );
+  }
+
+  connectThemes(themes: NonNullable<SliceInputs['themes']>): () => void {
+    this.themes = themes;
+    return () => {
+      if (this.themes === themes) this.themes = undefined;
+    };
   }
 
   connectAudioMedia(read: () => MediaList): () => void {
@@ -144,6 +152,7 @@ export class LiveStore {
     onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean {
     const {history: next, skipped} = this.slices.run(this.history, command, {
+      ...(this.themes === undefined ? {} : {themes: this.themes}),
       ...this.readClock(),
       ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
       ...(this.settings === undefined ? {} : {settings: this.settings}),

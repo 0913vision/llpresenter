@@ -1,4 +1,5 @@
-import type {LiveLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {ThemeCompositionView} from './themeComposition';
 import {classes} from './classes';
 import {ClearFades} from './clearFades';
 import type {
@@ -18,6 +19,18 @@ import {
 } from '@core/looks/screenLook';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
+const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
+  notice: 2,
+  prop: 3,
+  message: 4,
+};
+const LEGACY_CONTENT_LAYERS = new Set([
+  'background',
+  'lyrics',
+  'stage',
+  'stage-message',
+]);
+const noContent = emptyLayers();
 
 export type OutputRendererOptions = RenderLayerOptions;
 
@@ -51,6 +64,7 @@ function createLayerBox(
 export class OutputRenderer {
   private readonly root = document.createElement('div');
   private readonly layers: readonly ActiveLayer[];
+  private theme: ThemeCompositionView | null = null;
   private readonly resizeObserver: ResizeObserver;
   private disposed = false;
   private background: string | null = null;
@@ -107,13 +121,29 @@ export class OutputRenderer {
     this.testPattern = frame.testPattern === true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
-      look?.background ??
+      (frame.theme === undefined
+        ? look?.background
+        : (frame.theme.layout.background ?? frame.theme.emptyColor)) ??
         frame.screen?.emptyColor ??
         (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );
     this.setScreen(frame.screen);
+    this.attempt('theme', 'draw', () => {
+      if (frame.theme !== undefined) {
+        this.theme ??= new ThemeCompositionView(this.root, this.options);
+      }
+      this.theme?.render(fading.layers, frame);
+    });
+    const {stage: _stage, clearOpacity: _clearOpacity, ...legacyFrame} = frame;
     for (const layer of this.layers) {
-      this.setHidden(layer, look);
+      const themed = frame.theme !== undefined;
+      const legacy = LEGACY_CONTENT_LAYERS.has(layer.kind);
+      this.setHidden(layer, themed ? null : look, themed && legacy);
+      const order =
+        renderLayers.find(entry => entry.kind === layer.kind)?.order ?? 0;
+      layer.box.style.zIndex = String(
+        themed ? (THEME_LAYER_ORDERS[layer.kind] ?? order) : order,
+      );
       const opacity =
         layer.look === undefined ||
         layer.look === 'clock' ||
@@ -126,7 +156,10 @@ export class OutputRenderer {
           ? ''
           : String(opacity);
       this.attempt(layer.kind, 'draw', () =>
-        layer.view.render(fading.layers, frame),
+        layer.view.render(
+          themed && legacy ? noContent : fading.layers,
+          themed && legacy ? legacyFrame : frame,
+        ),
       );
     }
     if (fading.active) {
@@ -149,6 +182,7 @@ export class OutputRenderer {
     if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
     this.fadeFrame = null;
     this.clearFades.dispose();
+    this.attempt('theme', 'dispose', () => this.theme?.dispose());
     this.latest = null;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'dispose', () => view.dispose());
@@ -160,9 +194,10 @@ export class OutputRenderer {
     return (
       !this.disposed &&
       (this.testPattern ||
-        this.layers.every(
-          ({hidden, view}) => hidden || (view.ready?.() ?? true),
-        ))
+        ((this.theme?.ready() ?? true) &&
+          this.layers.every(
+            ({hidden, view}) => hidden || (view.ready?.() ?? true),
+          )))
     );
   }
 
@@ -196,8 +231,13 @@ export class OutputRenderer {
   // NOTE(0913vision): A layer the Look turns off keeps drawing under opacity
   // 0, so its content, layout, and video playback stay ready for the next
   // Look, and a descendant's own visibility can't show it.
-  private setHidden(layer: ActiveLayer, look: ScreenAppearance | null): void {
-    const hidden = layer.look !== undefined && !showsLayer(look, layer.look);
+  private setHidden(
+    layer: ActiveLayer,
+    look: ScreenAppearance | null,
+    suppress = false,
+  ): void {
+    const hidden =
+      suppress || (layer.look !== undefined && !showsLayer(look, layer.look));
     if (hidden === layer.hidden) return;
     layer.hidden = hidden;
     layer.box.classList.toggle(classes.hidden, hidden);
@@ -238,6 +278,7 @@ export class OutputRenderer {
     const {clientWidth, clientHeight} = this.root;
     if (clientWidth === 0 || clientHeight === 0) return;
     const scale = scaleFor(clientWidth, clientHeight);
+    this.theme?.rescale();
     this.scale = scale;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.rescale?.(scale));

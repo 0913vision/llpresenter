@@ -10,7 +10,7 @@ export interface LyricStyle {
   readonly size: number;
   readonly color: string;
   readonly lineHeight: number;
-  readonly align: 'left' | 'center';
+  readonly align: 'left' | 'center' | 'right';
   readonly vAlign: 'top' | 'middle' | 'bottom';
   /** The 장 shrinks until its text fits the height of this many lines. */
   readonly maxLines: number;
