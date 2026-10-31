@@ -1,13 +1,8 @@
 import {randomUUID} from 'node:crypto';
-import {basename, join} from 'node:path';
-import {NO_LABEL_COLOR} from '@core/labels/colors';
-import type {Result} from '@core/common/result';
+import {basename} from 'node:path';
 import type {
   LibrarySong,
-  ServiceChange,
   ServiceEntry,
-  SongChange,
-  TemplateChange,
   TemplateEntry,
 } from '@core/schema/contentDocuments';
 import type {
@@ -16,51 +11,18 @@ import type {
   EditResult,
   EditSuccess,
 } from '@core/schema/contentEdit';
-import {checkPart, type FileError} from '@core/schema/fileFormat';
-import {preserveUnknownFields} from '@core/schema/preserveUnknown';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
-import {
-  createServiceId,
-  createSongGroupId,
-  createSongId,
-  createTemplateId,
-  type ServiceId,
-  type SongId,
-  type TemplateId,
-} from '@core/schema/ids';
+import {type ServiceId, type SongId, type TemplateId} from '@core/schema/ids';
 import {
   serializeService,
   serializeTemplate,
-  isItemOfKind,
   type Service,
-  type ServiceItem,
   type Template,
 } from '@core/schema/service';
-import {
-  serializeGroupedSong,
-  groupedSongSchema,
-  sourceSlideCount,
-  type GroupedSong,
-} from '@core/schema/groupedSong';
-import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
-import {
-  parseSettingsEdit,
-  type LabelRename,
-} from '@core/schema/settingsDocuments';
+import {serializeGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import type {LabelRename} from '@core/schema/settingsDocuments';
 import type {SettingsStore} from './settingsStore';
 import type {Logger} from '../log';
 import {Autosave} from './autosave';
-import {
-  copiedItems,
-  freeTitle,
-  normalizeSongTitle,
-  withImportGroupIds,
-  pickedItems,
-  withArrangementPicks,
-  withoutArrangement,
-  withRenamedArrangement,
-  type ArrangementPick,
-} from './contentEdits';
 import {
   librarySongs,
   serviceDocument,
@@ -76,25 +38,21 @@ import type {StoredFile} from './library';
 import type {DataLocations} from './locations';
 import type {RecoveryTarget} from './recoveryCopies';
 import {QueuedSaves} from './queuedSaves';
-
-const SCHEMA_VERSION = 1;
-const SONG_SCHEMA_VERSION = 2;
-const NEW_SONG_TITLE = '새 곡';
-const SONG_EXTENSION = '.llsong';
-const SERVICE_EXTENSION = '.llservice';
-const TIME_OF_DATE = /T(\d{2}:\d{2})$/;
+import type {
+  Checked,
+  ContentCommand,
+  ContentCommandContext,
+  ContentEvents,
+  ContentHandlers,
+  Kind,
+  Written,
+} from './contentCommands';
+import {createSongContentCommands} from './contentSongCommands';
+import {createServiceContentCommands} from './contentServiceCommands';
+import {prepareLabelRename} from './labelRenameTransaction';
+export type {ContentEvents} from './contentCommands';
 
 export type {DocumentFiles} from './contentPersistence';
-
-/** Where the content store tells windows about changes. */
-export interface ContentEvents {
-  readonly songChanged: (change: SongChange) => void;
-  readonly songsListChanged: (songs: readonly LibrarySong[]) => void;
-  readonly serviceChanged: (change: ServiceChange) => void;
-  readonly servicesListChanged: (services: readonly ServiceEntry[]) => void;
-  readonly templateChanged: (change: TemplateChange) => void;
-  readonly templatesListChanged: (templates: readonly TemplateEntry[]) => void;
-}
 
 export interface ContentStoreOptions {
   readonly settings?: SettingsStore | null;
@@ -109,24 +67,12 @@ export interface ContentStoreOptions {
   readonly openServiceId?: string | null;
 }
 
-interface Kind<T> {
-  readonly name: 'song' | 'service' | 'template';
-  readonly serialize: (data: T, file: string) => Result<string, FileError>;
-}
-
 const SONG: Kind<GroupedSong> = {name: 'song', serialize: serializeGroupedSong};
 const SERVICE: Kind<Service> = {name: 'service', serialize: serializeService};
 const TEMPLATE: Kind<Template> = {
   name: 'template',
   serialize: serializeTemplate,
 };
-
-interface Written {
-  readonly file: string;
-  readonly result: WriteResult;
-}
-
-type Checked<T> = Result<StoredDocument<T>, EditResult>;
 
 /**
  * The songs, 예배 순서, and 템플릿 in the main process, and the edits windows ask
@@ -147,6 +93,8 @@ export class ContentStore {
   private editing: Promise<void> = Promise.resolve();
   private readonly lastLists = new Map<string, string>();
   private currentServiceId: string | null;
+  private readonly commandContext: ContentCommandContext;
+  private readonly commands: Omit<ContentHandlers, 'saves.retry'>;
 
   constructor(private readonly options: ContentStoreOptions) {
     this.currentServiceId = options.openServiceId ?? null;
@@ -166,6 +114,40 @@ export class ContentStore {
     this.lastLists.set('songs', JSON.stringify(this.songList()));
     this.lastLists.set('services', JSON.stringify(this.serviceList()));
     this.lastLists.set('templates', JSON.stringify(this.templateList()));
+
+    this.commandContext = {
+      songs: this.songs,
+      services: this.services,
+      templates: this.templates,
+      locations: options.locations,
+      settings: options.settings,
+      events: options.events,
+      kinds: {song: SONG, service: SERVICE, template: TEMPLATE},
+      flushAutosave: () => this.autosave.flush(),
+      newId: () => randomUUID(),
+      now: () => new Date().toISOString(),
+      currentServiceId: () => this.currentServiceId,
+      song: id => this.song(id),
+      songList: () => this.songList(),
+      savesFull: files => this.savesFull(files),
+      write: (kind, stored) => this.write(kind, stored),
+      remove: (kind, stored) => this.remove(kind, stored),
+      saveLater: (kind, documents, id) => this.saveLater(kind, documents, id),
+      saveSoon: (kind, documents, id) => this.saveSoon(kind, documents, id),
+      announceSong: id => this.announceSong(id),
+      announceSongDocument: id => this.announceSongDocument(id),
+      announceService: id => this.announceService(id),
+      announceTemplate: id => this.announceTemplate(id),
+      announceList: (name, value, send) => this.announceList(name, value, send),
+      checkEditable,
+      checkUpdate,
+      refuse,
+      answer,
+    };
+    this.commands = {
+      ...createSongContentCommands(this.commandContext),
+      ...createServiceContentCommands(this.commandContext),
+    };
   }
 
   /** Applies an edit and answers how it went. Never throws. */
@@ -175,7 +157,9 @@ export class ContentStore {
 
   /** Renames an app-wide label and matching groups, saving settings before songs. */
   renameLabel(settings: SettingsStore, edit: LabelRename): Promise<EditResult> {
-    return this.serial(() => this.prepareLabelRename(settings, edit))
+    return this.serial(() =>
+      prepareLabelRename(this.commandContext, settings, edit),
+    )
       .then(prepared => ('saved' in prepared ? prepared.saved : prepared))
       .catch((error: unknown) => this.editFailure(error));
   }
@@ -248,127 +232,20 @@ export class ContentStore {
     );
   }
 
-  private async prepareLabelRename(
-    settings: SettingsStore,
-    edit: LabelRename,
-  ): Promise<EditResult | {readonly saved: Promise<EditResult>}> {
-    await this.autosave.flush();
-    const current = settings.get('labels');
-    if (current.name !== 'labels') {
-      return refuse('not-found', 'The label list is unavailable');
+  private async applyEdit(edit: ContentEdit): Promise<EditResult> {
+    if (edit.type === 'saves.retry') {
+      await this.autosave.flush();
+      const settings = (await this.options.settings?.retryPending()) ?? [];
+      const content = await this.persistence.retryPending();
+      return answer({id: 'saves', revision: null}, [...settings, ...content]);
     }
-    if (current.access === 'readOnly') {
-      return refuse('read-only', 'A newer app version wrote the label list');
-    }
-    if (current.revision !== edit.baseRevision) {
-      return refuse(
-        'stale',
-        `The label list is at revision ${current.revision}`,
-      );
-    }
-    if (!current.value.labels.some(label => label.name === edit.from)) {
-      return refuse('not-found', 'The label no longer exists');
-    }
-    if (current.value.labels.some(label => label.name === edit.to)) {
-      return refuse('invalid', 'Another label already has this name');
-    }
-    const affected = this.songs
-      .all()
-      .filter(song => song.data.groups.some(group => group.name === edit.from))
-      .sort((a, b) => a.data.id.localeCompare(b.data.id));
-    if (affected.some(song => song.access === 'readOnly')) {
-      return refuse('read-only', 'A newer app version wrote an affected song');
-    }
-    const full = this.savesFull(affected.map(song => song.file));
-    if (full !== null) return full;
-    const update = parseSettingsEdit({
-      type: 'settings.update',
-      name: 'labels',
-      baseRevision: current.revision,
-      value: {
-        ...current.value,
-        labels: current.value.labels.map(label =>
-          label.name === edit.from ? {...label, name: edit.to} : label,
-        ),
-      },
-    });
-    if (!update.ok) return refuse('invalid', update.error.message);
-    const savedLabels = settings.apply(update.value);
-    const next = settings.get('labels');
-    if (next.revision === current.revision) return savedLabels;
-    const changed = affected.map(song =>
-      this.songs.replace(song, {
-        ...song.data,
-        groups: song.data.groups.map(group =>
-          group.name === edit.from ? {...group, name: edit.to} : group,
-        ),
-      }),
-    );
-    for (const song of changed) this.announceSongDocument(song.data.id);
-    await settings.savePending();
-    const labelResult = await savedLabels;
-    const saves = changed.map(song =>
-      this.saveSoon(SONG, this.songs, song.data.id),
-    );
-    return {
-      saved: Promise.all(saves).then(written => {
-        const songsResult = answer(
-          {id: 'labels', revision: next.revision},
-          written,
-        );
-        if (labelResult.ok) return songsResult;
-        if (labelResult.error.reason !== 'write-failed') return labelResult;
-        return {
-          ok: false,
-          error: {
-            ...labelResult.error,
-            unchangedFiles: [
-              ...labelResult.error.unchangedFiles,
-              ...(songsResult.ok || songsResult.error.reason !== 'write-failed'
-                ? []
-                : songsResult.error.unchangedFiles),
-            ],
-          },
-        };
-      }),
-    };
+    return this.applyDocumentEdit(edit);
   }
 
-  private async applyEdit(edit: ContentEdit): Promise<EditResult> {
-    switch (edit.type) {
-      case 'saves.retry': {
-        await this.autosave.flush();
-        const settings = (await this.options.settings?.retryPending()) ?? [];
-        const content = await this.persistence.retryPending();
-        return answer({id: 'saves', revision: null}, [...settings, ...content]);
-      }
-      case 'song.import':
-        return this.importSong(edit);
-      case 'song.create':
-        return this.createSong();
-      case 'song.update':
-        return this.updateSong(edit.song, edit.baseRevision);
-      case 'song.delete':
-        return this.deleteSong(edit.songId);
-      case 'song.arrangement.rename':
-        return this.changeArrangement(edit.songId, edit.from, edit.to);
-      case 'song.arrangement.delete':
-        return this.changeArrangement(edit.songId, edit.name, null);
-      case 'service.create':
-        return this.createService(edit);
-      case 'service.update':
-        return this.updateService(edit.service, edit.baseRevision);
-      case 'service.delete':
-        return this.deleteService(edit.serviceId);
-      case 'service.importItems':
-        return this.importItems(edit);
-      case 'service.saveAsTemplate':
-        return this.saveAsTemplate(edit.serviceId, edit.name);
-      case 'template.update':
-        return this.updateTemplate(edit.template, edit.baseRevision);
-      case 'template.delete':
-        return this.deleteTemplate(edit.templateId);
-    }
+  private applyDocumentEdit<
+    K extends Exclude<ContentEdit['type'], 'saves.retry'>,
+  >(edit: ContentCommand<K>): EditResult | Promise<EditResult> {
+    return this.commands[edit.type](edit);
   }
 
   songList(): readonly LibrarySong[] {
@@ -429,443 +306,12 @@ export class ContentStore {
     this.queuedSaves.dispose();
   }
 
-  private async importSong({
-    draft,
-    target,
-  }: Extract<ContentEdit, {type: 'song.import'}>): Promise<EditResult> {
-    await this.autosave.flush();
-    const current =
-      target.kind === 'overwrite' ? this.songs.get(target.songId) : undefined;
-    if (target.kind === 'overwrite') {
-      const checked = checkEditable(current);
-      if (!checked.ok) return checked.error;
-      if (checked.value.revision !== target.baseRevision) {
-        return refuse('stale', 'The song changed before import');
-      }
-    }
-    const id = current?.data.id ?? createSongId(randomUUID());
-    const title = normalizeSongTitle(draft.title);
-    if (this.hasOtherSongTitled(title, id)) {
-      return refuse('duplicate-title', `Another song is titled ${title}`);
-    }
-    const migrated = checkPart(groupedSongSchema, {
-      ...migrateImportedSongGroups({
-        ...draft,
-        format: 'llsong',
-        schemaVersion: 1,
-        id,
-        title,
-      }),
-      schemaVersion: SONG_SCHEMA_VERSION,
-    });
-    if (!migrated.ok) return refuse('invalid', migrated.error.message);
-    const checked = checkPart(
-      groupedSongSchema,
-      preserveUnknownFields(
-        groupedSongSchema,
-        current?.data,
-        withImportGroupIds(
-          {
-            ...migrated.value,
-            updatedAt: new Date().toISOString(),
-          },
-          current?.data,
-        ),
-      ),
-    );
-    if (!checked.ok) return refuse('invalid', checked.error.message);
-    const song = checked.value;
-    const file =
-      current?.file ??
-      join(this.options.locations.songs, `${id}${SONG_EXTENSION}`);
-    const servicePicks = importPicks(this.services, song);
-    const templatePicks = importPicks(this.templates, song);
-    const full = this.savesFull([
-      file,
-      ...servicePicks.map(pick => pick.document.file),
-      ...templatePicks.map(pick => pick.document.file),
-    ]);
-    if (full !== null) return full;
-    const labels = await this.importLabels(song);
-    if (!labels.ok && labels.error.reason !== 'write-failed') return labels;
-    const stored =
-      current === undefined
-        ? this.songs.add(song, file)
-        : this.songs.replace(current, song);
-    const services = rewritePicks(this.services, servicePicks);
-    const templates = rewritePicks(this.templates, templatePicks);
-    this.announceSong(id);
-    for (const service of services) this.announceService(service.data.id);
-    for (const template of templates) this.announceTemplate(template.data.id);
-    const written: Written[] = [];
-    if (!labels.ok && labels.error.reason === 'write-failed') {
-      const {message, unchangedFiles} = labels.error;
-      for (const file of unchangedFiles) {
-        written.push({file, result: {ok: false, error: {file, message}}});
-      }
-    }
-    written.push(await this.write(SONG, stored));
-    for (const service of services) {
-      written.push(await this.write(SERVICE, service));
-    }
-    for (const template of templates) {
-      written.push(await this.write(TEMPLATE, template));
-    }
-    return answer({id, revision: stored.revision}, written);
-  }
-
-  private async importLabels(song: GroupedSong): Promise<EditResult> {
-    const settings = this.options.settings;
-    const current = settings?.get('labels');
-    if (!settings || current?.name !== 'labels') {
-      return refuse('not-found', 'The label list is unavailable');
-    }
-    const existing = new Set(current.value.labels.map(label => label.name));
-    const names = new Set(
-      song.groups.flatMap(group => (group.name ? [group.name] : [])),
-    );
-    const added = [...names]
-      .filter(name => !existing.has(name))
-      .map(name => ({name, color: NO_LABEL_COLOR, key: null}));
-    if (added.length === 0) {
-      return {ok: true, value: {id: 'labels', revision: current.revision}};
-    }
-    if (
-      current.value.labels.length + added.length >
-      SONG_IMPORT_LIMITS.labels
-    ) {
-      return refuse('invalid', 'Too many labels after import');
-    }
-    const edit = parseSettingsEdit({
-      type: 'settings.update',
-      name: 'labels',
-      baseRevision: current.revision,
-      value: {...current.value, labels: [...current.value.labels, ...added]},
-    });
-    if (!edit.ok) return refuse('invalid', edit.error.message);
-    const result = settings.apply(edit.value);
-    await settings.savePending();
-    return result;
-  }
-
-  private async createSong(): Promise<EditResult> {
-    const id = createSongId(randomUUID());
-    const titles = new Set(
-      this.songs.all().map(({data}) => normalizeSongTitle(data.title)),
-    );
-    const song: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: SONG_SCHEMA_VERSION,
-      id,
-      title: freeTitle(NEW_SONG_TITLE, titles),
-      groups: [
-        {id: createSongGroupId(randomUUID()), name: '', slides: [{lines: []}]},
-      ],
-    };
-    const file = join(this.options.locations.songs, `${id}${SONG_EXTENSION}`);
-    const full = this.savesFull([file]);
-    if (full !== null) return full;
-    const stored = this.songs.add(song, file);
-    const written = await this.write(SONG, stored);
-    this.announceSong(id);
-    return answer({id, revision: stored.revision}, [written]);
-  }
-
-  private updateSong(input: GroupedSong, baseRevision: number): EditResult {
-    const checked = checkUpdate(this.songs.get(input.id), baseRevision, input);
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const validated = checkPart(
-      groupedSongSchema,
-      preserveUnknownFields(groupedSongSchema, checked.value.data, input),
-    );
-    if (!validated.ok) return refuse('invalid', validated.error.message);
-    const song = validated.value;
-    const title = normalizeSongTitle(song.title);
-    if (title === '') {
-      return refuse('invalid', 'The song title must not be blank');
-    }
-    if (this.hasOtherSongTitled(title, song.id)) {
-      return refuse('duplicate-title', `Another song is titled ${title}`);
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    const {
-      background: _background,
-      arrangements: _arrangements,
-      updatedAt: _updatedAt,
-      ...kept
-    } = checked.value.data;
-    const stored = this.songs.replace(checked.value, {...kept, ...song, title});
-    this.saveLater(SONG, this.songs, song.id);
-    this.options.events.songChanged({
-      songId: song.id,
-      document: this.song(song.id),
-    });
-    if (
-      checked.value.data.title !== title ||
-      sourceSlideCount(checked.value.data) !== sourceSlideCount(song)
-    ) {
-      this.announceList(
-        'songs',
-        this.songList(),
-        this.options.events.songsListChanged,
-      );
-    }
-    return {ok: true, value: {id: song.id, revision: stored.revision}};
-  }
-
-  private async deleteSong(songId: SongId): Promise<EditResult> {
-    const checked = checkEditable(this.songs.get(songId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    this.songs.remove(songId);
-    const written = await this.remove(SONG, checked.value);
-    this.announceSong(songId);
-    return answer({id: songId, revision: null}, [written]);
-  }
-
-  private async changeArrangement(
-    songId: SongId,
-    from: string,
-    to: string | null,
-  ): Promise<EditResult> {
-    const checked = checkEditable(this.songs.get(songId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const song = checked.value.data;
-    if (to !== null && song.arrangements?.some(({name}) => name === to)) {
-      return refuse('invalid', `The song already has a 구성 named ${to}`);
-    }
-    const changed =
-      to === null
-        ? withoutArrangement(song, from)
-        : withRenamedArrangement(song, from, to);
-    if (changed === null) {
-      return refuse('not-found', `The song has no 구성 named ${from}`);
-    }
-    return this.rewriteArrangement(checked.value, changed, {songId, from, to});
-  }
-
-  private async rewriteArrangement(
-    current: StoredDocument<GroupedSong>,
-    changed: GroupedSong,
-    pick: ArrangementPick,
-  ): Promise<EditResult> {
-    const servicePicks = picksToRewrite(this.services, pick);
-    const templatePicks = picksToRewrite(this.templates, pick);
-    const full = this.savesFull([
-      current.file,
-      ...servicePicks.map(({document}) => document.file),
-      ...templatePicks.map(({document}) => document.file),
-    ]);
-    if (full !== null) return full;
-    const stored = this.songs.replace(current, changed);
-    const services = rewritePicks(this.services, servicePicks);
-    const templates = rewritePicks(this.templates, templatePicks);
-    this.announceSong(pick.songId);
-    for (const service of services) {
-      this.announceService(service.data.id);
-    }
-    for (const template of templates) {
-      this.announceTemplate(template.data.id);
-    }
-    const written = [await this.write(SONG, stored)];
-    for (const service of services) {
-      written.push(await this.write(SERVICE, service));
-    }
-    for (const template of templates) {
-      written.push(await this.write(TEMPLATE, template));
-    }
-    return answer({id: pick.songId, revision: stored.revision}, written);
-  }
-
-  private async createService({
-    name,
-    date,
-    templateId,
-  }: Extract<ContentEdit, {type: 'service.create'}>): Promise<EditResult> {
-    const template =
-      templateId === null ? null : this.templates.get(templateId);
-    if (template === undefined) {
-      return refuse('not-found', `No 템플릿 has the id ${String(templateId)}`);
-    }
-    const id = createServiceId(randomUUID());
-    const service: Service = {
-      format: 'llservice',
-      schemaVersion: SCHEMA_VERSION,
-      id,
-      name,
-      date,
-      order: template === null ? [] : copiedItems(template.data.order),
-    };
-    const file = join(
-      this.options.locations.services,
-      `${id}${SERVICE_EXTENSION}`,
-    );
-    const full = this.savesFull([file]);
-    if (full !== null) return full;
-    const stored = this.services.add(service, file);
-    const written = await this.write(SERVICE, stored);
-    this.announceService(id);
-    return answer({id, revision: stored.revision}, [written]);
-  }
-
-  private updateService(service: Service, baseRevision: number): EditResult {
-    const checked = checkUpdate(
-      this.services.get(service.id),
-      baseRevision,
-      service,
-    );
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    const stored = this.services.replace(checked.value, {
-      ...checked.value.data,
-      ...service,
-    });
-    this.saveLater(SERVICE, this.services, service.id);
-    this.announceService(service.id);
-    return {ok: true, value: {id: service.id, revision: stored.revision}};
-  }
-
-  private async deleteService(serviceId: ServiceId): Promise<EditResult> {
-    if (serviceId === this.currentServiceId) {
-      return refuse('invalid', 'The open 예배 순서 cannot be deleted');
-    }
-    const checked = checkEditable(this.services.get(serviceId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    this.services.remove(serviceId);
-    const written = await this.remove(SERVICE, checked.value);
-    this.announceService(serviceId);
-    return answer({id: serviceId, revision: null}, [written]);
-  }
-
-  private async importItems({
-    serviceId,
-    from,
-    itemIds,
-  }: Extract<ContentEdit, {type: 'service.importItems'}>): Promise<EditResult> {
-    const checked = checkEditable(this.services.get(serviceId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const source =
-      from.kind === 'service'
-        ? this.services.get(from.id)
-        : this.templates.get(from.id);
-    if (source === undefined) {
-      return refuse('not-found', `No ${from.kind} has the id ${from.id}`);
-    }
-    const wanted = new Set<string>(itemIds);
-    if (
-      source.data.order.filter(({id}) => wanted.has(id)).length !== wanted.size
-    ) {
-      return refuse('invalid', 'An item to import is not in the source');
-    }
-    const picked = pickedItems(source.data.order, wanted);
-    const target = checked.value;
-    const full = this.savesFull([target.file]);
-    if (full !== null) return full;
-    const stored = this.services.replace(target, {
-      ...target.data,
-      order: [...target.data.order, ...copiedItems(picked)],
-    });
-    const written = await this.write(SERVICE, stored);
-    this.announceService(serviceId);
-    return answer({id: serviceId, revision: stored.revision}, [written]);
-  }
-
-  private async saveAsTemplate(
-    serviceId: ServiceId,
-    name: string,
-  ): Promise<EditResult> {
-    const service = this.services.get(serviceId);
-    if (service === undefined) {
-      return refuse('not-found', `No 예배 순서 has the id ${serviceId}`);
-    }
-    const id = createTemplateId(randomUUID());
-    const time = TIME_OF_DATE.exec(service.data.date)?.[1];
-    const template: Template = {
-      format: 'llservice',
-      schemaVersion: SCHEMA_VERSION,
-      id,
-      name,
-      ...(time === undefined ? {} : {time}),
-      order: copiedItems(service.data.order),
-    };
-    const file = join(
-      this.options.locations.templates,
-      `${id}${SERVICE_EXTENSION}`,
-    );
-    const full = this.savesFull([file]);
-    if (full !== null) return full;
-    const stored = this.templates.add(template, file);
-    const written = await this.write(TEMPLATE, stored);
-    this.announceTemplate(id);
-    return answer({id, revision: stored.revision}, [written]);
-  }
-
-  private updateTemplate(template: Template, baseRevision: number): EditResult {
-    const checked = checkUpdate(
-      this.templates.get(template.id),
-      baseRevision,
-      template,
-    );
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    const {time: _time, ...kept} = checked.value.data;
-    const stored = this.templates.replace(checked.value, {
-      ...kept,
-      ...template,
-    });
-    this.saveLater(TEMPLATE, this.templates, template.id);
-    this.announceTemplate(template.id);
-    return {ok: true, value: {id: template.id, revision: stored.revision}};
-  }
-
-  private async deleteTemplate(templateId: TemplateId): Promise<EditResult> {
-    const checked = checkEditable(this.templates.get(templateId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const full = this.savesFull([checked.value.file]);
-    if (full !== null) return full;
-    this.templates.remove(templateId);
-    const written = await this.remove(TEMPLATE, checked.value);
-    this.announceTemplate(templateId);
-    return answer({id: templateId, revision: null}, [written]);
-  }
-
   private savesFull(files: readonly string[]): EditResult | null {
     if (this.persistence.admits(files)) return null;
     // NOTE(0913vision): The operator may have closed 저장할 수 없음, so a
     // refusal shows it again with the files that wait.
     this.persistence.remind();
     return refuse('saves-full', 'Too many files are waiting to be saved');
-  }
-
-  private hasOtherSongTitled(title: string, songId: string): boolean {
-    return this.songs
-      .all()
-      .some(
-        ({data}) =>
-          data.id !== songId && normalizeSongTitle(data.title) === title,
-      );
   }
 
   private saveLater<T extends {readonly id: string}>(
@@ -980,70 +426,6 @@ export class ContentStore {
       send(value);
     }
   }
-}
-
-interface PickRewrite<T> {
-  readonly document: StoredDocument<T>;
-  readonly order: readonly ServiceItem[];
-}
-
-function importPicks<
-  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
->(
-  documents: DocumentCollection<T>,
-  song: GroupedSong,
-): ReadonlyArray<PickRewrite<T>> {
-  const names = new Set(
-    song.arrangements?.map(arrangement => arrangement.name),
-  );
-  return documents
-    .all()
-    .filter(document => document.access === 'editable')
-    .flatMap(document => {
-      const order = document.data.order.map(item => {
-        if (
-          !isItemOfKind(item, 'song') ||
-          item.song !== song.id ||
-          item.arrangement === undefined ||
-          names.has(item.arrangement)
-        ) {
-          return item;
-        }
-        const {arrangement: _arrangement, ...kept} = item;
-        return kept;
-      });
-      return order.some((item, index) => item !== document.data.order[index])
-        ? [{document, order}]
-        : [];
-    })
-    .sort((a, b) => a.document.data.id.localeCompare(b.document.data.id));
-}
-
-function picksToRewrite<
-  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
->(
-  documents: DocumentCollection<T>,
-  pick: ArrangementPick,
-): ReadonlyArray<PickRewrite<T>> {
-  return documents
-    .all()
-    .filter(({access}) => access === 'editable')
-    .flatMap(document => {
-      const order = withArrangementPicks(document.data.order, pick);
-      return order === null ? [] : [{document, order}];
-    })
-    .sort((a, b) => a.document.data.id.localeCompare(b.document.data.id));
-}
-
-function rewritePicks<
-  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
->(
-  documents: DocumentCollection<T>,
-  rewrites: ReadonlyArray<PickRewrite<T>>,
-): ReadonlyArray<StoredDocument<T>> {
-  return rewrites.map(({document, order}) =>
-    documents.replace(document, {...document.data, order}),
-  );
 }
 
 function checkEditable<T>(stored: StoredDocument<T> | undefined): Checked<T> {
