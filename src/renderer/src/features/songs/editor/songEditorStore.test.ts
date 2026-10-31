@@ -1,27 +1,9 @@
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
 import {parseSongDocument} from '@core/schema/contentDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {editorFixture, editorSong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
-import type {Notice} from '@renderer/ui/notices';
-
-function setup() {
-  const fixture = editorFixture();
-  const problem = vi.fn<(notice: Notice) => void>();
-  const store = new SongEditorStore(fixture.api, problem);
-  store.open(fixture.first);
-  onTestFinished(() => store.dispose());
-  const session = store.getSnapshot().session;
-  if (session === null) throw new Error('No editor session');
-  const text = (value: string) =>
-    session.edit({
-      type: 'text',
-      text: value,
-      start: value.length,
-      end: value.length,
-    });
-  return {...fixture, store, session, text, problem};
-}
+import {setup} from './songEditorStoreFixture';
 
 describe('song editor persistence', () => {
   it('coalesces pending input, advances revisions, and retains typing history through own pushes', async () => {
@@ -59,16 +41,6 @@ describe('song editor persistence', () => {
     ).toEqual(
       fixture.first.song.groups.flatMap(group => group.slides)[0]?.lines,
     );
-  });
-
-  it('retains each song history through selection changes', async () => {
-    const {store, session, second, first, text} = setup();
-    text('changed');
-    await session.flush();
-    store.open(second);
-    store.open(first);
-    expect(store.getSnapshot().session).toBe(session);
-    expect(session.history.canUndo).toBe(true);
   });
 
   it('keeps an unsaved draft on stale refusal and offers explicit reload', async () => {
@@ -166,112 +138,6 @@ describe('song editor persistence', () => {
     expect(api).toBeDefined();
   });
 
-  it('renames labels through main across songs and undo history', async () => {
-    const {store, session, second, text, labelEdits, documents} = setup();
-    await Promise.resolve();
-    text('draft');
-    await session.flush();
-    store.open(second);
-    expect(await store.renameLabel('1절', '새 절')).toBe(true);
-    expect(labelEdits[0]).toMatchObject({
-      type: 'labels.rename',
-      name: 'labels',
-      from: '1절',
-      to: '새 절',
-      baseRevision: 1,
-    });
-    for (const document of documents.values()) {
-      expect(document.song.groups[0]?.name).toBe('새 절');
-    }
-    session.edit('undo');
-    await session.flush();
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('새 절');
-  });
-
-  it('flushes queued text before a rename and maps the redo history', async () => {
-    const {api, store, session, text, labelEdits, first} = setup();
-    await Promise.resolve();
-    const write = api.content.edit;
-    let release: () => void = () => undefined;
-    let waiting = false;
-    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
-      const result = await write(edit);
-      return new Promise(resolve => {
-        release = () => resolve(result);
-        waiting = true;
-      });
-    });
-    text('first');
-    const earlier = session.flush();
-    await vi.waitFor(() => expect(waiting).toBe(true));
-    text('latest');
-    const rename = store.renameLabel('1절', '새 절');
-    expect(store.getSnapshot().busy).toBe(true);
-    expect(labelEdits).toHaveLength(0);
-    release();
-    expect(await earlier).toBe(true);
-    expect(await rename).toBe(true);
-    expect(
-      session.document.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
-      lines: ['latest'],
-    });
-    session.edit('undo');
-    await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
-        ?.lines,
-    ).toEqual(first.song.groups.flatMap(group => group.slides)[0]?.lines);
-    session.edit('redo');
-    await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
-      lines: ['latest'],
-    });
-  });
-
-  it('does not rename while a song has an unresolved save refusal', async () => {
-    const {api, store, text, session, labelEdits} = setup();
-    await Promise.resolve();
-    vi.spyOn(api.content, 'edit').mockRejectedValueOnce(
-      new Error('Disconnected'),
-    );
-    text('retained');
-    await session.flush();
-    expect(await store.renameLabel('1절', '끝')).toBe(false);
-    expect(labelEdits).toHaveLength(0);
-    expect(store.getSnapshot().busy).toBe(false);
-  });
-
-  it('maps an existing redo snapshot when the global label is renamed', async () => {
-    const {store, session, text} = setup();
-    await Promise.resolve();
-    text('redo draft');
-    await session.flush();
-    session.edit('undo');
-    await session.flush();
-    expect(await store.renameLabel('1절', '새 절')).toBe(true);
-    session.edit('redo');
-    await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
-      lines: ['redo draft'],
-    });
-  });
-
-  it('purges a deleted song and prevents its former session from writing again', () => {
-    const {store, session, first, removeSong, text, edits} = setup();
-    removeSong(first.song.id);
-    expect(store.getSnapshot().session).toBeNull();
-    text('deleted');
-    expect(edits).toHaveLength(0);
-    store.open(first);
-    expect(store.getSnapshot().session).not.toBe(session);
-    expect(store.getSnapshot().session?.history.canUndo).toBe(false);
-  });
-
   it('stops edits during a shutdown flush and keeps them stopped after it succeeds', async () => {
     const {store, session, text, edits} = setup();
     text('before close');
@@ -359,40 +225,5 @@ describe('song editor persistence', () => {
     ).toEqual(['keep open']);
     await Promise.resolve(problem.mock.calls[0]?.[0].actions?.[0]?.onSelect());
     expect(await store.flush()).toBe(true);
-  });
-});
-
-describe('song editor session cap', () => {
-  it('keeps 20 sessions by dropping the least recently used clean ones', () => {
-    const {store, first, second} = setup();
-    const dirty = editorSong(3);
-    store.showItemSong(second.song.id);
-    store.attach(second);
-    store.attach(dirty)?.editTitle('Unsaved title');
-    const later = Array.from({length: 22}, (_, index) => editorSong(index + 4));
-    for (const document of later) store.attach(document);
-    const kept = [first, second, dirty, ...later].filter(
-      document => store.sessionOf(document.song.id) !== undefined,
-    );
-    expect(kept).toHaveLength(20);
-    expect(store.sessionOf(first.song.id)).toBeDefined();
-    expect(store.sessionOf(second.song.id)).toBeDefined();
-    expect(store.sessionOf(dirty.song.id)?.title.value).toBe('Unsaved title');
-    expect(
-      later.slice(0, 5).map(document => store.sessionOf(document.song.id)),
-    ).toEqual([undefined, undefined, undefined, undefined, undefined]);
-    expect(store.sessionOf(later[5]?.song.id ?? first.song.id)).toBeDefined();
-  });
-
-  it('counts a session as used again when it is opened or attached', () => {
-    const {store, first} = setup();
-    const songs = Array.from({length: 20}, (_, index) => editorSong(index + 2));
-    for (const document of songs) store.attach(document);
-    const reused = songs[0];
-    if (reused === undefined) throw new Error('No reused song');
-    store.attach(reused);
-    store.attach(editorSong(40));
-    expect(store.sessionOf(reused.song.id)).toBeDefined();
-    expect(store.sessionOf(songs[1]?.song.id ?? first.song.id)).toBeUndefined();
   });
 });
