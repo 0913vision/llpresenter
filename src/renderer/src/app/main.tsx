@@ -10,11 +10,32 @@ import {
 } from '@renderer/app/shell/loadColumnWidthStore';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {ScreensWindow} from './ScreensWindow';
 
 const root = document.getElementById('root');
 
 async function start(container: HTMLElement): Promise<void> {
   const stopLive = startLiveSync();
+  if (new URLSearchParams(window.location.search).get('window') === 'screens') {
+    const screenSession = new ControlSession(window.llp);
+    document.title = '화면 설정';
+    const screenRoot = createRoot(container);
+    window.addEventListener(
+      'pagehide',
+      () => {
+        screenRoot.unmount();
+        stopLive();
+        screenSession.dispose().catch((error: unknown) => console.error(error));
+      },
+      {once: true},
+    );
+    screenRoot.render(
+      <StrictMode>
+        <ScreensWindow closeFlush={screenSession.closeFlush} />
+      </StrictMode>,
+    );
+    return;
+  }
   const stopService = startServiceSync();
   const session = new ControlSession(window.llp);
   const lifecycle: {stopped: boolean; root?: Root} = {stopped: false};

@@ -112,7 +112,7 @@ it.each([
       />,
     );
     if (workspace === 'screens') {
-      fireEvent.click(screen.getByRole('tab', {name: '화면 설정'}));
+      fireEvent.click(screen.getByRole('tab', {name: '테마'}));
     }
     expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
     fireEvent.click(screen.getByRole('menuitem', {name: '파일'}));

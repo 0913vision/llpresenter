@@ -216,9 +216,9 @@ export function outputMenuEntries(
       label: '화면 설정…',
       meta: 'Ctrl Alt 1',
       ...menuAvailability(
-        onWorkspace === undefined ? '화면 설정 연결 안 됨' : undefined,
+        window.llp === undefined ? '화면 설정 연결 안 됨' : undefined,
       ),
-      onSelect: () => onWorkspace?.('screens'),
+      onSelect: () => window.llp?.window.openScreens(),
     },
   ];
 }

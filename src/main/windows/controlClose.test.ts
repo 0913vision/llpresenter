@@ -108,6 +108,14 @@ beforeEach(() => {
 });
 
 describe('control window close handshake', () => {
+  it('ignores another window flush traffic while this handshake is idle', () => {
+    const {control, log} = setup();
+    electron.ipcMain.emit(appEndpoints.flushDone.channel, OTHER_ID, {});
+    electron.ipcMain.emit(appEndpoints.flushProgress.channel, OTHER_ID, {});
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, OTHER_ID);
+    expect(control.destroyed).toBe(false);
+    expect(log.messages('warn')).toEqual([]);
+  });
   it('keeps a responsive renderer open through slow saves and times out only after progress stops', async () => {
     const clock = installMockClock();
     const {control, requestId, reply} = setup();

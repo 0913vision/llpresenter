@@ -2,6 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Screen} from '@core/schema/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
 import {resolveOutputScreen} from '@core/screens/screens';
+import {emptyScreenColor} from '@core/screens/emptyColor';
 import {followSettingsDocument} from './settingsFeed';
 
 function pictureCorrection(screen: Screen): PictureCorrection | undefined {
@@ -24,6 +25,7 @@ export function resolveRenderScreen(
     name: screen.name,
     kind: screen.kind,
     method: screen.method,
+    emptyColor: emptyScreenColor(screen),
     ...(correction === undefined ? {} : {correction}),
   };
 }

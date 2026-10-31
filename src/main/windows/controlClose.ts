@@ -80,14 +80,15 @@ class ControlCloseHandshake implements ControlClose {
       this.handleCloseAnyway(event);
     };
     const onProgress = (event: IpcMainEvent, value: unknown): void => {
+      const pending = this.pending;
+      if (pending === null) return;
       if (!this.fromControl(event, appEndpoints.flushProgress.channel)) return;
       const parsed = parseAppFlushRequest(value);
       if (!parsed.ok) {
         this.options.log.warn('ignored malformed flush progress', parsed.error);
         return;
       }
-      const pending = this.pending;
-      if (pending !== null && parsed.value.requestId === pending.requestId) {
+      if (parsed.value.requestId === pending.requestId) {
         this.armTimeout(pending);
       }
     };
@@ -145,9 +146,9 @@ class ControlCloseHandshake implements ControlClose {
   }
 
   private handleReply(event: IpcMainEvent, value: unknown): void {
-    if (!this.fromControl(event, appEndpoints.flushDone.channel)) return;
     const pending = this.pending;
     if (pending === null) return;
+    if (!this.fromControl(event, appEndpoints.flushDone.channel)) return;
     const parsed = parseAppFlushDone(value, pending.requestId);
     if (!parsed.ok) {
       this.options.log.warn('ignored a malformed flush reply', parsed.error);
@@ -157,6 +158,7 @@ class ControlCloseHandshake implements ControlClose {
   }
 
   private handleCloseAnyway(event: IpcMainEvent): void {
+    if (this.pending === null && !this.refused) return;
     if (!this.fromControl(event, appEndpoints.closeAnyway.channel)) return;
     if (this.pending !== null) {
       this.options.log.info('closing the control window before its flush ends');

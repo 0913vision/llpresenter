@@ -35,7 +35,12 @@ export function workspaceShortcuts({
       ctrl: true,
       run: () => onWorkspace('prep'),
     })),
-    {code: 'Digit1', ctrl: true, alt: true, run: () => onWorkspace('screens')},
+    {
+      code: 'Digit1',
+      ctrl: true,
+      alt: true,
+      run: () => window.llp?.window.openScreens(),
+    },
     {
       code: 'KeyV',
       ctrl: true,

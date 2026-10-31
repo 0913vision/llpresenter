@@ -179,12 +179,11 @@ it('selects Look and layout editors, changes one stage screen, and preserves war
     kind: 'stage',
     id: WIDE_LAYOUT_ID,
   });
+  const openScreens = vi.fn();
+  window.llp = mockLlpApi({window: {openScreens}, live: {send}});
   rows.find(row => row.id === 'screens')?.onSelect?.();
-  expect(onWorkspace.mock.calls).toEqual([
-    ['screens'],
-    ['screens'],
-    ['screens'],
-  ]);
+  expect(openScreens).toHaveBeenCalledOnce();
+  expect(onWorkspace.mock.calls).toEqual([['screens'], ['screens']]);
   const choices = menuItems(
     rows.find(row => row.id === `layout:${STAGE_ID}`)?.loadSubmenu?.() ?? [],
   );
@@ -236,7 +235,7 @@ it('explains empty choices and unavailable editor callbacks separately', () => {
   const disconnected = menuItems(
     outputMenuEntries({...input, onWorkspace: undefined}),
   );
-  for (const id of ['edit-look', 'edit-layout', 'screens']) {
+  for (const id of ['edit-look', 'edit-layout']) {
     expect(disconnected.find(row => row.id === id)).toMatchObject({
       disabled: true,
       title: '화면 설정 연결 안 됨',
@@ -253,6 +252,18 @@ it('explains empty choices and unavailable editor callbacks separately', () => {
   expect(invalid.find(row => row.id === 'layout:invalid')?.title).toBe(
     '화면을 찾을 수 없음',
   );
+});
+
+it('opens screen settings without a workspace callback and explains a missing window bridge', () => {
+  const {input} = fixture();
+  const rows = menuItems(outputMenuEntries({...input, onWorkspace: undefined}));
+  expect(rows.find(row => row.id === 'screens')?.disabled).toBe(false);
+  delete window.llp;
+  const unavailable = menuItems(outputMenuEntries(input));
+  expect(unavailable.find(row => row.id === 'screens')).toMatchObject({
+    disabled: true,
+    title: '화면 설정 연결 안 됨',
+  });
 });
 
 it('keeps the saved broadcast output available when its destination is a window', () => {

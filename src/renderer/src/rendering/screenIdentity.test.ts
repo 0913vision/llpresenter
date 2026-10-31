@@ -12,6 +12,15 @@ function screens() {
 }
 
 describe('output screen identity', () => {
+  it('carries a saved empty color into the shared output and preview identity', () => {
+    const configured = screens().value.screens.map(screen => ({
+      ...screen,
+      emptyColor: '#123456',
+    }));
+    expect(resolveRenderScreen('captions', configured)?.emptyColor).toBe(
+      '#123456',
+    );
+  });
   it('keeps aliases on the same UUID after methods, kinds and order change', () => {
     const {value} = screens();
     const changed = value.screens.toReversed().map(screen => ({
@@ -24,6 +33,7 @@ describe('output screen identity', () => {
       name: 'Main',
       kind: 'audience',
       method: 'capture',
+      emptyColor: '#00B140',
     });
     expect(resolveRenderScreen('captions', changed)?.id).toBe(CAPTIONS);
     expect(resolveRenderScreen('stage', changed)?.id).toBe(STAGE);
@@ -35,6 +45,7 @@ describe('output screen identity', () => {
       name: 'Main',
       kind: 'audience',
       method: 'fullscreen',
+      emptyColor: '#000000',
     });
     expect(resolveRenderScreen('main', value.screens)?.id).toBe(MAIN);
     expect(resolveRenderScreen('captions', value.screens)?.id).toBe(CAPTIONS);
@@ -44,6 +55,7 @@ describe('output screen identity', () => {
       name: 'Stage',
       kind: 'stage',
       method: 'fullscreen',
+      emptyColor: '#000000',
     });
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
   });
@@ -64,6 +76,7 @@ describe('output screen identity', () => {
       name: 'Main',
       kind: 'audience',
       method: 'fullscreen',
+      emptyColor: '#000000',
       correction: {edgeMargin: 5, offset: {x: 12, y: -6}},
     });
     const only = (edgeMargin: number, x: number, y: number) =>

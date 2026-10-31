@@ -456,11 +456,11 @@ lack), Moved, Removed.
 | Group | Row         | Does                                                              | Status |
 | ----- | ----------- | ----------------------------------------------------------------- | ------ |
 | 1     | <Look 이름> | ✓ on the current Look (fixes the check that is always off today). | Now    |
-| 2     | Look 편집…  | Opens 화면 설정 at Looks.                                         | New    |
+| 2     | Look 편집…  | Opens 테마 at Looks.                                              | New    |
 
 ### Look 오른쪽 클릭
 
-- Where: 화면 설정 > Look list
+- Where: 테마 > Look list
 - Opens: Right-click a Look.
 - Purpose: Act on this one Look.
 - PP: PP look preset right-click (Audience Looks video 1:15): Make Live |
@@ -477,7 +477,7 @@ lack), Moved, Removed.
 
 ### 가사 스타일 오른쪽 클릭
 
-- Where: 화면 설정 > Look > 가사 스타일 tabs
+- Where: 테마 > Look > 가사 스타일 tabs
 - Opens: Right-click a style tab.
 - Purpose: Act on this one style.
 - PP: PP theme right-click (Rename Theme, Delete Theme).
@@ -526,14 +526,14 @@ lack), Moved, Removed.
 
 | Group | Row               | Does                                                                    | Status |
 | ----- | ----------------- | ----------------------------------------------------------------------- | ------ |
-| 1     | 선택한 배치 편집… | Opens 화면 설정 > 무대 at this layout.                                  | New    |
+| 1     | 선택한 배치 편집… | Opens 테마 > 무대 at this layout.                                       | New    |
 | 2     | <배치>            | Each layout with a small thumbnail of its layout; ✓ on the current one. | New    |
 
 - Today it is a plain name list.
 
 ### 무대 배치 오른쪽 클릭
 
-- Where: 화면 설정 > 무대
+- Where: 테마 > 무대
 - Opens: Right-click a layout.
 - Purpose: Act on this one layout.
 - PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
@@ -582,7 +582,7 @@ lack), Moved, Removed.
 | 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04). | Now    |
 | 6     | 미리보기 ›                                                                          |                                                                                                                    | Off    |
 | 7     | 전체 화면                                                                           |                                                                                                                    | Off    |
-| -     | 화면 설정                                                                           | Moved to 출력 as 화면 설정… (Ctrl Alt 1), as in PP Screens.                                                        | Moved  |
+| -     | 화면 설정                                                                           | The workspace is now 테마 (layers icon). Screen settings move to a separate window under 출력.                     | Moved  |
 
 ### 출력
 
@@ -592,14 +592,14 @@ lack), Moved, Removed.
 - PP: PP Screens menu (support article, 2026).
 - Groups follow the app's three screen roles, with 화면 설정… last.
 
-| Group     | Row                                                             | Does                                                       | Status |
-| --------- | --------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
-| 본 화면   | 출력 끄기 / 출력 켜기, Look: <현재> ›, Look 편집…               |                                                            | New    |
-| 무대 화면 | 출력 끄기 / 출력 켜기, <무대 모니터>: <배치> ›, 무대 배치 편집… |                                                            | New    |
-| 방송 자막 | 출력 끄기 / 출력 켜기, 방송 설정… (off)                         | Same output command as the other screen groups.            | Now    |
-| -         | <화면> 경고 보기                                                | Only while a warning holds, before the final settings row. | Now    |
-| 2         | 화면 설정…                                                      | Last, after a separator. Ctrl Alt 1.                       | Moved  |
-| -         | Per-screen checks                                               | Moved to 화면 설정 (사용 안 함).                           | Moved  |
+| Group     | Row                                                             | Does                                                                               | Status |
+| --------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ |
+| 본 화면   | 출력 끄기 / 출력 켜기, Look: <현재> ›, Look 편집…               |                                                                                    | New    |
+| 무대 화면 | 출력 끄기 / 출력 켜기, <무대 모니터>: <배치> ›, 무대 배치 편집… |                                                                                    | New    |
+| 방송 자막 | 출력 끄기 / 출력 켜기, 방송 설정… (off)                         | Same output command as the other screen groups.                                    | Now    |
+| -         | <화면> 경고 보기                                                | Only while a warning holds, before the final settings row.                         | Now    |
+| 2         | 화면 설정…                                                      | Opens or focuses the single 화면 설정 window. Last, after a separator. Ctrl Alt 1. | Moved  |
+| -         | Per-screen checks                                               | Moved to 화면 설정 (사용 안 함).                                                   | Moved  |
 
 ### 곡 검색 결과
 

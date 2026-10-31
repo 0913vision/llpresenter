@@ -3,6 +3,9 @@ import {act, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {editorFixture} from '@renderer/features/songs/editor/editorFixture';
 import {ControlSession} from './controlSession';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
+import {createAppFlushRequestId} from '@core/schema/ids';
+import type {AppFlushRequest} from '@core/schema/appFlush';
 
 const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
 const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));
@@ -91,5 +94,79 @@ it('releases startup subscriptions if the page hides before UI state loads', asy
   } finally {
     container.remove();
     delete window.llp;
+  }
+});
+
+it('flushes focused property drafts and queued writes in the settings renderer before answering close', async () => {
+  vi.resetModules();
+  root.render.mockClear();
+  root.unmount.mockClear();
+  stops.live.mockClear();
+  stops.service.mockClear();
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  const unsubscribe = vi.fn();
+  const flushDone = vi.fn();
+  const savePending = vi.fn(async () => true);
+  const api = mockLlpApi({
+    app: {
+      subscribeFlushRequests: listener => {
+        request = listener;
+        return unsubscribe;
+      },
+      flushDone,
+      savePending,
+    },
+  });
+  window.llp = api;
+  const originalUrl = window.location.href;
+  window.history.replaceState({}, '', '?window=screens');
+  const container = document.createElement('div');
+  container.id = 'root';
+  const input = document.createElement('input');
+  document.body.append(container, input);
+  let release: () => void = () => undefined;
+  const pending = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  let submitted = Promise.resolve();
+  try {
+    await act(async () => {
+      await import('./main');
+    });
+    const {pendingWritesOf: writesOf} =
+      await import('@renderer/platform/pendingWrites');
+    input.addEventListener('blur', () => {
+      submitted = writesOf(api).run({
+        write: () => pending,
+        refused: undefined,
+        sent: () => true,
+      });
+    });
+    input.focus();
+    const requestId = createAppFlushRequestId(
+      '00000000-0000-4000-8000-000000000001',
+    );
+    request({requestId});
+    expect(document.activeElement).not.toBe(input);
+    expect(writesOf(api).isStopped).toBe(true);
+    expect(savePending).not.toHaveBeenCalled();
+    release();
+    await submitted;
+    await waitFor(() =>
+      expect(flushDone).toHaveBeenCalledWith({requestId, result: true}),
+    );
+    window.dispatchEvent(new Event('pagehide'));
+    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(root.unmount).toHaveBeenCalledOnce();
+    expect(stops.live).toHaveBeenCalledOnce();
+    expect(stops.service).not.toHaveBeenCalled();
+  } finally {
+    release();
+    await submitted;
+    window.dispatchEvent(new Event('pagehide'));
+    container.remove();
+    input.remove();
+    delete window.llp;
+    window.history.replaceState({}, '', originalUrl);
   }
 });

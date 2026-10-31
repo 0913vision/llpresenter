@@ -22,6 +22,7 @@ export interface RenderScreen {
   readonly name?: string;
   readonly kind: 'audience' | 'stage';
   readonly method?: Screen['method'];
+  readonly emptyColor?: string;
   /** Absent draws the picture over the whole screen. */
   readonly correction?: PictureCorrection;
 }

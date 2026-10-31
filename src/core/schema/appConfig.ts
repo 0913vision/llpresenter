@@ -29,6 +29,24 @@ const columnLayoutSchema = jsonObject({
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
 
+const windowPlacementSchema = jsonObject({
+  x: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(-1_000_000),
+    v.maxValue(1_000_000),
+  ),
+  y: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(-1_000_000),
+    v.maxValue(1_000_000),
+  ),
+  width: v.pipe(positiveInteger, v.maxValue(32_768)),
+  height: v.pipe(positiveInteger, v.maxValue(32_768)),
+  maximized: v.boolean(),
+});
+
 /** The window size classes of the design system `Layout`. */
 export const sizeClasses = ['narrow', 'normal', 'wide'] as const;
 
@@ -51,6 +69,7 @@ const appConfigSchema = jsonObject({
     v.fallback(uiZoomPercentSchema, UI_ZOOM.defaultPercent),
   ),
   layout: v.exactOptional(appLayoutSchema),
+  screensWindow: v.exactOptional(windowPlacementSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),

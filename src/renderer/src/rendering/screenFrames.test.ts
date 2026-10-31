@@ -125,7 +125,13 @@ describe('ScreenFrames', () => {
       frames.frame(stateWith({stageMessage: 'Fixture note'})) ?? {};
     expect(timers).toMatchObject({list: [], runs: undefined});
     expect(frame).toEqual({
-      screen: {id: STAGE, name: 'Stage', kind: 'stage', method: 'fullscreen'},
+      screen: {
+        id: STAGE,
+        name: 'Stage',
+        kind: 'stage',
+        method: 'fullscreen',
+        emptyColor: '#000000',
+      },
       stageMessage: 'Fixture note',
       look: {
         layers: {slide: true, stageMessage: true},

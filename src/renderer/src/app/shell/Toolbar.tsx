@@ -17,7 +17,7 @@ export type {Workspace};
 const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},
-  {value: 'screens', icon: 'gear', label: '화면 설정'},
+  {value: 'screens', icon: 'layers', label: '테마'},
 ];
 
 const INLINE_OUTPUT_LIMIT = 3;

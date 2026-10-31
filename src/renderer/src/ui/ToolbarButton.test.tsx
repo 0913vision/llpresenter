@@ -14,7 +14,7 @@ type Workspace = 'show' | 'prep' | 'screens';
 const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},
-  {value: 'screens', icon: 'gear', label: '화면 설정'},
+  {value: 'screens', icon: 'layers', label: '테마'},
 ];
 
 function Workspaces(): JSX.Element {
@@ -60,7 +60,7 @@ describe('ToolbarTabs', () => {
     await userEvent.click(screen.getByRole('tab', {name: '준비'}));
     expect(selectedTab()).toBe('준비');
     await userEvent.keyboard('{ArrowRight}');
-    expect(selectedTab()).toBe('화면 설정');
+    expect(selectedTab()).toBe('테마');
     await userEvent.keyboard('{ArrowRight}');
     expect(selectedTab()).toBe('진행');
     expect(document.activeElement?.textContent).toBe('진행');

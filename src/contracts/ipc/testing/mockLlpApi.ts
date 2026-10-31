@@ -94,7 +94,11 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       clock: () => Promise.resolve(performance.timeOrigin + performance.now()),
       ...overrides.live,
     },
-    window: {control: () => undefined, ...overrides.window},
+    window: {
+      control: () => undefined,
+      openScreens: () => undefined,
+      ...overrides.window,
+    },
     ui: {
       get: () => Promise.resolve({}),
       setLayout: () => undefined,
