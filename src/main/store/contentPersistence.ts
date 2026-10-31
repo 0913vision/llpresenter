@@ -17,6 +17,11 @@ type Pending =
   | {readonly kind: 'write'; readonly request: SaveRequest}
   | {readonly kind: 'remove'; readonly target: RecoveryTarget};
 
+export interface PersistedFile {
+  readonly file: string;
+  readonly result: WriteResult;
+}
+
 /**
  * Keeps the newest failed operation per file for a retry, and reports each
  * such file to the files' failure sink until it is written. A file's later
@@ -62,9 +67,19 @@ export class ContentPersistence {
 
   /** Retries each pending file once, in the order the operations were asked. */
   async flush(): Promise<void> {
+    await this.retryPending();
+  }
+
+  /** Retries the newest pending operations and returns their durability results. */
+  async retryPending(): Promise<readonly PersistedFile[]> {
+    const written: PersistedFile[] = [];
     for (const file of [...this.pending.keys()]) {
-      await this.retry(file);
+      const operation = this.pending.get(file);
+      if (operation !== undefined) {
+        written.push({file, result: await this.perform(operation)});
+      }
     }
+    return written;
   }
 
   /** Retries the newest operation of one file, if it still waits. */

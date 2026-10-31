@@ -339,9 +339,11 @@ describe('media list panels', () => {
         baseRevision: 1,
       }),
     );
-    expect(
-      screen.queryByRole('textbox', {name: 'Backgrounds 이름'}),
-    ).toBeNull();
+    await vi.waitFor(() =>
+      expect(
+        screen.queryByRole('textbox', {name: 'Backgrounds 이름'}),
+      ).toBeNull(),
+    );
   });
 
   it('deletes an audio playlist after asking', async () => {

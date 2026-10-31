@@ -96,6 +96,7 @@ export class MediaLibrary {
 
   private onProblem: (notice: Notice) => void = () => undefined;
   private relinking = false;
+  private unsavedRenameRevision: number | null = null;
 
   constructor(private readonly api: MediaApi) {}
 
@@ -221,24 +222,33 @@ export class MediaLibrary {
    * 이름 바꾸기 of a playlist, at the list's current revision. A blank or
    * unchanged name changes nothing.
    */
-  async renamePlaylist(playlist: ChosenPlaylist, name: string): Promise<void> {
+  async renamePlaylist(
+    playlist: ChosenPlaylist,
+    name: string,
+  ): Promise<boolean> {
     const document = this.view.document;
     const current = chosenPlaylist(document, playlist);
     const trimmed = name.trim();
-    if (
-      document === null ||
-      current === null ||
-      trimmed === '' ||
-      trimmed === current.name
-    ) {
-      return;
+    if (document === null || current === null || trimmed === '') {
+      return false;
     }
-    if (await this.updatePlaylist(document, playlist, {name: trimmed})) return;
+    if (trimmed === current.name && this.unsavedRenameRevision === null) {
+      return true;
+    }
+    if (
+      await this.updatePlaylist(document, playlist, {
+        change: {name: trimmed},
+        completion: 'saved',
+      })
+    ) {
+      return true;
+    }
     this.onProblem(
       warning('media-view:playlist-name', '재생목록 이름을 바꿀 수 없음', [
         playlist.name,
       ]),
     );
+    return false;
   }
 
   /** 재생목록에서 빼기: the media leaves the playlist and stays in 모든 미디어. */
@@ -253,7 +263,9 @@ export class MediaLibrary {
       return;
     }
     const items = current.items.filter(id => id !== mediaId);
-    if (await this.updatePlaylist(document, playlist, {items})) return;
+    if (await this.updatePlaylist(document, playlist, {change: {items}})) {
+      return;
+    }
     this.onProblem(
       warning(`media-view:leave:${mediaId}`, '재생목록에서 뺄 수 없음', [name]),
     );
@@ -282,9 +294,12 @@ export class MediaLibrary {
   private async updatePlaylist(
     document: MediaDocument,
     playlist: ChosenPlaylist,
-    change: PlaylistChange,
+    input: {
+      readonly change: PlaylistChange;
+      readonly completion?: 'applied' | 'saved';
+    },
   ): Promise<boolean> {
-    const update = playlistUpdate(document, playlist, change);
+    const update = playlistUpdate(document, playlist, input.change);
     if (update === null) return true;
     const result = await this.api.media
       .edit({
@@ -293,7 +308,34 @@ export class MediaLibrary {
         baseRevision: document.revision,
       })
       .catch(rejected);
-    if (result.ok || result.error.reason === 'write-failed') return true;
+    if (input.completion === 'saved') {
+      if (!result.ok) {
+        const revision =
+          result.error.reason === 'write-failed'
+            ? (result.error.applied.revision ?? document.revision)
+            : document.revision;
+        this.unsavedRenameRevision = Math.max(
+          this.unsavedRenameRevision ?? 0,
+          revision,
+        );
+      } else if (result.value === null) {
+        if (this.unsavedRenameRevision !== null) return false;
+      } else {
+        if (
+          this.unsavedRenameRevision !== null &&
+          (result.value.revision ?? document.revision) >=
+            this.unsavedRenameRevision
+        ) {
+          this.unsavedRenameRevision = null;
+        }
+      }
+    }
+    if (
+      result.ok ||
+      (result.error.reason === 'write-failed' && input.completion !== 'saved')
+    ) {
+      return true;
+    }
     this.refused('Changing a playlist was refused', result.error.message);
     return false;
   }

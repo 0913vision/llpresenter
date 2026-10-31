@@ -21,7 +21,8 @@ import {
   type Preferences,
 } from '@core/schema/preferences';
 import type {Logger} from '../log';
-import type {DocumentFiles} from './contentPersistence';
+import type {DocumentFiles, PersistedFile} from './contentPersistence';
+import type {WriteResult} from './fileWriter';
 import {documentFiles} from './documentFiles';
 import type {LoadedStore} from './fileStore';
 import {RecoveryCopies} from './recoveryCopies';
@@ -166,6 +167,11 @@ export class SettingsStore implements SettingsReader {
     await this.saves?.flush();
   }
 
+  /** Returns durability results when an applied rename retries queued files. */
+  async retryPending(): Promise<readonly PersistedFile[]> {
+    return this.saves?.retryPending() ?? [];
+  }
+
   /** Starts accepted edits now so a cross-file edit can save this file first. */
   async savePending(): Promise<void> {
     await this.saves?.savePending();
@@ -190,7 +196,7 @@ export class SettingsStore implements SettingsReader {
     if (edit.type === 'timer.rename') {
       const prepared = prepareTimerRename(this.documents, edit);
       return prepared.ok
-        ? this.commit(prepared.value)
+        ? this.commit({...prepared.value, completion: 'saved'})
         : Promise.resolve({ok: false, error: prepared.error});
     }
     if (
@@ -202,7 +208,10 @@ export class SettingsStore implements SettingsReader {
       if (!prepared.ok) {
         return Promise.resolve({ok: false, error: prepared.error});
       }
-      return this.commit(prepared.value);
+      return this.commit({
+        ...prepared.value,
+        completion: edit.type === 'quick.timer.rename' ? 'saved' : 'applied',
+      });
     }
     if (edit.type !== 'settings.update') {
       return Promise.resolve(
@@ -255,9 +264,11 @@ export class SettingsStore implements SettingsReader {
   private commit({
     documents,
     applied,
+    completion = 'applied',
   }: {
     readonly documents: readonly SettingsDocument[];
     readonly applied: EditSuccess;
+    readonly completion?: 'applied' | 'saved';
   }): Promise<EditResult> {
     const saving = this.options.saving;
     const saves = this.saves;
@@ -284,21 +295,36 @@ export class SettingsStore implements SettingsReader {
     }
     const written = requests.map(request => saves.save(request));
     for (const document of documents) this.announce(document);
-    return Promise.all(written).then((results): EditResult => {
-      const failures = results.flatMap(result =>
-        result.ok ? [] : [result.error],
-      );
-      if (failures.length === 0) return {ok: true, value: applied};
-      return {
-        ok: false,
-        error: {
-          reason: 'write-failed',
-          message: failures.map(error => error.message).join('; '),
+    if (documents.length === 0 && completion === 'saved') {
+      return saves.retryPending().then(results =>
+        this.commitResult(
           applied,
-          unchangedFiles: failures.map(error => error.file),
-        },
-      };
-    });
+          results.map(row => row.result),
+        ),
+      );
+    }
+    return Promise.all(written).then(results =>
+      this.commitResult(applied, results),
+    );
+  }
+
+  private commitResult(
+    applied: EditSuccess,
+    results: readonly WriteResult[],
+  ): EditResult {
+    const failures = results.flatMap(result =>
+      result.ok ? [] : [result.error],
+    );
+    if (failures.length === 0) return {ok: true, value: applied};
+    return {
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: failures.map(error => error.message).join('; '),
+        applied,
+        unchangedFiles: failures.map(error => error.file),
+      },
+    };
   }
 
   private announce(document: SettingsDocument): void {

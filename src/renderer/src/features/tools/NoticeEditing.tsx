@@ -1,7 +1,9 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {NoticeSet} from '@core/schema/notices';
-import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
+import {AlertDialog, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {NoticeEdit} from './noticeEdits';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
@@ -9,51 +11,6 @@ import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
 interface Editor {
   kind: 'rename' | 'delete';
   item: NoticeSet;
-}
-
-function RenameDialog({
-  item,
-  locked,
-  close,
-  save,
-}: {
-  readonly item: NoticeSet;
-  readonly locked: boolean;
-  readonly close: () => void;
-  readonly save: (name: string) => void;
-}): JSX.Element {
-  const [name, setName] = useState(item.name);
-  const reason =
-    name.trim() === ''
-      ? '이름을 입력하세요'
-      : name.trim().length > 256
-        ? '이름이 너무 깁니다'
-        : undefined;
-  return (
-    <Dialog
-      title="공지 이름 바꾸기"
-      size="s"
-      onCancel={close}
-      primary={{
-        label: '저장',
-        disabled: locked || reason !== undefined,
-        title: reason,
-        onSelect: () => save(name),
-      }}
-    >
-      <TextField
-        aria-label="이름"
-        autoFocus
-        block
-        value={name}
-        maxLength={256}
-        onChange={setName}
-        readOnly={locked}
-        invalid={reason !== undefined}
-        invalidReason={reason}
-      />
-    </Dialog>
-  );
 }
 
 export function NoticeEditing({
@@ -64,7 +21,10 @@ export function NoticeEditing({
 }: {
   readonly item: NoticeSet | undefined;
   readonly locked: boolean;
-  readonly save: (edit: NoticeEdit) => Promise<boolean>;
+  readonly save: (
+    edit: NoticeEdit,
+    completion?: 'applied' | 'saved',
+  ) => Promise<boolean>;
   readonly children: ReactNode;
 }): JSX.Element {
   const [menu, setMenu] = useState<{
@@ -72,6 +32,7 @@ export function NoticeEditing({
     anchor: MenuAnchor;
   } | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const handoff = useMenuHandoff(menu !== null, setEditor);
   const revision = useRef(0);
   const close = (): void => {
     revision.current++;
@@ -103,13 +64,7 @@ export function NoticeEditing({
           });
         }}
         onKeyDown={event => {
-          if (
-            !item ||
-            !(
-              event.key === 'ContextMenu' ||
-              (event.shiftKey && event.key === 'F10')
-            )
-          ) {
+          if (!item || !isContextMenuKey(event)) {
             return;
           }
           event.preventDefault();
@@ -133,7 +88,7 @@ export function NoticeEditing({
           onClose={() => setMenu(null)}
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked),
-            rename: () => setEditor({kind: 'rename', item: menu.item}),
+            rename: () => handoff({kind: 'rename', item: menu.item}),
             remove: () => setEditor({kind: 'delete', item: menu.item}),
           })}
         />
@@ -141,12 +96,20 @@ export function NoticeEditing({
       {editor?.kind === 'rename' ? (
         <RenameDialog
           key={editor.item.id}
-          item={editor.item}
+          name={editor.item.name}
+          title="공지 이름 바꾸기"
           locked={locked}
-          close={close}
-          save={name =>
-            commit({kind: 'update', id: editor.item.id, changes: {name}})
-          }
+          maxLength={256}
+          rename={{
+            onClose: close,
+            validate: name =>
+              name.length > 256 ? '이름이 너무 깁니다' : undefined,
+            onCommit: name =>
+              save(
+                {kind: 'update', id: editor.item.id, changes: {name}},
+                'saved',
+              ),
+          }}
         />
       ) : null}
       {editor?.kind === 'delete' ? (

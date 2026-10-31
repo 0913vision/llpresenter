@@ -28,7 +28,10 @@ export function useToolEditing<Edit>({
     };
   }, []);
   const isActive = (): boolean => active.current;
-  const run = async (edit: Edit): Promise<boolean> => {
+  const run = async (
+    edit: Edit,
+    completion: 'applied' | 'saved' = 'applied',
+  ): Promise<boolean> => {
     if (api === undefined || pending.current || !isActive()) return false;
     pending.current = true;
     setBusy(true);
@@ -51,7 +54,7 @@ export function useToolEditing<Edit>({
         }
         report('save');
       }
-      return isActive();
+      return isActive() && (result.ok || completion === 'applied');
     } catch (cause) {
       api.log.write({
         level: 'error',

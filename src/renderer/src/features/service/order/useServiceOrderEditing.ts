@@ -26,14 +26,23 @@ export function useServiceOrderEditing(
       alive.current = false;
     };
   }, []);
-  const execute = async (operation: Operation): Promise<void> => {
+  const execute = async (
+    operation: Operation,
+    completion: 'applied' | 'saved' = 'applied',
+  ): Promise<boolean> => {
     const api = window.llp;
-    if (pending.current || api === undefined || serviceId === null) return;
+    if (pending.current || api === undefined || serviceId === null) {
+      return false;
+    }
     pending.current = true;
     setBusy(true);
     try {
       const editor = serviceOrderEditsFor(api);
-      const result = await operation(editor, createServiceId(serviceId));
+      let result = await operation(editor, createServiceId(serviceId));
+      if (result.ok && !result.value && completion === 'saved') {
+        const persisted = await api.content.edit({type: 'saves.retry'});
+        result = persisted.ok ? {ok: true, value: true} : persisted;
+      }
       if (!result.ok) {
         onProblem({
           key: `service-order:${result.error.reason}`,
@@ -46,6 +55,7 @@ export function useServiceOrderEditing(
           time: noticeTime(),
         });
       }
+      return result.ok;
     } catch (cause) {
       api.log.write({
         level: 'error',
@@ -59,6 +69,7 @@ export function useServiceOrderEditing(
         title: '예배 순서 변경 실패',
         time: noticeTime(),
       });
+      return false;
     } finally {
       pending.current = false;
       if (alive.current) setBusy(false);
@@ -69,5 +80,9 @@ export function useServiceOrderEditing(
       console.error('Failed to report a service order edit:', error);
     });
   };
-  return {busy, run};
+  return {
+    busy,
+    run,
+    save: (operation: Operation) => execute(operation, 'saved'),
+  };
 }

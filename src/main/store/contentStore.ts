@@ -336,6 +336,12 @@ export class ContentStore {
 
   private async applyEdit(edit: ContentEdit): Promise<EditResult> {
     switch (edit.type) {
+      case 'saves.retry': {
+        await this.autosave.flush();
+        const settings = (await this.options.settings?.retryPending()) ?? [];
+        const content = await this.persistence.retryPending();
+        return answer({id: 'saves', revision: null}, [...settings, ...content]);
+      }
       case 'song.import':
         return this.importSong(edit);
       case 'song.create':

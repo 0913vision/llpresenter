@@ -47,9 +47,20 @@ it.each(kinds)('requires a valid target for %s and builds its action', kind => {
   expect(done.getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(screen.getByRole('button', {name: '대상'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
+  if (kind === 'timer') {
+    fireEvent.click(screen.getByRole('button', {name: '동작'}));
+    fireEvent.click(screen.getByRole('menuitemradio', {name: '처음으로'}));
+  }
   fireEvent.click(done);
   expect(save).toHaveBeenCalledOnce();
   expect(save.mock.calls[0]?.[0].kind).toBe(kind);
+  if (kind === 'timer') {
+    expect(save).toHaveBeenCalledWith({
+      kind: 'timer',
+      timer: id,
+      operation: 'reset',
+    });
+  }
 });
 
 it('supports a clear action and audio stop without a target', () => {

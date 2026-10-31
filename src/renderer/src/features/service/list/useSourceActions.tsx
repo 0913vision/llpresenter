@@ -8,6 +8,7 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from './RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   editApplied,
   renameService,
@@ -67,7 +68,7 @@ async function renameSource(
         baseRevision: document.revision,
       }),
     );
-    return result !== undefined && editApplied(result);
+    return result?.ok === true;
   }
   return renameService(api, source.id, name);
 }
@@ -111,6 +112,9 @@ export function useSourceActions({
     readonly row: SourceRow;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const renameAfterMenu = useMenuHandoff<SourceRow>(menu !== null, row =>
+    setDialog({kind: 'rename', row}),
+  );
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -122,24 +126,27 @@ export function useSourceActions({
   const run = (
     action: keyof typeof problemTitles,
     work: (api: SourceActionsApi) => Promise<boolean>,
-  ): void => {
-    if (api === undefined || busy) return;
+  ): Promise<boolean> => {
+    if (api === undefined || busy) return Promise.resolve(false);
     setBusy(true);
-    pendingWritesOf(api)
+    return pendingWritesOf(api)
       .run({write: () => work(api), refused: false, sent: done => done})
       .then(done => {
-        if (!alive.current) return;
+        if (!alive.current) return false;
         setBusy(false);
         if (done) {
           setDialog(null);
-          return;
+          return true;
         }
         onProblem(
           warningNotice(`source-actions:${action}`, problemTitles[action]),
         );
+        return false;
       })
       .catch((cause: unknown) => {
         console.error('Failed to finish a service source action:', cause);
+        if (alive.current) setBusy(false);
+        return false;
       });
   };
 
@@ -174,7 +181,7 @@ export function useSourceActions({
               ...menuAvailability(readOnlyReason),
               onSelect: () => {
                 setMenu(null);
-                setDialog({kind: 'rename', row: menu.row});
+                renameAfterMenu(menu.row);
               },
             },
             {
@@ -215,8 +222,16 @@ export function useSourceActions({
               label: '삭제',
               primary: true,
               disabled: busy,
-              onSelect: () =>
-                run('delete', next => deleteSource(next, dialog.row.source)),
+              onSelect: () => {
+                run('delete', next =>
+                  deleteSource(next, dialog.row.source),
+                ).catch((cause: unknown) =>
+                  console.error(
+                    'Could not finish deleting a service source:',
+                    cause,
+                  ),
+                );
+              },
             },
           ]}
         />

@@ -1,3 +1,4 @@
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useEffect, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {useShow} from '@renderer/session/show';
@@ -24,7 +25,6 @@ export function useServiceRowMenu(
     entry: ServiceEntry;
     anchor: MenuAnchor;
   } | null>(null);
-  const [pending, setPending] = useState<ServiceEntry | null>(null);
   const [renaming, setRenaming] = useState<ServiceEntry | null>(null);
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
@@ -36,21 +36,16 @@ export function useServiceRowMenu(
       alive.current = false;
     };
   }, []);
-  useEffect(() => {
-    if (menu !== null || pending === null) return undefined;
-    const timer = setTimeout(() => {
-      setRenaming(pending);
-      setPending(null);
-    });
-    return () => clearTimeout(timer);
-  }, [menu, pending]);
-  const commit = (entry: ServiceEntry, value: string): void => {
+  const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
+  const commit = async (
+    entry: ServiceEntry,
+    value: string,
+  ): Promise<boolean> => {
     const api = window.llp;
     const name = value.trim();
-    setRenaming(null);
-    if (!api || busy || !name || name === entry.name) return;
+    if (!api || busy || !name) return false;
     setBusy(true);
-    pendingWritesOf(api)
+    return pendingWritesOf(api)
       .run({
         write: () => renameService(api, entry.id, name),
         refused: false,
@@ -60,9 +55,11 @@ export function useServiceRowMenu(
         if (alive.current && !done) {
           onProblem(warningNotice('service-row:rename', '이름을 바꿀 수 없음'));
         }
+        return done;
       })
       .catch((cause: unknown) => {
         console.error('Could not finish renaming a service:', cause);
+        return false;
       })
       .finally(() => {
         if (alive.current) setBusy(false);
@@ -74,7 +71,7 @@ export function useServiceRowMenu(
       : {
           validate: name => (name.trim() ? undefined : '이름을 입력하세요'),
           onCommit: name => commit(entry, name),
-          onCancel: () => setRenaming(null),
+          onClose: () => setRenaming(null),
         };
   const overlays = (
     <>
@@ -87,7 +84,7 @@ export function useServiceRowMenu(
             entry: menu.entry,
             currentId,
             busy: busy || saver.busy,
-            rename: () => setPending(menu.entry),
+            rename: () => renameAfterMenu(menu.entry),
             save: () => {
               closePicker();
               saver.saveService(menu.entry);
@@ -129,8 +126,8 @@ export function useServiceRowMenu(
     openMenu: (entry: ServiceEntry, anchor: MenuAnchor): void =>
       setMenu({entry, anchor}),
     cancelRename: (): void => {
+      renameAfterMenu(null);
       setRenaming(null);
-      setPending(null);
       setMenu(null);
     },
   };

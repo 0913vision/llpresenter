@@ -1,4 +1,5 @@
-import {useState, type JSX} from 'react';
+import type {JSX} from 'react';
+import {useRenameDraft} from '@renderer/ui/useRenameDraft';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
 
@@ -13,26 +14,33 @@ export function RenameDialog({
 }: {
   readonly name: string;
   readonly busy: boolean;
-  readonly onRename: (name: string) => void;
+  readonly onRename: (name: string) => Promise<boolean>;
   readonly onCancel: () => void;
 }): JSX.Element {
-  const [text, setText] = useState(name);
-  const trimmed = text.trim();
+  const draft = useRenameDraft(
+    name,
+    {
+      onCommit: onRename,
+      onClose: onCancel,
+      validate: value => (value === '' ? NAME_NEEDED : undefined),
+    },
+    busy,
+  );
   return (
     <Dialog
       title="이름 바꾸기"
       subtitle={{text: name}}
       size="s"
-      onCancel={onCancel}
+      onCancel={draft.cancel}
       primary={{
         label: '바꾸기',
-        onSelect: () => onRename(trimmed),
-        disabled: busy || trimmed === '' || trimmed === name,
-        title: trimmed === '' ? NAME_NEEDED : undefined,
+        onSelect: () => draft.commit(),
+        disabled: draft.busy || !draft.valid,
+        title: draft.problem,
       }}
     >
       <DialogField label="이름">
-        <TextField aria-label="이름" value={text} onChange={setText} />
+        <TextField {...draft.field} aria-label="이름" />
       </DialogField>
     </Dialog>
   );

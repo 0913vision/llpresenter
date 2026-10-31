@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {useLayoutEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {parseLookId} from '@core/schema/ids';
 import type {Look} from '@core/schema/looks';
 import {useLive} from '@renderer/session/live';
@@ -83,16 +77,10 @@ export function LookPanel({
     null,
   );
   const [renaming, setRenaming] = useState<Look | null>(null);
-  const pendingRename = useRef<Look | null>(null);
-  // NOTE(0913vision): Menu restores its opener in passive cleanup; mount the
-  // rename field afterward so that restoration cannot blur and commit it.
-  useEffect(() => {
-    if (menu !== null || pendingRename.current === null) return;
-    const look = pendingRename.current;
-    pendingRename.current = null;
+  const renameAfterMenu = useMenuHandoff<Look>(menu !== null, look => {
     select('look', look.id);
     setRenaming(look);
-  }, [menu, select]);
+  });
   const [confirmation, setConfirmation] = useState<{
     id: Look['id'];
     name: string;
@@ -207,14 +195,18 @@ export function LookPanel({
                           ? undefined
                           : PROBLEMS[problem];
                       },
-                      onCommit: name => {
-                        setRenaming(null);
-                        const problem = nameProblem(name, looks, renaming.id);
-                        if (problem !== undefined) {
-                          editor.report(PROBLEMS[problem]);
-                        } else run({kind: 'rename', id: renaming.id, name});
+                      onCommit: async name => {
+                        const result = await editor.change({
+                          kind: 'rename',
+                          id: renaming.id,
+                          name,
+                        });
+                        if (result !== undefined && !result.ok) {
+                          editor.report(PROBLEMS[result.error.reason]);
+                        }
+                        return result?.ok === true && result.value;
                       },
-                      onCancel: () => setRenaming(null),
+                      onClose: () => setRenaming(null),
                     },
                   }
             }
@@ -237,7 +229,7 @@ export function LookPanel({
             rename: {
               reason,
               run: () => {
-                pendingRename.current = target;
+                renameAfterMenu(target);
               },
             },
             remove: {

@@ -1,4 +1,4 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import type {JSX, ReactNode} from 'react';
 import type {Label} from '@core/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
@@ -39,10 +39,7 @@ export function LabelChoices({
       const label = labels.find(
         item => `label:${item.name}` === event.currentTarget.dataset.choiceId,
       );
-      if (
-        label &&
-        (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey))
-      ) {
+      if (label && isContextMenuKey(event)) {
         event.preventDefault();
         event.stopPropagation();
         onContext({

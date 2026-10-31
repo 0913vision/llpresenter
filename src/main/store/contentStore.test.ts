@@ -1215,6 +1215,56 @@ describe('ContentStore 구성 references in 템플릿', () => {
     expect(files.texts.get(first.file)).toContain('짧게');
   });
 
+  it('retries every failed arrangement file without changing the applied name or revisions', async () => {
+    const target = matching();
+    const {store, files, song} = setUp(
+      [
+        serviceFile(SUNDAY_ID, [
+          {id: itemId(1), song: HYMN_ONE_ID, arrangement: '주일용'},
+        ]),
+      ],
+      {templates: new Map([[TEMPLATE_ID, target]])},
+    );
+    const failedFiles = [
+      song.file,
+      join(locations.services, `${SUNDAY_ID}.llservice`),
+      target.file,
+    ];
+    files.failing = new Set(failedFiles);
+    expect(
+      await store.apply({
+        type: 'song.arrangement.rename',
+        songId: SONG,
+        from: '주일용',
+        to: '짧게',
+      }),
+    ).toMatchObject({ok: false});
+    const revisions = [
+      store.song(SONG)?.revision,
+      store.service(SUNDAY)?.revision,
+      store.template(TEMPLATE)?.revision,
+    ];
+    expect(await store.apply({type: 'saves.retry'})).toMatchObject({
+      ok: false,
+      error: {unchangedFiles: failedFiles},
+    });
+    files.failing = new Set();
+    expect(await store.apply({type: 'saves.retry'})).toMatchObject({ok: true});
+    expect(files.written).toEqual([
+      ...failedFiles,
+      ...failedFiles,
+      ...failedFiles,
+    ]);
+    expect([
+      store.song(SONG)?.revision,
+      store.service(SUNDAY)?.revision,
+      store.template(TEMPLATE)?.revision,
+    ]).toEqual(revisions);
+    for (const file of failedFiles) {
+      expect(files.texts.get(file)).toContain('짧게');
+    }
+  });
+
   it('leaves read-only and unrelated 템플릿 unchanged and sends no push for them', async () => {
     const readonly = {
       ...matching(READONLY_TEMPLATE_ID),

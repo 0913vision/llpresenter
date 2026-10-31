@@ -618,7 +618,7 @@ describe('quick editing', () => {
       }
     },
   );
-  it('closes an applied rename while retaining its disk warning', async () => {
+  it('retains an applied rename draft and its disk warning until saving succeeds', async () => {
     const fixture = setup();
     failPersistedEdit(fixture.edit);
     fixture.mount();
@@ -630,7 +630,14 @@ describe('quick editing', () => {
       target: {value: '적용된 이름'},
     });
     fireEvent.click(screen.getByRole('button', {name: '저장'}));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('textbox', {name: '이름'})
+          .getAttribute('aria-invalid'),
+      ).toBe('true'),
+    );
+    expect(screen.getByDisplayValue('적용된 이름')).toBeDefined();
     expect(fixture.current().value.items[0]?.name).toBe('적용된 이름');
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
@@ -874,6 +881,9 @@ describe('quick editing', () => {
       await screen.findByRole('button', {name: '저장된 곡'}),
     );
     fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
+      target: {value: '새 이름'},
+    });
     const save = screen.getByRole('button', {name: '저장'});
     act(() => {
       fireEvent.click(save);

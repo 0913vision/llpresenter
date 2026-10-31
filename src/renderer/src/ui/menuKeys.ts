@@ -1,6 +1,7 @@
 import type {KeyboardEvent} from 'react';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
+import {isContextMenuKey} from './contextMenu';
 import {
   movePointer,
   hasSubmenu,
@@ -119,22 +120,15 @@ export function openItemMenu(
   item: MenuItem | undefined,
   element: HTMLElement | null | undefined,
 ): boolean {
-  if (isComposing(event) || event.ctrlKey || event.altKey || event.metaKey) {
-    return false;
-  }
-  if (!(
-    event.key === 'ContextMenu' ||
-    (event.key === 'F10' && event.shiftKey)
-  )) {
-    return false;
-  }
-  if (
-    event.target instanceof HTMLInputElement &&
-    event.target.getAttribute('role') !== 'combobox'
-  ) {
-    return false;
-  }
   if (!item?.onMenu || !element) return false;
+  // NOTE(0913vision): Menu search owns focus while its active row receives
+  // the context command. Ordinary text fields keep their own context keys.
+  const target =
+    event.target instanceof HTMLInputElement &&
+    event.target.getAttribute('role') === 'combobox'
+      ? element
+      : event.target;
+  if (!isContextMenuKey({...event, target})) return false;
   item.onMenu({kind: 'element', element, target: element});
   return true;
 }

@@ -1,4 +1,5 @@
-import {useEffect, useRef, useState} from 'react';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
@@ -30,9 +31,6 @@ export function useScreenRowActions(
   );
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
-  const pendingAction = useRef<{kind: 'rename' | 'delete'; id: string} | null>(
-    null,
-  );
   const select = useScreensSelection(view => view.select);
   const reason =
     document === null
@@ -44,17 +42,15 @@ export function useScreenRowActions(
   const confirmedTarget = document?.value.screens.find(
     screen => screen.id === confirming,
   );
-  // NOTE(0913vision): Mount the field or confirmation after menu focus
-  // restoration so cleanup cannot blur the field or leave the confirmation.
-  useEffect(() => {
-    if (menu !== null || pendingAction.current === null) return;
-    const action = pendingAction.current;
-    pendingAction.current = null;
-    if (action.kind === 'rename') {
-      select('screen', action.id);
-      setRenaming(action.id);
-    } else setConfirming(action.id);
-  }, [menu, select]);
+  const handoff = useMenuHandoff<{kind: 'rename' | 'delete'; id: string}>(
+    menu !== null,
+    action => {
+      if (action.kind === 'rename') {
+        select('screen', action.id);
+        setRenaming(action.id);
+      } else setConfirming(action.id);
+    },
+  );
   const report = (title: string): void =>
     onProblem?.({
       key: 'screens:row',
@@ -83,16 +79,12 @@ export function useScreenRowActions(
             );
             return problem === undefined ? undefined : PROBLEMS[problem];
           },
-          onCommit: name => {
-            setRenaming(null);
-            editor
-              .rename(id, name)
-              .then(result => {
-                if (!result.ok) report(PROBLEMS[result.error]);
-              })
-              .catch(failed);
+          onCommit: async name => {
+            const result = await editor.rename(id, name);
+            if (!result.ok) report(PROBLEMS[result.error]);
+            return result.ok && result.value;
           },
-          onCancel: () => setRenaming(null),
+          onClose: () => setRenaming(null),
         };
   return {
     open: (id: string, anchor: MenuAnchor): void => setMenu({id, anchor}),
@@ -118,10 +110,10 @@ export function useScreenRowActions(
                 ).length ?? 0) > 1,
               on: outputs[target.id] === true,
               rename: () => {
-                pendingAction.current = {kind: 'rename', id: target.id};
+                handoff({kind: 'rename', id: target.id});
               },
               remove: () => {
-                pendingAction.current = {kind: 'delete', id: target.id};
+                handoff({kind: 'delete', id: target.id});
               },
               toggle: () => {
                 try {

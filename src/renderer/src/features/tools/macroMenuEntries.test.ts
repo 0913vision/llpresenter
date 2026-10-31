@@ -1,6 +1,6 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {expect, it, vi} from 'vitest';
-import {menuItems} from '@renderer/ui/menuModel';
+import {hasSubmenu, menuItems} from '@renderer/ui/menuModel';
 import {
   macroMenuEntries,
   type MacroMenuHandlers,
@@ -186,6 +186,20 @@ it('defers large target lists until the chosen action or kind opens', () => {
     0,
   );
   const add = rows.find(row => row.id === 'add-action');
+  const placeholders = menuItems(add?.submenu ?? []).filter(row =>
+    [
+      'slide-destination',
+      'communication',
+      'audio-input',
+      'video-input',
+      'capture',
+    ].includes(row.id),
+  );
+  expect(placeholders).toHaveLength(5);
+  for (const placeholder of placeholders) {
+    expect(placeholder.disabled).toBe(true);
+    expect(hasSubmenu(placeholder)).toBe(true);
+  }
   const media = menuItems(add?.submenu ?? []).find(row => row.id === 'media');
   expect(menuItems(media?.loadSubmenu?.() ?? [])).toHaveLength(10_000);
   expect(namesRead).toBeLessThan(21_000);

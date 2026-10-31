@@ -27,6 +27,15 @@ export type EditorApi = Pick<
   'songs' | 'content' | 'settings' | 'media'
 >;
 export type EditorLabels = Extract<SettingsDocument, {name: 'labels'}>;
+export type AppliedRename =
+  | {readonly kind: 'label'; readonly name: string; readonly revision: number}
+  | {
+      readonly kind: 'arrangement';
+      readonly name: string;
+      readonly revision: number;
+      readonly songId: SongId;
+    };
+type RenameApplied = (identity: AppliedRename) => void;
 interface EditorState {
   readonly session: SongSession | null;
   readonly labels: EditorLabels | null;
@@ -367,20 +376,36 @@ export class SongEditorStore {
     });
   }
 
-  renameLabel(from: string, to: string): Promise<boolean> {
+  renameLabel(
+    from: string,
+    to: string,
+    onApplied?: RenameApplied,
+  ): Promise<boolean> {
     const document = this.labels;
     if (document === null) return Promise.resolve(false);
-    return this.editLabels({
-      type: 'labels.rename',
-      name: 'labels',
-      from,
-      to,
-      baseRevision: document.revision,
-    });
+    if (from === to) {
+      return Promise.resolve(
+        document.value.labels.some(label => label.name === from),
+      );
+    }
+    return this.editLabels(
+      {
+        type: 'labels.rename',
+        name: 'labels',
+        from,
+        to,
+        baseRevision: document.revision,
+      },
+      onApplied,
+    );
   }
 
-  renameArrangement(from: string, to: string): Promise<boolean> {
-    return this.editArrangement(from, to);
+  renameArrangement(
+    from: string,
+    to: string,
+    onApplied?: RenameApplied,
+  ): Promise<boolean> {
+    return this.editArrangement(from, to, onApplied);
   }
 
   deleteArrangement(name: string): Promise<boolean> {
@@ -390,6 +415,7 @@ export class SongEditorStore {
   private editArrangement(
     from: string,
     to: string | undefined,
+    onApplied?: RenameApplied,
   ): Promise<boolean> {
     const session =
       this.imported ??
@@ -423,7 +449,53 @@ export class SongEditorStore {
       session.arrangementChanged(from, to);
       return Promise.resolve(true);
     }
-    return this.runOperation(() => this.writeArrangement(session, from, to));
+    if (from === to) return Promise.resolve(true);
+    return this.runOperation(() =>
+      this.writeArrangement(session, {from, to, onApplied}),
+    );
+  }
+
+  /** Persists an applied identity without replaying its rename or its reference rewrites. */
+  retryRename(identity: AppliedRename): Promise<boolean> {
+    if (!this.alive || this.locked) return Promise.resolve(false);
+    if (identity.kind === 'label') {
+      if (
+        this.labels?.access !== 'editable' ||
+        this.labels.revision < identity.revision ||
+        !this.labels.value.labels.some(label => label.name === identity.name)
+      ) {
+        return Promise.resolve(false);
+      }
+    } else {
+      const session = this.sessions.get(identity.songId);
+      if (
+        session === undefined ||
+        session.readOnly ||
+        session.document.revision < identity.revision ||
+        !session.history.snapshot.song.arrangements?.some(
+          item => item.name === identity.name,
+        )
+      ) {
+        return Promise.resolve(false);
+      }
+    }
+    return this.runOperation(async () => {
+      try {
+        const result = await this.api.content.edit({type: 'saves.retry'});
+        if (!result.ok) {
+          this.problem(
+            identity.kind === 'label'
+              ? '이름표 파일 저장 실패'
+              : '구성 파일 저장 실패',
+          );
+        }
+        return result.ok;
+      } catch (cause: unknown) {
+        console.error('Could not persist an applied rename:', cause);
+        this.problem('이름 저장 실패');
+        return false;
+      }
+    });
   }
 
   /**
@@ -469,17 +541,27 @@ export class SongEditorStore {
     this.listeners.clear();
   }
 
-  private editLabels(edit: SettingsEdit): Promise<boolean> {
+  private editLabels(
+    edit: SettingsEdit,
+    onApplied?: RenameApplied,
+  ): Promise<boolean> {
     if (!this.alive || this.locked || this.labels?.access !== 'editable') {
       return Promise.resolve(false);
     }
-    return this.runOperation(() => this.writeLabels(edit));
+    return this.runOperation(() => this.writeLabels(edit, onApplied));
   }
 
   private async writeArrangement(
     session: SongSession,
-    from: string,
-    to: string | undefined,
+    {
+      from,
+      to,
+      onApplied,
+    }: {
+      readonly from: string;
+      readonly to: string | undefined;
+      readonly onApplied?: RenameApplied | undefined;
+    },
   ): Promise<boolean> {
     try {
       const saved = await Promise.all(
@@ -498,8 +580,16 @@ export class SongEditorStore {
         return false;
       }
       const accepted = await this.acceptArrangement(session, from, to);
+      if (accepted && !result.ok && to !== undefined) {
+        onApplied?.({
+          kind: 'arrangement',
+          name: to,
+          songId,
+          revision: session.document.revision,
+        });
+      }
       if (!result.ok) this.problem('구성 파일 저장 실패');
-      return accepted;
+      return accepted && (to === undefined || result.ok);
     } catch (error) {
       console.error('Arrangement edit failed', error);
       session.blocked = true;
@@ -557,7 +647,10 @@ export class SongEditorStore {
     return this.operation;
   }
 
-  private async writeLabels(edit: SettingsEdit): Promise<boolean> {
+  private async writeLabels(
+    edit: SettingsEdit,
+    onApplied?: RenameApplied,
+  ): Promise<boolean> {
     try {
       if (edit.type === 'labels.rename') {
         const saved = await Promise.all(
@@ -577,8 +670,20 @@ export class SongEditorStore {
         this.renamedSongs.clear();
       }
       await this.readLabels();
+      if (
+        !result.ok &&
+        result.error.reason === 'write-failed' &&
+        edit.type === 'labels.rename' &&
+        this.labels !== null
+      ) {
+        onApplied?.({
+          kind: 'label',
+          name: edit.to,
+          revision: result.error.applied.revision ?? this.labels.revision,
+        });
+      }
       if (!result.ok) this.problem('이름표 파일 저장 실패');
-      return true;
+      return result.ok || edit.type !== 'labels.rename';
     } catch {
       this.problem('이름표 변경 실패');
       return false;

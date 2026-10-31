@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import {useState} from 'react';
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
 import {Menu, type MenuAnchor} from './Menu';
 import {
   contextMenuAnchor,
@@ -116,3 +116,56 @@ it('keeps a shared target marked until all its menus release it', () => {
   releaseNext();
   expect(target.hasAttribute('data-menu-target')).toBe(false);
 });
+
+it.each([
+  {key: 'ContextMenu', isComposing: true},
+  {key: 'F10', shiftKey: true, isComposing: true},
+  {key: 'ContextMenu', ctrlKey: true},
+  {key: 'ContextMenu', altKey: true},
+  {key: 'ContextMenu', metaKey: true},
+  {key: 'ContextMenu', shiftKey: true},
+  {key: 'F10', shiftKey: true, ctrlKey: true},
+  {key: 'F10', shiftKey: true, altKey: true},
+  {key: 'F10', shiftKey: true, metaKey: true},
+  {key: 'F10'},
+])('leaves IME and modified context keys to their owner: %j', keys => {
+  render(<Harness />);
+  fireEvent.keyDown(screen.getByRole('button', {name: '첫 대상'}), keys);
+  expect(screen.queryByRole('menu')).toBeNull();
+});
+
+it.each(['input', 'textarea', 'editable'])(
+  'does not open a surface menu from its %s editor',
+  kind => {
+    const open = vi.fn();
+    render(
+      <div
+        onKeyDown={event => {
+          if (isContextMenuKey(event)) open();
+        }}
+      >
+        {kind === 'input' ? (
+          <input aria-label="입력" />
+        ) : kind === 'textarea' ? (
+          <textarea aria-label="입력" />
+        ) : (
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            role="textbox"
+            aria-label="입력"
+          >
+            <span>한글</span>
+          </div>
+        )}
+      </div>,
+    );
+    const target =
+      kind === 'editable'
+        ? screen.getByText('한글')
+        : screen.getByRole('textbox');
+    fireEvent.keyDown(target, {key: 'ContextMenu'});
+    fireEvent.keyDown(target, {key: 'F10', shiftKey: true});
+    expect(open).not.toHaveBeenCalled();
+  },
+);

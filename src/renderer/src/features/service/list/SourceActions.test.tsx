@@ -208,7 +208,7 @@ describe('the service source menu', () => {
     if (field === undefined) throw new Error('No name field');
     expect(field).toHaveProperty('value', '주일 예배');
     const rename = screen.getByRole('button', {name: '바꾸기'});
-    expect(rename.getAttribute('aria-disabled')).toBe('true');
+    expect(rename.getAttribute('aria-disabled')).not.toBe('true');
     await userEvent.clear(field);
     await userEvent.type(field, ' 저녁 예배 ');
     await userEvent.click(rename);

@@ -1,4 +1,4 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
@@ -178,8 +178,7 @@ export function MessageEditing({
         }}
         onKeyDown={event => {
           if (
-            (event.key === 'ContextMenu' ||
-              (event.shiftKey && event.key === 'F10')) &&
+            isContextMenuKey(event) &&
             openMenu(event.target, {
               kind: 'element',
               target: contextMenuTarget(event),

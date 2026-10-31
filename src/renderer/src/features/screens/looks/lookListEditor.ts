@@ -102,14 +102,17 @@ export class LookListEditor {
     edit: LyricStyleListEdit,
   ): Promise<Result<boolean, LyricStyleListProblem>> {
     let problem: LyricStyleListProblem | undefined;
-    const applied = await this.documents.change(value => {
-      const result = editLyricStyleList(value, edit);
-      if (!result.ok) {
-        problem = result.error;
-        return value;
-      }
-      return result.value;
-    });
+    const applied = await this.documents.change(
+      value => {
+        const result = editLyricStyleList(value, edit);
+        if (!result.ok) {
+          problem = result.error;
+          return value;
+        }
+        return result.value;
+      },
+      edit.kind === 'rename' ? 'saved' : 'applied',
+    );
     return problem === undefined
       ? {ok: true, value: applied}
       : {ok: false, error: problem};
@@ -117,14 +120,17 @@ export class LookListEditor {
 
   async change(edit: LookListEdit): Promise<Result<boolean, LookListProblem>> {
     let problem: LookListProblem | undefined;
-    const applied = await this.documents.change(value => {
-      const result = editLookList(value, edit, this.context());
-      if (!result.ok) {
-        problem = result.error;
-        return undefined;
-      }
-      return result.value;
-    });
+    const applied = await this.documents.change(
+      value => {
+        const result = editLookList(value, edit, this.context());
+        if (!result.ok) {
+          problem = result.error;
+          return undefined;
+        }
+        return result.value;
+      },
+      edit.kind === 'rename' ? 'saved' : 'applied',
+    );
     return problem === undefined
       ? {ok: true, value: applied}
       : {ok: false, error: problem};

@@ -70,7 +70,7 @@ describe('global arrangement edits', () => {
     expect(store.getSnapshot().busy).toBe(false);
   });
 
-  it('accepts an applied write failure and reports persistence trouble', async () => {
+  it('maps an applied rename but reports unsuccessful persistence', async () => {
     const {api, store, session, problem} = setup();
     const edit = api.content.edit;
     vi.spyOn(api.content, 'edit').mockImplementationOnce(async command => {
@@ -86,7 +86,7 @@ describe('global arrangement edits', () => {
         },
       };
     });
-    expect(await store.renameArrangement('주일용', '저녁용')).toBe(true);
+    expect(await store.renameArrangement('주일용', '저녁용')).toBe(false);
     expect(session.history.snapshot.song.arrangements?.[0]?.name).toBe(
       '저녁용',
     );

@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useMemo,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {useMemo, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {StageLayout} from '@core/schema/stageLayouts';
 import {referencedStageLayouts} from '@core/looks/stageLayoutReferences';
 import {useLive} from '@renderer/session/live';
@@ -67,7 +61,6 @@ export function StagePanel({
   const [deleting, setDeleting] = useState<{id: string; name: string} | null>(
     null,
   );
-  const pendingRename = useRef<string | null>(null);
   const mounted = useRef(false);
   useLayoutEffect(() => {
     mounted.current = true;
@@ -75,15 +68,11 @@ export function StagePanel({
       mounted.current = false;
     };
   }, []);
-  // NOTE(0913vision): Mount the field after Menu's passive focus restoration.
-  useEffect(() => {
-    if (menu !== null || pendingRename.current === null) return;
-    const id = pendingRename.current;
-    pendingRename.current = null;
+  const renameAfterMenu = useMenuHandoff<string>(menu !== null, id => {
     if (!items.some(layout => layout.id === id)) return;
     select('stage', id);
     setRenaming(id);
-  }, [menu, items, select]);
+  });
   const addLayout = (source?: StageLayout): void => {
     const before = useScreensSelection.getState().selection;
     run(
@@ -162,11 +151,15 @@ export function StagePanel({
                           ? undefined
                           : NAME_PROBLEMS[problem];
                       },
-                      onCommit: name => {
-                        setRenaming(null);
-                        run(editor => editor.renameLayout(renaming, name));
-                      },
-                      onCancel: () => setRenaming(null),
+                      onCommit: name =>
+                        new Promise<boolean>(resolve => {
+                          run(
+                            editor => editor.renameLayout(renaming, name),
+                            resolve,
+                            () => resolve(false),
+                          );
+                        }),
+                      onClose: () => setRenaming(null),
                     },
                   }
             }
@@ -189,7 +182,7 @@ export function StagePanel({
             rename: {
               reason,
               run: () => {
-                pendingRename.current = target.id;
+                renameAfterMenu(target.id);
               },
             },
             remove: {

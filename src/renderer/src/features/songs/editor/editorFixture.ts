@@ -178,6 +178,9 @@ export function editorFixture() {
       edit: async edit => {
         await Promise.resolve();
         edits.push(edit);
+        if (edit.type === 'saves.retry') {
+          return {ok: true, value: {id: 'saves', revision: null}};
+        }
         if (
           edit.type === 'song.arrangement.rename' ||
           edit.type === 'song.arrangement.delete'

@@ -113,7 +113,7 @@ export class ScreenEditor {
         ...value,
         screens: changeScreen(value.screens, screenId, {name: name.trim()}),
       };
-    });
+    }, 'saved');
     return problem === undefined
       ? {ok: true, value: saved}
       : {ok: false, error: problem};

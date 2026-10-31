@@ -1,4 +1,5 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {useState, type JSX} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {
@@ -50,15 +51,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     readonly id: string;
     readonly anchor: MenuAnchor;
   } | null>(null);
-  const pendingRename = useRef<string | null>(null);
-  // NOTE(0913vision): Let Menu's passive cleanup restore its opener before
-  // mounting the auto-focused field, whose blur would otherwise commit it.
-  useEffect(() => {
-    if (menu !== null || pendingRename.current === null) return;
-    const id = pendingRename.current;
-    pendingRename.current = null;
-    setRenaming(id);
-  }, [menu]);
+  const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const [deleting, setDeleting] = useState<string | null>(null);
   const playlistOf = (id: string | null) =>
     id === null ? null : chosenPlaylist(view.document, {kind, id});
@@ -67,14 +60,12 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     renaming === id
       ? {
           onCommit: name => {
-            setRenaming(null);
             const playlist = playlistOf(id);
-            if (playlist === null) return;
-            library.renamePlaylist(playlist, name).catch((cause: unknown) => {
-              console.error('Renaming a playlist failed:', cause);
-            });
+            return playlist === null
+              ? false
+              : library.renamePlaylist(playlist, name);
           },
-          onCancel: () => setRenaming(null),
+          onClose: () => setRenaming(null),
         }
       : undefined;
   const onContextMenu = (event: ContextMenuEvent): void => {
@@ -104,7 +95,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
               return {
                 ...entry,
                 onSelect: () => {
-                  pendingRename.current = menu.id;
+                  renameAfterMenu(menu.id);
                   setMenu(null);
                 },
               };

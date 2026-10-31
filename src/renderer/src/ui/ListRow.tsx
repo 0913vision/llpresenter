@@ -16,12 +16,12 @@ import {
 import {classNames} from './classNames';
 import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
-import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
 import {pressHandler, useButtonPress} from './press';
 import {LiveBadge} from './StatusMarks';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TextField} from './TextField';
+import {useRenameDraft, type RenameContract} from './useRenameDraft';
 import {TruncatedText} from './TruncatedText';
 import type {Workspace} from './workspace';
 import styles from './ListRow.module.css';
@@ -218,14 +218,7 @@ export function ListBox({
   );
 }
 
-export interface GroupRename {
-  /** Returns a draft's validation reason; invalid drafts stay open. */
-  readonly validate?: ((value: string) => string | undefined) | undefined;
-  /** Saves the typed name; Enter and leaving the field both ask for it. */
-  readonly onCommit: (name: string) => void;
-  /** Esc leaves the old name as it was. */
-  readonly onCancel: () => void;
-}
+export type GroupRename = RenameContract;
 
 export interface ListRowProps {
   /** The value the list reports when this row is selected. */
@@ -444,33 +437,6 @@ export function ListActionRow({
   );
 }
 
-const FIELD_COMMAND_CODES: ReadonlySet<string> = new Set([
-  'KeyA',
-  'KeyC',
-  'KeyV',
-  'KeyX',
-  'KeyZ',
-  'KeyY',
-  'Backspace',
-  'Delete',
-  'Home',
-  'End',
-  'ArrowLeft',
-  'ArrowRight',
-]);
-const FUNCTION_KEY = /^F\d{1,2}$/;
-
-// NOTE(0913vision): The field keeps the keys that edit text or move its
-// caret; other commands, such as Ctrl L and the F keys, still reach the
-// window shortcuts.
-function ownsFieldKey(event: KeyboardEvent): boolean {
-  if (FUNCTION_KEY.test(event.key) || event.altKey) return false;
-  if (event.ctrlKey || event.metaKey) {
-    return FIELD_COMMAND_CODES.has(event.code);
-  }
-  return true;
-}
-
 export function NameField({
   id,
   label,
@@ -480,43 +446,16 @@ export function NameField({
   readonly label: string;
   readonly rename: GroupRename;
 }): JSX.Element {
-  const [value, setValue] = useState(label);
-  const finished = useRef(false);
-  const problem = rename.validate?.(value);
-  const finish = (commit: boolean): void => {
-    if (finished.current) return;
-    if (commit && problem !== undefined) return;
-    finished.current = true;
-    if (commit) rename.onCommit(value);
-    else rename.onCancel();
-  };
+  const draft = useRenameDraft(label, rename);
   return (
     <TextField
+      {...draft.field}
       id={id}
       aria-label={`${label} 이름`}
       className={styles.groupField}
       size="sm"
-      invalid={problem !== undefined}
-      invalidReason={problem}
-      value={value}
       autoFocus
       onFocus={event => event.currentTarget.select()}
-      onChange={setValue}
-      onBlur={() => finish(problem === undefined)}
-      onKeyDown={event => {
-        if (
-          hasModifier(event) &&
-          (event.key === 'Enter' || event.key === 'Escape')
-        ) {
-          return;
-        }
-        if (ownsFieldKey(event)) event.stopPropagation();
-        if (isComposing(event)) return;
-        if (event.key === 'Enter') finish(true);
-        else if (event.key === 'Escape') finish(false);
-        else return;
-        event.preventDefault();
-      }}
     />
   );
 }

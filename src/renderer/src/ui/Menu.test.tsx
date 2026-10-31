@@ -24,37 +24,55 @@ afterEach(resetTooltips);
 const SUBMENU_DELAY_MS = 150;
 const SUBMENU_GRACE_MS = 300;
 
-it('commits an inline name before an outside click closes the menu', async () => {
-  const commit = vi.fn();
-  const close = vi.fn(() =>
-    expect(commit).toHaveBeenCalledExactlyOnceWith('바뀐 예배'),
-  );
-  render(
-    <Menu
-      label="목록"
-      anchor={{kind: 'point', point: {x: 20, y: 20}}}
-      onClose={close}
-      entries={[
-        {
-          kind: 'item',
-          id: 'name',
-          label: '예배',
-          rename: {
-            onCommit: commit,
-            onCancel: vi.fn(),
+it('retains an outside-blurred rename through a refused save and closes only after success', async () => {
+  let finish: (saved: boolean) => void = () => undefined;
+  const commit = vi
+    .fn()
+    .mockImplementationOnce(
+      () =>
+        new Promise<boolean>(resolve => {
+          finish = resolve;
+        }),
+    )
+    .mockResolvedValueOnce(true);
+  const close = vi.fn();
+  function RenameMenu() {
+    const [editing, setEditing] = useState(true);
+    return (
+      <Menu
+        label="목록"
+        anchor={{kind: 'point', point: {x: 20, y: 20}}}
+        onClose={close}
+        entries={[
+          {
+            kind: 'item',
+            id: 'name',
+            label: '예배',
+            rename: editing
+              ? {
+                  onCommit: commit,
+                  onClose: () => setEditing(false),
+                }
+              : undefined,
           },
-        },
-      ]}
-    />,
-  );
-  fireEvent.change(screen.getByRole('textbox', {name: '예배 이름'}), {
-    target: {value: '바뀐 예배'},
-  });
+        ]}
+      />
+    );
+  }
+  render(<RenameMenu />);
+  const field = screen.getByRole('textbox', {name: '예배 이름'});
+  fireEvent.change(field, {target: {value: '바뀐 예배'}});
   const catcher = document.querySelector(
     '[data-llp-layer="popover"] > div > div',
   );
-  if (!catcher) throw new Error('Missing menu catcher');
+  if (!catcher) throw Error('Missing menu catcher');
   await userEvent.pointer({keys: '[MouseLeft>]', target: catcher});
+  expect(commit).toHaveBeenCalledExactlyOnceWith('바뀐 예배');
+  expect(close).not.toHaveBeenCalled();
+  await act(async () => finish(false));
+  expect(screen.getByDisplayValue('바뀐 예배')).toBe(field);
+  expect(close).not.toHaveBeenCalled();
+  await userEvent.keyboard('{Enter}');
   expect(close).toHaveBeenCalledExactlyOnceWith('outside');
 });
 
@@ -81,9 +99,9 @@ it.each(['command', 'date'])(
                 ? {
                     onCommit: name => {
                       commit(name);
-                      setEditing(false);
+                      return true;
                     },
-                    onCancel: () => setEditing(false),
+                    onClose: () => setEditing(false),
                   }
                 : undefined,
             },

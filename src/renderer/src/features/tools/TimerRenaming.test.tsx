@@ -39,7 +39,7 @@ const open = async () => {
   fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
 };
 
-it('renames by ID, closes an applied disk warning and keeps the current run unchanged', async () => {
+it('renames by ID, retains an unsaved draft and keeps the current run unchanged', async () => {
   const f = setup();
   const notice = vi.fn();
   f.live({
@@ -73,7 +73,15 @@ it('renames by ID, closes an applied disk warning and keeps the current run unch
     target: {value: ' 설교 '},
   });
   fireEvent.click(screen.getByRole('button', {name: '저장'}));
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await waitFor(() =>
+    expect(
+      screen.getByRole('textbox', {name: '이름'}).getAttribute('aria-invalid'),
+    ).toBe('true'),
+  );
+  expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
+    'value',
+    ' 설교 ',
+  );
   expect(f.edit).toHaveBeenCalledExactlyOnceWith({
     type: 'timer.rename',
     name: 'timers',
@@ -90,7 +98,7 @@ it('renames by ID, closes an applied disk warning and keeps the current run unch
   );
 });
 
-it('blocks empty and unchanged names, cancels, and leaves a refused rename open', async () => {
+it('closes an unchanged name without saving and leaves a refused rename open', async () => {
   const f = setup();
   f.edit.mockResolvedValue({
     ok: false,
@@ -101,18 +109,20 @@ it('blocks empty and unchanged names, cancels, and leaves a refused rename open'
   const save = screen.getByRole('button', {name: '저장'});
   fireEvent.click(save);
   expect(f.edit).not.toHaveBeenCalled();
+  expect(screen.queryByRole('dialog')).toBeNull();
+  await open();
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '  '},
   });
   expect(
     screen.getByRole('textbox', {name: '이름'}).getAttribute('aria-invalid'),
   ).toBe('true');
-  fireEvent.click(save);
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
   expect(f.edit).not.toHaveBeenCalled();
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '설교'},
   });
-  fireEvent.click(save);
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
   await waitFor(() => expect(f.log).toHaveBeenCalledOnce());
   expect(screen.getByRole('dialog')).toBeDefined();
   fireEvent.click(screen.getByRole('button', {name: '취소'}));

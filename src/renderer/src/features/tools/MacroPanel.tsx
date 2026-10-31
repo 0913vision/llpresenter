@@ -1,3 +1,5 @@
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useContext, useEffect, useRef, useState, type JSX} from 'react';
 import {parseMacroCollectionId, parseMacroId} from '@core/schema/ids';
 import {freeName} from '@core/common/freeName';
@@ -51,50 +53,6 @@ type Editor =
     }
   | {kind: 'rename'; item: Macro}
   | {kind: 'delete'; item: Macro; uses: number | null; failed: boolean};
-
-function RenameDialog({
-  item,
-  locked,
-  close,
-  save,
-}: {
-  readonly item: Macro;
-  readonly locked: boolean;
-  readonly close: () => void;
-  readonly save: (name: string) => void;
-}): JSX.Element {
-  const [name, setName] = useState(item.name);
-  const reason = !name.trim()
-    ? '이름을 입력하세요'
-    : name.trim().length > 256
-      ? '이름이 너무 깁니다'
-      : undefined;
-  return (
-    <Dialog
-      title="매크로 이름 바꾸기"
-      size="s"
-      onCancel={close}
-      primary={{
-        label: '저장',
-        disabled: locked || reason !== undefined,
-        title: reason,
-        onSelect: () => save(name),
-      }}
-    >
-      <TextField
-        aria-label="이름"
-        autoFocus
-        block
-        maxLength={256}
-        value={name}
-        onChange={setName}
-        readOnly={locked}
-        invalid={reason !== undefined}
-        invalidReason={reason}
-      />
-    </Dialog>
-  );
-}
 
 function CollectionDialog({
   locked,
@@ -223,6 +181,9 @@ export function MacroPanel({
     trigger: HTMLElement | undefined;
   } | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const renameAfterMenu = useMenuHandoff<Macro>(menu !== null, item =>
+    setEditor({kind: 'rename', item}),
+  );
   const [collectionDialog, setCollectionDialog] = useState<{
     kind: 'delete';
     item: MacroCollection;
@@ -382,7 +343,7 @@ export function MacroPanel({
     commit({kind: 'membership', id: item.id, collection, member}, after);
   };
   const menuHandlers = (item: Macro): MacroMenuHandlers => ({
-    rename: () => setEditor({kind: 'rename', item}),
+    rename: () => renameAfterMenu(item),
     changeIcon: () => setEditor({kind: 'icon', item}),
     changeColor: () => {
       if (menu?.trigger) setEditor({kind: 'color', item, anchor: menu.trigger});
@@ -666,12 +627,20 @@ export function MacroPanel({
       {editor?.kind === 'rename' ? (
         <RenameDialog
           key={editor.item.id}
-          item={editor.item}
+          name={editor.item.name}
+          title="매크로 이름 바꾸기"
           locked={locked}
-          close={close}
-          save={name =>
-            commit({kind: 'update', id: editor.item.id, changes: {name}}, close)
-          }
+          maxLength={256}
+          rename={{
+            onClose: close,
+            validate: name =>
+              name.length > 256 ? '이름이 너무 깁니다' : undefined,
+            onCommit: name =>
+              run(
+                {kind: 'update', id: editor.item.id, changes: {name}},
+                'saved',
+              ),
+          }}
         />
       ) : null}
       {editor?.kind === 'delete' ? (

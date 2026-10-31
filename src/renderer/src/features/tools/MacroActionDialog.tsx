@@ -1,3 +1,4 @@
+import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import {useState, type JSX} from 'react';
 import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
 import {
@@ -39,9 +40,9 @@ const modes: Partial<
     {value: 'toggle', label: '바꾸기'},
   ],
   timer: [
-    {value: 'start', label: '시작'},
-    {value: 'pause', label: '일시 정지'},
-    {value: 'reset', label: '재설정'},
+    {value: 'start', label: timerCommandLabels.start},
+    {value: 'pause', label: timerCommandLabels.pause},
+    {value: 'reset', label: timerCommandLabels.reset},
   ],
   audio: [
     {value: 'play', label: '재생'},

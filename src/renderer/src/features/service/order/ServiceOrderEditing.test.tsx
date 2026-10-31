@@ -527,6 +527,8 @@ describe('service panel editing', () => {
     const field = await screen.findByRole('textbox', {name: '제목 이름'});
     fireEvent.change(field, {target: {value: '   '}});
     fireEvent.keyDown(field, {key: 'Enter'});
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    fireEvent.blur(field);
     await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull());
     expect(screen.getByText('제목')).toBeDefined();
     expect(api.content.edit).not.toHaveBeenCalled();

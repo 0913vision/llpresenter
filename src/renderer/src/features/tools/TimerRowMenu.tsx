@@ -1,9 +1,11 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
 import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
-import {Dialog, TextField, Menu} from '@renderer/ui';
+import {Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {renameTimer} from './timerRenames';
@@ -22,48 +24,19 @@ function TimerNameDialog({
   readonly save: (name: string) => Promise<boolean>;
   readonly onClose: () => void;
 }): JSX.Element {
-  const [name, setName] = useState(timer.name);
-  const trimmed = name.trim();
-  const reason =
-    trimmed === ''
-      ? '이름을 적어 주세요'
-      : trimmed.length > TIMER_NAME_LIMIT
-        ? '이름이 너무 깁니다'
-        : undefined;
   return (
-    <Dialog
+    <RenameDialog
+      name={timer.name}
       title="타이머 이름 바꾸기"
-      size="s"
-      onCancel={onClose}
-      primary={{
-        label: '저장',
-        disabled: locked || reason !== undefined || trimmed === timer.name,
-        title: reason,
-        onSelect: () => {
-          if (locked || reason !== undefined || trimmed === timer.name) return;
-          save(trimmed)
-            .then(saved => {
-              if (saved) onClose();
-            })
-            .catch((cause: unknown) =>
-              console.error('Timer rename callback failed:', cause),
-            );
-        },
+      locked={locked}
+      maxLength={TIMER_NAME_LIMIT}
+      rename={{
+        onCommit: save,
+        onClose: onClose,
+        validate: name =>
+          name.length > TIMER_NAME_LIMIT ? '이름이 너무 깁니다' : undefined,
       }}
-    >
-      <TextField
-        aria-label="이름"
-        autoFocus
-        block
-        value={name}
-        onChange={setName}
-        maxLength={TIMER_NAME_LIMIT}
-        readOnly={locked}
-        invalid={reason !== undefined}
-        invalidReason={reason}
-        onFocus={event => event.currentTarget.select()}
-      />
-    </Dialog>
+    />
   );
 }
 
@@ -84,6 +57,9 @@ export function TimerRowMenu({
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
+  const renameAfterMenu = useMenuHandoff(menu !== null, () =>
+    setRenaming(true),
+  );
   const editing = useToolEditing({
     api,
     onProblem,
@@ -111,10 +87,7 @@ export function TimerRowMenu({
         });
       }}
       onKeyDown={event => {
-        if (!(
-          event.key === 'ContextMenu' ||
-          (event.shiftKey && event.key === 'F10')
-        )) {
+        if (!isContextMenuKey(event)) {
           return;
         }
         event.preventDefault();
@@ -134,7 +107,7 @@ export function TimerRowMenu({
           onClose={() => setMenu(null)}
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked, editing.busy),
-            rename: () => setRenaming(true),
+            rename: () => renameAfterMenu(true),
             remove: onRemove ? () => onRemove(timer) : undefined,
           })}
         />
@@ -145,12 +118,15 @@ export function TimerRowMenu({
           locked={locked}
           onClose={() => setRenaming(false)}
           save={timerName =>
-            editing.run({
-              type: 'timer.rename',
-              name: 'timers',
-              timerId: timer.id,
-              timerName,
-            })
+            editing.run(
+              {
+                type: 'timer.rename',
+                name: 'timers',
+                timerId: timer.id,
+                timerName,
+              },
+              'saved',
+            )
           }
         />
       ) : null}

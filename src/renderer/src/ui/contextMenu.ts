@@ -34,7 +34,7 @@ export function markMenuTarget(target: HTMLElement): () => void {
   };
 }
 
-export function isContextMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
+export function isContextMenuKey(event: KeyboardEvent): boolean {
   if (
     event.nativeEvent.isComposing ||
     event.altKey ||

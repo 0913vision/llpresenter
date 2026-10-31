@@ -205,3 +205,26 @@ it('refuses a missing timer and reports a disk warning after applying both names
   expect(f.timerNames()[0]).toBe('설교');
   expect(f.quickNames()[0]).toBe('설교');
 });
+
+it('retries queued files for an already-applied timer name and waits for durability', async () => {
+  const f = fixture();
+  f.write.mockImplementation(async request => ({
+    ok: false,
+    error: {file: request.target.file, message: 'Invented disk failure'},
+  }));
+  expect(await f.save()).toMatchObject({
+    ok: false,
+    error: {reason: 'write-failed'},
+  });
+  const before = f.snapshot();
+  const firstWrites = f.write.mock.calls.length;
+  expect(await f.save()).toMatchObject({
+    ok: false,
+    error: {reason: 'write-failed'},
+  });
+  expect(f.write.mock.calls.length).toBe(firstWrites + 2);
+  f.write.mockResolvedValue({ok: true, value: undefined});
+  expect(await f.save()).toMatchObject({ok: true});
+  expect(f.write.mock.calls.length).toBe(firstWrites + 4);
+  expect(f.snapshot()).toEqual(before);
+});

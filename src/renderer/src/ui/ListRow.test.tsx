@@ -484,10 +484,10 @@ describe('ListSlot and ListDragGhost', () => {
 
 describe('ListGroup rename', () => {
   it('turns the name into a field that saves on Enter and leaving, and cancels on Esc', async () => {
-    const onCommit = vi.fn();
+    const onCommit = vi.fn().mockReturnValue(true);
     const onCancel = vi.fn();
     render(
-      <ListGroup label="찬양" rename={{onCommit, onCancel}}>
+      <ListGroup label="찬양" rename={{onCommit, onClose: onCancel}}>
         <span>rows</span>
       </ListGroup>,
     );
@@ -497,14 +497,14 @@ describe('ListGroup rename', () => {
     expect(onCommit).toHaveBeenCalledExactlyOnceWith('말씀');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledOnce();
-    expect(onCancel).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it('cancels on Esc without saving when the field loses focus afterwards', async () => {
-    const onCommit = vi.fn();
+    const onCommit = vi.fn().mockReturnValue(true);
     const onCancel = vi.fn();
     render(
-      <ListGroup label="찬양" rename={{onCommit, onCancel}}>
+      <ListGroup label="찬양" rename={{onCommit, onClose: onCancel}}>
         <span>rows</span>
       </ListGroup>,
     );
@@ -516,10 +516,17 @@ describe('ListGroup rename', () => {
 });
 
 describe('ListRow rename', () => {
-  function renameRow(onCommit = vi.fn(), onCancel = vi.fn()) {
+  function renameRow(
+    onCommit = vi.fn().mockReturnValue(true),
+    onCancel = vi.fn(),
+  ) {
     render(
       <ListBox label="Playlists" selected={undefined} onSelect={vi.fn()}>
-        <ListRow value="a" title="Old name" rename={{onCommit, onCancel}} />
+        <ListRow
+          value="a"
+          title="Old name"
+          rename={{onCommit, onClose: onCancel}}
+        />
       </ListBox>,
     );
     return {
@@ -543,7 +550,8 @@ describe('ListRow rename', () => {
     expect(onCommit).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
     fireEvent.keyDown(field, {key: 'Enter'});
-    expect(onCommit).toHaveBeenCalledOnce();
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it('saves the typed name on Enter, once', () => {

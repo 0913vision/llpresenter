@@ -115,7 +115,7 @@ async function send(
     throw new Error('Macro settings cannot be edited');
   }
   const value = apply(document.value, edit);
-  if (value === document.value) {
+  if (value === document.value && edit.kind !== 'rename') {
     return {ok: true, value: {id: 'macros', revision: document.revision}};
   }
   const result = await api.settings.edit({

@@ -1,3 +1,4 @@
+import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import {memo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
@@ -81,7 +82,7 @@ export const TimerRow = memo(
                   })
                 }
               >
-                {running ? '일시 정지' : '시작'}
+                {running ? timerCommandLabels.pause : timerCommandLabels.start}
               </Button>
               <Button
                 disabled={run === undefined}
@@ -90,7 +91,7 @@ export const TimerRow = memo(
                   api.live.send({type: 'timer.reset', timerId: timer.id})
                 }
               >
-                처음으로
+                {timerCommandLabels.reset}
               </Button>
             </div>
           )}

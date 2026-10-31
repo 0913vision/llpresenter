@@ -57,9 +57,13 @@ export function useStageEditor(
   return <T>(
     action: (editor: StageEditor) => Promise<T>,
     completed?: (value: T) => void,
+    failed?: () => void,
   ): void => {
     const session = reference.current;
-    if (session === null) return;
+    if (session === null) {
+      failed?.();
+      return;
+    }
     action(session.editor)
       .then(value => completed?.(value))
       .catch((cause: unknown) => {
@@ -69,6 +73,7 @@ export function useStageEditor(
           detail: cause instanceof Error ? cause.message : String(cause),
         });
         session.report();
+        failed?.();
       });
   };
 }

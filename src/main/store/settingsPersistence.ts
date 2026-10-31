@@ -1,6 +1,10 @@
 import type {Logger} from '../log';
 import {Autosave} from './autosave';
-import {ContentPersistence, type DocumentFiles} from './contentPersistence';
+import {
+  ContentPersistence,
+  type DocumentFiles,
+  type PersistedFile,
+} from './contentPersistence';
 import type {WriteResult} from './fileWriter';
 import type {SaveRequest} from './saver';
 
@@ -48,8 +52,13 @@ export class SettingsPersistence {
   }
 
   async flush(): Promise<void> {
+    await this.retryPending();
+  }
+
+  /** Flushes accepted edits and returns each queued retry's write result. */
+  async retryPending(): Promise<readonly PersistedFile[]> {
     await this.savePending();
-    await this.persistence.flush();
+    return this.persistence.retryPending();
   }
 
   /** Starts accepted writes immediately and leaves failed writes queued for a later retry. */

@@ -225,7 +225,7 @@ describe('TileList', () => {
     expect(keys).toHaveBeenCalledTimes(3);
     expect(onMenu).not.toHaveBeenCalled();
     fireEvent.keyDown(target, {key: 'ContextMenu', ctrlKey: true});
-    expect(onMenu).toHaveBeenCalledOnce();
+    expect(onMenu).not.toHaveBeenCalled();
   });
 
   it('opens the menu at the tile with Shift F10 and the Menu key', async () => {

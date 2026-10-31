@@ -1,4 +1,6 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {QuickItem} from '@core/schema/quick';
@@ -7,13 +9,7 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor, isLibrarySource} from '@renderer/session/showLibrary';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {
-  Dialog,
-  IconButton,
-  Menu,
-  TextField,
-  ListInsertLine,
-} from '@renderer/ui';
+import {IconButton, Menu, ListInsertLine} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -28,7 +24,10 @@ import {
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 
-type Save = (edit: QuickEdit) => Promise<boolean>;
+type Save = (
+  edit: QuickEdit,
+  completion?: 'applied' | 'saved',
+) => Promise<boolean>;
 
 async function currentChoice(api: LlpApi): Promise<QuickChoice | null> {
   const view = useShow.getState();
@@ -268,13 +267,14 @@ export function QuickRowEditor({
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
-  const [name, setName] = useState(item.name);
+  const renameAfterMenu = useMenuHandoff(menu !== null, () =>
+    setRenaming(true),
+  );
   useEffect(() => {
     if (!menu && !renaming) return undefined;
     onPinChange?.(item.id, true);
     return () => onPinChange?.(item.id, false);
   }, [item.id, menu, renaming, onPinChange]);
-  const reason = quickNameReason(name);
   return (
     <div
       data-quick-id={item.id}
@@ -287,10 +287,7 @@ export function QuickRowEditor({
         });
       }}
       onKeyDown={event => {
-        if (!(
-          event.key === 'ContextMenu' ||
-          (event.shiftKey && event.key === 'F10')
-        )) {
+        if (!isContextMenuKey(event)) {
           return;
         }
         event.preventDefault();
@@ -312,8 +309,7 @@ export function QuickRowEditor({
           entries={quickItemMenuEntries({
             reason: toolMenuReason(locked),
             rename: () => {
-              setName(item.name);
-              setRenaming(true);
+              renameAfterMenu(true);
             },
             remove: () => {
               save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
@@ -324,38 +320,18 @@ export function QuickRowEditor({
         />
       ) : null}
       {renaming ? (
-        <Dialog
+        <RenameDialog
           title="퀵 실행 이름 바꾸기"
-          size="s"
-          onCancel={() => setRenaming(false)}
-          primary={{
-            label: '저장',
-            disabled: locked || reason !== undefined,
-            title: reason,
-            onSelect: () => {
-              save({kind: 'rename', id: item.id, name})
-                .then(saved => {
-                  if (saved) setRenaming(false);
-                })
-                .catch((cause: unknown) =>
-                  console.error('Quick rename callback failed:', cause),
-                );
-            },
+          name={item.name}
+          locked={locked}
+          maxLength={QUICK_NAME_LIMIT}
+          rename={{
+            validate: quickNameReason,
+            onClose: () => setRenaming(false),
+            onCommit: name =>
+              save({kind: 'rename', id: item.id, name}, 'saved'),
           }}
-        >
-          <TextField
-            aria-label="이름"
-            block
-            autoFocus
-            value={name}
-            onChange={setName}
-            maxLength={QUICK_NAME_LIMIT}
-            readOnly={locked}
-            invalid={reason !== undefined}
-            invalidReason={reason}
-            onFocus={event => event.currentTarget.select()}
-          />
-        </Dialog>
+        />
       ) : null}
     </div>
   );

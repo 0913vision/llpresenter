@@ -39,6 +39,38 @@ function document(collections: readonly object[] = [], revision = 1) {
 const collection = document([raw]).value.collections[0];
 if (!collection) throw new Error('Missing fixture');
 
+it('writes an already-applied collection rename again at its current revision', async () => {
+  const current = document([{...raw, name: '새 이름'}], 2);
+  const edit = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented disk failure',
+        applied: {id: 'macros', revision: 3},
+        unchangedFiles: ['macros.json'],
+      },
+    })
+    .mockResolvedValueOnce({ok: true, value: {id: 'macros', revision: 4}});
+  const get = vi
+    .fn()
+    .mockResolvedValueOnce(current)
+    .mockResolvedValueOnce({...current, revision: 3});
+  const api = mockLlpApi({settings: {get, edit}});
+  const rename = {kind: 'rename' as const, id: collection.id, name: '새 이름'};
+  expect(await saveMacroCollectionEdit(api, rename)).toMatchObject({ok: false});
+  expect(await saveMacroCollectionEdit(api, rename)).toMatchObject({ok: true});
+  expect(edit).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({baseRevision: 2}),
+  );
+  expect(edit).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({baseRevision: 3}),
+  );
+});
+
 it('adds, renames and deletes a collection without deleting macros or unknown fields', async () => {
   const old = document([raw]);
   const get = vi.fn().mockResolvedValueOnce(document()).mockResolvedValue(old);

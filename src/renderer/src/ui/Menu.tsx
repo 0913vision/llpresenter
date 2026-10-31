@@ -373,9 +373,11 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const isRenameTarget = (target: EventTarget): boolean =>
     target instanceof Element && target.closest('[data-renaming]') !== null;
   const commitRename = (): void => {
-    surface.current
-      ?.querySelector<HTMLElement>('[data-renaming] input')
-      ?.blur();
+    const field = surface.current?.querySelector<HTMLElement>(
+      '[data-renaming] input',
+    );
+    field?.blur();
+    field?.focus();
   };
   const consumeClick = (event: MouseEvent<HTMLDivElement>): void => {
     if (
@@ -536,6 +538,13 @@ export function Menu({
   footer,
 }: MenuProps): JSX.Element {
   const catcher = useRef<HTMLDivElement>(null);
+  const outsideRename = useRef(false);
+  const renaming = menuItems(entries).some(item => item.rename !== undefined);
+  useEffect(() => {
+    if (!outsideRename.current || renaming) return;
+    outsideRename.current = false;
+    onClose('outside');
+  }, [renaming, onClose]);
   useLayoutEffect(
     () => (anchor.target ? markMenuTarget(anchor.target) : undefined),
     [anchor.target],
@@ -578,11 +587,15 @@ export function Menu({
         className={styles.catcher}
         onPointerDown={event => {
           event.preventDefault();
-          if (
-            document.activeElement instanceof HTMLElement &&
-            document.activeElement.closest('[data-renaming]')
-          ) {
-            document.activeElement.blur();
+          if (renaming) {
+            const field =
+              event.currentTarget.parentElement?.querySelector<HTMLElement>(
+                '[data-renaming] input',
+              );
+            field?.blur();
+            field?.focus();
+            outsideRename.current = true;
+            return;
           }
           onClose('outside');
         }}

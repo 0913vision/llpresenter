@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
+import {useRenameDraft} from '@renderer/ui/useRenameDraft';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
-import {editorTask} from './editorTask';
-import type {SongEditorStore} from './songEditorStore';
+import type {AppliedRename, SongEditorStore} from './songEditorStore';
 
 export const EMPTY_ARRANGEMENT_NAME_REASON =
   '구성 이름을 적어야 저장할 수 있습니다';
@@ -44,39 +44,38 @@ export function ArrangementDialog({
   readonly locked: boolean;
   readonly onClose: () => void;
 }): JSX.Element {
-  const [value, setValue] = useState(name);
-  const reason = arrangementNameReason(value, names, name);
-  const save = async (): Promise<void> => {
-    if (locked || reason !== undefined) return;
-    if (
-      value.trim() === name ||
-      (await store.renameArrangement(name, value.trim()))
-    ) {
-      onClose();
-    }
-  };
+  const [applied, setApplied] = useState<AppliedRename | null>(null);
+  const currentName = applied?.name ?? name;
+  const draft = useRenameDraft(
+    name,
+    {
+      validate: value => arrangementNameReason(value, names, currentName),
+      onCommit: value =>
+        applied !== null && value === applied.name
+          ? store.retryRename(applied)
+          : store.renameArrangement(currentName, value, setApplied),
+      onClose: onClose,
+    },
+    locked,
+  );
   return (
     <Dialog
       title="구성 이름 바꾸기"
       size="s"
-      onCancel={onClose}
+      onCancel={draft.cancel}
       primary={{
         label: '저장',
-        disabled: locked || reason !== undefined,
-        title: reason ?? (locked ? '변경할 수 없는 곡' : undefined),
-        onSelect: () => editorTask(save()),
+        disabled: draft.busy || !draft.valid,
+        title: draft.problem ?? (locked ? '변경할 수 없는 곡' : undefined),
+        onSelect: () => draft.commit(),
       }}
     >
       <TextField
         aria-label="구성 이름"
-        value={value}
-        onChange={setValue}
+        {...draft.field}
         autoFocus
         block
         onFocus={event => event.currentTarget.select()}
-        readOnly={locked}
-        invalid={reason !== undefined}
-        invalidReason={reason}
       />
     </Dialog>
   );

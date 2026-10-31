@@ -346,11 +346,10 @@ function addActionEntries(
         },
         row('look'),
         row('stageLayout'),
-        later(
-          'slide-destination',
-          slideDestination.label,
-          slideDestination.icon,
-        ),
+        laterRow('slide-destination', slideDestination.label, {
+          icon: slideDestination.icon,
+          submenu: true,
+        }),
         row('timer'),
         row('prop'),
         row('message'),
@@ -358,11 +357,20 @@ function addActionEntries(
         row('media'),
         row('audio'),
         row('audioPlaylist'),
-        later('communication', communication.label, communication.icon),
-        later('audio-input', audioInput.label, audioInput.icon),
-        later('video-input', videoInput.label, videoInput.icon),
+        laterRow('communication', communication.label, {
+          icon: communication.icon,
+          submenu: true,
+        }),
+        laterRow('audio-input', audioInput.label, {
+          icon: audioInput.icon,
+          submenu: true,
+        }),
+        laterRow('video-input', videoInput.label, {
+          icon: videoInput.icon,
+          submenu: true,
+        }),
         row('macro'),
-        later('capture', capture.label, capture.icon),
+        laterRow('capture', capture.label, {icon: capture.icon, submenu: true}),
         separator('palette-separator'),
         {
           kind: 'item',

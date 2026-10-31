@@ -1,3 +1,4 @@
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   contextMenuAnchor,
   contextMenuTarget,
@@ -192,10 +193,6 @@ export function ServiceOrderList({
     menu?.serviceId === serviceId && menuRow?.kind === 'song' ? menu : null,
     onProblem,
   );
-  const [pendingRename, setPendingRename] = useState<{
-    readonly id: string;
-    readonly serviceId: string | null;
-  } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [chosenRename, setRenaming] = useState<string | null>(null);
   const requestedRename = useHeaderRename(state => state.requested);
@@ -209,22 +206,18 @@ export function ServiceOrderList({
     clearRenameRequest();
   };
 
-  useEffect(() => {
-    if (menu !== null || pendingRename === null) return;
-    // NOTE(0913vision): Menu restores its opener on cleanup; the field must
-    // take focus after that handoff rather than blur and commit immediately.
-    const handoff = setTimeout(() => {
-      setPendingRename(null);
-      if (
-        pendingRename.serviceId === serviceId &&
-        editable &&
-        rows.some(row => row.id === pendingRename.id && row.kind === 'header')
-      ) {
-        setRenaming(pendingRename.id);
-      }
-    });
-    return () => clearTimeout(handoff);
-  }, [menu, pendingRename, serviceId, editable, rows]);
+  const renameAfterMenu = useMenuHandoff<{
+    id: string;
+    serviceId: string | null;
+  }>(menu !== null, target => {
+    if (
+      target.serviceId === serviceId &&
+      editable &&
+      rows.some(row => row.id === target.id && row.kind === 'header')
+    ) {
+      setRenaming(target.id);
+    }
+  });
 
   useEffect(() => {
     const list = listRef.current;
@@ -260,7 +253,7 @@ export function ServiceOrderList({
             }
           : undefined,
       rename: () => {
-        setPendingRename({id: target.id, serviceId: target.serviceId});
+        renameAfterMenu({id: target.id, serviceId: target.serviceId});
         setMenu(null);
       },
       remove: () => {
@@ -382,17 +375,15 @@ export function ServiceOrderList({
                 rename={
                   renaming === group.id
                     ? {
-                        onCommit: name => {
-                          stopRenaming();
-                          editing.run((edits, id) =>
+                        onCommit: name =>
+                          editing.save((edits, id) =>
                             edits.renameHeader(
                               id,
                               createServiceItemId(group.id),
                               name,
                             ),
-                          );
-                        },
-                        onCancel: stopRenaming,
+                          ),
+                        onClose: stopRenaming,
                       }
                     : undefined
                 }

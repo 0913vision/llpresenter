@@ -1,3 +1,4 @@
+import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import type {MacroActionKind, KnownMacroAction} from '@core/schema/macros';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
@@ -14,9 +15,9 @@ const operations = {
     {value: 'toggle', label: '바꾸기'},
   ],
   timer: [
-    {value: 'start', label: '시작'},
-    {value: 'pause', label: '일시 정지'},
-    {value: 'reset', label: '처음으로'},
+    {value: 'start', label: timerCommandLabels.start},
+    {value: 'pause', label: timerCommandLabels.pause},
+    {value: 'reset', label: timerCommandLabels.reset},
   ],
 } as const;
 

@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
+import {useRenameDraft} from '@renderer/ui/useRenameDraft';
 import type {Label} from '@core/schema/labels';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
-import type {SongEditorStore} from './songEditorStore';
-import {editorTask} from './editorTask';
+import type {AppliedRename, SongEditorStore} from './songEditorStore';
 
 export const EMPTY_LABEL_NAME_REASON =
   '이름표 이름을 적어야 저장할 수 있습니다';
@@ -38,41 +38,43 @@ export function LabelDialog({
   busy,
   onClose,
 }: LabelDialogProps): JSX.Element {
-  const [name, setName] = useState(label.name);
-  const reason = labelNameReason(
-    name,
-    labels.filter(item => item.name !== label.name),
+  const [applied, setApplied] = useState<AppliedRename | null>(null);
+  const currentName = applied?.name ?? label.name;
+  const draft = useRenameDraft(
+    label.name,
+    {
+      validate: name =>
+        labelNameReason(
+          name,
+          labels.filter(item => item.name !== currentName),
+        ),
+      onCommit: name =>
+        applied !== null && name === applied.name
+          ? store.retryRename(applied)
+          : store.renameLabel(currentName, name, setApplied),
+      onClose: onClose,
+    },
+    busy,
   );
-  const unchanged = name.trim() === label.name;
-  const unavailableReason =
-    reason ?? (busy ? '저장 중' : unchanged ? '같은 이름' : undefined);
-  const save = async (): Promise<void> => {
-    if (busy || reason !== undefined || unchanged) return;
-    if (await store.renameLabel(label.name, name.trim())) onClose();
-  };
   return (
     <Dialog
       title="이름표 이름 바꾸기"
       subtitle={{text: label.name}}
       size="s"
-      onCancel={onClose}
+      onCancel={draft.cancel}
       primary={{
         label: '저장',
-        onSelect: () => editorTask(save()),
-        disabled: busy || reason !== undefined || unchanged,
-        title: unavailableReason ?? LABEL_RENAME_SCOPE,
+        onSelect: () => draft.commit(),
+        disabled: draft.busy || !draft.valid,
+        title: draft.problem ?? LABEL_RENAME_SCOPE,
       }}
     >
       <TextField
         aria-label="이름표 이름"
         title={LABEL_RENAME_SCOPE}
-        value={name}
-        onChange={setName}
+        {...draft.field}
         autoFocus
         block
-        readOnly={busy}
-        invalid={reason !== undefined}
-        invalidReason={reason}
       />
     </Dialog>
   );

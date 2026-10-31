@@ -1,4 +1,5 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   useLayoutEffect,
   useRef,
@@ -52,6 +53,7 @@ export function ArrangementRow({
     name: string;
     opener: HTMLElement;
   } | null>(null);
+  const renameAfterMenu = useMenuHandoff(context !== null, setRename);
   const names =
     session.history.snapshot.song.arrangements?.map(item => item.name) ?? [];
   const options = [DEFAULT_ARRANGEMENT_NAME, ...names].map(value => ({
@@ -125,11 +127,7 @@ export function ArrangementRow({
       className={styles.row}
       onContextMenu={manage}
       onKeyDown={event => {
-        if (
-          !isComposing(event) &&
-          (event.key === 'ContextMenu' ||
-            (event.key === 'F10' && event.shiftKey))
-        ) {
+        if (!isComposing(event) && isContextMenuKey(event)) {
           manage(event);
         }
       }}
@@ -182,7 +180,7 @@ export function ArrangementRow({
             reason: menuLocked ? reason : undefined,
             rename: () => {
               if (context.name !== undefined) {
-                setRename({name: context.name, opener: context.opener});
+                renameAfterMenu({name: context.name, opener: context.opener});
               }
               setContext(null);
             },

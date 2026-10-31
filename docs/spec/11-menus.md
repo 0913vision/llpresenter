@@ -174,7 +174,8 @@ lack), Moved, Removed.
 | 2     | 삭제        | Deletes the timer. | Now    |
 
 - Start, pause, and reset stay on the row buttons, as PP keeps them on the timer
-  row.
+  row. The reset command is named 처음으로 on the row, in macro action choices,
+  and in the macro action editor.
 
 ### 메시지 템플릿 오른쪽 클릭
 
@@ -414,7 +415,8 @@ lack), Moved, Removed.
 | Group | Row                                   | Does                                                                 | Status |
 | ----- | ------------------------------------- | -------------------------------------------------------------------- | ------ |
 | 0     | 다시 연결…                            | Only when the file is missing; first row (ours).                     | Now    |
-| 1     | 속성…, 전환 효과…                     | PP Inspector, Transitions.                                           | Off    |
+| 1     | 속성…                                 | Opens the media properties editor (PP Inspector).                    | Now    |
+| 1     | 전환 효과…                            | PP Transitions.                                                      | Off    |
 | 2     | 동작 방식 ›, 크기 맞춤 ›, 알파 종류 › | PP Behavior, Scaling, Alpha Type.                                    | Off    |
 | 3     | 재생 방식 ›, 반복 방식 ›, 끝날 때 ›   | PP Playback, Loop, End Behavior.                                     | Off    |
 | 4     | 다음 큐 ›                             | PP Next Cue.                                                         | Off    |
@@ -427,7 +429,7 @@ lack), Moved, Removed.
 
 - Audio files in a 오디오 playlist follow the PP audio item menu (same video
   0:26): 탐색기에서 보기 (off), 재생 방식 › (off), 효과음으로 지정 (off) | 속성…
-  (off), 이름 바꾸기 (off) | 삭제.
+  (now, opens media properties), 이름 바꾸기 (off) | 삭제.
 
 ### 재생목록 오른쪽 클릭
 

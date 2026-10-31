@@ -49,6 +49,17 @@ function template() {
 }
 
 describe('parseContentEdit', () => {
+  it('accepts a retry of queued saves without taking file paths from the renderer', () => {
+    expect(parseContentEdit({type: 'saves.retry'})).toEqual({
+      ok: true,
+      value: {type: 'saves.retry'},
+    });
+    expect(
+      parseContentEdit({type: 'saves.retry', file: 'C:/data/other.json'}),
+    ).toEqual({ok: true, value: {type: 'saves.retry'}});
+    expect(parseContentEdit({type: 'saves.retry.invalid'}).ok).toBe(false);
+    expect(parseContentEdit({type: null}).ok).toBe(false);
+  });
   it('requires grouped updates and rejects duplicate physical slide hot keys', () => {
     const current = song();
     const {groups: _groups, arrangements: _arrangements, ...header} = current;

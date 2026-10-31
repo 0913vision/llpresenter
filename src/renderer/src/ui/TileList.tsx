@@ -1,4 +1,4 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
   useEffect,
   useLayoutEffect,
@@ -21,8 +21,6 @@ import type {Workspace} from './workspace';
 const TILE = '[role="option"]';
 const SPACE = ' ';
 const ENTER = 'Enter';
-const MENU_KEY = 'ContextMenu';
-const SHIFT_MENU_KEY = 'F10';
 
 /** How each arrow key moves the selection, given the column count. */
 export type TileMoves = Readonly<Record<string, (columns: number) => number>>;
@@ -111,17 +109,6 @@ export interface FocusArrowsProps extends TileListBaseProps {
 }
 
 export type TileListProps = SelectionArrowsProps | FocusArrowsProps;
-
-function isMenuKey(event: KeyboardEvent): boolean {
-  if (event.key === MENU_KEY) return true;
-  return (
-    event.key === SHIFT_MENU_KEY &&
-    event.shiftKey &&
-    !event.ctrlKey &&
-    !event.altKey &&
-    !event.metaKey
-  );
-}
 
 function tilesOf(list: HTMLElement): HTMLElement[] {
   return [...list.querySelectorAll<HTMLElement>(TILE)];
@@ -311,7 +298,7 @@ export function TileList(props: TileListProps): JSX.Element {
   // NOTE(0913vision): Every key the list takes is cancelled on keydown, so the
   // 진행 handler leaves it alone; a Space that the list passes on reaches it.
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (isMenuKey(event)) openMenuFromKey(event);
+    if (isContextMenuKey(event)) openMenuFromKey(event);
     else if (event.key === ENTER) pressOnEnter(event);
     else if (event.key === SPACE) space.onKeyDown(event);
     else moveOnArrow(event);

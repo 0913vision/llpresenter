@@ -96,9 +96,8 @@ export function MenuItemRow({
 }: MenuItemRowProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
   const row = useRef<HTMLDivElement>(null);
-  const finishRename = (name?: string): void => {
-    if (name === undefined) item.rename?.onCancel();
-    else item.rename?.onCommit(name);
+  const finishRename = (): void => {
+    item.rename?.onClose();
     const menu = row.current?.closest<HTMLElement>('[role="menu"]');
     (menu?.querySelector<HTMLElement>('[role="combobox"]') ?? menu)?.focus();
   };
@@ -171,8 +170,7 @@ export function MenuItemRow({
             label={item.label}
             rename={{
               ...item.rename,
-              onCommit: finishRename,
-              onCancel: () => finishRename(),
+              onClose: finishRename,
             }}
           />
         )}

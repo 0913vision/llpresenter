@@ -92,7 +92,11 @@ const serviceEditSchemas = [
 
 const contentEditSchema = v.pipe(
   plainObject,
-  v.variant('type', [...songEditSchemas, ...serviceEditSchemas]),
+  v.variant('type', [
+    ...songEditSchemas,
+    ...serviceEditSchemas,
+    v.object({type: v.literal('saves.retry')}),
+  ]),
 );
 
 export const editSuccessSchema = payloadObject({

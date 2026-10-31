@@ -1,4 +1,4 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
   useRef,
@@ -176,11 +176,7 @@ export function ChoiceRows<T extends Choice>({
               });
             }}
             onKeyDown={event => {
-              if (
-                onMenu === undefined ||
-                (event.key !== 'ContextMenu' &&
-                  !(event.key === 'F10' && event.shiftKey))
-              ) {
+              if (onMenu === undefined || !isContextMenuKey(event)) {
                 return;
               }
               event.preventDefault();

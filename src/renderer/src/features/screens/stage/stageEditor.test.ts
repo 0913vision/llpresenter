@@ -61,9 +61,33 @@ function setup(
   });
   const editor = new StageEditor(api, report);
   editor.adopt({...value, access});
-  return {editor, edits, value, report, log};
+  return {editor, edits, value, report, log, api};
 }
 describe('stage document edits', () => {
+  it('persists an already-applied layout rename before accepting its retry', async () => {
+    const {editor, api} = setup();
+    const edit = vi
+      .spyOn(api.settings, 'edit')
+      .mockResolvedValueOnce({
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: 'Invented disk failure',
+          applied: {id: 'stage-layouts', revision: 2},
+          unchangedFiles: ['stage.json'],
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {id: 'stage-layouts', revision: 3},
+      });
+    expect(await editor.renameLayout(LAYOUT_ID, 'Renamed')).toBe(false);
+    expect(await editor.renameLayout(LAYOUT_ID, 'Renamed')).toBe(true);
+    expect(edit).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({baseRevision: 2}),
+    );
+  });
   it('removes a layout against the newest queued document and returns its neighbour', async () => {
     const {editor, edits, value} = setup('editable', 2);
     const second = value.value.layouts[1]?.id;
@@ -134,7 +158,7 @@ describe('stage document edits', () => {
       name: 'Renamed',
       future: 'layout',
     });
-    expect(await editor.renameLayout(LAYOUT_ID, 'Renamed')).toBe(false);
+    expect(await editor.renameLayout(LAYOUT_ID, 'Renamed')).toBe(true);
     expect(await editor.renameLayout(LAYOUT_ID, ' ')).toBe(false);
     expect(await editor.renameLayout('missing', 'Name')).toBe(false);
     expect(await editor.duplicate('missing')).toBeNull();

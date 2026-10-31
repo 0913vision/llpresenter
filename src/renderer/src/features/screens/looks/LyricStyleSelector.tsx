@@ -1,14 +1,13 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
-import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
+import {RenameField} from '@renderer/ui/RenameField';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {Result} from '@core/common/result';
 import {parseLyricStyleId, type LyricStyleId} from '@core/schema/ids';
 import type {LooksFile, LyricStyle} from '@core/schema/looks';
 import {IconButton} from '@renderer/ui/IconButton';
 import {type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {TextField} from '@renderer/ui/TextField';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
 import {nameProblem} from '@core/screens/screenEdits';
 import {LyricStyleContextMenu} from '../SettingsContextMenus';
 import {
@@ -27,46 +26,6 @@ const PROBLEMS: Readonly<Record<LyricStyleListProblem, string>> = {
   empty: '이름이 비어 있음',
   taken: '같은 이름의 가사 스타일이 있음',
 };
-
-function Rename({
-  style,
-  looks,
-  onFinish,
-}: {
-  readonly style: LyricStyle;
-  readonly looks: LooksFile;
-  readonly onFinish: (name: string | null) => void;
-}): JSX.Element {
-  const [draft, setDraft] = useState(style.name);
-  const finished = useRef(false);
-  const problem = nameProblem(draft, looks.lyricStyles, style.id);
-  const finish = (commit: boolean): void => {
-    if (finished.current) return;
-    if (commit && problem !== undefined) return;
-    finished.current = true;
-    onFinish(commit && problem === undefined ? draft.trim() : null);
-  };
-  return (
-    <TextField
-      aria-label="스타일 이름"
-      value={draft}
-      onChange={setDraft}
-      autoFocus
-      onFocus={event => event.currentTarget.select()}
-      invalid={problem !== undefined}
-      invalidReason={problem === undefined ? undefined : PROBLEMS[problem]}
-      onBlur={() => finish(problem === undefined)}
-      onKeyDown={event => {
-        if (isComposing(event) || hasModifier(event)) return;
-        if (event.key === 'Enter' || event.key === 'Escape') {
-          event.preventDefault();
-          event.stopPropagation();
-          finish(event.key === 'Enter');
-        }
-      }}
-    />
-  );
-}
 
 /** Selects shared presets and exposes guarded lifecycle actions without changing output. */
 export function LyricStyleSelector({
@@ -91,7 +50,6 @@ export function LyricStyleSelector({
     anchor: MenuAnchor;
   } | null>(null);
   const [renaming, setRenaming] = useState<LyricStyle | null>(null);
-  const pendingRename = useRef<LyricStyle | null>(null);
   const mounted = useRef(false);
   const navigation = useRef(0);
   const latestAdd = useRef<LyricStyleId | null>(null);
@@ -101,16 +59,11 @@ export function LyricStyleSelector({
       mounted.current = false;
     };
   }, []);
-  // NOTE(0913vision): Menu restores focus during passive cleanup; rename must
-  // mount afterward so that restoration cannot commit it before typing.
-  useEffect(() => {
-    if (menu !== null || pendingRename.current === null) return;
-    const target = pendingRename.current;
-    pendingRename.current = null;
+  const renameAfterMenu = useMenuHandoff<LyricStyle>(menu !== null, target => {
     navigation.current++;
     onSelect(target.id);
     setRenaming(target);
-  }, [menu, onSelect]);
+  });
   const select = (id: LyricStyleId): void => {
     navigation.current++;
     onSelect(id);
@@ -187,10 +140,7 @@ export function LyricStyleSelector({
             });
           }}
           onKeyDown={event => {
-            if (
-              event.key !== 'ContextMenu' &&
-              !(event.key === 'F10' && event.shiftKey)
-            ) {
+            if (!isContextMenuKey(event)) {
               return;
             }
             const style = targetAt(event.currentTarget, event.target);
@@ -231,15 +181,27 @@ export function LyricStyleSelector({
         />
       </div>
       {renaming === null || reason !== undefined ? null : (
-        <Rename
+        <RenameField
           key={renaming.id}
-          style={renaming}
-          looks={looks}
-          onFinish={name => {
-            setRenaming(null);
-            if (name !== null) {
-              run({kind: 'rename', id: renaming.id, name});
-            }
+          name={renaming.name}
+          label="스타일 이름"
+          rename={{
+            validate: name => {
+              const problem = nameProblem(name, looks.lyricStyles, renaming.id);
+              return problem === undefined ? undefined : PROBLEMS[problem];
+            },
+            onClose: () => setRenaming(null),
+            onCommit: async name => {
+              const result = await onChange({
+                kind: 'rename',
+                id: renaming.id,
+                name,
+              });
+              if (result !== undefined && !result.ok) {
+                onProblem(PROBLEMS[result.error]);
+              }
+              return result?.ok === true && result.value;
+            },
           }}
         />
       )}
@@ -252,7 +214,7 @@ export function LyricStyleSelector({
             rename: {
               reason,
               run: () => {
-                pendingRename.current = target;
+                renameAfterMenu(target);
               },
             },
             remove: {

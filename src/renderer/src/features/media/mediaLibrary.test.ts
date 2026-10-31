@@ -25,6 +25,60 @@ function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
 const JOB = {mediaId: mediaId(9), fileName: 'Invented.mp4'} as const;
 
 describe('media library for the media view', () => {
+  it('retries a published playlist name until its applied revision is persisted', async () => {
+    const list = (name: string, revision: number) =>
+      mediaDocument([], revision, {
+        playlists: [{id: playlistId(1), name, items: []}],
+      });
+    const {library, edit, pushDocument} = setup(mediaFixture(list('Old', 1)));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document).not.toBeNull(),
+    );
+    const playlist = {
+      kind: 'media' as const,
+      id: playlistId(1),
+      name: 'Old',
+      items: [],
+    };
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented disk failure',
+        applied: {id: playlist.id, revision: 2},
+        unchangedFiles: ['media.json'],
+      },
+    });
+    expect(await library.renamePlaylist(playlist, 'New')).toBe(false);
+    pushDocument(list('New', 2));
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented disk failure',
+        applied: {id: playlist.id, revision: 3},
+        unchangedFiles: ['media.json'],
+      },
+    });
+    expect(await library.renamePlaylist(playlist, 'New')).toBe(false);
+    pushDocument(list('New', 3));
+    edit.mockResolvedValueOnce({
+      ok: true,
+      value: {id: playlist.id, revision: 4},
+    });
+    expect(await library.renamePlaylist(playlist, 'New')).toBe(true);
+    expect(edit).toHaveBeenCalledTimes(3);
+    expect(edit).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({baseRevision: 2}),
+    );
+    expect(edit).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({baseRevision: 3}),
+    );
+    expect(await library.renamePlaylist(playlist, 'New')).toBe(true);
+    expect(edit).toHaveBeenCalledTimes(3);
+  });
   it.each(['media', 'audio'] as const)(
     'imports dropped files into a %s playlist with its copy progress',
     async kind => {
@@ -431,10 +485,20 @@ describe('media library for the media view', () => {
       ok: false,
       error: {reason: 'stale', message: 'Invented newer list'},
     });
-    await library.renamePlaylist(playlist, 'Newer');
+    expect(await library.renamePlaylist(playlist, 'Newer')).toBe(false);
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
       '재생목록 이름을 바꿀 수 없음',
     ]);
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented disk failure',
+        applied: {id: playlist.id, revision: 5},
+        unchangedFiles: ['media.json'],
+      },
+    });
+    expect(await library.renamePlaylist(playlist, 'Unsaved')).toBe(false);
   });
 
   it('deletes a playlist and answers whether it went', async () => {

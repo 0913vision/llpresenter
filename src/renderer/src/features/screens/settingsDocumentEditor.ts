@@ -19,6 +19,7 @@ export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {
 export class SettingsDocumentEditor<T extends SettingsDocument> {
   private base: T | null = null;
   private queue: Promise<void> = Promise.resolve();
+  private unsavedRevision: number | null = null;
 
   constructor(
     private readonly api: LlpApi,
@@ -41,12 +42,13 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
   /** Undefined rejects a domain change; unchanged values need no write. */
   change(
     transform: (value: T['value']) => T['value'] | undefined,
+    completion: 'applied' | 'saved' = 'applied',
   ): Promise<boolean> {
     return pendingWritesOf(this.api).run({
       refused: false,
       sent: applied => applied,
       write: () => {
-        const result = this.queue.then(() => this.save(transform));
+        const result = this.queue.then(() => this.save(transform, completion));
         this.queue = result.then(
           () => undefined,
           () => undefined,
@@ -58,33 +60,46 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
 
   private async save(
     transform: (value: T['value']) => T['value'] | undefined,
+    completion: 'applied' | 'saved',
   ): Promise<boolean> {
     const base = this.base;
     if (base?.access !== 'editable') return false;
     try {
       const value = transform(base.value);
       if (value === undefined) return false;
-      if (value === base.value) return true;
+      if (
+        value === base.value &&
+        (completion === 'applied' || this.unsavedRevision === null)
+      ) {
+        return true;
+      }
+      this.unsavedRevision = Math.max(this.unsavedRevision ?? 0, base.revision);
       const result = await this.api.settings.edit(
         this.options.update(base, value),
       );
       if (result.ok) {
+        const revision = result.value.revision ?? base.revision;
         this.adopt({
           ...base,
           value,
-          revision: result.value.revision ?? base.revision,
+          revision,
         });
+        if (revision >= this.unsavedRevision) {
+          this.unsavedRevision = null;
+        }
         return true;
       }
       if (result.error.reason === 'write-failed') {
+        const revision = result.error.applied.revision ?? base.revision;
+        this.unsavedRevision = Math.max(this.unsavedRevision, revision);
         this.adopt({
           ...base,
           value,
-          revision: result.error.applied.revision ?? base.revision,
+          revision,
         });
       }
       this.options.report(result.error.message);
-      return result.error.reason === 'write-failed';
+      return result.error.reason === 'write-failed' && completion === 'applied';
     } catch (cause) {
       this.api.log.write({
         level: 'error',

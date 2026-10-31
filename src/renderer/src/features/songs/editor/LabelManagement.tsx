@@ -7,6 +7,7 @@ import {LabelDialog} from './LabelDialog';
 import type {LabelContext} from './LabelChoices';
 import type {SongEditorStore} from './songEditorStore';
 import {LabelColorPopover} from './LabelColorPopover';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 
 interface ManagementProps {
   readonly context: LabelContext;
@@ -23,11 +24,13 @@ export function LabelManagement({
   labels,
   disabledReason,
   onClose,
-}: ManagementProps): JSX.Element {
+}: ManagementProps): JSX.Element | null {
   const locked = disabledReason !== undefined;
   const [action, setAction] = useState<'rename' | 'delete' | 'color' | null>(
     null,
   );
+  const [menuOpen, setMenuOpen] = useState(true);
+  const renameAfterMenu = useMenuHandoff(menuOpen, () => setAction('rename'));
   if (action === 'color') {
     return (
       <LabelColorPopover
@@ -65,6 +68,7 @@ export function LabelManagement({
       />
     );
   }
+  if (!menuOpen) return null;
   return (
     <Menu
       label={`${context.label.name} 관리`}
@@ -75,7 +79,10 @@ export function LabelManagement({
       entries={labelManagementEntries({
         disabledReason,
         color: () => setAction('color'),
-        rename: () => setAction('rename'),
+        rename: () => {
+          renameAfterMenu(true);
+          setMenuOpen(false);
+        },
         remove: () => setAction('delete'),
       })}
     />

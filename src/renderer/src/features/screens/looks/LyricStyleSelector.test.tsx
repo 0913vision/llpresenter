@@ -108,20 +108,24 @@ it('hands focus from a focused keyboard context menu to rename after cleanup', a
   );
 });
 
-it('queues the displayed name when an earlier rename has not published yet', async () => {
+it('wires the pending style rename to the shared recoverable field', async () => {
   const {change} = setup();
-  change.mockReturnValue(new Promise(() => undefined));
-  for (const name of ['임시 스타일', '기본']) {
-    fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
-    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
-    const field = await screen.findByRole('textbox', {name: '스타일 이름'});
-    fireEvent.change(field, {target: {value: name}});
-    fireEvent.keyDown(field, {key: 'Enter'});
-  }
-  expect(change.mock.calls.map(([edit]) => edit)).toEqual([
-    expect.objectContaining({kind: 'rename', name: '임시 스타일'}),
-    expect.objectContaining({kind: 'rename', name: '기본'}),
-  ]);
+  let finish: (result: Result<boolean, LyricStyleListProblem>) => void = () =>
+    undefined;
+  change.mockReturnValue(
+    new Promise(resolve => {
+      finish = resolve;
+    }),
+  );
+  fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
+  fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+  const field = await screen.findByRole('textbox', {name: '스타일 이름'});
+  fireEvent.change(field, {target: {value: '임시 스타일'}});
+  fireEvent.keyDown(field, {key: 'Enter'});
+  expect(screen.getByDisplayValue('임시 스타일')).toBe(field);
+  expect(field.hasAttribute('readonly')).toBe(true);
+  await act(async () => finish({ok: true, value: true}));
+  expect(screen.queryByRole('textbox', {name: '스타일 이름'})).toBeNull();
 });
 
 it.each(['', '다른 스타일'])(

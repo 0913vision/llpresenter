@@ -123,14 +123,14 @@ export class StageEditor {
         return undefined;
       }
       const trimmed = name.trim();
-      if (current.name === trimmed) return undefined;
+      if (current.name === trimmed) return value;
       return {
         ...value,
         layouts: value.layouts.map(layout =>
           layout.id === layoutId ? {...layout, name: trimmed} : layout,
         ),
       };
-    });
+    }, 'saved');
   }
   async removeLayout(layoutId: string): Promise<{next: string | null} | null> {
     let next: string | null = null;

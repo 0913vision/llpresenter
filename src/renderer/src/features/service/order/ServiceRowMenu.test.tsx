@@ -257,9 +257,8 @@ it('reports a refused inline rename and keeps the original service', async () =>
       expect.objectContaining({title: '이름을 바꿀 수 없음'}),
     ),
   );
-  expect(
-    screen.getByRole('menuitemradio', {name: new RegExp(`^${pastName}`)}),
-  ).toBeTruthy();
+  expect(screen.getByDisplayValue('저장할 수 없는 이름')).toBe(field);
+  expect(field.getAttribute('aria-invalid')).toBe('true');
 });
 
 it('makes the picker inert while the open service renames and commits an outside-field click', async () => {

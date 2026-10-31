@@ -1,6 +1,6 @@
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -25,7 +25,7 @@ import {
   type MacroCollectionEdit,
 } from './macroCollectionEdits';
 import {MacroCollectionMenu} from './macroCollectionMenuEntries';
-import {MacroCollectionName} from './MacroCollectionName';
+import {RenameField} from '@renderer/ui/RenameField';
 import styles from './MacroCollectionPicker.module.css';
 
 const ALL = 'all';
@@ -65,10 +65,6 @@ function CollectionPopover({
     anchor: MenuAnchor;
   } | null>(null);
   const [renaming, setRenaming] = useState<MacroCollection['id'] | null>(null);
-  const pending = useRef<{
-    kind: 'rename' | 'delete';
-    item: MacroCollection;
-  } | null>(null);
   const dragging = useRef<MacroCollection['id'] | null>(null);
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
@@ -80,16 +76,16 @@ function CollectionPopover({
       ?.querySelector<HTMLElement>('[aria-selected="true"]')
       ?.focus();
   }, [surface, value]);
-  useEffect(() => {
-    if (context !== null || pending.current === null) return;
-    const action = pending.current;
-    pending.current = null;
+  const handoff = useMenuHandoff<{
+    kind: 'rename' | 'delete';
+    item: MacroCollection;
+  }>(context !== null, action => {
     if (action.kind === 'rename') setRenaming(action.item.id);
     else {
       onDelete(action.item);
       onClose(false);
     }
-  }, [context, onDelete, onClose]);
+  });
   const target = collections.find(item => item.id === context?.id);
   const choose = (id: MacroCollection['id'] | undefined): void => {
     onChange(id);
@@ -217,10 +213,7 @@ function CollectionPopover({
                       ) {
                         return;
                       }
-                      if (
-                        event.key === 'ContextMenu' ||
-                        (event.key === 'F10' && event.shiftKey)
-                      ) {
+                      if (isContextMenuKey(event)) {
                         event.preventDefault();
                         showContext({
                           kind: 'element',
@@ -237,14 +230,19 @@ function CollectionPopover({
                     }}
                   >
                     {renaming === item?.id ? (
-                      <MacroCollectionName
+                      <RenameField
+                        label="모음 이름"
+                        maxLength={256}
                         name={item.name}
                         locked={locked}
-                        onFinish={name => {
-                          setRenaming(null);
-                          if (name !== null) {
-                            save({kind: 'rename', id: item.id, name});
-                          }
+                        rename={{
+                          validate: name =>
+                            name.length > 256
+                              ? '이름이 너무 깁니다'
+                              : undefined,
+                          onCommit: name =>
+                            run({kind: 'rename', id: item.id, name}, 'saved'),
+                          onClose: () => setRenaming(null),
                         }}
                       />
                     ) : (
@@ -271,10 +269,10 @@ function CollectionPopover({
                   ? '지금은 모음을 변경할 수 없음'
                   : undefined,
             rename: () => {
-              if (target) pending.current = {kind: 'rename', item: target};
+              if (target) handoff({kind: 'rename', item: target});
             },
             remove: () => {
-              if (target) pending.current = {kind: 'delete', item: target};
+              if (target) handoff({kind: 'delete', item: target});
             },
           }}
         />

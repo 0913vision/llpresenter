@@ -66,5 +66,5 @@ export async function renameService(
       baseRevision: document.revision,
     }),
   );
-  return result !== undefined && editApplied(result);
+  return result?.ok === true;
 }

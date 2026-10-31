@@ -116,6 +116,7 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
     templatesListChanged: vi.fn(),
   } satisfies ContentEvents;
   const content = new ContentStore({
+    settings,
     locations,
     songs: new Map(songs.map(song => [song.data.id, song])),
     services: new Map(),
@@ -133,6 +134,32 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
 }
 
 describe('global label rename', () => {
+  it('retries failed label and song files without replaying the applied rename', async () => {
+    const {content, settings, failing, writes, texts} = setup();
+    const song = join(locations.songs, `${itemId(1)}.llsong`);
+    failing.add(LABELS_FILE);
+    failing.add(song);
+    expect(await content.renameLabel(settings, rename)).toMatchObject({
+      ok: false,
+      error: {reason: 'write-failed'},
+    });
+    const revision = settings.get('labels').revision;
+    const songRevision = content.song(itemId(1))?.revision;
+    const count = writes.length;
+    expect(await content.apply({type: 'saves.retry'})).toMatchObject({
+      ok: false,
+      error: {reason: 'write-failed', unchangedFiles: [LABELS_FILE, song]},
+    });
+    failing.clear();
+    expect(await content.apply({type: 'saves.retry'})).toMatchObject({
+      ok: true,
+    });
+    expect(writes.slice(count)).toEqual([LABELS_FILE, song, LABELS_FILE, song]);
+    expect(settings.get('labels').revision).toBe(revision);
+    expect(content.song(itemId(1))?.revision).toBe(songRevision);
+    expect(texts.get(LABELS_FILE)).toContain('After');
+    expect(texts.get(song)).toContain('After');
+  });
   it('does not recreate a song deleted before its queued rename save starts', async () => {
     const {content, settings, texts} = setup();
     const pending = content.renameLabel(settings, rename);
