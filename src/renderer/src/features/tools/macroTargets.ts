@@ -37,12 +37,12 @@ export interface MacroTargetSources {
   >;
 }
 const CLEARED_LAYERS = [
-  'media',
   'slide',
-  'prop',
-  'audio',
-  'message',
+  'media',
   'notice',
+  'prop',
+  'message',
+  'audio',
 ] as const satisfies readonly ClearTarget[];
 
 // NOTE(0913vision): A layer is named as on its 지우기 button, so the slide

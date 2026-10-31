@@ -1,5 +1,6 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,6 +12,8 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {stageFixture} from './stageTesting';
 import {MacroPanel} from './MacroPanel';
+import {deferred} from './testing/quickTesting';
+import type {EditResult} from '@core/schema/contentEdit';
 
 const first = {
   id: '00000000-0000-4000-8000-000000000002',
@@ -36,8 +39,9 @@ function setup(readOnly = false) {
     f.push(settingsDocument('macros', edit.value, edit.baseRevision + 1));
     return {ok: true, value: {id: 'macros', revision: edit.baseRevision + 1}};
   });
-  render(<MacroPanel />);
-  return f;
+  const onProblem = vi.fn();
+  render(<MacroPanel onProblem={onProblem} />);
+  return {...f, onProblem};
 }
 async function open() {
   await waitFor(() =>
@@ -81,10 +85,30 @@ it('lists collections first and the row menu in spec order with immutable all ma
   expect(screen.getByRole('dialog', {name: '매크로 모음'})).toBe(popup);
 });
 
-it('adds a collection and immediately selects its inline name for editing', async () => {
+it('adds and selects a collection before main answers without starting rename', async () => {
   const f = setup();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
   const popup = await open();
   fireEvent.click(within(popup).getByRole('button', {name: '새 매크로 모음'}));
+  const row = within(popup).getByRole('option', {name: '새 모음'});
+  expect(row.getAttribute('aria-selected')).toBe('true');
+  expect(screen.queryByRole('textbox')).toBeNull();
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing collection edit');
+  await act(async () => {
+    f.push(settingsDocument('macros', edit.value, edit.baseRevision + 1));
+    pending.resolve({
+      ok: true,
+      value: {id: 'macros', revision: edit.baseRevision + 1},
+    });
+  });
+  expect(within(popup).getAllByRole('option', {name: '새 모음'})).toHaveLength(
+    1,
+  );
+  fireEvent.contextMenu(row);
+  fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '모음 이름'});
   expect(document.activeElement).toBe(field);
   expect(field.getAttribute('value')).toBe('새 모음');
@@ -101,6 +125,51 @@ it('adds a collection and immediately selects its inline name for editing', asyn
   fireEvent.keyDown(field, {key: 'Enter'});
   await waitFor(() => expect(f.edit).toHaveBeenCalledTimes(2));
   expect(within(popup).getByRole('option', {name: '찬양 모음'})).toBeDefined();
+});
+
+it('rolls back a refused collection create and restores the previous selection', async () => {
+  const f = setup();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
+  const popup = await open();
+  fireEvent.click(within(popup).getByRole('button', {name: '새 매크로 모음'}));
+  expect(within(popup).getByRole('option', {name: '새 모음'})).toBeDefined();
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  await act(async () =>
+    pending.resolve({
+      ok: false,
+      error: {reason: 'read-only', message: 'Refused'},
+    }),
+  );
+  expect(within(popup).queryByRole('option', {name: '새 모음'})).toBeNull();
+  expect(f.onProblem).toHaveBeenCalledWith(
+    expect.objectContaining({title: '모음 변경 실패'}),
+  );
+  expect(
+    within(popup)
+      .getByRole('option', {name: '모든 매크로'})
+      .getAttribute('aria-selected'),
+  ).toBe('true');
+});
+
+it('numbers new collections with the first free name', async () => {
+  setup();
+  const popup = await open();
+  for (const name of ['새 모음', '새 모음 2', '새 모음 3']) {
+    fireEvent.click(
+      within(popup).getByRole('button', {name: '새 매크로 모음'}),
+    );
+    expect(
+      within(popup).getByRole('option', {name}).getAttribute('aria-selected'),
+    ).toBe('true');
+    await waitFor(() =>
+      expect(
+        within(popup)
+          .getByRole('button', {name: '새 매크로 모음'})
+          .getAttribute('aria-disabled'),
+      ).not.toBe('true'),
+    );
+  }
 });
 
 it.each([

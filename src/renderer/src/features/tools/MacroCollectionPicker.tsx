@@ -7,7 +7,6 @@ import {
   type JSX,
 } from 'react';
 import {createPortal} from 'react-dom';
-import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {Button, Icon, IconButton} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
@@ -37,6 +36,7 @@ interface CollectionProps {
   readonly onChange: (id: MacroCollection['id'] | undefined) => void;
   readonly onDelete: (item: MacroCollection) => void;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onNew?: (() => void) | undefined;
 }
 
 function CollectionPopover({
@@ -78,7 +78,7 @@ function CollectionPopover({
     surface.current
       ?.querySelector<HTMLElement>('[aria-selected="true"]')
       ?.focus();
-  }, [surface]);
+  }, [surface, value]);
   useEffect(() => {
     if (context !== null || pending.current === null) return;
     const action = pending.current;
@@ -119,20 +119,6 @@ function CollectionPopover({
     dragging.current = null;
     save({kind: 'move', id, before});
   };
-  const add = (): void => {
-    const id = parseMacroCollectionId(crypto.randomUUID());
-    if (locked || !id.ok) return;
-    save(
-      {
-        kind: 'add',
-        collection: {id: id.value, name: '새 모음', macroIds: []},
-      },
-      () => {
-        onChange(id.value);
-        setRenaming(id.value);
-      },
-    );
-  };
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
   return (
     <>
@@ -162,9 +148,11 @@ function CollectionPopover({
                 icon="plus"
                 label="새 매크로 모음"
                 disabled={
-                  locked || collections.length >= MACRO_FILE_LIMITS.collections
+                  locked ||
+                  !props.onNew ||
+                  collections.length >= MACRO_FILE_LIMITS.collections
                 }
-                onClick={add}
+                onClick={props.onNew}
               />
             </div>
             <div

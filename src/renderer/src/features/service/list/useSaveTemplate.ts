@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
+import {freeName} from '@core/common/freeName';
 import type {ServiceId, TemplateId} from '@core/schema/ids';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
@@ -34,14 +35,6 @@ const problemTitles = {
 } as const;
 
 type SaveProblem = keyof typeof problemTitles;
-
-// NOTE(0913vision): The first of `주일 예배 2`, `주일 예배 3`, and so on that no
-// 템플릿 has, as main names a new song's copy.
-function freeName(base: string, taken: ReadonlySet<string>): string {
-  let number = 2;
-  while (taken.has(`${base} ${number}`)) number++;
-  return `${base} ${number}`;
-}
 
 // NOTE(0913vision): Overwriting saves the new 템플릿 first and deletes the old one
 // only once the new one is on disk, so a failure or a crash never loses the

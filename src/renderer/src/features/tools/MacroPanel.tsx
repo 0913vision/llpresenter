@@ -1,5 +1,6 @@
 import {useContext, useEffect, useRef, useState, type JSX} from 'react';
 import {parseMacroCollectionId, parseMacroId} from '@core/schema/ids';
+import {freeName} from '@core/common/freeName';
 import {
   MACRO_FILE_LIMITS,
   isKnownMacroAction,
@@ -20,6 +21,7 @@ import {MacroView, type MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {countMacroUses} from './macroUsage';
 import {useToolEditing} from './useToolEditing';
+import {useOptimisticCreation} from './useOptimisticCreation';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import {MacroActionDialog} from './MacroActionDialog';
 import {
@@ -193,6 +195,26 @@ export function MacroPanel({
   const navigate = useContext(WorkspaceNavigation);
   const document = useSettingsDocument('macros', '매크로', onProblem);
   const [collection, setCollection] = useState<MacroCollection['id']>();
+  const [selected, setSelected] = useState<Macro['id']>();
+  const macroCreation = useOptimisticCreation<
+    Macro & {readonly collection?: MacroCollection['id'] | undefined}
+  >(document?.value.macros ?? []);
+  const collectionCreation = useOptimisticCreation(
+    document?.value.collections ?? [],
+  );
+  const macros = macroCreation.items;
+  const collections = collectionCreation.items.map(group => ({
+    ...group,
+    macroIds: [
+      ...group.macroIds,
+      ...macroCreation.pending
+        .filter(
+          item =>
+            item.collection === group.id && !group.macroIds.includes(item.id),
+        )
+        .map(item => item.id),
+    ],
+  }));
   const [mode, setMode] = useState<MacroViewMode>('grid');
   const [menu, setMenu] = useState<{
     item: Macro;
@@ -231,9 +253,7 @@ export function MacroPanel({
     collectionEdit.busy ||
     document?.access !== 'editable' ||
     !window.llp;
-  const currentGroup = document?.value.collections.find(
-    item => item.id === collection,
-  );
+  const currentGroup = collections.find(item => item.id === collection);
   const currentCollection = currentGroup?.id;
   const closeCollection = (): void => {
     revision.current++;
@@ -278,29 +298,43 @@ export function MacroPanel({
   };
   const start = (item: Macro): void => {
     revision.current++;
+    setSelected(undefined);
     sendLive({type: 'macro.run', macroId: item.id});
   };
   const create = (): void => {
+    if (locked) return;
     const parsed = parseMacroId(crypto.randomUUID());
     if (!parsed.ok) return;
     const item: Macro = {
       id: parsed.value,
-      name: '새 매크로',
+      name: freeName('새 매크로', new Set(macros.map(item => item.name))),
       icon: 'macro',
       color: 'teal',
       actions: [],
     };
-    const at = ++revision.current;
-    run({kind: 'add', item, collection: currentCollection}).then(
-      saved => {
-        if (saved && revision.current === at) setEditor({kind: 'rename', item});
-      },
-      (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Macro create callback failed',
-          detail: String(cause),
-        }),
+    revision.current++;
+    setSelected(item.id);
+    macroCreation.create(
+      {...item, collection: currentCollection},
+      run({kind: 'add', item, collection: currentCollection}),
+      () => setSelected(current => (current === item.id ? selected : current)),
+    );
+  };
+  const createCollection = (): void => {
+    const parsed = parseMacroCollectionId(crypto.randomUUID());
+    if (locked || !parsed.ok) return;
+    const item: MacroCollection = {
+      id: parsed.value,
+      name: freeName('새 모음', new Set(collections.map(item => item.name))),
+      macroIds: [],
+    };
+    revision.current++;
+    setCollection(item.id);
+    collectionCreation.create(
+      item,
+      collectionEdit.run({kind: 'add', collection: item}),
+      () =>
+        setCollection(current => (current === item.id ? collection : current)),
     );
   };
   const askDelete = (item: Macro): void => {
@@ -436,13 +470,14 @@ export function MacroPanel({
     <>
       <div className={styles.panel}>
         <MacroView
-          macros={document?.value.macros ?? []}
-          collections={document?.value.collections ?? []}
+          macros={macros}
+          collections={collections}
           collectionId={currentCollection}
           mode={mode}
-          selectedId={editor?.item.id ?? menu?.item.id}
+          selectedId={editor?.item.id ?? menu?.item.id ?? selected}
           lastRunId={lastRunId}
           collectionLocked={locked}
+          onNewCollection={createCollection}
           onCollectionDelete={item => {
             revision.current++;
             setCollectionDialog({kind: 'delete', item});
@@ -459,6 +494,7 @@ export function MacroPanel({
           onRun={start}
           onMenu={(item, anchor, trigger) => {
             revision.current++;
+            setSelected(undefined);
             setMenu({item, anchor, trigger});
           }}
           onDropAction={
@@ -471,7 +507,7 @@ export function MacroPanel({
                 }
           }
           onNew={
-            !locked && document.value.macros.length < MACRO_FILE_LIMITS.macros
+            !locked && macros.length < MACRO_FILE_LIMITS.macros
               ? create
               : undefined
           }
@@ -508,12 +544,10 @@ export function MacroPanel({
           onClose={() => setMenu(null)}
           onProblem={onProblem}
           input={{
-            item:
-              document?.value.macros.find(item => item.id === menu.item.id) ??
-              menu.item,
-            collections: document?.value.collections ?? [],
+            item: macros.find(item => item.id === menu.item.id) ?? menu.item,
+            collections,
             shown: currentCollection,
-            macroCount: document?.value.macros.length ?? 0,
+            macroCount: macros.length,
             locked,
           }}
           handlersFor={menuHandlers}

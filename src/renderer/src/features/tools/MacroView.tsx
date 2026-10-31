@@ -22,6 +22,7 @@ export function MacroView({
   onRun,
   onMenu,
   onNew,
+  onNewCollection,
   onDropAction,
   collectionLocked = false,
   onCollectionDelete = () => undefined,
@@ -42,6 +43,7 @@ export function MacroView({
     trigger: HTMLElement | undefined,
   ) => void;
   readonly onNew?: (() => void) | undefined;
+  readonly onNewCollection?: (() => void) | undefined;
   readonly collectionLocked?: boolean | undefined;
   readonly onCollectionDelete?: ((item: MacroCollection) => void) | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
@@ -119,6 +121,7 @@ export function MacroView({
           onChange={onCollection}
           onDelete={onCollectionDelete}
           onProblem={onProblem}
+          onNew={onNewCollection}
         />
         <span>{`${shown.length}개`}</span>
         <Button aria-pressed={mode === 'grid'} onClick={() => onMode('grid')}>

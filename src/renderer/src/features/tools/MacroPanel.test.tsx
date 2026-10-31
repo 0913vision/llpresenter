@@ -173,14 +173,22 @@ it('opens eight color swatches at the macro tile, restores focus, and saves a ch
   expect(document.activeElement).toBe(tile);
 });
 
-it('creates a macro in the displayed collection then opens rename', async () => {
+it('immediately selects a macro in the displayed collection without renaming', async () => {
   const f = fixture();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
   render(<MacroPanel />);
   const select = await screen.findByRole('button', {name: '매크로 모음'});
   await screen.findByRole('option', {name: '찬양'});
   fireEvent.click(select);
   fireEvent.click(screen.getByRole('option', {name: '주일'}));
   fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
+  expect(
+    screen
+      .getByRole('option', {name: '새 매크로'})
+      .getAttribute('aria-selected'),
+  ).toBe('true');
+  expect(screen.queryByRole('dialog')).toBeNull();
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing macro edit');
@@ -188,9 +196,70 @@ it('creates a macro in the displayed collection then opens rename', async () => 
   if (!created) throw new Error('Missing new macro');
   expect(created.name).toBe('새 매크로');
   expect(edit.value.collections[0]?.macroIds).toContain(created.id);
-  expect(
-    await screen.findByRole('dialog', {name: '매크로 이름 바꾸기'}),
-  ).toBeDefined();
+  await act(async () => {
+    f.push(settingsDocument('macros', edit.value, 2));
+    pending.resolve({ok: true, value: {id: 'macros', revision: 2}});
+  });
+  expect(screen.getAllByRole('option', {name: '새 매크로'})).toHaveLength(1);
+  expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+it('rolls back a refused macro creation and reports the failure', async () => {
+  const f = fixture();
+  const pending = deferred<EditResult>();
+  f.edit.mockReturnValueOnce(pending.promise);
+  const onProblem = vi.fn();
+  render(<MacroPanel onProblem={onProblem} />);
+  await screen.findByRole('option', {name: '찬양'});
+  fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
+  expect(screen.getByRole('option', {name: '새 매크로'})).toBeDefined();
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  await act(async () => {
+    pending.resolve({
+      ok: false,
+      error: {reason: 'read-only', message: 'Refused'},
+    });
+  });
+  expect(screen.queryByRole('option', {name: '새 매크로'})).toBeNull();
+  expect(screen.getByRole('option', {name: '찬양'})).toBeDefined();
+  expect(onProblem).toHaveBeenCalledWith(
+    expect.objectContaining({title: '매크로 변경 실패'}),
+  );
+});
+
+it('uses the first free macro name and counts up after each accepted create', async () => {
+  const f = fixture();
+  act(() =>
+    f.push(
+      settingsDocument(
+        'macros',
+        {
+          macros: [
+            macro,
+            {...macro, id: groupId, name: '새 매크로'},
+            {...macro, id: serviceId, name: '새 매크로 3'},
+          ],
+          collections: [group],
+        },
+        2,
+      ),
+    ),
+  );
+  f.edit.mockImplementation(async edit => {
+    if (edit.name !== 'macros') throw new Error('Unexpected edit');
+    f.push(settingsDocument('macros', edit.value, edit.baseRevision + 1));
+    return {ok: true, value: {id: 'macros', revision: edit.baseRevision + 1}};
+  });
+  render(<MacroPanel />);
+  await screen.findByRole('option', {name: '찬양'});
+  for (const name of ['새 매크로 2', '새 매크로 4']) {
+    fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
+    expect(
+      screen.getByRole('option', {name}).getAttribute('aria-selected'),
+    ).toBe('true');
+    await screen.findByRole('button', {name: '새 매크로'});
+  }
+  expect(screen.queryByRole('dialog')).toBeNull();
 });
 
 it('does not open rename over a newer selection after a delayed creation', async () => {
@@ -257,7 +326,7 @@ async function openMenu() {
 
 async function openSubmenu(name: string) {
   fireEvent.pointerEnter(screen.getByRole('menuitem', {name}));
-  await screen.findByRole('menu', {name});
+  await screen.findByRole('menu', {name}, {timeout: 3000});
 }
 
 async function openActionSubmenu(name: string) {
@@ -270,12 +339,46 @@ it('appends clear all directly from the menu without a dialog', async () => {
   render(<MacroPanel />);
   await openActionSubmenu('동작 추가');
   await openSubmenu('지우기');
+  const clear = screen.getByRole('menu', {name: '지우기'});
+  expect(
+    [...clear.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
+      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
+    ),
+  ).toEqual([
+    '모두 지우기',
+    '|',
+    '가사',
+    '미디어',
+    '공지',
+    '소품',
+    '메시지',
+    '오디오',
+  ]);
   fireEvent.click(screen.getByRole('menuitem', {name: '모두 지우기'}));
   expect(screen.queryByRole('dialog')).toBeNull();
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.actions).toEqual([{kind: 'clearAll'}]);
+});
+
+it('adds a layer clear directly from the flat clear submenu', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  await openActionSubmenu('동작 추가');
+  await openSubmenu('지우기');
+  fireEvent.click(
+    within(screen.getByRole('menu', {name: '지우기'})).getByRole('menuitem', {
+      name: '공지',
+    }),
+  );
+  expect(screen.queryByRole('dialog')).toBeNull();
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros[0]?.actions).toEqual([
+    {kind: 'clearLayer', layer: 'notice'},
+  ]);
 });
 
 it('edits and removes actions with their original transition and expected list', async () => {

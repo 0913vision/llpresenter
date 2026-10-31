@@ -312,14 +312,22 @@ function addActionEntries(
           id: 'clear',
           label: '지우기',
           icon: 'eraser',
-          submenu: [
+          disabled: input.item.actions.length >= MACRO_FILE_LIMITS.actions,
+          loadSubmenu: () => [
             {
               ...row('clearAll'),
               icon: undefined,
               loadSubmenu: undefined,
               onSelect: () => handlers.chooseAction({kind: 'clearAll'}),
             },
-            {...row('clearLayer'), icon: undefined},
+            separator('clear-layers'),
+            ...macroActionChoices({
+              kind: 'clearLayer',
+              targets: input.targets?.clearLayer?.filter(
+                target => target.clearTarget === 'layer',
+              ),
+              choose: handlers.chooseAction,
+            }),
           ],
         },
         row('look'),

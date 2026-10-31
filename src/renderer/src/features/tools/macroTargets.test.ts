@@ -77,12 +77,12 @@ describe('buildMacroTargets', () => {
       item => item.clearTarget === 'layer',
     );
     expect(layers?.map(item => item.name)).toEqual([
-      '미디어',
       '가사',
-      '소품',
-      '오디오',
-      '메시지',
+      '미디어',
       '공지',
+      '소품',
+      '메시지',
+      '오디오',
     ]);
   });
 });
