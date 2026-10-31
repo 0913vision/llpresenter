@@ -44,11 +44,10 @@ function setup(readOnly = false) {
   return {...f, onProblem};
 }
 async function open() {
-  await waitFor(() =>
-    expect(screen.getByRole('button', {name: '새 매크로'})).toBeDefined(),
-  );
   fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
-  return screen.getByRole('dialog', {name: '매크로 모음'});
+  const popup = screen.getByRole('dialog', {name: '매크로 모음'});
+  await within(popup).findByRole('option', {name: '주일'});
+  return popup;
 }
 afterEach(() => {
   cleanup();

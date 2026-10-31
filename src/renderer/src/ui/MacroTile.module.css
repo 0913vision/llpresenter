@@ -116,6 +116,11 @@
   box-shadow: none;
 }
 
+.new[aria-disabled='true'] .tile {
+  background: transparent;
+  box-shadow: none;
+}
+
 .list {
   display: flex;
   flex-direction: column;

@@ -22,6 +22,7 @@ export function MacroView({
   onRun,
   onMenu,
   onNew,
+  newDisabledReason,
   onNewCollection,
   onDropAction,
   collectionLocked = false,
@@ -43,6 +44,7 @@ export function MacroView({
     trigger: HTMLElement | undefined,
   ) => void;
   readonly onNew?: (() => void) | undefined;
+  readonly newDisabledReason?: string | undefined;
   readonly onNewCollection?: (() => void) | undefined;
   readonly collectionLocked?: boolean | undefined;
   readonly onCollectionDelete?: ((item: MacroCollection) => void) | undefined;
@@ -132,7 +134,11 @@ export function MacroView({
         </Button>
       </div>
       {mode === 'grid' ? (
-        <MacroGrid {...props} onNew={onNew}>
+        <MacroGrid
+          {...props}
+          onNew={onNew}
+          newDisabledReason={newDisabledReason}
+        >
           {shown.map(item => (
             <MacroTile
               key={item.id}

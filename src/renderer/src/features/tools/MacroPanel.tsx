@@ -21,6 +21,7 @@ import {MacroView, type MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {countMacroUses} from './macroUsage';
 import {useToolEditing} from './useToolEditing';
+import {toolMenuReason} from './toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import {MacroActionDialog} from './MacroActionDialog';
@@ -506,10 +507,12 @@ export function MacroPanel({
                   setEditor({kind: 'action', item, actionKind});
                 }
           }
-          onNew={
-            !locked && macros.length < MACRO_FILE_LIMITS.macros
-              ? create
-              : undefined
+          onNew={create}
+          newDisabledReason={
+            toolMenuReason(locked, busy || collectionEdit.busy) ??
+            (macros.length >= MACRO_FILE_LIMITS.macros
+              ? '매크로 목록이 가득 찼습니다'
+              : undefined)
           }
         />
         {palette.open ? (

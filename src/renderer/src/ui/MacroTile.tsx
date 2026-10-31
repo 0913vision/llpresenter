@@ -5,7 +5,8 @@ import {hasIcon, Icon} from './Icon';
 import {labelInk} from './labelInk';
 import type {MenuAnchor} from './Menu';
 import {gridMoves, rowMoves, TileList} from './TileList';
-import {titleTooltip, useTooltip} from './Tooltip';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
+import {useButtonPress} from './press';
 import styles from './MacroTile.module.css';
 
 const TILE_ICON_SIZE = 28;
@@ -156,21 +157,38 @@ export interface MacroListProps {
 export interface MacroGridProps extends MacroListProps {
   /** Adds the 새 매크로 slot at the end of the grid. */
   readonly onNew?: (() => void) | undefined;
+  readonly newDisabledReason?: string | undefined;
 }
 
-function NewMacro({onNew}: {readonly onNew: () => void}): JSX.Element {
+function NewMacro({
+  onNew,
+  disabledReason,
+}: {
+  readonly onNew: () => void;
+  readonly disabledReason: string | undefined;
+}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(disabledReason));
+  const {onBlur: pressBlur, ...press} = useButtonPress({
+    disabled: disabledReason !== undefined,
+    onPress: onNew,
+  });
   return (
-    <button
-      type="button"
-      aria-label={NEW_MACRO}
-      className={classNames(styles.macro, styles.new)}
-      onClick={onNew}
-    >
-      <span className={styles.tile}>
-        <Icon name="plus" size={NEW_ICON_SIZE} />
-      </span>
-      <span className={styles.name}>{NEW_MACRO}</span>
-    </button>
+    <>
+      <button
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
+        {...press}
+        type="button"
+        aria-label={NEW_MACRO}
+        aria-disabled={disabledReason !== undefined ? true : undefined}
+        className={classNames(styles.macro, styles.new)}
+      >
+        <span className={styles.tile}>
+          <Icon name="plus" size={NEW_ICON_SIZE} />
+        </span>
+        <span className={styles.name}>{NEW_MACRO}</span>
+      </button>
+      {tooltip}
+    </>
   );
 }
 
@@ -197,7 +215,12 @@ export function MacroGrid(props: MacroGridProps): JSX.Element {
       >
         {props.children}
       </TileList>
-      {props.onNew === undefined ? null : <NewMacro onNew={props.onNew} />}
+      {props.onNew === undefined ? null : (
+        <NewMacro
+          onNew={props.onNew}
+          disabledReason={props.newDisabledReason}
+        />
+      )}
     </div>
   );
 }

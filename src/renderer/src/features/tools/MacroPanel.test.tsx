@@ -108,6 +108,48 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it.each([true, false])(
+  'keeps the add tile mounted through an edit with accepted=%s',
+  async accepted => {
+    const f = fixture();
+    const pending = deferred<EditResult>();
+    f.edit.mockReturnValueOnce(pending.promise);
+    const onProblem = vi.fn();
+    render(<MacroPanel onProblem={onProblem} />);
+    const add = await screen.findByRole('button', {name: '새 매크로'});
+    fireEvent.contextMenu(await screen.findByRole('option', {name: '찬양'}));
+    fireEvent.click(
+      screen.getByRole('menuitemcheckbox', {name: '시작할 때 실행'}),
+    );
+    await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+    expect(screen.getByRole('button', {name: '새 매크로'})).toBe(add);
+    expect(add.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(add);
+    expect(screen.queryByRole('option', {name: '새 매크로'})).toBeNull();
+    expect(f.edit).toHaveBeenCalledOnce();
+    const edit = f.edit.mock.calls[0]?.[0];
+    if (edit?.name !== 'macros') throw new Error('Missing edit');
+    await act(async () => {
+      if (accepted) f.push(settingsDocument('macros', edit.value, 2));
+      pending.resolve(
+        accepted
+          ? {ok: true, value: {id: 'macros', revision: 2}}
+          : {ok: false, error: {reason: 'read-only', message: 'Refused'}},
+      );
+      await pending.promise;
+    });
+    await waitFor(() =>
+      expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    expect(screen.getByRole('button', {name: '새 매크로'})).toBe(add);
+    if (!accepted) {
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({title: '매크로 변경 실패'}),
+      );
+    }
+  },
+);
+
 it('shows and closes the palette requested from View without a macro target', async () => {
   const f = fixture();
   render(<MacroPanel />);
@@ -259,7 +301,13 @@ it('uses the first free macro name and counts up after each accepted create', as
     expect(
       screen.getByRole('option', {name}).getAttribute('aria-selected'),
     ).toBe('true');
-    await screen.findByRole('button', {name: '새 매크로'});
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', {name: '새 매크로'})
+          .getAttribute('aria-disabled'),
+      ).not.toBe('true'),
+    );
   }
   expect(screen.queryByRole('dialog')).toBeNull();
 });
@@ -275,7 +323,13 @@ it('does not open rename over a newer selection after a delayed creation', async
   fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
   fireEvent.click(screen.getByRole('option', {name: '주일'}));
   pending.resolve({ok: true, value: {id: 'macros', revision: 2}});
-  await screen.findByRole('button', {name: '새 매크로'});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('button', {name: '새 매크로'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
   await waitFor(() =>
     expect(
       screen.getByRole('button', {name: '매크로 모음'}).textContent,
