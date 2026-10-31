@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
+import {Panel, PanelBody, PanelHeader} from '@renderer/ui/Panel';
+import {ResponsivePanelTabs} from '@renderer/ui/ResponsivePanelTabs';
 import type {Notice} from '@renderer/ui/notices';
 import {AVAILABLE_TOOL_TABS} from './showTools';
 import {ShowingTab} from './ShowingTab';
@@ -17,7 +18,6 @@ import styles from './ShowToolsPanel.module.css';
 
 /** Shows the 진행 도구 tabs whose panels have working controls. */
 export function ShowToolsPanel({
-  sizeClass,
   onProblem,
 }: {
   readonly sizeClass: SizeClass;
@@ -34,26 +34,15 @@ export function ShowToolsPanel({
   const tabs = AVAILABLE_TOOL_TABS.map(tab =>
     tab.value === 'showing' ? {...tab, count: showingCount} : tab,
   );
-  const visible = tabs.filter(tab =>
-    sizeClass === 'narrow'
-      ? tab.value === 'showing' || tab.value === 'stage'
-      : tab.value === 'showing' ||
-        tab.value === 'audio' ||
-        tab.value === 'stage' ||
-        tab.value === 'timer',
-  );
-  const more = tabs.filter(
-    tab => !visible.some(item => item.value === tab.value),
-  );
   return (
     <div className={styles.root}>
       <Panel label="진행 도구" className={styles.panel}>
         <PanelHeader>
-          <PanelTabs
-            tabs={visible}
+          <ResponsivePanelTabs
+            tabs={tabs}
             value={selected}
             onChange={setTool}
-            more={{label: '\ub354 \ubcf4\uae30', tabs: more}}
+            moreLabel="더 보기"
           />
         </PanelHeader>
         <PanelBody variant="flush" tab={selected}>

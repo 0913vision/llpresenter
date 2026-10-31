@@ -12,6 +12,7 @@ import {applyService} from '@renderer/session/show';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {mockPanelTabWidths} from '@renderer/ui/responsiveTabTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -59,6 +60,7 @@ function sentTypes(
 }
 
 beforeEach(() => {
+  mockPanelTabWidths(180);
   useShowToolTab.setState({tool: 'stage'});
   applyService(null);
   useLive.setState({state: emptyLiveState()});
@@ -178,8 +180,6 @@ it('keeps the chosen 진행 도구 tab through 준비 and back', async () => {
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
   expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
   expect(
-    screen
-      .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
-      .getAttribute('data-active'),
+    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
   ).toBe('true');
 });

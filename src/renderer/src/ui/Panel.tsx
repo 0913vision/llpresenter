@@ -111,6 +111,38 @@ function tabLabel<T extends string>(tab: PanelTab<T>): string | undefined {
     : `${tab.label} ${tab.count}개`;
 }
 
+export function PanelTabContent({
+  label,
+  count,
+}: {
+  readonly label: string;
+  readonly count?: number | undefined;
+}): JSX.Element {
+  return (
+    <>
+      {label}
+      {count === undefined ? null : <CountBadge value={count} />}
+    </>
+  );
+}
+
+export function PanelMoreContent({
+  label,
+}: {
+  readonly label: string;
+}): JSX.Element {
+  return (
+    <>
+      {label}
+      <Icon
+        name="down"
+        size={SWITCH_CHEVRON_SIZE}
+        className={styles.moreChevron}
+      />
+    </>
+  );
+}
+
 function PanelTabButton<T extends string>({
   tab,
   selected,
@@ -142,8 +174,7 @@ function PanelTabButton<T extends string>({
         tabIndex={tabIndex}
         className={styles.tab}
       >
-        {tab.label}
-        {tab.count === undefined ? null : <CountBadge value={tab.count} />}
+        <PanelTabContent label={tab.label} count={tab.count} />
       </button>
       {tooltip}
     </>
@@ -199,12 +230,7 @@ function PanelMoreTabs<T extends string>({
         data-active={active || undefined}
         className={styles.more}
       >
-        {more.label}
-        <Icon
-          name="down"
-          size={SWITCH_CHEVRON_SIZE}
-          className={styles.moreChevron}
-        />
+        <PanelMoreContent label={more.label} />
       </button>
       {current === undefined ? null : (
         <span id={tabId(base, current.value)} hidden>

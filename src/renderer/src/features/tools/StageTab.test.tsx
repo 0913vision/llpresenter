@@ -1,4 +1,5 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {mockPanelTabWidths} from '@renderer/ui/responsiveTabTesting';
 import {
   act,
   cleanup,
@@ -136,6 +137,7 @@ describe('stage tool', () => {
   });
 
   it('mounts only on its tab and releases all five document subscriptions', async () => {
+    mockPanelTabWidths(300);
     const fixture = stageFixture();
     useShowToolTab.setState({tool: 'message'});
     const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);

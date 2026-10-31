@@ -43,6 +43,26 @@
   min-width: 0;
 }
 
+.fitting {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  align-self: stretch;
+  gap: var(--space-18);
+  min-width: 0;
+}
+
+.measurements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .tab {
   --tab-underline: 2px;
 

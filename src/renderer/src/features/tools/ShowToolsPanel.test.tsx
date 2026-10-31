@@ -11,9 +11,12 @@ import {
 } from '@core/testing/screenDocuments';
 import {ShowToolsPanel} from './ShowToolsPanel';
 import {stageFixture} from './stageTesting';
+import {mockPanelTabWidths} from '@renderer/ui/responsiveTabTesting';
 
 let fixture: ReturnType<typeof stageFixture>;
+let widths: ReturnType<typeof mockPanelTabWidths>;
 beforeEach(() => {
+  widths = mockPanelTabWidths(300);
   useShowToolTab.setState({tool: 'stage'});
   fixture = stageFixture([
     settingsDocument('props', {props: []}),
@@ -66,13 +69,12 @@ it.each([
       '\uc624\ub514\uc624',
       '\ubb34\ub300',
       '\ud0c0\uc774\uba38',
-    ],
-    [
       '\uba54\uc2dc\uc9c0',
       '\uacf5\uc9c0',
       '\uc18c\ud488',
       '\ub9e4\ud06c\ub85c',
     ],
+    [],
   ],
   [
     'narrow',
@@ -89,9 +91,16 @@ it.each([
 ] as const)(
   'keeps every tool accessible in a %s window',
   async (sizeClass, visible, overflow) => {
+    widths.resize(
+      sizeClass === 'wide' ? 1000 : sizeClass === 'narrow' ? 180 : 300,
+    );
     render(<ShowToolsPanel sizeClass={sizeClass} />);
     await stageReady();
     expect(tabNames()).toEqual(visible);
+    if (overflow.length === 0) {
+      expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+      return;
+    }
     await userEvent.click(
       screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
     );
@@ -109,6 +118,9 @@ it.each([
       }
       await userEvent.click(screen.getByRole('menuitemradio', {name}));
       expect(screen.getByRole('tabpanel', {name})).toBeDefined();
+      expect(
+        screen.getByRole('tab', {name}).getAttribute('aria-selected'),
+      ).toBe('true');
     }
     expect(
       screen.getByRole('tabpanel', {name: '\ub9e4\ud06c\ub85c'}),
@@ -117,7 +129,7 @@ it.each([
       screen
         .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
         .hasAttribute('data-active'),
-    ).toBe(true);
+    ).toBe(false);
   },
 );
 
@@ -181,6 +193,7 @@ it('shows the live row count on the 표시 중 tab while stage tab is selected',
 });
 
 it('switches compact tabs and overflow panels and releases subscriptions', async () => {
+  widths.resize(180);
   const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
   screen.getByRole('tab', {name: '\ubb34\ub300'}).focus();
@@ -220,9 +233,7 @@ it('keeps the chosen working panel through size changes and remounting', async (
   await waitFor(() => expect(fixture.count()).toBe(5));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(
-    screen
-      .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
-      .getAttribute('data-active'),
+    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
   ).toBe('true');
   unmount();
   expect(fixture.count()).toBe(0);

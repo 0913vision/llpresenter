@@ -1,4 +1,5 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {mockPanelTabWidths} from '@renderer/ui/responsiveTabTesting';
 import {
   act,
   cleanup,
@@ -80,6 +81,7 @@ afterEach(() => {
 });
 
 it('mounts only on the message tab and releases both document subscriptions', async () => {
+  mockPanelTabWidths(300);
   const fixture = messageFixture();
   const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
   await waitFor(() => expect(fixture.count()).toBe(8));
