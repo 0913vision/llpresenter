@@ -18,11 +18,18 @@ async function hasBom(path: string): Promise<boolean> {
   }
 }
 
-/** Finds UTF-8 BOMs in tracked Markdown and JSON, including formatter ignores. */
-export async function findBomFiles(root: string): Promise<readonly string[]> {
-  const files = git(root, ['ls-files', '-z'])
+/** The tracked Markdown and JSON files, including formatter ignores. */
+export function trackedTextFiles(root: string): readonly string[] {
+  return git(root, ['ls-files', '-z'])
     .split('\0')
     .filter(file => CHECKED_EXTENSION.test(file));
+}
+
+/** Finds the files, relative to `root`, that start with a UTF-8 BOM. */
+export async function findBomFiles(
+  root: string,
+  files: readonly string[],
+): Promise<readonly string[]> {
   const found: string[] = [];
   for (const file of files) {
     if (await hasBom(join(root, file))) found.push(file);
@@ -31,7 +38,8 @@ export async function findBomFiles(root: string): Promise<readonly string[]> {
 }
 
 async function main(): Promise<void> {
-  const files = await findBomFiles(process.cwd());
+  const root = process.cwd();
+  const files = await findBomFiles(root, trackedTextFiles(root));
   if (files.length > 0) {
     for (const file of files) console.error(`UTF-8 BOM: ${file}`);
     process.exitCode = FAILURE_EXIT_CODE;
