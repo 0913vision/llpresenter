@@ -1,6 +1,5 @@
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {MenuEntry} from '@renderer/ui/menuModel';
 
 export const SONG_DEFAULT_LABEL = '곡 기본값';
 const UNNAMED_MEDIA = '이름 없는 미디어';
@@ -16,52 +15,12 @@ export function backgroundMedia(
   return items.filter(item => item.kind !== 'audio');
 }
 
-function searchKey(value: string): string {
-  return value.normalize('NFC').trim().toLocaleLowerCase('ko');
-}
-
-export interface BackgroundChoices {
-  readonly items: readonly MediaItem[];
-  readonly query: string;
-  /** The background shown now: the item's override or the song's. */
-  readonly mediaId: MediaId | undefined;
-  /** Whether the item follows the song's background. */
-  readonly inherited: boolean;
-  /** `null` asks for the song's background again. */
-  readonly onChoose: (mediaId: MediaId | null) => void;
-}
-
-/** 곡 기본값, then the media whose name matches the search. */
-export function backgroundEntries({
-  items,
-  query,
-  mediaId,
-  inherited,
-  onChoose,
-}: BackgroundChoices): readonly MenuEntry[] {
-  const key = searchKey(query);
-  const visible = backgroundMedia(items).filter(item =>
-    searchKey(mediaName(item)).includes(key),
-  );
-  return [
-    {
-      kind: 'item',
-      id: 'song-default',
-      label: SONG_DEFAULT_LABEL,
-      check: 'radio',
-      checked: inherited,
-      onSelect: () => onChoose(null),
-    },
-    ...(visible.length === 0
-      ? []
-      : [{kind: 'separator' as const, id: 'media'}]),
-    ...visible.map((item): MenuEntry => ({
-      kind: 'item',
-      id: item.id,
-      label: mediaName(item),
-      check: 'radio',
-      checked: !inherited && item.id === mediaId,
-      onSelect: () => onChoose(item.id),
-    })),
-  ];
+/** The effective background name, including missing and empty references. */
+export function backgroundName(
+  items: readonly MediaItem[],
+  id: MediaId | undefined,
+): string {
+  if (id === undefined) return '없음';
+  const item = backgroundMedia(items).find(item => item.id === id);
+  return item === undefined ? '배경 파일 없음' : mediaName(item);
 }

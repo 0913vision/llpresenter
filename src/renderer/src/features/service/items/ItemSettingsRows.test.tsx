@@ -96,22 +96,48 @@ function failedMacros() {
 
 describe('항목 설정 이번 예배 and 메모', () => {
   it('overrides the background for this item and returns to 곡 기본값', async () => {
-    const {settings, user, service} = await setup();
+    const {settings, user, service, first, pushSong} = await setup();
+    act(() =>
+      pushSong({
+        ...first,
+        revision: first.revision + 1,
+        song: {...first.song, background: fixtureMedia.warm},
+      }),
+    );
     const background = within(settings).getByRole('button', {name: '배경'});
     expect(background.textContent).toContain('곡 기본값');
     await user.click(background);
-    expect(screen.queryByRole('menuitemradio', {name: '찬송 반주'})).toBeNull();
-    await user.click(screen.getByRole('menuitemradio', {name: '새벽 하늘'}));
+    const list = screen.getByRole('listbox', {name: '배경'});
+    expect(
+      [...list.querySelectorAll('[role="option"], [role="separator"]')].map(
+        row =>
+          row.getAttribute('role') === 'separator'
+            ? '-'
+            : row.getAttribute('aria-label'),
+      ),
+    ).toEqual(['곡 기본값', '-', '따뜻한 빛', '새벽 하늘']);
+    expect(
+      within(list).getByRole('option', {name: '곡 기본값'}).textContent,
+    ).toBe('곡 기본값따뜻한 빛');
+    expect(within(list).queryByRole('option', {name: '없음'})).toBeNull();
+    expect(screen.queryByRole('option', {name: '찬송 반주'})).toBeNull();
+    await user.click(screen.getByRole('option', {name: '새벽 하늘'}));
     await waitFor(() =>
       expect(stored(service, 1)).toMatchObject({background: fixtureMedia.dawn}),
     );
     expect(background.textContent).toContain('새벽 하늘');
     expect(background.textContent).not.toContain('곡 기본값');
     await user.click(background);
-    await user.click(screen.getByRole('menuitemradio', {name: '곡 기본값'}));
+    expect(
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: '곡 기본값',
+      }).textContent,
+    ).toBe('곡 기본값따뜻한 빛');
+    await user.click(screen.getByRole('option', {name: '곡 기본값'}));
     await waitFor(() =>
       expect(stored(service, 1)).not.toHaveProperty('background'),
     );
+    expect(document.activeElement).toBe(background);
   });
 
   it('sets the start 매크로 with its tile and removes it with 없음', async () => {

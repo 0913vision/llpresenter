@@ -11,6 +11,7 @@ import {
 import type {MediaItem} from '@core/schema/mediaList';
 import {applyService, openItem} from '@renderer/session/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
+import {mockMenuRowHeight} from '@renderer/features/songs/editor/editorTesting';
 import * as backgroundHook from './useSongBackground';
 import {
   SongBackgroundControl,
@@ -47,6 +48,7 @@ function setup(props: Partial<Omit<SelectProps, 'onChoose'>> = {}) {
   const view = render(
     <SongBackgroundSelect
       items={items}
+      defaultMediaId={image.id}
       selection={selection}
       {...props}
       onChoose={onChoose}
@@ -56,6 +58,7 @@ function setup(props: Partial<Omit<SelectProps, 'onChoose'>> = {}) {
 }
 beforeEach(() => {
   resetTooltips();
+  mockMenuRowHeight();
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(
     () => undefined,
   );
@@ -92,15 +95,34 @@ describe('slide-header background control', () => {
     const button = screen.getByRole('button', {name: '배경 선택'});
     button.focus();
     await user.keyboard('{ArrowDown}');
+    const list = screen.getByRole('listbox', {name: '배경 선택'});
+    expect(
+      [...list.querySelectorAll('[role="option"], [role="separator"]')].map(
+        row =>
+          row.getAttribute('role') === 'separator'
+            ? '-'
+            : row.getAttribute('aria-label'),
+      ),
+    ).toEqual(['곡 기본값', '-', image.name, video.name]);
+    expect(screen.getByRole('option', {name: '곡 기본값'}).textContent).toBe(
+      `곡 기본값${image.name}`,
+    );
     expect(
       screen
-        .getByRole('menuitemradio', {name: '곡 기본값'})
-        .getAttribute('aria-checked'),
+        .getByRole('option', {name: '곡 기본값'})
+        .getAttribute('aria-description'),
+    ).toBe(image.name);
+    expect(screen.queryByRole('option', {name: '없음'})).toBeNull();
+    expect(
+      screen
+        .getByRole('option', {name: '곡 기본값'})
+        .getAttribute('aria-selected'),
     ).toBe('true');
-    expect(screen.queryByRole('menuitemradio', {name: audio.name})).toBeNull();
-    await user.click(screen.getByRole('menuitemradio', {name: video.name}));
+    expect(screen.queryByRole('option', {name: audio.name})).toBeNull();
+    await user.click(screen.getByRole('option', {name: video.name}));
     expect(onChoose).toHaveBeenCalledWith(video.id);
-    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(document.activeElement).toBe(button);
     expect(screen.getByText(image.name)).toBeDefined();
   });
 
@@ -109,14 +131,40 @@ describe('slide-header background control', () => {
       selection: {...selection, mediaId: video.id, inherited: false},
     });
     await user.click(screen.getByRole('button', {name: '배경 선택'}));
+    expect(screen.getByRole('option', {name: '곡 기본값'}).textContent).toBe(
+      `곡 기본값${image.name}`,
+    );
     expect(
       screen
-        .getByRole('menuitemradio', {name: video.name})
-        .getAttribute('aria-checked'),
+        .getByRole('option', {name: video.name})
+        .getAttribute('aria-selected'),
     ).toBe('true');
-    await user.click(screen.getByRole('menuitemradio', {name: '곡 기본값'}));
+    await user.click(screen.getByRole('option', {name: '곡 기본값'}));
     expect(onChoose).toHaveBeenCalledWith(null);
   });
+
+  it.each([
+    [undefined, '없음'],
+    [createMediaId('30000000-0000-4000-8000-000000000099'), '배경 파일 없음'],
+  ] as const)(
+    'describes song default %s independently from the override',
+    async (defaultMediaId, detail) => {
+      const {user} = setup({
+        defaultMediaId,
+        selection: {...selection, inherited: false, mediaId: video.id},
+      });
+      await user.click(screen.getByRole('button', {name: '배경 선택'}));
+      expect(screen.getByRole('option', {name: '곡 기본값'}).textContent).toBe(
+        `곡 기본값${detail}`,
+      );
+      expect(
+        screen
+          .getByRole('option', {name: video.name})
+          .getAttribute('aria-selected'),
+      ).toBe('true');
+      expect(screen.queryByRole('option', {name: '없음'})).toBeNull();
+    },
+  );
 
   it('filters media names with the shared menu search and resets the query on reopening', async () => {
     const {user, onChoose} = setup();
@@ -124,19 +172,17 @@ describe('slide-header background control', () => {
     await user.click(button);
     expect(document.activeElement).toBe(screen.getByRole('combobox'));
     await user.type(screen.getByRole('combobox'), '  고요  ');
-    expect(screen.queryByRole('menuitemradio', {name: image.name})).toBeNull();
-    expect(screen.getByRole('menuitemradio', {name: video.name})).toBeDefined();
-    expect(
-      screen.getByRole('menuitemradio', {name: '곡 기본값'}),
-    ).toBeDefined();
+    expect(screen.queryByRole('option', {name: image.name})).toBeNull();
+    expect(screen.getByRole('option', {name: video.name})).toBeDefined();
+    expect(screen.getByRole('option', {name: '곡 기본값'})).toBeDefined();
     expect(onChoose).not.toHaveBeenCalled();
     await user.keyboard('{Escape}');
     expect(document.activeElement).toBe(button);
     await user.click(button);
     expect(screen.getByRole('combobox')).toHaveProperty('value', '');
-    expect(screen.getAllByRole('menuitemradio')).toHaveLength(3);
+    expect(screen.getAllByRole('option')).toHaveLength(3);
     await user.type(screen.getByRole('combobox'), '고요');
-    await user.click(screen.getByRole('menuitemradio', {name: video.name}));
+    await user.click(screen.getByRole('option', {name: video.name}));
     expect(onChoose).toHaveBeenCalledWith(video.id);
   });
 
@@ -170,7 +216,7 @@ describe('slide-header background control', () => {
       expect(button.getAttribute('aria-disabled')).toBe('true');
       await user.click(button);
       fireEvent.keyDown(button, {key: 'ArrowDown'});
-      expect(screen.queryByRole('menu')).toBeNull();
+      expect(screen.queryByRole('listbox')).toBeNull();
       expect(onChoose).not.toHaveBeenCalled();
       expect((await hoverForTooltip(button))?.textContent).toBe(
         'readOnly' in props ? '읽기 전용 예배 순서' : '배경 변경 중',
@@ -236,7 +282,7 @@ describe('slide-header background control', () => {
     expect(hook).toHaveBeenCalledWith(onProblem);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', {name: '배경 선택'}));
-    await user.click(screen.getByRole('menuitemradio', {name: video.name}));
+    await user.click(screen.getByRole('option', {name: video.name}));
     expect(choose).toHaveBeenCalledWith(video.id);
   });
 });

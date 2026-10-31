@@ -125,8 +125,8 @@ The song editor edits the 라이브러리 song, which is the source for every �
   counts the 예배 순서 files that point to the song. Its tooltip lists their
   names (proposal).
 - 기본 배경 (default background): a select with a small image and the media
-  name. Choosing a media saves it as the song's `background`. The menu also has
-  없음 (none).
+  name. It opens the shared searchable media list: 없음 (none), then image and
+  video media. Choosing a media saves it as the song's `background`.
 - The title is a title field (proposal; the board shows it as text, and the
   imported song editor shows the same field).
   - An empty title can't be saved. The field shows the error ring with the
@@ -314,13 +314,20 @@ settings) panel.
   9 기본").
 - The 항목 설정 panel has these groups:
 
-| Group                    | Row                  | Control                                                             | Behavior                                                                                                                                                                                     |
-| ------------------------ | -------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 원본 (source)            | 곡 (song)            | Song title, link icon, 라이브러리 detail and the shared edit action | Opens the song editor at the selected source slide.                                                                                                                                          |
-| 원본                     | 쓰는 곳              | "예배 순서 n곳", with service names in the tooltip                  | Uses the same live library usage as the song header.                                                                                                                                         |
-| 이번 예배 (this service) | 배경 (background)    | Select with a small image                                           | Shows the item's background. Without an override, the detail reads "곡 기본값" (song default). Choosing a media saves the override. The menu item 곡 기본값 removes the override (proposal). |
-| 이번 예배                | 시작할 때 (on start) | Select with the 매크로's color tile and the detail "매크로"         | The 매크로 to run when the item starts (see 07). The menu has 없음 (none) and the 매크로 list.                                                                                               |
-| 메모 (memo)              |                      | Multiline text field                                                | Free text for this item.                                                                                                                                                                     |
+| Group                    | Row                  | Control                                                             | Behavior                                                                                                                                                                     |
+| ------------------------ | -------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 원본 (source)            | 곡 (song)            | Song title, link icon, 라이브러리 detail and the shared edit action | Opens the song editor at the selected source slide.                                                                                                                          |
+| 원본                     | 쓰는 곳              | "예배 순서 n곳", with service names in the tooltip                  | Uses the same live library usage as the song header.                                                                                                                         |
+| 이번 예배 (this service) | 배경 (background)    | Select with a small image                                           | Shows the item's background. Without an override, the detail reads "곡 기본값" (song default). Choosing a media saves the override. Choosing 곡 기본값 removes the override. |
+| 이번 예배                | 시작할 때 (on start) | Select with the 매크로's color tile and the detail "매크로"         | The 매크로 to run when the item starts (see 07). The menu has 없음 (none) and the 매크로 list.                                                                               |
+| 메모 (memo)              |                      | Multiline text field                                                | Free text for this item.                                                                                                                                                     |
+
+The item background and the 진행 slide-panel background control open the same
+searchable list as the song's 기본 배경. Their first row is 곡 기본값, with the
+song default's name on the right, then a separator and the image/video media.
+The item format has no independent clear-to-none override, so these two lists
+omit 없음. Selecting in 진행 retains its existing rule: the live background also
+changes when the selected item is live.
 
 ### What belongs to the service and what belongs to the song
 

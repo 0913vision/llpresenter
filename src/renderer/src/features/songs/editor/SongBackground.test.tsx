@@ -78,6 +78,12 @@ describe('song header background connection', () => {
     const fixture = backgroundFixture({...catalog(), access: 'readOnly'});
     const {session, documents, first} = await editorSetup(fixture);
     await openPicker();
+    expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
+      '없음',
+      '푸른 바다',
+      '따뜻한 빛',
+    ]);
+    expect(screen.queryByRole('separator')).toBeNull();
     expect(screen.queryByRole('option', {name: '음원'})).toBeNull();
     fireEvent.click(screen.getByRole('option', {name: '푸른 바다'}));
     await act(() => session.flush());

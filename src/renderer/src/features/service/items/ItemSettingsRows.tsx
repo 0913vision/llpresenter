@@ -16,12 +16,12 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {
-  backgroundEntries,
+  backgroundName,
   backgroundMedia,
   mediaName,
   SONG_DEFAULT_LABEL,
 } from '@renderer/features/media/backgroundChoices';
-import {Menu} from '@renderer/ui/Menu';
+import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {Select} from '@renderer/ui/Select';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -151,19 +151,24 @@ export function ItemBackgroundRow({
             }}
           />
           {open && !disabled && button !== null ? (
-            <Menu
+            <MediaPicker
               label="배경"
-              anchor={{kind: 'element', element: button}}
-              search={{value: query, onChange: setQuery}}
-              minWidth={button.getBoundingClientRect().width}
-              onClose={() => setOpen(false)}
-              entries={backgroundEntries({
-                items: list,
-                query,
-                mediaId,
-                inherited,
-                onChoose: choice => editorTask(items.setBackground(choice)),
-              })}
+              anchor={button}
+              items={list}
+              selected={item.background}
+              defaultChoice={{
+                label: SONG_DEFAULT_LABEL,
+                detail: backgroundName(list, session.background),
+              }}
+              query={query}
+              onQueryChange={setQuery}
+              onSelect={choice =>
+                editorTask(items.setBackground(choice ?? null))
+              }
+              onClose={restore => {
+                setOpen(false);
+                if (restore) button.focus();
+              }}
             />
           ) : null}
         </>

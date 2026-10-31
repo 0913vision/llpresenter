@@ -26,3 +26,14 @@
   font: inherit;
   text-align: left;
 }
+.separator {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.detail {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

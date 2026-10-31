@@ -3,13 +3,14 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';
-import {Button, Icon, Menu} from '@renderer/ui';
+import {Button, Icon} from '@renderer/ui';
+import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import type {Notice} from '@renderer/ui/notices';
 import {
-  backgroundEntries,
+  backgroundName,
   backgroundMedia,
   mediaName,
   SONG_DEFAULT_LABEL,
@@ -71,6 +72,7 @@ function BackgroundWarning(): JSX.Element {
 
 interface BackgroundSelectProps {
   readonly items: readonly MediaItem[];
+  readonly defaultMediaId?: MediaId | undefined;
   readonly selection: {
     readonly mediaId: MediaId | undefined;
     readonly inherited: boolean;
@@ -84,6 +86,7 @@ interface BackgroundSelectProps {
 /** The header's media choice with a still image or a paused video frame. */
 export function SongBackgroundSelect({
   items,
+  defaultMediaId,
   selection,
   readOnly = false,
   busy = false,
@@ -120,7 +123,7 @@ export function SongBackgroundSelect({
         aria-describedby={
           selection.inherited ? `${valueId} ${defaultDescriptionId}` : valueId
         }
-        aria-haspopup="menu"
+        aria-haspopup="listbox"
         aria-expanded={expanded}
         aria-busy={busy}
         disabled={disabled}
@@ -160,21 +163,22 @@ export function SongBackgroundSelect({
         <Icon name="down" size={CHEVRON_SIZE} />
       </Button>
       {anchor !== null && !disabled ? (
-        <Menu
+        <MediaPicker
           label="배경 선택"
-          anchor={{kind: 'element', element: anchor}}
-          onClose={() => setAnchor(null)}
-          search={{value: query, onChange: setQuery}}
-          entries={backgroundEntries({
-            items,
-            query,
-            mediaId: selection.mediaId,
-            inherited: selection.inherited,
-            onChoose: mediaId => {
-              onChoose(mediaId);
-              setAnchor(null);
-            },
-          })}
+          anchor={anchor}
+          items={items}
+          selected={selection.inherited ? undefined : selection.mediaId}
+          defaultChoice={{
+            label: SONG_DEFAULT_LABEL,
+            detail: backgroundName(items, defaultMediaId),
+          }}
+          query={query}
+          onQueryChange={setQuery}
+          onSelect={mediaId => onChoose(mediaId ?? null)}
+          onClose={restore => {
+            setAnchor(null);
+            if (restore) anchor.focus();
+          }}
         />
       ) : null}
     </div>
@@ -202,6 +206,7 @@ export function SongBackgroundControl({
     <SongBackgroundSelect
       key={`${view.serviceId}:${view.item.id}:${view.readOnly}`}
       items={view.media.value.items}
+      defaultMediaId={view.song?.song.background}
       selection={{
         mediaId: view.item.background ?? view.song?.song.background,
         inherited: view.item.background === undefined,

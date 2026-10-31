@@ -32,6 +32,7 @@ it('supports a required image choice and keeps empty search results from selecti
   expect(onSelect).toHaveBeenCalledWith(id);
   onSelect.mockClear();
   view.rerender(<MediaPicker {...props} items={[]} />);
+  expect(screen.queryByRole('option')).toBeNull();
   fireEvent.keyDown(screen.getByRole('combobox'), {key: 'ArrowDown'});
   fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
   expect(onSelect).not.toHaveBeenCalled();
@@ -66,4 +67,45 @@ it('clears pointer highlighting without changing selection and keeps keyboard po
   fireEvent.pointerLeave(none);
   expect(none.getAttribute('data-pointed')).toBe('true');
   expect(search.getAttribute('aria-activedescendant')).toBe(none.id);
+});
+
+it('windows inherited background choices, wraps across the divider and clamps after a catalog update', () => {
+  document.documentElement.style.setProperty('--size-row-menu', '28px');
+  const items = Array.from({length: 40}, (_, index) => ({
+    id: createMediaId(
+      `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    ),
+    name: `Invented ${index}`,
+    kind: 'image' as const,
+    file: 'sample',
+    size: 0,
+  }));
+  const selected = items.at(-1);
+  if (selected === undefined) throw new Error('Missing fixture');
+  const props = {
+    anchor: document.createElement('button'),
+    items,
+    selected: selected.id,
+    defaultChoice: {label: '곡 기본값', detail: 'Source default'},
+    query: '',
+    onQueryChange: vi.fn(),
+    onSelect: vi.fn(),
+    onClose: vi.fn(),
+  };
+  const {rerender} = render(<MediaPicker {...props} />);
+  const search = screen.getByRole('combobox');
+  expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
+  expect(search.getAttribute('aria-activedescendant')).toBe(
+    screen.getByRole('option', {name: selected.name}).id,
+  );
+  fireEvent.keyDown(search, {key: 'ArrowDown'});
+  const inherited = screen.getByRole('option', {name: '곡 기본값'});
+  expect(search.getAttribute('aria-activedescendant')).toBe(inherited.id);
+  fireEvent.keyDown(search, {key: 'ArrowUp'});
+  rerender(<MediaPicker {...props} items={[]} />);
+  fireEvent.scroll(screen.getByRole('listbox'), {target: {scrollTop: 0}});
+  expect(search.getAttribute('aria-activedescendant')).toBe(inherited.id);
+  expect(screen.queryByRole('separator')).toBeNull();
+  fireEvent.keyDown(search, {key: 'Enter'});
+  expect(props.onSelect).toHaveBeenCalledExactlyOnceWith(undefined);
 });

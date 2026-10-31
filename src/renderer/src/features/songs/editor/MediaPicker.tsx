@@ -10,6 +10,7 @@ import {
 import {createPortal} from 'react-dom';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaId} from '@core/schema/ids';
+import {mediaName} from '@renderer/features/media/backgroundChoices';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
@@ -48,6 +49,7 @@ function targetFor(
 interface PickerProps {
   readonly allowNone?: boolean;
   readonly label?: string;
+  readonly defaultChoice?: {readonly label: string; readonly detail: string};
   readonly anchor: HTMLElement;
   readonly items: readonly MediaItem[];
   readonly selected: MediaId | undefined;
@@ -61,6 +63,7 @@ interface PickerProps {
 export function MediaPicker({
   allowNone = true,
   label = '기본 배경',
+  defaultChoice,
   anchor,
   items,
   selected,
@@ -73,28 +76,33 @@ export function MediaPicker({
     () =>
       items
         .filter(item => item.kind !== 'audio')
-        .map(item => ({item, name: searchName(item.name)})),
+        .map(item => ({item, name: searchName(mediaName(item))})),
     [items],
   );
+  const hasDefault = allowNone || defaultChoice !== undefined;
   const choices = useMemo(() => {
     const term = searchName(query);
     return [
-      ...(allowNone ? [undefined] : []),
+      ...(hasDefault ? [undefined] : []),
       ...searchable
         .filter(({name}) => name.includes(term))
         .map(({item}) => item),
     ];
-  }, [searchable, query, allowNone]);
-  const [active, setActive] = useState(() =>
+  }, [searchable, query, hasDefault]);
+  const [activeIndex, setActive] = useState(() =>
     searchName(query) === ''
       ? Math.max(
           0,
           choices.findIndex(item => item?.id === selected),
         )
-      : Math.max(0, Math.min(allowNone ? 1 : 0, choices.length - 1)),
+      : Math.max(0, Math.min(hasDefault ? 1 : 0, choices.length - 1)),
   );
+  const active = Math.max(0, Math.min(activeIndex, choices.length - 1));
   const [top, setTop] = useState(0);
   const [row, setRow] = useState(0);
+  const [gap, setGap] = useState(0);
+  const separator = useRef<HTMLDivElement>(null);
+  const separated = defaultChoice !== undefined && choices.length > 1;
   const viewport = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const id = useId();
@@ -112,21 +120,31 @@ export function MediaPicker({
         getComputedStyle(element).getPropertyValue('--size-row-menu'),
       ) || 0;
     if (height !== row) setRow(height);
+    const divider = separator.current;
+    const style = divider === null ? null : getComputedStyle(divider);
+    const nextGap =
+      divider === null || style === null
+        ? 0
+        : divider.getBoundingClientRect().height +
+          (Number.parseFloat(style.marginTop) || 0) +
+          (Number.parseFloat(style.marginBottom) || 0);
+    if (nextGap !== gap) setGap(nextGap);
     if (row > 0 && height === row && !initialized.current) {
       initialized.current = true;
       surface.current?.querySelector('input')?.focus();
-      element.scrollTop = active * row;
+      element.scrollTop = active * row + (active > 0 ? nextGap : 0);
       setTop(element.scrollTop);
     }
-  }, [active, row, surface]);
+  }, [active, row, surface, separated, gap]);
   const point = (index: number): void => {
     setActive(index);
     const element = viewport.current;
     if (element === null) return;
     const height = element.clientHeight || row * VISIBLE_ROWS;
-    if (index * row < element.scrollTop) element.scrollTop = index * row;
-    else if ((index + 1) * row > element.scrollTop + height) {
-      element.scrollTop = (index + 1) * row - height;
+    const y = index * row + (index > 0 ? gap : 0);
+    if (y < element.scrollTop) element.scrollTop = y;
+    else if (y + row > element.scrollTop + height) {
+      element.scrollTop = y + row - height;
     }
     setTop(element.scrollTop);
   };
@@ -143,7 +161,7 @@ export function MediaPicker({
     onQueryChange(value);
     const term = searchName(value);
     setActive(
-      allowNone &&
+      hasDefault &&
         term !== '' &&
         searchable.some(({name}) => name.includes(term))
         ? 1
@@ -166,12 +184,64 @@ export function MediaPicker({
     event.preventDefault();
     event.stopPropagation();
   };
-  const start = Math.max(0, Math.floor(row > 0 ? top / row : 0) - OVERSCAN);
-  const visible = choices.slice(start, start + VISIBLE_ROWS + OVERSCAN * 2);
+  const start = Math.max(
+    hasDefault ? 1 : 0,
+    Math.floor(row > 0 ? Math.max(0, top - gap) / row : 0) - OVERSCAN,
+  );
+  const visible = choices.slice(
+    start,
+    start + VISIBLE_ROWS + OVERSCAN * 2 - (hasDefault ? 1 : 0),
+  );
   const activeId =
-    active >= start && active < start + visible.length
+    (hasDefault && active === 0 && top < row) ||
+    (active >= start && active < start + visible.length)
       ? `${id}-${active}`
       : undefined;
+  const option = (index: number): JSX.Element => {
+    const item = choices[index];
+    const checked = item?.id === selected;
+    return (
+      <button
+        {...optionPress}
+        key={item?.id ?? 'none'}
+        type="button"
+        role="option"
+        aria-label={
+          item === undefined
+            ? (defaultChoice?.label ?? NONE_LABEL)
+            : mediaName(item)
+        }
+        aria-description={
+          item === undefined ? defaultChoice?.detail : undefined
+        }
+        id={`${id}-${index}`}
+        tabIndex={-1}
+        aria-selected={checked}
+        aria-posinset={index + 1}
+        aria-setsize={choices.length}
+        className={classNames(menu.item, styles.option)}
+        data-index={index}
+        style={{top: index * row + (index > 0 ? gap : 0)}}
+        onPointerMove={() => setActive(index)}
+        onMouseDown={event => event.preventDefault()}
+      >
+        <span className={menu.lead}>
+          {checked ? <Icon name="check" size={14} /> : null}
+        </span>
+        {item === undefined ? null : <Icon name={item.kind} size={14} />}
+        <span className={menu.label}>
+          {item === undefined
+            ? (defaultChoice?.label ?? NONE_LABEL)
+            : mediaName(item)}
+        </span>
+        {item === undefined && defaultChoice !== undefined ? (
+          <span className={classNames(menu.meta, styles.detail)}>
+            {defaultChoice.detail}
+          </span>
+        ) : null}
+      </button>
+    );
+  };
   return createPortal(
     <div className={menu.layer}>
       <div
@@ -201,38 +271,19 @@ export function MediaPicker({
           style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
           onScroll={event => setTop(event.currentTarget.scrollTop)}
         >
-          <div style={{height: choices.length * row, position: 'relative'}}>
-            {visible.map((item, offset) => {
-              const index = start + offset;
-              return (
-                <button
-                  {...optionPress}
-                  key={item?.id ?? 'none'}
-                  type="button"
-                  role="option"
-                  id={`${id}-${index}`}
-                  tabIndex={-1}
-                  aria-selected={item?.id === selected}
-                  aria-posinset={index + 1}
-                  aria-setsize={choices.length}
-                  className={classNames(menu.item, styles.option)}
-                  data-index={index}
-                  style={{top: index * row}}
-                  onPointerMove={() => setActive(index)}
-                  onMouseDown={event => event.preventDefault()}
-                >
-                  <span className={menu.lead}>
-                    {item?.id === selected ? (
-                      <Icon name="check" size={14} />
-                    ) : null}
-                  </span>
-                  {item === undefined ? null : (
-                    <Icon name={item.kind} size={14} />
-                  )}
-                  <span className={menu.label}>{item?.name ?? NONE_LABEL}</span>
-                </button>
-              );
-            })}
+          <div
+            style={{height: choices.length * row + gap, position: 'relative'}}
+          >
+            {hasDefault ? option(0) : null}
+            {separated ? (
+              <div
+                ref={separator}
+                role="separator"
+                className={classNames(menu.separator, styles.separator)}
+                style={{top: row}}
+              />
+            ) : null}
+            {visible.map((_item, offset) => option(start + offset))}
           </div>
         </div>
       </div>
