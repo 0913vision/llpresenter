@@ -1,4 +1,4 @@
-// tokens.json에서 project/tokens.css를 만든다 (format.md의 "tokens.css as compiled" 순서).
+// NOTE(0913vision): Generates project/tokens.css from the token source.
 const fs = require('fs')
 const j = JSON.parse(fs.readFileSync(__dirname + '/project/tokens.json', 'utf8'))
 const title = 'LoveLight Design System'
@@ -10,6 +10,11 @@ lines.push(`:root, [data-theme="${first}"] {`)
 for (const t of j.color.tokens) lines.push(`  --${t.name}: ${ref(val(t.value))};`)
 for (const t of j.shadow.tokens) lines.push(`  --${t.name}: ${val(t.value)};`)
 lines.push('}')
+for (const workspace of j.workspaces || []) {
+  lines.push(`:root[data-workspace="${workspace.id}"] {`)
+  for (const t of workspace.tokens) lines.push(`  --${t.name}: ${ref(t.value)};`)
+  lines.push('}')
+}
 lines.push(':root {')
 for (const fam of ['spacing', 'radius', 'size', 'zIndex', 'motion']) for (const t of j[fam].tokens) lines.push(`  --${t.name}: ${t.value};`)
 for (const [k, v] of Object.entries(j.type.families)) lines.push(`  --font-${k}: ${v};`)

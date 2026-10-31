@@ -4,6 +4,10 @@ import {describe, expect, it} from 'vitest';
 const read = (path: string): string => readFileSync(path, 'utf8');
 const css = (name: string): string =>
   read(`src/renderer/src/ui/${name}.module.css`);
+const TOKEN_CSS_PATHS = [
+  'src/renderer/src/styles/tokens.css',
+  'design/system/project/tokens.css',
+];
 function luminance(hex: string): number {
   const rgb = [0, 2, 4]
     .map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
@@ -20,10 +24,7 @@ function token(source: string, name: string): number {
 
 describe('readable control text', () => {
   it('keeps the design and app token contrast at least 4.5 on control and selected backgrounds', () => {
-    for (const path of [
-      'src/renderer/src/styles/tokens.css',
-      'design/system/project/tokens.css',
-    ]) {
+    for (const path of TOKEN_CSS_PATHS) {
       const source = read(path);
       const ratio = (text: string, background: string): number =>
         (token(source, text) + 0.05) / (token(source, background) + 0.05);
@@ -32,6 +33,26 @@ describe('readable control text', () => {
       expect(ratio('text-2', 'selection')).toBeGreaterThanOrEqual(4.5);
     }
   });
+  it.each(TOKEN_CSS_PATHS)(
+    'keeps white text at least 4.5:1 on both warm amber fills in %s',
+    path => {
+      const source = read(path);
+      const show = /:root\[data-workspace=["']show["']\]\s*\{([^}]+)\}/.exec(
+        source,
+      )?.[1];
+      if (show === undefined) throw new Error('Missing show palette');
+      const effective = show + source;
+      for (const name of ['accent-fill', 'accent-fill-hover']) {
+        const ratio =
+          (token(effective, 'text-on-fill') + 0.05) /
+          (token(effective, name) + 0.05);
+        expect(ratio, name).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(token(effective, 'accent-fill-hover')).toBeLessThan(
+        token(effective, 'accent-fill'),
+      );
+    },
+  );
   it('keeps the generated colors aligned with their source', () => {
     const source = read('design/system/project/tokens.json');
     const design = read('design/system/project/tokens.css');

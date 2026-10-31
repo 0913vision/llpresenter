@@ -27,6 +27,7 @@ import {
 } from '@renderer/session/testing/sampleService';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {layerContainer} from '@renderer/ui/layers';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -71,7 +72,39 @@ afterEach(async () => {
   delete window.llp;
 });
 
-describe('App menu bar title', () => {
+describe('App', () => {
+  it('scopes the palette to each workspace including portals and restores the previous scope', () => {
+    window.llp = mockLlpApi();
+    const root = document.documentElement;
+    const previous = root.getAttribute('data-workspace');
+    root.setAttribute('data-workspace', 'outside-app');
+    const view = render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    try {
+      expect(root.getAttribute('data-workspace')).toBe('show');
+      expect(layerContainer('popover').closest('[data-workspace]')).toBe(root);
+      for (const [name, scope] of [
+        ['준비', 'prep'],
+        ['화면 설정', 'screens'],
+        ['진행', 'show'],
+      ] as const) {
+        fireEvent.click(screen.getByRole('tab', {name}));
+        expect(root.getAttribute('data-workspace')).toBe(scope);
+        expect(layerContainer('dialog').closest('[data-workspace]')).toBe(root);
+      }
+      view.unmount();
+      expect(root.getAttribute('data-workspace')).toBe('outside-app');
+    } finally {
+      view.unmount();
+      if (previous === null) root.removeAttribute('data-workspace');
+      else root.setAttribute('data-workspace', previous);
+    }
+  });
+
   it('opens the clicked service slide in prep at its arrangement position', () => {
     window.llp = mockLlpApi();
     seedSampleService();
