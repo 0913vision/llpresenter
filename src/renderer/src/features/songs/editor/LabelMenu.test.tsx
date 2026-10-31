@@ -22,6 +22,7 @@ describe('song editor label menu', () => {
   it('lists label choices and management rows in the specified order', async () => {
     const {user} = await editorSetup();
     const menu = await openMenu(user);
+    expect(menu.getAttribute('data-check-column')).toBe('true');
     const rows = (element: HTMLElement) =>
       [
         ...element.querySelectorAll('[role^="menuitem"], [role="separator"]'),

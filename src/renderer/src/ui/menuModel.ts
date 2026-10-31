@@ -72,6 +72,10 @@ export function hasIconColumn(items: readonly MenuItem[]): boolean {
   return items.some(item => item.icon !== undefined);
 }
 
+export function hasCheckColumn(entries: readonly MenuEntry[]): boolean {
+  return menuItems(entries).some(item => item.check !== undefined);
+}
+
 /** A move of the pointed item within a menu. */
 export type MenuMove = 'next' | 'previous' | 'first' | 'last';
 

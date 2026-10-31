@@ -21,6 +21,7 @@ import {modalStack} from './modalStack';
 import {
   isRunnable,
   hasSubmenu,
+  hasCheckColumn,
   menuItems,
   type MenuEntry,
   type MenuItem,
@@ -33,6 +34,7 @@ import {
 } from './MenuParts';
 import {
   maxPopoverHeight,
+  menuChainShift,
   placeAtPoint,
   placeBelow,
   placeSubmenu,
@@ -127,6 +129,7 @@ interface MenuNavigation {
   readonly itemElements: RefObject<Array<HTMLDivElement | null>>;
   readonly run: (index: number) => void;
   readonly hover: (index: number) => void;
+  readonly leave: () => void;
   readonly closeSubmenu: () => void;
   readonly keepSubmenuOpen: () => void;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
@@ -161,6 +164,8 @@ function useMenuNavigation({
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
   const [pointedState, setPointed] = useState(pointsFirst ? 0 : -1);
+  const pointing = useRef<'keyboard' | 'pointer'>('keyboard');
+  const hovered = useRef<number | null>(null);
   // NOTE(0913vision): In a searched menu, a new search term or a new set of
   // results points to the first item again.
   const results = searchValue === undefined ? '' : items.map(i => i.id).join();
@@ -170,10 +175,15 @@ function useMenuNavigation({
     setPointed(0);
   }
   const [submenu, setSubmenu] = useState<OpenSubmenu | null>(null);
-  const pointed = Math.min(pointedState, items.length - 1);
+  const pointed = Math.min(
+    pointedState < 0 ? (submenu?.index ?? -1) : pointedState,
+    items.length - 1,
+  );
 
   const pointTo = (index: number): void => {
     if (index < 0) return;
+    pointing.current = 'keyboard';
+    hovered.current = null;
     setPointed(index);
     itemElements.current[index]?.scrollIntoView({block: 'nearest'});
   };
@@ -194,6 +204,9 @@ function useMenuNavigation({
     } else onClose('select');
   };
   const hover = (index: number): void => {
+    if (hovered.current === index && pointing.current === 'pointer') return;
+    pointing.current = 'pointer';
+    hovered.current = index;
     setPointed(index);
     timers.stop('open');
     const opens = opensSubmenu(items[index]);
@@ -216,8 +229,15 @@ function useMenuNavigation({
       setSubmenu(opens ? {index, takesFocus: false} : null);
     });
   };
+  const leave = (): void => {
+    hovered.current = null;
+    timers.stop('open', 'close');
+    if (pointing.current === 'pointer') setPointed(-1);
+  };
   const closeSubmenu = (): void => {
     timers.stop('open', 'close');
+    hovered.current = null;
+    pointing.current = 'keyboard';
     setSubmenu(null);
     focusMenu(surface.current);
   };
@@ -229,6 +249,8 @@ function useMenuNavigation({
     const closeChild = submenu === null ? undefined : closeSubmenu;
     const actions = {items, pointed, pointTo, run, closeChild, onBack, onClose};
     if (!handleMenuKey(event, actions)) return;
+    pointing.current = 'keyboard';
+    hovered.current = null;
     event.preventDefault();
     event.stopPropagation();
   };
@@ -239,6 +261,7 @@ function useMenuNavigation({
     itemElements,
     run,
     hover,
+    leave,
     closeSubmenu,
     keepSubmenuOpen,
     onKeyDown,
@@ -257,6 +280,7 @@ interface SurfaceProps {
   readonly minWidth?: number | undefined;
   readonly autoFocus: boolean;
   readonly footer?: ReactNode | undefined;
+  readonly ancestors?: ReadonlyArray<RefObject<HTMLDivElement | null>>;
 }
 
 function MenuSurface(props: SurfaceProps): JSX.Element {
@@ -282,6 +306,23 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const fit = (element: HTMLElement): void => {
     element.style.maxHeight = `${maxPopoverHeight(viewportSize())}px`;
     placeFloating(element, place);
+    if (!props.ancestors?.length) return;
+    const chain = [
+      ...(props.ancestors ?? []).flatMap(ref =>
+        ref.current ? [ref.current] : [],
+      ),
+      element,
+    ];
+    const boxes = chain.map(menu => menu.getBoundingClientRect());
+    const shift = menuChainShift(boxes, viewportSize());
+    if (shift !== 0) {
+      chain.forEach((menu, index) => {
+        const box = boxes[index];
+        if (box) {
+          menu.style.left = `${box.left + shift}px`;
+        }
+      });
+    }
   };
   const refit = useEffectEvent(() => {
     if (surface.current !== null) fit(surface.current);
@@ -305,6 +346,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
           nav.itemElements.current[index] = element;
         }}
         onPoint={() => nav.hover(index)}
+        onLeave={nav.leave}
         onRun={() => nav.run(index)}
       />
     );
@@ -324,6 +366,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         aria-activedescendant={search === undefined ? activeId : undefined}
         tabIndex={-1}
         className={styles.menu}
+        data-check-column={hasCheckColumn(entries) ? 'true' : 'false'}
         style={style}
         onKeyDown={event => {
           if (
@@ -343,6 +386,15 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
           focusMenu(surface.current);
           props.onPointerEnter?.();
         }}
+        onPointerLeave={nav.leave}
+        onPointerMove={event => {
+          if (
+            event.target instanceof Element &&
+            !event.target.closest('[role^="menuitem"]')
+          ) {
+            nav.leave();
+          }
+        }}
       >
         {search === undefined ? null : (
           <MenuSearchField
@@ -355,7 +407,12 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         <MenuBlocks entries={entries} baseId={baseId} renderItem={renderItem} />
         {props.footer}
       </div>
-      <Submenu nav={nav} parent={surface} onClose={onClose} />
+      <Submenu
+        nav={nav}
+        parent={surface}
+        ancestors={props.ancestors ?? []}
+        onClose={onClose}
+      />
     </>
   );
 }
@@ -363,10 +420,12 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
 function Submenu({
   nav,
   parent,
+  ancestors,
   onClose,
 }: {
   readonly nav: MenuNavigation;
   readonly parent: RefObject<HTMLDivElement | null>;
+  readonly ancestors: ReadonlyArray<RefObject<HTMLDivElement | null>>;
   readonly onClose: (reason: MenuCloseReason) => void;
 }): JSX.Element | null {
   const {submenu} = nav;
@@ -389,7 +448,14 @@ function Submenu({
   const place = (size: Size): Point => {
     const itemBox = element.getBoundingClientRect();
     const menuBox = parent.current?.getBoundingClientRect() ?? itemBox;
-    return placeSubmenu({item: itemBox, menu: menuBox}, size, viewportSize());
+    const boxes = ancestors.flatMap(ref =>
+      ref.current ? [ref.current.getBoundingClientRect()] : [],
+    );
+    return placeSubmenu(
+      {item: itemBox, menu: menuBox, ancestors: boxes},
+      size,
+      viewportSize(),
+    );
   };
   return (
     <MenuSurface
@@ -400,6 +466,7 @@ function Submenu({
       onBack={nav.closeSubmenu}
       onPointerEnter={nav.keepSubmenuOpen}
       autoFocus={submenu.takesFocus}
+      ancestors={[...ancestors, parent]}
     />
   );
 }

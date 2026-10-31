@@ -84,6 +84,7 @@ export function LabelMenu({
           ref={surface}
           role="menu"
           aria-label="이름표"
+          data-check-column="true"
           className={classNames(menuStyles.menu, styles.popup)}
           onKeyDown={onKeyDown}
           onBlur={event => {

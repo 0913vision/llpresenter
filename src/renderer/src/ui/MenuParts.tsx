@@ -74,6 +74,7 @@ export interface MenuItemRowProps {
   readonly expanded: boolean;
   readonly elementRef: (element: HTMLDivElement | null) => void;
   readonly onPoint: () => void;
+  readonly onLeave: () => void;
   readonly onRun: () => void;
 }
 
@@ -89,6 +90,7 @@ export function MenuItemRow({
   expanded,
   elementRef,
   onPoint,
+  onLeave,
   onRun,
 }: MenuItemRowProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
@@ -119,7 +121,11 @@ export function MenuItemRow({
       className={styles.item}
       onPointerEnter={event => {
         targetProps.onPointerEnter(event);
-        onPoint();
+      }}
+      onPointerMove={onPoint}
+      onPointerLeave={event => {
+        targetProps.onPointerLeave(event);
+        onLeave();
       }}
       onClick={item.rename === undefined ? onRun : undefined}
       onContextMenu={event => {

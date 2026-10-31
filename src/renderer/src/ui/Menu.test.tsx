@@ -8,7 +8,12 @@ import type {MenuEntry} from './menuModel';
 import {maxPopoverHeight} from './placement';
 import {cssRules} from '@renderer/ui/testing/cssRules';
 import {installMockClock} from '../../../../test/mock-clock';
-import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
+import {letTimePass, pointAway, resetTooltips} from './tooltipTesting';
+
+function pointAt(element: Element): void {
+  fireEvent.pointerOver(element, {pointerType: 'mouse'});
+  fireEvent.pointerMove(element, {pointerType: 'mouse'});
+}
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => undefined;
@@ -180,6 +185,133 @@ async function openMenu(): Promise<void> {
 }
 
 describe('Menu', () => {
+  it.each([
+    {
+      windowWidth: 1280,
+      openerLeft: 1000,
+      expected: ['1000px', '800px', '600px'],
+    },
+    {windowWidth: 700, openerLeft: 400, expected: ['408px', '208px', '8px']},
+  ])(
+    'keeps three menu levels separate and inside a $windowWidth window',
+    ({windowWidth, openerLeft, expected}) => {
+      vi.stubGlobal('innerWidth', windowWidth);
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect',
+      ).mockImplementation(function (this: HTMLElement): DOMRect {
+        if (this.getAttribute('role') === 'menu') {
+          return new DOMRect(
+            Number.parseFloat(this.style.left) || 0,
+            100,
+            200,
+            120,
+          );
+        }
+        if (this.tagName === 'BUTTON') {
+          return new DOMRect(openerLeft, 50, 100, 30);
+        }
+        return new DOMRect(0, 110, 180, 28);
+      });
+      render(
+        <Harness
+          entries={[
+            {
+              kind: 'item',
+              id: 'actions',
+              label: '동작 추가',
+              submenu: [
+                {
+                  kind: 'item',
+                  id: 'clear',
+                  label: '지우기',
+                  submenu: [{kind: 'item', id: 'all', label: '모두 지우기'}],
+                },
+              ],
+            },
+          ]}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', {name: '파일'}));
+      fireEvent.keyDown(screen.getByRole('menu', {name: '파일'}), {
+        key: 'ArrowRight',
+      });
+      fireEvent.keyDown(screen.getByRole('menu', {name: '동작 추가'}), {
+        key: 'ArrowRight',
+      });
+      expect(screen.getAllByRole('menu').map(menu => menu.style.left)).toEqual(
+        expected,
+      );
+    },
+  );
+
+  it('clears pointer pointing on leaving a row for a separator or leaving the menu', async () => {
+    render(<Harness />);
+    await openMenu();
+    const row = screen.getByRole('menuitem', {name: '예배 열기'});
+    pointAt(row);
+    pointAway(row);
+    expect(pointedName()).toBeNull();
+    pointAt(row);
+    pointAway(screen.getByRole('menu'));
+    expect(pointedName()).toBeNull();
+  });
+
+  it('keeps keyboard pointing until the pointer moves, even when a stationary pointer enters or leaves', async () => {
+    render(<Harness />);
+    await openMenu();
+    await userEvent.keyboard('{ArrowDown}');
+    const name = pointedName();
+    const row = screen.getByRole('menuitem', {name: '삭제'});
+    fireEvent.pointerOver(row);
+    pointAway(row);
+    expect(pointedName()).toBe(name);
+    pointAt(row);
+    expect(pointedName()).toBe(row.textContent);
+    pointAway(row);
+    expect(pointedName()).toBeNull();
+  });
+
+  it('cancels a pending submenu on leave and keeps an already open parent marked', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const clock = installMockClock();
+    const row = screen.getByRole('menuitem', {name: '가져오기'});
+    pointAt(row);
+    pointAway(row);
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
+    pointAt(row);
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    pointAway(row);
+    expect(row.getAttribute('data-pointed')).toBe('true');
+    expect(row.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.keyDown(screen.getByRole('menu', {name: '가져오기'}), {
+      key: 'Escape',
+    });
+    pointAt(row);
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+  });
+
+  it.each([undefined, 'radio', 'checkbox'] as const)(
+    'reserves the check column only for checkable menus (%s)',
+    async check => {
+      render(
+        <Harness entries={[{kind: 'item', id: 'a', label: '선택', check}]} />,
+      );
+      await openMenu();
+      expect(screen.getByRole('menu').getAttribute('data-check-column')).toBe(
+        String(check !== undefined),
+      );
+      expect(
+        cssRules('src/renderer/src/ui/Menu.module.css')(
+          ".menu[data-check-column='false'] .item",
+        ),
+      ).toContain('padding-left: var(--space-14)');
+    },
+  );
+
   it('moves the row highlight immediately without a background transition', async () => {
     expect(cssRules('src/renderer/src/ui/Menu.module.css')('.item')).toContain(
       'transition: none',
@@ -488,6 +620,26 @@ describe('Menu', () => {
     expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
     expect(screen.getByRole('menu', {name: '내보내기'})).toBeDefined();
   });
+
+  it.each(['row', 'menu'])(
+    'cancels a pending submenu switch on leaving the %s',
+    async target => {
+      render(<Harness entries={twoSubmenus} />);
+      await openMenu();
+      const clock = installMockClock();
+      pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+      await letTimePass(clock, SUBMENU_DELAY_MS);
+      const next = screen.getByRole('menuitem', {name: '내보내기'});
+      pointAt(next);
+      await letTimePass(clock, SUBMENU_GRACE_MS - 1);
+      pointAway(
+        target === 'row' ? next : screen.getByRole('menu', {name: '파일'}),
+      );
+      await letTimePass(clock, SUBMENU_GRACE_MS);
+      expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+      expect(screen.queryByRole('menu', {name: '내보내기'})).toBeNull();
+    },
+  );
 
   it('fits itself again when the window shrinks, until it closes', async () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(

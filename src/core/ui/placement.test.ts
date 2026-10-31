@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   maxPopoverHeight,
+  menuChainShift,
   placeAtPoint,
   placeBelow,
   placeSubmenu,
@@ -75,10 +76,10 @@ describe('placeSubmenu', () => {
   const menu = {left: 100, top: 50, width: 200, height: 300};
   const item = {left: 106, top: 90, width: 188, height: 28};
 
-  it('overlaps the parent by 4px and lines up the first item', () => {
+  it('opens beside the parent and lines up the first item', () => {
     expect(
       placeSubmenu({item, menu}, {width: 180, height: 120}, viewport),
-    ).toEqual({x: 296, y: 84});
+    ).toEqual({x: 300, y: 84});
   });
 
   it('opens on the left when there is no room on the right', () => {
@@ -86,12 +87,46 @@ describe('placeSubmenu', () => {
     expect(
       placeSubmenu({item, menu: farRight}, {width: 180, height: 120}, viewport)
         .x,
-    ).toBe(824);
+    ).toBe(820);
   });
+
+  it.each([
+    {left: 800, ancestorLeft: 1000, windowWidth: 1280},
+    {left: 400, ancestorLeft: 200, windowWidth: 700},
+    {left: 100, ancestorLeft: 300, windowWidth: 700},
+  ])(
+    'never covers an ancestor or parent at $left in a $windowWidth window',
+    ({left, ancestorLeft, windowWidth}) => {
+      const parent = {...menu, left};
+      const ancestor = {...menu, left: ancestorLeft};
+      const width = 180;
+      const placed = placeSubmenu(
+        {item, menu: parent, ancestors: [ancestor]},
+        {width, height: 120},
+        {width: windowWidth, height: 720},
+      );
+      for (const box of [parent, ancestor]) {
+        expect(
+          placed.x + width <= box.left || placed.x >= box.left + box.width,
+        ).toBe(true);
+      }
+    },
+  );
 });
 
 describe('maxPopoverHeight', () => {
   it('leaves 8px at the top and bottom of the window', () => {
     expect(maxPopoverHeight(viewport)).toBe(704);
   });
+});
+
+it('fits a menu chain as a whole without changing the distance between menus', () => {
+  const boxes = [1000, 1200, 1400].map(left => ({
+    left,
+    top: 100,
+    width: 200,
+    height: 150,
+  }));
+  expect(menuChainShift(boxes, viewport)).toBe(-328);
+  expect(menuChainShift(boxes, {width: 500, height: 720})).toBe(0);
 });

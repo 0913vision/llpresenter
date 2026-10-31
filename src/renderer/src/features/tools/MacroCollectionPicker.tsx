@@ -128,6 +128,7 @@ function CollectionPopover({
             ref={surface}
             role="dialog"
             aria-label="매크로 모음"
+            data-check-column="false"
             className={menuStyles.menu}
             onKeyDown={onKeyDown}
             onBlur={event => {

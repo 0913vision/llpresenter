@@ -67,6 +67,10 @@
   transition: none;
 }
 
+.menu[data-check-column='false'] .item {
+  padding-left: var(--space-14);
+}
+
 .item[aria-expanded='true'] {
   background: var(--bg-menu-open);
 }

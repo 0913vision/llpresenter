@@ -325,7 +325,7 @@ async function openMenu() {
 }
 
 async function openSubmenu(name: string) {
-  fireEvent.pointerEnter(screen.getByRole('menuitem', {name}));
+  fireEvent.pointerMove(screen.getByRole('menuitem', {name}));
   await screen.findByRole('menu', {name}, {timeout: 3000});
 }
 
