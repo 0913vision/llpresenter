@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {
   useCallback,
   useMemo,
@@ -57,6 +58,7 @@ function RowView({
         event.preventDefault();
         onMenu(row.id, {
           kind: 'point',
+          target: contextMenuTarget(event),
           point: {x: event.clientX, y: event.clientY},
         });
       }}
@@ -68,7 +70,11 @@ function RowView({
           return;
         }
         event.preventDefault();
-        onMenu(row.id, {kind: 'element', element: event.currentTarget});
+        onMenu(row.id, {
+          kind: 'element',
+          target: contextMenuTarget(event),
+          element: event.currentTarget,
+        });
       }}
       onDragStart={event => {
         if (!canDrag || rename !== undefined) {

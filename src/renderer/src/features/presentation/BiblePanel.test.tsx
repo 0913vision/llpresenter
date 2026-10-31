@@ -74,7 +74,9 @@ describe('Bible panel integration', () => {
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     const tile = within(grid).getAllByRole('option')[0];
     if (!tile) throw new Error('Missing Bible slide');
-    fireEvent.contextMenu(tile);
+    const contextTarget = tile;
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const edit = screen.getByRole('menuitem', {name: '슬라이드 편집'});
     expect(edit.getAttribute('aria-disabled')).toBe('true');
     expect((await hoverForTooltip(edit))?.textContent).toBe(

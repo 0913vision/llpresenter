@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {NoticeSet} from '@core/schema/notices';
 import {AlertDialog, Dialog, Menu, TextField} from '@renderer/ui';
@@ -96,6 +97,7 @@ export function NoticeEditing({
             item,
             anchor: {
               kind: 'point',
+              target: contextMenuTarget(event),
               point: {x: event.clientX, y: event.clientY},
             },
           });
@@ -114,7 +116,11 @@ export function NoticeEditing({
           event.stopPropagation();
           setMenu({
             item,
-            anchor: {kind: 'element', element: event.currentTarget},
+            anchor: {
+              kind: 'element',
+              target: contextMenuTarget(event),
+              element: event.currentTarget,
+            },
           });
         }}
       >

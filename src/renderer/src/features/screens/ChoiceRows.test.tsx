@@ -183,10 +183,11 @@ it('opens row menus with pointer and keyboard only when a menu is provided', () 
   fireEvent.contextMenu(row, {clientX: 12, clientY: 34});
   expect(onMenu).toHaveBeenLastCalledWith(
     {id: 'layout-0', name: 'Layout 0'},
-    {kind: 'point', point: {x: 12, y: 34}},
+    {kind: 'point', point: {x: 12, y: 34}, target: row},
   );
   fireEvent.keyDown(row, {key: 'F10', shiftKey: true});
   expect(onMenu.mock.calls.at(-1)?.[1]).toMatchObject({kind: 'element'});
+  expect(onMenu.mock.calls.at(-1)?.[1].target).toBe(row);
 });
 
 it('leaves rename keystrokes in the field and commits its draft before scrolling', async () => {

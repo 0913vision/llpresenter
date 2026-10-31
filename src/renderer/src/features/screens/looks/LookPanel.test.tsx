@@ -128,7 +128,9 @@ afterEach(() => {
 });
 
 async function menu(name: string): Promise<void> {
-  fireEvent.contextMenu(await screen.findByRole('option', {name}));
+  const contextTarget = await screen.findByRole('option', {name});
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   await screen.findByRole('menu', {name: 'Look 메뉴'});
 }
 

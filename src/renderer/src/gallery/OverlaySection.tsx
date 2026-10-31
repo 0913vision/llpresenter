@@ -1,3 +1,8 @@
+import {
+  contextMenuAnchor,
+  contextMenuTarget,
+  isContextMenuKey,
+} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type MouseEvent} from 'react';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog} from '../ui/AlertDialog';
@@ -141,7 +146,11 @@ function ContextArea(): JSX.Element {
   const [anchor, setAnchor] = useState<MenuAnchor | null>(null);
   const openAt = (event: MouseEvent<HTMLDivElement>): void => {
     event.preventDefault();
-    setAnchor({kind: 'point', point: {x: event.clientX, y: event.clientY}});
+    setAnchor({
+      kind: 'point',
+      target: contextMenuTarget(event),
+      point: {x: event.clientX, y: event.clientY},
+    });
   };
   return (
     <>
@@ -157,6 +166,11 @@ function ContextArea(): JSX.Element {
           padding: 'var(--space-10)',
         }}
         onContextMenu={openAt}
+        onKeyDown={event => {
+          if (!isContextMenuKey(event)) return;
+          event.preventDefault();
+          setAnchor(contextMenuAnchor(event));
+        }}
       >
         찬양
       </div>

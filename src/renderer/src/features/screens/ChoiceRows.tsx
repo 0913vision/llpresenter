@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
   useRef,
@@ -170,6 +171,7 @@ export function ChoiceRows<T extends Choice>({
               event.preventDefault();
               onMenu(choice, {
                 kind: 'point',
+                target: contextMenuTarget(event),
                 point: {x: event.clientX, y: event.clientY},
               });
             }}
@@ -182,7 +184,11 @@ export function ChoiceRows<T extends Choice>({
                 return;
               }
               event.preventDefault();
-              onMenu(choice, {kind: 'element', element: event.currentTarget});
+              onMenu(choice, {
+                kind: 'element',
+                target: contextMenuTarget(event),
+                element: event.currentTarget,
+              });
             }}
           >
             <ListRow

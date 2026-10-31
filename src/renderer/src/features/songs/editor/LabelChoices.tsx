@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import type {JSX, ReactNode} from 'react';
 import type {Label} from '@core/schema/labels';
 import {Icon} from '@renderer/ui/Icon';
@@ -47,7 +48,11 @@ export function LabelChoices({
         onContext({
           label,
           trigger: event.currentTarget,
-          anchor: {kind: 'element', element: event.currentTarget},
+          anchor: {
+            kind: 'element',
+            target: contextMenuTarget(event),
+            element: event.currentTarget,
+          },
         });
       }
     },
@@ -91,6 +96,7 @@ export function LabelChoices({
                   trigger: event.currentTarget,
                   anchor: {
                     kind: 'point',
+                    target: contextMenuTarget(event),
                     point: {x: event.clientX, y: event.clientY},
                   },
                 });

@@ -95,7 +95,9 @@ describe('library panel', () => {
 
   it('lists the library song menu rows in ProPresenter order', async () => {
     await setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    const contextTarget = screen.getByRole('option', {name: '찬송 10'});
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const menu = screen.getByRole('menu', {name: '곡 메뉴'});
     expect(
       [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(

@@ -135,6 +135,6 @@ export function openItemMenu(
     return false;
   }
   if (!item?.onMenu || !element) return false;
-  item.onMenu({kind: 'element', element});
+  item.onMenu({kind: 'element', element, target: element});
   return true;
 }

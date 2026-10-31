@@ -202,6 +202,7 @@ describe('TileList', () => {
     expect(onMenu).toHaveBeenCalledWith(BUSY, {
       kind: 'point',
       point: {x: 40, y: 60},
+      target: tile('별빛'),
     });
   });
 
@@ -232,7 +233,11 @@ describe('TileList', () => {
     render(<Strip onMenu={onMenu} />);
     tile('따뜻한 빛').focus();
     await userEvent.keyboard('{Shift>}{F10}{/Shift}{ContextMenu}');
-    const anchor = {kind: 'element', element: tile('따뜻한 빛')};
+    const anchor = {
+      kind: 'element',
+      element: tile('따뜻한 빛'),
+      target: tile('따뜻한 빛'),
+    };
     expect(onMenu.mock.calls).toEqual([
       [0, anchor],
       [0, anchor],

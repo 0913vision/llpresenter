@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {
   useEffect,
   useLayoutEffect,
@@ -205,6 +206,7 @@ function CollectionPopover({
                       event.currentTarget.focus();
                       showContext({
                         kind: 'point',
+                        target: contextMenuTarget(event),
                         point: {x: event.clientX, y: event.clientY},
                       });
                     }}
@@ -222,6 +224,7 @@ function CollectionPopover({
                         event.preventDefault();
                         showContext({
                           kind: 'element',
+                          target: contextMenuTarget(event),
                           element: event.currentTarget,
                         });
                       } else if (

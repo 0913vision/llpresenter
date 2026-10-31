@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useRef, type JSX} from 'react';
 import {Icon} from './Icon';
 import {
@@ -134,6 +135,7 @@ export function MenuItemRow({
         event.stopPropagation();
         item.onMenu({
           kind: 'point',
+          target: contextMenuTarget(event),
           point: {x: event.clientX, y: event.clientY},
         });
       }}

@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {Result} from '@core/common/result';
 import {parseLyricStyleId, type LyricStyleId} from '@core/schema/ids';
@@ -180,6 +181,7 @@ export function LyricStyleSelector({
               id: style.id,
               anchor: {
                 kind: 'point',
+                target: contextMenuTarget(event),
                 point: {x: event.clientX, y: event.clientY},
               },
             });
@@ -198,6 +200,7 @@ export function LyricStyleSelector({
               id: style.id,
               anchor: {
                 kind: 'element',
+                target: contextMenuTarget(event),
                 element:
                   event.target instanceof HTMLElement
                     ? event.target

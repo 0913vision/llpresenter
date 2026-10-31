@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {QuickItem} from '@core/schema/quick';
@@ -263,7 +264,11 @@ export function QuickRowEditor({
       data-quick-id={item.id}
       onContextMenu={event => {
         event.preventDefault();
-        setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
+        setMenu({
+          kind: 'point',
+          target: contextMenuTarget(event),
+          point: {x: event.clientX, y: event.clientY},
+        });
       }}
       onKeyDown={event => {
         if (!(
@@ -274,7 +279,11 @@ export function QuickRowEditor({
         }
         event.preventDefault();
         event.stopPropagation();
-        setMenu({kind: 'element', element: event.currentTarget});
+        setMenu({
+          kind: 'element',
+          target: contextMenuTarget(event),
+          element: event.currentTarget,
+        });
       }}
     >
       {insertBefore ? <ListInsertLine /> : null}

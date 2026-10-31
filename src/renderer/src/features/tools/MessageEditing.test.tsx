@@ -73,7 +73,9 @@ const fill = (name: string, value: string): void => {
   fireEvent.change(screen.getByRole('textbox', {name}), {target: {value}});
 };
 async function openRow(action: string): Promise<void> {
-  fireEvent.contextMenu(await screen.findByRole('option', {name: '차량 이동'}));
+  const contextTarget = await screen.findByRole('option', {name: '차량 이동'});
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   fireEvent.click(screen.getByRole('menuitem', {name: action}));
 }
 beforeEach(() => {

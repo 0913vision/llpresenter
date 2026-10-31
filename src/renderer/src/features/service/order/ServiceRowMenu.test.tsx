@@ -94,7 +94,9 @@ async function openPicker() {
   return screen.findByRole('menuitemradio', {name: new RegExp(`^${pastName}`)});
 }
 async function context() {
-  fireEvent.contextMenu(await openPicker(), {clientX: 80, clientY: 120});
+  const contextTarget = await openPicker();
+  fireEvent.contextMenu(contextTarget, {clientX: 80, clientY: 120});
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   return screen.getByRole('menu', {name: '예배 메뉴'});
 }
 

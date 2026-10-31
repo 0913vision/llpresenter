@@ -18,6 +18,7 @@ import {layerContainer} from './layers';
 import {lastInputWasKeyboard} from './inputModality';
 import {handleMenuKey, openItemMenu, type MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
+import {markMenuTarget} from './contextMenu';
 import {
   isRunnable,
   hasSubmenu,
@@ -48,9 +49,10 @@ export type {MenuCloseReason} from './menuKeys';
 export type {MenuSearch} from './MenuParts';
 
 /** Where a menu opens: below a button, or at the pointer (right-click). */
-export type MenuAnchor =
+export type MenuAnchor = (
   | {readonly kind: 'element'; readonly element: HTMLElement}
-  | {readonly kind: 'point'; readonly point: Point};
+  | {readonly kind: 'point'; readonly point: Point}
+) & {readonly target?: HTMLElement | undefined};
 
 export interface MenuProps {
   /** The menu name for assistive technology. */
@@ -488,6 +490,10 @@ export function Menu({
   footer,
 }: MenuProps): JSX.Element {
   const catcher = useRef<HTMLDivElement>(null);
+  useLayoutEffect(
+    () => (anchor.target ? markMenuTarget(anchor.target) : undefined),
+    [anchor.target],
+  );
   const [menubar] = useState(() =>
     anchor.kind === 'element'
       ? anchor.element.closest('[role="menubar"]')

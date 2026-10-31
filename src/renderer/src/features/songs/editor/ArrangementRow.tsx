@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
   useRef,
@@ -100,8 +101,16 @@ export function ArrangementRow({
       opener: button,
       anchor:
         'clientX' in event
-          ? {kind: 'point', point: {x: event.clientX, y: event.clientY}}
-          : {kind: 'element', element: button},
+          ? {
+              kind: 'point',
+              target: contextMenuTarget(event),
+              point: {x: event.clientX, y: event.clientY},
+            }
+          : {
+              kind: 'element',
+              target: contextMenuTarget(event),
+              element: button,
+            },
     });
   };
   const menuLocked = locked || context?.name === undefined;

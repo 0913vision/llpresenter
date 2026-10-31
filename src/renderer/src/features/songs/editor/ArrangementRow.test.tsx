@@ -58,7 +58,9 @@ describe('arrangement row', () => {
     await user.click(screen.getByRole('button', {name: '취소'}));
     expect(session.history.snapshot.song.arrangements).toHaveLength(1);
     expect(edits).toHaveLength(0);
-    fireEvent.contextMenu(screen.getByRole('radio', {name: '기본'}));
+    const contextTarget = screen.getByRole('radio', {name: '기본'});
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const menu = screen.getByRole('menu', {name: '구성 관리'});
     expect(
       [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(

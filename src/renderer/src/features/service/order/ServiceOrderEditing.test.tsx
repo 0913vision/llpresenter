@@ -194,6 +194,22 @@ beforeEach(() => {
 });
 
 describe('service panel editing', () => {
+  it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
+    'marks the focused order row when $key opens its menu',
+    keys => {
+      setup();
+      const row = screen.getByRole('option', {name: '첫 곡'});
+      row.focus();
+      fireEvent.keyDown(row, keys);
+      expect(
+        screen.getByRole('menu', {name: '예배 순서 항목 메뉴'}),
+      ).toBeDefined();
+      expect(row.hasAttribute('data-menu-target')).toBe(true);
+      fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
+      expect(row.hasAttribute('data-menu-target')).toBe(false);
+    },
+  );
+
   it('hands focus from a selected section context menu to its rename field', async () => {
     const {api} = setup('prep');
     const user = userEvent.setup();
@@ -201,7 +217,9 @@ describe('service panel editing', () => {
     await user.click(section);
     section.focus();
     expect(document.activeElement).toBe(section);
-    fireEvent.contextMenu(section);
+    const contextTarget = section;
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     await user.click(
       await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
     );

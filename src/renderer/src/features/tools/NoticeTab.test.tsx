@@ -115,7 +115,9 @@ it.each([false, true])(
     render(<NoticeTab />);
     const target = await screen.findByRole('button', {name: '공지 세트'});
     await waitFor(() => expect(target.textContent).toContain('주일 공지'));
-    fireEvent.contextMenu(target);
+    const contextTarget = target;
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     expect(
       renderedToolMenuRows(screen.getByRole('menu', {name: '공지 세트'})),
     ).toEqual(['복제', '이름 바꾸기', '|', '삭제']);

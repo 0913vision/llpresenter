@@ -77,7 +77,9 @@ function setup(reason?: string) {
 
 it('lists only rename and delete in the style menu and keeps creation on plus', async () => {
   const {change} = setup();
-  fireEvent.contextMenu(screen.getByRole('tab', {name: '기본'}));
+  const contextTarget = screen.getByRole('tab', {name: '기본'});
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   const menu = await screen.findByRole('menu', {name: '가사 스타일 메뉴'});
   expect(
     [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(

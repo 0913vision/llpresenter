@@ -87,9 +87,11 @@ describe('media view', () => {
     setup(fixture, {kind: 'audio', id: audioPlaylistId(1)});
     fireEvent.click(screen.getByRole('button', {name: 'Choose list'}));
     const grid = await screen.findByRole('listbox', {name: 'Hymns'});
-    fireEvent.contextMenu(
-      await within(grid).findByRole('option', {name: 'Invented audio'}),
-    );
+    const contextTarget = await within(grid).findByRole('option', {
+      name: 'Invented audio',
+    });
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const menu = screen.getByRole('menu', {name: '미디어 메뉴'});
     expect(
       [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
@@ -425,7 +427,9 @@ describe('media view', () => {
 
   it('deletes media from 모든 미디어 after asking', async () => {
     const {edit} = setup();
-    fireEvent.contextMenu(await tile('Dawn'));
+    const mediaTarget = await tile('Dawn');
+    fireEvent.contextMenu(mediaTarget);
+    expect(mediaTarget.hasAttribute('data-menu-target')).toBe(true);
     expect(
       screen
         .getAllByRole('menuitem')

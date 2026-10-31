@@ -182,7 +182,9 @@ it('lists the rows of the ProPresenter prop menu in its order', async () => {
   );
   render(<PropTab />);
   const tile = await screen.findByRole('option', {name: '로고'});
-  fireEvent.contextMenu(tile);
+  const contextTarget = tile;
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   const menu = await screen.findByRole('menu', {name: '소품'});
   const rows = [
     ...menu.querySelectorAll('[role="menuitem"], [role="separator"]'),

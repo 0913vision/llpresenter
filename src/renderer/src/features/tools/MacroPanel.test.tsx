@@ -133,7 +133,9 @@ it('runs a macro and asks with the number of service items before deletion', asy
   const tile = await screen.findByRole('option', {name: '찬양'});
   fireEvent.click(tile);
   expect(f.send).toHaveBeenCalledWith({type: 'macro.run', macroId: id});
-  fireEvent.contextMenu(tile);
+  const contextTarget = tile;
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
   await screen.findByText('예배 순서 항목 2곳에서 씀');
   expect(f.edit).not.toHaveBeenCalled();

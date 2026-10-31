@@ -30,10 +30,12 @@ const setup = (readOnly = false) => {
   return f;
 };
 const open = async () => {
-  fireEvent.contextMenu(await screen.findByRole('group', {name: '기존'}), {
+  const contextTarget = await screen.findByRole('group', {name: '기존'});
+  fireEvent.contextMenu(contextTarget, {
     clientX: 50,
     clientY: 50,
   });
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
 };
 

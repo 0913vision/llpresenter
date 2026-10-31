@@ -10,10 +10,12 @@ async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
 }
 
 async function manage(name: string, action: string) {
-  fireEvent.contextMenu(screen.getByRole('menuitemradio', {name}), {
+  const contextTarget = screen.getByRole('menuitemradio', {name});
+  fireEvent.contextMenu(contextTarget, {
     clientX: 20,
     clientY: 20,
   });
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   fireEvent.click(screen.getByRole('menuitem', {name: action}));
   return screen.findByRole('dialog');
 }

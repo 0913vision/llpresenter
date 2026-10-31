@@ -121,7 +121,9 @@ function setup({
   };
 }
 async function menu(name = 'Source') {
-  fireEvent.contextMenu(await screen.findByRole('option', {name}));
+  const contextTarget = await screen.findByRole('option', {name});
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   await screen.findByRole('menu', {name: '무대 배치 메뉴'});
 }
 async function confirmDelete(user: ReturnType<typeof userEvent.setup>) {

@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
@@ -168,6 +169,7 @@ export function MessageEditing({
           if (
             openMenu(event.target, {
               kind: 'point',
+              target: contextMenuTarget(event),
               point: {x: event.clientX, y: event.clientY},
             })
           ) {
@@ -180,6 +182,7 @@ export function MessageEditing({
               (event.shiftKey && event.key === 'F10')) &&
             openMenu(event.target, {
               kind: 'element',
+              target: contextMenuTarget(event),
               element:
                 event.target instanceof HTMLElement
                   ? event.target

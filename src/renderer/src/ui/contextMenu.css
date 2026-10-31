@@ -1,0 +1,4 @@
+:root [data-menu-target] {
+  outline: var(--outline-menu-target) !important;
+  outline-offset: calc(-1 * var(--space-2));
+}

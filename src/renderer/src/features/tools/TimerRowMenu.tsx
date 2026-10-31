@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
@@ -103,7 +104,11 @@ export function TimerRowMenu({
       onContextMenu={event => {
         event.preventDefault();
         event.stopPropagation();
-        setMenu({kind: 'point', point: {x: event.clientX, y: event.clientY}});
+        setMenu({
+          kind: 'point',
+          target: contextMenuTarget(event),
+          point: {x: event.clientX, y: event.clientY},
+        });
       }}
       onKeyDown={event => {
         if (!(
@@ -114,7 +119,11 @@ export function TimerRowMenu({
         }
         event.preventDefault();
         event.stopPropagation();
-        setMenu({kind: 'element', element: event.currentTarget});
+        setMenu({
+          kind: 'element',
+          target: contextMenuTarget(event),
+          element: event.currentTarget,
+        });
       }}
     >
       {children}

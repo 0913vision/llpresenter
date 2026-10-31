@@ -104,7 +104,9 @@ afterEach(() => {
 describe('screen creation and group outputs', () => {
   it('lists screen commands in spec order and hides delete for the last screen of a group', async () => {
     setup();
-    fireEvent.contextMenu(await screen.findByRole('option', {name: '본 화면'}));
+    const contextTarget = await screen.findByRole('option', {name: '본 화면'});
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const rows = () =>
       [
         ...screen

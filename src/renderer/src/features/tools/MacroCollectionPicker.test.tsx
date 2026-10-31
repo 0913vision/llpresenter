@@ -181,7 +181,9 @@ it.each([
   async ({key, name, writes}) => {
     const f = setup();
     const popup = await open();
-    fireEvent.contextMenu(within(popup).getByRole('option', {name: '주일'}));
+    const contextTarget = within(popup).getByRole('option', {name: '주일'});
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
     const field = await screen.findByRole('textbox', {name: '모음 이름'});
     expect(document.activeElement).toBe(field);

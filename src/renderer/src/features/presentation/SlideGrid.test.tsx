@@ -31,7 +31,9 @@ function slide(index: number): HTMLElement {
 
 it('lists the slide menu rows in spec order with only editing enabled', () => {
   render(<SlideGrid columns={4} scalePercent={100} onOpenPrep={vi.fn()} />);
-  fireEvent.contextMenu(slide(1));
+  const contextTarget = slide(1);
+  fireEvent.contextMenu(contextTarget);
+  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   const menu = screen.getByRole('menu', {name: '슬라이드'});
   expect(
     [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(

@@ -353,9 +353,11 @@ describe('quick editing', () => {
   it('renames the timer through its paired command without replacing settings', async () => {
     const fixture = setup();
     fixture.mount();
-    fireEvent.contextMenu(
-      await screen.findByRole('button', {name: '시작 카운트다운'}),
-    );
+    const contextTarget = await screen.findByRole('button', {
+      name: '시작 카운트다운',
+    });
+    fireEvent.contextMenu(contextTarget);
+    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
     fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
       target: {value: '  예배 타이머  '},

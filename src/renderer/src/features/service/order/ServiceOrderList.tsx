@@ -1,3 +1,8 @@
+import {
+  contextMenuAnchor,
+  contextMenuTarget,
+  isContextMenuKey,
+} from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isInTextEntry} from '@renderer/ui/textEntry';
@@ -280,11 +285,23 @@ export function ServiceOrderList({
         setMenu({
           id,
           serviceId,
-          anchor: {kind: 'point', point: {x: event.clientX, y: event.clientY}},
+          anchor: {
+            kind: 'point',
+            target: contextMenuTarget(event),
+            point: {x: event.clientX, y: event.clientY},
+          },
         });
       }}
       onKeyDownCapture={event => {
         if (isInTextEntry(event.target)) return;
+        if (isContextMenuKey(event)) {
+          const id = serviceOrderRowId(event.target);
+          if (id === null) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setMenu({id, serviceId, anchor: contextMenuAnchor(event)});
+          return;
+        }
         if (
           workspace === 'prep' &&
           event.code === 'Delete' &&

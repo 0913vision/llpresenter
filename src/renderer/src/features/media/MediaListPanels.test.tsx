@@ -86,7 +86,9 @@ describe('media list panels', () => {
     'lists the %s playlist menu rows in ProPresenter order',
     async (list, name) => {
       setup();
-      fireEvent.contextMenu(await row(list, new RegExp(name)));
+      const contextTarget = await row(list, new RegExp(name));
+      fireEvent.contextMenu(contextTarget);
+      expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
       const menu = screen.getByRole('menu', {name: '재생목록 메뉴'});
       expect(
         [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(

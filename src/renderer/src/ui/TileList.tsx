@@ -1,3 +1,4 @@
+import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {
   useEffect,
   useLayoutEffect,
@@ -267,6 +268,7 @@ export function TileList(props: TileListProps): JSX.Element {
     event.preventDefault();
     props.onMenu(index, {
       kind: 'point',
+      target: contextMenuTarget(event),
       point: {x: event.clientX, y: event.clientY},
     });
   };
@@ -275,7 +277,11 @@ export function TileList(props: TileListProps): JSX.Element {
     const index = indexOf(event.currentTarget, tile);
     if (tile === null || index < 0 || props.onMenu === undefined) return;
     event.preventDefault();
-    props.onMenu(index, {kind: 'element', element: tile});
+    props.onMenu(index, {
+      kind: 'element',
+      target: contextMenuTarget(event),
+      element: tile,
+    });
   };
   const moveTo = (list: HTMLElement, target: number): void => {
     if (props.arrowsMove === 'selection') props.onSelect(target);

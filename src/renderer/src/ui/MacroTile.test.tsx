@@ -137,6 +137,7 @@ describe('MacroGrid', () => {
     expect(onMenu).toHaveBeenCalledWith(1, {
       kind: 'point',
       point: {x: 12, y: 34},
+      target: screen.getByRole('option', {name: '찬양'}),
     });
   });
 
