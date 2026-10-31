@@ -676,3 +676,24 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   properties are checkboxes (comments on the same page).
 - No migration from `looks.json` and `stage-layouts.json`: no installation keeps
   data yet.
+
+## 2026-10-31: Song editing scope, names, workspace look, and shortcuts
+
+- A 예배 순서 song item changes only this service: its 구성 choice, background,
+  시작할 때, and memo. Its 구성 chips are read-only. The song itself (lyrics,
+  구성 order, 이름표, default background, hot keys) is changed only in the song
+  editor, opened with 곡 편집 at the clicked 슬라이드. The 구성 control, 이름표
+  관리, and the background picker are one shared control each, wherever they
+  open (B22; user: "일관성이 쓰레기", drafts accepted).
+- Names (B14, B17, B18): 가사 편집 becomes 곡 편집, 소품 becomes 그래픽, the
+  진행 속성 panel becomes 미디어 속성, and the disabled rows 다른 예배에 추가,
+  라이브러리로 옮기기, and 크기 바꾸기 are removed.
+- 진행 and 준비 must be told apart at a glance (B20; user: "진행과 준비가 구분이
+  가야 한다", not a warning about live output). First trial: 진행 uses one warm
+  palette at the same lightness steps with an amber accent, 준비 keeps today's
+  colors; the user judges it in the check app.
+- Shortcuts (B7): the user will give the whole key map. Until then the current
+  defaults stay. The work is the shortcut system of spec 10 (one command
+  registry, physical-key matching, focus precedence, remapping through
+  `shortcuts.json`), so that any mapping works. Menu shortcut text stays muted
+  (`--text-3`).
