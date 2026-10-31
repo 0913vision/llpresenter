@@ -1,10 +1,10 @@
-import {win32} from 'node:path';
 import type {
   TextImportDraft,
   TextImportOptions,
   TextImportPreviewRequest,
   TextImportPreviewResult,
 } from '@core/schema/textImport';
+import {fileStem} from '@core/common/fileName';
 import {TEXT_IMPORT_LIMITS} from './limits';
 
 type DraftSlide = TextImportDraft['slides'][number];
@@ -212,7 +212,7 @@ export function convertTextImport({
   }
   const lines = normalizeLines(source.text);
   if (lines === null) return invalidSize();
-  let title = source.source === 'file' ? win32.parse(source.fileName).name : '';
+  let title = source.source === 'file' ? fileStem(source.fileName) : '';
   if (source.source === 'clipboard' && options.firstLine === 'title') {
     const index = lines.findIndex(
       line =>
