@@ -289,5 +289,13 @@ export {
   type CalendarCloseReason,
 } from './Calendar';
 export {DateSelect, type DateSelectProps} from './DateSelect';
+export {
+  CanvasEditor,
+  type CanvasActions,
+  type CanvasDocument,
+  type CanvasElement,
+  type CanvasEditorProps,
+} from './CanvasEditor';
+export {CanvasFrameBar} from './CanvasFrameBar';
 export type {ControlSize, GroupName} from './types';
 export type {Workspace} from './workspace';

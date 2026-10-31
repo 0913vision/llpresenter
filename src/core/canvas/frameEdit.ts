@@ -1,5 +1,3 @@
-import type {StageElement} from '../schema/stageLayouts';
-
 export const resizeHandles = [
   'nw',
   'n',
@@ -11,7 +9,13 @@ export const resizeHandles = [
   'w',
 ] as const;
 export type ResizeHandle = (typeof resizeHandles)[number];
-export type ElementFrame = StageElement['frame'];
+export interface ElementFrame {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  readonly [key: string]: unknown;
+}
 export type FrameField = 'x' | 'y' | 'w' | 'h';
 export interface FrameFieldChange {
   readonly field: FrameField;

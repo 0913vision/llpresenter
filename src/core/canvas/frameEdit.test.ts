@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {editFrame, editFrameValue, resizeHandles} from './frameEdit';
 
 const frame = {x: 10, y: 20, w: 100, h: 80};
-describe('stage geometry', () => {
+describe('canvas geometry', () => {
   it.each(resizeHandles)(
     'resizes %s while preserving the opposite edges',
     handle => {

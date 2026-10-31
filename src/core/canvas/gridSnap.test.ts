@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {editFrame, resizeHandles} from '@core/looks/frameEdit';
+import {editFrame, resizeHandles} from '@core/canvas/frameEdit';
 import {snapToGrid} from './gridSnap';
 
 const frame = {x: 10, y: 15, w: 100, h: 80};

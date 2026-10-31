@@ -1,22 +1,22 @@
 import type {JSX} from 'react';
-import {IconButton, NumberField} from '@renderer/ui';
+import {IconButton} from './IconButton';
+import {NumberField} from './NumberField';
 import {
   MIN_SIZE,
   type ElementFrame,
   type FrameField,
-} from '@core/looks/frameEdit';
-import {STAGE_READ_ONLY} from './StageTextProperties';
-import styles from './StageFrameBar.module.css';
+} from '@core/canvas/frameEdit';
+import styles from './CanvasFrameBar.module.css';
 
 const FIELDS = ['x', 'y', 'w', 'h'] as const;
 
 /** Edits reference-picture pixels without applying canvas zoom to saved values. */
-export function StageFrameBar({
+export function CanvasFrameBar({
   frame,
   width,
   height,
   zoom,
-  readOnly,
+  readOnlyReason,
   keepRatio,
   setKeepRatio,
   snapGrid,
@@ -27,18 +27,16 @@ export function StageFrameBar({
   width: number;
   height: number;
   zoom: number;
-  readOnly: boolean;
+  readOnlyReason: string | undefined;
   keepRatio: boolean;
   setKeepRatio: (value: boolean) => void;
   snapGrid: boolean;
   setSnapGrid: (value: boolean) => void;
   change: (field: FrameField, value: number) => void;
 }): JSX.Element {
-  const reason = readOnly
-    ? STAGE_READ_ONLY
-    : frame === undefined
-      ? '선택한 요소 없음'
-      : undefined;
+  const readOnly = readOnlyReason !== undefined;
+  const reason =
+    readOnlyReason ?? (frame === undefined ? '선택한 요소 없음' : undefined);
   return (
     <footer className={styles.bar} aria-label="요소 위치와 크기">
       {FIELDS.map(field => {
@@ -67,7 +65,7 @@ export function StageFrameBar({
         label="비율 고정"
         pressed={keepRatio}
         disabled={readOnly}
-        title={readOnly ? STAGE_READ_ONLY : undefined}
+        title={readOnlyReason}
         onPressedChange={setKeepRatio}
       />
       <IconButton
@@ -75,7 +73,7 @@ export function StageFrameBar({
         label="격자에 맞추기"
         pressed={snapGrid}
         disabled={readOnly}
-        title={readOnly ? STAGE_READ_ONLY : undefined}
+        title={readOnlyReason}
         onPressedChange={setSnapGrid}
       />
       <output className={styles.zoom} aria-label="캔버스 배율">

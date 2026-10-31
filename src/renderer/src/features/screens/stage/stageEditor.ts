@@ -16,7 +16,7 @@ import {
   editFrameValue,
   type ElementFrame,
   type FrameFieldChange,
-} from '@core/looks/frameEdit';
+} from '@core/canvas/frameEdit';
 
 export const STAGE_LAYOUT_LIMIT = 1000;
 export const STAGE_ELEMENT_LIMIT = 128;

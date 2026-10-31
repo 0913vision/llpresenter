@@ -218,7 +218,7 @@ it('keeps a completed drag drawn through Tab and unrelated keys while its save i
   for (const key of ['Tab', 'Shift', 'a']) {
     fireEvent.keyDown(canvas, {key});
     const element = document.querySelector<HTMLElement>(
-      '[data-stage-element="first"]',
+      '[data-canvas-element="first"]',
     );
     expect(Number.parseFloat(element?.style.left ?? '')).toBeCloseTo(
       (100 * 120) / 1920,
@@ -249,7 +249,7 @@ it('draws token-distance guides, responds to Alt without pointer movement, and r
   const item = await screen.findByRole('button', {name: '현재 가사'});
   const canvas = screen.getByLabelText('무대 배치 캔버스');
   canvas.style.setProperty('--size-guide-snap', '6px');
-  const guides = () => document.querySelectorAll('[data-stage-guide]');
+  const guides = () => document.querySelectorAll('[data-canvas-guide]');
   fireEvent.pointerDown(item, {
     button: 0,
     pointerId: 1,
@@ -262,7 +262,7 @@ it('draws token-distance guides, responds to Alt without pointer movement, and r
   fireEvent.keyDown(item, {key: 'Alt', altKey: true});
   expect(guides()).toHaveLength(0);
   expect(
-    document.querySelector<HTMLElement>('[data-stage-element="first"]')?.style
+    document.querySelector<HTMLElement>('[data-canvas-element="first"]')?.style
       .left,
   ).toBe(`${(100 * 2) / 1920}%`);
   fireEvent.keyUp(item, {key: 'Alt'});
@@ -289,11 +289,11 @@ it('excludes the manipulated element and discards guides on cancellation and unm
     clientY: 100,
   });
   fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 102, clientY: 100});
-  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  expect(document.querySelectorAll('[data-canvas-guide]')).toHaveLength(0);
   fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 51, clientY: 100});
-  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(1);
+  expect(document.querySelectorAll('[data-canvas-guide]')).toHaveLength(1);
   fireEvent.keyDown(item, {key: 'Escape'});
-  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  expect(document.querySelectorAll('[data-canvas-guide]')).toHaveLength(0);
   fireEvent.pointerUp(canvas, {pointerId: 1});
   expect(edit).not.toHaveBeenCalled();
   fireEvent.pointerDown(item, {
@@ -304,7 +304,7 @@ it('excludes the manipulated element and discards guides on cancellation and unm
   });
   fireEvent.pointerMove(canvas, {pointerId: 2, clientX: 51, clientY: 100});
   view.unmount();
-  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  expect(document.querySelectorAll('[data-canvas-guide]')).toHaveLength(0);
   expect(listeners.size).toBe(0);
   expect(edit).not.toHaveBeenCalled();
 });
@@ -404,7 +404,7 @@ it('keeps a held drag and subsequent numeric fields drawn until their queued sav
     fireEvent.keyDown(input, {key: 'Enter'});
   }
   const element = document.querySelector<HTMLElement>(
-    '[data-stage-element="first"]',
+    '[data-canvas-element="first"]',
   );
   expect(Number.parseFloat(element?.style.left ?? '')).toBeCloseTo(
     (100 * 160) / 1920,
@@ -444,7 +444,7 @@ it('keeps the other pending axes when a numeric edit returns one coordinate to i
   fireEvent.change(x, {target: {value: '100'}});
   fireEvent.keyDown(x, {key: 'Enter'});
   const element = document.querySelector<HTMLElement>(
-    '[data-stage-element="first"]',
+    '[data-canvas-element="first"]',
   );
   expect(Number.parseFloat(element?.style.top ?? '')).toBeCloseTo(
     (100 * 140) / 1080,

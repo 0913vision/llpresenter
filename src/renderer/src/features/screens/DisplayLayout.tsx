@@ -16,13 +16,13 @@ import {
   type DisplayLayoutModel,
   type MonitorBox,
 } from './layoutBoxes';
-import {fitAspect, type BoxSize} from './fitAspect';
+import {fitAspect, type BoxSize} from '@core/canvas/fitAspect';
 import {
   useScreenView,
   useScreensSelection,
   type ScreensSelection,
 } from './selection';
-import {useElementSize} from './useElementSize';
+import {useElementSize} from '@renderer/ui/useElementSize';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';

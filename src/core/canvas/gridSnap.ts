@@ -2,7 +2,7 @@ import {
   MIN_SIZE,
   type ElementFrame,
   type ResizeHandle,
-} from '@core/looks/frameEdit';
+} from '@core/canvas/frameEdit';
 
 const GRID_STEP = 20;
 interface Point {

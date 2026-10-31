@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import type {BoxSize} from './fitAspect';
+import type {BoxSize} from '@core/canvas/fitAspect';
 
 /**
  * Follows the size of an element. Pass the returned callback to the element's
