@@ -1,11 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '../../main/live/store';
-import {SliceRegistry} from '../../main/live/sliceRegistry';
-import {contentSlice} from '../../main/live/slices/content';
-import {clearSlice} from '../../main/live/slices/clear';
-import {interruptsSongOutput, isLiveCommand} from '../live/commands';
-import {parseLiveCommand} from './liveCommand';
-import {expectSuccess} from './testHelpers';
+import {dispatchLogged, LiveStore} from './store';
+import {SliceRegistry} from './sliceRegistry';
+import {contentSlice} from './slices/content';
+import {clearSlice} from './slices/clear';
+import {interruptsSongOutput, isLiveCommand} from '@core/live/commands';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {expectSuccess} from '@core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const OTHER_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';

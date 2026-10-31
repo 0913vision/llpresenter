@@ -27,7 +27,7 @@ import type {RecoveryTarget} from './recoveryCopies';
 import {MAX_WAITING_SAVES, type WaitingSave} from './saveFailures';
 import type {SaveRequest} from './saver';
 import {SettingsStore} from './settingsStore';
-import {convertTextImport} from '../import/convert';
+import {convertTextImport} from '@core/songs/textImport';
 import {
   hymnOne,
   HYMN_ONE_ID,

@@ -10,9 +10,9 @@ import {
 import type {PayloadError} from '@core/schema/payload';
 import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
-import {convertTextImport} from './convert';
+import {convertTextImport} from '@core/songs/textImport';
 import {readTextImport, type TextImportInputs} from './read';
-import {TEXT_IMPORT_LIMITS} from './limits';
+import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 
 /** Names the file that stands in for the file dialog when windows are offscreen. */
 export const TEST_IMPORT_FILE_VARIABLE = 'LLP_TEST_IMPORT_FILE';

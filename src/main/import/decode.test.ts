@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {convertTextImport} from './convert';
+import {convertTextImport} from '@core/songs/textImport';
 import {decodeTextImport} from './decode';
 import {
   encodedTextSamples,

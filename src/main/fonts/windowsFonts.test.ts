@@ -1,6 +1,6 @@
 import type {ExecFileOptionsWithStringEncoding} from 'node:child_process';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
+import {fontFamilyFixture} from '@core/testing/fontCatalog';
 import {FONT_QUERY_TIMEOUT_MS, readWindowsFonts} from './windowsFonts';
 
 type Exec = (

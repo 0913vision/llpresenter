@@ -4,7 +4,7 @@ import {expect, it, onTestFinished, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {contentFixture} from '../../../../../../test/content-fixture';
-import {convertTextImport} from '../../../../../main/import/convert';
+import {convertTextImport} from '@core/songs/textImport';
 import {editorFixture} from '../editor/editorFixture';
 import {SongEditor} from '../editor/SongEditor';
 import {SongEditorStore} from '../editor/songEditorStore';

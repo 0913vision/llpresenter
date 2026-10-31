@@ -1,4 +1,4 @@
-import type {FontFamily} from '@core/schema/fontCatalog';
+import type {FontFamily} from '../schema/fontCatalog';
 
 /** Invented localized font metadata for validation and native-reader tests. */
 export function fontFamilyFixture(): FontFamily {

@@ -10,7 +10,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
+import {fontFamilyFixture} from '@core/testing/fontCatalog';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,

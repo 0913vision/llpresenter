@@ -1,17 +1,20 @@
 import {describe, expect, it} from 'vitest';
-import {LiveStore} from '../../main/live/store';
-import {emptyLiveState, layerKinds} from '../live/state';
-import {interruptsSongOutput} from '../live/commands';
-import {parseLiveState} from './liveState';
-import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
-import {createMessageId} from './ids';
+import {LiveStore} from './store';
+import {emptyLiveState, layerKinds} from '@core/live/state';
+import {interruptsSongOutput} from '@core/live/commands';
+import {parseLiveState} from '@core/schema/liveState';
+import {
+  parseLiveCommand,
+  parseLiveCommandRequest,
+} from '@core/schema/liveCommand';
+import {createMessageId} from '@core/schema/ids';
 import {
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
   MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
-} from './overlayState';
-import {expectSuccess} from './testHelpers';
+} from '@core/schema/overlayState';
+import {expectSuccess} from '@core/schema/testHelpers';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;

@@ -3,9 +3,9 @@ import type {
   TextImportOptions,
   TextImportPreviewRequest,
   TextImportPreviewResult,
-} from '@core/schema/textImport';
-import {fileStem} from '@core/common/fileName';
-import {TEXT_IMPORT_LIMITS} from './limits';
+} from '../schema/textImport';
+import {fileStem} from '../common/fileName';
+import {TEXT_IMPORT_LIMITS} from './textImportLimits';
 
 type DraftSlide = TextImportDraft['slides'][number];
 type Unit = readonly string[] | null;

@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {fontFamilyFixture} from '@contracts/ipc/testing/fontCatalog';
+import {fontFamilyFixture} from '../testing/fontCatalog';
 import {FONT_CATALOG_LIMITS, parseFontCatalog} from './fontCatalog';
 
 it('keeps localized names and nonstandard OpenType weights and drops unknown fields', () => {

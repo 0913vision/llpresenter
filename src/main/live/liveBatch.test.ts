@@ -1,14 +1,14 @@
 import {describe, expect, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '../../main/live/store';
-import {SliceRegistry} from '../../main/live/sliceRegistry';
-import {outputsSlice} from '../../main/live/slices/outputs';
-import {interruptsSongOutput, isLiveCommand} from '../live/commands';
+import {dispatchLogged, LiveStore} from './store';
+import {SliceRegistry} from './sliceRegistry';
+import {outputsSlice} from './slices/outputs';
+import {interruptsSongOutput, isLiveCommand} from '@core/live/commands';
 import {
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
   parseLiveCommandRequest,
-} from './liveCommand';
-import {expectSuccess} from './testHelpers';
+} from '@core/schema/liveCommand';
+import {expectSuccess} from '@core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const first = {type: 'look.set', lookId: ID};

@@ -1,11 +1,14 @@
 import {describe, expect, expectTypeOf, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '../../main/live/store';
-import {SliceRegistry} from '../../main/live/sliceRegistry';
-import {interruptsSongOutput} from '../live/commands';
-import type {ScreenId} from './ids';
-import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
-import type {ScreenCommand} from './screenCommands';
-import {expectSuccess} from './testHelpers';
+import {dispatchLogged, LiveStore} from './store';
+import {SliceRegistry} from './sliceRegistry';
+import {interruptsSongOutput} from '@core/live/commands';
+import type {ScreenId} from '@core/schema/ids';
+import {
+  parseLiveCommand,
+  parseLiveCommandRequest,
+} from '@core/schema/liveCommand';
+import type {ScreenCommand} from '@core/schema/screenCommands';
+import {expectSuccess} from '@core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const screen = {id: ID, name: 'Audience', kind: 'audience', method: 'capture'};

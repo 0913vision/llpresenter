@@ -14,7 +14,7 @@ import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {settingsDocument} from '@core/testing/screenDocuments';
 import userEvent from '@testing-library/user-event';
-import {convertTextImport} from '../../../main/import/convert';
+import {convertTextImport} from '@core/songs/textImport';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
 import {applyService, openItem, useShow} from '@renderer/session/show';

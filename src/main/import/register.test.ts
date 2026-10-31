@@ -9,7 +9,7 @@ import {
 } from '@core/schema/textImport';
 import {makeTempDir} from '../../../test/temp-dir';
 import {registerTextImport, TEST_IMPORT_FILE_VARIABLE} from './register';
-import {TEXT_IMPORT_LIMITS} from './limits';
+import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 
 type Handler = (event: unknown, value: unknown) => unknown;
 interface Selection {

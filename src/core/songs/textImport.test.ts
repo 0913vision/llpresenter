@@ -2,14 +2,14 @@ import {describe, expect, it} from 'vitest';
 import {
   parseGroupedSongDraft,
   serializeGroupedSong,
-} from '@core/schema/groupedSong';
-import {parseContentEdit} from '@core/schema/contentEdit';
+} from '../schema/groupedSong';
+import {parseContentEdit} from '../schema/contentEdit';
 import type {
   TextImportOptions,
   TextImportPreviewRequest,
-} from '@core/schema/textImport';
-import {convertTextImport} from './convert';
-import {TEXT_IMPORT_LIMITS} from './limits';
+} from '../schema/textImport';
+import {convertTextImport} from './textImport';
+import {TEXT_IMPORT_LIMITS} from './textImportLimits';
 
 const defaults: TextImportOptions = {
   split: 'lineBreak',

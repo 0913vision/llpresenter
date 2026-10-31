@@ -4,8 +4,8 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {readTextImport, type TextImportInputs} from './read';
-import {TEXT_IMPORT_LIMITS} from './limits';
-import {convertTextImport} from './convert';
+import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {convertTextImport} from '@core/songs/textImport';
 import {encodedTextSamples, testText} from './testText';
 
 function inputs(
