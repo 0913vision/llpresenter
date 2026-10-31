@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {randomUUID} from 'node:crypto';
 import {dirname, isAbsolute} from 'node:path';
 import {
@@ -19,7 +20,6 @@ import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {UiStateFields} from '../store/appConfigFile';
-import type {SettingsReader} from '../store/settingsStore';
 import {realPathInside} from '../windows/insideRoots';
 import type {WindowMode} from '../windows/testWindows';
 import type {MediaAnalysis} from './analysis';

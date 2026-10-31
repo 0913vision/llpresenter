@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -11,7 +12,6 @@ import {macrosSlice} from '../live/slices/macros';
 import {ContentStore} from '../store/contentStore';
 import {MediaStore} from '../store/mediaStore';
 import {resolveLocations} from '../store/locations';
-import type {SettingsReader} from '../store/settingsStore';
 import {registerMacros} from './register';
 import {environment, IDS, macro, uuid} from './testing';
 

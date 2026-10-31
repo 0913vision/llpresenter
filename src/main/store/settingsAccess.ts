@@ -1,9 +1,12 @@
 import type {
+  SettingsListener,
+  SettingsReader,
+} from '@core/schema/settingsReader';
+import type {
   SettingsDocument,
   SettingsName,
 } from '@core/schema/settingsDocuments';
 import type {Logger} from '../log';
-import type {SettingsListener, SettingsReader} from './settingsStore';
 
 /** Main-only settings reads and change subscriptions. */
 export interface SettingsAccess {

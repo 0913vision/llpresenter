@@ -1,10 +1,11 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import type {DocumentFiles} from './contentPersistence';
 import {createLookSelection} from './lookSelection';
-import {SettingsStore, type SettingsReader} from './settingsStore';
+import {SettingsStore} from './settingsStore';
 
 const FIRST = '00000000-0000-4000-8000-000000000010';
 const SECOND = '00000000-0000-4000-8000-000000000011';

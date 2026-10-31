@@ -1,5 +1,5 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SingleLiveCommand} from '@core/live/commands';
-import type {SettingsReader} from '../store/settingsStore';
 import {
   countdownRemainingMs,
   stopsAtZero,

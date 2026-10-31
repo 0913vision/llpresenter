@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {MacroId, ServiceItemId} from '@core/schema/ids';
 import {parseMacroId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
@@ -5,7 +6,6 @@ import type {MediaList} from '@core/schema/mediaList';
 import type {LiveHistory} from '../live/history';
 import type {CommandOf, MacroCommandPort, SliceContext} from '../live/slice';
 import type {Logger} from '../log';
-import type {SettingsReader} from '../store/settingsStore';
 import {readMacroCatalog} from './catalog';
 import {compileMacro} from './compiler';
 import {requireMacroTarget} from './actions';

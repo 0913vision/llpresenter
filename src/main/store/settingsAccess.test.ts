@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {
   parseSettingsDocument,
@@ -6,7 +7,7 @@ import {
 import {expectSuccess} from '@core/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {createSettingsAccess} from './settingsAccess';
-import {SettingsStore, type SettingsReader} from './settingsStore';
+import {SettingsStore} from './settingsStore';
 
 function setup() {
   const document = expectSuccess(

@@ -1,8 +1,8 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {parseLookId, type LookId} from '@core/schema/ids';
 import type {EditRefusalReason, EditResult} from '@core/schema/contentEdit';
 import type {Logger} from '../log';
-import type {SettingsReader} from './settingsStore';
 
 type LookSettingsReader = SettingsReader & {
   readonly apply?: (edit: SettingsEdit) => Promise<EditResult>;

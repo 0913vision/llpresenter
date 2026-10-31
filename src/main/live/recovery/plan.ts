@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LabelColor} from '@core/labels/colors';
 import type {SingleLiveCommand} from '@core/live/commands';
 import type {ActiveMessage, LiveState} from '@core/live/state';
@@ -13,7 +14,6 @@ import {
 } from '@core/schema/service';
 import type {ServiceId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
-import type {SettingsReader} from '../../store/settingsStore';
 import {songTiles} from '../../store/showService';
 import {outputStateKeys} from '@core/screens/screens';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';

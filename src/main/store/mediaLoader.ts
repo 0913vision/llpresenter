@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {basename} from 'node:path';
 import type {FileAccess, LoadedFile} from '@core/schema/fileFormat';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
@@ -17,7 +18,7 @@ import {
   settingsLocation,
   type SettingsLocation,
 } from './settingsFile';
-import type {SettingsProblem, SettingsReader} from './settingsStore';
+import type {SettingsProblem} from './settingsStore';
 import {MediaStore} from './mediaStore';
 import type {SaveFailureSink} from './saveFailures';
 

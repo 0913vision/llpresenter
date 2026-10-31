@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand, SingleLiveCommand} from '@core/live/commands';
 import {randomUUID} from 'node:crypto';
 import {createMessageId} from '@core/schema/ids';
@@ -5,7 +6,6 @@ import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {macroDroppedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {LiveState} from '@core/live/state';
 import type {Logger} from '../log';
-import type {SettingsReader} from '../store/settingsStore';
 import type {MediaList} from '@core/schema/mediaList';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';

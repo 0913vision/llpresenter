@@ -1,9 +1,9 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {parseMonitorList} from '@core/schema/monitors';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import type {SettingsReader} from '../store/settingsStore';
 import type {MessageHandler} from '../rendererMessages';
 import {
   FakeDisplaySource,

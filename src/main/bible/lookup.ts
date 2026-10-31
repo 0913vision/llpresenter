@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {
   BIBLE_LOOKUP_LIMITS,
   parseBibleLookupReply,
@@ -5,7 +6,6 @@ import {
   type BibleLookupRequest,
 } from '@core/schema/bibleLookup';
 import type {Logger} from '../log';
-import type {SettingsReader} from '../store/settingsStore';
 import {BibleLibrary, loadBibleLibrary} from './library';
 import {matchBooks} from '@core/bible/bibleMatching';
 

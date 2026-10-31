@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {defaultPreferences} from '@core/schema/preferences';
 import {recordingLogger} from '../displays/testing';
@@ -10,7 +11,6 @@ import {
   settingsDocument,
   STAGE,
 } from '../live/testing/overlays';
-import type {SettingsReader} from '../store/settingsStore';
 import {launchOutputCommands, showOutputsOnLaunch} from './launch';
 
 const NDI_SCREEN = overlayUuid(40);

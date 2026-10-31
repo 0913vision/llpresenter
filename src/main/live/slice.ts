@@ -1,7 +1,7 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand, LiveCommandType} from '@core/live/commands';
 import type {LiveLayers, LiveState} from '@core/live/state';
 import type {LiveHistory} from './history';
-import type {SettingsReader} from '../store/settingsStore';
 import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
 import type {PayloadError} from '@core/schema/payload';
 import type {MediaList} from '@core/schema/mediaList';

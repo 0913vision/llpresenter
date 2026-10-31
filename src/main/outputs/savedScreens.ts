@@ -1,6 +1,6 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import type {Screen} from '@core/schema/screens';
-import type {SettingsReader} from '../store/settingsStore';
 
 /** The screens of `screens.json`, or none while it can't be read. */
 export function savedScreens(

@@ -1,3 +1,7 @@
+import type {
+  SettingsListener,
+  SettingsReader,
+} from '@core/schema/settingsReader';
 import {join} from 'node:path';
 import type {
   EditRefusalReason,
@@ -34,11 +38,6 @@ import {prepareTimerRename} from './timerRenames';
 
 export type {SettingsProblem} from './settingsLoader';
 export type SettingsProblemListener = (problem: SettingsProblem) => void;
-export type SettingsListener = (document: SettingsDocument) => void;
-export type SettingsReader = Pick<
-  SettingsStore,
-  'get' | 'preferences' | 'subscribe'
->;
 
 export interface SettingsStoreOptions {
   readonly documents: ReadonlyMap<SettingsName, SettingsDocument>;
@@ -56,7 +55,7 @@ function refuse(reason: EditRefusalReason, message: string): EditResult {
 }
 
 /** The revisioned app-wide settings, their saves, and change subscriptions. */
-export class SettingsStore {
+export class SettingsStore implements SettingsReader {
   private readonly documents: Map<SettingsName, SettingsDocument>;
   private readonly problemListeners = new Set<SettingsProblemListener>();
   private readonly problems = new Map<string, SettingsProblem>();

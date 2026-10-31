@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {join} from 'node:path';
 import {app, ipcMain} from 'electron';
 import type {FileError} from '@core/schema/fileFormat';
@@ -40,7 +41,6 @@ import {settingsLocation} from './settingsFile';
 import {
   openSettingsStore,
   type SettingsProblemListener,
-  type SettingsReader,
   type SettingsStore,
 } from './settingsStore';
 import {registerSettingsChannels} from './settingsChannels';

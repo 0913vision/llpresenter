@@ -1,4 +1,4 @@
-import type {SettingsReader} from '../store/settingsStore';
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {Logger} from '../log';
 import {dispatchBatched, dispatchLogged, type LiveStore} from './store';
 import {followMessageExpiry} from './messageExpiry';

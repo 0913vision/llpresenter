@@ -1,6 +1,6 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
-import type {SettingsReader} from '../store/settingsStore';
 import {recordingLogger} from '../displays/testing';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {

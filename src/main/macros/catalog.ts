@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LooksFile} from '@core/schema/looks';
 import type {MacrosFile} from '@core/schema/macros';
 import type {MediaList} from '@core/schema/mediaList';
@@ -7,7 +8,6 @@ import type {PropsFile} from '@core/schema/props';
 import type {ScreensFile} from '@core/schema/screens';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {TimersFile} from '@core/schema/timers';
-import type {SettingsReader} from '../store/settingsStore';
 
 export interface MacroCatalog {
   readonly macros: MacrosFile;

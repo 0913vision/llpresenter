@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
@@ -6,7 +7,6 @@ import {createMediaId, createMessageId, type ServiceId} from '@core/schema/ids';
 import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';
 import {makeTempDir} from '../../../../test/temp-dir';
 import {recordingLogger} from '../../displays/testing';
-import type {SettingsReader} from '../../store/settingsStore';
 import {SliceRegistry} from '../sliceRegistry';
 import {LiveStore} from '../store';
 import {

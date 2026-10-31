@@ -1,3 +1,7 @@
+import type {
+  SettingsListener,
+  SettingsReader,
+} from '@core/schema/settingsReader';
 import {createMediaId} from '@core/schema/ids';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
@@ -6,7 +10,6 @@ import {
   type SettingsName,
 } from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
-import type {SettingsReader, SettingsListener} from '../../store/settingsStore';
 
 export const overlayUuid = (id: number): string =>
   `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;

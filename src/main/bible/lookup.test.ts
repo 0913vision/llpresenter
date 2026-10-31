@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -8,7 +9,6 @@ import {
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
 import {makeTempDir} from '../../../test/temp-dir';
-import type {SettingsReader} from '../store/settingsStore';
 import {BibleLookupSession} from './lookup';
 import * as library from './library';
 import * as chapterFile from './chapterFile';

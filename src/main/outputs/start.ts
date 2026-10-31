@@ -1,3 +1,4 @@
+import type {SettingsReader} from '@core/schema/settingsReader';
 import type {BrowserWindow} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
@@ -9,7 +10,6 @@ import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import {parseFrameReadyReport} from '@core/schema/ipcPayloads';
 import type {Logger} from '../log';
-import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';
 import {
   handleFrameRate,
