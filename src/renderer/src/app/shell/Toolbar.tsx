@@ -1,12 +1,7 @@
 import type {JSX} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {sendLive, useOutputs} from '@renderer/session/live';
-import {
-  OutputToggle,
-  ToolbarButton,
-  ToolbarTabs,
-  type ToolbarTab,
-} from '@renderer/ui';
+import {OutputToggle, ToolbarTabs, type ToolbarTab} from '@renderer/ui';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
 import {LookMenu} from './LookMenu';
@@ -33,8 +28,6 @@ export interface ToolbarProps {
   readonly onWorkspace: (workspace: Workspace) => void;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
-  readonly mediaOpen?: boolean | undefined;
-  readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
   readonly focusSearch?: boolean | undefined;
   readonly onSearchFocused?: (() => void) | undefined;
 }
@@ -85,8 +78,6 @@ export function Toolbar({
   onWorkspace,
   onProblem,
   onOpenPrepSong,
-  mediaOpen = false,
-  onMediaOpenChange,
   focusSearch,
   onSearchFocused,
 }: ToolbarProps): JSX.Element {
@@ -102,22 +93,6 @@ export function Toolbar({
         label="작업 공간"
         compact={compact}
         className={styles.group}
-      />
-      <span className={styles.divider} />
-      <ToolbarButton
-        icon="film"
-        label="미디어"
-        title={
-          onMediaOpenChange
-            ? mediaOpen
-              ? '미디어 닫기'
-              : '미디어 열기'
-            : '현재 작업 공간에서는 미디어를 열 수 없음'
-        }
-        compact={compact}
-        pressed={mediaOpen}
-        onPressedChange={onMediaOpenChange}
-        disabled={onMediaOpenChange === undefined}
       />
       <ToolbarSearch
         focusSearch={focusSearch}

@@ -59,6 +59,7 @@ export function Workspace({
   prep,
   warningHeight = 0,
   mediaVisible = true,
+  onMediaOpenChange,
   mediaApi,
   sidebar,
 }: {
@@ -72,6 +73,7 @@ export function Workspace({
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
+  readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
   readonly mediaApi?: MediaApi | undefined;
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
@@ -137,6 +139,7 @@ export function Workspace({
       data-workspace-layout={id}
       className={classNames(
         styles.workspace,
+        id !== 'screens' && api !== undefined && styles.mediaAvailable,
         mediaOpen && api !== undefined && styles.mediaOpen,
       )}
     >
@@ -153,8 +156,13 @@ export function Workspace({
       >
         {panelColumns}
       </div>
-      {mediaOpen && api !== undefined ? (
-        <MediaBin workspace={id} onProblem={onProblem ?? ignoreProblem} />
+      {id !== 'screens' && api !== undefined ? (
+        <MediaBin
+          workspace={id}
+          open={mediaOpen}
+          onOpenChange={onMediaOpenChange}
+          onProblem={onProblem ?? ignoreProblem}
+        />
       ) : null}
     </main>
   );
@@ -163,7 +171,7 @@ export function Workspace({
   ) : (
     <MediaViewProvider
       api={api}
-      active={mediaOpen}
+      active={id !== 'screens'}
       onProblem={onProblem ?? ignoreProblem}
     >
       {frame}

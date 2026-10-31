@@ -1,3 +1,4 @@
+import {mediaBinToggle} from '@renderer/features/media/mediaTesting';
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
@@ -248,11 +249,9 @@ describe('App menu bar title', () => {
       expect(
         screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
       ).toBe('true');
-      expect(
-        screen
-          .getByRole('button', {name: '미디어'})
-          .getAttribute('aria-pressed'),
-      ).toBe(String(mediaOpen));
+      expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(
+        String(mediaOpen),
+      );
     },
   );
 
@@ -351,12 +350,8 @@ describe('App menu bar title', () => {
       );
       if (mediaOpen) {
         fireEvent.click(screen.getByRole('tab', {name: '준비'}));
-        fireEvent.click(screen.getByRole('button', {name: '미디어'}));
-        expect(
-          screen
-            .getByRole('button', {name: '미디어'})
-            .getAttribute('aria-pressed'),
-        ).toBe('true');
+        fireEvent.click(mediaBinToggle());
+        expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('true');
       }
       await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
       await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
@@ -369,11 +364,9 @@ describe('App menu bar title', () => {
         await screen.findByRole('textbox', {name: '곡 제목'}),
       ).toHaveProperty('value', 'Invented');
       expect(screen.getByRole('button', {name: '저장'})).toBeDefined();
-      expect(
-        screen
-          .getByRole('button', {name: '미디어'})
-          .getAttribute('aria-pressed'),
-      ).toBe(String(mediaOpen));
+      expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(
+        String(mediaOpen),
+      );
       expect(session.editor?.getSnapshot().imported).toBe(true);
       expect(edit).not.toHaveBeenCalled();
       if (mediaOpen) {
@@ -392,11 +385,9 @@ describe('App menu bar title', () => {
       }
       fireEvent.click(screen.getByRole('button', {name: '버리기'}));
       expect(session.editor?.getSnapshot().session).toBeNull();
-      expect(
-        screen
-          .getByRole('button', {name: '미디어'})
-          .getAttribute('aria-pressed'),
-      ).toBe(String(mediaOpen));
+      expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(
+        String(mediaOpen),
+      );
     },
   );
   it('hosts and closes service edit warnings in the shared notice stack', async () => {

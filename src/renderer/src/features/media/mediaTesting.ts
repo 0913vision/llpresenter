@@ -1,4 +1,5 @@
 import {vi} from 'vitest';
+import {screen} from '@testing-library/react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
   createAudioPlaylistId,
@@ -21,6 +22,13 @@ import type {
   MediaPlaylist,
 } from '@core/schema/mediaList';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
+
+export function mediaBinToggle(): HTMLElement {
+  return (
+    screen.queryByRole('button', {name: '미디어 접기'}) ??
+    screen.getByRole('button', {name: '미디어 펼치기'})
+  );
+}
 
 export const mediaId = (index: number): MediaId =>
   createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);

@@ -168,10 +168,6 @@ function ControlApp({
         onWorkspace={onWorkspace}
         onProblem={session.report}
         onOpenPrepSong={prepSelection.openSong}
-        mediaOpen={workspace !== 'screens' && mediaStrip.visible}
-        onMediaOpenChange={
-          workspace === 'screens' ? undefined : mediaStrip.setVisible
-        }
       />
       <WorkspaceNavigation value={onWorkspace}>
         <Workspace
@@ -221,6 +217,7 @@ function ControlApp({
           }}
           warningHeight={warningHeight}
           mediaVisible={mediaStrip.visible}
+          onMediaOpenChange={mediaStrip.setVisible}
           mediaApi={session.api}
           sidebar={sidebar}
         />

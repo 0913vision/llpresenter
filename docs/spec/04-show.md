@@ -653,10 +653,11 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 
 ## Shared bottom 미디어 bin
 
-- One 미디어 (Media) toggle shows or hides the same bottom bin in 진행 and 준비.
-  It does not switch workspaces or replace the song/item editor. The workspace
-  columns remain above it. The bin has its own left playlist column, center
-  media content, and right preview/properties area (05).
+- The same bottom 미디어 bin opens and closes from its own controls in 진행 and
+  준비. There is no 미디어 button beside the toolbar's workspace tabs. It does
+  not switch workspaces or replace the song/item editor. The workspace columns
+  remain above it. The bin has its own left playlist column, center media
+  content, and right preview/properties area (05).
 - Use the authoritative
   [Layout height allocation](../../design/system/project/components/Layout/README.md#shared-media-bin-height):
   reserve 440 CSS px for the upper workspace and one `panel-gap` between rows.
@@ -669,8 +670,13 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
   440px; do not restore it closed or shrink panels below their minimums. Long
   bin content scrolls inside panel bodies, with fixed headers and footers, and
   never increases the bin height.
-- The toggle is a panel visibility control, visually distinct from the 진행 and
-  준비 workspace switch. ui owns its styling and design-system tokens.
+- When open, its center header places 접기 beside 가져오기, using the same
+  button style with a down chevron and 미디어 접기 tooltip. When closed, a thin
+  bar remains at the bottom of the workspace, showing an up chevron, 미디어, the
+  chosen list's name and its media count. Clicking the bar or pressing Enter on
+  it opens the bin. Its position stays anchored at the bottom. 보기 > 미디어
+  (Ctrl Shift V) toggles this same state. These controls follow the October 31
+  B19 placement decision and use design-system tokens.
 - A saved open or closed `mediaStrip` choice applies in both workspaces and wins
   over size defaults, including a saved open choice in a narrow window. With no
   saved choice, the bin starts open in regular and wide windows at least 900 DIP
@@ -681,7 +687,8 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 - Switching between 진행 and 준비 keeps the bin's visibility, chosen playlist
   and selected media. Hiding and reopening it in the same window retains the
   chosen playlist and selection. Its player pauses and releases media while
-  hidden. None of these navigation actions changes live output.
+  hidden; the collapsed bar continues to follow list metadata. None of these
+  navigation actions changes live output.
 - Playlists, importing, file drops, preview, selected-item properties and file
   information live inside the bin in both workspaces. The full structure and
   copy/relink rules are in 05, "Shared bottom 미디어 bin". There is one 가져오기

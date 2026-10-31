@@ -8,6 +8,13 @@
   scrollbar-color: var(--line-strong) transparent;
 }
 
+.mediaAvailable {
+  grid-template-rows:
+    minmax(var(--workspace-upper-min-height), 1fr)
+    var(--size-panel-header);
+  gap: var(--panel-gap);
+}
+
 .mediaOpen {
   grid-template-rows:
     minmax(var(--workspace-upper-min-height), 1fr)

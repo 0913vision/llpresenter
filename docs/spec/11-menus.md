@@ -571,16 +571,16 @@ lack), Moved, Removed.
 - Purpose: Switch workspace and open tools.
 - PP: PP View menu (support article, 2026).
 
-| Group | Row                                                                                 | Does                                                        | Status |
-| ----- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ |
-| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)                     | Ctrl E keeps opening 준비 until a slide editor exists.      | Now    |
-| 2     | 이어서 진행                                                                         | PP Continuous Playlist.                                     | Off    |
-| 3     | 슬라이드 보기 ›                                                                     |                                                             | Off    |
-| 4     | 오디오, 무대, 타이머, 메시지, 공지, 소품, 매크로                                    | Opens that 진행 도구 tab.                                   | New    |
-| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) |                                                             | Now    |
-| 6     | 미리보기 ›                                                                          |                                                             | Off    |
-| 7     | 전체 화면                                                                           |                                                             | Off    |
-| -     | 화면 설정                                                                           | Moved to 출력 as 화면 설정… (Ctrl Alt 1), as in PP Screens. | Moved  |
+| Group | Row                                                                                 | Does                                                                                                               | Status |
+| ----- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)                     | Ctrl E keeps opening 준비 until a slide editor exists.                                                             | Now    |
+| 2     | 이어서 진행                                                                         | PP Continuous Playlist.                                                                                            | Off    |
+| 3     | 슬라이드 보기 ›                                                                     |                                                                                                                    | Off    |
+| 4     | 오디오, 무대, 타이머, 메시지, 공지, 소품, 매크로                                    | Opens that 진행 도구 tab.                                                                                          | New    |
+| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04). | Now    |
+| 6     | 미리보기 ›                                                                          |                                                                                                                    | Off    |
+| 7     | 전체 화면                                                                           |                                                                                                                    | Off    |
+| -     | 화면 설정                                                                           | Moved to 출력 as 화면 설정… (Ctrl Alt 1), as in PP Screens.                                                        | Moved  |
 
 ### 출력
 

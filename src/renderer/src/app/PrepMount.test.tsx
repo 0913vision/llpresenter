@@ -1,3 +1,4 @@
+import {mediaBinToggle} from '@renderer/features/media/mediaTesting';
 import {StrictMode} from 'react';
 import {
   act,
@@ -264,18 +265,18 @@ it('keeps a refused draft in the 저장할 수 없음 dialog until 다시 시도
 it('opens and closes the shared media bin while keeping the library mounted', async () => {
   mountPrep();
   const library = screen.getByRole('region', {name: '라이브러리'});
-  const toggle = screen.getByRole('button', {name: '미디어'});
-  expect(toggle.getAttribute('aria-pressed')).toBe('false');
+  const toggle = mediaBinToggle();
+  expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('false');
   fireEvent.click(toggle);
   expect(
     await screen.findByRole('listbox', {name: '모든 미디어'}),
   ).toBeDefined();
-  expect(toggle.getAttribute('aria-pressed')).toBe('true');
+  expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('true');
   expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
   expect(screen.getByRole('region', {name: '오디오'})).toBeDefined();
   expect(screen.getByRole('region', {name: '속성'})).toBeDefined();
   expect(screen.getByRole('region', {name: '라이브러리'})).toBe(library);
-  fireEvent.click(toggle);
+  fireEvent.click(mediaBinToggle());
   expect(screen.queryByRole('listbox', {name: '모든 미디어'})).toBeNull();
   expect(screen.getByRole('region', {name: '라이브러리'})).toBe(library);
 });

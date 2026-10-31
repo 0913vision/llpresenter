@@ -48,6 +48,7 @@ export interface MediaViewProps {
   readonly workspace?: 'show' | 'prep';
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
+  readonly onCollapse?: ((button: HTMLButtonElement) => void) | undefined;
 }
 
 interface OpenMenu {
@@ -107,6 +108,7 @@ function EntryTile({
 export function MediaView({
   onProblem,
   workspace = 'prep',
+  onCollapse,
 }: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
@@ -237,6 +239,18 @@ export function MediaView({
             >
               가져오기
             </Button>
+            {onCollapse === undefined ? null : (
+              <Button
+                icon="down"
+                aria-label="미디어 접기"
+                aria-expanded={true}
+                data-media-toggle
+                title="미디어 접기"
+                onClick={event => onCollapse(event.currentTarget)}
+              >
+                접기
+              </Button>
+            )}
           </PanelActions>
         </PanelHeader>
         <PanelBody tab="list" className={styles.body}>

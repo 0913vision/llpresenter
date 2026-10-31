@@ -29,3 +29,37 @@
   height: auto;
   max-height: 50%;
 }
+
+.collapsed {
+  min-width: 0;
+  margin: 0 var(--panel-gap);
+}
+
+.collapsed .bar {
+  width: 100%;
+  height: var(--size-panel-header);
+  justify-content: flex-start;
+  gap: var(--space-8);
+  padding: 0 var(--panel-inset);
+  border: 0;
+  border-top: var(--radius-hairline) solid var(--line);
+  border-radius: 0;
+  background: var(--bg-panel);
+}
+
+.summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.label {
+  color: var(--text);
+  font: var(--type-label-strong);
+}
+
+.expandIcon {
+  transform: rotate(180deg);
+}

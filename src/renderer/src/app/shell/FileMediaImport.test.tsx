@@ -54,7 +54,10 @@ it.each([
 ])(
   'reports import failures in $workspace with a closed bin, returned=$returned',
   async ({workspace, returned}) => {
-    let push: (progress: MediaImportProgress) => void = () => undefined;
+    const listeners = new Set<(progress: MediaImportProgress) => void>();
+    const push = (progress: MediaImportProgress): void => {
+      for (const listener of listeners) listener(progress);
+    };
     const importMedia = vi.fn(async () => ({
       ok: true as const,
       value: [returned ? failed : {...failed, phase: 'copying' as const}],
@@ -63,8 +66,10 @@ it.each([
       media: {
         import: importMedia,
         subscribeImports: listener => {
-          push = listener;
-          return () => undefined;
+          listeners.add(listener);
+          return () => {
+            listeners.delete(listener);
+          };
         },
       },
     });

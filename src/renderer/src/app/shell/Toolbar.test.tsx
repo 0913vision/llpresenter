@@ -162,45 +162,17 @@ describe('Toolbar', () => {
 });
 
 describe('Toolbar design system parts', () => {
-  it.each([
-    ['normal', 'show'],
-    ['narrow', 'prep'],
-  ] as const)(
-    'keeps the %s media toggle separate from the %s workspace',
-    async (sizeClass, workspace) => {
-      const onWorkspace = vi.fn();
-      const onMediaOpenChange = vi.fn();
-      const {rerender} = render(
+  it.each(['normal', 'narrow'] as const)(
+    'omits the media toggle from the %s toolbar',
+    sizeClass => {
+      render(
         <Toolbar
           sizeClass={sizeClass}
-          workspace={workspace}
-          onWorkspace={onWorkspace}
-          mediaOpen={false}
-          onMediaOpenChange={onMediaOpenChange}
+          workspace="show"
+          onWorkspace={vi.fn()}
         />,
       );
-      const media = screen.getByRole('button', {name: '미디어'});
-      expect(media.textContent).toBe('미디어');
-      expect(
-        screen.getByRole('tablist', {name: '작업 공간'}).contains(media),
-      ).toBe(false);
-      media.focus();
-      await userEvent.keyboard('{Enter}');
-      expect(onMediaOpenChange).toHaveBeenCalledExactlyOnceWith(true);
-      rerender(
-        <Toolbar
-          sizeClass={sizeClass}
-          workspace={workspace}
-          onWorkspace={onWorkspace}
-          mediaOpen
-          onMediaOpenChange={onMediaOpenChange}
-        />,
-      );
-      expect(media.getAttribute('aria-pressed')).toBe('true');
-      await userEvent.keyboard(' ');
-      expect(onMediaOpenChange.mock.calls).toEqual([[true], [false]]);
-      expect(onWorkspace).not.toHaveBeenCalled();
-      expect((await hoverForTooltip(media))?.textContent).toBe('미디어 닫기');
+      expect(screen.queryByRole('button', {name: '미디어'})).toBeNull();
     },
   );
 
@@ -236,11 +208,10 @@ describe('Toolbar design system parts', () => {
     },
   );
 
-  it('keeps the media button named in the narrow form and marks the Look menu', () => {
+  it('marks the Look menu in the narrow form', () => {
     render(
       <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,
     );
-    expect(screen.getByRole('button', {name: '미디어'})).toBeTruthy();
     expect(
       screen.getByRole('button', {name: 'Look'}).getAttribute('aria-haspopup'),
     ).toBe('menu');
