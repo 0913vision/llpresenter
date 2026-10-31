@@ -1,4 +1,5 @@
 import type {MediaId, ThemeElementId} from '../schema/ids';
+import {roundGeometryFrame} from '../canvas/geometryValue';
 import {checkPart} from '../schema/fileFormat';
 import {themeElementSchema, type ThemeElement} from '../schema/themes';
 import {DEFAULT_THEME_TEXT} from './defaults';
@@ -22,12 +23,12 @@ export function newThemeElement({
   const full = ['media', 'background', 'overlay'].includes(kind);
   const w = full ? THEME_LIMITS.width : TEXT_WIDTH;
   const h = full ? THEME_LIMITS.height : TEXT_HEIGHT;
-  const frame = {
+  const frame = roundGeometryFrame({
     x: Math.max(0, Math.min(THEME_LIMITS.width - w, point.x - w / 2)),
     y: Math.max(0, Math.min(THEME_LIMITS.height - h, point.y - h / 2)),
     w,
     h,
-  };
+  });
   const base = {id, kind, frame};
   const text = {...DEFAULT_THEME_TEXT};
   const box = {on: true, fill: '#FFFFFF', opacity: 100, radius: 0};

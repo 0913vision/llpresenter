@@ -36,6 +36,30 @@ function Copies({
   );
 }
 
+it('keeps stored precision independent of formatting for commits and arrow increments', () => {
+  const change = vi.fn();
+  render(
+    <DecimalField
+      initial={0.253}
+      onChange={change}
+      formatValue={value => value.toFixed(1)}
+      rounding="none"
+      updateOn="commit"
+    />,
+  );
+  expect(spin().value).toBe('0.3');
+  fireEvent.keyDown(spin(), {key: 'ArrowUp'});
+  expect(change).toHaveBeenLastCalledWith(1.253);
+  fireEvent.change(spin(), {target: {value: '0.456'}});
+  fireEvent.keyDown(spin(), {key: 'Enter'});
+  expect(change).toHaveBeenLastCalledWith(0.456);
+  expect(spin().value).toBe('0.5');
+  fireEvent.change(spin(), {target: {value: '-0.789'}});
+  fireEvent.blur(spin());
+  expect(change).toHaveBeenLastCalledWith(-0.789);
+  expect(spin().value).toBe('-0.8');
+});
+
 function spin(): HTMLInputElement {
   const input = screen.getByRole('spinbutton', {name: '복구 사본'});
   if (!(input instanceof HTMLInputElement)) throw new Error('No input');
@@ -48,7 +72,10 @@ function DecimalField({
   min = -2,
   max = 2,
   ...props
-}: Pick<NumberFieldProps, 'step' | 'largeStep' | 'updateOn' | 'suffix'> & {
+}: Pick<
+  NumberFieldProps,
+  'step' | 'largeStep' | 'updateOn' | 'suffix' | 'formatValue' | 'rounding'
+> & {
   readonly initial: number;
   readonly onChange?: (value: number) => void;
   readonly min?: number;

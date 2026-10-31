@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import type {ThemeElement} from '@core/schema/themes';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {hasThemeText} from '@core/themes/elementEdits';
+import {GeometryField} from '@renderer/ui/GeometryField';
 import {
   Properties,
   PropertyColumns,
@@ -50,25 +51,34 @@ export function ThemeElementProperties({
       <PropertyGroup title={themeElementNames[element.kind]}>
         <PropertyColumns>
           {(['x', 'y', 'w', 'h'] as const).map(field => (
-            <ThemeNumber
-              key={field}
-              label={field.toUpperCase()}
-              value={element.frame[field]}
-              min={
-                field === 'x' || field === 'y' ? 0 : THEME_LIMITS.minimumExtent
-              }
-              max={
-                field === 'x'
-                  ? THEME_LIMITS.width - element.frame.w
-                  : field === 'y'
-                    ? THEME_LIMITS.height - element.frame.h
-                    : field === 'w'
-                      ? THEME_LIMITS.width - element.frame.x
-                      : THEME_LIMITS.height - element.frame.y
-              }
-              reason={reason}
-              change={value => model.frameValue(element.id, {field, value})}
-            />
+            <PropertyRow key={field} label={field.toUpperCase()}>
+              {({controlId}) => (
+                <GeometryField
+                  id={controlId}
+                  value={element.frame[field]}
+                  min={
+                    field === 'x' || field === 'y'
+                      ? 0
+                      : THEME_LIMITS.minimumExtent
+                  }
+                  max={
+                    field === 'x'
+                      ? THEME_LIMITS.width - element.frame.w
+                      : field === 'y'
+                        ? THEME_LIMITS.height - element.frame.h
+                        : field === 'w'
+                          ? THEME_LIMITS.width - element.frame.x
+                          : THEME_LIMITS.height - element.frame.y
+                  }
+                  readOnly={reason !== undefined}
+                  title={reason}
+                  updateOn="commit"
+                  onChange={value =>
+                    model.frameValue(element.id, {field, value})
+                  }
+                />
+              )}
+            </PropertyRow>
           ))}
         </PropertyColumns>
         {element.kind === 'text' ? (

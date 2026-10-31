@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {IconButton} from './IconButton';
-import {NumberField} from './NumberField';
+import {GeometryField} from './GeometryField';
 import {
   MIN_SIZE,
   type ElementFrame,
@@ -55,7 +55,7 @@ export function CanvasFrameBar({
         return (
           <label key={field} className={styles.field}>
             <span>{field.toUpperCase()}</span>
-            <NumberField
+            <GeometryField
               aria-label={field.toUpperCase()}
               value={frame?.[field] ?? 0}
               min={

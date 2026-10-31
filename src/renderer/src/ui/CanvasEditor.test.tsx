@@ -32,17 +32,20 @@ function setup(
     footer = 'frames',
     selectedIds = [],
     minimumSize = 20,
+    contained = false,
   }: {
     fieldFrames?: readonly ElementFrame[];
     footer?: 'frames' | 'zoom';
     selectedIds?: readonly string[];
     minimumSize?: number;
+    contained?: boolean;
   } = {},
 ) {
   let current: CanvasDocument<CanvasElement> = {
     width: 1920,
     height: 1080,
     minimumSize,
+    contained,
     elements: [
       {id: 'first', name: '요소', frame: {x: 100, y: 100, w: 400, h: 200}},
     ],
@@ -188,6 +191,61 @@ it('keeps a completed drag drawn through Tab and unrelated keys while its save i
   await waitFor(() => expect(frame()).toMatchObject({x: 120, y: 140}));
 });
 
+it('stores a dragged frame at the precision shown by the shared geometry fields', async () => {
+  const {frame} = setup();
+  const item = await screen.findByRole('button', {name: '요소'});
+  const canvas = screen.getByLabelText('테스트 캔버스');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {
+    pointerId: 1,
+    clientX: 110.126,
+    clientY: 120.227,
+    altKey: true,
+  });
+  expect(screen.getByRole('spinbutton', {name: 'X'})).toHaveProperty(
+    'value',
+    '120.3',
+  );
+  expect(screen.getByRole('spinbutton', {name: 'Y'})).toHaveProperty(
+    'value',
+    '140.5',
+  );
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  await waitFor(() =>
+    expect(frame()).toEqual({x: 120.3, y: 140.5, w: 400, h: 200}),
+  );
+});
+
+it('keeps rounded geometry inside a contained canvas at a fractional edge', async () => {
+  const {frame, publishFrame} = setup('editable', Promise.resolve(), {
+    contained: true,
+  });
+  act(() => publishFrame({x: 115.25, y: 100, w: 1804.75, h: 200}));
+  const item = await screen.findByRole('button', {name: '요소'});
+  const canvas = screen.getByLabelText('테스트 캔버스');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {
+    pointerId: 1,
+    clientX: 110.126,
+    clientY: 100,
+    altKey: true,
+  });
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  await waitFor(() =>
+    expect(frame()).toEqual({x: 115.2, y: 100, w: 1804.8, h: 200}),
+  );
+});
+
 it('selects an element without writing unchanged geometry on a pointer click', async () => {
   const {edit} = setup();
   const item = await screen.findByRole('button', {name: '요소'});
@@ -203,38 +261,45 @@ it('selects an element without writing unchanged geometry on a pointer click', a
   expect(edit).not.toHaveBeenCalled();
 });
 
-it('draws token-distance guides, responds to Alt without pointer movement, and removes decoration before saving', async () => {
-  const {edit, frame} = setup();
-  const item = await screen.findByRole('button', {name: '요소'});
-  const canvas = screen.getByLabelText('테스트 캔버스');
-  canvas.style.setProperty('--size-guide-snap', '6px');
-  const guides = () => document.querySelectorAll('[data-canvas-guide]');
-  fireEvent.pointerDown(item, {
-    button: 0,
-    pointerId: 1,
-    clientX: 100,
-    clientY: 100,
-  });
-  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 51, clientY: 100});
-  expect(guides()).toHaveLength(1);
-  expect(guides()[0]?.parentElement?.getAttribute('aria-hidden')).toBe('true');
-  fireEvent.keyDown(item, {key: 'Alt', altKey: true});
-  expect(guides()).toHaveLength(0);
-  expect(
-    document.querySelector<HTMLElement>('[data-canvas-element="first"]')?.style
-      .left,
-  ).toBe(`${(100 * 2) / 1920}%`);
-  fireEvent.keyUp(item, {key: 'Alt'});
-  expect(guides()).toHaveLength(1);
-  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56.5, clientY: 100});
-  expect(guides()).toHaveLength(0);
-  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56, clientY: 100});
-  expect(guides()).toHaveLength(1);
-  expect(edit).not.toHaveBeenCalled();
-  fireEvent.pointerUp(canvas, {pointerId: 1});
-  expect(guides()).toHaveLength(0);
-  await waitFor(() => expect(frame()).toEqual({x: 0, y: 100, w: 400, h: 200}));
-});
+it.each([false, true])(
+  'draws token-distance guides, responds to Alt, and clears decoration before saving (contained=%s)',
+  async contained => {
+    const {edit, frame} = setup('editable', Promise.resolve(), {contained});
+    const item = await screen.findByRole('button', {name: '요소'});
+    const canvas = screen.getByLabelText('테스트 캔버스');
+    canvas.style.setProperty('--size-guide-snap', '6px');
+    const guides = () => document.querySelectorAll('[data-canvas-guide]');
+    fireEvent.pointerDown(item, {
+      button: 0,
+      pointerId: 1,
+      clientX: 100,
+      clientY: 100,
+    });
+    fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 51, clientY: 100});
+    expect(guides()).toHaveLength(1);
+    expect(guides()[0]?.parentElement?.getAttribute('aria-hidden')).toBe(
+      'true',
+    );
+    fireEvent.keyDown(item, {key: 'Alt', altKey: true});
+    expect(guides()).toHaveLength(0);
+    expect(
+      document.querySelector<HTMLElement>('[data-canvas-element="first"]')
+        ?.style.left,
+    ).toBe(`${(100 * 2) / 1920}%`);
+    fireEvent.keyUp(item, {key: 'Alt'});
+    expect(guides()).toHaveLength(1);
+    fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56.5, clientY: 100});
+    expect(guides()).toHaveLength(0);
+    fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56, clientY: 100});
+    expect(guides()).toHaveLength(1);
+    expect(edit).not.toHaveBeenCalled();
+    fireEvent.pointerUp(canvas, {pointerId: 1});
+    expect(guides()).toHaveLength(0);
+    await waitFor(() =>
+      expect(frame()).toEqual({x: 0, y: 100, w: 400, h: 200}),
+    );
+  },
+);
 
 it('excludes the manipulated element and discards guides on cancellation and unmount', async () => {
   const {edit, view} = setup();

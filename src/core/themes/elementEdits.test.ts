@@ -62,6 +62,13 @@ it('requires an image choice and clamps placement at the canvas edges', () => {
     point: {x: -100, y: 1200},
   });
   expect(value?.frame).toMatchObject({x: 0, y: 840});
+  expect(
+    newThemeElement({
+      id: elementId(2),
+      kind: 'text',
+      point: {x: 515.253, y: 350.456},
+    })?.frame,
+  ).toEqual({x: 115.3, y: 230.5, w: 800, h: 240});
 });
 
 it('serializes positions and appearance, checks clipboard bounds and rejects foreign/malformed content', () => {

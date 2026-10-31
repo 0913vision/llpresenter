@@ -128,7 +128,7 @@ export function editFrameValue(
   const limit = field === 'x' || field === 'w' ? bounds.width : bounds.height;
   const minimum =
     field === 'x' || field === 'y' ? 0 : Math.min(minimumSize, limit);
-  const next = Math.round(Math.max(minimum, Math.min(limit, value)));
+  const next = Math.max(minimum, Math.min(limit, value));
   if (next === frame[field]) return frame;
   if (
     !keepRatio ||
@@ -139,17 +139,24 @@ export function editFrameValue(
   ) {
     return {...frame, [field]: next};
   }
+  const requestedScale = next / frame[field];
   const scale = Math.min(
     Math.max(
-      next / frame[field],
+      requestedScale,
       Math.min(minimumSize, bounds.width) / frame.w,
       Math.min(minimumSize, bounds.height) / frame.h,
     ),
     bounds.width / frame.w,
     bounds.height / frame.h,
   );
-  const w = Math.max(minimumSize, Math.round(frame.w * scale));
-  const h = Math.max(minimumSize, Math.round(frame.h * scale));
+  const w = Math.max(
+    minimumSize,
+    field === 'w' && scale === requestedScale ? next : frame.w * scale,
+  );
+  const h = Math.max(
+    minimumSize,
+    field === 'h' && scale === requestedScale ? next : frame.h * scale,
+  );
   return w === frame.w && h === frame.h ? frame : {...frame, w, h};
 }
 
@@ -161,13 +168,11 @@ export function frameWithinBounds(
   const minimum = bounds.minimumSize ?? MIN_SIZE;
   const w = Math.max(minimum, Math.min(bounds.width, frame.w));
   const h = Math.max(minimum, Math.min(bounds.height, frame.h));
-  return {
-    ...frame,
-    w,
-    h,
-    x: Math.max(0, Math.min(bounds.width - w, frame.x)),
-    y: Math.max(0, Math.min(bounds.height - h, frame.y)),
-  };
+  const x = Math.max(0, Math.min(bounds.width - w, frame.x));
+  const y = Math.max(0, Math.min(bounds.height - h, frame.y));
+  return x === frame.x && y === frame.y && w === frame.w && h === frame.h
+    ? frame
+    : {...frame, x, y, w, h};
 }
 
 /** Constrains resize anchors and the original aspect ratio at canvas edges. */

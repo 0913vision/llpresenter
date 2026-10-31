@@ -10,6 +10,7 @@ import {
 import {
   editFrameValue,
   containFrameGesture,
+  frameWithinBounds,
   MIN_SIZE,
   resizeHandles,
   type ElementFrame,
@@ -17,6 +18,7 @@ import {
   type ResizeHandle,
 } from '@core/canvas/frameEdit';
 import {fitAspect} from '@core/canvas/fitAspect';
+import {roundGeometryFrame} from '@core/canvas/geometryValue';
 import {guideFrame, type GuideLines} from '@core/canvas/smartGuides';
 import {useElementSize} from './useElementSize';
 import {CanvasFrameBar} from './CanvasFrameBar';
@@ -306,10 +308,19 @@ export function CanvasEditor<T extends CanvasElement>({
   const update = (bypass: boolean): void => {
     const current = gesture.current;
     if (current === null) return;
+    if (current.delta.x === 0 && current.delta.y === 0) {
+      current.frame = current.start;
+      setDraft({id: current.elementId, frame: current.start, guides: {}});
+      return;
+    }
     const guided = guideFrame({...current, bypass});
-    const frame = layout.contained
+    const contained = layout.contained
       ? containFrameGesture(guided.frame, {...current, bounds: layout})
       : guided.frame;
+    const rounded = roundGeometryFrame(contained);
+    const frame = layout.contained
+      ? roundGeometryFrame(frameWithinBounds(rounded, layout))
+      : rounded;
     const guides = frame === guided.frame ? guided.guides : {};
     current.frame = frame;
     setDraft({id: current.elementId, frame, guides});

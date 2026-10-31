@@ -144,6 +144,7 @@ export function guideFrame(gesture: GuideGesture): {
   const fallback = editFrame(start, grid.delta, {
     handle,
     keepRatio,
+    precision: 'pointer',
     minimumSize,
     ...('ratioAxis' in grid ? {ratioAxis: grid.ratioAxis} : {}),
   });

@@ -79,20 +79,27 @@ pp. 37 to 38), so it has the same limit.
 
 ### Element properties
 
-| Property         | Applies to                                  | Range                                                 |
-| ---------------- | ------------------------------------------- | ----------------------------------------------------- |
-| X, Y, W, H       | All                                         | Inside the canvas; W and H at least 8                 |
-| 글꼴, 굵기       | Text elements                               | An installed family; 100 to 900                       |
-| 크기             | Text elements                               | 12 to 400                                             |
-| 색               | Text elements, 사각형                       | `#RRGGBB`                                             |
-| 줄 간격          | Text elements                               | 0.8 to 3.0                                            |
-| 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                  |
-| 세로 위치        | Text elements                               | 위, 가운데, 아래                                      |
-| 최대 줄 수       | 현재 가사, 다음 가사                        | 1 to 12; the text shrinks to fit (03, "Drawing text") |
-| 외곽선, 그림자   | Text elements                               | The ranges of the lyric style effects (02)            |
-| 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                   |
-| 모서리           | 사각형, 그림, 미디어, 배경                  | 0 to 200                                              |
-| 맞춤             | 그림, 미디어, 배경, 오버레이                | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)   |
+Geometry fields in both the theme and stage layout editors display the nearest
+0.1 reference-canvas pixel, omitting trailing zeroes. Ties round toward positive
+infinity. Typing retains the entered precision within the allowed range; display
+rounding does not change the saved number. Dragging and resizing save the
+rounded geometry shown on the canvas and in the fields. Arrow keys retain their
+existing one-pixel increment (ten with Shift).
+
+| Property         | Applies to                                  | Range                                                  |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------ |
+| X, Y, W, H       | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8 |
+| 글꼴, 굵기       | Text elements                               | An installed family; 100 to 900                        |
+| 크기             | Text elements                               | 12 to 400                                              |
+| 색               | Text elements, 사각형                       | `#RRGGBB`                                              |
+| 줄 간격          | Text elements                               | 0.8 to 3.0                                             |
+| 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                   |
+| 세로 위치        | Text elements                               | 위, 가운데, 아래                                       |
+| 최대 줄 수       | 현재 가사, 다음 가사                        | 1 to 12; the text shrinks to fit (03, "Drawing text")  |
+| 외곽선, 그림자   | Text elements                               | The ranges of the lyric style effects (02)             |
+| 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                    |
+| 모서리           | 사각형, 그림, 미디어, 배경                  | 0 to 200                                               |
+| 맞춤             | 그림, 미디어, 배경, 오버레이                | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)    |
 
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.

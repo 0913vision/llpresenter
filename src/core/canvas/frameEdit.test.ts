@@ -177,6 +177,22 @@ describe('canvas geometry', () => {
       editFrameValue(frame, {field: 'w', value: NaN, keepRatio: true}, bounds),
     ).toBe(frame);
   });
+  it('preserves typed precision, including the driving dimension with ratio locked', () => {
+    const bounds = {width: 1920, height: 1080};
+    expect(editFrameValue(frame, {field: 'x', value: 115.253}, bounds)).toEqual(
+      {
+        ...frame,
+        x: 115.253,
+      },
+    );
+    const sized = editFrameValue(
+      frame,
+      {field: 'w', value: 203.457, keepRatio: true},
+      bounds,
+    );
+    expect(sized.w).toBe(203.457);
+    expect(sized.h).toBeCloseTo((203.457 * frame.h) / frame.w);
+  });
   it('prevents flipping and rejects nonfinite input', () => {
     expect(editFrame(frame, {x: 1000, y: 1000}, {handle: 'nw'})).toEqual({
       x: 90,

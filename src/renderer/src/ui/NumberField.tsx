@@ -46,6 +46,9 @@ export interface NumberFieldProps extends Omit<
    * of step.
    */
   readonly largeStep?: number | undefined;
+  readonly formatValue?: (value: number) => string;
+  /** Defaults to rounding committed values to a whole step. */
+  readonly rounding?: 'step' | 'none';
   /** `commit` buffers typing until Enter or blur; Escape cancels it. */
   readonly updateOn?: 'change' | 'commit' | undefined;
   /** A unit drawn outside the field, such as 개 or 줄. */
@@ -68,8 +71,8 @@ const arrowSteps: Readonly<Record<string, 1 | -1>> = {
 
 /**
  * A number field. The up and down arrows change the value by one step, or by
- * largeStep with Shift. Enter and blur round typed values to a whole step,
- * then clamp to the range.
+ * largeStep with Shift. Enter and blur clamp typed values to the range,
+ * rounding to a whole step unless rounding is `none`.
  */
 export function NumberField({
   value,
@@ -79,6 +82,8 @@ export function NumberField({
   step = 1,
   largeStep = roundNumberToStep(step * DEFAULT_LARGE_STEP_MULTIPLIER, step),
   updateOn = 'change',
+  formatValue,
+  rounding = 'step',
   unit,
   suffix = '',
   invalid = false,
@@ -100,7 +105,12 @@ export function NumberField({
     title,
   });
   const range: NumberRange = {min, max};
-  const shown = formatNumberText(value, suffix, step);
+  const shown =
+    formatValue === undefined
+      ? formatNumberText(value, suffix, step)
+      : `${formatValue(value)}${suffix}`;
+  const snap = (number: number): number =>
+    rounding === 'step' ? roundNumberToStep(number, step) : number;
 
   const report = (next: number): void => {
     if (next !== value) onChange(next);
@@ -122,7 +132,7 @@ export function NumberField({
     if (draft === null) return;
     const typed = parseNumberText(draft, suffix);
     if (typed !== undefined) {
-      report(clampNumber(roundNumberToStep(typed, step), range));
+      report(clampNumber(snap(typed), range));
     }
     setDraft(null);
   };
@@ -138,8 +148,9 @@ export function NumberField({
   }, []);
 
   const stepBy = (direction: 1 | -1, increment: number): void => {
-    const base = parseNumberText(draft ?? shown, suffix) ?? value;
-    const snapped = roundNumberToStep(base, step);
+    const base =
+      draft === null ? value : (parseNumberText(draft, suffix) ?? value);
+    const snapped = snap(base);
     report(stepNumber(snapped, {step: increment, steps: direction, range}));
     setDraft(null);
   };

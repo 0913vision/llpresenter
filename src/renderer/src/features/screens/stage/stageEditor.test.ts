@@ -307,7 +307,7 @@ describe('stage document edits', () => {
       future: 1,
     });
     await editor.frameValue(LAYOUT_ID, 'element', {field: 'w', value: 31.7});
-    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame.w).toBe(32);
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame.w).toBe(31.7);
     const locked = setup('readOnly');
     expect(
       await locked.editor.frameValue(LAYOUT_ID, 'element', {

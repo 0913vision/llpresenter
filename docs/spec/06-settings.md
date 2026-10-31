@@ -252,9 +252,10 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
 - Center: a header with the layout name and size ("현재와 다음 1920×1080") and
   요소 추가 (add element, a menu of element kinds). The 16:9 canvas with the
   elements. The selected element has eight handles. A bottom bar has X, Y, W, H
-  fields, 비율 고정 (keep aspect ratio), 격자에 맞추기 (snap to grid), and the
-  canvas zoom ("53%"). 화면에 맞춤 has no default key; Ctrl 0 resets UI zoom
-  (10; M2 check 1 row 11).
+  fields (the shared 0.1 px display and drag rule in 12, "Element properties"),
+  비율 고정 (keep aspect ratio), 격자에 맞추기 (snap to grid), and the canvas
+  zoom ("53%"). 화면에 맞춤 has no default key; Ctrl 0 resets UI zoom (10; M2
+  check 1 row 11).
 - Right: the 요소 (element) properties: the element name and 요소 삭제 (delete
   element). The 내용 (content) group: 이름 (name), 내용 종류 (content kind, a
   select such as 현재 슬라이드, current 슬라이드), and 보여 줄 것 (what to show:

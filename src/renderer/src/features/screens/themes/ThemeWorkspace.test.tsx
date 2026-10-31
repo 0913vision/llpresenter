@@ -136,6 +136,32 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   expect(listeners.size).toBe(0);
 });
 
+it('shows clean geometry after selection and preserves explicitly typed precision', async () => {
+  const {value} = setup();
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  for (const [name, shown] of [
+    ['X', '115.2'],
+    ['Y', '64.8'],
+    ['W', '1689.6'],
+    ['H', '950.4'],
+  ] as const) {
+    expect(screen.getByRole('spinbutton', {name})).toHaveProperty(
+      'value',
+      shown,
+    );
+  }
+  const x = screen.getByRole('spinbutton', {name: 'X'});
+  fireEvent.change(x, {target: {value: '115.253'}});
+  fireEvent.keyDown(x, {key: 'Enter'});
+  await waitFor(() => {
+    const current = value().themes[0]?.screens[MAIN]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+    expect(current?.frame.x).toBe(115.253);
+    expect(x).toHaveProperty('value', '115.3');
+  });
+});
+
 it('adds and deletes elements with keyboard actions and saves checkbox/text properties', async () => {
   const {value} = setup();
   await screen.findByRole('button', {name: '현재 가사'});
