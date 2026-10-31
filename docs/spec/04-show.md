@@ -265,6 +265,11 @@ each preview follows ProPresenter's rule: it shows what goes out.
   and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 소품, or
   메시지. A Look that turns those layers on for the 방송 자막 shows them there
   and in its preview.
+- A live background video whose file is missing shows a pause mark on every
+  preview frame whose Look shows that media, with the tooltip "배경 영상 파일을
+  찾을 수 없어 정지 화면으로 표시 중" (08). A frame that hides media or replaces
+  it with a solid background does not show the mark. This includes 무대 and 방송
+  자막 when their Looks show it.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
@@ -321,42 +326,11 @@ behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구
 
-The tabs are 표시 중 (Showing), 오디오 (Audio), 무대 (Stage), 타이머, 메시지,
-공지, 소품, and 매크로, in that order. The 표시 중 tab shows the number of rows
-after its name, and hides it at 0.
-
-### 표시 중 (Showing)
-
-- The tab groups by screen (본 화면, 무대 화면, 방송 자막) and lists one row for
-  each thing showing on that screen now.
-- A row has a kind icon and kind name (가사, 배경, 메시지, 소품, 공지, 무대,
-  시계), the content (song title with "2 / 9", a Bible verse with its book such
-  as "요한복음 3:17", media name, 메시지 text, 소품 name, 공지 set name with "3
-  / 6", stage message text, clock time), a time at the right (playback position
-  "0:12" for a background, time left "0:42" for a 메시지), and a 내리기 (take
-  down) button.
-- As in the board, audience screens list lyrics, background, 메시지, 소품, and
-  공지. The 무대 화면 lists the stage message and the clock. The 무대 화면's
-  lyrics elements don't get rows.
-- A background that shows as a still because its file is missing gets a pause
-  icon, with the tooltip "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중"
-  (background video file not found, showing a still). See 08.
-- 내리기 takes down only the thing in that row (proposal):
-  - Lyrics: same as the lyrics clear (F2). Background: same as the media clear
-    (F3).
-  - 메시지: takes that 메시지 down from all its target screens. 소품: turns that
-    소품 off. 공지: stops the 공지 and takes it down. 무대: takes the stage
-    message down.
-  - Clock: the Look decides it, so the row has no 내리기 button.
-  - A 내리기 counts as the last clear, and undo restores it (proposal).
-  - Individual message, prop and stage-message rows use `overlay.clear` with a
-    `message` and `messageId`, `prop` and `propId`, or `stage-message` target.
-    Message and prop IDs are lowercase UUID v4 values. Legacy single-item layers
-    with older IDs use the existing whole-layer clear. Missing rows do nothing
-    and preserve the previous clear's undo. Only the removed message's remaining
-    display time pauses until undo; other messages keep their deadlines. Clears
-    within one batch share one undo entry. A following whole-message clear
-    pauses every restored message's lifetime.
+The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 공지, 소품, and
+매크로, in that order. Fit complete tab labels to the actual panel width; keep
+the selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
+output state belongs in the previews, whole-layer take-down in the 지우기 row,
+and per-item controls in the owning tool tab (October 31 B16).
 
 ### 오디오 (Audio)
 
@@ -529,7 +503,17 @@ T03, T07 and T09.
   tooltip (proposal).
 - Sending puts the 메시지 on the 메시지 layer of the target screens and replaces
   the previous 메시지 on those screens (see 03). When the display time ends, it
-  comes down by itself. The 표시 중 tab shows the time left.
+  comes down by itself.
+- The 메시지 tab lists each active sent message independently of the selected
+  template, with its text, time left (for example "0:42") when timed, and its
+  own 내리기. Expired messages leave the list. 내리기 takes only that message
+  down from every target screen through `overlay.clear` with `message` and
+  `messageId`, preserving the existing last-clear undo. Legacy single-item
+  layers with older IDs use the existing whole-message clear; invalid IDs in a
+  multi-item layer do nothing. Missing targets preserve the previous undo. Only
+  the removed message's remaining lifetime pauses until undo; other messages
+  retain their deadlines. Batched clears share one undo entry, and a following
+  whole-message clear pauses every restored message's lifetime.
 - No board shows where to add or edit templates (open question). Version 1 uses
   a plus button in the tab and a right-click menu (edit, delete) to set the name
   and sentence (proposal).
@@ -550,7 +534,11 @@ T03, T07 and T09.
 - The interval, 반복, and the target screens are part of the 공지 set
   (`notices.json`, 02). Changing them in the tab saves them to the set and
   applies them to a running 공지 at once (proposal).
-- The 공지 clear (F7) stops the 공지 and takes it down.
+- The running set shows its current position (for example "3 / 6") beside the
+  playback controls, with 정지 to stop and take it down using the existing 공지
+  clear and undo. Opening the tab initially selects the running set when one
+  exists; an explicit selection is retained. The 공지 clear (F7) also stops the
+  공지 and takes it down.
 - No board shows where to create a 공지 set or add images (open question).
   Version 1 has a plus button in the tab that makes a 공지 set from a media
   image playlist. Clicking the interval value changes it (proposal).
@@ -572,9 +560,8 @@ The tab shows the collection select (for example 주일 예배) with the count
 ("8개"), the grid and list views, the 매크로 tiles, and a 새 매크로 (new 매크로)
 tile at the end. See 07.
 
-Source: `Overlays` (eight tabs), `ShowH` (표시 중), `Problems` (still
-background), `Macros`, `ClearButton` README, `MacroTile` README, `StatusMarks`
-README (count badge).
+Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
+`ClearButton` README, `MacroTile` README, `StatusMarks` README (count badge).
 
 ## 퀵 실행
 
@@ -853,7 +840,7 @@ The features are the same. Only the layout differs.
 | Media strip         | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
 | 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
-| 진행 도구 tabs      | 표시 중, 무대, and 더 보기 (more). 더 보기 opens a menu with 오디오, 타이머, 메시지, 공지, 소품, and 매크로. Choosing one shows that tab's content, with 더 보기 shown as the active tab (proposal).                     | `Compact`, `Layout` README       |
+| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 공지, 소품 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                   | `Compact`, `Layout` README       |
 | Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
 | 퀵 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
 | 예배 순서 header    | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |

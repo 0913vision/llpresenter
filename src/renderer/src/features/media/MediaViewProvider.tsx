@@ -27,6 +27,10 @@ interface MediaViewContextValue {
 
 const MediaViewContext = createContext<MediaViewContextValue | null>(null);
 
+export function useHasMediaView(): boolean {
+  return use(MediaViewContext) !== null;
+}
+
 export interface MediaViewProviderProps {
   readonly api: MediaApi;
   readonly active?: boolean;

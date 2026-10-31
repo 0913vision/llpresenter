@@ -10,6 +10,7 @@ import {MAX_NOTICE_SETS, saveNoticeEdit, type NoticeEdit} from './noticeEdits';
 import {useNoticeMedia} from './useNoticeMedia';
 import {useToolEditing} from './useToolEditing';
 import styles from './NoticeTab.module.css';
+import {useLive} from '@renderer/session/live';
 
 export function NoticeTab({
   onProblem,
@@ -20,6 +21,7 @@ export function NoticeTab({
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const media = useNoticeMedia(onProblem);
   const [selectedId, setSelectedId] = useState<string>();
+  const liveId = useLive(view => view.state?.layers.notice?.noticeId);
   const [adding, setAdding] = useState(false);
   const selectionRevision = useRef(0);
   const {busy, run} = useToolEditing({
@@ -30,6 +32,7 @@ export function NoticeTab({
   });
   const selected =
     document?.value.sets.find(item => item.id === selectedId) ??
+    document?.value.sets.find(item => item.id === liveId) ??
     document?.value.sets[0];
   const current =
     selected && screens

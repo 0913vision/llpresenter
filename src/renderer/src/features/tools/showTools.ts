@@ -1,6 +1,5 @@
 /** The 진행 도구 tabs, in the order of spec 04. */
 export const SHOW_TOOLS = [
-  {value: 'showing', label: '표시 중'},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
   {value: 'timer', label: '타이머'},

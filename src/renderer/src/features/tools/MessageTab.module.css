@@ -36,3 +36,26 @@
   justify-content: flex-end;
   padding: var(--space-4) var(--panel-inset);
 }
+
+.sent {
+  border-bottom: var(--radius-hairline) solid var(--line);
+  padding: var(--space-4) var(--panel-inset);
+}
+
+.sentRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--size-row);
+}
+
+.sentText {
+  flex: 1;
+  min-width: 0;
+}
+
+.time {
+  color: var(--text-2);
+  font: var(--type-caption);
+  font-variant-numeric: tabular-nums;
+}

@@ -38,6 +38,9 @@ export interface PreviewScreen<Id extends string> {
   readonly status: PreviewStatus;
   /** Draws the frame in `chroma`, as the capture window of 방송 자막 does. */
   readonly chroma?: boolean | undefined;
+  /** A picture-specific state, separate from whether the screen output is on. */
+  readonly indicator?:
+    {readonly icon: string; readonly text: string} | undefined;
 }
 
 export interface PreviewFrameProps<Id extends string> {
@@ -152,6 +155,9 @@ function Caption<Id extends string>({
   return (
     <div className={styles.caption}>
       <span className={styles.name}>{screen.name}</span>
+      {screen.indicator === undefined ? null : (
+        <PictureIndicator indicator={screen.indicator} />
+      )}
       {small ? null : (
         <span className={styles.target}>
           <TargetIcon
@@ -166,6 +172,28 @@ function Caption<Id extends string>({
         <span className={styles.look}>{screen.look}</span>
       )}
     </div>
+  );
+}
+
+function PictureIndicator({
+  indicator,
+}: {
+  readonly indicator: {readonly icon: string; readonly text: string};
+}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({text: indicator.text});
+  return (
+    <>
+      <span
+        {...targetProps}
+        tabIndex={0}
+        role="img"
+        aria-label={indicator.text}
+        className={styles.indicator}
+      >
+        <Icon name={indicator.icon} size={14} />
+      </span>
+      {tooltip}
+    </>
   );
 }
 

@@ -1,4 +1,6 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {emptyLayers} from '@core/live/state';
+import {installMockClock} from '../../../../../test/mock-clock';
 import {mockPanelTabWidths} from '@renderer/ui/responsiveTabTesting';
 import {
   act,
@@ -72,7 +74,7 @@ async function ready(): Promise<void> {
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
-  useShowToolTab.setState({tool: 'showing'});
+  useShowToolTab.setState({tool: 'audio'});
 });
 afterEach(() => {
   cleanup();
@@ -80,24 +82,59 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it('shows each sent message time and clears only that message', async () => {
+  const clock = installMockClock();
+  const fixture = messageFixture();
+  const messageId = '00000000-0000-4000-8000-000000000031';
+  fixture.live({
+    layers: {
+      ...emptyLayers(),
+      message: {
+        messageId,
+        text: '진행 확인',
+        items: [
+          {
+            messageId,
+            text: '진행 확인',
+            targets: 'all',
+            excludedTargets: [],
+            startedAt: Date.now(),
+            expiresAt: Date.now() + 42_000,
+          },
+        ],
+      },
+    },
+  });
+  const {unmount} = render(<MessageTab />);
+  await act(async () => undefined);
+  const messages = screen.getByRole('list', {name: '보낸 메시지'});
+  expect(within(messages).getByText('0:42')).toBeDefined();
+  await act(() => clock.advance(1000));
+  expect(within(messages).getByText('0:41')).toBeDefined();
+  fireEvent.click(within(messages).getByRole('button', {name: '내리기'}));
+  expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
+    type: 'overlay.clear',
+    target: {kind: 'message', messageId},
+  });
+  unmount();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
 it('mounts only on the message tab and releases both document subscriptions', async () => {
   mockPanelTabWidths(300);
   const fixture = messageFixture();
   const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
-  await waitFor(() => expect(fixture.count()).toBe(8));
+  await waitFor(() => expect(fixture.count()).toBe(0));
   fixture.get.mockClear();
-  fireEvent.click(screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}));
-  fireEvent.click(
-    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
-  );
+  fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
   await ready();
-  expect(fixture.count()).toBe(5);
+  expect(fixture.count()).toBe(2);
   expect(fixture.get.mock.calls.map(([request]) => request.name)).toEqual([
     'messages',
     'screens',
   ]);
   fireEvent.click(screen.getByRole('tab', {name: '무대'}));
-  await waitFor(() => expect(fixture.count()).toBe(8));
+  await waitFor(() => expect(fixture.count()).toBe(5));
   unmount();
   expect(fixture.count()).toBe(0);
   expect(fixture.send).not.toHaveBeenCalled();

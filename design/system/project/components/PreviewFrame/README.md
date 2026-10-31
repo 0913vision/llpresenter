@@ -37,6 +37,10 @@ stage layout editing use their editing canvases instead.
 - All three small slots stay in the order 본 화면, 무대 화면, 방송 자막.
   Each is at most `size-preview-small-max` wide. An unselected slot has the
   screen's picture and a centered name, with no target or Look text.
+- A picture-specific indicator follows the caption name in either size. A
+  missing background video uses a 14px pause icon in `warning`, with its reason
+  in a shared tooltip on hover or keyboard focus. It does not change the
+  screen's output status or monitoring selection.
 - The selected slot has a `bg-app` picture-sized area with an 18px upward
   arrow in `accent`. It has no renderer or copied picture. Its caption has a
   12px check, `space-4` gap, and the screen name in `accent`. The whole slot
@@ -92,7 +96,7 @@ what will appear when output is enabled. Give reasons in tooltips, for example
 
 `PreviewFrame` takes `screens`, `big`, `compact`, `onBigChange`, and
 `renderScreen`. A screen provides its ID, name, display or NDI target, optional
-actual Look name, status, and chroma flag.
+actual Look name, status, chroma flag, and an optional indicator icon and tooltip.
 
 Each screen keeps one keyed picture cell and one fixed slot button. Both are
 persistent grid siblings. CSS moves only the existing picture cell between

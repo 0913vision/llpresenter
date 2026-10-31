@@ -9,6 +9,7 @@ import type {NoticePlayback as Playback} from '@core/live/state';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {NoticeSet} from '@core/schema/notices';
 import {sendLive, useLive} from '@renderer/session/live';
+import {clearLayer} from '@renderer/session/clear';
 import {Button, MediaTile, TileList, gridMoves} from '@renderer/ui';
 import {noticeReason} from './noticeEdits';
 import styles from './NoticePlayback.module.css';
@@ -54,6 +55,11 @@ export function NoticePlayback({
     <div>
       <div className={styles.controls}>
         <span>{`슬라이드 ${item.media.length}개`}</span>
+        {position === undefined ? null : (
+          <span aria-label="공지 재생 위치">
+            {position + 1} / {playback?.media.length}
+          </span>
+        )}
         <Button
           disabled={reason !== undefined && !(playback && !paused)}
           title={reason}
@@ -61,6 +67,9 @@ export function NoticePlayback({
         >
           {playback && !paused ? '일시 정지' : '재생'}
         </Button>
+        {playback === undefined ? null : (
+          <Button onClick={() => clearLayer('notice')}>정지</Button>
+        )}
       </div>
       <TileList
         label="공지 이미지"

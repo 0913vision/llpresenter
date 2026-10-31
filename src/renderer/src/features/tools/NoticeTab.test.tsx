@@ -11,6 +11,7 @@ import {
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {MAIN_ID} from '@core/testing/screenDocuments';
+import {emptyLayers} from '@core/live/state';
 import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {NoticeTab} from './NoticeTab';
@@ -135,6 +136,45 @@ afterEach(() => {
   cleanup();
   delete window.llp;
   vi.restoreAllMocks();
+});
+
+it('opens the running set with its current position and stops it', async () => {
+  const current = {
+    ...notice,
+    id: '00000000-0000-4000-8000-000000000004',
+    name: '진행 공지',
+    media: [image, image, image],
+  };
+  const f = fixture([notice, current]);
+  f.live({
+    layers: {
+      ...emptyLayers(),
+      notice: {
+        noticeId: current.id,
+        playback: {
+          media: current.media,
+          targets: [MAIN_ID],
+          interval: 8,
+          loop: true,
+          position: 2,
+          startedAt: Date.now(),
+          pausedAt: Date.now(),
+        },
+      },
+    },
+  });
+  render(<NoticeTab />);
+  expect(
+    (await screen.findByRole('button', {name: '공지 세트'})).textContent,
+  ).toContain(current.name);
+  await waitFor(() =>
+    expect(screen.getByLabelText('공지 재생 위치').textContent).toBe('3 / 3'),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '정지'}));
+  expect(f.send).toHaveBeenCalledWith({
+    type: 'layer.clear.toggle',
+    target: 'notice',
+  });
 });
 
 it('starts the chosen image and saves repeat changes', async () => {

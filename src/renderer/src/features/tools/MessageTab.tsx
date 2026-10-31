@@ -31,6 +31,7 @@ import {
 } from '@core/overlays/messageDraft';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
+import {ActiveMessages} from './ActiveMessages';
 
 function Sentence({text}: {readonly text: string}): JSX.Element {
   const names = messageBlankNames(text);
@@ -230,6 +231,7 @@ export function MessageTab({
     messages?.value.templates[0];
   return (
     <>
+      <ActiveMessages />
       <MessageEditing
         document={messages}
         onProblem={onProblem}

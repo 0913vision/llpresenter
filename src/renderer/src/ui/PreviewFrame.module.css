@@ -99,6 +99,14 @@
   color: var(--text-3);
 }
 
+.indicator {
+  position: relative;
+  z-index: calc(var(--z-slot) + 1);
+  display: inline-flex;
+  pointer-events: auto;
+  color: var(--warning);
+}
+
 .look {
   min-width: 0;
   overflow: hidden;
