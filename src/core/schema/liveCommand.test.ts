@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {layerKinds} from '../live/state';
-import {parseLiveCommand} from './liveCommand';
+import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
 
 describe('parseLiveCommand', () => {
   it('preserves an explicit Bible reference on a slide command', () => {
@@ -141,5 +141,37 @@ describe('parseLiveCommand', () => {
     for (const value of [null, undefined, 'clear.undo', [], 3]) {
       expect(parseLiveCommand(value).ok).toBe(false);
     }
+  });
+});
+
+describe('parseLiveCommandRequest', () => {
+  it('keeps the valid children of a batch and names each skipped one', () => {
+    const child = {type: 'audio.pause'};
+    const parsed = parseLiveCommandRequest({
+      type: 'live.batch',
+      commands: [child, {type: 'unknown'}, {type: 'timer.start'}],
+    });
+    expect(parsed.ok && parsed.value.command).toEqual({
+      type: 'live.batch',
+      commands: [child],
+    });
+    expect(parsed.ok && parsed.value.rejected.map(({field}) => field)).toEqual([
+      'commands.1.type',
+      'commands.2.timerId',
+    ]);
+  });
+
+  it('passes a single valid command with nothing rejected', () => {
+    const command = {type: 'clear.undo'};
+    expect(parseLiveCommandRequest(command)).toEqual({
+      ok: true,
+      value: {command, rejected: []},
+    });
+  });
+
+  it('refuses a single malformed command as a whole', () => {
+    expect(parseLiveCommandRequest({type: 'audio.play', source: []}).ok).toBe(
+      false,
+    );
   });
 });

@@ -54,6 +54,10 @@ describe('IPC port calls', () => {
     );
     ipc.invoke.mockRejectedValueOnce(new Error('No handler'));
     await expect(read()).rejects.toThrow('Bad reply on count:get: No handler');
+    ipc.invoke.mockRejectedValueOnce('Window closed');
+    await expect(read()).rejects.toThrow(
+      'Bad reply on count:get: Window closed',
+    );
     expect(logs()).toEqual([
       {
         level: 'error',
@@ -64,6 +68,11 @@ describe('IPC port calls', () => {
         level: 'error',
         message: 'Ignored a bad reply on count:get',
         detail: 'No handler',
+      },
+      {
+        level: 'error',
+        message: 'Ignored a bad reply on count:get',
+        detail: 'Window closed',
       },
     ]);
   });

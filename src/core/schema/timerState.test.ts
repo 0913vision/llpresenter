@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '../live/state';
 import {parseLiveState} from './liveState';
-import {MAX_LIVE_TIMERS} from './timerState';
+import {MAX_LIVE_TIMERS, parseTimerClockReading} from './timerState';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -92,5 +92,14 @@ describe('live 타이머 runs', () => {
       );
     expect(withTimers(runs(MAX_LIVE_TIMERS)).ok).toBe(true);
     expect(withTimers(runs(MAX_LIVE_TIMERS + 1)).ok).toBe(false);
+  });
+});
+
+describe("main's 타이머 clock reading", () => {
+  it('accepts epoch-like milliseconds and refuses anything else', () => {
+    expect(parseTimerClockReading(1234.5)).toEqual({ok: true, value: 1234.5});
+    for (const value of ['soon', null, NaN]) {
+      expect(parseTimerClockReading(value).ok).toBe(false);
+    }
   });
 });
