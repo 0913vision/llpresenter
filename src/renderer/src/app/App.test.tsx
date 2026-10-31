@@ -91,7 +91,7 @@ describe('App menu bar title', () => {
     const tile = within(grid).getAllByRole('option')[2];
     if (!tile) throw new Error('Missing slide');
     fireEvent.contextMenu(tile);
-    fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 편집'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '가사 편집'}));
     expect(
       screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
     ).toBe('true');
@@ -163,7 +163,7 @@ describe('App menu bar title', () => {
     ).getAllByRole('option')[2];
     if (!tile) throw new Error('Missing slide');
     fireEvent.contextMenu(tile);
-    fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 편집'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '가사 편집'}));
     await waitFor(() =>
       expect(
         session.editor?.getSnapshot().session?.history.snapshot.selection.block,
@@ -173,6 +173,13 @@ describe('App menu bar title', () => {
       document.song.id,
     );
     expect(session.editor?.getSnapshot().session?.arrangement).toBeUndefined();
+    const lyrics = screen.getByRole('textbox', {name: '슬라이드 3 가사'});
+    expect(
+      lyrics.closest('[data-editor-block]')?.getAttribute('data-active'),
+    ).toBe('true');
+    expect(screen.getByRole('group', {name: '가사'}).scrollTop).toBeGreaterThan(
+      0,
+    );
     expect(session.items?.getSnapshot().item).toBeNull();
   });
 

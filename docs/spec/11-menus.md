@@ -124,17 +124,17 @@ lack), Moved, Removed.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
   1:58).
 
-| Group | Row                                                | Does                                                                   | Status                   |
-| ----- | -------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------ |
-| 1     | 빠른 편집                                          | PP Quick Edit.                                                         | Off                      |
-| 1     | 슬라이드 편집                                      | Opens 준비 at this slide, like 준비에서 열기 on a 예배 순서 item.      | New                      |
-| 2     | 사용 안 함                                         | PP Disable.                                                            | Off                      |
-| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                     | Off                      |
-| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 빼기: <대상>" rows here. | Off                      |
-| 5     | 이름표 ›                                           | PP Group (Arrangements video 0:55): 편집… (off)                        | 이름표 없음 (PP Ungroup) | every 이름표 with its color swatch, ✓ on the current one | 이름표 설정…. The same list as the 이름표 popover. | Off |
-| 5     | 슬라이드 이름 ›                                    | PP Label.                                                              | Off                      |
-| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                          | Off                      |
-| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                     | Off                      |
+| Group | Row                                                | Does                                                                                                 | Status                   |
+| ----- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------ |
+| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                       | Off                      |
+| 1     | 가사 편집                                          | Opens 준비 with this slide selected and scrolled into view, like 가사 편집 on a 예배 순서 song item. | New                      |
+| 2     | 사용 안 함                                         | PP Disable.                                                                                          | Off                      |
+| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                   | Off                      |
+| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 빼기: <대상>" rows here.                               | Off                      |
+| 5     | 이름표 ›                                           | PP Group (Arrangements video 0:55): 편집… (off)                                                      | 이름표 없음 (PP Ungroup) | every 이름표 with its color swatch, ✓ on the current one | 이름표 설정…. The same list as the 이름표 popover. | Off |
+| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                            | Off                      |
+| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                        | Off                      |
+| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                   | Off                      |
 
 - There is no slide menu today; this adds it.
 
@@ -267,7 +267,7 @@ lack), Moved, Removed.
 | 1      | 다른 예배에 추가 ›                              | PP Add to: services under the heading 지난 예배, the open one ✓ and disabled.                                                                                                    | Off    |
 | song   | 구성 ›                                          | Song items: the song's 구성 with ✓ on the one this item uses; picking one sets it for this item (PP Arrangement, 3:37 and 4:00). The same choice as the item's 구성 setting row. | New    |
 | song   | 출력 대상 ›                                     | PP Destination.                                                                                                                                                                  | Off    |
-| song   | 슬라이드 편집, 크기 바꾸기 ›                    | PP Edit, Resize.                                                                                                                                                                 | Off    |
+| song   | 크기 바꾸기 ›                                   | PP Resize.                                                                                                                                                                       | Off    |
 | song   | 가사 편집                                       | Opens the song in 준비 (PP Reflow). Replaces 준비에서 열기 on song items.                                                                                                        | Moved  |
 | other  | 준비에서 열기                                   | Items that are not songs, 진행 only (ours).                                                                                                                                      | Now    |
 | header | 색 바꾸기                                       | 구역 rows only (PP Change Color on a header).                                                                                                                                    | Off    |
@@ -325,7 +325,7 @@ lack), Moved, Removed.
 | 1     | 라이브러리로 옮기기 ›                                   | PP Move to.                                                                                                                                     | Off    |
 | 2     | 구성 ›                                                  | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits. | Off    |
 | 2     | 출력 대상 ›                                             | PP Destination.                                                                                                                                 | Off    |
-| 3     | 슬라이드 편집, 크기 바꾸기 ›                            | PP Edit (slide editor), Resize.                                                                                                                 | Off    |
+| 3     | 크기 바꾸기 ›                                           | PP Resize.                                                                                                                                      | Off    |
 | 3     | 가사 편집                                               | Opens the song in 준비 (PP Reflow).                                                                                                             | New    |
 | 4     | 복사, 붙여넣기, 복제                                    | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                        | Off    |
 | 4     | 이름 바꾸기                                             | No icon, text aligned with the icon rows.                                                                                                       | Off    |

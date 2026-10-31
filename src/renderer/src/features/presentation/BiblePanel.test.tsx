@@ -77,7 +77,7 @@ describe('Bible panel integration', () => {
     const contextTarget = tile;
     fireEvent.contextMenu(contextTarget);
     expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-    const edit = screen.getByRole('menuitem', {name: '슬라이드 편집'});
+    const edit = screen.getByRole('menuitem', {name: '가사 편집'});
     expect(edit.getAttribute('aria-disabled')).toBe('true');
     expect((await hoverForTooltip(edit))?.textContent).toBe(
       '이 슬라이드는 준비에서 편집할 수 없습니다',

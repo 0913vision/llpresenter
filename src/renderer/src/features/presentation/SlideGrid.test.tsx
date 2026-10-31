@@ -41,7 +41,7 @@ it('lists the slide menu rows in spec order with only editing enabled', () => {
     ),
   ).toEqual([
     '빠른 편집',
-    '슬라이드 편집',
+    '가사 편집',
     '|',
     '사용 안 함',
     '|',
@@ -69,7 +69,7 @@ it('lists the slide menu rows in spec order with only editing enabled', () => {
       .getAllByRole('menuitem')
       .filter(row => row.getAttribute('aria-disabled') !== 'true')
       .map(row => row.textContent),
-  ).toEqual(['슬라이드 편집']);
+  ).toEqual(['가사 편집']);
   expect(useShow.getState().selectedTile).toBe(0);
 });
 
@@ -85,7 +85,7 @@ it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
     const tile = slide(2);
     tile.focus();
     fireEvent.keyDown(tile, keys);
-    fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 편집'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: '가사 편집'}));
     expect(onOpenPrep).toHaveBeenCalledExactlyOnceWith('song-morning', 2);
     expect(send).not.toHaveBeenCalled();
     expect(screen.queryByRole('menu')).toBeNull();

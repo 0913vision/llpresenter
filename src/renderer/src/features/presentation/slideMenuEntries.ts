@@ -13,7 +13,7 @@ export function slideMenuEntries(
     {
       kind: 'item',
       id: 'edit',
-      label: '슬라이드 편집',
+      label: '가사 편집',
       disabled: edit === undefined,
       title:
         edit === undefined

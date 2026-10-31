@@ -31,7 +31,6 @@ export function libraryMenuEntries({
     laterRow('arrangement', '구성', {submenu: true}),
     laterRow('destination', '출력 대상', {submenu: true}),
     menuSeparator('edit-separator'),
-    laterRow('edit-slides', '슬라이드 편집'),
     laterRow('resize', '크기 바꾸기', {submenu: true}),
     {
       kind: 'item',

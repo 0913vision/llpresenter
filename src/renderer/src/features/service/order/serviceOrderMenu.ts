@@ -38,7 +38,6 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
         },
         laterRow('destination', '출력 대상', {submenu: true}),
         menuSeparator('edit-separator'),
-        laterRow('edit-slides', '슬라이드 편집'),
         laterRow('resize', '크기 바꾸기', {submenu: true}),
         ...(openInPrep === undefined
           ? []
