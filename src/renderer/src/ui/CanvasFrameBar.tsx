@@ -22,6 +22,9 @@ export function CanvasFrameBar({
   snapGrid,
   setSnapGrid,
   change,
+  showFields = true,
+  zoomControl,
+  minimumSize = MIN_SIZE,
 }: {
   frame: ElementFrame | undefined;
   width: number;
@@ -33,13 +36,21 @@ export function CanvasFrameBar({
   snapGrid: boolean;
   setSnapGrid: (value: boolean) => void;
   change: (field: FrameField, value: number) => void;
+  showFields?: boolean;
+  minimumSize?: number;
+  zoomControl?:
+    | {readonly value: number; readonly change: (value: number) => void}
+    | undefined;
 }): JSX.Element {
   const readOnly = readOnlyReason !== undefined;
   const reason =
     readOnlyReason ?? (frame === undefined ? '선택한 요소 없음' : undefined);
   return (
-    <footer className={styles.bar} aria-label="요소 위치와 크기">
-      {FIELDS.map(field => {
+    <footer
+      className={styles.bar}
+      aria-label={showFields ? '요소 위치와 크기' : '캔버스 설정'}
+    >
+      {(showFields ? FIELDS : []).map(field => {
         const limit = field === 'x' || field === 'w' ? width : height;
         return (
           <label key={field} className={styles.field}>
@@ -48,7 +59,9 @@ export function CanvasFrameBar({
               aria-label={field.toUpperCase()}
               value={frame?.[field] ?? 0}
               min={
-                field === 'x' || field === 'y' ? 0 : Math.min(MIN_SIZE, limit)
+                field === 'x' || field === 'y'
+                  ? 0
+                  : Math.min(minimumSize, limit)
               }
               max={limit}
               unit="px"
@@ -70,15 +83,43 @@ export function CanvasFrameBar({
       />
       <IconButton
         icon="grid"
+        className={showFields ? undefined : styles.first}
         label="격자에 맞추기"
         pressed={snapGrid}
         disabled={readOnly}
         title={readOnlyReason}
         onPressedChange={setSnapGrid}
       />
-      <output className={styles.zoom} aria-label="캔버스 배율">
-        {Math.round(100 * zoom)}%
-      </output>
+      <div className={styles.zoom}>
+        {zoomControl === undefined ? null : (
+          <IconButton
+            icon="min"
+            label="축소"
+            disabled={zoomControl.value <= 0.25}
+            onClick={() =>
+              zoomControl.change(Math.max(0.25, zoomControl.value - 0.25))
+            }
+          />
+        )}
+        <output aria-label="캔버스 배율">{Math.round(100 * zoom)}%</output>
+        {zoomControl === undefined ? null : (
+          <>
+            <IconButton
+              icon="plus"
+              label="확대"
+              disabled={zoomControl.value >= 4}
+              onClick={() =>
+                zoomControl.change(Math.min(4, zoomControl.value + 0.25))
+              }
+            />
+            <IconButton
+              icon="frame"
+              label="화면에 맞춤"
+              onClick={() => zoomControl.change(1)}
+            />
+          </>
+        )}
+      </div>
     </footer>
   );
 }

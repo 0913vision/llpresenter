@@ -10,6 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
+import {createDefaultThemes} from '@core/themes/defaults';
 import type {LiveCommand} from '@core/live/commands';
 import type {MonitorList} from '@core/schema/monitors';
 import type {OutputStatuses} from '@core/schema/outputStatus';
@@ -52,6 +53,8 @@ function readDocument(name: string): Promise<SettingsDocument> {
       return Promise.resolve(looksDocument());
     case 'stage-layouts':
       return Promise.resolve(stageLayoutsDocument());
+    case 'themes':
+      return Promise.resolve(settingsDocument('themes', createDefaultThemes()));
     case 'macros':
       return Promise.resolve(
         settingsDocument('macros', {macros: [], collections: []}),
@@ -190,24 +193,19 @@ describe('the 화면 list', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('opens the selected Look editor and keeps output warnings above its column', async () => {
+  it('opens the selected theme editor and keeps output warnings above the properties', async () => {
     setup({warningHeight: 96, themes: true});
-    await screen.findByRole('option', {name: '설교'});
-    await userEvent.click(option('설교'));
-    const editor = await screen.findByRole('region', {name: 'Look 편집'});
+    await userEvent.click(await screen.findByRole('option', {name: '말씀'}));
+    const editor = await screen.findByRole('region', {name: '테마 편집기'});
+    expect(editor.querySelector('header')?.textContent).toBe(
+      '테마말씀/본 화면',
+    );
+    expect(screen.getByRole('region', {name: '테마 속성'})).toBeDefined();
     expect(
-      screen.getByRole('textbox', {name: 'Look 이름'}).getAttribute('value'),
-    ).toBe('설교');
-    expect(within(editor).getByRole('region', {name: '본 화면'})).toBeDefined();
-    expect(
-      within(editor).getByRole('region', {name: '방송 자막'}),
-    ).toBeDefined();
-    expect(
-      within(editor).getByRole('region', {name: '무대 화면'}),
-    ).toBeDefined();
-    expect(screen.queryByRole('region', {name: '속성'})).toBeNull();
-    expect(
-      editor.closest('[style*="padding-top"]')?.getAttribute('style'),
+      screen
+        .getByRole('region', {name: '테마 속성'})
+        .closest('[style*="padding-top"]')
+        ?.getAttribute('style'),
     ).toContain('96px');
   });
   it('keeps only screens in the settings window', async () => {
@@ -356,35 +354,33 @@ describe('the 화면 list', () => {
   });
 });
 
-describe('the Look and 무대 배치 lists', () => {
-  it('marks the Look and the stage layout in use with the LIVE badge', async () => {
+describe('the theme workspace and screen selection', () => {
+  it('marks standby as live while the output is idle', async () => {
     setup({themes: true});
-    await screen.findByRole('option', {name: '평상시'});
+    await screen.findByRole('option', {name: '대기 화면'});
     await waitFor(() =>
-      expect(option('현재와 다음').textContent).toContain('LIVE'),
+      expect(option('대기 화면').textContent).toContain('LIVE'),
     );
-    expect(option('평상시').textContent).toContain('LIVE');
-    expect(option('설교').textContent).not.toContain('LIVE');
-    expect(option('하단 자막').textContent).not.toContain('LIVE');
+    expect(option('찬양').textContent).not.toContain('LIVE');
   });
 
-  it('moves the marks with the Look selected on output', async () => {
+  it('moves the live mark with the theme selected on output', async () => {
     setup({themes: true});
-    await screen.findByRole('option', {name: '평상시'});
-    await waitFor(() =>
-      expect(option('현재와 다음').textContent).toContain('LIVE'),
-    );
-    const sermon = await readDocument('looks');
-    if (sermon.name !== 'looks') throw new Error('Expected looks');
+    await screen.findByRole('option', {name: '대기 화면'});
+    const themes = createDefaultThemes();
+    const bible = themes.defaults.bible;
+    if (bible === undefined) throw new Error('Expected the Bible theme');
     act(() =>
       useLive.setState({
-        state: {...emptyLiveState(), lookId: sermon.value.looks[1]?.id ?? null},
+        state: {
+          ...emptyLiveState(),
+          themeOutput: {themeId: bible, revision: 1, missing: [], screens: {}},
+        },
       }),
     );
-    expect(option('설교').textContent).toContain('LIVE');
-    expect(option('하단 자막').textContent).toContain('LIVE');
-    expect(option('평상시').textContent).not.toContain('LIVE');
-    expect(option('현재와 다음').textContent).not.toContain('LIVE');
+    expect(option('말씀').textContent).toContain('LIVE');
+    expect(option('찬양').textContent).not.toContain('LIVE');
+    expect(option('대기 화면').textContent).not.toContain('LIVE');
   });
 
   it('marks the first screen and its monitor before any pick, and follows the fallback after a removal', async () => {
@@ -452,22 +448,26 @@ describe('the Look and 무대 배치 lists', () => {
     });
   });
 
-  it('keeps the theme workspace limited to Look and stage editors', async () => {
+  it('composes the theme list, canvas, and screen properties without physical screen controls', async () => {
     setup({themes: true});
-    await screen.findByRole('option', {name: '설교'});
+    await screen.findByRole('option', {name: '찬양'});
     expect(
       screen
         .getAllByRole('listbox')
         .map(list => list.getAttribute('aria-label')),
-    ).toEqual(['Look', '무대 배치']);
+    ).toEqual(['테마', '요소']);
     expect(screen.queryByRole('listbox', {name: '화면'})).toBeNull();
     expect(screen.queryByRole('region', {name: '출력 미리보기'})).toBeNull();
-    await userEvent.click(option('설교'));
+    await userEvent.click(option('말씀'));
     expect(
-      await screen.findByRole('region', {name: 'Look 편집'}),
+      await screen.findByRole('region', {name: '테마 편집기'}),
     ).toBeDefined();
-    await userEvent.click(option('현재와 다음'));
-    expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
-    expect(useScreensSelection.getState().selection.kind).toBe('stage');
+    await userEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+    expect(
+      screen.getByRole('region', {name: '테마 편집기'}).querySelector('header')
+        ?.textContent,
+    ).toBe('테마말씀/무대 화면');
+    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
+    expect(screen.queryByRole('button', {name: '모니터 번호 표시'})).toBeNull();
   });
 });

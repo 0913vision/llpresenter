@@ -9,6 +9,8 @@ import {
 } from 'react';
 import {
   editFrameValue,
+  containFrameGesture,
+  MIN_SIZE,
   resizeHandles,
   type ElementFrame,
   type FrameFieldChange,
@@ -29,6 +31,8 @@ export interface CanvasDocument<T extends CanvasElement> {
   readonly width: number;
   readonly height: number;
   readonly elements: readonly T[];
+  readonly minimumSize?: number;
+  readonly contained?: boolean;
 }
 export interface CanvasActions {
   readonly frame: (
@@ -48,6 +52,8 @@ export interface CanvasEditorProps<T extends CanvasElement> {
   readonly value: CanvasDocument<T>;
   readonly label: string;
   readonly selected: string | null;
+  readonly selectedIds?: readonly string[];
+  readonly footer?: 'frames' | 'zoom';
   readonly onSelect: (id: string | null) => void;
   readonly readOnlyReason: string | undefined;
   readonly actions: CanvasActions;
@@ -73,6 +79,7 @@ interface Gesture {
   readonly snapGrid: boolean;
   readonly distance: number;
   readonly targets: readonly ElementFrame[];
+  readonly minimumSize: number;
   delta: {x: number; y: number};
   frame: ElementFrame;
 }
@@ -92,6 +99,8 @@ export function CanvasEditor<T extends CanvasElement>({
   value: layout,
   label,
   selected,
+  selectedIds,
+  footer = 'frames',
   onSelect: select,
   readOnlyReason,
   actions,
@@ -104,6 +113,7 @@ export function CanvasEditor<T extends CanvasElement>({
   renderContent,
 }: CanvasEditorProps<T>): JSX.Element {
   const readOnly = readOnlyReason !== undefined;
+  const [zoomFactor, setZoomFactor] = useState(1);
   const [draft, setDraft] = useState<{
     id: string;
     frame: ElementFrame;
@@ -195,10 +205,14 @@ export function CanvasEditor<T extends CanvasElement>({
     };
   }, []);
   const [watchSpace, available] = useElementSize();
-  const size = fitAspect(
+  const fitted = fitAspect(
     available ?? {width: 0, height: 0},
     layout.width / layout.height,
   );
+  const size = {
+    width: fitted.width * zoomFactor,
+    height: fitted.height * zoomFactor,
+  };
   const picture =
     draft === null
       ? layout
@@ -275,6 +289,7 @@ export function CanvasEditor<T extends CanvasElement>({
       target: event.currentTarget,
       keepRatio,
       snapGrid,
+      minimumSize: layout.minimumSize ?? MIN_SIZE,
       distance: Number.parseFloat(
         getComputedStyle(surface).getPropertyValue('--size-guide-snap'),
       ),
@@ -291,7 +306,11 @@ export function CanvasEditor<T extends CanvasElement>({
   const update = (bypass: boolean): void => {
     const current = gesture.current;
     if (current === null) return;
-    const {frame, guides} = guideFrame({...current, bypass});
+    const guided = guideFrame({...current, bypass});
+    const frame = layout.contained
+      ? containFrameGesture(guided.frame, {...current, bounds: layout})
+      : guided.frame;
+    const guides = frame === guided.frame ? guided.guides : {};
     current.frame = frame;
     setDraft({id: current.elementId, frame, guides});
   };
@@ -302,7 +321,10 @@ export function CanvasEditor<T extends CanvasElement>({
       data-canvas-editor
     >
       {toolbar}
-      <div ref={watchSpace} className={styles.space}>
+      <div
+        ref={watchSpace}
+        className={`${styles.space} ${footer === 'zoom' ? styles.scrollable : ''}`}
+      >
         <div
           ref={canvas}
           data-command-context="canvas"
@@ -405,7 +427,7 @@ export function CanvasEditor<T extends CanvasElement>({
           {picture.elements.map(element => (
             <div
               key={element.id}
-              className={`${styles.element} ${selected === element.id ? styles.selected : ''}`}
+              className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
               style={{
                 left: `${(100 * element.frame.x) / layout.width}%`,
                 top: `${(100 * element.frame.y) / layout.height}%`,
@@ -417,7 +439,10 @@ export function CanvasEditor<T extends CanvasElement>({
               <button
                 className={styles.move}
                 aria-label={getElementLabel(element)}
-                aria-pressed={selected === element.id}
+                aria-pressed={
+                  selected === element.id ||
+                  selectedIds?.includes(element.id) === true
+                }
                 onClick={() => select(element.id)}
                 onPointerDown={event => start(event, element, 'move')}
               />
@@ -441,6 +466,13 @@ export function CanvasEditor<T extends CanvasElement>({
         width={layout.width}
         height={layout.height}
         zoom={size.width / layout.width}
+        minimumSize={layout.minimumSize ?? MIN_SIZE}
+        showFields={footer === 'frames'}
+        zoomControl={
+          footer === 'zoom'
+            ? {value: zoomFactor, change: setZoomFactor}
+            : undefined
+        }
         readOnlyReason={readOnlyReason}
         keepRatio={keepRatio}
         setKeepRatio={setKeepRatio}

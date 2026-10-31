@@ -5,6 +5,7 @@ import {
   useState,
   type JSX,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import type {Choice} from './choices';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
@@ -25,6 +26,7 @@ export function ChoiceRows<T extends Choice>({
   renaming,
   onSelect,
   onMenu,
+  rowEnd,
 }: {
   readonly choices: readonly T[];
   readonly warnings?: ReadonlyMap<string, string>;
@@ -37,6 +39,7 @@ export function ChoiceRows<T extends Choice>({
   } | null;
   readonly onSelect: (id: string) => void;
   readonly onMenu?: (choice: T, anchor: MenuAnchor) => void;
+  readonly rowEnd?: (choice: T) => ReactNode;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<string | null>(null);
@@ -192,6 +195,7 @@ export function ChoiceRows<T extends Choice>({
               title={choice.name}
               warning={warnings?.get(choice.id)}
               live={inUse.has(choice.id)}
+              end={rowEnd?.(choice)}
               rename={
                 renaming?.id === choice.id ? renaming.handlers : undefined
               }

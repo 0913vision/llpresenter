@@ -27,11 +27,22 @@ afterEach(() => {
 function setup(
   access: 'editable' | 'readOnly' = 'editable',
   saving = Promise.resolve(),
-  {fieldFrames = []}: {fieldFrames?: readonly ElementFrame[]} = {},
+  {
+    fieldFrames = [],
+    footer = 'frames',
+    selectedIds = [],
+    minimumSize = 20,
+  }: {
+    fieldFrames?: readonly ElementFrame[];
+    footer?: 'frames' | 'zoom';
+    selectedIds?: readonly string[];
+    minimumSize?: number;
+  } = {},
 ) {
   let current: CanvasDocument<CanvasElement> = {
     width: 1920,
     height: 1080,
+    minimumSize,
     elements: [
       {id: 'first', name: '요소', frame: {x: 100, y: 100, w: 400, h: 200}},
     ],
@@ -96,6 +107,8 @@ function setup(
         value={value}
         label="테스트"
         selected={selected}
+        selectedIds={selectedIds}
+        footer={footer}
         onSelect={setSelected}
         readOnlyReason={access === 'readOnly' ? '읽기 전용' : undefined}
         actions={mockActions}
@@ -121,6 +134,28 @@ function setup(
     publishFrame,
   };
 }
+
+it('offers bounded zoom controls with fit reset and externally selected frames', () => {
+  setup('editable', Promise.resolve(), {
+    footer: 'zoom',
+    selectedIds: ['first'],
+  });
+  expect(
+    screen.getByRole('button', {name: '요소'}).getAttribute('aria-pressed'),
+  ).toBe('true');
+  expect(screen.queryByRole('spinbutton', {name: 'X'})).toBeNull();
+  const initial = screen.getByLabelText('캔버스 배율').textContent;
+  fireEvent.click(screen.getByRole('button', {name: '확대'}));
+  expect(screen.getByLabelText('캔버스 배율').textContent).not.toBe(initial);
+  fireEvent.click(screen.getByRole('button', {name: '화면에 맞춤'}));
+  expect(screen.getByLabelText('캔버스 배율').textContent).toBe(initial);
+  for (let index = 0; index < 10; index++) {
+    fireEvent.click(screen.getByRole('button', {name: '축소'}));
+  }
+  expect(
+    screen.getByRole('button', {name: '축소'}).getAttribute('aria-disabled'),
+  ).toBe('true');
+});
 
 it('keeps a completed drag drawn through Tab and unrelated keys while its save is held', async () => {
   let release: () => void = () => undefined;

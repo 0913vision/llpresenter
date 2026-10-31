@@ -130,36 +130,21 @@ it(
 
     await page.getByRole('tab', {name: '테마'}).click();
 
-    await page.getByRole('button', {name: '새 Look'}).click();
-    const lookName = page.getByRole('textbox', {name: 'Look 이름'});
-    await expect
-      .poll(() => lookName.inputValue(), {timeout: WAIT})
-      .toBe('새 Look');
-    await lookName.fill('점검 Look');
-    await lookName.press('Enter');
+    await page.getByRole('button', {name: '새 테마'}).click();
+    const theme = page.getByRole('option', {name: '새 테마'});
+    await theme.click({button: 'right'});
+    await page.getByRole('menuitem', {name: '이름 바꾸기'}).click();
+    const themeName = page.getByRole('textbox', {name: '새 테마 이름'});
+    await themeName.fill('점검 테마');
+    await themeName.press('Enter');
     await expect
       .poll(
         () =>
-          page.evaluate<boolean>(`window.llp.settings.get({name:'looks'}).then(d =>
-            d.value.looks.some(look => look.name === '점검 Look'))`),
+          page.evaluate<boolean>(`window.llp.settings.get({name:'themes'}).then(d =>
+            d.value.themes.some(theme => theme.name === '점검 테마'))`),
         {timeout: WAIT},
       )
       .toBe(true);
-    await page.getByRole('button', {name: 'Look', exact: true}).click();
-    await page.getByRole('menuitemradio', {name: '점검 Look'}).click();
-    const selectedLook =
-      await page.evaluate<string>(`window.llp.settings.get({name:'looks'}).then(d =>
-      d.value.looks.find(look => look.name === '점검 Look').id)`);
-    await expect
-      .poll(
-        () =>
-          page.evaluate<string | null>(
-            `window.llp.live.get().then(live => live.lookId ?? null)`,
-          ),
-        {timeout: WAIT},
-      )
-      .toBe(selectedLook);
-
     await page.getByRole('tab', {name: '진행'}).click();
     await openToolTab(page, '메시지');
     expect(await page.getByLabel('메시지 미리보기').innerText()).toBe(

@@ -42,8 +42,26 @@ const repeatable = new Set<ThemeElementKind>(['text', 'image', 'box', 'timer']);
 const stageOnly = new Set<ThemeElementKind>(['stageMessage', 'memo']);
 const fixed = new Set<ThemeElementKind>(['text', 'image', 'box', 'clock']);
 
+export function canRepeatThemeElement(kind: ThemeElementKind): boolean {
+  return repeatable.has(kind);
+}
+
 export function isStandbyElement(kind: ThemeElementKind): boolean {
   return fixed.has(kind);
+}
+
+export function availableThemeElementKinds(
+  elements: ReadonlyArray<{readonly kind: ThemeElementKind}>,
+  screenKind: 'audience' | 'stage',
+  standby: boolean,
+): readonly ThemeElementKind[] {
+  return themeElementKinds.filter(
+    kind =>
+      (!standby || isStandbyElement(kind)) &&
+      (!stageOnly.has(kind) || screenKind === 'stage') &&
+      (canRepeatThemeElement(kind) ||
+        !elements.some(element => element.kind === kind)),
+  );
 }
 
 export type ThemeElementProblem =

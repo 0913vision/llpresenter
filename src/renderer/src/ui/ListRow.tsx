@@ -153,6 +153,7 @@ function useOneTabStop(
 }
 
 export interface ListBoxProps {
+  readonly multiple?: boolean;
   /** The list name for assistive technology, such as 예배 순서. */
   readonly label: string;
   readonly selected: string | undefined;
@@ -176,6 +177,7 @@ export interface ListBoxProps {
  * pass on to the window.
  */
 export function ListBox({
+  multiple = false,
   label,
   selected,
   onSelect,
@@ -207,6 +209,7 @@ export function ListBox({
         {...clickFocusProps}
         ref={listRef}
         role="listbox"
+        aria-multiselectable={multiple || undefined}
         data-workspace={workspace}
         aria-label={label}
         className={classNames(styles.list, inset && styles.inset, className)}
@@ -221,6 +224,7 @@ export function ListBox({
 export type GroupRename = RenameContract;
 
 export interface ListRowProps {
+  readonly selected?: boolean;
   /** The value the list reports when this row is selected. */
   readonly value: string;
   readonly title: string;
@@ -348,10 +352,11 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
     disabled = false,
   } = props;
   const {selection, onSelect, workspace} = useContext(ListBoxContext);
-  const isSelected = useSyncExternalStore(
+  const selectedInList = useSyncExternalStore(
     selection.subscribe,
     () => selection.get() === value,
   );
+  const isSelected = props.selected ?? selectedInList;
   const titleId = useId();
   const {targetProps, tooltip} = useTooltip(titleTooltip(props.reason));
   const select = (): void => onSelect(value);

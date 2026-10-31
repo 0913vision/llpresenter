@@ -11,6 +11,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
+import {createDefaultThemes} from '@core/themes/defaults';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
@@ -95,11 +96,13 @@ it.each([
     vi.spyOn(api.settings, 'get').mockImplementation(request =>
       request.name === 'screens'
         ? Promise.resolve(settingsDocument('screens', {screens: []}))
-        : request.name === 'macros'
-          ? Promise.resolve(
-              settingsDocument('macros', {macros: [], collections: []}),
-            )
-          : get(request),
+        : request.name === 'themes'
+          ? Promise.resolve(settingsDocument('themes', createDefaultThemes()))
+          : request.name === 'macros'
+            ? Promise.resolve(
+                settingsDocument('macros', {macros: [], collections: []}),
+              )
+            : get(request),
     );
     window.llp = api;
     const session = new ControlSession(api);

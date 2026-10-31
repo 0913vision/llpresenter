@@ -53,6 +53,7 @@ const {
   referencePosition: _referencePosition,
   ...basicText
 } = STARTER_LYRIC_STYLE;
+export const DEFAULT_THEME_TEXT: ThemeText = basicText;
 const inset = margin / 100;
 const lyricFrame = {
   x: fullFrame.w * inset,

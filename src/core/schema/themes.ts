@@ -141,6 +141,15 @@ export const themeScreenLayoutSchema = jsonObject({
   background: v.exactOptional(hexColor),
 });
 
+export const themeClipboardSchema = jsonObject({
+  format: v.literal('llp.theme-elements'),
+  version: v.literal(1),
+  elements: v.pipe(
+    listWithUniqueIds(themeElementSchema),
+    v.maxLength(THEME_LIMITS.elements),
+  ),
+});
+
 export const themeSchema = jsonObject({
   id: themeIdSchema,
   name: v.pipe(nonBlankText, v.maxLength(THEME_LIMITS.name)),

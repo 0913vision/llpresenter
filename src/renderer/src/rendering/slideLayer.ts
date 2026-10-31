@@ -1,5 +1,5 @@
 import type {SlideLayer} from '@core/live/state';
-import {fitFontSize} from './fitText';
+import {fitTextInFrame} from './fitText';
 import {classes} from './classes';
 import {LYRIC_EFFECTS, type LyricStyle} from '@core/looks/lyricStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
@@ -17,10 +17,6 @@ export function fontFamilyFor(font: string): string {
   );
   return `"${escaped}", ${FALLBACK_FONTS}`;
 }
-
-// NOTE(0913vision): Layout reports whole pixels, so a block that fits exactly
-// can measure a pixel over.
-const LAYOUT_TOLERANCE_PX = 1;
 
 const NO_BREAK_SPACE = ' ';
 
@@ -220,16 +216,19 @@ export class SlideLayerView {
 
   private fit({element, block}: Page): void {
     const size = this.style.size * this.scale;
-    const maxHeight =
-      Math.min(
-        element.clientHeight,
-        this.style.maxLines * size * this.style.lineHeight,
-      ) + LAYOUT_TOLERANCE_PX;
-    const maxWidth = element.clientWidth + LAYOUT_TOLERANCE_PX;
-    const fits = (px: number): boolean => {
-      block.style.fontSize = `${px}px`;
-      return block.scrollHeight <= maxHeight && block.scrollWidth <= maxWidth;
-    };
-    block.style.fontSize = `${fitFontSize(size, fits)}px`;
+    const fontSize = fitTextInFrame(
+      {
+        size,
+        width: element.clientWidth,
+        height: element.clientHeight,
+        maxLines: this.style.maxLines,
+        lineHeight: this.style.lineHeight,
+      },
+      px => {
+        block.style.fontSize = `${px}px`;
+        return {width: block.scrollWidth, height: block.scrollHeight};
+      },
+    );
+    block.style.fontSize = `${fontSize}px`;
   }
 }

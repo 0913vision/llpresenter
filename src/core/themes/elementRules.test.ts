@@ -3,7 +3,25 @@ import {
   isStandbyElement,
   themeElementKinds,
   themeElementProblem,
+  availableThemeElementKinds,
 } from './elementRules';
+
+it('offers unused unique kinds even at the count limit while keeping repeatable and standby choices', () => {
+  const values = [
+    {kind: 'currentText'} as const,
+    ...Array.from({length: 9}, () => ({kind: 'text'}) as const),
+  ];
+  const choices = availableThemeElementKinds(values, 'audience', false);
+  expect(choices).not.toContain('currentText');
+  expect(choices).toContain('text');
+  expect(choices).not.toContain('memo');
+  expect(availableThemeElementKinds([], 'stage', true)).toEqual([
+    'text',
+    'image',
+    'box',
+    'clock',
+  ]);
+});
 
 it.each(themeElementKinds)(
   'enforces multiplicity and screen roles for %s',

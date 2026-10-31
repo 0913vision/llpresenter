@@ -38,12 +38,16 @@ export function StageColorProperty({
   reason,
   commit,
   allowNone = false,
+  noneLabel = '없음',
+  inheritedColor,
 }: {
   label: string;
   value: string;
   reason: string | undefined;
   commit: (value: string) => void;
   allowNone?: boolean;
+  noneLabel?: string;
+  inheritedColor?: string;
 }): JSX.Element {
   const latest = useRef(value);
   const [draft, setDraft] = useState<Channels | null>(null);
@@ -62,7 +66,7 @@ export function StageColorProperty({
         label={label}
         value={value}
         reason={reason}
-        placeholder={allowNone ? '없음' : undefined}
+        placeholder={allowNone ? noneLabel : undefined}
         validate={text =>
           (allowNone && text === '') || isLyricTextColor(text)
             ? undefined
@@ -79,9 +83,22 @@ export function StageColorProperty({
             aria-label={`${label} 선택`}
             title={reason ?? `${label} 선택`}
             disabled={reason !== undefined}
-            onClick={() => setDraft(channels(latest.current))}
+            onClick={() =>
+              setDraft(
+                channels(
+                  latest.current === ''
+                    ? (inheritedColor ?? '')
+                    : latest.current,
+                ),
+              )
+            }
           >
-            <span style={{backgroundColor: value || 'transparent'}} />
+            <span
+              style={{
+                backgroundColor:
+                  value === '' ? (inheritedColor ?? 'transparent') : value,
+              }}
+            />
           </button>
         }
       />
@@ -92,7 +109,9 @@ export function StageColorProperty({
           onCancel={() => setDraft(null)}
           primary={{label: '적용', onSelect: () => apply(preview)}}
           secondary={
-            allowNone ? [{label: '없음', onSelect: () => apply('')}] : undefined
+            allowNone
+              ? [{label: noneLabel, onSelect: () => apply('')}]
+              : undefined
           }
         >
           <div className={styles.preview}>

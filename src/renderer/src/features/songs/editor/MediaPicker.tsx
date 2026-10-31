@@ -34,6 +34,7 @@ function targetFor(
   active: number,
   count: number,
 ): number | undefined {
+  if (count === 0) return undefined;
   switch (key) {
     case 'ArrowDown':
       return (active + 1) % count;
@@ -45,6 +46,8 @@ function targetFor(
 }
 
 interface PickerProps {
+  readonly allowNone?: boolean;
+  readonly label?: string;
   readonly anchor: HTMLElement;
   readonly items: readonly MediaItem[];
   readonly selected: MediaId | undefined;
@@ -56,6 +59,8 @@ interface PickerProps {
 
 /** Keeps the full media list keyboard reachable while mounting a small window. */
 export function MediaPicker({
+  allowNone = true,
+  label = '기본 배경',
   anchor,
   items,
   selected,
@@ -74,19 +79,19 @@ export function MediaPicker({
   const choices = useMemo(() => {
     const term = searchName(query);
     return [
-      undefined,
+      ...(allowNone ? [undefined] : []),
       ...searchable
         .filter(({name}) => name.includes(term))
         .map(({item}) => item),
     ];
-  }, [searchable, query]);
+  }, [searchable, query, allowNone]);
   const [active, setActive] = useState(() =>
     searchName(query) === ''
       ? Math.max(
           0,
           choices.findIndex(item => item?.id === selected),
         )
-      : Math.min(1, choices.length - 1),
+      : Math.max(0, Math.min(allowNone ? 1 : 0, choices.length - 1)),
   );
   const [top, setTop] = useState(0);
   const [row, setRow] = useState(0);
@@ -126,6 +131,7 @@ export function MediaPicker({
     setTop(element.scrollTop);
   };
   const choose = (index: number): void => {
+    if (choices.length === 0) return;
     onSelect(choices[index]?.id);
     onClose(true);
   };
@@ -137,7 +143,11 @@ export function MediaPicker({
     onQueryChange(value);
     const term = searchName(value);
     setActive(
-      term !== '' && searchable.some(({name}) => name.includes(term)) ? 1 : 0,
+      allowNone &&
+        term !== '' &&
+        searchable.some(({name}) => name.includes(term))
+        ? 1
+        : 0,
     );
     if (viewport.current !== null) viewport.current.scrollTop = 0;
     setTop(0);
@@ -186,7 +196,7 @@ export function MediaPicker({
           ref={viewport}
           id={id}
           role="listbox"
-          aria-label="기본 배경"
+          aria-label={label}
           className={styles.viewport}
           style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
           onScroll={event => setTop(event.currentTarget.scrollTop)}

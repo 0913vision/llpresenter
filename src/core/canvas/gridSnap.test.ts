@@ -3,6 +3,17 @@ import {editFrame, resizeHandles} from '@core/canvas/frameEdit';
 import {snapToGrid} from './gridSnap';
 
 const frame = {x: 10, y: 15, w: 100, h: 80};
+it('allows a smaller document minimum when snapping a resize edge', () => {
+  const start = {x: 12, y: 12, w: 100, h: 100};
+  const {delta} = snapToGrid(
+    start,
+    {x: -100, y: -100},
+    {handle: 'se', keepRatio: false, minimumSize: 8},
+  );
+  expect(editFrame(start, delta, {handle: 'se', minimumSize: 8})).toMatchObject(
+    {w: 8, h: 8},
+  );
+});
 it('snaps moves in document pixels, including negative positions', () => {
   const delta = snapToGrid(
     frame,

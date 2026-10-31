@@ -21,6 +21,11 @@
   outline: 1px solid var(--line-strong);
   touch-action: none;
 }
+.scrollable {
+  overflow: auto;
+  align-items: safe center;
+  justify-content: safe center;
+}
 .guides {
   position: absolute;
   inset: 0;

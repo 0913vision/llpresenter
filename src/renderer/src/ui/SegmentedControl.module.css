@@ -119,3 +119,35 @@
 .segment[aria-disabled='true'] .count {
   color: var(--text-2);
 }
+
+.radioList {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  width: 100%;
+  height: auto;
+  padding: 0;
+  background: transparent;
+}
+.radioList .segment {
+  justify-content: flex-start;
+  gap: var(--space-8);
+  min-height: var(--size-row);
+  height: auto;
+  padding: var(--space-4) var(--space-8);
+  text-align: left;
+}
+.radioList .segment::before {
+  content: '';
+  flex: none;
+  width: var(--size-checkbox);
+  height: var(--size-checkbox);
+  border: var(--space-2) solid var(--text-3);
+  border-radius: var(--radius-full);
+}
+.radioList .segment[aria-checked='true']::before {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 var(--space-2) var(--bg-control-hover);
+}

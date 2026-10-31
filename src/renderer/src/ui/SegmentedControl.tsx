@@ -34,6 +34,7 @@ export type SegmentedControlProps<T extends string> = GroupName & {
   /** The id of the track, such as a property row's control id. */
   readonly id?: string | undefined;
   readonly kind?: SegmentedKind | undefined;
+  readonly appearance?: 'segmented' | 'radioList';
   /** Stretches the track and shares its width equally among the segments. */
   readonly fill?: boolean | undefined;
   readonly disabled?: boolean | undefined;
@@ -158,6 +159,7 @@ export function SegmentedControl<T extends string>({
   labelledBy,
   id,
   kind = 'radio',
+  appearance = 'segmented',
   fill = false,
   disabled = false,
   title,
@@ -183,7 +185,12 @@ export function SegmentedControl<T extends string>({
       role={groupRole[kind]}
       aria-label={label}
       aria-labelledby={labelledBy}
-      className={classNames(styles.track, fill && styles.fill, className)}
+      className={classNames(
+        styles.track,
+        fill && styles.fill,
+        appearance === 'radioList' && styles.radioList,
+        className,
+      )}
     >
       {options.map((option, index) => (
         <Segment

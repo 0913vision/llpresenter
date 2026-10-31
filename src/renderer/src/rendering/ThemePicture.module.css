@@ -1,0 +1,33 @@
+.picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.reference {
+  position: absolute;
+  transform-origin: top left;
+}
+.element {
+  position: absolute;
+  overflow: hidden;
+}
+.fill,
+.textBox,
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.textBox {
+  display: flex;
+  flex-direction: column;
+}
+.text {
+  width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

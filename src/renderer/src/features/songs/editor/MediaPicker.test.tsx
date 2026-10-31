@@ -8,6 +8,35 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--size-row-menu');
 });
 
+it('supports a required image choice and keeps empty search results from selecting absence', () => {
+  const onSelect = vi.fn();
+  const props = {
+    anchor: document.createElement('button'),
+    selected: undefined,
+    query: '',
+    onQueryChange: vi.fn(),
+    onSelect,
+    onClose: vi.fn(),
+    allowNone: false,
+    label: '그림',
+  };
+  const id = createMediaId('00000000-0000-4000-8000-000000000001');
+  const view = render(
+    <MediaPicker
+      {...props}
+      items={[{id, name: '점검 그림', kind: 'image', file: 'sample', size: 0}]}
+    />,
+  );
+  expect(screen.queryByRole('option', {name: '없음'})).toBeNull();
+  fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
+  expect(onSelect).toHaveBeenCalledWith(id);
+  onSelect.mockClear();
+  view.rerender(<MediaPicker {...props} items={[]} />);
+  fireEvent.keyDown(screen.getByRole('combobox'), {key: 'ArrowDown'});
+  fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
+  expect(onSelect).not.toHaveBeenCalled();
+});
+
 it('clears pointer highlighting without changing selection and keeps keyboard pointing on leave', () => {
   document.documentElement.style.setProperty('--size-row-menu', '28px');
   const anchor = document.createElement('button');

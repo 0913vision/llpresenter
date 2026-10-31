@@ -14,7 +14,11 @@ interface Point {
 export function snapToGrid(
   frame: ElementFrame,
   delta: Point,
-  {handle, keepRatio}: {handle: ResizeHandle | 'move'; keepRatio: boolean},
+  {
+    handle,
+    keepRatio,
+    minimumSize = MIN_SIZE,
+  }: {handle: ResizeHandle | 'move'; keepRatio: boolean; minimumSize?: number},
 ): {delta: Point; ratioAxis?: 'x' | 'y'} {
   if (
     !Number.isFinite(delta.x) ||
@@ -31,12 +35,13 @@ export function snapToGrid(
       : handle.includes('w')
         ? Math.min(
             snap(frame.x + delta.x),
-            Math.floor((frame.x + frame.w - MIN_SIZE) / GRID_STEP) * GRID_STEP,
+            Math.floor((frame.x + frame.w - minimumSize) / GRID_STEP) *
+              GRID_STEP,
           ) - frame.x
         : handle.includes('e')
           ? Math.max(
               snap(frame.x + frame.w + delta.x),
-              Math.ceil((frame.x + MIN_SIZE) / GRID_STEP) * GRID_STEP,
+              Math.ceil((frame.x + minimumSize) / GRID_STEP) * GRID_STEP,
             ) -
             frame.x -
             frame.w
@@ -47,12 +52,13 @@ export function snapToGrid(
       : handle.includes('n')
         ? Math.min(
             snap(frame.y + delta.y),
-            Math.floor((frame.y + frame.h - MIN_SIZE) / GRID_STEP) * GRID_STEP,
+            Math.floor((frame.y + frame.h - minimumSize) / GRID_STEP) *
+              GRID_STEP,
           ) - frame.y
         : handle.includes('s')
           ? Math.max(
               snap(frame.y + frame.h + delta.y),
-              Math.ceil((frame.y + MIN_SIZE) / GRID_STEP) * GRID_STEP,
+              Math.ceil((frame.y + minimumSize) / GRID_STEP) * GRID_STEP,
             ) -
             frame.y -
             frame.h

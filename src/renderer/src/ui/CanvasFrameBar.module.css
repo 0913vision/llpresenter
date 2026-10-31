@@ -12,7 +12,13 @@
   gap: var(--space-4);
   color: var(--text-2);
 }
+.first {
+  order: -1;
+}
 .zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
   margin-left: auto;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;

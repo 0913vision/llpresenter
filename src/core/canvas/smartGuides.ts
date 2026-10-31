@@ -25,6 +25,7 @@ interface GuideGesture {
   readonly scale: number;
   readonly distance: number;
   readonly targets: readonly ElementFrame[];
+  readonly minimumSize?: number;
 }
 const ALIGNMENT_EPSILON = 0.000001;
 
@@ -85,7 +86,12 @@ function nearest(
         gesture.keepRatio && gesture.handle !== 'move'
           ? keepAspect(candidate, gesture, axis)
           : candidate;
-      if (next.w >= MIN_SIZE && next.h >= MIN_SIZE) best = {position, offset};
+      if (
+        next.w >= (gesture.minimumSize ?? MIN_SIZE) &&
+        next.h >= (gesture.minimumSize ?? MIN_SIZE)
+      ) {
+        best = {position, offset};
+      }
     }
   }
   return best;
@@ -122,13 +128,23 @@ export function guideFrame(gesture: GuideGesture): {
   frame: ElementFrame;
   guides: GuideLines;
 } {
-  const {start, delta, bypass, scale, distance, handle, keepRatio} = gesture;
+  const {
+    start,
+    delta,
+    bypass,
+    scale,
+    distance,
+    handle,
+    keepRatio,
+    minimumSize = MIN_SIZE,
+  } = gesture;
   if (delta.x === 0 && delta.y === 0) return {frame: start, guides: {}};
   const grid =
     gesture.snapGrid && !bypass ? snapToGrid(start, delta, gesture) : {delta};
   const fallback = editFrame(start, grid.delta, {
     handle,
     keepRatio,
+    minimumSize,
     ...('ratioAxis' in grid ? {ratioAxis: grid.ratioAxis} : {}),
   });
   if (
@@ -146,6 +162,7 @@ export function guideFrame(gesture: GuideGesture): {
     handle,
     keepRatio,
     precision: 'pointer',
+    minimumSize,
   });
   const x = nearest(raw, 'x', gesture),
     y = nearest(raw, 'y', gesture);
@@ -163,7 +180,7 @@ export function guideFrame(gesture: GuideGesture): {
         gesture,
         axis,
       );
-      if (next.w >= MIN_SIZE && next.h >= MIN_SIZE) frame = next;
+      if (next.w >= minimumSize && next.h >= minimumSize) frame = next;
     }
   } else {
     if (x !== undefined) {

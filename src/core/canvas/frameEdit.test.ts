@@ -1,7 +1,80 @@
 import {describe, expect, it} from 'vitest';
-import {editFrame, editFrameValue, resizeHandles} from './frameEdit';
+import {
+  editFrame,
+  editFrameValue,
+  frameWithinBounds,
+  resizeHandles,
+  containFrameGesture,
+} from './frameEdit';
 
 const frame = {x: 10, y: 20, w: 100, h: 80};
+it.each([
+  {
+    handle: 'se',
+    frame: {x: 100, y: 100, w: 4000, h: 2000},
+    expected: {x: 100, y: 100, w: 1820, h: 910},
+  },
+  {
+    handle: 'nw',
+    frame: {x: -3500, y: -1700, w: 4000, h: 2000},
+    expected: {x: 0, y: 50, w: 500, h: 250},
+  },
+  {
+    handle: 'e',
+    frame: {x: 100, y: -800, w: 4000, h: 2000},
+    expected: {x: 100, y: 0, w: 800, h: 400},
+  },
+] as const)(
+  'preserves ratio and resize anchors for bounded $handle gestures',
+  ({handle, frame, expected}) => {
+    const result = containFrameGesture(frame, {
+      start: {x: 100, y: 100, w: 400, h: 200},
+      handle,
+      keepRatio: true,
+      bounds: {width: 1920, height: 1080, minimumSize: 8},
+    });
+    expect(result).toMatchObject(expected);
+    expect(result.w / result.h).toBe(2);
+  },
+);
+it('clips free resize edges and slides moves without shrinking their frame', () => {
+  const start = {x: 100, y: 100, w: 400, h: 200};
+  const context = {
+    start,
+    keepRatio: false,
+    bounds: {width: 1920, height: 1080, minimumSize: 8},
+  };
+  expect(
+    containFrameGesture(
+      {x: -50, y: -25, w: 550, h: 325},
+      {...context, handle: 'nw'},
+    ),
+  ).toMatchObject({x: 0, y: 0, w: 500, h: 300});
+  expect(
+    containFrameGesture(
+      {...start, x: 1900, y: -25},
+      {...context, handle: 'move'},
+    ),
+  ).toMatchObject({x: 1520, y: 0, w: 400, h: 200});
+});
+it('supports a caller minimum and bounds the complete frame without dropping extensions', () => {
+  expect(
+    editFrame(frame, {x: -200, y: -200}, {handle: 'se', minimumSize: 8}),
+  ).toMatchObject({w: 8, h: 8});
+  expect(
+    editFrameValue(
+      frame,
+      {field: 'w', value: 8},
+      {width: 1920, height: 1080, minimumSize: 8},
+    ),
+  ).toMatchObject({w: 8});
+  expect(
+    frameWithinBounds(
+      {...frame, future: 1, x: 2000, y: -20},
+      {width: 1920, height: 1080, minimumSize: 8},
+    ),
+  ).toEqual({...frame, future: 1, x: 1820, y: 0});
+});
 describe('canvas geometry', () => {
   it.each(resizeHandles)(
     'resizes %s while preserving the opposite edges',

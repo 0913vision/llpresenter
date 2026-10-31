@@ -4,6 +4,22 @@ import {guideFrame} from './smartGuides';
 
 const start = {x: 100, y: 100, w: 100, h: 80, future: 7};
 const target = {x: 300, y: 400, w: 200, h: 100};
+it('uses the document minimum for guided resize candidates', () => {
+  const result = guideFrame({
+    start,
+    delta: {x: -92, y: -72},
+    handle: 'se',
+    keepRatio: false,
+    snapGrid: false,
+    bypass: false,
+    scale: 1,
+    distance: 2,
+    targets: [{x: 0, y: 0, w: 108, h: 108}],
+    minimumSize: 8,
+  });
+  expect(result.frame).toMatchObject({w: 8, h: 8});
+  expect(result.guides).toEqual({x: 108, y: 108});
+});
 function move(overrides: Partial<Parameters<typeof guideFrame>[0]> = {}) {
   return guideFrame({
     start,

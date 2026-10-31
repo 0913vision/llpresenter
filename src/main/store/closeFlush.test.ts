@@ -138,6 +138,10 @@ it.each([
     const contents = new EventEmitter();
     const sender = {id: 7};
     let destroyed = false;
+    let finishClose: () => void = () => undefined;
+    const closed = new Promise<void>(resolve => {
+      finishClose = resolve;
+    });
     let requestFlush: (value: unknown) => void = () => undefined;
     const close = (): void => {
       const event = {
@@ -147,7 +151,10 @@ it.each([
         },
       };
       control.emit('close', event);
-      if (!event.prevented) destroyed = true;
+      if (!event.prevented) {
+        destroyed = true;
+        finishClose();
+      }
     };
     const closing = registerControlClose({
       log,
@@ -239,7 +246,8 @@ it.each([
     });
     locked = false;
     close();
-    await vi.waitFor(() => expect(destroyed).toBe(true));
+    await closed;
+    expect(destroyed).toBe(true);
     expect(replies).toEqual([false, true]);
     expect(await readMemo(file)).toBe(newestMemo);
     const configAfter = parseAppConfig(

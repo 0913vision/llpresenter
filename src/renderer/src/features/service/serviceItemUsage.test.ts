@@ -1,17 +1,14 @@
 import {expect, it, vi} from 'vitest';
-import {parseMacroId} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
 import {
   parseServiceDocument,
   parseServiceEntries,
 } from '@core/schema/contentDocuments';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {deferred} from './testing/quickTesting';
-import {countMacroUses} from './macroUsage';
+import {countServiceItemUses} from './serviceItemUsage';
 
 const macro = '00000000-0000-4000-8000-000000000001';
-const parsed = parseMacroId(macro);
-if (!parsed.ok) throw new Error('Invalid macro');
-const id = parsed.value;
+const matches = (item: ServiceItem) => 'macro' in item && item.macro === macro;
 const serviceId = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 function entries(count: number) {
@@ -57,19 +54,23 @@ it('counts matching items across services and ignores deleted services', async (
     .mockResolvedValueOnce(null)
     .mockResolvedValueOnce(document(serviceId(12), 1));
   const api = mockLlpApi({services: {list: async () => list, get}});
-  await expect(countMacroUses(api, id)).resolves.toBe(3);
+  await expect(countServiceItemUses(api, matches)).resolves.toBe(3);
 });
 
 it('limits simultaneous reads and stops starting batches after cancellation', async () => {
   const list = entries(20);
-  const wait = deferred<ReturnType<typeof document> | null>();
-  const get = vi.fn().mockReturnValue(wait.promise);
+  let finish: (value: ReturnType<typeof document> | null) => void = () =>
+    undefined;
+  const pending = new Promise<ReturnType<typeof document> | null>(resolve => {
+    finish = resolve;
+  });
+  const get = vi.fn().mockReturnValue(pending);
   const api = mockLlpApi({services: {list: async () => list, get}});
   const controller = new AbortController();
-  const count = countMacroUses(api, id, controller.signal);
+  const count = countServiceItemUses(api, matches, controller.signal);
   await vi.waitFor(() => expect(get).toHaveBeenCalledTimes(8));
   controller.abort();
-  wait.resolve(null);
+  finish(null);
   await expect(count).rejects.toThrow();
   expect(get).toHaveBeenCalledTimes(8);
 });
@@ -77,5 +78,7 @@ it('limits simultaneous reads and stops starting batches after cancellation', as
 it('reports a read failure rather than claiming there are no uses', async () => {
   const get = vi.fn().mockRejectedValue(new Error('Read failed'));
   const api = mockLlpApi({services: {list: async () => entries(1), get}});
-  await expect(countMacroUses(api, id)).rejects.toThrow('Read failed');
+  await expect(countServiceItemUses(api, matches)).rejects.toThrow(
+    'Read failed',
+  );
 });

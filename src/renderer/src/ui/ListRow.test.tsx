@@ -115,6 +115,24 @@ function ChangingRows({change}: {readonly change: RowChange}): JSX.Element {
 }
 
 describe('ListBox and ListRow', () => {
+  it('exposes externally controlled multiple selection while retaining the list cursor', () => {
+    render(
+      <ListBox multiple label="Elements" selected="first" onSelect={vi.fn()}>
+        <ListRow value="first" title="First" selected />
+        <ListRow value="second" title="Second" selected />
+      </ListBox>,
+    );
+    expect(
+      screen.getByRole('listbox').getAttribute('aria-multiselectable'),
+    ).toBe('true');
+    expect(
+      screen
+        .getAllByRole('option')
+        .every(row => row.getAttribute('aria-selected') === 'true'),
+    ).toBe(true);
+    expect(screen.getByRole('option', {name: 'First'}).tabIndex).toBe(0);
+    expect(screen.getByRole('option', {name: 'Second'}).tabIndex).toBe(-1);
+  });
   it('selects empty sections by pointer and keyboard as insertion targets', async () => {
     const onSelect = vi.fn();
     render(
