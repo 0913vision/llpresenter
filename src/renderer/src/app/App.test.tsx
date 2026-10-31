@@ -27,7 +27,6 @@ import {
 } from '@renderer/session/testing/sampleService';
 import {App} from './App';
 import {ControlSession} from './controlSession';
-import {layerContainer} from '@renderer/ui/layers';
 import {stageFixture, STAGE_ID} from '@renderer/features/tools/stageTesting';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 
@@ -146,38 +145,6 @@ describe('App', () => {
     } finally {
       view.unmount();
       useShowToolTab.getState().setTool(previousTool);
-    }
-  });
-
-  it('scopes the palette to each workspace including portals and restores the previous scope', () => {
-    window.llp = mockLlpApi();
-    const root = document.documentElement;
-    const previous = root.getAttribute('data-workspace');
-    root.setAttribute('data-workspace', 'outside-app');
-    const view = render(
-      <App
-        session={createSession()}
-        columnWidthStore={createMemoryColumnWidthStore()}
-      />,
-    );
-    try {
-      expect(root.getAttribute('data-workspace')).toBe('show');
-      expect(layerContainer('popover').closest('[data-workspace]')).toBe(root);
-      for (const [name, scope] of [
-        ['준비', 'prep'],
-        ['테마', 'screens'],
-        ['진행', 'show'],
-      ] as const) {
-        fireEvent.click(screen.getByRole('tab', {name}));
-        expect(root.getAttribute('data-workspace')).toBe(scope);
-        expect(layerContainer('dialog').closest('[data-workspace]')).toBe(root);
-      }
-      view.unmount();
-      expect(root.getAttribute('data-workspace')).toBe('outside-app');
-    } finally {
-      view.unmount();
-      if (previous === null) root.removeAttribute('data-workspace');
-      else root.setAttribute('data-workspace', previous);
     }
   });
 

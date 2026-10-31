@@ -2,7 +2,6 @@ import {createHash} from 'node:crypto';
 import {existsSync, readFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {isRecord} from '@core/common/guards';
 
 const REPOSITORY = resolve(import.meta.dirname, '../../../..');
 const TOKENS_CSS = resolve(REPOSITORY, 'design/system/project/tokens.css');
@@ -67,61 +66,6 @@ const appCss = readFileSync(
   resolve(REPOSITORY, 'src/renderer/src/styles/tokens.css'),
   'utf8',
 );
-
-describe('workspace palettes', () => {
-  it('ships the show override from the source in both CSS copies without retinting output or labels', () => {
-    const source: unknown = JSON.parse(
-      readFileSync(resolve(PROJECT, 'tokens.json'), 'utf8'),
-    );
-    if (!isRecord(source) || !Array.isArray(source.workspaces)) {
-      throw new Error('Missing workspace palettes');
-    }
-    expect(source.workspaces).toHaveLength(1);
-    const palette: unknown = source.workspaces[0];
-    if (!isRecord(palette) || !Array.isArray(palette.tokens)) {
-      throw new Error('Missing workspace tokens');
-    }
-    expect(palette.id).toBe('show');
-    const entries = palette.tokens.map((token: unknown) => {
-      if (
-        !isRecord(token) ||
-        typeof token.name !== 'string' ||
-        typeof token.value !== 'string'
-      ) {
-        throw new Error('Invalid workspace token');
-      }
-      return [token.name, token.value] as const;
-    });
-    const expected = Object.fromEntries(entries);
-    expect(Object.keys(expected)).toHaveLength(entries.length);
-    expect(entries.length).toBeGreaterThan(0);
-    expect(
-      Object.keys(expected).filter(name =>
-        /^(?:live|output|label|chroma)(?:-|$)|^ring-live$/.test(name),
-      ),
-    ).toEqual([]);
-    for (const css of [designCss, appCss]) {
-      const blocks = [
-        ...css.matchAll(
-          /:root\[data-workspace=["']([^"']+)["']\]\s*\{([^}]+)\}/g,
-        ),
-      ];
-      expect(blocks).toHaveLength(1);
-      expect(blocks[0]?.[1]).toBe('show');
-      const declarations = [
-        ...(blocks[0]?.[2] ?? '').matchAll(/--([\w-]+):\s*([^;]+);/g),
-      ];
-      const actual = Object.fromEntries(
-        declarations.map(
-          ([, name = '', value = '']) =>
-            [name, value.trim().replace(/\s+/g, ' ')] as const,
-        ),
-      );
-      expect(declarations).toHaveLength(entries.length);
-      expect(actual).toEqual(expected);
-    }
-  });
-});
 
 describe('design system assets', () => {
   it('ships every font file that tokens.css loads', () => {

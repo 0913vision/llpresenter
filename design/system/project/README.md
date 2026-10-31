@@ -14,12 +14,6 @@ The app has one theme, dark. All values are in `tokens.json`, and each CSS varia
 
 ## Color
 
-The 진행 workspace uses warm neutral surfaces and amber accents. Its overrides
-live in `tokens.json` under `workspaces` and apply through
-`:root[data-workspace="show"]`, including menus and dialogs. 준비 and 화면 설정
-use the default palette below. LIVE, output red, label colors, and preview
-content backgrounds keep their independent colors in every workspace.
-
 ### Surfaces
 
 Surfaces stack from bottom to top. A surface on top is one step lighter than the one below it. Don't put a control on a surface of the same color.

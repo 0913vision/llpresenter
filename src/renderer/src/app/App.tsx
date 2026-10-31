@@ -3,7 +3,6 @@ import {useObjectShortcuts} from './useObjectShortcuts';
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -81,16 +80,6 @@ function ControlApp({
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
-  // NOTE(0913vision): Portals live outside the app root and inherit this scope.
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    const previous = root.getAttribute('data-workspace');
-    root.setAttribute('data-workspace', workspace);
-    return () => {
-      if (previous === null) root.removeAttribute('data-workspace');
-      else root.setAttribute('data-workspace', previous);
-    };
-  }, [workspace]);
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const [importSource, setImportSource] = useState<'file' | 'clipboard' | null>(

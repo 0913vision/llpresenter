@@ -34,22 +34,16 @@ describe('readable control text', () => {
     }
   });
   it.each(TOKEN_CSS_PATHS)(
-    'keeps white text at least 4.5:1 on both warm amber fills in %s',
+    'keeps white text at least 4.5:1 on both primary fills in %s',
     path => {
       const source = read(path);
-      const show = /:root\[data-workspace=["']show["']\]\s*\{([^}]+)\}/.exec(
-        source,
-      )?.[1];
-      if (show === undefined) throw new Error('Missing show palette');
-      const effective = show + source;
       for (const name of ['accent-fill', 'accent-fill-hover']) {
         const ratio =
-          (token(effective, 'text-on-fill') + 0.05) /
-          (token(effective, name) + 0.05);
+          (token(source, 'text-on-fill') + 0.05) / (token(source, name) + 0.05);
         expect(ratio, name).toBeGreaterThanOrEqual(4.5);
       }
-      expect(token(effective, 'accent-fill-hover')).toBeLessThan(
-        token(effective, 'accent-fill'),
+      expect(token(source, 'accent-fill-hover')).toBeLessThan(
+        token(source, 'accent-fill'),
       );
     },
   );

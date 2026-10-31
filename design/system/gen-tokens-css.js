@@ -10,11 +10,6 @@ lines.push(`:root, [data-theme="${first}"] {`)
 for (const t of j.color.tokens) lines.push(`  --${t.name}: ${ref(val(t.value))};`)
 for (const t of j.shadow.tokens) lines.push(`  --${t.name}: ${val(t.value)};`)
 lines.push('}')
-for (const workspace of j.workspaces || []) {
-  lines.push(`:root[data-workspace="${workspace.id}"] {`)
-  for (const t of workspace.tokens) lines.push(`  --${t.name}: ${ref(t.value)};`)
-  lines.push('}')
-}
 lines.push(':root {')
 for (const fam of ['spacing', 'radius', 'size', 'zIndex', 'motion']) for (const t of j[fam].tokens) lines.push(`  --${t.name}: ${t.value};`)
 for (const [k, v] of Object.entries(j.type.families)) lines.push(`  --font-${k}: ${v};`)
