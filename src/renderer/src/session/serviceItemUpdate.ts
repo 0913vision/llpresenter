@@ -1,7 +1,8 @@
+import type {ServiceItemChange} from '@core/services/itemFieldChanges';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
 
 interface RequestFailure {
   readonly reason: 'request-failed';
@@ -14,11 +15,7 @@ export type ServiceItemEditResult = Result<
 >;
 export type ServiceItemApi = Pick<LlpApi, 'services' | 'content'>;
 
-/**
- * Returns the changed item, the same item when nothing changes, or `null`
- * when the item can't take the change, such as a header asked for a 구성.
- */
-export type ServiceItemChange = (item: ServiceItem) => ServiceItem | null;
+export type {ServiceItemChange} from '@core/services/itemFieldChanges';
 
 /** The same item-only arrangement choice in its setting and context menu. */
 export function itemArrangementChange(

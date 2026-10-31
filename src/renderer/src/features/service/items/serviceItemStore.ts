@@ -1,56 +1,42 @@
-import type {LlpApi} from '@contracts/ipc/api';
-import type {
-  ServiceDocument,
-  SongDocument,
-} from '@core/schema/contentDocuments';
-import type {ItemOverlayId, MediaId, SongId, ThemeId} from '@core/schema/ids';
-import {itemOverlaysSchema, type ItemOverlay} from '@core/schema/itemOverlays';
-import {checkPart} from '@core/schema/fileFormat';
-import {
-  isItemOfKind,
-  type ServiceItem,
-  type ServiceItemOf,
-} from '@core/schema/service';
-import type {GroupedSong} from '@core/schema/groupedSong';
-import type {Song} from '@core/schema/song';
-import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
+import type {ItemOverlayId, MediaId, ThemeId} from '@core/schema/ids';
+import type {ItemOverlay} from '@core/schema/itemOverlays';
+import type {ServiceItem} from '@core/schema/service';
+import {effectiveArrangement} from '@core/services/itemFieldChanges';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
-import {backgroundChange} from '@renderer/session/serviceBackground';
-import {
-  pendingWritesOf,
-  type PendingWrites,
-} from '@renderer/platform/pendingWrites';
-import {
-  updateServiceItem,
-  itemArrangementChange,
-  type ServiceItemChange,
-} from '@renderer/session/serviceItemUpdate';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-
-export type ServiceItemStoreApi = Pick<
-  LlpApi,
-  'services' | 'songs' | 'content'
->;
-
-export interface ServiceItemEditor {
-  sessionOf(id: SongId): SongSession | undefined;
-  showItemSong(id: SongId | null): void;
-  attach(document: SongDocument): SongSession | undefined;
-  subscribe(listener: () => void): () => void;
-}
-
-/** The 예배 순서 item that 준비 shows: its service and its id. */
-export interface ItemTarget {
-  readonly serviceId: string;
-  readonly itemId: string;
-}
-
-/**
- * Where the song of a song item stands: being read, shown through its
- * session, gone from the 라이브러리, or not readable.
- */
-export type ItemSongStatus = 'loading' | 'ready' | 'missing' | 'failed';
-
+import {
+  ItemEditQueue,
+  type ItemEditRequest,
+  type ItemTarget,
+} from './itemEditQueue';
+import {ItemMemoDrafts, TOO_MANY_DRAFTS} from './itemMemoDrafts';
+import {
+  ItemSourceFollower,
+  sameTarget,
+  type ServiceItemStoreApi,
+  type ServiceItemEditor,
+  type ItemSongStatus,
+} from './itemSourceFollower';
+import {
+  arrangementRequest,
+  backgroundRequest,
+  startMacroRequest,
+} from './itemPlaybackCommands';
+import {themeRequest, overlayRequest} from './itemAppearanceCommands';
+export type {ServiceItemChange} from '@core/services/itemFieldChanges';
+export {
+  isStartItem,
+  withStartField,
+  effectiveArrangement,
+  type StartItem,
+} from '@core/services/itemFieldChanges';
+export type {ItemTarget} from './itemEditQueue';
+export type {
+  ServiceItemStoreApi,
+  ServiceItemEditor,
+  ItemSongStatus,
+} from './itemSourceFollower';
 export interface ServiceItemState {
   readonly service: ServiceDocument | null;
   readonly item: ServiceItem | null;
@@ -71,7 +57,6 @@ export interface ServiceItemState {
   readonly overlay: ItemOverlayId | null;
   readonly busy: boolean;
 }
-
 const NO_ITEM: ServiceItemState = {
   service: null,
   item: null,
@@ -82,80 +67,7 @@ const NO_ITEM: ServiceItemState = {
   overlay: null,
   busy: false,
 };
-
-interface ItemEdit {
-  readonly change: ServiceItemChange;
-  readonly failure: string;
-  readonly target: ItemTarget | null;
-  readonly retry?: () => unknown;
-}
-
-// NOTE(0913vision): No text may vanish, so a draft is never dropped by age.
-// Drafts are bounded by the items they were typed for; this limit only
-// refuses a new draft when that many are still unsaved.
-const MAX_MEMO_DRAFTS = 100;
-const TOO_MANY_DRAFTS = '저장하지 못한 메모가 너무 많음';
 const RETRY_READ_LABEL = '다시 불러오기';
-const RETRY_SAVE_LABEL = '다시 저장';
-
-function draftKey({serviceId, itemId}: ItemTarget): string {
-  return `${serviceId}:${itemId}`;
-}
-
-function sameTarget(left: ItemTarget | null, right: ItemTarget | null) {
-  return left?.serviceId === right?.serviceId && left?.itemId === right?.itemId;
-}
-
-const startKinds = ['song', 'bible', 'media', 'notice'] as const;
-export type StartItem = ServiceItemOf<(typeof startKinds)[number]>;
-type StartField = 'macro' | 'memo';
-
-/** The items that run a start 매크로 and keep a memo (spec 02). */
-export function isStartItem(item: ServiceItem): item is StartItem {
-  return startKinds.some(kind => isItemOfKind(item, kind));
-}
-
-function setStartField(
-  item: StartItem,
-  field: StartField,
-  value: string | undefined,
-): StartItem {
-  const updated = {...item};
-  switch (field) {
-    case 'macro':
-      if (value === undefined) delete updated.macro;
-      else updated.macro = value;
-      break;
-    case 'memo':
-      if (value === undefined) delete updated.memo;
-      else updated.memo = value;
-      break;
-  }
-  return updated;
-}
-
-function withStartField(
-  field: StartField,
-  value: string | undefined,
-): ServiceItemChange {
-  return item => {
-    if (!isStartItem(item)) return null;
-    return item[field] === value ? item : setStartField(item, field, value);
-  };
-}
-
-function effectiveArrangement(
-  item: ServiceItem | null,
-  song: Song | GroupedSong | undefined,
-): string | undefined {
-  if (item === null || !isItemOfKind(item, 'song') || song === undefined) {
-    return undefined;
-  }
-  return song.arrangements?.some(entry => entry.name === item.arrangement) ===
-    true
-    ? item.arrangement
-    : undefined;
-}
 
 /**
  * The 예배 순서 item selected in 준비. It follows the item's service file and,
@@ -163,42 +75,35 @@ function effectiveArrangement(
  * window has one writer per song. Item edits go to the main process, and the
  * view changes when its answer comes back as a push.
  */
+
 export class ServiceItemStore {
   private readonly listeners = new Set<() => void>();
-  private readonly stops: ReadonlyArray<() => void>;
+  private readonly edits: ItemEditQueue;
+  private readonly memos: ItemMemoDrafts;
+  private readonly source: ItemSourceFollower;
+  private readonly stopWrites: () => void;
   private target: ItemTarget | null = null;
-  private service: ServiceDocument | null = null;
-  private songId: SongId | null = null;
-  private songStatus: ItemSongStatus = 'loading';
   private position = 0;
   private overlay: ItemOverlayId | null = null;
-  private queue: Promise<unknown> = Promise.resolve();
-  private running = 0;
-  private readonly memoDrafts = new Map<
-    string,
-    {readonly target: ItemTarget; readonly memo: string}
-  >();
-  private serviceRead = 0;
-  private songRead = 0;
-  private readonly writes: PendingWrites;
   private alive = true;
   private state = NO_ITEM;
-
+  readonly memoRoomReason = TOO_MANY_DRAFTS;
   constructor(
-    private readonly api: ServiceItemStoreApi,
-    private readonly editor: ServiceItemEditor,
+    api: ServiceItemStoreApi,
+    editor: ServiceItemEditor,
     private readonly onProblem: (notice: Notice) => void,
   ) {
-    this.writes = pendingWritesOf(api);
-    this.stops = [
-      this.writes.subscribe(() => this.publish()),
-      api.services.subscribe(change =>
-        this.acceptService(change.serviceId, change.document),
-      ),
-      editor.subscribe(() => this.editorChanged()),
-    ];
+    const problem = this.problem.bind(this);
+    this.edits = new ItemEditQueue(api, problem);
+    this.memos = new ItemMemoDrafts(this.edits, () => this.publish(), problem);
+    this.source = new ItemSourceFollower(api, editor, {
+      problem,
+      accepted: (id, document) => this.memos.forgetDeleted(id, document),
+    });
+    this.stopWrites = this.edits.subscribe(() => this.publish());
+    this.source.subscribe(() => this.publish());
+    this.source.start();
   }
-
   readonly getSnapshot = (): ServiceItemState => this.state;
   readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -206,369 +111,86 @@ export class ServiceItemStore {
       this.listeners.delete(listener);
     };
   };
-
-  /** Shows an item, or nothing with `null`. Showing the same item does nothing. */
+  /** Shows an item, or nothing with null. Showing the same item does nothing. */
   show(target: ItemTarget | null): void {
     if (!this.alive || sameTarget(target, this.target)) return;
-    const otherService = target?.serviceId !== this.target?.serviceId;
     this.target = target;
     this.position = 0;
     this.overlay = null;
-    if (otherService) {
-      this.service = null;
-      if (target !== null) editorTask(this.readService(target.serviceId));
-    }
-    this.followSong();
-    this.publish();
+    this.source.show(target);
   }
-
-  /** Selects a place in the order; nothing goes to the output. */
+  /** Selects a place in the order without changing the output. */
   selectPosition(index: number): void {
     if (!this.alive || !Number.isInteger(index) || index < 0) return;
     if (index === this.position) return;
     this.position = index;
     this.publish();
   }
-
-  /** Picks the item's 구성, or 기본 with `undefined`. */
-  chooseArrangement(name: string | undefined): Promise<boolean> {
-    const target = this.target;
-    return this.operation(() =>
-      this.edit({
-        change: itemArrangementChange(name),
-        failure: '구성 변경 실패',
-        target,
-      }),
-    );
+  /** Submits a captured field request through the single item-write queue. */
+  submitItemEdit(request: ItemEditRequest): Promise<boolean> {
+    return this.edits.submit(request);
   }
-
+  /** Picks the item's arrangement, or 기본 when omitted. */
+  chooseArrangement(name: string | undefined): Promise<boolean> {
+    return this.submitItemEdit(arrangementRequest(this.target, name));
+  }
   selectOverlay(id: ItemOverlayId | null): void {
     if (!this.alive || this.overlay === id) return;
     if (
       id !== null &&
-      !this.currentItem()?.overlays?.some(row => row.id === id)
+      !this.source.currentItem()?.overlays?.some(row => row.id === id)
     ) {
       return;
     }
     this.overlay = id;
     this.publish();
   }
-
   /** Omitting the theme follows the item's kind default. */
   setTheme(theme: ThemeId | undefined): Promise<boolean> {
-    const target = this.target;
-    return this.operation(() =>
-      this.edit({
-        target,
-        failure: '테마 변경 실패',
-        change: item => {
-          if (!isStartItem(item)) return null;
-          const updated = {...item};
-          if (theme === undefined) delete updated.theme;
-          else updated.theme = theme;
-          return updated;
-        },
-      }),
-    );
+    return this.submitItemEdit(themeRequest(this.target, theme));
   }
-
-  /** Applies an overlay edit to the fresh item, preserving unrelated fields. */
+  /** Applies an overlay edit to the fresh captured item. */
   changeOverlays(
     change: (rows: readonly ItemOverlay[]) => readonly ItemOverlay[],
     target: ItemTarget | null = this.target,
   ): Promise<boolean> {
-    return this.operation(() =>
-      this.edit({
-        target,
-        failure: '오버레이 변경 실패',
-        change: item => {
-          if (!isStartItem(item)) return null;
-          const rows = change(item.overlays ?? []);
-          const checked = checkPart(itemOverlaysSchema, rows);
-          if (!checked.ok) return null;
-          const updated = {...item};
-          if (rows.length === 0) delete updated.overlays;
-          else updated.overlays = checked.value;
-          return updated;
-        },
-      }),
-    );
+    return this.submitItemEdit(overlayRequest(target, change));
   }
-
-  /** Overrides the song's background for this item, or follows it with `null`. */
+  /** Overrides the song background for this item, or follows it with null. */
   setBackground(mediaId: MediaId | null): Promise<boolean> {
-    const target = this.target;
-    return this.operation(() =>
-      this.edit({
-        change: backgroundChange(mediaId),
-        failure: '배경 변경 실패',
-        target,
-      }),
-    );
+    return this.submitItemEdit(backgroundRequest(this.target, mediaId));
   }
-
-  /** The 매크로 that runs when the item starts, or none with `undefined`. */
+  /** Sets the start macro, or removes it when omitted. */
   setStartMacro(macroId: string | undefined): Promise<boolean> {
-    const target = this.target;
-    return this.operation(() =>
-      this.edit({
-        change: withStartField('macro', macroId),
-        failure: '시작 매크로 변경 실패',
-        target,
-      }),
-    );
+    return this.submitItemEdit(startMacroRequest(this.target, macroId));
   }
-
-  /**
-   * Saves a memo to the item it was typed for, even when another item is
-   * shown by then, after any edit in progress: the whole save, its wait
-   * included, is registered with the pending writes at once. An empty memo
-   * removes the field.
-   */
-  async setMemo(target: ItemTarget, memo: string): Promise<boolean> {
-    if (!this.typeMemo(target, memo)) return false;
-    return this.operation(() => this.saveMemo(target, memo));
+  /** Saves text to its captured item after earlier edits, retaining refused drafts. */
+  setMemo(target: ItemTarget, memo: string): Promise<boolean> {
+    return this.memos.save(target, memo);
   }
-
-  /**
-   * Keeps the text typed for an item as its draft, without saving yet, so a
-   * close flush sees it before the typing pause ends. False when no draft
-   * room is left.
-   */
+  /** Keeps typed text visible to close preflight without sending it yet. */
   typeMemo(target: ItemTarget, memo: string): boolean {
-    return this.keepMemoDraft(draftKey(target), target, memo);
+    return this.memos.type(target, memo);
   }
-
-  private async saveMemo(target: ItemTarget, memo: string): Promise<boolean> {
-    const key = draftKey(target);
-    const saved = await this.edit({
-      change: withStartField('memo', memo === '' ? undefined : memo),
-      failure: '메모 저장 실패',
-      target,
-      retry: () => this.retryMemo(target),
-    });
-    if (saved && this.memoDrafts.get(key)?.memo === memo) {
-      this.memoDrafts.delete(key);
-      this.publish();
-    }
-    return saved;
-  }
-
-  /** A memo typed for the item that isn't saved yet, kept until it is. */
+  /** Reads a retained draft for one captured item. */
   memoDraft(target: ItemTarget): string | undefined {
-    return this.memoDrafts.get(draftKey(target))?.memo;
+    return this.memos.get(target);
   }
-
-  /** Whether a memo for the item can be kept if its save is refused. */
+  /** Whether this item's draft fits within the unsaved-item cap. */
   hasMemoRoom(target: ItemTarget): boolean {
-    return (
-      this.memoDrafts.has(draftKey(target)) ||
-      this.memoDrafts.size < MAX_MEMO_DRAFTS
-    );
+    return this.memos.hasRoom(target);
   }
-
-  readonly memoRoomReason = TOO_MANY_DRAFTS;
-
-  private keepMemoDraft(
-    key: string,
-    target: ItemTarget,
-    memo: string,
-  ): boolean {
-    if (!this.memoDrafts.has(key) && this.memoDrafts.size >= MAX_MEMO_DRAFTS) {
-      this.problem(TOO_MANY_DRAFTS);
-      return false;
-    }
-    this.memoDrafts.set(key, {target, memo});
-    this.publish();
-    return true;
+  /** Saves all retained drafts after running edits, including during close preflight. */
+  flushDrafts(): Promise<boolean> {
+    return this.memos.flush();
   }
-
-  // NOTE(0913vision): A draft goes with its item when the service no longer
-  // has it; no other draft is ever dropped.
-  private forgetDeletedDrafts(
-    serviceId: string,
-    document: ServiceDocument | null,
-  ): void {
-    const kept = new Set<string>(document?.service.order.map(item => item.id));
-    for (const [key, {target}] of this.memoDrafts) {
-      if (target.serviceId === serviceId && !kept.has(target.itemId)) {
-        this.memoDrafts.delete(key);
-      }
-    }
-  }
-
-  private retryMemo(target: ItemTarget): void {
-    const memo = this.memoDraft(target);
-    if (memo !== undefined) editorTask(this.setMemo(target, memo));
-  }
-
   dispose(): void {
     this.alive = false;
-    for (const stop of this.stops) stop();
+    this.stopWrites();
+    this.edits.dispose();
+    this.source.dispose();
     this.listeners.clear();
   }
-
-  // NOTE(0913vision): Every item edit goes through the window's pending
-  // writes, so the close flush stops new ones, waits for the running ones,
-  // and refuses the close when one didn't reach the main process. Edits run
-  // one after another and none is refused for another one running; a queued
-  // edit is registered before it waits.
-  private operation(task: () => Promise<boolean>): Promise<boolean> {
-    if (!this.alive) return Promise.resolve(false);
-    return this.writes.run({
-      write: () => this.queued(task),
-      refused: false,
-      sent: sent => sent,
-    });
-  }
-
-  private queued(task: () => Promise<boolean>): Promise<boolean> {
-    const result = this.queue.then(task, task);
-    this.queue = result.then(
-      () => undefined,
-      () => undefined,
-    );
-    return result;
-  }
-
-  /**
-   * The store's part of the close flush: saves every memo that is still
-   * waiting after the running edits, and answers whether none is left.
-   */
-  async flushDrafts(): Promise<boolean> {
-    await this.queue;
-    const saved = await Promise.all(
-      [...this.memoDrafts.values()].map(({target, memo}) =>
-        this.queued(() => this.saveMemo(target, memo)),
-      ),
-    );
-    return saved.every(Boolean) && this.memoDrafts.size === 0;
-  }
-
-  private async edit({
-    change,
-    failure,
-    target,
-    retry,
-  }: ItemEdit): Promise<boolean> {
-    if (!this.alive || target === null) return false;
-    this.setRunning(1);
-    const result = await updateServiceItem(this.api, {...target, change});
-    this.setRunning(-1);
-    if (result.ok) return true;
-    if (result.error.reason === 'write-failed') {
-      this.problem('예배 순서 저장 실패');
-      return true;
-    }
-    this.problem(failure, retry, RETRY_SAVE_LABEL);
-    return false;
-  }
-
-  private async readService(serviceId: string): Promise<void> {
-    const read = ++this.serviceRead;
-    try {
-      const document = await this.api.services.get(serviceId);
-      if (read === this.serviceRead) this.acceptService(serviceId, document);
-    } catch (error) {
-      console.error('Could not read the service of the item', error);
-      if (read === this.serviceRead) {
-        this.problem('예배 순서 불러오기 실패', () =>
-          this.retryService(serviceId),
-        );
-      }
-    }
-  }
-
-  // NOTE(0913vision): A retry from an old notice must not start a read for a
-  // service the store no longer shows, which would discard the current read.
-  private retryService(serviceId: string): void {
-    if (this.alive && this.target?.serviceId === serviceId) {
-      editorTask(this.readService(serviceId));
-    }
-  }
-
-  private acceptService(
-    serviceId: string,
-    document: ServiceDocument | null,
-  ): void {
-    if (!this.alive || this.target?.serviceId !== serviceId) return;
-    if (
-      document !== null &&
-      this.service !== null &&
-      document.revision <= this.service.revision
-    ) {
-      return;
-    }
-    this.service = document;
-    this.forgetDeletedDrafts(serviceId, document);
-    this.followSong();
-    this.publish();
-  }
-
-  private currentItem(): ServiceItem | null {
-    const itemId = this.target?.itemId;
-    return this.service?.service.order.find(row => row.id === itemId) ?? null;
-  }
-
-  private followSong(): void {
-    const item = this.currentItem();
-    const songId =
-      item !== null && isItemOfKind(item, 'song') ? item.song : null;
-    if (songId === this.songId) return;
-    this.songId = songId;
-    this.songRead++;
-    this.editor.showItemSong(songId);
-    if (songId === null) return;
-    if (this.editor.sessionOf(songId) === undefined) this.loadSong(songId);
-    else this.songStatus = 'ready';
-  }
-
-  private editorChanged(): void {
-    if (
-      this.songId !== null &&
-      this.songStatus === 'ready' &&
-      this.editor.sessionOf(this.songId) === undefined
-    ) {
-      this.loadSong(this.songId);
-    }
-    this.publish();
-  }
-
-  // NOTE(0913vision): Each read takes a new generation, and a change of song
-  // takes one too, so only the newest read of the shown song may answer.
-  private loadSong(songId: SongId): void {
-    this.songStatus = 'loading';
-    editorTask(this.readSong(songId, ++this.songRead));
-  }
-
-  private async readSong(songId: SongId, read: number): Promise<void> {
-    const current = (): boolean => this.alive && read === this.songRead;
-    try {
-      const document = await this.api.songs.get(songId);
-      if (!current()) return;
-      this.songStatus = document === null ? 'missing' : 'ready';
-      if (document !== null) this.editor.attach(document);
-      this.publish();
-    } catch (error) {
-      console.error('Could not read the song of the item', error);
-      if (!current()) return;
-      this.songStatus = 'failed';
-      this.publish();
-      this.problem('곡 불러오기 실패', () => this.retrySong(songId));
-    }
-  }
-
-  private retrySong(songId: SongId): void {
-    if (!this.alive || this.songId !== songId) return;
-    this.loadSong(songId);
-    this.publish();
-  }
-
-  private setRunning(change: 1 | -1): void {
-    this.running += change;
-    this.publish();
-  }
-
   private problem(
     title: string,
     retry?: () => unknown,
@@ -588,14 +210,9 @@ export class ServiceItemStore {
           }),
     });
   }
-
   private publish(): void {
     if (!this.alive) return;
-    const item = this.currentItem();
-    const song =
-      this.songId === null
-        ? null
-        : (this.editor.sessionOf(this.songId) ?? null);
+    const {service, item, song, songStatus} = this.source.snapshot();
     if (
       this.overlay !== null &&
       !item?.overlays?.some(row => row.id === this.overlay)
@@ -603,17 +220,17 @@ export class ServiceItemStore {
       this.overlay = null;
     }
     this.state = {
-      service: this.service,
+      service,
       item,
       song,
-      songStatus: this.songId === null ? null : this.songStatus,
+      songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
       overlay:
         item?.overlays?.some(row => row.id === this.overlay) === true
           ? this.overlay
           : null,
-      busy: this.running > 0 || this.writes.isStopped,
+      busy: this.edits.busy,
     };
     for (const listener of this.listeners) listener();
   }
