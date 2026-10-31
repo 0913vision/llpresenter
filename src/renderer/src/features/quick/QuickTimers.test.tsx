@@ -15,7 +15,7 @@ import {
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -75,7 +75,7 @@ function setup(options: Parameters<typeof documents>[0] = {}) {
   const listeners = new Set<(document: SettingsDocument) => void>();
   const pending = deferred<EditResult>();
   const edit = vi.fn<LlpApi['settings']['edit']>(() => pending.promise);
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     ...base.api,
     settings: {
       ...base.api.settings,

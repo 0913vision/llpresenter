@@ -1,7 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {looksDocument, screensDocument} from '@core/testing/screenDocuments';
 import {LookPreview} from './LookPreview';
@@ -40,7 +40,7 @@ it('redraws from selected Look props and live layers, reusing and disposing the 
     throw new Error('Missing fixture');
   }
   const send = vi.fn();
-  window.llp = fakeLlpApi({live: {send}});
+  window.llp = mockLlpApi({live: {send}});
   useLive.setState({state: emptyLiveState()});
   const props = {screen, looks: looks.value, stageLayouts: [], timers: []};
   const view = render(<LookPreview {...props} lookId={looks.value.current} />);

@@ -2,20 +2,20 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseSample} from '../../../scripts/soak/record.mts';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {prepareSoakGarbageCollection, registerSoakRecorder} from './index';
 import {SAMPLE_INTERVAL_MS, type OutputFrameRate} from './recorder';
 
-interface FakePage {
+interface MockPage {
   readonly url: string;
   readonly destroyed?: boolean;
   readonly run?: (code: string) => Promise<unknown>;
 }
 
-const fakes = vi.hoisted(() => {
-  const pages: FakePage[] = [];
+const mocks = vi.hoisted(() => {
+  const pages: MockPage[] = [];
   const scripts: string[] = [];
   return {
     pages,
@@ -26,7 +26,7 @@ const fakes = vi.hoisted(() => {
 
 vi.mock('electron', () => ({
   app: {
-    commandLine: {appendSwitch: fakes.appendSwitch},
+    commandLine: {appendSwitch: mocks.appendSwitch},
     getAppMetrics: () => [
       {
         pid: 10,
@@ -38,12 +38,12 @@ vi.mock('electron', () => ({
   },
   webContents: {
     getAllWebContents: () =>
-      fakes.pages.map((page, index) => ({
+      mocks.pages.map((page, index) => ({
         isDestroyed: () => page.destroyed ?? false,
         getURL: () => page.url,
         getOSProcessId: () => 20 + index,
         executeJavaScript: async (code: string) => {
-          fakes.scripts.push(`${page.url} ${code}`);
+          mocks.scripts.push(`${page.url} ${code}`);
           return page.run?.(code);
         },
       })),
@@ -51,12 +51,12 @@ vi.mock('electron', () => ({
 }));
 
 beforeEach(() => {
-  fakes.pages.length = 0;
-  fakes.scripts.length = 0;
-  fakes.appendSwitch.mockReset();
+  mocks.pages.length = 0;
+  mocks.scripts.length = 0;
+  mocks.appendSwitch.mockReset();
 });
 
-function fakeLog(): Logger {
+function mockLog(): Logger {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -67,10 +67,10 @@ function fakeLog(): Logger {
 
 async function recordOneSample(
   frameRates?: () => readonly OutputFrameRate[],
-  log: Logger = fakeLog(),
+  log: Logger = mockLog(),
 ): Promise<unknown> {
   const recordPath = join(await makeTempDir(), 'soak.jsonl');
-  const clock = installFakeClock();
+  const clock = installMockClock();
   const env = {LLP_SOAK_RECORD: recordPath};
   const stop = registerSoakRecorder(
     log,
@@ -111,34 +111,34 @@ describe('soak garbage collection', () => {
 
   it('exposes gc to every renderer in a soak run', () => {
     prepareSoakGarbageCollection({LLP_SOAK_RECORD: 'C:\\data\\soak.jsonl'});
-    expect(fakes.appendSwitch).toHaveBeenCalledWith('js-flags', '--expose-gc');
+    expect(mocks.appendSwitch).toHaveBeenCalledWith('js-flags', '--expose-gc');
   });
 
   it('changes nothing outside a soak run', () => {
     prepareSoakGarbageCollection({});
-    expect(fakes.appendSwitch).not.toHaveBeenCalled();
+    expect(mocks.appendSwitch).not.toHaveBeenCalled();
   });
 
   it('collects garbage in the tracked pages before it samples', async () => {
-    fakes.pages.push(
+    mocks.pages.push(
       {url: control},
       {url: audio},
       {url: 'file:///C:/data/out/renderer/analysis.html'},
       {url: audio, destroyed: true},
     );
     await recordOneSample();
-    expect(fakes.scripts).toEqual([
+    expect(mocks.scripts).toEqual([
       `${control} globalThis.gc?.()`,
       `${audio} globalThis.gc?.()`,
     ]);
   });
 
   it('logs the pages that could not collect and still records the sample', async () => {
-    const log = fakeLog();
+    const log = mockLog();
     const gone = async (): Promise<never> => {
       throw new Error('render process gone');
     };
-    fakes.pages.push(
+    mocks.pages.push(
       {url: control},
       {url: audio, run: gone},
       {url: audio, run: gone},

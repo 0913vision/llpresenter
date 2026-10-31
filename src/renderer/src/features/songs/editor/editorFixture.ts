@@ -1,4 +1,4 @@
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {sourceSlideCount} from '@core/schema/groupedSong';
 import type {EditorSongDocument} from './songSession';
@@ -153,7 +153,7 @@ export function editorFixture() {
     }
     pushList();
   };
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     songs: {
       list: () => Promise.resolve(libraryRows()),
       get: id =>

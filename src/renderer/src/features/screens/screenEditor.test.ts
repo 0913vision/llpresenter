@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {ScreenEditor} from './screenEditor';
 import {
@@ -24,7 +24,7 @@ function setup(results: readonly EditResult[] = []) {
   const pending = [...results];
   const write = vi.fn();
   const report = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         edits.push(edit);
@@ -90,7 +90,7 @@ describe('ScreenEditor', () => {
       release = resolve;
     });
     const edits: SettingsEdit[] = [];
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         edit: edit => {
           edits.push(edit);
@@ -196,7 +196,7 @@ describe('ScreenEditor', () => {
       .fn<(value: SettingsEdit) => Promise<EditResult>>()
       .mockImplementationOnce(() => held)
       .mockResolvedValue(saved(3));
-    const api = fakeLlpApi({settings: {edit}});
+    const api = mockLlpApi({settings: {edit}});
     const editor = new ScreenEditor(api, vi.fn());
     editor.adopt(screensAt(1));
     const property = editor.change(MAIN_ID, {name: 'Renamed'});
@@ -292,7 +292,7 @@ describe('ScreenEditor', () => {
       release = resolve;
     });
     const edits: SettingsEdit[] = [];
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         edit: edit => {
           edits.push(edit);
@@ -352,7 +352,7 @@ describe('ScreenEditor', () => {
       .fn()
       .mockReturnValueOnce(firstReply)
       .mockReturnValueOnce(secondReply);
-    const api = fakeLlpApi({settings: {edit}});
+    const api = mockLlpApi({settings: {edit}});
     const editor = new ScreenEditor(api, vi.fn());
     editor.adopt(screensAt(1));
     const first = editor.change(MAIN_ID, {name: '본당'});
@@ -388,7 +388,7 @@ describe('ScreenEditor', () => {
 
   it('refuses the close when a queued save cannot reach main', async () => {
     const edit = vi.fn().mockRejectedValue(new Error('offline'));
-    const api = fakeLlpApi({settings: {edit}});
+    const api = mockLlpApi({settings: {edit}});
     const editor = new ScreenEditor(api, vi.fn());
     editor.adopt(screensAt(1));
     const changing = editor.change(MAIN_ID, {name: '본당'});
@@ -529,7 +529,7 @@ describe('ScreenEditor', () => {
       .mockRejectedValueOnce(new Error('no answer'))
       .mockResolvedValueOnce(saved(2));
     const editor = new ScreenEditor(
-      fakeLlpApi({settings: {edit}, log: {write}}),
+      mockLlpApi({settings: {edit}, log: {write}}),
       report,
     );
     editor.adopt(screensAt(1));

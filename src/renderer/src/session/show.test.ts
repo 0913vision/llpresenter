@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from './live';
 import {
   hasSlideHotKey,
@@ -22,7 +22,7 @@ import {seedSampleService} from '@renderer/session/testing/sampleService';
 const sent: LiveCommand[] = [];
 
 function installApi(): void {
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),

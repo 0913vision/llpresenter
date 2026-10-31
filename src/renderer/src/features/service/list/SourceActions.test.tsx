@@ -24,7 +24,7 @@ import type {
 } from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createTemplateId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
@@ -57,7 +57,7 @@ function setup(
     undefined;
   let pushServices: (entries: readonly ServiceEntry[]) => void = () =>
     undefined;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     templates: {
       list: () =>
         Promise.resolve([
@@ -437,7 +437,7 @@ describe('the service source menu', () => {
   it('keeps the delete prompt until its edit answers', async () => {
     let answer: (result: EditResult) => void = () => undefined;
     setup();
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       ...window.llp,
       content: {
         edit: () =>

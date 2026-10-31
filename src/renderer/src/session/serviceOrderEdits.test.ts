@@ -14,7 +14,7 @@ import {
   createSongId,
   createSongGroupId,
 } from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {ServiceOrderEdits} from './serviceOrderEdits';
 
@@ -98,7 +98,7 @@ function fixture() {
       value: {id: serviceId, revision: state.document.revision},
     });
   });
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     services: {get: () => Promise.resolve(state.document)},
     songs: {get: () => Promise.resolve(state.song)},

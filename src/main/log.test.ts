@@ -10,7 +10,7 @@ import type * as FsPromises from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../test/fake-clock';
+import {installMockClock} from '../../test/mock-clock';
 import {createLogger, flushWithin, type Logger} from './log';
 
 vi.mock('node:fs/promises', async importOriginal => {
@@ -204,7 +204,7 @@ describe('flushWithin', () => {
   });
 
   it('gives up on a stuck disk after the limit and leaves no timer', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const result = flushWithin(stuck, 2000);
     await clock.advance(2000);
     expect(await result).toBe(false);

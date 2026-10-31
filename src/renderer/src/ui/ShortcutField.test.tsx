@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {serializeShortcuts, type KeyBinding} from '@core/schema/shortcuts';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
@@ -105,7 +105,7 @@ describe('ShortcutField', () => {
 
   it('takes a zoom chord before the real window capture handler', () => {
     const changeZoom = vi.fn();
-    window.llp = fakeLlpApi({ui: {changeZoom}});
+    window.llp = mockLlpApi({ui: {changeZoom}});
     function ZoomKeys() {
       useUiZoomKeys();
       return null;

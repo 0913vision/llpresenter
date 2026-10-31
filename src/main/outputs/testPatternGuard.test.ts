@@ -6,18 +6,18 @@ import {LiveStore} from '../live/store';
 import {MAIN, overlaySettings, STAGE} from '@core/testing/overlays';
 import {guardTestPatterns} from './testPatternGuard';
 
-class FakeContents extends EventEmitter {
+class MockContents extends EventEmitter {
   destroyed = false;
   isDestroyed(): boolean {
     return this.destroyed;
   }
 }
 
-class FakeControl extends EventEmitter {
-  readonly contents = new FakeContents();
+class MockControl extends EventEmitter {
+  readonly contents = new MockContents();
   destroyed = false;
   contentsReads = 0;
-  get webContents(): FakeContents {
+  get webContents(): MockContents {
     this.contentsReads += 1;
     if (this.destroyed) throw new Error('Object has been destroyed');
     return this.contents;
@@ -39,7 +39,7 @@ function setup() {
     if (!command.ok) throw new Error(JSON.stringify(command.error));
     store.dispatch(command.value);
   }
-  const control = new FakeControl();
+  const control = new MockControl();
   const log = recordingLogger();
   const stop = guardTestPatterns({control, store, log});
   onTestFinished(stop);
@@ -62,7 +62,7 @@ describe('guardTestPatterns', () => {
   });
 
   it('does not read webContents when setup receives an already destroyed control', () => {
-    const control = new FakeControl();
+    const control = new MockControl();
     control.destroyed = true;
     const stop = guardTestPatterns({
       control,
@@ -74,14 +74,14 @@ describe('guardTestPatterns', () => {
     expect(control.listenerCount('closed')).toBe(0);
   });
   it.each([
-    ['closes', (control: FakeControl) => control.emit('closed')],
+    ['closes', (control: MockControl) => control.emit('closed')],
     [
       'crashes',
-      (control: FakeControl) => control.webContents.emit('render-process-gone'),
+      (control: MockControl) => control.webContents.emit('render-process-gone'),
     ],
     [
       'loads its page again',
-      (control: FakeControl) =>
+      (control: MockControl) =>
         control.webContents.emit('did-start-navigation', {
           isMainFrame: true,
           isSameDocument: false,

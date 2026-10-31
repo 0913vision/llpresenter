@@ -35,7 +35,7 @@ function mediaDocument(ids: readonly MediaId[]): MediaDocument {
 
 // NOTE(0913vision): A file is an absolute path, or null for a path the library
 // refuses.
-function fakeSource(files: ReadonlyMap<MediaId, string | null>) {
+function mockSource(files: ReadonlyMap<MediaId, string | null>) {
   const state = {files, document: mediaDocument([...files.keys()])};
   const listeners = new Set<(document: MediaDocument) => void>();
   const source: MissingFilesSource = {
@@ -63,7 +63,7 @@ function setup(
   files: ReadonlyMap<MediaId, string | null>,
   exists: (file: string) => Promise<boolean>,
 ) {
-  const {source, change, listeners} = fakeSource(files);
+  const {source, change, listeners} = mockSource(files);
   const pushed = vi.fn<(missing: MissingMedia) => void>();
   const exist = vi.fn(exists);
   const missing = new MissingFiles({

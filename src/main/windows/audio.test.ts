@@ -6,14 +6,14 @@ import {LiveStore} from '../live/store';
 import {registerAudioOutput} from './audio';
 import {loadPage, startLoading} from './page';
 import type {WindowMode} from './testWindows';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {
   COOLDOWN_STEPS_MS,
   RELAUNCH_DELAY_MS,
   SURVIVAL_MS,
 } from '../outputs/rendererRecovery';
 
-const fakes = await vi.hoisted(async () => {
+const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class Window extends EventEmitter {
     readonly contents = Object.assign(new EventEmitter(), {
@@ -39,7 +39,7 @@ const fakes = await vi.hoisted(async () => {
   const windows: Window[] = [];
   return {Window, windows, app: {isPackaged: false}};
 });
-vi.mock('electron', () => ({app: fakes.app, BrowserWindow: fakes.Window}));
+vi.mock('electron', () => ({app: mocks.app, BrowserWindow: mocks.Window}));
 vi.mock('./page', () => ({
   loadPage: vi.fn(),
   startLoading: vi.fn(() => Promise.resolve()),
@@ -74,13 +74,13 @@ function setup(
   const log = recordingLogger();
   const connect = vi.spyOn(store, 'connectAudioMedia');
   const stop = registerAudioOutput({store, media, log, windowMode});
-  const win = fakes.windows.at(-1);
+  const win = mocks.windows.at(-1);
   if (win === undefined) throw new Error('Missing window');
   return {store, log, connect, stop, win};
 }
 beforeEach(() => {
-  fakes.windows.length = 0;
-  fakes.app.isPackaged = false;
+  mocks.windows.length = 0;
+  mocks.app.isPackaged = false;
   vi.mocked(loadPage).mockClear();
   vi.mocked(startLoading).mockClear();
 });
@@ -126,14 +126,14 @@ describe('registerAudioOutput', () => {
   it.each(['offscreen', 'normal'] as const)(
     'mutes packaged tests in %s mode',
     mode => {
-      fakes.app.isPackaged = true;
+      mocks.app.isPackaged = true;
       const {win, stop} = setup(Promise.resolve(reader()), mode);
       expect(win.webContents.setAudioMuted).toHaveBeenCalledWith(true);
       stop();
     },
   );
   it('allows packaged service sound only with test flags absent', () => {
-    fakes.app.isPackaged = true;
+    mocks.app.isPackaged = true;
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('VITEST', undefined);
     vi.stubEnv('LLP_TEST_WINDOWS', undefined);
@@ -147,7 +147,7 @@ describe('registerAudioOutput', () => {
     stop();
   });
   it('continues after the crash limit with capped backoff and cancels pending work on disposal', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {win, store, stop} = setup();
     const state = store.state;
     const crash = () =>
@@ -182,7 +182,7 @@ describe('registerAudioOutput', () => {
   it.each([1, 3])(
     'cancels pending recovery after %s crashes even when the audio window is already destroyed',
     async crashes => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const {win, stop, log} = setup();
       for (let index = 0; index < crashes; index += 1) {
         win.contents.emit(
@@ -209,7 +209,7 @@ describe('registerAudioOutput', () => {
   );
 
   it('isolates listener removal failures while releasing other listeners and recovery timers', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {win, stop, log} = setup();
     win.contents.emit(
       'render-process-gone',
@@ -229,7 +229,7 @@ describe('registerAudioOutput', () => {
     expect(log.messages('error')).toContain('audio output failed');
   });
   it('resets the crash limit after a loaded audio page survives a minute', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {win, stop} = setup();
     const crash = () =>
       win.webContents.emit(

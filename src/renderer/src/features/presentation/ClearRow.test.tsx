@@ -12,7 +12,7 @@ import type {LiveCommand} from '@core/live/commands';
 import type {LlpApi} from '@contracts/ipc/api';
 import {defaultPreferences} from '@core/schema/preferences';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {startLiveSync, useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {hasSomethingToClear} from '@core/live/clear';
@@ -33,7 +33,7 @@ vi.mock('@renderer/ui/Icon', () => ({
 const sent: LiveCommand[] = [];
 
 function installApi(showClearUndoButton?: boolean): LlpApi {
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),

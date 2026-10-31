@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {ShowService} from '@core/schema/showService';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   applyService,
   openItem,
@@ -208,7 +208,7 @@ describe('startServiceSync', () => {
 
   it('shows the service it reads and the ones that are pushed', async () => {
     let push: (service: ShowService | null) => void = () => undefined;
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       service: {
         get: () => Promise.resolve(serviceOf({revision: 1})),
         subscribe: listener => {
@@ -226,7 +226,7 @@ describe('startServiceSync', () => {
   it('keeps a push that arrives before the read, and drops the older read', async () => {
     let push: (service: ShowService | null) => void = () => undefined;
     let answer: (service: ShowService | null) => void = () => undefined;
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       service: {
         get: () =>
           new Promise(resolve => {
@@ -259,7 +259,7 @@ describe('startServiceSync', () => {
         answer: () => undefined,
         fail: () => undefined,
       };
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         service: {
           get: () =>
             new Promise((resolve, reject) => {
@@ -322,7 +322,7 @@ describe('startServiceSync', () => {
   describe('after the sync was stopped', () => {
     it('ignores a read that resolves later', async () => {
       let answer: (service: ShowService | null) => void = () => undefined;
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         service: {
           get: () =>
             new Promise(resolve => {
@@ -339,7 +339,7 @@ describe('startServiceSync', () => {
 
     it('ignores a push that is still delivered', () => {
       let push: (service: ShowService | null) => void = () => undefined;
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         service: {
           subscribe: listener => {
             push = listener;
@@ -354,7 +354,7 @@ describe('startServiceSync', () => {
 
     it('keeps the view when a read fails later', async () => {
       let fail: (error: Error) => void = () => undefined;
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         service: {
           get: () =>
             new Promise((_resolve, reject) => {
@@ -373,13 +373,13 @@ describe('startServiceSync', () => {
 
   it('stops listening when the returned function is called', () => {
     const unsubscribe = vi.fn();
-    window.llp = fakeLlpApi({service: {subscribe: () => unsubscribe}});
+    window.llp = mockLlpApi({service: {subscribe: () => unsubscribe}});
     startServiceSync()();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('keeps what is shown when the read fails', async () => {
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       service: {get: () => Promise.reject(new Error('no service'))},
     });
     applyService(serviceOf());

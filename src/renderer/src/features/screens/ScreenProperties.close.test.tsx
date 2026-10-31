@@ -4,7 +4,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {ControlSession} from '@renderer/app/controlSession';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
@@ -35,7 +35,7 @@ function setup() {
   const edits: SettingsEdit[] = [];
   const flushDone = vi.fn();
   const savePending = vi.fn().mockResolvedValue(true);
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: () => Promise.resolve(screensDocument()),
       edit: async edit => {

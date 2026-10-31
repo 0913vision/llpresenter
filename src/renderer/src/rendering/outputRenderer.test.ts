@@ -8,13 +8,13 @@ import type {ScreenAppearance} from '@core/looks/screenLook';
 import {SlideLayerView} from './slideLayer';
 import {MAIN} from '@core/testing/overlays';
 
-class FakeResizeObserver {
-  static readonly instances: FakeResizeObserver[] = [];
+class MockResizeObserver {
+  static readonly instances: MockResizeObserver[] = [];
   observed: Element | null = null;
   disconnected = false;
 
   constructor(readonly callback: () => void) {
-    FakeResizeObserver.instances.push(this);
+    MockResizeObserver.instances.push(this);
   }
 
   observe(target: Element): void {
@@ -33,8 +33,8 @@ const WITH_SLIDE: LiveLayers = {
 };
 
 beforeEach(() => {
-  FakeResizeObserver.instances.length = 0;
-  vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+  MockResizeObserver.instances.length = 0;
+  vi.stubGlobal('ResizeObserver', MockResizeObserver);
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
@@ -251,7 +251,7 @@ describe('OutputRenderer', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(960);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(540);
     setUp();
-    FakeResizeObserver.instances[0]?.callback();
+    MockResizeObserver.instances[0]?.callback();
     expect(rescale).toHaveBeenLastCalledWith(0.5);
   });
 
@@ -304,7 +304,7 @@ describe('OutputRenderer', () => {
     const transformAt = (width: number, tall: number) => {
       size.mockReturnValue(width);
       height.mockReturnValue(tall);
-      FakeResizeObserver.instances[0]?.callback();
+      MockResizeObserver.instances[0]?.callback();
       return root?.style.getPropertyValue('--picture-transform');
     };
     expect(transformAt(1920, 1080)).toBe('translate(40px, -20px) scale(1)');
@@ -318,7 +318,7 @@ describe('OutputRenderer', () => {
   it('stops watching the size and removes everything on dispose', () => {
     const {parent, renderer} = setUp();
     renderer.dispose();
-    expect(FakeResizeObserver.instances[0]?.disconnected).toBe(true);
+    expect(MockResizeObserver.instances[0]?.disconnected).toBe(true);
     expect(parent.childElementCount).toBe(0);
   });
 

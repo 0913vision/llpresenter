@@ -18,7 +18,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
@@ -85,7 +85,7 @@ function setup(
       value: {id: 'looks', revision: document.revision},
     } as const;
   });
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     settings: {
       get: request => {

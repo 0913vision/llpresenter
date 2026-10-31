@@ -11,7 +11,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {applyService} from '@renderer/session/show';
@@ -59,7 +59,7 @@ it.each([
       ok: true as const,
       value: [returned ? failed : {...failed, phase: 'copying' as const}],
     }));
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       media: {
         import: importMedia,
         subscribeImports: listener => {
@@ -119,7 +119,7 @@ it('releases the progress subscription and ignores late progress and import repl
   let push: (progress: MediaImportProgress) => void = () => undefined;
   let finish: (jobs: readonly MediaImportProgress[]) => void = () => undefined;
   const stop = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     media: {
       subscribeImports: listener => {
         push = listener;

@@ -5,7 +5,7 @@ import {
   parseSettingsEdit,
 } from '@core/schema/settingsDocuments';
 import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/macros';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {editMacroActions} from '@core/macros/macroActionEdits';
 import {saveMacroEdit} from './macroEdits';
 
@@ -104,7 +104,7 @@ it('appends to the latest revision without losing another action', async () => {
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await saveMacroEdit(api, {
     kind: 'action',
     id: item.id,
@@ -129,7 +129,7 @@ it('does not overwrite a concurrently changed list on a retried removal', async 
   const edit = vi
     .fn()
     .mockResolvedValue({ok: false, error: {reason: 'stale', message: 'stale'}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await expect(
     saveMacroEdit(api, {
       kind: 'action',

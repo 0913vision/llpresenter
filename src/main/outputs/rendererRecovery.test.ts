@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock, type FakeClock} from '../../../test/fake-clock';
+import {installMockClock, type MockClock} from '../../../test/mock-clock';
 import {recordingLogger} from '../displays/testing';
 import {DRAW_LIMIT_MS} from './pageLoad';
 import {
@@ -16,7 +16,7 @@ const SECOND = 1000;
 const LOAD_ERROR = new Error('ERR_CONNECTION_REFUSED');
 
 function setUp() {
-  const clock = installFakeClock();
+  const clock = installMockClock();
   const log = recordingLogger();
   const reload = vi.fn(() => Promise.resolve());
   const recovery = new RendererRecovery({screenId: 'main', reload, log});
@@ -40,7 +40,7 @@ function countOf(messages: readonly string[], message: string): number {
 
 async function crashUntilLimited(
   recovery: RendererRecovery,
-  clock: FakeClock,
+  clock: MockClock,
 ): Promise<void> {
   for (let crash = 1; crash < CRASH_LIMIT; crash += 1) {
     recovery.crashed(CRASH);
@@ -195,7 +195,7 @@ describe('RendererRecovery', () => {
   });
 
   it('announces each change of its state once', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const changes: string[] = [];
     const recovery = new RendererRecovery({
       screenId: 'main',

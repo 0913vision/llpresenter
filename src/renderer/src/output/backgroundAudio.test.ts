@@ -3,7 +3,7 @@ import {beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   CAPTIONS_ID,
   LOOK_ID,
@@ -39,7 +39,7 @@ it('plays background sound once for multiple outputs, respects Looks, and releas
       },
       revision,
     );
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: ({name}) =>
         Promise.resolve(name === 'screens' ? screensDocument() : looks(true)),
@@ -95,7 +95,7 @@ it('plays background sound once for multiple outputs, respects Looks, and releas
 });
 
 it('keeps background video muted when the hidden audio window is muted', async () => {
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: ({name}) =>
         Promise.resolve(
@@ -144,7 +144,7 @@ it('keeps background video muted when the hidden audio window is muted', async (
 it('fades cleared video sound, cancels on restore, and resets gain after expiry', async () => {
   vi.useFakeTimers();
   let now = 1000;
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: ({name}) =>
         Promise.resolve(

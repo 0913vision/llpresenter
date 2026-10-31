@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import type {ShowService} from '@core/schema/showService';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {LiveStore} from '../../../main/live/store';
 import {sendLive, startLiveSync, useLive} from './live';
 import {
@@ -71,7 +71,7 @@ beforeEach(() => {
   });
   applyService(null);
   applyService(service);
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {
       get: async () => store.state,
       send: command => {
@@ -277,7 +277,7 @@ describe('song backgrounds on output', () => {
   it('remembers an authoritative item after its lyrics are cleared', async () => {
     const subscribe =
       vi.fn<NonNullable<typeof window.llp>['live']['subscribe']>();
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       live: {
         get: async () => emptyLiveState(),
         send: command => sent.push(command),

@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../test/fake-clock';
+import {installMockClock} from '../../test/mock-clock';
 import {makeTempDir} from '../../test/temp-dir';
 import {recordingLogger} from './displays/testing';
 import {createLogger, type Logger} from './log';
@@ -12,10 +12,10 @@ import {
   type ShutdownApp,
 } from './shutdown';
 
-// NOTE(0913vision): The fake quits like Electron (qa bug M1-11): a quit made
+// NOTE(0913vision): The mock quits like Electron (qa bug M1-11): a quit made
 // while a quit event is being handled is ignored, and after a prevented one
 // only a quit from a later task gets through.
-class FakeApp implements ShutdownApp {
+class MockApp implements ShutdownApp {
   quitted = false;
   quitRequests = 0;
   lockReleased = false;
@@ -70,14 +70,14 @@ const never = (): Promise<void> => new Promise<void>(() => undefined);
 
 describe('ShutdownCoordinator', () => {
   it('quits with nothing to save and nothing in the log', async () => {
-    const app = new FakeApp();
+    const app = new MockApp();
     new ShutdownCoordinator({app, log: createLogger(await makeTempDir())});
     app.quit();
     await vi.waitFor(() => expect(app.quitted).toBe(true));
   });
 
   it('releases the single-instance lock only when the shutdown is done', async () => {
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({
       app,
       log: createLogger(await makeTempDir()),
@@ -95,7 +95,7 @@ describe('ShutdownCoordinator', () => {
   it('runs the steps in order, then flushes the log, then quits', async () => {
     const dir = await makeTempDir();
     const log = createLogger(dir);
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
     const order: string[] = [];
     const soak = deferred();
@@ -123,7 +123,7 @@ describe('ShutdownCoordinator', () => {
   });
 
   it('holds every quit request on the same shutdown', async () => {
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({
       app,
       log: createLogger(await makeTempDir()),
@@ -143,7 +143,7 @@ describe('ShutdownCoordinator', () => {
 
   it('confirms before any step and keeps running when the check refuses', async () => {
     const log = recordingLogger();
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
     const order: string[] = [];
     const answers = [false, true];
@@ -166,7 +166,7 @@ describe('ShutdownCoordinator', () => {
   });
 
   it('holds repeated quit requests on one pending confirmation', async () => {
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log: recordingLogger()});
     let answer: (value: boolean) => void = () => undefined;
     const confirm = vi.fn(
@@ -186,7 +186,7 @@ describe('ShutdownCoordinator', () => {
 
   it('logs a failing confirmation and quits anyway', async () => {
     const log = recordingLogger();
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
     shutdown.confirmWith(() => Promise.reject(new Error('Invented failure')));
     app.quit();
@@ -198,7 +198,7 @@ describe('ShutdownCoordinator', () => {
 
   it('logs a failing step and carries on with the next', async () => {
     const log = recordingLogger();
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
     const after = vi.fn();
     shutdown.add({
@@ -217,9 +217,9 @@ describe('ShutdownCoordinator', () => {
   });
 
   it('quits after the save limit when a step never ends', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const log = recordingLogger();
-    const app = new FakeApp();
+    const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
     shutdown.add({name: 'finish the soak record', run: never});
     app.quit();
@@ -236,7 +236,7 @@ describe('ShutdownCoordinator', () => {
   });
 
   it('quits after the log flush limit when the disk is stuck', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     vi.spyOn(console, 'error').mockReturnValue(undefined);
     const stuck: Logger = {
       info: () => undefined,
@@ -244,7 +244,7 @@ describe('ShutdownCoordinator', () => {
       error: () => undefined,
       flush: never,
     };
-    const app = new FakeApp();
+    const app = new MockApp();
     new ShutdownCoordinator({app, log: stuck});
     app.quit();
     await clock.advance(LOG_FLUSH_LIMIT_MS - 1);

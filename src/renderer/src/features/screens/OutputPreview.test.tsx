@@ -6,7 +6,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {MonitorList} from '@core/schema/monitors';
 import {screenIdSchema} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {OutputPreview} from './OutputPreview';
 import {useScreensSelection} from './selection';
 import {useLive} from '@renderer/session/live';
@@ -49,7 +49,7 @@ const monitors: MonitorList = [
 
 function setup(document = screensDocument()) {
   const send = vi.fn<(command: LiveCommand) => void>();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {get: () => Promise.resolve(document)},
     live: {send},

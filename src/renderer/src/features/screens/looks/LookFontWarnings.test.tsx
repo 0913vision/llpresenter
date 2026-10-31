@@ -10,7 +10,7 @@ import {
 import {afterEach, expect, it, vi} from 'vitest';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {fontFamilyFixture} from '@core/testing/fontCatalog';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
@@ -58,7 +58,7 @@ it('updates a Look row warning after enumeration and a settings push without edi
   });
   const edit = vi.fn();
   const listeners = new Set<(document: SettingsDocument) => void>();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     fonts: {get: () => fonts},
     settings: {
       get: async request =>

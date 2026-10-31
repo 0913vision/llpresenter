@@ -61,7 +61,7 @@ function looksDocument(revision = 1, extraLooks: readonly object[] = []) {
   );
 }
 
-function fakeSettings(looks: SettingsDocument = looksDocument()) {
+function mockSettings(looks: SettingsDocument = looksDocument()) {
   const listeners = new Set<(document: SettingsDocument) => void>();
   const unsubscribe = vi.fn();
   const screens = overlaySettings().reader.get('screens');
@@ -84,7 +84,7 @@ function fakeSettings(looks: SettingsDocument = looksDocument()) {
 
 async function framesFor(
   screenId: string,
-  settings = fakeSettings(),
+  settings = mockSettings(),
   onGap = vi.fn<(message: string, gap: LookGap) => void>(),
 ) {
   const onChange = vi.fn();
@@ -106,7 +106,7 @@ function stateWith(fields: Partial<LiveState>): LiveState {
 
 describe('ScreenFrames', () => {
   it('has no frame until the screen is known', () => {
-    const settings = fakeSettings();
+    const settings = mockSettings();
     const frames = new ScreenFrames({
       settings: settings.api,
       clock: () => Promise.resolve(0),
@@ -149,7 +149,7 @@ describe('ScreenFrames', () => {
   });
 
   it('changes every screen at once from one live state', async () => {
-    const settings = fakeSettings();
+    const settings = mockSettings();
     const screens = await Promise.all(
       [MAIN, CAPTIONS, STAGE].map(id => framesFor(id, settings)),
     );
@@ -179,7 +179,7 @@ describe('ScreenFrames', () => {
       name: `Broken ${i}`,
       screens: {[MAIN]: {layers: {}, lyricStyle: overlayUuid(300 + i)}},
     }));
-    const settings = fakeSettings(looksDocument(1, broken));
+    const settings = mockSettings(looksDocument(1, broken));
     const {frames, onGap} = await framesFor(MAIN, settings);
     const drawAll = () => {
       for (const {id} of broken) frames.frame(stateWith({lookId: id}));
@@ -203,7 +203,7 @@ describe('ScreenFrames', () => {
       name: `Broken ${i}`,
       screens: {},
     }));
-    const settings = fakeSettings(looksDocument(1, broken));
+    const settings = mockSettings(looksDocument(1, broken));
     const {frames, onGap} = await framesFor(MAIN, settings);
     for (let round = 0; round < 3; round++) {
       for (const {id} of broken) frames.frame(stateWith({lookId: id}));
@@ -237,7 +237,7 @@ describe('ScreenFrames', () => {
         },
       ],
     });
-    const settings = fakeSettings(styled);
+    const settings = mockSettings(styled);
     const {frames} = await framesFor(CAPTIONS, settings);
     const state = stateWith({});
     expect(frames.frame(state)?.look?.lyricStyle.vAlign).toBe('bottom');
@@ -277,7 +277,7 @@ describe('ScreenFrames', () => {
       ],
       lyricStyles: [],
     });
-    const settings = fakeSettings(looks);
+    const settings = mockSettings(looks);
     const onGap = vi.fn<(message: string, gap: LookGap) => void>();
     const {frames} = await framesFor(STAGE, settings, onGap);
     const layouts = settingsDocument('stage-layouts', {

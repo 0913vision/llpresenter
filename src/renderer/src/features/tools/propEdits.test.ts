@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {propReason, savePropEdit} from './propEdits';
@@ -47,7 +47,7 @@ it('adds, updates and deletes without losing unknown fields', async () => {
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'props', revision: 2}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await savePropEdit(api, {kind: 'add', prop});
   expect(edit).toHaveBeenNthCalledWith(
     1,
@@ -95,7 +95,7 @@ it('waits for a pending read on close and retries a stale revision', async () =>
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'props', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   const pending = savePropEdit(api, {kind: 'add', prop});
   const gate = pendingWritesOf(api);
   const flush = gate.flush();
@@ -115,7 +115,7 @@ it('returns a persistence failure as applied and rejects invalid input', async (
     error: {reason: 'write-failed', message: 'disk'},
   } as const;
   const edit = vi.fn().mockResolvedValue(failure);
-  const api = fakeLlpApi({settings: {get: async () => document(), edit}});
+  const api = mockLlpApi({settings: {get: async () => document(), edit}});
   await expect(savePropEdit(api, {kind: 'add', prop})).resolves.toEqual(
     failure,
   );

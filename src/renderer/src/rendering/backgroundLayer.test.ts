@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/live/state';
-import {installFakeClock} from '../../../../test/fake-clock';
+import {installMockClock} from '../../../../test/mock-clock';
 import {
   BACKGROUND_DISSOLVE_MS,
   SPARE_DELAY_MS,
@@ -87,7 +87,7 @@ describe('BackgroundLayerView', () => {
     view.dispose();
   });
   it('bounds a hidden video frame callback and releases its callback and deadline', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {view, videos} = setUp();
     const video = videos[1];
     const cancel = vi.fn();
@@ -217,7 +217,7 @@ describe('BackgroundLayerView', () => {
   });
 
   it('loads the same background into the other video a while after the dissolve, for the loop', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {view, videos} = setUp();
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
@@ -231,7 +231,7 @@ describe('BackgroundLayerView', () => {
   });
 
   it('hands a looping background over to the spare when it ends, without a gap', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {view, videos} = setUp();
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
@@ -347,7 +347,7 @@ describe('BackgroundLayerView', () => {
   });
 
   it('stops listening, unloads its videos, and removes itself on dispose', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {parent, view, videos} = setUp();
     view.show(WARM_LIGHT);
     videos[1].dispatchEvent(new Event('playing'));
@@ -392,7 +392,7 @@ describe('BackgroundLayerView handovers', () => {
   );
 
   it('loops a background that was sought near its end before the spare is ready', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
     const {view, videos} = setUp();
     const [spare, front] = videos;
@@ -434,7 +434,7 @@ describe('BackgroundLayerView rapid changes', () => {
 
 describe('BackgroundLayerView in a preview', () => {
   it('loops on the one video that shows the background and lets the other go', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {view, videos} = setUp('preview');
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
@@ -448,7 +448,7 @@ describe('BackgroundLayerView in a preview', () => {
   });
 
   it('still dissolves to a new background on the other video', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {view, videos} = setUp('preview');
     const [older, first] = videos;
     view.show(WARM_LIGHT);
@@ -531,7 +531,7 @@ describe('startOffsetSeconds', () => {
 
 describe('BackgroundLayerView seeking', () => {
   it('seeks a background that started earlier once its video knows its length', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const seek = vi.spyOn(HTMLMediaElement.prototype, 'currentTime', 'set');
     vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
     const {view, videos} = setUp();
@@ -544,7 +544,7 @@ describe('BackgroundLayerView seeking', () => {
   });
 
   it('drops a pending seek when the background changes first', () => {
-    installFakeClock();
+    installMockClock();
     const seek = vi.spyOn(HTMLMediaElement.prototype, 'currentTime', 'set');
     vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
     const {view, videos} = setUp();
@@ -584,7 +584,7 @@ describe.each<RenderMode>(['output', 'preview'])(
   'BackgroundLayerView images in %s mode',
   mode => {
     it('shows an image background after decoding it without a video playback error', async () => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const {parent, view, videos, onError} = setUp(mode);
       view.show({...SUNSET, loop: true});
       refuseVideoSource(videos[1]);
@@ -621,7 +621,7 @@ describe.each<RenderMode>(['output', 'preview'])(
     });
 
     it('holds the previous video while the image loads and releases it after the dissolve', async () => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const {parent, view, videos} = setUp(mode);
       view.show(WARM_LIGHT);
       videos[1].dispatchEvent(new Event('playing'));
@@ -642,7 +642,7 @@ describe.each<RenderMode>(['output', 'preview'])(
     });
 
     it('keeps the same image and then dissolves from it to a video', async () => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const {parent, view, videos} = setUp(mode);
       view.show(SUNSET);
       refuseVideoSource(videos[1]);
@@ -705,7 +705,7 @@ describe.each<RenderMode>(['output', 'preview'])(
     });
 
     it('dissolves between still images with a fixed pair of image elements', async () => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const {parent, view, videos} = setUp(mode);
       view.show(SUNSET);
       refuseVideoSource(videos[1]);

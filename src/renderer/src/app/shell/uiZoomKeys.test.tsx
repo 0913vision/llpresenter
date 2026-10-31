@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {handleUiZoomKey, useUiZoomKeys} from './uiZoomKeys';
 
 const changeZoom = vi.fn(() => Promise.resolve(100));
@@ -26,7 +26,7 @@ function press(
 beforeEach(() => {
   changeZoom.mockClear();
   log.mockClear();
-  window.llp = fakeLlpApi({ui: {changeZoom}, log: {write: log}});
+  window.llp = mockLlpApi({ui: {changeZoom}, log: {write: log}});
 });
 afterEach(() => {
   cleanup();

@@ -3,7 +3,7 @@ import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {WakeKeeper, keepAwakeWhileOutputsOn, type WakeLock} from './wakeLock';
 
-function fakeLock() {
+function mockLock() {
   const releases: Array<ReturnType<typeof vi.fn>> = [];
   const lock: WakeLock = {
     acquire: () => {
@@ -17,7 +17,7 @@ function fakeLock() {
 
 function setUp() {
   const store = new LiveStore();
-  const {lock, releases} = fakeLock();
+  const {lock, releases} = mockLock();
   const keeper = new WakeKeeper(lock, recordingLogger());
   const stop = keepAwakeWhileOutputsOn(store, keeper);
   const turn = (screenId: string, on: boolean): void => {
@@ -71,7 +71,7 @@ describe('keepAwakeWhileOutputsOn with a nested change', () => {
         store.dispatch({type: 'output.set', screenId: 'main', on: false});
       }
     });
-    const {lock, releases} = fakeLock();
+    const {lock, releases} = mockLock();
     const keeper = new WakeKeeper(lock, recordingLogger());
     keepAwakeWhileOutputsOn(store, keeper);
     store.dispatch({type: 'output.set', screenId: 'main', on: true});

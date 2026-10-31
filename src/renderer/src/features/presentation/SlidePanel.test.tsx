@@ -2,7 +2,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {LayoutChange} from '@core/schema/uiState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
@@ -66,7 +66,7 @@ beforeEach(() => {
   seedSampleService();
   seedThumbnailScale({});
   setLayout.mockReset();
-  window.llp = fakeLlpApi({ui: {setLayout}});
+  window.llp = mockLlpApi({ui: {setLayout}});
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
 });

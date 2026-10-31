@@ -4,7 +4,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {useLive} from '@renderer/session/live';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {deferred} from './testing/quickTesting';
 import {stageFixture} from './stageTesting';
 import {useShowingCount, useShowingGroups} from './showingHooks';
@@ -118,7 +118,7 @@ it('keeps newer media pushes and ignores reads and callbacks after unmount', asy
   let pushMissing: (ids: readonly MediaId[]) => void = () => undefined;
   const stop = vi.fn();
   const report = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: original.settings,
     media: {
       get: () => read.promise,
@@ -189,7 +189,7 @@ it('reports both media read failures while mounted', async () => {
   if (!original) throw new Error('Missing API');
   const report = vi.fn();
   const write = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: original.settings,
     log: {write},
     media: {

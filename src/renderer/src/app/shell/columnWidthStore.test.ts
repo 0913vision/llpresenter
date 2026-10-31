@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LayoutChange} from '@core/schema/uiState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   createIpcColumnWidthStore,
   createMemoryColumnWidthStore,
@@ -119,7 +119,7 @@ describe('loadColumnWidthStore', () => {
 
   it('starts from the saved state and sends saves to the main process', async () => {
     const setLayout = vi.fn<(change: LayoutChange) => void>();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ui: {
         get: () => Promise.resolve({layout: {wide: {left: 320, right: 560}}}),
         setLayout,
@@ -138,7 +138,7 @@ describe('loadColumnWidthStore', () => {
   it('logs the failure and starts from the defaults when the state cannot be read', async () => {
     const write = vi.fn();
     const setLayout = vi.fn<(change: LayoutChange) => void>();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ui: {get: () => Promise.reject(new Error('no answer')), setLayout},
       log: {write},
     });
@@ -162,7 +162,7 @@ describe('loadUiState', () => {
 
   it('returns the state of the main process', async () => {
     const state = {layout: {wide: {left: 320, right: 560, columns: 6}}};
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ui: {get: () => Promise.resolve(state), setLayout: () => undefined},
     });
     expect(await loadUiState(api)).toEqual(state);
@@ -170,7 +170,7 @@ describe('loadUiState', () => {
 
   it('logs the failure and is empty when the main process cannot answer', async () => {
     const write = vi.fn();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ui: {
         get: () => Promise.reject(new Error('no answer')),
         setLayout: () => undefined,
@@ -190,7 +190,7 @@ describe('loadUiState', () => {
 describe('createColumnWidthStore', () => {
   it('starts from the given state and sends saves through the API', () => {
     const setLayout = vi.fn<(change: LayoutChange) => void>();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ui: {get: () => Promise.resolve({}), setLayout},
     });
     const store = createColumnWidthStore(api, {

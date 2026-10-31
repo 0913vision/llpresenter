@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import type {SongSlideSource} from '@core/schema/showService';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {editorGroupedSong, editorLegacySong} from './editorFixture';
 import {SongHistory} from '@core/songs/songHistory';
 import {SongSession} from './songSession';
@@ -76,7 +76,7 @@ it('marks accepted assignments dirty and routes undo and redo through the owning
   const changed = vi.fn();
   const session = new SongSession({
     document,
-    api: fakeLlpApi().content,
+    api: mockLlpApi().content,
     changed,
     problem: vi.fn(),
     persistence: 'manual',
@@ -114,7 +114,7 @@ it.each(['readOnly', 'blocked', 'close-preflight', 'closed', 'discarded'])(
     const changed = vi.fn();
     const session = new SongSession({
       document,
-      api: fakeLlpApi().content,
+      api: mockLlpApi().content,
       changed,
       problem: vi.fn(),
       persistence: 'manual',

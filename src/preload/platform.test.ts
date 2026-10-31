@@ -7,11 +7,11 @@ function platformWith(modules: {
   readonly path?: (file: File) => string;
 }) {
   const log = vi.fn();
-  const fakes: PlatformModules = {
+  const mocks: PlatformModules = {
     webFrame: {getZoomFactor: () => Number(modules.zoom?.() ?? 1)},
     webUtils: {getPathForFile: modules.path ?? (() => '')},
   };
-  return {log, platform: windowPlatform(fakes, log)};
+  return {log, platform: windowPlatform(mocks, log)};
 }
 
 describe('the window zoom factor', () => {

@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -57,7 +57,7 @@ function renderBlock(
     readonly active?: boolean;
   } = {},
 ) {
-  const api = fakeLlpApi();
+  const api = mockLlpApi();
   const session = new SongSession({
     document: {song, revision: 1, access: 'editable'},
     api: api.content,
@@ -112,7 +112,7 @@ describe('SongBlock', () => {
   });
 
   it('renders split button on non-first slide when active and opens label menu on click', () => {
-    const api = fakeLlpApi();
+    const api = mockLlpApi();
     const song = createGroupedSong();
     const session = new SongSession({
       document: {song, revision: 1, access: 'editable'},

@@ -1,7 +1,7 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {deferred} from './testing/quickTesting';
 import {useAudioMedia} from './useAudioMedia';
 
@@ -30,7 +30,7 @@ it('keeps the newest pushed document when the initial read resolves late and uns
   const read = deferred<MediaDocument>();
   const stop = vi.fn();
   let push: (value: MediaDocument) => void = () => undefined;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     media: {
       get: () => read.promise,
       subscribe: listener => {
@@ -52,7 +52,7 @@ it('keeps the newest pushed document when the initial read resolves late and uns
 
 it('reports a failed initial read', async () => {
   const report = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     media: {
       get: async () => {
         throw new Error('unavailable');

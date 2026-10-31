@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {saveMacroEdit} from './macroEdits';
@@ -53,7 +53,7 @@ it('adds to the shown collection and removes memberships on deletion', async () 
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await saveMacroEdit(api, {kind: 'add', item, collection: collection.id});
   expect(edit).toHaveBeenNthCalledWith(
     1,
@@ -92,7 +92,7 @@ it('retries a stale partial edit on the latest settings while close waits for th
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   const writing = saveMacroEdit(api, {
     kind: 'update',
     id: item.id,
@@ -121,7 +121,7 @@ it('updates memberships without duplicates and reports persistence failures as a
     error: {reason: 'write-failed', message: 'disk'},
   } as const;
   const edit = vi.fn().mockResolvedValue(failure);
-  const api = fakeLlpApi({settings: {get: async () => doc, edit}});
+  const api = mockLlpApi({settings: {get: async () => doc, edit}});
   await expect(
     saveMacroEdit(api, {
       kind: 'membership',
@@ -161,7 +161,7 @@ it('duplicates next to its source in the list and its collections', async () => 
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
-  const api = fakeLlpApi({settings: {get: async () => doc, edit}});
+  const api = mockLlpApi({settings: {get: async () => doc, edit}});
   await saveMacroEdit(api, {kind: 'duplicate', id: item.id, copyId});
   expect(edit).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -198,7 +198,7 @@ it('duplicates the latest source after a stale revision and treats a repeated ID
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  await saveMacroEdit(fakeLlpApi({settings: {get, edit}}), {
+  await saveMacroEdit(mockLlpApi({settings: {get, edit}}), {
     kind: 'duplicate',
     id: item.id,
     copyId,
@@ -222,7 +222,7 @@ it('duplicates the latest source after a stale revision and treats a repeated ID
   const existing = document([raw, {...raw, id: copyId}], [group], 3);
   const retry = vi.fn();
   await saveMacroEdit(
-    fakeLlpApi({settings: {get: async () => existing, edit: retry}}),
+    mockLlpApi({settings: {get: async () => existing, edit: retry}}),
     {kind: 'duplicate', id: item.id, copyId},
   );
   expect(retry).not.toHaveBeenCalled();

@@ -32,7 +32,7 @@ function define(target: object, values: Readonly<Record<string, unknown>>) {
   }
 }
 
-function fakeDom() {
+function mockDom() {
   const videos: HTMLVideoElement[] = [];
   const audios: HTMLAudioElement[] = [];
   const images: HTMLImageElement[] = [];
@@ -68,7 +68,7 @@ function fire(target: EventTarget | undefined, event: string): void {
 
 describe('media analysis page', () => {
   it('reads a video and draws its thumbnail one second in', async () => {
-    const {dom, videos, drawThumbnail} = fakeDom();
+    const {dom, videos, drawThumbnail} = mockDom();
     const reply = analyseMedia(job('video'), dom);
     const video = videos[0];
     expect(video?.getAttribute('src')).toBe(URL);
@@ -95,7 +95,7 @@ describe('media analysis page', () => {
   });
 
   it('takes a short video thumbnail half way through', async () => {
-    const {dom, videos} = fakeDom();
+    const {dom, videos} = mockDom();
     const reply = analyseMedia(job('video'), dom);
     define(videos[0] ?? {}, {duration: 1, videoWidth: 640, videoHeight: 360});
     fire(videos[0], 'loadedmetadata');
@@ -105,7 +105,7 @@ describe('media analysis page', () => {
   });
 
   it('answers a video without a picture or a known length without seeking', async () => {
-    const {dom, videos, drawThumbnail} = fakeDom();
+    const {dom, videos, drawThumbnail} = mockDom();
     const reply = analyseMedia(job('video'), dom);
     define(videos[0] ?? {}, {
       duration: Number.POSITIVE_INFINITY,
@@ -119,7 +119,7 @@ describe('media analysis page', () => {
   });
 
   it('skips the thumbnail when the job asks for none', async () => {
-    const {dom, videos, drawThumbnail} = fakeDom();
+    const {dom, videos, drawThumbnail} = mockDom();
     const reply = analyseMedia(job('video', false), dom);
     define(videos[0] ?? {}, {duration: 3, videoWidth: 640, videoHeight: 360});
     fire(videos[0], 'loadedmetadata');
@@ -133,7 +133,7 @@ describe('media analysis page', () => {
   });
 
   it('answers the decoder error of a video it cannot read, cut to the cap', async () => {
-    const {dom, videos} = fakeDom();
+    const {dom, videos} = mockDom();
     const reply = analyseMedia(job('video'), dom);
     const message = 'x'.repeat(MAX_ANALYSIS_MESSAGE_LENGTH + 10);
     define(videos[0] ?? {}, {error: {code: 4, message}});
@@ -147,7 +147,7 @@ describe('media analysis page', () => {
   });
 
   it('answers a failed seek as the decoder error', async () => {
-    const {dom, videos} = fakeDom();
+    const {dom, videos} = mockDom();
     const reply = analyseMedia(job('video'), dom);
     define(videos[0] ?? {}, {duration: 5, videoWidth: 640, videoHeight: 360});
     fire(videos[0], 'loadedmetadata');
@@ -162,7 +162,7 @@ describe('media analysis page', () => {
   });
 
   it('reads the duration of audio', async () => {
-    const {dom, audios} = fakeDom();
+    const {dom, audios} = mockDom();
     const reply = analyseMedia(job('audio'), dom);
     define(audios[0] ?? {}, {duration: 200});
     fire(audios[0], 'loadedmetadata');
@@ -171,7 +171,7 @@ describe('media analysis page', () => {
   });
 
   it('reads an image and draws the middle of it', async () => {
-    const {dom, images, drawThumbnail} = fakeDom();
+    const {dom, images, drawThumbnail} = mockDom();
     const reply = analyseMedia(job('image'), dom);
     define(images[0] ?? {}, {naturalWidth: 400, naturalHeight: 300});
     fire(images[0], 'load');
@@ -190,7 +190,7 @@ describe('media analysis page', () => {
   });
 
   it('answers an image it cannot decode', async () => {
-    const {dom, images} = fakeDom();
+    const {dom, images} = mockDom();
     const reply = analyseMedia(job('image'), dom);
     fire(images[0], 'error');
     expect(await reply).toMatchObject({ok: false, reason: 'decode'});

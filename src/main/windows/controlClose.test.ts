@@ -1,6 +1,6 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {appEndpoints} from '@contracts/ipc/app';
 import {APP_FLUSH_LIMITS} from '@core/schema/appFlush';
 import {recordingLogger} from '../displays/testing';
@@ -46,7 +46,7 @@ vi.mock('electron', () => ({ipcMain: electron.ipcMain}));
 const CONTROL_ID = 7;
 const OTHER_ID = 8;
 
-class FakeContents extends EventEmitter {
+class MockContents extends EventEmitter {
   readonly id = CONTROL_ID;
   destroyed = false;
   readonly send = vi.fn<(channel: string, value: unknown) => void>();
@@ -56,8 +56,8 @@ class FakeContents extends EventEmitter {
   }
 }
 
-class FakeControl extends EventEmitter implements CloseableWindow {
-  readonly webContents = new FakeContents();
+class MockControl extends EventEmitter implements CloseableWindow {
+  readonly webContents = new MockContents();
   destroyed = false;
 
   isDestroyed(): boolean {
@@ -77,7 +77,7 @@ class FakeControl extends EventEmitter implements CloseableWindow {
 }
 
 function setup() {
-  const control = new FakeControl();
+  const control = new MockControl();
   const log = recordingLogger();
   const closing = registerControlClose({control, log});
   onTestFinished(() => {
@@ -109,7 +109,7 @@ beforeEach(() => {
 
 describe('control window close handshake', () => {
   it('keeps a responsive renderer open through slow saves and times out only after progress stops', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {control, requestId, reply} = setup();
     control.close();
     const request = {requestId: requestId()};
@@ -135,7 +135,7 @@ describe('control window close handshake', () => {
   });
 
   it('does not extend a request for progress from another window or request', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {control, requestId} = setup();
     control.close();
     await clock.advance(APP_FLUSH_LIMITS.timeoutMs - 1);
@@ -202,7 +202,7 @@ describe('control window close handshake', () => {
   });
 
   it('closes after the flush bound when no reply comes', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {control, log} = setup();
     control.close();
     await clock.advance(APP_FLUSH_LIMITS.timeoutMs - 1);

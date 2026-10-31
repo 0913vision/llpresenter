@@ -2,7 +2,7 @@ import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@core/schema/timers';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {saveNewCountdown, saveNewTimer} from './timerEdits';
@@ -50,7 +50,7 @@ it('adds a separately named definition and keeps unknown fields', async () => {
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'timers', revision: 2}});
-  const api = fakeLlpApi({settings: {get: async () => value, edit}});
+  const api = mockLlpApi({settings: {get: async () => value, edit}});
   await expect(saveNewCountdown(api, fields)).resolves.toMatchObject({
     ok: true,
   });
@@ -82,7 +82,7 @@ it.each(configurations)(
     const edit = vi
       .fn()
       .mockResolvedValue({ok: true, value: {id: 'timers', revision: 2}});
-    const api = fakeLlpApi({settings: {get, edit}});
+    const api = mockLlpApi({settings: {get, edit}});
     await saveNewTimer(api, {id, ...configuration});
     expect(edit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
@@ -114,7 +114,7 @@ it.each(configurations)(
 it('refuses invalid new configurations before reading or writing', async () => {
   const get = vi.fn();
   const edit = vi.fn();
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   for (const configuration of [
     {kind: 'elapsed', start: -1},
     {kind: 'elapsed', start: 0.5},
@@ -142,7 +142,7 @@ it('holds close through a deferred read and retries on the newest document', asy
       error: {reason: 'stale', message: 'Fixture revision'},
     })
     .mockResolvedValue({ok: true, value: {id: 'timers', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   const saving = saveNewCountdown(api, fields);
   let closed = false;
   const closing = pendingWritesOf(api)
@@ -171,7 +171,7 @@ it('accepts an applied disk warning without retrying', async () => {
       unchangedFiles: ['timers.json'],
     },
   });
-  const api = fakeLlpApi({settings: {get: async () => document(), edit}});
+  const api = mockLlpApi({settings: {get: async () => document(), edit}});
   await expect(saveNewCountdown(api, fields)).resolves.toMatchObject({
     ok: false,
     error: {reason: 'write-failed'},
@@ -187,7 +187,7 @@ it('recognizes an identical applied definition and refuses an occupied ID', asyn
     .mockResolvedValue(
       document([{...fields, kind: 'countdown', name: '타이머 1'}]),
     );
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await expect(saveNewCountdown(api, fields)).resolves.toMatchObject({
     ok: true,
   });
@@ -199,7 +199,7 @@ it('recognizes an identical applied definition and refuses an occupied ID', asyn
 it('refuses read-only, full and invalid writes', async () => {
   const edit = vi.fn();
   const get = vi.fn().mockResolvedValue(document([], 'readOnly'));
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await expect(saveNewCountdown(api, fields)).rejects.toThrow(
     'cannot be edited',
   );

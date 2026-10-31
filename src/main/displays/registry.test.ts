@@ -1,15 +1,15 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {DISPLAY_RETRY_MS, DISPLAY_SETTLE_MS, DisplayRegistry} from './registry';
-import {FakeDisplaySource, displayInfo, recordingLogger} from './testing';
+import {MockDisplaySource, displayInfo, recordingLogger} from './testing';
 
 const control = displayInfo({id: 1, primary: true});
 const projector = displayInfo({id: 2, x: 1920});
 
 describe('DisplayRegistry', () => {
   it('reports removal immediately, isolates listener failures, and releases both subscriptions', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
     const removed = vi.fn();
@@ -41,8 +41,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('treats a change of only the refresh rate as a monitor change', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const registry = new DisplayRegistry(source, recordingLogger());
     const listener = vi.fn();
     registry.subscribe(listener);
@@ -58,7 +58,7 @@ describe('DisplayRegistry', () => {
 
   it('reads the numbered monitors at start', () => {
     const registry = new DisplayRegistry(
-      new FakeDisplaySource(projector, control),
+      new MockDisplaySource(projector, control),
       recordingLogger(),
     );
     expect(registry.monitors.map(({id, number}) => [id, number])).toEqual([
@@ -68,8 +68,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('reads again once a burst of display events settles', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const registry = new DisplayRegistry(source, recordingLogger());
     const listener = vi.fn();
     registry.subscribe(listener);
@@ -86,8 +86,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('stays quiet when a display event changes nothing', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const registry = new DisplayRegistry(source, recordingLogger());
     const listener = vi.fn();
     registry.subscribe(listener);
@@ -97,8 +97,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('reads at once on refresh and drops the pending read', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const registry = new DisplayRegistry(source, recordingLogger());
     const listener = vi.fn();
     registry.subscribe(listener);
@@ -110,8 +110,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('keeps the last list when the system reports no monitors', () => {
-    installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
     source.displays = [];
@@ -121,8 +121,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('logs a failed read and keeps the last list', () => {
-    installFakeClock();
-    const source = new FakeDisplaySource(control);
+    installMockClock();
+    const source = new MockDisplaySource(control);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
     source.failure = new Error('display service down');
@@ -132,8 +132,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('reads again by itself after an empty read until the system recovers', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control, projector);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control, projector);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
     const listener = vi.fn();
@@ -152,8 +152,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('recovers from a failed read at start without a display event', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control);
     source.failure = new Error('display service starting');
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
@@ -165,8 +165,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('cancels a pending retry on dispose', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control);
     const registry = new DisplayRegistry(source, recordingLogger());
     source.displays = [];
     registry.refresh();
@@ -177,7 +177,7 @@ describe('DisplayRegistry', () => {
   });
 
   it('keeps notifying the other listeners when one throws', () => {
-    const source = new FakeDisplaySource(control);
+    const source = new MockDisplaySource(control);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
     const after = vi.fn();
@@ -192,8 +192,8 @@ describe('DisplayRegistry', () => {
   });
 
   it('releases its watcher, its timer, and its listeners on dispose', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(control);
+    const clock = installMockClock();
+    const source = new MockDisplaySource(control);
     const registry = new DisplayRegistry(source, recordingLogger());
     const listener = vi.fn();
     const unsubscribe = registry.subscribe(listener);

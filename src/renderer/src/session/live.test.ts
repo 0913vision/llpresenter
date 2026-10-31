@@ -1,6 +1,6 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {startLiveSync, useLive} from './live';
 
 afterEach(() => {
@@ -15,7 +15,7 @@ afterEach(() => {
 it('ignores a delayed initial live state after synchronization stops', async () => {
   let finish: ((state: LiveState) => void) | undefined;
   const unsubscribe = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {
       get: () =>
         new Promise(resolve => {

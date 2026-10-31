@@ -8,7 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@core/schema/textImport';
 import type {SongDocument} from '@core/schema/contentDocuments';
@@ -43,7 +43,7 @@ describe('text import flow', () => {
       ok: true,
       value: {source: 'file', fileName: 'Invented.txt', text: 'Invented line'},
     }));
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ...f.api,
       textImport: {read, preview: async request => convertTextImport(request)},
     });
@@ -84,7 +84,7 @@ describe('text import flow', () => {
       ok: true,
       value: {source: 'file', fileName: 'Candidate.txt', text},
     }));
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ...f.api,
       textImport: {read, preview: async request => convertTextImport(request)},
     });
@@ -144,7 +144,7 @@ describe('text import flow', () => {
     'handles a read %s without opening an editor',
     async kind => {
       const f = fixture();
-      const api = fakeLlpApi({
+      const api = mockLlpApi({
         ...f.api,
         textImport: {
           read: async () =>
@@ -176,7 +176,7 @@ describe('text import flow', () => {
   it('ignores a pending read after closing', async () => {
     const f = fixture();
     let resolve: (result: TextImportReadResult) => void = () => undefined;
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       ...f.api,
       textImport: {
         read: () =>

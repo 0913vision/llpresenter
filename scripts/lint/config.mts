@@ -246,10 +246,10 @@ export const lintConfig = defineConfig(
   {
     files: TEST_FILES,
     rules: {
-      // NOTE(0913vision): Fakes implement promise-returning interfaces as
+      // NOTE(0913vision): Mocks implement promise-returning interfaces as
       // `async () => value`.
       '@typescript-eslint/require-await': 'off',
-      // NOTE(0913vision): Fakes and handlers in tests are often no-ops.
+      // NOTE(0913vision): Mocks and handlers in tests are often no-ops.
       '@typescript-eslint/no-empty-function': 'off',
       // NOTE(0913vision): `expect(mock.method)` passes a method without
       // calling it.

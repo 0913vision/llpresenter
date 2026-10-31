@@ -7,7 +7,7 @@ function stateAt(version: number): LiveState {
   return {...emptyLiveState(), version};
 }
 
-function fakeLive(current: Promise<LiveState>) {
+function mockLive(current: Promise<LiveState>) {
   const listeners = new Set<(state: LiveState) => void>();
   const live: LlpApi['live'] = {
     get: () => current,
@@ -26,7 +26,7 @@ function fakeLive(current: Promise<LiveState>) {
 
 describe('followLiveState', () => {
   it('draws the current state and every newer one', async () => {
-    const {live, push} = fakeLive(Promise.resolve(stateAt(3)));
+    const {live, push} = mockLive(Promise.resolve(stateAt(3)));
     const onState = vi.fn<(state: LiveState) => void>();
     followLiveState(live, onState, vi.fn());
     await vi.waitFor(() => expect(onState).toHaveBeenCalledTimes(1));
@@ -36,7 +36,7 @@ describe('followLiveState', () => {
 
   it('drops a current state that arrives after a newer change', async () => {
     let answer: (state: LiveState) => void = () => undefined;
-    const {live, push} = fakeLive(
+    const {live, push} = mockLive(
       new Promise(resolve => {
         answer = resolve;
       }),
@@ -51,7 +51,7 @@ describe('followLiveState', () => {
   });
 
   it('reports a failed read', async () => {
-    const {live} = fakeLive(Promise.reject(new Error('no main process')));
+    const {live} = mockLive(Promise.reject(new Error('no main process')));
     const onError = vi.fn();
     followLiveState(live, vi.fn(), onError);
     await vi.waitFor(() => {
@@ -63,7 +63,7 @@ describe('followLiveState', () => {
   });
 
   it('stops following when asked', () => {
-    const {live, listeners} = fakeLive(Promise.resolve(stateAt(0)));
+    const {live, listeners} = mockLive(Promise.resolve(stateAt(0)));
     const stop = followLiveState(live, vi.fn(), vi.fn());
     stop();
     expect(listeners.size).toBe(0);
@@ -81,7 +81,7 @@ describe('followLiveState', () => {
 
   it('ignores a state that arrives after it stopped', async () => {
     const reply = deferred();
-    const {live} = fakeLive(reply.promise);
+    const {live} = mockLive(reply.promise);
     const onState = vi.fn<(state: LiveState) => void>();
     const stop = followLiveState(live, onState, vi.fn());
     stop();
@@ -93,7 +93,7 @@ describe('followLiveState', () => {
 
   it('ignores a failure that arrives after it stopped', async () => {
     const reply = deferred();
-    const {live} = fakeLive(reply.promise);
+    const {live} = mockLive(reply.promise);
     const onError = vi.fn();
     const stop = followLiveState(live, vi.fn(), onError);
     stop();

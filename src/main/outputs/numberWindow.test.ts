@@ -5,7 +5,7 @@ import {openNumberWindow} from './numberWindow';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
-  class FakeBrowserWindow extends EventEmitter {
+  class MockBrowserWindow extends EventEmitter {
     readonly webContents = new EventEmitter();
     readonly removeMenu = vi.fn();
     readonly setAlwaysOnTop = vi.fn();
@@ -24,11 +24,11 @@ const electron = await vi.hoisted(async () => {
       created.push(this);
     }
   }
-  const created: FakeBrowserWindow[] = [];
-  return {FakeBrowserWindow, created};
+  const created: MockBrowserWindow[] = [];
+  return {MockBrowserWindow, created};
 });
 
-vi.mock('electron', () => ({BrowserWindow: electron.FakeBrowserWindow}));
+vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
 vi.mock('../windows/page', () => ({
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),

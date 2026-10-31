@@ -7,7 +7,7 @@ import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
 import {maxPopoverHeight} from './placement';
 import {cssRules} from '@renderer/ui/testing/cssRules';
-import {installFakeClock} from '../../../../test/fake-clock';
+import {installMockClock} from '../../../../test/mock-clock';
 import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
 
 beforeAll(() => {
@@ -422,7 +422,7 @@ describe('Menu', () => {
   it('opens a submenu when the pointer rests on its parent for 150ms', async () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole('button', {name: '파일'}));
-    const clock = installFakeClock();
+    const clock = installMockClock();
     pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
     await letTimePass(clock, SUBMENU_DELAY_MS - 1);
     expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
@@ -434,7 +434,7 @@ describe('Menu', () => {
     render(<Harness entries={twoSubmenus} />);
     await openMenu();
     const root = screen.getByRole('menu', {name: '파일'});
-    const clock = installFakeClock();
+    const clock = installMockClock();
     pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
     await letTimePass(clock, SUBMENU_DELAY_MS);
     expect(document.activeElement).toBe(root);
@@ -448,7 +448,7 @@ describe('Menu', () => {
   it('moves focus into the submenu that the pointer enters', async () => {
     render(<Harness entries={twoSubmenus} />);
     await openMenu();
-    const clock = installFakeClock();
+    const clock = installMockClock();
     pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
     await letTimePass(clock, SUBMENU_DELAY_MS);
     const submenu = screen.getByRole('menu', {name: '가져오기'});
@@ -464,7 +464,7 @@ describe('Menu', () => {
   it('keeps an open submenu while the pointer crosses another parent into it', async () => {
     render(<Harness entries={twoSubmenus} />);
     await openMenu();
-    const clock = installFakeClock();
+    const clock = installMockClock();
     pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
     await letTimePass(clock, SUBMENU_DELAY_MS);
     pointAt(screen.getByRole('menuitem', {name: '내보내기'}));
@@ -478,7 +478,7 @@ describe('Menu', () => {
   it('opens the next submenu once the grace period ends', async () => {
     render(<Harness entries={twoSubmenus} />);
     await openMenu();
-    const clock = installFakeClock();
+    const clock = installMockClock();
     pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
     await letTimePass(clock, SUBMENU_DELAY_MS);
     pointAt(screen.getByRole('menuitem', {name: '내보내기'}));

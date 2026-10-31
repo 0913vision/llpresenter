@@ -50,7 +50,7 @@ for (const [name, value] of [
 }
 
 /** The members a test replaces, part by part. */
-export type FakeLlpApiParts = {
+export type MockLlpApiParts = {
   readonly [Part in keyof LlpApi]?: Partial<LlpApi[Part]>;
 };
 
@@ -59,7 +59,7 @@ export type FakeLlpApiParts = {
  * the members a test needs; the rest of each part keeps its default, so new
  * channels never break existing tests.
  */
-export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
+export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
     bible: {
       lookup: request =>
@@ -145,7 +145,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       get: request => {
         const document = EMPTY_SHOW_SETTINGS.get(request.name);
         return document === undefined
-          ? Promise.reject(new Error('fakeLlpApi has no settings documents'))
+          ? Promise.reject(new Error('mockLlpApi has no settings documents'))
           : Promise.resolve(document);
       },
       edit: () => Promise.resolve(NOT_FOUND),
@@ -176,7 +176,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       preview: () =>
         Promise.resolve({
           ok: false,
-          error: {reason: 'empty', message: 'fakeLlpApi has no text'},
+          error: {reason: 'empty', message: 'mockLlpApi has no text'},
         }),
       ...overrides.textImport,
     },
@@ -187,7 +187,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
           ok: false,
           error: {
             reason: 'unavailable',
-            message: 'fakeLlpApi has no recovery record',
+            message: 'mockLlpApi has no recovery record',
           },
         }),
       startFresh: () => Promise.resolve({ok: true, value: null}),
@@ -200,7 +200,7 @@ const NOT_FOUND: EditResult = {
   ok: false,
   error: {
     reason: 'not-found',
-    message: 'fakeLlpApi has no data',
+    message: 'mockLlpApi has no data',
   },
 };
 

@@ -2,7 +2,7 @@ import {act, render, screen} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
@@ -12,7 +12,7 @@ it('shows nothing, then 저장 중 with 다시 시도 off, then 저장할 수 �
   let finish: (value: boolean) => void = () => undefined;
   const closeAnyway = vi.fn();
   const model = new CloseFlush({
-    api: fakeLlpApi({
+    api: mockLlpApi({
       app: {
         subscribeFlushRequests: listener => {
           request = listener;

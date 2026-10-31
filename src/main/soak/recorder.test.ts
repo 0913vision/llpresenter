@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {parseSample} from '../../../scripts/soak/record.mts';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import type {Logger} from '../log';
 import {
   pageProcessName,
@@ -28,7 +28,7 @@ function metric(
   };
 }
 
-function fakeLog(): Logger {
+function mockLog(): Logger {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -174,7 +174,7 @@ describe('startSoakRecording', () => {
     append: (line: string) => Promise<void>,
     collectGarbage: () => Promise<void> = async () => undefined,
   ) {
-    const log = fakeLog();
+    const log = mockLog();
     const quit = vi.fn();
     const stop = startSoakRecording({
       settings,
@@ -197,7 +197,7 @@ describe('startSoakRecording', () => {
   }
 
   it('appends a line per interval, in order', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const lines: string[] = [];
     const {stop} = record(async line => {
       lines.push(line);
@@ -212,7 +212,7 @@ describe('startSoakRecording', () => {
   });
 
   it('collects garbage before each sample', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const events: string[] = [];
     const {stop} = record(
       async line => {
@@ -233,7 +233,7 @@ describe('startSoakRecording', () => {
   });
 
   it('logs a failed garbage collection and still samples', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const lines: string[] = [];
     const failure = new Error('page gone');
     const {log, stop} = record(
@@ -254,7 +254,7 @@ describe('startSoakRecording', () => {
   });
 
   it('samples without a garbage collection that never ends, and still quits', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const lines: string[] = [];
     const {log, quit} = record(
       async line => {
@@ -277,7 +277,7 @@ describe('startSoakRecording', () => {
   });
 
   it('quits after the exit time', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {quit} = record(async () => undefined);
     await clock.advance(34_000);
     expect(quit).not.toHaveBeenCalled();
@@ -286,7 +286,7 @@ describe('startSoakRecording', () => {
   });
 
   it('waits for a slow write before quitting', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const slow = deferred();
     const lines: string[] = [];
     const {quit} = record(async line => {
@@ -302,7 +302,7 @@ describe('startSoakRecording', () => {
   });
 
   it('resolves stop only once queued writes are done', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const slow = deferred();
     let written = false;
     const {stop} = record(async () => {
@@ -323,7 +323,7 @@ describe('startSoakRecording', () => {
   });
 
   it('logs a failed write and keeps recording', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const lines: string[] = [];
     let calls = 0;
     const {log, stop} = record(async line => {
@@ -341,7 +341,7 @@ describe('startSoakRecording', () => {
   });
 
   it('stops sampling and the quit timer when stopped', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const lines: string[] = [];
     const {quit, stop} = record(async line => {
       lines.push(line);

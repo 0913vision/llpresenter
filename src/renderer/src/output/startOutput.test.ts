@@ -7,7 +7,7 @@ import type {
   FrameReadyReport,
   RendererLogEntry,
 } from '@core/schema/ipcPayloads';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {classes} from '../rendering/classes';
 import {SlideLayerView} from '../rendering/slideLayer';
 import {startOutput} from './startOutput';
@@ -65,7 +65,7 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
   const root = document.createElement('div');
   const logs: RendererLogEntry[] = [];
   const rates: FrameRateReport[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: () => Promise.resolve(overlaySettings().reader.get('screens')),
     },
@@ -85,12 +85,12 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 describe('startOutput', () => {
   it('rechecks the same live version without requiring a resize event until main acknowledges visibility', async () => {
     const settings = overlaySettings();
-    const defaults = fakeLlpApi();
+    const defaults = mockLlpApi();
     const reportReady = vi.fn<(report: FrameReadyReport) => Promise<boolean>>(
       () => Promise.resolve(false),
     );
     const root = document.createElement('div');
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         get: ({name}) =>
           name === 'screens'
@@ -130,7 +130,7 @@ describe('startOutput', () => {
 
   it('accepts a shown acknowledgment after a newer version and restores the pending background dissolve', async () => {
     const settings = overlaySettings();
-    const defaults = fakeLlpApi();
+    const defaults = mockLlpApi();
     let current: LiveState = {
       ...SHOWING,
       outputs: {[MAIN]: true},
@@ -146,7 +146,7 @@ describe('startOutput', () => {
         : Promise.resolve(false),
     );
     const root = document.createElement('div');
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         get: ({name}) =>
           name === 'screens'
@@ -184,12 +184,12 @@ describe('startOutput', () => {
     'reveals valid lyrics with a completed fallback after a terminal %s failure',
     async failure => {
       const settings = overlaySettings();
-      const defaults = fakeLlpApi();
+      const defaults = mockLlpApi();
       const reportReady = vi.fn((report: FrameReadyReport) =>
         Promise.resolve(report.ready),
       );
       const logs: RendererLogEntry[] = [];
-      const api = fakeLlpApi({
+      const api = mockLlpApi({
         settings: {
           get: ({name}) =>
             name === 'screens'
@@ -252,9 +252,9 @@ describe('startOutput', () => {
       Promise.resolve(current.outputs[MAIN] === true && report.ready),
     );
     const settings = overlaySettings();
-    const defaults = fakeLlpApi();
+    const defaults = mockLlpApi();
     const raise = vi.fn();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         get: ({name}) =>
           name === 'screens'
@@ -354,7 +354,7 @@ describe('startOutput', () => {
     };
     const unsubscribe = vi.fn();
     const root = document.createElement('div');
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       settings: {
         get: () => Promise.resolve(capture),
         subscribe: listener => {
@@ -403,7 +403,7 @@ describe('startOutput', () => {
     const stopLive = vi.fn();
     const stopSettings = vi.fn();
     const pending = new Map<string, (document: SettingsDocument) => void>();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       live: {
         get: () => Promise.resolve(store.state),
         subscribe: () => stopLive,

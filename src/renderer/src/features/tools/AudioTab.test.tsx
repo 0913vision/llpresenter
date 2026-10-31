@@ -11,7 +11,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {AudioTab} from './AudioTab';
 
@@ -55,7 +55,7 @@ function fixture(missing = false) {
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: first, revision: 2}});
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     media: {
       get: async () => parsed.value,
       edit,

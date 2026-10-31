@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createTimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -16,7 +16,7 @@ it.each([true, false])(
   async applied => {
     const response = deferred<EditResult>();
     const send = vi.fn().mockReturnValue(response.promise);
-    const api = fakeLlpApi({settings: {edit: send}});
+    const api = mockLlpApi({settings: {edit: send}});
     const saving = deleteTimer(api, edit);
     let closed = false;
     const closing = pendingWritesOf(api)

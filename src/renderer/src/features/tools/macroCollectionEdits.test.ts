@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
@@ -45,7 +45,7 @@ it('adds, renames and deletes a collection without deleting macros or unknown fi
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await saveMacroCollectionEdit(api, {kind: 'add', collection});
   expect(edit).toHaveBeenNthCalledWith(
     1,
@@ -85,7 +85,7 @@ it('holds close through the read and preserves newer members after a stale retry
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   const writing = saveMacroCollectionEdit(api, {
     kind: 'rename',
     id: collection.id,
@@ -113,7 +113,7 @@ it('rejects missing collections and bad names and reports applied write failures
     error: {reason: 'write-failed', message: 'disk'},
   } as const;
   const edit = vi.fn().mockResolvedValue(failure);
-  const api = fakeLlpApi({settings: {get: async () => document(), edit}});
+  const api = mockLlpApi({settings: {get: async () => document(), edit}});
   await expect(
     saveMacroCollectionEdit(api, {kind: 'add', collection}),
   ).resolves.toEqual(failure);
@@ -141,7 +141,7 @@ it('rejects creating a collection for a macro removed during the read', async ()
     throw new Error('Invalid fixture');
   }
   const edit = vi.fn();
-  const api = fakeLlpApi({settings: {get: async () => missing.value, edit}});
+  const api = mockLlpApi({settings: {get: async () => missing.value, edit}});
   const id = document().value.macros[0]?.id;
   if (!id) throw new Error('Missing macro');
   await expect(
@@ -172,7 +172,7 @@ it('retries a move against fresh collections without losing a newly added collec
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: vi.fn().mockResolvedValueOnce(before).mockResolvedValue(newer),
       edit,

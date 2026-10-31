@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {contentFixture} from '../../../../../../test/content-fixture';
 import {convertTextImport} from '@core/songs/textImport';
@@ -14,7 +14,7 @@ it('imports invented text, edits it, and saves a real song document without open
   const backend = contentFixture();
   const editor = editorFixture();
   let lastFailure: unknown;
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     ...editor.api,
     songs: backend.songs,
     content: {

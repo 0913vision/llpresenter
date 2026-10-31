@@ -6,7 +6,7 @@ import {
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {panelApi} from '@contracts/ipc/testing/bibleApi';
@@ -121,7 +121,7 @@ export function quickFixture() {
         ? Promise.resolve(timerDocument())
         : bible.get(request),
   );
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     ...bible.api,
     log: {write: vi.fn()},
     library: {showSong},

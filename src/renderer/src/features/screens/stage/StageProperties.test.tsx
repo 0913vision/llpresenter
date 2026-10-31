@@ -12,7 +12,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {StageElement} from '@core/schema/stageLayouts';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {LAYOUT_ID} from '@core/testing/screenDocuments';
 import {useScreensSelection} from '../selection';
 import {StageProperties} from './StageProperties';
@@ -82,7 +82,7 @@ function setup(
       };
     },
   );
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: () => Promise.resolve(current),
       edit,

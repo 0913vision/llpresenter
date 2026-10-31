@@ -15,7 +15,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -58,7 +58,7 @@ function setup({
   const edits: SettingsEdit[] = [];
   const onProblem = vi.fn();
   const listeners = new Set<(document: SettingsDocument) => void>();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {
       get: () => Promise.resolve({...screensDocument(), access}),

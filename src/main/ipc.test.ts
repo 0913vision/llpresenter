@@ -50,7 +50,7 @@ vi.mock('electron', () => ({
   },
 }));
 
-function fakeLog() {
+function mockLog() {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -83,7 +83,7 @@ describe('registerIpc live clock', () => {
       wall: () => 1,
       timer: () => 4321,
     });
-    const dispose = registerIpc(store, fakeLog(), 'offscreen');
+    const dispose = registerIpc(store, mockLog(), 'offscreen');
     expect(electron.handlers.get(liveEndpoints.clock.channel)?.()).toBe(4321);
     dispose();
     expect(electron.handlers.has(liveEndpoints.clock.channel)).toBe(false);
@@ -93,7 +93,7 @@ describe('registerIpc live clock', () => {
 describe('registerIpc live commands', () => {
   it('skips malformed batch children and sends each window exactly one final live state', () => {
     const store = new LiveStore();
-    const log = fakeLog();
+    const log = mockLog();
     const sends = [vi.fn(), vi.fn()];
     for (const send of sends) {
       electron.windows.add({
@@ -129,7 +129,7 @@ describe('registerIpc live commands', () => {
   it('rejects an invalid batch envelope without applying any command', () => {
     const store = new LiveStore();
     const dispatch = vi.spyOn(store, 'dispatch');
-    const log = fakeLog();
+    const log = mockLog();
     const dispose = registerIpc(store, log, 'offscreen');
     sendCommand({type: 'live.batch', commands: 'invalid'});
     expect(dispatch).not.toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe('registerIpc live commands', () => {
   it('dispatches the parsed command, without fields it does not declare', () => {
     const store = new LiveStore();
     const dispatch = vi.spyOn(store, 'dispatch');
-    const dispose = registerIpc(store, fakeLog(), 'normal');
+    const dispose = registerIpc(store, mockLog(), 'normal');
 
     sendCommand({
       type: 'media.show',
@@ -162,7 +162,7 @@ describe('registerIpc live commands', () => {
   it('logs the failing field of a malformed command and drops it', () => {
     const store = new LiveStore();
     const dispatch = vi.spyOn(store, 'dispatch');
-    const log = fakeLog();
+    const log = mockLog();
     const dispose = registerIpc(store, log, 'normal');
 
     sendCommand({type: 'layer.clear', target: 'slides'});
@@ -178,7 +178,7 @@ describe('registerIpc live commands', () => {
 
 describe('registerIpc window actions', () => {
   it('minimizes, maximizes, and closes the window in normal mode', () => {
-    const dispose = registerIpc(new LiveStore(), fakeLog(), 'normal');
+    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
 
     sendWindowAction('minimize');
     sendWindowAction('toggle-maximize');
@@ -192,7 +192,7 @@ describe('registerIpc window actions', () => {
 
   it('restores a maximized window on toggle-maximize', () => {
     electron.window.isMaximized.mockReturnValue(true);
-    const dispose = registerIpc(new LiveStore(), fakeLog(), 'normal');
+    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
 
     sendWindowAction('toggle-maximize');
 
@@ -202,7 +202,7 @@ describe('registerIpc window actions', () => {
   });
 
   it('never minimizes or maximizes an offscreen window, which would show it', () => {
-    const log = fakeLog();
+    const log = mockLog();
     const dispose = registerIpc(new LiveStore(), log, 'offscreen');
 
     sendWindowAction('minimize');
@@ -219,7 +219,7 @@ describe('registerIpc window actions', () => {
   });
 
   it('still closes an offscreen window', () => {
-    const dispose = registerIpc(new LiveStore(), fakeLog(), 'offscreen');
+    const dispose = registerIpc(new LiveStore(), mockLog(), 'offscreen');
 
     sendWindowAction('close');
 
@@ -228,7 +228,7 @@ describe('registerIpc window actions', () => {
   });
 
   it('ignores a value that is not a window action', () => {
-    const dispose = registerIpc(new LiveStore(), fakeLog(), 'normal');
+    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
 
     sendWindowAction('fullscreen');
 

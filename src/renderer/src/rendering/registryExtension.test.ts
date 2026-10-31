@@ -6,11 +6,11 @@ import {OutputRenderer} from './outputRenderer';
 
 vi.mock('./layers', () => import('./fixtures/layers'));
 
-class FakeResizeObserver {
-  static readonly instances: FakeResizeObserver[] = [];
+class MockResizeObserver {
+  static readonly instances: MockResizeObserver[] = [];
   disconnected = false;
   constructor(readonly callback: () => void) {
-    FakeResizeObserver.instances.push(this);
+    MockResizeObserver.instances.push(this);
   }
   observe(): void {}
   disconnect(): void {
@@ -25,8 +25,8 @@ const layers = {
 
 beforeEach(() => {
   failProbeDuring(null);
-  FakeResizeObserver.instances.length = 0;
-  vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+  MockResizeObserver.instances.length = 0;
+  vi.stubGlobal('ResizeObserver', MockResizeObserver);
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(960);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(540);
 });
@@ -70,7 +70,7 @@ describe('layer module discovery through OutputRenderer', () => {
       'true',
       'true',
     ]);
-    expect(FakeResizeObserver.instances[0]?.disconnected).toBe(true);
+    expect(MockResizeObserver.instances[0]?.disconnected).toBe(true);
     expect(parent.childElementCount).toBe(0);
   });
 
@@ -84,13 +84,13 @@ describe('layer module discovery through OutputRenderer', () => {
       );
       failProbeDuring(phase);
       renderer.render(layers);
-      FakeResizeObserver.instances[0]?.callback();
+      MockResizeObserver.instances[0]?.callback();
       expect(healthy?.textContent).toBe('registered layer');
       expect(healthy?.dataset['scale']).toBe('0.5');
       renderer.dispose();
       expect(healthy?.dataset['disposed']).toBe('true');
       expect(parent.childElementCount).toBe(0);
-      expect(FakeResizeObserver.instances[0]?.disconnected).toBe(true);
+      expect(MockResizeObserver.instances[0]?.disconnected).toBe(true);
       const operation = phase === 'rescale' ? 'draw' : phase;
       expect(onError).toHaveBeenCalledWith(
         `could not ${operation} the fixture layer`,

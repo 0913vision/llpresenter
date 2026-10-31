@@ -2,7 +2,7 @@ import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useScreenEditor} from './useScreenEditor';
 import {useMonitors} from './useMonitors';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
@@ -44,7 +44,7 @@ it('keeps a completed move when a settings push arrives before the old monitor f
     },
   };
   const edits: SettingsEdit[] = [];
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     monitors: {get: () => Promise.resolve([monitor2, monitor3])},
     settings: {
       edit: edit => {
@@ -91,7 +91,7 @@ it('serializes property and layout panel edits against one shared revision', asy
     release = resolve;
   });
   const edits: SettingsEdit[] = [];
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       edit: edit => {
         edits.push(edit);
@@ -123,7 +123,7 @@ it('serializes property and layout panel edits against one shared revision', asy
 it('releases the unmounted panel reporter while another panel keeps editing', async () => {
   const document = screensDocument();
   if (document.name !== 'screens') throw new Error('Expected screens');
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       edit: () =>
         Promise.resolve({

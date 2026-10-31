@@ -12,7 +12,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createMediaId, createSongId} from '@core/schema/ids';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -50,7 +50,7 @@ function song(overrides: Partial<ShowLibrarySong> = {}): ShowLibrarySong {
 function setup() {
   const send = vi.fn<(command: LiveCommand) => void>();
   const showSong = vi.fn(async () => song());
-  const api = fakeLlpApi({live: {send}, library: {showSong}});
+  const api = mockLlpApi({live: {send}, library: {showSong}});
   window.llp = api;
   return {api, send, showSong};
 }

@@ -2,7 +2,7 @@ import {cleanup, fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {MenuBar} from './MenuBar';
@@ -24,7 +24,7 @@ afterEach(() => {
 
 function outputSender() {
   const send = vi.fn();
-  window.llp = fakeLlpApi({live: {send}});
+  window.llp = mockLlpApi({live: {send}});
   return send;
 }
 
@@ -39,7 +39,7 @@ describe('MenuBar', () => {
     'does not activate %s on modified keyboard presses',
     label => {
       const control = vi.fn();
-      window.llp = fakeLlpApi({window: {control}});
+      window.llp = mockLlpApi({window: {control}});
       render(<MenuBar title="" clipboardAvailable={async () => false} />);
       const target = screen.getByRole(
         ['파일', '보기', '출력'].includes(label) ? 'menuitem' : 'button',
@@ -59,7 +59,7 @@ describe('MenuBar', () => {
 
   it('still accepts modified pointer presses on window controls', () => {
     const control = vi.fn();
-    window.llp = fakeLlpApi({window: {control}});
+    window.llp = mockLlpApi({window: {control}});
     render(<MenuBar title="" />);
     fireEvent.click(screen.getByRole('button', {name: '최대화'}), {
       detail: 1,
@@ -145,7 +145,7 @@ describe('MenuBar', () => {
 
   it('sends the window action of a button', () => {
     const control = vi.fn();
-    window.llp = fakeLlpApi({window: {control}});
+    window.llp = mockLlpApi({window: {control}});
     render(<MenuBar title="" />);
     fireEvent.click(screen.getByRole('button', {name: '최대화'}));
     fireEvent.click(screen.getByRole('button', {name: '닫기'}));

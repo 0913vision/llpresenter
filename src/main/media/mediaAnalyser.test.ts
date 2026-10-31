@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {analysisTokenFromUrl} from '@contracts/ipc/mediaUrls';
 import type {PixelSize} from '@core/media/coverCrop';
 import {
@@ -18,7 +18,7 @@ import {
   type MediaFacts,
 } from './mediaAnalyser';
 
-interface FakePage {
+interface MockPage {
   readonly run: ReturnType<
     typeof vi.fn<(job: AnalysisJob) => Promise<unknown>>
   >;
@@ -26,12 +26,12 @@ interface FakePage {
 }
 
 function setup() {
-  const pages: FakePage[] = [];
+  const pages: MockPage[] = [];
   const answers: {next: (job: AnalysisJob) => Promise<unknown>} = {
     next: () => Promise.resolve({ok: true, duration: 3}),
   };
   const openPage = vi.fn<(signal: AbortSignal) => Promise<AnalysisPage>>(() => {
-    const page: FakePage = {
+    const page: MockPage = {
       run: vi.fn((job: AnalysisJob) => answers.next(job)),
       close: vi.fn(),
     };
@@ -147,7 +147,7 @@ describe('media analysis', () => {
   });
 
   it('closes the page after the idle time and opens a new one when needed', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {analyser, pages, openPage} = setup();
     await analyser.analyse(VIDEO);
     await clock.advance(ANALYSIS_IDLE_CLOSE_MS - 1);
@@ -175,7 +175,7 @@ describe('media analysis', () => {
   });
 
   it('closes a page that takes too long and goes on with a new one', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {analyser, pages, answers, log} = setup();
     answers.next = () => new Promise(() => undefined);
     const stuck = analyser.analyse(VIDEO);
@@ -248,7 +248,7 @@ describe('media analysis', () => {
   });
 
   it('times out a page that never opens and opens a new one for the next file', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {analyser, openPage, files, log} = setup();
     openPage.mockImplementationOnce(() => new Promise(() => undefined));
     const stuck = analyser.analyse(VIDEO);
@@ -265,7 +265,7 @@ describe('media analysis', () => {
   });
 
   it('on disposal while the page opens, gives the file back and never runs the page', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const files = new AnalysisFiles();
     const page = {run: vi.fn<AnalysisPage['run']>(), close: vi.fn()};
     let open: (opened: AnalysisPage) => void = () => undefined;
@@ -299,7 +299,7 @@ describe('media analysis', () => {
   });
 
   it('on disposal while the page runs, clears the deadline and gives the file back', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {analyser, answers, files} = setup();
     answers.next = () => new Promise(() => undefined);
     const result = analyser.analyse(VIDEO);
@@ -312,7 +312,7 @@ describe('media analysis', () => {
   });
 
   it('closes a page that opens after its analysis timed out without running it, while the next file goes on', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {analyser, openPage, pages} = setup();
     const late = {run: vi.fn<AnalysisPage['run']>(), close: vi.fn()};
     let open: (page: AnalysisPage) => void = () => undefined;

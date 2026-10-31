@@ -1,6 +1,6 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {CAPTIONS, MAIN, overlaySettings} from '@core/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import {useLive} from '../session/live';
@@ -54,7 +54,7 @@ function setup() {
     return stop;
   });
   const stopSettings = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: () => Promise.resolve(settings.reader.get('screens')),
       subscribe: () => stopSettings,

@@ -3,7 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaList} from '@core/schema/mediaList';
 import type {MediaId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {deferred} from './testing/quickTesting';
 import {useAudioMissing} from './useAudioMissing';
 
@@ -37,7 +37,7 @@ it('keeps a pushed missing-file result over an older read and stops following it
   const read = deferred<readonly MediaId[]>();
   let push: (ids: readonly MediaId[]) => void = () => undefined;
   const stop = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     media: {
       missing: () => read.promise,
       subscribeMissing: listener => {

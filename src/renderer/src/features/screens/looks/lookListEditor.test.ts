@@ -4,7 +4,7 @@ import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import {parseLookId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   looksDocument,
@@ -31,7 +31,7 @@ const another = id('00000000-0000-4000-8000-0000000000a4');
 it('queues additions on one revision and includes them in the close flush', async () => {
   const initial = document();
   const edits: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         edits.push(edit);
@@ -73,7 +73,7 @@ it('uses the live context at queue execution before allowing deletion', async ()
   });
   const edit = vi.fn().mockReturnValue(held);
   const editor = new LookListEditor(
-    fakeLlpApi({settings: {edit}}),
+    mockLlpApi({settings: {edit}}),
     vi.fn(),
     () => ({current, macros: []}),
   );
@@ -92,7 +92,7 @@ it('refuses writes to read-only documents', async () => {
   const initial = document();
   const edit = vi.fn();
   const editor = new LookListEditor(
-    fakeLlpApi({settings: {edit}}),
+    mockLlpApi({settings: {edit}}),
     vi.fn(),
     () => ({current: initial.value.current, macros: []}),
   );
@@ -115,7 +115,7 @@ it('shares the close-tracked queue between list and card edits', async () => {
     release = resolve;
   });
   const edits: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         edits.push(edit);
@@ -198,7 +198,7 @@ it('queues lyric effect updates against the latest saved style', async () => {
     .mockReturnValueOnce(held)
     .mockResolvedValue({ok: true, value: {id: 'looks', revision: 3}});
   const editor = new LookListEditor(
-    fakeLlpApi({settings: {edit}}),
+    mockLlpApi({settings: {edit}}),
     vi.fn(),
     () => ({current: initial.value.current, macros: []}),
   );

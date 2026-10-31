@@ -7,7 +7,7 @@ import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import * as clearState from '@renderer/session/clear';
 import * as show from '@renderer/session/show';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {CheckRow} from './Checkbox';
 import {Dialog} from './Dialog';
 import {ListBox, ListRow} from './ListRow';
@@ -164,7 +164,7 @@ describe('Show key integration audit', () => {
       .spyOn(clearState, 'undoClear')
       .mockImplementation(() => undefined);
     const zoom = vi.fn(() => Promise.resolve(100));
-    window.llp = fakeLlpApi({ui: {changeZoom: zoom}});
+    window.llp = mockLlpApi({ui: {changeZoom: zoom}});
     render(
       <ShowFrame>
         <Dialog
@@ -196,7 +196,7 @@ describe('Show key integration audit', () => {
         .mockImplementation(() => undefined);
       const zoom = vi.fn(() => Promise.resolve(100));
       const record = vi.fn();
-      window.llp = fakeLlpApi({ui: {changeZoom: zoom}});
+      window.llp = mockLlpApi({ui: {changeZoom: zoom}});
       render(
         <ShowFrame>
           <ShortcutField

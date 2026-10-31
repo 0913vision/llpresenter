@@ -1,12 +1,12 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {recordingLogger} from '../displays/testing';
 import {OutputWindow, OUTPUT_REVEAL_DEADLINE_MS} from './outputWindow';
 import type {ShownPlacement} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS} from './hangWatch';
 import {CRASH_LIMIT} from './restartBudget';
-import {fakeWindows, fullScreenScreen} from './testing';
+import {mockWindows, fullScreenScreen} from './testing';
 
 const PROJECTOR = {x: 1920, y: 0, width: 1920, height: 1080};
 const FULL_SCREEN: ShownPlacement = {
@@ -22,7 +22,7 @@ const FALLBACK: ShownPlacement = {
 
 function setUp(autoReady = true) {
   let version = 0;
-  const windows = fakeWindows();
+  const windows = mockWindows();
   const log = recordingLogger();
   const onCloseRequested = vi.fn();
   const output = new OutputWindow({
@@ -56,7 +56,7 @@ function setUp(autoReady = true) {
 
 describe('OutputWindow', () => {
   it('never leaves a requested output hidden past the frame deadline and logs once', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp(false);
     output.update(FULL_SCREEN);
     await clock.advance(OUTPUT_REVEAL_DEADLINE_MS - 1);
@@ -75,7 +75,7 @@ describe('OutputWindow', () => {
   });
 
   it('cancels the pending reveal when switched off or disposed', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp(false);
     output.update(FULL_SCREEN);
     output.update(null);
@@ -114,7 +114,7 @@ describe('OutputWindow', () => {
   });
 
   it('retries a limited hidden renderer as soon as output is requested, before a ready frame', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp(false);
     const handle = windows.only('main');
     for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
@@ -356,7 +356,7 @@ describe('OutputWindow', () => {
   });
 
   it('reloads the page soon after its renderer crashes', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -370,7 +370,7 @@ describe('OutputWindow', () => {
   });
 
   it('reloads again when the page fails to load after a crash', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -385,7 +385,7 @@ describe('OutputWindow', () => {
   });
 
   it('holds the empty picture after repeated crashes and tries again after the cool-down', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -401,7 +401,7 @@ describe('OutputWindow', () => {
   });
 
   it('keeps recovery running while hidden so the next reveal can use a preloaded page', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -419,7 +419,7 @@ describe('OutputWindow', () => {
   });
 
   it('destroys the window and its pending restart on dispose', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -433,7 +433,7 @@ describe('OutputWindow', () => {
   });
 
   it('crashes the renderer of a visible output that stops reporting and answering', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -454,7 +454,7 @@ describe('OutputWindow', () => {
   });
 
   it('never crashes a slow renderer that answers within the limit', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -466,7 +466,7 @@ describe('OutputWindow', () => {
   });
 
   it('logs a page that answers but reports no frames instead of crashing it', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows, log} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -479,7 +479,7 @@ describe('OutputWindow', () => {
   });
 
   it('crashes a hung renderer again when the first forced crash does not end it', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -495,7 +495,7 @@ describe('OutputWindow', () => {
   });
 
   it('watches a page that drew before again when its output turns on again', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -510,7 +510,7 @@ describe('OutputWindow', () => {
   });
 
   it('does not watch a page that has not drawn since it loaded', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp(false);
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -529,7 +529,7 @@ describe('OutputWindow', () => {
   });
 
   it('keeps one ping in flight to a hung page through retries and hide and show', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
@@ -550,7 +550,7 @@ describe('OutputWindow', () => {
   });
 
   it('does not watch a hidden output or one that is restarting', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');

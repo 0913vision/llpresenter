@@ -1,7 +1,7 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {CAPTIONS, MAIN, overlaySettings, STAGE} from '@core/testing/overlays';
 import {followRenderScreen, resolveRenderScreen} from './screenIdentity';
 
@@ -81,7 +81,7 @@ describe('output screen identity', () => {
     let changed: (document: SettingsDocument) => void = () => undefined;
     const unsubscribe = vi.fn();
     const receive = vi.fn();
-    const settings = fakeLlpApi({
+    const settings = mockLlpApi({
       settings: {
         get: () =>
           new Promise(done => {
@@ -113,7 +113,7 @@ describe('output screen identity', () => {
     const onError = vi.fn();
     const failure = new Error('Fixture screen read failure');
     const stop = followRenderScreen({
-      settings: fakeLlpApi({settings: {get: () => Promise.reject(failure)}})
+      settings: mockLlpApi({settings: {get: () => Promise.reject(failure)}})
         .settings,
       id: 'main',
       receive: vi.fn(),
@@ -128,7 +128,7 @@ describe('output screen identity', () => {
     stop();
     const receive = vi.fn();
     const stopEarly = followRenderScreen({
-      settings: fakeLlpApi({settings: {get: () => Promise.resolve(screens())}})
+      settings: mockLlpApi({settings: {get: () => Promise.resolve(screens())}})
         .settings,
       id: 'main',
       receive,

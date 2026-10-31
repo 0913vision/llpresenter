@@ -1,7 +1,7 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {LAYOUT_ID} from '@core/testing/screenDocuments';
 import {
   StageEditor,
@@ -44,7 +44,7 @@ function setup(
   const edits: Array<Extract<SettingsEdit, {name: 'stage-layouts'}>> = [];
   const log = vi.fn(),
     report = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         if (edit.name !== 'stage-layouts') {

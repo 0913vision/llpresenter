@@ -18,7 +18,7 @@ vi.mock(import('../process-tree.mts'), async importOriginal => {
 const TEN_MINUTES_MS = 600_000;
 const STOP_GRACE_MS = 5000;
 
-function useFakeTimeouts(): void {
+function useMockTimeouts(): void {
   vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
   onTestFinished(() => {
     vi.useRealTimers();
@@ -102,7 +102,7 @@ describe('runStepProcess', () => {
   it.each(survivingKills)(
     'lets go of a tree when the kill $how, and says a process kept running',
     async ({kill}) => {
-      useFakeTimeouts();
+      useMockTimeouts();
       vi.mocked(killProcessTree).mockImplementationOnce(kill);
       const dir = await makeTempDir();
       const interruption = new AbortController();
@@ -127,7 +127,7 @@ describe('runStepProcess', () => {
   );
 
   it('reports a child that outlives its parent and keeps the output open', async () => {
-    useFakeTimeouts();
+    useMockTimeouts();
     const dir = await makeTempDir();
     const interruption = new AbortController();
     const running = runStepProcess(

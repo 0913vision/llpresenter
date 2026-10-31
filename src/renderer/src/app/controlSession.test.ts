@@ -1,7 +1,7 @@
 import {expect, it, onTestFinished, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   fixtureItems,
   fixtureServiceId,
@@ -57,7 +57,7 @@ it('refuses close after a memo reaches main but cannot be saved to disk, then re
 
 it('refuses close and resumes editing when the disk save call rejects', async () => {
   let request: (value: AppFlushRequest) => void = () => undefined;
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     app: {
       subscribeFlushRequests: listener => {
         request = listener;
@@ -84,7 +84,7 @@ it('refuses close and resumes editing when the disk save call rejects', async ()
 it('answers a close flush without an editor and starts none after it', async () => {
   let request: (value: AppFlushRequest) => void = () => undefined;
   const flushDone = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     app: {
       subscribeFlushRequests: listener => {
         request = listener;

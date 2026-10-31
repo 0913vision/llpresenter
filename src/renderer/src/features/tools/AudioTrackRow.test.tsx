@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaList} from '@core/schema/mediaList';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {audioTracks} from '@core/media/audioTracks';
 import {AudioTrackRow} from './AudioTrackRow';
 
@@ -40,7 +40,7 @@ it('plays the selected occurrence and disables an unavailable track', () => {
     ),
   );
   const send = vi.fn();
-  const api = fakeLlpApi({live: {send}});
+  const api = mockLlpApi({live: {send}});
   const playlist = data.audioPlaylists[0];
   if (!playlist) throw new Error('Missing playlist fixture');
   const tracks = audioTracks(playlist, data.items, undefined);

@@ -11,7 +11,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {LAYOUT_ID} from '@core/testing/screenDocuments';
 import {useScreensSelection} from '../selection';
@@ -123,7 +123,7 @@ function setup(
       };
     },
   );
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: request =>
         Promise.resolve(

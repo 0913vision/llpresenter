@@ -11,7 +11,7 @@ const parseCount: Parse<number> = value =>
     ? {ok: true, value}
     : {ok: false, error: {field: 'count', message: 'Expected a number'}};
 
-function fakeIpc() {
+function mockIpc() {
   const listeners = new Map<string, Listener>();
   const ipc = {
     send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
@@ -38,7 +38,7 @@ function portOn(ipc: IpcRendererPort) {
 
 describe('IPC port calls', () => {
   it('answers a query with the checked reply', async () => {
-    const {ipc} = fakeIpc();
+    const {ipc} = mockIpc();
     ipc.invoke.mockResolvedValueOnce(3);
     const read = portOn(ipc).query({channel: 'count:get', reply: parseCount});
     await expect(read()).resolves.toBe(3);
@@ -46,7 +46,7 @@ describe('IPC port calls', () => {
   });
 
   it('logs and rejects a malformed reply or a failed call', async () => {
-    const {ipc, logs} = fakeIpc();
+    const {ipc, logs} = mockIpc();
     const read = portOn(ipc).query({channel: 'count:get', reply: parseCount});
     ipc.invoke.mockResolvedValueOnce('three');
     await expect(read()).rejects.toThrow(
@@ -78,7 +78,7 @@ describe('IPC port calls', () => {
   });
 
   it('sends a checked request and checks the reply against it', async () => {
-    const {ipc} = fakeIpc();
+    const {ipc} = mockIpc();
     ipc.invoke.mockResolvedValueOnce(5);
     const add = portOn(ipc).request({
       channel: 'count:add',
@@ -93,7 +93,7 @@ describe('IPC port calls', () => {
   });
 
   it('never sends a request that fails its check', async () => {
-    const {ipc, logs} = fakeIpc();
+    const {ipc, logs} = mockIpc();
     const port = portOn(ipc);
     const endpoint = {
       channel: 'count:add',
@@ -113,13 +113,13 @@ describe('IPC port calls', () => {
 
 describe('IPC port messages', () => {
   it('sends a signal without a value', () => {
-    const {ipc, sends} = fakeIpc();
+    const {ipc, sends} = mockIpc();
     portOn(ipc).signal({channel: 'app:retry'})();
     expect(sends('app:retry')).toEqual([['app:retry']]);
   });
 
   it('sends a checked message and drops one that fails, with a log', () => {
-    const {ipc, sends, logs} = fakeIpc();
+    const {ipc, sends, logs} = mockIpc();
     const send = portOn(ipc).message({
       channel: 'count:set',
       message: parseCount,
@@ -133,7 +133,7 @@ describe('IPC port messages', () => {
   });
 
   it('sends the accepted part of a message and logs each rejected part', () => {
-    const {ipc, sends, logs} = fakeIpc();
+    const {ipc, sends, logs} = mockIpc();
     const send = portOn(ipc).partialMessage({
       channel: 'live:command',
       message: () => ({
@@ -154,7 +154,7 @@ describe('IPC port messages', () => {
 
 describe('IPC port pushes', () => {
   it('passes checked values, logs bad ones, and stops on unsubscribe', () => {
-    const {ipc, listeners, push, logs} = fakeIpc();
+    const {ipc, listeners, push, logs} = mockIpc();
     const listener = vi.fn();
     const stop = portOn(ipc).subscribe({
       channel: 'count:changed',

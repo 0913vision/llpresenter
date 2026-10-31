@@ -12,7 +12,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {MonitorList} from '@core/schema/monitors';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {DisplayLayout} from './DisplayLayout';
 import {ScreenList} from './ScreenList';
 import {SCREEN_DRAG_MIME} from './screenDrag';
@@ -52,7 +52,7 @@ function setup(
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'screens', revision: 2}});
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     monitors: {
       get,
       subscribe: listener => {

@@ -4,7 +4,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createServiceId} from '@core/schema/ids';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
@@ -73,7 +73,7 @@ describe('ServiceOrderHeader', () => {
     const state = emptyLiveState();
     useLive.setState({state});
     const sent: LiveCommand[] = [];
-    window.llp = fakeLlpApi({live: {send: command => sent.push(command)}});
+    window.llp = mockLlpApi({live: {send: command => sent.push(command)}});
     render(<ServiceOrderHeader />);
     await act(async () => {
       fireEvent.click(screen.getByText(sampleService.name));
@@ -86,7 +86,7 @@ describe('ServiceOrderHeader', () => {
   });
 
   it('does not open the picker from modified Space', () => {
-    window.llp = fakeLlpApi();
+    window.llp = mockLlpApi();
     render(<ServiceOrderHeader />);
     const button = screen.getByRole('button', {name: sampleService.name});
     const key = new KeyboardEvent('keydown', {
@@ -105,7 +105,7 @@ describe('ServiceOrderHeader', () => {
   });
 
   it('ends the picker with only New Service and opens its dialog', async () => {
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       services: {
         list: () =>
           Promise.resolve([
@@ -138,7 +138,7 @@ describe('ServiceOrderHeader', () => {
   });
 
   it('keeps New Service available without an open service', async () => {
-    window.llp = fakeLlpApi();
+    window.llp = mockLlpApi();
     render(<ServiceOrderHeader />);
     act(() => applyService(null));
     await act(async () => {

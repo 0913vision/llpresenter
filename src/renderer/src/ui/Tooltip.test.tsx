@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../../test/fake-clock';
+import {installMockClock} from '../../../../test/mock-clock';
 import {Button} from './Button';
 import {IconButton} from './IconButton';
 import {Tooltip, ariaShortcut, withTooltipProps} from './Tooltip';
@@ -40,7 +40,7 @@ function button(name: string): HTMLElement {
 
 describe('Tooltip', () => {
   it('shows after the pointer rests for 600ms, not before', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     render(<ClearLyrics />);
     pointAt(button('가사'));
     await letTimePass(clock, TOOLTIP_DELAY_MS - 1);
@@ -95,7 +95,7 @@ describe('Tooltip', () => {
   });
 
   it('waits the full delay again once the grace period is over', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     render(<ClearLyrics />);
     await hoverForTooltip(button('가사'));
     pointAway(button('가사'));
@@ -169,7 +169,7 @@ describe('withTooltipProps', () => {
 
 describe('TooltipController', () => {
   it('releases its window listeners once nothing shows or waits', () => {
-    installFakeClock();
+    installMockClock();
     const controller = new TooltipController();
     const add = vi.spyOn(window, 'addEventListener');
     const remove = vi.spyOn(window, 'removeEventListener');
@@ -183,7 +183,7 @@ describe('TooltipController', () => {
   });
 
   it('drops a pending tooltip when its owner leaves before the delay', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const controller = new TooltipController();
     controller.request({owner: 'a', target: document.createElement('button')});
     controller.release('a');
@@ -192,13 +192,13 @@ describe('TooltipController', () => {
   });
 
   it('ignores a grace period that lies in the future after a clock change', async () => {
-    const clock = installFakeClock(new Date('2026-03-01T09:00:00.000Z'));
+    const clock = installMockClock(new Date('2026-03-01T09:00:00.000Z'));
     const controller = new TooltipController();
     const target = document.createElement('button');
     controller.request({owner: 'a', target});
     await clock.advance(TOOLTIP_DELAY_MS);
     controller.hide();
-    installFakeClock(new Date('2026-02-01T09:00:00.000Z'));
+    installMockClock(new Date('2026-02-01T09:00:00.000Z'));
     controller.request({owner: 'b', target});
     expect(controller.current()).toBeNull();
   });

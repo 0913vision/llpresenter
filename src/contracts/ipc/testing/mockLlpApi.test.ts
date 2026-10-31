@@ -1,13 +1,13 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from './fakeLlpApi';
+import {mockLlpApi} from './mockLlpApi';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import {createServiceId} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 
-describe('fakeLlpApi', () => {
+describe('mockLlpApi', () => {
   it('supplies valid empty documents for the initially mounted show panels', async () => {
-    const api = fakeLlpApi();
+    const api = mockLlpApi();
     for (const name of [
       'quick',
       'screens',
@@ -23,7 +23,7 @@ describe('fakeLlpApi', () => {
   });
   it('provides media state defaults and supports partial UI overrides', () => {
     const setMediaBrowser = vi.fn();
-    const api = fakeLlpApi({ui: {setMediaBrowser}});
+    const api = mockLlpApi({ui: {setMediaBrowser}});
     api.ui.setPrepMedia({visible: false});
     api.ui.setMediaBrowser({columns: 3});
     expect(setMediaBrowser).toHaveBeenCalledExactlyOnceWith({columns: 3});
@@ -34,7 +34,7 @@ describe('fakeLlpApi', () => {
     );
     const reply = {requestId, result: true};
     expect(() => {
-      const api = fakeLlpApi();
+      const api = mockLlpApi();
       api.app.subscribeFlushRequests(() => undefined)();
       api.app.flushDone(reply);
       api.app.closeAnyway();
@@ -42,13 +42,13 @@ describe('fakeLlpApi', () => {
       api.problems.retrySaves();
     }).not.toThrow();
     const flushDone = vi.fn();
-    const api = fakeLlpApi({app: {flushDone}});
+    const api = mockLlpApi({app: {flushDone}});
     api.app.subscribeFlushRequests(() => undefined)();
     api.app.flushDone(reply);
     expect(flushDone).toHaveBeenCalledExactlyOnceWith(reply);
   });
   it('answers reads with empty states and ignores sends', async () => {
-    const api = fakeLlpApi();
+    const api = mockLlpApi();
 
     await expect(api.live.get()).resolves.toEqual(emptyLiveState());
     await expect(api.ui.get()).resolves.toEqual({});
@@ -131,7 +131,7 @@ describe('fakeLlpApi', () => {
   it('uses the parts a test passes', () => {
     const control = vi.fn();
 
-    fakeLlpApi({window: {control}}).window.control('close');
+    mockLlpApi({window: {control}}).window.control('close');
 
     expect(control).toHaveBeenCalledWith('close');
   });
@@ -139,7 +139,7 @@ describe('fakeLlpApi', () => {
   it('keeps the defaults of a part that a test passes only partly', async () => {
     const reportFrameRate = vi.fn();
 
-    const api = fakeLlpApi({output: {reportFrameRate}});
+    const api = mockLlpApi({output: {reportFrameRate}});
     api.output.reportFrameRate({screenId: 'main', fps: 60});
 
     expect(reportFrameRate).toHaveBeenCalledTimes(1);

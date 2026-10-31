@@ -2,7 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {libraryFixture} from './fixture';
@@ -15,7 +15,7 @@ it('undoes a library append from the service list and restores earlier edit hist
   const song = fixture.list()[0];
   const header = pastDocument.service.order[0];
   if (!song || !header) throw new Error('Missing fixture');
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     songs: fixture.api.songs,
     library: fixture.api.library,
     services: {...fixture.api.services, get: () => Promise.resolve(document)},

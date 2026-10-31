@@ -12,12 +12,12 @@ const SCREEN = {
   method: 'fullscreen',
 } as const;
 
-class FakeMediaQuery {
-  static readonly made: FakeMediaQuery[] = [];
+class MockMediaQuery {
+  static readonly made: MockMediaQuery[] = [];
   readonly listeners = new Set<() => void>();
 
   constructor(readonly media: string) {
-    FakeMediaQuery.made.push(this);
+    MockMediaQuery.made.push(this);
   }
 
   addEventListener(_type: 'change', listener: () => void): void {
@@ -34,7 +34,7 @@ class FakeMediaQuery {
 }
 
 function listening(): readonly string[] {
-  return FakeMediaQuery.made
+  return MockMediaQuery.made
     .filter(query => query.listeners.size > 0)
     .map(({media}) => media);
 }
@@ -49,8 +49,8 @@ function setup(mode?: 'output' | 'preview') {
 }
 
 beforeEach(() => {
-  FakeMediaQuery.made.length = 0;
-  vi.stubGlobal('matchMedia', (media: string) => new FakeMediaQuery(media));
+  MockMediaQuery.made.length = 0;
+  vi.stubGlobal('matchMedia', (media: string) => new MockMediaQuery(media));
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -119,9 +119,9 @@ describe('TestPatternView', () => {
     view.show(SCREEN, true);
     expect(label?.textContent).toBe('본 화면\n1280×720');
     expect(listening()).toEqual(['(resolution: 1dppx)']);
-    expect(FakeMediaQuery.made).toHaveLength(1);
+    expect(MockMediaQuery.made).toHaveLength(1);
     vi.stubGlobal('devicePixelRatio', 1.5);
-    FakeMediaQuery.made.at(-1)?.change();
+    MockMediaQuery.made.at(-1)?.change();
     expect(label?.textContent).toBe('본 화면\n1920×1080');
     expect(listening()).toEqual(['(resolution: 1.5dppx)']);
     view.show(SCREEN, false);
@@ -136,7 +136,7 @@ describe('TestPatternView', () => {
     const {view, label} = setup('preview');
     view.show(SCREEN, true);
     expect(label?.textContent).toBe('본 화면');
-    expect(FakeMediaQuery.made).toHaveLength(0);
+    expect(MockMediaQuery.made).toHaveLength(0);
     view.show({id: MAIN, kind: 'audience'}, true);
     expect(label instanceof HTMLElement && label.hidden).toBe(true);
   });

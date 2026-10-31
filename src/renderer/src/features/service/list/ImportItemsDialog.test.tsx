@@ -17,7 +17,7 @@ import type {
 } from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createServiceId, createTemplateId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -61,7 +61,7 @@ function setup({
   const sent: LiveCommand[] = [];
   let pushTemplates: (entries: readonly TemplateEntry[]) => void = () =>
     undefined;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     templates: {
       list: () => Promise.resolve(templates),
       get: () => Promise.resolve(sourceTemplate),
@@ -306,7 +306,7 @@ describe('ImportItemsDialog', () => {
   it('stays open while an import is on its way, then closes', async () => {
     let answer: (result: EditResult) => void = () => undefined;
     const onClose = vi.fn();
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       templates: {
         list: () => Promise.resolve(templateEntries),
         get: () => Promise.resolve(templateDocument),

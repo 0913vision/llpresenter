@@ -33,7 +33,7 @@ afterAll(async () => {
   await rm(outDir, {recursive: true, force: true});
 });
 
-function fakeElectron(exposed: Map<string, unknown>) {
+function mockElectron(exposed: Map<string, unknown>) {
   return {
     contextBridge: {
       exposeInMainWorld: (key: string, api: unknown) => {
@@ -59,7 +59,7 @@ describe('the built preload', () => {
       if (!SANDBOX_MODULES.has(name)) {
         throw new Error(`A sandboxed preload can't require ${name}`);
       }
-      return name === 'electron' ? fakeElectron(exposed) : {};
+      return name === 'electron' ? mockElectron(exposed) : {};
     };
     const module = {exports: {}};
 

@@ -34,7 +34,7 @@ function windowStub(): WindowStub {
   };
 }
 
-function fakeLog() {
+function mockLog() {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -59,7 +59,7 @@ describe('content broadcasts', () => {
     };
     const receiving = windowStub();
     electron.windows = [destroyed, goneRenderer, failing, receiving];
-    const log = fakeLog();
+    const log = mockLog();
 
     broadcast(contentEndpoints.songs.listChanged.channel, [], log);
 
@@ -75,7 +75,7 @@ describe('content broadcasts', () => {
   it('refreshes the open service only after song and service document changes', () => {
     electron.windows = [windowStub()];
     const refresh = vi.fn();
-    const events = broadcastEvents(fakeLog(), refresh);
+    const events = broadcastEvents(mockLog(), refresh);
 
     events.songsListChanged([]);
     events.servicesListChanged([]);

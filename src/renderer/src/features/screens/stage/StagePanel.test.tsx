@@ -15,7 +15,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
@@ -87,7 +87,7 @@ function setup({
     };
   });
   const send = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {send},
     settings: {
       get: ({name}) =>

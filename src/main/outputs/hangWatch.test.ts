@@ -1,11 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';
 
 const SECOND = 1000;
 
 function setUp(answerAfterMs: number | null) {
-  const clock = installFakeClock();
+  const clock = installMockClock();
   const ping = vi.fn(
     () =>
       new Promise<void>(resolve => {
@@ -61,7 +61,7 @@ describe('HangWatch', () => {
   });
 
   it('counts a failed ping as no answer', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onHung = vi.fn();
     const watch = new HangWatch({
       ping: () => Promise.reject(new Error('Object has been destroyed')),

@@ -83,7 +83,7 @@ beforeEach(() => {
 
 const MISSING = createMediaId('00000000-0000-4000-8000-000000000001');
 
-function fakePort() {
+function mockPort() {
   const reported: unknown[] = [];
   const disconnect = vi.fn();
   let backend: MediaBackend | null = null;
@@ -170,7 +170,7 @@ function register(
 
 describe('media backend registration', () => {
   it('reads the current preference for each request, defaults off, and preserves explicit on', async () => {
-    const {port, handlers, reported} = fakePort();
+    const {port, handlers, reported} = mockPort();
     const store = await mediaStore();
     const add = vi.fn(store.add);
     const file = join(await makeTempDir(), 'Invented.png');
@@ -209,7 +209,7 @@ describe('media backend registration', () => {
     await stop();
   });
   it('opens immediately in the remembered folder without waiting for the import queue', async () => {
-    const {port, handlers} = fakePort();
+    const {port, handlers} = mockPort();
     const store = await mediaStore();
     const folder = await makeTempDir();
     const busyFile = join(folder, 'Busy.png');
@@ -257,7 +257,7 @@ describe('media backend registration', () => {
   });
 
   it('remembers the first chosen folder for the next dialog and leaves it on cancellation', async () => {
-    const {port, handlers} = fakePort();
+    const {port, handlers} = mockPort();
     const store = await mediaStore();
     const chosenFolder = await makeTempDir();
     const file = join(chosenFolder, 'Invented.png');
@@ -288,7 +288,7 @@ describe('media backend registration', () => {
   it.each([undefined, '', 'relative/folder'])(
     'uses the local videos folder instead of shell defaults for %s',
     async folder => {
-      const {port, handlers} = fakePort();
+      const {port, handlers} = mockPort();
       electron.showOpenDialog.mockResolvedValue({
         canceled: true,
         filePaths: [],
@@ -312,7 +312,7 @@ describe('media backend registration', () => {
   );
 
   it('imports the files the control window dialog chooses and reports their progress', async () => {
-    const {port, reported, disconnect, handlers} = fakePort();
+    const {port, reported, disconnect, handlers} = mockPort();
     const folder = await makeTempDir();
     const file = join(folder, 'Invented.png');
     await writeFile(file, 'invented');
@@ -338,7 +338,7 @@ describe('media backend registration', () => {
   });
 
   it('adds an imported file with what analysis found and keeps its thumbnail', async () => {
-    const {port, reported, handlers} = fakePort();
+    const {port, reported, handlers} = mockPort();
     const store = await mediaStore();
     const added: unknown[] = [];
     const file = join(await makeTempDir(), 'Notice.png');
@@ -377,7 +377,7 @@ describe('media backend registration', () => {
   });
 
   it('relinks through a dialog of the item kind on the control window', async () => {
-    const {port, handlers} = fakePort();
+    const {port, handlers} = mockPort();
     const store = await mediaStore();
     const chosen = join(store.folder, 'found.png');
     await writeFile(chosen, 'invented');
@@ -400,7 +400,7 @@ describe('media backend registration', () => {
   });
 
   it('never opens a dialog for an offscreen window', async () => {
-    const {port, handlers} = fakePort();
+    const {port, handlers} = mockPort();
     const log = recordingLogger();
     const stop = register(port, await mediaStore(), {
       windowMode: 'offscreen',
@@ -426,7 +426,7 @@ describe('media backend registration', () => {
   });
 
   it('answers and pushes the missing media, checks one again on request, and stops', async () => {
-    const {port} = fakePort();
+    const {port} = mockPort();
     const log = recordingLogger();
     const stop = register(port, await mediaStore(), {log});
     await vi.waitFor(() =>
@@ -448,7 +448,7 @@ describe('media backend registration', () => {
   });
 
   it('shows a media file in Explorer on 파일 위치 열기, and stops listening', async () => {
-    const {port} = fakePort();
+    const {port} = mockPort();
     const log = recordingLogger();
     const store = await mediaStore();
     await writeFile(join(store.folder, 'gone.png'), 'invented');
@@ -469,7 +469,7 @@ describe('media backend registration', () => {
     const log = recordingLogger();
     const store = await mediaStore();
     await writeFile(join(store.folder, 'gone.png'), 'invented');
-    const stop = register(fakePort().port, store, {
+    const stop = register(mockPort().port, store, {
       log,
       windowMode: 'offscreen',
     });
@@ -485,7 +485,7 @@ describe('media backend registration', () => {
   });
 
   it('reveals no file outside the media folders, or one that is gone', async () => {
-    const {port} = fakePort();
+    const {port} = mockPort();
     const log = recordingLogger();
     const store = await mediaStore();
     const outside = join(await makeTempDir(), 'secret.png');
@@ -501,7 +501,7 @@ describe('media backend registration', () => {
       ),
     );
     await stop();
-    const gone = register(fakePort().port, store, {log});
+    const gone = register(mockPort().port, store, {log});
     electron.listeners.get(mediaEndpoints.reveal.channel)?.(
       {},
       {mediaId: MISSING},

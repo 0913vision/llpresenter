@@ -13,7 +13,7 @@ import type {EditResult} from '@core/schema/contentEdit';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {createQuickItemId, createAppFlushRequestId} from '@core/schema/ids';
 import type {AppFlushRequest} from '@core/schema/appFlush';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {isKnownQuickItem} from '@core/schema/quick';
 import {useShow} from '@renderer/session/show';
@@ -144,7 +144,7 @@ function setup() {
       value: {id: 'quick', revision: document.revision},
     });
   });
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     ...base.api,
     settings: {...base.api.settings, get, edit},
   });

@@ -16,7 +16,7 @@ import {
 } from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {useSongBackground} from './useSongBackground';
@@ -105,7 +105,7 @@ function setup() {
   );
   const stops = [vi.fn(), vi.fn(), vi.fn()];
   const send = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     services: {
       get: () => Promise.resolve(document),

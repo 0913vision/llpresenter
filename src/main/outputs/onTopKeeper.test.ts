@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '../displays/testing';
 import {ON_TOP_CHECK_MS, OnTopKeeper} from './onTopKeeper';
 
-function fakeWindow() {
+function mockWindow() {
   let onTop = false;
   const listeners = new Set<() => void>();
   const emit = (): void => {
@@ -32,7 +32,7 @@ function fakeWindow() {
 }
 
 function setup() {
-  const window = fakeWindow();
+  const window = mockWindow();
   const log = recordingLogger();
   const keeper = new OnTopKeeper(window.win, log);
   return {...window, log, keeper};

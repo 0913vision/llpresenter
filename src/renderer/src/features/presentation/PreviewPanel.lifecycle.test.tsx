@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
 import {useLive} from '@renderer/session/live';
@@ -9,14 +9,14 @@ import {usePreview} from '@renderer/session/preview';
 import {PreviewPanel} from './PreviewPanel';
 import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
 
-class FakeResizeObserver {
+class MockResizeObserver {
   observe(): void {}
   disconnect(): void {}
 }
 
 beforeEach(() => {
   vi.useFakeTimers();
-  vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+  vi.stubGlobal('ResizeObserver', MockResizeObserver);
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
@@ -31,7 +31,7 @@ beforeEach(() => {
       },
     },
   });
-  window.llp = fakeLlpApi({live: {send: vi.fn()}});
+  window.llp = mockLlpApi({live: {send: vi.fn()}});
 });
 
 afterEach(() => {

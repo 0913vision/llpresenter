@@ -12,7 +12,7 @@ import {
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {MediaImportOptions} from './MediaImportOptions';
@@ -46,7 +46,7 @@ function setup(initial = document()) {
     value: {id: 'preferences', revision: 2},
   }));
   const get = vi.fn(async () => current);
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get,
       edit,

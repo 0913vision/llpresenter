@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {setAudioLoop} from './audioLoop';
@@ -38,7 +38,7 @@ it('waits for a pending read on close and retries against the current playlist',
       error: {reason: 'stale', message: 'Stale'},
     })
     .mockResolvedValueOnce({ok: true, value: {id, revision: 3}});
-  const api = fakeLlpApi({media: {get, edit}});
+  const api = mockLlpApi({media: {get, edit}});
   const playlist = document().value.audioPlaylists[0];
   if (!playlist) throw new Error('Missing playlist fixture');
   const saving = setAudioLoop(api, playlist.id, true);
@@ -74,7 +74,7 @@ it('treats a write failure as applied and does not rewrite an unchanged value', 
       applied: {id, revision: 2},
     },
   });
-  const api = fakeLlpApi({media: {get, edit}});
+  const api = mockLlpApi({media: {get, edit}});
   const playlist = document().value.audioPlaylists[0];
   if (!playlist) throw new Error('Missing playlist fixture');
   await expect(setAudioLoop(api, playlist.id, true)).resolves.toMatchObject({
@@ -102,7 +102,7 @@ it('refuses a removed playlist or read-only document without writing', async () 
     })
     .mockResolvedValueOnce({...original, access: 'read-only'});
   const edit = vi.fn();
-  const api = fakeLlpApi({media: {get, edit}});
+  const api = mockLlpApi({media: {get, edit}});
   await expect(setAudioLoop(api, playlist.id, true)).rejects.toThrow(
     'no longer exists',
   );

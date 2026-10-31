@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {looksSchema} from '@core/schema/looks';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
@@ -69,7 +69,7 @@ it('serializes rapid changes with list edits and waits for them during close', a
     release = resolve;
   });
   const writes: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         writes.push(edit);
@@ -136,7 +136,7 @@ it('skips an unchanged font but preserves a queued return to it behind a held sa
     release = resolve;
   });
   const writes: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         writes.push(edit);
@@ -172,7 +172,7 @@ it('refuses shared style writes for a read-only document', async () => {
   const {document, style} = fixture();
   const edit = vi.fn();
   const editor = new LookListEditor(
-    fakeLlpApi({settings: {edit}}),
+    mockLlpApi({settings: {edit}}),
     vi.fn(),
     () => ({current: document.value.current, macros: []}),
   );
@@ -190,7 +190,7 @@ it('preserves a color reversion queued behind a held settings save', async () =>
     release = resolve;
   });
   const writes: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         writes.push(edit);

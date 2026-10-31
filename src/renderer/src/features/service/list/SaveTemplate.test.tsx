@@ -13,7 +13,7 @@ import {
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {TemplateEntry} from '@core/schema/contentDocuments';
 import {createServiceId, createTemplateId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
 import type {Notice} from '@renderer/ui/notices';
@@ -75,7 +75,7 @@ function setup({
 } = {}) {
   const edits: ContentEdit[] = [];
   let push: (entries: readonly TemplateEntry[]) => void = () => undefined;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     templates: {
       list: () =>
         templates instanceof Error

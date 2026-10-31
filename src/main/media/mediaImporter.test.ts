@@ -34,7 +34,7 @@ const uuid = (index: number) =>
 
 const PLAYLIST = {kind: 'media', id: createMediaPlaylistId(uuid(900))} as const;
 
-function fakeStore(folder: string) {
+function mockStore(folder: string) {
   const items: MediaItem[] = [];
   const document = expectSuccess(
     parseMediaDocument({
@@ -59,7 +59,7 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
   const root = await makeTempDir();
   const sources = join(root, 'sources');
   const media = join(root, 'media');
-  const {store, items, add} = fakeStore(media);
+  const {store, items, add} = mockStore(media);
   const reports: MediaImportProgress[] = [];
   let next = 0;
   const analyse = vi.fn<(request: AnalysisRequest) => Promise<Analysis>>(() =>

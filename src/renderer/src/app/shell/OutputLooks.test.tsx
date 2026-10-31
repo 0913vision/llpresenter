@@ -6,7 +6,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {stageLayoutsDocument} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {MenuBar} from './MenuBar';
@@ -42,7 +42,7 @@ function setup() {
   const stop = vi.fn();
   const onProblem = vi.fn();
   const listeners = new Set<(document: SettingsDocument) => void>();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     settings: {
       get: request =>

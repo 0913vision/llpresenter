@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {CRASH_LIMIT, CRASH_PERIOD_MS, RestartBudget} from './restartBudget';
 
 function crashTimes(budget: RestartBudget, count: number): boolean[] {
@@ -8,13 +8,13 @@ function crashTimes(budget: RestartBudget, count: number): boolean[] {
 
 describe('RestartBudget', () => {
   it('stops restarting at the crash that reaches the limit within the period', () => {
-    installFakeClock();
+    installMockClock();
     const budget = new RestartBudget();
     expect(crashTimes(budget, CRASH_LIMIT)).toEqual([true, true, false]);
   });
 
   it('forgets crashes older than the period', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const budget = new RestartBudget();
     crashTimes(budget, CRASH_LIMIT - 1);
     await clock.advance(CRASH_PERIOD_MS);
@@ -22,7 +22,7 @@ describe('RestartBudget', () => {
   });
 
   it('starts over after a reset', () => {
-    installFakeClock();
+    installMockClock();
     const budget = new RestartBudget();
     crashTimes(budget, CRASH_LIMIT);
     budget.reset();

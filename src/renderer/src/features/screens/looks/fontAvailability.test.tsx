@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {FontCatalog} from '@core/schema/fontCatalog';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {fontFamilyFixture} from '@core/testing/fontCatalog';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
@@ -128,7 +128,7 @@ it.each([
 
 it('does not offer speculative weights before the installed family is known', async () => {
   let resolve: (fonts: FontCatalog) => void = () => undefined;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     fonts: {
       get: () =>
         new Promise(finish => {
@@ -194,7 +194,7 @@ it('loads once, ignores a late result after unmount and reports a failed read', 
       }),
   );
   const log = vi.fn();
-  window.llp = fakeLlpApi({fonts: {get}, log: {write: log}});
+  window.llp = mockLlpApi({fonts: {get}, log: {write: log}});
   const view = renderHook(useFontCatalog);
   expect(view.result.current.status).toBe('loading');
   view.rerender();
@@ -211,7 +211,7 @@ it('loads once, ignores a late result after unmount and reports a failed read', 
 });
 
 it('sends a weight-only edit from the installed list and keeps read-only properties inert', async () => {
-  window.llp = fakeLlpApi({fonts: {get: async () => [family]}});
+  window.llp = mockLlpApi({fonts: {get: async () => [family]}});
   const style = documentWithFont(family.label).lyricStyles[0];
   if (style === undefined) throw new Error('Missing style');
   const change = vi.fn();
@@ -243,7 +243,7 @@ it('sends a weight-only edit from the installed list and keeps read-only propert
 });
 
 it('shows the missing-font reason and saves only an explicit replacement', async () => {
-  window.llp = fakeLlpApi({fonts: {get: async () => [family]}});
+  window.llp = mockLlpApi({fonts: {get: async () => [family]}});
   const style = documentWithFont('Absent Fixture').lyricStyles[0];
   if (style === undefined) throw new Error('Missing style');
   const change = vi.fn();

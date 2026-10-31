@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import type {Monitor} from '../displays/monitor';
 import {
   DISPLAY_RETRY_MS,
@@ -9,7 +9,7 @@ import {
   type MonitorRemovedListener,
 } from '../displays/registry';
 import {
-  FakeDisplaySource,
+  MockDisplaySource,
   displayInfo,
   monitorById,
   monitorsOf,
@@ -24,9 +24,9 @@ import {OUTPUT_WINDOW_SIZE} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
 import {CRASH_LIMIT} from './restartBudget';
 import type {OutputScreen, ScreenSource} from './screens';
-import {fakeWindows, fullScreenScreen} from './testing';
+import {mockWindows, fullScreenScreen} from './testing';
 
-class FakeMonitorFeed implements MonitorFeed {
+class MockMonitorFeed implements MonitorFeed {
   private readonly listeners = new Set<() => void>();
   private readonly removalListeners = new Set<MonitorRemovedListener>();
 
@@ -56,7 +56,7 @@ class FakeMonitorFeed implements MonitorFeed {
   }
 }
 
-class FakeScreenSource implements ScreenSource {
+class MockScreenSource implements ScreenSource {
   constructor(public screens: readonly OutputScreen[]) {}
 
   list(): readonly OutputScreen[] {
@@ -84,7 +84,7 @@ function turn(on: boolean, screenId = 'main'): LiveCommand {
 function simulateReadyFrames(
   manager: OutputManager,
   store: LiveStore,
-  windows: ReturnType<typeof fakeWindows>,
+  windows: ReturnType<typeof mockWindows>,
 ): void {
   const ready = (): void => {
     for (const id of manager.screenStates().keys()) {
@@ -109,9 +109,9 @@ function simulateReadyFrames(
 
 function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
   const store = new LiveStore();
-  const displays = new FakeMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE));
-  const source = new FakeScreenSource(screens);
-  const windows = fakeWindows();
+  const displays = new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE));
+  const source = new MockScreenSource(screens);
+  const windows = mockWindows();
   const log = recordingLogger();
   const manager = new OutputManager({
     store,
@@ -183,17 +183,17 @@ function setUpRemoval(
     screenOn(STAGE, {id: 'stage'}),
   ],
 ) {
-  const source = new FakeDisplaySource(
+  const source = new MockDisplaySource(
     ...[CONTROL, PROJECTOR, STAGE].map(displayInfo),
   );
   const log = recordingLogger();
   const displays = new DisplayRegistry(source, log);
   const store = new LiveStore();
-  const windows = fakeWindows();
+  const windows = mockWindows();
   const manager = new OutputManager({
     store,
     displays,
-    screens: new FakeScreenSource(screens),
+    screens: new MockScreenSource(screens),
     controlBounds: () => CONTROL_WINDOW,
     createHandle: windows.create,
     log,
@@ -207,13 +207,13 @@ function setUpRemoval(
 
 describe('OutputManager', () => {
   it('reveals a bounded fallback even when the initial monitor service never answers', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const store = new LiveStore();
-    const windows = fakeWindows();
+    const windows = mockWindows();
     const manager = new OutputManager({
       store,
-      displays: new FakeMonitorFeed([]),
-      screens: new FakeScreenSource([fullScreenScreen()]),
+      displays: new MockMonitorFeed([]),
+      screens: new MockScreenSource([fullScreenScreen()]),
       controlBounds: () => CONTROL_WINDOW,
       createHandle: windows.create,
       log: recordingLogger(),
@@ -232,7 +232,7 @@ describe('OutputManager', () => {
     expect(windows.only('main').mode.kind).toBe('hidden');
   });
   it('replans a fallback after a later work-area change without replacing its page', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {source, displays, windows, manager} = setUpRemoval([
       screenOn(PROJECTOR),
     ]);
@@ -290,7 +290,7 @@ describe('OutputManager', () => {
   });
 
   it('demotes only the removed monitor output before settling and keeps its page running', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {source, displays, store, windows, manager} = setUpRemoval();
     const main = windows.only('main');
     const stage = windows.only('stage');
@@ -319,7 +319,7 @@ describe('OutputManager', () => {
   });
 
   it('restores always on top when the removed monitor returns before settling', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {source, displays, windows, manager} = setUpRemoval();
     const main = windows.only('main');
 
@@ -335,7 +335,7 @@ describe('OutputManager', () => {
   });
 
   it('keeps other outputs running when a demotion fails', () => {
-    installFakeClock();
+    installMockClock();
     const {source, displays, windows, manager, log} = setUpRemoval([
       screenOn(PROJECTOR),
       screenOn(PROJECTOR, {id: 'stage'}),
@@ -489,12 +489,12 @@ describe('OutputManager', () => {
 
   it('keeps the other outputs going when one window fails', () => {
     const store = new LiveStore();
-    const windows = fakeWindows();
+    const windows = mockWindows();
     const log = recordingLogger();
     const manager = new OutputManager({
       store,
-      displays: new FakeMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE)),
-      screens: new FakeScreenSource([
+      displays: new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE)),
+      screens: new MockScreenSource([
         screenOn(PROJECTOR),
         screenOn(STAGE, {id: 'stage'}),
       ]),
@@ -535,8 +535,8 @@ describe('OutputManager', () => {
   });
 
   it('goes full screen on the projector once a failed first monitor read recovers', async () => {
-    const clock = installFakeClock();
-    const source = new FakeDisplaySource(
+    const clock = installMockClock();
+    const source = new MockDisplaySource(
       displayInfo(CONTROL),
       displayInfo(PROJECTOR),
     );
@@ -544,7 +544,7 @@ describe('OutputManager', () => {
     const log = recordingLogger();
     const displays = new DisplayRegistry(source, log);
     const store = new LiveStore();
-    const windows = fakeWindows();
+    const windows = mockWindows();
     const manager = new OutputManager({
       store,
       displays,
@@ -570,7 +570,7 @@ describe('OutputManager', () => {
   });
 
   it("tells a restarted window when its page drew, and ignores other screens' reports", async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {store, windows, log, manager} = setUp();
     store.dispatch(turn(true));
     const handle = windows.only('main');
@@ -591,14 +591,14 @@ describe('OutputManager', () => {
   });
 
   it("reports each screen's placement and renderer state, and announces changes", async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const store = new LiveStore();
-    const windows = fakeWindows();
+    const windows = mockWindows();
     const onStatusChange = vi.fn();
     const manager = new OutputManager({
       store,
-      displays: new FakeMonitorFeed(monitorsOf(CONTROL, PROJECTOR)),
-      screens: new FakeScreenSource([screenOn(PROJECTOR)]),
+      displays: new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR)),
+      screens: new MockScreenSource([screenOn(PROJECTOR)]),
       controlBounds: () => CONTROL_WINDOW,
       createHandle: windows.create,
       log: recordingLogger(),

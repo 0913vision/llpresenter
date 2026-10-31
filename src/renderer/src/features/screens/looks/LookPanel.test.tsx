@@ -16,7 +16,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -74,7 +74,7 @@ function setup({
       value: {id: 'looks', revision: document.revision},
     } as const;
   });
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     settings: {
       get: request =>

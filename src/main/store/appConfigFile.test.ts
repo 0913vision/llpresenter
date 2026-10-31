@@ -18,7 +18,7 @@ const BROKEN =
 const NEWER =
   'app.json comes from a newer app version, so the app never writes over it';
 
-function fakeLog() {
+function mockLog() {
   return {
     info: vi.fn<Logger['info']>(),
     warn: vi.fn<Logger['warn']>(),
@@ -44,7 +44,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
       Buffer.from('"}'),
     ]);
     await writeFile(file, bytes);
-    const config = await openAppConfig({file, log: fakeLog()});
+    const config = await openAppConfig({file, log: mockLog()});
     onTestFinished(() => config.dispose());
     expect(config.isBroken).toBe(true);
     config.change({mediaStrip: false});
@@ -59,14 +59,14 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
       schemaVersion: 1,
       future: {keep: true},
     });
-    const config = await openAppConfig({file, log: fakeLog()});
+    const config = await openAppConfig({file, log: mockLog()});
     const folder = join(await makeTempDir(), 'imports');
     config.change({mediaImportFolder: folder});
     config.change({mediaStrip: false});
     await config.flush();
     config.dispose();
-    const reopened = await openAppConfig({file, log: fakeLog()});
-    const other = await openAppConfig({file: await appJson(), log: fakeLog()});
+    const reopened = await openAppConfig({file, log: mockLog()});
+    const other = await openAppConfig({file: await appJson(), log: mockLog()});
     onTestFinished(() => {
       reopened.dispose();
       other.dispose();
@@ -89,7 +89,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     let locked = true;
     const appConfig = await openAppConfig({
       file,
-      log: fakeLog(),
+      log: mockLog(),
       writeText: (path, text) =>
         locked
           ? Promise.resolve({
@@ -133,7 +133,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     async (_name, text, field) => {
       const file = await appJson();
       await writeFile(file, text);
-      const log = fakeLog();
+      const log = mockLog();
 
       const appConfig = await openAppConfig({file, log});
       appConfig.change({mediaStrip: true});
@@ -159,7 +159,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
       layout: {normal: {left: 'wide'}},
     });
 
-    const appConfig = await openAppConfig({file, log: fakeLog()});
+    const appConfig = await openAppConfig({file, log: mockLog()});
 
     expect(appConfig.locationFields).toEqual({songsPath: songs});
     expect(appConfig.read()).toEqual({});
@@ -168,7 +168,7 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
   it('logs one warning for a file it cannot read, and never writes it', async () => {
     const file = await appJson();
     await mkdir(file);
-    const log = fakeLog();
+    const log = mockLog();
 
     const appConfig = await openAppConfig({file, log});
     appConfig.change({mediaStrip: true});
@@ -192,7 +192,7 @@ describe('openAppConfig', () => {
       mediaBrowser: {columns: 3, view: 'grid', future: {keep: true}},
     };
     await writeJson(file, config);
-    const log = fakeLog();
+    const log = mockLog();
     const appConfig = await openAppConfig({file, log});
     const ui = new UiStateStore({fields: appConfig, log});
     ui.setMediaStrip({visible: false});
@@ -226,7 +226,7 @@ describe('openAppConfig', () => {
       future: {keep: true},
     };
     await writeJson(file, config);
-    const appConfig = await openAppConfig({file, log: fakeLog()});
+    const appConfig = await openAppConfig({file, log: mockLog()});
     expect(appConfig.uiZoomPercent).toBe(100);
 
     appConfig.setUiZoomPercent(120);
@@ -240,7 +240,7 @@ describe('openAppConfig', () => {
       mediaStrip: true,
       lastServiceId: SUNDAY_ID,
     });
-    expect((await openAppConfig({file, log: fakeLog()})).uiZoomPercent).toBe(
+    expect((await openAppConfig({file, log: mockLog()})).uiZoomPercent).toBe(
       120,
     );
   });
@@ -253,7 +253,7 @@ describe('openAppConfig', () => {
       uiZoomPercent: 155,
       mediaStrip: true,
     });
-    const appConfig = await openAppConfig({file, log: fakeLog()});
+    const appConfig = await openAppConfig({file, log: mockLog()});
     expect(appConfig.uiZoomPercent).toBe(100);
     expect(appConfig.isBroken).toBe(false);
     expect(appConfig.read()).toEqual({mediaStrip: true});
@@ -262,7 +262,7 @@ describe('openAppConfig', () => {
   it('keeps a broken file untouched while allowing zoom recovery in memory', async () => {
     const file = await appJson();
     await writeFile(file, 'broken');
-    const appConfig = await openAppConfig({file, log: fakeLog()});
+    const appConfig = await openAppConfig({file, log: mockLog()});
     expect(appConfig.uiZoomPercent).toBe(100);
     appConfig.setUiZoomPercent(110);
     await appConfig.flush();
@@ -278,7 +278,7 @@ describe('openAppConfig', () => {
       layout: {normal: {left: 280}},
     };
     await writeJson(file, newer);
-    const log = fakeLog();
+    const log = mockLog();
 
     const appConfig = await openAppConfig({file, log});
     appConfig.change({layout: {normal: {left: 300}}});
@@ -291,7 +291,7 @@ describe('openAppConfig', () => {
 
   it('starts empty without a file, and the first change creates it (qa C20)', async () => {
     const file = join(await makeTempDir(), 'not-yet', 'app.json');
-    const log = fakeLog();
+    const log = mockLog();
 
     const appConfig = await openAppConfig({file, log});
     expect(appConfig.read()).toEqual({});
@@ -316,7 +316,7 @@ describe('openAppConfig', () => {
       layout: {normal: {left: 280, extra: 1}},
     });
 
-    const appConfig = await openAppConfig({file, log: fakeLog()});
+    const appConfig = await openAppConfig({file, log: mockLog()});
     appConfig.change({mediaStrip: true});
     appConfig.setLastServiceId(SUNDAY);
     await appConfig.flush();
@@ -342,7 +342,7 @@ describe('openAppConfig', () => {
       },
     );
 
-    const appConfig = await openAppConfig({file, log: fakeLog(), writeText});
+    const appConfig = await openAppConfig({file, log: mockLog(), writeText});
     for (const left of [200, 240, 280]) {
       appConfig.change({layout: {normal: {left}}});
     }

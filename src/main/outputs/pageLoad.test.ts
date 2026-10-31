@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {DRAW_LIMIT_MS, PageLoad, type LoadFailure} from './pageLoad';
 
 const LOAD_ERROR = new Error('ERR_FAILED');
@@ -17,7 +17,7 @@ function deferredLoad(): {
 
 describe('PageLoad', () => {
   it('fails once when the load is rejected', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const failures: LoadFailure[] = [];
     const loading = deferredLoad();
     const load = new PageLoad(loading.promise, failure =>
@@ -31,7 +31,7 @@ describe('PageLoad', () => {
   });
 
   it('fails once when the page misses its draw limit', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onFailed = vi.fn();
     const load = new PageLoad(Promise.resolve(), onFailed);
     load.startDrawLimit();
@@ -42,7 +42,7 @@ describe('PageLoad', () => {
   });
 
   it('ignores a rejection after it missed its draw limit', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onFailed = vi.fn();
     const loading = deferredLoad();
     const load = new PageLoad(loading.promise, onFailed);
@@ -54,7 +54,7 @@ describe('PageLoad', () => {
   });
 
   it('hears nothing once settled', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onFailed = vi.fn();
     const loading = deferredLoad();
     const load = new PageLoad(loading.promise, onFailed);
@@ -68,7 +68,7 @@ describe('PageLoad', () => {
   });
 
   it('waits without a limit while stopped and gets the full limit again', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onFailed = vi.fn();
     const load = new PageLoad(Promise.resolve(), onFailed);
     load.startDrawLimit();

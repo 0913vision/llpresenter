@@ -18,7 +18,7 @@ import type {
   SettingsEdit,
 } from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ScreenList} from './ScreenList';
@@ -55,7 +55,7 @@ function setup(
       return {ok: true, value: {id: 'screens', revision: document.revision}};
     },
   );
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {send},
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {

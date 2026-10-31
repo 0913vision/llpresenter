@@ -12,7 +12,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   lookIdSchema,
   mediaIdSchema,
@@ -300,7 +300,7 @@ function setupFixture() {
     return Promise.reject(new Error(`Unknown doc: ${name}`));
   };
 
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: vi.fn((req: {readonly name: string}) => getDoc(req.name)),
       subscribe: vi.fn(() => () => undefined),
@@ -823,7 +823,7 @@ describe('ShowingTab', () => {
     );
   });
 
-  it('updates timed message and removes it on expiration with fake timers', async () => {
+  it('updates timed message and removes it on expiration with mock timers', async () => {
     vi.useFakeTimers();
     const now = 1_700_000_000_000;
     vi.setSystemTime(now);

@@ -18,7 +18,7 @@ import {
   type TextImportPreviewResult,
   type TextImportSource,
 } from '@core/schema/textImport';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {convertTextImport} from '@core/songs/textImport';
 import {DUPLICATE_TITLE_REASON} from '@core/songs/songTitle';
 import {TextImportDialog} from './TextImportDialog';
@@ -49,7 +49,7 @@ function fixture() {
     }
     return convertTextImport(checked.value);
   });
-  const api = fakeLlpApi({textImport: {preview}}).textImport;
+  const api = mockLlpApi({textImport: {preview}}).textImport;
   const onProblem = vi.fn();
   const onEdit = vi.fn();
   const onDiscard = vi.fn();

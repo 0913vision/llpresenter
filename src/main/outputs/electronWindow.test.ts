@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import type {Rect} from '../displays/rect';
 import type {Logger} from '../log';
 import {startLoading} from '../windows/page';
@@ -16,7 +16,7 @@ import {
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
-  class FakeBrowserWindow extends EventEmitter {
+  class MockBrowserWindow extends EventEmitter {
     readonly webContents = Object.assign(new EventEmitter(), {
       isCrashed: vi.fn(() => false),
       executeJavaScript: vi.fn(() => Promise.resolve(0)),
@@ -66,11 +66,11 @@ const electron = await vi.hoisted(async () => {
       created.push(this);
     }
   }
-  const created: FakeBrowserWindow[] = [];
-  return {FakeBrowserWindow, created};
+  const created: MockBrowserWindow[] = [];
+  return {MockBrowserWindow, created};
 });
 
-vi.mock('electron', () => ({BrowserWindow: electron.FakeBrowserWindow}));
+vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
 vi.mock('../windows/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
@@ -90,7 +90,7 @@ const SCREEN: OutputScreen = {
   alwaysOnTop: true,
 };
 
-function fakeLog() {
+function mockLog() {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -99,7 +99,7 @@ function fakeLog() {
   } satisfies Logger;
 }
 
-function fakeControl() {
+function mockControl() {
   return {
     isDestroyed: vi.fn(() => false),
     moveAbove: vi.fn<(mediaSourceId: string) => void>(),
@@ -115,8 +115,8 @@ function fakeControl() {
 
 function openOutput(
   mode: WindowMode,
-  control = fakeControl(),
-  log = fakeLog(),
+  control = mockControl(),
+  log = mockLog(),
 ): OutputWindowHandle {
   const output = createElectronOutputWindow(
     SCREEN,
@@ -127,14 +127,14 @@ function openOutput(
   return output;
 }
 
-function lastWindow(): InstanceType<typeof electron.FakeBrowserWindow> {
+function lastWindow(): InstanceType<typeof electron.MockBrowserWindow> {
   const win = electron.created.at(-1);
   if (win === undefined) throw new Error('no window was created');
   return win;
 }
 
 it('forwards clear and navigation after an output click without focusing or raising control', async () => {
-  const control = fakeControl();
+  const control = mockControl();
   const output = openOutput('normal', control);
   const win = lastWindow();
   output.showWindowed(WINDOW_BOUNDS);
@@ -185,8 +185,8 @@ it('forwards clear and navigation after an output click without focusing or rais
 });
 
 it('bounds queued keys and safely releases a destroyed control while forwarding is pending', async () => {
-  const control = fakeControl();
-  const log = fakeLog();
+  const control = mockControl();
+  const log = mockLog();
   let resolve = (): void => {};
   control.webContents.executeJavaScript.mockImplementationOnce(
     () =>
@@ -232,7 +232,7 @@ it('bounds queued keys and safely releases a destroyed control while forwarding 
 });
 
 function expectNeverPresented(
-  win: InstanceType<typeof electron.FakeBrowserWindow>,
+  win: InstanceType<typeof electron.MockBrowserWindow>,
 ): void {
   expect(win.showInactive).not.toHaveBeenCalled();
   expect(win.show).not.toHaveBeenCalled();
@@ -249,8 +249,8 @@ beforeEach(() => {
 it.each([false, true])(
   'ends disconnect demotion before capture changes with top=%s',
   async alwaysOnTop => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     output.showWindowed(WINDOW_BOUNDS);
@@ -273,8 +273,8 @@ it.each([false, true])(
 it.each([false, true])(
   'ends disconnect demotion when the top option becomes %s during a bounds check',
   async alwaysOnTop => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     output.prepareForMonitorRemoval();
@@ -290,8 +290,8 @@ it.each([false, true])(
 );
 
 it('does not demote a windowed output requested with always on top', async () => {
-  const clock = installFakeClock();
-  const control = fakeControl();
+  const clock = installMockClock();
+  const control = mockControl();
   const output = openOutput('normal', control);
   output.prepareForMonitorRemoval();
   output.showWindowed(WINDOW_BOUNDS);
@@ -305,8 +305,8 @@ it('does not demote a windowed output requested with always on top', async () =>
 it.each([false, true])(
   'finishes fallback demotion after bounds verification with restore=%s',
   async restored => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     let bounds = WINDOW_BOUNDS;
@@ -333,7 +333,7 @@ it.each([false, true])(
 );
 
 it('finishes demotion immediately when fallback needs no bounds check', () => {
-  const control = fakeControl();
+  const control = mockControl();
   const output = openOutput('normal', control);
   output.prepareForMonitorRemoval();
   output.showWindowed(null);
@@ -406,8 +406,8 @@ describe('createElectronOutputWindow offscreen', () => {
   });
 
   it('does not raise again when fallback placement finishes after 창 보기', async () => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     output.showFullScreen(MONITOR, true);
@@ -428,8 +428,8 @@ describe('createElectronOutputWindow offscreen', () => {
   });
 
   it('keeps the raise when a late bounds correction runs after 창 보기', async () => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     let bounds = WINDOW_BOUNDS;
@@ -458,8 +458,8 @@ describe('createElectronOutputWindow offscreen', () => {
   ] as const)(
     'leaves the control alone during a later independent placement %s',
     async (_when, settledFirst) => {
-      const clock = installFakeClock();
-      const control = fakeControl();
+      const clock = installMockClock();
+      const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
       win.getBounds.mockImplementation(() => WINDOW_BOUNDS);
@@ -484,7 +484,7 @@ describe('createElectronOutputWindow offscreen', () => {
   it.each(['hide', 'full screen', 'monitor removal'] as const)(
     'only monitor removal demotes the output after %s',
     end => {
-      const control = fakeControl();
+      const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
       win.isVisible.mockReturnValue(true);
@@ -512,7 +512,7 @@ describe('createElectronOutputWindow offscreen', () => {
   });
 
   it('does not change window order on monitor removal in offscreen mode', () => {
-    const control = fakeControl();
+    const control = mockControl();
     const output = openOutput('offscreen', control);
     output.prepareForMonitorRemoval();
     expect(control.moveAbove).not.toHaveBeenCalled();
@@ -638,7 +638,7 @@ describe('createElectronOutputWindow normal', () => {
   it.each(['fullscreen', 'window', 'capture'] as const)(
     'changes only its own stacking when always on top changes in %s mode',
     method => {
-      const control = fakeControl();
+      const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
       if (method === 'fullscreen') output.showFullScreen(MONITOR, false);
@@ -662,7 +662,7 @@ describe('createElectronOutputWindow normal', () => {
   );
 
   it('keeps the latest stacking choice when a pending fullscreen exit finishes', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     win.isFullScreen.mockReturnValue(true);
@@ -678,8 +678,8 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('raises a non-topmost output once on show and never keeps raising it', async () => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     output.showFullScreen(MONITOR, false);
@@ -697,7 +697,7 @@ describe('createElectronOutputWindow normal', () => {
   it.each(['window', 'capture'] as const)(
     'honors an explicit always-on-top choice in %s mode without raising the control',
     method => {
-      const control = fakeControl();
+      const control = mockControl();
       const output = openOutput('normal', control);
       if (method === 'capture') output.showCapture(WINDOW_BOUNDS, true);
       else output.showWindowed(WINDOW_BOUNDS, true);
@@ -723,7 +723,7 @@ describe('createElectronOutputWindow normal', () => {
     const output = createElectronOutputWindow(
       {...SCREEN, method: 'capture'},
       {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
-      {log: fakeLog(), mode: 'normal', control: fakeControl()},
+      {log: mockLog(), mode: 'normal', control: mockControl()},
     );
     onTestFinished(() => output.destroy());
     const win = lastWindow();
@@ -747,7 +747,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('waits for fullscreen exit, corrects a late client-size restore once, and restores normal flags', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     let content = WINDOW_BOUNDS;
@@ -779,7 +779,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('bounds a missing fullscreen-leave event for capture and releases pending work on dispose', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     win.isFullScreen.mockReturnValue(true);
@@ -792,7 +792,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('waits past a synchronous leave event and the restore before fullscreen exit returns', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     let bounds = MONITOR;
@@ -819,8 +819,8 @@ describe('createElectronOutputWindow normal', () => {
   it.each(['move', 'resize', 'timer'] as const)(
     'corrects a late restore once after %s, then releases its checks',
     async event => {
-      const clock = installFakeClock();
-      const control = fakeControl();
+      const clock = installMockClock();
+      const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
       let bounds = WINDOW_BOUNDS;
@@ -849,7 +849,7 @@ describe('createElectronOutputWindow normal', () => {
   it.each(['window', 'fullscreen'] as const)(
     'releases a missing leave event and applies the latest %s request by its deadline',
     async request => {
-      const clock = installFakeClock();
+      const clock = installMockClock();
       const output = openOutput('normal');
       const win = lastWindow();
       win.isFullScreen.mockReturnValue(true);
@@ -875,7 +875,7 @@ describe('createElectronOutputWindow normal', () => {
   );
 
   it('restores always on top after disconnect, fallback, and fullscreen reconnect', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     output.showFullScreen(MONITOR, true);
@@ -897,9 +897,9 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('restores a full screen output that loses always on top, and stops checking once hidden', async () => {
-    const clock = installFakeClock();
-    const log = fakeLog();
-    const output = openOutput('normal', fakeControl(), log);
+    const clock = installMockClock();
+    const log = mockLog();
+    const output = openOutput('normal', mockControl(), log);
     const win = lastWindow();
     output.showFullScreen(MONITOR, true);
     win.onTop = false;
@@ -918,8 +918,8 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('ignores a level change while moving into full screen and sets the level after', () => {
-    const log = fakeLog();
-    const output = openOutput('normal', fakeControl(), log);
+    const log = mockLog();
+    const output = openOutput('normal', mockControl(), log);
     const win = lastWindow();
     output.showFullScreen(MONITOR, true);
     win.isFullScreen.mockReturnValue(true);
@@ -937,7 +937,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('drops always on top before moving the control above it, immediately and after placement', () => {
-    const control = fakeControl();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     const calls: string[] = [];
@@ -967,8 +967,8 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('applies planned bounds after Windows restores the pre-fullscreen bounds', async () => {
-    const clock = installFakeClock();
-    const control = fakeControl();
+    const clock = installMockClock();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
     let bounds = {x: 3920, y: 492, width: 960, height: 540};
@@ -999,7 +999,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('raises a windowed output once without focusing or moving the control', () => {
-    const control = fakeControl();
+    const control = mockControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
 
@@ -1015,8 +1015,8 @@ describe('createElectronOutputWindow normal', () => {
   it.each(['hide', 'destroy', 'closed', 'fullscreen'] as const)(
     'cancels a pending fallback placement on %s',
     async action => {
-      const clock = installFakeClock();
-      const control = fakeControl();
+      const clock = installMockClock();
+      const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
       win.isFullScreen.mockReturnValue(true);
@@ -1060,7 +1060,7 @@ describe('createElectronOutputWindow normal', () => {
   );
 
   it('waits for fullscreen exit even when hidden and shown again during the transition', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     win.isFullScreen.mockReturnValue(true);
@@ -1077,7 +1077,7 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('retains the planned bounds when a fallback is shown again before its first placement', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const output = openOutput('normal');
     const win = lastWindow();
     win.isFullScreen.mockReturnValue(true);
@@ -1093,9 +1093,9 @@ describe('createElectronOutputWindow normal', () => {
   });
 
   it('logs a failed deferred placement instead of throwing from the native event', async () => {
-    const clock = installFakeClock();
-    const log = fakeLog();
-    const output = openOutput('normal', fakeControl(), log);
+    const clock = installMockClock();
+    const log = mockLog();
+    const output = openOutput('normal', mockControl(), log);
     const win = lastWindow();
     const failure = new Error('window no longer accepts bounds');
     win.isFullScreen.mockReturnValue(true);

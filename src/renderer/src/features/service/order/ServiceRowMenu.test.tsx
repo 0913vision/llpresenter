@@ -10,7 +10,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {ids, pastDocument} from '@core/testing/serviceList';
 import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '../../../session/testing/sampleService';
@@ -67,7 +67,7 @@ function setup() {
     }
     throw new Error('Unexpected service edit');
   });
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     services: {
       list: async () => entries,
       get: async () => document,

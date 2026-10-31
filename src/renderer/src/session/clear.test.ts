@@ -2,7 +2,7 @@ import {renderHook, act} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLayers, emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {clearLayer, undoClear, useCanUndo} from './clear';
 import {useLive} from './live';
 
@@ -10,7 +10,7 @@ const sent: LiveCommand[] = [];
 
 beforeEach(() => {
   sent.length = 0;
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {
       get: () => Promise.resolve(emptyLiveState()),
       send: command => void sent.push(command),

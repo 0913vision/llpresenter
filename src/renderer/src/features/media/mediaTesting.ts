@@ -20,7 +20,7 @@ import type {
   MediaItem,
   MediaPlaylist,
 } from '@core/schema/mediaList';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 
 export const mediaId = (index: number): MediaId =>
   createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
@@ -97,7 +97,7 @@ export function mediaFixture(document = mediaDocument([])) {
   const missing = vi.fn<() => Promise<MissingMedia>>(() => Promise.resolve([]));
   const write = vi.fn<LlpApi['log']['write']>();
   const send = vi.fn<LlpApi['live']['send']>();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     media: {
       get: () => Promise.resolve(document),
       edit,

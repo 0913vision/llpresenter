@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {installFakeClock} from '../../../../test/fake-clock';
+import {installMockClock} from '../../../../test/mock-clock';
 import {cssRules} from '@renderer/ui/testing/cssRules';
 import {Dialog} from './Dialog';
 import {modalStack} from './modalStack';
@@ -118,7 +118,7 @@ describe('NotificationCard', () => {
   });
 
   it('closes information after six seconds and keeps a warning', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onClose = vi.fn<(key: string) => void>();
     render(
       <>
@@ -135,7 +135,7 @@ describe('NotificationCard', () => {
   });
 
   it('waits while the pointer is over it and counts six seconds again after', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onClose = vi.fn<(key: string) => void>();
     render(<NotificationCard notice={back} onClose={onClose} />);
     const card = screen.getByRole('status');
@@ -151,7 +151,7 @@ describe('NotificationCard', () => {
   });
 
   it('waits while focus is inside it', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onClose = vi.fn<(key: string) => void>();
     render(
       <>
@@ -183,7 +183,7 @@ describe('NotificationStack', () => {
   });
 
   it('gives an information card that replaces another its full six seconds', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const onClose = vi.fn<(key: string) => void>();
     const {rerender} = render(
       <NotificationStack notices={[back]} onClose={onClose} />,

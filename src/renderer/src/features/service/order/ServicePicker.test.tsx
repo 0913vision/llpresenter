@@ -6,7 +6,7 @@ import {createServiceId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
@@ -38,7 +38,7 @@ function setup() {
   let push: (entries: readonly ServiceEntry[]) => void = () => undefined;
   const stopList = vi.fn();
   const send = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     services: {
       list: () => Promise.resolve(entries),

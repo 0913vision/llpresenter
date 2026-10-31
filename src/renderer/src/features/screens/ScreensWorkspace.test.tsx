@@ -14,7 +14,7 @@ import type {LiveCommand} from '@core/live/commands';
 import type {MonitorList} from '@core/schema/monitors';
 import type {OutputStatuses} from '@core/schema/outputStatus';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
 import {useLive} from '@renderer/session/live';
@@ -80,7 +80,7 @@ function setup({
   const stopStatus = vi.fn();
   const onProblem = vi.fn();
   const send = vi.fn<(command: LiveCommand) => void>();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {send, clock: () => Promise.resolve(1000)},
     settings: {
       get: request => read(request.name),

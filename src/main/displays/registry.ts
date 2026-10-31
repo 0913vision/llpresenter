@@ -9,7 +9,7 @@ import {
 export type DisplayChange =
   {readonly kind: 'changed'} | {readonly kind: 'removed'; readonly id: number};
 
-/** Where the monitor list comes from: Electron's `screen` in the app, a fake in tests. */
+/** Where the monitor list comes from: Electron's `screen` in the app, a mock in tests. */
 export interface DisplaySource {
   read(): readonly DisplayInfo[];
   /**

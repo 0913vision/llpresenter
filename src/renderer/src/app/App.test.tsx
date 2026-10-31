@@ -12,7 +12,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '@core/songs/textImport';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
@@ -72,7 +72,7 @@ afterEach(async () => {
 
 describe('App menu bar title', () => {
   it('opens the clicked service slide in prep at its arrangement position', () => {
-    window.llp = fakeLlpApi();
+    window.llp = mockLlpApi();
     seedSampleService();
     openItem('song-morning');
     const session = createSession();
@@ -122,7 +122,7 @@ describe('App menu bar title', () => {
         })),
       },
     };
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       songs: {
         get: async () => document,
         list: async () => [
@@ -178,7 +178,7 @@ describe('App menu bar title', () => {
 
   it('focuses and selects toolbar search from every workspace with Ctrl F', () => {
     const send = vi.fn();
-    window.llp = fakeLlpApi({live: {send}});
+    window.llp = mockLlpApi({live: {send}});
     render(
       <App
         session={createSession()}
@@ -213,7 +213,7 @@ describe('App menu bar title', () => {
           text: 'Invented line',
         },
       }));
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         textImport: {
           read,
           preview: async request => convertTextImport(request),
@@ -251,7 +251,7 @@ describe('App menu bar title', () => {
 
   it('opens existing workspaces by S1 keys and View menu without sending live commands', async () => {
     const send = vi.fn();
-    window.llp = fakeLlpApi({live: {send}});
+    window.llp = mockLlpApi({live: {send}});
     render(
       <App
         session={createSession()}
@@ -291,7 +291,7 @@ describe('App menu bar title', () => {
   });
 
   it('routes a failed File-menu action to the shared notification stack', async () => {
-    window.llp = fakeLlpApi();
+    window.llp = mockLlpApi();
     applyService({
       ...sampleService,
       id: createServiceId('00000000-0000-4000-8000-000000000001'),
@@ -315,7 +315,7 @@ describe('App menu bar title', () => {
     'opens text import and reveals its unsaved editor with media view initially %s',
     async mediaOpen => {
       const edit = vi.fn();
-      window.llp = fakeLlpApi({
+      window.llp = mockLlpApi({
         content: {edit},
         textImport: {
           read: async () => ({
@@ -387,7 +387,7 @@ describe('App menu bar title', () => {
     },
   );
   it('hosts and closes service edit warnings in the shared notice stack', async () => {
-    window.llp = fakeLlpApi();
+    window.llp = mockLlpApi();
     applyService({
       ...sampleService,
       id: createServiceId('00000000-0000-4000-8000-000000000001'),
@@ -441,7 +441,7 @@ describe('App menu bar title', () => {
 describe('App clear keys', () => {
   it('clears with F2 in 진행 but never undoes a clear with Ctrl Z', () => {
     const sent: LiveCommand[] = [];
-    window.llp = fakeLlpApi({live: {send: command => sent.push(command)}});
+    window.llp = mockLlpApi({live: {send: command => sent.push(command)}});
     const base = emptyLiveState();
     useLive.setState({
       state: {
@@ -470,7 +470,7 @@ describe('App UI zoom', () => {
   it('keeps zoom active in all workspaces without dispatching a live command', () => {
     const changeZoom = vi.fn(() => Promise.resolve(100));
     const send = vi.fn();
-    window.llp = fakeLlpApi({ui: {changeZoom}, live: {send}});
+    window.llp = mockLlpApi({ui: {changeZoom}, live: {send}});
     render(
       <App
         session={createSession()}

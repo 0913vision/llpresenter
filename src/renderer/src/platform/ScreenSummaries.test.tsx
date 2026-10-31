@@ -11,7 +11,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   looksDocument,
   MAIN_ID,
@@ -74,7 +74,7 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
     name === 'screens' ? pending : Promise.resolve(looksDocument()),
   );
   const send = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get,
       subscribe: listener => {
@@ -182,7 +182,7 @@ it.each([16, 50])(
     }));
     const saved = settingsDocument('screens', {screens: choices});
     const send = vi.fn();
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       settings: {get: () => Promise.resolve(saved)},
       live: {send},
     });
@@ -221,7 +221,7 @@ it.each([16, 50])(
 it('removes deleted choices and falls back from a deleted large preview without output commands', async () => {
   let push: (value: SettingsDocument) => void = () => undefined;
   const send = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: async () => document(1),
       subscribe: listener => {
@@ -272,7 +272,7 @@ it('removes deleted choices and falls back from a deleted large preview without 
 it('reports a failed read without inventing default screen destinations', async () => {
   const onProblem = vi.fn();
   const log = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get: async () => {
         throw new Error('read failed');

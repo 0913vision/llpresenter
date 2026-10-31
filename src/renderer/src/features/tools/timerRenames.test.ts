@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {createTimerId} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
@@ -15,7 +15,7 @@ const edit = {
 it('holds close until a rename reaches main and refuses a later write after close', async () => {
   const result = deferred<EditResult>();
   const send = vi.fn().mockReturnValue(result.promise);
-  const api = fakeLlpApi({settings: {edit: send}});
+  const api = mockLlpApi({settings: {edit: send}});
   const saving = renameTimer(api, edit);
   let closed = false;
   const closing = pendingWritesOf(api)

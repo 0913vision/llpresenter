@@ -5,7 +5,7 @@ import {loadPage} from './page';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
-  class FakeBrowserWindow extends EventEmitter {
+  class MockBrowserWindow extends EventEmitter {
     readonly webContents = Object.assign(new EventEmitter(), {
       setAudioMuted: vi.fn(),
     });
@@ -18,12 +18,12 @@ const electron = await vi.hoisted(async () => {
       created.push(this);
     }
   }
-  const created: FakeBrowserWindow[] = [];
-  return {FakeBrowserWindow, created, app: {isPackaged: false}};
+  const created: MockBrowserWindow[] = [];
+  return {MockBrowserWindow, created, app: {isPackaged: false}};
 });
 
 vi.mock('electron', () => ({
-  BrowserWindow: electron.FakeBrowserWindow,
+  BrowserWindow: electron.MockBrowserWindow,
   app: electron.app,
   screen: {
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
@@ -35,7 +35,7 @@ vi.mock('./page', () => ({
   blockNavigation: vi.fn(),
 }));
 
-function lastWindow(): InstanceType<typeof electron.FakeBrowserWindow> {
+function lastWindow(): InstanceType<typeof electron.MockBrowserWindow> {
   const win = electron.created.at(-1);
   if (win === undefined) throw new Error('no control window was created');
   return win;

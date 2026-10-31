@@ -22,7 +22,7 @@ const TIMER = '00000000-0000-4000-8000-000000000090';
 
 type Written = Result<void, WriteProblem>;
 
-function fakeStore(initial: LiveState = emptyLiveState()) {
+function mockStore(initial: LiveState = emptyLiveState()) {
   const listeners = new Set<(state: LiveState) => void>();
   const store = {
     state: initial,
@@ -65,7 +65,7 @@ function recordOf(text: string | undefined) {
 const OK: Written = {ok: true, value: undefined};
 
 function setup(options: {serviceId?: ServiceId | null} = {}) {
-  const store = fakeStore();
+  const store = mockStore();
   const log = recordingLogger();
   const texts: string[] = [];
   const write = vi.fn(async (_file: string, text: string) => {
@@ -116,7 +116,7 @@ describe('recovery record writer', () => {
       },
     });
     if (!live.ok) throw new Error(live.error.message);
-    const store = fakeStore(live.value);
+    const store = mockStore(live.value);
     const log = recordingLogger();
     const writer = new RecoveryRecordWriter({
       file,

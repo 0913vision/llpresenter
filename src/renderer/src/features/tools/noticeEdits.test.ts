@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {noticeReason, saveNoticeEdit} from './noticeEdits';
@@ -39,7 +39,7 @@ it('adds, updates and deletes a set while preserving unknown fields', async () =
   const edit = vi
     .fn()
     .mockResolvedValue({ok: true, value: {id: 'notices', revision: 2}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   await saveNoticeEdit(api, {kind: 'add', item});
   expect(edit).toHaveBeenNthCalledWith(
     1,
@@ -82,7 +82,7 @@ it('keeps the write pending through a deferred read and retries against the late
       error: {reason: 'stale', message: 'stale'},
     })
     .mockResolvedValue({ok: true, value: {id: 'notices', revision: 3}});
-  const api = fakeLlpApi({settings: {get, edit}});
+  const api = mockLlpApi({settings: {get, edit}});
   const writing = saveNoticeEdit(api, {
     kind: 'update',
     id: item.id,
@@ -115,7 +115,7 @@ it('reports invalid playback settings and returns applied persistence failures',
     error: {reason: 'write-failed', message: 'disk'},
   } as const;
   const edit = vi.fn().mockResolvedValue(failure);
-  const api = fakeLlpApi({settings: {get: async () => document(), edit}});
+  const api = mockLlpApi({settings: {get: async () => document(), edit}});
   await expect(saveNoticeEdit(api, {kind: 'add', item})).resolves.toEqual(
     failure,
   );

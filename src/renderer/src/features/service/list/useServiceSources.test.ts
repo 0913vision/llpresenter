@@ -5,7 +5,7 @@ import type {
   TemplateEntry,
 } from '@core/schema/contentDocuments';
 import {createTemplateId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   EMPTY_SOURCE,
   sourceKey,
@@ -28,7 +28,7 @@ const past: ServiceSource = {kind: 'service', id: ids.past};
 
 describe('useSourceLists', () => {
   it('reads the 템플릿, the services, and the song titles', async () => {
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       templates: {list: () => Promise.resolve(templateEntries)},
       services: {list: () => Promise.resolve(serviceEntries)},
       songs: {list: () => Promise.resolve(librarySongs)},
@@ -48,7 +48,7 @@ describe('useSourceLists', () => {
       .fn<() => Promise<typeof librarySongs>>()
       .mockRejectedValueOnce(new Error('Read failed'))
       .mockResolvedValue(librarySongs);
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       templates: {list: templatesList},
       services: {list: () => Promise.resolve(serviceEntries)},
       songs: {list: songsList},
@@ -82,7 +82,7 @@ describe('useSourceLists', () => {
     let push: (entries: readonly TemplateEntry[]) => void = () => undefined;
     let answer: (entries: readonly TemplateEntry[]) => void = () => undefined;
     const stop = vi.fn();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       templates: {
         list: () =>
           new Promise(resolve => {
@@ -111,7 +111,7 @@ describe('useSourceLists', () => {
 });
 
 describe('useSourceDocument', () => {
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     templates: {get: () => Promise.resolve(templateDocument)},
     services: {get: () => Promise.resolve(pastDocument)},
   });
@@ -150,7 +150,7 @@ describe('useSourceDocument', () => {
   });
 
   it('says a deleted source is missing', async () => {
-    const gone = fakeLlpApi({templates: {get: () => Promise.resolve(null)}});
+    const gone = mockLlpApi({templates: {get: () => Promise.resolve(null)}});
     const {result} = renderHook(() => useSourceDocument(gone, template));
     await waitFor(() => expect(result.current.missing).toBe(true));
     expect(result.current.document).toBeNull();
@@ -158,7 +158,7 @@ describe('useSourceDocument', () => {
 
   it('keeps the later choice when an earlier read answers last', async () => {
     let answer: (document: TemplateDocument) => void = () => undefined;
-    const slow = fakeLlpApi({
+    const slow = mockLlpApi({
       templates: {
         get: () =>
           new Promise(resolve => {
@@ -184,7 +184,7 @@ describe('useSourceDocument', () => {
 
   it('shows nothing for A, B, then A again until the new read of A answers', async () => {
     const reads: Array<(document: TemplateDocument | null) => void> = [];
-    const deferred = fakeLlpApi({
+    const deferred = mockLlpApi({
       templates: {
         get: () =>
           new Promise(resolve => {

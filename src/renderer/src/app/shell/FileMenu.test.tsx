@@ -1,7 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
 import {
@@ -22,7 +22,7 @@ function setup() {
     }),
   );
   const send = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     templates: {
       list: () => Promise.resolve(templateEntries),
       get: () => Promise.resolve(templateDocument),
@@ -245,7 +245,7 @@ describe('the 파일 menu', () => {
     );
     const api = window.llp;
     if (!api) throw new Error('Missing API');
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       ...api,
       media: {...api.media, import: importMedia},
     });
@@ -270,7 +270,7 @@ describe('the 파일 menu', () => {
   });
 
   it('reports a refused media import through the shared notification callback', async () => {
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       media: {
         import: async () => ({
           ok: false,

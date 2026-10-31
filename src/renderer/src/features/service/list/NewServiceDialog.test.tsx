@@ -14,7 +14,7 @@ import type {TemplateDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
 import type {ShowService} from '@core/schema/showService';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -59,7 +59,7 @@ function setup(
         name: '새로 만든 예배',
       }),
   );
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     templates: {
       list: () => Promise.resolve(templateEntries),
       get: () => Promise.resolve(sourceTemplate),
@@ -253,7 +253,7 @@ describe('NewServiceDialog', () => {
   it('stays open while a create is on its way, then closes', async () => {
     let answer: (result: EditResult) => void = () => undefined;
     const onClose = vi.fn();
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       templates: {
         list: () => Promise.resolve(templateEntries),
         get: () => Promise.resolve(templateDocument),
@@ -522,7 +522,7 @@ describe('NewServiceDialog', () => {
       .fn<() => Promise<typeof templateEntries>>()
       .mockRejectedValueOnce(new Error('Read failed in the test'))
       .mockResolvedValue(templateEntries);
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       templates: {list, get: () => Promise.resolve(templateDocument)},
       services: {list: () => Promise.resolve(serviceEntries)},
       songs: {list: () => Promise.resolve(librarySongs)},

@@ -4,7 +4,7 @@ import {parseLyricStyleId, screenIdSchema} from '@core/schema/ids';
 import {looksSchema} from '@core/schema/looks';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
@@ -133,7 +133,7 @@ it('serializes a style name reversion behind a held rename', async () => {
     release = resolve;
   });
   const writes: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         writes.push(edit);
@@ -193,7 +193,7 @@ it('checks queued references before deletion and includes both operations in the
     release = resolve;
   });
   const writes: SettingsEdit[] = [];
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       edit: edit => {
         writes.push(edit);

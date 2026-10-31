@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installFakeClock} from '../../../../test/fake-clock';
+import {installMockClock} from '../../../../test/mock-clock';
 import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from './closeFlush';
 
 const requestId = createAppFlushRequestId(
@@ -27,7 +27,7 @@ function setup(flush: () => Promise<boolean>) {
   const closeAnyway = vi.fn();
   const control = vi.fn();
   const write = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     app: {
       subscribeFlushRequests: listener => {
         listeners.add(listener);
@@ -65,7 +65,7 @@ function setup(flush: () => Promise<boolean>) {
 
 describe('close flush', () => {
   it('reports progress while waiting for disk beyond the renderer timeout and stops after a refusal', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const pending = deferred();
     const {model, flushProgress, request} = setup(() => pending.promise);
     request();
@@ -85,7 +85,7 @@ describe('close flush', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
   it('never shows the dialog when the flush ends before the delay', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {model, flushDone, request} = setup(() => Promise.resolve(true));
     request();
     await clock.advance(SAVING_DIALOG_DELAY_MS);
@@ -98,7 +98,7 @@ describe('close flush', () => {
   });
 
   it('shows 저장 중 after the delay and keeps it until the window closes', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const pending = deferred();
     const {model, flushDone, request} = setup(() => pending.promise);
     request();
@@ -154,7 +154,7 @@ describe('close flush', () => {
   });
 
   it('stops answering and drops its timer on dispose', () => {
-    installFakeClock();
+    installMockClock();
     const {model, listeners, request} = setup(
       () => new Promise(() => undefined),
     );

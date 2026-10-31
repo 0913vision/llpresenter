@@ -1,6 +1,6 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseMediaList} from '@core/schema/mediaList';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {AudioTransport} from './AudioTransport';
@@ -33,7 +33,7 @@ it('starts the selected playlist, resumes or pauses playback, and sends transpor
     ),
   );
   const send = vi.fn();
-  const api = fakeLlpApi({live: {send}});
+  const api = mockLlpApi({live: {send}});
   const playlist = data.audioPlaylists[0];
   if (!playlist) throw new Error('Missing playlist fixture');
   const {rerender} = render(

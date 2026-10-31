@@ -13,7 +13,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {parseLookId} from '@core/schema/ids';
 import {useScreensSelection} from '@renderer/features/screens/selection';
@@ -57,7 +57,7 @@ function setup() {
   const send = vi.fn();
   const onProblem = vi.fn();
   const onWorkspace = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     settings: {
       get: async () => looksDocument(),
       subscribe: listener => {

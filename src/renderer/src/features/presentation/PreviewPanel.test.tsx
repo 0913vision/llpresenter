@@ -2,7 +2,7 @@ import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {useLive} from '@renderer/session/live';
 import {showLarge, usePreview} from '@renderer/session/preview';
@@ -101,7 +101,7 @@ beforeEach(() => {
   seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
-  window.llp = fakeLlpApi();
+  window.llp = mockLlpApi();
 });
 
 afterEach(() => {
@@ -181,7 +181,7 @@ describe('PreviewPanel layout', () => {
     'keeps three fixed slots and one marker across every selection, compact=%s',
     compact => {
       const send = vi.fn();
-      window.llp = fakeLlpApi({live: {send}});
+      window.llp = mockLlpApi({live: {send}});
       setLayers({}, allOn);
       const {container} = render(<PreviewPanel compact={compact} />);
       for (const id of ['main', 'stage', 'broadcast', 'main']) {
@@ -394,7 +394,7 @@ describe('PreviewPanel pictures', () => {
 
   it('changes only when the live state changes: outputting a tile sends a command and the previews follow the new state', () => {
     const sent: unknown[] = [];
-    window.llp = fakeLlpApi({
+    window.llp = mockLlpApi({
       live: {
         get: () => Promise.resolve(emptyLiveState()),
         send: command => void sent.push(command),
@@ -447,7 +447,7 @@ describe('PreviewPanel pictures', () => {
 
   it('sends a drawing error to the main log', () => {
     const write = vi.fn();
-    window.llp = fakeLlpApi({log: {write}});
+    window.llp = mockLlpApi({log: {write}});
     setLayers({}, allOn);
     render(<PreviewPanel compact={false} />);
     created()[0]?.options.onError('could not draw', new Error('boom'));

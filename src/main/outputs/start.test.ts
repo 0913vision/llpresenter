@@ -7,7 +7,7 @@ import {parseMonitorList} from '@core/schema/monitors';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import type {MessageHandler} from '../rendererMessages';
 import {
-  FakeDisplaySource,
+  MockDisplaySource,
   displayInfo,
   recordingLogger,
 } from '../displays/testing';
@@ -16,15 +16,15 @@ import {dispatchLogged, LiveStore} from '../live/store';
 import {startOverlays} from '../live/overlays';
 import {CAPTIONS, MAIN, STAGE, overlaySettings} from '@core/testing/overlays';
 import type {WindowMode} from '../windows/testWindows';
-import {fakeWindows, type FakeWindows} from './testing';
+import {mockWindows, type MockWindows} from './testing';
 import {openNumberWindow} from './numberWindow';
 import {sendToWindows} from '../ipc';
 import {startOutputs} from './start';
 
-const fakes = vi.hoisted(() => {
+const mocks = vi.hoisted(() => {
   const inputs: {
-    displays: FakeDisplaySource | null;
-    windows: FakeWindows | null;
+    displays: MockDisplaySource | null;
+    windows: MockWindows | null;
   } = {displays: null, windows: null};
   return {
     ...inputs,
@@ -38,13 +38,13 @@ const fakes = vi.hoisted(() => {
 });
 const control = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
-  class FakeContents extends EventEmitter {
+  class MockContents extends EventEmitter {
     isDestroyed(): boolean {
       return false;
     }
   }
-  class FakeControl extends EventEmitter {
-    readonly webContents = new FakeContents();
+  class MockControl extends EventEmitter {
+    readonly webContents = new MockContents();
     isDestroyed(): boolean {
       return false;
     }
@@ -52,45 +52,45 @@ const control = await vi.hoisted(async () => {
       return {x: 0, y: 0, width: 1920, height: 1040};
     }
   }
-  return {FakeControl};
+  return {MockControl};
 });
 vi.mock('electron', () => ({
-  BrowserWindow: control.FakeControl,
+  BrowserWindow: control.MockControl,
   powerSaveBlocker: {
-    start: fakes.start,
-    stop: fakes.stop,
+    start: mocks.start,
+    stop: mocks.stop,
     isStarted: () => true,
   },
 }));
 vi.mock('../displays/electronSource', () => ({
   createElectronDisplaySource: () => {
-    if (fakes.displays === null) throw new Error('Missing displays');
-    return fakes.displays;
+    if (mocks.displays === null) throw new Error('Missing displays');
+    return mocks.displays;
   },
 }));
 vi.mock('./electronWindow', () => ({
-  createElectronOutputWindow: (...args: Parameters<FakeWindows['create']>) => {
-    if (fakes.windows === null) throw new Error('Missing windows');
-    return fakes.windows.create(...args);
+  createElectronOutputWindow: (...args: Parameters<MockWindows['create']>) => {
+    if (mocks.windows === null) throw new Error('Missing windows');
+    return mocks.windows.create(...args);
   },
 }));
 vi.mock('./numberWindow', () => ({
-  openNumberWindow: vi.fn(() => ({close: fakes.closeNumber})),
+  openNumberWindow: vi.fn(() => ({close: mocks.closeNumber})),
 }));
 vi.mock('../ipc', () => ({
   listenToWindows: (channel: string, handler: MessageHandler) => {
-    fakes.handlers.set(channel, handler);
+    mocks.handlers.set(channel, handler);
     return () => {
-      fakes.handlers.delete(channel);
+      mocks.handlers.delete(channel);
     };
   },
   answerWindows: (
     channel: string,
     answer: (event?: unknown, value?: unknown) => unknown,
   ) => {
-    fakes.answers.set(channel, answer);
+    mocks.answers.set(channel, answer);
     return () => {
-      fakes.answers.delete(channel);
+      mocks.answers.delete(channel);
     };
   },
   sendToWindows: vi.fn(),
@@ -116,14 +116,14 @@ const main = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  fakes.displays = new FakeDisplaySource(
+  mocks.displays = new MockDisplaySource(
     displayInfo({id: 1, primary: true}),
     projector,
     stage,
   );
-  fakes.windows = fakeWindows();
-  fakes.handlers.clear();
-  fakes.answers.clear();
+  mocks.windows = mockWindows();
+  mocks.handlers.clear();
+  mocks.answers.clear();
 });
 
 function setup(
@@ -133,7 +133,7 @@ function setup(
   const settings = overlaySettings();
   settings.update(settingsDocument('screens', {screens: [main]}));
   const store = new LiveStore();
-  fakes.liveVersion = () => store.state.version;
+  mocks.liveVersion = () => store.state.version;
   const log = recordingLogger();
   const settingsPromise = loading ?? Promise.resolve(settings.reader);
   const stopOverlays = startOverlays({store, settings: settingsPromise, log});
@@ -151,8 +151,8 @@ function setup(
   const dispatch = store.dispatch.bind(store);
   vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
     const result = dispatch(...args);
-    for (const window of fakes.windows?.created ?? []) {
-      fakes.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+    for (const window of mocks.windows?.created ?? []) {
+      mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
         screenId: window.screen.id,
         version: store.state.version,
         ...window.contentSize(),
@@ -166,7 +166,7 @@ function setup(
     stopOverlays();
   };
   onTestFinished(stop);
-  const windows = fakes.windows;
+  const windows = mocks.windows;
   if (windows === null) throw new Error('Missing windows');
   const save = (screens: readonly object[]): void =>
     settings.update(settingsDocument('screens', {screens}));
@@ -186,10 +186,10 @@ function setup(
 async function loaded() {
   await Promise.resolve();
   await Promise.resolve();
-  for (const window of fakes.windows?.created ?? []) {
-    fakes.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+  for (const window of mocks.windows?.created ?? []) {
+    mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
       screenId: window.screen.id,
-      version: fakes.liveVersion(),
+      version: mocks.liveVersion(),
       ...window.contentSize(),
       ready: true,
     });
@@ -212,8 +212,8 @@ describe('saved output backend', () => {
     expect(output.destroyed).toBe(true);
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
-    expect(fakes.displays?.watcherCount).toBe(0);
-    expect(fakes.answers.size).toBe(0);
+    expect(mocks.displays?.watcherCount).toBe(0);
+    expect(mocks.answers.size).toBe(0);
     expect(log.entries).toContainEqual({
       level: 'error',
       message: 'could not release an output resource',
@@ -241,7 +241,7 @@ describe('saved output backend', () => {
       expect(log.messages('warn')).toContain(
         'using built-in output screens because settings are unavailable',
       );
-      fakes.handlers.get(outputEndpoints.frameRate.channel)?.(
+      mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
         {screenId: 'main', fps: 60},
         1,
       );
@@ -376,13 +376,13 @@ describe('saved output backend', () => {
       alwaysOnTop: false,
     });
     expect(windows.created).toHaveLength(1);
-    expect(fakes.start).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.start).toHaveBeenCalledExactlyOnceWith(
       'prevent-display-sleep',
     );
     store.dispatch({type: 'output.set', screenId: MAIN, on: false});
     expect(store.state.outputs).toEqual({[MAIN]: false, main: false});
     expect(window.mode.kind).toBe('hidden');
-    expect(fakes.stop).toHaveBeenCalledExactlyOnceWith(7);
+    expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
   });
 
   it('loads output commands queued before settings are ready', async () => {
@@ -398,7 +398,7 @@ describe('saved output backend', () => {
     expect(store.state.outputs).toEqual({[MAIN]: true, main: true});
     expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
     running.stop();
-    expect(fakes.stop).toHaveBeenCalledExactlyOnceWith(7);
+    expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
   });
 
   it('applies the latest placement to the preloaded hidden native handle', async () => {
@@ -424,14 +424,14 @@ describe('saved output backend', () => {
     });
     save([{...main, id: STAGE, method: 'window'}]);
     expect(windows.only(MAIN).destroyed).toBe(true);
-    expect(fakes.stop).not.toHaveBeenCalled();
-    fakes.displays?.change();
+    expect(mocks.stop).not.toHaveBeenCalled();
+    mocks.displays?.change();
     save([{...main, id: STAGE, method: 'ndi'}]);
     expect(windows.only(STAGE).destroyed).toBe(true);
     expect(Object.values(store.state.outputs).some(Boolean)).toBe(false);
-    expect(fakes.stop).toHaveBeenCalledExactlyOnceWith(7);
+    expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
     dispatchLogged(store, {type: 'output.set', screenId: STAGE, on: true}, log);
-    expect(fakes.start).toHaveBeenCalledTimes(1);
+    expect(mocks.start).toHaveBeenCalledTimes(1);
     expect(log.entries.at(-1)).toMatchObject({
       level: 'warn',
       detail: {reason: 'missing-target'},
@@ -440,8 +440,8 @@ describe('saved output backend', () => {
     stop();
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
-    expect(fakes.displays?.watcherCount).toBe(0);
-    expect(fakes.handlers.size + fakes.answers.size).toBe(0);
+    expect(mocks.displays?.watcherCount).toBe(0);
+    expect(mocks.handlers.size + mocks.answers.size).toBe(0);
   });
 
   it('renders monitor identification in offscreen windows while running', async () => {
@@ -476,9 +476,9 @@ describe('saved output backend', () => {
     for (const {bounds} of spots) {
       expect(intersectionArea(bounds, capture)).toBe(0);
     }
-    expect(fakes.closeNumber).not.toHaveBeenCalled();
+    expect(mocks.closeNumber).not.toHaveBeenCalled();
     stop();
-    expect(fakes.closeNumber).toHaveBeenCalledTimes(3);
+    expect(mocks.closeNumber).toHaveBeenCalledTimes(3);
   });
 
   it('hides every 테스트 패턴 when the control window goes away, until outputs stop', async () => {
@@ -509,24 +509,24 @@ describe('saved output backend', () => {
     store.dispatch({type: 'output.set', screenId: 'main', on: true});
     const output = windows.only(MAIN);
     expect(output.mode.kind).toBe('fullscreen');
-    const displays = fakes.displays;
+    const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [displayInfo({id: 1, primary: true}), stage];
 
-    fakes.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
     expect(output.mode.kind).toBe('window');
-    expect(fakes.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
+    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
       {
         main: {placement: 'monitorMissing', monitor: 2},
       },
     );
 
-    fakes.handlers.get(outputEndpoints.showWindow.channel)?.(
+    mocks.handlers.get(outputEndpoints.showWindow.channel)?.(
       {screenId: 'main'},
       1,
     );
     expect(output.raises).toBe(1);
-    fakes.handlers.get(outputEndpoints.showWindow.channel)?.({screenId: ''}, 1);
+    mocks.handlers.get(outputEndpoints.showWindow.channel)?.({screenId: ''}, 1);
     expect(output.raises).toBe(1);
     expect(log.messages('warn')).toContain(
       'dropped a malformed show window request',
@@ -543,12 +543,12 @@ describe('saved output backend', () => {
       broadcast: true,
       captions: true,
     });
-    fakes.handlers.get(outputEndpoints.frameRate.channel)?.(
+    mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
       {screenId: CAPTIONS, fps: 60},
       1,
     );
     expect(running.frameRates()).toEqual([{screen: CAPTIONS, fps: 60}]);
-    expect(fakes.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
+    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
       {
         broadcast: {fps: 60},
         captions: {fps: 60},
@@ -566,17 +566,17 @@ describe('saved output backend', () => {
     await loaded();
     const numbers = () => {
       const parsed = parseMonitorList(
-        fakes.answers.get(outputEndpoints.monitors.channel)?.(),
+        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
       );
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.value.map(monitor => monitor.number);
     };
     expect(numbers()).toEqual([1, 2, 3]);
 
-    const displays = fakes.displays;
+    const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [displayInfo({id: 1, primary: true}), stage];
-    fakes.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
 
     expect(numbers()).toEqual([1, 2]);
     expect(vi.mocked(sendToWindows)).toHaveBeenCalledWith(
@@ -585,7 +585,7 @@ describe('saved output backend', () => {
       expect.anything(),
     );
     stop();
-    expect(fakes.answers.has(outputEndpoints.monitors.channel)).toBe(false);
+    expect(mocks.answers.has(outputEndpoints.monitors.channel)).toBe(false);
   });
 
   it('answers and pushes the new refresh rate when only that changes', async () => {
@@ -593,21 +593,21 @@ describe('saved output backend', () => {
     await loaded();
     const rates = () => {
       const parsed = parseMonitorList(
-        fakes.answers.get(outputEndpoints.monitors.channel)?.(),
+        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
       );
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.value.map(monitor => monitor.refreshRate);
     };
     expect(rates()).toEqual([60, 60, 60]);
 
-    const displays = fakes.displays;
+    const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [
       displayInfo({id: 1, primary: true}),
       displayInfo({id: 2, x: 1920, refreshRate: 75}),
       stage,
     ];
-    fakes.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
 
     expect(rates()).toEqual([60, 75, 60]);
     expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
@@ -628,7 +628,7 @@ describe('saved output backend', () => {
       kind: 'stage',
       display: savedDisplay(second(3, 3840)),
     };
-    const displays = fakes.displays;
+    const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [
       displayInfo({id: 1, primary: true}),
@@ -640,7 +640,7 @@ describe('saved output backend', () => {
     save([{...main, display: savedDisplay(second(2, 1920))}, stageScreen]);
     const assignment = () => {
       const parsed = parseMonitorList(
-        fakes.answers.get(outputEndpoints.monitors.channel)?.(),
+        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
       );
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.value.map(monitor => [monitor.number, monitor.screenIds]);
@@ -665,7 +665,7 @@ describe('saved output backend', () => {
       second(33, 1920),
       second(22, 3840),
     ];
-    fakes.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
 
     expect(assignment()).toEqual([
       [1, []],

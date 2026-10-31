@@ -11,7 +11,7 @@ import {
 } from '@core/schema/ids';
 import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useLive} from '@renderer/session/live';
@@ -93,7 +93,7 @@ function setup(
       jumpKeys: {},
     });
   const send = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     services: {get: () => Promise.resolve(document)},
     live: {send},
     songs: {

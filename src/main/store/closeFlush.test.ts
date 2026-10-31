@@ -8,7 +8,7 @@ import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, parseService} from '@core/schema/service';
 import {APP_FLUSH_LIMITS, parseAppFlushRequest} from '@core/schema/appFlush';
 import {parseAppConfig} from '@core/schema/appConfig';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {registerControlClose} from '../windows/controlClose';
@@ -211,7 +211,7 @@ it.each([
       });
     };
     await currentService(serviceId);
-    const clock = slow ? installFakeClock() : undefined;
+    const clock = slow ? installMockClock() : undefined;
     close();
     if (clock !== undefined) {
       await vi.waitFor(() => expect(attempts).toBeGreaterThan(1));

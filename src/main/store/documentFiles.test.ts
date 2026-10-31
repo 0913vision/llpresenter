@@ -8,7 +8,7 @@ import {documentFiles} from './documentFiles';
 import {RecoveryCopies} from './recoveryCopies';
 import {Saver} from './saver';
 
-function fakeLog(): Logger {
+function mockLog(): Logger {
   return {
     info: vi.fn(),
     warn: vi.fn(),
@@ -32,7 +32,7 @@ describe('documentFiles', () => {
       now: () => 0,
     });
     const saver = new Saver({copies, reportCopyProblem: vi.fn()});
-    const files = documentFiles({saver, copies, log: fakeLog()});
+    const files = documentFiles({saver, copies, log: mockLog()});
     await writeFile(target.file, 'first content');
     await files.write({target, text: 'last content'});
 
@@ -75,7 +75,7 @@ describe('documentFiles', () => {
         return {ok: true, value: undefined};
       },
     });
-    const files = documentFiles({saver, copies, log: fakeLog()});
+    const files = documentFiles({saver, copies, log: mockLog()});
     const saving = files.write({target, text: 'last content'});
     const deleting = files.remove(target);
     release();
@@ -98,7 +98,7 @@ describe('documentFiles', () => {
     const recovery = join(folder, 'recovery');
     await writeFile(target.file, 'last content');
     await writeFile(recovery, 'blocks the recovery folder');
-    const log = fakeLog();
+    const log = mockLog();
     const copies = new RecoveryCopies({folder: recovery, keep: () => 10});
     const saver = new Saver({copies, reportCopyProblem: vi.fn()});
     const persistence = new ContentPersistence(
@@ -131,7 +131,7 @@ describe('documentFiles', () => {
     const folder = await makeTempDir();
     const file = join(folder, 'a-directory');
     await mkdir(file);
-    const log = fakeLog();
+    const log = mockLog();
     const copies = {
       keepBeforeDelete: vi
         .fn<RecoveryCopies['keepBeforeDelete']>()

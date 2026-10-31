@@ -106,7 +106,7 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
 - Shared helpers live in `test/`:
   - `makeTempDir()` creates an empty folder under the system temp folder and
     deletes it when the test finishes.
-  - `installFakeClock()` fakes `Date` and the timers until the test finishes. It
+  - `installMockClock()` mocks `Date` and the timers until the test finishes. It
     starts at a fixed time and has `advance(ms)`, `runAll()`, and `now()`.
 - `test:coverage` writes a summary to the terminal and an HTML report to
   `coverage/index.html`. CI uploads the report as the `coverage` artifact.

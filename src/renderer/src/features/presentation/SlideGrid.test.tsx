@@ -7,7 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {openItem, useShow} from '@renderer/session/show';
 import {SlideGrid} from './SlideGrid';
 import {seedSampleService} from '../../session/testing/sampleService';
@@ -15,7 +15,7 @@ import {seedSampleService} from '../../session/testing/sampleService';
 beforeEach(() => {
   seedSampleService();
   openItem('song-morning');
-  window.llp = fakeLlpApi();
+  window.llp = mockLlpApi();
 });
 
 afterEach(() => {
@@ -76,7 +76,7 @@ it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
   keys => {
     const onOpenPrep = vi.fn();
     const send = vi.fn();
-    window.llp = fakeLlpApi({live: {send}});
+    window.llp = mockLlpApi({live: {send}});
     render(
       <SlideGrid columns={4} scalePercent={100} onOpenPrep={onOpenPrep} />,
     );

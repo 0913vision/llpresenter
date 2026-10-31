@@ -88,7 +88,7 @@ it, and lint enforces the order (`llp/layer-imports`, declared in
 | Layer                       | Holds                                                                 | May import                                  |
 | --------------------------- | --------------------------------------------------------------------- | ------------------------------------------- |
 | `src/core/`                 | Pure rules and data schemas, with no I/O, Electron, or React          | Nothing else                                |
-| `src/contracts/`            | The IPC API between processes and its test fakes                      | core                                        |
+| `src/contracts/`            | The IPC API between processes and its test mocks                      | core                                        |
 | `src/main/`, `src/preload/` | The main process and the preload bridges                              | core, contracts                             |
 | `renderer/src/ui/`          | Design system components with no app state                            | core, contracts                             |
 | `renderer/src/rendering/`   | Drawing shared by the previews and the output windows                 | core, contracts                             |

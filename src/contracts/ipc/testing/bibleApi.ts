@@ -6,7 +6,7 @@ import {
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {fakeLlpApi} from './fakeLlpApi';
+import {mockLlpApi} from './mockLlpApi';
 import {lookupRequest} from '@core/testing/bibleLookups';
 import {formLookupReply} from '@core/testing/bibleReplies';
 
@@ -72,7 +72,7 @@ export function panelApi() {
   });
   const lookup = vi.fn<LlpApi['bible']['lookup']>(formLookupReply);
   const send = vi.fn<(command: LiveCommand) => void>();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     live: {send},
     bible: {lookup},
     settings: {

@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installFakeClock} from '../../../test/fake-clock';
+import {installMockClock} from '../../../test/mock-clock';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '../displays/testing';
 import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from './saveFailures';
@@ -99,7 +99,7 @@ describe('save failures', () => {
   });
 
   it('retries by itself every interval while files wait and stops when none do', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {failures, pushed, retry, wait} = setup();
     wait('a');
     await clock.advance(SAVE_RETRY_INTERVAL_MS - 1);
@@ -114,7 +114,7 @@ describe('save failures', () => {
   });
 
   it('pushes the next file after an automatic pass moves the failing ones', async () => {
-    const clock = installFakeClock();
+    const clock = installMockClock();
     const {failures, pushed, retry, wait} = setup();
     for (const file of ['a', 'b', 'c', 'd', 'e']) wait(file);
     await clock.advance(SAVE_RETRY_INTERVAL_MS);
@@ -338,7 +338,7 @@ describe('save failures', () => {
   });
 
   it('stops its timer, listeners, and new entries on dispose', () => {
-    installFakeClock();
+    installMockClock();
     const {failures, pushed, wait} = setup();
     wait('a');
     failures.dispose();

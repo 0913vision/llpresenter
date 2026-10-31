@@ -4,7 +4,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState} from '@core/live/state';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {parseLiveState} from '@core/schema/liveState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   screensDocument,
   looksDocument,
@@ -47,7 +47,7 @@ export function stageFixture(overrides: readonly SettingsDocument[] = []) {
   const edit = vi.fn<LlpApi['settings']['edit']>();
   const send = vi.fn<LlpApi['live']['send']>();
   const log = vi.fn();
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     settings: {
       get,
       edit,

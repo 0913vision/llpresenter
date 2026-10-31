@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {startAudio} from './startAudio';
 
 beforeEach(() => {
@@ -32,7 +32,7 @@ describe('startAudio', () => {
     });
     if (!parsed.ok) throw new Error('Invalid fading fixture');
     const send = vi.fn();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       live: {send, get: () => Promise.resolve(parsed.value)},
     });
     const stop = startAudio({root: document.createElement('div'), api});
@@ -67,7 +67,7 @@ describe('startAudio', () => {
     });
     if (!parsed.ok) throw new Error('Invalid playing fixture');
     const send = vi.fn();
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       live: {send, get: () => Promise.resolve(parsed.value)},
     });
     const root = document.createElement('div');
@@ -92,7 +92,7 @@ describe('startAudio', () => {
       resolve = done;
     });
     const subscribe = vi.fn(() => vi.fn());
-    const api = fakeLlpApi({live: {clock: () => reading, subscribe}});
+    const api = mockLlpApi({live: {clock: () => reading, subscribe}});
     const root = document.createElement('div');
     const stop = startAudio({root, api});
     await Promise.resolve();
@@ -109,7 +109,7 @@ describe('startAudio', () => {
   });
   it('does not subscribe after disposal while the clock answer is pending', async () => {
     const subscribe = vi.fn(() => () => {});
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       live: {clock: () => Promise.resolve(1000), subscribe},
     });
     const stop = startAudio({root: document.createElement('div'), api});
@@ -122,7 +122,7 @@ describe('startAudio', () => {
   it('logs clock failure and still follows output with the fallback clock', async () => {
     const write = vi.fn();
     const get = vi.fn(() => Promise.resolve(emptyLiveState()));
-    const api = fakeLlpApi({
+    const api = mockLlpApi({
       live: {get, clock: () => Promise.reject(new Error('Clock unavailable'))},
       log: {write},
     });

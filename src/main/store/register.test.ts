@@ -106,11 +106,11 @@ function byName(a: AppProblem, b: AppProblem): number {
   return name(a).localeCompare(name(b));
 }
 
-function fakeProblems() {
+function mockProblems() {
   return {report: vi.fn(), push: vi.fn(), addStanding: () => () => undefined};
 }
 
-function fakeLog() {
+function mockLog() {
   return {
     info: vi.fn<Logger['info']>(),
     warn: vi.fn<Logger['warn']>(),
@@ -147,7 +147,7 @@ async function register(
     log,
   });
   const store = registerStore({
-    problems: fakeProblems(),
+    problems: mockProblems(),
     log,
     isAnyOutputOn,
     appConfig,
@@ -235,7 +235,7 @@ describe('registerStore', () => {
       ],
     });
     const readChapter = vi.spyOn(chapterFile, 'readBibleChapter');
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     const shown = parseShowService(await askForService());
     if (!shown.ok || shown.value === null) {
       throw new Error('Missing projected service');
@@ -311,7 +311,7 @@ describe('registerStore', () => {
       slides: [{lines: ['Before']}],
     };
     await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     expect(
       await ask(libraryEndpoints.showSong.channel, {songId: song.id}),
     ).toMatchObject({songRevision: 1});
@@ -394,7 +394,7 @@ describe('registerStore', () => {
       ],
       future: 'kept',
     });
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     const before = await askForService();
     const content = await store.content;
     const serviceId = content?.openServiceId;
@@ -471,7 +471,7 @@ describe('registerStore', () => {
       date: '2026-10-26T10:00',
       order: [{id: itemId(4), song: songId}],
     });
-    const registered = await register(fakeLog(), context, () => true);
+    const registered = await register(mockLog(), context, () => true);
     const content = await registered.content;
     expect(content?.openServiceId).toBe(itemId(3));
     expect(content?.service(itemId(3))?.service.order).toEqual([
@@ -522,7 +522,7 @@ describe('registerStore', () => {
       audioPlaylists: [],
     };
     await writeJson(file, value);
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     const initial = parseMediaDocument(await ask(mediaEndpoints.get.channel));
     if (!initial.ok) throw new Error(initial.error.message);
     expect(await first.findMediaFile(id)).toBe(join(root, 'Media', 'old.webm'));
@@ -562,7 +562,7 @@ describe('registerStore', () => {
       'kept',
     );
     await first.dispose();
-    const second = await register(fakeLog(), context, () => true);
+    const second = await register(mockLog(), context, () => true);
     expect(await ask(mediaEndpoints.get.channel)).toMatchObject({
       revision: 1,
       value: {items: [{name: 'After', file: 'new.webm'}]},
@@ -580,7 +580,7 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const file = join(root, 'Settings', 'media.json');
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     expect(await ask(mediaEndpoints.get.channel)).toMatchObject({
       value: {items: [], playlists: [], audioPlaylists: []},
     });
@@ -589,7 +589,7 @@ describe('registerStore', () => {
     });
     await first.dispose();
     await writeJson(file, '{broken media');
-    const second = await register(fakeLog(), context, () => true);
+    const second = await register(mockLog(), context, () => true);
     const problems: string[] = [];
     const stop = second.subscribeSettingsProblems(problem =>
       problems.push(problem.file),
@@ -628,7 +628,7 @@ describe('registerStore', () => {
         order: [],
       });
     }
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     expect(await askForService()).toMatchObject({id: firstId});
     expect(
       await ask(serviceEndpoints.open.channel, {serviceId: itemId(9)}),
@@ -668,7 +668,7 @@ describe('registerStore', () => {
       expect.anything(),
     );
     await first.dispose();
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     expect(await askForService()).toMatchObject({id: secondId});
   });
 
@@ -705,7 +705,7 @@ describe('registerStore', () => {
             })
           : original(file, text),
       );
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     await askForService();
     const parsed = parseServiceDocument(
       await ask(contentEndpoints.services.get.channel, firstId),
@@ -755,7 +755,7 @@ describe('registerStore', () => {
         slides: [{label: 'Before', lines: ['Invented line'], future: 'kept'}],
       });
     }
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     await ask(settingsEndpoints.get.channel, {name: 'labels'});
     const rename = {
       type: 'labels.rename',
@@ -794,7 +794,7 @@ describe('registerStore', () => {
       labels: [{name: 'After', future: 'kept'}],
     });
     await first.dispose();
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     expect(
       await ask(settingsEndpoints.get.channel, {name: 'labels'}),
     ).toMatchObject({
@@ -837,7 +837,7 @@ describe('registerStore', () => {
       ],
       future: {enabled: true},
     });
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     const mainChanges: SettingsDocument[] = [];
     const removeMainChanges = first.subscribeSettingsChanges(document =>
       mainChanges.push(document),
@@ -877,7 +877,7 @@ describe('registerStore', () => {
     removeMainChanges();
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(expected);
     await first.dispose();
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     expect(
       await ask(settingsEndpoints.get.channel, {name: 'messages'}),
     ).toEqual({
@@ -901,7 +901,7 @@ describe('registerStore', () => {
       ...value,
       show: {showClearUndoButton: false, future: 'kept'},
     });
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     await ask(settingsEndpoints.get.channel, {name: 'preferences'});
     const pending = ask(settingsEndpoints.edit.channel, {
       type: 'settings.update',
@@ -942,7 +942,7 @@ describe('registerStore', () => {
       future: true,
     };
     await writeJson(file, value);
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     await ask(settingsEndpoints.get.channel, {name: 'messages'});
     electron.send.mockClear();
     expect(
@@ -969,7 +969,7 @@ describe('registerStore', () => {
 
   it('creates every missing settings file with valid defaults and serves revisioned reads', async () => {
     const context = await developmentContext();
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     for (const name of settingsNames) {
       const reply = parseSettingsDocument(
         await ask(settingsEndpoints.get.channel, {name}),
@@ -1027,7 +1027,7 @@ describe('registerStore', () => {
       future: {enabled: true},
     };
     await writeJson(file, value);
-    const first = await register(fakeLog(), context, () => true);
+    const first = await register(mockLog(), context, () => true);
     expect(
       await ask(settingsEndpoints.get.channel, {name: 'messages'}),
     ).toMatchObject({
@@ -1035,7 +1035,7 @@ describe('registerStore', () => {
       access: 'readOnly',
     });
     await first.dispose();
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
     expect(
       await ask(settingsEndpoints.get.channel, {name: 'messages'}),
     ).toMatchObject({
@@ -1056,7 +1056,7 @@ describe('registerStore', () => {
       backupCopies: 99999,
       previewFps: 1,
     });
-    const log = fakeLog();
+    const log = mockLog();
     const store = await register(log, context, () => true);
     const cancelled = vi.fn();
     store.subscribeSettingsProblems(cancelled)();
@@ -1091,7 +1091,7 @@ describe('registerStore', () => {
   });
 
   it('refuses malformed settings reads', async () => {
-    await register(fakeLog(), await developmentContext(), () => true);
+    await register(mockLog(), await developmentContext(), () => true);
     await expect(
       ask(settingsEndpoints.get.channel, {name: '../app'}),
     ).rejects.toThrow('Invalid settings read');
@@ -1102,7 +1102,7 @@ describe('registerStore', () => {
     const file = join(root, 'Songs', 'song.llsong');
     const original = {...hymnOne(), future: 'kept'};
     await writeJson(file, original);
-    await register(fakeLog(), context);
+    await register(mockLog(), context);
     const result = parseEditResult(
       await ask(contentEndpoints.edit.channel, {
         type: 'song.import',
@@ -1155,7 +1155,7 @@ describe('registerStore', () => {
       arrangements: [],
     };
     await writeJson(join(root, 'Songs', 'song.llsong'), original);
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     const initial = await ask(libraryEndpoints.search.channel, {
       query: '아침빛',
     });
@@ -1244,7 +1244,7 @@ describe('registerStore', () => {
           {format: 'llsettings.preferences', schemaVersion: 1, show},
         );
       }
-      const log = fakeLog();
+      const log = mockLog();
       await register(log, context, () => true);
       const [first, second] = await Promise.all([
         ask(settingsEndpoints.preferences.channel),
@@ -1277,7 +1277,7 @@ describe('registerStore', () => {
       show: {showClearUndoButton: 'yes'},
     });
     const original = await readFile(file, 'utf8');
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context, () => true);
     expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
@@ -1288,7 +1288,7 @@ describe('registerStore', () => {
 
   it('removes the preferences handler on disposal', async () => {
     const context = await developmentContext();
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     await store.dispose();
     expect(electron.handlers.has(settingsEndpoints.preferences.channel)).toBe(
       false,
@@ -1326,7 +1326,7 @@ describe('registerStore', () => {
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    await register(fakeLog(), context, () => true);
+    await register(mockLog(), context, () => true);
 
     expect(await askForService()).toMatchObject({
       revision: 1,
@@ -1362,7 +1362,7 @@ describe('registerStore', () => {
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
     const before = parseShowService(await askForService());
     if (!before.ok || before.value === null) {
       throw new Error('Missing test service');
@@ -1427,7 +1427,7 @@ describe('registerStore', () => {
 
   it('reads and edits content requested while the data is still loading', async () => {
     const context = await developmentContext();
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
 
     const created = parseEditResult(
       await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
@@ -1447,7 +1447,7 @@ describe('registerStore', () => {
 
   it('logs and refuses malformed edits and document ids without changing files', async () => {
     const context = await developmentContext();
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context, () => true);
 
     expect(
@@ -1463,13 +1463,13 @@ describe('registerStore', () => {
   });
 
   it('answers content reads and edits safely when no data folder could be opened', async () => {
-    const log = fakeLog();
+    const log = mockLog();
     const appConfig = await openAppConfig({
       file: join(await makeTempDir(), 'app.json'),
       log,
     });
     const store = registerStore({
-      problems: fakeProblems(),
+      problems: mockProblems(),
       log,
       appConfig,
       isAnyOutputOn: () => false,
@@ -1500,7 +1500,7 @@ describe('registerStore', () => {
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    const {dispose} = await register(fakeLog(), context);
+    const {dispose} = await register(mockLog(), context);
 
     expect(await askForService()).toMatchObject({
       revision: 1,
@@ -1513,7 +1513,7 @@ describe('registerStore', () => {
 
   it('answers null when there is no 예배 순서', async () => {
     const context = await developmentContext();
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context);
 
     expect(await askForService()).toBeNull();
@@ -1534,7 +1534,7 @@ describe('registerStore', () => {
       schemaVersion: 1,
       layout: {normal: {left: 'wide'}},
     });
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context);
 
     await askForService();
@@ -1566,11 +1566,11 @@ describe('registerStore', () => {
           return () => undefined;
         },
       },
-      log: fakeLog(),
+      log: mockLog(),
       isAnyOutputOn: () => false,
       appConfig: await openAppConfig({
         file: join(context.appDataFolder, 'app.json'),
-        log: fakeLog(),
+        log: mockLog(),
       }),
       context: () => ({
         developmentFolder: context.developmentFolder,
@@ -1610,7 +1610,7 @@ describe('registerStore', () => {
         writeJson(join(songs, `${index}.llsong`), '{"format": '),
       ),
     );
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context);
 
     await askForService();
@@ -1627,7 +1627,7 @@ describe('registerStore', () => {
     const link = join(context.appDataFolder, DATA_FOLDER_NAME);
     await symlink(outside, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
-    const log = fakeLog();
+    const log = mockLog();
     await register(log, context);
 
     expect(await askForService()).toBeNull();
@@ -1640,7 +1640,7 @@ describe('registerStore', () => {
 
   it('backs up once the data is read, and dispose waits for the backup', async () => {
     const context = await developmentContext();
-    const log = fakeLog();
+    const log = mockLog();
     const {dispose} = await register(log, context);
 
     await askForService();
@@ -1668,7 +1668,7 @@ describe('registerStore', () => {
       playlists: [],
       audioPlaylists: [],
     });
-    const store = await register(fakeLog(), context, () => true);
+    const store = await register(mockLog(), context, () => true);
 
     expect(await store.findMediaFile(mediaId)).toBe(
       join(root, 'Media', '빛.mp4'),
@@ -1687,7 +1687,7 @@ describe('registerStore', () => {
     await writeJson(leftover, 'half written');
     const twoMinutesAgo = (Date.now() - 120_000) / 1000;
     await utimes(leftover, twoMinutesAgo, twoMinutesAgo);
-    const {dispose} = await register(fakeLog(), context);
+    const {dispose} = await register(mockLog(), context);
 
     await dispose();
 
@@ -1704,7 +1704,7 @@ describe('registerStore', () => {
 
   it('skips the launch backup while an output is on', async () => {
     const context = await developmentContext();
-    const log = fakeLog();
+    const log = mockLog();
     const {dispose} = await register(log, context, () => true);
 
     await dispose();
@@ -1715,13 +1715,13 @@ describe('registerStore', () => {
   });
 
   it('logs a failure to find the data and answers null', async () => {
-    const log = fakeLog();
+    const log = mockLog();
     const appConfig = await openAppConfig({
       file: join(await makeTempDir(), 'app.json'),
       log,
     });
     const store = registerStore({
-      problems: fakeProblems(),
+      problems: mockProblems(),
       log,
       isAnyOutputOn: () => false,
       appConfig,

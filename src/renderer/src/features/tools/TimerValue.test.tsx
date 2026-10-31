@@ -1,6 +1,6 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
@@ -53,7 +53,7 @@ function fixture() {
   const run = live.timers?.[timer.id];
   const clock = vi.fn(async () => performance.timeOrigin);
   const write = vi.fn();
-  const api = fakeLlpApi({live: {clock}, log: {write}});
+  const api = mockLlpApi({live: {clock}, log: {write}});
   return {api, timer, run, clock, write};
 }
 

@@ -7,10 +7,10 @@ import type {
 import type {OutputScreen} from './screens';
 
 /**
- * What a fake window was told to show: nothing, full screen on a monitor, or a
+ * What a mock window was told to show: nothing, full screen on a monitor, or a
  * normal window moved to the bounds (null when it stays where it is).
  */
-export type FakeMode =
+export type MockMode =
   | {readonly kind: 'hidden'}
   | {
       readonly kind: 'fullscreen';
@@ -29,8 +29,8 @@ export type FakeMode =
     };
 
 /** An output window handle that records what it was told to do. */
-export class FakeOutputHandle implements OutputWindowHandle {
-  mode: FakeMode = {kind: 'hidden'};
+export class MockOutputHandle implements OutputWindowHandle {
+  mode: MockMode = {kind: 'hidden'};
   rendererGone = false;
   destroyed = false;
   reloads = 0;
@@ -44,7 +44,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
   /** How long the page takes to answer a ping; null when it never does. */
   answerAfterMs: number | null = 0;
   /** Every call that showed the window, in order. */
-  readonly placements: FakeMode[] = [];
+  readonly placements: MockMode[] = [];
 
   constructor(
     public screen: OutputScreen,
@@ -144,7 +144,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
     this.events.onCloseRequested();
   }
 
-  private place(mode: FakeMode): void {
+  private place(mode: MockMode): void {
     if (mode.kind !== 'hidden' && mode.bounds !== null) {
       this.viewport = mode.bounds;
     }
@@ -153,19 +153,19 @@ export class FakeOutputHandle implements OutputWindowHandle {
   }
 }
 
-/** A window factory that keeps every fake window it makes. */
-export interface FakeWindows {
+/** A window factory that keeps every mock window it makes. */
+export interface MockWindows {
   readonly create: CreateOutputWindowHandle;
-  readonly created: readonly FakeOutputHandle[];
+  readonly created: readonly MockOutputHandle[];
   /** The only window made for the screen; fails the test if there is none or more. */
-  only(screenId: string): FakeOutputHandle;
+  only(screenId: string): MockOutputHandle;
 }
 
-export function fakeWindows(): FakeWindows {
-  const created: FakeOutputHandle[] = [];
+export function mockWindows(): MockWindows {
+  const created: MockOutputHandle[] = [];
   return {
     create: (screen, events) => {
-      const handle = new FakeOutputHandle(screen, events);
+      const handle = new MockOutputHandle(screen, events);
       created.push(handle);
       return handle;
     },

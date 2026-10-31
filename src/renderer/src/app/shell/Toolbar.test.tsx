@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
@@ -12,7 +12,7 @@ import {ScreenSummariesContext} from '../../platform/ScreenSummaries';
 import type {ScreenSummary} from '../../platform/screens';
 
 function installApi(send: (command: LiveCommand) => void): void {
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send,

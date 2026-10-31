@@ -1,7 +1,7 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   screensDocument,
   looksDocument,
@@ -29,7 +29,7 @@ function fixture() {
   const send = vi.fn();
   const onWorkspace = vi.fn();
   const onShowWarning = vi.fn();
-  window.llp = fakeLlpApi({live: {send}});
+  window.llp = mockLlpApi({live: {send}});
   const input = {
     screens: summarizeScreens(screens.value.screens),
     looks: looks.value,

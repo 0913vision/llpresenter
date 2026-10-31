@@ -1,13 +1,13 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {editorGroupedSong} from './editorFixture';
 import {SongSession} from './songSession';
 import {SongSlidePanel, type SongSlideStore} from './SongSlidePanel';
 
 function createGroupedSession(document = editorGroupedSong(1)) {
-  const api = fakeLlpApi();
+  const api = mockLlpApi();
   const listeners = new Set<() => void>();
   let snapshot: {
     readonly session: SongSession;

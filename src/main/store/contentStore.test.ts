@@ -92,7 +92,7 @@ function templateFile(
   );
 }
 
-interface FakeFiles extends DocumentFiles {
+interface MockFiles extends DocumentFiles {
   readonly written: string[];
   readonly removed: string[];
   readonly texts: Map<string, string>;
@@ -103,8 +103,8 @@ interface FakeFiles extends DocumentFiles {
   reminded: number;
 }
 
-function fakeFiles(): FakeFiles {
-  const files: FakeFiles = {
+function mockFiles(): MockFiles {
+  const files: MockFiles = {
     written: [],
     removed: [],
     texts: new Map(),
@@ -151,7 +151,7 @@ function fakeFiles(): FakeFiles {
   return files;
 }
 
-function fakeEvents() {
+function mockEvents() {
   return {
     songChanged: vi.fn(),
     songsListChanged: vi.fn(),
@@ -181,9 +181,9 @@ function setUp(
       'writeDelayMs' | 'openServiceId' | 'templates' | 'songs' | 'settings'
     >
   > = {},
-  files = fakeFiles(),
+  files = mockFiles(),
 ) {
-  const events = fakeEvents();
+  const events = mockEvents();
   const song = songFile({...hymnOne(), copyright: 'public domain'});
   const log = quietLog();
   const store = new ContentStore({
@@ -223,7 +223,7 @@ function importSetup(
     readonly count?: number;
   } = {},
 ) {
-  const files = fakeFiles();
+  const files = mockFiles();
   const labels = parseSettingsDocument({
     name: 'labels',
     revision: 1,
@@ -799,8 +799,8 @@ describe('ContentStore song updates', () => {
       ]),
       services: new Map(),
       templates: new Map(),
-      files: fakeFiles(),
-      events: fakeEvents(),
+      files: mockFiles(),
+      events: mockEvents(),
       log: quietLog(),
     });
     expect(await newer.apply(songEdit(newer, '고침', 1))).toMatchObject({

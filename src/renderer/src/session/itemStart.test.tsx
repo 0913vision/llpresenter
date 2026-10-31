@@ -4,7 +4,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {sendLive, startLiveSync, useLive} from './live';
 import {applyService, openItem, outputTile, useShow} from './show';
@@ -39,7 +39,7 @@ const service: ShowService = {
 function setup(value = service) {
   const sent: LiveCommand[] = [];
   const getService = vi.fn(() => Promise.resolve(value));
-  window.llp = fakeLlpApi({
+  window.llp = mockLlpApi({
     service: {get: getService},
     live: {
       send: command => {

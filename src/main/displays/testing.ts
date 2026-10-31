@@ -87,7 +87,7 @@ export function recordingLogger(): RecordingLogger {
 }
 
 /** A display source whose monitors and failures a test controls. */
-export class FakeDisplaySource implements DisplaySource {
+export class MockDisplaySource implements DisplaySource {
   displays: readonly DisplayInfo[];
   failure: Error | null = null;
   private readonly watchers = new Set<(change: DisplayChange) => void>();

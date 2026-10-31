@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LayoutChange} from '@core/schema/uiState';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   saveThumbnailScale,
   seedThumbnailScale,
@@ -17,7 +17,7 @@ function scaleOf(sizeClass: 'narrow' | 'normal' | 'wide'): number {
 
 beforeEach(() => {
   setLayout.mockReset();
-  window.llp = fakeLlpApi({ui: {setLayout}});
+  window.llp = mockLlpApi({ui: {setLayout}});
   seedThumbnailScale({});
 });
 

@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {stageLayoutsDocument} from '@core/testing/screenDocuments';
 import {useStageEditor} from './useStageEditor';
 
@@ -20,7 +20,7 @@ function setup() {
       error: {reason: 'stale' as const, message: 'Changed'},
     }),
   );
-  window.llp = fakeLlpApi({settings: {edit}});
+  window.llp = mockLlpApi({settings: {edit}});
   return {document, edit};
 }
 

@@ -10,7 +10,7 @@ import {
   createServiceId,
   createServiceItemId,
 } from '@core/schema/ids';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
+import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {useMediaDurations} from './useMediaDurations';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
@@ -56,7 +56,7 @@ function setup() {
   let pushMedia: (document: MediaDocument) => void = () => undefined;
   const stopService = vi.fn();
   const stopMedia = vi.fn();
-  const api = fakeLlpApi({
+  const api = mockLlpApi({
     services: {
       get: () => Promise.resolve(service),
       subscribe: listener => {
