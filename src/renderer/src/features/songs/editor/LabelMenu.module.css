@@ -2,6 +2,10 @@
   width: var(--size-menu-max);
 }
 
+.popup[hidden] {
+  display: none;
+}
+
 .choice {
   box-sizing: border-box;
   border: 0;
@@ -37,26 +41,4 @@
 .name {
   min-width: 0;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.colors {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.colors [role='radiogroup'] > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.create {
-  padding: var(--space-4) var(--space-8);
 }

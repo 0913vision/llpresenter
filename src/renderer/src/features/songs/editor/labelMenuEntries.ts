@@ -1,24 +1,19 @@
 import type {Label} from '@core/schema/labels';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuSeparator} from '@renderer/ui/menuRows';
 
 export function labelMenuEntries({
   labels,
   selected,
-  disabledReason,
   choose,
-  create,
-  settings,
+  manage,
 }: {
   readonly labels: readonly Label[];
   readonly selected: string | undefined;
-  readonly disabledReason: string | undefined;
   readonly choose: (name: string | undefined) => void;
-  readonly create: () => void;
-  readonly settings: () => void;
+  readonly manage: () => void;
 }): readonly MenuEntry[] {
   return [
-    laterRow('edit', '편집…'),
     {
       kind: 'item',
       id: 'none',
@@ -38,55 +33,6 @@ export function labelMenuEntries({
       onSelect: () => choose(label.name),
     })),
     menuSeparator('actions'),
-    {
-      kind: 'item',
-      id: 'new',
-      label: '새 이름표',
-      ...menuAvailability(disabledReason),
-      onSelect: create,
-    },
-    {kind: 'item', id: 'settings', label: '이름표 설정…', onSelect: settings},
-  ];
-}
-
-export function labelManagementEntries({
-  disabledReason,
-  color,
-  rename,
-  remove,
-}: {
-  readonly disabledReason: string | undefined;
-  readonly color: () => void;
-  readonly rename: () => void;
-  readonly remove: () => void;
-}): readonly MenuEntry[] {
-  const locked = disabledReason !== undefined;
-  return [
-    {
-      kind: 'item',
-      id: 'color',
-      label: '색 바꾸기',
-      ...menuAvailability(disabledReason),
-      onSelect: color,
-    },
-    menuSeparator('rename-separator'),
-    {
-      kind: 'item',
-      id: 'rename',
-      label: '이름 바꾸기',
-      disabled: locked,
-      title: disabledReason ?? '모든 곡에서 이 이름표의 이름을 바꿉니다',
-      onSelect: rename,
-    },
-    menuSeparator('delete-separator'),
-    {
-      kind: 'item',
-      id: 'delete',
-      label: '삭제',
-      disabled: locked,
-      title:
-        disabledReason ?? '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
-      onSelect: remove,
-    },
+    {kind: 'item', id: 'manage', label: '이름표 관리…', onSelect: manage},
   ];
 }

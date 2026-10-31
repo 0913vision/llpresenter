@@ -2,11 +2,10 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {useSyncExternalStore} from 'react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {Label} from '@core/schema/labels';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
 import {ArrangementDialog} from './ArrangementDialog';
-import {LabelDialog} from './LabelDialog';
+import {LabelManagerDialog} from './LabelManagerDialog';
 
 function diskFailure(result: EditResult): EditResult {
   if (!result.ok) throw Error('Fixture rename did not apply');
@@ -71,12 +70,8 @@ it.each([
     const store = new SongEditorStore(fixture.api, vi.fn());
     store.open(fixture.first);
     await waitFor(() => expect(store.getSnapshot().labels).not.toBeNull());
-    const label = store
-      .getSnapshot()
-      .labels?.value.labels.find(label => label.name === '1절');
-    if (label === undefined) throw Error('Missing label');
     const close = vi.fn();
-    function Dialog({initialLabel}: {readonly initialLabel: Label}) {
+    function Dialog() {
       const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
       return kind === 'arrangement' ? (
         <ArrangementDialog
@@ -91,27 +86,38 @@ it.each([
           onClose={close}
         />
       ) : (
-        <LabelDialog
-          label={initialLabel}
-          labels={state.labels?.value.labels ?? []}
-          store={store}
-          busy={state.busy}
-          onClose={close}
-        />
+        <LabelManagerDialog store={store} onClose={close} />
       );
     }
-    const view = render(<Dialog initialLabel={label} />);
+    const view = render(<Dialog />);
     onTestFinished(async () => {
       view.unmount();
       await store.dispose();
     });
-    const field = screen.getByRole('textbox');
-    const save = screen.getByRole('button', {name: '저장'});
+    const field = screen.getByRole('textbox', {
+      name: kind === 'label' ? '1절 이름' : '구성 이름',
+    });
+    const save = (): void => {
+      if (kind === 'label') fireEvent.keyDown(field, {key: 'Enter'});
+      else fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    };
+    const expectAccepted = async (name: string): Promise<void> => {
+      if (kind === 'arrangement') {
+        await waitFor(() => expect(close).toHaveBeenCalledOnce());
+      } else {
+        await waitFor(() => {
+          const input = screen.getByRole('textbox', {name: `${name} 이름`});
+          expect(input).toHaveProperty('value', name);
+          expect(input.getAttribute('aria-invalid')).not.toBe('true');
+        });
+        expect(close).not.toHaveBeenCalled();
+      }
+    };
     fireEvent.change(field, {target: {value: '새 이름'}});
-    fireEvent.click(save);
+    save();
     await waitFor(() => {
       expect(field.getAttribute('aria-invalid')).toBe('true');
-      expect(save.getAttribute('aria-disabled')).not.toBe('true');
+      expect(field).toHaveProperty('readOnly', false);
     });
     const revision =
       kind === 'label'
@@ -120,8 +126,8 @@ it.each([
     expect(revision).toBe(2);
     if (recovery === 'correct') {
       fireEvent.change(field, {target: {value: '고친 이름'}});
-      fireEvent.click(save);
-      await waitFor(() => expect(close).toHaveBeenCalledOnce());
+      save();
+      await expectAccepted('고친 이름');
       if (kind === 'label') {
         expect(settings.mock.calls.at(-1)?.[0]).toMatchObject({
           type: 'labels.rename',
@@ -138,15 +144,15 @@ it.each([
       }
       return;
     }
-    fireEvent.click(save);
+    save();
     await waitFor(() => {
       expect(retries).toBe(1);
-      expect(save.getAttribute('aria-disabled')).not.toBe('true');
+      expect(field).toHaveProperty('readOnly', false);
     });
     expect(close).not.toHaveBeenCalled();
     expect(field).toHaveProperty('value', '새 이름');
-    fireEvent.click(save);
-    await waitFor(() => expect(close).toHaveBeenCalledOnce());
+    save();
+    await expectAccepted('새 이름');
     expect(retries).toBe(2);
     expect(
       content.mock.calls.filter(

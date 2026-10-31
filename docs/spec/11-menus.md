@@ -124,17 +124,17 @@ lack), Moved, Removed.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
   1:58).
 
-| Group | Row                                                | Does                                                                                               | Status                   |
-| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------ |
-| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                     | Off                      |
-| 1     | 곡 편집                                            | Opens 준비 with this slide selected and scrolled into view, like 곡 편집 on a 예배 순서 song item. | New                      |
-| 2     | 사용 안 함                                         | PP Disable.                                                                                        | Off                      |
-| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                 | Off                      |
-| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 빼기: <대상>" rows here.                             | Off                      |
-| 5     | 이름표 ›                                           | PP Group (Arrangements video 0:55): 편집… (off)                                                    | 이름표 없음 (PP Ungroup) | every 이름표 with its color swatch, ✓ on the current one | 이름표 설정…. The same list as the 이름표 popover. | Off |
-| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                          | Off                      |
-| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                      | Off                      |
-| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                 | Off                      |
+| Group | Row                                                | Does                                                                                                                       | Status |
+| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                             | Off    |
+| 1     | 곡 편집                                            | Opens 준비 with this slide selected and scrolled into view, like 곡 편집 on a 예배 순서 song item.                         | New    |
+| 2     | 사용 안 함                                         | PP Disable.                                                                                                                | Off    |
+| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                         | Off    |
+| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 빼기: <대상>" rows here.                                                     | Off    |
+| 5     | 이름표 ›                                           | 이름표 없음, every 이름표 with its color swatch and current check, then 이름표 관리…. The same list as the 이름표 popover. | Off    |
+| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                                                  | Off    |
+| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                              | Off    |
+| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                         | Off    |
 
 - All three grids share one menu model. In 준비, 단축키… opens the source
   slide's key recorder in the song editor, opening that editor first from an
@@ -337,37 +337,37 @@ lack), Moved, Removed.
 
 - Where: 준비 editor (LabelMenu)
 - Opens: Click the label tag, 새 그룹, or Ctrl G.
-- Purpose: Pick the 이름표 of a group; add one.
+- Purpose: Pick the 이름표 of a group or open the shared catalog manager.
 - PP: PP slide Group submenu (Arrangements video 0:55 and 1:07): Edit… | Ungroup
   | groups with color swatches | Settings. Colors are set in Settings > Groups,
   not in the menu.
 
-| Group | Row           | Does                                                                                                                       | Status |
-| ----- | ------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 편집…         | PP Edit….                                                                                                                  | Off    |
-| 1     | 이름표 없음   | Removes the 이름표 (PP Ungroup).                                                                                           | Now    |
-| 2     | <이름표>      | Every 이름표 with its color swatch; ✓ in the left padding on the current one.                                              | Now    |
-| 3     | 새 이름표     | Turns into a name field.                                                                                                   | Now    |
-| 3     | 이름표 설정…  | Opens a dialog that lists every 이름표 with its name, color, and 삭제 (PP Settings > Groups, with a color list per group). | New    |
-| -     | <이름> 색 row | Removed from the popover; colors move to 이름표 설정….                                                                     | Moved  |
+| Group | Row          | Does                                                                                   | Status |
+| ----- | ------------ | -------------------------------------------------------------------------------------- | ------ |
+| 1     | 이름표 없음  | Removes the 이름표 (PP Ungroup).                                                       | Now    |
+| 2     | <이름표>     | Every 이름표 with its color swatch; ✓ in the left padding on the current one.          | Now    |
+| 3     | 이름표 관리… | Opens the shared catalog dialog with editable names, palettes, deletion, and creation. | Now    |
 
-- The right-click menu on a 이름표 row (이름표 관리) gives quick 색 바꾸기, 이름
-  바꾸기, and 삭제 without opening 이름표 설정….
+- The picker has no inline creation, disabled 편집… row, or row context menu.
 
 ### 이름표 관리
 
-- Where: 이름표 popover row
-- Opens: Right-click a label row.
-- Purpose: Act on this one 이름표.
+- Where: 이름표 picker
+- Opens: 이름표 관리….
+- Purpose: Manage the shared catalog in one dialog.
 - PP: Not seen in PP as a menu. PP edits groups in Settings > Groups (name,
   color list, delete; Arrangements video 1:02). Rows follow the list-row rule
   plus the color that PP keeps per group.
 
-| Group | Row         | Does                                                                                         | Status |
-| ----- | ----------- | -------------------------------------------------------------------------------------------- | ------ |
-| 1     | 색 바꾸기   | Opens the same color popover as 매크로 색 바꾸기 (8 colors and 없음); applies to every song. | New    |
-| 2     | 이름 바꾸기 | Renames it in every song.                                                                    | Now    |
-| 3     | 삭제        | Deletes it.                                                                                  | Now    |
+Each row has an editable name, the shared palette (none and eight colors), and
+삭제. Names and colors save immediately. Renaming rewrites matching names in
+every song; deleting only removes the catalog definition and keeps song names.
+Keep scope tooltips on these controls. The palette's name is accessible without
+repeating it visibly beside the name field.
+
+새 이름표 at the footer's left adds a uniquely named row and selects its name
+for editing. It does not assign the label to a group. 닫기 is the only footer
+completion action (October 31 B22 user decision).
 
 - No 복제: PP groups have no duplicate.
 

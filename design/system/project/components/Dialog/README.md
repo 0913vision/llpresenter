@@ -56,6 +56,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 ## Behavior
 
 - When the dialog opens, put focus in the first text field and select all its text (새 예배: the name field). If there is no text field, focus the primary button.
+- An autosaving catalog manager can opt into surface focus. On open, no name is focused or selected and no field tooltip opens. Tab enters the first text field; Shift+Tab reaches the last footer action. Explicit creation still focuses and selects the new row's name.
 - Focus cycles only inside the dialog (Tab, Shift+Tab). The order follows the screen: close → body → bar → footer.
 - Enter triggers the primary button (when focus isn't in a multiline text field or a list). Esc and the close button do the same as [취소].
 - Modified Enter and Esc pass through without submitting or canceling.

@@ -200,27 +200,36 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - "이름표 없음" (no 이름표), then the 이름표 list (1절, 2절, 3절, 프리코러스,
     후렴, 브리지, 간주, 엔딩), each with its color swatch. The current one has a
     check mark.
-  - A separator, then the color row of the current 이름표 (for example "후렴
-    색", chorus color): 없음 (none) and the eight colors.
-  - A separator, then 새 이름표 (new 이름표).
+  - A separator, then 이름표 관리….
 - Choosing a name sets the group's `name`. Starting a new group at a slide
   splits the current group there, retaining every arrangement's slide order
   (02). Renaming one group does not merge it with another same-named group.
-- Choosing a color in the color row changes that 이름표's color in the app-wide
-  list at once, and the menu stays open. Every group with that name, in every
-  song, changes color.
-- 새 이름표 opens a name field in the menu. Enter adds the name to the end of
-  the list with no color and sets it on the group (proposal).
+- The picker only assigns a name to this group. Creation and shared changes
+  belong to 이름표 관리; picker rows have no management context menu.
 
-### Managing the 이름표 list (proposal)
+### Managing the 이름표 list
 
-Version 1 adds a right-click menu to each name in the 이름표 menu. Hot keys
-belong to particular source slides, not this app-wide name/color registry
-(October 27 S26 user decision).
+이름표 관리… opens one dialog for the shared catalog (October 31 B22 user
+decision). Each row contains an editable name, the shared color palette with an
+accessible name, and 삭제. Do not repeat the palette name as visible text. Name
+changes use the shared rename contract: Enter or blur accepts a valid draft, Esc
+cancels it, and a failed save keeps its applied identity for retry or
+correction. Color and rename tooltips explain their library-wide scope.
+
+새 이름표 at the bottom left appends a uniquely named row with no color and
+focuses and selects its name. Creation does not assign it to the current group.
+Changes save immediately, so 닫기 is the only footer completion action. Hot keys
+belong to particular source slides, not this shared name/color registry (October
+27 S26 user decision).
+
+On open, focus the dialog surface with no name selected or rename tooltip. Tab
+enters the first name field. 새 이름표 still focuses and selects the new row's
+name.
 
 | Item                 | Behavior                                                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | 이름 바꾸기 (rename) | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02). |
+| 색 (color)           | Applies the color to every group with that name in every song.                                                              |
 | 삭제 (delete)        | Removes the name from the list only. Songs keep the name, and it draws with no color.                                       |
 
 ### Slide hot keys

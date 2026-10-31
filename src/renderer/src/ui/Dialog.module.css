@@ -203,6 +203,10 @@
   border-top: 1px solid var(--line);
 }
 
+.footerStart {
+  margin-right: auto;
+}
+
 @keyframes appear {
   from {
     opacity: 0;

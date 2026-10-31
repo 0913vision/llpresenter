@@ -70,28 +70,30 @@ export function useRenameDraft(
     if (pending.current || finished.current) return;
     close();
   };
-  const save = async (): Promise<void> => {
-    if (locked || pending.current || finished.current) return;
+  const save = async (): Promise<boolean> => {
+    if (locked || pending.current || finished.current) return false;
     if (unchanged) {
       cancel();
-      return;
+      return true;
     }
-    if (validation !== undefined) return;
+    if (validation !== undefined) return false;
     pending.current = true;
     setNeedsPersistence(true);
     setSaving(true);
     setFailure(undefined);
     try {
       const saved = await contract.onCommit(name);
-      if (!mounted.current) return;
+      if (!mounted.current) return saved;
       if (!saved) setFailure('이름을 저장할 수 없습니다');
       else {
         setNeedsPersistence(false);
         close();
       }
+      return saved;
     } catch (cause: unknown) {
       console.error('Could not save a renamed item:', cause);
       if (mounted.current) setFailure('이름을 저장할 수 없습니다');
+      return false;
     } finally {
       pending.current = false;
       if (mounted.current) setSaving(false);
@@ -130,6 +132,8 @@ export function useRenameDraft(
   };
   return {
     commit,
+    save,
+    changed: !unchanged,
     cancel,
     busy: locked || saving,
     valid: validation === undefined || unchanged,

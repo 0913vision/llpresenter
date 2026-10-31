@@ -1,19 +1,19 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import {createPortal} from 'react-dom';
-import {TextField} from '@renderer/ui/TextField';
 import {classNames} from '@renderer/ui/classNames';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
 import {layerContainer} from '@renderer/ui/layers';
 import menuStyles from '@renderer/ui/Menu.module.css';
-import {labelNameReason} from './LabelDialog';
-import {LabelChoices, type LabelContext} from './LabelChoices';
-import {LabelManagement} from './LabelManagement';
-import {LabelSettingsDialog} from './LabelSettingsDialog';
+import {LabelChoices} from './LabelChoices';
+import {LabelManagerDialog} from './LabelManagerDialog';
 import {labelMenuEntries} from './labelMenuEntries';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import type {SongEditorStore} from './songEditorStore';
-import {editorTask} from './editorTask';
 import styles from './LabelMenu.module.css';
 
 interface LabelMenuProps {
@@ -24,7 +24,7 @@ interface LabelMenuProps {
   readonly onClose: (restoreFocus: boolean) => void;
 }
 
-/** Label choices, inline creation, and shared settings. */
+/** Picks a label or opens the shared catalog manager. */
 export function LabelMenu({
   store,
   anchor,
@@ -37,51 +37,34 @@ export function LabelMenu({
     store.getSnapshot,
   );
   const labels = document?.value.labels ?? [];
-  const disabledReason = busy
-    ? '이름표 저장 중'
-    : document?.access !== 'editable'
-      ? '읽기 전용 이름표 목록'
-      : undefined;
-  const locked = disabledReason !== undefined;
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState('');
-  const [context, setContext] = useState<LabelContext | null>(null);
-  const [settings, setSettings] = useState(false);
-  const reason = labelNameReason(name, labels);
+  const [managing, setManaging] = useState(false);
+  const wasManaging = useRef(false);
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
     onClose: restoreFocus => {
-      if (!settings && context === null) onClose(restoreFocus);
+      if (!managing) onClose(restoreFocus);
     },
-    onEscape: () => {
-      if (creating) {
-        setCreating(false);
-        surface.current?.querySelector<HTMLElement>('[data-new]')?.focus();
-      } else onClose(true);
-    },
+    onEscape: () => onClose(true),
   });
+  useEffect(() => {
+    if (!managing && wasManaging.current) {
+      surface.current
+        ?.querySelector<HTMLElement>('[data-choice-id="manage"]')
+        ?.focus();
+    }
+    wasManaging.current = managing;
+  }, [managing, surface]);
   const choose = (value: string | undefined): void => {
     if (busy) return;
     onChoose(value);
     onClose(true);
-  };
-  const create = async (): Promise<void> => {
-    if (locked || reason !== undefined) return;
-    const created = name.trim();
-    if (
-      await store.updateLabels([
-        ...labels,
-        {name: created, color: 'none', key: null},
-      ])
-    ) {
-      choose(created);
-    }
   };
   return createPortal(
     <>
       <div className={menuStyles.layer}>
         <div
           ref={surface}
+          hidden={managing}
           role="menu"
           aria-label="이름표"
           data-check-column="true"
@@ -90,88 +73,33 @@ export function LabelMenu({
           onBlur={event => {
             const target = event.relatedTarget;
             if (
+              !managing &&
               target instanceof Element &&
               !event.currentTarget.contains(target) &&
-              target.closest(
-                '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
-              ) === null
+              target.closest('[data-llp-layer="dialog"]') === null
             ) {
               onClose(false);
             }
           }}
         >
           <LabelChoices
-            labels={labels}
             entries={labelMenuEntries({
               labels,
               selected,
-              disabledReason,
               choose,
-              create: () => setCreating(true),
-              settings: () => setSettings(true),
+              manage: () => setManaging(true),
             })}
-            onContext={value => {
-              value.trigger.focus();
-              setContext(value);
-            }}
-            creation={
-              creating ? (
-                <div className={styles.create}>
-                  <TextField
-                    aria-label="새 이름표 이름"
-                    value={name}
-                    onChange={setName}
-                    autoFocus
-                    block
-                    size="sm"
-                    readOnly={locked}
-                    invalid={name !== '' && reason !== undefined}
-                    invalidReason={name === '' ? undefined : reason}
-                    onKeyDown={event => {
-                      if (
-                        event.key === 'Enter' &&
-                        !isComposing(event) &&
-                        !hasModifier(event)
-                      ) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        editorTask(create());
-                      }
-                    }}
-                  />
-                </div>
-              ) : null
-            }
           />
         </div>
       </div>
-      {settings ? (
-        <LabelSettingsDialog
+      {managing ? (
+        <LabelManagerDialog
           store={store}
           onClose={() => {
-            setSettings(false);
-            surface.current
-              ?.querySelector<HTMLElement>('[data-choice-id="settings"]')
-              ?.focus();
+            setManaging(false);
           }}
         />
       ) : null}
-      {context === null ? null : (
-        <LabelManagement
-          context={context}
-          store={store}
-          labels={labels}
-          disabledReason={disabledReason}
-          onClose={() => {
-            setContext(null);
-            (
-              surface.current?.querySelector<HTMLElement>(
-                '[aria-checked="true"]',
-              ) ?? surface.current?.querySelector<HTMLElement>('[data-choice]')
-            )?.focus();
-          }}
-        />
-      )}
     </>,
     layerContainer('popover'),
   );

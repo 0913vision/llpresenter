@@ -24,7 +24,7 @@ const LIST_ROLES =
 const TOGGLE_ROLES = new Set(['checkbox', 'switch']);
 
 /** Where a modal puts focus when it opens. */
-export type InitialFocus = 'text-field' | 'primary';
+export type InitialFocus = 'text-field' | 'primary' | 'surface';
 
 const PRIMARY_ATTRIBUTE = 'data-modal-primary';
 
@@ -67,6 +67,10 @@ export function tabbableElements(surface: HTMLElement): HTMLElement[] {
 }
 
 function focusInitial(surface: HTMLElement, initialFocus: InitialFocus): void {
+  if (initialFocus === 'surface') {
+    surface.focus();
+    return;
+  }
   const field =
     initialFocus === 'text-field'
       ? surface.querySelector<HTMLInputElement | HTMLTextAreaElement>(
@@ -201,6 +205,28 @@ export function useModal({
 
   return event => {
     switch (event.key) {
+      case 'Tab': {
+        const element = surface.current;
+        if (
+          event.defaultPrevented ||
+          initialFocus !== 'surface' ||
+          element === null ||
+          event.target !== element ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.metaKey ||
+          isComposing(event)
+        ) {
+          return;
+        }
+        const cycle = focusCycle(element);
+        const target = event.shiftKey
+          ? cycle.at(-1)
+          : (element.querySelector<HTMLElement>(TEXT_FIELD) ?? cycle[0]);
+        event.preventDefault();
+        target?.focus();
+        return;
+      }
       case 'Escape':
         if (
           event.defaultPrevented ||

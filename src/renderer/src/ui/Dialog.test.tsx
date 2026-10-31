@@ -73,6 +73,29 @@ function appRoot(): Element {
 }
 
 describe('Dialog', () => {
+  it('enters an empty surface-mode dialog through its actions in both tab directions', async () => {
+    render(
+      <Dialog
+        title="목록 관리"
+        size="m"
+        initialFocus="surface"
+        onCancel={vi.fn()}
+        primary={{label: '완료', onSelect: vi.fn()}}
+      >
+        <span>목록</span>
+      </Dialog>,
+    );
+    await userEvent.tab({shift: true});
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '완료'}),
+    );
+    act(() => screen.getByRole('dialog').focus());
+    await userEvent.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '닫기'}),
+    );
+  });
+
   it('is a modal dialog named by its title', async () => {
     render(<NewService />);
     await openDialog();

@@ -6,7 +6,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {IconButton} from './IconButton';
 import {layerContainer} from './layers';
-import {PRIMARY_MARK, useModal} from './useModal';
+import {PRIMARY_MARK, useModal, type InitialFocus} from './useModal';
 import styles from './Dialog.module.css';
 
 /** The dialog widths: 460, 600, 820, and 1080. */
@@ -32,7 +32,11 @@ export interface DialogProps {
   readonly height?: number | undefined;
   /** What [취소], the close button, and Esc do. */
   readonly onCancel: () => void;
-  readonly cancelLabel?: string | undefined;
+  readonly cancelLabel?: string | null | undefined;
+  /** An auxiliary action at the left of the footer. */
+  readonly footerStart?: ReactNode;
+  /** Focus the surface to keep existing autosaving names unarmed on open. */
+  readonly initialFocus?: InitialFocus | undefined;
   /** The one primary button at the far right; Enter presses it. */
   readonly primary: DialogAction;
   /** Other buttons, between [취소] and the primary button. */
@@ -144,6 +148,8 @@ export function Dialog({
   height,
   onCancel,
   cancelLabel = CANCEL_LABEL,
+  footerStart,
+  initialFocus = 'text-field',
   primary,
   secondary = [],
   topBar,
@@ -158,13 +164,14 @@ export function Dialog({
     surface,
     onEscape: onCancel,
     onEnter: primary.disabled === true ? undefined : primary.onSelect,
-    initialFocus: 'text-field',
+    initialFocus,
   });
   return (
     <ModalScrim>
       <div
         ref={surface}
         role="dialog"
+        tabIndex={initialFocus === 'surface' ? -1 : undefined}
         aria-modal="true"
         aria-labelledby={titleId}
         className={classNames(styles.dialog, sizeClass[size])}
@@ -202,9 +209,14 @@ export function Dialog({
           <div className={styles.bar}>{bottomBar}</div>
         )}
         <div className={styles.footer}>
-          <Button size="md" onClick={onCancel}>
-            {cancelLabel}
-          </Button>
+          {footerStart === undefined ? null : (
+            <div className={styles.footerStart}>{footerStart}</div>
+          )}
+          {cancelLabel === null ? null : (
+            <Button size="md" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          )}
           {secondary.map(action => (
             <ActionButton key={action.label} action={action} />
           ))}

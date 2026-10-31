@@ -11,7 +11,7 @@ import {
   DUPLICATE_LABEL_NAME_REASON,
   EMPTY_LABEL_NAME_REASON,
   labelNameReason,
-} from './LabelDialog';
+} from './LabelNameField';
 
 const REASON_SENTENCE = /^[^.]+습니다$/u;
 
