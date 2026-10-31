@@ -18,6 +18,7 @@ const BOUNDARY_TEST_FILES = ['**/*.test.{ts,tsx}', 'src/**/testing/**'];
 const MAIN_MODULE_FILES = ['src/main/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 const RENDERER_MODULE_FILES = ['src/renderer/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 const SOURCE_MODULE_FILES = ['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
+const SOURCE_TEST_FILES = ['src/**/*.test.{ts,tsx}'];
 
 const VALIBOT_IMPORT = {
   regex: '^valibot(?:/|$)',
@@ -286,12 +287,21 @@ export const lintConfig = defineConfig(
   },
   {
     files: SOURCE_MODULE_FILES,
-    ignores: BOUNDARY_TEST_FILES,
+    ignores: SOURCE_TEST_FILES,
     rules: {
       // NOTE(0913vision): Imports flow one way between the layers in
       // scripts/lint/layers.mts, so a change in a feature never reaches
-      // the layers below it.
+      // the layers below it. Fixtures in testing/ folders follow it too, so
+      // each one sits in the lowest layer that uses it.
       'llp/layer-imports': 'error',
+    },
+  },
+  {
+    files: SOURCE_TEST_FILES,
+    rules: {
+      // NOTE(0913vision): A test may use any layer of its own process around
+      // the code it tests, but never another process's code.
+      'llp/test-layer-imports': 'error',
     },
   },
   {

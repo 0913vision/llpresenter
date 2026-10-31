@@ -18,7 +18,7 @@ import {applyService} from '@renderer/session/show';
 import {sampleService} from '@renderer/session/testing/sampleService';
 import type {Notice} from '@renderer/ui/notices';
 import {useServiceActions} from './useServiceActions';
-import {librarySongs, templateDocument} from './testing';
+import {librarySongs, templateDocument} from '@core/testing/serviceList';
 
 const currentId = createServiceId('40000000-0000-4000-8000-000000000009');
 const savedId = createTemplateId('30000000-0000-4000-8000-000000000008');

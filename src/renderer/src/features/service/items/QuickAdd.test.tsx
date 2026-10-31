@@ -19,7 +19,7 @@ import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
-import {formLookupReply} from '@renderer/features/bible/testing/referenceForm';
+import {formLookupReply} from '@core/testing/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
 
 afterEach(() => {

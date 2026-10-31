@@ -1,14 +1,14 @@
 import {vi} from 'vitest';
-import type {LlpApi} from '@contracts/ipc/api';
+import type {LlpApi} from '../api';
 import type {LiveCommand} from '@core/live/commands';
 import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {lookupRequest} from './testBible';
-import {formLookupReply} from './testing/referenceForm';
+import {fakeLlpApi} from './fakeLlpApi';
+import {lookupRequest} from '@core/testing/bibleLookups';
+import {formLookupReply} from '@core/testing/bibleReplies';
 
 export type BibleDocument = Extract<SettingsDocument, {name: 'bible'}>;
 

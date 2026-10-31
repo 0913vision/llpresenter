@@ -1,3 +1,4 @@
+import {fixtureMedia} from '@core/testing/mediaList';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {
   ServiceDocument,
@@ -18,7 +19,6 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   fixtureItems,
   fixtureMacros,
-  fixtureMedia,
   fixtureServiceId,
   itemFixture,
 } from './itemFixture';

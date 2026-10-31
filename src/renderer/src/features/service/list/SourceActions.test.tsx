@@ -37,7 +37,7 @@ import {
   templateDocument,
   templateEntries,
   titles,
-} from './testing';
+} from '@core/testing/serviceList';
 
 const REFUSED: EditResult = {
   ok: false,

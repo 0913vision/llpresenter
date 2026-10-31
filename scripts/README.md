@@ -86,6 +86,8 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
 - `llp/layer-imports` (`scripts/lint/layer-rule.mts`) allows an import only
   along the layers in `scripts/lint/layers.mts` (`docs/TECH.md`, "Code
   structure"). It resolves both relative and alias imports.
+  `llp/test-layer-imports` lets a test use any layer of its own process, never
+  another process's code.
 - Comments can't switch rules off (`noInlineConfig`). When existing code breaks
   a rule, add the narrowest entry to `scripts/lint/legacy-exclusions.mts` with a
   TODO, and the code's author fixes it.

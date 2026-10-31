@@ -4,7 +4,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {createServiceId} from '@core/schema/ids';
 import {SourceList} from './SourceList';
-import {ids, serviceEntries, templateEntries} from './testing';
+import {ids, serviceEntries, templateEntries} from '@core/testing/serviceList';
 
 const newer: ServiceEntry = {
   id: createServiceId('40000000-0000-4000-8000-000000000003'),

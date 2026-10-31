@@ -21,7 +21,7 @@ import {
   templateDocument,
   templateEntries,
   titles,
-} from './testing';
+} from '@core/testing/serviceList';
 
 const template: ServiceSource = {kind: 'template', id: ids.template};
 const past: ServiceSource = {kind: 'service', id: ids.past};

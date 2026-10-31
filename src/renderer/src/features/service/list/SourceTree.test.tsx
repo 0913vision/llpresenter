@@ -5,7 +5,12 @@ import {describe, expect, it, vi} from 'vitest';
 import {Dialog} from '@renderer/ui/Dialog';
 import {checkAll, treeRows, type TreeSelection} from './serviceTree';
 import {SourceTree} from './SourceTree';
-import {ids, songTitles, templateOrder, titles} from './testing';
+import {
+  ids,
+  songTitles,
+  templateOrder,
+  titles,
+} from '@core/testing/serviceList';
 
 const rows = treeRows(templateOrder, songTitles);
 

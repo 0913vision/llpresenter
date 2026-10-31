@@ -14,7 +14,7 @@ import {
 import {bibleSourceFor, shownTiles} from '@renderer/session/showLibrary';
 import {sampleService} from '../../session/testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
-import {panelApi, panelPassage} from './panelTesting';
+import {panelApi, panelPassage} from '@contracts/ipc/testing/bibleApi';
 import {bibleSource} from '@core/bible/source';
 
 beforeEach(() => {

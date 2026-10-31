@@ -11,7 +11,7 @@ import {ItemPreviewPanel, ItemSettingsPanel} from './ItemSidePanels';
 import {ServiceItemStore} from './serviceItemStore';
 import {ServiceItemPanel} from './SongItemPanel';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
-import {panelPassage} from '@renderer/features/bible/panelTesting';
+import {panelPassage} from '@contracts/ipc/testing/bibleApi';
 import {editorPreviewFixture} from '@renderer/features/songs/editor/editorPreviewFixture';
 
 const drawing = vi.hoisted(() => ({

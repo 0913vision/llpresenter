@@ -4,7 +4,7 @@ import type {
   BibleLookupRequest,
 } from '@core/schema/bibleLookup';
 import {LatestLookup} from './LatestLookup';
-import {lookupReply, lookupRequest} from './testBible';
+import {lookupReply, lookupRequest} from '@core/testing/bibleLookups';
 
 describe('latest Bible lookup', () => {
   it('keeps only the newest pending input and never accepts a stale answer', async () => {

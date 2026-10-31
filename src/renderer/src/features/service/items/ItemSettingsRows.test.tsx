@@ -1,3 +1,4 @@
+import {fixtureMedia} from '@core/testing/mediaList';
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -10,7 +11,6 @@ import {NEWER_FILE_REASON} from './ItemArrangement';
 import {
   fixtureItems,
   fixtureMacros,
-  fixtureMedia,
   fixtureServiceId,
   itemFixture,
 } from './itemFixture';

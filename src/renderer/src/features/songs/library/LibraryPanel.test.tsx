@@ -21,7 +21,7 @@ import {
   LibraryGalleryHost,
   LibrarySection,
 } from '../../../gallery/LibrarySection';
-import {pastDocument, serviceEntries} from '../../service/list/testing';
+import {pastDocument, serviceEntries} from '@core/testing/serviceList';
 
 class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];

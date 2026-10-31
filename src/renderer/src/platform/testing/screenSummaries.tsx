@@ -4,8 +4,8 @@ import {
   type RenderOptions,
   type RenderResult,
 } from '@testing-library/react';
-import {ScreenSummariesContext} from '../../../platform/ScreenSummaries';
-import type {ScreenSummary} from '../../../platform/screens';
+import {ScreenSummariesContext} from '../ScreenSummaries';
+import type {ScreenSummary} from '../screens';
 
 const screens: readonly ScreenSummary[] = [
   {

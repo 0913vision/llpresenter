@@ -12,7 +12,7 @@ import {
 } from '@renderer/session/show';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from '../presentation/BiblePanel';
-import {panelApi} from './panelTesting';
+import {panelApi} from '@contracts/ipc/testing/bibleApi';
 
 function fixture(verseNumbers: boolean) {
   const panel = panelApi();

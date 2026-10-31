@@ -3,8 +3,8 @@ import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {openItem, selectTile, useShow} from '@renderer/session/show';
 import {openBiblePassage} from '../bible/actions';
-import {panelPassage} from '../bible/panelTesting';
-import {lookupRequest} from '../bible/testBible';
+import {panelPassage} from '@contracts/ipc/testing/bibleApi';
+import {lookupRequest} from '@core/testing/bibleLookups';
 import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import {
   deferred,

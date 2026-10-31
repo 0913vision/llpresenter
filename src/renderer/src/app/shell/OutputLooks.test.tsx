@@ -10,7 +10,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {stageLayoutsDocument} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {MenuBar} from './MenuBar';
-import {renderWithScreenSummaries as render} from './testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '../../platform/testing/screenSummaries';
 
 const first = '00000000-0000-4000-8000-000000000001';
 const second = '00000000-0000-4000-8000-000000000002';

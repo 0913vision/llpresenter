@@ -15,7 +15,7 @@ import {useLive} from '@renderer/session/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {BiblePanel} from '../../presentation/BiblePanel';
 import {openBiblePassage} from '../../bible/actions';
-import {panelApi, panelPassage} from '../../bible/panelTesting';
+import {panelApi, panelPassage} from '@contracts/ipc/testing/bibleApi';
 
 afterEach(() => {
   delete window.llp;

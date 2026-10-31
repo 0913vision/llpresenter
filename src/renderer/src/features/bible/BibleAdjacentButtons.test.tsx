@@ -25,9 +25,9 @@ import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from '../presentation/BiblePanel';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {adjacentVerseRange} from '@core/bible/adjacentVerses';
-import {panelApi} from './panelTesting';
-import {lookupRequest} from './testBible';
-import {formLookupReply} from './testing/referenceForm';
+import {panelApi} from '@contracts/ipc/testing/bibleApi';
+import {lookupRequest} from '@core/testing/bibleLookups';
+import {formLookupReply} from '@core/testing/bibleReplies';
 
 async function passage(input = '요한복음 3:16-18') {
   const reply = await formLookupReply(lookupRequest(input));

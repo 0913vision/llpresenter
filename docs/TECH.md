@@ -111,7 +111,9 @@ feature that owns it.
   channel, the parsers for the request and the reply, and the member of
   `window.llp` built on the preload script's port. The preload script and its
   checks don't change per call.
-- Tests and `testing/` fixtures are not checked yet.
+- A test sits beside the code it tests and may use any layer of its own process
+  around that code, never another process's code. A `testing/` fixture follows
+  the layer order like code, so it sits in the lowest layer that uses it.
 
 ## Registries (extension points)
 

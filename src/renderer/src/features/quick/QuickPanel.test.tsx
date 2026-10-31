@@ -15,7 +15,7 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {seedSampleService} from '../../session/testing/sampleService';
-import {lookupReply, lookupRequest} from '../bible/testBible';
+import {lookupReply, lookupRequest} from '@core/testing/bibleLookups';
 import {QuickPanel} from './QuickPanel';
 import {
   deferred,

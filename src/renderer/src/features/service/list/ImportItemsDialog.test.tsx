@@ -31,7 +31,7 @@ import {
   templateDocument,
   templateEntries,
   titles,
-} from './testing';
+} from '@core/testing/serviceList';
 
 const currentId = createServiceId('40000000-0000-4000-8000-000000000009');
 const current: ServiceEntry = {

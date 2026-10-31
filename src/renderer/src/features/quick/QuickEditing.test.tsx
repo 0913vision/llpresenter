@@ -25,7 +25,7 @@ import {QuickPanel} from './QuickPanel';
 import {QuickRowEditor} from './QuickEditing';
 import {renderedToolMenuRows} from '../tools/toolMenuTesting';
 import {openBiblePassage} from '../bible/actions';
-import {panelPassage} from '../bible/panelTesting';
+import {panelPassage} from '@contracts/ipc/testing/bibleApi';
 import {MAX_QUICK_ITEMS, newQuickItem, saveQuickEdit} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {quickRunner} from './quickActions';

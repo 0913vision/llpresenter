@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {BibleReferenceField} from './BibleReferenceField';
-import {formLookupReply} from './testing/referenceForm';
-import {lookupRequest} from './testBible';
+import {formLookupReply} from '@core/testing/bibleReplies';
+import {lookupRequest} from '@core/testing/bibleLookups';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

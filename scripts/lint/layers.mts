@@ -79,3 +79,26 @@ export const LAYER_MAP: LayerMap = {
     },
   ],
 };
+
+const RENDERER_LAYERS = LAYER_MAP.layers
+  .filter(layer => layer.dir.startsWith(`${RENDERER}/`))
+  .map(layer => layer.name);
+
+function testImports(layer: Layer): readonly string[] {
+  return layer.dir.startsWith(`${RENDERER}/`)
+    ? [...SHARED, ...RENDERER_LAYERS]
+    : layer.imports;
+}
+
+/**
+ * The layers that tests may import. A test sits beside the code it tests and
+ * may render or call any layer of the same process around it, but never
+ * another process's code.
+ */
+export const TEST_LAYER_MAP: LayerMap = {
+  aliases: LAYER_MAP.aliases,
+  layers: LAYER_MAP.layers.map(layer => ({
+    ...layer,
+    imports: testImports(layer),
+  })),
+};

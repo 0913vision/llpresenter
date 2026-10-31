@@ -7,7 +7,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
-import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
 import {ScreenSummariesContext} from '../../platform/ScreenSummaries';
 import type {ScreenSummary} from '../../platform/screens';
 

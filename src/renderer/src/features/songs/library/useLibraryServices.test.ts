@@ -6,7 +6,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {libraryFixture} from './fixture';
-import {pastDocument, serviceEntries} from '../../service/list/testing';
+import {pastDocument, serviceEntries} from '@core/testing/serviceList';
 import {useLibraryServices} from './useLibraryServices';
 
 it('undoes a library append from the service list and restores earlier edit history', async () => {

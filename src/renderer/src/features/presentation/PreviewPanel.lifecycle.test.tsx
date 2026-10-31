@@ -7,7 +7,7 @@ import {classes} from '@renderer/rendering/classes';
 import {useLive} from '@renderer/session/live';
 import {usePreview} from '@renderer/session/preview';
 import {PreviewPanel} from './PreviewPanel';
-import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
 
 class FakeResizeObserver {
   observe(): void {}

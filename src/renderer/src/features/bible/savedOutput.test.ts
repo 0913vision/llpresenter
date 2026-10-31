@@ -14,7 +14,7 @@ import {
   useShow,
 } from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {panelApi, panelPassage} from './panelTesting';
+import {panelApi, panelPassage} from '@contracts/ipc/testing/bibleApi';
 
 const saved = createServiceItemId('00000000-0000-4000-8000-000000000001');
 const other = createServiceItemId('00000000-0000-4000-8000-000000000002');

@@ -8,7 +8,7 @@ import {
 } from '@renderer/session/testing/sampleService';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
-import {renderWithScreenSummaries as render} from './testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '../../platform/testing/screenSummaries';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {

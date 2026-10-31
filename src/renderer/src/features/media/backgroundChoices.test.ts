@@ -1,8 +1,5 @@
+import {fixtureMedia, itemMedia} from '@core/testing/mediaList';
 import {describe, expect, it, vi} from 'vitest';
-import {
-  fixtureMedia,
-  itemMedia,
-} from '@renderer/features/service/items/itemFixture';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {backgroundEntries, mediaName} from './backgroundChoices';
 

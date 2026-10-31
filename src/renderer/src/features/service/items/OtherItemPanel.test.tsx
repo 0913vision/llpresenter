@@ -1,3 +1,4 @@
+import {fixtureMedia, itemMedia} from '@core/testing/mediaList';
 import {
   act,
   fireEvent,
@@ -32,7 +33,6 @@ import {
   OVERSCAN_ROWS,
 } from '@renderer/features/media/VirtualMediaGrid';
 import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
-import {fixtureMedia, itemMedia} from './itemFixture';
 import {OtherItemPanel} from './OtherItemPanel';
 import {useOtherSources} from './useOtherSources';
 

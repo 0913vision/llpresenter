@@ -24,9 +24,13 @@ import {emptyLiveState} from '@core/live/state';
 import {seedSampleService} from '../../session/testing/sampleService';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
-import {bibleDocument, panelApi, panelPassage} from '../bible/panelTesting';
+import {
+  bibleDocument,
+  panelApi,
+  panelPassage,
+} from '@contracts/ipc/testing/bibleApi';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
-import {lookupReply, lookupRequest} from '../bible/testBible';
+import {lookupReply, lookupRequest} from '@core/testing/bibleLookups';
 import styles from './BiblePanel.module.css';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 

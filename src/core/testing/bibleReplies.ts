@@ -1,10 +1,7 @@
-import {selectedBook} from '../referenceFields';
-import type {
-  BibleLookupRequest,
-  BibleLookupReply,
-} from '@core/schema/bibleLookup';
-import {resolvePassage} from '@core/bible/reference';
-import {passageSource, translationFile} from '@core/bible/testing/testFiles';
+import {selectedBook} from '../bible/referenceFields';
+import type {BibleLookupRequest, BibleLookupReply} from '../schema/bibleLookup';
+import {resolvePassage} from '../bible/reference';
+import {passageSource, translationFile} from '../bible/testing/testFiles';
 
 export async function formLookupReply(
   request: BibleLookupRequest,

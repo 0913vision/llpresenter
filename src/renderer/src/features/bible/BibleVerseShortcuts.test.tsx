@@ -19,9 +19,9 @@ import {handleShowKey} from '../presentation/shortcuts';
 import {seedSampleService} from '../../session/testing/sampleService';
 import {openBiblePassage} from './actions';
 import {BiblePanel} from '../presentation/BiblePanel';
-import {panelApi} from './panelTesting';
-import {lookupRequest} from './testBible';
-import {formLookupReply} from './testing/referenceForm';
+import {panelApi} from '@contracts/ipc/testing/bibleApi';
+import {lookupRequest} from '@core/testing/bibleLookups';
+import {formLookupReply} from '@core/testing/bibleReplies';
 import {outputAdjacentBibleVerse} from './verseShortcuts';
 
 /** The live tile of a passage: its first, its last, or the one at an index. */

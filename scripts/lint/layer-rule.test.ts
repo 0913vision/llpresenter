@@ -3,7 +3,7 @@ import {RuleTester} from 'eslint';
 import tseslint from 'typescript-eslint';
 import {describe, expect, it} from 'vitest';
 import {layerImportsRule} from './layer-rule.mts';
-import {FEATURE_ORDER, LAYER_MAP} from './layers.mts';
+import {FEATURE_ORDER, LAYER_MAP, TEST_LAYER_MAP} from './layers.mts';
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -114,5 +114,20 @@ describe('the declared layers', () => {
   it('keep core free of every other layer', () => {
     const core = LAYER_MAP.layers.find(({name}) => name === 'core');
     expect(core?.imports).toEqual([]);
+  });
+});
+
+describe('the layers tests may import', () => {
+  const importsOf = (name: string) =>
+    TEST_LAYER_MAP.layers.find(layer => layer.name === name)?.imports ?? [];
+
+  it('let a renderer test use any renderer layer around its code', () => {
+    expect(importsOf('ui')).toEqual(expect.arrayContaining(['app', 'session']));
+  });
+
+  it('keep every test inside its own process', () => {
+    expect(importsOf('ui')).not.toContain('main');
+    expect(importsOf('main')).not.toContain('app');
+    expect(importsOf('core')).toEqual([]);
   });
 });

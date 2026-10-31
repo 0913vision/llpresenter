@@ -19,7 +19,7 @@ import {
   songTitles,
   templateOrder,
   titles,
-} from './testing';
+} from '@core/testing/serviceList';
 
 const rows = treeRows(templateOrder, songTitles);
 

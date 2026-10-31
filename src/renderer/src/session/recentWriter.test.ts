@@ -5,7 +5,7 @@ import {
   bibleDocument,
   panelApi,
   panelPassage,
-} from '../features/bible/panelTesting';
+} from '@contracts/ipc/testing/bibleApi';
 
 describe('recent Bible writes', () => {
   it('serializes output history, keeps the newest ten, and preserves unknown fields', async () => {

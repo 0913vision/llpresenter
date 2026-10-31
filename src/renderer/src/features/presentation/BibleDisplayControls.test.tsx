@@ -22,9 +22,13 @@ import {seedSampleService} from '../../session/testing/sampleService';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
-import {bibleDocument, panelApi, panelPassage} from '../bible/panelTesting';
-import {lookupRequest} from '../bible/testBible';
-import {formLookupReply} from '../bible/testing/referenceForm';
+import {
+  bibleDocument,
+  panelApi,
+  panelPassage,
+} from '@contracts/ipc/testing/bibleApi';
+import {lookupRequest} from '@core/testing/bibleLookups';
+import {formLookupReply} from '@core/testing/bibleReplies';
 
 const alternate = lookupRequest('', 'alternate').translation;
 function translations() {

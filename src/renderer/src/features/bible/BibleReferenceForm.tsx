@@ -25,7 +25,7 @@ import {
   referenceFieldsState,
   selectedBook,
   type ReferencePart,
-} from './referenceFields';
+} from '@core/bible/referenceFields';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {

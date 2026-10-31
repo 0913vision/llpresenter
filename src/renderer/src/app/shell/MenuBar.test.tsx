@@ -6,7 +6,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/session/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {MenuBar} from './MenuBar';
-import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

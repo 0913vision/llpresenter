@@ -14,7 +14,7 @@ import {
 } from '@renderer/session/show';
 import {PreviewPanel} from './PreviewPanel';
 import {seedSampleService} from '../../session/testing/sampleService';
-import {renderWithScreenSummaries as render} from '@renderer/app/shell/testing/screenSummaries';
+import {renderWithScreenSummaries as render} from '@renderer/platform/testing/screenSummaries';
 
 interface Instance {
   readonly parent: HTMLElement;
