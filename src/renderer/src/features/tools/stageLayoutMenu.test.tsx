@@ -1,9 +1,9 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {menuItems} from '@renderer/ui/menuModel';
 import {
   stageLayoutsDocument,
-  settingsDocument,
   WIDE_LAYOUT_ID,
 } from '@core/testing/screenDocuments';
 import {stageLayoutMenuEntries} from './stageLayoutMenu';

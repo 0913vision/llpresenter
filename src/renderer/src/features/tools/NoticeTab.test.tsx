@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -9,7 +10,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {settingsDocument, MAIN_ID} from '@core/testing/screenDocuments';
+import {MAIN_ID} from '@core/testing/screenDocuments';
 import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {NoticeTab} from './NoticeTab';

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
@@ -24,7 +25,6 @@ import {
   overlaySettings,
   overlayUuid,
   PROP,
-  settingsDocument,
   STAGE,
   TEXT_STYLE,
 } from '@core/testing/overlays';

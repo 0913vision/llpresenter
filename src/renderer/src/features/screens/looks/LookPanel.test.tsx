@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -26,7 +27,6 @@ import {
   SERMON_LOOK_ID,
   looksDocument,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {LookPanel} from './LookPanel';
 

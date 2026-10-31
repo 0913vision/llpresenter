@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -12,7 +13,6 @@ import {
   parseServiceDocument,
   parseServiceEntries,
 } from '@core/schema/contentDocuments';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';

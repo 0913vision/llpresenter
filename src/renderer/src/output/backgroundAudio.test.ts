@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
@@ -8,7 +9,6 @@ import {
   LOOK_ID,
   MAIN_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {BackgroundAudio} from './backgroundAudio';
 

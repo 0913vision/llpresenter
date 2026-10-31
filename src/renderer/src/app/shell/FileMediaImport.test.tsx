@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -15,7 +16,6 @@ import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {applyService} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {useFileMediaImport} from './useFileMediaImport';
 

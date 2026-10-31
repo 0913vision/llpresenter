@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {expect, it, vi} from 'vitest';
 import {emptyLiveState, layerKinds} from '@core/live/state';
 import {defaultPreferences} from '@core/schema/preferences';
@@ -6,7 +7,6 @@ import {
   PROP,
   IMAGE_PROP,
   overlaySettings,
-  settingsDocument,
   overlayUuid,
   MAIN,
   TEXT_STYLE,

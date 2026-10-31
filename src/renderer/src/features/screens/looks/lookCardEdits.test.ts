@@ -1,14 +1,11 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {expect, it} from 'vitest';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,
 };
-import {
-  looksDocument,
-  screensDocument,
-  settingsDocument,
-} from '@core/testing/screenDocuments';
+import {looksDocument, screensDocument} from '@core/testing/screenDocuments';
 import {editLookCard, screenCard} from '@core/looks/lookCardEdits';
 
 function fixture() {

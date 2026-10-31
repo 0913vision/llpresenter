@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -12,7 +13,6 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '@core/songs/textImport';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';

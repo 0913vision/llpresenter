@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -17,7 +18,6 @@ import {
   overlaySettings,
   overlayUuid,
   PROP,
-  settingsDocument,
   TEXT_STYLE,
 } from '@core/testing/overlays';
 import {

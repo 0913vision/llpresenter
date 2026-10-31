@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
@@ -9,7 +10,6 @@ import {
   MAIN,
   overlaySettings,
   overlayUuid,
-  settingsDocument,
   STAGE,
 } from '@core/testing/overlays';
 

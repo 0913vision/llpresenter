@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it} from 'vitest';
 import {parseLookId, type LookId} from '@core/schema/ids';
 import type {LooksFile} from '@core/schema/looks';
@@ -5,7 +6,6 @@ import {
   LOOK_ID,
   SERMON_LOOK_ID,
   looksDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {
   editLookList,

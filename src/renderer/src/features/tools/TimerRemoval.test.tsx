@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -9,7 +10,6 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {deferred} from './testing/quickTesting';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';

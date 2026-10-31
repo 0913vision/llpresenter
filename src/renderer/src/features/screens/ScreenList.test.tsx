@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   fireEvent,
@@ -27,7 +28,6 @@ import {
   CAPTIONS_ID,
   STAGE_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 
 const CREATED_ID = '00000000-0000-4000-8000-000000000201';

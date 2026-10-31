@@ -1,14 +1,10 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {recordingLogger} from '../displays/testing';
 import {MissingLiveTargetError} from '../live/commandErrors';
-import {
-  MAIN,
-  STAGE,
-  overlaySettings,
-  settingsDocument,
-} from '@core/testing/overlays';
+import {MAIN, STAGE, overlaySettings} from '@core/testing/overlays';
 import {createSettingsScreenSource} from './settingsScreens';
 import {fullScreenScreen} from './testing';
 

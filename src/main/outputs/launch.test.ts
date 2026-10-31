@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {defaultPreferences} from '@core/schema/preferences';
@@ -8,7 +9,6 @@ import {
   MAIN,
   overlaySettings,
   overlayUuid,
-  settingsDocument,
   STAGE,
 } from '@core/testing/overlays';
 import {launchOutputCommands, showOutputsOnLaunch} from './launch';

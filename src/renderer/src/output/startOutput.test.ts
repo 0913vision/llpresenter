@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState, type LiveState} from '@core/live/state';
@@ -13,7 +14,6 @@ import {startOutput} from './startOutput';
 import {MAIN, overlaySettings} from '@core/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {settingsDocument} from '@core/testing/overlays';
 
 const SHOWING: LiveState = {
   ...emptyLiveState(),

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -23,7 +24,6 @@ import {
   STAGE_ID,
   looksDocument,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {
   installedFamily,

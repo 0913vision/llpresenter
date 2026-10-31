@@ -1,7 +1,8 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {settingsDocument, LAYOUT_ID} from '@core/testing/screenDocuments';
+import {LAYOUT_ID} from '@core/testing/screenDocuments';
 import {
   StageEditor,
   STAGE_ELEMENT_LIMIT,

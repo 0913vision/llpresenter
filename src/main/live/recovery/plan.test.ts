@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it} from 'vitest';
 import {createMediaId, createMessageId} from '@core/schema/ids';
 import {
@@ -8,7 +9,6 @@ import {
   overlaySettings,
   overlayUuid,
   PROP,
-  settingsDocument,
   STAGE,
   TEXT_STYLE,
 } from '@core/testing/overlays';

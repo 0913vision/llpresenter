@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -6,12 +7,7 @@ import {localDay, timerText} from '@core/timers/timerClock';
 import {parseTimers} from '@core/schema/timers';
 import {recordingLogger} from '../displays/testing';
 import {dispatchLogged, LiveStore} from './store';
-import {
-  MAIN,
-  overlaySettings,
-  overlayUuid,
-  settingsDocument,
-} from '@core/testing/overlays';
+import {MAIN, overlaySettings, overlayUuid} from '@core/testing/overlays';
 
 const SERMON = overlayUuid(90);
 const CLOCK = overlayUuid(91);

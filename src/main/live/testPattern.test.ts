@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -7,7 +8,6 @@ import {
   MAIN,
   overlaySettings,
   overlayUuid,
-  settingsDocument,
 } from '@core/testing/overlays';
 
 function setup() {

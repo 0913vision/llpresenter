@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -21,7 +22,6 @@ import {
   MAIN_ID,
   STAGE_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {wideMonitorArrangement} from './testing/monitorArrangement';
 

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
@@ -9,7 +10,6 @@ import {
   MAIN,
   overlaySettings,
   overlayUuid,
-  settingsDocument,
   STAGE,
 } from '@core/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';

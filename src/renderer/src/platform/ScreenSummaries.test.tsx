@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {useEffect} from 'react';
 import {
   act,
@@ -12,7 +13,6 @@ import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
-  settingsDocument,
   looksDocument,
   MAIN_ID,
   CAPTIONS_ID,

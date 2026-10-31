@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -22,7 +23,6 @@ import {
   CAPTIONS_ID,
   MAIN_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 
 const monitors: MonitorList = [

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
@@ -5,11 +6,7 @@ import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
 import {dispatchLogged, LiveStore} from './store';
-import {
-  overlaySettings,
-  overlayUuid,
-  settingsDocument,
-} from '@core/testing/overlays';
+import {overlaySettings, overlayUuid} from '@core/testing/overlays';
 
 const A = createTimerId(overlayUuid(90));
 const B = createTimerId(overlayUuid(91));

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -8,7 +9,6 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';

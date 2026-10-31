@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   cleanup,
   fireEvent,
@@ -7,7 +8,6 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {PropTab} from './PropTab';
 import {stageFixture} from './stageTesting';
 import {deferred} from './testing/quickTesting';

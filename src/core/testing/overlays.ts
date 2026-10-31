@@ -1,11 +1,8 @@
+import {settingsDocument} from './settingsDocument';
 import type {SettingsListener, SettingsReader} from '../schema/settingsReader';
 import {createMediaId} from '../schema/ids';
 import {parseLiveCommand} from '../schema/liveCommand';
-import {
-  parseSettingsDocument,
-  type SettingsDocument,
-  type SettingsName,
-} from '../schema/settingsDocuments';
+import type {SettingsDocument, SettingsName} from '../schema/settingsDocuments';
 import {defaultPreferences} from '../schema/preferences';
 
 export const overlayUuid = (id: number): string =>
@@ -66,25 +63,6 @@ export const TEXT_STYLE = {
   shadow: true,
   outline: false,
 } as const;
-
-export function settingsDocument(
-  name: SettingsName,
-  value: object,
-  revision = 1,
-): SettingsDocument {
-  const result = parseSettingsDocument({
-    name,
-    value: {
-      format: `llsettings.${name}`,
-      schemaVersion: 1,
-      ...value,
-    },
-    revision,
-    access: 'editable',
-  });
-  if (!result.ok) throw new Error(JSON.stringify(result.error));
-  return result.value;
-}
 
 export function overlaySettings() {
   const documents = new Map<SettingsName, SettingsDocument>([

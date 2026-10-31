@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {timerText} from '@core/timers/timerClock';
@@ -5,11 +6,7 @@ import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
 import {followTimerCompletion} from './timerCompletion';
 import {LiveStore} from './store';
-import {
-  overlaySettings,
-  overlayUuid,
-  settingsDocument,
-} from '@core/testing/overlays';
+import {overlaySettings, overlayUuid} from '@core/testing/overlays';
 
 const STOP = overlayUuid(90);
 const CONTINUE = overlayUuid(91);

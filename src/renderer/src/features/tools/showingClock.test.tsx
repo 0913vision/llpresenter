@@ -1,8 +1,8 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {
-  settingsDocument,
   screensDocument,
   LOOK_ID,
   STAGE_ID,

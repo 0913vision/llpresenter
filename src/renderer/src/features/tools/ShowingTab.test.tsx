@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {memo} from 'react';
 import {
   act,
@@ -40,7 +41,6 @@ import {
   LOOK_ID,
   LAYOUT_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/showStore';

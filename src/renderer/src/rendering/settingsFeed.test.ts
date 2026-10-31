@@ -1,6 +1,7 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {overlaySettings, settingsDocument} from '@core/testing/overlays';
+import {overlaySettings} from '@core/testing/overlays';
 import {followSettingsDocument} from './settingsFeed';
 
 function screensOf(document: SettingsDocument) {

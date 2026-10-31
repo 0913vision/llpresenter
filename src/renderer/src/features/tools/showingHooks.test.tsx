@@ -1,7 +1,7 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {useLive} from '@renderer/session/live';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';

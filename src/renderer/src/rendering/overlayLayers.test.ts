@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {LiveStore} from '../../../main/live/store';
@@ -9,7 +10,6 @@ import {
   NOTICE,
   overlaySettings,
   PROP,
-  settingsDocument,
   STAGE,
   TEXT_STYLE,
   overlayUuid,

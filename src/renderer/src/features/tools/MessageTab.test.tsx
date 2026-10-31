@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -10,7 +11,6 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {
-  settingsDocument,
   screensDocument,
   MAIN_ID,
   CAPTIONS_ID,

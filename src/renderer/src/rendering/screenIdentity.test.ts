@@ -1,13 +1,8 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {
-  CAPTIONS,
-  MAIN,
-  overlaySettings,
-  settingsDocument,
-  STAGE,
-} from '@core/testing/overlays';
+import {CAPTIONS, MAIN, overlaySettings, STAGE} from '@core/testing/overlays';
 import {followRenderScreen, resolveRenderScreen} from './screenIdentity';
 
 function screens() {

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   cleanup,
   fireEvent,
@@ -7,7 +8,6 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {stageFixture} from './stageTesting';
 import {MacroPanel} from './MacroPanel';

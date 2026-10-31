@@ -1,9 +1,9 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {cleanup, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it} from 'vitest';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {
-  settingsDocument,
   CAPTIONS_ID,
   LAYOUT_ID,
   LOOK_ID,

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -8,7 +9,6 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@core/testing/screenDocuments';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';

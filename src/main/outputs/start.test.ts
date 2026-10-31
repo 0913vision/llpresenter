@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -13,13 +14,7 @@ import {
 import {intersectionArea} from '../displays/rect';
 import {dispatchLogged, LiveStore} from '../live/store';
 import {startOverlays} from '../live/overlays';
-import {
-  CAPTIONS,
-  MAIN,
-  STAGE,
-  overlaySettings,
-  settingsDocument,
-} from '@core/testing/overlays';
+import {CAPTIONS, MAIN, STAGE, overlaySettings} from '@core/testing/overlays';
 import type {WindowMode} from '../windows/testWindows';
 import {fakeWindows, type FakeWindows} from './testing';
 import {openNumberWindow} from './numberWindow';

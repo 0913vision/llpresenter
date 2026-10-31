@@ -1,13 +1,8 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {describe, expect, it} from 'vitest';
 import {parseLookId} from '../schema/ids';
 import type {LooksFile} from '../schema/looks';
-import {
-  CAPTIONS,
-  MAIN,
-  overlayUuid,
-  settingsDocument,
-  STAGE,
-} from '../testing/overlays';
+import {CAPTIONS, MAIN, overlayUuid, STAGE} from '../testing/overlays';
 import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from './lyricStyle';
 import {DEFAULT_MESSAGE_STYLE} from '../schema/looks';
 import {resolveScreenLook, showsLayer} from './screenLook';

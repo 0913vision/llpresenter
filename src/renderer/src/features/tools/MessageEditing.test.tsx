@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -8,7 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
-import {settingsDocument, CAPTIONS_ID} from '@core/testing/screenDocuments';
+import {CAPTIONS_ID} from '@core/testing/screenDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from './testing/quickTesting';
 import {stageFixture} from './stageTesting';

@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as v from 'valibot';
@@ -14,7 +15,6 @@ import {
   CAPTIONS_ID,
   MAIN_ID,
   screensDocument,
-  settingsDocument,
 } from '@core/testing/screenDocuments';
 
 const drawn = vi.hoisted(() => {

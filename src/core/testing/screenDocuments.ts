@@ -1,8 +1,5 @@
-import {
-  parseSettingsDocument,
-  type SettingsDocument,
-  type SettingsName,
-} from '../schema/settingsDocuments';
+import {settingsDocument} from './settingsDocument';
+import type {SettingsDocument} from '../schema/settingsDocuments';
 
 export const MAIN_ID = '00000000-0000-4000-8000-000000000001';
 export const CAPTIONS_ID = '00000000-0000-4000-8000-000000000002';
@@ -13,24 +10,6 @@ export const LAYOUT_ID = '00000000-0000-4000-8000-0000000000b1';
 export const WIDE_LAYOUT_ID = '00000000-0000-4000-8000-0000000000b2';
 
 /** Builds a valid document for a test, with invented names and ids. */
-export function settingsDocument(
-  name: SettingsName,
-  value: object,
-  revision = 1,
-): SettingsDocument {
-  const parsed = parseSettingsDocument({
-    name,
-    revision,
-    access: 'editable',
-    value: {
-      format: `llsettings.${name}`,
-      schemaVersion: 1,
-      ...value,
-    },
-  });
-  if (!parsed.ok) throw new Error(JSON.stringify(parsed.error));
-  return parsed.value;
-}
 
 export function screensDocument(revision = 1): SettingsDocument {
   return settingsDocument(

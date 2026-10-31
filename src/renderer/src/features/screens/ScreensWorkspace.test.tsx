@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -25,7 +26,6 @@ import {
   MAIN_ID,
   looksDocument,
   screensDocument,
-  settingsDocument,
   stageLayoutsDocument,
 } from '@core/testing/screenDocuments';
 

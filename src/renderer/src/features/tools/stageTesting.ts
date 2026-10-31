@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState} from '@core/live/state';
@@ -5,7 +6,6 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {parseLiveState} from '@core/schema/liveState';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {
-  settingsDocument,
   screensDocument,
   looksDocument,
   stageLayoutsDocument,

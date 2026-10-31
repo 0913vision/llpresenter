@@ -1,3 +1,4 @@
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {
   act,
   cleanup,
@@ -19,7 +20,6 @@ import {useLive} from '@renderer/session/live';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useScreensSelection} from '../selection';
 import {
-  settingsDocument,
   looksDocument,
   screensDocument,
   LAYOUT_ID,
