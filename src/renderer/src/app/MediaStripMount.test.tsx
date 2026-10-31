@@ -249,7 +249,7 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   await userEvent.click(mediaBinToggle());
   await screen.findByRole('region', {name: '미디어'});
   expect(subscribe).toHaveBeenCalledOnce();
-  await userEvent.click(screen.getByRole('tab', {name: '화면 설정'}));
+  await userEvent.click(screen.getByRole('tab', {name: '테마'}));
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopCopies).toHaveBeenCalledOnce();
   expect(send).not.toHaveBeenCalled();

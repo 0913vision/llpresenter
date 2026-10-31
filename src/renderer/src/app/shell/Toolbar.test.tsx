@@ -55,7 +55,11 @@ describe('saved output overflow', () => {
       .querySelector('[aria-hidden="true"]');
     expect(icon).not.toBeNull();
     expect(icon?.getAttribute('style')).toBe(lookIcon?.getAttribute('style'));
-    expect(screen.queryByRole('tab', {name: '화면 설정'})).toBeNull();
+    expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+      '진행',
+      '준비',
+      '테마',
+    ]);
   });
   it('keeps three inline outputs at 1280 and exposes all additional long names with live toggles', async () => {
     vi.stubGlobal('innerWidth', 1280);
