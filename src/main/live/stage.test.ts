@@ -11,7 +11,7 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 const SECOND_STAGE = overlayUuid(60);
 const NOW_NEXT = overlayUuid(61);

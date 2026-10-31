@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {assignScreenMonitor} from './assignScreenMonitor';
-import {MAIN_ID, STAGE_ID, screensDocument} from './testing/documents';
+import {
+  MAIN_ID,
+  STAGE_ID,
+  screensDocument,
+} from '@core/testing/screenDocuments';
 import {projector} from './testing/monitors';
 
 function screens() {

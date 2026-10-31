@@ -6,7 +6,7 @@ import {
   SERMON_LOOK_ID,
   looksDocument,
   settingsDocument,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {
   editLookList,
   LOOK_LIST_LIMIT,

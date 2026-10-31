@@ -7,11 +7,11 @@ import {
   LOOK_ID,
   STAGE_ID,
   LAYOUT_ID,
-} from '@renderer/features/screens/testing/documents';
+} from '@core/testing/screenDocuments';
 import {useShowingClock} from './showingClock';
 import {parseMediaList} from '@core/schema/mediaList';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {MAIN_ID} from '@renderer/features/screens/testing/documents';
+import {MAIN_ID} from '@core/testing/screenDocuments';
 import {parseLiveState} from '@core/schema/liveState';
 
 afterEach(() => {

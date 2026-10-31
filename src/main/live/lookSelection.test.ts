@@ -4,7 +4,7 @@ import type {LookSelectionPort} from '../store/lookSelection';
 import {recordingLogger} from '../displays/testing';
 import {registerLookSelection} from './lookSelection';
 import {dispatchLogged, LiveStore} from './store';
-import {overlaySettings, settingsDocument} from './testing/overlays';
+import {overlaySettings, settingsDocument} from '@core/testing/overlays';
 
 function command(id: number) {
   const parsed = parseLiveCommand({

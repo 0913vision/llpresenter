@@ -11,7 +11,7 @@ import {
   settingsDocument,
   STAGE,
   TEXT_STYLE,
-} from '../testing/overlays';
+} from '@core/testing/overlays';
 import {
   HEADER_ITEM,
   MISSING_SONG_ITEM,

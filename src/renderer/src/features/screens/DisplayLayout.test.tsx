@@ -22,7 +22,7 @@ import {
   STAGE_ID,
   screensDocument,
   settingsDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 import {wideMonitorArrangement} from './testing/monitorArrangement';
 
 function monitor(number: number, x: number, hasMainWindow = false) {

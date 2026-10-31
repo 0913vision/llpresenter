@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {cssRules} from './testing/cssRules';
+import {cssRules} from '../../ui/testing/cssRules';
 
 const ruleOf = cssRules('src/renderer/src/app/shell/Workspace.module.css');
 

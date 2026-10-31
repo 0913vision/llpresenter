@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
-import {MAIN} from '../../../main/live/testing/overlays';
+import {MAIN} from '@core/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 import {PATTERN_BARS, PATTERN_RAMP_STEPS, TestPatternView} from './testPattern';

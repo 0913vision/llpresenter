@@ -7,7 +7,7 @@ import {
   overlaySettings,
   settingsDocument,
   STAGE,
-} from '../../../main/live/testing/overlays';
+} from '@core/testing/overlays';
 import {followRenderScreen, resolveRenderScreen} from './screenIdentity';
 
 function screens() {

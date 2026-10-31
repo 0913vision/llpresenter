@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {settingsDocument} from '@renderer/features/screens/testing/documents';
+import {settingsDocument} from '@core/testing/screenDocuments';
 import {menuItems} from '@renderer/ui/menuModel';
 import {macroMenuEntries, type MacroMenuHandlers} from './macroMenuEntries';
 

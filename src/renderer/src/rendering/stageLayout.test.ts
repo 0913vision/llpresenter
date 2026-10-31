@@ -4,12 +4,7 @@ import {parseStageLayouts, type StageLayout} from '@core/schema/stageLayouts';
 import {parseTimers} from '@core/schema/timers';
 import type {TimerRuns} from '@core/schema/timerState';
 import {parseLiveState} from '@core/schema/liveState';
-import {
-  MAIN,
-  overlayUuid,
-  STAGE,
-  TEXT_STYLE,
-} from '../../../main/live/testing/overlays';
+import {MAIN, overlayUuid, STAGE, TEXT_STYLE} from '@core/testing/overlays';
 import {classes} from './classes';
 import type {RenderFrame} from './layer';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';

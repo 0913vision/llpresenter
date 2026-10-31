@@ -4,7 +4,7 @@ import {parseMediaList} from '@core/schema/mediaList';
 import type {MediaId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {useAudioMissing} from './useAudioMissing';
 
 afterEach(() => {

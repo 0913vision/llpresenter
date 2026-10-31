@@ -11,7 +11,7 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-} from '../../../main/live/testing/overlays';
+} from '@core/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
 import type {LookGap} from '@core/looks/screenLook';

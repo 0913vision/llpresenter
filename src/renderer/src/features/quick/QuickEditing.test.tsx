@@ -36,7 +36,7 @@ import {
   quickId,
   quickItem,
   quickLive,
-} from './quickTesting';
+} from '../tools/testing/quickTesting';
 
 function setup() {
   const base = quickFixture();

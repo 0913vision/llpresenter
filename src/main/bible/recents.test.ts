@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {RECENT_PASSAGE_LIMIT, recentPassages, rememberPassage} from './recents';
-import {parsedTranslation} from './testFiles';
+import {parsedTranslation} from '@core/bible/testing/testFiles';
 
 const translation = parsedTranslation().id;
 

@@ -12,7 +12,7 @@ import {makeTempDir} from '../../../test/temp-dir';
 import {BibleLookupSession} from './lookup';
 import * as library from './library';
 import * as chapterFile from './chapterFile';
-import {chunkedTranslationFile} from './testFiles';
+import {chunkedTranslationFile} from '@core/bible/testing/testFiles';
 
 const log = {
   info: vi.fn(),

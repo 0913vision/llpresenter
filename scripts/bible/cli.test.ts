@@ -2,7 +2,7 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../test/temp-dir';
-import {translationFile} from '../../src/main/bible/testFiles';
+import {translationFile} from '@core/bible/testing/testFiles';
 import {runBibleConverter} from './cli';
 
 describe('Bible converter command', () => {

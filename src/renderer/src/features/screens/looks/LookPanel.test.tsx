@@ -27,7 +27,7 @@ import {
   looksDocument,
   screensDocument,
   settingsDocument,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {LookPanel} from './LookPanel';
 
 function setup({

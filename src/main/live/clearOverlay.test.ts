@@ -20,7 +20,7 @@ import {
   TEXT_STYLE,
   overlayUuid,
   overlaySettings,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 const BASE = 100_000;
 const A = createMessageId(overlayUuid(101));

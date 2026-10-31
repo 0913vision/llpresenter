@@ -8,10 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {
-  settingsDocument,
-  screensDocument,
-} from '@renderer/features/screens/testing/documents';
+import {settingsDocument, screensDocument} from '@core/testing/screenDocuments';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useScreensSelection} from '@renderer/features/screens/selection';

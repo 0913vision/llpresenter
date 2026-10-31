@@ -8,7 +8,7 @@ import {
   looksDocument,
   screensDocument,
   settingsDocument,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {editLookCard, screenCard} from '@core/looks/lookCardEdits';
 
 function fixture() {

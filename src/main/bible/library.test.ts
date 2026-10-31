@@ -11,7 +11,7 @@ import {
   frameBibleChunks,
   parsedTranslation,
   translationFile,
-} from './testFiles';
+} from '@core/bible/testing/testFiles';
 
 function installed(file = 'sample.llbible', id = 'sample'): Translation {
   return {

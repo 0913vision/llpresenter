@@ -10,7 +10,7 @@ import {
   chunkedTranslationFile,
   parsedTranslation,
   translationFile,
-} from './testFiles';
+} from '@core/bible/testing/testFiles';
 
 function installed(id = 'sample', file = `${id}.llbible`): Translation {
   return {

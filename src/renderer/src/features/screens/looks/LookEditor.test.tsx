@@ -37,7 +37,7 @@ import {
   screensDocument,
   settingsDocument,
   stageLayoutsDocument,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {LookEditor} from './LookEditor';
 
 const mainId = v.parse(screenIdSchema, MAIN_ID);

@@ -2,7 +2,7 @@ import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {useAudioMedia} from './useAudioMedia';
 
 afterEach(() => {

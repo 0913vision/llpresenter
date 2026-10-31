@@ -7,8 +7,8 @@ import {createServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
 import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
-import {resolvePassage} from './reference';
-import {passageSource} from './testFiles';
+import {resolvePassage} from '@core/bible/reference';
+import {passageSource} from '@core/bible/testing/testFiles';
 import {resolveServicePassages} from './servicePassages';
 import type {BibleLookupSession} from './lookup';
 

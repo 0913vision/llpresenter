@@ -19,7 +19,7 @@ import {
   PROP,
   settingsDocument,
   TEXT_STYLE,
-} from '../testing/overlays';
+} from '@core/testing/overlays';
 import {
   OTHER_SERVICE,
   recoveryContent,

@@ -12,7 +12,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {StageElement} from '@core/schema/stageLayouts';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {settingsDocument, LAYOUT_ID} from '../testing/documents';
+import {settingsDocument, LAYOUT_ID} from '@core/testing/screenDocuments';
 import {useScreensSelection} from '../selection';
 import {StageProperties} from './StageProperties';
 import {STAGE_DEFAULT_TEXT} from './stageEditor';

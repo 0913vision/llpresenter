@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {cssRules} from '@renderer/app/shell/testing/cssRules';
+import {cssRules} from '@renderer/ui/testing/cssRules';
 
 const ruleOf = cssRules(
   'src/renderer/src/features/service/order/ServiceOrderList.module.css',

@@ -2,7 +2,7 @@ import {expect, it, vi} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {noticeReason, saveNoticeEdit} from './noticeEdits';
 
 const raw = {

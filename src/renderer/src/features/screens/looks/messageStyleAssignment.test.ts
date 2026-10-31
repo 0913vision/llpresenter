@@ -1,7 +1,7 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
 import {DEFAULT_MESSAGE_STYLE, looksSchema} from '@core/schema/looks';
-import {looksDocument, screensDocument} from '../testing/documents';
+import {looksDocument, screensDocument} from '@core/testing/screenDocuments';
 import {
   assignMessageStyle,
   createAndAssignMessageStyle,

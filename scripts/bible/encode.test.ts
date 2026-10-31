@@ -3,7 +3,7 @@ import {
   BIBLE_HEADER_MAX_BYTES,
   parseBibleChunkHeader,
 } from '../../src/main/bible/chunkFormat';
-import {translationFile} from '../../src/main/bible/testFiles';
+import {translationFile} from '@core/bible/testing/testFiles';
 import {encodeChunkedBible} from './encode';
 
 function encode(value: unknown) {

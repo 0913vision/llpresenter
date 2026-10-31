@@ -7,7 +7,7 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-} from '../../main/live/testing/overlays';
+} from '../testing/overlays';
 import {DEFAULT_LYRIC_STYLE, renderLyricStyle} from './lyricStyle';
 import {DEFAULT_MESSAGE_STYLE} from '../schema/looks';
 import {resolveScreenLook, showsLayer} from './screenLook';

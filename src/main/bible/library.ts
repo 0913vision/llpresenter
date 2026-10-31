@@ -9,7 +9,7 @@ import {
   resolvePassage,
   type ReferenceProblem,
   type ResolvedPassage,
-} from './reference';
+} from '@core/bible/reference';
 
 /** Resolves passages from an indexed catalog without loading whole files. */
 export class BibleLibrary {

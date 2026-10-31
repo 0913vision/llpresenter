@@ -42,7 +42,7 @@ import {
 import {parseLibrarySearchResult} from '@core/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
-import {chunkedTranslationFile} from '../bible/testFiles';
+import {chunkedTranslationFile} from '@core/bible/testing/testFiles';
 import * as chapterFile from '../bible/chapterFile';
 import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
 import * as atomicWrite from './atomicWrite';

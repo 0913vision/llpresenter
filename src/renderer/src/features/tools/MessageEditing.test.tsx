@@ -8,12 +8,9 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
-import {
-  settingsDocument,
-  CAPTIONS_ID,
-} from '@renderer/features/screens/testing/documents';
+import {settingsDocument, CAPTIONS_ID} from '@core/testing/screenDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {stageFixture} from './stageTesting';
 import {MessageTab} from './MessageTab';
 import {renderedToolMenuRows} from './toolMenuTesting';

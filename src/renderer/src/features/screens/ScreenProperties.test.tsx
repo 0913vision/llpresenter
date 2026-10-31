@@ -23,7 +23,7 @@ import {
   MAIN_ID,
   screensDocument,
   settingsDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 
 const monitors: MonitorList = [
   {

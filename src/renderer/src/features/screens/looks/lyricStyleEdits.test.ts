@@ -10,7 +10,7 @@ const DEFAULT_LYRIC_STYLE = {
   ...DEFAULT_MESSAGE_STYLE,
   referencePosition: 'bottomRight' as const,
 };
-import {looksDocument} from '../testing/documents';
+import {looksDocument} from '@core/testing/screenDocuments';
 import {editLyricStyle} from '@core/looks/lyricStyleEdits';
 import {LookListEditor} from './lookListEditor';
 

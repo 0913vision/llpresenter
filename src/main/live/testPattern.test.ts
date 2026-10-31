@@ -8,7 +8,7 @@ import {
   overlaySettings,
   overlayUuid,
   settingsDocument,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 function setup() {
   const store = new LiveStore();

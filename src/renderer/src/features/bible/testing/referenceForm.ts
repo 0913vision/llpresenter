@@ -3,11 +3,8 @@ import type {
   BibleLookupRequest,
   BibleLookupReply,
 } from '@core/schema/bibleLookup';
-import {resolvePassage} from '../../../../../main/bible/reference';
-import {
-  passageSource,
-  translationFile,
-} from '../../../../../main/bible/testFiles';
+import {resolvePassage} from '@core/bible/reference';
+import {passageSource, translationFile} from '@core/bible/testing/testFiles';
 
 export async function formLookupReply(
   request: BibleLookupRequest,

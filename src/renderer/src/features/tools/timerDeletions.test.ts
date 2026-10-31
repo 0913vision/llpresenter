@@ -3,7 +3,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {createTimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {deleteTimer} from './timerDeletions';
 
 const edit = {

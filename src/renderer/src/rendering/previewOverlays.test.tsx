@@ -1,11 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {
-  CAPTIONS,
-  MAIN,
-  overlaySettings,
-} from '../../../main/live/testing/overlays';
+import {CAPTIONS, MAIN, overlaySettings} from '@core/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import {useLive} from '../session/live';
 import {PreviewPanel} from '../features/presentation/PreviewPanel';

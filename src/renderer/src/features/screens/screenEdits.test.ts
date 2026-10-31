@@ -5,7 +5,11 @@ import {
   nameProblem,
   onDisconnectOf,
 } from '@core/screens/screenEdits';
-import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
+import {
+  CAPTIONS_ID,
+  MAIN_ID,
+  screensDocument,
+} from '@core/testing/screenDocuments';
 
 function screens() {
   const document = screensDocument();

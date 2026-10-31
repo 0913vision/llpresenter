@@ -25,7 +25,7 @@ import {
   LAYOUT_ID,
   LOOK_ID,
   STAGE_ID,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {StagePanel} from './StagePanel';
 
 afterEach(() => {

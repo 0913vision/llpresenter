@@ -41,7 +41,7 @@ import {
   LAYOUT_ID,
   screensDocument,
   settingsDocument,
-} from '@renderer/features/screens/testing/documents';
+} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/showStore';
 import {bibleSource} from '@core/bible/source';

@@ -6,7 +6,7 @@ import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 import type {ScreenAppearance} from '@core/looks/screenLook';
 import {SlideLayerView} from './slideLayer';
-import {MAIN} from '../../../main/live/testing/overlays';
+import {MAIN} from '@core/testing/overlays';
 
 class FakeResizeObserver {
   static readonly instances: FakeResizeObserver[] = [];

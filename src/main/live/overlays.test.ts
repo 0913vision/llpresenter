@@ -27,7 +27,7 @@ import {
   settingsDocument,
   STAGE,
   TEXT_STYLE,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 const BASE = 100_000;
 const stops: Array<() => void> = [];

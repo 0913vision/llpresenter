@@ -6,7 +6,11 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useScreenEditor} from './useScreenEditor';
 import {useMonitors} from './useMonitors';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
-import {MAIN_ID, STAGE_ID, screensDocument} from './testing/documents';
+import {
+  MAIN_ID,
+  STAGE_ID,
+  screensDocument,
+} from '@core/testing/screenDocuments';
 import {projector} from './testing/monitors';
 
 afterEach(() => {

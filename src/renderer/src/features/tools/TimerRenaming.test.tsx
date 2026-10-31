@@ -8,12 +8,12 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@renderer/features/screens/testing/documents';
+import {settingsDocument} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {renderedToolMenuRows} from './toolMenuTesting';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 
 afterEach(() => {

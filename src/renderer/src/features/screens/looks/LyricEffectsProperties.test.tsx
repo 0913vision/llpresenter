@@ -12,7 +12,7 @@ import * as v from 'valibot';
 import {looksSchema} from '@core/schema/looks';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {Properties} from '@renderer/ui/PropertyRow';
-import {looksDocument} from '../testing/documents';
+import {looksDocument} from '@core/testing/screenDocuments';
 import {LyricEffectsProperties} from './LyricEffectsProperties';
 
 afterEach(cleanup);

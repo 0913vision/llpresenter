@@ -16,8 +16,8 @@ import {HYMN_ONE_ID, hymnOne, itemId, service, SUNDAY_ID} from './testFiles';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {resolveServicePassages} from '../bible/servicePassages';
-import {resolvePassage} from '../bible/reference';
-import {passageSource} from '../bible/testFiles';
+import {resolvePassage} from '@core/bible/reference';
+import {passageSource} from '@core/bible/testing/testFiles';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';

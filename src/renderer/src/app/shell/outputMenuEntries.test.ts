@@ -9,7 +9,7 @@ import {
   STAGE_ID,
   LAYOUT_ID,
   WIDE_LAYOUT_ID,
-} from '@renderer/features/screens/testing/documents';
+} from '@core/testing/screenDocuments';
 import {useScreensSelection} from '@renderer/features/screens/selection';
 import {menuItems} from '@renderer/ui/menuModel';
 import {summarizeScreens} from '../../platform/screens';

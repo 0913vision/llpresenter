@@ -8,7 +8,7 @@ import {
   STAGE,
   overlaySettings,
   settingsDocument,
-} from '../live/testing/overlays';
+} from '@core/testing/overlays';
 import {createSettingsScreenSource} from './settingsScreens';
 import {fullScreenScreen} from './testing';
 

@@ -19,7 +19,7 @@ import {
   STAGE,
   overlaySettings,
   settingsDocument,
-} from '../live/testing/overlays';
+} from '@core/testing/overlays';
 import type {WindowMode} from '../windows/testWindows';
 import {fakeWindows, type FakeWindows} from './testing';
 import {openNumberWindow} from './numberWindow';

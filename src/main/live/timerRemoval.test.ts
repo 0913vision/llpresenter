@@ -9,7 +9,7 @@ import {
   overlaySettings,
   overlayUuid,
   settingsDocument,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 const A = createTimerId(overlayUuid(90));
 const B = createTimerId(overlayUuid(91));

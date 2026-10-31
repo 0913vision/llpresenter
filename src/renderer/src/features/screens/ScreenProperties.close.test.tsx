@@ -8,7 +8,7 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {ControlSession} from '@renderer/app/controlSession';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
-import {MAIN_ID, screensDocument} from './testing/documents';
+import {MAIN_ID, screensDocument} from '@core/testing/screenDocuments';
 
 const requestId = createAppFlushRequestId(
   '00000000-0000-4000-8000-000000000001',

@@ -11,7 +11,7 @@ import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {startOverlays} from '../live/overlays';
-import {MAIN, TEXT_STYLE} from '../live/testing/overlays';
+import {MAIN, TEXT_STYLE} from '@core/testing/overlays';
 import type {DocumentFiles} from './contentPersistence';
 import {SettingsStore} from './settingsStore';
 

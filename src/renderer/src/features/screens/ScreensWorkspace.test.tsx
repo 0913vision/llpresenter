@@ -27,7 +27,7 @@ import {
   screensDocument,
   settingsDocument,
   stageLayoutsDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {

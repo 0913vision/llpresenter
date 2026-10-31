@@ -10,7 +10,7 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
-} from '../live/testing/overlays';
+} from '@core/testing/overlays';
 import {launchOutputCommands, showOutputsOnLaunch} from './launch';
 
 const NDI_SCREEN = overlayUuid(40);

@@ -12,7 +12,7 @@ import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {settingsDocument} from '@renderer/features/screens/testing/documents';
+import {settingsDocument} from '@core/testing/screenDocuments';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';

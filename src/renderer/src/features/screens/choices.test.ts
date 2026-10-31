@@ -7,7 +7,7 @@ import {
   WIDE_LAYOUT_ID,
   looksDocument,
   screensDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 
 function looks() {
   const document = looksDocument();

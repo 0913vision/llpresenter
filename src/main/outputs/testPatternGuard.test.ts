@@ -3,7 +3,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
-import {MAIN, overlaySettings, STAGE} from '../live/testing/overlays';
+import {MAIN, overlaySettings, STAGE} from '@core/testing/overlays';
 import {guardTestPatterns} from './testPatternGuard';
 
 class FakeContents extends EventEmitter {

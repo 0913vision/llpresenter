@@ -4,7 +4,7 @@ import {
   looksDocument,
   screensDocument,
   stageLayoutsDocument,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {lookPreviewFrame} from './lookPreviewFrame';
 
 function fixture() {

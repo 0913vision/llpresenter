@@ -4,7 +4,7 @@ import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@core/schema/timers';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {saveNewCountdown, saveNewTimer} from './timerEdits';
 import type {TimerConfiguration} from '@core/timers/timerConfiguration';
 

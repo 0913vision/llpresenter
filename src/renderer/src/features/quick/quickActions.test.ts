@@ -12,7 +12,7 @@ import {
   quickId,
   quickItem,
   quickLive,
-} from './quickTesting';
+} from '../tools/testing/quickTesting';
 
 beforeEach(() => {
   useShow.setState({

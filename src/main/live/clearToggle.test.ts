@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import type {ClearTarget} from '@core/live/commands';
 import {emptyLiveState, layerKinds} from '@core/live/state';
 import {LiveStore} from './store';
-import {NOTICE, overlaySettings} from './testing/overlays';
+import {NOTICE, overlaySettings} from '@core/testing/overlays';
 
 const slide = {itemId: 'fixture', position: 0, label: null, lines: ['Current']};
 function setup() {

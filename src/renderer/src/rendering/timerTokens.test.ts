@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseTimers} from '@core/schema/timers';
 import {emptyLiveState} from '@core/live/state';
-import {overlayUuid} from '../../../main/live/testing/overlays';
+import {overlayUuid} from '@core/testing/overlays';
 import {
   fillTimerTokens,
   hasTickingToken,

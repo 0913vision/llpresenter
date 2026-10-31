@@ -2,7 +2,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/clickFocus';
 import {useQuickDrag} from './useQuickDrag';
-import {quickId} from './quickTesting';
+import {quickId} from '../tools/testing/quickTesting';
 
 afterEach(() => {
   cleanup();

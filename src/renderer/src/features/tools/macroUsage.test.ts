@@ -5,7 +5,7 @@ import {
   parseServiceEntries,
 } from '@core/schema/contentDocuments';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {countMacroUses} from './macroUsage';
 
 const macro = '00000000-0000-4000-8000-000000000001';

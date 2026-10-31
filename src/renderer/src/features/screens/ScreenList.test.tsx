@@ -28,7 +28,7 @@ import {
   STAGE_ID,
   screensDocument,
   settingsDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 
 const CREATED_ID = '00000000-0000-4000-8000-000000000201';
 

@@ -10,7 +10,7 @@ import {
   overlayUuid,
   MAIN,
   TEXT_STYLE,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 import {MAX_CLEAR_EFFECTS} from '@core/schema/clearFade';
 
 const slide = {

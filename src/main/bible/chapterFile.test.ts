@@ -13,7 +13,7 @@ import {
   chunkedTranslationFile,
   frameBibleChunks,
   translationFile,
-} from './testFiles';
+} from '@core/bible/testing/testFiles';
 
 vi.mock('node:fs/promises', async importOriginal => {
   const original = await importOriginal<typeof fs>();

@@ -13,7 +13,11 @@ import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {useLive} from '@renderer/session/live';
 import {QuickPanel} from './QuickPanel';
-import {quickDocument, quickFixture, quickId} from './quickTesting';
+import {
+  quickDocument,
+  quickFixture,
+  quickId,
+} from '../tools/testing/quickTesting';
 
 beforeEach(() => useLive.setState({state: emptyLiveState()}));
 afterEach(() => {

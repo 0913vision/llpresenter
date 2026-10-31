@@ -14,7 +14,7 @@ import {
   screensDocument,
   MAIN_ID,
   CAPTIONS_ID,
-} from '@renderer/features/screens/testing/documents';
+} from '@core/testing/screenDocuments';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {ShowToolsPanel} from './ShowToolsPanel';
 import {MessageTab} from './MessageTab';

@@ -2,7 +2,7 @@ import {expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {setAudioLoop} from './audioLoop';
 
 const id = '00000000-0000-4000-8000-000000000001';

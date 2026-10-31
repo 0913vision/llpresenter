@@ -1,11 +1,11 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {useLive} from '@renderer/session/live';
-import {settingsDocument} from '@renderer/features/screens/testing/documents';
+import {settingsDocument} from '@core/testing/screenDocuments';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaId} from '@core/schema/ids';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {deferred} from '../quick/quickTesting';
+import {deferred} from './testing/quickTesting';
 import {stageFixture} from './stageTesting';
 import {useShowingCount, useShowingGroups} from './showingHooks';
 

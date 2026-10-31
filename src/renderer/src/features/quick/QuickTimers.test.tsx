@@ -22,7 +22,7 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {QuickPanel} from './QuickPanel';
-import {deferred, quickFixture, quickId} from './quickTesting';
+import {deferred, quickFixture, quickId} from '../tools/testing/quickTesting';
 
 function documents({
   separate = false,

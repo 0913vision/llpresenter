@@ -6,7 +6,7 @@ import {
   MAIN_ID,
   STAGE_ID,
   screensDocument,
-} from '../../renderer/src/features/screens/testing/documents';
+} from '../testing/screenDocuments';
 
 function screens() {
   const document = screensDocument();

@@ -18,7 +18,7 @@ const DEFAULT_LYRIC_STYLE = {
   referencePosition: 'bottomRight' as const,
 };
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
-import {looksDocument} from '../testing/documents';
+import {looksDocument} from '@core/testing/screenDocuments';
 import {LyricStyleSelector} from './LyricStyleSelector';
 import type {
   LyricStyleListEdit,

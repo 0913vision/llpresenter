@@ -11,7 +11,7 @@ import {
   overlaySettings,
   overlayUuid,
   settingsDocument,
-} from './testing/overlays';
+} from '@core/testing/overlays';
 
 const SERMON = overlayUuid(90);
 const CLOCK = overlayUuid(91);

@@ -9,11 +9,8 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {
-  settingsDocument,
-  MAIN_ID,
-} from '@renderer/features/screens/testing/documents';
-import {deferred} from '../quick/quickTesting';
+import {settingsDocument, MAIN_ID} from '@core/testing/screenDocuments';
+import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {NoticeTab} from './NoticeTab';
 import {stageFixture} from './stageTesting';

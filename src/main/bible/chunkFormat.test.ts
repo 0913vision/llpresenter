@@ -5,7 +5,10 @@ import {
   parseBibleChapter,
   parseBibleChunkHeader,
 } from './chunkFormat';
-import {chunkedTranslationFile, translationFile} from './testFiles';
+import {
+  chunkedTranslationFile,
+  translationFile,
+} from '@core/bible/testing/testFiles';
 
 function parse(header: unknown, bodyBytes: number, id = 'sample') {
   return parseBibleChunkHeader(

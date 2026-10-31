@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseReference, resolvePassage} from './reference';
-import {passageSource, translationFile} from './testFiles';
+import {passageSource, translationFile} from './testing/testFiles';
 
 const translation = passageSource();
 

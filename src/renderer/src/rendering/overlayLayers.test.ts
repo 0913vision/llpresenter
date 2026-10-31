@@ -13,7 +13,7 @@ import {
   STAGE,
   TEXT_STYLE,
   overlayUuid,
-} from '../../../main/live/testing/overlays';
+} from '@core/testing/overlays';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';

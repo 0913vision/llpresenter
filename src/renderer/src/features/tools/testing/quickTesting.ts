@@ -9,7 +9,7 @@ import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {panelApi} from '../bible/panelTesting';
+import {panelApi} from '../../bible/panelTesting';
 
 export const quickId = (value: number): string =>
   `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`;

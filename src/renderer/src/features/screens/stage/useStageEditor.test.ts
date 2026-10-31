@@ -1,7 +1,7 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
-import {stageLayoutsDocument} from '../testing/documents';
+import {stageLayoutsDocument} from '@core/testing/screenDocuments';
 import {useStageEditor} from './useStageEditor';
 
 afterEach(() => {

@@ -9,7 +9,7 @@ import {
   MAIN_ID,
   screensDocument,
   settingsDocument,
-} from '../features/screens/testing/documents';
+} from '@core/testing/screenDocuments';
 import {BackgroundAudio} from './backgroundAudio';
 
 beforeEach(() => {

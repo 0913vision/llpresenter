@@ -6,7 +6,7 @@ import {watchInputModality} from './inputModality';
 import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
 import {maxPopoverHeight} from './placement';
-import {cssRules} from '@renderer/app/shell/testing/cssRules';
+import {cssRules} from '@renderer/ui/testing/cssRules';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
 

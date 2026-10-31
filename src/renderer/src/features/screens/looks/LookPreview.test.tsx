@@ -3,7 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {useLive} from '@renderer/session/live';
-import {looksDocument, screensDocument} from '../testing/documents';
+import {looksDocument, screensDocument} from '@core/testing/screenDocuments';
 import {LookPreview} from './LookPreview';
 
 const drawing = vi.hoisted(() => ({

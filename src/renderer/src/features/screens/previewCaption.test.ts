@@ -6,7 +6,7 @@ import {
   MAIN_ID,
   STAGE_ID,
   screensDocument,
-} from './testing/documents';
+} from '@core/testing/screenDocuments';
 
 function screens() {
   const document = screensDocument();

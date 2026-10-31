@@ -11,7 +11,7 @@ const DEFAULT_LYRIC_STYLE = {
   referencePosition: 'bottomRight' as const,
 };
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {looksDocument, MAIN_ID} from '../testing/documents';
+import {looksDocument, MAIN_ID} from '@core/testing/screenDocuments';
 import {editLyricStyleList, LYRIC_STYLE_LIMIT} from './lyricStyleListEdits';
 import {LookListEditor} from './lookListEditor';
 

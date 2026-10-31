@@ -23,7 +23,7 @@ import {
   quickFixture,
   quickId,
   quickLive,
-} from './quickTesting';
+} from '../tools/testing/quickTesting';
 
 vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
   PreviewPanel: () => null,

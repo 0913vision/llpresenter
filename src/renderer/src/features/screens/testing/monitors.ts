@@ -1,5 +1,5 @@
 import type {MonitorInfo} from '@core/schema/monitors';
-import {MAIN_ID} from './documents';
+import {MAIN_ID} from '@core/testing/screenDocuments';
 
 export const projector: MonitorInfo = {
   id: 2,

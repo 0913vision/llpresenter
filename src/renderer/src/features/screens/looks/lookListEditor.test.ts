@@ -10,7 +10,7 @@ import {
   looksDocument,
   screensDocument,
   SERMON_LOOK_ID,
-} from '../testing/documents';
+} from '@core/testing/screenDocuments';
 import {LookListEditor} from './lookListEditor';
 
 function document() {

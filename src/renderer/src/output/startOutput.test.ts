@@ -10,10 +10,10 @@ import {fakeLlpApi} from '@contracts/ipc/testing/fakeLlpApi';
 import {classes} from '../rendering/classes';
 import {SlideLayerView} from '../rendering/slideLayer';
 import {startOutput} from './startOutput';
-import {MAIN, overlaySettings} from '../../../main/live/testing/overlays';
+import {MAIN, overlaySettings} from '@core/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {settingsDocument} from '../../../main/live/testing/overlays';
+import {settingsDocument} from '@core/testing/overlays';
 
 const SHOWING: LiveState = {
   ...emptyLiveState(),
