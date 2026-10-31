@@ -4,6 +4,7 @@ import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
+import {mediaObjectFit} from '@core/media/objectFit';
 
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
 export const BACKGROUND_DISSOLVE_MS = OUTPUT_TRANSITIONS.backgroundMs;
@@ -290,8 +291,7 @@ export class BackgroundLayerView {
   ): void {
     const video = this.videos[index];
     const fit = properties?.fit ?? 'fill';
-    const objectFit =
-      fit === 'fit' ? 'contain' : fit === 'fill' ? 'cover' : 'fill';
+    const objectFit = mediaObjectFit(fit);
     video.style.objectFit = objectFit;
     this.images[index].style.objectFit = objectFit;
     try {

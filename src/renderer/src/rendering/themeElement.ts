@@ -1,4 +1,5 @@
 import type {LiveLayers, MediaLayer} from '@core/live/state';
+import {mediaObjectFit} from '@core/media/objectFit';
 import type {ThemeElement} from '@core/schema/themes';
 import type {LyricStyle} from '@core/looks/lyricStyle';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
@@ -90,12 +91,7 @@ export class ThemeElementView {
       Object.assign(this.image.style, {
         width: '100%',
         height: '100%',
-        objectFit:
-          element.fit === 'fit'
-            ? 'contain'
-            : element.fit === 'fill'
-              ? 'cover'
-              : 'fill',
+        objectFit: mediaObjectFit(element.fit),
       });
       this.image.onerror = () => {
         this.gaps.missing('media', element.mediaId);

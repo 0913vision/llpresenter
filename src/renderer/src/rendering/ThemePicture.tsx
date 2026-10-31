@@ -7,6 +7,7 @@ import {
   type JSX,
 } from 'react';
 import type {ThemeElement, ThemeText} from '@core/schema/themes';
+import {mediaObjectFit} from '@core/media/objectFit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
 import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
@@ -124,12 +125,7 @@ function contents(
         alt=""
         draggable={false}
         style={{
-          objectFit:
-            element.fit === 'fit'
-              ? 'contain'
-              : element.fit === 'fill'
-                ? 'cover'
-                : 'fill',
+          objectFit: mediaObjectFit(element.fit),
           borderRadius: element.radius,
         }}
       />
