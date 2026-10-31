@@ -1,6 +1,11 @@
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
-import {BumpError, bumpFromCommits, type BumpRequest} from './bump.mts';
+import {
+  BumpError,
+  bumpFromCommits,
+  versionRepositoryAt,
+  type BumpRequest,
+} from './bump.mts';
 
 const FAILURE_EXIT_CODE = 1;
 const USAGE_EXIT_CODE = 2;
@@ -54,7 +59,7 @@ async function main(): Promise<void> {
     return;
   }
   await bumpFromCommits(command.request, {
-    cwd: process.cwd(),
+    repo: versionRepositoryAt(process.cwd()),
     mayCommit: process.env['GITHUB_ACTIONS'] === 'true',
     print: line => console.log(line),
   });
