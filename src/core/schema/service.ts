@@ -17,7 +17,9 @@ import {
   serviceItemIdSchema,
   songIdSchema,
   templateIdSchema,
+  themeIdSchema,
 } from './ids';
+import {itemOverlaysSchema} from './itemOverlays';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
@@ -46,7 +48,11 @@ export const slotKinds = ['song', 'bible', 'slides'] as const;
 
 export type SlotKind = (typeof slotKinds)[number];
 
-const itemFields = {id: serviceItemIdSchema};
+const itemFields = {
+  id: serviceItemIdSchema,
+  theme: v.exactOptional(themeIdSchema),
+  overlays: v.exactOptional(itemOverlaysSchema),
+};
 
 const startFields = {
   macro: v.exactOptional(v.string()),

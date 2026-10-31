@@ -1,5 +1,27 @@
 import {describe, expect, it} from 'vitest';
-import {parseScreenId, parseLyricStyleId} from './ids';
+import {
+  parseScreenId,
+  parseLyricStyleId,
+  createThemeId,
+  createThemeElementId,
+  createItemOverlayId,
+} from './ids';
+
+it.each([createThemeId, createThemeElementId, createItemOverlayId])(
+  'validates new theme-domain IDs with %s',
+  create => {
+    const id = '00000000-0000-4000-8000-000000000301';
+    expect(create(id)).toBe(id);
+    for (const invalid of [
+      '',
+      'missing',
+      '00000000-0000-1000-8000-000000000301',
+      `${id}x`,
+    ]) {
+      expect(() => create(invalid)).toThrow();
+    }
+  },
+);
 
 it('validates generated lyric style IDs', () => {
   const value = '00000000-0000-4000-8000-000000000301';

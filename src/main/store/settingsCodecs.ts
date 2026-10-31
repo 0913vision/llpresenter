@@ -3,6 +3,7 @@ import type {FileError} from '@core/schema/fileFormat';
 import * as bible from '@core/schema/bible';
 import * as labels from '@core/schema/labels';
 import * as looks from '@core/schema/looks';
+import * as themes from '@core/schema/themes';
 import * as macros from '@core/schema/macros';
 import * as messages from '@core/schema/messages';
 import * as notices from '@core/schema/notices';
@@ -43,6 +44,11 @@ export const settingsCodecs = {
     screens.serializeScreens,
   ),
   looks: codec('llsettings.looks', looks.parseLooks, looks.serializeLooks),
+  themes: codec(
+    'llsettings.themes',
+    themes.parseThemes,
+    themes.serializeThemes,
+  ),
   'stage-layouts': codec(
     'llsettings.stage',
     stage.parseStageLayouts,

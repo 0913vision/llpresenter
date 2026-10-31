@@ -86,6 +86,8 @@ const shadowSchema = jsonObject({
   color: hexColor,
 });
 
+export {outlineSchema as lyricOutlineSchema, shadowSchema as lyricShadowSchema};
+
 const effectStyleSchema = jsonObject({
   ...lyricStyleEntries,
   outline: outlineSchema,

@@ -5,6 +5,7 @@ import {accessSchema, revisionSchema} from './contentDocuments';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {labelsSchema} from './labels';
 import {looksSchema} from './looks';
+import {themesSchema} from './themes';
 import {macrosSchema} from './macros';
 import {messagesSchema} from './messages';
 import {noticesSchema} from './notices';
@@ -42,6 +43,7 @@ export function settingsDocumentSchema<
 const schemas = {
   screens: screensSchema,
   looks: looksSchema,
+  themes: themesSchema,
   'stage-layouts': stageLayoutsSchema,
   macros: macrosSchema,
   quick: quickSchema,
@@ -58,6 +60,7 @@ const schemas = {
 export const settingsNames = [
   'screens',
   'looks',
+  'themes',
   'stage-layouts',
   'macros',
   'quick',
@@ -80,6 +83,7 @@ const settingsDocument = v.pipe(
   v.variant('name', [
     settingsDocumentSchema('screens', schemas.screens),
     settingsDocumentSchema('looks', schemas.looks),
+    settingsDocumentSchema('themes', schemas.themes),
     settingsDocumentSchema('stage-layouts', schemas['stage-layouts']),
     settingsDocumentSchema('macros', schemas.macros),
     settingsDocumentSchema('quick', schemas.quick),
@@ -109,6 +113,7 @@ function updateSchema<TName extends string, TValue extends v.GenericSchema>(
 const settingsUpdateSchema = v.variant('name', [
   updateSchema('screens', schemas.screens),
   updateSchema('looks', schemas.looks),
+  updateSchema('themes', schemas.themes),
   updateSchema('stage-layouts', schemas['stage-layouts']),
   updateSchema('macros', schemas.macros),
   updateSchema('quick', schemas.quick),

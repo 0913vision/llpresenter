@@ -25,6 +25,9 @@ export const noticeSetIdSchema = uuidId('NoticeSetId');
 export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
 export const lookIdSchema = uuidId('LookId');
+export const themeIdSchema = uuidId('ThemeId');
+export const themeElementIdSchema = uuidId('ThemeElementId');
+export const itemOverlayIdSchema = uuidId('ItemOverlayId');
 export const lyricStyleIdSchema = uuidId('LyricStyleId');
 export const messageStyleIdSchema = uuidId('MessageStyleId');
 export const stageLayoutIdSchema = uuidId('StageLayoutId');
@@ -60,6 +63,21 @@ export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
 export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
 export type LookId = v.InferOutput<typeof lookIdSchema>;
+export type ThemeId = v.InferOutput<typeof themeIdSchema>;
+export type ThemeElementId = v.InferOutput<typeof themeElementIdSchema>;
+export type ItemOverlayId = v.InferOutput<typeof itemOverlayIdSchema>;
+
+export function createThemeId(uuid: string): ThemeId {
+  return v.parse(themeIdSchema, uuid);
+}
+
+export function createThemeElementId(uuid: string): ThemeElementId {
+  return v.parse(themeElementIdSchema, uuid);
+}
+
+export function createItemOverlayId(uuid: string): ItemOverlayId {
+  return v.parse(itemOverlayIdSchema, uuid);
+}
 export type LyricStyleId = v.InferOutput<typeof lyricStyleIdSchema>;
 export type MessageStyleId = v.InferOutput<typeof messageStyleIdSchema>;
 export type StageLayoutId = v.InferOutput<typeof stageLayoutIdSchema>;
@@ -75,6 +93,10 @@ export type AppFlushRequestId = v.InferOutput<typeof appFlushRequestIdSchema>;
 /** Checks a generated screen UUID without throwing. */
 export function parseScreenId(value: unknown) {
   return parsePayload(screenIdSchema, value);
+}
+
+export function createScreenId(uuid: string): ScreenId {
+  return v.parse(screenIdSchema, uuid);
 }
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;

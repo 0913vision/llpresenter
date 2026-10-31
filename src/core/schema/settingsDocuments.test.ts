@@ -9,10 +9,18 @@ import {
   type SettingsName,
 } from './settingsDocuments';
 import {expectSuccess} from './testHelpers';
+import {createDefaultThemes} from '../themes/defaults';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const fixtures = {
   screens: {format: 'llsettings.screens', schemaVersion: 1, screens: []},
+  themes: {
+    format: 'llsettings.themes',
+    schemaVersion: 1,
+    standby: {id: ID, name: 'Standby', screens: {}},
+    themes: [],
+    defaults: {},
+  },
   looks: {
     format: 'llsettings.looks',
     schemaVersion: 1,
@@ -55,6 +63,74 @@ const fixtures = {
 >;
 
 describe('app-wide settings contracts', () => {
+  it('retains theme extensions through screen records and discriminated elements', () => {
+    const data = createDefaultThemes();
+    const theme = data.themes[0];
+    if (theme === undefined) throw new Error('Expected a starter theme');
+    const entry = Object.entries(theme.screens)[0];
+    if (entry === undefined) throw new Error('Expected a starter screen');
+    const [screen, layout] = entry;
+    const first = layout.elements[0];
+    if (first === undefined) throw new Error('Expected a starter element');
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'themes',
+        revision: 1,
+        access: 'editable',
+        value: {
+          ...data,
+          themes: [
+            {
+              ...theme,
+              future: 'theme',
+              screens: {
+                [screen]: {
+                  ...layout,
+                  mode: {...layout.mode, future: 'mode'},
+                  elements: [
+                    {
+                      ...first,
+                      future: 'element',
+                      frame: {...first.frame, future: 'frame'},
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'themes',
+        baseRevision: 1,
+        value: {
+          ...data,
+          themes: [
+            {...theme, screens: {[screen]: {...layout, elements: [first]}}},
+          ],
+        },
+      }),
+    );
+    expect(
+      expectSuccess(mergeSettingsDocument(current, edit)).value,
+    ).toMatchObject({
+      themes: [
+        {
+          future: 'theme',
+          screens: {
+            [screen]: {
+              mode: {future: 'mode'},
+              elements: [{future: 'element', frame: {future: 'frame'}}],
+            },
+          },
+        },
+      ],
+    });
+  });
+
   it.each(settingsNames)(
     'preserves current unknown fields when editing %s',
     name => {

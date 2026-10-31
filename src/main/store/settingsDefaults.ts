@@ -2,6 +2,11 @@ import {defaultPreferences} from '@core/schema/preferences';
 import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {createDefaultThemes} from '@core/themes/defaults';
+import {
+  STARTER_LYRIC_STYLE as style,
+  STARTER_STAGE_ELEMENTS,
+} from '@core/looks/starterLayout';
 import {DEFAULT_LABELS} from './defaults';
 
 const uuid = (number: number): string =>
@@ -9,27 +14,6 @@ const uuid = (number: number): string =>
 const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
 const LOOK = uuid(4);
 const LAYOUT = uuid(5);
-const style = {
-  font: 'Pretendard',
-  weight: 700,
-  size: 84,
-  color: '#FFFFFF',
-  lineHeight: 1.4,
-  align: 'center',
-  vAlign: 'middle',
-  maxLines: 2,
-  margin: 6,
-  shadow: {
-    on: true,
-    blur: 8,
-    distance: 4,
-    angle: 45,
-    opacity: 60,
-    color: '#000000',
-  },
-  outline: {on: false, width: 3, color: '#000000'},
-  referencePosition: 'bottomRight',
-};
 const screen = (
   id: string,
   name: string,
@@ -45,14 +29,9 @@ const screen = (
   edgeMargin: 0,
   offset: {x: 0, y: 0},
 });
-const element = (
-  kind: string,
-  name: string,
-  [x, y, w, h]: readonly [number, number, number, number],
-) => ({id: kind, name, kind, frame: {x, y, w, h}});
-
 /** Spec 02 starter files share IDs for their screen, style and layout references. */
 export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
+  themes: createDefaultThemes(),
   screens: {
     screens: [
       screen(MAIN, '본 화면', {kind: 'audience', method: 'fullscreen'}),
@@ -128,15 +107,7 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
         name: '현재와 다음',
         width: 1920,
         height: 1080,
-        elements: [
-          element('currentLabel', '현재 이름표', [45, 49, 330, 39]),
-          element('currentSlide', '현재 가사', [45, 100, 1194, 260]),
-          element('clock', '시계', [1440, 60, 420, 120]),
-          element('timer', '타이머', [1440, 189, 420, 60]),
-          element('nextLabel', '다음 이름표', [45, 471, 1194, 38]),
-          element('nextSlide', '다음 가사', [45, 520, 1194, 170]),
-          element('stageMessage', '무대 메시지', [0, 960, 1920, 120]),
-        ],
+        elements: STARTER_STAGE_ELEMENTS,
       },
     ],
   },
