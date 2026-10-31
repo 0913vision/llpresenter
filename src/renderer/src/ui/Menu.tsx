@@ -10,6 +10,7 @@ import {
   type JSX,
   type ReactNode,
   type KeyboardEvent,
+  type MouseEvent,
   type RefObject,
 } from 'react';
 import {createPortal} from 'react-dom';
@@ -126,6 +127,7 @@ interface OpenSubmenu {
 
 interface MenuNavigation {
   readonly items: readonly MenuItem[];
+  readonly renaming: boolean;
   readonly pointed: number;
   readonly submenu: OpenSubmenu | null;
   readonly itemElements: RefObject<Array<HTMLDivElement | null>>;
@@ -163,6 +165,7 @@ function useMenuNavigation({
   readonly pointsFirst: boolean;
 }): MenuNavigation {
   const items = menuItems(entries);
+  const renaming = items.some(item => item.rename !== undefined);
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
   const [pointedState, setPointed] = useState(pointsFirst ? 0 : -1);
@@ -177,6 +180,11 @@ function useMenuNavigation({
     setPointed(0);
   }
   const [submenu, setSubmenu] = useState<OpenSubmenu | null>(null);
+  if (renaming && submenu !== null) setSubmenu(null);
+  const stopTimers = useEffectEvent(() => timers.stop('open', 'close'));
+  useEffect(() => {
+    if (renaming) stopTimers();
+  }, [renaming]);
   const pointed = Math.min(
     pointedState < 0 ? (submenu?.index ?? -1) : pointedState,
     items.length - 1,
@@ -194,6 +202,7 @@ function useMenuNavigation({
     setSubmenu({index, takesFocus});
   };
   const run = (index: number): void => {
+    if (renaming) return;
     const item = items[index];
     if (!isRunnable(item)) return;
     if (hasSubmenu(item)) {
@@ -206,6 +215,7 @@ function useMenuNavigation({
     } else onClose('select');
   };
   const hover = (index: number): void => {
+    if (renaming) return;
     if (hovered.current === index && pointing.current === 'pointer') return;
     pointing.current = 'pointer';
     hovered.current = index;
@@ -258,6 +268,7 @@ function useMenuNavigation({
   };
   return {
     items,
+    renaming,
     pointed,
     submenu,
     itemElements,
@@ -289,6 +300,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const {label, entries, place, onClose, onBack, search, autoFocus} = props;
   const baseId = useId();
   const surface = useRef<HTMLDivElement>(null);
+  const blockedPointer = useRef(false);
   const [openedByKeyboard] = useState(lastInputWasKeyboard);
   const nav = useMenuNavigation({
     entries,
@@ -339,10 +351,14 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
     return (
       <MenuItemRow
         key={item.id}
-        item={item}
+        item={
+          nav.renaming && item.rename === undefined
+            ? {...item, disabled: true}
+            : item
+        }
         id={itemId(index)}
         iconColumn={iconColumn}
-        pointed={index === nav.pointed}
+        pointed={!nav.renaming && index === nav.pointed}
         expanded={nav.submenu?.index === index}
         elementRef={element => {
           nav.itemElements.current[index] = element;
@@ -354,6 +370,25 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
     );
   };
   const style: CSSProperties = {width: props.width, minWidth: props.minWidth};
+  const isRenameTarget = (target: EventTarget): boolean =>
+    target instanceof Element && target.closest('[data-renaming]') !== null;
+  const commitRename = (): void => {
+    surface.current
+      ?.querySelector<HTMLElement>('[data-renaming] input')
+      ?.blur();
+  };
+  const consumeClick = (event: MouseEvent<HTMLDivElement>): void => {
+    if (
+      !blockedPointer.current &&
+      (!nav.renaming || isRenameTarget(event.target))
+    ) {
+      return;
+    }
+    blockedPointer.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+    if (nav.renaming) commitRename();
+  };
 
   return (
     <>
@@ -370,7 +405,18 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         className={styles.menu}
         data-check-column={hasCheckColumn(entries) ? 'true' : 'false'}
         style={style}
+        onPointerDownCapture={event => {
+          blockedPointer.current = false;
+          if (!nav.renaming || isRenameTarget(event.target)) return;
+          blockedPointer.current = true;
+          event.preventDefault();
+          event.stopPropagation();
+          commitRename();
+        }}
+        onClickCapture={consumeClick}
+        onContextMenuCapture={consumeClick}
         onKeyDown={event => {
+          if (nav.renaming) return;
           if (
             openItemMenu(
               event,
@@ -532,6 +578,12 @@ export function Menu({
         className={styles.catcher}
         onPointerDown={event => {
           event.preventDefault();
+          if (
+            document.activeElement instanceof HTMLElement &&
+            document.activeElement.closest('[data-renaming]')
+          ) {
+            document.activeElement.blur();
+          }
           onClose('outside');
         }}
         onContextMenu={event => event.preventDefault()}

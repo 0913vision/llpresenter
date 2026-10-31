@@ -9,6 +9,7 @@ import {
 import {useSourceActions} from '@renderer/features/service/list/useSourceActions';
 import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';
 import {SaveTemplatePrompt} from '@renderer/features/service/list/SaveTemplatePrompt';
+import {SaveTemplateDialog} from '@renderer/features/service/list/SaveTemplateDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import type {Notice} from '@renderer/ui/notices';
@@ -103,6 +104,14 @@ export function useServiceRowMenu(
         />
       ) : null}
       {sources.overlays}
+      {saver.naming === null ? null : (
+        <SaveTemplateDialog
+          name={saver.naming.name}
+          busy={saver.busy}
+          onSave={saver.saveNamed}
+          onCancel={saver.cancel}
+        />
+      )}
       {saver.conflict ? (
         <SaveTemplatePrompt
           conflict={saver.conflict}

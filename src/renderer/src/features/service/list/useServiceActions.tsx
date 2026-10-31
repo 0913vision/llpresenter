@@ -5,6 +5,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';
 import {NewServiceDialog} from './NewServiceDialog';
 import {SaveTemplatePrompt} from './SaveTemplatePrompt';
+import {SaveTemplateDialog} from './SaveTemplateDialog';
 import {useSaveTemplate} from './useSaveTemplate';
 
 type ServiceDialog = 'new' | 'import';
@@ -17,7 +18,6 @@ const NO_SERVICE = '열린 예배 순서가 없습니다';
 /**
  * The service commands at the end of the service picker, and the dialog the
  * chosen one opens. `onOpen` runs first, such as closing the picker.
- * 지금 예배를 템플릿으로 저장 opens nothing unless a 템플릿 has the service's name.
  */
 export function useServiceActions({
   onProblem,
@@ -79,6 +79,14 @@ export function useServiceActions({
       ) : dialog === 'import' ? (
         <ImportItemsDialog onClose={close} onProblem={onProblem} />
       ) : null}
+      {saver.naming === null ? null : (
+        <SaveTemplateDialog
+          name={saver.naming.name}
+          busy={saver.busy}
+          onSave={saver.saveNamed}
+          onCancel={saver.cancel}
+        />
+      )}
       {saver.conflict === null ? null : (
         <SaveTemplatePrompt
           conflict={saver.conflict}

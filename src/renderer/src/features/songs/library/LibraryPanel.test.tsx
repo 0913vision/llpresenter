@@ -12,7 +12,7 @@ import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {LibrarySearchResult} from '@core/schema/librarySearch';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
-import {resetTooltips} from '@renderer/ui/tooltipTesting';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/notices';
 import {layerContainer} from '@renderer/ui/layers';
 import {fixtureSong, libraryFixture} from './fixture';
@@ -21,7 +21,9 @@ import {
   LibraryGalleryHost,
   LibrarySection,
 } from '../../../gallery/LibrarySection';
-import {pastDocument, serviceEntries} from '@core/testing/serviceList';
+import {pastDocument} from '@core/testing/serviceList';
+import {applyService} from '@renderer/session/show';
+import {sampleService} from '@renderer/session/testing/sampleService';
 
 class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];
@@ -38,6 +40,7 @@ class FixedObserver implements ResizeObserver {
 }
 
 beforeEach(() => {
+  applyService(null);
   resetTooltips();
   FixedObserver.instances.length = 0;
   vi.stubGlobal('ResizeObserver', FixedObserver);
@@ -146,9 +149,10 @@ describe('library panel', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
-  it('appends the clicked song to the chosen service after its existing items', async () => {
+  it('appends the clicked song to the open service in one click', async () => {
+    applyService({...sampleService, id: pastDocument.service.id});
     const fixture = libraryFixture();
-    vi.spyOn(fixture.api.services, 'list').mockResolvedValue(serviceEntries);
+    const enumerate = vi.spyOn(fixture.api.services, 'list');
     vi.spyOn(fixture.api.services, 'get').mockResolvedValue(pastDocument);
     const edit = vi.spyOn(fixture.api.content, 'edit').mockResolvedValue({
       ok: true,
@@ -157,9 +161,6 @@ describe('library panel', () => {
     const {user, onOpenSong} = await setup(fixture);
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
     await user.click(screen.getByRole('menuitem', {name: '예배 순서에 추가'}));
-    await user.click(
-      await screen.findByRole('menuitem', {name: '지난 주일 예배'}),
-    );
     await waitFor(() =>
       expect(edit.mock.lastCall?.[0]).toMatchObject({
         type: 'service.update',
@@ -174,20 +175,35 @@ describe('library panel', () => {
       }),
     );
     expect(onOpenSong).not.toHaveBeenCalled();
+    expect(enumerate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {readOnly: false, reason: '열린 예배 순서가 없습니다'},
+    {readOnly: true, reason: '읽기 전용 예배 순서입니다'},
+  ])('disables adding a library song: $reason', async ({readOnly, reason}) => {
+    if (readOnly) applyService({...sampleService, readOnly: true});
+    const fixture = libraryFixture();
+    const edit = vi.spyOn(fixture.api.content, 'edit');
+    const {user} = await setup(fixture);
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    const add = screen.getByRole('menuitem', {name: '예배 순서에 추가'});
+    expect(add.getAttribute('aria-disabled')).toBe('true');
+    expect(add.hasAttribute('aria-haspopup')).toBe(false);
+    await user.click(add);
+    expect(edit).not.toHaveBeenCalled();
+    expect((await hoverForTooltip(add))?.textContent).toBe(reason);
   });
 
   it('reports a failed append without changing the open editor', async () => {
+    applyService({...sampleService, id: pastDocument.service.id});
     const fixture = libraryFixture();
-    vi.spyOn(fixture.api.services, 'list').mockResolvedValue(serviceEntries);
     vi.spyOn(fixture.api.services, 'get').mockRejectedValue(
       new Error('Read failed'),
     );
     const {user, onProblem, onOpenSong} = await setup(fixture);
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
     await user.click(screen.getByRole('menuitem', {name: '예배 순서에 추가'}));
-    await user.click(
-      await screen.findByRole('menuitem', {name: '지난 주일 예배'}),
-    );
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
         expect.objectContaining({

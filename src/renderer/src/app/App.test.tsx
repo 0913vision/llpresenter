@@ -306,6 +306,12 @@ describe('App menu bar title', () => {
     fireEvent.click(
       screen.getByRole('menuitem', {name: '예배를 템플릿으로 저장…'}),
     );
+    fireEvent.click(
+      within(screen.getByRole('dialog', {name: '템플릿으로 저장'})).getByRole(
+        'button',
+        {name: '저장'},
+      ),
+    );
     expect(await screen.findByText('템플릿으로 저장할 수 없음')).toBeDefined();
     fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
     expect(screen.queryByText('템플릿으로 저장할 수 없음')).toBeNull();

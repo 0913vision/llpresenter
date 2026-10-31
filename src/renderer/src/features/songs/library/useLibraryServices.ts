@@ -1,6 +1,6 @@
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
-import type {ServiceEntry} from '@core/schema/contentDocuments';
-import type {ServiceId, SongId} from '@core/schema/ids';
+import {useEffect, useRef, useState} from 'react';
+import {createServiceId, type SongId} from '@core/schema/ids';
+import {useShow} from '@renderer/session/show';
 import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';
@@ -9,50 +9,28 @@ export function useLibraryServices(
   api: LibraryApi,
   onProblem: (notice: Notice) => void,
 ) {
-  const [services, setServices] = useState<readonly ServiceEntry[]>([]);
+  const serviceId = useShow(view => view.serviceId);
+  const readOnly = useShow(view => view.readOnly);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const active = useRef(false);
-  const reportProblem = useEffectEvent(onProblem);
   useEffect(() => {
     active.current = true;
-    let current = true;
-    let pushed = false;
-    const stop = api.services.subscribeList(entries => {
-      pushed = true;
-      if (current) setServices(entries);
-    });
-    api.services.list().then(
-      entries => {
-        if (current && !pushed) setServices(entries);
-      },
-      (cause: unknown) => {
-        console.error('Could not read services for the library menu:', cause);
-        if (current) {
-          reportProblem({
-            key: 'library:services',
-            kind: 'warning',
-            icon: 'warning',
-            title: '예배 순서 불러오기 실패',
-            time: noticeTime(),
-          });
-        }
-      },
-    );
     return () => {
       active.current = false;
-      current = false;
-      stop();
     };
-  }, [api]);
+  }, []);
 
-  const append = async (service: ServiceId, song: SongId): Promise<void> => {
-    if (pending.current) return;
+  const append = async (song: SongId): Promise<void> => {
+    const current = useShow.getState();
+    if (pending.current || current.serviceId === null || current.readOnly) {
+      return;
+    }
     pending.current = true;
     setBusy(true);
     try {
       const result = await serviceOrderEditsFor(api).insertSong(
-        service,
+        createServiceId(current.serviceId),
         song,
         null,
       );
@@ -73,5 +51,13 @@ export function useLibraryServices(
       if (active.current) setBusy(false);
     }
   };
-  return {services, busy, append};
+  const disabledReason =
+    serviceId === null
+      ? '열린 예배 순서가 없습니다'
+      : readOnly
+        ? '읽기 전용 예배 순서입니다'
+        : busy
+          ? '예배 순서에 추가하는 중'
+          : undefined;
+  return {disabledReason, busy, append};
 }

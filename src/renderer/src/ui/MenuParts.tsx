@@ -160,7 +160,10 @@ export function MenuItemRow({
           style={{backgroundColor: `var(--label-${item.swatch})`}}
         />
       )}
-      <span className={styles.label}>
+      <span
+        className={styles.label}
+        data-renaming={item.rename !== undefined || undefined}
+      >
         {item.rename === undefined ? (
           <LabelText label={item.label} match={item.match} />
         ) : (

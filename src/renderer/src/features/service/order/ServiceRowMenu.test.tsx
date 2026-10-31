@@ -8,8 +8,10 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
+import {createServiceId} from '@core/schema/ids';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {ids, pastDocument} from '@core/testing/serviceList';
 import {applyService, useShow} from '@renderer/session/show';
@@ -70,7 +72,16 @@ function setup() {
   const api = mockLlpApi({
     services: {
       list: async () => entries,
-      get: async () => document,
+      get: async id => ({
+        ...document,
+        service: {
+          ...document.service,
+          id: createServiceId(id),
+          name:
+            entries.find(entry => entry.id === id)?.name ??
+            document.service.name,
+        },
+      }),
       subscribeList: listener => {
         push = listener;
         return () => undefined;
@@ -172,6 +183,12 @@ it.each([true, false])(
     fireEvent.click(
       within(await context()).getByRole('menuitem', {name: '템플릿으로 저장…'}),
     );
+    const naming = screen.getByRole('dialog', {name: '템플릿으로 저장'});
+    expect(within(naming).getByRole('textbox', {name: '이름'})).toHaveProperty(
+      'value',
+      pastName,
+    );
+    fireEvent.click(within(naming).getByRole('button', {name: '저장'}));
     await waitFor(() =>
       expect(edit).toHaveBeenCalledExactlyOnceWith({
         type: 'service.saveAsTemplate',
@@ -206,6 +223,35 @@ it('reports a refused inline rename and keeps the original service', async () =>
   ).toBeTruthy();
 });
 
+it('makes the picker inert while the open service renames and commits an outside-field click', async () => {
+  const {edit, open} = setup();
+  await openPicker();
+  fireEvent.contextMenu(
+    screen.getByRole('menuitemradio', {name: /^열린 예배/}),
+  );
+  fireEvent.click(
+    within(screen.getByRole('menu', {name: '예배 메뉴'})).getByRole(
+      'menuitem',
+      {name: '이름 바꾸기'},
+    ),
+  );
+  const field = await screen.findByRole('textbox', {name: '열린 예배 이름'});
+  fireEvent.change(field, {target: {value: '새로 적은 예배'}});
+  const create = screen.getByRole('menuitem', {name: '새 예배…'});
+  fireEvent.pointerMove(create, {pointerType: 'mouse'});
+  expect(create.getAttribute('data-pointed')).toBe('false');
+  expect(create.getAttribute('aria-disabled')).toBe('true');
+  await userEvent.click(create);
+  await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+  expect(edit.mock.calls[0]?.[0]).toMatchObject({
+    type: 'service.update',
+    service: {id: ids.created, name: '새로 적은 예배'},
+  });
+  expect(screen.queryByRole('dialog', {name: '새 예배'})).toBeNull();
+  expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeDefined();
+  expect(open).not.toHaveBeenCalled();
+});
+
 it('uses the existing conflict prompt and saves a new template for the clicked service', async () => {
   const {api, edit} = setup();
   vi.spyOn(api.templates, 'list').mockResolvedValue([
@@ -213,6 +259,12 @@ it('uses the existing conflict prompt and saves a new template for the clicked s
   ]);
   fireEvent.click(
     within(await context()).getByRole('menuitem', {name: '템플릿으로 저장…'}),
+  );
+  fireEvent.click(
+    within(screen.getByRole('dialog', {name: '템플릿으로 저장'})).getByRole(
+      'button',
+      {name: '저장'},
+    ),
   );
   const dialog = await screen.findByRole('alertdialog');
   fireEvent.click(

@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {freeName} from '@core/common/freeName';
 import type {ServiceId, TemplateId} from '@core/schema/ids';
 import {useShow} from '@renderer/session/show';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
   appliedId,
   asServiceId,
@@ -54,8 +54,10 @@ async function writeTemplate({
   const saved = await settle(api, 'Could not save a 템플릿', () =>
     api.content.edit({type: 'service.saveAsTemplate', serviceId, name}),
   );
-  if (saved === undefined || appliedId(saved) === null) return 'not-saved';
-  if (replace === undefined || !saved.ok) return null;
+  if (saved === undefined || !saved.ok || appliedId(saved) === null) {
+    return 'not-saved';
+  }
+  if (replace === undefined) return null;
   const removed = await settle(api, 'Could not delete a 템플릿', () =>
     api.content.edit({type: 'template.delete', templateId: replace}),
   );
@@ -63,9 +65,7 @@ async function writeTemplate({
 }
 
 /**
- * 지금 예배를 템플릿으로 저장: saves a copy of the open service as a 템플릿 named after
- * it. When a 템플릿 has that name, `conflict` asks whether to save a new 템플릿 (with
- * the next free name, such as 주일 예배 2) or overwrite it.
+ * Names a service copy before saving, and asks before replacing a taken name.
  */
 export function useSaveTemplate({
   onProblem,
@@ -75,6 +75,7 @@ export function useSaveTemplate({
   const api = window.llp;
   const currentId = useShow(view => view.serviceId);
   const currentName = useShow(view => view.serviceName);
+  const [naming, setNaming] = useState<TemplateService | null>(null);
   const [conflict, setConflict] = useState<PendingConflict | null>(null);
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
@@ -86,21 +87,30 @@ export function useSaveTemplate({
   }, []);
 
   const serviceId = asServiceId(currentId);
-  // NOTE(0913vision): A save that works shows nothing: spec 08 keeps the
-  // notifications for what the operator didn't do themselves.
   const report = (problem: SaveProblem | null): void => {
     if (problem === null) return;
     onProblem(
       warningNotice(`save-template:${problem}`, problemTitles[problem]),
     );
   };
-  const finish = (write: Promise<SaveProblem | null>): void => {
+  const finish = (write: Promise<SaveProblem | null>, name: string): void => {
     write
       .then(problem => {
         if (!alive.current) return;
         setBusy(false);
         setConflict(null);
-        report(problem);
+        if (problem !== null) {
+          report(problem);
+          return;
+        }
+        setNaming(null);
+        onProblem({
+          key: 'save-template:success',
+          kind: 'info',
+          icon: 'frame',
+          title: `템플릿으로 저장함: ${name}`,
+          time: noticeTime(),
+        });
       })
       .catch((cause: unknown) => {
         console.error('Failed to finish saving a 템플릿:', cause);
@@ -109,8 +119,21 @@ export function useSaveTemplate({
 
   const save = (target?: TemplateService): void => {
     const id = target?.id ?? serviceId;
-    if (api === undefined || id === null || busy) return;
-    const name = target?.name ?? currentName;
+    if (
+      api === undefined ||
+      id === null ||
+      busy ||
+      naming !== null ||
+      conflict !== null
+    ) {
+      return;
+    }
+    setNaming({id, name: target?.name ?? currentName});
+  };
+  const saveNamed = (value: string): void => {
+    const name = value.trim();
+    if (api === undefined || naming === null || busy || name === '') return;
+    const id = naming.id;
     setBusy(true);
     settle(api, 'Could not read the 템플릿 list', () => api.templates.list())
       .then(entries => {
@@ -122,10 +145,11 @@ export function useSaveTemplate({
         }
         const existing = entries.find(entry => entry.name === name);
         if (existing === undefined) {
-          finish(writeTemplate({api, serviceId: id, name}));
+          finish(writeTemplate({api, serviceId: id, name}), name);
           return;
         }
         setBusy(false);
+        setNaming(null);
         setConflict({
           name,
           serviceId: id,
@@ -142,7 +166,7 @@ export function useSaveTemplate({
     if (api === undefined || conflict === null || busy) return;
     const name = freeName(conflict.name, conflict.taken);
     setBusy(true);
-    finish(writeTemplate({api, serviceId: conflict.serviceId, name}));
+    finish(writeTemplate({api, serviceId: conflict.serviceId, name}), name);
   };
   const overwrite = (): void => {
     if (api === undefined || conflict === null || busy) return;
@@ -154,16 +178,27 @@ export function useSaveTemplate({
         name: conflict.name,
         replace: conflict.existing,
       }),
+      conflict.name,
     );
   };
   const cancel = (): void => {
-    if (!busy) setConflict(null);
+    if (!busy) {
+      setNaming(null);
+      setConflict(null);
+    }
   };
 
   return {
-    canSave: serviceId !== null && !busy,
+    canSave:
+      api !== undefined &&
+      serviceId !== null &&
+      !busy &&
+      naming === null &&
+      conflict === null,
     save: () => save(),
     saveService: (target: TemplateService) => save(target),
+    naming,
+    saveNamed,
     conflict: conflict === null ? null : {name: conflict.name},
     busy,
     saveNew,

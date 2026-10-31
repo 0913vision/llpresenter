@@ -111,6 +111,11 @@ function saveButton(): HTMLElement {
   return screen.getByRole('button', {name: '지금 예배를 템플릿으로 저장'});
 }
 
+async function confirmName(): Promise<void> {
+  const dialog = await screen.findByRole('dialog', {name: '템플릿으로 저장'});
+  await userEvent.click(within(dialog).getByRole('button', {name: '저장'}));
+}
+
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => undefined;
 });
@@ -125,9 +130,30 @@ afterEach(() => {
 });
 
 describe('지금 예배를 템플릿으로 저장', () => {
-  it('saves a 템플릿 named after the open service, with no card', async () => {
+  it('cancels the name dialog without saving or reporting success', async () => {
     const {edits, onProblem} = setup();
     await userEvent.click(saveButton());
+    await userEvent.click(
+      within(screen.getByRole('dialog', {name: '템플릿으로 저장'})).getByRole(
+        'button',
+        {name: '취소'},
+      ),
+    );
+    expect(edits).toEqual([]);
+    expect(onProblem).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('prefills a template name dialog and reports the saved name', async () => {
+    const {edits, onProblem} = setup();
+    await userEvent.click(saveButton());
+    const dialog = await screen.findByRole('dialog', {name: '템플릿으로 저장'});
+    const name = within(dialog).getByRole('textbox', {name: '이름'});
+    expect(name).toHaveProperty('value', existing.name);
+    expect(edits).toEqual([]);
+    await userEvent.clear(name);
+    await userEvent.type(name, '새 템플릿 이름');
+    await userEvent.click(within(dialog).getByRole('button', {name: '저장'}));
     await waitFor(() => expect(edits).toHaveLength(1));
     await waitFor(() =>
       expect(saveButton().hasAttribute('disabled')).toBe(false),
@@ -136,16 +162,23 @@ describe('지금 예배를 템플릿으로 저장', () => {
       {
         type: 'service.saveAsTemplate',
         serviceId: currentId,
-        name: existing.name,
+        name: '새 템플릿 이름',
       },
     ]);
-    expect(onProblem).not.toHaveBeenCalled();
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'info',
+        title: '템플릿으로 저장함: 새 템플릿 이름',
+      }),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
   it('asks when a 템플릿 has the name, and saves a new one with the next free name', async () => {
     const {edits, onProblem} = setup({templates: [existing, second]});
     await userEvent.click(saveButton());
+    await confirmName();
     const prompt = await screen.findByRole('alertdialog', {
       name: '‘이번 주일 예배’ 템플릿이 이미 있습니다. 덮어쓸까요?',
     });
@@ -154,7 +187,12 @@ describe('지금 예배를 템플릿으로 저장', () => {
       screen.getByRole('button', {name: '새 템플릿으로 저장'}),
     );
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-    expect(onProblem).not.toHaveBeenCalled();
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'info',
+        title: '템플릿으로 저장함: 이번 주일 예배 3',
+      }),
+    );
     expect(edits).toEqual([
       {
         type: 'service.saveAsTemplate',
@@ -168,6 +206,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
   it('overwrites by saving the new 템플릿 first and then deleting the old one', async () => {
     const {edits, onProblem} = setup({templates: [existing]});
     await userEvent.click(saveButton());
+    await confirmName();
     await userEvent.click(
       await screen.findByRole('button', {name: '덮어쓰기'}),
     );
@@ -180,7 +219,12 @@ describe('지금 예배를 템플릿으로 저장', () => {
       },
       {type: 'template.delete', templateId: existing.id},
     ]);
-    expect(onProblem).not.toHaveBeenCalled();
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'info',
+        title: `템플릿으로 저장함: ${existing.name}`,
+      }),
+    );
   });
 
   it('keeps the old 템플릿 when the new one is only in memory', async () => {
@@ -197,17 +241,24 @@ describe('지금 예배를 템플릿으로 저장', () => {
       }),
     });
     await userEvent.click(saveButton());
+    await confirmName();
     await userEvent.click(
       await screen.findByRole('button', {name: '덮어쓰기'}),
     );
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(edits.map(edit => edit.type)).toEqual(['service.saveAsTemplate']);
-    expect(onProblem).not.toHaveBeenCalled();
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'warning',
+        title: '템플릿으로 저장할 수 없음',
+      }),
+    );
   });
 
   it('sends nothing when the operator cancels', async () => {
     const {edits, onProblem} = setup({templates: [existing]});
     await userEvent.click(saveButton());
+    await confirmName();
     await userEvent.click(await screen.findByRole('button', {name: '취소'}));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(edits).toEqual([]);
@@ -217,6 +268,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
   it('reports a refused save', async () => {
     const refused = setup({answer: () => REFUSED});
     await userEvent.click(saveButton());
+    await confirmName();
     await waitFor(() => expect(refused.onProblem).toHaveBeenCalled());
     expect(refused.onProblem.mock.calls[0]?.[0]).toMatchObject({
       kind: 'warning',
@@ -227,6 +279,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
   it('reports a list it can not read without saving', async () => {
     const {edits, onProblem} = setup({templates: new Error('Read failed')});
     await userEvent.click(saveButton());
+    await confirmName();
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(edits).toEqual([]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
@@ -243,6 +296,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
           : {ok: true, value: {id: savedId, revision: 1}},
     });
     await userEvent.click(saveButton());
+    await confirmName();
     await userEvent.click(
       await screen.findByRole('button', {name: '덮어쓰기'}),
     );
@@ -260,6 +314,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     await userEvent.click(
       within(dialog).getByRole('button', {name: '지금 예배를 템플릿으로 저장'}),
     );
+    await confirmName();
     await waitFor(() => expect(edits).toHaveLength(1));
     act(() => push([{...existing, id: savedId}]));
     expect(

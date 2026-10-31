@@ -57,6 +57,10 @@ it(
     await dialog
       .getByRole('button', {name: '지금 예배를 템플릿으로 저장'})
       .click();
+    await page
+      .getByRole('dialog', {name: '템플릿으로 저장'})
+      .getByRole('button', {name: '저장'})
+      .click();
     await dialog
       .getByRole('group', {name: '템플릿'})
       .getByRole('option', {name: /점검 템플릿 원본/})

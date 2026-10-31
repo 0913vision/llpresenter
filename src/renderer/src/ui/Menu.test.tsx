@@ -23,6 +23,108 @@ afterEach(resetTooltips);
 
 const SUBMENU_DELAY_MS = 150;
 const SUBMENU_GRACE_MS = 300;
+
+it('commits an inline name before an outside click closes the menu', async () => {
+  const commit = vi.fn();
+  const close = vi.fn(() =>
+    expect(commit).toHaveBeenCalledExactlyOnceWith('바뀐 예배'),
+  );
+  render(
+    <Menu
+      label="목록"
+      anchor={{kind: 'point', point: {x: 20, y: 20}}}
+      onClose={close}
+      entries={[
+        {
+          kind: 'item',
+          id: 'name',
+          label: '예배',
+          rename: {
+            onCommit: commit,
+            onCancel: vi.fn(),
+          },
+        },
+      ]}
+    />,
+  );
+  fireEvent.change(screen.getByRole('textbox', {name: '예배 이름'}), {
+    target: {value: '바뀐 예배'},
+  });
+  const catcher = document.querySelector(
+    '[data-llp-layer="popover"] > div > div',
+  );
+  if (!catcher) throw new Error('Missing menu catcher');
+  await userEvent.pointer({keys: '[MouseLeft>]', target: catcher});
+  expect(close).toHaveBeenCalledExactlyOnceWith('outside');
+});
+
+it.each(['command', 'date'])(
+  'keeps the %s inert during rename, then resumes menu pointing',
+  async target => {
+    const commit = vi.fn();
+    const select = vi.fn();
+    function RenamingMenu(): JSX.Element {
+      const [editing, setEditing] = useState(true);
+      return (
+        <Menu
+          label="목록"
+          anchor={{kind: 'point', point: {x: 20, y: 20}}}
+          onClose={vi.fn()}
+          entries={[
+            {
+              kind: 'item',
+              id: 'rename',
+              label: '예배',
+              meta: '11월 1일',
+              onSelect: select,
+              rename: editing
+                ? {
+                    onCommit: name => {
+                      commit(name);
+                      setEditing(false);
+                    },
+                    onCancel: () => setEditing(false),
+                  }
+                : undefined,
+            },
+            {kind: 'item', id: 'new', label: '새 예배…', onSelect: select},
+          ]}
+        />
+      );
+    }
+    render(<RenamingMenu />);
+    const field = screen.getByRole('textbox', {name: '예배 이름'});
+    fireEvent.change(field, {target: {value: '바뀐 예배'}});
+    const other =
+      target === 'command'
+        ? screen.getByRole('menuitem', {name: '새 예배…'})
+        : screen.getByText('11월 1일');
+    pointAt(other);
+    expect(
+      other.closest('[role^="menuitem"]')?.getAttribute('data-pointed'),
+    ).toBe('false');
+    await userEvent.click(other);
+    expect(commit).toHaveBeenCalledExactlyOnceWith('바뀐 예배');
+    expect(select).not.toHaveBeenCalled();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    pointAt(other);
+    expect(
+      other.closest('[role^="menuitem"]')?.getAttribute('data-pointed'),
+    ).toBe('true');
+    pointAway(other);
+    expect(
+      other.closest('[role^="menuitem"]')?.getAttribute('data-pointed'),
+    ).toBe('false');
+    const first = screen.getAllByRole('menuitem')[0];
+    if (!first) throw new Error('Missing first row');
+    fireEvent.keyDown(screen.getByRole('menu'), {key: 'Home'});
+    fireEvent.pointerOver(other);
+    pointAway(other);
+    expect(first.getAttribute('data-pointed')).toBe('true');
+    await userEvent.click(other);
+    expect(select).toHaveBeenCalledOnce();
+  },
+);
 const SMALL_WINDOW = {width: 250, height: 500};
 const OPENER_BOX = new DOMRect(100, 400, 80, 30);
 const MENU_BOX = new DOMRect(0, 0, 200, 120);

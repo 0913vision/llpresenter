@@ -1,4 +1,10 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
@@ -124,6 +130,13 @@ describe('the 파일 menu', () => {
     await userEvent.click(
       screen.getByRole('menuitem', {name: '예배를 템플릿으로 저장…'}),
     );
+    const naming = screen.getByRole('dialog', {name: '템플릿으로 저장'});
+    expect(within(naming).getByRole('textbox', {name: '이름'})).toHaveProperty(
+      'value',
+      '저녁 예배',
+    );
+    expect(edit).not.toHaveBeenCalled();
+    await userEvent.click(within(naming).getByRole('button', {name: '저장'}));
     await waitFor(() =>
       expect(edit).toHaveBeenCalledExactlyOnceWith({
         type: 'service.saveAsTemplate',

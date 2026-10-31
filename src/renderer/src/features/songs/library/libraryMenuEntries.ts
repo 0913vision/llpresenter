@@ -1,21 +1,20 @@
-import type {ServiceEntry, LibrarySong} from '@core/schema/contentDocuments';
-import type {ServiceId} from '@core/schema/ids';
+import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 export function libraryMenuEntries({
   song,
-  services,
+  appendDisabledReason,
   busy,
   open,
   append,
   remove,
 }: {
   readonly song: LibrarySong;
-  readonly services: readonly ServiceEntry[];
+  readonly appendDisabledReason: string | undefined;
   readonly busy: boolean;
   readonly open: () => void;
-  readonly append: (id: ServiceId) => void;
+  readonly append: () => void;
   readonly remove: () => void;
 }): readonly MenuEntry[] {
   return [
@@ -23,23 +22,9 @@ export function libraryMenuEntries({
       kind: 'item',
       id: 'add-to',
       label: '예배 순서에 추가',
-      disabled: busy || services.length === 0,
-      submenu: [
-        {kind: 'group', id: 'services', label: '예배 순서'},
-        ...[...services]
-          .sort((a, b) => b.date.localeCompare(a.date))
-          .map(service => ({
-            kind: 'item' as const,
-            id: service.id,
-            label: service.name,
-            disabled: service.access === 'readOnly',
-            title:
-              service.access === 'readOnly'
-                ? '읽기 전용 예배 순서입니다'
-                : undefined,
-            onSelect: () => append(service.id),
-          })),
-      ],
+      disabled: busy || appendDisabledReason !== undefined,
+      title: appendDisabledReason,
+      onSelect: append,
     },
     laterRow('move-to', '라이브러리로 옮기기', {submenu: true}),
     menuSeparator('arrangement-separator'),

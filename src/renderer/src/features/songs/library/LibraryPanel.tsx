@@ -133,14 +133,14 @@ export function LibraryPanel({
           onClose={() => setMenu(null)}
           entries={libraryMenuEntries({
             song: menuSong,
-            services: serviceMenu.services,
+            appendDisabledReason: serviceMenu.disabledReason,
             busy: library.busy || serviceMenu.busy,
             open: () => {
               library.open(menuSong.id).catch(() => library.report('open'));
             },
-            append: id => {
+            append: () => {
               serviceMenu
-                .append(id, menuSong.id)
+                .append(menuSong.id)
                 .catch((cause: unknown) =>
                   console.error('Could not append the library song:', cause),
                 );
