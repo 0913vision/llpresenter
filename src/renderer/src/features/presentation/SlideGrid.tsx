@@ -5,7 +5,7 @@ import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {slideMenuEntries} from './slideMenuEntries';
+import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import styles from './SlideGrid.module.css';
 
 const GRID_SELECTOR = '[role="listbox"]';

@@ -4,16 +4,9 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@core/schema/contentDocuments';
-import {
-  createServiceId,
-  createServiceItemId,
-  createSongGroupId,
-  type SongId,
-} from '@core/schema/ids';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import {SongEditorStore} from '@renderer/features/songs/editor';
-import {SongSession} from '@renderer/features/songs/editor/songSession';
-import {editorGroupedSong} from '@renderer/features/songs/editor/editorFixture';
 import type {Notice} from '@renderer/ui/notices';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
@@ -142,7 +135,6 @@ describe('service item store', () => {
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.lost});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
     expect(items.getSnapshot().arrangement).toBeUndefined();
-    expect(items.setSlideOrder([2, 1])).toBe(false);
     expect(edits).toEqual([]);
   });
 
@@ -304,8 +296,6 @@ describe('service item store', () => {
       1,
     );
     expect(await items.chooseArrangement('주일용')).toBe(false);
-    expect(await items.createArrangement()).toBe(false);
-    expect(items.setSlideOrder([1])).toBe(false);
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
     );
@@ -415,39 +405,6 @@ describe('service item store', () => {
     }
   });
 
-  it('creates a queued 새 구성 in the song and item it was asked for after the selection moved', async () => {
-    const {api, items, service, documents, first, second} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    const write = api.content.edit;
-    let release: (() => void) | undefined;
-    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
-      const result = await write(edit);
-      return new Promise(resolve => {
-        release = () => resolve(result);
-      });
-    });
-    const holding = items.setStartMacro(fixtureMacros.sermon);
-    await vi.waitFor(() => expect(release).toBeDefined());
-    const creating = items.createArrangement();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
-    await vi.waitFor(() =>
-      expect(items.getSnapshot().song?.document.song.id).toBe(second.song.id),
-    );
-    release?.();
-    expect(await holding).toBe(true);
-    expect(await creating).toBe(true);
-    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      first.song.arrangements?.[0],
-      {...first.song.arrangements?.[0], name: '구성 1'},
-    ]);
-    expect(documents.get(second.song.id)?.song.arrangements).toEqual([
-      second.song.arrangements?.[0],
-    ]);
-    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
-    expect(service().service.order[2]).not.toHaveProperty('arrangement');
-  });
-
   it('keeps a memo save that overlaps a background change instead of refusing it', async () => {
     const {items, service} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
@@ -482,159 +439,6 @@ describe('service item store', () => {
     expect(items.memoDraft(target)).toBeUndefined();
     expect(service().service.order[1]).toMatchObject({memo: '남은 글'});
     expect(await items.flushDrafts()).toBe(true);
-  });
-
-  it('saves a new order of the chosen 구성 in the song as one undo step', async () => {
-    const {items, documents, first, edits} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    const session = items.getSnapshot().song;
-    expect(
-      items.setGroupOrder([
-        createSongGroupId('11111111-1111-4111-a111-111111111111'),
-      ]),
-    ).toBe(false);
-    const [verse, chorus] = first.song.groups;
-    if (verse === undefined || chorus === undefined) {
-      throw new Error('Missing groups');
-    }
-    expect(items.setGroupOrder([chorus.id, verse.id, chorus.id])).toBe(true);
-    expect(items.setGroupOrder([chorus.id, verse.id, chorus.id])).toBe(false);
-    expect(items.setSlideOrder([2, 1, 2])).toBe(false);
-    await session?.flush();
-    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', groups: [chorus.id, verse.id, chorus.id]},
-    ]);
-    expect(edits.at(-1)?.type).toBe('song.update');
-    session?.edit('undo');
-    await session?.flush();
-    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      first.song.arrangements?.[0],
-    ]);
-  });
-
-  it('saves a new group order of the chosen 구성 in a grouped song', async () => {
-    const {editor, pushService, service, api} = setup();
-    const gSong = editorGroupedSong(1);
-    const session = new SongSession({
-      document: gSong,
-      api: api.content,
-      changed: () => undefined,
-      problem: () => undefined,
-    });
-    const testEditor = {
-      sessionOf: (id: SongId) =>
-        id === gSong.song.id ? session : editor.sessionOf(id),
-      showItemSong: (id: SongId | null) => editor.showItemSong(id),
-      attach: (doc: SongDocument) => editor.attach(doc),
-      subscribe: (listener: () => void) => editor.subscribe(listener),
-    };
-    const items = new ServiceItemStore(api, testEditor, () => undefined);
-    const g1 = gSong.song.groups[0]?.id;
-    const g2 = gSong.song.groups[1]?.id;
-    if (g1 === undefined || g2 === undefined) throw new Error('Missing groups');
-    const groupedItemId = createServiceItemId(
-      '50000000-0000-4000-8000-000000000099',
-    );
-    const currentService = service();
-    const updatedService: ServiceDocument = {
-      ...currentService,
-      service: {
-        ...currentService.service,
-        order: [
-          ...currentService.service.order,
-          {
-            id: groupedItemId,
-            song: gSong.song.id,
-            arrangement: '주일용',
-          },
-        ],
-      },
-    };
-    pushService(updatedService);
-    items.show({serviceId: fixtureServiceId, itemId: groupedItemId});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setSlideOrder([1, 2])).toBe(false);
-    expect(items.setGroupOrder([g2, g1])).toBe(true);
-    expect(session.history.snapshot.song.arrangements).toEqual([
-      {name: '주일용', groups: [g2, g1]},
-    ]);
-    expect(items.setGroupOrder([])).toBe(true);
-    expect(session.history.snapshot.song.arrangements).toEqual([
-      {name: '주일용', groups: []},
-    ]);
-  });
-
-  it('keeps 기본 and unknown group references unchanged', async () => {
-    const {items, edits, second} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(
-      items.setGroupOrder(
-        second.song.groups.map(group => group.id).toReversed(),
-      ),
-    ).toBe(false);
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(
-      items.setGroupOrder([
-        createSongGroupId('00000000-0000-4000-8000-000000000999'),
-      ]),
-    ).toBe(false);
-    expect(edits).toEqual([]);
-  });
-
-  it('copies the file order of 기본 into 새 구성 and picks it', async () => {
-    const {items, documents, second, service} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(await items.createArrangement()).toBe(true);
-    expect(documents.get(second.song.id)?.song.arrangements).toEqual([
-      second.song.arrangements?.[0],
-      {name: '구성 1', groups: second.song.groups.map(group => group.id)},
-    ]);
-    expect(service().service.order[2]).toMatchObject({arrangement: '구성 1'});
-    expect(items.getSnapshot().arrangement).toBe('구성 1');
-  });
-
-  it('picks 새 구성 for the item it was made for after the selection moved', async () => {
-    const {api, items, service, first, documents} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    const write = api.content.edit;
-    let release: () => void = () => undefined;
-    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
-      const result = await write(edit);
-      return new Promise(resolve => {
-        release = () => resolve(result);
-      });
-    });
-    const creating = items.createArrangement();
-    await vi.waitFor(() =>
-      expect(documents.get(first.song.id)?.song.arrangements).toHaveLength(2),
-    );
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
-    release();
-    expect(await creating).toBe(true);
-    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
-    expect(service().service.order[2]).not.toHaveProperty('arrangement');
-  });
-
-  it('makes no 새 구성 for a read-only song', async () => {
-    const {items, documents, first, edits} = setup();
-    documents.set(first.song.id, {...first, access: 'readOnly'});
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(await items.createArrangement()).toBe(false);
-    expect(edits).toEqual([]);
-  });
-
-  it('refuses order edits of a read-only song', async () => {
-    const {items, documents, first} = setup();
-    documents.set(first.song.id, {...first, access: 'readOnly'});
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setSlideOrder([2, 1, 2])).toBe(false);
   });
 
   it('shares one selected place and starts over for another item', async () => {

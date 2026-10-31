@@ -235,9 +235,9 @@ describe('service item preview and 항목 설정', () => {
     const source = within(settings).getByRole('group', {name: '곡'});
     expect(source.textContent).toContain(first.song.title);
     expect(source.textContent).toContain('라이브러리');
-    await user.click(
-      within(source).getByRole('button', {name: '라이브러리 곡 열기'}),
-    );
+    const usage = within(settings).getByRole('group', {name: '쓰는 곳'});
+    expect(usage.textContent).toMatch(/예배 순서 \d+곳/);
+    await user.click(within(source).getByRole('button', {name: '가사 편집'}));
     expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
   });
 

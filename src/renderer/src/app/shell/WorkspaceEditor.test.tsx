@@ -54,7 +54,7 @@ it('mounts prep preview and slides next to the source editor and only changes it
   await editor.flush();
 });
 
-it('shows the selected service song item in the center and swaps to the editor for 라이브러리 곡 편집', async () => {
+it('opens the selected item source slide in the song editor', async () => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   const fixture = itemFixture();
   const editor = new SongEditorStore(fixture.api, vi.fn());
@@ -83,7 +83,16 @@ it('shows the selected service song item in the center and swaps to the editor f
       {name: '항목 추가'},
     ),
   ).toBeDefined();
-  fireEvent.click(screen.getByRole('button', {name: '라이브러리 곡 편집'}));
+  const panel = screen.getByRole('region', {name: '예배 순서 항목'});
+  const selected = within(
+    within(panel).getByRole('listbox', {name: '슬라이드'}),
+  ).getAllByRole('option')[2];
+  if (!selected) throw new Error('Missing repeated item slide');
+  fireEvent.click(selected);
+  fireEvent.click(within(panel).getByRole('button', {name: '가사 편집'}));
   expect(await screen.findByRole('region', {name: '곡 편집'})).toBeDefined();
   expect(screen.queryByRole('region', {name: '예배 순서 항목'})).toBeNull();
+  expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
+    1,
+  );
 });

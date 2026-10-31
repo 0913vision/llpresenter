@@ -18,17 +18,6 @@
   overflow: auto;
 }
 
-.hotKeyBar {
-  padding: var(--space-4) var(--space-14);
-}
-
-.hotKeyButton {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .block {
   position: absolute;
   inset-inline: 0;

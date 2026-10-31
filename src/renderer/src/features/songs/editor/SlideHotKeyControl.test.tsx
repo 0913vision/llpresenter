@@ -1,21 +1,42 @@
-import {act, fireEvent, screen, within} from '@testing-library/react';
+import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it} from 'vitest';
 import {editorSong} from './editorFixture';
-import {editorSetup, lyrics} from './editorTesting';
+import {editorSetup} from './editorTesting';
+import {SongSlidePanel} from './SongSlidePanel';
 
-it('assigns the selected source slide through song persistence and undo', async () => {
-  const {user, session, documents, first} = await editorSetup();
-  await user.click(lyrics(2));
-  await user.click(
-    screen.getByRole('button', {name: '슬라이드 2 바로 가기 키'}),
-  );
-  const field = screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'});
-  fireEvent.keyDown(field, {key: 'ㅊ', code: 'KeyC'});
-  await user.click(screen.getByRole('button', {name: '저장'}));
-  expect(screen.queryByRole('dialog')).toBeNull();
+async function setup() {
+  const fixture = await editorSetup();
+  render(<SongSlidePanel store={fixture.store} sizeClass="normal" />);
+  return fixture;
+}
+
+async function keyMenu(number: number): Promise<HTMLElement> {
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
+  const tile = within(grid).getAllByRole('option')[number - 1];
+  if (!tile) throw new Error('Missing thumbnail');
+  fireEvent.contextMenu(tile);
+  expect(tile.hasAttribute('data-menu-target')).toBe(true);
+  return screen.getByRole('menuitem', {name: '단축키…'});
+}
+
+it('assigns the clicked source slide through the shared menu, persistence and undo', async () => {
+  const {user, session, documents, first} = await setup();
+  act(() => session.selectArrangement('주일용'));
   expect(
-    screen.getByRole('button', {name: '슬라이드 2 바로 가기 키: C'}),
-  ).toBeDefined();
+    screen.queryByRole('button', {name: /슬라이드.*바로 가기 키/}),
+  ).toBeNull();
+  await user.click(await keyMenu(3));
+  expect(session.history.snapshot.selection.block).toBe(1);
+  expect(
+    within(screen.getByRole('listbox', {name: '슬라이드'}))
+      .getAllByRole('option')[2]
+      ?.getAttribute('aria-selected'),
+  ).toBe('true');
+  fireEvent.keyDown(
+    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
+    {key: 'ㅊ', code: 'KeyC'},
+  );
+  await user.click(screen.getByRole('button', {name: '저장'}));
   await act(() => session.flush());
   const saved = documents.get(first.song.id)?.song;
   expect(saved?.groups[0]?.slides[0]?.hotKey).toBeUndefined();
@@ -33,55 +54,37 @@ it('assigns the selected source slide through song persistence and undo', async 
   );
 });
 
-it('refuses a duplicate and exposes read-only access without changing the song', async () => {
-  const {user, session, store} = await editorSetup();
-  await user.click(
-    screen.getByRole('button', {name: '슬라이드 1 바로 가기 키'}),
-  );
+it('refuses duplicate keys and disables the read-only menu entry', async () => {
+  const {user, session, store} = await setup();
+  await user.click(await keyMenu(1));
   fireEvent.keyDown(
     screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {
-      key: 'a',
-      code: 'KeyA',
-    },
+    {key: 'a', code: 'KeyA'},
   );
   await user.click(screen.getByRole('button', {name: '저장'}));
-  await user.click(lyrics(2));
-  await user.click(
-    screen.getByRole('button', {name: '슬라이드 2 바로 가기 키'}),
-  );
-  const dialog = screen.getByRole('dialog');
+  await user.click(await keyMenu(2));
   fireEvent.keyDown(
-    within(dialog).getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {
-      key: 'a',
-      code: 'KeyA',
-    },
+    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
+    {key: 'a', code: 'KeyA'},
   );
   expect(
-    within(dialog)
-      .getByRole('button', {name: '저장'})
-      .getAttribute('aria-disabled'),
+    screen.getByRole('button', {name: '저장'}).getAttribute('aria-disabled'),
   ).toBe('true');
   expect(
     session.history.snapshot.song.groups[1]?.slides[0]?.hotKey,
   ).toBeUndefined();
   await user.keyboard('{Escape}');
   act(() => store.open(editorSong(5, 'readOnly')));
-  expect(
-    screen
-      .getByRole('button', {name: '슬라이드 1 바로 가기 키'})
-      .getAttribute('aria-disabled'),
-  ).toBe('true');
+  expect((await keyMenu(1)).getAttribute('aria-disabled')).toBe('true');
 });
 
-it('does not apply a draft when its source song changes while the dialog is open', async () => {
-  const {user, session} = await editorSetup();
-  await user.click(
-    screen.getByRole('button', {name: '슬라이드 1 바로 가기 키'}),
+it('does not apply a key draft after the source song changes', async () => {
+  const {user, session} = await setup();
+  await user.click(await keyMenu(1));
+  fireEvent.keyDown(
+    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
+    {key: 'a', code: 'KeyA'},
   );
-  const field = screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'});
-  fireEvent.keyDown(field, {key: 'a', code: 'KeyA'});
   act(() =>
     session.edit({type: 'text', text: 'Updated words', start: 0, end: 0}),
   );

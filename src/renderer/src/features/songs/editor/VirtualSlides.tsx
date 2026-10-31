@@ -14,6 +14,8 @@ import {isComposing} from '@renderer/ui/ime';
 import type {AnySong} from '@core/schema/groupedSong';
 import {linearSlidesOf} from '@core/songs/blockEdits';
 import styles from './SongPanels.module.css';
+import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {slideMenuEntries} from './slideMenuEntries';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -66,6 +68,9 @@ export function VirtualSlides({
   onSelect,
   baseline,
   scale,
+  onEdit,
+  onHotKey,
+  hotKeyReason,
 }: {
   readonly song: Pick<Song, 'slides'> | AnySong;
   readonly numbers: readonly number[];
@@ -74,7 +79,15 @@ export function VirtualSlides({
   readonly onSelect: (index: number) => void;
   readonly baseline: number;
   readonly scale: number;
+  readonly onEdit?: ((index: number) => void) | undefined;
+  readonly onHotKey?: ((index: number) => void) | undefined;
+  readonly hotKeyReason?: string | undefined;
 }): JSX.Element {
+  const [menu, setMenu] = useState<{
+    index: number;
+    number: number;
+    anchor: MenuAnchor;
+  } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<number | null>(null);
   const [measure, setMeasure] = useState(EMPTY);
@@ -206,6 +219,11 @@ export function VirtualSlides({
               : undefined
           }
           onSelect={index => onSelect(start + index)}
+          onMenu={(index, anchor) => {
+            const at = start + index;
+            const number = numbers[at];
+            if (number !== undefined) setMenu({index: at, number, anchor});
+          }}
           className={styles.grid}
         >
           {numbers.slice(start, end).map((number, index) => {
@@ -229,6 +247,19 @@ export function VirtualSlides({
           })}
         </ThumbnailGrid>
       </div>
+      {menu !== null && numbers[menu.index] === menu.number ? (
+        <Menu
+          label="슬라이드"
+          anchor={menu.anchor}
+          entries={slideMenuEntries(
+            onEdit === undefined ? undefined : () => onEdit(menu.index),
+            onHotKey === undefined
+              ? undefined
+              : {open: () => onHotKey(menu.index), reason: hotKeyReason},
+          )}
+          onClose={() => setMenu(null)}
+        />
+      ) : null}
     </div>
   );
 }

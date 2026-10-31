@@ -139,23 +139,20 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 ### 구성 row
 
-- The label "구성" and a segmented control: 기본 (default), then the song's 구성
-  names (주일용, 짧게), then 구성 추가 (add 구성, plus icon).
+- The label "구성" and the same dropdown as the item view, at every number of
+  choices: 기본, a separator, the named 구성, a separator, 새 구성…, 이름
+  바꾸기…, 지우기, a separator, 구성 편집…. 기본 has rename and delete disabled
+  with the reason "기본 구성은 바꿀 수 없습니다" (October 31 B22).
 - A 구성 is an ordered list of named groups, with repeats (October 27 user
   decision). Choosing it shows the expanded slides on the right. The source
   editor keeps master group order; repeated group occurrences share the same
-  lyrics. The order is edited in the item's group chip strip (see below).
-- 구성 추가 creates a 구성 that copies the order of the chosen 구성, adds it as
-  a new segment, and puts its name into rename mode with the name "구성 1"
-  (proposal).
-- The right-click menu of a segment has 이름 바꾸기 (rename) and 삭제
-  (proposal). 기본 can't be renamed or deleted.
+  lyrics. 구성 편집… opens the editable group chip strip in the song editor.
+- 새 구성… asks for a name and copies the chosen order. 이름 바꾸기… opens the
+  naming dialog; 지우기 removes the selected named 구성.
   - Because 예배 순서 items pick a 구성 by name, a rename also updates the
     `arrangement` value of every 예배 순서 item that points to this song and the
     old name (proposal).
   - After a delete, items that picked that 구성 use 기본 (proposal).
-- If the song has more than five 구성, show a select instead of the segmented
-  control (design system `SegmentedControl` rule).
 
 ### Blocks
 
@@ -228,8 +225,10 @@ belong to particular source slides, not this app-wide name/color registry
 
 ### Slide hot keys
 
-- The source slide's editor control opens 슬라이드 바로 가기 키. Store an
-  optional physical `KeyA` through `KeyZ` or `Digit0` through `Digit9` in
+- The shared thumbnail 슬라이드 menu's 단축키… row opens 슬라이드 바로 가기 키
+  in the song editor. The item view opens that editor at the clicked source
+  slide first. There is no separate hot-key bar. Store an optional physical
+  `KeyA` through `KeyZ` or `Digit0` through `Digit9` in
   `groups[].slides[].hotKey` (02). No assignment is the default.
 - Assign a key to that source slide once, regardless of how many times its group
   occurs in a 구성. Another source slide in the same song cannot use that code.
@@ -276,32 +275,25 @@ settings) panel.
 
 ### Item panel (center)
 
-- Header: the song title and the length of the sequence ("슬라이드 9개"), the
-  name of the service the item belongs to ("주일 예배"), and 라이브러리 곡 편집
-  (edit 라이브러리 song). That button opens the source song in the song editor.
+- Header: the song title, the sequence length ("슬라이드 9개"), and the same
+  edit label as the slide menu (가사 편집 until the names change). That button
+  opens the song editor at the selected occurrence's source slide.
 - 구성 row: the label "구성" and a select that shows the chosen 구성 ("주일용").
-  The menu lists 기본 and the song's 구성. It also has 새 구성 (new 구성), which
-  creates a 구성 in the song as a copy of the current order and chooses it
-  (proposal).
+  Its menu is the song editor's menu above. Choosing a 구성 changes only this
+  item. Every source-management action first opens the song editor at the
+  selected source slide; creating a 구성 does not assign it to this item.
 - Chip strip: one chip per group occurrence, showing its name in the 이름표
-  color and a grip. Unnamed groups show 이름표 없음 and their source position.
-  Repeated group IDs produce repeated chips, not duplicated source slides.
-  - Dragging a chip reorders the sequence. Alt+← and Alt+→ move the selected
-    chip one place.
-  - Delete removes that group occurrence from the 구성. It never deletes the
-    source group or its slides.
-  - 그룹 넣기 (insert group, plus box) opens the song's groups in master order,
-    with name, source position and first line, and appends the chosen group. The
-    same group may be inserted more than once.
+  color, without grips or an add button. Unnamed groups show 이름표 없음 and
+  their source position. Repeated group IDs produce repeated chips, not
+  duplicated source slides.
+  - The strip is read-only for every 구성: dragging, Alt+←/→ and Delete do
+    nothing. Source order changes belong only in the song editor.
   - Selecting a chip selects the first thumbnail of that occurrence. The chip
     containing the live slide has the on-output ring. Repeated occurrences have
     distinct sequence positions even though they reference one group.
-  - Chip edits change the chosen 구성 in the song file. So they show in every
-    예배 순서 that uses that 구성 (product log version 61, open question).
-  - With 기본 chosen, the chips are read-only, with the reason in a tooltip
-    (proposal).
 - Thumbnail grid: the 슬라이드 in sequence order. Clicking only selects. A
-  thumbnail size slider sits in the footer.
+  thumbnail size slider sits in the footer. Item and song-editor thumbnails use
+  the same 슬라이드 menu model as 진행, with supported source actions enabled.
 
 ### Preview and 항목 설정 (right)
 
@@ -310,12 +302,13 @@ settings) panel.
   9 기본").
 - The 항목 설정 panel has these groups:
 
-| Group                    | Row                  | Control                                                                                                 | Behavior                                                                                                                                                                                     |
-| ------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 원본 (source)            | 곡 (song)            | Song title with a link icon and the detail "라이브러리", plus 라이브러리 곡 열기 (open 라이브러리 song) | The button opens the song editor.                                                                                                                                                            |
-| 이번 예배 (this service) | 배경 (background)    | Select with a small image                                                                               | Shows the item's background. Without an override, the detail reads "곡 기본값" (song default). Choosing a media saves the override. The menu item 곡 기본값 removes the override (proposal). |
-| 이번 예배                | 시작할 때 (on start) | Select with the 매크로's color tile and the detail "매크로"                                             | The 매크로 to run when the item starts (see 07). The menu has 없음 (none) and the 매크로 list.                                                                                               |
-| 메모 (memo)              |                      | Multiline text field                                                                                    | Free text for this item.                                                                                                                                                                     |
+| Group                    | Row                  | Control                                                             | Behavior                                                                                                                                                                                     |
+| ------------------------ | -------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 원본 (source)            | 곡 (song)            | Song title, link icon, 라이브러리 detail and the shared edit action | Opens the song editor at the selected source slide.                                                                                                                                          |
+| 원본                     | 쓰는 곳              | "예배 순서 n곳", with service names in the tooltip                  | Uses the same live library usage as the song header.                                                                                                                                         |
+| 이번 예배 (this service) | 배경 (background)    | Select with a small image                                           | Shows the item's background. Without an override, the detail reads "곡 기본값" (song default). Choosing a media saves the override. The menu item 곡 기본값 removes the override (proposal). |
+| 이번 예배                | 시작할 때 (on start) | Select with the 매크로's color tile and the detail "매크로"         | The 매크로 to run when the item starts (see 07). The menu has 없음 (none) and the 매크로 list.                                                                                               |
+| 메모 (memo)              |                      | Multiline text field                                                | Free text for this item.                                                                                                                                                                     |
 
 ### What belongs to the service and what belongs to the song
 

@@ -22,6 +22,10 @@ import {
 import {itemPicture, shownPosition} from '../../songs/editor/songItemModel';
 import {useShow} from '@renderer/session/show';
 import {savedPassageTiles} from './bibleItemModel';
+import {openItemSong} from './openItemSong';
+import {songUsage} from '@renderer/features/songs/editor/songUsage';
+import {Tooltip} from '@renderer/ui/Tooltip';
+import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;
 const SAVING_REASON = '저장 중';
@@ -81,6 +85,18 @@ export function ItemSettingsPanel({
     items.subscribe,
     items.getSnapshot,
   );
+  const editorState = useSyncExternalStore(
+    editor.subscribe,
+    editor.getSnapshot,
+  );
+  const usage =
+    song === null
+      ? null
+      : songUsage(
+          editorState.library,
+          editorState.libraryStatus,
+          song.document.song.id,
+        );
   return (
     <Panel label="항목 설정">
       <PanelHeader>
@@ -104,13 +120,20 @@ export function ItemSettingsPanel({
                   action={
                     <IconButton
                       icon="open"
-                      label="라이브러리 곡 열기"
+                      label={SONG_EDIT_LABEL}
                       onClick={() => {
-                        editor.open(song.document);
+                        openItemSong({items, editor});
                       }}
                     />
                   }
                 />
+                {usage === null ? null : (
+                  <Tooltip text={usage.tooltip}>
+                    <div tabIndex={0}>
+                      <PropertyValue label="쓰는 곳" value={usage.text} />
+                    </div>
+                  </Tooltip>
+                )}
               </PropertyGroup>
             ) : null}
             <ThisService

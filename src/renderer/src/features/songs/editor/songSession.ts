@@ -189,8 +189,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
   }
 
   /**
-   * Saves a named 구성's new order as one undo step, as the 예배 순서 item's
-   * chip strip edits it. The 슬라이드 themselves stay as they are.
+   * Saves a named 구성's new order as one undo step in the song editor.
+   * The source 슬라이드 themselves stay as they are.
    */
   setArrangementSlides(name: string, slides: readonly number[]): boolean {
     if (!this.acceptsEdits) return false;

@@ -36,7 +36,7 @@ function chipText(chip: ArrangementChip): string {
   return chip.name ?? String(chip.number);
 }
 
-export interface ArrangementStripProps {
+interface ArrangementStripBaseProps {
   /** The strip name, such as 구성. */
   readonly label: string;
   readonly chips: readonly ArrangementChip[];
@@ -44,12 +44,6 @@ export interface ArrangementStripProps {
   /** The chip of the group that is on the screens now. */
   readonly live?: number | undefined;
   readonly onSelect: (index: number) => void;
-  /** Alt + Left or Right asks to move a chip one place. */
-  readonly onMove: (from: number, to: number) => void;
-  /** Delete asks to take the 슬라이드 at that place out of the 구성. */
-  readonly onRemove: (index: number) => void;
-  /** The insert button asks to open the 이름표 menu below it. */
-  readonly onInsert: (button: HTMLElement) => void;
   readonly insertLabel?: string;
   /** Draws the drop position before this chip while dragging. */
   readonly dropIndex?: number | undefined;
@@ -61,6 +55,23 @@ export interface ArrangementStripProps {
    */
   readonly readOnlyReason?: string | undefined;
 }
+
+/** Select mode has no order editing callbacks, controls or drag grips. */
+export type ArrangementStripProps = ArrangementStripBaseProps &
+  (
+    | {
+        readonly mode?: 'edit';
+        readonly onMove: (from: number, to: number) => void;
+        readonly onRemove: (index: number) => void;
+        readonly onInsert: (button: HTMLElement) => void;
+      }
+    | {
+        readonly mode: 'select';
+        readonly onMove?: never;
+        readonly onRemove?: never;
+        readonly onInsert?: never;
+      }
+  );
 
 type StripKey = (index: number, count: number) => number;
 
@@ -141,6 +152,7 @@ function handleChipKey(
  * with `dropIndex` and `draggingIndex`.
  */
 export function ArrangementStrip({
+  mode = 'edit',
   label,
   chips,
   selected,
@@ -157,11 +169,11 @@ export function ArrangementStrip({
   const chipElements = useRef<Array<HTMLButtonElement | null>>([]);
   const insertButton = useRef<HTMLButtonElement>(null);
   const focusAfterMove = useRef<number | null>(null);
-  const readOnly = readOnlyReason !== undefined;
+  const readOnly = mode === 'select' || readOnlyReason !== undefined;
   const insertTooltip = useTooltip({text: readOnlyReason ?? insertLabel});
   const insertPress = useButtonPress<HTMLButtonElement>({
     disabled: readOnly,
-    onPress: event => onInsert(event.currentTarget),
+    onPress: event => onInsert?.(event.currentTarget),
     onBlur: insertTooltip.targetProps.onBlur,
   });
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
@@ -177,7 +189,7 @@ export function ArrangementStrip({
   };
   const move = (from: number, to: number): void => {
     focusAfterMove.current = to;
-    onMove(from, to);
+    onMove?.(from, to);
   };
   useLayoutEffect(() => {
     const target = focusAfterMove.current;
@@ -189,7 +201,7 @@ export function ArrangementStrip({
     const remaining = chips.length - 1;
     const next = chipAfterRemoval(index, remaining);
     focusAfterRemoval({remainingCount: remaining, chipOrInsert: next});
-    onRemove(index);
+    onRemove?.(index);
     if (next !== null) onSelect(next);
   };
   const onKeyDown = (
@@ -219,6 +231,7 @@ export function ArrangementStrip({
           <ChipSlot
             key={chip.key}
             chip={chip}
+            mode={mode}
             showDrop={dropIndex === index}
             selected={index === selected}
             live={index === live}
@@ -234,23 +247,26 @@ export function ArrangementStrip({
         ))}
         {dropIndex === chips.length ? <ChipDrop /> : null}
       </div>
-      <button
-        {...insertTooltip.targetProps}
-        {...insertPress}
-        ref={insertButton}
-        type="button"
-        aria-label={insertLabel}
-        aria-disabled={readOnly ? true : undefined}
-        className={styles.add}
-      >
-        <Icon name="plus" size={ADD_ICON_SIZE} />
-      </button>
+      {mode === 'select' ? null : (
+        <button
+          {...insertTooltip.targetProps}
+          {...insertPress}
+          ref={insertButton}
+          type="button"
+          aria-label={insertLabel}
+          aria-disabled={readOnly ? true : undefined}
+          className={styles.add}
+        >
+          <Icon name="plus" size={ADD_ICON_SIZE} />
+        </button>
+      )}
       {insertTooltip.tooltip}
     </div>
   );
 }
 
 interface ChipSlotProps {
+  readonly mode: 'edit' | 'select';
   readonly chip: ArrangementChip;
   readonly showDrop: boolean;
   readonly selected: boolean;
@@ -277,6 +293,7 @@ function ChipDrop(): JSX.Element {
 }
 
 interface LabelChipProps {
+  readonly mode: 'edit' | 'select';
   readonly chip: ArrangementChip;
   readonly selected: boolean;
   readonly live: boolean;
@@ -289,6 +306,7 @@ interface LabelChipProps {
 }
 
 function LabelChip({
+  mode,
   chip,
   selected,
   live,
@@ -322,7 +340,9 @@ function LabelChip({
         style={labelInk(chip.color)}
         className={styles.chip}
       >
-        <Icon name="grip" size={GRIP_SIZE} className={styles.grip} />
+        {mode === 'select' ? null : (
+          <Icon name="grip" size={GRIP_SIZE} className={styles.grip} />
+        )}
         {chipText(chip)}
       </button>
       {tooltip}

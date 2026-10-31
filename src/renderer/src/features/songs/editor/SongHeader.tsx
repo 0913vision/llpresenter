@@ -11,6 +11,7 @@ import styles from './SongHeader.module.css';
 import {SongBackground} from './SongBackground';
 import type {SongId} from '@core/schema/ids';
 import {ImportedSongActions} from '../import/ImportedSongActions';
+import {songUsage} from './songUsage';
 
 /** The library source title and its service usage; edits share the song queue. */
 export function SongHeader({
@@ -24,22 +25,11 @@ export function SongHeader({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const titleFrame = useRef<HTMLDivElement>(null);
-  const usedBy = state.library.find(
-    entry => entry.id === session.document.song.id,
-  )?.usedBy;
-  const usageUnavailable =
-    usedBy === undefined && state.libraryStatus !== 'loading';
-  const usageText =
-    usedBy === undefined
-      ? `예배 순서 ${usageUnavailable ? '?' : '…'}`
-      : `예배 순서 ${usedBy.length}곳`;
-  const usageTip =
-    usedBy === undefined
-      ? usageUnavailable
-        ? '곡 사용처 정보를 확인할 수 없습니다'
-        : '사용처를 불러오는 중입니다'
-      : usedBy.map(service => service.name).join(', ') ||
-        '사용 중인 예배 순서 없음';
+  const {
+    unavailable: usageUnavailable,
+    text: usageText,
+    tooltip: usageTip,
+  } = songUsage(state.library, state.libraryStatus, session.document.song.id);
   useLayoutEffect(() => {
     const input = titleFrame.current?.querySelector('input');
     if (

@@ -5,15 +5,18 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 
+export const SONG_EDIT_LABEL = '가사 편집';
+
 export function slideMenuEntries(
   edit: (() => void) | undefined,
+  hotKey?: {readonly open: () => void; readonly reason?: string | undefined},
 ): readonly MenuEntry[] {
   return [
     laterRow('quick-edit', '빠른 편집'),
     {
       kind: 'item',
       id: 'edit',
-      label: '가사 편집',
+      label: SONG_EDIT_LABEL,
       ...menuAvailability(
         edit === undefined
           ? '이 슬라이드는 준비에서 편집할 수 없습니다'
@@ -26,7 +29,15 @@ export function slideMenuEntries(
     menuSeparator('appearance-separator'),
     laterRow('theme', '테마', {submenu: true}),
     laterRow('transition', '전환 효과…'),
-    laterRow('hot-key', '단축키…'),
+    hotKey === undefined
+      ? laterRow('hot-key', '단축키…')
+      : {
+          kind: 'item',
+          id: 'hot-key',
+          label: '단축키…',
+          ...menuAvailability(hotKey.reason),
+          onSelect: hotKey.open,
+        },
     laterRow('next-timer', '다음 타이머로 넘기기…'),
     menuSeparator('actions-separator'),
     laterRow('add-action', '동작 추가', {submenu: true}),

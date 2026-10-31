@@ -21,12 +21,14 @@ import {VirtualSlides} from './VirtualSlides';
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import styles from './SongPanels.module.css';
+import {isGroupedSong} from '@core/schema/groupedSong';
 
 export interface SongSlideStore {
   readonly subscribe: (listener: () => void) => () => void;
   readonly getSnapshot: () => {
     readonly session: SongSession<AnySong> | null;
     readonly labels?: EditorLabels | null | undefined;
+    readonly busy?: boolean;
   };
 }
 
@@ -64,6 +66,12 @@ export function SongSlidePanel({
     numbers[pointed.index] === selection.block + 1
       ? pointed.index
       : numbers.indexOf(selection.block + 1);
+  const select = (index: number): void => {
+    const number = numbers[index];
+    if (number === undefined) return;
+    setPointed({songId: song.id, order: session.arrangement, index});
+    session.select({block: number - 1, start: 0, end: 0});
+  };
   return (
     <Panel label="슬라이드" className={styles.panel}>
       <PanelHeader>
@@ -92,12 +100,27 @@ export function SongSlidePanel({
           selected={at < 0 ? undefined : at}
           baseline={defaultThumbnailColumns[sizeClass]}
           scale={scale}
-          onSelect={index => {
-            const number = numbers[index];
-            if (number === undefined) return;
-            setPointed({songId: song.id, order: session.arrangement, index});
-            session.select({block: number - 1, start: 0, end: 0});
-          }}
+          onSelect={select}
+          onEdit={select}
+          onHotKey={
+            'requestAction' in store && isGroupedSong(song)
+              ? index => {
+                  const number = numbers[index];
+                  if (number === undefined) return;
+                  select(index);
+                  store.requestAction('hot-key');
+                }
+              : undefined
+          }
+          hotKeyReason={
+            session.blocked
+              ? '저장 오류 해결 필요'
+              : session.readOnly
+                ? '읽기 전용 곡입니다'
+                : state.busy
+                  ? '작업을 마친 뒤 다시 시도하세요'
+                  : undefined
+          }
         />
       </PanelBody>
       <PanelFooter

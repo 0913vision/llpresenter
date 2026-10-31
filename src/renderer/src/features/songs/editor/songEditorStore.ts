@@ -36,7 +36,19 @@ export type AppliedRename =
       readonly songId: SongId;
     };
 type RenameApplied = (identity: AppliedRename) => void;
+export type SongEditorAction =
+  | 'create-arrangement'
+  | 'rename-arrangement'
+  | 'delete-arrangement'
+  | 'edit-arrangement'
+  | 'hot-key';
+export interface EditorActionRequest {
+  readonly action: SongEditorAction;
+  readonly serial: number;
+  readonly arrangement: string | undefined;
+}
 interface EditorState {
+  readonly actionRequest: EditorActionRequest | null;
   readonly session: SongSession | null;
   readonly labels: EditorLabels | null;
   readonly busy: boolean;
@@ -71,7 +83,10 @@ export class SongEditorStore {
   private libraryVersion = 0;
   private focusSerial = 0;
   private titleFocus = 0;
+  private actionRequest: EditorActionRequest | null = null;
+  private actionSerial = 0;
   private state: EditorState = {
+    actionRequest: null,
     session: null,
     labels: null,
     busy: false,
@@ -121,7 +136,12 @@ export class SongEditorStore {
   /** Opens a checked source; forward the library's focusTitle after creation. */
   open(
     document: SongDocument | null,
-    options: {readonly focusTitle?: boolean} = {},
+    options: {
+      readonly focusTitle?: boolean;
+      readonly block?: number;
+      readonly arrangement?: string | undefined;
+      readonly action?: SongEditorAction | undefined;
+    } = {},
   ): void {
     if (!this.alive) return;
     if (this.imported !== null) {
@@ -134,7 +154,34 @@ export class SongEditorStore {
     this.active = document?.song.id ?? null;
     this.titleFocus =
       document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
-    if (document !== null) this.sessionFor(document);
+    this.actionRequest = null;
+    if (document !== null) {
+      const session = this.sessionFor(document);
+      if (options.block !== undefined) {
+        session.selectArrangement(options.arrangement);
+        session.select({block: options.block, start: 0, end: 0});
+      }
+      if (options.action !== undefined) {
+        this.actionRequest = {
+          action: options.action,
+          serial: ++this.actionSerial,
+          arrangement: session.arrangement,
+        };
+      }
+    }
+    this.publish();
+  }
+
+  requestAction(action: SongEditorAction | null): void {
+    if (!this.alive) return;
+    this.actionRequest =
+      action === null
+        ? null
+        : {
+            action,
+            serial: ++this.actionSerial,
+            arrangement: this.state.session?.arrangement,
+          };
     this.publish();
   }
 
@@ -169,6 +216,7 @@ export class SongEditorStore {
     }
     this.sessions.get(this.active ?? checked.value.song.id)?.endTyping();
     this.active = null;
+    this.actionRequest = null;
     this.imported = new SongSession({
       document: checked.value,
       api: this.api.content,
@@ -792,6 +840,7 @@ export class SongEditorStore {
   private publish(): void {
     if (!this.alive) return;
     this.state = {
+      actionRequest: this.actionRequest,
       session:
         this.imported ??
         (this.active === null

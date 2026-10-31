@@ -1,7 +1,7 @@
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {menuSeparator} from '@renderer/ui/menuRows';
 
 export interface ArrangementChoices {
   readonly names: readonly string[];
@@ -9,12 +9,20 @@ export interface ArrangementChoices {
   readonly createReason: string | undefined;
   readonly choose: (name: string | undefined) => void;
   readonly create: () => void;
+  readonly manageReason: string | undefined;
+  readonly rename: () => void;
+  readonly remove: () => void;
   readonly edit: () => void;
 }
+
+export const DEFAULT_ARRANGEMENT_REASON = '기본 구성은 바꿀 수 없습니다';
 
 export function arrangementMenuEntries(
   input: ArrangementChoices,
 ): readonly MenuEntry[] {
+  const manageReason =
+    input.manageReason ??
+    (input.selected === undefined ? DEFAULT_ARRANGEMENT_REASON : undefined);
   const option = (name: string | undefined): MenuEntry => ({
     kind: 'item',
     id: name ?? 'default',
@@ -35,35 +43,21 @@ export function arrangementMenuEntries(
       ...menuAvailability(input.createReason),
       onSelect: input.create,
     },
-    {kind: 'item', id: 'edit', label: '구성 편집…', onSelect: input.edit},
-  ];
-}
-
-export function arrangementManagementEntries({
-  reason,
-  rename,
-  remove,
-}: {
-  readonly reason: string | undefined;
-  readonly rename: () => void;
-  readonly remove: () => void;
-}): readonly MenuEntry[] {
-  return [
-    laterRow('duplicate', '복제'),
     {
       kind: 'item',
       id: 'rename',
-      label: '이름 바꾸기',
-      ...menuAvailability(reason),
-      onSelect: rename,
+      label: '이름 바꾸기…',
+      ...menuAvailability(manageReason),
+      onSelect: input.rename,
     },
-    menuSeparator('delete-separator'),
     {
       kind: 'item',
       id: 'delete',
-      label: '삭제',
-      ...menuAvailability(reason),
-      onSelect: remove,
+      label: '지우기',
+      ...menuAvailability(manageReason),
+      onSelect: input.remove,
     },
+    menuSeparator('edit-separator'),
+    {kind: 'item', id: 'edit', label: '구성 편집…', onSelect: input.edit},
   ];
 }

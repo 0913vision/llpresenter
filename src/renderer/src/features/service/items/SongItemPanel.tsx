@@ -28,9 +28,8 @@ import {
   PanelTitle,
 } from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
-import {historyCommand} from '@renderer/features/songs/editor/editorKeys';
-import {isComposing} from '@renderer/ui/ime';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {openItemSong} from './openItemSong';
+import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -120,16 +119,7 @@ function SongItemView({
   const select = (index: number): void => items.selectPosition(index);
   const editReason = session.readOnly ? NEWER_FILE_REASON : undefined;
   return (
-    <div
-      className={styles.keys}
-      onKeyDown={event => {
-        if (event.defaultPrevented || isInTextEntry(event.target)) return;
-        const command = historyCommand(event);
-        if (command === undefined || isComposing(event)) return;
-        event.preventDefault();
-        session.edit(command);
-      }}
-    >
+    <div className={styles.keys}>
       <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
         <PanelHeader>
           <PanelTitle
@@ -151,10 +141,10 @@ function SongItemView({
               disabled={editReason !== undefined}
               title={editReason}
               onClick={() => {
-                editor.open(session.document);
+                openItemSong({items, editor});
               }}
             >
-              라이브러리 곡 편집
+              {SONG_EDIT_LABEL}
             </Button>
           </PanelActions>
         </PanelHeader>
@@ -165,6 +155,7 @@ function SongItemView({
           labels={labels}
           selected={shown}
           onSelect={select}
+          onEditSong={action => openItemSong({items, editor, action})}
         />
         <PanelBody variant="flush">
           <VirtualSlides
@@ -175,6 +166,11 @@ function SongItemView({
             baseline={defaultThumbnailColumns[sizeClass]}
             scale={scale}
             onSelect={select}
+            onEdit={index => openItemSong({items, editor, position: index})}
+            onHotKey={index =>
+              openItemSong({items, editor, position: index, action: 'hot-key'})
+            }
+            hotKeyReason={editReason}
           />
         </PanelBody>
         <PanelFooter

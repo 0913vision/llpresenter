@@ -118,7 +118,7 @@ lack), Moved, Removed.
 
 ### 슬라이드 오른쪽 클릭
 
-- Where: 진행 > 슬라이드 grid
+- Where: 진행 and 준비 thumbnail grids (item view and song editor).
 - Opens: Right-click, Menu key, or Shift F10 on a slide.
 - Purpose: Act on this one slide.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
@@ -136,7 +136,10 @@ lack), Moved, Removed.
 | 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                        | Off                      |
 | 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                   | Off                      |
 
-- There is no slide menu today; this adds it.
+- All three grids share one menu model. In 준비, 단축키… opens the source
+  slide's key recorder in the song editor, opening that editor first from an
+  item. The separate key bar is removed. Unsupported actions remain disabled;
+  read-only sources disable key editing with their reason (October 31 B22).
 
 ### 소품 오른쪽 클릭
 
@@ -379,28 +382,21 @@ lack), Moved, Removed.
 - PP: PP arrangement popup (Arrangements video 2:11 and 3:11): ✓ Master, other
   arrangements | New Arrangement…, Edit Arrangements….
 
-| Group | Row        | Does                                                                                                          | Status |
-| ----- | ---------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 기본       | Alone above a separator (PP Master, 5 hacks video 3:10); ✓ when current.                                      | Now    |
-| 2     | <구성>     | The song's other 구성; ✓ on the current one.                                                                  | Now    |
-| 3     | 새 구성…   | Asks for a name (PP shows a small name field with 취소 and 확인).                                             | Now    |
-| 3     | 구성 편집… | Opens the 구성 strip in 준비 for this song (PP Edit Arrangements… on macOS, Manage Arrangements… on Windows). | New    |
+| Group | Row          | Does                                                                                   | Status |
+| ----- | ------------ | -------------------------------------------------------------------------------------- | ------ |
+| 1     | 기본         | Alone above a separator (PP Master, 5 hacks video 3:10); ✓ when current.               | Now    |
+| 2     | <구성>       | The song's other 구성; ✓ on the current one.                                           | Now    |
+| 3     | 새 구성…     | Asks for a name (PP shows a small name field with 취소 and 확인).                      | Now    |
+| 3     | 이름 바꾸기… | Renames the selected named 구성. 기본 is disabled with its reason.                     | Now    |
+| 3     | 지우기       | Removes the selected named 구성. 기본 is disabled with its reason.                     | Now    |
+| 4     | 구성 편집…   | Opens the chip editor in the song editor; from an item it opens the song editor first. | Now    |
 
-- Today 새 구성 has an icon and no "…"; both follow PP now.
+- The song editor and item use this same dropdown at every choice count. Source
+  management from an item first opens the song editor at the selected source
+  slide; picking a 구성 changes only that service item (October 31 B22).
 
-### 구성 관리
-
-- Where: 준비 구성 strip
-- Opens: Right-click a 구성 segment.
-- Purpose: Act on this one 구성.
-- PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
-  taken from the PP Look preset, playlist, and prop menus.
-
-| Group | Row         | Does                                                        | Status |
-| ----- | ----------- | ----------------------------------------------------------- | ------ |
-| 1     | 복제        | Copies the 구성 as "<이름> 복사본". Allowed on 기본 too.    | Off    |
-| 1     | 이름 바꾸기 | Disabled for 기본 (tooltip "기본 구성은 바꿀 수 없습니다"). | Now    |
-| 2     | 삭제        | Disabled for 기본.                                          | Now    |
+The separate segment management menu is replaced by the dropdown's management
+rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 
 ### 미디어 오른쪽 클릭
 

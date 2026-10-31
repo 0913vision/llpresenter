@@ -25,7 +25,7 @@ import {useShow} from '@renderer/session/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';
-import {DEFAULT_ORDER_REASON, NEWER_FILE_REASON} from './ItemArrangement';
+import {NEWER_FILE_REASON} from './ItemArrangement';
 import {ServiceItemPanel} from './SongItemPanel';
 
 afterEach(() => {
@@ -80,6 +80,26 @@ function selectedThumbnail(panel: HTMLElement): number {
 }
 
 describe('service song item panel', () => {
+  it('keeps named arrangement chips selection-only and leaves source history untouched', async () => {
+    const {panel, user, items, edits} = await setup();
+    const session = items.getSnapshot().song;
+    const before = session?.history.snapshot.song;
+    const list = strip(panel);
+    expect(list.getAttribute('aria-readonly')).toBe('true');
+    expect(within(panel).queryByRole('button', {name: /넣기/})).toBeNull();
+    expect(list.querySelector('[aria-hidden="true"]')).toBeNull();
+    await user.click(chip(panel, 0));
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}{Delete}');
+    fireEvent.pointerDown(chip(panel, 0), {
+      pointerId: 7,
+      button: 0,
+      clientX: 10,
+    });
+    fireEvent.pointerMove(window, {pointerId: 7, clientX: 400});
+    fireEvent.pointerUp(window, {pointerId: 7, clientX: 400});
+    expect(session?.history.snapshot.song).toBe(before);
+    expect(edits).toEqual([]);
+  });
   it('marks a missing named arrangement and follows its restoration without repairing the item', async () => {
     const {panel, first, pushSong, service, edits} = await setup();
     const missing = {
@@ -156,137 +176,6 @@ describe('service song item panel', () => {
     expect(edits).toEqual([]);
   });
 
-  it('moves and removes positions of the 구성 in the song with Alt arrows and Delete', async () => {
-    const {panel, user, documents, first, items} = await setup();
-    await user.click(chip(panel, 0));
-    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-    expect(document.activeElement?.textContent).toBe('1절');
-    await user.keyboard('{Delete}');
-    expect(chips(panel)).toEqual(['후렴', '후렴']);
-    await items.getSnapshot().song?.flush();
-    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      {name: '주일용', groups: Array(2).fill(first.song.groups[1]?.id)},
-    ]);
-  });
-
-  it('undoes and redoes chip edits in the song history with Ctrl Z and Ctrl Y', async () => {
-    const {panel, user} = await setup();
-    await user.click(chip(panel, 0));
-    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-    await user.keyboard('{Control>}z{/Control}');
-    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
-    await user.keyboard('{Control>}y{/Control}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-    await user.keyboard('{Control>}{Shift>}z{/Shift}{/Control}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-  });
-
-  it('moves selection and focus past a neighbor that is the same 슬라이드', async () => {
-    const {panel, user, edits} = await setup();
-    await user.click(chip(panel, 2));
-    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}');
-    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
-    expect(selectedThumbnail(panel)).toBe(1);
-    expect(document.activeElement).toBe(chip(panel, 1));
-    expect(edits).toEqual([]);
-    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-    expect(selectedThumbnail(panel)).toBe(0);
-    expect(document.activeElement).toBe(chip(panel, 0));
-  });
-
-  it('leaves Ctrl Z to a text field in the panel', async () => {
-    const {panel, user} = await setup();
-    await user.click(chip(panel, 0));
-    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-    const size = within(panel).getByRole('spinbutton', {
-      name: '슬라이드 크기 백분율',
-    });
-    await user.click(size);
-    await user.keyboard('{Control>}z{/Control}');
-    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
-  });
-
-  it('drags a chip to a new place, and Esc cancels a drag', async () => {
-    const {panel} = await setup();
-    within(strip(panel))
-      .getAllByRole('option')
-      .forEach((option, index) => {
-        vi.spyOn(option, 'getBoundingClientRect').mockReturnValue(
-          new DOMRect(index * 60, 0, 52, 30),
-        );
-      });
-    const pointer = {pointerId: 7, button: 0};
-    fireEvent.pointerDown(chip(panel, 0), {
-      ...pointer,
-      clientX: 10,
-      clientY: 15,
-    });
-    fireEvent.pointerMove(window, {...pointer, clientX: 12, clientY: 15});
-    expect(chip(panel, 0).getAttribute('data-dragging')).toBeNull();
-    fireEvent.pointerMove(window, {...pointer, clientX: 200, clientY: 15});
-    expect(chip(panel, 0).getAttribute('data-dragging')).toBe('true');
-    fireEvent.pointerUp(window, {...pointer, clientX: 200, clientY: 15});
-    fireEvent.click(chip(panel, 0));
-    expect(chips(panel)).toEqual(['후렴', '후렴', '1절']);
-    expect(selectedThumbnail(panel)).toBe(2);
-    fireEvent.pointerDown(chip(panel, 2), {
-      ...pointer,
-      clientX: 130,
-      clientY: 15,
-    });
-    fireEvent.pointerMove(window, {...pointer, clientX: 0, clientY: 15});
-    fireEvent.keyDown(window, {key: 'Escape'});
-    expect(chip(panel, 2).getAttribute('data-dragging')).toBeNull();
-    fireEvent.pointerUp(window, {...pointer, clientX: 0, clientY: 15});
-    expect(chips(panel)).toEqual(['후렴', '후렴', '1절']);
-  });
-
-  it('adds 새 구성 as a copy of the order and picks it for the item', async () => {
-    mockMenuRowHeight();
-    const {panel, user, service, documents, first} = await setup();
-    await user.click(within(panel).getByRole('button', {name: '구성'}));
-    await user.click(screen.getByRole('menuitem', {name: '새 구성…'}));
-    await user.click(screen.getByRole('button', {name: '확인'}));
-    await waitFor(() =>
-      expect(
-        within(screen.getByRole('region', {name: '예배 순서 항목'})).getByRole(
-          'button',
-          {name: '구성'},
-        ).textContent,
-      ).toContain('구성 1'),
-    );
-    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
-      first.song.arrangements?.[0],
-      {...first.song.arrangements?.[0], name: '구성 1'},
-    ]);
-    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
-  });
-
-  it('appends a chosen group from 그룹 넣기', async () => {
-    mockMenuRowHeight();
-    const {panel, user} = await setup();
-    await user.click(within(panel).getByRole('button', {name: '그룹 넣기'}));
-    await user.click(screen.getByRole('menuitem', {name: /^1절/u}));
-    expect(chips(panel)).toEqual(['1절', '후렴', '후렴', '1절']);
-    expect(selectedThumbnail(panel)).toBe(3);
-  });
-
-  it('keeps the chips of 기본 read-only with the reason in a tooltip', async () => {
-    const {panel, user, edits} = await setup(fixtureItems.plain);
-    expect(chips(panel)).toEqual(['1절', '후렴']);
-    await user.click(chip(panel, 0));
-    await user.keyboard('{Alt>}{ArrowRight}{/Alt}{Delete}');
-    expect(chips(panel)).toEqual(['1절', '후렴']);
-    expect((await hoverForTooltip(chip(panel, 0)))?.textContent).toBe(
-      DEFAULT_ORDER_REASON,
-    );
-    expect(edits).toEqual([]);
-  });
-
   it('chooses 기본 and a 구성 for this item only', async () => {
     mockMenuRowHeight();
     const {panel, user, service} = await setup();
@@ -333,10 +222,62 @@ describe('service song item panel', () => {
 
   it('opens the source song in the editor', async () => {
     const {panel, user, editor, first} = await setup();
-    await user.click(
-      within(panel).getByRole('button', {name: '라이브러리 곡 편집'}),
-    );
+    await user.click(chip(panel, 2));
+    await user.click(within(panel).getByRole('button', {name: '가사 편집'}));
     expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
+    expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
+      1,
+    );
+    expect(editor.getSnapshot().session?.arrangement).toBe('주일용');
+  });
+
+  it.each([
+    ['새 구성…', 'create-arrangement'],
+    ['이름 바꾸기…', 'rename-arrangement'],
+    ['구성 편집…', 'edit-arrangement'],
+  ])(
+    'opens the source editor for %s without changing the service',
+    async (label, action) => {
+      const {panel, user, editor, first, service, edits} = await setup();
+      const before = service();
+      await user.click(chip(panel, 2));
+      await user.click(within(panel).getByRole('button', {name: '구성'}));
+      await user.click(screen.getByRole('menuitem', {name: label}));
+      expect(editor.getSnapshot().session?.document.song.id).toBe(
+        first.song.id,
+      );
+      expect(
+        editor.getSnapshot().session?.history.snapshot.selection.block,
+      ).toBe(1);
+      expect(editor.getSnapshot().actionRequest?.action).toBe(action);
+      expect(service()).toBe(before);
+      expect(edits).toEqual([]);
+    },
+  );
+
+  it('uses the shared slide menu to hand off the clicked repeated slide and its key', async () => {
+    const {panel, user, editor, service, edits} = await setup();
+    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
+    const third = within(grid).getAllByRole('option')[2];
+    if (!third) throw new Error('Missing repeated thumbnail');
+    fireEvent.contextMenu(third);
+    expect(third.hasAttribute('data-menu-target')).toBe(true);
+    await user.click(screen.getByRole('menuitem', {name: '단축키…'}));
+    expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
+      1,
+    );
+    expect(editor.getSnapshot().actionRequest?.action).toBe('hot-key');
+    expect(service().service.order[1]).toMatchObject({arrangement: '주일용'});
+    expect(edits).toEqual([]);
+  });
+
+  it('opens the source before deleting its named arrangement', async () => {
+    const {panel, user, editor, first} = await setup();
+    const remove = vi.spyOn(editor, 'deleteArrangement');
+    await user.click(within(panel).getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '지우기'}));
+    expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
+    expect(remove).toHaveBeenCalledExactlyOnceWith('주일용');
   });
 
   it('shows zero slides for an empty named group arrangement and enables library editing', async () => {
@@ -415,7 +356,7 @@ describe('service song item panel', () => {
     expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
 
     const editBtn = within(panel).getByRole('button', {
-      name: '라이브러리 곡 편집',
+      name: '가사 편집',
     });
     expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
     const user = userEvent.setup();

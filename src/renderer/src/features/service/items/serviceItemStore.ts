@@ -3,8 +3,7 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@core/schema/contentDocuments';
-import type {MediaId, SongGroupId, SongId} from '@core/schema/ids';
-import {isGroupedSong} from '@core/schema/groupedSong';
+import type {MediaId, SongId} from '@core/schema/ids';
 import {
   isItemOfKind,
   type ServiceItem,
@@ -235,74 +234,6 @@ export class ServiceItemStore {
         target,
       }),
     );
-  }
-
-  /**
-   * 새 구성: adds a 구성 to the song that copies the order the item plays,
-   * saves the song, and then picks the new 구성 for the item.
-   */
-  createArrangement(name?: string): Promise<boolean> {
-    const {song, arrangement} = this.state;
-    const target = this.target;
-    if (song === null || target === null) return Promise.resolve(false);
-    return this.operation(() =>
-      this.addArrangement({song, arrangement, target, name}),
-    );
-  }
-
-  private async addArrangement({
-    song,
-    arrangement,
-    target,
-    name: requestedName,
-  }: {
-    readonly song: SongSession;
-    readonly arrangement: string | undefined;
-    readonly target: ItemTarget;
-    readonly name: string | undefined;
-  }): Promise<boolean> {
-    if (!this.alive) return false;
-    const songId = song.document.song.id;
-    const name = song.copyArrangement(arrangement, requestedName);
-    if (name === undefined || !(await song.flush())) return false;
-    return this.edit({
-      change: item =>
-        isItemOfKind(item, 'song') && item.song === songId
-          ? itemArrangementChange(name)(item)
-          : null,
-      failure: '구성 변경 실패',
-      target,
-    });
-  }
-
-  /** Writes a new group order into the current named arrangement. */
-  setGroupOrder(order: readonly SongGroupId[]): boolean {
-    const {song, arrangement} = this.state;
-    if (
-      !this.alive ||
-      this.writes.isStopped ||
-      song === null ||
-      arrangement === undefined ||
-      !isGroupedSong(song.history.snapshot.song)
-    ) {
-      return false;
-    }
-    return song.setArrangementGroups(arrangement, order);
-  }
-
-  /** Writes a new slide order into the current named arrangement. */
-  setSlideOrder(order: readonly number[]): boolean {
-    const {song, arrangement} = this.state;
-    if (
-      !this.alive ||
-      this.writes.isStopped ||
-      song === null ||
-      arrangement === undefined ||
-      isGroupedSong(song.history.snapshot.song)
-    ) {
-      return false;
-    }
-    return song.setArrangementSlides(arrangement, order);
   }
 
   /** Overrides the song's background for this item, or follows it with `null`. */

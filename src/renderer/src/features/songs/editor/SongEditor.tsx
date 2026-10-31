@@ -41,7 +41,11 @@ export function SongEditor({
             onImportedSave={onImportedSave}
           />
           <ArrangementRow store={store} session={state.session} />
-          <SlideHotKeyControl session={state.session} busy={state.busy} />
+          <SlideHotKeyControl
+            store={store}
+            session={state.session}
+            busy={state.busy}
+          />
           <SongBlocks store={store} session={state.session} />
         </div>
       )}
