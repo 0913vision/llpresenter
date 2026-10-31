@@ -138,9 +138,7 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
   expect(
     screen.queryByRole('menuitemcheckbox', {name: '사용자 화면'}),
   ).toBeNull();
-  expect(
-    screen.getAllByRole('menuitemcheckbox').map(item => item.textContent),
-  ).toEqual(['방송 자막 켜기']);
+  expect(screen.queryAllByRole('menuitemcheckbox')).toHaveLength(0);
   expect(
     screen.getByRole('menuitem', {name: '바뀐 화면 경고 보기'}),
   ).toBeTruthy();
@@ -149,7 +147,12 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
   expect(lifecycle.disposed).not.toHaveBeenCalled();
   send.mockClear();
   await userEvent.click(
-    screen.getByRole('menuitemcheckbox', {name: '방송 자막 켜기'}),
+    within(screen.getByRole('group', {name: '방송 자막'})).getByRole(
+      'menuitem',
+      {
+        name: '출력 켜기',
+      },
+    ),
   );
   expect(send).toHaveBeenCalledExactlyOnceWith({
     type: 'live.batch',

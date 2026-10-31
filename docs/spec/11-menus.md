@@ -588,15 +588,16 @@ lack), Moved, Removed.
 - Opens: Click 출력.
 - Purpose: Turn outputs on or off and change what they show.
 - PP: PP Screens menu (support article, 2026).
+- Groups follow the app's three screen roles, with 화면 설정… last.
 
-| Group     | Row                                                             | Does                                  | Status |
-| --------- | --------------------------------------------------------------- | ------------------------------------- | ------ |
-| 본 화면   | 출력 끄기 / 출력 켜기, Look: <현재> ›, Look 편집…               |                                       | New    |
-| 무대 화면 | 출력 끄기 / 출력 켜기, <무대 모니터>: <배치> ›, 무대 배치 편집… |                                       | New    |
-| 2         | 화면 설정…                                                      | Ctrl Alt 1.                           | Moved  |
-| 3         | 방송 자막 켜기, 방송 설정… (off)                                |                                       | New    |
-| -         | <화면> 경고 보기                                                | Last row, only while a warning holds. | Now    |
-| -         | Per-screen checks                                               | Moved to 화면 설정 (사용 안 함).      | Moved  |
+| Group     | Row                                                             | Does                                                       | Status |
+| --------- | --------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
+| 본 화면   | 출력 끄기 / 출력 켜기, Look: <현재> ›, Look 편집…               |                                                            | New    |
+| 무대 화면 | 출력 끄기 / 출력 켜기, <무대 모니터>: <배치> ›, 무대 배치 편집… |                                                            | New    |
+| 방송 자막 | 출력 끄기 / 출력 켜기, 방송 설정… (off)                         | Same output command as the other screen groups.            | Now    |
+| -         | <화면> 경고 보기                                                | Only while a warning holds, before the final settings row. | Now    |
+| 2         | 화면 설정…                                                      | Last, after a separator. Ctrl Alt 1.                       | Moved  |
+| -         | Per-screen checks                                               | Moved to 화면 설정 (사용 안 함).                           | Moved  |
 
 ### 곡 검색 결과
 

@@ -1,4 +1,4 @@
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -143,9 +143,9 @@ describe('Looks in the 출력 menu', () => {
       '출력 켜기',
       '무대 화면: 없음',
       '무대 배치 편집…',
-      '화면 설정…Ctrl Alt 1',
-      '방송 자막 켜기',
+      '출력 켜기',
       '방송 설정…',
+      '화면 설정…Ctrl Alt 1',
     ]);
     expect(
       [
@@ -155,10 +155,11 @@ describe('Looks in the 출력 menu', () => {
       ].map(item => item.textContent),
     ).toEqual(['평상시', '설교']);
     expect(
-      screen
-        .getByRole('menuitemcheckbox', {name: '방송 자막 켜기'})
-        .getAttribute('aria-checked'),
-    ).toBe('false');
+      within(screen.getByRole('group', {name: '방송 자막'})).getByRole(
+        'menuitem',
+        {name: '출력 켜기'},
+      ).textContent,
+    ).toBe('출력 켜기');
   });
 
   it('keeps the live Look check over a settings current value and follows live changes', async () => {

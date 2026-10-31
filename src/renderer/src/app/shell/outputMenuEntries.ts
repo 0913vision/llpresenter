@@ -173,6 +173,13 @@ export function outputMenuEntries(
       disabled: layout === undefined || onWorkspace === undefined,
       onSelect: () => edit('stage', layout),
     },
+    menuSeparator('broadcast'),
+    {kind: 'group', id: 'broadcast-group', label: '방송 자막'},
+    {...capture, id: 'broadcast'},
+    laterRow('broadcast-settings', '방송 설정…'),
+    ...(warningRows.length > 0
+      ? [menuSeparator('warnings'), ...warningRows]
+      : []),
     menuSeparator('screens'),
     {
       kind: 'item',
@@ -182,17 +189,5 @@ export function outputMenuEntries(
       disabled: onWorkspace === undefined,
       onSelect: () => onWorkspace?.('screens'),
     },
-    menuSeparator('broadcast'),
-    {
-      ...capture,
-      id: 'broadcast',
-      label: '방송 자막 켜기',
-      check: 'checkbox',
-      checked: captions.some(screen => outputs[screen.id] === true),
-    },
-    laterRow('broadcast-settings', '방송 설정…'),
-    ...(warningRows.length > 0
-      ? [menuSeparator('warnings'), ...warningRows]
-      : []),
   ];
 }

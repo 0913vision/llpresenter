@@ -29,11 +29,9 @@ function outputSender() {
 }
 
 function outputItem(name: string): HTMLElement {
-  return name === '방송 자막'
-    ? screen.getByRole('menuitemcheckbox', {name: '방송 자막 켜기'})
-    : within(screen.getByRole('group', {name})).getByRole('menuitem', {
-        name: /^출력/,
-      });
+  return within(screen.getByRole('group', {name})).getByRole('menuitem', {
+    name: /^출력/,
+  });
 }
 
 describe('MenuBar', () => {
@@ -154,13 +152,13 @@ describe('MenuBar', () => {
     expect(control.mock.calls).toEqual([['toggle-maximize'], ['close']]);
   });
 
-  it('shows group output commands and only a broadcast checkbox', async () => {
+  it('shows an output command in each screen group', async () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
     expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
     expect(outputItem('본 화면').textContent).toBe('출력 끄기');
     expect(outputItem('무대 화면').textContent).toBe('출력 켜기');
-    expect(outputItem('방송 자막').getAttribute('aria-checked')).toBe('false');
+    expect(outputItem('방송 자막').textContent).toBe('출력 켜기');
     expect(screen.queryByRole('menuitem', {name: /경고 보기/})).toBeNull();
   });
 

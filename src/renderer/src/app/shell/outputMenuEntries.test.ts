@@ -48,45 +48,70 @@ afterEach(() => {
   delete window.llp;
 });
 
-it('lists every output group, row and separator in spec order with no per-screen checks', () => {
-  const {input} = fixture();
-  const rows = outputMenuEntries(input);
-  expect(
-    rows.map(row =>
-      row.kind === 'separator'
-        ? '|'
-        : row.kind === 'group'
-          ? `[${row.label}]`
-          : row.label,
-    ),
-  ).toEqual([
-    '[본 화면]',
-    '출력 끄기',
-    'Look: 평상시',
-    'Look 편집…',
-    '|',
-    '[무대 화면]',
-    '출력 켜기',
-    '무대 화면: 현재와 다음',
-    '무대 배치 편집…',
-    '|',
-    '화면 설정…',
-    '|',
-    '방송 자막 켜기',
-    '방송 설정…',
-    '|',
-    '무대 화면 경고 보기',
-  ]);
-  expect(
-    menuItems(rows)
-      .filter(row => row.check === 'checkbox')
-      .map(row => row.id),
-  ).toEqual(['broadcast']);
-  expect(menuItems(rows).every(row => row.icon === undefined)).toBe(true);
-  expect(
-    menuItems(rows).find(row => row.id === 'broadcast-settings'),
-  ).toMatchObject({disabled: true, title: '아직 없는 기능'});
-});
+it.each([false, true])(
+  'lists three screen groups before final screen settings with warnings=%s',
+  warnings => {
+    const {input} = fixture();
+    const rows = outputMenuEntries({
+      ...input,
+      warnings: warnings ? input.warnings : [],
+    });
+    expect(
+      rows.map(row =>
+        row.kind === 'separator'
+          ? '|'
+          : row.kind === 'group'
+            ? `[${row.label}]`
+            : row.label,
+      ),
+    ).toEqual([
+      '[본 화면]',
+      '출력 끄기',
+      'Look: 평상시',
+      'Look 편집…',
+      '|',
+      '[무대 화면]',
+      '출력 켜기',
+      '무대 화면: 현재와 다음',
+      '무대 배치 편집…',
+      '|',
+      '[방송 자막]',
+      '출력 켜기',
+      '방송 설정…',
+      ...(warnings ? ['|', '무대 화면 경고 보기'] : []),
+      '|',
+      '화면 설정…',
+    ]);
+    expect(
+      menuItems(rows)
+        .filter(row => row.check === 'checkbox')
+        .map(row => row.id),
+    ).toEqual([]);
+    expect(menuItems(rows).every(row => row.icon === undefined)).toBe(true);
+    expect(
+      menuItems(rows).find(row => row.id === 'broadcast-settings'),
+    ).toMatchObject({disabled: true, title: '아직 없는 기능'});
+  },
+);
+
+it.each([false, true])(
+  'labels and toggles the broadcast group with output on=%s',
+  on => {
+    const {input, send} = fixture();
+    const broadcastId = input.screens[1]?.id;
+    if (!broadcastId) throw new Error('Missing broadcast fixture');
+    const row = menuItems(
+      outputMenuEntries({...input, outputs: {[broadcastId]: on}}),
+    ).find(item => item.id === 'broadcast');
+    expect(row?.label).toBe(on ? '출력 끄기' : '출력 켜기');
+    expect(row?.check).toBeUndefined();
+    row?.onSelect?.();
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'live.batch',
+      commands: [{type: 'output.set', screenId: broadcastId, on: !on}],
+    });
+  },
+);
 
 it('toggles whole output groups and broadcast through bounded transactions', () => {
   const {input, send} = fixture();
@@ -134,7 +159,7 @@ it('toggles whole output groups and broadcast through bounded transactions', () 
   });
 });
 
-it('selects Look and layout editors, changes one stage screen, and keeps warnings last', () => {
+it('selects Look and layout editors, changes one stage screen, and preserves warning actions', () => {
   const {input, send, onWorkspace, onShowWarning} = fixture();
   const live = parseLiveState({
     ...emptyLiveState(),
@@ -170,7 +195,7 @@ it('selects Look and layout editors, changes one stage screen, and keeps warning
     screenId: STAGE_ID,
     layoutId: LAYOUT_ID,
   });
-  rows.at(-1)?.onSelect?.();
+  rows.find(row => row.id === `warning:${STAGE_ID}`)?.onSelect?.();
   expect(onShowWarning).toHaveBeenCalledExactlyOnceWith(STAGE_ID);
 });
 
