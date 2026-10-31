@@ -253,9 +253,10 @@ the process only at a milestone boundary, never in the middle of one.
   reason, under "Outside my paths" in your pull request. Keep those changes to
   what the request needs; a larger change in someone else's area is that owner's
   request.
-- **Shared contracts:** `src/core/`, `src/contracts/`, and `src/preload/` are
-  kept by data. Additive changes (a new type, an optional field, a new IPC
-  channel or command) go in your own request, with schemas, valid and invalid
+- **Shared contracts:** `src/core/schema/`, `src/contracts/`, and `src/preload/`
+  are kept by data; the other `src/core/` folders belong to the feature that
+  owns their domain. Additive changes (a new type, an optional field, a new IPC
+  call in its area file) go in your own request, with schemas, valid and invalid
   tests, and caps, following data's conventions. A change that alters or removes
   an existing contract is tagged `break` and goes to data first.
 - **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
