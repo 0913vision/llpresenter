@@ -17,7 +17,15 @@ const UNAVAILABLE: EditResult = {
 
 /** Registers settings reads, edits, pushes, and main-process problem subscriptions. */
 export function registerSettingsChannels(
-  loading: Promise<SettingsStore | null>,
+  loading: Promise<Pick<
+    SettingsStore,
+    | 'subscribe'
+    | 'subscribeProblems'
+    | 'preferences'
+    | 'get'
+    | 'apply'
+    | 'dispose'
+  > | null>,
   log: Logger,
   renameLabel?: (edit: LabelRename) => Promise<EditResult>,
 ) {

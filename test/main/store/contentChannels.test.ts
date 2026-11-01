@@ -7,6 +7,7 @@ import {
 } from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import type {Logger} from '@main/log';
+import type {ContentStore} from '@main/store/contentStore';
 import {
   broadcast,
   broadcastEvents,
@@ -46,7 +47,7 @@ function ask(channel: string, value?: unknown): Promise<unknown> {
 
 function mockStore() {
   return {
-    apply: vi.fn(() =>
+    apply: vi.fn<ContentStore['apply']>(() =>
       Promise.resolve({ok: true, value: {id: HYMN_ONE_ID, revision: 2}}),
     ),
     songList: vi.fn(() => []),

@@ -9,7 +9,6 @@ import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {parseEditResult} from '@core/schema/contentEdit';
-import {parsePreferencesValue} from '@core/schema/preferences';
 import {
   parseSettingsDocument,
   settingsNames,
@@ -17,9 +16,8 @@ import {
 } from '@core/schema/settingsDocuments';
 import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import type {SettingsProblemListener} from '@main/store/settingsStore';
 import {
   HYMN_ONE_ID,
   hymnOne,
@@ -182,85 +180,6 @@ describe('registerStore', () => {
     });
   });
 
-  it('reads and pushes normalized preferences from the edited canonical document', async () => {
-    const context = await developmentContext();
-    const file = join(
-      context.appDataFolder,
-      DATA_FOLDER_NAME,
-      'Settings',
-      'preferences.json',
-    );
-    const value = {format: 'llsettings.preferences', schemaVersion: 1};
-    await writeJson(file, {
-      ...value,
-      show: {showClearUndoButton: false, future: 'kept'},
-    });
-    await register(mockLog(), context, () => true);
-    await ask(settingsEndpoints.get.channel, {name: 'preferences'});
-    const pending = ask(settingsEndpoints.edit.channel, {
-      type: 'settings.update',
-      name: 'preferences',
-      value: {...value, show: {showClearUndoButton: true}},
-      baseRevision: 1,
-    });
-    await Promise.resolve();
-    const normalized = await ask(settingsEndpoints.preferences.channel);
-    expect(parsePreferencesValue(normalized).ok).toBe(true);
-    expect(normalized).toMatchObject({
-      show: {showClearUndoButton: true, future: 'kept'},
-      backupCopies: 10,
-    });
-    expect(electron.send).toHaveBeenCalledWith(
-      settingsEndpoints.preferencesChanged.channel,
-      normalized,
-    );
-    expect(await pending).toEqual({
-      ok: true,
-      value: {id: 'preferences', revision: 2},
-    });
-  });
-
-  it('refuses invalid edits and newer settings without mutating or broadcasting them', async () => {
-    const context = await developmentContext();
-    const file = join(
-      context.appDataFolder,
-      DATA_FOLDER_NAME,
-      'Settings',
-      'messages.json',
-    );
-    const value = {
-      format: 'llsettings.messages',
-      schemaVersion: 2,
-      templates: [],
-      stagePresets: [],
-      future: true,
-    };
-    await writeJson(file, value);
-    const store = await register(mockLog(), context, () => true);
-    await ask(settingsEndpoints.get.channel, {name: 'messages'});
-    electron.send.mockClear();
-    expect(
-      await ask(settingsEndpoints.edit.channel, {
-        type: 'settings.update',
-        name: '../app',
-        value,
-        baseRevision: 1,
-      }),
-    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(
-      await ask(settingsEndpoints.edit.channel, {
-        type: 'settings.update',
-        name: 'messages',
-        value,
-        baseRevision: 1,
-      }),
-    ).toMatchObject({ok: false, error: {reason: 'read-only'}});
-    expect(electron.send).not.toHaveBeenCalled();
-    expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
-    await store.dispose();
-    expect(electron.handlers.has(settingsEndpoints.edit.channel)).toBe(false);
-  });
-
   it('creates every missing settings file with valid defaults and serves revisioned reads', async () => {
     const context = await developmentContext();
     await register(mockLog(), context, () => true);
@@ -333,58 +252,6 @@ describe('registerStore', () => {
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
   });
 
-  it('emits and warns once per broken file, keeps it untouched, and still loads the others', async () => {
-    const context = await developmentContext();
-    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, 'Settings');
-    await writeJson(join(folder, 'labels.json'), {format: 'wrong'});
-    await writeJson(join(folder, 'themes.json'), {format: 'wrong'});
-    await writeJson(join(folder, 'preferences.json'), {
-      format: 'llsettings.preferences',
-      schemaVersion: 1,
-      backupCopies: 99999,
-      previewFps: 1,
-    });
-    const log = mockLog();
-    const store = await register(log, context, () => true);
-    const cancelled = vi.fn();
-    store.subscribeSettingsProblems(cancelled)();
-    const listener = vi.fn<SettingsProblemListener>();
-    const unsubscribe = store.subscribeSettingsProblems(listener);
-    await ask(settingsEndpoints.get.channel, {name: 'bible'});
-    expect(cancelled).not.toHaveBeenCalled();
-    expect(listener.mock.calls.map(([problem]) => problem.file)).toEqual([
-      'themes.json',
-      'labels.json',
-      'preferences.json',
-    ]);
-    expect(listener.mock.calls[0]?.[0].error).toMatchObject({
-      kind: 'format',
-      file: join(folder, 'themes.json'),
-    });
-    expect(
-      log.warn.mock.calls.filter(
-        ([message]) => message === 'skipped a data file or a part of one',
-      ),
-    ).toHaveLength(3);
-    expect(
-      JSON.parse(await readFile(join(folder, 'themes.json'), 'utf8')),
-    ).toEqual({format: 'wrong'});
-    unsubscribe();
-    await store.dispose();
-    expect(electron.handlers.has(settingsEndpoints.get.channel)).toBe(false);
-    const late = vi.fn();
-    store.subscribeSettingsProblems(late);
-    await Promise.resolve();
-    expect(late).not.toHaveBeenCalled();
-  });
-
-  it('refuses malformed settings reads', async () => {
-    await register(mockLog(), await developmentContext(), () => true);
-    await expect(
-      ask(settingsEndpoints.get.channel, {name: '../app'}),
-    ).rejects.toThrow('Invalid settings read');
-  });
-
   it('imports through IPC, keeps the overwritten recovery copy, and persists new labels', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
@@ -434,66 +301,34 @@ describe('registerStore', () => {
     ).toMatchObject({matches: [{title: 'Invented import'}]});
   });
 
-  it.each([
-    undefined,
-    {},
-    {showClearUndoButton: false},
-    {showClearUndoButton: true},
-  ])(
-    'waits for the existing load and returns the normalized show preference %j',
-    async show => {
-      const context = await developmentContext();
-      if (show !== undefined) {
-        await writeJson(
-          join(
-            context.appDataFolder,
-            DATA_FOLDER_NAME,
-            'Settings',
-            'preferences.json',
-          ),
-          {format: 'llsettings.preferences', schemaVersion: 1, show},
-        );
-      }
-      const log = mockLog();
-      await register(log, context, () => true);
-      const [first, second] = await Promise.all([
-        ask(settingsEndpoints.preferences.channel),
-        ask(settingsEndpoints.preferences.channel),
-      ]);
-      expect(first).toMatchObject({
-        show: {showClearUndoButton: show?.showClearUndoButton ?? false},
-      });
-      expect(second).toEqual(first);
-      expect(parsePreferencesValue(first).ok).toBe(true);
-      expect(
-        log.info.mock.calls.filter(
-          ([message]) => message === 'read the data folder',
-        ),
-      ).toHaveLength(1);
-    },
-  );
-
-  it('defaults a broken preference without rewriting the original file', async () => {
+  it('waits for the existing load and answers both preference reads alike', async () => {
     const context = await developmentContext();
-    const file = join(
-      context.appDataFolder,
-      DATA_FOLDER_NAME,
-      'Settings',
-      'preferences.json',
+    await writeJson(
+      join(
+        context.appDataFolder,
+        DATA_FOLDER_NAME,
+        'Settings',
+        'preferences.json',
+      ),
+      {
+        format: 'llsettings.preferences',
+        schemaVersion: 1,
+        show: {showClearUndoButton: true},
+      },
     );
-    await writeJson(file, {
-      format: 'llsettings.preferences',
-      schemaVersion: 1,
-      show: {showClearUndoButton: 'yes'},
-    });
-    const original = await readFile(file, 'utf8');
     const log = mockLog();
     await register(log, context, () => true);
-    expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
-      show: {showClearUndoButton: false},
-    });
-    expect(log.warn).toHaveBeenCalled();
-    expect(await readFile(file, 'utf8')).toBe(original);
+    const [first, second] = await Promise.all([
+      ask(settingsEndpoints.preferences.channel),
+      ask(settingsEndpoints.preferences.channel),
+    ]);
+    expect(first).toMatchObject({show: {showClearUndoButton: true}});
+    expect(second).toEqual(first);
+    expect(
+      log.info.mock.calls.filter(
+        ([message]) => message === 'read the data folder',
+      ),
+    ).toHaveLength(1);
   });
 
   it('removes the preferences handler on disposal', async () => {

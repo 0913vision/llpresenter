@@ -45,7 +45,7 @@ function asProblem(file: string, error: unknown): SettingsProblem {
 export async function loadSettingsArea(
   name: SettingsName,
   locations: DataLocations,
-  saver: Saver,
+  saver: Pick<Saver, 'save'>,
 ): Promise<{
   readonly document: SettingsDocument | null;
   readonly problem: SettingsProblem | null;
