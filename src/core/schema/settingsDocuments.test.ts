@@ -492,4 +492,51 @@ describe('app-wide settings contracts', () => {
       ).toBe(false);
     }
   });
+
+  describe('mergeSettingsDocument refusals', () => {
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'themes',
+        revision: 1,
+        access: 'editable',
+        value: {
+          ...createDefaultThemes(),
+        },
+      }),
+    );
+
+    it('refuses a label rename, which is not a whole-file update', () => {
+      const edit = expectSuccess(
+        parseSettingsEdit({
+          type: 'labels.rename',
+          name: 'labels',
+          from: 'Before',
+          to: 'After',
+          baseRevision: 1,
+        }),
+      );
+      expect(mergeSettingsDocument(current, edit)).toEqual({
+        ok: false,
+        error: {
+          field: 'type',
+          message: 'Expected a whole-file settings update',
+        },
+      });
+    });
+
+    it('refuses an update that names another settings file', () => {
+      const edit = expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'labels',
+          baseRevision: 1,
+          value: {format: 'llsettings.labels', schemaVersion: 1, labels: []},
+        }),
+      );
+      expect(mergeSettingsDocument(current, edit)).toEqual({
+        ok: false,
+        error: {field: 'name', message: 'The edit names another settings file'},
+      });
+    });
+  });
 });

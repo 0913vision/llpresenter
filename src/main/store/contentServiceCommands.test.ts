@@ -1,4 +1,8 @@
-import {serviceItemIdSchema} from '@core/schema/ids';
+import {
+  serviceIdSchema,
+  serviceItemIdSchema,
+  templateIdSchema,
+} from '@core/schema/ids';
 import {testId} from '@core/schema/testHelpers';
 import {describe, expect, it} from 'vitest';
 import {EVENING_ID, HYMN_ONE_ID, SUNDAY_ID, itemId} from './testFiles';
@@ -136,5 +140,80 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     expect(store.serviceList()).toEqual([]);
     expect(store.templateList()).toEqual([]);
     expect(files.removed).toHaveLength(2);
+  });
+
+  describe('refusals', () => {
+    const MISSING_TEMPLATE = testId(
+      templateIdSchema,
+      '00000000-0000-4000-8000-000000000f01',
+    );
+    const MISSING_SERVICE = testId(
+      serviceIdSchema,
+      '00000000-0000-4000-8000-000000000f02',
+    );
+
+    it('refuses a 예배 순서 from a 템플릿 that does not exist and creates nothing', async () => {
+      const {store} = setUp();
+      const before = store.serviceList().length;
+      expect(
+        await store.apply({
+          type: 'service.create',
+          name: '주일 예배',
+          date: '2026-11-08T11:00',
+          templateId: MISSING_TEMPLATE,
+        }),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+      expect(store.serviceList()).toHaveLength(before);
+    });
+
+    it('refuses to delete the open 예배 순서 and keeps it', async () => {
+      const {store} = setUp([serviceFile(SUNDAY_ID, [])], {
+        openServiceId: SUNDAY_ID,
+      });
+      expect(
+        await store.apply({type: 'service.delete', serviceId: SUNDAY}),
+      ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+      expect(store.service(SUNDAY)).toBeDefined();
+    });
+
+    it('refuses to delete a 예배 순서 that does not exist', async () => {
+      const {store} = setUp();
+      expect(
+        await store.apply({
+          type: 'service.delete',
+          serviceId: MISSING_SERVICE,
+        }),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    });
+
+    it.each([
+      {from: {kind: 'service', id: MISSING_SERVICE}},
+      {from: {kind: 'template', id: MISSING_TEMPLATE}},
+    ] as const)(
+      'refuses an import from a missing $from.kind',
+      async ({from}) => {
+        const {store} = setUp([serviceFile(SUNDAY_ID, [])]);
+        expect(
+          await store.apply({
+            type: 'service.importItems',
+            serviceId: SUNDAY,
+            from,
+            itemIds: [],
+          }),
+        ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+      },
+    );
+
+    it('refuses an import into a 예배 순서 that does not exist', async () => {
+      const {store} = setUp([serviceFile(EVENING_ID, [])]);
+      expect(
+        await store.apply({
+          type: 'service.importItems',
+          serviceId: MISSING_SERVICE,
+          from: {kind: 'service', id: EVENING},
+          itemIds: [],
+        }),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    });
   });
 });
