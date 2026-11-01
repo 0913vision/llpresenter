@@ -38,10 +38,6 @@ export const lyricTextEntries = {
   outline: v.boolean(),
 };
 
-const lyricTextSchema = v.object(lyricTextEntries);
-
-export type LyricTextChange = Partial<v.InferInput<typeof lyricTextSchema>>;
-
 /** Matches the saved text color format without exposing the validation library. */
 export function isLyricTextColor(value: string): boolean {
   return v.safeParse(hexColor, value).success;
