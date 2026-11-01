@@ -4,7 +4,7 @@ import {
   parseServiceOpenRequest,
   parseServiceOpenReply,
 } from '@core/schema/serviceOpen';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = createServiceId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab');
 const OTHER = createServiceId('00000000-0000-4000-8000-000000000002');

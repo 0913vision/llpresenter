@@ -5,7 +5,7 @@ import {
   encodedTextSamples,
   testText as text,
   cp949Sample as cp949,
-} from '@main/import/testText';
+} from '@fixtures/main/import/testText';
 
 describe('text import encoding', () => {
   it.each(encodedTextSamples)(

@@ -9,7 +9,7 @@ import {
 } from '@core/schema/ids';
 import {parseService, parseTemplate} from '@core/schema/service';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {testId} from '@core/schema/testHelpers';
+import {testId} from '@fixtures/core/schema/testHelpers';
 import {join, resolve} from 'node:path';
 import {onTestFinished, vi} from 'vitest';
 import type {Logger} from '@main/log';
@@ -32,7 +32,7 @@ import {
   itemId,
   service,
   SUNDAY_ID,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 
 /** A neutral fixture value; declaring it does not read or write files. */
 export const ROOT = resolve('/data');

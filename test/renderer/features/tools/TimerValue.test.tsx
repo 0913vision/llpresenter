@@ -4,7 +4,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {TimerValue} from '@renderer/features/tools/TimerValue';
 
 const id = '00000000-0000-4000-8000-000000000001';

@@ -4,7 +4,7 @@ import {
   parseLibrarySearchResult,
   LIBRARY_SEARCH_LIMITS,
 } from '@core/schema/librarySearch';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const OTHER_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';

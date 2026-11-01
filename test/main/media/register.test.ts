@@ -6,7 +6,7 @@ import {makeTempDir} from '../../temp-dir';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';

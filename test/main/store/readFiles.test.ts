@@ -4,7 +4,7 @@ import {describe, expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
 import {makeTempDir} from '../../temp-dir';
 import {listFolder, loadFile, readTextFile} from '@main/store/readFiles';
-import {HYMN_ONE_ID, hymnOne, writeJson} from '@main/store/testFiles';
+import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 
 describe('readTextFile', () => {
   it('reads the text, or null when the file does not exist', async () => {

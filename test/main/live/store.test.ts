@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseMacroId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {defineSlice} from '@main/live/slice';

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {
   hoverForTooltip,
   resetTooltips,

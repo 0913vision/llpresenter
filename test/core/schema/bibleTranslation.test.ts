@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseBibleTranslation} from '@core/schema/bibleTranslation';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const file = 'example.llbible';
 const sample = {

@@ -11,7 +11,7 @@ import {
   expectFailure,
   expectSuccess,
   TestRandom,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'Services/a41e0c52-7e1f-4a2b-8c3d-4e5f60718293.llservice';
 const RANDOM_SERVICES = 200;

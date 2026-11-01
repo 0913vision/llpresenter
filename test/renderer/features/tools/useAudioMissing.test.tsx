@@ -2,7 +2,7 @@ import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaList} from '@core/schema/mediaList';
 import type {MediaId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {useAudioMissing} from '@renderer/features/tools/useAudioMissing';

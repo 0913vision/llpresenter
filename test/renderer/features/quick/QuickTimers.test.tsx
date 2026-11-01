@@ -14,7 +14,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';

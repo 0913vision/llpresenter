@@ -20,7 +20,12 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import type {SettingsProblemListener} from '@main/store/settingsStore';
-import {HYMN_ONE_ID, hymnOne, itemId, writeJson} from '@main/store/testFiles';
+import {
+  HYMN_ONE_ID,
+  hymnOne,
+  itemId,
+  writeJson,
+} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('renames a label through settings IPC, pushes the changed songs, and retains the files across restart', async () => {

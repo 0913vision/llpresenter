@@ -18,7 +18,7 @@ import {
   expectFailure,
   expectRoundTrip,
   expectSuccess,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'recovery/live.json';
 const uuid = (number: number) =>

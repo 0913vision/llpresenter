@@ -6,7 +6,7 @@ import {makeTempDir} from '../../temp-dir';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {registerUiZoom, type ZoomControl} from '@main/store/uiZoom';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 type Handler = (
   event: {readonly sender: {readonly id: number}},

@@ -10,7 +10,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {useLive} from '@renderer/session/live';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {

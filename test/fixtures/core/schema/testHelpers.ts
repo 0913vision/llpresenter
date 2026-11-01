@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {expect} from 'vitest';
-import type {Result} from '../common/result';
-import type {FileError, LoadedFile} from './fileFormat';
+import type {Result} from '@core/common/result';
+import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 
 const UINT32_RANGE = 2 ** 32;
 const HEX_RADIX = 16;

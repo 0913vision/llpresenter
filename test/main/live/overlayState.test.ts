@@ -9,7 +9,7 @@ import {
   MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;

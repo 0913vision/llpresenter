@@ -11,7 +11,7 @@ import {
   HYMN_ONE_ID,
   hymnOne,
   itemId,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 import {
   parseBibleLookupRequest,
   type BibleLookupReply,

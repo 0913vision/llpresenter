@@ -14,7 +14,12 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import * as chapterFile from '@main/bible/chapterFile';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {itemId, service, SUNDAY_ID, writeJson} from '@main/store/testFiles';
+import {
+  itemId,
+  service,
+  SUNDAY_ID,
+  writeJson,
+} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('projects saved Bible items from the installed chunked translation and refreshes removed translations', async () => {

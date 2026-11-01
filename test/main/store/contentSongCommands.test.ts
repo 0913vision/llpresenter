@@ -4,7 +4,12 @@ import {convertTextImport} from '@core/songs/textImport';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {ContentStore} from '@main/store/contentStore';
-import {HYMN_ONE_ID, SUNDAY_ID, hymnOne, itemId} from '@main/store/testFiles';
+import {
+  HYMN_ONE_ID,
+  SUNDAY_ID,
+  hymnOne,
+  itemId,
+} from '@fixtures/main/store/testFiles';
 import {
   SONG,
   SUNDAY,

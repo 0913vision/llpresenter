@@ -10,7 +10,7 @@ import {loadStore} from '@main/store/fileStore';
 import {settingsCodecs} from '@main/store/settingsCodecs';
 import {Saver} from '@main/store/saver';
 import {openSettingsStore} from '@main/store/settingsStore';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 vi.mock('@core/schema/settingsDocuments', async importOriginal => {
   const actual =

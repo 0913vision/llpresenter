@@ -25,7 +25,7 @@ import {
   service,
   SUNDAY_ID,
   writeJson,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 
 describe('content opening through registerStore', () => {
   it('reads the latest standalone song revision and returns null after deletion', async () => {

@@ -17,7 +17,7 @@ import {openAppConfig} from '@main/store/appConfigFile';
 import type {WriteResult} from '@main/store/fileWriter';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {registerStore} from '@main/store/register';
-import {itemId, service, writeJson} from '@main/store/testFiles';
+import {itemId, service, writeJson} from '@fixtures/main/store/testFiles';
 
 type Handler = (event: unknown, value?: unknown) => unknown;
 const electron = vi.hoisted(() => ({

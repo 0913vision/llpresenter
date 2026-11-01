@@ -16,7 +16,7 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import * as atomicWrite from '@main/store/atomicWrite';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {itemId, service, writeJson} from '@main/store/testFiles';
+import {itemId, writeJson} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('saves and switches services, remembers the choice across restart, and sends no live-output change', async () => {

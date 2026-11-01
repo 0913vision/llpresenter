@@ -4,7 +4,7 @@ import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import {startMediaAnalysis} from '@main/media/analysis';

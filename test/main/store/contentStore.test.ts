@@ -1,6 +1,6 @@
 import {serviceItemIdSchema} from '@core/schema/ids';
 import {parseTemplate} from '@core/schema/service';
-import {testId} from '@core/schema/testHelpers';
+import {testId} from '@fixtures/core/schema/testHelpers';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {
@@ -8,7 +8,7 @@ import {
   HYMN_ONE_ID,
   SUNDAY_ID,
   itemId,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 import {
   EVENING,
   SONG,

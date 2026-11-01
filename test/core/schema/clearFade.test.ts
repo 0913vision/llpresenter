@@ -10,7 +10,7 @@ import {
   withPreferenceDefaults,
 } from '@core/schema/preferences';
 import {parseMacros, serializeMacros} from '@core/schema/macros';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '00000000-0000-4000-8000-000000000001';
 const transition = {fade: true, durationMs: 1200};

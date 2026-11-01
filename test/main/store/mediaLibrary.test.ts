@@ -9,7 +9,7 @@ import {
   LoadingMediaLibrary,
   NO_MEDIA,
 } from '@main/store/mediaLibrary';
-import {itemId} from '@main/store/testFiles';
+import {itemId} from '@fixtures/main/store/testFiles';
 import {makeTempDir} from '../../temp-dir';
 
 const MEDIA = resolve('/data/LoveLight/미디어');

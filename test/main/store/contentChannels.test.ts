@@ -5,10 +5,10 @@ import {
   serviceIdSchema,
   templateIdSchema,
 } from '@core/schema/ids';
-import {testId} from '@core/schema/testHelpers';
+import {testId} from '@fixtures/core/schema/testHelpers';
 import type {Logger} from '@main/log';
 import {broadcast, broadcastEvents} from '@main/store/contentChannels';
-import {HYMN_ONE_ID, SUNDAY_ID} from '@main/store/testFiles';
+import {HYMN_ONE_ID, SUNDAY_ID} from '@fixtures/main/store/testFiles';
 
 interface WindowStub {
   isDestroyed(): boolean;

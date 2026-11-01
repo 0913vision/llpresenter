@@ -4,7 +4,7 @@ import {
   parseSong,
   serializeSong,
 } from '@core/schema/song';
-import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'Songs/6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab.llsong';
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';

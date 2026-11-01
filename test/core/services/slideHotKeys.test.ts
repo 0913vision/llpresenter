@@ -3,7 +3,7 @@ import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {parseShowService, type ShowTile} from '@core/schema/showService';
 import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const SONG = '00000000-0000-4000-8000-000000000001';
 const FIRST = '00000000-0000-4000-8000-000000000002';

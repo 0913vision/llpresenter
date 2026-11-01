@@ -17,7 +17,7 @@ import {
   service,
   SUNDAY_ID,
   writeJson,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 
 interface TestFolders {
   readonly appDataFolder: string;

@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
 import {makeTempDir} from '../../temp-dir';
 import {loadFolder} from '@main/store/library';
-import {HYMN_ONE_ID, hymnOne, writeJson} from '@main/store/testFiles';
+import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 
 const OTHER_SONG_ID = '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
 

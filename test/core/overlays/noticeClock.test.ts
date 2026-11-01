@@ -7,7 +7,7 @@ import {
 import type {NoticePlayback} from '@core/live/state';
 import {parseNoticePlayback} from '@core/schema/overlayState';
 import {createMediaId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const START = 1_700_000_000_000;
 const ID = '00000000-0000-4000-8000-000000000001';

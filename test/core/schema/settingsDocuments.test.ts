@@ -8,7 +8,7 @@ import {
   settingsNames,
   type SettingsName,
 } from '@core/schema/settingsDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {createDefaultThemes} from '@core/themes/defaults';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';

@@ -8,7 +8,7 @@ import {readdir, utimes} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 describe('startup upkeep through registerStore', () => {
   it('logs at most 50 problems and counts the rest', async () => {

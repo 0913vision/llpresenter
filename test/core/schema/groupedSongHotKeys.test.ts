@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseGroupedSong, serializeGroupedSong} from '@core/schema/groupedSong';
-import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const SONG = '00000000-0000-4000-8000-000000000001';
 const FIRST = '00000000-0000-4000-8000-000000000002';

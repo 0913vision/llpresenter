@@ -5,7 +5,7 @@ import {
   createMediaPlaylistId,
 } from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {editMediaList, type MediaListEdit} from '@main/store/mediaEdits';
 
 const uuid = (index: number) =>

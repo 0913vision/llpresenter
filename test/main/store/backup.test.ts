@@ -10,7 +10,7 @@ import {
   type BackupsOptions,
 } from '@main/store/backup';
 import {resolveLocations, type DataLocations} from '@main/store/locations';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 const NOW = new Date(2026, 9, 25, 7, 58, 0);
 const NOW_NAME = '2026-10-25_075800';

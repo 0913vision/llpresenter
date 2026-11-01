@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseMediaList, serializeMediaList} from '@core/schema/mediaList';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseMediaList, serialize: serializeMediaList};
 const WARM_LIGHT = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';

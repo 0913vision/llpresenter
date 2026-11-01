@@ -2,7 +2,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {parseSongDocument} from '@core/schema/contentDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {setup} from '@fixtures/renderer/features/songs/editor/songSessionFixture';
 import {SongSession} from '@renderer/features/songs/editor/songSession';

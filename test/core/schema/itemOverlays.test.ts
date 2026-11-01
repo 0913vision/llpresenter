@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import * as v from 'valibot';
 import {itemOverlaySchema, itemOverlaysSchema} from '@core/schema/itemOverlays';
 import {parseService} from '@core/schema/service';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;

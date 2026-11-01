@@ -7,7 +7,7 @@ import {
 } from '@core/schema/recoveryRecord';
 import {parseService} from '@core/schema/service';
 import {parseGroupedSong} from '@core/schema/groupedSong';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {RecoveryContent} from '@main/live/recovery/plan';
 import {
   HYMN_ONE_ID,
@@ -16,7 +16,7 @@ import {
   service,
   EVENING_ID,
   SUNDAY_ID,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 
 export const SAVED_AT = '2026-10-26T06:00:00+09:00';
 export const SAVED_AT_MS = Date.parse(SAVED_AT);

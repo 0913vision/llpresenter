@@ -1,7 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {checkPart} from '@core/schema/fileFormat';
-import type {FileCodec} from '@core/schema/testHelpers';
-import {expectFailure, expectSuccess, testId} from '@core/schema/testHelpers';
+import type {FileCodec} from '@fixtures/core/schema/testHelpers';
+import {
+  expectFailure,
+  expectSuccess,
+  testId,
+} from '@fixtures/core/schema/testHelpers';
 import {serviceItemIdSchema} from '@core/schema/ids';
 import {
   parseService,

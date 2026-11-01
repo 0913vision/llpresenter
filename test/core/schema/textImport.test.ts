@@ -6,7 +6,7 @@ import {
   parseTextImportPreviewRequest,
   parseTextImportPreviewResult,
 } from '@core/schema/textImport';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const source = {
   source: 'file',

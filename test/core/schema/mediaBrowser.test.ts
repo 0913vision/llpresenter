@@ -5,7 +5,7 @@ import {
   parseMediaBrowserChange,
 } from '@core/schema/mediaBrowser';
 import {parsePrepMediaChange, parseUiState} from '@core/schema/uiState';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('media browser UI boundaries', () => {
   it.each([

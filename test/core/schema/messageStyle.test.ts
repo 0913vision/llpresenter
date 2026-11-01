@@ -5,7 +5,7 @@ import {
   parseMessages,
   serializeMessages,
 } from '@core/schema/messages';
-import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const styleId = '44444444-4444-4444-8444-444444444444';
 const file = {

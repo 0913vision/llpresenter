@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseScreens, serializeScreens} from '@core/schema/screens';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseScreens, serialize: serializeScreens};
 const MAIN_ID = '11111111-1111-4111-8111-111111111111';

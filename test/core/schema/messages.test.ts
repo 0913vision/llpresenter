@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseMessages, serializeMessages} from '@core/schema/messages';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseMessages, serialize: serializeMessages};
 const CAR = 'f1f2f3f4-1111-4222-8333-444455556666';

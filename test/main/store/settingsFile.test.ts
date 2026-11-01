@@ -9,7 +9,7 @@ import {
   settingsLocation,
   type SettingsLocation,
 } from '@main/store/settingsFile';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 const BROKEN_JSON = '{"labels": ';
 const OLDER_COPY = '2026-10-24T09-00-00.000Z.json';

@@ -8,7 +8,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/quickTimerEdit';
 import {MAX_QUICK_ITEMS} from '@core/schema/quick';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {DocumentFiles} from '@main/store/contentPersistence';
 import {SettingsStore} from '@main/store/settingsStore';

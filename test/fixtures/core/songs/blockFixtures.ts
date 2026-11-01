@@ -1,6 +1,6 @@
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import {parseSong} from '@core/schema/song';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 /** Returns an invented legacy song with repeat references; it does not persist it. */
 export function song(

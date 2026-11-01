@@ -7,7 +7,7 @@ import {
   UI_ZOOM,
   UI_ZOOM_FACTOR,
 } from '@core/schema/uiZoom';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('UI zoom contract', () => {
   it.each([UI_ZOOM_FACTOR.min, 1.2, UI_ZOOM_FACTOR.max])(

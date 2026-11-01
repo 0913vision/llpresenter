@@ -18,7 +18,7 @@ import {makeTempDir} from '../../temp-dir';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {electronLocationContext, registerStore} from '@main/store/register';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('warns once about a broken app.json, naming the file and the field', async () => {

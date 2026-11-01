@@ -12,7 +12,7 @@ import {
   expectFailure,
   expectSuccess,
   TestRandom,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'notes/note.json';
 // NOTE(0913vision): 200,000 entries are past the engine's argument limit for a

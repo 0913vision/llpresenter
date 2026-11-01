@@ -1,7 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';

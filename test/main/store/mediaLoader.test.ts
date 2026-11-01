@@ -8,7 +8,7 @@ import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
 import {openMediaStore} from '@main/store/mediaLoader';
 import {Saver} from '@main/store/saver';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 const EMPTY = {
   format: 'llmedia',

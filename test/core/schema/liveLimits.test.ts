@@ -7,7 +7,7 @@ import {
 import {parseLiveState} from '@core/schema/liveState';
 import {LIVE_STATE_LIMITS, LIVE_OUTPUT_ALIASES} from '@core/schema/liveLimits';
 import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;

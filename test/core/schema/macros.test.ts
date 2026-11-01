@@ -12,7 +12,7 @@ import {
   expectInvalidField,
   expectRoundTrip,
   expectSuccess,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseMacros, serialize: serializeMacros};
 

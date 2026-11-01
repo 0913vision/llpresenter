@@ -3,7 +3,7 @@ import {libraryEndpoints} from '@contracts/ipc/library';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import type {Logger} from '@main/log';
-import {hymnOne} from '@main/store/testFiles';
+import {hymnOne} from '@fixtures/main/store/testFiles';
 import {registerLibrarySearch} from '@main/search/register';
 import {SongSearchIndex} from '@main/search/songIndex';
 

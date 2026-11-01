@@ -9,7 +9,7 @@ import {
   type GroupedSong,
 } from '@core/schema/groupedSong';
 import {parseSong} from '@core/schema/song';
-import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'invented.llsong';
 const SONG_ID = '00000000-0000-4000-8000-000000000001';

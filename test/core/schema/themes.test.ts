@@ -13,7 +13,7 @@ import {
   themeTextSchema,
   themesSchema,
 } from '@core/schema/themes';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;

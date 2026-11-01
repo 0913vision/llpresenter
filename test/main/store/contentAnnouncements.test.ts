@@ -1,7 +1,7 @@
 import {serviceItemIdSchema} from '@core/schema/ids';
-import {testId} from '@core/schema/testHelpers';
+import {testId} from '@fixtures/core/schema/testHelpers';
 import {describe, expect, it} from 'vitest';
-import {SUNDAY_ID, itemId} from '@main/store/testFiles';
+import {SUNDAY_ID, itemId} from '@fixtures/main/store/testFiles';
 import {
   SONG,
   SUNDAY,

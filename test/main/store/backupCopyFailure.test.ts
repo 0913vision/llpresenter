@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import {runBackup} from '@main/store/backup';
 import {resolveLocations} from '@main/store/locations';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 const copyFailures = vi.hoisted(() => {
   const codes: string[] = [];

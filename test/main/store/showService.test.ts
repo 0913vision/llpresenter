@@ -18,7 +18,7 @@ import {
   itemId,
   service,
   SUNDAY_ID,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {resolveServicePassages} from '@main/bible/servicePassages';

@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaList} from '@core/schema/mediaList';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {audioTracks} from '@core/media/audioTracks';
 import {WindowedAudioTracks} from '@renderer/features/tools/WindowedAudioTracks';

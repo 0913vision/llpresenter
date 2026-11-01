@@ -8,7 +8,7 @@ import {
   saveFailedProblem,
 } from '@core/schema/appProblem';
 import {macroIdSchema} from '@core/schema/ids';
-import {testId} from '@core/schema/testHelpers';
+import {testId} from '@fixtures/core/schema/testHelpers';
 
 const MACRO_ID = 'c63a2e74-9a31-4c4d-8e5f-607182930415';
 

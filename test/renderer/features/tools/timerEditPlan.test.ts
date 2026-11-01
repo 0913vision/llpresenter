@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {createTimerId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {
   mergeSettingsDocument,
   parseSettingsDocument,

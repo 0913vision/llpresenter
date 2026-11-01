@@ -4,7 +4,7 @@ import {serviceEndpoints} from '@contracts/ipc/service';
 import {createServiceId, type ServiceId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {parseService} from '@core/schema/service';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ContentStore, type DocumentFiles} from '@main/store/contentStore';
 import {resolveLocations} from '@main/store/locations';

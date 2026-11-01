@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {parseTimers} from '@core/schema/timers';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {timerEditDraft} from '@core/timers/timerEditDraft';
 
 it('preserves each saved timer kind and its settings in an edit draft', () => {

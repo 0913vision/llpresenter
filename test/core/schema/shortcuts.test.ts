@@ -9,7 +9,7 @@ import {
   expectInvalidField,
   expectRoundTrip,
   expectSuccess,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseShortcuts, serialize: serializeShortcuts};
 const LOOK_COMMAND = 'look.5d2f0c52-7e1f-4a2b-8c3d-4e5f60718293';

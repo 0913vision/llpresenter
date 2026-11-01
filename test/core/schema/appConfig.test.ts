@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseAppConfig, serializeAppConfig} from '@core/schema/appConfig';
-import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'C:\\data\\app.json';
 const SERVICE_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';

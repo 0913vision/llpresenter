@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseProps, serializeProps} from '@core/schema/props';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseProps, serialize: serializeProps};
 const LOGO = 'e1e2e3e4-2222-4222-8333-444455556666';

@@ -5,7 +5,7 @@ import {
   parseLiveCommand,
   parseLiveCommandRequest,
 } from '@core/schema/liveCommand';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const first = {type: 'theme.set', themeId: ID};

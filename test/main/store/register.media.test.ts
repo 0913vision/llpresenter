@@ -14,7 +14,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {itemId, writeJson} from '@main/store/testFiles';
+import {itemId, writeJson} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {

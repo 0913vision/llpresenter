@@ -6,7 +6,7 @@ import {
   type LabelRename,
 } from '../../src/core/schema/settingsDocuments';
 import {parseGroupedSong} from '../../src/core/schema/groupedSong';
-import {expectSuccess} from '../../src/core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '../../test/temp-dir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ContentStore} from '../../src/main/store/contentStore';
@@ -15,7 +15,7 @@ import {resolveLocations} from '../../src/main/store/locations';
 import {RecoveryCopies} from '../../src/main/store/recoveryCopies';
 import {Saver} from '../../src/main/store/saver';
 import {SettingsStore} from '../../src/main/store/settingsStore';
-import {itemId} from '../../src/main/store/testFiles';
+import {itemId} from '@fixtures/main/store/testFiles';
 
 const SONG_COUNT = 1_000;
 const SEED_CHUNK = 25;

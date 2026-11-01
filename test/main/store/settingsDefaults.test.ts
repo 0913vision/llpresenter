@@ -10,7 +10,7 @@ import {Saver} from '@main/store/saver';
 import {settingsDefaults} from '@main/store/settingsDefaults';
 import {settingsLocation} from '@main/store/settingsFile';
 import {loadSettingsArea} from '@main/store/settingsLoader';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 async function setup() {
   const folder = await makeTempDir();

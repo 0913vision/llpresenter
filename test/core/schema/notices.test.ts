@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseNotices, serializeNotices} from '@core/schema/notices';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseNotices, serialize: serializeNotices};
 const SUNDAY_NOTICES = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';

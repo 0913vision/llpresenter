@@ -4,7 +4,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createSettingsAccess} from '@main/store/settingsAccess';
 import {SettingsStore} from '@main/store/settingsStore';

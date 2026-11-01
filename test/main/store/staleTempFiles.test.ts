@@ -4,7 +4,7 @@ import {describe, expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import {isTemporaryFileName} from '@main/store/atomicWrite';
 import {removeStaleTempFiles} from '@main/store/staleTempFiles';
-import {writeJson} from '@main/store/testFiles';
+import {writeJson} from '@fixtures/main/store/testFiles';
 
 const UUID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const NIL_UUID = '00000000-0000-0000-0000-000000000000';

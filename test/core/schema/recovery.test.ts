@@ -4,7 +4,7 @@ import {
   parseRecoveryResult,
   parseRecoverySummary,
 } from '@core/schema/recovery';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const savedAt = '2026-10-25T12:00:00Z';

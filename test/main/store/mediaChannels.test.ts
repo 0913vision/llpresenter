@@ -3,7 +3,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MediaStore} from '@main/store/mediaStore';
 import {

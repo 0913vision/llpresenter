@@ -29,7 +29,7 @@ import {
   service,
   SUNDAY_ID,
   writeJson,
-} from '@main/store/testFiles';
+} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
   it('pushes edited song tiles without a live-state push and flushes before disposal', async () => {

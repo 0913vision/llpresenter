@@ -1,7 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseServiceItemId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {parseService} from '@core/schema/service';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {LiveStore, dispatchLogged} from '@main/live/store';

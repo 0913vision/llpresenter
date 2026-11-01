@@ -7,7 +7,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {createSongId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   ContentStore,
@@ -16,7 +16,7 @@ import {
 } from '@main/store/contentStore';
 import {resolveLocations} from '@main/store/locations';
 import {SettingsStore} from '@main/store/settingsStore';
-import {itemId} from '@main/store/testFiles';
+import {itemId} from '@fixtures/main/store/testFiles';
 
 const {locations} = resolveLocations(
   {},

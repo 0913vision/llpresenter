@@ -1,6 +1,9 @@
 import {describe, it} from 'vitest';
 import {parseBible, serializeBible} from '@core/schema/bible';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseBible, serialize: serializeBible};
 

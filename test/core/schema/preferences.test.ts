@@ -10,7 +10,7 @@ import {
   expectInvalidField,
   expectRoundTrip,
   expectSuccess,
-} from '@core/schema/testHelpers';
+} from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parsePreferences, serialize: serializePreferences};
 const HEADER = {format: 'llsettings.preferences', schemaVersion: 1};

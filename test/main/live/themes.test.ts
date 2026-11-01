@@ -7,7 +7,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {ContentStoreOptions} from '@main/store/contentStore';
 import {serviceFile, setUp} from '@fixtures/main/store/contentStoreFixtures';
-import {HYMN_ONE_ID, itemId, SUNDAY_ID} from '@main/store/testFiles';
+import {HYMN_ONE_ID, itemId, SUNDAY_ID} from '@fixtures/main/store/testFiles';
 import {registerThemeOutput} from '@main/live/themes';
 import {LiveStore} from '@main/live/store';
 

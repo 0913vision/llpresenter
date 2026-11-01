@@ -3,7 +3,10 @@ import {
   parseSettingsDocument,
   parseSettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
+import {
+  expectInvalidField,
+  expectRoundTrip,
+} from '@fixtures/core/schema/testHelpers';
 import {
   MAX_TIMER_SECONDS,
   parseTimers,

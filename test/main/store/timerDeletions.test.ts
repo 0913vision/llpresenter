@@ -5,7 +5,7 @@ import {
   type SettingsDocument,
   type SettingsName,
 } from '@core/schema/settingsDocuments';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAIN, TEXT_STYLE} from '@fixtures/core/overlays';

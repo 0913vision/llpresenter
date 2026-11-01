@@ -7,7 +7,7 @@ import {
   parseMediaImportResult,
   parseMediaImportProgress,
 } from '@core/schema/mediaEdit';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const playlist = {id: ID, name: '재생목록', items: [ID]};
