@@ -25,14 +25,13 @@ without exception.
 
 - Team members push only their own branches (`<tag>/<name>/<feature>`) to
   `origin`, so GitHub's runners verify them; after a rebase they push with
-  `--force-with-lease` to their own branch only. Only the lead pushes `main`,
-  after a merge. The lead verifies `main` before pushing it (the pre-push hook
-  skips it when a clean stamp covers the tree). Nobody pushes tags or
+  `--force-with-lease` to their own branch only. Only the lead pushes `main`, in
+  sensible work units, without running checks locally. Nobody pushes tags or
   force-pushes `main`. A merged branch is deleted from `origin` by the
   dispatcher or the lead, like a pull request's delete-after-merge; members
   never delete remote branches themselves.
 - Never run `reset --hard`, rewrite history, or delete branches on `main`.
-  Members rebase only their own branch onto `main`. Nobody rebases `main`
+  Members rebase only their own branch onto `origin/main`. Nobody rebases `main`
   itself.
 - Never change or delete files outside the repository or in another session's
   worktree.
@@ -62,32 +61,31 @@ the process only at a milestone boundary, never in the middle of one.
   call in its area file) go in your own request, with schemas, valid and invalid
   tests, and caps, following data's conventions. A change that alters or removes
   an existing contract is tagged `break` and goes to data first.
-- **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
-  review, decide for yourself what to do next, as a developer on a real team
-  would: start an independent ticket from `main`, stack on the open branch only
-  when the next work really builds on it, and wait for the review when the open
-  change is risky or likely to change (the team workflow, "Stacked branches").
-  Own your ticket until it merges; don't let it drag.
-- **Checks:** before every push, run the typecheck, the format check, ESLint on
-  your changed files, and the tests related to them (the member guide). The full
-  `npm run verify` runs on GitHub; the review starts only after your branch's CI
-  run passes. Never poll CI, and don't run the full verify locally unless the
-  lead asks.
-- **Pull request:** one ticket is one branch and one pull request: a short file
-  outside git whose title becomes the one squashed commit on `main` (the member
-  guide). Rebase onto the latest `main` once before you open it, resolving
-  conflicts yourself (for `package-lock.json`, take `main`'s file and run
-  `npm install`). Answer findings once, one line each; nits go into your next
-  branch.
-- **Merging:** the dispatcher, or the lead for sensitive paths, squash-merges
-  approved branches onto `main`, one at a time. A conflict comes back to you.
+- **Branches:** always work on your own branch (`<tag>/<name>/<feature>`). While
+  one is in review, decide for yourself what to do next, as a developer on a
+  real team would: start an independent ticket from `origin/main`, stack on the
+  open branch only when the next work really builds on it, and wait for the
+  review when the open change is risky or likely to change (the team workflow,
+  "Stacked branches"). Own your ticket until it merges; don't let it drag.
+- **Before you push your branch:** rebase it onto `origin/main`. Don't run CI
+  checks locally (typecheck, lint, tests, verify); GitHub runs them on every
+  pushed branch. Never poll CI.
+- **Review request:** one ticket is one branch and one pull request: a short
+  file outside git whose title becomes the one squashed commit on `main` (the
+  member guide). When your branch's CI passes, message the lead. The lead
+  decides how many reviewers and which ones review it. Resolve rebase conflicts
+  yourself (for `package-lock.json`, take `main`'s file and run `npm install`).
+  Answer findings once, one line each; nits go into your next branch.
+- **Merging:** when the review passes, the lead squash-merges the branch onto
+  the local `main`, one at a time, if its CI passed and its base is
+  `origin/main`. A conflict comes back to you.
 - **Nothing about the process is committed:** no review files, check sheets,
   sample data for checks, screenshots, measurements, run logs, plans, status
   pages, briefs, or notes. Committed files hold the product only: code, tests,
   `docs/spec/`, `docs/TECH.md`, `docs/decisions.md`, the design system, README,
   and CONTRIBUTING. Process documents live in the team folder outside the
   repository.
-- **Reporting:** send the lead one short message when you open a pull request,
+- **Reporting:** send the lead one short message when your branch's CI passes,
   when you finish a task, when you're blocked, and when you have no work left.
   The lead gives you the next task. Don't wait silently.
 - Use the dev server port and app data folder the lead gives you. Never let a
