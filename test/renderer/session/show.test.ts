@@ -1,10 +1,14 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type LiveState} from '@core/live/state';
+import {bibleSource} from '@core/bible/source';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {lookupRequest} from '@fixtures/core/bibleLookups';
+import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {
+  applyService,
   hasSlideHotKey,
   openNextItem,
   openPreviousItem,
@@ -17,7 +21,10 @@ import {
   outputTile,
   useShow,
 } from '@renderer/session/show';
-import {seedSampleService} from '@fixtures/renderer/session/sampleService';
+import {
+  sampleService,
+  seedSampleService,
+} from '@fixtures/renderer/session/sampleService';
 
 const sent: LiveCommand[] = [];
 
@@ -276,5 +283,57 @@ describe('slide hotkeys', () => {
     expect(hasSlideHotKey('KeyA')).toBe(false);
     expect(outputHotKey('KeyA')).toBe(false);
     expect(sent).toHaveLength(0);
+  });
+});
+
+describe('Bible passages', () => {
+  async function passage(input: string) {
+    const reply = await formLookupReply(lookupRequest(input));
+    if (!reply.result.ok) throw Error('Invalid Bible passage fixture');
+    return reply.result.value;
+  }
+
+  it('goes on from the live verse with the next and previous 장 keys after the passage grows', async () => {
+    const original = bibleSource(await passage('요한복음 3:16-18'));
+    const grown = bibleSource(await passage('요한복음 3:15-18'));
+    useShow.setState({
+      bibleSource: grown,
+      liveBibleSource: original,
+      openItemId: grown.id,
+      selectedTile: 2,
+    });
+    setLive(original.id, 1);
+
+    outputNext();
+    expect(sent.at(-1)).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: grown.id, position: 3, label: '3:18'},
+    });
+    outputPrevious();
+    expect(sent.at(-1)).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: grown.id, position: 1, label: '3:16'},
+    });
+  });
+
+  it('keeps an open passage, its 장 keys, and reveal across service refreshes', async () => {
+    const source = bibleSource(await passage('요한복음 3:16-18'));
+    useShow.setState({bibleSource: source, openItemId: source.id});
+
+    applyService({...sampleService, revision: 2});
+    applyService(null);
+    expect(useShow.getState().openItemId).toBe(source.id);
+    setLive(source.id, 1);
+    outputNext();
+    outputPrevious();
+    expect(
+      sent.map(command =>
+        command.type === 'slide.show' ? command.slide.position : null,
+      ),
+    ).toEqual([2, 0]);
+    openItem('other');
+    revealLiveItem();
+
+    expect(useShow.getState().openItemId).toBe(source.id);
   });
 });

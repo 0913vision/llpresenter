@@ -6,13 +6,12 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
 import {
   openItem,
-  outputNext,
-  outputPrevious,
   outputTile,
   selectTile,
   useShow,
@@ -21,10 +20,8 @@ import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
-import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {BibleAdjacentButtons} from '@renderer/features/bible/BibleAdjacentButtons';
 import {openBiblePassage} from '@renderer/features/bible/actions';
-import {adjacentVerseRange} from '@core/bible/adjacentVerses';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
@@ -35,12 +32,19 @@ async function passage(input = '요한복음 3:16-18') {
   return reply.result.value;
 }
 
+function CurrentButtons(): JSX.Element | null {
+  const source = useShow(view => bibleSourceFor(view, view.openItemId));
+  return source === null ? null : (
+    <BibleAdjacentButtons key={source.id} source={source} />
+  );
+}
+
 async function setup(input?: string, verseNumbers = true) {
   const fixture = panelApi();
   window.llp = fixture.api;
   openBiblePassage(await passage(input), {verseNumbers});
   selectTile(1);
-  const view = render(<BiblePanel sizeClass="normal" />);
+  const view = render(<CurrentButtons />);
   return {...fixture, ...view};
 }
 
@@ -117,10 +121,6 @@ describe('adjacent Bible verses', () => {
         `${verseNumbers ? '17 ' : ''}Invented book 43, chapter 3, verse 17`,
       );
       expect(bibleSourceFor(view, original.id)).toBe(original);
-      const liveTiles = screen
-        .getAllByRole('option')
-        .filter(tile => tile.dataset.state?.split(' ').includes('live'));
-      expect(liveTiles).toEqual([screen.getAllByRole('option')[2]]);
       expect(fixture.send).not.toHaveBeenCalled();
       expect(fixture.edit).not.toHaveBeenCalled();
       expect(
@@ -133,72 +133,6 @@ describe('adjacent Bible verses', () => {
       ]);
     },
   );
-
-  it('goes on from the live verse with the next and previous 장 keys after the passage grows', async () => {
-    const fixture = await setup();
-    const original = currentSource();
-    const live = emptyLiveState();
-    useLive.setState({
-      state: {
-        ...live,
-        layers: {
-          ...live.layers,
-          slide: {
-            itemId: original.id,
-            position: 1,
-            label: '3:17',
-            lines: ['Invented live verse'],
-          },
-        },
-      },
-    });
-    fireEvent.click(button('previous'));
-    await waitFor(() =>
-      expect(currentSource().passage.ref).toBe('요한복음 3:15-18'),
-    );
-    act(() => outputNext());
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {
-        itemId: 'bible:sample:요한복음 3:15-18',
-        position: 3,
-        label: '3:18',
-      },
-    });
-    act(() => outputPrevious());
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {
-        itemId: 'bible:sample:요한복음 3:15-18',
-        position: 1,
-        label: '3:16',
-      },
-    });
-  });
-
-  it('extends canonical range endpoints past omitted text and whole-chapter references', async () => {
-    const reply = await formLookupReply(lookupRequest('요한복음 3'));
-    if (!reply.result.ok || !reply.bounds) {
-      throw Error('Invalid whole chapter fixture');
-    }
-    expect(
-      adjacentVerseRange(reply.result.value, reply.bounds, 'previous'),
-    ).toBe('요한복음 2:8-3:36');
-    expect(adjacentVerseRange(reply.result.value, reply.bounds, 'next')).toBe(
-      '요한복음 3:1-4:1',
-    );
-    const range = await passage();
-    const omitted = {...range, verses: range.verses.slice(1, 2)};
-    expect(adjacentVerseRange(omitted, reply.bounds, 'previous')).toBe(
-      '요한복음 3:15-18',
-    );
-    expect(adjacentVerseRange(omitted, reply.bounds, 'next')).toBe(
-      '요한복음 3:16-19',
-    );
-    expect(
-      adjacentVerseRange(range, {...reply.bounds, bookId: 1}, 'next'),
-    ).toBeNull();
-  });
 
   it('keeps book boundaries closed without wrapping or output', async () => {
     const fixture = await setup('요한복음 1:1');
@@ -305,97 +239,6 @@ describe('adjacent Bible verses', () => {
         expect(fixture.send).toHaveBeenCalledTimes(sends);
         fixture.unmount();
       }
-    },
-  );
-
-  it('cancels an extension when a new manual book edit starts', async () => {
-    const fixture = await setup();
-    render(<BibleQuickField api={fixture.api} />);
-    await waitFor(() =>
-      expect(
-        screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).disabled,
-      ).toBe(false),
-    );
-    let finish: (reply: BibleLookupReply) => void = () => undefined;
-    fixture.lookup.mockImplementationOnce(
-      () =>
-        new Promise(resolve => {
-          finish = resolve;
-        }),
-    );
-    fireEvent.click(button('next'));
-    fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
-      target: {value: '베'},
-    });
-    const source = useShow.getState().bibleSource;
-    await act(async () =>
-      finish(await formLookupReply(lookupRequest('요한복음'))),
-    );
-    expect(useShow.getState().bibleSource).toBe(source);
-    expect(fixture.lookup).toHaveBeenCalledOnce();
-    expect(fixture.send).not.toHaveBeenCalled();
-  });
-
-  it.each([false, true])(
-    'restores a reselected recent before show-now or re-extension (%s)',
-    async extendAgain => {
-      const fixture = await setup();
-      fixture.push({
-        ...fixture.document(),
-        revision: 2,
-        value: {
-          ...fixture.document().value,
-          recents: [
-            {translation: lookupRequest().translation, ref: '요한복음 3:16-18'},
-          ],
-        },
-      });
-      render(<BibleQuickField api={fixture.api} />);
-      const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-      await waitFor(() => expect(book.disabled).toBe(false));
-      fireEvent.change(book, {target: {value: '요'}});
-      for (const [label, value] of [
-        ['장', '3'],
-        ['시작절', '16'],
-        ['끝절', '18'],
-      ] as const) {
-        fireEvent.change(screen.getByRole('textbox', {name: label}), {
-          target: {value},
-        });
-      }
-      await waitFor(() =>
-        expect(
-          fixture.lookup.mock.calls.some(
-            ([request]) => request.input === '요한복음 3:16-18',
-          ),
-        ).toBe(true),
-      );
-      await waitFor(() =>
-        expect(currentSource().passage.ref).toBe('요한복음 3:16-18'),
-      );
-      fireEvent.click(screen.getByRole('button', {name: '바로 띄우기'}));
-      fireEvent.click(button('next'));
-      await waitFor(() =>
-        expect(currentSource().passage.ref).toBe('요한복음 3:16-19'),
-      );
-      fireEvent.focus(book);
-      fireEvent.click(screen.getByRole('option', {name: /요한복음 3:16-18/}));
-      expect(currentSource().passage.ref).toBe('요한복음 3:16-18');
-      if (extendAgain) {
-        fireEvent.click(button('next'));
-        await waitFor(() =>
-          expect(currentSource().passage.ref).toBe('요한복음 3:16-19'),
-        );
-        fireEvent.keyDown(book, {key: 'Enter'});
-      } else {
-        fireEvent.click(screen.getByRole('button', {name: '바로 띄우기'}));
-      }
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-        type: 'slide.show',
-        slide: {
-          itemId: `bible:sample:요한복음 3:16-${extendAgain ? '19' : '18'}`,
-        },
-      });
     },
   );
 

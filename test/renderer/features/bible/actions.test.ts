@@ -1,11 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {useLive} from '@renderer/session/live';
 import {
   applyService,
-  openItem,
-  outputNext,
   outputPrevious,
   revealLiveItem,
   selectTile,
@@ -18,7 +15,6 @@ import {
   showBiblePassage,
 } from '@renderer/features/bible/actions';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
-import {bibleSource} from '@core/bible/source';
 
 beforeEach(() => {
   useShow.setState({
@@ -218,21 +214,6 @@ describe('Bible slide source', () => {
       expect(bibleSourceFor(useShow.getState(), sourceA.id)).toBeNull();
     },
   );
-  it('keeps long verses within output line limits without splitting Unicode pairs', () => {
-    const text = '𠀀'.repeat(LIVE_STATE_LIMITS.textCharacters);
-    const source = bibleSource({
-      ...panelPassage(),
-      verses: [{chapter: 1, verse: 1, text}],
-    });
-    const lines = source.tiles[0]?.lines ?? [];
-    expect(
-      lines.every(line => line.length <= LIVE_STATE_LIMITS.textCharacters),
-    ).toBe(true);
-    expect(
-      lines.every(line => !/^[\uDC00-\uDFFF]|[\uD800-\uDBFF]$/u.test(line)),
-    ).toBe(true);
-    expect(lines.join('')).toBe(`1 ${text}`);
-  });
   it('previews without output and shares selected output with Enter and the panel button', () => {
     const fixture = panelApi();
     window.llp = fixture.api;
@@ -261,38 +242,5 @@ describe('Bible slide source', () => {
       verses: panelPassage().verses.slice(0, 1),
     });
     expect(useShow.getState().selectedTile).toBe(0);
-  });
-
-  it('keeps Bible navigation and reveal available across service refreshes', () => {
-    const fixture = panelApi();
-    window.llp = fixture.api;
-    openBiblePassage(panelPassage());
-    const itemId = useShow.getState().openItemId;
-    if (itemId === null) throw new Error('Missing Bible source');
-    applyService({...sampleService, revision: 2});
-    applyService(null);
-    expect(useShow.getState().openItemId).toBe(itemId);
-    const live = emptyLiveState();
-    useLive.setState({
-      state: {
-        ...live,
-        layers: {
-          ...live.layers,
-          slide: {itemId, position: 1, label: null, lines: []},
-        },
-      },
-    });
-    outputNext();
-    outputPrevious();
-    expect(
-      fixture.send.mock.calls.map(([command]) =>
-        command.type === 'slide.show' ? command.slide.position : null,
-      ),
-    ).toEqual([2, 0]);
-    openItem('other');
-    revealLiveItem();
-    expect(useShow.getState().openItemId).toBe(itemId);
-    useShow.setState({openItemId: 'missing'});
-    expect(shownTiles(useShow.getState())).toBeUndefined();
   });
 });

@@ -1,4 +1,4 @@
-import {act, cleanup, render, screen} from '@testing-library/react';
+import {act, cleanup} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
@@ -7,7 +7,6 @@ import {sendLive, useLive} from '@renderer/session/live';
 import {
   openItem,
   outputNext,
-  outputPrevious,
   selectTile,
   useShow,
 } from '@renderer/session/show';
@@ -17,7 +16,6 @@ import {
 } from '@renderer/session/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
-import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
@@ -62,15 +60,6 @@ async function setup(
   });
   selectTile(position);
   return {...fixture, passage};
-}
-
-function acceptOutput(fixture: ReturnType<typeof panelApi>): void {
-  const command = fixture.send.mock.calls.at(-1)?.[0];
-  if (command?.type !== 'slide.show') throw Error('Missing slide output');
-  const state = emptyLiveState();
-  useLive.setState({
-    state: {...state, layers: {...state.layers, slide: command.slide}},
-  });
 }
 
 async function setupSaved(verseNumbers = true, live: LivePlace = 'last') {
@@ -157,10 +146,9 @@ describe('Bible verse shortcuts', () => {
     });
   });
   it.each([true, false])(
-    'adds and outputs the next endpoint with numbering %s and keeps the live ring and navigation',
+    'adds and outputs the next endpoint with numbering %s',
     async verseNumbers => {
       const fixture = await setup(undefined, verseNumbers);
-      render(<BiblePanel sizeClass="normal" />);
       outputNext();
       expect(fixture.send).not.toHaveBeenCalled();
       expect(fixture.lookup).not.toHaveBeenCalled();
@@ -180,25 +168,6 @@ describe('Bible verse shortcuts', () => {
           ],
         },
       });
-      act(() => acceptOutput(fixture));
-      expect(
-        screen
-          .getAllByRole('option')
-          .filter(tile => tile.dataset.state?.split(' ').includes('live')),
-      ).toEqual([screen.getAllByRole('option')[3]]);
-      act(() => outputPrevious());
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-        slide: {position: 2, label: '3:18'},
-      });
-      act(() => acceptOutput(fixture));
-      act(() => outputNext());
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-        slide: {position: 3, label: '3:19'},
-      });
-      act(() => acceptOutput(fixture));
-      fixture.send.mockClear();
-      act(() => outputNext());
-      expect(fixture.send).not.toHaveBeenCalled();
     },
   );
 
@@ -284,16 +253,9 @@ describe('Bible verse shortcuts', () => {
             }
           : reply;
       });
-      render(<BiblePanel sizeClass="normal" />);
       await act(() => outputAdjacentBibleVerse(direction));
       expect(fixture.send).not.toHaveBeenCalled();
       expect(useShow.getState().liveBibleSource).toBeNull();
-      const liveTiles = screen
-        .getAllByRole('option')
-        .filter(tile => tile.dataset.state?.split(' ').includes('live'));
-      expect(liveTiles).toEqual([
-        screen.getAllByRole('option')[direction === 'previous' ? 0 : 2],
-      ]);
       await act(() => outputAdjacentBibleVerse(direction));
       const verse = direction === 'previous' ? 14 : 20;
       expect(fixture.send).toHaveBeenCalledTimes(1);

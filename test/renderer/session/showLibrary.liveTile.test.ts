@@ -59,6 +59,37 @@ describe('liveTileIndex', () => {
     expect(liveTileIndex(view(live, live), liveSlide(live, 2))).toBe(2);
   });
 
+  it('finds the live verse of a saved service row in the passage opened from it', () => {
+    const saved = passage({book: '요한복음', first: 16, last: 18});
+    const grown = bibleSource(passage({book: '요한복음', first: 15, last: 18}));
+    const state: ShowView = {
+      ...view(grown, grown),
+      liveBibleSource: null,
+      rows: [
+        {
+          id: 'saved-bible',
+          kind: 'bible',
+          title: saved.ref,
+          bible: {
+            ref: saved.ref,
+            translation: saved.translation,
+            verseNumbers: true,
+          },
+        },
+      ],
+      tiles: {'saved-bible': bibleSource(saved).tiles},
+    };
+
+    expect(
+      liveTileIndex(state, {
+        itemId: 'saved-bible',
+        position: 2,
+        label: '3:18',
+        lines: [],
+      }),
+    ).toBe(3);
+  });
+
   it('finds the live verse in a passage that grew around it', () => {
     const grown = bibleSource(passage({book: '요한복음', first: 15, last: 19}));
     expect(liveTileIndex(view(grown, live), liveSlide(live, 1))).toBe(2);
