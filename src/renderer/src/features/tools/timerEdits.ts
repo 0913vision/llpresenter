@@ -1,6 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
+import type {TimerDelete} from '@core/schema/timerDeletion';
+import type {TimerRename} from '@core/schema/timerEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -28,12 +30,33 @@ export async function saveNewCountdown(
   return saveNewTimer(api, {kind: 'countdown', ...timer});
 }
 
-export async function saveNewTimer(
+export function deleteTimer(
+  api: LlpApi,
+  edit: TimerDelete,
+): Promise<EditResult> {
+  return writeTimerEdit(api, () => api.settings.edit(edit));
+}
+
+export function renameTimer(
+  api: LlpApi,
+  edit: TimerRename,
+): Promise<EditResult> {
+  return writeTimerEdit(api, () => api.settings.edit(edit));
+}
+
+export function saveNewTimer(
   api: LlpApi,
   timer: NewTimer,
 ): Promise<EditResult> {
+  return writeTimerEdit(api, () => sendTimer(api, timer));
+}
+
+async function writeTimerEdit(
+  api: LlpApi,
+  write: () => Promise<EditResult>,
+): Promise<EditResult> {
   const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => sendTimer(api, timer),
+    write,
     refused: null,
     sent: outcome =>
       outcome !== null &&

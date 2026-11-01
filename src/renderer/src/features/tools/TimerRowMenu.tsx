@@ -8,7 +8,7 @@ import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
-import {renameTimer} from './timerRenames';
+import {renameTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
