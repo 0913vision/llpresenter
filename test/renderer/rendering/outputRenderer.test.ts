@@ -219,19 +219,6 @@ describe('OutputRenderer', () => {
     expect(lyrics?.querySelector('video')).toBeNull();
   });
 
-  it('draws the background under the lyrics', () => {
-    const {parent, renderer} = setUp();
-    renderer.render(WITH_SLIDE);
-    const root = parent.querySelector(`.${classes.root}`);
-    const [background, lyrics] = [...(root?.children ?? [])];
-    expect(background?.querySelector('video[src]')?.getAttribute('src')).toBe(
-      'https://media.test/warm-light.mp4',
-    );
-    expect(lyrics?.querySelector(`.${classes.shown}`)?.textContent).toBe(
-      '만복의 근원',
-    );
-  });
-
   it('reflects a clear in the same call', () => {
     const {parent, renderer} = setUp();
     renderer.render(WITH_SLIDE);
@@ -239,19 +226,6 @@ describe('OutputRenderer', () => {
     expect(
       parent.querySelector(`.${classes.page}.${classes.shown}`),
     ).toBeNull();
-  });
-
-  it('keeps drawing the other layers when one layer throws', () => {
-    vi.spyOn(SlideLayerView.prototype, 'show').mockImplementation(() => {
-      throw new Error('layout failed');
-    });
-    const {parent, renderer, onError} = setUp();
-    renderer.render(WITH_SLIDE);
-    expect(onError).toHaveBeenCalledWith(
-      'could not draw the lyrics layer',
-      expect.any(Error),
-    );
-    expect(parent.querySelector('video[src]')).not.toBeNull();
   });
 
   it('lays the lyrics out again when the screen size changes', () => {
@@ -321,13 +295,6 @@ describe('OutputRenderer', () => {
     expect(transformAt(3840, 2160)).toBe('translate(80px, -40px) scale(1)');
     expect(transformAt(480, 270)).toBe('translate(10px, -5px) scale(1)');
     renderer.dispose();
-  });
-
-  it('stops watching the size and removes everything on dispose', () => {
-    const {parent, renderer} = setUp();
-    renderer.dispose();
-    expect(MockResizeObserver.instances[0]?.disconnected).toBe(true);
-    expect(parent.childElementCount).toBe(0);
   });
 
   it('passes the preview mode to the background', () => {

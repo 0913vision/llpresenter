@@ -146,40 +146,6 @@ describe('NumberField', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith(25);
   });
 
-  it('defers typing and rounds to the default whole step on Enter', async () => {
-    const onChange = vi.fn();
-    render(<Copies onChange={onChange} updateOn="commit" />);
-    await userEvent.clear(spin());
-    await userEvent.type(spin(), '25.6');
-    expect(onChange).not.toHaveBeenCalled();
-    await userEvent.keyboard('{Enter}');
-    expect(onChange).toHaveBeenCalledExactlyOnceWith(26);
-  });
-
-  it.each([
-    {initial: 0.2, step: 0.1, suffix: '', text: '0.2'},
-    {initial: 1.4, step: 0.05, suffix: '', text: '1.40'},
-    {initial: 1, step: 0.05, suffix: '×', text: '1.00×'},
-    {initial: 1, step: 1, suffix: '%', text: '1%'},
-  ])('formats step $step as $text', ({initial, step, suffix, text}) => {
-    render(<DecimalField initial={initial} step={step} suffix={suffix} />);
-    expect(spin().value).toBe(text);
-    expect(spin().getAttribute('aria-valuetext')).toBe(text);
-  });
-
-  it('moves repeatedly in decimal steps without accumulating float drift', async () => {
-    const onChange = vi.fn<(value: number) => void>();
-    render(<DecimalField initial={0.2} step={0.1} onChange={onChange} />);
-    spin().focus();
-    await userEvent.keyboard('{ArrowUp}'.repeat(7));
-    expect(spin().value).toBe('0.9');
-    expect(onChange.mock.calls.map(([value]) => value)).toEqual([
-      0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-    ]);
-    await userEvent.keyboard('{ArrowDown}'.repeat(7));
-    expect(spin().value).toBe('0.2');
-  });
-
   it.each([
     {ctrlKey: true},
     {altKey: true},

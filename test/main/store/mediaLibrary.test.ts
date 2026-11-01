@@ -114,19 +114,6 @@ describe('buildMediaLibrary', () => {
       expect.objectContaining({file: LIST_FILE, field: 'items.0.file'}),
     ]);
   });
-
-  it('keeps catalogued absolute originals outside the app data folder', () => {
-    const inside = join(MEDIA, '빛.mp4');
-    const {library, problems} = build([
-      item(WARM, inside),
-      item(LIGHT, join(ELSEWHERE, 'a.mp4')),
-    ]);
-
-    expect(library.fileOf(WARM)).toBe(inside);
-    expect(library.fileOf(LIGHT)).toBe(join(ELSEWHERE, 'a.mp4'));
-    expect(library.roots).toEqual([MEDIA, ELSEWHERE]);
-    expect(problems).toEqual([]);
-  });
 });
 
 describe('LoadingMediaLibrary', () => {

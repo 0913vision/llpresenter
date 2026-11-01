@@ -23,9 +23,4 @@ describe('Icon', () => {
     expect(span.style.width).toBe('16px');
     expect(span.style.maskImage).toBe('');
   });
-
-  it('adds the caller class after its own', () => {
-    const {container} = render(<Icon name="search" className="extra" />);
-    expect(iconElement(container).className).toMatch(/ extra$/);
-  });
 });

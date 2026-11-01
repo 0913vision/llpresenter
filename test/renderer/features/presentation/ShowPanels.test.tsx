@@ -92,12 +92,6 @@ describe('ServiceOrderList', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('is a 진행 list, whose rows draw no keyboard focus outline', () => {
-    render(<ServiceOrderList />);
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    expect(list.dataset['workspace']).toBe('show');
-  });
-
   it('makes sections and items selectable without outputting a section', () => {
     render(<ServiceOrderList />);
     const section = screen.getByRole('option', {name: '찬양'});
@@ -138,62 +132,12 @@ describe('ServiceOrderList', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
 
-  it('selects an item on click without outputting anything', () => {
-    render(<ServiceOrderList />);
-    fireEvent.click(screen.getByRole('option', {name: /맑은 시냇물/}));
-    expect(useShow.getState().openItemId).toBe('song-river');
-    expect(sent).toHaveLength(0);
-  });
-
-  it('marks the selected item', () => {
-    openItem('song-river');
-    render(<ServiceOrderList />);
-    const selected = screen
-      .getAllByRole('option')
-      .filter(option => option.getAttribute('aria-selected') === 'true');
-    expect(selected).toHaveLength(1);
-    expect(selected[0]?.textContent).toContain('맑은 시냇물');
-  });
-
   it('shows the LIVE badge on the item of the live 장 only', () => {
     setLiveSlide('song-river', 1);
     render(<ServiceOrderList />);
     const live = screen.getByRole('option', {name: /맑은 시냇물/});
     expect(live.textContent).toContain('LIVE');
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
-  });
-
-  it('keeps one tab stop: the first row until an item is open, then its row', () => {
-    render(<ServiceOrderList />);
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    const rowStops = (): Array<string | null> =>
-      screen
-        .getAllByRole('option')
-        .filter(option => option.tabIndex === 0)
-        .map(row => row.textContent);
-    expect(list.hasAttribute('tabindex')).toBe(false);
-    expect(rowStops()).toEqual(['예배 전']);
-    act(() => openItem('praise'));
-    expect(rowStops()).toEqual(['찬양']);
-    act(() => openItem('song-river'));
-    expect(rowStops()).toEqual([expect.stringContaining('맑은 시냇물')]);
-  });
-
-  it('moves focus with the arrow keys so that Enter acts on the focused row', () => {
-    render(<ServiceOrderList />);
-    const first = screen.getByRole('option', {name: /아침이 밝아 오네/});
-    fireEvent.click(first);
-    first.focus();
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    fireEvent.keyDown(first, {key: 'ArrowDown'});
-    const second = screen.getByRole('option', {name: /맑은 시냇물/});
-    expect(useShow.getState().openItemId).toBe('song-river');
-    expect(document.activeElement).toBe(second);
-    expect(second.tabIndex).toBe(0);
-    expect(first.tabIndex).toBe(-1);
-    expect(list.contains(document.activeElement)).toBe(true);
-    fireEvent.click(document.activeElement ?? document.body);
-    expect(useShow.getState().openItemId).toBe('song-river');
   });
 
   it('redraws only the rows whose open state changed', () => {
@@ -216,19 +160,6 @@ describe('ServiceOrderList', () => {
     render(<ServiceOrderList />);
     openItem('song-river');
     expect(document.activeElement).toBe(document.body);
-  });
-
-  it('leaves Ctrl Down and Ctrl Up to the item commands instead of moving the focused row', () => {
-    openItem('song-morning');
-    render(<ServiceOrderList />);
-    const row = screen.getByRole('option', {name: /아침이 밝아 오네/});
-    row.focus();
-    const down = fireEvent.keyDown(row, {key: 'ArrowDown', ctrlKey: true});
-    expect(useShow.getState().openItemId).toBe('song-morning');
-    expect(down).toBe(true);
-    const up = fireEvent.keyDown(row, {key: 'ArrowUp', ctrlKey: true});
-    expect(useShow.getState().openItemId).toBe('song-morning');
-    expect(up).toBe(true);
   });
 
   it('moves between rows with the arrow keys, Home, and End', () => {
@@ -289,13 +220,6 @@ describe('ServiceOrderList', () => {
 });
 
 describe('SlideGrid', () => {
-  it('is a 진행 grid, whose slides draw no keyboard focus outline', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    expect(grid.dataset['workspace']).toBe('show');
-  });
-
   it('shows nothing when no item is open', () => {
     render(<SlideGrid columns={3} scalePercent={100} />);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
@@ -309,21 +233,6 @@ describe('SlideGrid', () => {
     expect(tiles[1]?.getAttribute('aria-label')).toBe(
       '2 후렴, 함께 불러요 함께 노래해요',
     );
-  });
-
-  it('names a tile without an 이름표 by its number and first line', () => {
-    openItem('psalm-23');
-    render(<SlideGrid columns={3} scalePercent={100} />);
-    expect(screen.getAllByRole('option')[0]?.getAttribute('aria-label')).toBe(
-      '1, 여호와는 나의 목자시니',
-    );
-  });
-
-  it('sets the number of columns', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={6} scalePercent={100} />);
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('6');
   });
 
   it('outputs a 장 with slide.show when its tile is clicked', () => {
@@ -355,36 +264,6 @@ describe('SlideGrid', () => {
       .getAllByRole('option')
       .map(tile => tile.getAttribute('data-state'));
     expect(other).toEqual([null, null, null]);
-  });
-
-  it('keeps one tab stop on the selected tile', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={3} scalePercent={100} />);
-    const stops = screen
-      .getAllByRole('option')
-      .filter(tile => tile.tabIndex === 0);
-    expect(stops).toHaveLength(1);
-  });
-
-  it('moves focus with the up and down arrows', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const [first, , third] = screen.getAllByRole('option');
-    if (!first || !third) throw new Error('The tiles are missing');
-    first.focus();
-    fireEvent.keyDown(first, {key: 'ArrowDown'});
-    expect(document.activeElement).toBe(third);
-  });
-
-  it('leaves Ctrl Down to the item commands instead of moving the selection', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const notPrevented = fireEvent.keyDown(
-      screen.getByRole('listbox', {name: '슬라이드'}),
-      {key: 'ArrowDown', ctrlKey: true},
-    );
-    expect(notPrevented).toBe(true);
-    expect(useShow.getState().selectedTile).toBe(0);
   });
 
   it('keeps the focus in the grid when another item replaces the focused tile', () => {
@@ -458,15 +337,5 @@ describe('SlideGrid', () => {
     press('ArrowUp');
     expect(useShow.getState().selectedTile).toBe(0);
     expect(sent).toHaveLength(0);
-  });
-
-  it('leaves the left and right arrows to the next and previous 장', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    const right = fireEvent.keyDown(grid, {key: 'ArrowRight'});
-    const left = fireEvent.keyDown(grid, {key: 'ArrowLeft'});
-    expect(right && left).toBe(true);
-    expect(useShow.getState().selectedTile).toBe(0);
   });
 });

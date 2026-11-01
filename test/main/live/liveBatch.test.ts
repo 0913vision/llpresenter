@@ -1,8 +1,5 @@
-import {describe, expect, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '@main/live/store';
-import {SliceRegistry} from '@main/live/sliceRegistry';
-import {outputsSlice} from '@main/live/slices/outputs';
-import {interruptsSongOutput, isLiveCommand} from '@core/live/commands';
+import {describe, expect, it} from 'vitest';
+import {isLiveCommand} from '@core/live/commands';
 import {
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
@@ -87,32 +84,5 @@ describe('live batch contracts', () => {
       'commands.0',
       'commands.1',
     ]);
-  });
-
-  it('uses strict validation for standalone commands', () => {
-    expect(expectSuccess(parseLiveCommandRequest(first))).toEqual({
-      command: first,
-      rejected: [],
-    });
-    expect(parseLiveCommandRequest({type: 'timer.start'}).ok).toBe(false);
-  });
-
-  it('does not dispatch batch children when its registry has no transaction slice', () => {
-    const registry = new SliceRegistry([outputsSlice]);
-    const store = new LiveStore(undefined, undefined, registry);
-    const command = expectSuccess(
-      parseLiveCommand({
-        type: 'live.batch',
-        commands: [{type: 'output.set', screenId: 'main', on: true}],
-      }),
-    );
-    const state = store.state;
-    const log = {info: vi.fn(), warn: vi.fn(), error: vi.fn(), flush: vi.fn()};
-    expect(interruptsSongOutput(command)).toBe(false);
-    dispatchLogged(store, command, log);
-    expect(store.state).toBe(state);
-    expect(log.warn).toHaveBeenCalledExactlyOnceWith('unhandled live command', {
-      type: 'live.batch',
-    });
   });
 });

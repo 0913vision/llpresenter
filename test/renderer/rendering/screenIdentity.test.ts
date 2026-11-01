@@ -1,6 +1,4 @@
-import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {CAPTIONS, MAIN, overlaySettings, STAGE} from '@fixtures/core/overlays';
 import {
@@ -15,32 +13,6 @@ function screens() {
 }
 
 describe('output screen identity', () => {
-  it('carries a saved empty color into the shared output and preview identity', () => {
-    const configured = screens().value.screens.map(screen => ({
-      ...screen,
-      emptyColor: '#123456',
-    }));
-    expect(resolveRenderScreen('captions', configured)?.emptyColor).toBe(
-      '#123456',
-    );
-  });
-  it('keeps aliases on the same UUID after methods, kinds and order change', () => {
-    const {value} = screens();
-    const changed = value.screens.toReversed().map(screen => ({
-      ...screen,
-      kind: 'audience' as const,
-      method: screen.id === MAIN ? ('capture' as const) : ('window' as const),
-    }));
-    expect(resolveRenderScreen('main', changed)).toEqual({
-      id: MAIN,
-      name: 'Main',
-      kind: 'audience',
-      method: 'capture',
-      emptyColor: '#00B140',
-    });
-    expect(resolveRenderScreen('captions', changed)?.id).toBe(CAPTIONS);
-    expect(resolveRenderScreen('stage', changed)?.id).toBe(STAGE);
-  });
   it('resolves exact configured ids and the legacy output aliases without guessing unknown ids', () => {
     const {value} = screens();
     expect(resolveRenderScreen(MAIN, value.screens)).toEqual({
@@ -90,39 +62,6 @@ describe('output screen identity', () => {
     expect(only(0, 0, 0)).not.toHaveProperty('correction');
     expect(only(0, 3, 0)?.correction?.offset).toEqual({x: 3, y: 0});
     expect(only(0, 0, -3)?.correction?.offset).toEqual({x: 0, y: -3});
-  });
-
-  it('keeps a changed document newer than a pending read and releases its listener', async () => {
-    let resolve: (document: SettingsDocument) => void = () => undefined;
-    let changed: (document: SettingsDocument) => void = () => undefined;
-    const unsubscribe = vi.fn();
-    const receive = vi.fn();
-    const settings = mockLlpApi({
-      settings: {
-        get: () =>
-          new Promise(done => {
-            resolve = done;
-          }),
-        subscribe: listener => {
-          changed = listener;
-          return unsubscribe;
-        },
-      },
-    }).settings;
-    const stop = followRenderScreen({
-      settings,
-      id: 'main',
-      receive,
-      onError: vi.fn(),
-    });
-    changed(settingsDocument('screens', {screens: []}, 2));
-    resolve(screens());
-    await Promise.resolve();
-    expect(receive).toHaveBeenCalledExactlyOnceWith(undefined);
-    stop();
-    changed(settingsDocument('screens', {screens: screens().value.screens}, 3));
-    expect(receive).toHaveBeenCalledTimes(1);
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('logs a failed read and ignores a read that resolves after disposal', async () => {

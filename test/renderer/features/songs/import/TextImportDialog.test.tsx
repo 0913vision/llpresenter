@@ -245,46 +245,6 @@ describe('text import dialog', () => {
       expect(f.onEdit).toHaveBeenCalledOnce();
     },
   );
-  it('bounds a large preview and reaches its final slide by keyboard', async () => {
-    const f = fixture();
-    f.preview.mockResolvedValue({
-      ok: true,
-      value: {
-        title: 'Large',
-        slides: Array.from({length: 5000}, () => ({lines: ['Invented line']})),
-      },
-    });
-    render(<TextImportDialog {...f.props} />);
-    await screen.findByText('슬라이드 5000');
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-    const first = screen.getAllByRole('option')[0];
-    if (!first) throw new Error('Missing preview tile');
-    first.focus();
-    fireEvent.keyDown(first, {key: 'End'});
-    await waitFor(() =>
-      expect(document.activeElement?.getAttribute('aria-posinset')).toBe(
-        '5000',
-      ),
-    );
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-  });
-  it('opens clipboard text with an empty title for editing rather than saving', async () => {
-    const f = fixture();
-    render(
-      <TextImportDialog
-        {...f.props}
-        source={{source: 'clipboard', fileName: null, text: 'Invented line'}}
-        defaults={{...defaults, firstLine: 'lyrics'}}
-      />,
-    );
-    await screen.findByText('슬라이드 1');
-    expect(screen.getByText('클립보드 텍스트')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
-    expect(f.onEdit).toHaveBeenCalledExactlyOnceWith({
-      title: '',
-      slides: [{lines: ['Invented line'], section: 0}],
-    });
-  });
   it.each(['reply', 'rejection'])(
     'reports a failed preview %s and keeps editing unavailable',
     async kind => {

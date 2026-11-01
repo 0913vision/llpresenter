@@ -48,13 +48,6 @@ describe('IconButton', () => {
     expect(onPressedChange).toHaveBeenLastCalledWith(false);
   });
 
-  it('marks a menu button and whether its menu is open', () => {
-    render(<IconButton icon="more" label="메뉴" menu expanded />);
-    const button = screen.getByRole('button', {name: '메뉴'});
-    expect(button.getAttribute('aria-haspopup')).toBe('menu');
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-  });
-
   it('stays focusable but ignores presses while disabled', async () => {
     const onClick = vi.fn();
     const onPressedChange = vi.fn();

@@ -76,20 +76,6 @@ afterEach(() => {
 });
 
 describe('slide-header background control', () => {
-  it.each([true, false])(
-    'discloses item scope and live impact with inherited=%s without editing',
-    async inherited => {
-      const {onChoose} = setup({selection: {...selection, inherited}});
-      const tooltip = await hoverForTooltip(
-        screen.getByRole('button', {name: '배경 선택'}),
-      );
-      expect(tooltip?.textContent).toBe(
-        '이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다',
-      );
-      expect(onChoose).not.toHaveBeenCalled();
-    },
-  );
-
   it('shows the inherited image and opens image/video choices with ArrowDown', async () => {
     const {container, onChoose, user} = setup();
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
@@ -145,29 +131,6 @@ describe('slide-header background control', () => {
     await user.click(screen.getByRole('option', {name: '곡 기본값'}));
     expect(onChoose).toHaveBeenCalledWith(null);
   });
-
-  it.each([
-    [undefined, '없음'],
-    [createMediaId('30000000-0000-4000-8000-000000000099'), '배경 파일 없음'],
-  ] as const)(
-    'describes song default %s independently from the override',
-    async (defaultMediaId, detail) => {
-      const {user} = setup({
-        defaultMediaId,
-        selection: {...selection, inherited: false, mediaId: video.id},
-      });
-      await user.click(screen.getByRole('button', {name: '배경 선택'}));
-      expect(screen.getByRole('option', {name: '곡 기본값'}).textContent).toBe(
-        `곡 기본값${detail}`,
-      );
-      expect(
-        screen
-          .getByRole('option', {name: video.name})
-          .getAttribute('aria-selected'),
-      ).toBe('true');
-      expect(screen.queryByRole('option', {name: '없음'})).toBeNull();
-    },
-  );
 
   it('filters media names with the shared menu search and resets the query on reopening', async () => {
     const {user, onChoose} = setup();

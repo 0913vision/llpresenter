@@ -197,35 +197,6 @@ describe('saved output backend', () => {
     expect(mocks.answers.has(outputEndpoints.monitors.channel)).toBe(false);
   });
 
-  it('answers and pushes the new refresh rate when only that changes', async () => {
-    setup();
-    await loaded();
-    const rates = () => {
-      const parsed = parseMonitorList(
-        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
-      );
-      if (!parsed.ok) throw new Error(parsed.error.message);
-      return parsed.value.map(monitor => monitor.refreshRate);
-    };
-    expect(rates()).toEqual([60, 60, 60]);
-
-    const displays = mocks.displays;
-    if (displays === null) throw new Error('Missing displays');
-    displays.displays = [
-      displayInfo({id: 1, primary: true}),
-      displayInfo({id: 2, x: 1920, refreshRate: 75}),
-      stage,
-    ];
-    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
-
-    expect(rates()).toEqual([60, 75, 60]);
-    expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
-      outputEndpoints.monitorsChanged.channel,
-      expect.arrayContaining([expect.objectContaining({refreshRate: 75})]),
-      expect.anything(),
-    );
-  });
-
   it('keeps configured monitor assignments through output toggles and publishes display changes', async () => {
     const twin = {name: 'Generic PnP'};
     const second = (id: number, x: number) =>

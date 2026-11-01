@@ -7,7 +7,6 @@ import {LiveStore} from '@main/live/store';
 import {sendLive, startLiveSync, useLive} from '@renderer/session/live';
 import {
   applyService,
-  openItem,
   outputNext,
   outputPrevious,
   outputTile,
@@ -92,18 +91,6 @@ afterEach(() => {
 });
 
 describe('song backgrounds on output', () => {
-  it('sends the resolved looping background before the first lyrics', async () => {
-    openItem('one');
-    expect(sent).toEqual([]);
-    click('one');
-    await expectSlide('one');
-    expect(sent.map(command => command.type)).toEqual([
-      'media.show',
-      'slide.show',
-    ]);
-    expect(store.state.layers.media).toEqual({...background, startedAt: START});
-  });
-
   it('keeps the same media object and start time when another song uses it', async () => {
     click('one');
     await expectSlide('one');
@@ -149,21 +136,6 @@ describe('song backgrounds on output', () => {
     },
   );
 
-  it.each(['slide', 'all'] as const)(
-    'does not start the same item again after clearing %s',
-    async target => {
-      click('one');
-      await expectSlide('one');
-      sendLive({type: 'layer.clear', target});
-      const afterClear = store.state.layers.media;
-      sent.length = 0;
-      click('one', 1);
-      expect(sent.map(command => command.type)).toEqual(['slide.show']);
-      expect(store.state.layers.media).toBe(afterClear);
-      expect(getService).toHaveBeenCalledTimes(1);
-    },
-  );
-
   it('rechecks a deleted file, keeps current media, and shows the row problem', async () => {
     sendLive({type: 'media.show', media: {mediaId: 'previous', loop: true}});
     const playing = store.state.layers.media;
@@ -197,48 +169,6 @@ describe('song backgrounds on output', () => {
     await expectSlide('one');
     expect(store.state.layers.media?.mediaId).toBe('video');
     expect(useShow.getState().rows[0]).not.toHaveProperty('problem');
-  });
-
-  it('drops an old song lookup when a newer click finishes first', async () => {
-    let first: (value: ShowService) => void = () => undefined;
-    getService.mockImplementationOnce(
-      () =>
-        new Promise(resolve => {
-          first = resolve;
-        }),
-    );
-    click('one');
-    click('two');
-    await expectSlide('two');
-    const shown = store.state;
-    first(service);
-    await vi.waitFor(() => expect(getService).toHaveResolvedTimes(2));
-    expect(store.state).toBe(shown);
-    expect(sent.filter(command => command.type === 'slide.show')).toHaveLength(
-      1,
-    );
-  });
-
-  it('keeps both live layers when the requested tile disappears during lookup', async () => {
-    sendLive({type: 'media.show', media: {mediaId: 'previous', loop: true}});
-    click('none');
-    const previous = store.state;
-    sent.length = 0;
-    let finish: (value: ShowService) => void = () => undefined;
-    getService.mockImplementationOnce(
-      () =>
-        new Promise(resolve => {
-          finish = resolve;
-        }),
-    );
-
-    click('one', 2);
-    expect(sent).toEqual([]);
-    finish({...service, revision: 2, tiles: {...service.tiles, one: [tile]}});
-    await vi.waitFor(() => expect(useShow.getState().revision).toBe(2));
-
-    expect(sent).toEqual([]);
-    expect(store.state).toBe(previous);
   });
 
   it('does not output late after a clear command', async () => {

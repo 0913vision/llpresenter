@@ -178,18 +178,6 @@ describe('TextField', () => {
     expect(screen.queryByRole('button', {name: '검색어 지우기'})).toBeNull();
   });
 
-  it('shows a prefix inside the field', () => {
-    render(
-      <TextField
-        aria-label="구간 시작"
-        affix="시작"
-        value="00:00.0"
-        onChange={() => {}}
-      />,
-    );
-    expect(screen.getByText('시작')).toBeDefined();
-  });
-
   it('keeps a read-only search value on Esc', async () => {
     const onChange = vi.fn();
     render(

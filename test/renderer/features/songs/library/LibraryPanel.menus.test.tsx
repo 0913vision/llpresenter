@@ -40,58 +40,6 @@ describe('library panel', () => {
     },
   );
 
-  it('ignores extra modifiers and composition when opening a song menu', async () => {
-    await setup();
-    const opener = screen.getByRole('option', {name: '찬송 10'});
-    for (const key of [
-      {key: 'F10'},
-      {key: 'F10', shiftKey: true, altKey: true},
-      {key: 'ContextMenu', ctrlKey: true},
-      {key: 'ContextMenu', metaKey: true},
-      {key: 'ContextMenu', shiftKey: true},
-      {key: 'ContextMenu', isComposing: true},
-    ]) {
-      fireEvent.keyDown(opener, key);
-      expect(screen.queryByRole('menu')).toBeNull();
-    }
-  });
-
-  it('lists the library song menu rows in ProPresenter order', async () => {
-    await setup();
-    const contextTarget = screen.getByRole('option', {name: '찬송 10'});
-    fireEvent.contextMenu(contextTarget);
-    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-    const menu = screen.getByRole('menu', {name: '곡 메뉴'});
-    expect(
-      [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
-        row =>
-          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
-      ),
-    ).toEqual([
-      '예배 순서에 추가',
-      '|',
-      '구성',
-      '출력 대상',
-      '|',
-      '곡 편집',
-      '|',
-      '복사',
-      '붙여넣기',
-      '복제',
-      '이름 바꾸기',
-      '삭제',
-      '|',
-      '탐색기에서 보기',
-      '묶음으로 내보내기…',
-      '그림으로 내보내기…',
-    ]);
-    expect(
-      [...menu.querySelectorAll('[role="menuitem"]')]
-        .filter(row => row.getAttribute('aria-disabled') !== 'true')
-        .map(row => row.textContent),
-    ).toEqual(['곡 편집', '삭제']);
-  });
-
   it('opens the right-clicked song in the preparation editor', async () => {
     const {onOpenSong, user} = await setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));

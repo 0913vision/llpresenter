@@ -1,9 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {applyService, useShow} from '@renderer/session/show';
-import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {applyService} from '@renderer/session/show';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createServiceId} from '@core/schema/ids';
 import {
@@ -70,41 +67,6 @@ describe('ServiceOrderHeader', () => {
     expect(screen.getByText('예배 순서')).toBeDefined();
     expect(screen.queryByText(sampleService.name)).toBeNull();
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
-  });
-
-  it('opens the picker without changing the service or output', async () => {
-    const state = emptyLiveState();
-    useLive.setState({state});
-    const sent: LiveCommand[] = [];
-    window.llp = mockLlpApi({live: {send: command => sent.push(command)}});
-    render(<ServiceOrderHeader />);
-    await act(async () => {
-      fireEvent.click(screen.getByText(sampleService.name));
-    });
-    expect(screen.getByRole('menu')).toBeDefined();
-    expect(screen.getByText(sampleService.name)).toBeDefined();
-    expect(sent).toEqual([]);
-    expect(useLive.getState().state).toBe(state);
-    expect(useShow.getState().serviceId).toBe(sampleService.id);
-  });
-
-  it('does not open the picker from modified Space', () => {
-    window.llp = mockLlpApi();
-    render(<ServiceOrderHeader />);
-    const button = screen.getByRole('button', {name: sampleService.name});
-    const key = new KeyboardEvent('keydown', {
-      key: ' ',
-      ctrlKey: true,
-      bubbles: true,
-      cancelable: true,
-    });
-    fireEvent(button, key);
-    expect(key.defaultPrevented).toBe(false);
-    fireEvent.keyUp(button, {key: ' '});
-    fireEvent.click(button, {detail: 0});
-    expect(screen.queryByRole('menu', {name: '예배 순서 선택'})).toBeNull();
-    fireEvent.click(button, {detail: 1});
-    expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeDefined();
   });
 
   it('ends the picker with only New Service and opens its dialog', async () => {

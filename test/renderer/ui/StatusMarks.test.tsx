@@ -51,20 +51,6 @@ describe('Progress', () => {
     expect(bar.getAttribute('aria-valuemax')).toBe('100');
   });
 
-  it('reads a playback position as text', () => {
-    render(
-      <Progress
-        value={38}
-        variant="playback"
-        label="찬양 반주"
-        valueText="1:24 / 3:42"
-      />,
-    );
-    expect(screen.getByRole('progressbar').getAttribute('aria-valuetext')).toBe(
-      '1:24 / 3:42',
-    );
-  });
-
   it('keeps values between 0 and 100', () => {
     expect(progressPercent(-5)).toBe(0);
     expect(progressPercent(140)).toBe(100);

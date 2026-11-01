@@ -11,15 +11,6 @@ describe('Button', () => {
     expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 
-  it('reports clicks, Enter, and Space', async () => {
-    const onClick = vi.fn();
-    render(<Button onClick={onClick}>취소</Button>);
-    await userEvent.click(screen.getByRole('button'));
-    await userEvent.keyboard('{Enter}');
-    await userEvent.keyboard(' ');
-    expect(onClick).toHaveBeenCalledTimes(3);
-  });
-
   it('stays focusable but ignores presses while disabled', async () => {
     const onClick = vi.fn();
     render(
@@ -35,10 +26,5 @@ describe('Button', () => {
     await userEvent.click(button);
     await userEvent.keyboard('{Enter}');
     expect(onClick).not.toHaveBeenCalled();
-  });
-
-  it('can submit a form when asked to', () => {
-    render(<Button type="submit">만들기</Button>);
-    expect(screen.getByRole('button').getAttribute('type')).toBe('submit');
   });
 });

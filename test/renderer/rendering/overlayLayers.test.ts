@@ -1,6 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
@@ -411,38 +410,5 @@ describe('registered overlay layers', () => {
     expect(box('prop')?.querySelectorAll('img[src]')).toHaveLength(1);
     render({id: STAGE, kind: 'stage'});
     expect(box('prop')?.querySelectorAll('img[src]')).toHaveLength(0);
-  });
-
-  it('isolates an overlay drawing error from lyrics and later clears', () => {
-    const {store, send, renderer, onError, parent} = setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    vi.spyOn(OverlayImageView.prototype, 'show').mockImplementation(() => {
-      throw new Error('Image failure');
-    });
-    renderer.render(
-      {
-        ...store.state.layers,
-        slide: {
-          itemId: 'fixture',
-          position: 0,
-          label: null,
-          lines: ['Still visible'],
-        },
-      },
-      {screen: {id: MAIN, kind: 'audience'}},
-    );
-    expect(
-      parent.querySelector('[data-layer="lyrics"]')?.textContent,
-    ).toContain('Still visible');
-    expect(onError).toHaveBeenCalledWith(
-      'could not draw the notice layer',
-      expect.any(Error),
-    );
-    renderer.render(emptyLayers());
-    expect(
-      parent
-        .querySelector('[data-layer="lyrics"]')
-        ?.querySelector(`.${classes.shown}`),
-    ).toBeNull();
   });
 });

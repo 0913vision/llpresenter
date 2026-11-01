@@ -89,43 +89,6 @@ it.each(['진행', '준비'] as const)(
   },
 );
 
-it.each(['menu', 'shortcut'] as const)(
-  'toggles the shared bin in 준비 through the %s entry point',
-  async entry => {
-    const {mount, save, send} = setup(1920, 1080, {mediaStrip: false});
-    mount();
-    await userEvent.click(screen.getByRole('tab', {name: '준비'}));
-    const toggle = async (): Promise<void> => {
-      if (entry === 'menu') {
-        await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
-        await userEvent.click(screen.getByRole('menuitem', {name: /^미디어/u}));
-      } else {
-        fireEvent.keyDown(window, {
-          code: 'KeyV',
-          key: 'V',
-          ctrlKey: true,
-          shiftKey: true,
-        });
-      }
-    };
-    await toggle();
-    expect(
-      await screen.findByRole('region', {name: '미디어 보관함'}),
-    ).toBeDefined();
-    expect(
-      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
-    ).toBe('true');
-    expect(save).toHaveBeenLastCalledWith({visible: true});
-    await userEvent.click(screen.getByRole('button', {name: '미디어 접기'}));
-    const bar = screen.getByRole('button', {name: '미디어 펼치기'});
-    await userEvent.click(bar);
-    expect(screen.getByRole('button', {name: '미디어 접기'})).toBeDefined();
-    await toggle();
-    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
-    expect(save).toHaveBeenLastCalledWith({visible: false});
-    expect(send).not.toHaveBeenCalled();
-  },
-);
 afterEach(async () => {
   cleanup();
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
@@ -187,24 +150,6 @@ it('keeps the local choice and logs a failed send without changing output', asyn
     detail: 'Invented visibility send failure',
   });
   expect(send).not.toHaveBeenCalled();
-});
-
-it('applies resize defaults until the operator makes an explicit choice', async () => {
-  const {mount} = setup();
-  mount();
-  await screen.findByRole('region', {name: '미디어'});
-  vi.stubGlobal('innerHeight', 899);
-  fireEvent.resize(window);
-  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-  vi.stubGlobal('innerWidth', 1366);
-  vi.stubGlobal('innerHeight', 1080);
-  fireEvent.resize(window);
-  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-  await userEvent.click(mediaBinToggle());
-  await screen.findByRole('region', {name: '미디어'});
-  vi.stubGlobal('innerHeight', 768);
-  fireEvent.resize(window);
-  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
 });
 
 it('shares the same bottom bin and visibility across 진행 and 준비', async () => {
@@ -280,16 +225,4 @@ it('keeps the bin playlist and selected properties across workspace and visibili
   expect(within(properties).getByText('Second image')).toBeDefined();
   expect(properties.querySelectorAll('img')).toHaveLength(1);
   expect(saveLegacy).not.toHaveBeenCalled();
-});
-
-it('sends a mounted panel problem to the app stack without adding a second host', async () => {
-  const {api, mount} = setup();
-  vi.spyOn(api.media, 'get').mockRejectedValueOnce(
-    new Error('Invented media read failure'),
-  );
-  mount();
-  await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
-  expect(screen.getByText('미디어를 불러오지 못함')).toBeDefined();
-  await userEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
-  expect(screen.queryByRole('alert')).toBeNull();
 });

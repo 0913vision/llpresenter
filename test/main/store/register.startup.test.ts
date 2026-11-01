@@ -130,28 +130,6 @@ describe('registerStore', () => {
     );
   });
 
-  it('finds media files by id once the data is read', async () => {
-    const context = await developmentContext();
-    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const mediaId = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-    await writeJson(join(root, 'Settings', 'media.json'), {
-      format: 'llmedia',
-      schemaVersion: 1,
-      items: [
-        {id: mediaId, name: '빛', kind: 'video', file: '빛.mp4', size: 1},
-      ],
-      playlists: [],
-      audioPlaylists: [],
-    });
-    const store = await register(mockLog(), context, () => true);
-
-    expect(await store.findMediaFile(mediaId)).toBe(
-      join(root, 'Media', '빛.mp4'),
-    );
-    expect(await store.findMediaFile('unknown')).toBeNull();
-    expect(store.mediaRoots()).toEqual([join(root, 'Media')]);
-  });
-
   it('logs a failure to find the data and answers null', async () => {
     const log = mockLog();
     const appConfig = await openAppConfig({

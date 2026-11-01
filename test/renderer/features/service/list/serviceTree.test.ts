@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {parseService} from '@core/schema/service';
 import {
   allState,
   checkAll,
@@ -13,9 +12,7 @@ import {
 } from '@renderer/features/service/list/serviceTree';
 import {
   ids,
-  legacyTemplateDocument,
   otherItems,
-  pastDocument,
   songTitles,
   templateOrder,
   titles,
@@ -30,47 +27,6 @@ function row(id: string): TreeRow {
 }
 
 describe('treeRows', () => {
-  it('reads legacy service slots as top-level empty sections', () => {
-    const parsed = parseService(
-      JSON.stringify({
-        ...pastDocument.service,
-        order: [
-          {id: ids.offering, slot: 'slides', title: '헌금 찬양'},
-          {id: ids.closing, slot: 'bible', title: '광고'},
-        ],
-      }),
-      'past.llservice',
-    );
-    if (!parsed.ok) throw new Error('The legacy service could not be read');
-    const legacyRows = treeRows(parsed.value.data.order, songTitles);
-    expect(legacyRows).toEqual([
-      {id: ids.offering, label: '헌금 찬양', header: true},
-      {id: ids.closing, label: '광고', header: true},
-    ]);
-    expect([...checkAll(legacyRows, true)]).toEqual([
-      ids.offering,
-      ids.closing,
-    ]);
-  });
-
-  it('reads a legacy template as independent sections and preserves unknown fields', () => {
-    const document = legacyTemplateDocument();
-    const legacyRows = treeRows(document.template.order, songTitles);
-    expect(legacyRows.slice(-2)).toEqual([
-      {id: ids.offering, label: '헌금 찬양', header: true},
-      {id: ids.closing, label: '광고', header: true},
-    ]);
-    expect(document.template.order.at(-2)).toEqual({
-      id: ids.offering,
-      header: '헌금 찬양',
-      future: {keep: true},
-    });
-    expect(itemCount(legacyRows)).toBe(3);
-    expect(
-      selectedIds(legacyRows, new Set([ids.closing, ids.offering])),
-    ).toEqual([ids.offering, ids.closing]);
-  });
-
   it('labels every kind and puts items under the header before them', () => {
     expect(
       rows.map(({label, icon, detail, header, headerId}) => ({

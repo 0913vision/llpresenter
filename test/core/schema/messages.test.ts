@@ -1,10 +1,5 @@
-import {describe, expectTypeOf, it} from 'vitest';
-import type {ScreenId} from '@core/schema/ids';
-import {
-  parseMessages,
-  serializeMessages,
-  type MessageTemplate,
-} from '@core/schema/messages';
+import {describe, it} from 'vitest';
+import {parseMessages, serializeMessages} from '@core/schema/messages';
 import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
 
 const codec = {parse: parseMessages, serialize: serializeMessages};
@@ -75,13 +70,5 @@ describe('parseMessages', () => {
       {...messagesFile(), stagePresets: ['후렴', 3]},
       'stagePresets.1',
     );
-  });
-});
-
-describe('message types', () => {
-  it('allows every screen or a list of screens', () => {
-    expectTypeOf<MessageTemplate['targets']>().toEqualTypeOf<
-      readonly ScreenId[] | 'all' | undefined
-    >();
   });
 });

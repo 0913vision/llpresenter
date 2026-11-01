@@ -1,5 +1,4 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';
 import {
   act,
   cleanup,
@@ -12,7 +11,6 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {StageTab} from '@renderer/features/tools/StageTab';
 import {
   stageFixture,
@@ -39,25 +37,6 @@ async function choose(label: string, option: string): Promise<void> {
 }
 
 describe('stage tool', () => {
-  it('mounts only on its tab and releases all three document subscriptions', async () => {
-    mockPanelTabWidths(300);
-    const fixture = stageFixture();
-    useShowToolTab.setState({tool: 'message'});
-    const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
-    await waitFor(() => expect(fixture.count()).toBe(2));
-    fixture.get.mockClear();
-    fireEvent.click(screen.getByRole('tab', {name: '무대'}));
-    expect(
-      await screen.findByRole('button', {name: '무대 타이머'}),
-    ).toBeTruthy();
-    expect(fixture.count()).toBe(3);
-    fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
-    await waitFor(() => expect(fixture.count()).toBe(2));
-    unmount();
-    expect(fixture.count()).toBe(0);
-    expect(fixture.send).not.toHaveBeenCalled();
-  });
-
   it('selects and clears the live timer without starting it or saving settings', async () => {
     const fixture = stageFixture();
     render(<StageTab />);

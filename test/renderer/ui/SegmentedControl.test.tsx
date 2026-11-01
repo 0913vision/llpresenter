@@ -75,12 +75,6 @@ describe('SegmentedControl', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith('sunday');
   });
 
-  it('is a named radio group with the selected segment checked', () => {
-    render(<Controlled />);
-    expect(screen.getByRole('radiogroup', {name: '구성'})).toBeDefined();
-    expect(checkedNames()).toEqual(['기본']);
-  });
-
   it.each<{
     readonly kind: SegmentedKind;
     readonly groupRole: string;

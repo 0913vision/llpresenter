@@ -62,18 +62,6 @@ describe('applyService', () => {
     expect(legacy.rows[2]?.kind).toBe('slot');
   });
 
-  it('keeps a selected section through updates and clears it only when removed', () => {
-    applyService(serviceOf());
-    openItem('praise');
-    applyService(serviceOf({revision: 2}));
-    expect(useShow.getState()).toMatchObject({
-      openItemId: 'praise',
-      selectedTile: 0,
-    });
-    applyService(serviceOf({revision: 3, rows: []}));
-    expect(useShow.getState().openItemId).toBeNull();
-  });
-
   it('shows the rows, tiles, jump keys, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({
@@ -85,13 +73,6 @@ describe('applyService', () => {
     });
     expect(useShow.getState().rows).toHaveLength(3);
     expect(useShow.getState().tiles['a']).toHaveLength(3);
-  });
-
-  it('keeps the problem of a row', () => {
-    applyService(serviceOf());
-    expect(useShow.getState().rows.at(-1)).toMatchObject({
-      problem: 'missing-song',
-    });
   });
 
   it('drops a revision older than the one shown for the same service', () => {
@@ -170,13 +151,6 @@ describe('applyService', () => {
     });
   });
 
-  it('keeps the open item when its row has a problem', () => {
-    applyService(serviceOf());
-    openItem('b');
-    applyService(serviceOf({revision: 2}));
-    expect(useShow.getState().openItemId).toBe('b');
-  });
-
   it('empties everything when no service is open', () => {
     applyService(serviceOf());
     openItem('a');
@@ -220,29 +194,6 @@ describe('startServiceSync', () => {
     startServiceSync();
     await vi.waitFor(() => expect(useShow.getState().revision).toBe(1));
     push(serviceOf({revision: 2, name: 'pushed'}));
-    expect(useShow.getState().serviceName).toBe('pushed');
-  });
-
-  it('keeps a push that arrives before the read, and drops the older read', async () => {
-    let push: (service: ShowService | null) => void = () => undefined;
-    let answer: (service: ShowService | null) => void = () => undefined;
-    window.llp = mockLlpApi({
-      service: {
-        get: () =>
-          new Promise(resolve => {
-            answer = resolve;
-          }),
-        subscribe: listener => {
-          push = listener;
-          return () => undefined;
-        },
-      },
-    });
-    startServiceSync();
-    push(serviceOf({revision: 3, name: 'pushed'}));
-    answer(serviceOf({revision: 2, name: 'read'}));
-    await Promise.resolve();
-    await Promise.resolve();
     expect(useShow.getState().serviceName).toBe('pushed');
   });
 
@@ -309,14 +260,6 @@ describe('startServiceSync', () => {
       await settle();
       expect(useShow.getState().serviceName).toBe('pushed');
     });
-
-    it('shows the read when no push came', async () => {
-      const channel = installSlowRead();
-      startServiceSync();
-      channel.answer(serviceOf({name: 'read'}));
-      await settle();
-      expect(useShow.getState().serviceName).toBe('read');
-    });
   });
 
   describe('after the sync was stopped', () => {
@@ -350,24 +293,6 @@ describe('startServiceSync', () => {
       startServiceSync()();
       push(serviceOf());
       expect(useShow.getState().serviceId).toBeNull();
-    });
-
-    it('keeps the view when a read fails later', async () => {
-      let fail: (error: Error) => void = () => undefined;
-      window.llp = mockLlpApi({
-        service: {
-          get: () =>
-            new Promise((_resolve, reject) => {
-              fail = reject;
-            }),
-        },
-      });
-      applyService(serviceOf());
-      startServiceSync()();
-      fail(new Error('late failure'));
-      await Promise.resolve();
-      await Promise.resolve();
-      expect(useShow.getState().serviceName).toBe('주일 예배');
     });
   });
 

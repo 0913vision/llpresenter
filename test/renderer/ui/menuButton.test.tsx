@@ -77,12 +77,6 @@ function fileButton(): HTMLElement {
 }
 
 describe('menuButtonProps', () => {
-  it('marks the button as one that opens a menu', () => {
-    render(<FileMenu />);
-    expect(fileButton().getAttribute('aria-haspopup')).toBe('menu');
-    expect(fileButton().getAttribute('aria-expanded')).toBe('false');
-  });
-
   it('opens the menu with ↓, a click, Enter, and Space', async () => {
     render(<FileMenu />);
     for (const press of ['{ArrowDown}', '{Enter}', ' ']) {

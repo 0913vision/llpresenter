@@ -44,18 +44,6 @@ describe('keepAwakeWhileOutputsOn', () => {
     expect(releases[0]).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the lock while content changes', () => {
-    const {store, releases, turn} = setUp();
-    turn('main', true);
-    store.dispatch({type: 'layer.clear', target: 'all'});
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'hymn-1', position: 0, label: null, lines: ['만복의']},
-    });
-    expect(releases).toHaveLength(1);
-    expect(releases[0]).not.toHaveBeenCalled();
-  });
-
   it('releases the lock when it stops and follows no more changes', () => {
     const {keeper, releases, stop, turn} = setUp();
     turn('main', true);

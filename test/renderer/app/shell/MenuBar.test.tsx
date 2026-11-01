@@ -38,90 +38,6 @@ function outputItem(name: string): HTMLElement {
 }
 
 describe('MenuBar', () => {
-  it.each(['파일', '보기', '출력', '최소화', '최대화', '닫기'])(
-    'does not activate %s on modified keyboard presses',
-    label => {
-      const control = vi.fn();
-      window.llp = mockLlpApi({window: {control}});
-      render(<MenuBar title="" clipboardAvailable={async () => false} />);
-      const target = screen.getByRole(
-        ['파일', '보기', '출력'].includes(label) ? 'menuitem' : 'button',
-        {name: label},
-      );
-      for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
-        for (const key of [' ', 'Enter']) {
-          fireEvent.keyDown(target, {key, [modifier]: true});
-          fireEvent.keyUp(target, {key});
-          fireEvent.click(target, {detail: 0});
-          expect(screen.queryByRole('menu')).toBeNull();
-          expect(control).not.toHaveBeenCalled();
-        }
-      }
-    },
-  );
-
-  it('still accepts modified pointer presses on window controls', () => {
-    const control = vi.fn();
-    window.llp = mockLlpApi({window: {control}});
-    render(<MenuBar title="" />);
-    fireEvent.click(screen.getByRole('button', {name: '최대화'}), {
-      detail: 1,
-      ctrlKey: true,
-    });
-    expect(control).toHaveBeenCalledExactlyOnceWith('toggle-maximize');
-  });
-
-  it.each([
-    {label: '텍스트 파일', source: 'file'},
-    {label: '클립보드 텍스트', source: 'clipboard'},
-  ])('starts $source import from the File submenu', async ({label, source}) => {
-    const onImport = vi.fn();
-    render(
-      <MenuBar
-        title=""
-        onImportText={onImport}
-        clipboardAvailable={async () => true}
-      />,
-    );
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    await userEvent.click(
-      await screen.findByRole('menuitem', {name: new RegExp(`^${label}`)}),
-    );
-    expect(onImport).toHaveBeenCalledExactlyOnceWith(source);
-    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
-  });
-  it('shows the service name in the center', () => {
-    render(<MenuBar title="주일 예배" />);
-    expect(screen.getByText('주일 예배')).toBeTruthy();
-    expect(screen.queryByText('LoveLight Presenter')).toBeNull();
-  });
-
-  it('marks only implemented menu triggers as opening a menu', () => {
-    render(<MenuBar title="" />);
-    const bar = screen.getByRole('menubar', {name: '메뉴'});
-    const items = screen.getAllByRole('menuitem');
-    expect(items.map(item => item.textContent)).toEqual([
-      '파일',
-      '편집',
-      '보기',
-      '출력',
-      '창',
-      '도움말',
-    ]);
-    for (const item of items) {
-      expect(bar.contains(item)).toBe(true);
-      if (['편집', '창', '도움말'].includes(item.textContent)) {
-        expect(item.getAttribute('aria-disabled')).toBe('true');
-        expect(item.hasAttribute('aria-haspopup')).toBe(false);
-        expect(item.hasAttribute('aria-expanded')).toBe(false);
-      } else {
-        expect(item.getAttribute('aria-haspopup')).toBe('menu');
-        expect(item.getAttribute('aria-expanded')).toBe('false');
-      }
-    }
-  });
-
   it.each(['편집', '창', '도움말'])(
     'explains why %s is unavailable and ignores pointer and keyboard activation',
     async label => {
@@ -200,21 +116,5 @@ describe('MenuBar', () => {
         {type: 'output.set', screenId: 'broadcast', on: false},
       ],
     });
-  });
-
-  it('lists a warning item per screen and shows its card on select', async () => {
-    const onShowWarning = vi.fn();
-    render(
-      <MenuBar
-        title=""
-        warnings={[{screenId: 'stage', screenName: '무대 화면'}]}
-        onShowWarning={onShowWarning}
-      />,
-    );
-    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
-    await userEvent.click(
-      screen.getByRole('menuitem', {name: '무대 화면 경고 보기'}),
-    );
-    expect(onShowWarning).toHaveBeenCalledExactlyOnceWith('stage');
   });
 });

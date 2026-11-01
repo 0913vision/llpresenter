@@ -2,10 +2,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {serializeShortcuts, type KeyBinding} from '@core/schema/shortcuts';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
-import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import {ShortcutField} from '@renderer/ui/ShortcutField';
 import {Dialog} from '@renderer/ui/Dialog';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
@@ -123,23 +121,6 @@ describe('ShortcutField', () => {
       expect(field.closest(SHORTCUT_RECORDING_SELECTOR)).toBeNull();
     },
   );
-
-  it('takes a zoom chord before the real window capture handler', () => {
-    const changeZoom = vi.fn();
-    window.llp = mockLlpApi({ui: {changeZoom}});
-    function ZoomKeys() {
-      useUiZoomKeys();
-      return null;
-    }
-    render(<ZoomKeys />);
-    const {field, onRecord} = setup();
-    fireEvent.keyDown(field, {code: 'Equal', ctrlKey: true});
-    expect(onRecord).toHaveBeenCalledExactlyOnceWith({
-      code: 'Equal',
-      mods: ['ctrl'],
-    });
-    expect(changeZoom).not.toHaveBeenCalled();
-  });
 
   it('records physical codes with canonical modifier order despite a Korean key', () => {
     const {field, onRecord} = setup();

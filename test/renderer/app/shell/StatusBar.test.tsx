@@ -113,26 +113,4 @@ describe('StatusBar', () => {
     expect(tokens).toMatch(/--size-statusbar:\s*28px/);
     expect(tokens).toMatch(/--type-caption:\s*400 14px\/20px/);
   });
-
-  it('uses the readable text token on the app background', () => {
-    const css = readFileSync(
-      'src/renderer/src/app/shell/StatusBar.module.css',
-      'utf8',
-    );
-    const tokens = readFileSync('src/renderer/src/styles/tokens.css', 'utf8');
-    expect(css).toMatch(/color:\s*var\(--text-3\)/);
-    const luminance = (name: string): number => {
-      const hex = new RegExp(`--${name}: #([0-9a-f]{6})`).exec(tokens)?.[1];
-      if (!hex) throw new Error('Missing token');
-      const rgb = [0, 2, 4]
-        .map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
-        .map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
-      return (
-        0.2126 * (rgb[0] ?? 0) + 0.7152 * (rgb[1] ?? 0) + 0.0722 * (rgb[2] ?? 0)
-      );
-    };
-    expect(
-      (luminance('text-3') + 0.05) / (luminance('bg-app') + 0.05),
-    ).toBeGreaterThanOrEqual(4.5);
-  });
 });

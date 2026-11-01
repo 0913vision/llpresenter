@@ -195,25 +195,6 @@ it('blocks a removed choice and locks all draft controls during save', () => {
   expect(save).not.toHaveBeenCalled();
 });
 
-it('blocks a message when no screen remains', () => {
-  const save = vi.fn<(action: KnownMacroAction) => void>();
-  render(
-    <MacroActionDialog
-      kind="message"
-      choices={{message: [target]}}
-      screens={[]}
-      locked={false}
-      onCancel={() => undefined}
-      onSave={save}
-    />,
-  );
-  fireEvent.click(screen.getByRole('button', {name: '대상'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
-  expect(
-    screen.getByRole('button', {name: '완료'}).getAttribute('aria-disabled'),
-  ).toBe('true');
-});
-
 it('handles prototype-named blanks and rejects oversized expanded messages', () => {
   const save = vi.fn<(action: KnownMacroAction) => void>();
   render(

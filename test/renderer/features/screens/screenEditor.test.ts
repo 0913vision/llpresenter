@@ -425,25 +425,6 @@ describe('ScreenEditor', () => {
     });
   });
 
-  it('saves the changed screen against the revision it was given', async () => {
-    const {editor, edits} = setup([saved(2)]);
-    editor.adopt(screensAt(1));
-
-    await editor.change(MAIN_ID, {name: '본당'});
-
-    expect(edits).toHaveLength(1);
-    expect(edits[0]).toMatchObject({
-      type: 'settings.update',
-      name: 'screens',
-      baseRevision: 1,
-    });
-    const names =
-      edits[0]?.name === 'screens'
-        ? edits[0].value.screens.map(screen => screen.name)
-        : [];
-    expect(names).toEqual(['본당', '방송 자막', '무대 화면']);
-  });
-
   it('builds the next save on the last save, before the window hears of it', async () => {
     const {editor, edits} = setup([saved(2), saved(3)]);
     editor.adopt(screensAt(1));

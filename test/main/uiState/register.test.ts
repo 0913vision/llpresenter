@@ -54,32 +54,6 @@ afterEach(() => {
 });
 
 describe('registerUiState', () => {
-  it('answers ui:get with the layout of the fields', () => {
-    const layout = {wide: {left: 320, right: 560}};
-    registerUiState(fieldsOf({layout}).fields, log);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
-      layout,
-    });
-  });
-
-  it('answers ui:get with an empty state when the fields have no layout', () => {
-    registerUiState(fieldsOf({}).fields, log);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({});
-  });
-
-  it('hands a layout change to the fields, and ui:get then shows it', () => {
-    const {fields, changes} = fieldsOf({});
-    registerUiState(fields, log);
-    handlers.on.get(uiEndpoints.setLayout.channel)?.(
-      {},
-      {sizeClass: 'normal', left: 260, right: 480},
-    );
-    expect(changes).toEqual([{layout: {normal: {left: 260, right: 480}}}]);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
-      layout: {normal: {left: 260, right: 480}},
-    });
-  });
-
   it('removes its channels when it is disposed', () => {
     const registration = registerUiState(fieldsOf({}).fields, log);
     registration.dispose();

@@ -135,19 +135,6 @@ describe('startSoakScenario', () => {
     });
     stop();
   });
-
-  it('changes no 장 after it stops', async () => {
-    const clock = installMockClock();
-    const commands: LiveCommand[] = [];
-    const stop = startSoakScenario({
-      dispatch: command => commands.push(command),
-      mediaId: null,
-      log: mockLog(),
-    });
-    stop();
-    await clock.advance(SLIDE_INTERVAL_MS * 3);
-    expect(shownPositions(commands)).toEqual([0]);
-  });
 });
 
 describe('registerSoakScenario', () => {

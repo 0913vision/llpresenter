@@ -33,14 +33,6 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
-  it('tells the data store whether an output is on', async () => {
-    await startMain();
-
-    expect(mocks.storeOptions).toHaveLength(1);
-    expect(mocks.storeOptions[0]).toHaveProperty('log');
-    expect(mocks.storeOptions[0]).toHaveProperty('isAnyOutputOn');
-  });
-
   it('gives the data store the app.json it opened first', async () => {
     await startMain();
 

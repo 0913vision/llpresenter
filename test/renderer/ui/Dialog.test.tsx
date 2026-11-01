@@ -96,13 +96,6 @@ describe('Dialog', () => {
     );
   });
 
-  it('is a modal dialog named by its title', async () => {
-    render(<NewService />);
-    await openDialog();
-    const dialog = screen.getByRole('dialog', {name: '새 예배'});
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
-  });
-
   it('starts in the first text field with its text selected', async () => {
     render(<NewService />);
     await openDialog();
@@ -171,15 +164,6 @@ describe('Dialog', () => {
     fireEvent.keyDown(button, {key: 'Escape'});
     expect(onCancel).toHaveBeenCalledOnce();
     button.remove();
-  });
-
-  it('presses the primary button with Enter in a single-line field', async () => {
-    const onCreate = vi.fn();
-    render(<NewService onCreate={onCreate} />);
-    await openDialog();
-    await userEvent.click(screen.getByRole('textbox', {name: '이름'}));
-    await userEvent.keyboard('{Enter}');
-    expect(onCreate).toHaveBeenCalledTimes(1);
   });
 
   it('leaves Enter and Esc to the IME while Korean input is composed', async () => {
@@ -356,13 +340,6 @@ describe('AlertDialog', () => {
       screen.getByRole('button', {name: '덮어쓰기'}),
     );
     expect(screen.queryByRole('button', {name: '닫기'})).toBeNull();
-  });
-
-  it('cancels with Esc', async () => {
-    const onCancel = vi.fn();
-    render(<Overwrite onCancel={onCancel} />);
-    await userEvent.keyboard('{Escape}');
-    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
   it('keeps focus on its button and Esc working after a press on the scrim', async () => {

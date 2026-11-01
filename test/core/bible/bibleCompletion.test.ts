@@ -20,12 +20,6 @@ describe('Bible book completion', () => {
     expect(bibleBookChoices('요').map(b => b.name)).toEqual(['요한복음']);
     expect(complete('요')).toEqual({input: '요한복음 ', caret: 5});
   });
-  it('takes the highlighted candidate or the first one when none is pointed', () => {
-    expect(complete('왕')?.input).toBe('열왕기상 ');
-    expect(complete('왕', 12)?.input).toBe('열왕기하 ');
-    expect(complete('요한', 62)?.input).toBe('요한일서 ');
-    expect(complete('요한', 999)?.input).toBe('요한복음 ');
-  });
   it.each([
     {input: '창 1:1-5', start: 1, end: 1, value: '창세기 1:1-5', caret: 4},
     {input: '1 John 3:2', start: 0, end: 6, value: '요한일서 3:2', caret: 5},

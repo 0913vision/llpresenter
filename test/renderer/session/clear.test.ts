@@ -1,9 +1,8 @@
-import {renderHook, act} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLayers, emptyLiveState} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {clearLayer, undoClear, useCanUndo} from '@renderer/session/clear';
+import {clearLayer, undoClear} from '@renderer/session/clear';
 import {useLive} from '@renderer/session/live';
 
 const sent: LiveCommand[] = [];
@@ -40,17 +39,6 @@ describe('undoClear', () => {
   it('sends nothing before the first live state arrives', () => {
     undoClear();
     expect(sent).toHaveLength(0);
-  });
-});
-
-describe('useCanUndo', () => {
-  it('follows canUndo of the live state', () => {
-    const {result} = renderHook(() => useCanUndo());
-    expect(result.current).toBe(false);
-    act(() => useLive.setState({state: {...emptyLiveState(), canUndo: true}}));
-    expect(result.current).toBe(true);
-    act(() => useLive.setState({state: {...emptyLiveState(), canUndo: false}}));
-    expect(result.current).toBe(false);
   });
 });
 

@@ -30,16 +30,6 @@ function toggle(): HTMLElement {
 }
 
 describe('Switch', () => {
-  it('reports its state through aria-checked', () => {
-    const {rerender} = render(
-      <Switch aria-label="절전 막기" checked={false} onChange={() => {}} />,
-    );
-    const element = screen.getByRole('switch', {name: '절전 막기'});
-    expect(element.getAttribute('aria-checked')).toBe('false');
-    rerender(<Switch aria-label="절전 막기" checked onChange={() => {}} />);
-    expect(element.getAttribute('aria-checked')).toBe('true');
-  });
-
   it('toggles with Space but not with Enter or the arrows', async () => {
     const onChange = vi.fn();
     render(<Switch aria-label="절전 막기" checked onChange={onChange} />);

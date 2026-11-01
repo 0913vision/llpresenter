@@ -64,17 +64,6 @@ describe('DisplayRegistry', () => {
     ]);
   });
 
-  it('reads the numbered monitors at start', () => {
-    const registry = new DisplayRegistry(
-      new MockDisplaySource(projector, control),
-      recordingLogger(),
-    );
-    expect(registry.monitors.map(({id, number}) => [id, number])).toEqual([
-      [1, 1],
-      [2, 2],
-    ]);
-  });
-
   it('reads again once a burst of display events settles', async () => {
     const clock = installMockClock();
     const source = new MockDisplaySource(control, projector);

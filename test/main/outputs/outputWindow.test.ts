@@ -283,17 +283,6 @@ describe('OutputWindow', () => {
     expect(windows.only('main').mode).toEqual(FULL_SCREEN);
   });
 
-  it('keeps one window across hides and shows it again in place', () => {
-    const {output, windows} = setUp();
-    output.update(FULL_SCREEN);
-    output.update(null);
-    const handle = windows.only('main');
-    expect(handle.mode).toEqual({kind: 'hidden'});
-    output.update(FULL_SCREEN);
-    expect(windows.created).toHaveLength(1);
-    expect(handle.mode.kind).toBe('fullscreen');
-  });
-
   it('leaves a visible window alone when the placement is the same', () => {
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);

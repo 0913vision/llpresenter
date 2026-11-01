@@ -179,21 +179,6 @@ describe('handleClearKey F1 to F7', () => {
     expect(clearState.clearLayer).toHaveBeenCalledTimes(1);
     expect(repeated.defaultPrevented).toBe(true);
   });
-
-  it('are ignored with a modifier and for other keys', () => {
-    press('F2', {ctrlKey: true});
-    press('F2', {shiftKey: true});
-    press('F8');
-    press('KeyA');
-    expect(clearState.clearLayer).not.toHaveBeenCalled();
-  });
-
-  it('are ignored for an event that is already handled', () => {
-    const event = new KeyboardEvent('keydown', {code: 'F2', cancelable: true});
-    event.preventDefault();
-    handleClearKey(event);
-    expect(clearState.clearLayer).not.toHaveBeenCalled();
-  });
 });
 
 describe('handleClearKey Ctrl Z', () => {

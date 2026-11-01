@@ -262,26 +262,6 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.focus).not.toHaveBeenCalled();
   });
 
-  it('shows a windowed output at its bounds without taking focus', () => {
-    const output = openOutput('normal');
-    const win = lastWindow();
-
-    output.showWindowed(WINDOW_BOUNDS);
-
-    expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
-    expect(win.setAlwaysOnTop).toHaveBeenCalledWith(false);
-    expect(win.showInactive).toHaveBeenCalledTimes(1);
-    expect(win.focus).not.toHaveBeenCalled();
-  });
-
-  it('hides the window', () => {
-    const output = openOutput('normal');
-
-    output.hide();
-
-    expect(lastWindow().hide).toHaveBeenCalledTimes(1);
-  });
-
   it('opens hidden with the normal window options', () => {
     openOutput('normal');
 

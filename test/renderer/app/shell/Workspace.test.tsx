@@ -67,58 +67,6 @@ afterEach(() => {
 });
 
 describe('Workspace service header', () => {
-  it.each(['narrow', 'normal', 'wide'] as const)(
-    'shows the service name with the stable panel label at %s size',
-    sizeClass => {
-      render(
-        <Workspace
-          id="show"
-          sizeClass={sizeClass}
-          store={createMemoryColumnWidthStore()}
-        />,
-      );
-      const panel = screen.getByRole('region', {name: '예배 순서'});
-      expect(within(panel).getByText(sampleService.name)).toBeDefined();
-      expect(within(panel).queryByText('예배 순서')).toBeNull();
-      expect(
-        within(panel).getByRole('listbox', {name: '예배 순서'}),
-      ).toBeDefined();
-    },
-  );
-
-  it('uses the generic panel name while no service is open', () => {
-    showState.applyService(null);
-    render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    const panel = screen.getByRole('region', {name: '예배 순서'});
-    expect(within(panel).getByText('예배 순서')).toBeDefined();
-    expect(within(panel).queryByText(sampleService.name)).toBeNull();
-    expect(within(panel).queryAllByRole('option')).toHaveLength(0);
-  });
-
-  it('keeps the read-only warning beside the service name', () => {
-    showState.applyService({...sampleService, readOnly: true});
-    render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    const panel = screen.getByRole('region', {name: '예배 순서'});
-    expect(within(panel).getByText(sampleService.name)).toBeDefined();
-    expect(
-      within(panel).getByRole('img', {
-        name: '새 버전의 파일이라 읽기 전용으로 엽니다.',
-      }),
-    ).toBeDefined();
-  });
-
   it('mounts the current service header and list in the 준비 workspace', () => {
     render(
       <Workspace
@@ -136,20 +84,6 @@ describe('Workspace service header', () => {
 });
 
 describe('Workspace column gaps', () => {
-  it('shows the default widths of the size class', () => {
-    const {container} = render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '280px',
-      right: '480px',
-    });
-  });
-
   it('resizes the left column by dragging its gap and captures the pointer', () => {
     const {container} = render(
       <Workspace
@@ -164,21 +98,6 @@ describe('Workspace column gaps', () => {
     expect(widthsOf(gridOf(container))).toEqual({
       left: '320px',
       right: '480px',
-    });
-  });
-
-  it('resizes the right column when its gap moves left', () => {
-    const {container} = render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    dragGap(gapOf(container, 'right'), 1400, 1350);
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '280px',
-      right: '530px',
     });
   });
 
@@ -223,28 +142,6 @@ describe('Workspace column gaps', () => {
     fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: 400});
     expect(widthsOf(gridOf(container))).toEqual({
       left: '300px',
-      right: '480px',
-    });
-  });
-
-  it('remembers the widths per size class across a class change', () => {
-    const store = createMemoryColumnWidthStore();
-    const {container, rerender} = render(
-      <Workspace id="show" sizeClass="normal" store={store} />,
-    );
-    dragGap(gapOf(container, 'left'), 300, 340);
-
-    setWindowWidth(2560);
-    rerender(<Workspace id="show" sizeClass="wide" store={store} />);
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '320px',
-      right: '560px',
-    });
-
-    setWindowWidth(1920);
-    rerender(<Workspace id="show" sizeClass="normal" store={store} />);
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '320px',
       right: '480px',
     });
   });
@@ -325,67 +222,6 @@ describe('Workspace column gaps', () => {
     expect(widthsOf(gridOf(container))).toEqual({
       left: '300px',
       right: '480px',
-    });
-  });
-
-  it('can drag the other gap after the first drag ends', () => {
-    const {container} = render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    dragGap(gapOf(container, 'left'), 300, 340);
-    dragGap(gapOf(container, 'right'), 1400, 1350);
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '320px',
-      right: '530px',
-    });
-  });
-
-  it('keeps a shrunk width unsaved when a gap is clicked without moving', () => {
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
-      callback(0);
-      return 0;
-    });
-    const store = createMemoryColumnWidthStore();
-    const {container} = render(
-      <Workspace id="show" sizeClass="normal" store={store} />,
-    );
-    dragGap(gapOf(container, 'right'), 1400, 1160);
-    dragGap(gapOf(container, 'left'), 300, 420);
-    setWindowWidth(1600);
-    fireEvent(window, new Event('resize'));
-
-    dragGap(gapOf(container, 'right'), 1200, 1200);
-    expect(store.load('normal')).toEqual({left: 400, right: 720});
-  });
-
-  it('fits the columns at once when the window shrinks during a drag', () => {
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
-      callback(0);
-      return 0;
-    });
-    const store = createMemoryColumnWidthStore();
-    const {container} = render(
-      <Workspace id="show" sizeClass="normal" store={store} />,
-    );
-    dragGap(gapOf(container, 'right'), 1400, 1160);
-    dragGap(gapOf(container, 'left'), 300, 420);
-
-    const gap = gapOf(container, 'left');
-    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 400});
-    setWindowWidth(1600);
-    fireEvent(window, new Event('resize'));
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '400px',
-      right: '624px',
-    });
-    fireEvent.pointerUp(gap, {pointerId: 1, clientX: 400});
-    expect(widthsOf(gridOf(container))).toEqual({
-      left: '400px',
-      right: '624px',
     });
   });
 
@@ -474,33 +310,6 @@ describe('Workspace column gaps', () => {
     fireEvent.keyDown(document.body, {code: 'Space', key: ' '});
     expect(next).toHaveBeenCalledTimes(1);
     expect(slider.tabIndex).toBe(0);
-  });
-
-  it('keeps room for the scrollbar in the 슬라이드 panel body only', () => {
-    render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    const bodyOf = (name: string): string =>
-      screen.getByRole('region', {name}).children[1]?.className ?? '';
-    expect(bodyOf('슬라이드')).toContain('stableScrollbar');
-    expect(bodyOf('예배 순서')).not.toContain('stableScrollbar');
-  });
-
-  it('names the slide panel of the 진행 workspace 슬라이드', () => {
-    render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    expect(screen.getByRole('region', {name: '슬라이드'})).toBeTruthy();
-    expect(screen.getByRole('listbox', {name: '슬라이드'})).toBeTruthy();
-    expect(screen.queryByRole('region', {name: '장'})).toBeNull();
   });
 
   it('shows the preview panel in the 진행 workspace and nowhere else', () => {

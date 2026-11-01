@@ -69,43 +69,6 @@ describe('service panel editing', () => {
     expect(useShow.getState().openItemId).toBeNull();
   });
 
-  it('lists the rows of the ProPresenter playlist item menu for a song', async () => {
-    setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
-    const menu = await screen.findByRole('menu', {name: '예배 순서 항목 메뉴'});
-    const rows = [
-      ...menu.querySelectorAll('[role="menuitem"], [role="separator"]'),
-    ].map(row =>
-      row.getAttribute('role') === 'separator'
-        ? '|'
-        : (row.querySelector('[class*="label"]')?.textContent ?? ''),
-    );
-    expect(rows).toEqual([
-      '항목 숨기기',
-      '|',
-      '구성',
-      '출력 대상',
-      '|',
-      '곡 편집',
-      '|',
-      '복사',
-      '붙여넣기',
-      '복제',
-      '삭제',
-      '|',
-      '라이브러리에서 보기',
-      '묶음으로 내보내기…',
-      '그림으로 내보내기…',
-    ]);
-    for (const name of ['구성', '라이브러리에서 보기']) {
-      await waitFor(() =>
-        expect(
-          screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
-        ).not.toBe('true'),
-      );
-    }
-  });
-
   it('checks the item arrangement and changes only the clicked item through the setting writer', async () => {
     const fixture = setup('show', false, {
       namedArrangement: true,

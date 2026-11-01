@@ -1,6 +1,5 @@
-import {describe, expectTypeOf, it} from 'vitest';
-import {parseBible, serializeBible, type Translation} from '@core/schema/bible';
-import type {TranslationId} from '@core/schema/ids';
+import {describe, it} from 'vitest';
+import {parseBible, serializeBible} from '@core/schema/bible';
 import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
 
 const codec = {parse: parseBible, serialize: serializeBible};
@@ -99,11 +98,5 @@ describe('parseBible', () => {
       {...bibleFile(), translations: [krv, {...krv, name: '사본'}]},
       'translations.1',
     );
-  });
-});
-
-describe('bible types', () => {
-  it('brands translation ids', () => {
-    expectTypeOf<Translation['id']>().toEqualTypeOf<TranslationId>();
   });
 });

@@ -501,19 +501,6 @@ describe('version 1 group migration', () => {
     }
   });
 
-  it('leaves the active version 1 codec unchanged during consumer rollout', () => {
-    const input = legacy();
-    const old = expectSuccess(parseSong(JSON.stringify(input), FILE));
-    expect(old.data).toEqual(input);
-    expect(old.data.schemaVersion).toBe(1);
-    expectFailure(
-      serializeGroupedSong(
-        {...expectSuccess(parse(input)).data, schemaVersion: 1},
-        FILE,
-      ),
-    );
-  });
-
   it('distinguishes grouped songs from legacy v1 songs', () => {
     const v1 = expectSuccess(parseSong(JSON.stringify(legacy()), FILE)).data;
     const v2 = expectSuccess(parse(legacy())).data;

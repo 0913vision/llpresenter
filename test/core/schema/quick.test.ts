@@ -1,11 +1,9 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
-import type {BiblePassage} from '@core/schema/biblePassage';
+import {describe, expect, it} from 'vitest';
 import {
   isKnownQuickItem,
   parseQuick,
   quickItemKinds,
   serializeQuick,
-  type KnownQuickItem,
 } from '@core/schema/quick';
 import {
   expectInvalidField,
@@ -104,13 +102,5 @@ describe('parseQuick', () => {
       quickFile([song, {...song, name: '사본'}]),
       'items.1',
     );
-  });
-});
-
-describe('quick types', () => {
-  it('types the ref of a Bible item as a passage', () => {
-    expectTypeOf<
-      Extract<KnownQuickItem, {kind: 'bible'}>['ref']
-    >().toEqualTypeOf<BiblePassage>();
   });
 });

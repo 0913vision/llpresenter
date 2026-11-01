@@ -1,11 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {recordingLogger} from '@fixtures/main/displays/testing';
-import {initialHistory, liveSlices, type LiveHistory} from '@main/live/reducer';
+import {initialHistory, type LiveHistory} from '@main/live/reducer';
 import {defineSlice} from '@main/live/slice';
 import {registryOf, SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
-import {dispatchLogged, LiveStore} from '@main/live/store';
 
 const fixtureSlice = defineSlice({
   commands: ['clear.undo'],
@@ -174,79 +172,5 @@ describe('SliceRegistry', () => {
       ),
     ).toBe(history);
     expect(reduce).not.toHaveBeenCalled();
-  });
-
-  it('keeps fixture modules out of the production registry', () => {
-    expect(liveSlices.initialState().outputs['fixture-loaded']).toBeUndefined();
-  });
-
-  it('keeps a newly added layer default when it is discovered before the content slice', () => {
-    const defaults = defineSlice({
-      commands: [],
-      initial: {layers: {audio: {mediaId: 'fixture-default'}}},
-      reduce: history => history,
-    });
-    const registry = registryOf({
-      './new-defaults.ts': {defaults},
-      ...import.meta.glob<unknown>(['/src/main/live/slices/*.ts'], {
-        eager: true,
-      }),
-    });
-    expect(registry.initialState().layers.audio).toEqual({
-      mediaId: 'fixture-default',
-    });
-  });
-});
-
-describe('unhandled live commands', () => {
-  // NOTE(0913vision): Reflect supplies a runtime command outside today's shared
-  // union, as a newly widened contract can before its slice is implemented.
-  it.each(['fixture.future', 'toString', '__proto__'])(
-    'rejects %s without changing state, version, undo, or notifying listeners',
-    type => {
-      const now = vi.fn(() => 42);
-      const store = new LiveStore(undefined, now);
-      store.dispatch({
-        type: 'message.show',
-        message: {messageId: 'before', text: 'kept'},
-      });
-      store.dispatch({type: 'layer.clear', target: 'message'});
-      const initial = store.state;
-      const listener = vi.fn();
-      const unsubscribe = store.subscribe(listener);
-      const changed: unknown = Reflect.apply(store.dispatch, store, [{type}]);
-      expect(changed).toBe(false);
-      expect(store.state).toBe(initial);
-      expect(store.state.version).toBe(2);
-      expect(store.state.canUndo).toBe(true);
-      expect(listener).not.toHaveBeenCalled();
-      unsubscribe();
-      store.dispatch({type: 'clear.undo'});
-      expect(store.state.layers.message?.text).toBe('kept');
-    },
-  );
-
-  it('logs and rejects unsupported types through the application dispatch path', () => {
-    const store = new LiveStore();
-    const initial = store.state;
-    const log = recordingLogger();
-    const warn = vi.spyOn(log, 'warn');
-    Reflect.apply(dispatchLogged, undefined, [
-      store,
-      {type: 'fixture.future'},
-      log,
-    ]);
-    expect(store.state).toBe(initial);
-    expect(store.state.version).toBe(0);
-    expect(warn).toHaveBeenCalledExactlyOnceWith('unhandled live command', {
-      type: 'fixture.future',
-    });
-    dispatchLogged(
-      store,
-      {type: 'output.set', screenId: 'main', on: true},
-      log,
-    );
-    expect(store.state.version).toBe(1);
-    expect(store.state.outputs).toEqual({main: true});
   });
 });

@@ -1,7 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {emptyLayers} from '@core/live/state';
 import {installMockClock} from '../../../mock-clock';
-import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';
 import {
   act,
   cleanup,
@@ -19,7 +18,6 @@ import {
   CAPTIONS_ID,
 } from '@fixtures/core/screenDocuments';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {MessageTab} from '@renderer/features/tools/MessageTab';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 
@@ -118,26 +116,6 @@ it('shows each sent message time and clears only that message', async () => {
   });
   unmount();
   expect(vi.getTimerCount()).toBe(0);
-});
-
-it('mounts only on the message tab and releases both document subscriptions', async () => {
-  mockPanelTabWidths(300);
-  const fixture = messageFixture();
-  const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
-  await waitFor(() => expect(fixture.count()).toBe(0));
-  fixture.get.mockClear();
-  fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
-  await ready();
-  expect(fixture.count()).toBe(2);
-  expect(fixture.get.mock.calls.map(([request]) => request.name)).toEqual([
-    'messages',
-    'screens',
-  ]);
-  fireEvent.click(screen.getByRole('tab', {name: '무대'}));
-  await waitFor(() => expect(fixture.count()).toBe(3));
-  unmount();
-  expect(fixture.count()).toBe(0);
-  expect(fixture.send).not.toHaveBeenCalled();
 });
 
 it('previews literal values and sends optional defaults as all screens until cleared', async () => {

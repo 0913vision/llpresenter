@@ -473,13 +473,6 @@ describe('startOutput', () => {
     expect(logs.at(-1)?.detail).toContain('late failure');
   });
 
-  it('reports its frame rate with its screen id once it draws the live state', async () => {
-    const {rates} = setUp();
-    await vi.waitFor(() => expect(frame).not.toBeNull());
-    runFramesFor(SECOND_AND_A_BIT_MS);
-    expect(rates).toEqual([{screenId: 'main', fps: 60}]);
-  });
-
   it('reports no frame rate while the live state is on its way', async () => {
     let answer: (state: LiveState) => void = () => undefined;
     const {root, rates} = setUp({

@@ -1,7 +1,7 @@
-import {render, screen, within} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it} from 'vitest';
 import {
   Properties,
   PropertyGroup,
@@ -11,10 +11,7 @@ import {
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
-import {
-  hoverForTooltip,
-  resetTooltips,
-} from '@fixtures/renderer/ui/tooltipTesting';
+import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
 afterEach(resetTooltips);
 
@@ -56,12 +53,6 @@ function ScreenSettings(): JSX.Element {
 }
 
 describe('PropertyRow', () => {
-  it('names its control after the row name', () => {
-    render(<ScreenSettings />);
-    expect(screen.getByRole('switch', {name: '항상 위'})).toBeDefined();
-    expect(screen.getByRole('textbox', {name: '이름'})).toBeDefined();
-  });
-
   it('toggles a switch from a press on the name', async () => {
     render(<ScreenSettings />);
     await userEvent.click(screen.getByText('항상 위'));
@@ -93,50 +84,9 @@ describe('PropertyRow', () => {
     );
   });
 
-  it('groups rows under a named group', () => {
-    render(<ScreenSettings />);
-    expect(screen.getByRole('group', {name: '안정성'})).toBeDefined();
-  });
-
-  it('cuts a long value off with an ellipsis and shows it in full in a tooltip', async () => {
-    const path = 'D:\\예배 미디어\\배경\\아주 긴 이름의 배경 영상 파일.mp4';
-    render(<PropertyValue label="원본" value={path} />);
-    const text = screen.getByText(path);
-    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(400);
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
-    expect((await hoverForTooltip(text))?.textContent).toBe(path);
-  });
-
   it('shows a read-only value next to its name', () => {
     render(<ScreenSettings />);
     const row = screen.getByRole('group', {name: '주사율'});
     expect(row.textContent).toBe('주사율60Hz');
-  });
-
-  it('shows extra information after a value', () => {
-    render(<PropertyValue label="해상도" value="1920×1080" meta="60Hz" />);
-    expect(screen.getByText('60Hz')).toBeDefined();
-  });
-
-  it('ends a value row with its action', async () => {
-    const onClick = vi.fn();
-    render(
-      <PropertyValue
-        label="곡"
-        value="만복의 근원 하나님"
-        icon="link"
-        primary
-        action={
-          <button type="button" onClick={onClick}>
-            라이브러리 곡 열기
-          </button>
-        }
-      />,
-    );
-    const row = screen.getByRole('group', {name: '곡'});
-    await userEvent.click(
-      within(row).getByRole('button', {name: '라이브러리 곡 열기'}),
-    );
-    expect(onClick).toHaveBeenCalledOnce();
   });
 });

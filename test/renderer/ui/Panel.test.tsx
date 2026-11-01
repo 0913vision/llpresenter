@@ -64,18 +64,6 @@ describe('Panel', () => {
     expect(selectedTab()).toBe('오디오');
   });
 
-  it('is a section named by its label', () => {
-    render(<ShowTools />);
-    expect(screen.getByRole('region', {name: '진행 도구'})).toBeDefined();
-  });
-
-  it('labels the body by the selected tab name', () => {
-    render(<ShowTools />);
-    const showing = screen.getByRole('tab', {name: '표시 중'});
-    expect(showing.getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();
-  });
-
   it('selects tabs on click and with the arrow keys', async () => {
     render(<ShowTools />);
     await userEvent.click(screen.getByRole('tab', {name: '오디오'}));

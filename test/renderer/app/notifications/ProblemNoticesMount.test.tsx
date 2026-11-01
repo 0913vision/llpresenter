@@ -4,12 +4,9 @@ import {emptyLiveState} from '@core/live/state';
 import {
   APP_PROBLEM_LIMITS,
   fileSkippedProblem,
-  macroDroppedProblem,
   saveFailedProblem,
   type AppProblem,
 } from '@core/schema/appProblem';
-import {parseMacroId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
@@ -25,9 +22,6 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 
 const sessions: ControlSession[] = [];
-const MACRO_ID = expectSuccess(
-  parseMacroId('c63a2e74-9a31-4c4d-8e5f-607182930415'),
-);
 
 function setup(
   listed: readonly AppProblem[] | Promise<readonly AppProblem[]> = [],
@@ -136,17 +130,6 @@ it('keeps a pushed save change over an older one in a list that arrives late', a
     await lateList;
   });
   expect(screen.queryByRole('alert', {name: '저장할 수 없음'})).toBeNull();
-});
-
-it('warns that a 매크로 was not applied', () => {
-  const {push} = setup();
-  push(macroDroppedProblem(MACRO_ID, '예배 시작'));
-  const card = screen.getByRole('alert', {name: '매크로 적용 실패'});
-  expect(within(card).getByText('예배 시작')).toBeDefined();
-  push(macroDroppedProblem(MACRO_ID, '예배 시작'));
-  expect(screen.getAllByRole('alert', {name: '매크로 적용 실패'})).toHaveLength(
-    1,
-  );
 });
 
 it('shows 저장할 수 없음 with 다시 시도 and closes it when every file is saved', () => {

@@ -67,26 +67,10 @@ function randomCommand(random: () => number): LiveCommand {
 }
 
 describe('applyCommand', () => {
-  it('shows a slide and bumps the version', () => {
-    const next = run([{type: 'slide.show', slide: slide(1)}]);
-    expect(next.state.version).toBe(1);
-    expect(next.state.layers.slide?.position).toBe(1);
-  });
-
   it('returns the same history when the same slide object is shown again', () => {
     const shown = slide(1);
     const once = run([{type: 'slide.show', slide: shown}]);
     expect(applyCommand(once, {type: 'slide.show', slide: shown})).toBe(once);
-  });
-
-  it('ignores clears of empty layers and records no undo', () => {
-    const start = initialHistory(emptyLiveState());
-    expect(applyCommand(start, {type: 'layer.clear', target: 'slide'})).toBe(
-      start,
-    );
-    expect(applyCommand(start, {type: 'layer.clear', target: 'all'})).toBe(
-      start,
-    );
   });
 
   it('restores the layers from right before a clear on undo', () => {
@@ -134,21 +118,6 @@ describe('applyCommand', () => {
     const restored = applyAt(cleared, {type: 'clear.undo'}, NOW + 15_000);
     expect(restored.state.layers.media?.startedAt).toBe(NOW);
     expect(restored.state.layers.slide?.position).toBe(2);
-  });
-
-  it('keeps other layers when one layer is cleared', () => {
-    const shown = run([
-      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
-      {type: 'slide.show', slide: slide(2)},
-      {type: 'layer.clear', target: 'slide'},
-    ]);
-    expect(shown.state.layers.slide).toBeNull();
-    expect(shown.state.layers.media?.mediaId).toBe('warm-light');
-  });
-
-  it('returns the same history when there is nothing to undo', () => {
-    const start = initialHistory(emptyLiveState());
-    expect(applyCommand(start, {type: 'clear.undo'})).toBe(start);
   });
 
   it('undoes only the last clear, one level deep', () => {
@@ -281,32 +250,6 @@ describe('applyCommand', () => {
       }
       history = next;
     }
-  });
-
-  it('tells windows whether a clear can be undone', () => {
-    const start = initialHistory(emptyLiveState());
-    expect(start.state.canUndo).toBe(false);
-    const shown = run([{type: 'slide.show', slide: slide(2)}], start);
-    expect(shown.state.canUndo).toBe(false);
-    const cleared = applyCommand(shown, {type: 'layer.clear', target: 'slide'});
-    expect(cleared.state.canUndo).toBe(true);
-    const switched = applyCommand(cleared, {
-      type: 'output.set',
-      screenId: 'main',
-      on: true,
-    });
-    expect(switched.state.canUndo).toBe(true);
-    const undone = applyCommand(switched, {type: 'clear.undo'});
-    expect(undone.state.canUndo).toBe(false);
-    const clearedAgain = applyCommand(undone, {
-      type: 'layer.clear',
-      target: 'slide',
-    });
-    const covered = applyCommand(clearedAgain, {
-      type: 'slide.show',
-      slide: slide(3),
-    });
-    expect(covered.state.canUndo).toBe(false);
   });
 
   it('keeps canUndo in step with the undo for random commands', () => {

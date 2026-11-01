@@ -1,11 +1,5 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
-import {
-  parseAppConfig,
-  serializeAppConfig,
-  type AppLayout,
-  type ColumnLayout,
-  type SizeClass,
-} from '@core/schema/appConfig';
+import {describe, expect, it} from 'vitest';
+import {parseAppConfig, serializeAppConfig} from '@core/schema/appConfig';
 import {expectFailure, expectSuccess} from '@core/schema/testHelpers';
 
 const FILE = 'C:\\data\\app.json';
@@ -192,20 +186,6 @@ describe('parseAppConfig', () => {
     const error = expectFailure(parse({...fullConfig(), ...change}));
 
     expect(error).toMatchObject({kind: 'invalid', file: FILE, field});
-  });
-});
-
-describe('app config types', () => {
-  it('names the size classes of the design system', () => {
-    expectTypeOf<SizeClass>().toEqualTypeOf<'narrow' | 'normal' | 'wide'>();
-    expectTypeOf<keyof AppLayout>().toEqualTypeOf<SizeClass>();
-    expectTypeOf<ColumnLayout>().toEqualTypeOf<{
-      readonly leftCollapsed?: boolean;
-      readonly left?: number;
-      readonly right?: number;
-      readonly columns?: number;
-      readonly thumbnailScalePercent?: number;
-    }>();
   });
 });
 

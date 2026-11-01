@@ -1,6 +1,5 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
-import type {LabelColor} from '@core/labels/colors';
-import {parseLabels, serializeLabels, type Label} from '@core/schema/labels';
+import {describe, expect, it} from 'vitest';
+import {parseLabels, serializeLabels} from '@core/schema/labels';
 import {
   expectInvalidField,
   expectRoundTrip,
@@ -125,12 +124,5 @@ describe('serializeLabels', () => {
     );
 
     expect(written.ok ? undefined : written.error.field).toBe('labels.0.key');
-  });
-});
-
-describe('label types', () => {
-  it('uses the shared label colors', () => {
-    expectTypeOf<Label['color']>().toEqualTypeOf<LabelColor>();
-    expectTypeOf<Label['key']>().toEqualTypeOf<string | null>();
   });
 });

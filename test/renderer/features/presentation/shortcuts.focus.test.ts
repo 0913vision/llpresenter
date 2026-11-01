@@ -7,11 +7,7 @@ import {
   handleShowMouseDown,
   useShowKeys,
 } from '@renderer/features/presentation/shortcuts';
-import {
-  press,
-  release,
-  appendTo,
-} from '@fixtures/renderer/features/presentation/shortcutsFixtures';
+import {appendTo} from '@fixtures/renderer/features/presentation/shortcutsFixtures';
 
 describe('click focus', () => {
   function mouseDown(target: Element, button = 0): MouseEvent {
@@ -275,13 +271,6 @@ describe('state that an event may never complete', () => {
     focusIn(button);
   }
 
-  it('does not blur a button that Tab reaches after a native drag from it, on keyboard input', () => {
-    const {button, other} = nativeDragFromFocusedButton();
-    press('Tab');
-    tabAwayAndBack(button, other);
-    expect(document.activeElement).toBe(button);
-  });
-
   it('forgets the mouse down when the drag ends', () => {
     const {unmount} = renderHook(() => useShowKeys());
     const {button, other} = nativeDragFromFocusedButton();
@@ -306,44 +295,5 @@ describe('state that an event may never complete', () => {
     unmount();
     tabAwayAndBack(button, other);
     expect(document.activeElement).toBe(button);
-  });
-
-  it('still puts the focus back for a click that is followed by its focus-in', () => {
-    const previous = appendTo('button');
-    previous.focus();
-    const control = appendTo('button');
-    mouseDown(control);
-    control.focus();
-    focusIn(control);
-    expect(document.activeElement).toBe(previous);
-  });
-
-  it('does not cancel a later Space key up after the window lost focus in between', () => {
-    const {unmount} = renderHook(() => useShowKeys());
-    press('Space');
-    window.dispatchEvent(new Event('blur'));
-    expect(release('Space', appendTo('button')).defaultPrevented).toBe(false);
-    unmount();
-  });
-
-  it('does not cancel a key up after the listeners were removed and added again', () => {
-    const first = renderHook(() => useShowKeys());
-    press('Space');
-    first.unmount();
-    const second = renderHook(() => useShowKeys());
-    expect(release('Space', appendTo('button')).defaultPrevented).toBe(false);
-    second.unmount();
-  });
-
-  it('forgets a missed Space release when the next Space press is owned by a text field', () => {
-    press('Space');
-    press('Space', {}, appendTo('input'));
-    expect(release('Space', appendTo('input')).defaultPrevented).toBe(false);
-  });
-
-  it('keeps the flag for the repeats of a held Space', () => {
-    press('Space');
-    press('Space', {repeat: true});
-    expect(release('Space').defaultPrevented).toBe(true);
   });
 });

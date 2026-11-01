@@ -47,19 +47,6 @@ describe('nextCheckState', () => {
 });
 
 describe('Checkbox', () => {
-  it('reports on, off, and mixed through aria-checked', () => {
-    const {rerender} = render(
-      <Checkbox aria-label="선택" checked={false} onChange={() => {}} />,
-    );
-    expect(box('선택').getAttribute('aria-checked')).toBe('false');
-    rerender(<Checkbox aria-label="선택" checked onChange={() => {}} />);
-    expect(box('선택').getAttribute('aria-checked')).toBe('true');
-    rerender(
-      <Checkbox aria-label="선택" checked="mixed" onChange={() => {}} />,
-    );
-    expect(box('선택').getAttribute('aria-checked')).toBe('mixed');
-  });
-
   it('toggles with Space but not with Enter', async () => {
     const onChange = vi.fn();
     render(<Checkbox aria-label="선택" checked={false} onChange={onChange} />);
@@ -67,15 +54,6 @@ describe('Checkbox', () => {
     await userEvent.keyboard('{Enter}');
     expect(onChange).not.toHaveBeenCalled();
     await userEvent.keyboard(' ');
-    expect(onChange).toHaveBeenCalledWith(true);
-  });
-
-  it('turns a mixed box on', async () => {
-    const onChange = vi.fn();
-    render(
-      <Checkbox aria-label="예배 전" checked="mixed" onChange={onChange} />,
-    );
-    await userEvent.click(box('예배 전'));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });

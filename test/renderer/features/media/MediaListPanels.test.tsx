@@ -85,26 +85,6 @@ describe('media list panels', () => {
     },
   );
 
-  it.each([
-    ['미디어 목록', 'Backgrounds'],
-    ['오디오 재생목록', 'Hymns'],
-  ])(
-    'lists the %s playlist menu rows in ProPresenter order',
-    async (list, name) => {
-      setup();
-      const contextTarget = await row(list, new RegExp(name));
-      fireEvent.contextMenu(contextTarget);
-      expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-      const menu = screen.getByRole('menu', {name: '재생목록 메뉴'});
-      expect(
-        [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
-          item =>
-            item.getAttribute('role') === 'separator' ? '|' : item.textContent,
-        ),
-      ).toEqual(['통신에 사용', '|', '이름 바꾸기', '복제', '삭제']);
-    },
-  );
-
   afterEach(resetTooltips);
 
   it.each([

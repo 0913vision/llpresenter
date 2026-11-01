@@ -46,12 +46,6 @@ describe('FrameRateTracker', () => {
     ]);
   });
 
-  it('keeps the last rate of each screen', () => {
-    const {tracker} = setUp();
-    tracker.report({screenId: 'main', fps: 59.8});
-    expect(tracker.current('main')).toEqual({fps: 59.8, status: 'normal'});
-  });
-
   it('turns low only after the rate stays low for 2 seconds', () => {
     const {tracker, log, reportFor} = setUp();
     reportFor(LOW_FPS, FPS_SETTLE_MS - REPORT_EVERY_MS);

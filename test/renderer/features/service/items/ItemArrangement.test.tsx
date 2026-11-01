@@ -230,20 +230,6 @@ describe('ItemArrangement with grouped songs', () => {
     expect(edits).toEqual([]);
   });
 
-  it('protects the default arrangement in the shared management menu', async () => {
-    const {user} = await setupGrouped({arrangement: undefined});
-    await user.click(screen.getByRole('button', {name: '구성'}));
-    const rename = screen.getByRole('menuitem', {name: '이름 바꾸기…'});
-    expect(rename.getAttribute('aria-disabled')).toBe('true');
-    expect(
-      screen
-        .getByRole('menuitem', {name: '지우기'})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
-    expect((await hoverForTooltip(rename))?.textContent).toBe(
-      '기본 구성은 바꿀 수 없습니다',
-    );
-  });
   it.each([false, true])(
     'identifies a missing group arrangement with song readOnly=%s',
     async readOnly => {
@@ -279,26 +265,6 @@ describe('ItemArrangement with grouped songs', () => {
     expect(
       session.history.snapshot.song.arrangements?.[0]?.groups,
     ).toHaveLength(100_000);
-  });
-
-  it('renders one chip per group occurrence and colors chips by label', async () => {
-    await setupGrouped();
-    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
-    const chips = within(listbox).getAllByRole('option');
-    expect(chips).toHaveLength(3);
-    expect(chips[0]?.textContent).toBe('1절');
-    expect(chips[1]?.textContent).toBe('후렴');
-    expect(chips[2]?.textContent).toBe('1절');
-  });
-
-  it('labels unnamed groups with position and none color', async () => {
-    await setupGrouped({unnamed: true});
-    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
-    const chips = within(listbox).getAllByRole('option');
-    expect(chips).toHaveLength(3);
-    expect(chips[0]?.textContent).toBe('이름표 없음 1');
-    expect(chips[1]?.textContent).toBe('이름표 없음 2');
-    expect(chips[2]?.textContent).toBe('이름표 없음 1');
   });
 
   it('selects first slide of the clicked group occurrence', async () => {

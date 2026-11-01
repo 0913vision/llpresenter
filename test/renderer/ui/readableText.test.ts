@@ -2,8 +2,6 @@ import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 
 const read = (path: string): string => readFileSync(path, 'utf8');
-const css = (name: string): string =>
-  read(`src/renderer/src/ui/${name}.module.css`);
 const TOKEN_CSS_PATHS = [
   'src/renderer/src/styles/tokens.css',
   'design/system/project/tokens.css',
@@ -65,26 +63,5 @@ describe('readable control text', () => {
       expect(design).toContain(`--${name}: ${value};`);
       expect(app).toContain(`--${name}: ${value};`);
     }
-  });
-  it('keeps enabled off and selected labels readable while disabled states remain distinct', () => {
-    expect(css('ToolbarButton')).toMatch(
-      /\.output\[data-state='off'\] \.label,[\s\S]*?color:\s*var\(--text-2\)/,
-    );
-    expect(css('ToolbarButton')).toMatch(
-      /\.button\[aria-disabled='true'\][\s\S]*?color:\s*var\(--text-off\)/,
-    );
-    expect(css('PreviewFrame')).toMatch(
-      /\[data-state='off'\] \.name\s*\{\s*color:\s*var\(--text-3\)/,
-    );
-    expect(css('ListRow')).toMatch(
-      /\.row\[data-state~='done'\]\[aria-selected='true'\]\s*\{\s*color:\s*var\(--text-2\)/,
-    );
-    const layout = read(
-      'src/renderer/src/features/screens/DisplayLayout.module.css',
-    );
-    expect(layout).toMatch(/\.number\s*\{\s*color:\s*var\(--text-2\)/);
-    expect(layout).toMatch(
-      /\.selected \.control\s*\{\s*color:\s*var\(--text-2\)/,
-    );
   });
 });

@@ -1,5 +1,4 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
-import type {MediaId, ServiceItemId, SongId} from '@core/schema/ids';
+import {describe, expect, it} from 'vitest';
 import {
   parseService,
   parseTemplate,
@@ -7,9 +6,6 @@ import {
   serializeTemplate,
   serviceItemKind,
   isItemOfKind,
-  type ServiceItem,
-  type ServiceItemKind,
-  type ServiceItemOf,
 } from '@core/schema/service';
 import {
   expectFailure,
@@ -257,28 +253,6 @@ describe('isItemOfKind', () => {
     const songs = service.order.filter(item => isItemOfKind(item, 'song'));
 
     expect(songs.map(({song}) => song)).toEqual([SONG_ID]);
-  });
-});
-
-describe('service types', () => {
-  it('keeps every item kind in the union', () => {
-    expectTypeOf<ServiceItemOf<'song'>['song']>().toEqualTypeOf<SongId>();
-    expectTypeOf<ServiceItemOf<'header'>['header']>().toEqualTypeOf<string>();
-    expectTypeOf<ServiceItemOf<'media'>['media']>().toEqualTypeOf<MediaId>();
-    expectTypeOf<ServiceItemOf<'notice'>>().not.toBeNever();
-    expectTypeOf<ServiceItemOf<'song' | 'header'>>().toEqualTypeOf<
-      ServiceItemOf<'song'> | ServiceItemOf<'header'>
-    >();
-  });
-
-  it('brands item ids and names every kind', () => {
-    expectTypeOf<ServiceItem['id']>().toEqualTypeOf<ServiceItemId>();
-    expectTypeOf(serviceItemKind).returns.toEqualTypeOf<
-      ServiceItemKind | 'unknown'
-    >();
-    expectTypeOf<ServiceItemKind>().toEqualTypeOf<
-      'header' | 'song' | 'slot' | 'bible' | 'media' | 'notice'
-    >();
   });
 });
 

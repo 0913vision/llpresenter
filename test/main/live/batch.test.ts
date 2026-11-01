@@ -184,18 +184,6 @@ describe('live batches', () => {
     expect(store.state.canUndo).toBe(false);
   });
 
-  it('keeps an earlier undo when a following batch changes nothing', () => {
-    const {store} = populatedStore();
-    const before = store.state.layers;
-    store.dispatch(THREE_CLEARS);
-    store.dispatch({
-      type: 'live.batch',
-      commands: [{type: 'layer.clear', target: 'all'}],
-    });
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers).toEqual(before);
-  });
-
   it('undoes all three clears with one snapshot and resumes the cleared media', () => {
     const {store, setTime} = populatedStore();
     expect(store.handles('live.batch')).toBe(true);

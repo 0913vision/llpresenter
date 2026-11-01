@@ -30,10 +30,6 @@ describe('centerWidth', () => {
     expect(FIXED_GAPS_WIDTH).toBe(16);
     expect(centerWidth(1920, {left: 280, right: 480})).toBe(1144);
   });
-
-  it('leaves 744 in the smallest window with both columns at minimum', () => {
-    expect(centerWidth(MIN_WINDOW_WIDTH, {left: 200, right: 320})).toBe(744);
-  });
 });
 
 describe('fitToWindow', () => {

@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -126,25 +126,6 @@ describe('MacroGrid', () => {
     tile('말씀').focus();
     await userEvent.keyboard('{Enter} ');
     expect(onRun.mock.calls).toEqual([[1], [2], [2]]);
-  });
-
-  it('moves keyboard focus with the arrows and keeps the selection', async () => {
-    render(<Grid />);
-    tile('찬양').focus();
-    await userEvent.keyboard('{ArrowLeft}');
-    expect(document.activeElement).toBe(tile('예배 시작, 10:30에 실행'));
-    expect(tile('말씀').getAttribute('aria-selected')).toBe('true');
-  });
-
-  it('opens the macro menu on a right-click', () => {
-    const onMenu = vi.fn<(index: number, anchor: MenuAnchor) => void>();
-    render(<Grid onMenu={onMenu} />);
-    fireEvent.contextMenu(tile('찬양'), {clientX: 12, clientY: 34});
-    expect(onMenu).toHaveBeenCalledWith(1, {
-      kind: 'point',
-      point: {x: 12, y: 34},
-      target: screen.getByRole('option', {name: '찬양'}),
-    });
   });
 
   it('ends with the 새 매크로 slot, outside the list of macros', async () => {

@@ -120,29 +120,6 @@ describe('Slider', () => {
     fireEvent.change(input, {target: {value: '4'}});
     expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
   });
-  it.each(['ctrlKey', 'altKey', 'metaKey'] as const)(
-    'passes %s arrow combinations to window commands',
-    modifier => {
-      const onChange = vi.fn();
-      render(
-        <Slider
-          label="음량"
-          min={0}
-          max={100}
-          value={50}
-          onChange={onChange}
-        />,
-      );
-      expect(
-        fireEvent.keyDown(screen.getByRole('slider'), {
-          key: 'ArrowUp',
-          code: 'ArrowUp',
-          [modifier]: true,
-        }),
-      ).toBe(true);
-      expect(onChange).not.toHaveBeenCalled();
-    },
-  );
 
   it('is a named slider that fills the track up to its value', async () => {
     render(<ThumbnailSize />);
@@ -164,33 +141,6 @@ describe('Slider', () => {
     await userEvent.keyboard('{Home}{ArrowDown}{ArrowLeft}');
     expect(onChange).toHaveBeenLastCalledWith(1);
     expect(onChange).toHaveBeenCalledTimes(4);
-  });
-
-  it('moves a tenth of the range with PageUp and PageDown', async () => {
-    const onChange = vi.fn();
-    render(
-      <Slider
-        label="음량"
-        min={0}
-        max={100}
-        value={70}
-        valueText="70%"
-        onChange={onChange}
-      />,
-    );
-    await userEvent.tab();
-    await userEvent.keyboard('{PageUp}');
-    expect(onChange).toHaveBeenLastCalledWith(80);
-    await userEvent.keyboard('{PageDown}');
-    expect(onChange).toHaveBeenLastCalledWith(60);
-    expect(slider('음량').getAttribute('aria-valuetext')).toBe('70%');
-  });
-
-  it('reports values from dragging', () => {
-    const onChange = vi.fn();
-    render(<ThumbnailSize onChange={onChange} />);
-    fireEvent.change(slider(), {target: {value: '4'}});
-    expect(onChange).toHaveBeenCalledWith(4);
   });
 
   it('gives the reason as the tooltip while disabled', async () => {

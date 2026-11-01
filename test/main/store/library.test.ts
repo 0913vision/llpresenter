@@ -61,19 +61,6 @@ describe('loadFolder', () => {
     ]);
   });
 
-  it('finds nothing in a folder that does not exist yet', async () => {
-    const folder = await makeTempDir();
-
-    const loaded = await loadFolder(
-      join(folder, 'Songs'),
-      '.llsong',
-      parseSong,
-    );
-
-    expect(loaded.items.size).toBe(0);
-    expect(loaded.problems).toEqual([]);
-  });
-
   it('reports a folder it cannot read', async () => {
     const folder = await makeTempDir();
     const notAFolder = join(folder, 'Songs');

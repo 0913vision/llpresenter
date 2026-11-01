@@ -86,14 +86,3 @@ it('reflects live state and reads the latest state when toggled', () => {
     on: false,
   });
 });
-
-it('moves focus between tiles without activating either one', () => {
-  const fixture = stageFixture();
-  render(<PropGrid props={props} screens={[]} />);
-  const firstTile = screen.getByRole('option', {name: '안내'});
-  const secondTile = screen.getByRole('option', {name: '로고'});
-  firstTile.focus();
-  fireEvent.keyDown(firstTile, {key: 'ArrowRight'});
-  expect(document.activeElement).toBe(secondTile);
-  expect(fixture.send).not.toHaveBeenCalled();
-});

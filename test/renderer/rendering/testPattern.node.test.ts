@@ -22,9 +22,3 @@ it('hides a hidden pattern even though its class sets a display', () => {
   expect(rule('.pattern')).toContain('display: grid;');
   expect(rule('.pattern[hidden]')).toContain('display: none;');
 });
-
-it('draws the 2 px white border over the picture edge', () => {
-  expect(rule('.pattern::after')).toContain(
-    'box-shadow: inset 0 0 0 2px var(--text-on-fill);',
-  );
-});

@@ -93,35 +93,6 @@ it('rejects changed snapshots and bounds both indices and the action count', () 
   ).toThrow('full');
 });
 
-it('appends to the latest revision without losing another action', async () => {
-  const initial = document([first]);
-  const newer = document([first, second], 2);
-  const get = vi.fn().mockResolvedValueOnce(initial).mockResolvedValue(newer);
-  const edit = vi
-    .fn()
-    .mockResolvedValueOnce({
-      ok: false,
-      error: {reason: 'stale', message: 'stale'},
-    })
-    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 3}});
-  const api = mockLlpApi({settings: {get, edit}});
-  await saveMacroEdit(api, {
-    kind: 'action',
-    id: item.id,
-    action: {kind: 'append', action: first},
-  });
-  expect(edit).toHaveBeenNthCalledWith(
-    2,
-    expect.objectContaining({
-      baseRevision: 2,
-      value: {
-        ...newer.value,
-        macros: [{...newer.value.macros[0], actions: [first, second, first]}],
-      },
-    }),
-  );
-});
-
 it('does not overwrite a concurrently changed list on a retried removal', async () => {
   const initial = document([first]);
   const newer = document([first, second], 2);

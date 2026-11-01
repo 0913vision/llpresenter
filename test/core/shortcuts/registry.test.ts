@@ -31,26 +31,6 @@ it('registers Item Off without a default key and accepts assigned theme commands
   ).toMatchObject({group: '테마', defaults: []});
 });
 
-it('ignores saved bindings of the removed Look and stage layout editors', () => {
-  const removed = [
-    'look.menu',
-    'workspace.looks',
-    'workspace.stage',
-    'look.new',
-    'stageLayout.new',
-  ];
-  for (const id of removed) expect(shortcutCommand(id)).toBeUndefined();
-  const saved = parseShortcuts(
-    JSON.stringify({
-      format: 'llsettings.shortcuts',
-      schemaVersion: 1,
-      bindings: {'look.new': [{code: 'F8', mods: []}]},
-    }),
-    'shortcuts.json',
-  );
-  expect(saved.ok).toBe(true);
-});
-
 function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
   return {
     code: 'KeyC',

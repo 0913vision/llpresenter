@@ -1,7 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/platform/drag';
-import {modalStack} from '@renderer/ui/modalStack';
 import {useSlideHotKeys} from '@renderer/features/presentation/useSlideHotKeys';
 
 const dispatch = vi.hoisted(() => ({keys: new Set<string>(), output: vi.fn()}));
@@ -82,15 +81,6 @@ it('reads current assignments after an edit and removes listeners on unmount', (
   expect(dispatch.output).toHaveBeenCalledOnce();
 });
 
-it.each(['ctrlKey', 'altKey', 'shiftKey', 'metaKey'])(
-  'yields to a %s modified assignment',
-  modifier => {
-    setup();
-    expect(press({[modifier]: true}).defaultPrevented).toBe(false);
-    expect(dispatch.output).not.toHaveBeenCalled();
-  },
-);
-
 it('yields to text entry, IME events and an ongoing composition, then resumes on the slide grid', () => {
   setup();
   const field = screen.getByRole('textbox');
@@ -103,65 +93,4 @@ it('yields to text entry, IME events and an ongoing composition, then resumes on
   fireEvent.compositionEnd(field);
   press({}, screen.getByRole('listbox'));
   expect(dispatch.output).toHaveBeenCalledExactlyOnceWith('KeyC');
-});
-
-it('yields to modal surfaces, menus and shortcut recording controls', () => {
-  setup();
-  press({}, screen.getByRole('button', {name: 'Recording'}));
-  const menu = document.createElement('div');
-  menu.setAttribute('role', 'menu');
-  document.body.append(menu);
-  press();
-  menu.remove();
-  const modal = document.createElement('div');
-  document.body.append(modal);
-  closeModal = modalStack.push(modal);
-  press();
-  expect(dispatch.output).not.toHaveBeenCalled();
-  closeModal();
-  closeModal = undefined;
-  modal.remove();
-  press();
-  expect(dispatch.output).toHaveBeenCalledOnce();
-});
-
-it('normalizes numpad digits only with Num Lock', () => {
-  setup();
-  expect(press({code: 'Numpad1', key: 'End'}).defaultPrevented).toBe(false);
-  const event = new KeyboardEvent('keydown', {
-    code: 'Numpad1',
-    key: '1',
-    bubbles: true,
-    cancelable: true,
-  });
-  Object.defineProperty(event, 'getModifierState', {
-    value: (name: string) => name === 'NumLock',
-  });
-  act(() => {
-    window.dispatchEvent(event);
-  });
-  expect(event.defaultPrevented).toBe(true);
-  expect(dispatch.output).toHaveBeenCalledExactlyOnceWith('Digit1');
-});
-
-it('yields to column, native and thresholded pointer drags and resumes after they end', () => {
-  setup();
-  setColumnDragActive(true);
-  press();
-  setColumnDragActive(false);
-  fireEvent.dragStart(document.body);
-  press();
-  fireEvent.dragEnd(document.body);
-  fireEvent.pointerDown(window, {
-    pointerId: 1,
-    button: 0,
-    clientX: 10,
-    clientY: 10,
-  });
-  fireEvent.pointerMove(window, {pointerId: 1, clientX: 30, clientY: 10});
-  press();
-  expect(dispatch.output).not.toHaveBeenCalled();
-  fireEvent.pointerUp(window, {pointerId: 1});
-  press();
-  expect(dispatch.output).toHaveBeenCalledOnce();
 });

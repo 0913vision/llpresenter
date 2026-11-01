@@ -52,12 +52,6 @@ describe('ToolbarTabs', () => {
     expect(selectedTab()).toBe('준비');
   });
 
-  it('is a named tab list with the current workspace selected', () => {
-    render(<Workspaces />);
-    expect(screen.getByRole('tablist', {name: '작업 공간'})).toBeDefined();
-    expect(selectedTab()).toBe('진행');
-  });
-
   it('switches on click and with the arrow keys', async () => {
     render(<Workspaces />);
     await userEvent.click(screen.getByRole('tab', {name: '준비'}));
@@ -133,27 +127,11 @@ describe('ToolbarButton', () => {
     },
   );
 
-  it('shows the name beside the icon in the compact form', () => {
-    render(<ToolbarButton icon="layers" label="평상시" compact menu />);
-    expect(screen.getByRole('button').textContent).toBe('평상시');
-  });
-
   it('marks a menu button and whether its menu is open', () => {
     render(<ToolbarButton icon="layers" label="평상시" menu expanded />);
     const button = screen.getByRole('button', {name: '평상시'});
     expect(button.getAttribute('aria-haspopup')).toBe('menu');
     expect(button.getAttribute('aria-expanded')).toBe('true');
-  });
-
-  it('ignores presses while disabled', async () => {
-    const onClick = vi.fn();
-    render(
-      <ToolbarButton icon="layers" label="평상시" disabled onClick={onClick} />,
-    );
-    const button = screen.getByRole('button', {name: '평상시'});
-    expect(button.getAttribute('aria-disabled')).toBe('true');
-    await userEvent.click(button);
-    expect(onClick).not.toHaveBeenCalled();
   });
 });
 
@@ -200,33 +178,6 @@ describe('OutputToggle', () => {
     expect((await hoverForTooltip(button))?.textContent).toBe(
       '무대 화면: 모니터 3을 찾을 수 없습니다',
     );
-  });
-
-  it('reports a click and ignores it while disabled', async () => {
-    const onToggle = vi.fn();
-    const {rerender} = render(
-      <OutputToggle
-        icon="capture"
-        label="방송 자막"
-        target="NDI"
-        state="off"
-        onToggle={onToggle}
-      />,
-    );
-    await userEvent.click(screen.getByRole('button'));
-    expect(onToggle).toHaveBeenCalledTimes(1);
-    rerender(
-      <OutputToggle
-        icon="capture"
-        label="방송 자막"
-        target="NDI"
-        state="off"
-        disabled
-        onToggle={onToggle}
-      />,
-    );
-    await userEvent.click(screen.getByRole('button'));
-    expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });
 

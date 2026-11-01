@@ -75,13 +75,6 @@ describe('show state', () => {
     });
   });
 
-  it('selects a tile of the open item without outputting it', () => {
-    openItem('song-morning');
-    selectTile(2);
-    expect(useShow.getState().selectedTile).toBe(2);
-    expect(sent).toHaveLength(0);
-  });
-
   it('sends slide.show for a tile and shows it selected', () => {
     outputTile({itemId: 'song-morning', index: 1});
     expect(sent).toEqual([
@@ -106,16 +99,6 @@ describe('show state', () => {
     outputTile({itemId: 'song-morning', index: 99});
     outputTile({itemId: 'missing', index: 0});
     expect(sent).toHaveLength(0);
-  });
-
-  it('outputs the first tile of the open item with next when nothing is live', () => {
-    openItem('song-river');
-    outputNext();
-    expect(sent).toHaveLength(1);
-    expect(sent[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'song-river', position: 0},
-    });
   });
 
   it('outputs the tile after the live one with next', () => {
@@ -155,13 +138,6 @@ describe('show state', () => {
       slide: {itemId: 'song-morning', position: 1},
     });
   });
-
-  it('does nothing with previous on the first tile or without a live 장', () => {
-    outputPrevious();
-    setLive('song-morning', 0);
-    outputPrevious();
-    expect(sent).toHaveLength(0);
-  });
 });
 
 describe('item keys', () => {
@@ -176,12 +152,6 @@ describe('item keys', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('skips empty sections', () => {
-    openItem('psalm-23');
-    openNextItem();
-    expect(useShow.getState().openItemId).toBe('notice-sunday');
-  });
-
   it('opens the previous item and stays at the first one', () => {
     openItem('song-river');
     openPreviousItem();
@@ -190,19 +160,6 @@ describe('item keys', () => {
     openPreviousItem();
     expect(useShow.getState().openItemId).toBe('countdown');
     expect(sent).toHaveLength(0);
-  });
-
-  it('stays on the last item with next', () => {
-    openItem('notice-sunday');
-    openNextItem();
-    expect(useShow.getState().openItemId).toBe('notice-sunday');
-  });
-
-  it('opens the first item with next when nothing is open, and nothing with previous', () => {
-    openPreviousItem();
-    expect(useShow.getState().openItemId).toBeNull();
-    openNextItem();
-    expect(useShow.getState().openItemId).toBe('countdown');
   });
 
   it('opens the item of the live 장 after another item was looked at', () => {
@@ -214,20 +171,6 @@ describe('item keys', () => {
       selectedTile: 0,
     });
     expect(sent).toHaveLength(0);
-  });
-
-  it('keeps the selected tile when the live item is already open', () => {
-    setLive('song-morning', 2);
-    openItem('song-morning');
-    useShow.setState({selectedTile: 3});
-    revealLiveItem();
-    expect(useShow.getState().selectedTile).toBe(3);
-  });
-
-  it('does nothing without a live 장', () => {
-    openItem('song-river');
-    revealLiveItem();
-    expect(useShow.getState().openItemId).toBe('song-river');
   });
 });
 

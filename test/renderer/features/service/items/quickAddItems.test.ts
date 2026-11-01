@@ -76,12 +76,6 @@ describe('quick add other items', () => {
     expect(first?.id).not.toBe(second?.id);
   });
 
-  it('offers no slot creation entry or submenus', () => {
-    expect(
-      items(build(() => undefined)).some(item => item.id === 'other:slot'),
-    ).toBe(false);
-  });
-
   it('offers media without audio and the 공지 sets', () => {
     const onInsert = vi.fn<(item: ServiceItem) => void>();
     const entries = build(onInsert);

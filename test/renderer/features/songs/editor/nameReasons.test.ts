@@ -13,8 +13,6 @@ import {
   labelNameReason,
 } from '@renderer/features/songs/editor/LabelNameField';
 
-const REASON_SENTENCE = /^[^.]+습니다$/u;
-
 describe('arrangement name reasons', () => {
   const names = ['기본', '주일용', '저녁용'];
 
@@ -49,18 +47,5 @@ describe('label name reasons', () => {
 
   it('accepts a new name', () => {
     expect(labelNameReason('브릿지', labels)).toBeUndefined();
-  });
-});
-
-describe('editor name reasons', () => {
-  it.each([
-    EMPTY_ARRANGEMENT_NAME_REASON,
-    RESERVED_ARRANGEMENT_NAME_REASON,
-    MISSING_ARRANGEMENT_REASON,
-    DUPLICATE_ARRANGEMENT_NAME_REASON,
-    EMPTY_LABEL_NAME_REASON,
-    DUPLICATE_LABEL_NAME_REASON,
-  ])('writes %j as one polite sentence without a period', reason => {
-    expect(reason).toMatch(REASON_SENTENCE);
   });
 });

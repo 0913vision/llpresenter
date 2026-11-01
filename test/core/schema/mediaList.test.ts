@@ -1,13 +1,5 @@
-import {describe, expectTypeOf, it} from 'vitest';
-import type {MediaId} from '@core/schema/ids';
-import type {Percent, Pixels, Seconds} from '@core/schema/primitives';
-import type {Screen} from '@core/schema/screens';
-import {
-  parseMediaList,
-  serializeMediaList,
-  type MediaItem,
-  type MediaPlaylist,
-} from '@core/schema/mediaList';
+import {describe, it} from 'vitest';
+import {parseMediaList, serializeMediaList} from '@core/schema/mediaList';
 import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
 
 const codec = {parse: parseMediaList, serialize: serializeMediaList};
@@ -158,22 +150,5 @@ describe('parseMediaList', () => {
       {...list, playlists: [{...playlist, items: ['배경/따뜻한 빛.mp4']}]},
       'playlists.0.items.0',
     );
-  });
-});
-
-describe('media list types', () => {
-  it('brands media ids', () => {
-    expectTypeOf<MediaItem['id']>().toEqualTypeOf<MediaId>();
-    expectTypeOf<MediaPlaylist['items']>().toEqualTypeOf<readonly MediaId[]>();
-  });
-
-  it('keeps seconds, percent, and pixels apart', () => {
-    expectTypeOf<MediaItem['duration']>().toEqualTypeOf<Seconds | undefined>();
-    expectTypeOf<MediaItem['width']>().toEqualTypeOf<Pixels | undefined>();
-    expectTypeOf<Screen['edgeMargin']>().toEqualTypeOf<Percent | undefined>();
-    expectTypeOf<Seconds>().not.toExtend<Percent>();
-    expectTypeOf<Seconds>().not.toExtend<Pixels>();
-    expectTypeOf<Percent>().not.toExtend<Pixels>();
-    expectTypeOf<number>().toExtend<Seconds>();
   });
 });

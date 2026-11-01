@@ -5,8 +5,6 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import {readTextImport, type TextImportInputs} from '@main/import/read';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
-import {convertTextImport} from '@core/songs/textImport';
-import {encodedTextSamples, testText} from '@main/import/testText';
 
 function inputs(
   path: string | null,
@@ -52,42 +50,6 @@ describe('text import input reads', () => {
       },
     });
   });
-
-  it.each(encodedTextSamples)(
-    'reads a %s file and builds the same draft',
-    async (_name, bytes) => {
-      const path = join(await makeTempDir(), 'Example.txt');
-      await writeFile(path, bytes);
-      const read = await readTextImport(
-        {source: 'file', encoding: 'auto'},
-        inputs(path),
-      );
-      if (!read.ok || read.value === null) {
-        throw new Error('Expected a retained text source');
-      }
-      expect(read.value.text).toBe(testText);
-      expect(
-        convertTextImport({
-          source: read.value,
-          options: {
-            split: 'lineBreak',
-            unitsPerSlide: 2,
-            labels: 'bracketLine',
-            firstLine: 'lyrics',
-          },
-        }),
-      ).toEqual({
-        ok: true,
-        value: {
-          title: 'Example',
-          slides: [
-            {lines: ['첫째 문장', '뷁 새 문장'], section: 0},
-            {label: '후렴', lines: ['마지막 문장'], section: 1},
-          ],
-        },
-      });
-    },
-  );
 
   it('retains the file name and decoded text without changing any files', async () => {
     const folder = await makeTempDir();

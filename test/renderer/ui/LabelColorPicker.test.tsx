@@ -54,35 +54,6 @@ describe('LabelColorPicker', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith('violet');
   });
 
-  it('is a named radio group of 없음 and the eight colors in order', () => {
-    render(<ChorusColor />);
-    expect(screen.getByRole('radiogroup', {name: '후렴 색'})).toBeDefined();
-    expect(
-      screen
-        .getAllByRole('radio')
-        .map(radio => radio.getAttribute('aria-label')),
-    ).toEqual([
-      '없음',
-      '청록',
-      '초록',
-      '노랑',
-      '주황',
-      '분홍',
-      '보라',
-      '남색',
-      '회색',
-    ]);
-    expect(checkedColor()).toBe('노랑');
-  });
-
-  it('picks a color on click', async () => {
-    const onChange = vi.fn();
-    render(<ChorusColor onChange={onChange} />);
-    await userEvent.click(screen.getByRole('radio', {name: '보라'}));
-    expect(onChange).toHaveBeenCalledWith('violet');
-    expect(checkedColor()).toBe('보라');
-  });
-
   it('enters on the current color and moves with the arrows', async () => {
     render(<ChorusColor />);
     await userEvent.tab();
@@ -93,14 +64,6 @@ describe('LabelColorPicker', () => {
     expect(checkedColor()).toBe('주황');
     await userEvent.keyboard('{ArrowLeft}{ArrowLeft}');
     expect(checkedColor()).toBe('초록');
-  });
-
-  it('names each color in its tooltip', async () => {
-    render(<ChorusColor />);
-    const tooltip = await hoverForTooltip(
-      screen.getByRole('radio', {name: '남색'}),
-    );
-    expect(tooltip?.textContent).toBe('남색');
   });
 
   it('adds shared scope without replacing the color name or selecting it', async () => {

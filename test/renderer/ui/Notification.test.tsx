@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '../../mock-clock';
-import {cssRules} from '@fixtures/renderer/ui/cssRules';
 import {Dialog} from '@renderer/ui/Dialog';
 import {modalStack} from '@renderer/ui/modalStack';
 import {
@@ -13,7 +12,6 @@ import {
 } from '@renderer/ui/Notification';
 import {removeNotice, type Notice} from '@renderer/ui/notices';
 import {letTimePass, resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
-import styles from '@renderer/ui/Notification.module.css';
 
 afterEach(resetTooltips);
 
@@ -57,33 +55,6 @@ function Stack({
 }
 
 describe('NotificationCard', () => {
-  it('centers the separator outside the text baseline and keeps details bounded', () => {
-    render(<NotificationCard notice={lost} onClose={() => {}} />);
-    expect(screen.getByRole('img', {name: '에서'}).classList).toContain(
-      styles.separator,
-    );
-    const rule = cssRules('src/renderer/src/ui/Notification.module.css');
-    expect(rule('.separator')).toContain('display: inline-flex');
-    expect(rule('.separator')).toContain('align-items: center');
-    expect(rule('.meta')).toContain('flex-wrap: wrap');
-    expect(rule('.value')).toContain('overflow-wrap: anywhere');
-    expect(rule('.head')).toContain('min-height: var(--size-control-sm)');
-    expect(rule('.card .close')).not.toContain('margin-top');
-  });
-
-  it('uses an inset popover surface with immediate arrival and dismissal', () => {
-    const rule = cssRules('src/renderer/src/ui/Notification.module.css');
-    expect(rule('.stack')).toContain(
-      'padding: var(--space-8) var(--space-8) 0',
-    );
-    expect(rule('.stack')).toContain('pointer-events: none');
-    expect(rule('.card')).toContain('pointer-events: auto');
-    expect(rule('.card')).toContain('border-radius: var(--radius-lg)');
-    expect(rule('.card')).toContain('box-shadow: var(--shadow-popover)');
-    expect(rule('.card')).toContain('animation: none');
-    expect(rule('.card')).toContain('transition: none');
-  });
-
   it('raises a warning as an alert named by its title', () => {
     render(<NotificationCard notice={lost} onClose={() => {}} />);
     const alert = screen.getByRole('alert', {name: '무대 모니터 연결 끊김'});

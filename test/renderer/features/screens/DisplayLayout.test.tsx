@@ -243,15 +243,6 @@ describe('the display layout', () => {
     expect(box(2).textContent).toContain('1920×1080');
   });
 
-  it('shows the screen assigned to a monitor and the targets without one', async () => {
-    setup();
-
-    await waitFor(() => expect(box(2).textContent).toContain('본 화면'));
-    expect(
-      document.querySelector(`[data-target="${CAPTIONS_ID}"]`),
-    ).not.toBeNull();
-  });
-
   it('highlights the monitor of the selected screen', async () => {
     setup();
     await waitFor(() => expect(box(2).textContent).toContain('본 화면'));

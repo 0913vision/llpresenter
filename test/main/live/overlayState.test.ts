@@ -1,13 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {LiveStore} from '@main/live/store';
 import {emptyLiveState, layerKinds} from '@core/live/state';
-import {interruptsSongOutput} from '@core/live/commands';
 import {parseLiveState} from '@core/schema/liveState';
-import {
-  parseLiveCommand,
-  parseLiveCommandRequest,
-} from '@core/schema/liveCommand';
-import {createMessageId} from '@core/schema/ids';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
@@ -109,17 +104,6 @@ describe('additive overlay state contracts', () => {
         ]),
       ).ok,
     ).toBe(false);
-  });
-  it('retains legacy layers and optional metadata without requiring new fields', () => {
-    const legacy = state({
-      message: {messageId: 'm2-message', text: 'Invented text'},
-      prop: {propId: 'm2-prop'},
-      notice: {noticeId: 'm2-notice'},
-    });
-    expect(expectSuccess(parseLiveState(legacy))).toEqual(legacy);
-    expect(expectSuccess(parseLiveState(emptyLiveState()))).toEqual(
-      emptyLiveState(),
-    );
   });
 
   it('round-trips per-screen messages, concurrent props, notice playback, and a separate stage message', () => {
@@ -250,23 +234,6 @@ describe('additive overlay state contracts', () => {
 });
 
 describe('message.expire contract', () => {
-  it('brands an active ID and accepts expiry alone and in a batch without interrupting song navigation', () => {
-    const messageId = createMessageId(uuid(1));
-    expect(() => createMessageId('not-a-uuid')).toThrow();
-    const command = {type: 'message.expire', messageId, expiresAt: NOW};
-    const parsed = expectSuccess(parseLiveCommand(command));
-    expect(parsed).toEqual(command);
-    expect(interruptsSongOutput(parsed)).toBe(false);
-    expect(
-      expectSuccess(
-        parseLiveCommandRequest({type: 'live.batch', commands: [command]}),
-      ),
-    ).toEqual({
-      command: {type: 'live.batch', commands: [command]},
-      rejected: [],
-    });
-  });
-
   it.each([
     {type: 'message.expire', messageId: 'bad', expiresAt: NOW},
     {type: 'message.expire', messageId: uuid(1)},

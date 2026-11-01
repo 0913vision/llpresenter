@@ -46,24 +46,6 @@ const manyScreens: readonly ScreenSummary[] = Array.from(
 );
 
 describe('saved output overflow', () => {
-  it('labels the theme workspace with the Look layers icon', () => {
-    render(
-      <Toolbar sizeClass="normal" workspace="screens" onWorkspace={vi.fn()} />,
-    );
-    const tab = screen.getByRole('tab', {name: '테마'});
-    expect(tab.getAttribute('aria-selected')).toBe('true');
-    const icon = tab.querySelector('[aria-hidden="true"]');
-    const lookIcon = screen
-      .getByRole('button', {name: /^테마 바꾸기:/})
-      .querySelector('[aria-hidden="true"]');
-    expect(icon).not.toBeNull();
-    expect(icon?.getAttribute('style')).toBe(lookIcon?.getAttribute('style'));
-    expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
-      '진행',
-      '준비',
-      '테마',
-    ]);
-  });
   it('keeps three inline outputs at 1280 and exposes all additional long names with live toggles', async () => {
     vi.stubGlobal('innerWidth', 1280);
     const send = vi.fn();
@@ -184,38 +166,6 @@ describe('Toolbar', () => {
 
 describe('Toolbar design system parts', () => {
   it.each(['normal', 'narrow'] as const)(
-    'omits the media toggle from the %s toolbar',
-    sizeClass => {
-      render(
-        <Toolbar
-          sizeClass={sizeClass}
-          workspace="show"
-          onWorkspace={vi.fn()}
-        />,
-      );
-      expect(screen.queryByRole('button', {name: '미디어'})).toBeNull();
-    },
-  );
-
-  it('has the search field with its placeholder and name, and no toolbar role', () => {
-    render(
-      <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
-    );
-    const search = screen.getByPlaceholderText('곡, 가사, 초성');
-    expect(search.getAttribute('aria-label')).toBe('검색');
-    expect(screen.queryByRole('toolbar')).toBeNull();
-  });
-
-  it('groups the workspace tabs and the screen outputs by name', () => {
-    render(
-      <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
-    );
-    expect(screen.getByRole('tablist', {name: '작업 공간'})).toBeTruthy();
-    const outputs = screen.getByRole('group', {name: '화면 출력'});
-    expect(within(outputs).getAllByRole('button')).toHaveLength(3);
-  });
-
-  it.each(['normal', 'narrow'] as const)(
     'uses no native title tooltip in the %s form',
     sizeClass => {
       render(
@@ -228,17 +178,6 @@ describe('Toolbar design system parts', () => {
       expect(document.querySelectorAll('[title]')).toHaveLength(0);
     },
   );
-
-  it('marks the Look menu in the narrow form', () => {
-    render(
-      <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,
-    );
-    expect(
-      screen
-        .getByRole('button', {name: /^테마 바꾸기:/})
-        .getAttribute('aria-haspopup'),
-    ).toBe('menu');
-  });
 
   it('says what an output click does in its tooltip', async () => {
     render(

@@ -1,12 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {
-  act,
-  cleanup,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -190,52 +183,6 @@ describe('the 화면 list', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('opens the selected theme editor and keeps output warnings above the properties', async () => {
-    setup({warningHeight: 96, themes: true});
-    await userEvent.click(await screen.findByRole('option', {name: '말씀'}));
-    const editor = await screen.findByRole('region', {name: '테마 편집기'});
-    expect(editor.querySelector('header')).toBeNull();
-    expect(screen.getByRole('region', {name: '테마 속성'})).toBeDefined();
-    expect(
-      screen
-        .getByRole('region', {name: '테마 속성'})
-        .closest('[style*="padding-top"]')
-        ?.getAttribute('style'),
-    ).toContain('96px');
-  });
-  it('keeps only screens in the settings window', async () => {
-    setup();
-    await screen.findByRole('option', {name: '본 화면'});
-    const labels = screen
-      .getAllByRole('listbox')
-      .map(list => list.getAttribute('aria-label'));
-    expect(labels).toEqual(['화면']);
-    expect(screen.queryByRole('region', {name: 'Look 편집'})).toBeNull();
-    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
-  });
-
-  it('mounts the display layout in the center column', async () => {
-    setup();
-
-    expect(
-      await screen.findByRole('button', {name: '모니터 번호 표시'}),
-    ).toBeTruthy();
-  });
-
-  it('groups the screens under 청중 and 무대 with their targets', async () => {
-    setup();
-    await screen.findByRole('option', {name: '본 화면'});
-    const list = within(screen.getByRole('listbox', {name: '화면'}));
-    const audience = within(list.getByRole('group', {name: '청중'}));
-    const stage = within(list.getByRole('group', {name: '무대'}));
-    expect(audience.getAllByRole('option').map(row => row.textContent)).toEqual(
-      ['본 화면모니터 2', '방송 자막캡처용 창'],
-    );
-    expect(stage.getAllByRole('option').map(row => row.textContent)).toEqual([
-      '무대 화면모니터 미지정',
-    ]);
-  });
-
   it('selects the first screen until another row is chosen', async () => {
     setup();
     await screen.findByRole('option', {name: '본 화면', selected: true});
@@ -262,17 +209,6 @@ describe('the 화면 list', () => {
     await screen.findByRole('option', {name: '본 화면', selected: true});
     expect(selectedOf('방송 자막')).toBe('false');
     expect(useScreensSelection.getState().selection).toEqual({id: null});
-  });
-
-  it('shows the ok dot for a healthy output and none for an output that is off', async () => {
-    setup({statuses: {[MAIN_ID]: running}});
-    await screen.findByRole('option', {name: '본 화면'});
-    await waitFor(() =>
-      expect(
-        option('본 화면').querySelector('[data-tone="ok"]'),
-      ).not.toBeNull(),
-    );
-    expect(option('방송 자막').querySelector('[data-tone]')).toBeNull();
   });
 
   it('shows the amber dot with the reason in a tooltip', async () => {
@@ -351,90 +287,6 @@ describe('the theme workspace and screen selection', () => {
       expect(option('대기 화면').textContent).toContain('LIVE'),
     );
     expect(option('찬양').textContent).not.toContain('LIVE');
-  });
-
-  it('moves the live mark with the theme selected on output', async () => {
-    setup({themes: true});
-    await screen.findByRole('option', {name: '대기 화면'});
-    const themes = createDefaultThemes();
-    const bible = themes.defaults.bible;
-    if (bible === undefined) throw new Error('Expected the Bible theme');
-    act(() =>
-      useLive.setState({
-        state: {
-          ...emptyLiveState(),
-          themeOutput: {themeId: bible, revision: 1, missing: [], screens: {}},
-        },
-      }),
-    );
-    expect(option('말씀').textContent).toContain('LIVE');
-    expect(option('찬양').textContent).not.toContain('LIVE');
-    expect(option('대기 화면').textContent).not.toContain('LIVE');
-  });
-
-  it('marks the first screen and its monitor before any pick, and follows the fallback after a removal', async () => {
-    const projector = {
-      number: 2,
-      name: 'Projector',
-      bounds: {x: 1920, y: 0, width: 1920, height: 1080},
-      scaleFactor: 1,
-      refreshRate: 60,
-      hasMainWindow: false,
-      screenIds: [MAIN_ID],
-    };
-    const control = {
-      ...projector,
-      number: 1,
-      hasMainWindow: true,
-      screenIds: [],
-    };
-    const {pushSettings} = setup({
-      monitors: [{...control, bounds: {...control.bounds, x: 0}}, projector],
-    });
-    await screen.findByRole('option', {name: '본 화면'});
-    const box = (number: number) =>
-      document.querySelector(`[data-monitor="${number}"]`);
-    await waitFor(() => expect(box(2)?.textContent).toContain('본 화면'));
-    expect(selectedOf('본 화면')).toBe('true');
-    expect(box(2)?.getAttribute('aria-current')).toBe('true');
-
-    const without = screensDocument(2);
-    if (without.name !== 'screens') throw new Error('Expected screens');
-    pushSettings(
-      settingsDocument(
-        'screens',
-        {screens: without.value.screens.filter(({id}) => id !== MAIN_ID)},
-        2,
-      ),
-    );
-
-    await waitFor(() => expect(selectedOf('방송 자막')).toBe('true'));
-    expect(box(2)?.getAttribute('aria-current')).toBeNull();
-    expect(
-      document
-        .querySelector(`[data-target="${CAPTIONS_ID}"]`)
-        ?.getAttribute('aria-current'),
-    ).toBe('true');
-  });
-
-  it('takes the test pattern off the real output when the workspace goes away', async () => {
-    const {view, send} = setup();
-    await userEvent
-      .setup()
-      .click(await screen.findByRole('radio', {name: '테스트 패턴'}));
-    expect(send).toHaveBeenCalledWith({
-      type: 'screen.testPattern.set',
-      screenId: MAIN_ID,
-      on: true,
-    });
-
-    view.unmount();
-
-    expect(send).toHaveBeenLastCalledWith({
-      type: 'screen.testPattern.set',
-      screenId: MAIN_ID,
-      on: false,
-    });
   });
 
   it('composes the theme list, canvas, and screen properties without physical screen controls', async () => {

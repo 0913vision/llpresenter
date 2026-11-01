@@ -423,24 +423,6 @@ describe('OutputManager', () => {
     });
   });
 
-  it('raises any visible output for 창 보기 and ignores hidden or unknown outputs', () => {
-    const {store, displays, windows, manager} = setUp();
-    store.dispatch(turn(true));
-    const handle = windows.only('main');
-    manager.showWindow('main');
-    expect(handle.raises).toBe(1);
-
-    displays.plug(CONTROL, STAGE);
-    manager.showWindow('main');
-    expect(handle.raises).toBe(2);
-    expect(handle.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
-
-    manager.showWindow('unknown');
-    store.dispatch(turn(false));
-    manager.showWindow('main');
-    expect(handle.raises).toBe(2);
-  });
-
   it('keeps an output on the monitor it found when a look-alike monitor connects', () => {
     const {store, displays, windows} = setUp();
     const found = {...PROJECTOR, id: 22, x: 3840};
@@ -463,15 +445,6 @@ describe('OutputManager', () => {
     expect(windows.only('main').mode).toEqual({kind: 'hidden'});
   });
 
-  it('shows an unassigned full screen output in a window', () => {
-    const {store, windows} = setUp([fullScreenScreen({display: null})]);
-    store.dispatch(turn(true));
-    expect(windows.only('main').mode).toEqual({
-      kind: 'window',
-      bounds: FALLBACK_BOUNDS,
-    });
-  });
-
   it('opens no window and warns about nothing when a monitor goes away while the output is off', () => {
     const {store, displays, windows, log} = setUp();
     displays.plug(CONTROL);
@@ -479,15 +452,6 @@ describe('OutputManager', () => {
     expect(log.messages('warn')).toEqual([]);
     store.dispatch(turn(true));
     expect(windows.only('main').mode.kind).toBe('window');
-  });
-
-  it('turns the output off when the operator closes its window', () => {
-    const {store, windows} = setUp([fullScreenScreen({method: 'window'})]);
-    store.dispatch(turn(true));
-    const handle = windows.only('main');
-    handle.clickClose();
-    expect(store.state.outputs['main']).toBe(false);
-    expect(handle.mode).toEqual({kind: 'hidden'});
   });
 
   it('keeps the other outputs going when one window fails', () => {

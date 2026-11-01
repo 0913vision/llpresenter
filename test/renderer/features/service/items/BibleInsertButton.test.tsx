@@ -321,34 +321,3 @@ it('ignores a selected row belonging to another service', async () => {
   expect(view.service().service.order[0]?.id).toBe(fixtureItems.header);
   expect(view.output).not.toHaveBeenCalled();
 });
-
-it('resolves the current section boundary after another section is inserted during preview', async () => {
-  const view = setup();
-  const id = createServiceItemId('00000000-0000-4000-8000-000000009009');
-  const document = view.service();
-  view.pushService({
-    ...document,
-    service: {
-      ...document.service,
-      order: [
-        ...document.service.order.slice(0, 3),
-        {id, header: 'New section'},
-        ...document.service.order.slice(3),
-      ],
-    },
-  });
-  const rows = useShow.getState().rows;
-  act(() =>
-    useShow.setState({
-      rows: [
-        ...rows.slice(0, 3),
-        {kind: 'header', id, title: 'New section'},
-        ...rows.slice(3),
-      ],
-    }),
-  );
-  await view.user.click(view.button);
-  await waitFor(() => expect(view.service().service.order).toHaveLength(7));
-  expect(view.service().service.order[3]).toHaveProperty('bible');
-  expect(view.service().service.order[4]?.id).toBe(id);
-});

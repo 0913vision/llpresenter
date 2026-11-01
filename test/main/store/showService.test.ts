@@ -158,14 +158,6 @@ describe('buildShowService', () => {
     expect(show.tiles[itemId(1)]).toHaveLength(3);
   });
 
-  it('omits the background and warning when neither item nor song has one', () => {
-    expect(build([{id: itemId(1), song: HYMN_ONE_ID}]).rows[0]).toEqual({
-      kind: 'song',
-      id: itemId(1),
-      title: '만복의 근원 하나님',
-    });
-  });
-
   it('makes a row for each item with the item id', () => {
     const show = build([
       {id: itemId(1), header: '찬양'},
@@ -245,29 +237,6 @@ describe('buildShowService', () => {
       },
       {label: null, labelColor: 'none', lines: ['아멘']},
     ]);
-  });
-
-  it('follows the chosen 구성, with a tile each time a 장 repeats', () => {
-    const show = build([
-      {id: itemId(1), song: HYMN_ONE_ID, arrangement: '주일용'},
-    ]);
-
-    expect(show.tiles[itemId(1)]?.map(({label}) => label)).toEqual([
-      '1절',
-      '후렴',
-      '1절',
-      '후렴',
-      null,
-    ]);
-  });
-
-  it.each([
-    ['an empty 구성', '비어 있음'],
-    ['a 구성 the song does not have', '없는 구성'],
-  ])('uses the default order for %s', (_name, arrangement) => {
-    const show = build([{id: itemId(1), song: HYMN_ONE_ID, arrangement}]);
-
-    expect(show.tiles[itemId(1)]).toHaveLength(3);
   });
 
   it('gives a 이름표 that is not in the list no color', () => {

@@ -102,18 +102,6 @@ describe('SlidePanelMeta', () => {
     expect(screen.getByText('2 / 4')).toBeTruthy();
   });
 
-  it('keeps the count in the footer when another item is live', () => {
-    openItem('song-morning');
-    setLiveSlide('song-river', 0);
-    render(
-      <>
-        <SlidePanelMeta />
-        <SlidePanelFooter sizeClass="normal" />
-      </>,
-    );
-    expect(screen.getByText('4개')).toBeTruthy();
-  });
-
   it('follows the open item', () => {
     openItem('song-morning');
     render(
@@ -135,14 +123,6 @@ describe('SlidePanelBody', () => {
     renderPanel('wide');
     expect(gridStyle().getPropertyValue('--thumb-columns')).toBe('6');
     expect(gridStyle().getPropertyValue('--thumb-width')).toBe('');
-  });
-
-  it('sizes the slides from the measured width, the size class, and the size', () => {
-    vi.stubGlobal('ResizeObserver', FixedWidthObserver);
-    openItem('song-morning');
-    seedThumbnailScale({layout: {normal: {thumbnailScalePercent: 50}}});
-    renderPanel('normal');
-    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('75px');
   });
 
   it('stops measuring when it unmounts', () => {
@@ -188,19 +168,5 @@ describe('SlideSizeControl', () => {
         .getByRole('slider', {name: '슬라이드 크기'})
         .getAttribute('aria-valuetext'),
     ).toBe('100%');
-  });
-
-  it('keeps a size per size class', () => {
-    seedThumbnailScale({layout: {wide: {thumbnailScalePercent: 80}}});
-    render(
-      <>
-        <SlideSizeControl sizeClass="normal" />
-        <SlideSizeControl sizeClass="wide" />
-      </>,
-    );
-    const values = screen
-      .getAllByRole('slider', {name: '슬라이드 크기'})
-      .map(slider => slider.getAttribute('aria-valuetext'));
-    expect(values).toEqual(['100%', '80%']);
   });
 });

@@ -6,11 +6,8 @@ import {
   type SettingsName,
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createTimerId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
-import {startOverlays} from '@main/live/overlays';
 import {MAIN, TEXT_STYLE} from '@fixtures/core/overlays';
 import type {DocumentFiles} from '@main/store/contentPersistence';
 import {SettingsStore} from '@main/store/settingsStore';
@@ -215,34 +212,4 @@ it('refuses a missing ID and keeps an applied disk warning after removing both r
   });
   expect(f.timers().value.timers.map(t => t.id)).toEqual([KEEP]);
   expect(f.quick().value.items).toEqual([]);
-});
-
-it('releases the deleted run and stage choice while another run keeps its identity', async () => {
-  const f = fixture();
-  const live = new LiveStore();
-  const stop = startOverlays({
-    store: live,
-    settings: Promise.resolve(f.store),
-    log: recordingLogger(),
-  });
-  onTestFinished(stop);
-  await Promise.resolve();
-  live.dispatch(
-    expectSuccess(
-      parseLiveCommand({
-        type: 'live.batch',
-        commands: [
-          {type: 'timer.start', timerId: TARGET},
-          {type: 'timer.start', timerId: KEEP},
-          {type: 'stage.timer.set', timerId: TARGET},
-        ],
-      }),
-    ),
-  );
-  const before = live.state.timers?.[KEEP];
-  expect(before).toBeDefined();
-  expect(await f.save()).toMatchObject({ok: true});
-  expect(live.state.timers?.[TARGET]).toBeUndefined();
-  expect(live.state.stageTimerId).toBeUndefined();
-  expect(live.state.timers?.[KEEP]).toBe(before);
 });

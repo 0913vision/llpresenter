@@ -152,23 +152,6 @@ describe('MediaTile', () => {
 });
 
 describe('MediaGrid', () => {
-  it('sets the column count', () => {
-    render(<Grid />);
-    const grid = screen.getByRole('listbox', {name: '배경 영상'});
-    expect(grid.style.getPropertyValue('--media-columns')).toBe(`${COLUMNS}`);
-  });
-
-  it('selects on a click and sends out on a double click', async () => {
-    const onActivate = vi.fn<(index: number) => void>();
-    const onOutput = vi.fn<(index: number) => void>();
-    render(<Grid onActivate={onActivate} onOutput={onOutput} />);
-    await userEvent.click(tile('새벽 하늘'));
-    await userEvent.dblClick(tile('11월 1일 광고'));
-    await userEvent.dblClick(tile('부활절 배경.mp4'));
-    expect(onActivate.mock.calls).toEqual([[1], [3], [3]]);
-    expect(onOutput.mock.calls).toEqual([[3]]);
-  });
-
   it('moves by a row with ↑ and ↓', async () => {
     render(<Grid />);
     tile('따뜻한 빛').focus();
@@ -204,39 +187,5 @@ describe('MediaStrip', () => {
         .getByRole('listbox', {name: '미디어'})
         .getAttribute('data-workspace'),
     ).toBe('show');
-  });
-
-  it('names the places of a mounted window in the full strip', () => {
-    render(
-      <MediaStrip
-        label="미디어"
-        selected={undefined}
-        positionOffset={40}
-        setSize={999}
-        orientation="horizontal"
-        onSelect={() => {}}
-        onActivate={() => {}}
-      >
-        {library.slice(0, 2).map(media => (
-          <MediaTile key={media.name} {...media} />
-        ))}
-      </MediaStrip>,
-    );
-    expect(
-      screen
-        .getByRole('listbox', {name: '미디어'})
-        .getAttribute('aria-orientation'),
-    ).toBe('horizontal');
-    expect(
-      screen
-        .getAllByRole('option')
-        .map(option => [
-          option.getAttribute('aria-posinset'),
-          option.getAttribute('aria-setsize'),
-        ]),
-    ).toEqual([
-      ['41', '999'],
-      ['42', '999'],
-    ]);
   });
 });

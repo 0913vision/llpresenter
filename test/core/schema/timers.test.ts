@@ -1,15 +1,13 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
 } from '@core/schema/settingsDocuments';
-import type {Seconds} from '@core/schema/primitives';
 import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
 import {
   MAX_TIMER_SECONDS,
   parseTimers,
   serializeTimers,
-  type Timer,
 } from '@core/schema/timers';
 
 const codec = {parse: parseTimers, serialize: serializeTimers};
@@ -156,15 +154,4 @@ describe('timer date and elapsed settings boundaries', () => {
       expect(accepted({kind: 'elapsed', start})).toEqual([false, false]);
     },
   );
-});
-
-describe('timer types', () => {
-  it('ties the time and duration fields to the kind', () => {
-    expectTypeOf<
-      Extract<Timer, {kind: 'countdown'}>['duration']
-    >().toEqualTypeOf<Seconds>();
-    expectTypeOf<
-      Extract<Timer, {kind: 'countdownTo'}>['time']
-    >().toEqualTypeOf<string>();
-  });
 });

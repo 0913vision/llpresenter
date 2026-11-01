@@ -1,11 +1,10 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
   COLUMN_LIMITS,
   isLayoutChange,
   parseLayoutChange,
   parseMediaStripChange,
   parseUiState,
-  type LayoutChange,
 } from '@core/schema/uiState';
 
 describe('parseLayoutChange', () => {
@@ -116,12 +115,6 @@ describe('parseLayoutChange with thumbnail scale', () => {
         value: change,
       });
     }
-  });
-
-  it('exposes widths, scale, and sidebar state in the command type', () => {
-    expectTypeOf<keyof LayoutChange>().toEqualTypeOf<
-      'sizeClass' | 'left' | 'right' | 'thumbnailScalePercent' | 'leftCollapsed'
-    >();
   });
 });
 

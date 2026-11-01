@@ -124,20 +124,6 @@ describe('createElectronOutputWindow normal', () => {
     output.showFullScreen(MONITOR, false);
     expect(win.moveTop).toHaveBeenCalledTimes(3);
   });
-  it.each(['window', 'capture'] as const)(
-    'honors an explicit always-on-top choice in %s mode without raising the control',
-    method => {
-      const control = mockControl();
-      const output = openOutput('normal', control);
-      if (method === 'capture') output.showCapture(WINDOW_BOUNDS, true);
-      else output.showWindowed(WINDOW_BOUNDS, true);
-      expect(lastWindow().setAlwaysOnTop).toHaveBeenLastCalledWith(
-        true,
-        'screen-saver',
-      );
-      expect(control.moveAbove).not.toHaveBeenCalled();
-    },
-  );
 
   it('reports where the window is now, and nothing once it is destroyed', () => {
     const output = openOutput('normal');

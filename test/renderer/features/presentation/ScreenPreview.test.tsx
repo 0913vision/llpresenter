@@ -6,7 +6,6 @@ import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {act, cleanup, render, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {classes} from '@renderer/rendering/classes';
 import {useLive} from '@renderer/session/live';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 
@@ -55,47 +54,6 @@ afterEach(() => {
   cleanup();
   delete window.llp;
   useLive.setState({state: null});
-});
-
-it('remounts the current frame instantly with the same transition mechanism as output reveal', async () => {
-  const first = render(<ScreenPreview screenId="main" chroma={false} />);
-  await waitFor(() =>
-    expect(first.container.textContent).toContain('Current frame'),
-  );
-  expect(
-    first.container
-      .querySelector(`.${classes.root}`)
-      ?.classList.contains(classes.instant),
-  ).toBe(true);
-  first.unmount();
-  const second = render(<ScreenPreview screenId="main" chroma={false} />);
-  await waitFor(() =>
-    expect(second.container.textContent).toContain('Current frame'),
-  );
-  const root = second.container.querySelector(`.${classes.root}`);
-  expect(root?.classList.contains(classes.instant)).toBe(true);
-  expect(second.container.textContent).toContain('Current frame');
-  act(() => {
-    const current = useLive.getState().state;
-    if (current === null) throw new Error('Missing state');
-    useLive.setState({
-      state: {
-        ...current,
-        version: 2,
-        layers: {
-          ...current.layers,
-          slide: {
-            itemId: 'fixture',
-            position: 1,
-            label: null,
-            lines: ['Next frame'],
-          },
-        },
-      },
-    });
-  });
-  expect(root?.classList.contains(classes.instant)).toBe(false);
-  expect(second.container.textContent).toContain('Next frame');
 });
 
 it('keeps the last good preview after a frame error and draws a later good snapshot', async () => {

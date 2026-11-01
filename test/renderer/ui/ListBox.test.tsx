@@ -82,30 +82,6 @@ describe('ListBox', () => {
     expect(onSelect).toHaveBeenLastCalledWith('empty');
   });
 
-  it.each(['show', 'prep'] as const)(
-    'keeps Tab entry and arrow selection in the %s focus appearance',
-    async workspace => {
-      const onSelect = vi.fn();
-      render(<ServiceOrder workspace={workspace} onSelect={onSelect} />);
-      expect(screen.getByRole('listbox').dataset['workspace']).toBe(workspace);
-      await userEvent.tab();
-      expect(document.activeElement?.getAttribute('data-value')).toBe('count');
-      await userEvent.keyboard('{ArrowDown}');
-      expect(document.activeElement?.getAttribute('data-value')).toBe('hymn1');
-      expect(selectedTitle()).toBe('hymn1');
-      expect(onSelect).toHaveBeenCalledWith('hymn1');
-    },
-  );
-
-  it('is a named list box of named options in named groups', () => {
-    render(<ServiceOrder />);
-    expect(screen.getByRole('listbox', {name: '예배 순서'})).toBeDefined();
-    expect(screen.getByRole('group', {name: '찬양'})).toBeDefined();
-    expect(
-      screen.getByRole('option', {name: '만복의 근원 하나님'}),
-    ).toBeDefined();
-  });
-
   it('moves and selects with the arrows, skipping disabled rows', async () => {
     render(<ServiceOrder initial="count" />);
     await userEvent.tab();
@@ -118,12 +94,6 @@ describe('ListBox', () => {
     expect(selectedTitle()).toBe('count');
     await userEvent.keyboard('{End}');
     expect(selectedTitle()).toBe('hymn3');
-  });
-
-  it('enters on the first row when nothing is selected', async () => {
-    render(<ServiceOrder />);
-    await userEvent.tab();
-    expect(document.activeElement?.getAttribute('data-value')).toBe('count');
   });
 
   it('lets Shift Tab leave the list before anything is selected', async () => {

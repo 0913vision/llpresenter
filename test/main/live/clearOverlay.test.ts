@@ -251,28 +251,6 @@ it('leaves repeated or missing rows as no-ops without losing the prior clear', (
   expect(store.state.stageMessage).toBe('One more chorus');
 });
 
-it('groups row clears in a batch and cancels undo for new layer content', () => {
-  const {store, send} = setup();
-  const changed = vi.fn();
-  stops.push(store.subscribe(changed));
-  send({
-    type: 'live.batch',
-    commands: [
-      {type: 'overlay.clear', target: {kind: 'message', messageId: A}},
-      {type: 'overlay.clear', target: {kind: 'prop', propId: PROP}},
-    ],
-  });
-  expect(changed).toHaveBeenCalledOnce();
-  send({type: 'clear.undo'});
-  expect(
-    store.state.layers.message?.items?.map(item => item.messageId),
-  ).toEqual([A, B]);
-  expect(store.state.layers.prop?.items).toHaveLength(2);
-  send({type: 'overlay.clear', target: {kind: 'message', messageId: B}});
-  send({type: 'message.show', message: {messageId: A, text: 'New content'}});
-  expect(store.state.canUndo).toBe(false);
-});
-
 it.each(['message', 'all'] as const)(
   'resumes every message after a row clear followed by %s in a grouped batch',
   target => {

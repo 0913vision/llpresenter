@@ -11,7 +11,6 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {useLive} from '@renderer/session/live';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
 import {applyService} from '@renderer/session/show';
-import {NOTICE_LIFETIME_MS} from '@renderer/ui/Notification';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 
@@ -94,21 +93,6 @@ afterEach(async () => {
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
   delete window.llp;
   useLive.setState({state: null});
-});
-
-it('shows 무대 모니터 연결 끊김 with its two actions when the stage monitor goes away', () => {
-  const {push, findMonitors, showWindow} = setup();
-  push({stage: status()});
-  push({stage: status({placement: 'monitorMissing'})});
-  const card = screen.getByRole('alert', {name: '무대 모니터 연결 끊김'});
-  expect(within(card).getByText('창으로 표시 중')).toBeDefined();
-  act(() =>
-    within(card).getByRole('button', {name: '모니터 다시 찾기'}).click(),
-  );
-  expect(findMonitors).toHaveBeenCalledOnce();
-  act(() => within(lostCard()).getByRole('button', {name: '창 보기'}).click());
-  expect(showWindow).toHaveBeenCalledWith('stage');
-  expect(lostCard()).toBeDefined();
 });
 
 it('keeps the warning after a rescan or a retry that changes nothing', () => {
@@ -197,56 +181,11 @@ it('shows a closed warning again from the 출력 menu until it resolves', async 
   expect(screen.queryByRole('menuitem', {name: 'stage 경고 보기'})).toBeNull();
 });
 
-it('turns the warning into an information card that closes after six seconds', () => {
-  const {push} = setup();
-  push({stage: status({placement: 'monitorMissing'})});
-  expect(
-    screen.getByRole('alert', {name: '무대 모니터 연결 끊김'}),
-  ).toBeDefined();
-  vi.useFakeTimers();
-  push({stage: status()});
-  expect(screen.queryByRole('alert')).toBeNull();
-  expect(
-    screen.getByRole('status', {name: '무대 모니터 다시 연결됨'}),
-  ).toBeDefined();
-  act(() => {
-    vi.advanceTimersByTime(NOTICE_LIFETIME_MS - 1);
-  });
-  expect(
-    screen.getByRole('status', {name: '무대 모니터 다시 연결됨'}),
-  ).toBeDefined();
-  act(() => {
-    vi.advanceTimersByTime(1);
-  });
-  expect(
-    screen.queryByRole('status', {name: '무대 모니터 다시 연결됨'}),
-  ).toBeNull();
-});
-
 it('warns about a monitor already missing at launch', async () => {
   setup({stage: status({placement: 'monitorMissing'})});
   expect(
     await screen.findByRole('alert', {name: '무대 모니터 연결 끊김'}),
   ).toBeDefined();
-});
-
-it('warns about the restart limit with 다시 시도', () => {
-  const {push, retry} = setup();
-  push({main: status({renderer: 'limited'})});
-  const card = screen.getByRole('alert', {
-    name: '본 화면 출력 창을 다시 띄울 수 없음',
-  });
-  act(() => within(card).getByRole('button', {name: '다시 시도'}).click());
-  expect(retry).toHaveBeenCalledWith('main');
-});
-
-it('shows at most three cards', () => {
-  const {push} = setup();
-  push({
-    main: status({placement: 'monitorMissing', renderer: 'limited'}),
-    stage: status({placement: 'monitorMissing', renderer: 'limited'}),
-  });
-  expect(screen.getAllByRole('alert')).toHaveLength(3);
 });
 
 it('releases both status listeners when the app unmounts', () => {

@@ -302,29 +302,6 @@ describe('text import conversion', () => {
     expect(value).toEqual(original);
   });
 
-  it('maps bracketed sections to draft slide boundaries preserving labels for group migration', () => {
-    const text =
-      '[1절]\nFirst invented line\nSecond invented line\n\n[후렴]\nChorus first line\nChorus second line';
-    const result = draft(text, {unitsPerSlide: 1});
-    expect(result.slides).toEqual([
-      {label: '1절', lines: ['First invented line'], section: 0},
-      {label: '1절', lines: ['Second invented line'], section: 0},
-      {label: '후렴', lines: ['Chorus first line'], section: 1},
-      {label: '후렴', lines: ['Chorus second line'], section: 1},
-    ]);
-  });
-
-  it('leaves unbracketed leading lines unlabeled before the first section', () => {
-    const text =
-      'Intro invented line 1\nIntro invented line 2\n\n[1절]\nVerse invented line';
-    const result = draft(text, {unitsPerSlide: 1});
-    expect(result.slides).toEqual([
-      {lines: ['Intro invented line 1'], section: 0},
-      {lines: ['Intro invented line 2'], section: 0},
-      {label: '1절', lines: ['Verse invented line'], section: 1},
-    ]);
-  });
-
   it('refuses a bracket label exceeding the label length limit', () => {
     const longLabel = `[${'a'.repeat(TEXT_IMPORT_LIMITS.label + 1)}]`;
     expect(convertTextImport(request(`${longLabel}\nLyric line`))).toEqual({

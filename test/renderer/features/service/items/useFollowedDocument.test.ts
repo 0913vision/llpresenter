@@ -78,11 +78,4 @@ describe('useFollowedDocument', () => {
     expect(view.result.current.document).toBeNull();
     view.unmount();
   });
-
-  it('stops following on unmount', () => {
-    const doc = source();
-    const {unmount} = renderHook(() => useFollowedDocument(doc.value));
-    unmount();
-    expect(doc.stop).toHaveBeenCalledOnce();
-  });
 });

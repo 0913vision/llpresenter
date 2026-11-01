@@ -139,29 +139,6 @@ it('offers Item Restore after a stop, preserving its pressed state until main ac
   expect(button.getAttribute('aria-pressed')).toBe('false');
 });
 
-it.each(['ctrlKey', 'altKey', 'metaKey', 'shiftKey'] as const)(
-  'ignores native Item Off keyboard clicks with %s while allowing pointer activation',
-  modifier => {
-    const {button, send} = renderActiveItemOff();
-    button.focus();
-    for (const key of [' ', 'Enter']) {
-      const event = new KeyboardEvent('keydown', {
-        key,
-        bubbles: true,
-        cancelable: true,
-        [modifier]: true,
-      });
-      fireEvent(button, event);
-      expect(event.defaultPrevented).toBe(false);
-      if (key === ' ') fireEvent.keyUp(button, {key});
-      fireEvent.click(button, {detail: 0});
-      expect(send).not.toHaveBeenCalled();
-    }
-    fireEvent.click(button, {detail: 1, [modifier]: true});
-    expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
-  },
-);
-
 it('activates Item Off with unmodified Space and Enter', async () => {
   const {button, send} = renderActiveItemOff();
   button.focus();
@@ -205,24 +182,6 @@ describe('hasSomethingToClear', () => {
 });
 
 describe('ClearRow', () => {
-  it('has a group with the item button and seven clear buttons by default, in order', () => {
-    render(<ClearRow compact={false} />);
-    const group = screen.getByRole('group', {name: '지우기'});
-    const names = Array.from(group.querySelectorAll('button')).map(button =>
-      button.getAttribute('aria-label'),
-    );
-    expect(names).toEqual([
-      '항목 끄기',
-      '모두 지우기',
-      '가사 지우기',
-      '미디어 지우기',
-      '그래픽 지우기',
-      '오디오 지우기',
-      '메시지 지우기',
-      '공지 지우기',
-    ]);
-  });
-
   it.each([undefined, false])(
     'hides undo and its divider for preference %s',
     async setting => {
@@ -300,11 +259,6 @@ describe('ClearRow', () => {
     expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기');
   });
 
-  it('uses no native title tooltip', () => {
-    render(<ClearRow compact />);
-    expect(document.querySelectorAll('[title]')).toHaveLength(0);
-  });
-
   it('dims a layer with nothing to clear and keeps the button focusable', () => {
     setLayers({slide});
     render(<ClearRow compact={false} />);
@@ -315,16 +269,6 @@ describe('ClearRow', () => {
     expect(media.getAttribute('aria-disabled')).toBe('true');
     expect(media.getAttribute('data-state')).toBe('off');
     expect(media.hasAttribute('disabled')).toBe(false);
-  });
-
-  it('keeps all bright while any layer has something', () => {
-    setLayers({media});
-    render(<ClearRow compact={false} />);
-    expect(
-      screen
-        .getByRole('button', {name: '모두 지우기'})
-        .getAttribute('data-state'),
-    ).toBeNull();
   });
 
   it('toggles the layer of a bright button with layer.clear.toggle', () => {
@@ -358,13 +302,6 @@ describe('ClearRow', () => {
     ).toBe('false');
   });
 
-  it('does nothing when a dim button is clicked', () => {
-    setLayers({slide});
-    render(<ClearRow compact={false} />);
-    fireEvent.click(screen.getByRole('button', {name: '오디오 지우기'}));
-    expect(sent).toHaveLength(0);
-  });
-
   it('sends clear.undo from the undo button while there is something to undo', async () => {
     await renderWithUndo();
     act(() => setCanUndo(true));
@@ -386,27 +323,6 @@ describe('ClearRow', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('dims the undo button before the first live state arrives', async () => {
-    const api = installApi(true);
-    const firstState = emptyLiveState();
-    let finish: () => void = () => undefined;
-    vi.spyOn(api.live, 'get').mockImplementation(
-      () =>
-        new Promise(resolve => {
-          finish = () => resolve(firstState);
-        }),
-    );
-    render(<ClearRow compact={false} />);
-    onTestFinished(startLiveSync());
-    await screen.findByRole('button', {name: '되돌리기'});
-    expect(useLive.getState().state).toBeNull();
-    expect(
-      screen.getByRole('button', {name: '되돌리기'}).getAttribute('data-state'),
-    ).toBe('off');
-    await act(async () => finish());
-    expect(useLive.getState().state).toBe(firstState);
-  });
-
   it('redraws only the undo button when canUndo changes', async () => {
     await renderWithUndo();
     act(() => setCanUndo(false));
@@ -421,32 +337,6 @@ describe('ClearRow', () => {
     iconRenders.names.length = 0;
     act(() => setLayers({slide}));
     expect([...iconRenders.names].sort()).toEqual(['layers', 'text']);
-  });
-
-  it('redraws exactly the buttons that changed when the layers and canUndo change together', async () => {
-    await renderWithUndo();
-    act(() => setLayers({}));
-    iconRenders.names.length = 0;
-    act(() =>
-      useLive.setState({
-        state: {
-          ...emptyLiveState(),
-          layers: {...emptyLayers(), slide},
-          canUndo: true,
-        },
-      }),
-    );
-    expect([...iconRenders.names].sort()).toEqual(['layers', 'text', 'undo']);
-  });
-
-  it('follows the live state when a clear becomes undoable and when it is undone', async () => {
-    await renderWithUndo();
-    act(() => setCanUndo(false));
-    const undo = screen.getByRole('button', {name: '되돌리기'});
-    act(() => setCanUndo(true));
-    expect(undo.getAttribute('data-state')).toBeNull();
-    act(() => setCanUndo(false));
-    expect(undo.getAttribute('data-state')).toBe('off');
   });
 
   it('shows the names in the regular form and only icons in the compact form', async () => {

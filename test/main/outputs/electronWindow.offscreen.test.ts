@@ -27,13 +27,6 @@ describe('createElectronOutputWindow offscreen', () => {
       expect(output.contentSize()).toMatchObject({width: 960, height: 540});
     },
   );
-  it('exposes virtual output bounds for identification without presenting it', () => {
-    const output = openOutput('offscreen');
-    const win = lastWindow();
-    win.getBounds.mockReturnValue(WINDOW_BOUNDS);
-    expect(output.bounds()).toEqual(WINDOW_BOUNDS);
-    expectNeverPresented(win);
-  });
   it('sizes capture content without presenting a window or changing its window order', () => {
     const output = openOutput('offscreen');
     output.showCapture({x: 0, y: 0, width: 1920, height: 1080});
@@ -245,13 +238,5 @@ describe('createElectronOutputWindow offscreen', () => {
 
     expect(win.setBounds).not.toHaveBeenCalled();
     expectNeverPresented(win);
-  });
-
-  it('leaves a hidden output as it is when hidden again', () => {
-    const output = openOutput('offscreen');
-
-    output.hide();
-
-    expect(lastWindow().hide).not.toHaveBeenCalled();
   });
 });

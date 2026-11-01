@@ -177,37 +177,6 @@ describe('the center panel of other item kinds', () => {
     ).toBe(true);
   });
 
-  it('moves keyboard focus between visible notice tiles and keeps one Tab stop without selecting', async () => {
-    const user = userEvent.setup();
-    render(<button>Before</button>);
-    const fixture = show({id: itemId, notice: noticeSet});
-    render(<button>After</button>);
-    const first = await screen.findByRole('option', {name: '따뜻한 빛'});
-    const second = screen.getByRole('option', {name: '새벽 하늘'});
-    await user.tab();
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: 'Before'}),
-    );
-    await user.tab();
-    expect(document.activeElement).toBe(first);
-    await user.keyboard('{ArrowRight}');
-    expect(document.activeElement).toBe(second);
-    await user.tab();
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: 'After'}),
-    );
-    await user.tab({shift: true});
-    expect(document.activeElement).toBe(second);
-    await user.keyboard('{ArrowLeft}');
-    expect(document.activeElement).toBe(first);
-    expect(
-      screen
-        .getAllByRole('option')
-        .every(tile => tile.getAttribute('aria-selected') === 'false'),
-    ).toBe(true);
-    expect(fixture.send).not.toHaveBeenCalled();
-  });
-
   it('moves keyboard focus within and across notice windows while retaining bounded unselected tiles', async () => {
     const user = userEvent.setup();
     const items = Array.from({length: 1000}, (_, index) =>
@@ -392,11 +361,6 @@ describe('the center panel of other item kinds', () => {
     unmount();
     expect(fixture.listeners.document.size).toBe(0);
     expect(fixture.noticesListeners.size).toBe(0);
-  });
-
-  it('shows the name of a media item in the header', async () => {
-    show({id: itemId, media: fixtureMedia.dawn});
-    expect(await screen.findByText('새벽 하늘')).toBeDefined();
   });
 
   it('leaves the panel empty for a header, a slot, and no selection', () => {

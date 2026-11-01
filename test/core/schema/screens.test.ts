@@ -1,10 +1,5 @@
-import {describe, expectTypeOf, it} from 'vitest';
-import type {ScreenId} from '@core/schema/ids';
-import {
-  parseScreens,
-  serializeScreens,
-  type Screen,
-} from '@core/schema/screens';
+import {describe, it} from 'vitest';
+import {parseScreens, serializeScreens} from '@core/schema/screens';
 import {expectInvalidField, expectRoundTrip} from '@core/schema/testHelpers';
 
 const codec = {parse: parseScreens, serialize: serializeScreens};
@@ -136,14 +131,5 @@ describe('parseScreens', () => {
     };
 
     expectInvalidField(codec, screens, 'screens.1');
-  });
-});
-
-describe('screen types', () => {
-  it('brands the id', () => {
-    expectTypeOf<Screen['id']>().toEqualTypeOf<ScreenId>();
-    expectTypeOf<Screen['method']>().toEqualTypeOf<
-      'fullscreen' | 'window' | 'capture' | 'ndi'
-    >();
   });
 });

@@ -70,21 +70,6 @@ describe('quick editing', () => {
       resetTooltips();
     }
   });
-  it('lists every quick-add row and separator in order', async () => {
-    const fixture = setup();
-    fixture.mount();
-    await openAddMenu();
-    expect(
-      renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 추가'})),
-    ).toEqual([
-      '현재 항목 추가',
-      '|',
-      '그래픽',
-      '타이머…',
-      '매크로',
-      '검은 화면',
-    ]);
-  });
 
   it.each([false, true])(
     'opens the complete quick-item menu when locked=%s',

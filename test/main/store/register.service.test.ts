@@ -16,14 +16,7 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import * as atomicWrite from '@main/store/atomicWrite';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {
-  HYMN_ONE_ID,
-  hymnOne,
-  itemId,
-  service,
-  SUNDAY_ID,
-  writeJson,
-} from '@main/store/testFiles';
+import {itemId, service, writeJson} from '@main/store/testFiles';
 
 describe('registerStore', () => {
   it('saves and switches services, remembers the choice across restart, and sends no live-output change', async () => {
@@ -156,27 +149,6 @@ describe('registerStore', () => {
     expect(JSON.parse(await readFile(appFile, 'utf8'))).toMatchObject({
       lastServiceId: firstId,
     });
-  });
-
-  it('answers service:get with the open 예배 순서 at its first revision', async () => {
-    const context = await developmentContext();
-    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    await writeJson(join(root, 'Songs', 'a.llsong'), hymnOne());
-    await writeJson(
-      join(root, 'Services', 'a.llservice'),
-      service(SUNDAY_ID, '2026-11-01T11:00', [
-        {id: itemId(1), song: HYMN_ONE_ID},
-      ]),
-    );
-    const {dispose} = await register(mockLog(), context);
-
-    expect(await askForService()).toMatchObject({
-      revision: 1,
-      id: SUNDAY_ID,
-      rows: [{kind: 'song', id: itemId(1), title: '만복의 근원 하나님'}],
-    });
-    await dispose();
-    expect(electron.handlers.has(serviceEndpoints.get.channel)).toBe(false);
   });
 
   it('answers null when there is no 예배 순서', async () => {

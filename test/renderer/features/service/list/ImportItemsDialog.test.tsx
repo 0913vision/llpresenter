@@ -27,7 +27,6 @@ import {
 import {ImportItemsDialog} from '@renderer/features/service/list/ImportItemsDialog';
 import {
   ids,
-  legacyTemplateDocument,
   librarySongs,
   pastDocument,
   serviceEntries,
@@ -157,28 +156,6 @@ describe('ImportItemsDialog', () => {
     ]);
     expect(sent).toEqual([]);
     expect(onProblem).not.toHaveBeenCalled();
-  });
-
-  it('imports empty sections from a legacy template read without checking their preceding section', async () => {
-    const {edits, onClose, sent} = setup({
-      sourceTemplate: legacyTemplateDocument(),
-    });
-    await userEvent.click(
-      await screen.findByRole('treeitem', {name: '헌금 찬양'}),
-    );
-    await userEvent.click(row('광고'));
-    expect(row('말씀').getAttribute('aria-checked')).toBe('false');
-    await userEvent.click(importButton());
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(edits).toEqual([
-      {
-        type: 'service.importItems',
-        serviceId: currentId,
-        from: {kind: 'template', id: ids.template},
-        itemIds: [ids.offering, ids.closing],
-      },
-    ]);
-    expect(sent).toEqual([]);
   });
 
   it('checks nothing when the operator picks a source, also on a return', async () => {

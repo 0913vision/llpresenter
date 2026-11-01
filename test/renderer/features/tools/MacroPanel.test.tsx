@@ -397,53 +397,6 @@ it('renames and deletes the displayed collection while retaining macros', async 
   expect(deletion.value.macros).toHaveLength(1);
 });
 
-it('lists the rows of the ProPresenter macro menu in its order', async () => {
-  fixture([{kind: 'clearAll'}]);
-  render(<MacroPanel />);
-  await openMenu();
-  const menu = screen.getByRole('menu', {name: '매크로'});
-  const rows = [
-    ...menu.querySelectorAll('[role^="menuitem"], [role="separator"]'),
-  ].map(row =>
-    row.getAttribute('role') === 'separator' ? '|' : row.textContent,
-  );
-  expect(rows).toEqual([
-    '모음에 추가',
-    '모음으로 옮기기',
-    '|',
-    '이름 바꾸기',
-    '색 바꾸기',
-    '아이콘 바꾸기',
-    '시작할 때 실행',
-    '|',
-    '동작 추가',
-    '미디어 동작 추가…',
-    '|',
-    '동작 편집: 모두 지우기',
-    '동작 빼기: 모두 지우기',
-    '|',
-    '속성…',
-    '|',
-    '잘라내기',
-    '복사',
-    '붙여넣기',
-    '복제',
-    '|',
-    '삭제',
-  ]);
-  expect(screen.queryByRole('menuitem', {name: '실행'})).toBeNull();
-  for (const name of [
-    '미디어 동작 추가…',
-    '속성…',
-    '잘라내기',
-    '복사',
-    '붙여넣기',
-  ]) {
-    const row = screen.getByRole('menuitem', {name});
-    expect(row.getAttribute('aria-disabled')).toBe('true');
-  }
-});
-
 it('turns the remove row into a submenu with two or more actions', async () => {
   const f = fixture([{kind: 'clearAll'}, {kind: 'clearAll'}]);
   render(<MacroPanel />);

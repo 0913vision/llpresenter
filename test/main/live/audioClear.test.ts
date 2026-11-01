@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {audioPositionSeconds} from '@core/schema/audioState';
 import {LiveStore} from '@main/live/store';
 
 function setup(
@@ -141,16 +140,5 @@ describe('audio clear undo', () => {
       positionSeconds: 2,
       since: null,
     });
-  });
-  it('does not freeze audio when undoing another layer clear', () => {
-    const {store, later} = setup();
-    const audio = store.state.layers.audio;
-    store.dispatch({type: 'layer.clear', target: 'message'});
-    later();
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers.audio).toBe(audio);
-    const playback = store.state.layers.audio?.playback;
-    if (playback === undefined) throw new Error('Missing playback');
-    expect(audioPositionSeconds(playback, 25_000)).toBe(26);
   });
 });

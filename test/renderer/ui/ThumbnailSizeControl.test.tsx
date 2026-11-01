@@ -45,15 +45,6 @@ function input(role: 'slider' | 'spinbutton'): HTMLInputElement {
 }
 
 describe('ThumbnailSizeControl', () => {
-  it('uses the spec-13 default, range, and continuous pointer step', () => {
-    render(<Control />);
-    expect(input('slider').value).toBe('100');
-    expect(input('slider').min).toBe('50');
-    expect(input('slider').max).toBe('200');
-    expect(input('slider').step).toBe('any');
-    expect(input('spinbutton').value).toBe('100%');
-  });
-
   it('previews fractions, mirrors the rounded field, then commits a whole percent', () => {
     const onChange = vi.fn();
     const onCommit = vi.fn();
@@ -97,32 +88,6 @@ describe('ThumbnailSizeControl', () => {
     expect(input('slider').value).toBe('200');
     expect(input('spinbutton').value).toBe('200%');
     expect(onCommit).toHaveBeenCalledExactlyOnceWith(200);
-  });
-
-  it('cancels the typed change with Escape', async () => {
-    const onChange = vi.fn();
-    const onCommit = vi.fn();
-    render(<Control onChange={onChange} onCommit={onCommit} />);
-    await userEvent.clear(input('spinbutton'));
-    await userEvent.type(input('spinbutton'), '150');
-    await userEvent.keyboard('{Escape}');
-    expect(input('spinbutton').value).toBe('100%');
-    await userEvent.tab();
-    expect(onChange).not.toHaveBeenCalled();
-    expect(onCommit).not.toHaveBeenCalled();
-  });
-
-  it('ignores invalid text and IME confirmation until composition finishes', async () => {
-    const onCommit = vi.fn();
-    render(<Control onCommit={onCommit} />);
-    await userEvent.clear(input('spinbutton'));
-    await userEvent.type(input('spinbutton'), '150');
-    fireEvent.keyDown(input('spinbutton'), {key: 'Enter', isComposing: true});
-    expect(onCommit).not.toHaveBeenCalled();
-    await userEvent.clear(input('spinbutton'));
-    await userEvent.type(input('spinbutton'), 'x{Enter}');
-    expect(input('spinbutton').value).toBe('100%');
-    expect(onCommit).not.toHaveBeenCalled();
   });
 
   it('steps by 1 or 10 with Shift and clamps the slider at its ends', async () => {

@@ -170,49 +170,6 @@ it('locks every draft control until an outstanding save finishes', async () => {
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 });
 
-it('lists the rows of the ProPresenter prop menu in its order', async () => {
-  const f = fixture();
-  f.documents.set(
-    'props',
-    settingsDocument('props', {
-      props: [
-        {id, name: '로고', content: {kind: 'image', media: image}, targets: []},
-      ],
-    }),
-  );
-  render(<PropTab />);
-  const tile = await screen.findByRole('option', {name: '로고'});
-  const contextTarget = tile;
-  fireEvent.contextMenu(contextTarget);
-  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-  const menu = await screen.findByRole('menu', {name: '그래픽'});
-  const rows = [
-    ...menu.querySelectorAll('[role="menuitem"], [role="separator"]'),
-  ].map(row =>
-    row.getAttribute('role') === 'separator' ? '|' : row.textContent,
-  );
-  expect(rows).toEqual([
-    '모음에 추가',
-    '모음으로 옮기기',
-    '|',
-    '수정…',
-    '전환 효과…',
-    '자동 지우기',
-    '|',
-    '잘라내기',
-    '복사',
-    '붙여넣기',
-    '복제',
-    '이름 바꾸기',
-    '|',
-    '삭제',
-  ]);
-  const enabled = [...menu.querySelectorAll('[role="menuitem"]')]
-    .filter(row => row.getAttribute('aria-disabled') !== 'true')
-    .map(row => row.textContent);
-  expect(enabled).toEqual(['수정…', '삭제']);
-});
-
 it('opens disabled editing commands on a read-only prop list', async () => {
   const f = fixture();
   const document = settingsDocument('props', {

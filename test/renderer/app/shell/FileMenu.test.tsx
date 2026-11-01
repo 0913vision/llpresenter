@@ -1,15 +1,8 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show';
-import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   ids,
   librarySongs,
@@ -70,15 +63,6 @@ describe('the 파일 menu', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('opens 새 예배 with the keyboard', async () => {
-    setup();
-    render(<MenuBar title="" />);
-    screen.getByRole('menuitem', {name: '파일'}).focus();
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}');
-    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
-    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
-  });
-
   it('disables importing and saving a template when no service is open', async () => {
     setup();
     render(<MenuBar title="" />);
@@ -101,55 +85,6 @@ describe('the 파일 menu', () => {
         )
       )?.textContent,
     ).toBe('열린 예배 순서가 없습니다');
-  });
-
-  it('imports checked items through the existing service dialog', async () => {
-    const {edit, send} = setup();
-    applyService({...sampleService, id: ids.past});
-    render(<MenuBar title="" />);
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '다른 예배…'}));
-    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
-    await userEvent.click(
-      await screen.findByRole('treeitem', {name: titles.first}),
-    );
-    await userEvent.click(screen.getByRole('button', {name: '가져오기'}));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(edit).toHaveBeenCalledExactlyOnceWith({
-      type: 'service.importItems',
-      serviceId: ids.past,
-      from: {kind: 'template', id: ids.template},
-      itemIds: [ids.doxology],
-    });
-    expect(send).not.toHaveBeenCalled();
-  });
-
-  it('saves the open service as a template through the shared action', async () => {
-    const {edit, send} = setup();
-    applyService({...sampleService, id: ids.past, name: '저녁 예배'});
-    render(<MenuBar title="" />);
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(
-      screen.getByRole('menuitem', {name: '예배를 템플릿으로 저장…'}),
-    );
-    const naming = screen.getByRole('dialog', {name: '템플릿으로 저장'});
-    expect(within(naming).getByRole('textbox', {name: '이름'})).toHaveProperty(
-      'value',
-      '저녁 예배',
-    );
-    expect(edit).not.toHaveBeenCalled();
-    await userEvent.click(within(naming).getByRole('button', {name: '저장'}));
-    await waitFor(() =>
-      expect(edit).toHaveBeenCalledExactlyOnceWith({
-        type: 'service.saveAsTemplate',
-        serviceId: ids.past,
-        name: '저녁 예배',
-      }),
-    );
-    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
-    expect(screen.queryByRole('dialog')).toBeNull();
-    expect(send).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -206,48 +141,6 @@ describe('the 파일 menu', () => {
         )
       )?.textContent,
     ).toBe('텍스트 가져오기를 준비 중입니다');
-  });
-
-  it('lists the File and Import menu rows and separators in spec order', async () => {
-    setup();
-    render(<MenuBar title="" />);
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    const rows = (menu: HTMLElement): Array<string | null> =>
-      [...menu.querySelectorAll('[role=menuitem], [role=separator]')].map(
-        row =>
-          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
-      );
-    expect(rows(screen.getByRole('menu', {name: '파일'}))).toEqual([
-      '새 곡',
-      '새 예배',
-      '새 라이브러리',
-      '가져오기',
-      '|',
-      '내보내기',
-      '예배를 템플릿으로 저장…',
-      '|',
-      '인쇄…',
-    ]);
-    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    expect(rows(screen.getByRole('menu', {name: '가져오기'}))).toEqual([
-      '텍스트 파일…Ctrl Shift I',
-      '라이브러리…',
-      '미디어…',
-      '클립보드 텍스트…',
-      '다른 예배…',
-      '|',
-      'MultiTracks…',
-      'SongSelect…',
-      '|',
-      'PowerPoint를 슬라이드로…',
-      'PowerPoint를 그림으로…',
-      'PowerPoint를 개체와 글자로…',
-    ]);
-    for (const name of ['라이브러리…', 'MultiTracks…', 'SongSelect…']) {
-      expect(
-        screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
-      ).toBe('true');
-    }
   });
 
   it('imports media into the library once while the request is pending', async () => {

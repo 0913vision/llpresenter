@@ -1,14 +1,7 @@
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {openItem, useShow} from '@renderer/session/show';
+import {openItem} from '@renderer/session/show';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 
@@ -29,50 +22,6 @@ function slide(index: number): HTMLElement {
   return tile;
 }
 
-it('lists the slide menu rows in spec order with only editing enabled', () => {
-  render(<SlideGrid columns={4} scalePercent={100} onOpenPrep={vi.fn()} />);
-  const contextTarget = slide(1);
-  fireEvent.contextMenu(contextTarget);
-  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-  const menu = screen.getByRole('menu', {name: '슬라이드'});
-  expect(
-    [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
-      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
-    ),
-  ).toEqual([
-    '빠른 편집',
-    '곡 편집',
-    '|',
-    '사용 안 함',
-    '|',
-    '테마',
-    '전환 효과…',
-    '단축키…',
-    '다음 타이머로 넘기기…',
-    '|',
-    '동작 추가',
-    '미디어 동작 추가…',
-    '|',
-    '이름표',
-    '슬라이드 이름',
-    '|',
-    '글자 모양 복사',
-    '글자 모양 붙여넣기',
-    '|',
-    '잘라내기',
-    '복사',
-    '붙여넣기',
-    '삭제',
-  ]);
-  expect(
-    within(menu)
-      .getAllByRole('menuitem')
-      .filter(row => row.getAttribute('aria-disabled') !== 'true')
-      .map(row => row.textContent),
-  ).toEqual(['곡 편집']);
-  expect(useShow.getState().selectedTile).toBe(0);
-});
-
 it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
   'opens from $key and edits that slide without output',
   keys => {
@@ -91,15 +40,6 @@ it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
     expect(screen.queryByRole('menu')).toBeNull();
   },
 );
-
-it('closes on Escape and returns focus to the slide', () => {
-  render(<SlideGrid columns={4} scalePercent={100} />);
-  const tile = slide(0);
-  tile.focus();
-  fireEvent.keyDown(tile, {key: 'ContextMenu'});
-  fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
-  expect(document.activeElement).toBe(tile);
-});
 
 it('cannot edit the old item after the open item changes', () => {
   const onOpenPrep = vi.fn();

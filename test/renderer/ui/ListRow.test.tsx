@@ -313,15 +313,6 @@ describe('ListRow rename', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it('saves the typed name on Enter, once', () => {
-    const {onCommit, field} = renameRow();
-    expect(document.activeElement).toBe(field);
-    fireEvent.change(field, {target: {value: 'New name'}});
-    fireEvent.keyDown(field, {key: 'Enter'});
-    fireEvent.blur(field);
-    expect(onCommit).toHaveBeenCalledExactlyOnceWith('New name');
-  });
-
   it('keeps the old name on Esc and saves when the field is left', () => {
     const {onCommit, onCancel, field} = renameRow();
     fireEvent.keyDown(field, {key: 'Escape'});

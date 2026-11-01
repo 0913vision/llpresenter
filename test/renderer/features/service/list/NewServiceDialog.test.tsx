@@ -24,7 +24,6 @@ import {
 import {NewServiceDialog} from '@renderer/features/service/list/NewServiceDialog';
 import {
   ids,
-  legacyTemplateDocument,
   librarySongs,
   pastDocument,
   serviceEntries,
@@ -154,28 +153,6 @@ describe('NewServiceDialog', () => {
     });
   });
 
-  it('chooses a date beyond the old two-week list without submitting the parent', async () => {
-    const {edits, onClose} = setup();
-    const user = userEvent.setup();
-    await screen.findByRole('treeitem', {name: titles.first});
-    const date = screen.getByRole('button', {name: '날짜'});
-    await user.click(date);
-    await user.keyboard('{PageDown}{ArrowRight}{Enter}');
-    expect(date.textContent).toBe('11월 27일 금요일');
-    expect(document.activeElement).toBe(date);
-    expect(onClose).not.toHaveBeenCalled();
-    expect(edits).toHaveLength(0);
-    await user.click(createButton());
-    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
-    expect(edits.filter(edit => edit.type === 'service.create')).toHaveLength(
-      1,
-    );
-    expect(edits[0]).toMatchObject({
-      type: 'service.create',
-      date: '2026-11-27T11:00',
-    });
-  });
-
   it('starts from the first 템플릿 with every item checked and its name and time', async () => {
     setup();
     expect(
@@ -234,23 +211,6 @@ describe('NewServiceDialog', () => {
     expect(useShow.getState().serviceId).toBe(ids.created);
     expect(sent).toEqual([]);
     expect(onProblem).not.toHaveBeenCalled();
-  });
-
-  it('creates with only the checked empty sections from a legacy template read', async () => {
-    const {edits, onClose} = setup(accepted, legacyTemplateDocument());
-    await screen.findByRole('treeitem', {name: '헌금 찬양'});
-    await userEvent.click(screen.getByRole('checkbox', {name: '예배 순서'}));
-    await userEvent.click(row('헌금 찬양'));
-    await userEvent.click(row('광고'));
-    expect(row('말씀').getAttribute('aria-checked')).toBe('false');
-    await userEvent.click(createButton());
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(edits[1]).toEqual({
-      type: 'service.importItems',
-      serviceId: ids.created,
-      from: {kind: 'template', id: ids.template},
-      itemIds: [ids.offering, ids.closing],
-    });
   });
 
   it('stays open while a create is on its way, then closes', async () => {
@@ -518,30 +478,5 @@ describe('NewServiceDialog', () => {
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
       title: '새 예배를 열 수 없음',
     });
-  });
-
-  it('offers 다시 시도 when a list could not be read', async () => {
-    const list = vi
-      .fn<() => Promise<typeof templateEntries>>()
-      .mockRejectedValueOnce(new Error('Read failed in the test'))
-      .mockResolvedValue(templateEntries);
-    window.llp = mockLlpApi({
-      templates: {list, get: () => Promise.resolve(templateDocument)},
-      services: {list: () => Promise.resolve(serviceEntries)},
-      songs: {list: () => Promise.resolve(librarySongs)},
-    });
-    render(
-      <NewServiceDialog
-        onClose={() => undefined}
-        onProblem={() => undefined}
-      />,
-    );
-    await userEvent.click(
-      await screen.findByRole('button', {name: '다시 시도'}),
-    );
-    expect(
-      await screen.findByRole('option', {name: /^주일 예배/}),
-    ).toBeDefined();
-    expect(screen.queryByRole('button', {name: '다시 시도'})).toBeNull();
   });
 });

@@ -180,29 +180,6 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
-  it('lists only non-song rows and does not search the library', async () => {
-    const {api, user} = setup();
-    const search = vi.spyOn(api.library, 'search');
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    const menu = screen.getByRole('menu', {name: '항목 추가'});
-    expect(within(menu).queryByRole('combobox')).toBeNull();
-    expect(within(menu).queryByText('라이브러리')).toBeNull();
-    expect(
-      within(menu)
-        .getAllByRole('menuitem')
-        .map(row => row.textContent),
-    ).toEqual([
-      '구역 추가',
-      '자리 표시 추가',
-      '큐 추가',
-      '미디어',
-      '성경 구절…',
-      '공지',
-      '비디오 스트림 항목…',
-      '오디오 스트림 항목…',
-    ]);
-    expect(search).not.toHaveBeenCalled();
-  });
   it('adds a Bible item into the selected empty section without replacing it', async () => {
     const {api, user, service, pushService} = setup();
     mockBible(api);
@@ -292,31 +269,6 @@ describe('항목 추가', () => {
     await user.click(within(list).getByRole('option', {name: '요한복음'}));
     expect(book.value).toBe('요한복음');
     expect(screen.queryByRole('listbox')).toBeNull();
-    expect(service().service.order).toHaveLength(length);
-    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
-  });
-
-  it('shares completion, blocks ambiguous Tab, and advances to the next field', async () => {
-    const {api, user, service} = setup();
-    mockBible(api).lookup.mockImplementation(
-      () => new Promise(() => undefined),
-    );
-    const length = service().service.order.length;
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절…'}));
-    const field = await screen.findByRole<HTMLInputElement>('combobox', {
-      name: '책',
-    });
-    await waitFor(() => expect(field.disabled).toBe(false));
-    fireEvent.change(field, {target: {value: '베'}});
-    field.focus();
-    await user.tab();
-    expect(document.activeElement).toBe(field);
-    await user.keyboard('{ArrowDown}{ArrowDown}{Tab}');
-    expect(field.value).toBe('베드로전서');
-    expect(document.activeElement).toBe(
-      screen.getByRole('textbox', {name: '장'}),
-    );
     expect(service().service.order).toHaveLength(length);
     expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
   });

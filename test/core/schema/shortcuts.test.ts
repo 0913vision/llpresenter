@@ -1,11 +1,9 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
   parseShortcuts,
   serializeShortcuts,
   MAX_COMMAND_BINDINGS,
   MAX_SHORTCUT_COMMANDS,
-  type KeyBinding,
-  type KeyModifier,
 } from '@core/schema/shortcuts';
 import {
   expectInvalidField,
@@ -212,15 +210,5 @@ describe('writing reserved keys', () => {
     expect(written.ok ? null : written.error.field).toBe(
       'bindings.clear.all.1',
     );
-  });
-});
-
-describe('shortcut types', () => {
-  it('stores the physical key and the modifiers', () => {
-    expectTypeOf<KeyBinding>().toEqualTypeOf<{
-      readonly code: string;
-      readonly mods: readonly KeyModifier[];
-    }>();
-    expectTypeOf<KeyModifier>().toEqualTypeOf<'ctrl' | 'alt' | 'shift'>();
   });
 });

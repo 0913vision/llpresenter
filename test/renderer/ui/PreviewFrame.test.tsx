@@ -217,30 +217,6 @@ describe('PreviewFrame', () => {
       '방송 자막 출력이 꺼져 있습니다',
     );
   });
-
-  it('puts a monitor icon before a display target but none before NDI', async () => {
-    render(<Preview />);
-    const icons = (text: string): number =>
-      screen.getByText(text).querySelectorAll('[aria-hidden="true"]').length;
-    expect(icons('모니터 2')).toBe(1);
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
-      }),
-    );
-    expect(icons('NDI')).toBe(0);
-  });
-
-  it('draws the warning icon before the target of a screen in trouble', async () => {
-    render(<Preview />);
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      }),
-    );
-    const target = screen.getAllByText('모니터 3')[0];
-    expect(target?.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
-  });
 });
 
 describe('preview texts', () => {

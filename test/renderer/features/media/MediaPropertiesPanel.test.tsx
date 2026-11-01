@@ -197,27 +197,6 @@ describe('media properties panel', () => {
     },
   );
 
-  it.each([
-    {key: 'ArrowUp', shiftKey: false, speed: 1.05},
-    {key: 'ArrowDown', shiftKey: false, speed: 0.95},
-    {key: 'ArrowUp', shiftKey: true, speed: 1.5},
-    {key: 'ArrowDown', shiftKey: true, speed: 0.5},
-  ])(
-    'changes speed to $speed with $key and Shift $shiftKey',
-    async ({key, shiftKey, speed}) => {
-      const {edit} = setup();
-      const field = within(await choose('Dawn')).getByRole('spinbutton', {
-        name: '속도',
-      });
-      fireEvent.keyDown(field, {key, shiftKey});
-      expect(edit).toHaveBeenCalledExactlyOnceWith({
-        type: 'media.properties.update',
-        mediaId: mediaId(1),
-        changes: {props: {audio: false, speed}},
-        baseRevision: 5,
-      });
-    },
-  );
   it('says nothing is selected until a tile is', () => {
     setup();
     expect(

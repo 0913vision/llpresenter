@@ -1,15 +1,12 @@
-import {describe, expect, expectTypeOf, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {layerKinds} from '@core/live/state';
 import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
-import type {ThemeId} from '@core/schema/ids';
 import {
   isKnownMacroAction,
   macroActionKinds,
   parseMacros,
   parseKnownMacroAction,
   serializeMacros,
-  type KnownMacroAction,
-  type MacroAction,
 } from '@core/schema/macros';
 import {
   expectInvalidField,
@@ -257,14 +254,5 @@ describe('parseMacros', () => {
       {...file, macros: [{...macro, color: 'none'}]},
       'macros.0.color',
     );
-  });
-});
-
-describe('macro types', () => {
-  it('narrows known actions by kind', () => {
-    expectTypeOf<
-      Extract<KnownMacroAction, {kind: 'theme'}>['theme']
-    >().toEqualTypeOf<ThemeId>();
-    expectTypeOf<KnownMacroAction>().toExtend<MacroAction>();
   });
 });

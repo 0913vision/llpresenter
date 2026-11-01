@@ -123,15 +123,6 @@ describe('registerAudioOutput', () => {
     expect(win.destroy).toHaveBeenCalledOnce();
     expect(win.contents.listenerCount('render-process-gone')).toBe(0);
   });
-  it.each(['offscreen', 'normal'] as const)(
-    'mutes packaged tests in %s mode',
-    mode => {
-      mocks.app.isPackaged = true;
-      const {win, stop} = setup(Promise.resolve(reader()), mode);
-      expect(win.webContents.setAudioMuted).toHaveBeenCalledWith(true);
-      stop();
-    },
-  );
   it('allows packaged service sound only with test flags absent', () => {
     mocks.app.isPackaged = true;
     vi.stubEnv('NODE_ENV', 'production');

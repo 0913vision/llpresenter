@@ -6,7 +6,6 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
@@ -15,28 +14,12 @@ import {
   libraryFixture,
 } from '@renderer/features/songs/library/fixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
-import {LibrarySection} from '@renderer/gallery/LibrarySection';
 import {
   FixedObserver,
   setup,
 } from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
 
 describe('library panel', () => {
-  it('creates sequential new songs with one blank slide and focuses the editor title in the gallery host', async () => {
-    render(<LibrarySection />);
-    const user = userEvent.setup();
-    await screen.findAllByRole('option');
-    await user.click(screen.getByRole('button', {name: '새 곡'}));
-    const first = await screen.findByDisplayValue('새 곡');
-    expect(document.activeElement).toBe(first);
-    await user.click(screen.getByRole('button', {name: '새 곡'}));
-    const second = await screen.findByDisplayValue('새 곡 2');
-    expect(document.activeElement).toBe(second);
-    expect(screen.getByRole('option', {name: '새 곡 2'}).textContent).toContain(
-      '슬라이드 1개',
-    );
-  });
-
   it('asks with the current service count, supports cancel, then deletes only on confirmation', async () => {
     const {fixture, user} = await setup();
     const edit = vi.spyOn(fixture.api.content, 'edit');

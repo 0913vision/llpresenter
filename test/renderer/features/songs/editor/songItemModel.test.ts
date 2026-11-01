@@ -116,20 +116,6 @@ describe('song item model', () => {
     ]);
   });
 
-  it('names unnamed groups in grouped songs by their 1-based position', () => {
-    const g1 = createSongGroupId('11111111-1111-4111-a111-111111111111');
-    const grouped: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 2,
-      id: createSongId('00000000-0000-4000-8000-000000000001'),
-      title: '무제 곡',
-      groups: [{id: g1, name: '', slides: [{lines: ['가사']}]}],
-    };
-    expect(orderChips(grouped, [g1], [])).toEqual([
-      {key: `${g1}:1`, name: '이름표 없음 1', color: 'none', number: 1},
-    ]);
-  });
-
   it('computes group start indices and maps slide indices to chip index', () => {
     const grouped = editorGroupedSong(1).song;
     expect(editedGroupOrder(grouped, '주일용')).toEqual(

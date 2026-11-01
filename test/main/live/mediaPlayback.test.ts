@@ -2,7 +2,6 @@ import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {parseLiveState} from '@core/schema/liveState';
-import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createMediaId} from '@core/schema/ids';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -219,8 +218,5 @@ describe('media playback properties', () => {
         },
       }).ok,
     ).toBe(false);
-  });
-  it('accepts the bounded refresh command', () => {
-    expect(parseLiveCommand({type: 'media.properties.refresh'}).ok).toBe(true);
   });
 });

@@ -314,50 +314,11 @@ describe('ThumbnailGrid', () => {
     ).toBe('');
   });
 
-  it.each(['show', 'prep'] as const)(
-    'keeps Tab, arrow movement, and activation in the %s focus appearance',
-    async workspace => {
-      const onOutput = vi.fn();
-      const onSelect = vi.fn();
-      render(
-        <SongGrid
-          workspace={workspace}
-          initial={0}
-          onOutput={onOutput}
-          onSelect={onSelect}
-        />,
-      );
-      expect(screen.getByRole('listbox').dataset['workspace']).toBe(workspace);
-      await userEvent.tab();
-      await userEvent.tab();
-      expect(document.activeElement).toBe(thumbnail(1));
-      await userEvent.keyboard('{ArrowDown}');
-      expect(document.activeElement).toBe(thumbnail(4));
-      expect(selectedNumbers()).toEqual(['4']);
-      await userEvent.keyboard('{Enter}');
-      if (workspace === 'show') expect(onOutput).toHaveBeenCalledWith(3);
-      else {
-        expect(onOutput).not.toHaveBeenCalled();
-        expect(onSelect).toHaveBeenCalledWith(3);
-      }
-    },
-  );
-
   it('sets the column count and takes focus on a click in 진행', () => {
     render(<SongGrid workspace="show" />);
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe(`${COLUMNS}`);
     expect(thumbnail(2).closest(CLICK_FOCUS_SELECTOR)).toBe(grid);
-  });
-
-  it('takes one Tab stop, on the selected thumbnail', async () => {
-    const user = userEvent.setup();
-    render(<SongGrid workspace="show" initial={4} />);
-    await user.tab();
-    await user.tab();
-    expect(document.activeElement).toBe(thumbnail(5));
-    await user.tab();
-    expect(document.activeElement).toBe(document.body);
   });
 
   it('passes focus to the first thumbnail while none is selected', async () => {

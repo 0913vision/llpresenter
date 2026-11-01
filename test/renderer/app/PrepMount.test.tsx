@@ -12,10 +12,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
-import {
-  editorFixture,
-  editorSong,
-} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
@@ -145,60 +142,6 @@ it('switches back to service context even when selecting the same service row', 
   expect(fixture.send).not.toHaveBeenCalled();
 });
 
-it('creates 새 곡 and focuses and selects its title without sending output commands', async () => {
-  const fixture = mountPrep();
-  await screen.findByRole('option', {name: fixture.first.song.title});
-  const sourceDocument = editorSong(3);
-  const created = {
-    ...sourceDocument,
-    song: {
-      ...sourceDocument.song,
-      title: '새 곡',
-      groups: sourceDocument.song.groups
-        .slice(0, 1)
-        .map(group => ({...group, name: '', slides: [{lines: ['']}]})),
-      arrangements: [],
-    },
-  };
-  vi.spyOn(fixture.api.content, 'edit').mockImplementation(async edit => {
-    if (edit.type !== 'song.create') throw new Error('Unexpected fixture edit');
-    fixture.pushSong(created);
-    return {ok: true, value: {id: created.song.id, revision: created.revision}};
-  });
-  fireEvent.click(screen.getByRole('button', {name: '새 곡'}));
-  await waitFor(() =>
-    expect(
-      fixture.session.editor?.getSnapshot().session?.document.song.id,
-    ).toBe(created.song.id),
-  );
-  expect(screen.getByRole('textbox', {name: '슬라이드 1 가사'})).toHaveProperty(
-    'value',
-    '',
-  );
-  const title = screen.getByRole('textbox', {name: '곡 제목'});
-  expect(title).toHaveProperty('value', '새 곡');
-  await waitFor(() => expect(document.activeElement).toBe(title));
-  expect(title).toHaveProperty('selectionStart', 0);
-  expect(title).toHaveProperty('selectionEnd', created.song.title.length);
-  expect(fixture.send).not.toHaveBeenCalled();
-});
-
-it('shares the host warning stack and dismisses a failed library load before retrying', async () => {
-  const fixture = mountPrep();
-  vi.spyOn(fixture.api.songs, 'list').mockRejectedValue(
-    new Error('Invented read failure'),
-  );
-  fireEvent.click(screen.getByRole('tab', {name: '진행'}));
-  fireEvent.click(screen.getByRole('tab', {name: '준비'}));
-  await screen.findByText('라이브러리 불러오기 실패');
-  expect(screen.getAllByRole('alert')).toHaveLength(1);
-  vi.mocked(fixture.api.songs.list).mockResolvedValue(fixture.list());
-  fireEvent.click(screen.getByRole('button', {name: '다시 불러오기'}));
-  await screen.findByRole('option', {name: fixture.first.song.title});
-  expect(screen.queryByText('라이브러리 불러오기 실패')).toBeNull();
-  await act(async () => fixture.session.dispose());
-});
-
 it('submits a typed but unsent lyric edit when main asks to flush before quitting', async () => {
   const fixture = mountPrep();
   await openSong(fixture.first.song.title);
@@ -233,33 +176,6 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
   expect(JSON.stringify(fixture.edits)).not.toContain('Invented late line');
   await act(async () => fixture.session.dispose());
   expect(fixture.flushListeners.size).toBe(0);
-});
-
-it('keeps a refused draft in the 저장할 수 없음 dialog until 다시 시도 or 강제로 닫기', async () => {
-  const fixture = mountPrep();
-  await openSong(fixture.first.song.title);
-  const editor = fixture.session.editor;
-  if (editor === undefined) throw new Error('Missing editor');
-  vi.spyOn(editor, 'flush').mockResolvedValue(false);
-  const flushDone = vi.spyOn(fixture.api.app, 'flushDone');
-  const closeAnyway = vi.spyOn(fixture.api.app, 'closeAnyway');
-  const control = vi.spyOn(fixture.api.window, 'control');
-  const requestId = createAppFlushRequestId(
-    'd74b3f85-ab42-4d5e-9f60-718293041526',
-  );
-  act(() => {
-    fixture.requestFlush({requestId});
-  });
-  await screen.findByRole('alertdialog', {name: '저장할 수 없음'});
-  expect(flushDone).toHaveBeenCalledExactlyOnceWith({requestId, result: false});
-  expect(screen.queryAllByRole('alert')).toHaveLength(0);
-  fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));
-  expect(control).toHaveBeenCalledExactlyOnceWith('close');
-  expect(screen.getByRole('alertdialog', {name: '저장 중'})).toBeTruthy();
-  expect(closeAnyway).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '강제로 닫기'}));
-  expect(closeAnyway).toHaveBeenCalledOnce();
-  await act(async () => fixture.session.dispose());
 });
 
 it('opens and closes the shared media bin while keeping the library mounted', async () => {

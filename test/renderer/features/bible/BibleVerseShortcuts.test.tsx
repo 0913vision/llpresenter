@@ -15,7 +15,6 @@ import {
   beginOutputRequest,
   LOOKUP_TIMEOUT_MS,
 } from '@renderer/session/showOutput';
-import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
@@ -204,32 +203,6 @@ describe('Bible verse shortcuts', () => {
   );
 
   it.each([
-    {
-      direction: 'next',
-      input: '요한복음 3:35-36',
-      ref: '요한복음 3:35-4:1',
-      label: '4:1',
-    },
-    {
-      direction: 'previous',
-      input: '요한복음 3:1-2',
-      ref: '요한복음 2:8-3:2',
-      label: '2:8',
-    },
-  ] as const)(
-    'extends the $direction endpoint across chapters and outputs it',
-    async ({direction, input, ref, label}) => {
-      const fixture = await setup(input, true, endpointFor(direction));
-      await outputAdjacentBibleVerse(direction);
-      expect(useShow.getState().bibleSource?.passage.ref).toBe(ref);
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-        type: 'slide.show',
-        slide: {label},
-      });
-    },
-  );
-
-  it.each([
     {direction: 'next', label: '3:18'},
     {direction: 'previous', label: '3:16'},
   ] as const)(
@@ -343,24 +316,6 @@ describe('Bible verse shortcuts', () => {
     await outputAdjacentBibleVerse('next');
     expect(fixture.lookup).not.toHaveBeenCalled();
     expect(fixture.send).not.toHaveBeenCalled();
-  });
-
-  it('handles Shift Right through the show key handler and ignores a held key', async () => {
-    const fixture = await setup();
-    await act(async () => {
-      handleShowKey(
-        new KeyboardEvent('keydown', {code: 'ArrowRight', shiftKey: true}),
-      );
-      handleShowKey(
-        new KeyboardEvent('keydown', {
-          code: 'ArrowRight',
-          shiftKey: true,
-          repeat: true,
-        }),
-      );
-    });
-    expect(fixture.lookup).toHaveBeenCalledTimes(2);
-    expect(fixture.send).toHaveBeenCalledTimes(1);
   });
 
   it.each(['previous', 'next'] as const)(

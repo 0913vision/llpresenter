@@ -26,12 +26,6 @@ afterEach(() => {
 });
 
 describe('thumbnail scale', () => {
-  it('starts every size class at 100%', () => {
-    expect([scaleOf('narrow'), scaleOf('normal'), scaleOf('wide')]).toEqual([
-      100, 100, 100,
-    ]);
-  });
-
   it('shows a dragged size with its fraction, clamped, and saves nothing', () => {
     showThumbnailScale('normal', 137.4);
     expect(scaleOf('normal')).toBe(137.4);

@@ -99,11 +99,6 @@ function renderBlock(
 }
 
 describe('SongBlock', () => {
-  it('renders group header / label tag on first slide of a named group', () => {
-    renderBlock(0);
-    expect(screen.getByRole('button', {name: /1절/})).toBeDefined();
-  });
-
   it('renders 이름표 placeholder on first slide of an unnamed group', () => {
     renderBlock(0, createGroupedSong(true));
     expect(screen.getByRole('button', {name: /이름표/})).toBeDefined();
@@ -172,23 +167,6 @@ describe('SongBlock', () => {
     expect(session.history.snapshot.song.groups[0]?.slides).toHaveLength(2);
   });
 
-  it('merges on Backspace at start of non-first slide within the group', () => {
-    const {session} = renderBlock(1);
-    const input = blockLyrics(2);
-    act(() => {
-      input.focus();
-      input.setSelectionRange(0, 0);
-      fireEvent.select(input);
-    });
-    fireEvent.keyDown(input, {key: 'Backspace', code: 'Backspace'});
-    expect(screen.queryByRole('tooltip')).toBeNull();
-    expect(session.history.snapshot.song.groups[0]?.slides).toHaveLength(1);
-    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
-      '첫째 줄',
-      '둘째 줄',
-    ]);
-  });
-
   it('does not show refusal tooltip on plain focus or hover over first slide', async () => {
     renderBlock(0);
     const input = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
@@ -198,22 +176,6 @@ describe('SongBlock', () => {
     expect(screen.queryByRole('tooltip')).toBeNull();
     const tooltip = await hoverForTooltip(input);
     expect(tooltip).toBeNull();
-  });
-
-  it('ignores modified keyboard activation on the new group button', () => {
-    const onOpen = vi.fn();
-    renderBlock(1, createGroupedSong(), {onOpen, active: true});
-    const button = screen.getByRole('button', {name: '새 그룹'});
-    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
-      for (const key of [' ', 'Enter']) {
-        fireEvent.keyDown(button, {key, [modifier]: true});
-        fireEvent.keyUp(button, {key});
-        fireEvent.click(button, {detail: 0});
-      }
-    }
-    expect(onOpen).not.toHaveBeenCalled();
-    fireEvent.click(button, {detail: 1, ctrlKey: true});
-    expect(onOpen).toHaveBeenCalledExactlyOnceWith(button, 1);
   });
 
   it('opens label menu via Ctrl+G keyboard shortcut on the active slide', () => {

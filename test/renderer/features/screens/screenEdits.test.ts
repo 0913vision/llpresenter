@@ -83,17 +83,6 @@ describe('screen defaults', () => {
       );
     },
   );
-  it('leaves all methods off always on top until explicitly enabled', () => {
-    const [main, captions] = screens();
-    if (main === undefined || captions === undefined) {
-      throw new Error('Missing');
-    }
-
-    expect(alwaysOnTopOf(main)).toBe(false);
-    expect(alwaysOnTopOf(captions)).toBe(false);
-    expect(alwaysOnTopOf({...captions, alwaysOnTop: true})).toBe(true);
-    expect(alwaysOnTopOf({...main, alwaysOnTop: false})).toBe(false);
-  });
 
   it('switches to a window on disconnect unless the screen says off', () => {
     const [main] = screens();

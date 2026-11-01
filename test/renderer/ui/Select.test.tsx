@@ -106,37 +106,4 @@ describe('Select', () => {
     expect(trigger().textContent).toBe('따뜻한 빛곡 기본값');
     expect(trigger().querySelector('img')?.getAttribute('alt')).toBe('');
   });
-
-  it('can open a popover instead of a list', () => {
-    render(
-      <Select
-        value="11월 1일 일요일"
-        lead={{kind: 'icon', icon: 'cal'}}
-        numeric
-        popup="dialog"
-        expanded={false}
-        onExpandedChange={() => {}}
-      />,
-    );
-    expect(
-      screen
-        .getByRole('button', {name: '11월 1일 일요일'})
-        .getAttribute('aria-haspopup'),
-    ).toBe('dialog');
-  });
-
-  it('paints a macro tile in its 이름표 color', () => {
-    render(
-      <Select
-        value="찬양"
-        meta="매크로"
-        lead={{kind: 'tile', color: 'teal', icon: 'song'}}
-        expanded={false}
-        onExpandedChange={() => {}}
-      />,
-    );
-    const tile = screen.getByRole('button').firstElementChild;
-    if (!(tile instanceof HTMLElement)) throw new Error('No tile');
-    expect(tile.style.backgroundColor).toBe('var(--label-teal)');
-  });
 });

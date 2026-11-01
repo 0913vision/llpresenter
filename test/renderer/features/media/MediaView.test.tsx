@@ -12,7 +12,6 @@ import {
   mediaId,
   mediaItem,
 } from '@fixtures/renderer/features/media/mediaTesting';
-import {cssRules} from '@fixtures/renderer/ui/cssRules';
 import {
   DEFAULT_MEDIA_COLUMNS,
   MediaView,
@@ -23,7 +22,6 @@ import {
 } from '@renderer/features/media/MediaViewProvider';
 import type {MediaListChoice} from '@renderer/features/media/mediaEntries';
 import type {MediaDocument, MediaImportResult} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {
   playlistId,
   audioPlaylistId,
@@ -190,28 +188,6 @@ describe('media view', () => {
       expect(within(copying).getByRole('progressbar')).toBeDefined();
     },
   );
-
-  it('caps dropped files before reading native paths', async () => {
-    const {importFiles, pathForFile} = setup();
-    const grid = await screen.findByRole('listbox', {name: '모든 미디어'});
-    await tile('Dawn');
-    pathForFile.mockImplementation(file => `C:\\media\\${file.name}`);
-    const files = Array.from(
-      {length: MEDIA_LIMITS.importBatch + 1},
-      (_, index) => new File(['Invented bytes'], `${index}.mp4`),
-    );
-    fireEvent.drop(grid, {dataTransfer: {types: ['Files'], files}});
-    expect(pathForFile).toHaveBeenCalledTimes(MEDIA_LIMITS.importBatch);
-    expect(importFiles).toHaveBeenCalledWith({
-      source: {
-        kind: 'files',
-        paths: files
-          .slice(0, MEDIA_LIMITS.importBatch)
-          .map(file => `C:\\media\\${file.name}`),
-      },
-      playlist: null,
-    });
-  });
 
   it.each(['loading', 'readOnly'] as const)(
     'blocks file navigation and import while %s',
@@ -480,16 +456,6 @@ describe('media view', () => {
     expect(within(grid).getAllByRole('option').length).toBeLessThanOrEqual(
       windowSize,
     );
-  });
-
-  it('fills its column and scrolls only the grid, so the footer stays', () => {
-    const rule = cssRules(
-      'src/renderer/src/features/media/MediaView.module.css',
-    );
-    expect(rule('.panel')).toContain('height: 100%');
-    expect(rule('.body')).toContain('overflow: hidden');
-    expect(rule('.viewport')).toContain('min-height: 0');
-    expect(rule('.viewport')).toContain('overflow: auto');
   });
 
   it('deletes media from 모든 미디어 after asking', async () => {

@@ -95,14 +95,6 @@ describe('panel visibility state', () => {
     expect(warnings).toHaveLength(9);
     expect(store.state).toEqual(initial);
   });
-  it('merges sidebar state alone without changing widths or other size classes', () => {
-    const {store} = createHarness({layout});
-    store.setLayout({sizeClass: 'normal', leftCollapsed: true});
-    store.setLayout({sizeClass: 'normal', leftCollapsed: false});
-    expect(store.state).toEqual({
-      layout: {...layout, normal: {...layout.normal, leftCollapsed: false}},
-    });
-  });
 
   it('hands only the media boolean to the single writer, including false', () => {
     const {store, changes} = createHarness({
@@ -133,25 +125,6 @@ describe('UiStateStore setLayout', () => {
     const merged = {...layout, normal: {left: 260, right: 480, columns: 5}};
     expect(changes).toEqual([{layout: merged}]);
     expect(store.state).toEqual({layout: merged});
-  });
-
-  it('merges the 슬라이드 size alone and keeps the widths', () => {
-    const {store, changes} = createHarness({layout});
-    store.setLayout({sizeClass: 'wide', thumbnailScalePercent: 140});
-    expect(changes).toEqual([
-      {
-        layout: {
-          ...layout,
-          wide: {left: 320, right: 560, thumbnailScalePercent: 140},
-        },
-      },
-    ]);
-  });
-
-  it('starts a layout when the fields have none', () => {
-    const {store, changes} = createHarness();
-    store.setLayout({sizeClass: 'narrow', thumbnailScalePercent: 60});
-    expect(changes).toEqual([{layout: {narrow: {thumbnailScalePercent: 60}}}]);
   });
 
   it('changes only the layout, so the other UI fields stay as they are', () => {

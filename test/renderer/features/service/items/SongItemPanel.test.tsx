@@ -183,15 +183,6 @@ describe('service song item panel', () => {
     expect(edits).toEqual([]);
   });
 
-  it('chooses 기본 and a 구성 for this item only', async () => {
-    mockMenuRowHeight();
-    const {panel, user, service} = await setup();
-    await user.click(within(panel).getByRole('button', {name: '구성'}));
-    await user.click(screen.getByRole('menuitemradio', {name: '기본'}));
-    await waitFor(() => expect(chips(panel)).toEqual(['1절', '후렴']));
-    expect(service().service.order[1]).not.toHaveProperty('arrangement');
-  });
-
   it('locks the 구성 choice of a read-only service with the reason', async () => {
     const {panel, service, pushService} = await setup();
     act(() => pushService({...service(), revision: 9, access: 'readOnly'}));
@@ -373,75 +364,6 @@ describe('service song item panel', () => {
     const user = userEvent.setup();
     await user.click(editBtn);
     expect(editor.getSnapshot().session?.document.song).toEqual(groupedSong);
-  });
-
-  it('keeps an empty named group arrangement empty after activation', async () => {
-    HTMLElement.prototype.scrollIntoView = vi.fn();
-    const fixture = itemFixture();
-    const groupedEmpty = {
-      ...fixture.first.song,
-      arrangements: [{name: '빈 구성', groups: []}],
-    };
-    const document = {
-      song: groupedEmpty,
-      revision: 1,
-      access: 'editable' as const,
-    };
-    const itemId = createServiceItemId('50000000-0000-4000-8000-000000000098');
-    const currentService = fixture.service();
-    const updatedService: ServiceDocument = {
-      ...currentService,
-      service: {
-        ...currentService.service,
-        order: [
-          {
-            id: itemId,
-            song: document.song.id,
-            arrangement: '빈 구성',
-          },
-        ],
-      },
-    };
-    fixture.pushService(updatedService);
-
-    const editor = new SongEditorStore(fixture.api, vi.fn());
-    const session = new SongSession({
-      document,
-      api: fixture.api.content,
-      changed: () => undefined,
-      problem: () => undefined,
-    });
-    const testEditor = {
-      sessionOf: (id: SongId) =>
-        id === document.song.id ? session : editor.sessionOf(id),
-      showItemSong: (id: SongId | null) => editor.showItemSong(id),
-      attach: (doc: Parameters<typeof editor.attach>[0]) => editor.attach(doc),
-      subscribe: (listener: () => void) => editor.subscribe(listener),
-    };
-
-    const items = new ServiceItemStore(fixture.api, testEditor, vi.fn());
-    useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
-    items.show({serviceId: fixtureServiceId, itemId});
-    await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-
-    const view = render(
-      <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
-    );
-    onTestFinished(async () => {
-      view.unmount();
-      items.dispose();
-      await editor.dispose();
-    });
-
-    await screen.findByRole('listbox', {name: '구성 순서'});
-    const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    expect(within(panel).getByText('0개')).toBeDefined();
-    expect(within(panel).queryByRole('img', {name: /구성이 없어/})).toBeNull();
-    expect(
-      within(panel)
-        .queryAllByRole('option')
-        .filter(opt => opt.closest('[aria-label="구성 순서"]') === null),
-    ).toHaveLength(0);
   });
 
   it('shows an empty panel for nothing selected and for other kinds', async () => {

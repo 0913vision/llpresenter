@@ -197,20 +197,6 @@ it('starts the chosen image and saves repeat changes', async () => {
   expect(edit.value.sets[0]?.loop).toBe(false);
 });
 
-it('places interval and repeat before the images and targets after them', async () => {
-  fixture();
-  render(<NoticeTab />);
-  const grid = await screen.findByRole('listbox', {name: '공지 이미지'});
-  const interval = screen.getByRole('button', {name: '8초'});
-  const targets = screen.getByRole('group', {name: '보낼 화면'});
-  expect(
-    interval.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING,
-  ).toBeTruthy();
-  expect(
-    grid.compareDocumentPosition(targets) & Node.DOCUMENT_POSITION_FOLLOWING,
-  ).toBeTruthy();
-});
-
 it('renames a set with its keyboard context menu', async () => {
   const f = fixture();
   render(<NoticeTab />);

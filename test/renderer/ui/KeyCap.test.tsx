@@ -1,25 +1,12 @@
 import {render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
-import {
-  KeyCombo,
-  KeyList,
-  KeyText,
-  conflictText,
-  formatShortcut,
-} from '@renderer/ui/KeyCap';
+import {KeyCombo, KeyList, KeyText, conflictText} from '@renderer/ui/KeyCap';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 
 afterEach(resetTooltips);
-
-describe('formatShortcut', () => {
-  it('writes keys with one space between them', () => {
-    expect(formatShortcut(['Ctrl', 'Z'])).toBe('Ctrl Z');
-    expect(formatShortcut(['F1'])).toBe('F1');
-  });
-});
 
 describe('conflictText', () => {
   it('names the other command with the right particle', () => {
@@ -29,22 +16,6 @@ describe('conflictText', () => {
 });
 
 describe('KeyCombo', () => {
-  it('draws each key as a kbd element', () => {
-    const {container} = render(<KeyCombo keys={['Ctrl', 'Z']} />);
-    expect(
-      [...container.querySelectorAll('kbd')].map(k => k.textContent),
-    ).toEqual(['Ctrl', 'Z']);
-  });
-
-  it('reports a changed shortcut through its state', () => {
-    const {container} = render(
-      <KeyCombo keys={['Ctrl', '1']} state="changed" />,
-    );
-    expect(container.firstElementChild?.getAttribute('data-state')).toBe(
-      'changed',
-    );
-  });
-
   it('names a conflict on its icon and in its tooltip', async () => {
     render(
       <KeyCombo

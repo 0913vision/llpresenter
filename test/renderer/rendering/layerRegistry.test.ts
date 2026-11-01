@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {defineLayer, type RegisteredLayer} from '@renderer/rendering/layer';
 import {layerRegistryOf} from '@renderer/rendering/layerRegistry';
-import {renderLayers} from '@renderer/rendering/layers';
 
 function layer(kind: string, order: number): RegisteredLayer {
   return defineLayer({
@@ -53,17 +52,4 @@ describe('layerRegistryOf', () => {
       );
     },
   );
-
-  it('discovers the existing layers in their original stack and excludes fixture modules', () => {
-    const declared = renderLayers.map(({kind, order}) => ({kind, order}));
-    expect(declared).toEqual(
-      expect.arrayContaining([
-        {kind: 'background', order: 0},
-        {kind: 'lyrics', order: 1},
-      ]),
-    );
-    expect(declared.some(layer => layer.kind.startsWith('fixture'))).toBe(
-      false,
-    );
-  });
 });

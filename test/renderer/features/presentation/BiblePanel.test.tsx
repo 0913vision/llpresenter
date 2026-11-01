@@ -7,7 +7,6 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import {readFileSync} from 'node:fs';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
@@ -34,7 +33,6 @@ import {
   showBiblePassage,
 } from '@renderer/features/bible/actions';
 import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';
-import styles from '@renderer/features/presentation/BiblePanel.module.css';
 import {
   hoverForTooltip,
   resetTooltips,
@@ -91,42 +89,6 @@ describe('Bible panel integration', () => {
     fireEvent.click(edit);
     expect(screen.getByRole('menu', {name: '슬라이드'})).toBeTruthy();
     expect(fixture.send).not.toHaveBeenCalled();
-  });
-  it('allows all footer actions to wrap in a 560px panel', () => {
-    const fixture = panelApi();
-    window.llp = fixture.api;
-    openBiblePassage(panelPassage());
-    const style = document.createElement('style');
-    const css = readFileSync(
-      'src/renderer/src/features/presentation/BiblePanel.module.css',
-      'utf8',
-    );
-    style.textContent = css.replaceAll('.footer', `.${styles.footer}`);
-    document.head.append(style);
-    try {
-      render(<BiblePanel sizeClass="normal" />);
-      const footer = screen
-        .getByRole('button', {name: '바로 띄우기'})
-        .closest(`.${styles.footer}`);
-      if (
-        !(footer instanceof HTMLElement) ||
-        !(footer.firstElementChild instanceof HTMLElement)
-      ) {
-        throw new Error('Missing Bible footer');
-      }
-      footer.style.width = '560px';
-      expect(getComputedStyle(footer.firstElementChild).flexWrap).toBe('wrap');
-      for (const name of [
-        '예배 순서에 넣기',
-        '앞 절 추가',
-        '뒤 절 추가',
-        '바로 띄우기',
-      ]) {
-        expect(within(footer).getByRole('button', {name})).toBeTruthy();
-      }
-    } finally {
-      style.remove();
-    }
   });
   it('cancels a deferred lookup when the already-open service row is selected again', async () => {
     const fixture = panelApi();

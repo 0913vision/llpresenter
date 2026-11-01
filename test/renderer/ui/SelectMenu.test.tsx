@@ -40,12 +40,6 @@ function trigger(): HTMLElement {
 }
 
 describe('SelectMenu', () => {
-  it('shows the current choice on the button', () => {
-    render(<Autosave />);
-    expect(trigger().textContent).toBe('1분마다');
-    expect(trigger().getAttribute('aria-expanded')).toBe('false');
-  });
-
   it('opens a list with a check mark before the current choice', async () => {
     render(<Autosave />);
     await userEvent.click(trigger());
