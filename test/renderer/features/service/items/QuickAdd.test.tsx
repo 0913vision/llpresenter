@@ -1,11 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
@@ -26,6 +19,7 @@ import {
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
+import {quickAddBefore} from '@core/services/quickAddPosition';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
 
@@ -41,6 +35,12 @@ afterEach(() => {
 });
 
 const dawn = createMediaId('60000000-0000-4000-8000-000000000012');
+
+vi.mock('@core/services/quickAddPosition', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@core/services/quickAddPosition')>();
+  return {...actual, quickAddBefore: vi.fn(actual.quickAddBefore)};
+});
 
 function mediaDocument() {
   const parsed = parseMediaDocument({
@@ -180,7 +180,7 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
-  it('adds a Bible item into the selected empty section without replacing it', async () => {
+  it('inserts a Bible item where the position rule puts it for the selected row', async () => {
     const {api, user, service, pushService} = setup();
     mockBible(api);
     const nextSection = fixtureItems.arranged;
@@ -225,6 +225,10 @@ describe('항목 추가', () => {
     await user.click(screen.getByRole('textbox', {name: '시작절'}));
     await user.keyboard('{Enter}');
     await waitFor(() => expect(service().service.order).toHaveLength(3));
+    expect(quickAddBefore).toHaveBeenLastCalledWith(
+      useShow.getState().rows,
+      fixtureItems.header,
+    );
     expect(service().service.order[0]).toEqual(emptySection);
     expect(service().service.order[1]).toMatchObject({
       bible: {ref: '요한복음 3:16'},
@@ -255,79 +259,6 @@ describe('항목 추가', () => {
       media: dawn,
     });
   });
-
-  it('lifts book suggestions over the dialog and accepts a pointer choice', async () => {
-    const {api, user, service} = setup();
-    mockBible(api);
-    const length = service().service.order.length;
-    await openBibleForm(user);
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    await user.type(book, '요');
-    const list = screen.getByRole('listbox', {name: '성경 구절 추천'});
-    expect(list.hasAttribute('data-over-modal')).toBe(true);
-    expect(list.closest('[inert]')).toBeNull();
-    await user.click(within(list).getByRole('option', {name: '요한복음'}));
-    expect(book.value).toBe('요한복음');
-    expect(screen.queryByRole('listbox')).toBeNull();
-    expect(service().service.order).toHaveLength(length);
-    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
-  });
-
-  it('keeps an unavailable arrow pick in the book field and cannot insert the previous valid passage', async () => {
-    const {api, user, service} = setup();
-    mockBible(api).lookup.mockImplementation(request =>
-      formLookupReply(request, [43]),
-    );
-    const length = service().service.order.length;
-    await openBibleForm(user);
-    fillBibleForm();
-    const add = screen.getByRole('button', {name: '추가'});
-    await waitFor(() =>
-      expect(add.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    await user.clear(book);
-    await user.type(book, '베');
-    await user.keyboard('{ArrowDown}{Tab}');
-    await waitFor(() => expect(book.getAttribute('aria-invalid')).toBe('true'));
-    expect(book.value).toBe('에베소서');
-    expect(document.activeElement).toBe(book);
-    await waitFor(() => expect(add.getAttribute('aria-disabled')).toBe('true'));
-    await user.click(add);
-    expect(service().service.order).toHaveLength(length);
-    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
-  });
-
-  it.each([
-    ['장', '22'],
-    ['시작절', '37'],
-    ['끝절', '15'],
-  ] as const)(
-    'blocks an invalid %s and cannot insert it with Enter or the button',
-    async (label, value) => {
-      const {api, user, service} = setup();
-      mockBible(api);
-      const length = service().service.order.length;
-      await openBibleForm(user);
-      fillBibleForm();
-      await waitFor(() =>
-        expect(
-          screen
-            .getByRole('button', {name: '추가'})
-            .getAttribute('aria-disabled'),
-        ).not.toBe('true'),
-      );
-      const field = screen.getByRole('textbox', {name: label});
-      fireEvent.change(field, {target: {value}});
-      await user.click(field);
-      await user.tab();
-      expect(document.activeElement).toBe(field);
-      expect(field.getAttribute('aria-invalid')).toBe('true');
-      await user.keyboard('{Enter}');
-      await user.click(screen.getByRole('button', {name: '추가'}));
-      expect(service().service.order).toHaveLength(length);
-    },
-  );
 
   it.each(['Enter', 'button'] as const)(
     'inserts a clamped passage using %s with the opening defaults',

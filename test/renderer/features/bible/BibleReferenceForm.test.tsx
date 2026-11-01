@@ -1,8 +1,19 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
+import type {
+  BibleLookupPassage,
+  BibleLookupReply,
+} from '@core/schema/bibleLookup';
 import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
+import {Dialog} from '@renderer/ui/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 
@@ -422,5 +433,82 @@ describe('shared Bible reference form', () => {
       finish(await formLookupReply(lookupRequest('창세기'))),
     );
     expect(view.onPreview).not.toHaveBeenCalled();
+  });
+});
+
+describe('Bible reference form readiness', () => {
+  function ready(view: ReturnType<typeof setup>) {
+    const onReady = vi.fn<(passage: BibleLookupPassage | null) => void>();
+    view.rerender(<BibleReferenceForm {...view.props} onReady={onReady} />);
+    return onReady;
+  }
+
+  it('reports no ready passage after an unavailable arrow pick replaces a valid one', async () => {
+    const view = setup();
+    const onReady = ready(view);
+    view.lookup.mockImplementation(request => formLookupReply(request, [43]));
+    enterPassage(view);
+    await waitFor(() => expect(onReady.mock.lastCall?.[0]).toBeTruthy());
+
+    await view.user.clear(view.book);
+    await view.user.type(view.book, '베');
+    await view.user.keyboard('{ArrowDown}{Tab}');
+
+    await waitFor(() =>
+      expect(view.book.getAttribute('aria-invalid')).toBe('true'),
+    );
+    expect(view.book.value).toBe('에베소서');
+    await waitFor(() => expect(onReady).toHaveBeenLastCalledWith(null));
+  });
+
+  it.each([
+    ['장', '22'],
+    ['시작절', '37'],
+    ['끝절', '15'],
+  ] as const)(
+    'reports no ready passage for an invalid %s',
+    async (label, value) => {
+      const view = setup();
+      const onReady = ready(view);
+      enterPassage(view);
+      await waitFor(() => expect(onReady.mock.lastCall?.[0]).toBeTruthy());
+
+      fireEvent.change(screen.getByRole('textbox', {name: label}), {
+        target: {value},
+      });
+
+      await waitFor(() => expect(onReady).toHaveBeenLastCalledWith(null));
+    },
+  );
+});
+
+describe('Bible reference suggestions in a dialog', () => {
+  it('lifts its suggestions over the dialog and takes a pointer choice', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dialog
+        title="성경 구절"
+        size="s"
+        onCancel={vi.fn()}
+        primary={{label: '추가', onSelect: vi.fn()}}
+      >
+        <BibleReferenceForm
+          api={{lookup: vi.fn(formLookupReply)}}
+          translation={lookupRequest().translation}
+          onPreview={vi.fn()}
+          onSubmit={vi.fn()}
+        />
+      </Dialog>,
+    );
+    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+
+    await user.type(book, '요');
+    const list = screen.getByRole('listbox', {name: '성경 구절 추천'});
+    expect(list.hasAttribute('data-over-modal')).toBe(true);
+    expect(list.closest('[inert]')).toBeNull();
+    await user.click(within(list).getByRole('option', {name: '요한복음'}));
+
+    expect(book.value).toBe('요한복음');
+    expect(screen.queryByRole('listbox')).toBeNull();
   });
 });

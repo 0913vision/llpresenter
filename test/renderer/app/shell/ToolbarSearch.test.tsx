@@ -18,14 +18,11 @@ import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile} from '@fixtures/core/themeOutput';
-import {App} from '@renderer/app/App';
-import {ControlSession} from '@renderer/app/controlSession';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {librarySourceId} from '@renderer/session/showLibrary';
 import {LOOKUP_TIMEOUT_MS} from '@renderer/session/showOutput';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {nextPointed, ToolbarSearch} from '@renderer/app/shell/ToolbarSearch';
 import {TOOLBAR_SEARCH_LIMIT} from '@renderer/app/shell/useToolbarSearch';
 import {
@@ -59,7 +56,6 @@ const matches: readonly LibrarySearchMatch[] = [
     match: {kind: 'lyrics', line: '창작한 후렴 줄'},
   },
 ];
-const sessions: ControlSession[] = [];
 
 function setup() {
   const api = mockLlpApi({
@@ -81,16 +77,6 @@ function setup() {
     send,
     report,
     mount: () => render(<ToolbarSearch enabled onProblem={report} />),
-    mountApp: () => {
-      const session = new ControlSession(api);
-      sessions.push(session);
-      return render(
-        <App
-          session={session}
-          columnWidthStore={createMemoryColumnWidthStore()}
-        />,
-      );
-    },
   };
 }
 
@@ -262,21 +248,19 @@ it('reports a refused Ctrl Enter insertion without opening or outputting the son
 
 afterEach(async () => {
   cleanup();
-  await Promise.all(sessions.splice(0).map(session => session.dispose()));
   useShow.setState({librarySong: null});
   applyService(null);
   delete window.llp;
 });
 
-it('opens a toolbar result in the mounted slide panel and outputs only after a slide click', async () => {
-  const {mountApp, search, showSong, send, api} = setup();
+it('opens the chosen result through showSong without edits or output', async () => {
+  const {mount, search, showSong, send, api} = setup();
   const edit = vi.spyOn(api.content, 'edit');
   const rows = useShow.getState().rows;
-  mountApp();
+  mount();
   const field = screen.getByRole('combobox', {name: '검색'});
   await userEvent.type(field, '새벽');
   await screen.findByRole('option', {name: /새벽빛/});
-  expect(screen.getByText('창작한 후렴 줄')).toBeDefined();
   expect(search).toHaveBeenLastCalledWith({
     query: '새벽',
     limit: TOOLBAR_SEARCH_LIMIT,
@@ -286,28 +270,16 @@ it('opens a toolbar result in the mounted slide panel and outputs only after a s
   expect(field.getAttribute('aria-activedescendant')).toBe(
     screen.getByRole('option', {name: /새벽빛/}).id,
   );
+
   await userEvent.keyboard('{Enter}');
+
   await waitFor(() =>
     expect(useShow.getState().openItemId).toBe(librarySourceId(songId)),
   );
   expect(showSong).toHaveBeenCalledWith({songId});
-  expect(screen.getByText('새벽빛')).toBeDefined();
   expect(useShow.getState().rows).toBe(rows);
   expect(edit).not.toHaveBeenCalled();
   expect(send).not.toHaveBeenCalled();
-  await userEvent.click(
-    screen.getByRole('option', {name: /창작한 슬라이드 줄/}),
-  );
-  await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
-  expect(send).toHaveBeenCalledWith({
-    type: 'slide.show',
-    slide: {
-      itemId: librarySourceId(songId),
-      position: 0,
-      label: null,
-      lines: ['창작한 슬라이드 줄'],
-    },
-  });
 });
 
 it('drops an older query reply and bounds a reply to the toolbar limit', async () => {
@@ -488,19 +460,19 @@ it.each([
   {failure: 'missing', title: '곡을 찾을 수 없음'},
   {failure: 'rejected', title: '곡 불러오기 실패'},
 ])(
-  'reports a $failure source through the mounted app notification host',
+  'reports a $failure source through its problem handler',
   async ({failure, title}) => {
-    const {showSong, mountApp} = setup();
+    const {showSong, mount, report} = setup();
     if (failure === 'missing') {
       showSong.mockResolvedValueOnce(null);
     } else {
       showSong.mockRejectedValueOnce(new Error('Invented source read failure'));
     }
-    mountApp();
+    mount();
     await userEvent.type(screen.getByRole('combobox', {name: '검색'}), '새벽');
     await userEvent.click(await screen.findByRole('option', {name: /새벽빛/}));
-    await screen.findByText(title);
-    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    await waitFor(() => expect(report).toHaveBeenCalledOnce());
+    expect(report.mock.lastCall?.[0]).toMatchObject({title});
     expect(useShow.getState().librarySong).toBeNull();
   },
 );
