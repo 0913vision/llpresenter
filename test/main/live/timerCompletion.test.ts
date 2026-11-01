@@ -86,7 +86,9 @@ describe('followTimerCompletion', () => {
     announce(withRuns({[STOPS]: running}));
     expect(vi.getTimerCount()).toBe(1);
     announce(
-      withRuns({[STOPS]: {state: 'paused', at: 0, countedMs: 0, day: 0}}),
+      withRuns({
+        [STOPS]: {state: 'paused', at: 0, countedMs: 0, day: 0, wallAt: START},
+      }),
     );
     expect(vi.getTimerCount()).toBe(0);
   });

@@ -1,7 +1,9 @@
-import {describe, expect, it} from 'vitest';
+import {EventEmitter} from 'node:events';
+import {describe, expect, it, vi} from 'vitest';
 import type {WindowAction} from '@contracts/ipc/api';
 import {
   allowsWindowAction,
+  discardTestFrames,
   windowModeFrom,
   windowTestOptions,
 } from '@main/windows/testWindows';
@@ -59,5 +61,27 @@ describe('allowsWindowAction', () => {
 
   it('still closes an offscreen window', () => {
     expect(allowsWindowAction('offscreen', 'close')).toBe(true);
+  });
+});
+
+describe('discardTestFrames', () => {
+  it('releases every offscreen frame at once and stops at destruction', () => {
+    const contents = new EventEmitter();
+    discardTestFrames(contents, 'offscreen');
+    const release = vi.fn();
+
+    contents.emit('paint', {texture: {release}});
+    contents.emit('paint', {texture: {release}});
+    expect(release).toHaveBeenCalledTimes(2);
+    expect(() => contents.emit('paint', {})).not.toThrow();
+    contents.emit('destroyed');
+    expect(contents.listenerCount('paint')).toBe(0);
+  });
+
+  it('listens to no frames in normal mode', () => {
+    const contents = new EventEmitter();
+    discardTestFrames(contents, 'normal');
+
+    expect(contents.listenerCount('paint')).toBe(0);
   });
 });

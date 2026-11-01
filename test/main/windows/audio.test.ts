@@ -1,17 +1,13 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import type {MediaStore} from '@main/store/mediaStore';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
+import {connectMediaPlayback} from '@main/live/mediaPlayback';
+import type {LiveStore} from '@main/live/store';
+import type {MediaStore} from '@main/store/mediaStore';
 import {registerAudioOutput} from '@main/windows/audio';
+import {audioMutedByDefault} from '@main/windows/audioPolicy';
 import {loadPage, startLoading} from '@main/windows/page';
 import type {WindowMode} from '@main/windows/testWindows';
-import {installMockClock} from '@fixtures/mockClock';
-import {
-  COOLDOWN_STEPS_MS,
-  RELAUNCH_DELAY_MS,
-  SURVIVAL_MS,
-} from '@main/outputs/rendererRecovery';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -36,8 +32,17 @@ const mocks = await vi.hoisted(async () => {
       windows.push(this);
     }
   }
+  class Recovery {
+    readonly crashed = vi.fn();
+    readonly pageDrawn = vi.fn();
+    readonly dispose = vi.fn();
+    constructor(readonly options: {readonly reload: () => Promise<void>}) {
+      recoveries.push(this);
+    }
+  }
   const windows: Window[] = [];
-  return {Window, windows, app: {isPackaged: false}};
+  const recoveries: Recovery[] = [];
+  return {Window, Recovery, windows, recoveries, app: {isPackaged: false}};
 });
 vi.mock('electron', () => ({app: mocks.app, BrowserWindow: mocks.Window}));
 vi.mock('@main/windows/page', () => ({
@@ -46,8 +51,19 @@ vi.mock('@main/windows/page', () => ({
   blockNavigation: vi.fn(),
   preloadPath: 'preload.js',
 }));
+vi.mock('@main/windows/audioPolicy', () => ({
+  audioMutedByDefault: vi.fn(() => true),
+}));
+vi.mock('@main/live/mediaPlayback', () => ({
+  connectMediaPlayback: vi.fn(() => vi.fn()),
+}));
+vi.mock('@main/outputs/rendererRecovery', () => ({
+  RendererRecovery: mocks.Recovery,
+}));
 
-function reader() {
+type Reader = Pick<MediaStore, 'get' | 'subscribe'>;
+
+function reader(): Reader {
   const document = parseMediaDocument({
     name: 'media',
     revision: 1,
@@ -61,42 +77,41 @@ function reader() {
     },
   });
   if (!document.ok) throw new Error('Invalid media fixture');
-  return {get: vi.fn(() => document.value), subscribe: vi.fn(() => vi.fn())};
+  const value = document.value;
+  return {get: () => value, subscribe: () => () => undefined};
 }
+
+const store: Pick<LiveStore, 'handles' | 'dispatch' | 'connectAudioMedia'> = {
+  handles: vi.fn(() => true),
+  dispatch: vi.fn(() => true),
+  connectAudioMedia: vi.fn(() => () => undefined),
+};
+
 function setup(
-  media: Promise<Pick<
-    MediaStore,
-    'get' | 'subscribe'
-  > | null> = Promise.resolve(reader()),
+  media: Promise<Reader | null> = Promise.resolve(reader()),
   windowMode: WindowMode = 'normal',
 ) {
-  const store = new LiveStore();
   const log = recordingLogger();
-  const connect = vi.spyOn(store, 'connectAudioMedia');
   const stop = registerAudioOutput({store, media, log, windowMode});
   const win = mocks.windows.at(-1);
-  if (win === undefined) throw new Error('Missing window');
-  return {store, log, connect, stop, win};
+  const recovery = mocks.recoveries.at(-1);
+  if (win === undefined || recovery === undefined) {
+    throw new Error('Missing audio window');
+  }
+  return {log, stop, win, recovery};
 }
+
 beforeEach(() => {
   mocks.windows.length = 0;
-  mocks.app.isPackaged = false;
-  vi.mocked(loadPage).mockClear();
-  vi.mocked(startLoading).mockClear();
+  mocks.recoveries.length = 0;
+  vi.clearAllMocks();
+  vi.mocked(audioMutedByDefault).mockReturnValue(true);
 });
+
 describe('registerAudioOutput', () => {
-  it('logs a page load exception and preserves live state without escaping startup', () => {
-    vi.mocked(loadPage).mockImplementationOnce(() => {
-      throw new Error('Load failed');
-    });
-    const {store, log, stop} = setup();
-    expect(store.state.version).toBe(0);
-    expect(log.messages('error')).toContain('audio output failed');
-    stop();
-  });
-  it('keeps a single hidden, sandboxed window muted in development before loading its page', async () => {
-    const {win, stop, connect} = setup();
-    await Promise.resolve();
+  it('opens one hidden sandboxed window and mutes it before loading its page when the policy says so', () => {
+    const {win, stop} = setup();
+
     expect(win.options).toMatchObject({
       show: false,
       focusable: false,
@@ -117,152 +132,99 @@ describe('registerAudioOutput', () => {
       {name: 'output', query: {audio: 'muted'}},
       expect.anything(),
     );
-    expect(connect).toHaveBeenCalledOnce();
     stop();
-    stop();
-    expect(win.destroy).toHaveBeenCalledOnce();
-    expect(win.contents.listenerCount('render-process-gone')).toBe(0);
   });
-  it('allows packaged service sound only with test flags absent', () => {
-    mocks.app.isPackaged = true;
-    vi.stubEnv('NODE_ENV', 'production');
-    vi.stubEnv('VITEST', undefined);
-    vi.stubEnv('LLP_TEST_WINDOWS', undefined);
-    const {win, stop} = setup();
-    expect(win.webContents.setAudioMuted).toHaveBeenCalledWith(false);
-    expect(loadPage).toHaveBeenCalledWith(
-      win,
+
+  it('plays sound in a normal window the policy allows, never in an offscreen one', () => {
+    vi.mocked(audioMutedByDefault).mockReturnValue(false);
+    const normal = setup();
+    expect(normal.win.webContents.setAudioMuted).toHaveBeenCalledWith(false);
+    expect(loadPage).toHaveBeenLastCalledWith(
+      normal.win,
       {name: 'output', query: {audio: 'sound'}},
       expect.anything(),
     );
-    stop();
-  });
-  it('continues after the crash limit with capped backoff and cancels pending work on disposal', async () => {
-    const clock = installMockClock();
-    const {win, store, stop} = setup();
-    const state = store.state;
-    const crash = () =>
-      win.webContents.emit(
-        'render-process-gone',
-        {},
-        {reason: 'crashed', exitCode: -1},
-      );
-    for (let index = 0; index < 2; index += 1) {
-      crash();
-      await clock.advance(RELAUNCH_DELAY_MS);
-      win.webContents.emit('did-finish-load');
-    }
-    crash();
-    for (const delay of [...COOLDOWN_STEPS_MS, 60_000]) {
-      const before = vi.mocked(startLoading).mock.calls.length;
-      await clock.advance(delay - 1);
-      expect(startLoading).toHaveBeenCalledTimes(before);
-      await clock.advance(1);
-      expect(startLoading).toHaveBeenCalledTimes(before + 1);
-      win.webContents.emit('did-finish-load');
-      crash();
-    }
-    expect(store.state).toBe(state);
-    stop();
-    const before = vi.mocked(startLoading).mock.calls.length;
-    await clock.advance(120_000);
-    expect(startLoading).toHaveBeenCalledTimes(before);
-    expect(win.contents.listenerCount('did-finish-load')).toBe(0);
+    normal.stop();
+
+    const offscreen = setup(Promise.resolve(reader()), 'offscreen');
+    expect(offscreen.win.webContents.setAudioMuted).toHaveBeenCalledWith(true);
+    offscreen.stop();
   });
 
-  it.each([1, 3])(
-    'cancels pending recovery after %s crashes even when the audio window is already destroyed',
-    async crashes => {
-      const clock = installMockClock();
-      const {win, stop, log} = setup();
-      for (let index = 0; index < crashes; index += 1) {
-        win.contents.emit(
-          'render-process-gone',
-          {},
-          {reason: 'crashed', exitCode: -1},
-        );
-        if (index < crashes - 1) {
-          await clock.advance(RELAUNCH_DELAY_MS);
-          win.contents.emit('did-finish-load');
-        }
-      }
-      expect(vi.getTimerCount()).toBeGreaterThan(0);
-      const getter = vi.spyOn(win, 'webContents', 'get');
-      win.destroy();
-      expect(() => stop()).not.toThrow();
-      expect(getter).not.toHaveBeenCalled();
-      expect(vi.getTimerCount()).toBe(0);
-      const before = vi.mocked(startLoading).mock.calls.length;
-      await clock.advance(120_000);
-      expect(startLoading).toHaveBeenCalledTimes(before);
-      expect(log.messages('error')).not.toContain('audio output failed');
-    },
-  );
-
-  it('isolates listener removal failures while releasing other listeners and recovery timers', async () => {
-    const clock = installMockClock();
-    const {win, stop, log} = setup();
-    win.contents.emit(
-      'render-process-gone',
-      {},
-      {reason: 'crashed', exitCode: -1},
-    );
-    const error = new Error('Listener removal failed');
-    vi.spyOn(win.contents, 'removeListener').mockImplementationOnce(() => {
-      throw error;
+  it('logs a page that fails to load without escaping startup', () => {
+    vi.mocked(loadPage).mockImplementationOnce(() => {
+      throw new Error('Load failed');
     });
-    expect(() => stop()).not.toThrow();
-    expect(win.destroy).toHaveBeenCalledOnce();
-    expect(win.contents.listenerCount('did-finish-load')).toBe(0);
-    expect(vi.getTimerCount()).toBe(0);
-    await clock.advance(120_000);
-    expect(startLoading).not.toHaveBeenCalled();
+    const {log, stop} = setup();
+
     expect(log.messages('error')).toContain('audio output failed');
-  });
-  it('resets the crash limit after a loaded audio page survives a minute', async () => {
-    const clock = installMockClock();
-    const {win, stop} = setup();
-    const crash = () =>
-      win.webContents.emit(
-        'render-process-gone',
-        {},
-        {reason: 'crashed', exitCode: -1},
-      );
-    for (let index = 0; index < 2; index += 1) {
-      crash();
-      await clock.advance(RELAUNCH_DELAY_MS);
-      win.webContents.emit('did-finish-load');
-    }
-    crash();
-    await clock.advance(10_000);
-    win.webContents.emit('did-finish-load');
-    await clock.advance(SURVIVAL_MS);
-    const before = vi.mocked(startLoading).mock.calls.length;
-    crash();
-    await clock.advance(RELAUNCH_DELAY_MS);
-    expect(startLoading).toHaveBeenCalledTimes(before + 1);
     stop();
   });
-  it('does not connect a late media reader after disposal, and logs unavailable media', async () => {
-    let resolve: (
-      value: Pick<MediaStore, 'get' | 'subscribe'> | null,
-    ) => void = () => {};
-    const pending = new Promise<Pick<MediaStore, 'get' | 'subscribe'> | null>(
-      done => {
-        resolve = done;
-      },
+
+  it('hands crashes and drawn pages to its recovery, which reloads the same page', async () => {
+    const {win, recovery, stop} = setup();
+    const details = {reason: 'crashed', exitCode: -1};
+
+    win.webContents.emit('render-process-gone', {}, details);
+    expect(recovery.crashed).toHaveBeenCalledExactlyOnceWith(details);
+    win.webContents.emit('did-finish-load');
+    expect(recovery.pageDrawn).toHaveBeenCalledOnce();
+    await recovery.options.reload();
+    expect(startLoading).toHaveBeenCalledWith(win, {
+      name: 'output',
+      query: {audio: 'muted'},
+    });
+    stop();
+  });
+
+  it('connects media playback once the media is read, and logs media that is unavailable', async () => {
+    const media = reader();
+    const first = setup(Promise.resolve(media));
+    await Promise.resolve();
+    expect(connectMediaPlayback).toHaveBeenCalledWith(
+      store,
+      media,
+      expect.anything(),
     );
-    const first = setup(pending);
     first.stop();
-    resolve(reader());
-    await Promise.resolve();
-    expect(first.connect).not.toHaveBeenCalled();
+
     const second = setup(Promise.resolve(null));
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(second.log.messages('error')).toContain(
-      'could not connect audio media',
+    await vi.waitFor(() =>
+      expect(second.log.messages('error')).toContain(
+        'could not connect audio media',
+      ),
     );
     second.stop();
+  });
+
+  it('does not connect media that arrives after disposal', async () => {
+    let resolve: (value: Reader | null) => void = () => undefined;
+    const {stop} = setup(
+      new Promise<Reader | null>(done => {
+        resolve = done;
+      }),
+    );
+    stop();
+    resolve(reader());
+    await Promise.resolve();
+
+    expect(connectMediaPlayback).not.toHaveBeenCalled();
+  });
+
+  it('releases the recovery, its listeners, and the window once, isolating a failed listener removal', () => {
+    const {win, recovery, stop, log} = setup();
+    vi.spyOn(win.contents, 'removeListener').mockImplementationOnce(() => {
+      throw new Error('Listener removal failed');
+    });
+
+    stop();
+    stop();
+
+    expect(recovery.dispose).toHaveBeenCalledOnce();
+    expect(win.destroy).toHaveBeenCalledOnce();
+    expect(win.contents.listenerCount('did-finish-load')).toBe(0);
+    expect(log.messages('error')).toContain('audio output failed');
+    win.contents.emit('render-process-gone', {}, {reason: 'crashed'});
+    expect(recovery.crashed).not.toHaveBeenCalled();
   });
 });

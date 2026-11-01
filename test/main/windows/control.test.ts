@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createControlWindow} from '@main/windows/control';
 import {loadPage} from '@main/windows/page';
+import {audioMutedByDefault} from '@main/windows/audioPolicy';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -30,6 +31,9 @@ vi.mock('electron', () => ({
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
   },
 }));
+vi.mock('@main/windows/audioPolicy', () => ({
+  audioMutedByDefault: vi.fn(() => true),
+}));
 vi.mock('@main/windows/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
@@ -49,7 +53,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe('createControlWindow', () => {
-  it('releases offscreen frames immediately and removes the listener at destruction', () => {
+  it('mutes, strips the menu, and attaches zoom before loading an offscreen window that never shows', () => {
     const zoom = {attachControl: vi.fn()};
     createControlWindow(recordingLogger(), 'offscreen', zoom);
     const win = lastWindow();
@@ -72,42 +76,31 @@ describe('createControlWindow', () => {
       skipTaskbar: true,
       webPreferences: {offscreen: {useSharedTexture: true}},
     });
-    const release = vi.fn();
-    for (let frame = 0; frame < 3; frame += 1) {
-      win.webContents.emit('paint', {texture: {release}});
-      expect(release).toHaveBeenCalledTimes(frame + 1);
-    }
-    expect(() => win.webContents.emit('paint', {})).not.toThrow();
-
     win.emit('ready-to-show');
     expect(win.show).not.toHaveBeenCalled();
     expect(win.maximize).not.toHaveBeenCalled();
-    win.webContents.emit('destroyed');
-    expect(win.webContents.listenerCount('paint')).toBe(0);
   });
 
-  it('shows the normal window and does not subscribe to frames', () => {
+  it('shows and maximizes the normal window once it is ready', () => {
     createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
     const win = lastWindow();
     expect(win.options).not.toHaveProperty('webPreferences.offscreen');
-    expect(win.webContents.listenerCount('paint')).toBe(0);
     win.emit('ready-to-show');
     expect(win.maximize).toHaveBeenCalledOnce();
     expect(win.show).toHaveBeenCalledOnce();
   });
 
-  it('mutes development and test windows but allows sound in a packaged normal window', () => {
-    vi.stubEnv('VITEST', undefined);
-    vi.stubEnv('NODE_ENV', 'production');
-    vi.stubEnv('LLP_TEST_WINDOWS', undefined);
-    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
-    expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(true);
-    electron.app.isPackaged = true;
+  it('follows the sound policy in a normal window and always mutes an offscreen one', () => {
+    vi.mocked(audioMutedByDefault).mockReturnValue(false);
     createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
     expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(false);
-    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
-    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+    expect(audioMutedByDefault).toHaveBeenLastCalledWith(process.env, false);
+
+    createControlWindow(recordingLogger(), 'offscreen', {
+      attachControl: vi.fn(),
+    });
     expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(true);
+    vi.mocked(audioMutedByDefault).mockReturnValue(true);
   });
 
   describe('when its render process goes away', () => {

@@ -1,5 +1,4 @@
 import {app, BrowserWindow} from 'electron';
-import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import type {MediaStore} from '../store/mediaStore';
 import {connectMediaPlayback} from '../live/mediaPlayback';
@@ -15,7 +14,7 @@ import {
 import type {WindowMode} from './testWindows';
 
 interface AudioOutputOptions {
-  readonly store: LiveStore;
+  readonly store: Parameters<typeof connectMediaPlayback>[0];
   readonly media: Promise<Pick<MediaStore, 'get' | 'subscribe'> | null>;
   readonly log: Logger;
   readonly windowMode: WindowMode;
