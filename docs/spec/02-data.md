@@ -352,9 +352,6 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages             |
 | `media.json`                          | `llmedia`                | Media list                                          |
 
-An older `looks.json` or `stage-layouts.json` stays on disk and is never read.
-The app doesn't migrate or delete it.
-
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
 
@@ -429,7 +426,7 @@ Screen layout:
 | `background` | `#RRGGBB`, optional                                                                | The empty color. Absent inherits the screen's configured empty color. |
 
 The element fields, the kinds, and their limits are in 12. A missing file is
-created with the defaults in 12, "Defaults and old files".
+created with the defaults in 12, "Defaults".
 
 ### 매크로 (`macros.json`)
 
@@ -1176,8 +1173,6 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `state.layers.audio`    | Cleared before writing; audio playback is not recorded for restart                             | Not restored                               |
 | `state.canUndo`         | Written as `false`; the undo history of clears is not recorded                                 | Not restored                               |
 
-- An older record may still hold `lookId` or `stageLayouts` in its state. They
-  are unknown fields, and restore ignores them.
 - Create `recovery\session.lock` at launch and delete it on a clean exit. If the
   file exists at launch, treat the last exit as a crash and open the output
   state recovery dialog. See 08.

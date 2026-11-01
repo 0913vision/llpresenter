@@ -134,9 +134,8 @@ The live 테마 lays out every screen (12). A screen draws, from the bottom up:
 - Audio is a layer without a picture. It exists only as a unit for clearing.
 - Only while no 테마 composition exists (before `themes.json` is read), the
   output draws the legacy layers: background media, lyrics in the 기본 text
-  style, and the stage message. They ignore any Look. Once a 테마 composition
-  exists, the legacy content layers draw nothing.
-- `looks.json` and `stage-layouts.json` are left on disk and never read.
+  style, and the stage message. Once a 테마 composition exists, the legacy
+  content layers draw nothing.
 
 Source: `Outputs`, `ClearButton` README, design system README (output
 colors), 12.

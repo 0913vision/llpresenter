@@ -5,7 +5,7 @@ The app has one theme, dark. All values are in `tokens.json`, and each CSS varia
 ## Principles
 
 1. **The screens come first.** Keep the UI dark and quiet. The brightest things on screen must be the 출력 (output) preview and the thumbnails. Pick UI surfaces only from the gray steps between `bg-app` and `bg-control-hover`.
-2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 슬라이드 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 템플릿 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
+2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 슬라이드 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, song 구성 (arrangement), screen configuration, the right-click menu on macros, 예배 순서 (service order) 템플릿 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
 3. **Show state with shape and color.** Don't add text, chips, or dots that describe a state. Mark something live only with a `ring-live` outline or a LIVE badge, a problem only with a `warning` icon or outline, and a value that can't be saved only with `ring-field-error`. Put the detailed reason in a tooltip.
 4. **Use red only for 출력.** Use `live` only for what is on the screens right now. Use `accent` for selection and keyboard focus, `accent-fill` for the surface of a primary button, `warning` for problems, and an `ok` dot for a healthy state. Don't use red for warnings or deletion.
 5. **Put emphasis in one place.** Give each window or dialog one primary button, at the far right of the footer. Make every other button a secondary or ghost button.
@@ -61,7 +61,7 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 ### Output screen colors
 
 - The background of an output screen is `output-black`, and the capture window for 방송 자막 (broadcast captions) is `chroma`. Don't use either as a UI color.
-- Look and the lyric style decide the text, colors, and backgrounds inside the output screens. The tokens of this system don't.
+- The 테마 (theme) decides the text, colors, and backgrounds inside the output screens. The tokens of this system don't.
 
 ### Contrast
 
@@ -120,15 +120,15 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 
 ## Spacing and sizes
 
-### Stage layout smart guides
+### Canvas smart guides
 
-The future stage editor uses [SmartGuides](components/SmartGuides/README.md)
+The 테마 editor canvas uses [SmartGuides](components/SmartGuides/README.md)
 for temporary alignment to canvas/element edges and centers. `guide` aliases
 `accent`; `size-guide-line` is 1 CSS pixel and `size-guide-snap` is 6 viewport
 CSS pixels, independent of canvas zoom. Lines appear and disappear immediately,
 are hidden while Alt bypasses snapping and never enter the saved/output layout.
 The separate 20px document grid remains available; a matching guide wins on its
-axis. See the component README and reference card before implementing M3-O3.
+axis. See the component README and reference card.
 
 ### General spacing
 
@@ -192,7 +192,7 @@ axis. See the component README and reference card before implementing M3-O3.
 - Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
 - In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 슬라이드 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 그래픽 still go to 다음 슬라이드 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
-- Don't add UI motion to the output screens. Look and the settings decide the transitions when a 슬라이드 or a background changes.
+- Don't add UI motion to the output screens. The settings decide the transitions when a 슬라이드 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
 - Notification cards appear, replace and close immediately. Their operational
   state must stay legible without a fade or translation; controls still use
@@ -260,7 +260,7 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 | 이름표 | label | 그룹, 태그 | The name of a 슬라이드, such as 1절, 프리코러스, or 후렴 |
 | 지우기 | clear | 삭제 (for 출력), 클리어 | Taking content off the screens. Only removing a file or an item is "삭제" (delete) |
 | 본 화면, 무대 화면, 방송 자막 | main screen, stage screen, broadcast captions | 메인, 스테이지, 송출 화면 | The three output screens |
-| Look | Look | 룩, 레이아웃 | A set that decides which layers each screen shows |
+| 테마 | theme | Look, 룩, 레이아웃 | A saved preset that sets what each of the three screens shows |
 | 진행 도구 | show tools | 쇼 컨트롤 | The group of tabs at the bottom right of the 진행 workspace |
 | 퀵 실행 | quick launch | 단축 목록 | Frequently used items at the bottom left of the 진행 workspace |
 | 그래픽, 공지, 메시지, 타이머 | prop, notice, message, timer | Props, 배너 | Layers placed over the lyrics |

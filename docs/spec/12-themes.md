@@ -70,9 +70,9 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   sees them. The editor offers them only there, and a paste onto another screen
   is refused.
 - A Bible verse is a 슬라이드, so 현재 가사 shows it. Only 성경 출처 is extra.
-- 공지, 메시지, and 그래픽 are not elements. Each keeps its own look and the
-  screens it is sent to, and they always draw on top of the 테마 in the order
-  공지, 그래픽, 메시지. A 테마 can't hide them.
+- 공지, 메시지, and 그래픽 are not elements. Each keeps its own appearance and
+  the screens it is sent to, and they always draw on top of the 테마 in the
+  order 공지, 그래픽, 메시지. A 테마 can't hide them.
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 본 화면, the item's settings show a warning mark
   with the reason in its tooltip and a 테마 편집… button.
@@ -309,13 +309,11 @@ text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
 | `theme`      | String (theme ID), optional | The item's 테마. Absent: the kind's default.                                                                                                                     |
 | `overlays[]` | Array, at most 50, optional | `id`, `name`, `from`, `to` (슬라이드 positions, 1-based), `screens[]`, `content` (`{ "media": ID, "loop": Boolean, "sound": Boolean }` or `{ "text": String }`). |
 
-### Defaults and old files
+### Defaults
 
 - A new `themes.json` holds 찬양, 말씀, 광고, and 영상 as the defaults of 곡,
   성경, 공지, and 미디어 (draft E's names), and a 대기 화면 with nothing on any
   screen.
-- `looks.json` and `stage-layouts.json` are no longer read. No user files exist
-  yet, so there is no migration (decision of October 26).
 
 ## Where the rest of the spec uses 테마
 

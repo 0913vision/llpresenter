@@ -58,7 +58,7 @@ Hover on a color chip doesn't change the background color. The 이름표 color i
 - The 구성 strip is `role="listbox"` with `aria-orientation="horizontal"`, and each chip is `role="option"` + `aria-selected`. The arrow keys select chips, and selecting a chip also selects its thumbnail below.
 - Drag a chip to change the order. From the keyboard, Alt + ←/→ moves the selected chip by one place. Delete removes the 슬라이드 at that place from the 구성 (it doesn't delete it from the song).
 - Insert (+) opens the 이름표 menu so that the user picks the group to insert. `aria-label="슬라이드 넣기"`.
-- A song editor strip whose order can't change (기본 or a read-only song) is `aria-readonly="true"`: the arrow keys still select chips, but dragging, Alt + ←/→, and Delete do nothing, and the insert button is `aria-disabled`. The chips and the insert button give the reason in their tooltips. The look stays the same, except that the insert icon is `text-off` and the hover cursor isn't grab.
+- A song editor strip whose order can't change (기본 or a read-only song) is `aria-readonly="true"`: the arrow keys still select chips, but dragging, Alt + ←/→, and Delete do nothing, and the insert button is `aria-disabled`. The chips and the insert button give the reason in their tooltips. The appearance stays the same, except that the insert icon is `text-off` and the hover cursor isn't grab.
 - A 예배 순서 item uses selection mode for every 구성 (October 31 B22).
   Selection mode has no grips or insert button and accepts no editing callbacks.
   Arrow keys and chip clicks still select occurrences; the selected and live

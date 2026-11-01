@@ -5,7 +5,7 @@ written, tested, and committed.
 
 ## Sources of truth
 
-- UI look, sizes, states, and copy rules: the design system in
+- UI appearance, sizes, states, and copy rules: the design system in
   `design/system/project/`. When a draft board disagrees, the design system
   wins. Draft boards are kept outside the repository.
 - Behavior and data: `docs/spec/`.
@@ -20,7 +20,7 @@ written, tested, and committed.
   in English.
 - Keep product UI strings in Korean. Use the glossary in the design system
   README (출력, 슬라이드, 예배 순서, 템플릿, 구성, 이름표, 지우기, 본 화면, 무대
-  화면, 방송 자막, Look, 진행 도구, 퀵 실행).
+  화면, 방송 자막, 테마, 진행 도구, 퀵 실행).
 - Never use middle dots (·) or em dashes (—) anywhere.
 - Don't put explanatory sentences in the UI. Show state with shape and color,
   and give reasons in tooltips.

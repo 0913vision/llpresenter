@@ -2,10 +2,10 @@
 
 What every menu and popover in the app shows and does. Menus follow ProPresenter
 (PP) 7 as of March 2026; the PP screens were checked in Renewed Vision support
-articles and tutorial videos, cited by link and time. The look of a menu (sizes,
-colors, states) is in the `Menu` README of the design system; this file sets the
-rows. Status: Now (exists), New (build), Off (disabled row for a PP feature we
-lack), Moved, Removed.
+articles and tutorial videos, cited by link and time. The appearance of a menu
+(sizes, colors, states) is in the `Menu` README of the design system; this file
+sets the rows. Status: Now (exists), New (build), Off (disabled row for a PP
+feature we lack), Moved, Removed.
 
 ## Shared rules
 
@@ -23,9 +23,9 @@ lack), Moved, Removed.
 - **Hide or disable:** Hide a row that does not apply to this object (PP hides
   Edit Action and Remove Actions on a 매크로 with no actions). Disable a row
   that applies but cannot run now (붙여넣기 with an empty clipboard).
-- **Look:** Measured from PP and scaled to our 16px text: width 276 (or wider
-  for long rows), vertical padding 6, radius 12, row 28, highlight inset 5 with
-  radius 9, text starts 28 from the menu edge, separator 1px
+- **Appearance:** Measured from PP and scaled to our 16px text: width 276 (or
+  wider for long rows), vertical padding 6, radius 12, row 28, highlight inset 5
+  with radius 9, text starts 28 from the menu edge, separator 1px
   rgba(255,255,255,0.11) with 6 above and below and 18 from each side, border
   inset 1px rgba(255,255,255,0.2) plus outer 1px rgba(0,0,0,0.6) and shadow 0 12
   32 rgba(0,0,0,0.55), text weight about 460, hover accent-fill with white text,
@@ -58,9 +58,9 @@ lack), Moved, Removed.
 - **Keyboard:** The Menu keyboard rules stay (arrows, Home, End, Enter, Space,
   Esc, type-ahead, Menu key and Shift F10).
 - **Select lists:** The 34 Select dropdowns keep their options and take the same
-  look. Five lists that have no name get one: MacroActionDialog 동작, 대상, 무대
-  화면, 표시 시간; PropDialog 내용 종류 and 이미지; NoticeCreateDialog 이미지
-  재생목록; 출처 위치; the two 굵기 lists.
+  appearance. Five lists that have no name get one: MacroActionDialog 동작,
+  대상, 무대 화면, 표시 시간; PropDialog 내용 종류 and 이미지;
+  NoticeCreateDialog 이미지 재생목록; 출처 위치; the two 굵기 lists.
 
 ## Menus
 
@@ -544,7 +544,7 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 | list  | Results                                 | As today.                               | Now    |
 | foot  | Enter 열기, Ctrl Enter 예배 순서에 추가 | Footer hints and the Ctrl Enter action. | New    |
 
-## Unchanged except for the shared look
+## Unchanged except for the shared appearance
 
 - 배경 선택 and 기본 배경 pickers
 - 더 보기 tab overflow

@@ -22,5 +22,5 @@
 .ll-props--window .ll-prop__label { flex-basis: var(--size-prop-label-wide); }
 .ll-props--window .ll-prop__control { flex: 0 1 340px; }
 
-/* Two columns (Look editor text properties) */
+/* Two columns (테마 element properties) */
 .ll-prop-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-24); }

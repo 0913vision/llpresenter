@@ -11,7 +11,7 @@ A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 2
 ## Where not to use
 
 - Media tiles: use MediaTile (the name sits separately under the image, and a duration chip is attached).
-- Screens in the preview panel: use PreviewFrame (it shows a scaled-down copy of the real output that Look draws).
+- Screens in the preview panel: use PreviewFrame (it shows a scaled-down copy of the real output that the 테마 draws).
 - Notice and prop tiles in the 진행 도구 (show tools): use the component of that tab.
 
 ## Anatomy

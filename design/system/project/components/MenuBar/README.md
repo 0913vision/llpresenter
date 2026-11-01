@@ -4,7 +4,7 @@ The 30px row at the top of the window. It holds the app name, the menus, the ser
 
 ## Where to use
 
-- The top of the main window, with the same look in every workspace.
+- The top of the main window, with the same appearance in every workspace.
 - The title bar of secondary windows such as Preferences (the window name and close only, no menus).
 
 ## Where not to use

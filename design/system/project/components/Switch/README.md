@@ -1,12 +1,12 @@
 # Switch
 
-A 30×18 switch that turns on or off a setting that applies the moment you click it. Use it in setting rows in Preferences, 화면 설정 (Screen settings), the Look editor, the stage layout, media properties, and text import settings.
+A 30×18 switch that turns on or off a setting that applies the moment you click it. Use it in setting rows in Preferences, 화면 설정 (Screen settings), the 테마 editor, media properties, and text import settings.
 
 ## Where to use
 
 - Preferences: 오류 보고 보내기, 켤 때 화면 출력, 출력 중 절전 막기, 하드웨어 가속, 자동 백업, 절 번호, 자동 확인
 - 화면 설정: 항상 위, 절전 막기, 알파 채널
-- Look editor: 그림자, 외곽선 / on/off settings in the stage layout and media properties (소리 켜기)
+- 테마 editor: 그림자, 외곽선 / on/off settings in media properties (소리 켜기)
 - The settings row of text import: 이름표 인식 (detect labels)
 
 ## Where not to use
@@ -28,7 +28,7 @@ A 30×18 switch that turns on or off a setting that applies the moment you click
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | Switch | 18 | - | Only one size |
-| Property row | 36 (panel) / 38 (window) | Name `label` 14/20 `text-2` | Preferences, 화면 설정, Look, stage, media |
+| Property row | 36 (panel) / 38 (window) | Name `label` 14/20 `text-2` | Preferences, 화면 설정, 테마, media |
 | Name + switch | 18 | `label` 14/20 `text-2` | Text import settings row |
 
 ## States
@@ -63,5 +63,5 @@ A 30×18 switch that turns on or off a setting that applies the moment you click
 
 ## Changes from the drafts
 
-- Tracks that are on in Prefs, Shortcuts, Screens, ScreensNDI, Looks, StageEditor, Media, ImportText: #3d8bf0 (`accent`) → `accent-fill`.
+- Tracks that are on in Prefs, Shortcuts, Screens, ScreensNDI, StageEditor, Media, ImportText: #3d8bf0 (`accent`) → `accent-fill`.
 - Thumbs on the same boards: #fff → `text` (#ececec).

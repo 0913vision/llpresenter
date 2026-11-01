@@ -15,5 +15,5 @@
 .ll-key-empty { font: var(--type-label); color: var(--text-3); }
 
 /* Text shortcut: size follows the surrounding text. In tooltips and menus,
-   ll-tooltip__key (Tooltip) and ll-menu__meta (Menu) draw the same look */
+   ll-tooltip__key (Tooltip) and ll-menu__meta (Menu) draw the same appearance */
 .ll-key-text { color: var(--text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }

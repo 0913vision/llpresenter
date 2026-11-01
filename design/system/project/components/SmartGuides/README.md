@@ -1,8 +1,7 @@
 # Smart guides
 
-Temporary alignment lines for moving and resizing elements in the 무대 화면
-layout editor. This is the design contract for M3-O3, before editor behavior is
-implemented. It follows the user's decision in `docs/decisions.md`, not a
+Temporary alignment lines for moving and resizing elements on the 테마 editor
+canvas. It follows the user's decision in `docs/decisions.md`, not a
 verified ProPresenter behavior.
 
 ## Tokens and coordinates
@@ -56,5 +55,4 @@ two lines and releases pointer/key listeners when the gesture or editor ends.
 
 The reference card shows a canvas edge, another element's edge, both canvas
 centers, a resize edge, outside-range idle and Alt bypass. Coordinates are
-schematic static states, not a working stage editor or a snapping simulation.
-M3-O3 must exercise real dragging, resizing, zoom and Alt in its own request.
+schematic static states, not a working editor or a snapping simulation.

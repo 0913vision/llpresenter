@@ -1,6 +1,6 @@
 # Menu
 
-A floating menu. Menu bar menus, submenus, right-click menus, and popover lists that a button opens (service picker, 이름표 (label) picker) all use the same surface and 28px items. The look is measured from ProPresenter's menus (2026) and scaled to our 16px text. Which rows each menu has is in the spec, `docs/spec/11-menus.md`.
+A floating menu. Menu bar menus, submenus, right-click menus, and popover lists that a button opens (service picker, 이름표 (label) picker) all use the same surface and 28px items. The appearance is measured from ProPresenter's menus (2026) and scaled to our 16px text. Which rows each menu has is in the spec, `docs/spec/11-menus.md`.
 
 ## Where to use
 
@@ -44,7 +44,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | Menu bar menu | Item 28 | `menu-text` 16/22/460 | 파일, 편집, 보기, 출력, 창, 도움말 |
-| Submenu | Item 28 | `menu-text`, icon 18 where ProPresenter has one | 동작 추가 › 지우기, Look 바꾸기, … |
+| Submenu | Item 28 | `menu-text`, icon 18 where ProPresenter has one | 동작 추가 › 지우기, 테마, … |
 | Right-click menu | Item 28 | `menu-text` | 매크로 (모음에 추가 ›, 이름 바꾸기, 동작 추가 ›, 삭제) |
 | Popover list | Search 30 + item 28 | `menu-text` + `caption` date | Service picker |
 | 이름표 menu | Item 28 | `menu-text` + swatch 18×12 | 이름표 picker in library song editing |

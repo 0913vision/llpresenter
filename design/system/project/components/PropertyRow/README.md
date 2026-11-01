@@ -1,11 +1,11 @@
 # PropertyRow
 
-A row that places one name and one control side by side in a property field or a settings screen, and the group that holds those rows. Use it for item settings, 화면 설정 (Screen settings), the Look editor, stage layouts, media properties, and Preferences.
+A row that places one name and one control side by side in a property field or a settings screen, and the group that holds those rows. Use it for item settings, 화면 설정 (Screen settings), the 테마 editor, media properties, and Preferences.
 
 ## Where to use
 
 - Property panels in the right column (480, 360 in a narrow window): item settings (PrepService), properties in 화면 설정 (Screens, ScreensNDI), stage layout elements (StageEditor), media properties (Media)
-- Property grids on the center editing surface: text properties in the Look editor (two columns)
+- Property grids on the center editing surface: element properties in the 테마 editor (two columns)
 - Every settings row in the Preferences window
 
 ## Where not to use
@@ -32,17 +32,17 @@ The place where the row sits sets the name cell width. Don't set it separately f
 
 | Placement | Name cell | Gap between name and control | Row height | Control cell |
 | --- | --- | --- | --- | --- |
-| Panel (right column 480, 360, Look editor grid) | 84px | `space-12` | 36px or more | Remaining width |
+| Panel (right column 480, 360, 테마 editor grid) | 84px | `space-12` | 36px or more | Remaining width |
 | Window (Preferences) | 168px | `space-16` | 38px or more | Up to 340px |
 
 - A panel's 84px fits names up to "위치 미세 조정" and "연결이 끊기면" on one line in 14px text. Don't wrap a name that overflows onto two lines. Shorten the name.
-- When you place two columns on a wide surface, as in the Look editor, use `ll-prop-cols` with `space-24` between the columns. Rows inside a column follow the panel rule (84px).
+- When you place two columns on a wide surface, as in the 테마 editor, use `ll-prop-cols` with `space-24` between the columns. Rows inside a column follow the panel rule (84px).
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Panel row | 36 | Name `label` 14/20 `text-2` | Property panels, Look grid |
+| Panel row | 36 | Name `label` 14/20 `text-2` | Property panels, 테마 grid |
 | Window row `ll-props--window` | 38 | Same | Preferences |
 | Group name | 22 | `caption-strong` 16/22/600 `text-3` | All groups |
 | Value | 22 | `body` 16/22 `text-2` | Read-only values |
@@ -79,7 +79,6 @@ The place where the row sits sets the name cell width. Don't set it separately f
 - Screens, ScreensNDI properties: name cell 112 → 84.
 - Media properties: name cell 96 → 84.
 - PrepService 이번 예배 row height 40 → 36.
-- Looks text properties: row 38 → 36, removed the bottom line on every row, gap between the two columns 28 → 24.
 - Group dividers (PrepService, Screens, ScreensNDI, StageEditor, Media, Prefs): #262626 → `line`.
 - Group padding: Screens, ScreensNDI, StageEditor, Media 12/6 → 12/8, Prefs 14/8 → 12/8.
 - Control height in every property field 28 → 30 (the `TextField` and `Select` documents say the same).

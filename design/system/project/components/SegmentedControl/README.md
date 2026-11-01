@@ -5,9 +5,9 @@ A control that lines up two or three segments in a sunken track and picks one. U
 ## Where to use
 
 - Panel headers and caption rows: 구성 (기본, 주일용, 짧게), the screen in the preview (본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)), output preview (화면 내용, 테스트 패턴)
-- Property fields (fill variant): 종류 (type) and 방식 (mode) in 화면 설정 (Screen settings), 끝나면 (when done) and 맞춤 (fit) in media, 보여 줄 것 (what to show) in the stage layout, 채널 (channel) in Preferences
+- Property fields (fill variant): 종류 (type) and 방식 (mode) in 화면 설정 (Screen settings), 끝나면 (when done) and 맞춤 (fit) in media, 채널 (channel) in Preferences
 - Filters above a list: 전체, 바꾼 것, 겹침 in shortcuts (with counts)
-- View switches (icon segments): 진행 도구 (show tools) and macros, grid view and list view in media, alignment in Look
+- View switches (icon segments): 진행 도구 (show tools) and macros, grid view and list view in media, alignment in the 테마 editor
 
 ## Where not to use
 
@@ -81,5 +81,5 @@ There is one size. Next to md 30 controls (Preferences), use the 26 track too an
 - Reflow, ImportSave: 구성 (기본, 주일용, 짧게) segments 24px with horizontal padding 12 → 22px with horizontal padding 10 (track 28 → 26).
 - Screens (종류, 방식), Media (끝나면, 맞춤), StageEditor (보여 줄 것), Prefs (채널): fill segments 24px → 22px (track 28 → 26), horizontal padding 0 → 8.
 - StageEditor: property tabs (26px segments in a track, the selected segment in bold) → 22px segments, weight fixed at 400.
-- StageEditor, Looks: alignment icon segments with minimum width 32 and height 24 → 22×28, icon 14.
+- StageEditor: alignment icon segments with minimum width 32 and height 24 → 22×28, icon 14.
 - Prefs, Shortcuts: filter segments 26px → 22px. Count badge (16px round chip, background #2a2a2a and #4a3410 for conflicts, 10px 700) → 11px number with no background (`text-3`, `warning` for conflicts).

@@ -89,6 +89,6 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 - 퀵 실행 and library search (ShowH, Bible, Problems, PrepService, Reflow, NewService, AddSongs, ServiceImport, ImportEdit, ImportSave): horizontal padding 6 → 10, gap between icon and text 10 → 8.
 - AddSongsQuick search, Prefs/Shortcuts command search: icon 14 → 16, gap between icon and text 10 → 8.
 - Compact 퀵 실행 28 → sm 26 (horizontal padding 6 → 8, gap 8 → 6). Macros action search 28 → sm 26 (horizontal padding 6 → 8, gap 10 → 6).
-- Text fields and number fields in Prefs, Screens, ScreensNDI, Looks, StageEditor, Media, ImportText: height 28 → 30. Folder icon in the Prefs path field 14 → 16.
+- Text fields and number fields in Prefs, Screens, ScreensNDI, StageEditor, Media, ImportText: height 28 → 30. Folder icon in the Prefs path field 14 → 16.
 - Shortcuts key input field: height 24 → 26.
 - PrepService notes: line height 20 → 18 (`body`).

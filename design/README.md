@@ -32,5 +32,5 @@ the design system wins.
 
 - After you change the tokens, regenerate `tokens.css` with
   `node gen-tokens-css.js`.
-- `CONVENTIONS.md`, `BOARD-CHANGES.md`: the working rules used to build the
-  design system and the list of board changes (records).
+- `CONVENTIONS.md`: the working rules used to build the design system
+  (records). The list of board changes is kept with the draft boards.

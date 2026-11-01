@@ -126,11 +126,6 @@ Source: `Macros`, 11-menus.md.
 
 Source: `Macros`.
 
-Old 매크로 files can hold the actions Look 바꾸기 and 무대 화면 배치, which the
-app no longer has. They still load, stay in the file, and are saved back
-unchanged. The 매크로 menu lists them as unavailable, with the reason in the
-tooltip, and a run skips them like any unknown action.
-
 ## Action kinds
 
 The 동작 추가 submenu lists the same kinds as the palette, with short names:

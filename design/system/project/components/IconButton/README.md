@@ -6,7 +6,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 
 - Right side of panel headers: 항목 추가, 새 곡, 퀵 실행 추가, 구성 추가, 새 매크로 (sm)
 - End of list rows: 내리기 in the 표시 중 (showing) list of 진행 도구 (show tools), 라이브러리 곡 열기 (sm)
-- On/off tools (`aria-pressed`): 반복 (repeat) in audio, 비율 고정 (lock aspect ratio) and 격자에 맞추기 (snap to grid) in the stage layout (sm)
+- On/off tools (`aria-pressed`): 반복 (repeat) in audio, 비율 고정 (lock aspect ratio) and 격자에 맞추기 (snap to grid) in the 테마 editor (sm)
 - 더 보기 (more) that opens a menu (`aria-expanded`) (sm)
 - 닫기 (close) in dialog headers (md)
 

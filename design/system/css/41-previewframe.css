@@ -12,7 +12,6 @@
 .ll-monitor__name { color: var(--text); font-weight: 600; }
 .ll-monitor__target { display: inline-flex; align-items: center; gap: var(--space-4); min-width: 0; color: var(--text-3); }
 .ll-monitor__target .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
-.ll-monitor__look { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-3); }
 
 /* Two small previews: a click swaps places with the large preview. */
 .ll-monitor__smalls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-10); }
@@ -28,7 +27,6 @@
 .ll-monitor--compact .ll-monitor__small { flex-direction: row; align-items: center; gap: var(--space-8); }
 .ll-monitor--compact .ll-monitor__small .ll-monitor__frame { flex: none; width: 64px; }
 .ll-monitor--compact .ll-monitor__small .ll-monitor__caption { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-.ll-monitor--compact .ll-monitor__small .ll-monitor__look { display: none; }
 
 /* States: output off, monitor missing. */
 .ll-monitor [data-state="off"] .ll-monitor__frame { box-shadow: 0 0 0 1px var(--line-strong); }

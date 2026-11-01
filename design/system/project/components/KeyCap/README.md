@@ -5,7 +5,7 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 ## Where to use
 
 - The shortcut cells of the shortcut table in Preferences > 단축키 (Shortcuts) (다음 슬라이드 → Space, 되돌리기 Ctrl Z, 지우기 (clear) F1~F7)
-- Marking a shortcut conflict (평상시 and 출력 켜기 are both Ctrl 1)
+- Marking a shortcut conflict (찬양 and 출력 켜기 are both Ctrl 1)
 - Text shortcuts: tooltips ("되돌리기 Ctrl Z"), the right side of menu items
 
 ## Where not to use
@@ -52,7 +52,7 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 ## Writing
 
 - Write key names in English, exactly as Windows does: Ctrl, Alt, Shift, Space, Enter, Esc, Tab, Backspace, Delete, Home, End, Page Up, Page Down, F1 to F12, → ← ↑ ↓ for arrows, and a letter or digit as printed on the key (C, 1). Don't translate them into Korean, and never show a Hangul letter (ㅊ for the C key).
-- Write a conflict tooltip as one line, "<명령>과 겹침": "출력 켜기와 겹침", "평상시와 겹침".
+- Write a conflict tooltip as one line, "<명령>과 겹침": "출력 켜기와 겹침", "찬양과 겹침".
 - Write the tooltip of a reserved key as one short phrase, "(용도)에 쓰는 키": Enter "확인과 실행에 쓰는 키", Alt and F10 "메뉴 막대에 쓰는 키", Shift F10 and the Menu key "오른쪽 클릭 메뉴에 쓰는 키", Ctrl X, C, V, A "글자 편집에 쓰는 키", Windows keys "Windows가 쓰는 키", bare letters and digits "슬라이드 바로 가기에 쓰는 키". Tab, Shift Tab, Esc, and Backspace do their own job in the field and never show this tooltip.
 
 ## Implementation notes

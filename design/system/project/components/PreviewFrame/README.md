@@ -14,8 +14,8 @@ implemented component.
 - The large frame can also be used in 준비. Its segmented control and
   이름표 caption are separate from this three-slot monitoring selector.
 
-Use SlideThumbnail for slide thumbnails. Screen settings, Look editing, and
-stage layout editing use their editing canvases instead.
+Use SlideThumbnail for slide thumbnails. Screen settings and 테마 editing use
+their editing canvases instead.
 
 ## Anatomy
 
@@ -32,10 +32,10 @@ stage layout editing use their editing canvases instead.
   `space-8` horizontal padding, and lower `radius-sm` corners. The name uses
   `type-label-strong` and `text`; the target uses `type-label` and `text-3`
   at the right. A display target has a 14px monitor icon, gap `space-4`.
-  NDI has text only. An actual Look name, if supplied, follows the target.
+  NDI has text only.
 - All three small slots stay in the order 본 화면, 무대 화면, 방송 자막.
   Each is at most `size-preview-small-max` wide. An unselected slot has the
-  screen's picture and a centered name, with no target or Look text.
+  screen's picture and a centered name, with no target text.
 - A picture-specific indicator follows the caption name in either size. A
   missing background video uses a 14px pause icon in `warning`, with its reason
   in a shared tooltip on hover or keyboard focus. It does not change the
@@ -89,13 +89,13 @@ what will appear when output is enabled. Give reasons in tooltips, for example
   activated slot.
 - Modified Enter and Space pass through without selecting a screen.
 - Swap immediately, with no picture transition.
-- Do not add state explanations or placeholder Look names to the captions.
+- Do not add state explanations, style names, or 테마 names to the captions.
 
 ## Implementation
 
 `PreviewFrame` takes `screens`, `big`, `compact`, `onBigChange`, and
-`renderScreen`. A screen provides its ID, name, display or NDI target, optional
-actual Look name, status, chroma flag, and an optional indicator icon and tooltip.
+`renderScreen`. A screen provides its ID, name, display or NDI target, status,
+chroma flag, and an optional indicator icon and tooltip.
 
 Each screen keeps one keyed picture cell and one fixed slot button. Both are
 persistent grid siblings. CSS moves only the existing picture cell between

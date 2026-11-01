@@ -29,7 +29,7 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | max.svg | square | Maximize window |
 | slides.svg | slideshow | 슬라이드 (slide), sermon |
 | saved.svg | cloud-check | Saved |
-| layers.svg | stack | Look, 모두 지우기 (clear all), 템플릿 (template) |
+| layers.svg | stack | 테마 (theme), 모두 지우기 (clear all), 템플릿 (template) |
 | edit.svg | pencil-simple | Edit |
 | grid.svg | squares-four | Grid view |
 | timer.svg | timer | Timer |
@@ -86,7 +86,7 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | checkc.svg | check-circle | Done |
 | info.svg | info | Information |
 | textaa.svg | text-aa | Text style |
-| frame.svg | frame-corners | Stage layout |
+| frame.svg | frame-corners | 템플릿 (template), the 사각형 element |
 | translate.svg | translate | Bible version |
 | arrow.svg | arrow-right | Next step |
 | bookmark.svg | bookmark-simple | 퀵 실행 (quick launch) |

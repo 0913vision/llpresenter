@@ -11,7 +11,7 @@ A row of color swatches for picking the color of an 이름표 (label) or a macro
 
 ## Where not to use
 
-- Text color or background color inside an output screen: use the color field of the Look editor (16px sample + value). Those colors aren't 이름표 colors.
+- Text color or background color inside an output screen: use the color field of the 테마 editor (16px sample + value). Those colors aren't 이름표 colors.
 - The small 이름표 sample (18×12) in front of a menu item: that is `ll-menu__swatch` of `Menu`. It isn't a picker.
 
 ## Anatomy

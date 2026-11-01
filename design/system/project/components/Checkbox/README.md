@@ -1,12 +1,11 @@
 # Checkbox
 
-A 16px checkbox for picking several things, and a check row that toggles when you click anywhere on it. Use them in the item tree of 다른 예배에서 가져오기 (import from another service), in the states to restore in 출력 상태 복구 (restore output state), and in the layer list of a Look.
+A 16px checkbox for picking several things, and a check row that toggles when you click anywhere on it. Use them in the item tree of 다른 예배에서 가져오기 (import from another service) and in the states to restore in 출력 상태 복구 (restore output state).
 
 ## Where to use
 
 - 다른 예배에서 가져오기, and the 예배 순서 (service order) of a new service: picking groups (예배 전, 찬양) and items
 - 출력 상태 복구: the states to restore (화면 출력, 마지막 슬라이드, 표시 중이던 항목)
-- The layer list in the Look editor (visibility)
 
 ## Where not to use
 
@@ -34,7 +33,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 | --- | --- | --- | --- |
 | Box | 16 | - | Inside rows, list headers (select all) |
 | Check row | 30 | `body` 16/22 | Choices in dialogs |
-| List row | 30 | `body` 16/22, horizontal padding 14 | 다른 예배에서 가져오기, new service, Look layers |
+| List row | 30 | `body` 16/22, horizontal padding 14 | 다른 예배에서 가져오기, new service |
 | Group header row | 30 | `caption-strong` 16/22/600 `text-3` | Parents in the item tree |
 
 ## States
@@ -73,6 +72,6 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 
 ## Changes from the drafts
 
-- Checked boxes in NewService, ServiceImport, Recovery, Looks: background #3d8bf0 (`accent`) → `accent-fill`.
-- Unchecked boxes in ServiceImport, Looks: border #4a4a4a → `line-control`. Looks background transparent → `bg-well`.
-- ServiceImport, NewService row height 28 → 30. Recovery row height 36 → 30, gap between box and icon 12 → 10. Looks layer list row 34 → 30, horizontal padding 12 → 14.
+- Checked boxes in NewService, ServiceImport, Recovery: background #3d8bf0 (`accent`) → `accent-fill`.
+- Unchecked boxes in ServiceImport: border #4a4a4a → `line-control`.
+- ServiceImport, NewService row height 28 → 30. Recovery row height 36 → 30, gap between box and icon 12 → 10.

@@ -22,7 +22,7 @@
 .ll-tbtn.ll-tbtn--tab { width: 64px; padding: 0; color: var(--text-3); }
 .ll-tbtn.ll-tbtn--tab:is([aria-selected="true"], [aria-pressed="true"]) { background: var(--bg-raised); color: var(--text); }
 
-/* Action button that opens a menu, such as the Look picker */
+/* Action button that opens a menu, such as the 테마 picker */
 .ll-tbtn.ll-tbtn--menu { padding: 0 var(--space-12); }
 
 /* Screen output (본 화면, 무대, 방송 자막) */

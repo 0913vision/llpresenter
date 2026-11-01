@@ -6,7 +6,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 - The default background (따뜻한 빛) in the header of the 진행 (Show) workspace and of imported song editing, the 구성 (주일용) in the 준비 (Prep) workspace
 - Background and 시작할 때 (on start, a macro) in item settings
-- Device, resolution, and 연결이 끊기면 (when disconnected) in 화면 설정 (Screen settings) / font in the Look editor / content type in the stage layout
+- Device, resolution, and 연결이 끊기면 (when disconnected) in 화면 설정 (Screen settings) / font in the 테마 editor
 - Every choice row in Preferences (language, 시작할 때, autosave, 슬라이드 (slide) splitting, source position)
 - The date (11월 1일 일요일) and time (오전 11:00) of a new service
 - The Bible version (개역한글) and reference (슬라이드마다) for Bible verses
@@ -16,7 +16,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 - When there are 2 to 4 choices and all have short names: use `SegmentedControl` (청중/무대, 반복/멈춤).
 - A menu button that runs commands (더 보기, 매크로 추가): give `IconButton` or `Button` `aria-haspopup="menu"`.
 - A switch button with a transparent background and only an arrow, like the service name in a panel header: that is `ll-panel__switch` of `Panel`.
-- The Look picker on the toolbar (평상시): that is `ToolbarButton`.
+- The 테마 picker on the toolbar (찬양): that is `ToolbarButton`.
 - The list after it opens: `Menu` (`ll-menu`) draws it. Select draws only the button.
 
 ## Anatomy
@@ -83,7 +83,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 ## Changes from the drafts
 
-- Dropdowns in Prefs, Screens, ScreensNDI, Looks, StageEditor, PrepService: background #262626 → `bg-control`, height 28 → 30 (PrepService was already 30), left 10 unchanged, arrow 14 → 12.
+- Dropdowns in Prefs, Screens, ScreensNDI, StageEditor, PrepService: background #262626 → `bg-control`, height 28 → 30 (PrepService was already 30), left 10 unchanged, arrow 14 → 12.
 - PrepService background: media 40×24 → 36×20, left 3 → 5. 시작할 때: color tile 22×22 radius 5 → 20×20 `radius-md`, left 4 → 5. Extra info in both rows #8c8c8c → `text-2`.
 - Extra info for the Screens device (EPSON 프로젝터) #8c8c8c → `text-2`.
 - NewService date and time: background #262626 → `bg-control`, a 12px arrow added where there was none, icon 14 #8c8c8c → 16 `text-2`, left/right 8/10 → 12/8.
