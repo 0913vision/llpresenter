@@ -4,9 +4,8 @@ The live monitoring panel shows one output screen large above a fixed row of
 본 화면, 무대 화면, and 방송 자막. The selected slot shows an upward arrow and
 a check instead of a second picture. There are three rendered pictures total.
 
-This is alternative B chosen in
-[the M2 comparison](../../../../drafts/m2-check1/README.md). The comparison
-images remain the record of the choice; this specification describes the
+This is alternative B chosen in the M2 comparison, whose images are kept
+outside the repository as the record of the choice; this specification describes the
 implemented component.
 
 ## Where to use

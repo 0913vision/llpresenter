@@ -6,8 +6,8 @@ written, tested, and committed.
 ## Sources of truth
 
 - UI look, sizes, states, and copy rules: the design system in
-  `design/system/project/`. When a draft board in `design/drafts/` disagrees,
-  the design system wins.
+  `design/system/project/`. When a draft board disagrees, the design system
+  wins. Draft boards are kept outside the repository.
 - Behavior and data: `docs/spec/`.
 - Stack and dependencies: `docs/TECH.md`. Add a dependency only after you record
   the reason in `docs/decisions.md` and the lead approves it.

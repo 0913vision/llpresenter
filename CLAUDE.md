@@ -40,8 +40,6 @@ without exception.
 - Never download and install programs. Add npm dependencies only when your brief
   allows them.
 - Never write secrets such as tokens or passwords into files or messages.
-- Never run the scripts in `design/drafts/llp-render/one-off/`. They were
-  written against an older state and would break the current boards.
 
 ## Team member rules
 

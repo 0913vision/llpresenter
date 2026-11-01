@@ -6,11 +6,8 @@ LoveLight Presenter는 교회 예배용 가사 출력 앱이다 (ProPresenter와
 
 ## 1. 원천 자료
 
-- 시안 보드: `../llp-design/project/*.dc.html` (각 보드는 1920×1080 화면 하나). 인라인 style에 실제 값이 들어 있다. 보드 목록과 이름은 `../llp-design/project/canvas.json`의 `boards` 중 `page: "v2"`.
-  - ShowH(진행 화면), Compact(1366×768 진행 화면), Reflow(준비: 라이브러리 곡 편집), PrepService(준비: 예배 순서 항목), Screens(화면 설정), ScreensNDI, Looks(Look 편집), Overlays(진행 도구 8개 탭), Macros(매크로 격자, 목록, 우클릭 메뉴, 동작 팔레트), Outputs(세 화면 출력), Problems(모니터 빠짐 알림, 미디어 없음), Recovery(출력 상태 복구 창), Bible(성경 구절), NewService(새 예배 창), ServiceImport(다른 예배에서 가져오기), ServiceSwitch(예배 순서 목록 팝오버), AddSongs, AddSongsQuick, ImportMenu(파일 메뉴), ImportText, ImportEdit, ImportSave(같은 곡이 있을 때 확인 창), Media(미디어), StageEditor(무대 배치 편집), Prefs(환경설정), Shortcuts(단축키), ClearGroups(비교안, 참고만).
-- 값 분포: `../llp-render/logs/audit.txt`(색, 글자 크기, 높이, 모서리, 그림자, 간격 빈도), `../llp-render/logs/audit-buttons.txt`(버튼 스타일 변형 121가지와 쓰인 보드).
+- 시안 보드와 그 값 분포 기록, 캡처는 레포 밖에 보관한다.
 - 보드의 공통 hover 규칙: `.hv:hover{background:#262626}`(투명 버튼과 줄), `.hvc:hover{background:#333333}`(채워진 컨트롤), `.tb:hover{background:#232323}`(툴바 버튼). 아이콘 `.i`는 기본 16px, `.i12 .i14 .i18 .i24 .i28`.
-- 보드를 눈으로 보고 싶으면 `../llp-render/shots/` 에 이전 캡처가 있다(`ShowH-full.png`, `Compact-full.png` 등). 새로 찍을 필요는 없다.
 
 ## 2. 확정 토큰 (바꾸지 말 것)
 
