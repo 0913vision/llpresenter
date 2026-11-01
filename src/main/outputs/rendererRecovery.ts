@@ -66,15 +66,14 @@ function cooldownAfter(failedAttempts: number): number {
  * after a cool-down, one attempt at a time. An attempt that runs a minute after
  * it draws ends the limit. A reload that fails to load or doesn't draw within
  * {@link DRAW_LIMIT_MS} fails like a crash, once; a page that draws late still
- * counts as working. While the output is off, no attempt starts; turning it on
- * starts one at once, and so does 다시 시도 while the output is on.
+ * counts as working. Turning the output on starts a waiting attempt at once,
+ * and so does 다시 시도.
  */
 export class RendererRecovery {
   private current: RendererState = 'running';
   private phase: LimitPhase = 'none';
   private page: PageStatus = {kind: 'live'};
   private failedAttempts = 0;
-  private paused = false;
   private readonly budget = new RestartBudget();
   private relaunchTimer: Timer | null = null;
   private cooldownTimer: Timer | null = null;
@@ -108,29 +107,21 @@ export class RendererRecovery {
   }
 
   /**
-   * 다시 시도: while the limit waits for an attempt and the output is on, one
-   * starts at once. An attempt in progress isn't interrupted.
+   * 다시 시도: while the limit waits for an attempt, one starts at once. An
+   * attempt in progress isn't interrupted.
    */
   retry(): void {
-    if (this.paused || this.phase !== 'waiting') return;
+    if (this.phase !== 'waiting') return;
     this.attemptNow();
   }
 
-  /** The output turned on: like {@link RendererRecovery.retry}. */
+  /**
+   * The output turned on: a loading page gets its full time to draw again, and
+   * a waiting attempt starts at once, like {@link RendererRecovery.retry}.
+   */
   resume(): void {
-    this.paused = false;
     if (this.page.kind === 'loading') this.page.load.startDrawLimit();
     this.retry();
-  }
-
-  /**
-   * The output turned off: no attempt starts until it turns on again, and a
-   * hidden page has no time limit to draw.
-   */
-  pause(): void {
-    this.paused = true;
-    this.clear('cooldownTimer');
-    if (this.page.kind === 'loading') this.page.load.stopDrawLimit();
   }
 
   dispose(): void {
@@ -190,7 +181,6 @@ export class RendererRecovery {
   private waitForAttempt(): void {
     this.phase = 'waiting';
     this.clear('cooldownTimer');
-    if (this.paused) return;
     this.cooldownTimer = setTimeout(
       () => this.attemptNow(),
       cooldownAfter(this.failedAttempts),
@@ -217,7 +207,7 @@ export class RendererRecovery {
       this.loadFailed(load, failure),
     );
     this.leavePage({kind: 'loading', load});
-    if (!this.paused) load.startDrawLimit();
+    load.startDrawLimit();
   }
 
   private loadFailed(load: PageLoad, failure: LoadFailure): void {

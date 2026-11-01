@@ -54,6 +54,7 @@ const mocks = await vi.hoisted(async () => {
     closeOptions: new Array<ControlCloseOptions>(),
     handshakes: new Array<ReturnType<typeof createHandshake>>(),
     createHandshake,
+    guardStops: new Array<ReturnType<typeof vi.fn<() => void>>>(),
   };
 });
 
@@ -79,7 +80,11 @@ vi.mock('@main/windows/controlClose', () => ({
   },
 }));
 vi.mock('@main/outputs/testPatternGuard', () => ({
-  guardTestPatterns: vi.fn(() => vi.fn()),
+  guardTestPatterns: vi.fn(() => {
+    const stop = vi.fn<() => void>();
+    mocks.guardStops.push(stop);
+    return stop;
+  }),
 }));
 vi.mock('@main/windows/page', () => ({
   preloadPath: 'preload.js',
@@ -141,7 +146,7 @@ describe('screen configuration window', () => {
     const {open, last, stop, store} = setup();
     open();
     const first = last();
-    const stopFirst = vi.mocked(guardTestPatterns).mock.results.at(-1)?.value;
+    const stopFirst = mocks.guardStops.at(-1);
     expect(guardTestPatterns).toHaveBeenLastCalledWith(
       expect.objectContaining({control: first, store}),
     );
@@ -149,7 +154,7 @@ describe('screen configuration window', () => {
     expect(stopFirst).toHaveBeenCalledOnce();
 
     open();
-    const stopSecond = vi.mocked(guardTestPatterns).mock.results.at(-1)?.value;
+    const stopSecond = mocks.guardStops.at(-1);
     await stop();
     expect(stopSecond).toHaveBeenCalledOnce();
   });

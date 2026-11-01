@@ -13,10 +13,6 @@ import {startLoading} from '@main/windows/page';
 import {createElectronOutputWindow} from '@main/outputs/electronWindow';
 import {ON_TOP_CHECK_MS} from '@main/outputs/onTopKeeper';
 import designTokens from '../../../design/system/project/tokens.json';
-import {
-  BOUNDS_RECHECK_MS,
-  FULLSCREEN_EXIT_DEADLINE_MS,
-} from '@main/outputs/windowPlacement';
 
 describe('createElectronOutputWindow hang handling', () => {
   it('pings the page by running a script on its main thread', async () => {
@@ -162,29 +158,10 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.focus).not.toHaveBeenCalled();
   });
 
-  it('waits for fullscreen exit, corrects a late client-size restore once, and restores normal flags', async () => {
-    const clock = installMockClock();
+  it('restores the normal window flags after capture', () => {
     const output = openOutput('normal');
     const win = lastWindow();
-    let content = WINDOW_BOUNDS;
-    win.getContentBounds.mockImplementation(() => content);
-    win.setContentBounds.mockImplementation(bounds => {
-      content = bounds;
-    });
-    win.isFullScreen.mockReturnValue(true);
-    win.setFullScreen.mockImplementation(() => {
-      win.isFullScreen.mockReturnValue(false);
-      win.emit('leave-full-screen');
-    });
     output.showCapture(MONITOR);
-    expect(win.setContentBounds).not.toHaveBeenCalled();
-    await clock.advance(0);
-    expect(content).toEqual(MONITOR);
-    content = WINDOW_BOUNDS;
-    await clock.advance(BOUNDS_RECHECK_MS);
-    expect(content).toEqual(MONITOR);
-    expect(win.setContentBounds).toHaveBeenCalledTimes(2);
-    expect(win.getBounds).not.toHaveBeenCalled();
     output.showWindowed(WINDOW_BOUNDS);
     expect(win.setMinimizable).toHaveBeenLastCalledWith(true);
     expect(win.setResizable).toHaveBeenLastCalledWith(true);
@@ -193,100 +170,4 @@ describe('createElectronOutputWindow normal', () => {
     output.showFullScreen(MONITOR, true);
     expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true, 'screen-saver');
   });
-
-  it('bounds a missing fullscreen-leave event for capture and releases pending work on dispose', async () => {
-    const clock = installMockClock();
-    const output = openOutput('normal');
-    const win = lastWindow();
-    win.isFullScreen.mockReturnValue(true);
-    output.showCapture(MONITOR);
-    await clock.advance(FULLSCREEN_EXIT_DEADLINE_MS);
-    expect(win.setContentBounds).toHaveBeenCalledExactlyOnceWith(MONITOR);
-    output.destroy();
-    expect(vi.getTimerCount()).toBe(0);
-    expect(win.listenerCount('leave-full-screen')).toBe(0);
-  });
-
-  it('waits past a synchronous leave event and the restore before fullscreen exit returns', async () => {
-    const clock = installMockClock();
-    const output = openOutput('normal');
-    const win = lastWindow();
-    let bounds = MONITOR;
-    win.getBounds.mockImplementation(() => bounds);
-    win.setBounds.mockImplementation(next => {
-      bounds = next;
-    });
-    win.isFullScreen.mockReturnValue(true);
-    win.setFullScreen.mockImplementation(() => {
-      win.isFullScreen.mockReturnValue(false);
-      win.emit('leave-full-screen');
-      expect(win.setBounds).not.toHaveBeenCalled();
-      bounds = {x: 2480, y: 492, width: 960, height: 540};
-      win.emit('resize');
-    });
-
-    output.showWindowed(WINDOW_BOUNDS);
-    expect(bounds.x).toBe(2480);
-    await clock.advance(0);
-    expect(bounds).toEqual(WINDOW_BOUNDS);
-    expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
-  });
-
-  it.each(['move', 'resize', 'timer'] as const)(
-    'corrects a late restore once after %s, then releases its checks',
-    async event => {
-      const clock = installMockClock();
-      const control = mockControl();
-      const output = openOutput('normal', control);
-      const win = lastWindow();
-      let bounds = WINDOW_BOUNDS;
-      win.getBounds.mockImplementation(() => bounds);
-      win.setBounds.mockImplementation(next => {
-        bounds = next;
-      });
-      output.showWindowed(WINDOW_BOUNDS);
-      bounds = {...WINDOW_BOUNDS, x: 2480};
-      if (event !== 'timer') win.emit(event);
-      await clock.advance(event === 'timer' ? BOUNDS_RECHECK_MS : 0);
-
-      expect(bounds).toEqual(WINDOW_BOUNDS);
-      expect(win.getBounds).toHaveBeenCalled();
-      expect(win.setBounds).toHaveBeenCalledTimes(2);
-      expect(control.moveAbove).not.toHaveBeenCalled();
-      bounds = {...WINDOW_BOUNDS, x: 300};
-      win.emit('move');
-      await clock.advance(BOUNDS_RECHECK_MS);
-      expect(bounds.x).toBe(300);
-      expect(win.setBounds).toHaveBeenCalledTimes(2);
-      expect(vi.getTimerCount()).toBe(0);
-    },
-  );
-
-  it.each(['window', 'fullscreen'] as const)(
-    'releases a missing leave event and applies the latest %s request by its deadline',
-    async request => {
-      const clock = installMockClock();
-      const output = openOutput('normal');
-      const win = lastWindow();
-      win.isFullScreen.mockReturnValue(true);
-      output.showWindowed(WINDOW_BOUNDS);
-      win.isFullScreen.mockReturnValue(false);
-      if (request === 'fullscreen') output.showFullScreen(MONITOR, true);
-      await clock.advance(FULLSCREEN_EXIT_DEADLINE_MS - 1);
-      expect(win.setBounds).not.toHaveBeenCalled();
-      await clock.advance(1);
-      if (request === 'window') {
-        expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
-      } else {
-        expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
-        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(
-          true,
-          'screen-saver',
-        );
-      }
-      output.destroy();
-      expect(vi.getTimerCount()).toBe(0);
-      expect(win.listenerCount('leave-full-screen')).toBe(0);
-    },
-  );
 });

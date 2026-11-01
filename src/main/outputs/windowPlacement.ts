@@ -1,9 +1,22 @@
-import type {BrowserWindow} from 'electron';
 import {sameRect, type Rect} from '../displays/rect';
 import type {Logger} from '../log';
 
 export const FULLSCREEN_EXIT_DEADLINE_MS = 500;
 export const BOUNDS_RECHECK_MS = 100;
+
+type PlacementEvent = 'leave-full-screen' | 'move' | 'resize';
+
+/** The parts of an output window that its placement reads and moves. */
+export interface PlacedWindow {
+  isFullScreen(): boolean;
+  setFullScreen(flag: boolean): void;
+  getBounds(): Rect;
+  setBounds(bounds: Rect): void;
+  getContentBounds(): Rect;
+  setContentBounds(bounds: Rect): void;
+  on(event: PlacementEvent, listener: () => void): unknown;
+  removeListener(event: PlacementEvent, listener: () => void): unknown;
+}
 
 interface BoundsCheck {
   readonly bounds: Rect;
@@ -34,7 +47,7 @@ export class WindowPlacement {
   };
 
   constructor(
-    private readonly win: BrowserWindow,
+    private readonly win: PlacedWindow,
     private readonly log: Logger,
   ) {
     win.on('leave-full-screen', this.left);

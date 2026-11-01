@@ -3,13 +3,25 @@ import type {Logger} from '../log';
 
 const MAX_PENDING_OUTPUT_KEYS = 64;
 
+/** The output page whose keys are forwarded. */
+export interface OutputKeySource {
+  on(
+    event: 'before-input-event',
+    listener: (event: Event, input: Input) => void,
+  ): unknown;
+  removeListener(
+    event: 'before-input-event',
+    listener: (event: Event, input: Input) => void,
+  ): unknown;
+}
+
 export type OutputKeyControl = Pick<BrowserWindow, 'isDestroyed'> & {
   readonly webContents: Pick<WebContents, 'isDestroyed' | 'executeJavaScript'>;
 };
 
 /** Forwards output-window keys without moving focus or raising the control. */
 export function forwardOutputKeys(
-  source: Pick<WebContents, 'on' | 'removeListener'>,
+  source: OutputKeySource,
   control: OutputKeyControl,
   log: Logger,
 ): () => void {

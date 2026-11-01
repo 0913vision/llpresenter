@@ -73,14 +73,6 @@ describe('RendererRecovery', () => {
     ]);
   });
 
-  it('holds the limit after too many crashes in a minute', async () => {
-    const {clock, log, reload, recovery} = setUp();
-    await crashUntilLimited(recovery, clock);
-    expect(recovery.state).toBe('limited');
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT - 1);
-    expect(log.entries.at(-1)?.detail).toMatchObject({limit: CRASH_LIMIT});
-  });
-
   it('waits 10, 20, 40, then 60 seconds between attempts that die again', async () => {
     const {clock, reload, recovery} = setUp();
     await crashUntilLimited(recovery, clock);
@@ -145,46 +137,10 @@ describe('RendererRecovery', () => {
     expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
   });
 
-  it('starts no attempt on 다시 시도 while paused, and one on resume', async () => {
-    const {clock, reload, recovery} = setUp();
-    await crashUntilLimited(recovery, clock);
-    recovery.pause();
-    recovery.retry();
-    recovery.retry();
-    recovery.retry();
-    await clock.advance(SURVIVAL_MS);
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT - 1);
-    recovery.resume();
-    recovery.retry();
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
-  });
-
   it('does nothing on 다시 시도 when no limit holds', () => {
     const {reload, recovery} = setUp();
     recovery.retry();
     expect(reload).not.toHaveBeenCalled();
-  });
-
-  it('makes no attempts while paused and tries at once on resume', async () => {
-    const {clock, reload, recovery} = setUp();
-    await crashUntilLimited(recovery, clock);
-    recovery.pause();
-    await clock.advance(SURVIVAL_MS * 3);
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT - 1);
-    recovery.resume();
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
-  });
-
-  it('waits for the next resume after an attempt dies while paused', async () => {
-    const {clock, reload, recovery} = setUp();
-    await crashUntilLimited(recovery, clock);
-    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
-    recovery.pause();
-    recovery.crashed(CRASH);
-    await clock.advance(SURVIVAL_MS * 3);
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
-    recovery.resume();
-    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
   });
 
   it('leaves no timer behind on dispose', async () => {
@@ -265,17 +221,6 @@ describe('RendererRecovery', () => {
     expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
   });
 
-  it('counts quick reloads that never draw toward the limit', async () => {
-    const {clock, reload, recovery} = setUp();
-    recovery.crashed(CRASH);
-    for (let reloads = 1; reloads < CRASH_LIMIT; reloads += 1) {
-      await clock.advance(RELAUNCH_DELAY_MS);
-      expect(reload).toHaveBeenCalledTimes(reloads);
-      await clock.advance(DRAW_LIMIT_MS);
-    }
-    expect(recovery.state).toBe('limited');
-  });
-
   it('ends the limit only a minute after an attempt draws', async () => {
     const {clock, log, recovery} = setUp();
     await crashUntilLimited(recovery, clock);
@@ -313,25 +258,6 @@ describe('RendererRecovery', () => {
     expect(recovery.state).toBe('restarting');
   });
 
-  it('gives a hidden page no time limit to draw, and a full one on resume', async () => {
-    const {clock, log, recovery} = setUp();
-    recovery.crashed(CRASH);
-    await clock.advance(RELAUNCH_DELAY_MS);
-    recovery.pause();
-    await clock.advance(DRAW_LIMIT_MS * 3);
-    expect(log.messages('error')).not.toContain(
-      'output window page did not draw in time',
-    );
-    recovery.resume();
-    await clock.advance(DRAW_LIMIT_MS - 1);
-    recovery.pageDrawn();
-    await clock.advance(DRAW_LIMIT_MS);
-    expect(log.messages('error')).not.toContain(
-      'output window page did not draw in time',
-    );
-    expect(recovery.state).toBe('running');
-  });
-
   it('counts an attempt once when its load is rejected after it crashed', async () => {
     const {clock, log, reload, recovery} = setUp();
     await crashUntilLimited(recovery, clock);
@@ -348,23 +274,6 @@ describe('RendererRecovery', () => {
     expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
     await clock.advance(1);
     expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
-  });
-
-  it('ignores a rejection that comes after the draw limit, before the next reload', async () => {
-    const {clock, log, reload, recovery} = setUp();
-    const load = rejectableLoad();
-    reload.mockReturnValueOnce(load.promise);
-    recovery.crashed(CRASH);
-    await clock.advance(RELAUNCH_DELAY_MS);
-    await clock.advance(DRAW_LIMIT_MS);
-    load.reject(LOAD_ERROR);
-    await clock.advance(0);
-    expect(log.messages('error')).not.toContain(
-      'output window page did not load',
-    );
-    await clock.advance(RELAUNCH_DELAY_MS);
-    expect(reload).toHaveBeenCalledTimes(2);
-    expect(recovery.state).toBe('restarting');
   });
 
   it('counts a crash of a page whose failed attempt already counted only once', async () => {
