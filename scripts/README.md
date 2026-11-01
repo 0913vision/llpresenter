@@ -268,16 +268,16 @@ the default `GITHUB_TOKEN`. Pushes made with that token don't start another run.
 
 ### Landing on `main` with the bot
 
-The bot adds a commit to `main` on GitHub after each push. Before the next
-merge, the lead brings it in:
+The bot adds a commit to `main` on GitHub after each push. Right before the next
+push, the lead puts the merges that landed since then on top of it:
 
 ```bash
-git pull --ff-only origin main
+git pull --rebase origin main
 ```
 
-If the lead merges first, local `main` and `origin/main` diverge, and the
-pre-push check stops the push with "pull the version bot commit first". Merge
-commits and rewriting `main` aren't allowed, so pull before every merge.
+The bot changes only the version in `package.json` and `package-lock.json`, so
+this doesn't conflict. Without it, the pre-push check stops the push with "pull
+the version bot commit first". Merge commits on `main` aren't allowed.
 
 ## CI
 

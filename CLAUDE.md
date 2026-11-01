@@ -32,7 +32,8 @@ without exception.
   members never delete remote branches themselves.
 - Never run `reset --hard`, rewrite history, or delete branches on `main`.
   Members rebase only their own branch, onto the local `main`. Nobody rebases
-  `main` itself.
+  `main` itself, except the lead's `git pull --rebase origin main` right before
+  a push, which puts unpushed merges on the version bot's commit.
 - Never change or delete files outside the repository or in another session's
   worktree.
 - Never change global settings (`git config --global`, system settings, the

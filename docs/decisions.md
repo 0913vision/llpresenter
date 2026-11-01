@@ -818,8 +818,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   local `main`: a branch that merges without a conflict can still break where
   another branch renamed something, and nothing else checks that combination
   before `main` is pushed (user agreed).
-- The merge script first takes the version bot's commit from `origin/main`, so
-  the local `main` never parts from GitHub's.
+- The merge script first takes the version bot's commit from `origin/main` when
+  the local `main` can fast-forward to it.
 
 ## 2026-11-02: Members rebase onto the local `main`
 
@@ -831,6 +831,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `main` is always in reach.
 - A member's pushed branch then also carries merges the lead hasn't pushed yet,
   and GitHub checks them together with the branch.
-- Members build on the local `main`, so it is never rewritten: after a push to
-  `main`, the merge script waits for the version bot's commit before it lands
-  the next branch.
+- Right before a push, the lead runs `git pull --rebase origin main`, which puts
+  the merges that landed since the last push on the version bot's commit. The
+  bot changes only the version, so this doesn't conflict (user: "니가푸시전에
+  pull rebase하면되잖아 버전만올라가면 충돌없을텐데"). Those merges get new
+  hashes, and a member branch built on the old ones still lands: a squash merge
+  and a rebase both find the same changes already on `main`.
