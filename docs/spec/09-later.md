@@ -155,7 +155,8 @@ Source: product log (진행 screen direction), `Main` decision "단축키",
 ## Lobby screen
 
 - The app doesn't use a lobby screen for now. It has three screens.
-- Hook: keep the screen list as data, and key Looks by screen ID (see 02).
+- Hook: keep the screen list as data, and key 테마 screens by screen ID (see
+  12).
 
 Source: product log (2026-10-24), `Main` decision "화면 세 개".
 
@@ -179,11 +180,11 @@ Source: product log (2026-10-24), `Main` decision "화면 세 개".
 These ideas moved to the backup page of the boards or were replaced. Don't build
 them.
 
-| Idea                                                                                           | What replaced it                                          | Source                                   |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------- |
-| Cue-then-take output                                                                           | A click outputs at once                                   | product log version 61                   |
-| Loading a 구성 from past services                                                              | Named 구성 stored in the song                             | product log version 61                   |
-| A service file that also holds screens, Looks, 매크로, and other settings (version 62 "scene") | App-wide settings, several Looks switched by start 매크로 | product log version 63                   |
-| A 다중 레이어 지우기 (Clear Groups) button                                                     | 매크로 with clear actions (see 07)                        | product log 2026-10-24, `Main` decisions |
-| Broadcast streaming and recording                                                              | OBS                                                       | product log 2026-10-23                   |
-| Musician features                                                                              | None (out of scope)                                       | product log 2026-10-24                   |
+| Idea                                                                                          | What replaced it                                               | Source                                   |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
+| Cue-then-take output                                                                          | A click outputs at once                                        | product log version 61                   |
+| Loading a 구성 from past services                                                             | Named 구성 stored in the song                                  | product log version 61                   |
+| A service file that also holds screens, 테마, 매크로, and other settings (version 62 "scene") | App-wide settings, a 테마 per item or switched by start 매크로 | product log version 63                   |
+| A 다중 레이어 지우기 (Clear Groups) button                                                    | 매크로 with clear actions (see 07)                             | product log 2026-10-24, `Main` decisions |
+| Broadcast streaming and recording                                                             | OBS                                                            | product log 2026-10-23                   |
+| Musician features                                                                             | None (out of scope)                                            | product log 2026-10-24                   |

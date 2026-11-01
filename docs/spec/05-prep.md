@@ -260,9 +260,8 @@ name.
 ### Preview
 
 - A segmented control switches between 본 화면, 무대, and 방송 자막. The preview
-  shows the selected 슬라이드 drawn with the current Look for that screen.
-- Caption: the 이름표 color swatch and name, the position ("3 / 4"), and the
-  style name ("기본").
+  shows the selected 슬라이드 drawn with the 테마 of the item for that screen.
+- Caption: the 이름표 color swatch and name, and the position ("3 / 4").
 
 ### 슬라이드 list
 

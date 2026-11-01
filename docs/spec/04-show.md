@@ -72,7 +72,7 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### Row states
 
-| State     | When                                                                                   | Look                                                   |
+| State     | When                                                                                   | Appearance                                             |
 | --------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | Selected  | The item open in the 슬라이드 panel                                                    | Selected row background                                |
 | On output | The live 슬라이드 came from this item                                                  | LIVE badge at the right                                |
@@ -239,9 +239,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
 ### What a preview shows
 
 - Each preview shows what that screen's output window draws now: every layer,
-  drawn by the same rendering code with the current Look, the lyric style or
-  stage layout, and the transitions (03). ProPresenter's Preview window likewise
-  shows the output (guide p. 24).
+  drawn by the same rendering code with the live 테마 and the transitions (03,
+  12). ProPresenter's Preview window likewise shows the output (guide p. 24).
 - While a screen's output window restarts after a crash, or is held at the
   restart limit, the window draws the screen's empty picture, and so does its
   preview (08). The preview draws the live content again when the window draws
@@ -256,20 +255,18 @@ each preview follows ProPresenter's rule: it shows what goes out.
   showing it: a click shows the slide, and the active slide is outlined in the
   grid (guide pp. 12, 70).
 - No preview shows the next 슬라이드 as a separate picture. The next 슬라이드
-  appears only where the stage layout has a next lyrics element: on the 무대
-  화면 and in its preview (03, "무대 화면 and stage layouts"). ProPresenter does
-  the same: Next Slide is a stage layout object (guide p. 41), and its main
-  window has no next slide preview (guide pp. 24 to 26).
-- A layer that the current Look hides on a screen doesn't show in that screen's
-  preview (03, "Looks"). For example, the default Look shows only the background
-  and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 그래픽, or
-  메시지. A Look that turns those layers on for the 방송 자막 shows them there
-  and in its preview.
+  appears only where the 테마 has a 다음 가사 element on that screen, such as
+  the 무대 화면 and its preview (12). ProPresenter does the same: Next Slide is
+  a stage layout object (guide p. 41), and its main window has no next slide
+  preview (guide pp. 24 to 26).
+- A screen in 비움, or one whose 테마 has no element for some content, shows
+  nothing of that content in its preview (12). A 공지, 그래픽, or 메시지 shows
+  only on the screens it was sent to, in the output and in the preview alike.
 - A live background video whose file is missing shows a pause mark on every
-  preview frame whose Look shows that media, with the tooltip "배경 영상 파일을
-  찾을 수 없어 정지 화면으로 표시 중" (08). A frame that hides media or replaces
-  it with a solid background does not show the mark. This includes 무대 and 방송
-  자막 when their Looks show it.
+  preview frame whose 테마 shows that media, with the tooltip "배경 영상 파일을
+  찾을 수 없어 정지 화면으로 표시 중" (08). A frame that has no 배경 or 미디어
+  element, or that replaces it with a solid background, does not show the mark.
+  This includes 무대 and 방송 자막 when their 테마 show it.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
@@ -299,9 +296,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
   본 화면 preview shows the background without the lyrics.
 - When every layer of a screen is clear, its preview shows the empty picture:
   black (`output-black`) for the 본 화면 and the 무대 화면, and green for the
-  방송 자막. The 무대 화면 keeps the stage layout elements that no clear
-  touches: the clock, the 타이머, and the stage message (03, "Clear buttons and
-  shortcuts").
+  방송 자막. The 무대 화면 keeps the elements that no clear touches: the clock,
+  the 타이머, and the stage message (03, "Clear buttons and shortcuts").
 - The optional 되돌리기 button brings the cleared layers back in the previews
   and the outputs together (03). Ctrl Z only undoes edits.
 - The clear buttons show which layers have something to clear (`ClearButton`
@@ -319,10 +315,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
   row, with no transition. The large preview isn't clickable. The app remembers
   which screen was large.
 - The caption under the large preview shows the screen name, the target (모니터
-  2, 캡처용 창), and at the right end the name of the lyric style that applies
-  to that screen now (for the 무대 화면, the stage layout name). The design
-  system calls this spot the "Look name", but the board values are "기본",
-  "현재와 다음", and "하단 자막" (open question).
+  2, 캡처용 창). It shows no style or layout name, because the 테마 name shows
+  on the toolbar button (11).
 - A screen whose output is off keeps its picture and keeps following the live
   state, so the operator sees what goes out when the output turns on again (03,
   `PreviewFrame` README). Its name is dim.
@@ -389,12 +383,10 @@ and per-item controls in the owning tool tab (October 31 B16).
 
 ### 무대 (Stage)
 
-- 무대 화면 row: the stage screen name and the stage layout select ("현재와
-  다음"). Changing it changes only the stage screen's current layout (see 03).
-- 타이머 row: the 타이머 to show in the stage layout's 타이머 element (the board
-  shows "시계 11:24") (proposal). The choice belongs to the current output: a
-  Look change keeps it, it isn't saved, and deleting that 타이머 clears it (lead
-  decision, October 26).
+- 타이머 row: the 타이머 to show in the 타이머 element of the 무대 화면's 테마
+  (the board shows "시계 11:24") (proposal). The choice belongs to the current
+  output: a 테마 change keeps it, it isn't saved, and deleting that 타이머
+  clears it (lead decision, October 26).
 - Stage message: a text field, a LIVE badge while the message is on, 내리기
   (take down), and 보내기 (send). 보내기 or Enter sends the text to the 무대
   화면 (Enter is a proposal). A new message replaces the previous one.
@@ -465,12 +457,12 @@ and per-item controls in the owning tool tab (October 31 B16).
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 그래픽 text and in the
-  stage layout's 타이머 element.
+  타이머 element of a 테마.
 - Adding a timer from 퀵 실행 creates a new fixed-duration countdown after
   asking for minutes and seconds. Its initial name is 타이머 1, 타이머 2, and so
   on, using an unused number. The row's 이름 바꾸기 changes that timer's name
-  too, so the 무대 tab and stage layout picker show the renamed timer. Those
-  pickers continue selecting the existing timer; they do not create one.
+  too, so the 무대 tab shows the renamed timer. That picker continues selecting
+  the existing timer; it does not create one.
 - The quick row is a start/reset control for its timer's kind. A stopped
   duration countdown starts at its duration; a date/time countdown starts toward
   its target; an elapsed timer starts at its start value. A paused timer
@@ -819,9 +811,9 @@ that ProPresenter's Edit mode has the same behavior.
 - If the reference isn't valid, the field shows an error ring with the reason in
   a tooltip, for example "알아볼 수 없는 구절입니다" (passage not recognized)
   (proposal).
-- Bible 슬라이드 go to the lyrics layer and draw with the current Look's lyric
-  style (proposal). Whether the board's 본 화면 style name "말씀" (sermon) is a
-  style only for Bible passages is an open question.
+- Bible 슬라이드 go to the lyrics layer. Output from the Bible panel counts as a
+  new item and uses the default 테마 of 성경, 말씀, with the 현재 가사 and 성경
+  출처 elements (12).
 - A passage that the operator outputs or adds to the 예배 순서 goes to the front
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
@@ -887,4 +879,4 @@ keys are changed are in 10, "Shortcut system".
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
 | Ctrl Alt B                                       | The Bible field in 퀵 실행                                               | Follows ProPresenter (Open Bibles Mode, S1)                                              |
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
-| A key set for a Look, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
+| A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |

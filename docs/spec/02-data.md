@@ -13,15 +13,15 @@ See 01 for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                                                           | Source                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                                 | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                             | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                                    | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                          | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                             | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                                 |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                                            | Source                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                  | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                              | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                     | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                           | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                              | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                  |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -218,7 +218,7 @@ JSON shape, migration and rollout rules are this app's contract.
 
 ## Service file (`.llservice`)
 
-Each 예배 순서 is one file. It holds only items. It doesn't hold screens, Looks,
+Each 예배 순서 is one file. It holds only items. It doesn't hold screens, 테마,
 매크로, or other settings.
 
 ```json
@@ -336,42 +336,43 @@ Source: `Main` service notes (same file format), `NewService`, and the
 Split the app-wide settings into one JSON file per area (proposal). If one file
 breaks, the other areas still work. File names and `format` values (proposal):
 
-| File (in the data folder `Settings\`) | `format`                 | Content                                    |
-| ------------------------------------- | ------------------------ | ------------------------------------------ |
-| `screens.json`                        | `llsettings.screens`     | Screens                                    |
-| `looks.json`                          | `llsettings.looks`       | Looks, lyric styles, the current Look      |
-| `stage-layouts.json`                  | `llsettings.stage`       | Stage layouts                              |
-| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                     |
-| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                              |
-| `messages.json`                       | `llsettings.messages`    | 메시지 templates and stage message presets |
-| `notices.json`                        | `llsettings.notices`     | 공지 sets                                  |
-| `props.json`                          | `llsettings.props`       | 그래픽                                     |
-| `timers.json`                         | `llsettings.timers`      | 타이머                                     |
-| `labels.json`                         | `llsettings.labels`      | 이름표 list                                |
-| `preferences.json`                    | `llsettings.preferences` | 환경설정                                   |
-| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                          |
-| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages    |
-| `media.json`                          | `llmedia`                | Media list                                 |
+| File (in the data folder `Settings\`) | `format`                 | Content                                             |
+| ------------------------------------- | ------------------------ | --------------------------------------------------- |
+| `screens.json`                        | `llsettings.screens`     | Screens                                             |
+| `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
+| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
+| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
+| `messages.json`                       | `llsettings.messages`    | 메시지 templates, styles, and stage message presets |
+| `notices.json`                        | `llsettings.notices`     | 공지 sets                                           |
+| `props.json`                          | `llsettings.props`       | 그래픽                                              |
+| `timers.json`                         | `llsettings.timers`      | 타이머                                              |
+| `labels.json`                         | `llsettings.labels`      | 이름표 list                                         |
+| `preferences.json`                    | `llsettings.preferences` | 환경설정                                            |
+| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                                   |
+| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages             |
+| `media.json`                          | `llmedia`                | Media list                                          |
+
+An older `looks.json` or `stage-layouts.json` stays on disk and is never read.
+The app doesn't migrate or delete it.
 
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
 
-| File                 | Defaults                                                                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `screens.json`       | See "Screens" below.                                                                                                                                    |
-| `looks.json`         | See "Looks and lyric styles" below.                                                                                                                     |
-| `stage-layouts.json` | See "Stage layouts" below.                                                                                                                              |
-| `macros.json`        | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                                              |
-| `quick.json`         | One item, 검은 화면 (`"black"`).                                                                                                                        |
-| `messages.json`      | No templates. `stagePresets` holds the seven presets of the 무대 tab: 후렴 한 번 더, 마지막 후렴, 처음부터, 천천히, 조금 빠르게, 5분 남음, 마무리 (04). |
-| `notices.json`       | No sets.                                                                                                                                                |
-| `props.json`         | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                                        |
-| `timers.json`        | No 타이머.                                                                                                                                              |
-| `labels.json`        | See "이름표 list" below.                                                                                                                                |
-| `preferences.json`   | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show.                   |
-| `shortcuts.json`     | No bindings: every command uses its default key (10).                                                                                                   |
-| `bible.json`         | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                                               |
-| `media.json`         | No media and no playlists.                                                                                                                              |
+| File               | Defaults                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `screens.json`     | See "Screens" below.                                                                                                                                                           |
+| `themes.json`      | See "테마 (`themes.json`)" below.                                                                                                                                              |
+| `macros.json`      | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                                                                     |
+| `quick.json`       | One item, 검은 화면 (`"black"`).                                                                                                                                               |
+| `messages.json`    | No templates and no `messageStyles`. `stagePresets` holds the seven presets of the 무대 tab: 후렴 한 번 더, 마지막 후렴, 처음부터, 천천히, 조금 빠르게, 5분 남음, 마무리 (04). |
+| `notices.json`     | No sets.                                                                                                                                                                       |
+| `props.json`       | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                                                               |
+| `timers.json`      | No 타이머.                                                                                                                                                                     |
+| `labels.json`      | See "이름표 list" below.                                                                                                                                                       |
+| `preferences.json` | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show.                                          |
+| `shortcuts.json`   | No bindings: every command uses its default key (10).                                                                                                                          |
+| `bible.json`       | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                                                                      |
+| `media.json`       | No media and no playlists.                                                                                                                                                     |
 
 `app.json` starts with `dataRoot` set to the default data folder, empty
 locations (the defaults), and no other fields.
@@ -402,110 +403,33 @@ unassigned (proposal).
 Don't save whether a screen output is on. At launch, the 환경설정 option 켤 때
 화면 출력 (output on launch) decides. See 03.
 
-### Looks and lyric styles (`looks.json`)
+### 테마 (`themes.json`)
 
-| Field           | Type                             | Meaning                                                                                                  | Source                            |
-| --------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `current`       | String (Look ID)                 | The current Look. Save it on every change, and start with it on the next launch (proposal).              | `ShowH` toolbar Look button       |
-| `looks[]`       | Array                            | The Looks.                                                                                               | `Looks`                           |
-| `.id`, `.name`  | String                           | Look ID and name, for example 평상시 (normal), 설교 (sermon), 광고 (announcements), 영상만 (video only). | `Looks`                           |
-| `.screens`      | Object: screen ID to screen Look | The settings for each screen.                                                                            | `Looks` screen cards              |
-| `lyricStyles[]` | Array                            | Lyric styles, for example 기본 (default), 현재와 다음 (current and next), 하단 자막 (lower third).       | `Looks` 가사 스타일 (lyric style) |
+The 테마 lay out all three screens for every 예배 순서 item. Behavior is in 12.
 
-Screen Look:
+| Field      | Type                        | Meaning                                                     |
+| ---------- | --------------------------- | ----------------------------------------------------------- |
+| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.               |
+| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.               |
+| `defaults` | Object: kind to theme ID    | The default 테마 of `song`, `bible`, `notice`, and `media`. |
 
-| Field                 | Type                                                               | Meaning                                                                                                 | Source                                                   |
-| --------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `layers.media`        | Boolean                                                            | Show the background media layer.                                                                        | `Looks`                                                  |
-| `layers.slide`        | Boolean                                                            | Show the lyrics layer.                                                                                  | `Looks`                                                  |
-| `layers.notice`       | Boolean                                                            | Show the 공지 layer.                                                                                    | `Looks`                                                  |
-| `layers.prop`         | Boolean                                                            | Show the 그래픽 layer.                                                                                  | `Looks`                                                  |
-| `layers.message`      | Boolean                                                            | Show the 메시지 layer.                                                                                  | `Looks`                                                  |
-| `layers.clock`        | Boolean                                                            | Clock (무대 화면).                                                                                      | `Looks` 무대 화면 card                                   |
-| `layers.stageMessage` | Boolean                                                            | Stage message (무대 화면).                                                                              | `Looks` 무대 화면 card                                   |
-| `lyricStyle`          | String (lyric style ID)                                            | The lyric style of an audience screen.                                                                  | `Looks` 가사 (lyrics) select                             |
-| `stageLayout`         | String (stage layout ID)                                           | The stage layout of the 무대 화면 (proposal, see the stage layout rule in 03).                          | `Looks` 무대 화면 card, "가사: 현재와 다음"              |
-| `background`          | `{ "kind": "media" }` \| `{ "kind": "color", "color": "#RRGGBB" }` | Whether the background layer shows media or a solid color. The 방송 자막 default is the `chroma` green. | `Looks` 방송 자막 card, "배경: 초록" (background: green) |
+Theme:
 
-Lyric style:
+| Field        | Type                               | Meaning                                                           |
+| ------------ | ---------------------------------- | ----------------------------------------------------------------- |
+| `id`, `name` | String                             | ID and name. The name is not blank and has at most 80 characters. |
+| `screens`    | Object: screen ID to Screen layout | At most 200 entries; a missing entry is 비움.                     |
 
-| Field        | Type                                | Meaning                                                                                    | Source                    |
-| ------------ | ----------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------- |
-| `id`, `name` | String                              | ID and name.                                                                               | `Looks`                   |
-| `font`       | String                              | Font family, for example Pretendard.                                                       | `Looks` 글꼴 (font)       |
-| `weight`     | Number                              | Font weight, for example 700.                                                              | `Looks` "Pretendard Bold" |
-| `color`      | `#RRGGBB`                           | Text color.                                                                                | `Looks` 글자색            |
-| `size`       | Number (px)                         | Size in px on a 1920 x 1080 screen. The app scales it to the screen resolution (proposal). | `Looks` 크기 84           |
-| `lineHeight` | Number                              | Line spacing, for example 1.4.                                                             | `Looks` 줄 간격           |
-| `align`      | `"left"` \| `"center"`              | Horizontal alignment.                                                                      | `Looks` 가로 정렬         |
-| `vAlign`     | `"top"` \| `"middle"` \| `"bottom"` | Vertical position.                                                                         | `Looks` 세로 위치         |
-| `maxLines`   | Integer                             | Maximum lines (see the rule in 03).                                                        | `Looks` 최대 줄 수        |
-| `margin`     | Number (%)                          | Margin.                                                                                    | `Looks` 여백              |
-| `shadow`     | Boolean                             | Shadow.                                                                                    | `Looks` 그림자            |
-| `outline`    | Boolean                             | Outline.                                                                                   | `Looks` 외곽선            |
+Screen layout:
 
-The active `shadow` and `outline` fields above are Boolean. The staged M3-X2a
-version 2 contract adds outline width and color and shadow blur, distance,
-angle, opacity, and color (03, 06). Its validated values are:
+| Field        | Type                                                                               | Meaning                                                               |
+| ------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `mode`       | `{ "kind": "own" }` \| `{ "kind": "same", "screen": ID }` \| `{ "kind": "empty" }` | 직접 배치, `<screen>`과 동일, or 비움.                                |
+| `elements`   | Array of Element, at most 10, bottom first                                         | Used only in `own`.                                                   |
+| `background` | `#RRGGBB`, optional                                                                | The empty color. Absent inherits the screen's configured empty color. |
 
-| Field             | Range or type    | Migrated default             |
-| ----------------- | ---------------- | ---------------------------- |
-| `outline.on`      | Boolean          | The previous `outline` value |
-| `outline.width`   | Number, 1 to 10  | 3                            |
-| `outline.color`   | `#RRGGBB`        | `#000000`                    |
-| `shadow.on`       | Boolean          | The previous `shadow` value  |
-| `shadow.blur`     | Number, 0 to 40  | 8                            |
-| `shadow.distance` | Number, 0 to 20  | 4                            |
-| `shadow.angle`    | Number, 0 to 360 | 45                           |
-| `shadow.opacity`  | Number, 0 to 100 | 60                           |
-| `shadow.color`    | `#RRGGBB`        | `#000000`                    |
-
-M3-X2a defines migration and validation, but the current format remains active
-until its consumers are ready. A version 1 `referencePosition` unknown field is
-archived under `legacyV1` during migration; version 2 initializes
-`referencePosition` to `bottomRight`.
-
-The staged version 2 Looks schema also defines per-screen message styles. Its
-optional `messageStyles` array holds at most 1,000 unique IDs; each style uses
-the lyric text fields and effect objects above, with an optional `background`
-object containing a `#RRGGBB` color and opacity from 0 to 100. Each Look's
-screen entry may have a `messageStyle` ID. An absent or missing ID resolves to
-the fixed default: Pretendard 700, 84 px, white, centered horizontally and
-vertically, line height 1.4, two lines, 6% margin, outline off and shadow on
-with the migrated defaults above. Migration archives pre-existing unknown
-`messageStyles` and screen `messageStyle` fields under `legacyV1`; it does not
-interpret them as version 2 fields. This schema is staged, and the active store
-and output continue to use version 1 until the consumers are activated.
-
-Defaults (proposal): one Look, 평상시. The 본 화면 shows background media,
-lyrics (기본), 그래픽, and 메시지, and hides 공지. The 무대 화면 shows lyrics
-(현재와 다음), the clock, and the stage message, and hides background media and
-메시지. The 방송 자막 shows the background (green) and lyrics (하단 자막), and
-hides 공지, 그래픽, and 메시지. These values copy the 평상시 Look from the
-`Looks` board.
-
-### Stage layouts (`stage-layouts.json`)
-
-| Field               | Type                                                                                                                 | Meaning                                                                                                                           | Source                                                                                                                                                      |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `layouts[]`         | Array                                                                                                                | Stage layouts, for example 현재와 다음, 가사만 (lyrics only), 설교 타이머 (sermon timer), 큰 메시지 (large message).              | `StageEditor`                                                                                                                                               |
-| `.id`, `.name`      | String                                                                                                               | ID and name.                                                                                                                      | `StageEditor`                                                                                                                                               |
-| `.width`, `.height` | Integer                                                                                                              | Layout canvas size, 1920 x 1080.                                                                                                  | `StageEditor`                                                                                                                                               |
-| `.elements[]`       | Array                                                                                                                | Elements.                                                                                                                         | `StageEditor`                                                                                                                                               |
-| `..id`, `..name`    | String                                                                                                               | Element ID and name, for example 현재 가사 (current lyrics).                                                                      | `StageEditor` 이름 (name)                                                                                                                                   |
-| `..kind`            | `"currentSlide"` \| `"nextSlide"` \| `"currentLabel"` \| `"nextLabel"` \| `"clock"` \| `"timer"` \| `"stageMessage"` | Content kind.                                                                                                                     | `Main` board guide (current lyrics, next lyrics, 이름표, clock, 타이머, stage message), `StageEditor` 내용 종류 (content kind). Value names are a proposal. |
-| `..show`            | `"text"` \| `"image"` \| `"memo"`                                                                                    | 보여 줄 것 (what to show): 글자 (text), 그림 (image), 메모 (memo). 슬라이드 elements only.                                        | `StageEditor`                                                                                                                                               |
-| `..frame`           | `{ x, y, w, h }`                                                                                                     | Position and size in canvas pixels.                                                                                               | `StageEditor` X, Y, W, H                                                                                                                                    |
-| `..text`            | Object                                                                                                               | `font`, `weight`, `size`, `color`, `align`, `vAlign`, `lineHeight`, `autoFit`.                                                    | `StageEditor` 글자 (text) tab                                                                                                                               |
-| `..box`             | Object                                                                                                               | Values of the 모양 (appearance) tab, for example `background` and `opacity` (proposal). The board doesn't show the tab's content. | `StageEditor` 모양 tab                                                                                                                                      |
-
-Each element may also store `clockFormat`: `"24h"` or `"12h"`, defaulting to
-`"24h"` when absent (10, 시계 형식). Only clock elements use the value; changing
-an element's kind preserves it for a later return to the clock kind.
-
-Default: one layout, 현재와 다음, with the current 이름표, current lyrics,
-clock, 타이머, next 이름표, next lyrics, and stage message. Element positions
-follow the `StageEditor` board.
+The element fields, the kinds, and their limits are in 12. A missing file is
+created with the defaults in 12, "Defaults and old files".
 
 ### 매크로 (`macros.json`)
 
@@ -550,7 +474,7 @@ does not invent a duration or convert those records. Their quick display and
 click behavior is defined by kind in 04. The original definition and references
 from stage selections and prop tokens keep their IDs and meaning.
 
-### 메시지 templates and stage message presets (`messages.json`)
+### 메시지 templates, styles, and stage message presets (`messages.json`)
 
 | Field            | Type                                        | Meaning                                                                                                   | Source                                                 |
 | ---------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -561,6 +485,28 @@ from stage selections and prop tokens keep their IDs and meaning.
 | `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                                   | `Overlays` 보낼 화면 (send to)                         |
 | `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                      | `Overlays` 표시 시간 (display time)                    |
 | `stagePresets[]` | Array of strings                            | Preset stage messages, for example 후렴 한 번 더 (chorus once more) or 마지막 후렴 (last chorus).         | `Overlays` 무대 tab. Location is a proposal.           |
+
+| Field             | Type                                            | Meaning                                                                                          |
+| ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `messageStyles[]` | Array, at most 1,000, optional                  | How a 메시지 is drawn. Each ID is unique. Absent means no styles.                                |
+| `.id`, `.name`    | String                                          | ID and name.                                                                                     |
+| `.font`           | String                                          | Font family, not blank, for example Pretendard.                                                  |
+| `.weight`         | Integer, 1 to 1000                              | Font weight, for example 700.                                                                    |
+| `.size`           | Number above 0 (px)                             | Size in px on a 1920 x 1080 screen.                                                              |
+| `.color`          | `#RRGGBB`                                       | Text color.                                                                                      |
+| `.align`          | `"left"` \| `"center"`                          | Horizontal alignment.                                                                            |
+| `.vAlign`         | `"top"` \| `"middle"` \| `"bottom"`             | Vertical position.                                                                               |
+| `.lineHeight`     | Number above 0                                  | Line spacing, for example 1.4.                                                                   |
+| `.maxLines`       | Integer, 1 or more                              | Maximum lines.                                                                                   |
+| `.margin`         | Number (%), 0 to 100                            | Margin.                                                                                          |
+| `.outline`        | `{ on, width, color }`                          | `width` 1 to 10 px, `color` `#RRGGBB`.                                                           |
+| `.shadow`         | `{ on, blur, distance, angle, opacity, color }` | `blur` 0 to 40, `distance` 0 to 20, `angle` 0 to 360, `opacity` 0 to 100 (%), `color` `#RRGGBB`. |
+| `.background`     | `{ color, opacity }`, optional                  | A `#RRGGBB` fill behind the text, and its opacity from 0 to 100 (%).                             |
+
+The fixed default style is used when no style is chosen: Pretendard 700, 84 px,
+white, centered horizontally and vertically, line height 1.4, two lines, 6%
+margin, outline off, and shadow on (blur 8, distance 4, angle 45, opacity 60,
+black).
 
 ### 공지 sets (`notices.json`)
 
@@ -575,12 +521,12 @@ from stage selections and prop tokens keep their IDs and meaning.
 
 ### 그래픽 (`props.json`)
 
-| Field          | Type                | Meaning                                                                                                                                                                                                     | Source                                                                                   |
-| -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `props[]`      | Array               | 그래픽, for example 로고 (logo), 설교 본문 자막 (sermon text caption), 시작 카운트다운 (start countdown), 온라인 헌금 안내 (online giving).                                                                 | `Overlays` 그래픽 tab                                                                    |
-| `.id`, `.name` | String              | ID and name.                                                                                                                                                                                                | `Overlays`                                                                               |
-| `.content`     | Object              | `{ "kind": "image", "media": media ID }` or `{ "kind": "text", "text": string, "style": the same fields as a lyric style }`. A `{timer:<timer ID>}` token in the text draws that 타이머's value (proposal). | `Overlays` (a logo image, text such as "예배 시작까지 04:32"). The format is a proposal. |
-| `.targets`     | Array of screen IDs | Target screens.                                                                                                                                                                                             | `Overlays` (each 그래픽 shows its target screen)                                         |
+| Field          | Type                | Meaning                                                                                                                                                                                                                                                                                               | Source                                                                                   |
+| -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `props[]`      | Array               | 그래픽, for example 로고 (logo), 설교 본문 자막 (sermon text caption), 시작 카운트다운 (start countdown), 온라인 헌금 안내 (online giving).                                                                                                                                                           | `Overlays` 그래픽 tab                                                                    |
+| `.id`, `.name` | String              | ID and name.                                                                                                                                                                                                                                                                                          | `Overlays`                                                                               |
+| `.content`     | Object              | `{ "kind": "image", "media": media ID }` or `{ "kind": "text", "text": string, "style": `font`, `weight`, `size`, `color`, `align`, `vAlign`, `lineHeight`, `maxLines`, `margin`, and Boolean `shadow`and`outline` }`. A `{timer:<timer ID>}` token in the text draws that 타이머's value (proposal). | `Overlays` (a logo image, text such as "예배 시작까지 04:32"). The format is a proposal. |
+| `.targets`     | Array of screen IDs | Target screens.                                                                                                                                                                                                                                                                                       | `Overlays` (each 그래픽 shows its target screen)                                         |
 
 ### 타이머 (`timers.json`)
 
@@ -1219,7 +1165,6 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `serviceId`             | Current service ID, or `null` when no service is open or its content hasn't been read yet      | 마지막 슬라이드 (last 슬라이드)            |
 | `state`                 | The complete live output state; its fields provide the three restore rows                      | See the rows below                         |
 | `state.version`         | The state's change count                                                                       | Not displayed; restore starts a new count  |
-| `state.lookId`          | The selected Look, or absent or `null` for the saved current Look                              | Not displayed; see below                   |
 | `state.outputs`         | Screen ID to output on or off                                                                  | 화면 출력 (screen output)                  |
 | `state.layers.slide`    | Complete live 슬라이드: source item ID, position, label, and displayed lines                   | 마지막 슬라이드                            |
 | `state.layers.media`    | Background media choice, loop setting, and playback start time                                 | 마지막 슬라이드 (proposal)                 |
@@ -1227,13 +1172,12 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `state.layers.message`  | Complete active 메시지 layer, including displayed text and captured item payloads when present | 표시 중이던 항목                           |
 | `state.stageMessage`    | Captured stage message text when present                                                       | 표시 중이던 항목                           |
 | `state.layers.notice`   | Complete active 공지 layer, including captured playback state when present                     | 표시 중이던 항목                           |
-| Stage layout overrides  | Join the state when the stage slice (M3-O5) adds them (later work)                             | 표시 중이던 항목 (later work)              |
 | Timer state             | Excluded before writing; running timers are not recorded for restart                           | Not restored                               |
 | `state.layers.audio`    | Cleared before writing; audio playback is not recorded for restart                             | Not restored                               |
 | `state.canUndo`         | Written as `false`; the undo history of clears is not recorded                                 | Not restored                               |
 
-- Restore applies the record's `lookId` when that Look still exists, and
-  otherwise the saved `looks.current`.
+- An older record may still hold `lookId` or `stageLayouts` in its state. They
+  are unknown fields, and restore ignores them.
 - Create `recovery\session.lock` at launch and delete it on a clean exit. If the
   file exists at launch, treat the last exit as a crash and open the output
   state recovery dialog. See 08.

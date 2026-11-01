@@ -56,7 +56,7 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 ### Showing it
 
-| Place                                                      | Look                                                                        | Tooltip                                                                                                  |
+| Place                                                      | Appearance                                                                  | Tooltip                                                                                                  |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Media tile (media strip, media view)                       | Hatched frame with an amber file icon. The picture and duration are hidden. | "파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4" (file not found, with the path)             |
 | Background select in the 슬라이드 panel header             | Amber file icon before the name, and a 다시 연결 button                     | "배경 파일을 찾을 수 없음" (background file not found)                                                   |
@@ -218,11 +218,11 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 | Group   | "복구할 상태" (states to restore), with three check rows, all checked by default              |
 | Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.               |
 
-| Row                                        | Value example                       | Restores                                                                                                                                                                                   |
-| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"     | Turns on the outputs that were on.                                                                                                                                                         |
-| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background).                                                                                               |
-| 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed), and, later, the stage layouts (once M3-O5 adds them to the state). |
+| Row                                        | Value example                       | Restores                                                                                                                 |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"     | Turns on the outputs that were on.                                                                                       |
+| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background).                             |
+| 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed),. |
 
 - Hide a row that has nothing to restore (proposal). If the record has nothing
   at all to restore, don't show the dialog, and launch normally (proposal).

@@ -1,10 +1,10 @@
 # 03. Output
 
 This document defines the output windows, turning screen outputs on and off,
-layers and Looks, outputting 슬라이드 and backgrounds, clearing and undo, the
-방송 자막, the 무대 화면, handling a lost monitor, and recording the output
-state. The main process owns the output state (see 01). Every behavior in this
-document is a command that the main process handles.
+layers and stacking order, outputting 슬라이드 and backgrounds, clearing and
+undo, the 방송 자막, the 무대 화면, handling a lost monitor, and recording the
+output state. The main process owns the output state (see 01). Every behavior in
+this document is a command that the main process handles.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 구성 (arrangement), 이름표 (label), 본 화면 (main screen), 무대 화면
@@ -119,96 +119,27 @@ Ctrl 1, 무대 출력 켜기 Ctrl 2), `Recovery`.
 
 ## Layers and stacking order
 
-A screen draws the layers below, from the bottom up. With nothing on any layer,
-the screen is black (`output-black`). The 방송 자막 capture window is green, as
-its Look's background setting says.
+The live 테마 lays out every screen (12). A screen draws, from the bottom up:
 
-| Order (bottom first) | Layer                                         | Audience screens           | 무대 화면                          |
-| -------------------- | --------------------------------------------- | -------------------------- | ---------------------------------- |
-| 1                    | Media (background media)                      | Yes                        | Yes, when the Look turns it on     |
-| 2                    | Lyrics                                        | Drawn with the lyric style | Drawn by the stage layout elements |
-| 3                    | 공지                                          | Yes                        | No (proposal)                      |
-| 4                    | 그래픽                                        | Yes                        | No (proposal)                      |
-| 5                    | Stage layout clock, 타이머, and stage message | No                         | Yes                                |
-| 6                    | 메시지                                        | Yes                        | Yes, when the Look turns it on     |
+1. The elements of its 테마, from the bottom of the element list to the top (12,
+   "Drawing a screen"). 배경, 미디어, 현재 가사, and the other elements are
+   placed by the 테마, so their order is the element list order.
+2. 공지, then 그래픽, then 메시지, above the elements, each only on the screens
+   it was sent to (see "Where 메시지, 공지, 그래픽, and stage messages go"). A
+   테마 can't hide them.
 
-- The order follows the layer list order of the `Looks` board: background media,
-  lyrics, 공지, 그래픽, 메시지.
+- With nothing live and no 대기 화면 element, the screen shows its 빈 화면 색:
+  black (`output-black`) by default, and chroma key green for the 방송 자막
+  capture window (12, "Empty screens").
 - Audio is a layer without a picture. It exists only as a unit for clearing.
-- The 무대 화면 card in the `Looks` board has no 공지 or 그래픽 rows. So the
-  무대 화면 never draws 공지 or 그래픽 (proposal).
+- Only while no 테마 composition exists (before `themes.json` is read), the
+  output draws the legacy layers: background media, lyrics in the 기본 text
+  style, and the stage message. They ignore any Look. Once a 테마 composition
+  exists, the legacy content layers draw nothing.
+- `looks.json` and `stage-layouts.json` are left on disk and never read.
 
-Source: `Looks`, `Outputs`, `ClearButton` README, design system README (output
-colors).
-
-## Looks
-
-### What a Look decides
-
-A Look is an app-wide setting. For each screen, it decides:
-
-- Whether each layer shows: background media, lyrics, 공지, 그래픽, 메시지, and
-  for the 무대 화면 also the clock and the stage message.
-- The lyric style of an audience screen, for example 기본 (default) on the 본
-  화면 and 하단 자막 (lower third) on the 방송 자막.
-- The stage layout of the 무대 화면, for example 현재와 다음 (current and next).
-- Whether the background layer shows a solid color instead of media, for example
-  "배경: 초록" (background: green) on the 방송 자막.
-
-A Look never changes what is in the output state. It only decides how each
-screen shows that content.
-
-### Changing the Look
-
-- The toolbar's Look button shows the current Look's name. Clicking it opens the
-  list of Looks. Choosing one applies it to every screen at once. The current
-  Look has a check mark.
-- The 매크로 action "Look 바꾸기" (change Look) and user-defined shortcuts also
-  change the Look (see 10; there are no defaults). Put a Look change in an
-  item's start 매크로 to change the look per service or per item.
-- The change happens at once, without a transition (proposal).
-- Save the current Look in settings, and start with it on the next launch
-  (proposal).
-
-### Visibility rule
-
-Something shows on a screen only if both of these are true (proposal):
-
-- It was sent to that screen. 슬라이드 and backgrounds go to every screen.
-  메시지, 공지, and 그래픽 go only to their chosen screens (see 04).
-- The current Look turns that layer on for that screen.
-
-- Hiding by a Look isn't clearing. The content stays in the output state, its
-  clear button stays in the "something to clear" state, and changing the Look
-  shows it again (proposal).
-- Edits to the current Look in 화면 설정 apply to the output at once (our
-  design: the Looks pane shows the live Look at the top and saves a preset with
-  Save, S4 pp. 37 to 38, but no ProPresenter source says whether edits apply
-  live).
-
-### When a Look can't be resolved
-
-A gap in `looks.json` never blanks a screen. Each screen draws around it:
-
-- If the live Look no longer exists (deleted in 화면 설정), the screen uses the
-  saved current Look (`looks.current`). If that Look is gone too, the screen
-  draws as if there were no Look (lead decision, October 26).
-- With no Look, or while `looks.json` can't be read or hasn't been read yet, a
-  screen draws every layer its kind can show, lyrics in the 기본 style, the
-  background media, and the 방송 자막's `chroma` green when its method is the
-  capture window (lead decision, October 26).
-- If the Look has no card for a screen, that screen draws as if there were no
-  Look (lead decision, October 26).
-- If a card's lyric style no longer exists, the lyrics use the 기본 style (lead
-  decision, October 26).
-- Until stage layouts reach the output (M3-O5), the 무대 화면 draws lyrics in
-  the 기본 style when its card turns lyrics on (lead decision, October 26).
-- Each output window and preview logs a missing card or lyric style once per
-  screen and missing ID, for a bounded number of gaps, and logs again after
-  `looks.json` changes (lead decision, October 26).
-
-Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (toolbar
-"평상시"), `ToolbarButton` README (Look menu), `Shortcuts` (Look group).
+Source: `Outputs`, `ClearButton` README, design system README (output
+colors), 12.
 
 ## Outputting a 슬라이드
 
@@ -218,15 +149,16 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
    none.
 2. If the 슬라이드 comes from a different 예배 순서 item, that item starts. If
    it has a start 매크로, the 매크로 runs first, and the 슬라이드 then draws
-   over the result, for example a new Look or a clear (proposal: this order
-   makes the 슬라이드 go out with the new Look). The control window sends the
-   item start (`item.start`) and the 슬라이드 output together as one batch (01),
-   so the start 매크로's result and the 슬라이드 reach the screens in one change
-   (proposal).
+   over the result, for example a clear (proposal: this order makes the 슬라이드
+   go out after the 매크로). The item's 테마 applies to every screen in the same
+   batch (12, "Which 테마 applies"). The control window sends the item start
+   (`item.start`) and the 슬라이드 output together as one batch (01), so the
+   start 매크로's result, the 테마, and the 슬라이드 reach the screens in one
+   change (proposal).
 3. For a song item, the app sets the background (see "Song item background
    rules").
-4. The 슬라이드 draws on the lyrics layer of every screen. If the lyrics layer
-   was cleared, it shows again.
+4. The 슬라이드 draws in the 현재 가사 element of every screen whose 테마 has
+   one. If the lyrics layer was cleared, it shows again.
 
 - Clicking the live 슬라이드 again doesn't redraw it (proposal).
 - A 슬라이드 output from outside the 예배 순서 (퀵 실행, Bible passage, toolbar
@@ -235,60 +167,60 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
 
 ### Drawing text
 
-- Draw the 슬라이드's lines with the lyric style: font, weight, size, color,
-  line spacing, horizontal alignment, vertical position, margin, shadow, and
-  outline.
+- Draw the 슬라이드's lines with the text properties of the 테마's 현재 가사
+  element: font, weight, size, color, line spacing, horizontal alignment,
+  vertical position, shadow, and outline (12, "Element properties").
 - Line breaks are exactly as stored. A line wider than the area wraps at word
   boundaries (proposal).
-- If the 슬라이드 has more lines than the style's maximum lines, or the text
+- If the 슬라이드 has more lines than the element's 최대 줄 수, or the text
   overflows the area, shrink the font until all lines fit (proposal). Never
   split the 슬라이드.
-- A blank 슬라이드 (no lines) can be the live 슬라이드. It draws nothing on the
-  lyrics layer (proposal).
-- Lyric style sizes are for a 1920 x 1080 screen. Scale them to the screen
-  resolution (proposal): every px value of the style (size, outline width,
-  shadow blur and distance) is multiplied by the smaller of (screen width
-  / 1920) and (screen height / 1080).
-- The text area is the screen minus the margin: `margin` % of the screen width
-  on the left and right, and `margin` % of the screen height at the top and
-  bottom (proposal). The lines sit at the top, middle, or bottom of the area
-  (`vAlign`), each line aligned left or centered (`align`).
-- The area may hold `maxLines` lines at the style's size: the text block may be
-  as tall as `maxLines` × size × `lineHeight`, and never taller than the area
+- A blank 슬라이드 (no lines) can be the live 슬라이드. It draws nothing in the
+  현재 가사 element (proposal).
+- Text sizes are for a 1920 x 1080 screen. Scale them to the screen resolution
+  (proposal): every px value of the element (size, outline width, shadow blur
+  and distance) is multiplied by the smaller of (screen width / 1920) and
+  (screen height / 1080).
+- The text area is the element's frame. The lines sit at the top, middle, or
+  bottom of the area (세로 위치), each line aligned left, center, or right (가로
+  정렬).
+- The area may hold 최대 줄 수 lines at the element's size: the text block may
+  be as tall as 최대 줄 수 × size × 줄 간격, and never taller than the area
   (proposal).
 - Wrapping breaks between words; Hangul words aren't broken inside
   (`word-break: keep-all`, as in the design system's thumbnails). A single word
   wider than the area breaks anywhere (proposal).
-- Shrink to fit: draw at the largest whole px size, no larger than the style's
+- Shrink to fit: draw at the largest whole px size, no larger than the element's
   size, at which the wrapped lines fit both the width and the allowed height.
   The size goes down to 1 px if it must (proposal; output-2 builds it this way).
-  So every line fits, and nothing is cut or runs past the margins, except in the
+  So every line fits, and nothing is cut or runs past the frame, except in the
   overflow case: when the lines don't fit even at 1 px, the text draws at 1 px
-  and may run past the margins.
+  and may run past the frame.
 - The operator gets no warning for a 슬라이드 that shrinks a lot. The previews
   in 진행 and the song editor's preview in 준비 show the size it really draws at
   (04, 05), so a 슬라이드 that is too long shows there before it goes out
   (proposal).
 - The October 28 decision gives the lyric outline a width and color, and the
   shadow a blur, distance, angle, opacity, and color. These are properties of
-  the lyric style (06, 10). Until M3-X2 activates the staged stored fields, the
-  existing switches draw the provisional defaults: a 3 px black outline and an 8
-  px blur, 4 px distance down and to the right, 60 % opacity, black shadow. See
-  the
+  the text elements of a 테마 (12). Until M3-X2 activates the staged stored
+  fields, the existing switches draw the provisional defaults: a 3 px black
+  outline and an 8 px blur, 4 px distance down and to the right, 60 % opacity,
+  black shadow. See the
   [decision](../decisions.md#2026-10-28-outline-and-shadow-controls-follow-propresenter).
 
 ### Transitions
 
-- The design system says that Looks and settings decide the transitions when a
-  슬라이드 or background changes. No board shows where to set them, and the
-  media properties 전환 (transition) tab has no content (open question).
+- The design system says that settings decide the transitions when a 슬라이드 or
+  background changes. No board shows where to set them, and the media properties
+  전환 (transition) tab has no content (open question).
 - Version 1 defaults (proposal): 슬라이드 dissolve in 0.2 seconds, backgrounds
-  dissolve in 0.5 seconds, Look changes and clears happen at once.
+  dissolve in 0.5 seconds, and clears happen at once. A 테마 change between
+  items uses the slide transition on the whole screen (12, "Transitions").
 
 Source: `ShowH` (clicking a 슬라이드 changes all three previews), `Main`
-decisions "출력은 누르면 바로" and "구성대로 진행", `Looks` (lyric style
-fields), `SlideThumbnail` README (line breaks as written), design system README
-(states and motion).
+decisions "출력은 누르면 바로" and "구성대로 진행", 12 (text element
+properties), `SlideThumbnail` README (line breaks as written), design system
+README (states and motion).
 
 ## Background media
 
@@ -323,12 +255,12 @@ fields), `SlideThumbnail` README (line breaks as written), design system README
 - Show an image as a still, with its fit setting.
 - When several screens show the same background, each screen plays it
   separately, but they start at the same moment (proposal).
-- A screen whose Look sets a color for the background layer, such as the 방송
-  자막, draws that color instead of the background media.
+- The 테마's 배경 element decides where and how the background media draws. A
+  screen with no 배경 element shows no background media (12).
 - If the file is missing or can't play, follow "Media file missing" in 08.
 
 Source: product log (lyrics over a looping background video), `Media` (end,
-range, speed, fit, sound), `Looks` (방송 자막 background green), `Problems`.
+range, speed, fit, sound), `Problems`.
 
 ## Clearing and undo
 
@@ -356,17 +288,16 @@ duration clears at once; an enabled fade uses its configured duration, capped at
   F3 media, F4 props, F5 audio, F6 messages, F7 announcements (S1). The 7.5
   guide still lists F3 as Clear Background and F6 as Clear Logo (S4 pp. 25 to
   26).
-- Clears don't touch: whether outputs are on, the current Look, 타이머 (they
-  keep running), stage layouts, the stage message (proposal: the stage message
-  comes down from the 진행 도구 무대 tab), and the current item in the 예배
-  순서.
+- Clears don't touch: whether outputs are on, the live 테마, 타이머 (they keep
+  running), the stage message (proposal: the stage message comes down from the
+  진행 도구 무대 tab), and the current item in the 예배 순서.
 - F1 to F7 and their buttons toggle: the first press clears the target, and the
   next press restores what that same key cleared. Each key retains one capture;
   F1 restores every layer it actually cleared without replacing other restored
   layers (user decision, m3-check3).
 - Any new output content resets all key captures, so the next press clears
-  again. Output switches, Looks and transport pause/resume do not send new
-  content. Captures are temporary and are not restored after app recovery.
+  again. Output switches, 테마 changes and transport pause/resume do not send
+  new content. Captures are temporary and are not restored after app recovery.
 - A fade clears the logical live layer immediately while its outgoing picture or
   audio fades. Restoring or replacing that content cancels its outgoing fade.
   Cleared video and notice rotation hold their current frame; restoring resumes
@@ -375,8 +306,8 @@ duration clears at once; an enabled fade uses its configured duration, capped at
   and does not recover after restarting the app.
 - A button is bright when it can clear content or restore its capture. A
   captured key shows its pressed state and the tooltip changes to 복원. It is
-  dim and does nothing only when it can do neither. Content hidden by a Look
-  still counts as something to clear.
+  dim and does nothing only when it can do neither. Content that the 테마 has no
+  element for still counts as something to clear.
 - 모두 has something to clear while any layer has something.
 - Don't show a message after a clear.
 - F1 to F7 work wherever the focus is: in every workspace, in the 환경설정
@@ -429,7 +360,7 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   new 메시지), that clear can no longer be undone (proposal: undo must never
   cover something new).
 - Undo only undoes clears. It doesn't undo clicking a 슬라이드, turning outputs
-  on or off, or changing the Look.
+  on or off, or changing the 테마.
 - Ctrl Z is the edit undo in text fields and editable lists, including 예배 순서
   edits in 진행. It does nothing where there is no edit to undo (10).
 
@@ -440,12 +371,12 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 ## Where 메시지, 공지, 그래픽, and stage messages go
 
-| Content       | Sent to                                                          | Layer                                         | Controlled from               |
-| ------------- | ---------------------------------------------------------------- | --------------------------------------------- | ----------------------------- |
-| 메시지        | Chosen screens (모든 화면 all screens, 본 화면, 무대, 방송 자막) | 메시지                                        | 진행 도구 메시지 tab (see 04) |
-| 공지          | Chosen screens (본 화면, 무대, 방송 자막)                        | 공지                                          | 진행 도구 공지 tab            |
-| 그래픽        | The screens set for each 그래픽                                  | 그래픽                                        | 진행 도구 그래픽 tab, 퀵 실행 |
-| Stage message | 무대 화면                                                        | The stage message element of the stage layout | 진행 도구 무대 tab            |
+| Content       | Sent to                                                          | Layer                               | Controlled from               |
+| ------------- | ---------------------------------------------------------------- | ----------------------------------- | ----------------------------- |
+| 메시지        | Chosen screens (모든 화면 all screens, 본 화면, 무대, 방송 자막) | 메시지                              | 진행 도구 메시지 tab (see 04) |
+| 공지          | Chosen screens (본 화면, 무대, 방송 자막)                        | 공지                                | 진행 도구 공지 tab            |
+| 그래픽        | The screens set for each 그래픽                                  | 그래픽                              | 진행 도구 그래픽 tab, 퀵 실행 |
+| Stage message | 무대 화면                                                        | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab            |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).
@@ -466,8 +397,8 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   the lyrics in the lower third style. OBS picks it up with window capture and a
   chroma key.
 - The in-app preview of the 방송 자막 also has a green background.
-- The default Look card for the 방송 자막 shows only the background (green) and
-  the lyrics (하단 자막). It hides 공지, 그래픽, and 메시지.
+- The default 테마s draw only the lyrics in the 하단 자막 text style on the 방송
+  자막, over its 빈 화면 색 (green for the capture window).
 - The target method is NDI with an alpha channel, which needs no chroma key. The
   capture window is the fallback for setups without NDI. NDI comes after version
   1 (see 09). The 화면 설정 boards and the other boards already label the 방송
@@ -475,59 +406,20 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 
 Source: product log (2026-10-23 capture window, 2026-10-24 NDI preferred with
 the window as fallback), `Main` decision "방송 자막은 NDI로", `Screens`,
-`ScreensNDI`, `Looks`, `Outputs`.
+`ScreensNDI`, `Outputs`.
 
-## 무대 화면 and stage layouts
+## 무대 화면
 
-### What the 무대 화면 draws
+The live 테마 lays out the 무대 화면 like the other screens (12). The 시계,
+타이머, 무대 메시지, and 메모 elements show there as the 테마 places them. 무대
+메시지 and 메모 are offered only on the 무대 화면.
 
-The 무대 화면 draws the elements of the current stage layout:
-
-| Element (`kind`)                | Draws                                                                                                          |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Current lyrics (`currentSlide`) | The lines of the live 슬라이드. Empty after a lyrics clear.                                                    |
-| Next lyrics (`nextSlide`)       | The 슬라이드 after the live 슬라이드 in the current item's sequence. Empty after the last 슬라이드 (proposal). |
-| Current 이름표 (`currentLabel`) | The live 슬라이드's 이름표 name (the board shows "프리코러스").                                                |
-| Next 이름표 (`nextLabel`)       | The next 슬라이드's 이름표 name (the board shows "다음 후렴", next chorus).                                    |
-| Clock (`clock`)                 | The current time, for example "11:24". Each element selects 24시간 (default) or 12시간 with 오전/오후 (10).    |
-| 타이머 (`timer`)                | The value of the 타이머 chosen in the 진행 도구 무대 tab (the board shows "예배 경과 00:54", proposal).        |
-| Stage message (`stageMessage`)  | The stage message sent from the 무대 tab.                                                                      |
-
-- For a 슬라이드 element, 보여 줄 것 (what to show) decides the content. 글자
-  (text) draws the lines. 그림 (image) draws a scaled copy of the picture on the
-  본 화면 (proposal). 메모 (memo) draws the current item's memo (proposal, open
-  question).
-- An element with 크기 자동 맞춤 (auto-fit size) on shrinks its font until the
-  text fits its box.
-- The layout's canvas keeps its own size and scales as a whole, centred, to fit
-  the screen; element frames are canvas pixels and text sizes are pixels on a
-  1080-line canvas, as for lyric styles. The clock reads two-digit hours and
-  minutes, such as "09:05". A 무대 화면 with no stage layout, or whose layout is
-  missing (logged once), draws the 장 and the stage message as an audience
-  screen does (proposal).
-- The Look's 무대 화면 card turns the clock, the stage message, 메시지, and
-  background media on and off. Turning lyrics off empties the current lyrics,
-  next lyrics, and 이름표 elements (proposal).
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command
-  (lead decision, October 26). If the 구성 changes while a 슬라이드 is live,
-  next lyrics and next 이름표 update with the next 슬라이드 sent.
+  (lead decision, October 26). If the 구성 changes while a 슬라이드 is live, the
+  다음 가사 and 다음 이름표 elements update with the next 슬라이드 sent.
 
-### Which stage layout applies (proposal, open question)
-
-Three places choose a stage layout: the Look's 무대 화면 card, the 배치 (layout)
-select in the stage layout editor, and the 무대 화면 select in the 진행 도구
-무대 tab. Version 1 resolves them like this:
-
-| Place                                                                                              | Effect                                                                            | Saved |
-| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----- |
-| The current Look's 무대 화면 card                                                                  | The base layout. When the Look changes, the layout changes to that Look's layout. | Yes   |
-| The 무대 화면 배치 select in the stage layout editor                                               | Edits the current Look's 무대 화면 card value.                                    | Yes   |
-| The select in the 진행 도구 무대 tab, and the 매크로 action "무대 화면 배치" (stage screen layout) | Changes only the current output, until the next Look change.                      | No    |
-
-Source: `StageEditor`, `Overlays` 무대 tab, `Looks` 무대 화면 card, `Main` board
-guide (stage layout editor), `Main` "프로프리젠터와 다른 점" (Looks also turn
-stage layers on and off).
+Source: `Overlays` 무대 tab, 12.
 
 ## Lost monitors
 

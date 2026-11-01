@@ -23,7 +23,7 @@ including the words the app must not use.
 | 본 화면         | main screen        | The main audience screen.                                                                                                         |
 | 무대 화면       | stage screen       | The screen that faces the people on stage.                                                                                        |
 | 방송 자막       | broadcast captions | The lower-third caption screen that OBS picks up.                                                                                 |
-| Look            | Look               | A set that decides, per screen, which layers show and which lyric style or stage layout to use.                                   |
+| 테마            | theme              | A saved preset that lays out all three screens: 본 화면, 무대 화면, and 방송 자막. Also the name of its workspace (see 12).       |
 | 진행 도구       | show tools         | The tabbed panel at the bottom right of the 진행 workspace.                                                                       |
 | 퀵 실행         | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
 | 그래픽          | prop               | A logo, caption, or notice card that sits above the lyrics.                                                                       |
@@ -34,20 +34,20 @@ including the words the app must not use.
 | 매크로          | macro              | A button that runs several actions at once.                                                                                       |
 | 진행            | Show               | The workspace for the live service.                                                                                               |
 | 준비            | Prep               | The workspace for preparing songs and 예배 순서.                                                                                  |
-| 화면 설정       | Screen settings    | The workspace for screens, Looks, and stage layouts.                                                                              |
+| 화면 설정       | Screen settings    | The window for screens and monitors, opened from the 출력 menu.                                                                   |
 
 This spec also uses these English terms:
 
-| Term             | Meaning                                                                                                                                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Current service  | The open 예배 순서. Its name shows in the middle of the menu bar.                                                                                                                                                                    |
-| Output state     | Everything the main process holds about what is on the screens now: which outputs are on, the current Look, the live 슬라이드, the background, 그래픽, 메시지, the stage message, the 공지, audio, 타이머 state, and the last clear. |
-| Live 슬라이드    | The 슬라이드 on the lyrics layer now. There is one live 슬라이드 or none.                                                                                                                                                            |
-| Current item     | The 예배 순서 item that the live 슬라이드 came from. It stays the current item after a clear of the lyrics layer, until a 슬라이드 from another item goes out (proposal).                                                            |
-| Start an item    | The moment the current item changes to another item. Start macros run at this moment (see 04 and 07).                                                                                                                                |
-| During a service | While at least one screen output is on (proposal).                                                                                                                                                                                   |
-| Recovery record  | The file where the main process writes the output state at short intervals. The app uses it to restore the output state after a crash (see 02 and 08).                                                                               |
-| Sequence         | The order of 슬라이드 in the 슬라이드 panel. For a song item, this is the order of the chosen 구성.                                                                                                                                  |
+| Term             | Meaning                                                                                                                                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current service  | The open 예배 순서. Its name shows in the middle of the menu bar.                                                                                                                                                                 |
+| Output state     | Everything the main process holds about what is on the screens now: which outputs are on, the live 테마, the live 슬라이드, the background, 그래픽, 메시지, the stage message, the 공지, audio, 타이머 state, and the last clear. |
+| Live 슬라이드    | The 슬라이드 on the lyrics layer now. There is one live 슬라이드 or none.                                                                                                                                                         |
+| Current item     | The 예배 순서 item that the live 슬라이드 came from. It stays the current item after a clear of the lyrics layer, until a 슬라이드 from another item goes out (proposal).                                                         |
+| Start an item    | The moment the current item changes to another item. Start macros run at this moment (see 04 and 07).                                                                                                                             |
+| During a service | While at least one screen output is on (proposal).                                                                                                                                                                                |
+| Recovery record  | The file where the main process writes the output state at short intervals. The app uses it to restore the output state after a crash (see 02 and 08).                                                                            |
+| Sequence         | The order of 슬라이드 in the 슬라이드 panel. For a song item, this is the order of the chosen 구성.                                                                                                                               |
 
 ## What the product is
 
@@ -94,7 +94,7 @@ Source: product log (2026-10-23 product philosophy, 2026-10-24 decisions),
 - A command whose type the main process doesn't know, or whose payload fails its
   schema, is dropped and logged, and the state doesn't change (`CLAUDE.md`:
   validate every value from outside the process). A command that names something
-  that no longer exists, such as a deleted Look or 그래픽, is dropped and logged
+  that no longer exists, such as a deleted 테마 or 그래픽, is dropped and logged
   the same way. Inside a 매크로 or a batch, that one action is skipped and the
   rest run (07).
 - The live state has limits: at most 4,000 characters per text, 1,000 lines per
@@ -215,12 +215,12 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
 
 | Topic                 | ProPresenter                                                                                                                                         | LoveLight Presenter                                                                                                               |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Services and settings | A playlist holds items that reference presentations (S4 p. 17). Screens (p. 32), Looks (p. 37), stage layouts (p. 40), and macros (S5) are app-wide. | Same.                                                                                                                             |
+| Services and settings | A playlist holds items that reference presentations (S4 p. 17). Screens (p. 32), Looks (p. 37), stage layouts (p. 40), and macros (S5) are app-wide. | Screens, 테마, and 매크로 are app-wide.                                                                                           |
 | New service           | New Playlist from Template, with headers and placeholders (S19, 7.10 and later).                                                                     | Uses sections (구역), including empty sections, instead of placeholders. Can also start from a past service (our design; 02, 05). |
 | Choosing a service    | The Libraries and Playlists list on the upper left (S4 p. 17).                                                                                       | A list that opens from the service name in the 예배 순서 header (our design).                                                     |
 | Output                | Clicking a slide outputs it at once (S4 p. 70).                                                                                                      | Same.                                                                                                                             |
 | Song arrangements     | A song stores several named arrangements, and the playlist stores which one each item uses (S4 pp. 80 to 81).                                        | Same. The 예배 순서 item picks one.                                                                                               |
-| Stage screen          | Looks apply only to audience screens (S4 p. 37). Each stage screen gets a layout from the Stage Layout Editor (p. 40).                               | Looks also turn stage layers on and off (our design). The layout comes from the stage layout editor.                              |
+| Stage screen          | Looks apply only to audience screens (S4 p. 37). Each stage screen gets a layout from the Stage Layout Editor (p. 40).                               | A 테마 lays out the 무대 화면 like the other screens (our design; 12).                                                            |
 | Clearing              | Per-layer clears (S4 p. 25) and, since 7.7, Clear Groups (S3, S7).                                                                                   | Seven per-layer clears. To clear several layers at once, use a 매크로.                                                            |
 | Broadcast output      | NDI output screens (S4 p. 32).                                                                                                                       | NDI is the goal, with the capture window as fallback. Version 1 ships the capture window (see 09).                                |
 | Macro editing         | A macro's actions are edited from its right-click menu (S5). The Action Palette adds actions to slides (S4 p. 83).                                   | The same right-click menu, plus an action palette for 매크로 (our design).                                                        |
@@ -270,13 +270,13 @@ READMEs, `Prefs`.
 - No source lists the items of the other menus. Version 1 has only these items
   (proposal, open question):
 
-  | Menu          | Items                                                                                                                      |
-  | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
-  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                       |
-  | 보기 (View)   | 진행, 준비, 화면 설정, 미디어 (Media), UI 확대, UI 축소, UI 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
-  | 출력 (Output) | 본 화면, 무대 화면, 방송 자막 output on or off (with check marks), separator, list of Looks (check on the current Look)    |
-  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                               |
-  | 도움말 (Help) | Version information, open the log folder                                                                                   |
+  | Menu          | Items                                                                                                                 |
+  | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                  |
+  | 보기 (View)   | 진행, 준비, 테마, 미디어 (Media), UI 확대, UI 축소, UI 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
+  | 출력 (Output) | 본 화면, 무대 화면, 방송 자막 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                    |
+  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                          |
+  | 도움말 (Help) | Version information, open the log folder                                                                              |
 
 - Menu keyboard behavior follows the design system `MenuBar` and `Menu`
   documents.
@@ -290,10 +290,10 @@ The toolbar has the same buttons in the same places in every workspace.
 
 | Position | Button                                                           | Behavior                                                                                              |
 | -------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Left     | 진행, 준비, 화면 설정                                            | Switch workspaces.                                                                                    |
+| Left     | 진행, 준비, 테마                                                 | Switch workspaces.                                                                                    |
 | Left     | 미디어 (Media)                                                   | Shows or hides one shared bottom 미디어 bin in 진행 and 준비 (04, 05); it does not switch workspaces. |
 | Center   | Search field "곡, 가사, 초성" (song, lyrics, initial consonants) | Searches the 라이브러리 (see 04 and 05).                                                              |
-| Right    | Look (shows the current Look name)                               | Opens the Look menu. Choosing a Look applies it at once (see 03).                                     |
+| Right    | 테마 (shows the live 테마 name)                                  | Opens the 테마 menu. Choosing a 테마 applies it at once (see 12).                                     |
 | Right    | 본 화면, 무대, 방송 자막                                         | Turns that screen's output on or off (see 03).                                                        |
 
 Source: `ShowH`, `Toolbar` README, `ToolbarButton` README, `Media`.
@@ -317,11 +317,11 @@ Source: `StatusBar` README, `Notification` README, `Problems`, `ScreensNDI`.
 All three workspaces use the same three-column frame (left, center, right). The
 라이브러리 exists only in 준비.
 
-| Workspace | Left column                   | Center column                                                    | Right column                                            | Details |
-| --------- | ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | ------- |
-| 진행      | 예배 순서, 퀵 실행            | 슬라이드 panel                                                   | Preview, clear row, 진행 도구                           | 04      |
-| 준비      | 예배 순서, 라이브러리         | Song editor or 예배 순서 item.                                   | Preview and 슬라이드 list, or preview and item settings | 05      |
-| 화면 설정 | Screens, Looks, stage layouts | Display layout and output preview, Look editor, or layout editor | Properties                                              | 06      |
+| Workspace | Left column           | Center column                  | Right column                                            | Details |
+| --------- | --------------------- | ------------------------------ | ------------------------------------------------------- | ------- |
+| 진행      | 예배 순서, 퀵 실행    | 슬라이드 panel                 | Preview, clear row, 진행 도구                           | 04      |
+| 준비      | 예배 순서, 라이브러리 | Song editor or 예배 순서 item. | Preview and 슬라이드 list, or preview and item settings | 05      |
+| 테마      | 테마 list, 요소       | 테마 canvas                    | 요소 and 화면 properties                                | 12      |
 
 - Switching workspaces never changes the output.
 - All three workspaces share the current service. The 예배 순서 panels in 진행
@@ -338,18 +338,18 @@ workspaces).
 
 ## The three screens
 
-| Screen    | Kind     | Version 1 output method                                         | Toolbar name | Example in the boards                                    |
-| --------- | -------- | --------------------------------------------------------------- | ------------ | -------------------------------------------------------- |
-| 본 화면   | Audience | Full screen (monitor)                                           | 본 화면      | Monitor 2, lyric style "기본" (default)                  |
-| 무대 화면 | Stage    | Full screen (monitor)                                           | 무대         | Monitor 3, stage layout "현재와 다음" (current and next) |
-| 방송 자막 | Audience | Capture window with green background. NDI comes later (see 09). | 방송 자막    | Lyric style "하단 자막" (lower third)                    |
+| Screen    | Kind     | Version 1 output method                                         | Toolbar name | Example in the boards |
+| --------- | -------- | --------------------------------------------------------------- | ------------ | --------------------- |
+| 본 화면   | Audience | Full screen (monitor)                                           | 본 화면      | Monitor 2             |
+| 무대 화면 | Stage    | Full screen (monitor)                                           | 무대         | Monitor 3             |
+| 방송 자막 | Audience | Capture window with green background. NDI comes later (see 09). | 방송 자막    | Capture window        |
 
 - The app doesn't use a lobby screen.
 - Make the screen list data that can grow, but version 1 has exactly these three
   screens (proposal, open question: the 화면 설정 board has an "add screen"
   button).
-- Each screen draws the same output state differently, using the layers and
-  lyric style (or stage layout for the 무대 화면) of the current Look. See 03.
+- Each screen draws the same output state differently, using the screen's layout
+  in the live 테마. See 12.
 
 Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product log
 (2026-10-24: no lobby, NDI preferred), `Screens`, `Outputs`.
@@ -371,9 +371,7 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 | Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                                          |
 | Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                                       |
 | Screen                         | One output target (본 화면, 무대 화면, 방송 자막).                                                                | App-wide settings                        | Screen ID                                         |
-| Look                           | Per screen: which layers show, and the lyric style (or stage layout for the 무대 화면).                           | App-wide settings                        | Look ID                                           |
-| Lyric style                    | The look of the text on a 슬라이드: font, size, color, alignment, margins.                                        | App-wide settings                        | Lyric style ID                                    |
-| Stage layout                   | The arrangement of elements on the 무대 화면 (current lyrics, next lyrics, 이름표, clock, 타이머, stage message). | App-wide settings                        | Stage layout ID                                   |
+| 테마                           | Per screen: 직접 배치 with its own elements, the same as another screen, or 비움 (12).                            | App-wide settings                        | 테마 ID                                           |
 | 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
 | 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
 | 메시지 template                | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
@@ -398,10 +396,10 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
   assignment (02, 04).
 - Songs and 예배 순서 refer to media only by media ID. File paths exist only in
   the media list.
-- A Look holds, for each screen ID, the visibility of each layer and a lyric
-  style ID (or a stage layout ID for the 무대 화면).
-- 매크로 actions refer to Looks, media, 그래픽, 메시지 templates, 공지 sets,
-  타이머, audio playlists, stage layouts, and other 매크로 by ID.
+- A 테마 holds, for each screen ID, a mode and its elements. A 예배 순서 item
+  names its 테마 by ID (12).
+- 매크로 actions refer to 테마, media, 그래픽, 메시지 templates, 공지 sets,
+  타이머, audio playlists, and other 매크로 by ID.
 - A 퀵 실행 item points to a song, a Bible passage, a 그래픽, a 타이머, or a
   매크로. See 04.
 
@@ -410,8 +408,8 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 | Per service (`.llservice`)            | Per song (`.llsong`)                    | One for the whole app                       |
 | ------------------------------------- | --------------------------------------- | ------------------------------------------- |
 | Service name, date and time           | Title                                   | Screens                                     |
-| Items and their order                 | Source slides (lines, optional hot key) | Looks, lyric styles                         |
-| The 구성 name each song item picks    | Default background                      | Stage layouts                               |
+| Items and their order                 | Source slides (lines, optional hot key) | 테마                                        |
+| The 구성 name each song item picks    | Default background                      |                                             |
 | Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                      |
 | Start 매크로 of each song item        |                                         | 퀵 실행                                     |
 | Memo of each song item                |                                         | 메시지 templates, 공지 sets, 그래픽, 타이머 |
@@ -419,9 +417,9 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 |                                       |                                         | 환경설정, shortcuts, Bible translations     |
 |                                       |                                         | Media list and playlists                    |
 
-- To make one service look different from another, keep several Looks and switch
-  them with the start 매크로 of an item.
-- The version 62 idea of storing screens, Looks, and 매크로 inside the service
+- To make one service look different from another, give its items different 테마
+  or switch the 테마 with the start 매크로 of an item.
+- The version 62 idea of storing screens, 테마, and 매크로 inside the service
   file isn't used.
 
 Source: `Main` decisions "라이브러리와 예배 순서는 따로", "설정은 앱 전체에
@@ -443,4 +441,4 @@ clears.
 | Audio                    | Audio playback (no picture)                    | F5 오디오                                   |
 | Clock, stage message     | Elements that exist only on the 무대 화면      | 내리기 (Take down) in the 무대 tab (see 04) |
 
-Source: `Looks`, `ShowH` (clear row), `ClearButton` README, `Overlays`.
+Source: `ShowH` (clear row), `ClearButton` README, `Overlays`.

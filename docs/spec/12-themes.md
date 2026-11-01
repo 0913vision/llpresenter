@@ -3,9 +3,9 @@
 Status: M4. The concept was agreed with the user on October 30, and the open
 points on October 31 (the approval page, accepted as proposed).
 
-This file replaces the Looks section of 03, the lyric styles and stage layouts
-of 02 and 06, and the 화면 설정 parts that edit them. 메시지 styles, 공지 sets,
-and 그래픽 keep their own files and behavior.
+This file is the single source for what a screen shows: the app has no Looks, no
+lyric styles (가사 스타일), and no stage layouts (무대 배치). 메시지 styles,
+공지 sets, and 그래픽 keep their own files and behavior.
 
 ## Why
 
@@ -17,10 +17,10 @@ The user's needs (October 30):
 4. Each item places elements freely on each screen.
 5. The freedom is limited, like a very simple Photoshop.
 
-A Look only shows or hides layers, and one 배경 layer goes to every screen, so
-"video A on the 본 화면, video B on the 무대 화면, lyrics on the 방송 자막" is
-impossible. ProPresenter's Looks likewise turn layers on and off per screen (S4
-pp. 37 to 38), so it has the same limit.
+Showing or hiding layers, with one 배경 layer for every screen, cannot give
+"video A on the 본 화면, video B on the 무대 화면, lyrics on the 방송 자막".
+ProPresenter's Looks turn layers on and off per screen (S4 pp. 37 to 38), so
+they have the same limit. A 테마 sets the elements of each screen itself.
 
 ## Concepts
 
@@ -79,12 +79,12 @@ pp. 37 to 38), so it has the same limit.
 
 ### Element properties
 
-Geometry fields in both the theme and stage layout editors display the nearest
-0.1 reference-canvas pixel, omitting trailing zeroes. Ties round toward positive
-infinity. Typing retains the entered precision within the allowed range; display
-rounding does not change the saved number. Dragging and resizing save the
-rounded geometry shown on the canvas and in the fields. Arrow keys retain their
-existing one-pixel increment (ten with Shift).
+Geometry fields in the 테마 editor display the nearest 0.1 reference-canvas
+pixel, omitting trailing zeroes. Ties round toward positive infinity. Typing
+retains the entered precision within the allowed range; display rounding does
+not change the saved number. Dragging and resizing save the rounded geometry
+shown on the canvas and in the fields. Arrow keys retain their existing
+one-pixel increment (ten with Shift).
 
 | Property         | Applies to                                  | Range                                                  |
 | ---------------- | ------------------------------------------- | ------------------------------------------------------ |
@@ -96,7 +96,7 @@ existing one-pixel increment (ten with Shift).
 | 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                   |
 | 세로 위치        | Text elements                               | 위, 가운데, 아래                                       |
 | 최대 줄 수       | 현재 가사, 다음 가사                        | 1 to 12; the text shrinks to fit (03, "Drawing text")  |
-| 외곽선, 그림자   | Text elements                               | The ranges of the lyric style effects (02)             |
+| 외곽선, 그림자   | Text elements                               | On or off                                              |
 | 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                    |
 | 모서리           | 사각형, 그림, 미디어, 배경                  | 0 to 200                                               |
 | 맞춤             | 그림, 미디어, 배경, 오버레이                | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)    |
@@ -107,18 +107,16 @@ Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음
 On and off properties (외곽선, 그림자, 채우기) are checkboxes, not switches
 (user, October 31).
 
-다음 이름표 keeps the stage layout element of today (06). 영상 남은 시간 follows
-ProPresenter's Video Countdown; ProPresenter has no native next-item name, only
-through Planning Center (S4 pp. 41 to 42), so there is no 다음 항목 이름
-element.
+영상 남은 시간 follows ProPresenter's Video Countdown; ProPresenter has no
+native next-item name, only through Planning Center (S4 pp. 41 to 42), so there
+is no 다음 항목 이름 element.
 
 ### Limits
 
 - At most 10 elements per screen. The 요소 header shows the count and the limit,
   for example "4 / 10".
 - No rotation, effects beyond outline and shadow, masks, or blend modes.
-- Snap to the grid and to other elements' edges and centers, as the 무대 배치
-  editor does today.
+- Snap to the grid and to other elements' edges and centers.
 
 ## Which 테마 applies
 
@@ -132,11 +130,11 @@ element.
 
 ### 테마 바꾸기
 
-- The toolbar button that was Look shows only the live 테마's name under its
-  icon, with 테마 바꾸기 in its tooltip and accessible name. Its menu lists the
-  테마 as radio rows, a separator, and 테마 편집…, which opens the 테마
-  workspace. The 출력 menu rows follow it.
-- The 매크로 action Look 바꾸기 becomes 테마 바꾸기, with a 테마 as its target.
+- The toolbar button shows only the live 테마's name under its icon, with 테마
+  바꾸기 in its tooltip and accessible name. Its menu lists the 테마 as radio
+  rows, a separator, and 테마 편집…, which opens the 테마 workspace. The 출력
+  menu rows follow it.
+- The 매크로 action 테마 바꾸기 has a 테마 as its target (07).
 - A 테마 picked by hand or by a 매크로 holds until the next item starts; then
   the new item's 테마 applies.
 - Edits to the live 테마 in the editor apply to the output at once.
@@ -202,8 +200,7 @@ as ProPresenter keeps them in its Configure Screens window (S4 p. 32).
   kinds not used yet on this screen, as tiles with kind icons in two columns.
 - **Center:** the canvas of the current screen, header `<테마> / <screen>`. A
   bottom bar holds 격자에 맞추기 and 비율 고정 on the left, and zoom out, the
-  zoom percentage, zoom in, and 화면에 맞춤 on the right, as the 무대 배치
-  editor.
+  zoom percentage, zoom in, and 화면에 맞춤 on the right.
 - **Right column:** the three screens small on top (a click switches the
   canvas), then panel-header tabs 요소 | 화면. 요소 shows the selected element's
   properties. 화면 shows the mode, the 배경색, and the size. Selecting an
@@ -218,9 +215,9 @@ Editing:
   goes back to 요소 추가.
 - Right-click an element: 맨 앞으로 가져오기, 앞으로 가져오기, 뒤로 보내기, 맨
   뒤로 보내기, then 복사, 붙여넣기, 삭제.
-- Ctrl C and Ctrl V copy elements, with position and look, between screens and
+- Ctrl C and Ctrl V copy elements, with position and style, between screens and
   테마. Ctrl A selects every element of the screen. Pasting a one-per-screen
-  kind the screen already has replaces its position and look.
+  kind the screen already has replaces its position and style.
 - Every edit saves at once, as other settings do (06).
 
 The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › (곡, 성경,
@@ -301,7 +298,7 @@ Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 `background`, `overlay`, `itemName`, `text`, `image`, `box`, `clock`, `timer`,
 `stageMessage`, `memo`, `nextLabel`, `videoTimeLeft`), `frame` `{ x, y, w, h }`,
 and the properties of its kind from "Element properties" (`text` fields as the
-lyric style in 02, `box` with fill, opacity, and radius, `fit`, and per kind
+text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
 `content` for 글, `mediaId` for 그림, `timerId` for 타이머, `clockFormat` for
 시계). Keep unknown fields, as every settings file does (02).
 
@@ -316,21 +313,18 @@ lyric style in 02, `box` with fill, opacity, and radius, `fit`, and per kind
 
 - A new `themes.json` holds 찬양, 말씀, 광고, and 영상 as the defaults of 곡,
   성경, 공지, and 미디어 (draft E's names), and a 대기 화면 with nothing on any
-  screen. Their layouts copy today's defaults: the 평상시 Look, the lyric styles
-  기본 and 하단 자막, and the stage layout 현재와 다음.
+  screen.
 - `looks.json` and `stage-layouts.json` are no longer read. No user files exist
   yet, so there is no migration (decision of October 26).
 
-## What changes elsewhere
+## Where the rest of the spec uses 테마
 
-- 03: the Looks section, the Look parts of "Layers and stacking order", and
-  "무대 화면 and stage layouts" are replaced by this file.
-- 02: `looks.json` and `stage-layouts.json` are replaced by `themes.json`;
-  `messageStyles` move to `messages.json` with the 메시지 templates.
-- 06 and the 화면 설정 workspace: the workspace becomes 테마 and holds the 테마
-  editor in place of the Look editor, the 가사 스타일 section, and the 무대 배치
-  editor. Screens and monitors move to the 화면 설정 window.
-- 07: the 매크로 action Look 바꾸기 becomes 테마 바꾸기 ("테마 바꾸기" above).
-- 11: the toolbar Look button and the 출력 menu's Look rows become 테마 바꾸기;
-  출력 › 화면 설정… opens the 화면 설정 window; the 지우기 row gains 항목.
+- 03: the layers of an output and the stacking order follow "Drawing a screen".
+- 02: `themes.json` holds the 테마. `messageStyles` live in `messages.json` with
+  the 메시지 templates.
+- 06 and the 화면 설정 workspace: the workspace is 테마 and holds the 테마
+  editor. Screens and monitors are in the 화면 설정 window.
+- 07: the 매크로 action 테마 바꾸기 ("테마 바꾸기" above).
+- 11: the toolbar 테마 button and the 출력 menu's 테마 바꾸기 row; 출력 › 화면
+  설정… opens the 화면 설정 window; the 지우기 row has 항목.
 - 04: the 진행 지우기 row starts with 항목 (항목 끄기).

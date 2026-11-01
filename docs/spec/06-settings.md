@@ -26,21 +26,19 @@ It closes with the app and remembers its normal size, position, and maximized
 state in the computer-local `app.json`. A saved position on a disconnected
 monitor is brought into the current work area.
 
-| Column | 화면 설정 window                                                                      | 테마 workspace until the theme editor lands                    |
-| ------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Left   | 화면 list, grouped into 청중 and 무대                                                 | Look and 무대 배치 lists                                       |
-| Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | Look editor or 무대 배치 canvas                                |
-| Right  | Selected screen properties                                                            | Selected stage element properties, when editing a stage layout |
+| Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
+| ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Left   | 화면 list, grouped into 청중 and 무대                                                 | 테마 list, then 요소 and 요소 추가 for the current screen |
+| Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | The canvas of the current screen                          |
+| Right  | Selected screen properties                                                            | The three screens, then the 요소 and 화면 tabs            |
 
-- The toolbar workspace tab is 테마, with the layers icon used by Look.
-- The window contains no Look or 무대 배치 panels. These editors stay in 테마
-  until the theme editor in 12 replaces them.
+- The toolbar workspace tab is 테마. The 테마 editor is specified in 12; "The
+  테마 editor canvas" below holds the canvas and color rules it shares.
+- The 화면 설정 window holds screens and monitors only. It has no 테마 panels.
 - Changes save at once and apply to output at once. Closing the window takes its
   test pattern off the output.
-- The current Look and stage layout carry the LIVE mark.
 
-Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Look
-편집, 무대 화면 배치 편집).
+Source: `Screens`, `Main` board guide (화면 설정), 12.
 
 ## Screens
 
@@ -66,13 +64,13 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   monitor for 3 seconds, so the operator can match boxes to monitors (proposal
   for the duration). Each number shows in a borderless window above everything,
   output windows included, and never takes focus or the mouse (proposal).
-  - Look (lead decision, October 26; no board draws it): a 240 x 240 square at
-    the centre of each monitor, sized in device-independent pixels so a monitor
-    at 150% shows it at the same physical size. The square is `--output-black`
-    and holds only the monitor number, the same number as the monitor's display
-    layout box, in `--text-on-fill`, `--font-ui` at 160 px, weight 700 with
-    tabular figures as the box draws its number. ui can restyle it through the
-    design system.
+  - Appearance (lead decision, October 26; no board draws it): a 240 x 240
+    square at the centre of each monitor, sized in device-independent pixels so
+    a monitor at 150% shows it at the same physical size. The square is
+    `--output-black` and holds only the monitor number, the same number as the
+    monitor's display layout box, in `--text-on-fill`, `--font-ui` at 160 px,
+    weight 700 with tabular figures as the box draws its number. ui can restyle
+    it through the design system.
   - A number never covers a shown 방송 자막 capture window. When the centre
     would, the number moves to the first free corner, 48 device-independent
     pixels in from the edges (top left, top right, bottom left, bottom right);
@@ -139,20 +137,20 @@ Note: the proposal in 10 would remove the 절전 막기 row (fixed on while any
 output is on). 항상 위 defaults off for every method and can be enabled in the
 screen's properties (user decision, m3-check3).
 
-| Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                                                                                                                                       |
-| ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                                               |
-| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | 무대 screens use a stage layout. 청중 screens use a lyric style (proposal).                                                                                                                                                                                                    |
-| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                                                       |
-| 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                                                   |
-| 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal).                                                                                                                     |
-| 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                                                                                                                                                |
-| 출력               | 빈 화면 색 (empty color)              | Color swatch and hex field                                                        | Optional `emptyColor` in `screens.json`, as `#RRGGBB`. Defaults to black, or `#00B140` for 캡처용 창. The output and preview use it for empty areas, including picture correction margins. An explicit Look background still takes precedence until themes replace Looks (12). |
-| 안정성 (stability) | 연결이 끊기면 (when disconnected)     | Select: 창으로 바꾸기 (switch to a window), and turning the output off (proposal) | See 03.                                                                                                                                                                                                                                                                        |
-| 안정성             | 항상 위 (always on top)               | Switch                                                                            | Default off. Changes only this output's stacking, without taking focus or moving any window. See 03, M3-C3-9 (user decision).                                                                                                                                                  |
-| 안정성             | 절전 막기 (prevent sleep)             | Switch                                                                            | See 03.                                                                                                                                                                                                                                                                        |
-| 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                                                                                                                                        |
-| 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                                                                                                                                        |
+| Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                                                                                                           |
+| ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                   |
+| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | The kind decides which elements the 테마 editor offers on the screen (12).                                                                                                                                                                         |
+| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                           |
+| 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                       |
+| 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal).                                                                                         |
+| 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                                                                                                                    |
+| 출력               | 빈 화면 색 (empty color)              | Color swatch and hex field                                                        | Optional `emptyColor` in `screens.json`, as `#RRGGBB`. Defaults to black, or `#00B140` for 캡처용 창. The output and preview use it for empty areas, including picture correction margins. A 테마 screen's 배경색 overrides it for that 테마 (12). |
+| 안정성 (stability) | 연결이 끊기면 (when disconnected)     | Select: 창으로 바꾸기 (switch to a window), and turning the output off (proposal) | See 03.                                                                                                                                                                                                                                            |
+| 안정성             | 항상 위 (always on top)               | Switch                                                                            | Default off. Changes only this output's stacking, without taking focus or moving any window. See 03, M3-C3-9 (user decision).                                                                                                                      |
+| 안정성             | 절전 막기 (prevent sleep)             | Switch                                                                            | See 03.                                                                                                                                                                                                                                            |
+| 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                                                                                                            |
+| 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                                                                                                            |
 
 ### NDI properties (later)
 
@@ -176,110 +174,18 @@ puts the choice of 초록, 검정, and 체크 무늬 in the NDI properties. In v
 Source: `Screens`, `ScreensNDI`, `PropertyRow` README, `Select` README, product
 log version 56.
 
-## Look editor
+## The 테마 editor canvas
 
-Note: the proposal in 10 would add rows to the lyric style properties (굵기,
-글자 간격, outline and shadow details, 출처 위치).
+12 specifies the 테마 workspace: the 테마 list, the 요소 list, the right column
+tabs, and the element properties. This section holds the canvas and color rules
+that editor uses.
 
-### Layout
+### Canvas editing
 
-- Left: the Look list with Look 추가 (add Look). The current Look is marked.
-- Center header: "Look", the Look name, the current mark, and 복제 (duplicate).
-- One card per screen. A card shows the screen icon, name, and target, a preview
-  of that screen with this Look, and a layer checklist:
-
-| Screen    | Layer rows (check boxes)                                                                             |
-| --------- | ---------------------------------------------------------------------------------------------------- |
-| 본 화면   | 배경 미디어 (background media), 가사 (lyrics, with a lyric style select), 공지, 그래픽, 메시지       |
-| 무대 화면 | 배경 미디어, 가사 (with a stage layout select), 시계 (clock), 무대 메시지 (stage message), 메시지    |
-| 방송 자막 | 배경 (background, with a color select, 초록), 가사 (with a lyric style select), 공지, 그래픽, 메시지 |
-
-- Below the cards: the 가사 스타일 (lyric style) section, with a segmented
-  control for the styles (기본, 현재와 다음, 하단 자막), a style preview, and a
-  two-column property grid:
-
-| Property                         | Control                                                                           |
-| -------------------------------- | --------------------------------------------------------------------------------- |
-| 글꼴 (font)                      | Select. Pretendard is bundled. Installed system fonts are also listed (proposal). |
-| 글자색 (text color)              | Color swatch and hex value. Clicking the swatch opens the color picker.           |
-| 크기 (size)                      | Number field                                                                      |
-| 줄 간격 (line spacing)           | Number field                                                                      |
-| 가로 정렬 (horizontal alignment) | 왼쪽 (left), 가운데 (center)                                                      |
-| 세로 위치 (vertical position)    | 위 (top), 가운데 (middle), 아래 (bottom)                                          |
-| 최대 줄 수 (maximum lines)       | Number field                                                                      |
-| 여백 (margin)                    | Number field (%)                                                                  |
-| 그림자 (shadow)                  | Switch, blur, distance, angle, opacity and color                                  |
-| 외곽선 (outline)                 | Switch, width and color                                                           |
-
-The text color picker opens with the current color. Its color plane and hue,
-saturation and value sliders adjust a preview and hex value. Apply saves the
-chosen color; cancel discards the selection. The hex field also accepts
-`#RRGGBB`, commits on Enter or blur, and discards invalid input on blur.
-
-The detailed controls follow the October 28 user decision (10). The current
-Boolean storage and fixed rendering values remain in use until M3-X2 activates
-the staged data contract and implements the controls and rendering (02, 03).
-
-### Behavior
-
-- Every change saves at once. Changes to the current Look apply to the output at
-  once (proposal).
-- A lyric style is shared. Editing it changes every Look that uses it.
-- The color select of the 방송 자막 background offers 초록 (`chroma`), 검정
-  (black), and 미디어 (show the background media) (proposal; the board shows
-  only 초록).
-- Look 추가 creates "새 Look" (new Look) as a copy of the current Look
-  (proposal). 복제 creates "<name> 복사본" (copy) (proposal).
-- The right-click menu of a Look row has 이름 바꾸기 (rename) and 삭제 (delete).
-  The current Look can't be deleted. Deleting a Look that a 매크로 uses asks in
-  a confirmation dialog (proposal).
-- No board shows how to add, rename, or delete a lyric style (open question).
-  Version 1 adds a right-click menu to the style segments, with 새 스타일 (new
-  style), 이름 바꾸기, and 삭제. A style that a Look uses can't be deleted
-  (proposal).
-
-Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
-`PropertyRow` README, `Switch` README.
-
-## Stage layout editor
-
-### Layout
-
-- Left: the 무대 배치 list (a small schematic of each layout, the name, and a
-  mark for the layout in use) with 새 배치 (new layout). Below it, the 무대 화면
-  panel: the screen name, the target, a health dot, and the 배치 (layout)
-  select. 03 defines what that select changes.
-- Center: a header with the layout name and size ("현재와 다음 1920×1080") and
-  요소 추가 (add element, a menu of element kinds). The 16:9 canvas with the
-  elements. The selected element has eight handles. A bottom bar has X, Y, W, H
-  fields (the shared 0.1 px display and drag rule in 12, "Element properties"),
-  비율 고정 (keep aspect ratio), 격자에 맞추기 (snap to grid), and the canvas
-  zoom ("53%"). 화면에 맞춤 has no default key; Ctrl 0 resets UI zoom (10; M2
-  check 1 row 11).
-- Right: the 요소 (element) properties: the element name and 요소 삭제 (delete
-  element). The 내용 (content) group: 이름 (name), 내용 종류 (content kind, a
-  select such as 현재 슬라이드, current 슬라이드), and 보여 줄 것 (what to show:
-  글자 text, 그림 image, 메모 memo). Then the tabs 모양 (appearance) and 글자
-  (text). The 글자 tab has 글꼴, 굵기 (weight), 크기, 글자색, 가로 정렬, 세로
-  정렬, 줄 간격, and 크기 자동 맞춤 (auto-fit size).
-- Clock elements also offer 시계 형식: 24시간 (default) or 12시간. The latter
-  shows 오전/오후 with the 12-hour time, including noon and midnight. It changes
-  only that element's display; the wall clock and other clocks are unaffected.
-
-### Element kinds
-
-| Kind in the 요소 추가 menu (proposal names) | Content                           |
-| ------------------------------------------- | --------------------------------- |
-| 현재 가사 (current lyrics)                  | The live 슬라이드                 |
-| 다음 가사 (next lyrics)                     | The next 슬라이드 in the sequence |
-| 현재 이름표 (current 이름표)                | The live 슬라이드's 이름표        |
-| 다음 이름표 (next 이름표)                   | The next 슬라이드's 이름표        |
-| 시계 (clock)                                | Current time                      |
-| 타이머                                      | A 타이머 value                    |
-| 무대 메시지 (stage message)                 | The stage message                 |
-
-### Behavior
-
+- The canvas is 16:9 (1920 x 1080 reference pixels). The selected element has
+  eight handles. The bottom bar has 격자에 맞추기 (snap to grid), 비율 고정
+  (keep aspect ratio), and the canvas zoom. 화면에 맞춤 has no default key; Ctrl
+  0 resets UI zoom (10; M2 check 1 row 11).
 - Dragging an element moves it. Dragging a handle resizes it. With 비율 고정 on,
   resizing keeps the aspect ratio. With 격자에 맞추기 on, positions snap to a 20
   px grid (proposal for the grid size).
@@ -292,18 +198,19 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
   rendered on output (user decision, "Smart guides in the stage layout editor").
 - The arrow keys move the selected element 1 px, and Shift with an arrow key
   moves it 10 px. Delete removes it (proposal).
-- While editing, elements show the live content if there is any, and sample text
-  otherwise (proposal).
-- Every change saves at once. If the layout is on the 무대 화면 now, the change
-  applies to the output at once (proposal).
-- 새 배치 creates an empty 1920 x 1080 layout named "새 배치" (proposal). The
-  right-click menu of a layout row has 복제, 이름 바꾸기, and 삭제. A layout
-  that a Look uses can't be deleted (proposal).
-- No board shows the content of the 모양 tab (open question). Version 1 offers a
-  background color and opacity for the element box (proposal).
+- 시계 elements also offer 시계 형식: 24시간 (default) or 12시간. The latter
+  shows 오전/오후 with the 12-hour time, including noon and midnight. It changes
+  only that element's display; the wall clock and other clocks are unaffected.
 
-Source: `StageEditor`, `Main` board guide (무대 화면 배치 편집), `IconButton`
-README (비율 고정, 격자에 맞추기), `SegmentedControl` README.
+### Color picker
+
+The text color picker opens with the current color. Its color plane and hue,
+saturation and value sliders adjust a preview and hex value. Apply saves the
+chosen color; cancel discards the selection. The hex field also accepts
+`#RRGGBB`, commits on Enter or blur, and discards invalid input on blur.
+
+Source: `StageEditor`, `IconButton` README (비율 고정, 격자에 맞추기),
+`Checkbox` README, 12.
 
 ## 환경설정 window
 
@@ -366,9 +273,9 @@ full command list.
   전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
   count).
 - A table with the columns 명령 (command) and 단축키 (shortcut), grouped as in
-  10's command list. Each Look, 그래픽, 매크로, and 타이머 has its own row under
-  its group. Bare letters/digits are reserved for source-slide hot keys, which
-  are edited on that song's particular source slide (05), not in a global 이름표
+  10's command list. Each 그래픽, 매크로, and 타이머 has its own row under its
+  group. Bare letters/digits are reserved for source-slide hot keys, which are
+  edited on that song's particular source slide (05), not in a global 이름표
   binding group (October 27 S26 user decision).
 - A bar at the bottom shows the selected command, its default ("기본값 없음", no
   default), and the buttons 기본값으로 (reset to default) and 지우기 (remove the
