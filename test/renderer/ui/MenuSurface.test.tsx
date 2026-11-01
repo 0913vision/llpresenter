@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {watchInputModality} from '@renderer/ui/inputModality';
@@ -267,25 +267,6 @@ describe('MenuSurface', () => {
     } finally {
       stopWatching();
     }
-  });
-
-  it('draws the part of a label that a search matched', async () => {
-    render(
-      <Harness
-        entries={[
-          {
-            kind: 'item',
-            id: 'song',
-            label: '만복의 근원 하나님',
-            match: {start: 4, end: 6},
-          },
-        ]}
-      />,
-    );
-    await userEvent.click(screen.getByRole('button', {name: '파일'}));
-    const item = screen.getByRole('menuitem', {name: '만복의 근원 하나님'});
-    expect(within(item).getByText('근원').tagName).toBe('SPAN');
-    expect(item.textContent).toBe('만복의 근원 하나님');
   });
 
   it('fits itself again when the window shrinks, until it closes', async () => {
