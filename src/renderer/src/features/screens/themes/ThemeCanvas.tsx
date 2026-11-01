@@ -242,14 +242,6 @@ function ThemeCanvas({
         snapGrid={model.snapGrid}
         setSnapGrid={model.setSnapGrid}
         getElementLabel={element => element.name}
-        toolbar={
-          <header className={styles.canvasHeader}>
-            <span>테마</span>
-            <strong>{model.theme.name}</strong>
-            <span>/</span>
-            <strong>{model.screen.name}</strong>
-          </header>
-        }
         renderContent={values => (
           <ThemePicture
             elements={values}

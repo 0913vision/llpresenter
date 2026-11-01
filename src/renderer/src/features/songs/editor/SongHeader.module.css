@@ -17,7 +17,10 @@
 }
 
 .used {
+  display: inline-flex;
   flex: none;
+  align-items: center;
+  gap: var(--space-6);
   color: var(--text-3);
   font: var(--type-caption);
   font-variant-numeric: tabular-nums;
@@ -25,21 +28,4 @@
 
 .used[data-unavailable='true'] {
   color: var(--warning);
-}
-
-.library,
-.used {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-6);
-}
-
-.library {
-  height: var(--size-control-xs);
-  padding: 0 var(--space-8);
-  border-radius: var(--radius-sm);
-  background: var(--bg-raised);
-  color: var(--text-2);
-  font: var(--type-caption);
 }

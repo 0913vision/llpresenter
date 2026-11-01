@@ -197,9 +197,7 @@ describe('the 화면 list', () => {
     setup({warningHeight: 96, themes: true});
     await userEvent.click(await screen.findByRole('option', {name: '말씀'}));
     const editor = await screen.findByRole('region', {name: '테마 편집기'});
-    expect(editor.querySelector('header')?.textContent).toBe(
-      '테마말씀/본 화면',
-    );
+    expect(editor.querySelector('header')).toBeNull();
     expect(screen.getByRole('region', {name: '테마 속성'})).toBeDefined();
     expect(
       screen
@@ -464,9 +462,8 @@ describe('the theme workspace and screen selection', () => {
     ).toBeDefined();
     await userEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
     expect(
-      screen.getByRole('region', {name: '테마 편집기'}).querySelector('header')
-        ?.textContent,
-    ).toBe('테마말씀/무대 화면');
+      screen.getByRole('region', {name: '테마 편집기'}).querySelector('header'),
+    ).toBeNull();
     expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
     expect(screen.queryByRole('button', {name: '모니터 번호 표시'})).toBeNull();
   });

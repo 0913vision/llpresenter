@@ -192,7 +192,7 @@ describe('song editor header', () => {
     expect(document.activeElement).toBe(title());
   });
 
-  it('uses the latest library push for service tags and ignores an older startup list', async () => {
+  it('uses the latest library push for service usage and ignores an older startup list', async () => {
     const fixture = editorFixture();
     const entries = await fixture.api.songs.list();
     let finish: (value: typeof entries) => void = () => undefined;
@@ -223,7 +223,7 @@ describe('song editor header', () => {
     finish([]);
     await act(() => Promise.resolve());
     expect(store.getSnapshot().session).not.toBeNull();
-    expect(screen.getByText('라이브러리')).toBeDefined();
+    expect(screen.queryByText('라이브러리')).toBeNull();
     expect(
       (await hoverForTooltip(screen.getByText('예배 순서 2곳')))?.textContent,
     ).toBe('아침 예배, 저녁 예배');

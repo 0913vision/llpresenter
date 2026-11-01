@@ -123,7 +123,6 @@ export function PropertySection(): JSX.Element {
                     value="만복의 근원 하나님"
                     icon="link"
                     primary
-                    meta="라이브러리"
                     action={
                       <IconButton icon="open" label="라이브러리 곡 열기" />
                     }

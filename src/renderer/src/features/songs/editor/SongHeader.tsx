@@ -77,22 +77,16 @@ export function SongHeader({
         />
       </div>
       {state.imported ? null : (
-        <>
-          <span className={styles.library}>
-            <Icon name="folder" size={12} />
-            라이브러리
+        <Tooltip text={usageTip}>
+          <span
+            tabIndex={0}
+            className={styles.used}
+            data-unavailable={usageUnavailable || undefined}
+          >
+            <Icon name={usageUnavailable ? 'warning' : 'link'} size={14} />
+            {usageText}
           </span>
-          <Tooltip text={usageTip}>
-            <span
-              tabIndex={0}
-              className={styles.used}
-              data-unavailable={usageUnavailable || undefined}
-            >
-              <Icon name={usageUnavailable ? 'warning' : 'link'} size={14} />
-              {usageText}
-            </span>
-          </Tooltip>
-        </>
+        </Tooltip>
       )}
       <SongBackground store={store} session={session} busy={state.busy} />
       {state.imported ? (

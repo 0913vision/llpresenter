@@ -120,7 +120,6 @@ export function ItemSettingsPanel({
                   value={song.document.song.title}
                   icon="link"
                   primary
-                  meta="라이브러리"
                   action={
                     <IconButton
                       icon="open"

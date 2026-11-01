@@ -111,16 +111,8 @@ describe('PropertyRow', () => {
   });
 
   it('shows extra information after a value', () => {
-    render(
-      <PropertyValue
-        label="원본"
-        value="만복의 근원 하나님"
-        icon="link"
-        primary
-        meta="라이브러리"
-      />,
-    );
-    expect(screen.getByText('라이브러리')).toBeDefined();
+    render(<PropertyValue label="해상도" value="1920×1080" meta="60Hz" />);
+    expect(screen.getByText('60Hz')).toBeDefined();
   });
 
   it('ends a value row with its action', async () => {
@@ -131,7 +123,6 @@ describe('PropertyRow', () => {
         value="만복의 근원 하나님"
         icon="link"
         primary
-        meta="라이브러리"
         action={
           <button type="button" onClick={onClick}>
             라이브러리 곡 열기

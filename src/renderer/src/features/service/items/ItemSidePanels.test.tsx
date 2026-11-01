@@ -241,7 +241,7 @@ describe('service item preview and 항목 설정', () => {
     const settings = screen.getByRole('region', {name: '항목 설정'});
     const source = within(settings).getByRole('group', {name: '곡'});
     expect(source.textContent).toContain(first.song.title);
-    expect(source.textContent).toContain('라이브러리');
+    expect(source.textContent).not.toContain('라이브러리');
     const usage = within(settings).getByRole('group', {name: '쓰는 곳'});
     expect(usage.textContent).toMatch(/예배 순서 \d+곳/);
     await user.click(within(source).getByRole('button', {name: '곡 편집'}));

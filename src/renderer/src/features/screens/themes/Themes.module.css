@@ -70,25 +70,6 @@
   object-fit: contain;
   margin-top: var(--space-12);
 }
-.canvasHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  flex: none;
-  min-height: var(--size-panel-header);
-  padding: 0 var(--panel-inset);
-  border-bottom: 1px solid var(--line);
-  font: var(--type-label);
-  color: var(--text-2);
-}
-.canvasHeader strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text);
-  font: var(--type-body-strong);
-}
 .canvas > section {
   flex: 1;
   min-height: 0;

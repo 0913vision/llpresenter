@@ -139,7 +139,7 @@ export interface PropertyValueProps {
   readonly icon?: string | undefined;
   /** Draws a value that reads like a name in `text`. */
   readonly primary?: boolean | undefined;
-  /** Extra information after the value, such as 라이브러리. */
+  /** Extra information after the value, such as 60Hz after a resolution. */
   readonly meta?: string | undefined;
   /** An sm button at the right end, such as 라이브러리 곡 열기. */
   readonly action?: ReactNode;
