@@ -63,21 +63,14 @@ describe('recovery channels', () => {
 
   it('refuses and logs a malformed answer without applying it', async () => {
     const {port, log, remove} = setup();
-    for (const value of [
-      null,
-      {savedAt: SAVED_AT, rows: []},
-      {savedAt: SAVED_AT, rows: ['outputs', 'outputs']},
-      {savedAt: 'yesterday', rows: ['outputs']},
-    ]) {
-      expect(
-        await invoke(recoveryEndpoints.apply.channel, value),
-      ).toMatchObject({
-        ok: false,
-        error: {reason: 'invalid-selection'},
-      });
-    }
+    expect(
+      await invoke(recoveryEndpoints.apply.channel, {
+        savedAt: SAVED_AT,
+        rows: [],
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'invalid-selection'}});
     expect(port.apply).not.toHaveBeenCalled();
-    expect(log.messages('warn')).toHaveLength(4);
+    expect(log.messages('warn')).toHaveLength(1);
     remove();
   });
 

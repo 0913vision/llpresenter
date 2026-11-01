@@ -1,7 +1,13 @@
-import {randomUUID} from 'node:crypto';
-import {mkdir, readFile, rm, stat, utimes, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, rm, stat, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
+import {removeStaleTempFiles} from '@main/store/staleTempFiles';
+
+vi.mock('@main/store/staleTempFiles', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@main/store/staleTempFiles')>();
+  return {...actual, removeStaleTempFiles: vi.fn(actual.removeStaleTempFiles)};
+});
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
@@ -9,8 +15,6 @@ import {
   RECOVERY_RECORD_FILE,
   SESSION_LOCK_FILE,
 } from '@main/live/recovery/session';
-
-const STALE_TEMPORARY_AGE_MS = 120_000;
 
 async function setup() {
   const folder = join(await makeTempDir(), 'recovery');
@@ -126,20 +130,21 @@ quitting`);
     await current.cleanExit();
   });
 
-  it('removes the temporary files of an interrupted write before writing the marker', async () => {
-    const {folder, log} = await setup();
-    await mkdir(folder);
-    const stale = join(folder, `.${RECOVERY_RECORD_FILE}.${randomUUID()}.tmp`);
-    const current = join(folder, `.${SESSION_LOCK_FILE}.${randomUUID()}.tmp`);
-    await writeFile(stale, 'half a record');
-    await writeFile(current, 'a write in progress');
-    const longAgo = new Date(Date.now() - STALE_TEMPORARY_AGE_MS);
-    await utimes(stale, longAgo, longAgo);
+  it('removes leftover temporary files in its folder before writing the marker, and logs the ones it cannot', async () => {
+    const {folder, log, file} = await setup();
+    vi.mocked(removeStaleTempFiles).mockImplementationOnce(async target => {
+      expect(target).toBe(folder);
+      await expect(stat(file)).rejects.toMatchObject({code: 'ENOENT'});
+      return [{file: join(folder, '.live.json.tmp'), message: 'busy'}];
+    });
+
     const session = await openRecoverySession({folder, log});
-    await expect(stat(stale)).rejects.toMatchObject({code: 'ENOENT'});
-    expect(await readFile(current, 'utf8')).toBe('a write in progress');
+
+    expect(removeStaleTempFiles).toHaveBeenCalledWith(folder);
+    expect(log.messages('warn')).toEqual([
+      'could not remove a temporary recovery file',
+    ]);
     await session.cleanExit();
-    expect(log.entries).toEqual([]);
   });
 
   it('leaves an overlong replacement marker intact', async () => {

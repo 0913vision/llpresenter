@@ -12,7 +12,7 @@ import {
 } from '@core/schema/recoveryRecord';
 import type {Logger} from '../../log';
 import {isMissingFile} from '../../store/fsErrors';
-import {dispatchBatched, type LiveStore} from '../store';
+import {dispatchBatched} from '../store';
 import {
   planRecovery,
   type RecoveryContent,
@@ -32,7 +32,7 @@ interface RecoveryOptions {
   readonly crashed: boolean;
   /** `live.json`, read once after a crash. */
   readonly file: string;
-  readonly store: LiveStore;
+  readonly store: Parameters<typeof dispatchBatched>[0];
   readonly sources: Promise<RecoverySources | null>;
   readonly record: Pick<RecoveryRecordWriter, 'start'>;
   /** 켤 때 화면 출력, as on a normal launch. Never throws. */
