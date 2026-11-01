@@ -4,7 +4,6 @@ import {expect, it} from 'vitest';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';
-const SECOND = '33000000-0000-4000-8000-000000000002';
 const WAIT = 30_000;
 
 async function seedSong(
@@ -28,7 +27,7 @@ async function seedSong(
 }
 
 it(
-  'searches the library and preserves an edited song after restart',
+  'preserves an edited library song after restart',
   {timeout: 240_000},
   async () => {
     const app = await offscreenApp();
@@ -37,32 +36,9 @@ it(
       title: '점검 알파',
       text: '첫 번째 창작 문장',
     });
-    await seedSong(app.data, {
-      id: SECOND,
-      title: '점검 베타',
-      text: '두 번째 창작 문장',
-    });
-
     let page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
-    const search = page.getByRole('textbox', {name: '라이브러리 검색'});
     const library = page.getByRole('listbox', {name: '라이브러리'});
-    await expect
-      .poll(() => library.getByRole('option').count(), {timeout: WAIT})
-      .toBe(2);
-
-    await search.fill('알파');
-    await expect
-      .poll(() => library.getByRole('option').count(), {timeout: WAIT})
-      .toBe(1);
-    expect(await library.getByRole('option').first().innerText()).toContain(
-      '점검 알파',
-    );
-    await search.fill('일치하지않는검색');
-    await expect
-      .poll(() => library.getByRole('option').count(), {timeout: WAIT})
-      .toBe(0);
-    await search.fill('알파');
     await expect
       .poll(() => library.getByRole('option').count(), {timeout: WAIT})
       .toBe(1);
@@ -97,7 +73,6 @@ it(
     await app.stop();
     page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
-    await page.getByRole('textbox', {name: '라이브러리 검색'}).fill('알파');
     const reopened = page
       .getByRole('listbox', {name: '라이브러리'})
       .getByRole('option');

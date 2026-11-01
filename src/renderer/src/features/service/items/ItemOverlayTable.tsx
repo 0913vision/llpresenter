@@ -9,6 +9,7 @@ import {
 import {createItemOverlayId} from '@core/schema/ids';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
 import {isItemOfKind} from '@core/schema/service';
+import {itemOverlayRow} from '@core/services/itemOverlayRows';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -206,15 +207,14 @@ function SlideTable({
         <div role="presentation" style={{height: start * height}} />
         {slides.slice(start, end).map((slide, offset) => {
           const index = start + offset;
-          const overlay = rows.find(
-            row => row.from <= index + 1 && row.to >= index + 1,
-          );
+          const range = itemOverlayRow(rows, index);
+          const overlay = range?.overlay;
           return (
             <ItemSlideRow
               key={index}
               slide={slide}
               index={index}
-              overlay={overlay}
+              range={range}
               selected={index === selected}
               menuTarget={menu?.index === index}
               overlaySelected={state.overlay === overlay?.id}

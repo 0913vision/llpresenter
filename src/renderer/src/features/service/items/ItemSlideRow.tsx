@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {ItemOverlay} from '@core/schema/itemOverlays';
+import type {ItemOverlayRow} from '@core/services/itemOverlayRows';
 import type {ItemOverlayId} from '@core/schema/ids';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {LabelTag} from '@renderer/ui/LabelChip';
@@ -20,7 +20,7 @@ export interface ItemSlideActions {
 export function ItemSlideRow({
   slide,
   index,
-  overlay,
+  range,
   selected,
   menuTarget,
   overlaySelected,
@@ -30,7 +30,7 @@ export function ItemSlideRow({
 }: {
   readonly slide: ItemSlide;
   readonly index: number;
-  readonly overlay: ItemOverlay | undefined;
+  readonly range: ItemOverlayRow | undefined;
   readonly selected: boolean;
   readonly menuTarget: boolean;
   readonly overlaySelected: boolean;
@@ -38,6 +38,7 @@ export function ItemSlideRow({
   readonly actions: ItemSlideActions;
   readonly targetNames: readonly string[];
 }): JSX.Element {
+  const overlay = range?.overlay;
   return (
     <div
       role="row"
@@ -122,8 +123,8 @@ export function ItemSlideRow({
           <button
             type="button"
             className={styles.span}
-            data-start={overlay.from === index + 1 ? '' : undefined}
-            data-end={overlay.to === index + 1 ? '' : undefined}
+            data-start={range?.start ? '' : undefined}
+            data-end={range?.end ? '' : undefined}
             aria-label={`${overlay.name}, 슬라이드 ${overlay.from}부터 ${overlay.to}까지`}
             aria-pressed={overlaySelected}
             aria-description={targetNames.join(', ')}
@@ -132,7 +133,7 @@ export function ItemSlideRow({
             }}
           >
             <span>
-              {overlay.from === index + 1 ? (
+              {range?.start ? (
                 <>
                   {overlay.name}
                   <span className={styles.targets}>
