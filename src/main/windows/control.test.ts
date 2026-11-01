@@ -12,6 +12,7 @@ const electron = await vi.hoisted(async () => {
     readonly maximize = vi.fn();
     readonly show = vi.fn();
     readonly removeMenu = vi.fn();
+    readonly isDestroyed = vi.fn(() => false);
 
     constructor(readonly options: unknown) {
       super();
@@ -107,5 +108,38 @@ describe('createControlWindow', () => {
     vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
     createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
     expect(lastWindow().webContents.setAudioMuted).toHaveBeenCalledWith(true);
+  });
+
+  describe('when its render process goes away', () => {
+    function crash(reason: string, destroyed = false) {
+      const log = recordingLogger();
+      createControlWindow(log, 'normal', {attachControl: vi.fn()});
+      const win = lastWindow();
+      win.isDestroyed.mockReturnValue(destroyed);
+      vi.mocked(loadPage).mockClear();
+      win.webContents.emit('render-process-gone', {}, {reason});
+      return {log, win};
+    }
+
+    it('reloads the control page and logs the reason', () => {
+      const {log, win} = crash('crashed');
+      expect(loadPage).toHaveBeenCalledExactlyOnceWith(
+        win,
+        {name: 'index'},
+        log,
+      );
+      expect(log.messages('error')).toEqual(['control window process gone']);
+    });
+
+    it('logs but does not reload after a clean exit', () => {
+      const {log} = crash('clean-exit');
+      expect(loadPage).not.toHaveBeenCalled();
+      expect(log.messages('error')).toEqual(['control window process gone']);
+    });
+
+    it('does not reload a window that is already destroyed', () => {
+      crash('crashed', true);
+      expect(loadPage).not.toHaveBeenCalled();
+    });
   });
 });
