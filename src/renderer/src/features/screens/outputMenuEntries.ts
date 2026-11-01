@@ -4,7 +4,7 @@ import type {LooksFile} from '@core/schema/looks';
 import type {ThemesFile} from '@core/schema/themes';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {LiveState} from '@core/live/state';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {outputStateKeys, STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {sendLive} from '@renderer/session/live';
 import {
   outputGroup,
@@ -46,10 +46,7 @@ export interface ScreenOutputSections {
 }
 
 function screenId(id: string) {
-  const canonical =
-    Object.entries(STARTER_SCREEN_IDS).find(([alias]) => alias === id)?.[1] ??
-    id;
-  const parsed = parseScreenId(canonical);
+  const parsed = parseScreenId(outputStateKeys(id)[0]);
   return parsed.ok ? parsed.value : undefined;
 }
 
@@ -73,9 +70,7 @@ export function screenOutputSections(
   const stage = screens.filter(screen => screen.kind === 'stage');
   const captions = audience.filter(
     screen =>
-      screen.id === STARTER_SCREEN_IDS.broadcast ||
-      screen.id === 'broadcast' ||
-      screen.id === 'captions' ||
+      outputStateKeys(screen.id)[0] === STARTER_SCREEN_IDS.broadcast ||
       screen.targetKind === 'capture' ||
       screen.targetKind === 'ndi',
   );

@@ -67,6 +67,14 @@ describe('outputStateKeys', () => {
 });
 
 describe('resolveOutputScreen', () => {
+  it('prefers a configured alias ID over the starter UUID in screen summaries', () => {
+    const starter = {id: STARTER_SCREEN_IDS.broadcast, statusLabel: 'Starter'};
+    const configured = {id: 'captions', statusLabel: 'Configured'};
+    const screens = [starter, configured];
+    expect(resolveOutputScreen('captions', screens)).toBe(configured);
+    expect(resolveOutputScreen('broadcast', screens)).toBe(starter);
+  });
+
   it('resolves starter roles and the legacy captions alias to their UUIDs', () => {
     const screens = starters();
     for (const role of ['main', 'broadcast', 'stage'] as const) {
@@ -147,6 +155,6 @@ describe('resolveOutputScreen', () => {
     ]) {
       expect(resolveOutputScreen(id, screens)).toBeUndefined();
     }
-    expect(resolveOutputScreen('main', [])).toBeUndefined();
+    expect(resolveOutputScreen<Screen>('main', [])).toBeUndefined();
   });
 });

@@ -3,7 +3,7 @@ import type {LooksFile} from '@core/schema/looks';
 import type {ThemesFile} from '@core/schema/themes';
 import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {LiveState} from '@core/live/state';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {resolveOutputScreen} from '@core/screens/screens';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
@@ -40,15 +40,10 @@ export function outputMenuEntries(
   });
   const warningRows = input.warnings.map(
     ({screenId, screenName}): MenuEntry => {
-      const role = screenId === 'captions' ? 'broadcast' : screenId;
-      const canonicalId =
-        Object.entries(STARTER_SCREEN_IDS).find(
-          ([alias]) => alias === role,
-        )?.[1] ?? screenId;
       return {
         kind: 'item',
         id: `warning:${screenId}`,
-        label: `${screens.find(screen => screen.id === canonicalId)?.statusLabel ?? screenName} 경고 보기`,
+        label: `${resolveOutputScreen(screenId, screens)?.statusLabel ?? screenName} 경고 보기`,
         onSelect: () => input.onShowWarning(screenId),
       };
     },
