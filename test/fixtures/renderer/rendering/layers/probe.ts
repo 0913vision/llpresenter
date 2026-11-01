@@ -1,4 +1,4 @@
-import {defineLayer} from '../../layer';
+import {defineLayer} from '../../../../../src/renderer/src/rendering/layer';
 
 type Phase = 'create' | 'draw' | 'rescale' | 'dispose';
 let failing: Phase | null = null;

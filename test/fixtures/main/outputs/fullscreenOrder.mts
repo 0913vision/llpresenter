@@ -2,15 +2,18 @@ import {deepEqual, equal, ok} from 'node:assert/strict';
 import {isAbsolute} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
 import {app, BrowserWindow, screen} from 'electron';
-import {centeredRect, type Rect} from '../../displays/rect';
-import type {Logger} from '../../log';
-import {watchPixelFixture} from '../../windows/fixtures/pixelFixtureLifecycle.mts';
-import {ON_TOP_CHECK_MS, OnTopKeeper} from '../onTopKeeper';
+import {centeredRect, type Rect} from '../../../../src/main/displays/rect';
+import type {Logger} from '../../../../src/main/log';
+import {watchPixelFixture} from '../windows/pixelFixtureLifecycle.mts';
+import {
+  ON_TOP_CHECK_MS,
+  OnTopKeeper,
+} from '../../../../src/main/outputs/onTopKeeper';
 import {
   BOUNDS_RECHECK_MS,
   FULLSCREEN_EXIT_DEADLINE_MS,
   WindowPlacement,
-} from '../windowPlacement';
+} from '../../../../src/main/outputs/windowPlacement';
 
 const NATIVE_SETTLE_MS = 100;
 const EXIT_WAIT_MS =

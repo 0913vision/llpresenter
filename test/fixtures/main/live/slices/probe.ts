@@ -1,4 +1,4 @@
-import {defineSlice} from '../../slice';
+import {defineSlice} from '../../../../../src/main/live/slice';
 
 export const probeSlice = defineSlice({
   commands: ['output.set'],

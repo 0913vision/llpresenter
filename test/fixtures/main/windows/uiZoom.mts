@@ -3,10 +3,16 @@ import {readFile, writeFile} from 'node:fs/promises';
 import {isAbsolute, join} from 'node:path';
 import {app, BrowserWindow, Menu} from 'electron';
 import {parseAppConfig} from '@core/schema/appConfig';
-import type {Logger} from '../../log';
-import {openAppConfig, type AppConfigFile} from '../../store/appConfigFile';
-import {registerUiZoom, type UiZoomRegistration} from '../../store/uiZoom';
-import {createControlWindow} from '../control';
+import type {Logger} from '../../../../src/main/log';
+import {
+  openAppConfig,
+  type AppConfigFile,
+} from '../../../../src/main/store/appConfigFile';
+import {
+  registerUiZoom,
+  type UiZoomRegistration,
+} from '../../../../src/main/store/uiZoom';
+import {createControlWindow} from '../../../../src/main/windows/control';
 
 const STARTUP_DEADLINE_MS = 120_000;
 const CHECK_DEADLINE_MS = 30_000;

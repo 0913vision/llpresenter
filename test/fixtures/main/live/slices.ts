@@ -1,4 +1,4 @@
-import {registryOf} from '../sliceRegistry';
+import {registryOf} from '../../../../src/main/live/sliceRegistry';
 
 export const liveSlices = registryOf(
   import.meta.glob<unknown>('./slices/*.ts', {eager: true}),

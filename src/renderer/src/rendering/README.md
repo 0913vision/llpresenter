@@ -21,7 +21,8 @@ disposal errors are reported per layer so later layers can continue.
 Their playback, scaling, transition, and media cleanup behavior stays in those
 views. No new layer content is implemented by this bootstrap.
 
-The fixture discovery entry in `fixtures/layers.ts` uses the same registry
-builder. New layer files in `fixtures/layers/` run through the real
-OutputRenderer in `registryExtension.test.ts`, including error isolation and
-cleanup. They never enter the production glob.
+The fixture discovery entry in `test/fixtures/renderer/rendering/layers.ts` uses
+the same registry builder. New layer files in
+`test/fixtures/renderer/rendering/layers/` run through the real OutputRenderer
+in `registryExtension.test.ts`, including error isolation and cleanup. They
+never enter the production glob.

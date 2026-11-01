@@ -4,7 +4,7 @@ import {
   PIXEL_CHECK_DEADLINE_MS,
   ownPixelFixture,
   watchPixelFixture,
-} from '@main/windows/fixtures/pixelFixtureLifecycle.mts';
+} from './pixelFixtureLifecycle.mts';
 
 afterEach(() => vi.useRealTimers());
 

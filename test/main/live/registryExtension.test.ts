@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
 
-vi.mock('@main/live/slices', () => import('@main/live/fixtures/slices'));
+vi.mock('@main/live/slices', () => import('@fixtures/main/live/slices'));
 
 describe('slice module discovery', () => {
   it('initializes and runs a new fixture slice through the real store without a registration entry', () => {

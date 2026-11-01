@@ -50,6 +50,7 @@ rejects it before dispatch. The pure registry and direct store dispatch also
 leave an unsupported command's history, state, version, and undo intact.
 
 `registryExtension.test.ts` substitutes only the discovery entry point with a
-fixed fixture glob. The new `fixtures/slices/probe.ts` file initializes and runs
-through the real store without any per-module registration. Registry tests also
-exercise runtime future command types, without widening shared contracts.
+fixed fixture glob. The fixture `test/fixtures/main/live/slices/probe.ts`
+initializes and runs through the real store without any per-module registration.
+Registry tests also exercise runtime future command types, without widening
+shared contracts.

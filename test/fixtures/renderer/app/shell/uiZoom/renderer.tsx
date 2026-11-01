@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import {useUiZoomKeys} from '../../uiZoomKeys';
+import {useUiZoomKeys} from '../../../../../../src/renderer/src/app/shell/uiZoomKeys';
 
 function Fixture() {
   useUiZoomKeys();

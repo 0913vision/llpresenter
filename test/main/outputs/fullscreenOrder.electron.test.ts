@@ -11,7 +11,7 @@ import {
   PIXEL_CHECK_DEADLINE_MS,
   SYNTAX_CHECK_DEADLINE_MS,
   ownPixelFixture,
-} from '@main/windows/fixtures/pixelFixtureLifecycle.mts';
+} from '../../fixtures/main/windows/pixelFixtureLifecycle.mts';
 
 const PROCESS_DEADLINE_MS =
   ELECTRON_STARTUP_DEADLINE_MS + PIXEL_CHECK_DEADLINE_MS + 10_000;
@@ -33,7 +33,7 @@ it.skipIf(!WINDOWS_CI)(
       logLevel: 'silent',
       ssr: {noExternal: true, external: ['electron']},
       build: {
-        ssr: resolve('src/main/outputs/fixtures/fullscreenOrder.mts'),
+        ssr: resolve('test/fixtures/main/outputs/fullscreenOrder.mts'),
         outDir,
         rolldownOptions: {
           external: ['electron', /^node:/],

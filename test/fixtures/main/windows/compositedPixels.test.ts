@@ -4,7 +4,7 @@ import {
   FRAME_CAPTURE_POLL_MS,
   waitForCompositedPixels,
   type PixelSample,
-} from '@main/windows/fixtures/compositedPixels.mts';
+} from './compositedPixels.mts';
 
 const expected = {transparent: 100, translucent: 150, opaque: 200};
 const ready: PixelSample = {

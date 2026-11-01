@@ -1,5 +1,5 @@
-import '../../styles/tokens.css';
-import {classes} from '../classes';
+import '../../../../src/renderer/src/styles/tokens.css';
+import {classes} from '../../../../src/renderer/src/rendering/classes';
 
 const mode = new URLSearchParams(location.search).get('mode');
 if (mode !== 'output' && mode !== 'preview') {

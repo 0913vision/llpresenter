@@ -1,4 +1,4 @@
-import {defineLayer} from '../../layer';
+import {defineLayer} from '../../../../../src/renderer/src/rendering/layer';
 
 export const healthyLayer = defineLayer({
   kind: 'fixture-healthy',

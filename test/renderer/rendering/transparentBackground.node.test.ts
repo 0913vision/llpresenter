@@ -8,14 +8,14 @@ import {
   PIXEL_FIXTURE_TEST_DEADLINE_MS,
   SYNTAX_CHECK_DEADLINE_MS,
   ownPixelFixture,
-} from '@main/windows/fixtures/pixelFixtureLifecycle.mts';
+} from '../../fixtures/main/windows/pixelFixtureLifecycle.mts';
 import {runStepProcess} from '../../../scripts/verify/step-process.mts';
 import {makeTempDir} from '../../temp-dir';
 import {electronTestArgs} from '../../electron-launch';
 
-const FIXTURE_ROOT = resolve('src/renderer/src/rendering/fixtures');
+const FIXTURE_ROOT = resolve('test/fixtures/renderer/rendering');
 const FIXTURE_MAIN = resolve(
-  'src/main/windows/fixtures/transparentBackground.mts',
+  'test/fixtures/main/windows/transparentBackground.mts',
 );
 
 it(
