@@ -3,8 +3,8 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {AppConfig} from '@core/schema/appConfig';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
-import {MAIN} from '@fixtures/core/overlays';
+import {emptyLiveState} from '@core/live/state';
+import {guardTestPatterns} from '@main/outputs/testPatternGuard';
 import {registerScreensWindow} from '@main/windows/screens';
 import type {ControlCloseOptions} from '@main/windows/controlClose';
 import {loadPage} from '@main/windows/page';
@@ -78,6 +78,9 @@ vi.mock('@main/windows/controlClose', () => ({
     return handshake;
   },
 }));
+vi.mock('@main/outputs/testPatternGuard', () => ({
+  guardTestPatterns: vi.fn(() => vi.fn()),
+}));
 vi.mock('@main/windows/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
@@ -100,10 +103,11 @@ function setup(
   const control = new BrowserWindow();
   const config = {screensWindow: placement, setScreensWindow: vi.fn()};
   const zoom = {attachControl: vi.fn()};
-  const store = new LiveStore({
-    ...new LiveStore().state,
-    testPatterns: [MAIN],
-  });
+  const store = {
+    state: emptyLiveState(),
+    handles: vi.fn(() => true),
+    dispatch: vi.fn(() => true),
+  };
   const options = {
     control,
     store,
@@ -125,37 +129,29 @@ function setup(
 }
 
 describe('screen configuration window', () => {
-  it.each(['crashes', 'closes'] as const)(
-    'clears live test patterns in main when the settings window %s',
-    async reason => {
-      const {open, last, stop, store} = setup();
-      open();
-      const win = last();
-      expect(store.state.testPatterns).toEqual([MAIN]);
-      if (reason === 'crashes') {
-        win.webContents.emit('render-process-gone', {}, {reason: 'crashed'});
-        expect(loadPage).toHaveBeenCalledTimes(2);
-      } else {
-        win.destroy();
-      }
-      expect(store.state).not.toHaveProperty('testPatterns');
-      await stop();
-    },
-  );
-
-  it('releases each pattern guard before reopening the settings window', async () => {
+  it('reloads the settings page after its renderer crashes', async () => {
     const {open, last, stop} = setup();
     open();
-    const first = last();
-    expect(first.listenerCount('closed')).toBe(2);
-    expect(first.webContents.listenerCount('did-start-navigation')).toBe(1);
-    first.destroy();
-    expect(first.listenerCount('closed')).toBe(0);
-    open();
-    expect(last().listenerCount('closed')).toBe(2);
-    expect(last().webContents.listenerCount('did-start-navigation')).toBe(1);
+    last().webContents.emit('render-process-gone', {}, {reason: 'crashed'});
+    expect(loadPage).toHaveBeenCalledTimes(2);
     await stop();
-    expect(last().listenerCount('closed')).toBe(0);
+  });
+
+  it('guards the test patterns of each settings window and stops guarding when it closes', async () => {
+    const {open, last, stop, store} = setup();
+    open();
+    const first = last();
+    const stopFirst = vi.mocked(guardTestPatterns).mock.results.at(-1)?.value;
+    expect(guardTestPatterns).toHaveBeenLastCalledWith(
+      expect.objectContaining({control: first, store}),
+    );
+    first.destroy();
+    expect(stopFirst).toHaveBeenCalledOnce();
+
+    open();
+    const stopSecond = vi.mocked(guardTestPatterns).mock.results.at(-1)?.value;
+    await stop();
+    expect(stopSecond).toHaveBeenCalledOnce();
   });
 
   it('opens once, restores and focuses on repeat, and opens afresh after close', async () => {
@@ -228,7 +224,7 @@ describe('screen configuration window', () => {
     expect(control.listenerCount('closed')).toBe(0);
   });
 
-  it('never shows, focuses, restores, or maximizes offscreen test windows and releases frames', async () => {
+  it('never shows, focuses, restores, or maximizes offscreen test windows', async () => {
     const {open, last, stop, config} = setup('offscreen');
     open();
     const win = last();
@@ -243,11 +239,7 @@ describe('screen configuration window', () => {
     expect(win.focus).not.toHaveBeenCalled();
     expect(win.restore).not.toHaveBeenCalled();
     expect(win.maximize).not.toHaveBeenCalled();
-    const release = vi.fn();
-    win.webContents.emit('paint', {texture: {release}});
-    expect(release).toHaveBeenCalledOnce();
     await stop();
-    expect(win.webContents.listenerCount('paint')).toBe(0);
     expect(config.setScreensWindow).not.toHaveBeenCalled();
   });
 

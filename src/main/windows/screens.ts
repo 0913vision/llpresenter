@@ -3,7 +3,6 @@ import {windowEndpoints} from '@contracts/ipc/window';
 import type {AppConfigFile} from '../store/appConfigFile';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
-import type {LiveStore} from '../live/store';
 import {guardTestPatterns} from '../outputs/testPatternGuard';
 import {blockNavigation, loadPage, preloadPath} from './page';
 import {registerControlClose, type ControlClose} from './controlClose';
@@ -21,7 +20,7 @@ const PAGE = {name: 'index', query: {window: 'screens'}} as const;
 
 interface ScreensWindowOptions {
   readonly control: BrowserWindow;
-  readonly store: LiveStore;
+  readonly store: Parameters<typeof guardTestPatterns>[0]['store'];
   readonly config: Pick<AppConfigFile, 'screensWindow' | 'setScreensWindow'>;
   readonly zoom: Pick<UiZoomRegistration, 'attachControl'>;
   readonly mode: WindowMode;

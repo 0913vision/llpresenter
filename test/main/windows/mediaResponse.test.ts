@@ -1,6 +1,6 @@
 import {createReadStream} from 'node:fs';
-import {symlink, writeFile} from 'node:fs/promises';
-import {join, relative} from 'node:path';
+import {writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -10,7 +10,13 @@ import {
   createMediaHandler,
   parseRange,
 } from '@main/windows/mediaResponse';
+import {realPathInside} from '@main/windows/insideRoots';
 
+vi.mock('@main/windows/insideRoots', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@main/windows/insideRoots')>();
+  return {...actual, realPathInside: vi.fn(actual.realPathInside)};
+});
 vi.mock('node:fs', async importOriginal => {
   const fs = await importOriginal<typeof import('node:fs')>();
   return {...fs, createReadStream: vi.fn(fs.createReadStream)};
@@ -140,32 +146,26 @@ describe('createMediaHandler', () => {
     ]);
   });
 
-  it('refuses an encoded path that climbs out of the media folder', async () => {
-    const outside = await makeTempDir();
-    await writeFile(join(outside, 'secret.txt'), 'private');
-    const {root} = await libraryWith('warm-light.mp4');
-    const naive = createMediaHandler({
-      resolvePath: async mediaId => join(root, mediaId),
-      mediaRoots: () => [root],
-      log: recordingLogger(),
-    });
-    const climb = relative(root, join(outside, 'secret.txt'));
-    const response = await naive(new Request(mediaUrl(climb)));
-    expect(response.status).toBe(404);
-  });
-
-  it('refuses a file reached through a link out of the media folder', async () => {
-    const outside = await makeTempDir();
-    await writeFile(join(outside, 'secret.mp4'), 'private');
-    const {root} = await libraryWith('warm-light.mp4');
-    await symlink(outside, join(root, 'linked'), 'junction');
+  it('checks the resolved file against the media folders and refuses one outside them', async () => {
+    const roots = ['C:/media', 'D:/more media'];
+    const log = recordingLogger();
+    vi.mocked(realPathInside).mockResolvedValueOnce(null);
     const handle = createMediaHandler({
-      resolvePath: async () => join(root, 'linked', 'secret.mp4'),
-      mediaRoots: () => [root],
-      log: recordingLogger(),
+      resolvePath: async () => 'C:/media/../secret.txt',
+      mediaRoots: () => roots,
+      log,
     });
-    const response = await handle(new Request(mediaUrl('linked')));
+
+    const response = await handle(new Request(mediaUrl('climb')));
+
+    expect(realPathInside).toHaveBeenCalledWith(
+      'C:/media/../secret.txt',
+      roots,
+    );
     expect(response.status).toBe(404);
+    expect(log.messages('warn')).toEqual([
+      'no media file inside the media folders for a media id',
+    ]);
   });
 
   it('serves a file lent for analysis with CORS, from any folder', async () => {
