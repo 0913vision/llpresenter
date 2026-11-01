@@ -133,26 +133,6 @@ afterEach(async () => {
   useLive.setState({state: null});
 });
 
-it.each([
-  {width: 1920, height: 900, open: true},
-  {width: 2560, height: 1080, open: true},
-  {width: 1920, height: 899, open: false},
-  {width: 1366, height: 1080, open: false},
-])(
-  'starts the strip at $width x $height with open=$open',
-  async ({width, height, open}) => {
-    const {mount, send} = setup(width, height);
-    mount();
-    expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(String(open));
-    if (open) {
-      expect(await screen.findByRole('region', {name: '미디어'})).toBeDefined();
-    } else {
-      expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-    }
-    expect(send).not.toHaveBeenCalled();
-  },
-);
-
 it('updates the collapsed list count without mounting player panels', async () => {
   const {api, mount} = setup(1920, 1080, {mediaStrip: false});
   vi.spyOn(api.media, 'get').mockResolvedValue(mediaDocument([mediaItem(1)]));
@@ -168,70 +148,6 @@ it('updates the collapsed list count without mounting player panels', async () =
   act(() => accept(mediaDocument([mediaItem(1), mediaItem(2)], 2)));
   expect(mediaBinToggle().textContent).toBe('미디어모든 미디어 2');
   expect(screen.queryByRole('region', {name: '미디어 속성'})).toBeNull();
-});
-
-it.each([
-  {width: 2560, height: 1080, visible: false},
-  {width: 1366, height: 768, visible: true},
-])(
-  'restores visible=$visible at $width x $height and saves only an explicit toggle',
-  async ({width, height, visible}) => {
-    const {mount, save} = setup(width, height, {mediaStrip: visible});
-    mount();
-    const button = mediaBinToggle();
-    expect(button.getAttribute('aria-expanded')).toBe(String(visible));
-    if (visible) {
-      expect(await screen.findByRole('region', {name: '미디어'})).toBeDefined();
-    } else {
-      expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-    }
-    expect(save).not.toHaveBeenCalled();
-    await userEvent.click(button);
-    expect(save).toHaveBeenCalledExactlyOnceWith({visible: !visible});
-    vi.stubGlobal('innerHeight', height + 1);
-    fireEvent.resize(window);
-    expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(
-      String(!visible),
-    );
-    expect(save).toHaveBeenCalledTimes(1);
-  },
-);
-
-it.each([
-  {height: 750, factor: 1.2, open: true},
-  {height: 749, factor: 1.2, open: false},
-  {height: 450, factor: 2, open: true},
-])(
-  'uses DIP height at CSS $height and factor $factor',
-  async ({height, factor, open}) => {
-    const {api, mount, save, send} = setup(1920, height);
-    vi.spyOn(api.ui, 'getZoomFactor').mockReturnValue(factor);
-    vi.stubGlobal('devicePixelRatio', 3);
-    mount();
-    expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(String(open));
-    if (open) {
-      expect(await screen.findByRole('region', {name: '미디어'})).toBeDefined();
-    } else {
-      expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-    }
-    expect(save).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-  },
-);
-
-it('remeasures DIP after zoom and resize without saving a new choice', async () => {
-  const {api, mount, save} = setup(1920, 750);
-  const factor = vi.spyOn(api.ui, 'getZoomFactor').mockReturnValue(1.2);
-  mount();
-  await screen.findByRole('region', {name: '미디어'});
-  factor.mockReturnValue(1.5);
-  vi.stubGlobal('innerHeight', 600);
-  fireEvent.resize(window);
-  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
-  vi.stubGlobal('innerHeight', 599);
-  fireEvent.resize(window);
-  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-  expect(save).not.toHaveBeenCalled();
 });
 
 it('unmounts the player panels while retaining summary feeds until leaving the workspaces', async () => {

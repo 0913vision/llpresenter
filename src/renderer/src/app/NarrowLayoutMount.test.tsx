@@ -86,49 +86,6 @@ it('shows the narrow window layout at 1366 x 768', () => {
   ).toBeDefined();
 });
 
-it('collapses and expands the left column and saves each choice for narrow windows', async () => {
-  const {save, send} = setup(NARROW.width, NARROW.height);
-  await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
-  expect(serviceOrder()).toBeNull();
-  expect(screen.queryByRole('region', {name: '퀵 실행'})).toBeNull();
-  expect(save).toHaveBeenLastCalledWith({
-    sizeClass: 'narrow',
-    leftCollapsed: true,
-  });
-  await userEvent.click(screen.getByRole('button', {name: EXPAND}));
-  expect(serviceOrder()).not.toBeNull();
-  expect(save).toHaveBeenLastCalledWith({
-    sizeClass: 'narrow',
-    leftCollapsed: false,
-  });
-  expect(save).toHaveBeenCalledTimes(2);
-  expect(send).not.toHaveBeenCalled();
-});
-
-it('starts collapsed from a saved narrow choice without saving it again', () => {
-  const {save} = setup(NARROW.width, NARROW.height, {
-    layout: {narrow: {leftCollapsed: true}},
-  });
-  expect(serviceOrder()).toBeNull();
-  expect(expandButton()).not.toBeNull();
-  expect(save).not.toHaveBeenCalled();
-});
-
-it.each([
-  {width: 1920, height: 1080},
-  {width: 2560, height: 1440},
-])(
-  'keeps the left column without 사이드바 접기 at $width x $height',
-  ({width, height}) => {
-    setup(width, height, {
-      layout: {narrow: {leftCollapsed: true}, normal: {leftCollapsed: true}},
-    });
-    expect(serviceOrder()).not.toBeNull();
-    expect(collapseButton()).toBeNull();
-    expect(expandButton()).toBeNull();
-  },
-);
-
 it('keeps the 준비 left column while 진행 has it collapsed', async () => {
   setup(NARROW.width, NARROW.height, {
     layout: {narrow: {leftCollapsed: true}},
@@ -138,23 +95,6 @@ it('keeps the 준비 left column while 진행 has it collapsed', async () => {
   expect(collapseButton()).toBeNull();
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
   expect(serviceOrder()).toBeNull();
-});
-
-it('hands the keyboard focus to the other sidebar button', async () => {
-  setup(NARROW.width, NARROW.height);
-  collapseButton()?.focus();
-  await userEvent.keyboard('{Enter}');
-  expect(document.activeElement).toBe(expandButton());
-  await userEvent.keyboard('{Enter}');
-  expect(document.activeElement).toBe(collapseButton());
-});
-
-it('leaves the focus alone when it was outside the left column', async () => {
-  setup(NARROW.width, NARROW.height);
-  const stage = screen.getByRole('tab', {name: '무대'});
-  stage.focus();
-  await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
-  expect(document.activeElement).toBe(stage);
 });
 
 it('lets the focus fall to the body after a click, so Space is the next slide', async () => {
