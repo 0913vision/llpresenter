@@ -12,6 +12,7 @@ import {modalStack} from '@renderer/ui/modalStack';
 import {useWindowShortcuts} from './windowShortcuts';
 import {workspaceShortcuts} from '../app/shell/workspaceCommands';
 import {useQuickDrag} from '@renderer/features/quick/useQuickDrag';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 
 function press(
   options: KeyboardEventInit = {},
@@ -35,9 +36,51 @@ afterEach(() => {
   cleanup();
   document.body.replaceChildren();
   setColumnDragActive(false);
+  commandBindingStore.set({});
 });
 
 describe('window shortcuts', () => {
+  it.each(['listbox', 'button', 'text', 'recording', 'menu', 'dialog'])(
+    'respects %s focus for remapped navigation and clear commands',
+    focus => {
+      const next = vi.fn();
+      const clear = vi.fn();
+      commandBindingStore.set({
+        'show.next': [{code: 'F9', mods: []}],
+        'clear.slide': [{code: 'F8', mods: []}],
+      });
+      renderHook(() =>
+        useWindowShortcuts([
+          {id: 'show.next', run: next},
+          {id: 'clear.slide', run: clear},
+        ]),
+      );
+      const target = document.createElement(
+        focus === 'text' || focus === 'recording'
+          ? 'input'
+          : focus === 'button'
+            ? 'button'
+            : 'div',
+      );
+      if (['listbox', 'menu', 'dialog'].includes(focus)) {
+        target.setAttribute('role', focus);
+      }
+      if (focus === 'recording') {
+        target.setAttribute('data-shortcut-recording', '');
+      }
+      target.tabIndex = 0;
+      document.body.append(target);
+      target.focus();
+      expect(document.activeElement).toBe(target);
+      press({code: 'F9', key: 'F9', ctrlKey: false}, target);
+      press({code: 'F8', key: 'F8', ctrlKey: false}, target);
+      expect(next).toHaveBeenCalledTimes(
+        focus === 'listbox' || focus === 'button' ? 1 : 0,
+      );
+      expect(clear).toHaveBeenCalledTimes(focus === 'recording' ? 0 : 1);
+    },
+  );
+
   it('blocks workspace keys during actual quick-list pointer reordering and releases them on drop', () => {
     const onWorkspace = vi.fn();
     function QuickList() {
