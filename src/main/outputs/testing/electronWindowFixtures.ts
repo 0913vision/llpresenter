@@ -5,8 +5,8 @@ import type {Rect} from '../../displays/rect';
 import type {Logger} from '../../log';
 import type {WindowMode} from '../../windows/testWindows';
 import {createElectronOutputWindow} from '../electronWindow';
-import type {OutputWindowHandle} from '.././outputWindow';
-import type {OutputScreen} from '.././screens';
+import type {OutputWindowHandle} from '../outputWindow';
+import type {OutputScreen} from '../screens';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
