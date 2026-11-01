@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import type {RenderLayerOptions} from '../layer';
@@ -25,6 +25,10 @@ vi.mock('../backgroundLayer', () => ({
     }
   },
 }));
+
+beforeEach(() => {
+  mocks.views.length = 0;
+});
 
 const options: RenderLayerOptions = {
   lyricStyle: DEFAULT_LYRIC_STYLE,

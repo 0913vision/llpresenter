@@ -442,4 +442,58 @@ describe('P6a catalog completion port', () => {
     expect(store.get().revision).toBe(1);
     expect(write).not.toHaveBeenCalled();
   });
+
+  describe('adding imported media', () => {
+    const video = {
+      id: NEW,
+      name: 'Imported video',
+      kind: 'video',
+      file: 'imported.webm',
+      size: 1,
+    } as const;
+
+    it.each([0, 1.5, NaN])(
+      'refuses the list revision %s without changing the list',
+      async baseRevision => {
+        const {store, write} = setup();
+        expect(
+          await store.add({baseRevision, items: [video]}, null),
+        ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+        expect(store.get().revision).toBe(1);
+        expect(write).not.toHaveBeenCalled();
+      },
+    );
+
+    it('refuses an import into a read-only list', async () => {
+      const {store, write} = setup('readOnly');
+      expect(
+        await store.add({baseRevision: 1, items: [video]}, null),
+      ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+      expect(write).not.toHaveBeenCalled();
+    });
+
+    it('refuses a destination playlist that no longer exists and keeps the list', async () => {
+      const {store, write} = setup();
+      expect(
+        await store.add(
+          {baseRevision: 1, items: [video]},
+          {kind: 'media', id: createMediaPlaylistId(uuid(77))},
+        ),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+      expect(store.get().value.items).toHaveLength(3);
+      expect(write).not.toHaveBeenCalled();
+    });
+
+    it('refuses a video for an audio destination playlist and keeps the list', async () => {
+      const {store, write} = setup();
+      expect(
+        await store.add(
+          {baseRevision: 1, items: [video]},
+          {kind: 'audio', id: AUDIO_LIST},
+        ),
+      ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+      expect(store.get().value.items).toHaveLength(3);
+      expect(write).not.toHaveBeenCalled();
+    });
+  });
 });

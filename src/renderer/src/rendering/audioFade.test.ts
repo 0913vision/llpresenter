@@ -73,20 +73,20 @@ describe('fadeAudio', () => {
     const end = vi.fn();
     const onError = vi.fn();
     const failure = new Error('Last volume failed');
-    let calls = 0;
+    const fractions: number[] = [];
     fadeAudio({
       durationMs: 40,
       now: () => 0,
       gain: fraction => {
-        calls += 1;
+        fractions.push(fraction);
         if (fraction === 0) throw failure;
       },
       end,
       onError,
     });
     vi.advanceTimersByTime(40);
-    expect(calls).toBeGreaterThan(0);
-    expect(onError).toHaveBeenCalledWith(failure);
+    expect(fractions).toEqual([1, 0]);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
     expect(end).toHaveBeenCalledOnce();
   });
 });

@@ -7,6 +7,7 @@ import {recordingLogger} from '../displays/testing';
 import {openAppConfig} from './appConfigFile';
 import {loadStore} from './fileStore';
 import {openMediaStore} from './mediaLoader';
+import {Saver} from './saver';
 import {writeJson} from './testFiles';
 
 const EMPTY = {
@@ -46,6 +47,37 @@ describe('media list loading', () => {
       {file: 'media.json', error: {message: 'Serializer failed'}},
     ]);
   });
+  it('keeps defaults and reports the error when the default list cannot be serialized', async () => {
+    const {loaded, log} = await setup();
+    vi.spyOn(mediaListSchema, 'serializeMediaList').mockReturnValueOnce({
+      ok: false,
+      error: {kind: 'invalid', file: 'media.json', field: '', message: 'No'},
+    });
+    const opened = await openMediaStore(loaded, {settings: null, log});
+    onTestFinished(() => opened.store.dispose());
+    expect(opened.store.get().value).toEqual(EMPTY);
+    expect(opened.problems).toMatchObject([
+      {file: 'media.json', error: {message: 'No'}},
+    ]);
+    await expect(
+      readFile(join(loaded.locations.settings, 'media.json'), 'utf8'),
+    ).rejects.toThrow();
+  });
+
+  it('keeps defaults and reports the cause when the first file cannot be created', async () => {
+    const {loaded, log} = await setup();
+    vi.spyOn(Saver.prototype, 'save').mockResolvedValueOnce({
+      ok: false,
+      error: {file: 'media.json', message: 'Disk is full'},
+    });
+    const opened = await openMediaStore(loaded, {settings: null, log});
+    onTestFinished(() => opened.store.dispose());
+    expect(opened.store.get().value).toEqual(EMPTY);
+    expect(opened.problems).toMatchObject([
+      {file: 'media.json', error: {message: 'Disk is full'}},
+    ]);
+  });
+
   it('creates a missing empty media list', async () => {
     const {loaded, log} = await setup();
     const opened = await openMediaStore(loaded, {settings: null, log});

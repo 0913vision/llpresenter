@@ -40,13 +40,13 @@ function handler(channel: string): Handler {
   return found;
 }
 
-function setup() {
+function setup(access: 'editable' | 'readOnly' = 'editable') {
   const log = recordingLogger();
   const store = new MediaStore({
     document: expectSuccess(
       parseMediaDocument({
         name: 'media',
-        access: 'editable',
+        access,
         revision: 1,
         value: {
           format: 'llmedia',
@@ -232,5 +232,82 @@ describe('media backend boundary', () => {
     expect(connected.report(job)).toBe(false);
     expect(electron.send).not.toHaveBeenCalled();
     next.disconnect();
+  });
+
+  const OTHER = createMediaId('00000000-0000-4000-8000-000000000002');
+
+  function mockBackend(): MediaBackend {
+    return {
+      import: vi.fn<MediaBackend['import']>(),
+      relink: vi
+        .fn<MediaBackend['relink']>()
+        .mockResolvedValue({ok: true, value: null}),
+      cancel: vi
+        .fn<MediaBackend['cancel']>()
+        .mockResolvedValue({ok: true, value: null}),
+    };
+  }
+
+  it('refuses a relink or a cancel of a read-only list before it reaches the backend', async () => {
+    const {channels} = setup('readOnly');
+    const backend = mockBackend();
+    channels.port.connect(backend);
+    for (const type of ['media.relink', 'media.import.cancel']) {
+      expect(
+        await handler(mediaEndpoints.edit.channel)({}, {type, mediaId: ID}),
+      ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+    }
+    expect(backend.relink).not.toHaveBeenCalled();
+    expect(backend.cancel).not.toHaveBeenCalled();
+  });
+
+  it('refuses a relink of media that is not in the list', async () => {
+    const {channels} = setup();
+    const backend = mockBackend();
+    channels.port.connect(backend);
+    expect(
+      await handler(mediaEndpoints.edit.channel)(
+        {},
+        {type: 'media.relink', mediaId: OTHER},
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(backend.relink).not.toHaveBeenCalled();
+  });
+
+  it('allows one backend at a time and none after closing', async () => {
+    const {channels} = setup();
+    const first = channels.port.connect(mockBackend());
+    expect(() => channels.port.connect(mockBackend())).toThrow(
+      'A media backend is already connected',
+    );
+    first.disconnect();
+    channels.port.connect(mockBackend());
+    await channels.dispose();
+    expect(() => channels.port.connect(mockBackend())).toThrow(
+      'Media list is unavailable',
+    );
+  });
+
+  it('logs a media list that fails to open and refuses reads and edits', async () => {
+    const log = recordingLogger();
+    const failure = new Error('invented open failure');
+    const channels = registerMediaChannels(Promise.reject(failure), log);
+    onTestFinished(() => channels.dispose());
+    await expect(handler(mediaEndpoints.get.channel)({})).rejects.toThrow(
+      'Media list is unavailable',
+    );
+    expect(
+      await handler(mediaEndpoints.edit.channel)(
+        {},
+        {type: 'media.delete', mediaId: ID},
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(log.entries).toContainEqual(
+      expect.objectContaining({
+        level: 'error',
+        message: 'could not open media channels',
+        detail: failure,
+      }),
+    );
   });
 });
