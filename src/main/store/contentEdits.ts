@@ -11,6 +11,8 @@ import {
 } from '@core/schema/service';
 import type {GroupedSong} from '@core/schema/groupedSong';
 
+export {normalizeSongTitle} from '@core/songs/songTitle';
+
 /** A fresh version 4 id, checked against the schema of its kind. */
 export function newItemId(): ServiceItemId {
   return createServiceItemId(randomUUID());
@@ -53,10 +55,6 @@ export function freeTitle(base: string, taken: ReadonlySet<string>): string {
     number++;
   }
   return `${base} ${number}`;
-}
-
-export function normalizeSongTitle(title: string): string {
-  return title.trim().normalize('NFC');
 }
 
 /** Retains overwrite positions so their nested unknown fields can be merged. */

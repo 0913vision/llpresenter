@@ -1,5 +1,6 @@
 import {
   isGroupedSong,
+  sourceSlideCount,
   type AnySong,
   type GroupedSong,
   type SongGroup,
@@ -74,14 +75,11 @@ export const BLANK_LINES = /\n(?:[^\S\n]*\n)+/g;
 export const linesOf = (text: string): readonly string[] =>
   text === '' ? [] : text.split('\n');
 
-/** Counts grouped source slides once, without expanding arrangement references. */
-export function groupedSlideCount(song: GroupedSong): number {
-  return song.groups.reduce((sum, group) => sum + group.slides.length, 0);
-}
+export {sourceSlideCount as groupedSlideCount} from '../schema/groupedSong';
 
 /** Counts source slides in either supported song format, independently of arrangements. */
 export function slideCountOf(song: AnySong): number {
-  return isGroupedSong(song) ? groupedSlideCount(song) : song.slides.length;
+  return isGroupedSong(song) ? sourceSlideCount(song) : song.slides.length;
 }
 
 /** Locates a grouped source slide by flattened index without modifying the song. */
