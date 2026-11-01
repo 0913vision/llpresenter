@@ -5,84 +5,96 @@ import {editorPreviewFixture} from './editorPreviewFixture';
 import {previewAppearance, selectedPreview} from './songPreviewModel';
 
 describe('local song preview model', () => {
-  it('uses the current screen Look, explicit layer visibility, and capture preview background', () => {
-    const {looks, screens} = editorPreviewFixture();
-    const main = previewAppearance('main', looks.value, screens.value);
-    expect(main.styleName).toBe('기본 가사');
+  it('projects the chosen next source block and omits it after the last place', () => {
+    const song = editorGroupedSong(1).song;
+    const intermediate = selectedPreview(song, {
+      block: 1,
+      nextBlock: 2,
+      background: undefined,
+    });
+    expect(intermediate.slide?.next).toEqual({
+      label: '후렴',
+      lines: ['빛을 따라가요'],
+    });
+    const final = selectedPreview(song, {
+      block: 0,
+      nextBlock: undefined,
+      background: undefined,
+    });
+    expect(final.slide).not.toHaveProperty('next');
+    expect(final.slide?.lines).toEqual(song.groups[0]?.slides[0]?.lines);
+  });
+  it('uses the same per-screen theme composition and configured empty color as output', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const main = previewAppearance({
+      role: 'main',
+      themes: themes.value,
+      screens: screens.value,
+    });
+    expect(main.themeName).toBe(themes.value.themes[0]?.name);
     expect(main.screen.id).toBe(STARTER_SCREEN_IDS.main);
-    expect(main.media).toBe(true);
-    const stage = previewAppearance('stage', looks.value, screens.value);
+    expect(
+      main.theme.layout.elements.some(element => element.kind === 'background'),
+    ).toBe(true);
+    const stage = previewAppearance({
+      role: 'stage',
+      themes: themes.value,
+      screens: screens.value,
+    });
     expect(stage.screen.kind).toBe('stage');
-    expect(stage.media).toBe(false);
     expect(
-      previewAppearance('broadcast', looks.value, screens.value).background,
-    ).toBe('var(--chroma)');
+      stage.theme.layout.elements.some(
+        element => element.kind === 'background',
+      ),
+    ).toBe(false);
+    expect(
+      stage.theme.layout.elements.some(element => element.kind === 'nextText'),
+    ).toBe(true);
+    expect(
+      previewAppearance({
+        role: 'broadcast',
+        themes: themes.value,
+        screens: screens.value,
+      }).background,
+    ).toBe('#00B140');
   });
 
-  it('draws a screen whose Look has no card the way the output does', () => {
-    const {looks, screens} = editorPreviewFixture();
-    const noCards = {
-      ...looks.value,
-      looks: looks.value.looks.map(look => ({...look, screens: {}})),
-    };
-    const main = previewAppearance('main', noCards, screens.value);
-    expect(main.slide).toBe(true);
-    expect(main.media).toBe(true);
-    expect(main.styleName).toBe('기본');
-  });
-
-  it('lets a solid Look background replace media and checker, with safe missing-setting fallbacks', () => {
-    const {looks, screens} = editorPreviewFixture();
-    const appearance = previewAppearance(
-      'broadcast',
-      {
-        ...looks.value,
-        looks: looks.value.looks.map(look => ({
-          ...look,
-          screens: {
-            [STARTER_SCREEN_IDS.broadcast]: {
-              layers: {slide: true, media: true},
-              background: {kind: 'color', color: '#123456'},
-            },
-          },
-        })),
-      },
-      {
-        ...screens.value,
-        screens: screens.value.screens.map(screen => ({
-          ...screen,
-          previewBackground: 'checker',
-        })),
-      },
-    );
-    expect(appearance).toMatchObject({
-      background: '#123456',
-      media: false,
-      checker: false,
-    });
-    expect(previewAppearance('main', undefined, undefined)).toMatchObject({
-      slide: true,
-      media: true,
-      styleName: '기본',
-    });
+  it('uses built-in themes before settings load and follows a service item override', () => {
+    const {themes, screens} = editorPreviewFixture();
     expect(
-      previewAppearance('broadcast', looks.value, {
-        ...screens.value,
-        screens: screens.value.screens.map(screen => ({
-          ...screen,
-          previewBackground: 'checker',
-        })),
-      }).checker,
+      previewAppearance({role: 'main', themes: undefined, screens: undefined}),
+    ).toMatchObject({
+      theme: {layout: {mode: {kind: 'own'}}},
+    });
+    const theme = themes.value.themes[1];
+    if (theme === undefined) throw new Error('Missing theme');
+    const item = {
+      id: 'service-item',
+      kind: 'bible',
+      source: 'service',
+      theme: theme.id,
+    } as const;
+    const appearance = previewAppearance({
+      role: 'main',
+      themes: themes.value,
+      screens: screens.value,
+      item: item,
+    });
+    expect(appearance.theme.themeId).toBe(theme.id);
+    expect(appearance.theme.item).toBe(item);
+    expect(
+      appearance.theme.layout.elements.some(
+        element => element.kind === 'reference',
+      ),
     ).toBe(true);
   });
 
   it('draws only the selected local slide and eligible background, never other live layers', () => {
     const song = editorSong(1).song;
-    const layers = selectedPreview(
-      song,
-      {block: 1, background: 'fixture-media'},
-      previewAppearance('main', undefined, undefined),
-    );
+    const layers = selectedPreview(song, {
+      block: 1,
+      background: 'fixture-media',
+    });
     expect(layers.slide).toMatchObject({
       itemId: song.id,
       position: 1,
@@ -95,21 +107,13 @@ describe('local song preview model', () => {
     });
     expect(layers).toMatchObject({notice: null, prop: null, message: null});
     expect(
-      selectedPreview(
-        song,
-        {block: 99, background: undefined},
-        previewAppearance('main', undefined, undefined),
-      ).slide,
+      selectedPreview(song, {block: 99, background: undefined}).slide,
     ).toBeNull();
   });
 
   it('draws grouped song slides with group label name across all slides of a group', () => {
     const song = editorGroupedSong(1).song;
-    const slide0 = selectedPreview(
-      song,
-      {block: 0, background: undefined},
-      previewAppearance('main', undefined, undefined),
-    );
+    const slide0 = selectedPreview(song, {block: 0, background: undefined});
     expect(slide0.slide).toMatchObject({
       itemId: song.id,
       position: 0,
@@ -117,11 +121,7 @@ describe('local song preview model', () => {
       lines: ['새 아침을 노래해요', '함께 걸어요'],
     });
 
-    const slide1 = selectedPreview(
-      song,
-      {block: 1, background: undefined},
-      previewAppearance('main', undefined, undefined),
-    );
+    const slide1 = selectedPreview(song, {block: 1, background: undefined});
     expect(slide1.slide).toMatchObject({
       itemId: song.id,
       position: 1,
@@ -129,11 +129,7 @@ describe('local song preview model', () => {
       lines: ['맑은 하늘 바라보며'],
     });
 
-    const slide2 = selectedPreview(
-      song,
-      {block: 2, background: undefined},
-      previewAppearance('main', undefined, undefined),
-    );
+    const slide2 = selectedPreview(song, {block: 2, background: undefined});
     expect(slide2.slide).toMatchObject({
       itemId: song.id,
       position: 2,

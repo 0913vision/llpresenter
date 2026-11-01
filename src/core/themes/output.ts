@@ -22,8 +22,7 @@ export function resolveThemeOutput({
   readonly item: LiveThemeItem | null;
   readonly mode?: LiveThemeMode | undefined;
   readonly revision: number;
-}): LiveThemeOutput | undefined {
-  if (mode?.kind === 'legacy') return undefined;
+}): LiveThemeOutput {
   const missing: string[] = [];
   const kind = item?.kind ?? 'song';
   const requested =

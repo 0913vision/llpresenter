@@ -37,6 +37,15 @@ const instances = vi.hoisted(() => {
   return {list};
 });
 
+vi.mock('@renderer/rendering/screenFrames', () => ({
+  ScreenFrames: class {
+    frame(state: unknown) {
+      return state === null ? undefined : {};
+    }
+    dispose = vi.fn();
+  },
+}));
+
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     readonly render = vi.fn();
@@ -297,6 +306,7 @@ describe('PreviewPanel swap', () => {
     for (const instance of created()) {
       expect(instance.render).toHaveBeenLastCalledWith(
         expect.objectContaining({slide: null}),
+        expect.anything(),
       );
     }
   });
@@ -313,6 +323,7 @@ describe('PreviewPanel states', () => {
     ).toBe('본 화면 크게 보기, 출력이 꺼져 있습니다');
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
+      expect.anything(),
     );
   });
 
@@ -406,6 +417,7 @@ describe('PreviewPanel pictures', () => {
     for (const instance of created()) {
       expect(instance.render).toHaveBeenLastCalledWith(
         expect.objectContaining({slide}),
+        expect.anything(),
       );
     }
   });
@@ -417,15 +429,16 @@ describe('PreviewPanel pictures', () => {
     for (const instance of created()) {
       expect(instance.render).toHaveBeenLastCalledWith(
         expect.objectContaining({slide: null}),
+        expect.anything(),
       );
     }
     expect(created()).toHaveLength(3);
   });
 
-  it('draws empty layers before the first live state arrives', () => {
+  it('waits for the first complete frame before drawing', () => {
     render(<PreviewPanel compact={false} />);
     for (const instance of created()) {
-      expect(instance.render).toHaveBeenLastCalledWith(emptyLayers());
+      expect(instance.render).not.toHaveBeenCalled();
     }
   });
 

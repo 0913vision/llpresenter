@@ -61,7 +61,13 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     isItemOfKind(item, 'bible') &&
     tile !== undefined &&
     at !== undefined
-      ? {itemId: item.id, tile, position: at + 1, total: tiles.length}
+      ? {
+          itemId: item.id,
+          tile,
+          next: tiles[at + 1],
+          position: at + 1,
+          total: tiles.length,
+        }
       : item === null || !isItemOfKind(item, 'song') || song === null
         ? null
         : itemPicture({
@@ -70,11 +76,33 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
             position,
             background: item.background ?? song.background,
           });
+  const previewKind =
+    item === null
+      ? undefined
+      : isItemOfKind(item, 'song')
+        ? 'song'
+        : isItemOfKind(item, 'bible')
+          ? 'bible'
+          : undefined;
+  const previewTitle =
+    item !== null && isItemOfKind(item, 'bible')
+      ? item.bible.ref
+      : song?.history.snapshot.song.title;
   return (
     <SongPreviewFrame
       settings={editor.api.settings}
       labels={labels}
       picture={picture}
+      item={
+        item !== null && previewKind !== undefined
+          ? {
+              ...item,
+              kind: previewKind,
+              source: 'service',
+              ...(previewTitle === undefined ? {} : {title: previewTitle}),
+            }
+          : undefined
+      }
     />
   );
 }

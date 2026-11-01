@@ -4,7 +4,6 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
-import type {LookGap} from '@core/looks/screenLook';
 import {useLive} from '@renderer/session/live';
 import styles from './ScreenPreview.module.css';
 
@@ -13,10 +12,6 @@ const noLayers = emptyLayers();
 function reportDrawingError(message: string, error: unknown): void {
   const detail = error instanceof Error ? (error.stack ?? error.message) : '';
   window.llp?.log.write({level: 'error', message, detail});
-}
-
-function reportLookGap(message: string, {kind, id}: LookGap): void {
-  window.llp?.log.write({level: 'warn', message, detail: `${kind} ${id}`});
 }
 
 /**
@@ -38,8 +33,6 @@ export function ScreenPreview({
   useEffect(() => {
     const screen = screenRef.current;
     if (!screen) return undefined;
-    // TODO(0913vision): Draw the stage layout on the 무대 화면 once stage
-    // layouts reach the renderer (M3-O5).
     const renderer = new OutputRenderer(screen, {
       lyricStyle: DEFAULT_LYRIC_STYLE,
       mediaUrl,
@@ -50,9 +43,12 @@ export function ScreenPreview({
     const draw = (): void => {
       const state = useLive.getState().state;
       const layers = state?.layers ?? noLayers;
-      const frame = frames?.frame(state);
-      if (frame === undefined) renderer.render(layers);
-      else renderer.render(layers, frame);
+      try {
+        const frame = frames?.frame(state);
+        if (frame !== undefined) renderer.render(layers, frame);
+      } catch (error) {
+        reportDrawingError('could not update the screen preview', error);
+      }
     };
     const api = window.llp;
     frames =
@@ -65,7 +61,6 @@ export function ScreenPreview({
             screenId,
             onChange: draw,
             onError: reportDrawingError,
-            onGap: reportLookGap,
           });
     draw();
     const unsubscribe = useLive.subscribe((next, previous) => {

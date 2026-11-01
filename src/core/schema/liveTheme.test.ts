@@ -1,12 +1,28 @@
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
-import {liveThemeItemSchema, liveThemeOutputSchema} from './liveTheme';
+import {
+  liveThemeItemSchema,
+  liveThemeModeSchema,
+  liveThemeOutputSchema,
+} from './liveTheme';
 import {themeFile, themeScreens} from '../testing/themeOutput';
 import {resolveThemeOutput} from '../themes/output';
 import {parseLiveCommand} from './liveCommand';
 import {createThemeId} from './ids';
 
 describe('live theme payloads', () => {
+  it('accepts manual theme choices and rejects the retired legacy mode', () => {
+    const id = createThemeId('00000000-0000-4000-8000-000000000111');
+    expect(v.safeParse(liveThemeModeSchema, {kind: 'manual', id}).success).toBe(
+      true,
+    );
+    expect(
+      v.safeParse(liveThemeModeSchema, {kind: 'manual', id: 'invalid'}).success,
+    ).toBe(false);
+    expect(v.safeParse(liveThemeModeSchema, {kind: 'legacy'}).success).toBe(
+      false,
+    );
+  });
   it('preserves the independently retained slide position', () => {
     const item = {
       id: 'song',
@@ -52,7 +68,7 @@ describe('live theme payloads', () => {
       v.safeParse(liveThemeOutputSchema, {
         ...output,
         screens: {
-          [screen.id]: {...output?.screens[screen.id], emptyColor: 'green'},
+          [screen.id]: {...output.screens[screen.id], emptyColor: 'green'},
         },
       }).success,
     ).toBe(false);
@@ -64,7 +80,7 @@ describe('live theme payloads', () => {
       item: null,
       revision: 1,
     });
-    const screen = Object.values(output?.screens ?? {})[0];
+    const screen = Object.values(output.screens)[0];
     const many = Object.fromEntries(
       Array.from({length: 201}, (_, i) => [
         `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,

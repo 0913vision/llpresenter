@@ -1,15 +1,8 @@
-import {settingsDocument} from '@core/testing/settingsDocument';
 import {beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {
-  CAPTIONS_ID,
-  LOOK_ID,
-  MAIN_ID,
-  screensDocument,
-} from '@core/testing/screenDocuments';
+import {MAIN_ID} from '@core/testing/screenDocuments';
 import {BackgroundAudio} from './backgroundAudio';
 import {resolveThemeOutput} from '@core/themes/output';
 import {
@@ -19,20 +12,33 @@ import {
   THEME_CAPTURE,
 } from '@core/testing/themeOutput';
 
+function audioState() {
+  const item = {id: 'audio-item', kind: 'song', source: 'external'} as const;
+  return {
+    ...emptyLiveState(),
+    themeItem: item,
+    themeOutput: resolveThemeOutput({
+      file: themeFile(),
+      screens: themeScreens,
+      item,
+      revision: 1,
+    }),
+  };
+}
+
 beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
 
-it('plays one soundtrack for several themed screens even when their legacy Looks hide media', async () => {
+it('plays one soundtrack for several themed screens without reading legacy settings', async () => {
   const output = resolveThemeOutput({
     file: themeFile(),
     screens: themeScreens,
     item: {id: 'song', kind: 'song', source: 'external'},
     revision: 1,
   });
-  if (output === undefined) throw new Error('Missing theme');
   const state = {
     ...emptyLiveState(),
     themeOutput: output,
@@ -49,29 +55,8 @@ it('plays one soundtrack for several themed screens even when their legacy Looks
     },
   };
   const root = document.createElement('div');
-  const api = mockLlpApi({
-    settings: {
-      get: ({name}) =>
-        Promise.resolve(
-          name === 'screens'
-            ? screensDocument()
-            : settingsDocument('looks', {
-                current: LOOK_ID,
-                lyricStyles: [],
-                looks: [
-                  {
-                    id: LOOK_ID,
-                    name: 'Hidden media',
-                    screens: {
-                      [MAIN_ID]: {layers: {media: false}},
-                      [CAPTIONS_ID]: {layers: {media: false}},
-                    },
-                  },
-                ],
-              }),
-        ),
-    },
-  });
+  const api = mockLlpApi();
+  const mockRead = vi.spyOn(api.settings, 'get');
   const audio = new BackgroundAudio({
     root,
     api,
@@ -84,105 +69,19 @@ it('plays one soundtrack for several themed screens even when their legacy Looks
     expect(root.querySelectorAll('video[src]')).toHaveLength(1),
   );
   expect(root.querySelector<HTMLVideoElement>('video[src]')?.muted).toBe(false);
+  audio.show(emptyLiveState());
+  expect(root.querySelectorAll('video[src]')).toHaveLength(1);
+  expect(mockRead).not.toHaveBeenCalled();
   audio.show({...state, outputs: {}});
   expect(root.querySelectorAll('video[src]')).toHaveLength(0);
   audio.dispose();
   expect(root.children).toHaveLength(0);
 });
 
-it('plays background sound once for multiple outputs, respects Looks, and releases it', async () => {
-  const listeners = new Set<(document: SettingsDocument) => void>();
-  const looks = (enabled: boolean, revision = 1) =>
-    settingsDocument(
-      'looks',
-      {
-        current: LOOK_ID,
-        lyricStyles: [],
-        looks: [
-          {
-            id: LOOK_ID,
-            name: 'Fixture',
-            screens: {
-              [MAIN_ID]: {layers: {media: enabled}},
-              [CAPTIONS_ID]: {layers: {media: enabled}},
-            },
-          },
-        ],
-      },
-      revision,
-    );
-  const api = mockLlpApi({
-    settings: {
-      get: ({name}) =>
-        Promise.resolve(name === 'screens' ? screensDocument() : looks(true)),
-      subscribe: listener => {
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-        };
-      },
-    },
-  });
-  const parsed = parseLiveState({
-    ...emptyLiveState(),
-    outputs: {[MAIN_ID]: true, [CAPTIONS_ID]: true},
-    layers: {
-      ...emptyLiveState().layers,
-      media: {
-        mediaId: '00000000-0000-4000-8000-000000000004',
-        loop: true,
-        startedAt: 1000,
-        properties: {speed: 2, fit: 'fit', volume: 40, audio: true},
-      },
-    },
-  });
-  if (!parsed.ok) throw new Error('Invalid live fixture');
-  const root = document.createElement('div');
-  const report = vi.fn();
-  const audio = new BackgroundAudio({
-    root,
-    api,
-    muted: false,
-    report,
-    now: () => 1000,
-  });
-  audio.show(parsed.value);
-  await vi.waitFor(() =>
-    expect(root.querySelectorAll('video[src]')).toHaveLength(1),
-  );
-  const video = root.querySelector<HTMLVideoElement>('video[src]');
-  expect(video?.muted).toBe(false);
-  expect(video?.volume).toBe(0.4);
-  expect(video?.playbackRate).toBe(2);
-  for (const listener of listeners) listener(looks(false, 2));
-  expect(root.querySelectorAll('video[src]')).toHaveLength(0);
-  for (const listener of listeners) listener(looks(true, 3));
-  expect(root.querySelectorAll('video[src]')).toHaveLength(1);
-  audio.show({...parsed.value, outputs: {}});
-  expect(root.querySelectorAll('video[src]')).toHaveLength(0);
-  audio.dispose();
-  expect(listeners.size).toBe(0);
-  expect(root.children).toHaveLength(0);
-  expect(report).not.toHaveBeenCalled();
-});
-
 it('keeps background video muted when the hidden audio window is muted', async () => {
-  const api = mockLlpApi({
-    settings: {
-      get: ({name}) =>
-        Promise.resolve(
-          name === 'screens'
-            ? screensDocument()
-            : settingsDocument('looks', {
-                current: LOOK_ID,
-                looks: [],
-                lyricStyles: [],
-              }),
-        ),
-    },
-  });
+  const api = mockLlpApi();
   const parsed = parseLiveState({
-    ...emptyLiveState(),
+    ...audioState(),
     outputs: {[MAIN_ID]: true},
     layers: {
       ...emptyLiveState().layers,
@@ -216,22 +115,9 @@ it('keeps background video muted when the hidden audio window is muted', async (
 it('fades cleared video sound, cancels on restore, and resets gain after expiry', async () => {
   vi.useFakeTimers();
   let now = 1000;
-  const api = mockLlpApi({
-    settings: {
-      get: ({name}) =>
-        Promise.resolve(
-          name === 'screens'
-            ? screensDocument()
-            : settingsDocument('looks', {
-                current: LOOK_ID,
-                looks: [],
-                lyricStyles: [],
-              }),
-        ),
-    },
-  });
+  const api = mockLlpApi();
   const parsed = parseLiveState({
-    ...emptyLiveState(),
+    ...audioState(),
     outputs: {[MAIN_ID]: true},
     layers: {
       ...emptyLiveState().layers,

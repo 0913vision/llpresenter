@@ -18,12 +18,12 @@ describe('published theme compositions', () => {
       item: null,
       revision: 1,
     });
-    expect(output?.themeId).toBe(file.standby.id);
-    expect(output?.screens[THEME_MAIN]).toMatchObject({
+    expect(output.themeId).toBe(file.standby.id);
+    expect(output.screens[THEME_MAIN]).toMatchObject({
       emptyColor: '#123456',
       layout: {mode: {kind: 'empty'}},
     });
-    expect(output?.screens[THEME_CAPTURE]?.emptyColor).toBe('#00B140');
+    expect(output.screens[THEME_CAPTURE]?.emptyColor).toBe('#00B140');
   });
 
   it('inherits the linked source composition and its configured empty color', () => {
@@ -46,11 +46,11 @@ describe('published theme compositions', () => {
       item: {id: 'service', kind: 'song', source: 'service'},
       revision: 2,
     });
-    expect(output?.screens[THEME_CAPTURE]).toMatchObject({
+    expect(output.screens[THEME_CAPTURE]).toMatchObject({
       sourceScreenId: THEME_MAIN,
       emptyColor: '#123456',
     });
-    expect(output?.screens[THEME_CAPTURE]?.layout).toBe(
+    expect(output.screens[THEME_CAPTURE]?.layout).toBe(
       linked.screens[THEME_MAIN],
     );
   });
@@ -63,15 +63,15 @@ describe('published theme compositions', () => {
       item: {id: 'service', kind: 'song', source: 'service', theme: missing},
       revision: 3,
     });
-    expect(output?.missing).toEqual([missing, missing]);
+    expect(output.missing).toEqual([missing, missing]);
     expect(
-      output?.screens[THEME_MAIN]?.layout.elements.some(
+      output.screens[THEME_MAIN]?.layout.elements.some(
         element => element.kind === 'currentText',
       ),
     ).toBe(true);
   });
 
-  it('uses built-in Bible references before themes load and supports explicit legacy Looks', () => {
+  it('uses built-in Bible references before themes load', () => {
     const request = {
       file: null,
       screens: themeScreens,
@@ -80,13 +80,10 @@ describe('published theme compositions', () => {
     };
     const output = resolveThemeOutput(request);
     expect(
-      output?.screens[THEME_MAIN]?.layout.elements.some(
+      output.screens[THEME_MAIN]?.layout.elements.some(
         element => element.kind === 'reference',
       ),
     ).toBe(true);
-    expect(
-      resolveThemeOutput({...request, mode: {kind: 'legacy'}}),
-    ).toBeUndefined();
   });
 
   it('falls back from a missing manual choice to the kind default rather than the service override', () => {
@@ -103,7 +100,7 @@ describe('published theme compositions', () => {
         id: createThemeId('00000000-0000-4000-8000-000000000999'),
       },
     });
-    expect(output?.themeId).toBe(file.defaults.song);
-    expect(output?.missing).toHaveLength(1);
+    expect(output.themeId).toBe(file.defaults.song);
+    expect(output.missing).toHaveLength(1);
   });
 });

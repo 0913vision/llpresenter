@@ -1,3 +1,5 @@
+import {createDefaultThemes} from '@core/themes/defaults';
+import {settingsDocument} from '@core/testing/settingsDocument';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
@@ -64,5 +66,10 @@ export function editorPreviewFixture() {
   ) {
     throw new Error('Invalid preview fixture');
   }
-  return {looks: looks.value, screens: screens.value};
+  const themes = settingsDocument(
+    'themes',
+    createDefaultThemes(screens.value.value.screens),
+  );
+  if (themes.name !== 'themes') throw new Error('Invalid theme fixture');
+  return {looks: looks.value, screens: screens.value, themes};
 }

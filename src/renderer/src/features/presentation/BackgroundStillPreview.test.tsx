@@ -1,13 +1,8 @@
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {settingsDocument} from '@core/testing/settingsDocument';
-import {
-  MAIN_ID,
-  CAPTIONS_ID,
-  STAGE_ID,
-  LOOK_ID,
-  screensDocument,
-} from '@core/testing/screenDocuments';
+import {resolveThemeOutput} from '@core/themes/output';
+import {themeFile, themeScreens} from '@core/testing/themeOutput';
+import {screensDocument} from '@core/testing/screenDocuments';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
@@ -47,7 +42,17 @@ it('marks missing live videos from the shared media feed and removes the mark af
       : get(request),
   );
   window.llp = fixture.api;
-  const state = emptyLiveState();
+  const item = {id: 'invented', kind: 'media', source: 'external'} as const;
+  const state = {
+    ...emptyLiveState(),
+    themeItem: item,
+    themeOutput: resolveThemeOutput({
+      file: themeFile(),
+      screens: themeScreens,
+      item,
+      revision: 1,
+    }),
+  };
   useLive.setState({
     state: {
       ...state,
@@ -68,7 +73,7 @@ it('marks missing live videos from the shared media feed and removes the mark af
   await waitFor(() =>
     expect(
       screen.getAllByRole('img', {name: MISSING_STILL_BACKGROUND_TIP}),
-    ).toHaveLength(3),
+    ).toHaveLength(1),
   );
   act(() => fixture.pushMissing([]));
   expect(
@@ -91,34 +96,27 @@ it('marks missing live videos from the shared media feed and removes the mark af
   ).toBeNull();
 });
 
-it('puts the pause tooltip only on frames whose Look shows background media', async () => {
+it('puts the pause tooltip only on theme frames that show the media content', async () => {
   const fixture = mediaFixture(mediaDocument([mediaItem(1)]));
   const api = fixture.api;
   const get = api.settings.get;
-  const looks = settingsDocument('looks', {
-    current: LOOK_ID,
-    looks: [
-      {
-        id: LOOK_ID,
-        name: 'Invented',
-        screens: {
-          [MAIN_ID]: {layers: {media: true}},
-          [STAGE_ID]: {layers: {media: true}},
-          [CAPTIONS_ID]: {layers: {media: false}},
-        },
-      },
-    ],
-    lyricStyles: [],
-  });
   vi.spyOn(api.settings, 'get').mockImplementation(request =>
     request.name === 'screens'
       ? Promise.resolve(screensDocument())
-      : request.name === 'looks'
-        ? Promise.resolve(looks)
-        : get(request),
+      : get(request),
   );
   window.llp = api;
-  const state = emptyLiveState();
+  const item = {id: 'invented', kind: 'media', source: 'external'} as const;
+  const state = {
+    ...emptyLiveState(),
+    themeItem: item,
+    themeOutput: resolveThemeOutput({
+      file: themeFile(),
+      screens: themeScreens,
+      item,
+      revision: 1,
+    }),
+  };
   useLive.setState({
     state: {
       ...state,
@@ -139,7 +137,7 @@ it('puts the pause tooltip only on frames whose Look shows background media', as
   await waitFor(() =>
     expect(
       screen.getAllByRole('img', {name: MISSING_STILL_BACKGROUND_TIP}),
-    ).toHaveLength(2),
+    ).toHaveLength(1),
   );
   const marks = screen.getAllByRole('img', {
     name: MISSING_STILL_BACKGROUND_TIP,
@@ -148,7 +146,7 @@ it('puts the pause tooltip only on frames whose Look shows background media', as
     marks.map(mark =>
       mark.closest('[data-screen]')?.getAttribute('data-screen'),
     ),
-  ).toEqual(['main', 'stage']);
+  ).toEqual(['main']);
   const main = marks[0];
   if (!main) throw new Error('Missing main preview indicator');
   expect((await hoverForTooltip(main))?.textContent).toBe(

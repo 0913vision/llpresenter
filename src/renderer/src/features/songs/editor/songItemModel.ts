@@ -272,9 +272,11 @@ export function itemPicture({
   const at = shownPosition(position, sequence.length);
   const number = at === undefined ? undefined : sequence[at];
   if (at === undefined || number === undefined) return null;
+  const next = sequence[at + 1];
   return {
     song,
     block: number - 1,
+    nextBlock: next === undefined ? undefined : next - 1,
     background,
     position: at + 1,
     total: sequence.length,

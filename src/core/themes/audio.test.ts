@@ -48,7 +48,6 @@ function fixture(): LiveState {
     revision: 1,
     item: {id: 'song', kind: 'song', source: 'external'},
   });
-  if (output === undefined) throw new Error('Missing composition');
   return {
     ...emptyLiveState(),
     outputs: {[THEME_MAIN]: true, [THEME_CAPTURE]: true},

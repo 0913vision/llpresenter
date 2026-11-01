@@ -48,7 +48,6 @@ function overlayState(): LiveState {
     item: {id: 'song', kind: 'song', source: 'external'},
     revision: 1,
   });
-  if (output === undefined) throw new Error('Missing theme output');
   return {
     ...emptyLiveState(),
     themeOutput: output,

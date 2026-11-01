@@ -12,7 +12,6 @@ const THEME_COMMANDS = [
   'slide.show',
   'media.show',
   'theme.set',
-  'look.set',
   'themes.refresh',
   'layer.clear',
   'layer.clear.toggle',
@@ -40,7 +39,7 @@ export class ThemeRuntime {
   private screens: readonly Screen[] = [];
   private revision = 0;
   private key: string | null = null;
-  private output: ReturnType<typeof resolveThemeOutput>;
+  private output: ReturnType<typeof resolveThemeOutput> | undefined;
 
   constructor(private readonly options: ThemeRuntimeOptions) {
     this.refresh();
@@ -139,9 +138,6 @@ export class ThemeRuntime {
         break;
       case 'theme.set':
         mode = {kind: 'manual', id: command.themeId};
-        break;
-      case 'look.set':
-        mode = {kind: 'legacy'};
         break;
       case 'themes.refresh':
         this.refresh();

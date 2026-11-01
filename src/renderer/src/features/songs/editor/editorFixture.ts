@@ -251,11 +251,13 @@ export function editorFixture() {
     settings: {
       get: request =>
         Promise.resolve(
-          request.name === 'looks'
-            ? preview.looks
-            : request.name === 'screens'
-              ? preview.screens
-              : labels,
+          request.name === 'themes'
+            ? preview.themes
+            : request.name === 'looks'
+              ? preview.looks
+              : request.name === 'screens'
+                ? preview.screens
+                : labels,
         ),
       subscribe: listener => {
         settings.add(listener);

@@ -1,3 +1,4 @@
+import {resolveThemeOutput} from '@core/themes/output';
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
@@ -45,7 +46,21 @@ function setup() {
     duration: null,
   });
   store.dispatch({type: 'stage.message.set', text: 'Stage cue'});
-  useLive.setState({state: store.state});
+  const document = settings.reader.get('screens');
+  if (document.name !== 'screens') throw new Error('Missing screens');
+  const themeItem = {
+    id: 'overlay-preview',
+    kind: 'song',
+    source: 'external',
+  } as const;
+  const themeOutput = resolveThemeOutput({
+    file: null,
+    screens: document.value.screens,
+    item: themeItem,
+    revision: 1,
+  });
+  const snapshot = () => ({...store.state, themeItem, themeOutput});
+  useLive.setState({state: snapshot()});
   const removals: Array<ReturnType<typeof vi.fn>> = [];
   const originalSubscribe = useLive.subscribe;
   vi.spyOn(useLive, 'subscribe').mockImplementation(listener => {
@@ -64,17 +79,18 @@ function setup() {
   if (screens.name !== 'screens') throw new Error('Missing screen fixture');
   return {
     store,
+    snapshot,
     removals,
     stopSettings,
     screens: summarizeScreens(screens.value.screens),
   };
 }
 
-const SETTINGS_FEEDS_PER_PREVIEW = 4;
+const SETTINGS_FEEDS_PER_PREVIEW = 2;
 
 describe('preview overlay wiring', () => {
   it('passes the three preview identities and stage text, then releases every feed', async () => {
-    const {store, removals, stopSettings, screens} = setup();
+    const {store, snapshot, removals, stopSettings, screens} = setup();
     const view = render(
       <ScreenSummariesContext value={screens}>
         <PreviewPanel compact={false} />
@@ -92,17 +108,17 @@ describe('preview overlay wiring', () => {
     expect(messages).toHaveLength(2);
     expect(
       view.container.querySelectorAll(
-        `[data-layer="stage-message"] .${classes.shown}`,
+        `[data-kind="stageMessage"] .${classes.shown}`,
       ),
     ).toHaveLength(1);
     expect(
       view.container.querySelector(
-        `[data-layer="stage-message"] .${classes.shown}`,
+        `[data-kind="stageMessage"] .${classes.shown}`,
       )?.textContent,
     ).toBe('Stage cue');
     store.dispatch({type: 'layer.clear', target: 'message'});
     act(() => {
-      useLive.setState({state: store.state});
+      useLive.setState({state: snapshot()});
     });
     expect(
       view.container.querySelectorAll(
@@ -130,7 +146,7 @@ describe('preview overlay wiring', () => {
     ).toBeNull();
     expect(
       view.container.querySelector(
-        `[data-layer="stage-message"] .${classes.shown}`,
+        `[data-kind="stageMessage"] .${classes.shown}`,
       )?.textContent,
     ).toBe('Stage cue');
     expect(stopSettings).toHaveBeenCalledTimes(SETTINGS_FEEDS_PER_PREVIEW);

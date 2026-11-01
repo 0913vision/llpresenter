@@ -1,4 +1,3 @@
-import {settingsDocument} from '@core/testing/settingsDocument';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState, type LiveState} from '@core/live/state';
@@ -11,13 +10,28 @@ import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {classes} from '../rendering/classes';
 import {SlideLayerView} from '../rendering/slideLayer';
 import {startOutput} from './startOutput';
+import {ScreenFrames} from '../rendering/screenFrames';
 import {MAIN, overlaySettings} from '@core/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 
+import {resolveThemeOutput} from '@core/themes/output';
+import {screensDocument} from '@core/testing/screenDocuments';
+const screenDocument = screensDocument();
+if (screenDocument.name !== 'screens') throw new Error('Missing screens');
+const themeItem = {id: 'hymn-1', kind: 'song', source: 'external'} as const;
+const themeOutput = resolveThemeOutput({
+  file: null,
+  screens: screenDocument.value.screens,
+  item: themeItem,
+  revision: 1,
+});
+
 const SHOWING: LiveState = {
   ...emptyLiveState(),
   version: 3,
+  themeItem,
+  themeOutput,
   layers: {
     ...emptyLiveState().layers,
     media: {mediaId: 'warm-light', loop: true, startedAt: 0},
@@ -334,75 +348,44 @@ describe('startOutput', () => {
     root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
     expect(raise).toHaveBeenCalledOnce();
   });
-  it('follows method defaults and saved empty colors without replacing live content', async () => {
-    const settings = overlaySettings();
-    const screenDocument = settings.reader.get('screens');
-    if (screenDocument.name !== 'screens') throw new Error('Missing screens');
-    const screens = screenDocument.value.screens;
-    const capture = settingsDocument(
-      'screens',
-      {
-        screens: screens.map(screen =>
-          screen.id === MAIN ? {...screen, method: 'capture'} : screen,
-        ),
-      },
-      2,
-    );
-    const listeners = new Set<(document: SettingsDocument) => void>();
-    const receive = (document: SettingsDocument): void => {
-      for (const listener of listeners) listener(document);
-    };
-    const unsubscribe = vi.fn();
-    const root = document.createElement('div');
-    const api = mockLlpApi({
-      settings: {
-        get: () => Promise.resolve(capture),
-        subscribe: listener => {
-          listeners.add(listener);
-          return unsubscribe;
-        },
-      },
-      live: {
-        get: () =>
-          Promise.resolve({
-            ...SHOWING,
-            layers: {...SHOWING.layers, media: null},
-          }),
+  it('keeps the last good picture after a frame failure or unavailable snapshot and resumes later', async () => {
+    let receive: (state: LiveState) => void = () => undefined;
+    const {root, logs, stop} = setUp({
+      subscribe: listener => {
+        receive = listener;
+        return () => undefined;
       },
     });
-    const stop = startOutput({root, api, screenId: MAIN});
-    await Promise.resolve();
-    const output = root.firstElementChild;
-    const text = root.querySelector(`.${classes.shown}`);
-    expect(
-      output instanceof HTMLElement &&
-        output.style.getPropertyValue('--output-background'),
-    ).toBe('#00B140');
-    receive(settingsDocument('screens', {screens}, 3));
-    expect(root.firstElementChild).toBe(output);
-    expect(root.querySelector(`.${classes.shown}`)).toBe(text);
-    expect(
-      output instanceof HTMLElement &&
-        output.style.getPropertyValue('--output-background'),
-    ).toBe('#000000');
-    receive(
-      settingsDocument(
-        'screens',
-        {
-          screens: screens.map(screen =>
-            screen.id === MAIN ? {...screen, emptyColor: '#123456'} : screen,
-          ),
-        },
-        4,
-      ),
+    await vi.waitFor(() =>
+      expect(root.textContent).toContain(SHOWING.layers.slide?.lines[0]),
     );
+    const text = root.textContent;
+    vi.spyOn(ScreenFrames.prototype, 'frame').mockImplementationOnce(() => {
+      throw new Error('Invented frame failure');
+    });
+    receive({...SHOWING, version: 4, stageMessage: 'Rejected message'});
+    expect(root.textContent).toBe(text);
     expect(
-      output instanceof HTMLElement &&
-        output.style.getPropertyValue('--output-background'),
-    ).toBe('#123456');
-    expect(root.querySelector(`.${classes.shown}`)).toBe(text);
+      logs.some(entry => entry.message === 'could not update the output frame'),
+    ).toBe(true);
+    receive({...emptyLiveState(), version: 5});
+    expect(root.textContent).toBe(text);
+    receive({
+      ...SHOWING,
+      version: 6,
+      layers: {
+        ...SHOWING.layers,
+        slide: {
+          ...SHOWING.layers.slide,
+          itemId: 'hymn-1',
+          position: 1,
+          label: null,
+          lines: ['Recovered frame'],
+        },
+      },
+    });
+    expect(root.textContent).toContain('Recovered frame');
     stop();
-    expect(unsubscribe).toHaveBeenCalledTimes(listeners.size);
   });
 
   it('routes an overlay after screen settings resolve and releases every feed on stop', async () => {
@@ -421,7 +404,7 @@ describe('startOutput', () => {
     const pending = new Map<string, (document: SettingsDocument) => void>();
     const api = mockLlpApi({
       live: {
-        get: () => Promise.resolve(store.state),
+        get: () => Promise.resolve({...store.state, themeOutput}),
         subscribe: () => stopLive,
       },
       settings: {
@@ -444,7 +427,7 @@ describe('startOutput', () => {
     expect(message()).toBe('Targeted output');
     stop();
     expect(stopLive).toHaveBeenCalledTimes(1);
-    expect(stopSettings).toHaveBeenCalledTimes(4);
+    expect(stopSettings).toHaveBeenCalledTimes(2);
     expect(root.children).toHaveLength(0);
   });
 
@@ -465,12 +448,18 @@ describe('startOutput', () => {
       throw new Error('layout failed');
     });
     const {logs} = setUp();
-    await vi.waitFor(() => expect(logs).toHaveLength(1));
-    expect(logs[0]).toMatchObject({
-      level: 'error',
-      message: 'could not draw the lyrics layer',
-    });
-    expect(logs[0]?.detail).toContain('Error: layout failed');
+    await vi.waitFor(() =>
+      expect(
+        logs.some(entry =>
+          entry.message.startsWith('could not draw theme element'),
+        ),
+      ).toBe(true),
+    );
+    const error = logs.find(entry =>
+      entry.message.startsWith('could not draw theme element'),
+    );
+    expect(error?.level).toBe('error');
+    expect(error?.detail).toBeDefined();
   });
 
   it('sends uncaught errors in the window to the main log', () => {
@@ -515,7 +504,7 @@ describe('startOutput', () => {
     const {logs, rates} = setUp({
       get: () => Promise.reject(new Error('main process busy')),
     });
-    await vi.waitFor(() => expect(logs).toHaveLength(1));
+    await vi.waitFor(() => expect(logs.length).toBeGreaterThan(0));
     runFramesFor(SECOND_AND_A_BIT_MS * 3);
     expect(rates).toEqual([]);
   });

@@ -1,12 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState, MediaLayer} from '@core/live/state';
-import type {LooksFile} from '@core/schema/looks';
-import type {Screen} from '@core/schema/screens';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
-import {resolveScreenLook, showsLayer} from '@core/looks/screenLook';
-import {followSettingsDocument} from '../rendering/settingsFeed';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 
 /** Plays background sound once, independently of the preloaded screen windows. */
@@ -15,9 +11,6 @@ export class BackgroundAudio {
   private overlay: BackgroundLayerView | null = null;
   private overlayStartedAt: number | null = null;
   private readonly createOverlay: () => BackgroundLayerView;
-  private readonly stops: ReadonlyArray<() => void>;
-  private screens: readonly Screen[] | null = null;
-  private looks: LooksFile | null = null;
   private state: LiveState | null = null;
   private disposed = false;
   private previous: MediaLayer | null = null;
@@ -29,7 +22,6 @@ export class BackgroundAudio {
 
   constructor({
     root,
-    api,
     muted,
     report,
     now,
@@ -53,35 +45,10 @@ export class BackgroundAudio {
         muted,
         onError: report,
       });
-    this.stops = [
-      followSettingsDocument({
-        settings: api.settings,
-        name: 'screens',
-        select: document =>
-          document.name === 'screens' ? document.value.screens : undefined,
-        receive: screens => {
-          this.screens = screens;
-          this.draw();
-        },
-        onError: error =>
-          report('could not read screens for background audio', error),
-      }),
-      followSettingsDocument({
-        settings: api.settings,
-        name: 'looks',
-        select: document =>
-          document.name === 'looks' ? document.value : undefined,
-        receive: looks => {
-          this.looks = looks;
-          this.draw();
-        },
-        onError: error =>
-          report('could not read Looks for background audio', error),
-      }),
-    ];
   }
 
   show(state: LiveState): void {
+    if (state.themeOutput === undefined) return;
     this.state = state;
     this.draw();
   }
@@ -89,7 +56,6 @@ export class BackgroundAudio {
   dispose(): void {
     this.disposed = true;
     this.fade?.cancel();
-    for (const stop of this.stops) stop();
     this.view.dispose();
     this.overlay?.dispose();
   }
@@ -109,19 +75,7 @@ export class BackgroundAudio {
       }
       this.overlayStartedAt = overlay?.startedAt ?? null;
       this.overlay?.show(overlay, false);
-      const audible =
-        state.themeOutput !== undefined
-          ? themeMediaAudible(state)
-          : this.looks !== null &&
-            this.screens?.some(
-              screen =>
-                state.outputs[screen.id] === true &&
-                showsLayer(
-                  resolveScreenLook(this.looks, state.lookId, screen)
-                    .appearance,
-                  'media',
-                ),
-            ) === true;
+      const audible = themeMediaAudible(state);
       const media = state.layers.media;
       if (!audible) {
         this.stopFade();

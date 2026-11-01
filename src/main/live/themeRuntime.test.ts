@@ -381,16 +381,17 @@ describe('main-process theme runtime', () => {
     ).toBe('text');
   });
 
-  it('keeps a selected legacy Look until another item starts', () => {
+  it('keeps the live theme when a retiring Look command arrives', () => {
     const {store, slide, dispatch, current} = setup();
     slide();
+    const output = store.state.themeOutput;
     const look = parseLookId('00000000-0000-4000-8000-0000000000a2');
     if (!look.ok) throw new Error('Invalid Look');
     dispatch({type: 'look.set', lookId: look.value});
-    expect(store.state.themeMode?.kind).toBe('legacy');
-    expect(store.state.themeOutput).toBeUndefined();
+    expect(store.state.themeMode).toBeUndefined();
+    expect(store.state.themeOutput).toBe(output);
     slide();
-    expect(store.state.themeOutput).toBeUndefined();
+    expect(store.state.themeOutput).toBe(output);
     dispatch({type: 'item.start', itemId: ITEM});
     expect(store.state.themeOutput?.themeId).toBe(current().defaults.bible);
   });

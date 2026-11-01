@@ -66,10 +66,10 @@ it.each(themeItemKinds)(
       item: {id: 'invented', kind, source: 'external'},
       revision: 1,
     });
-    expect(output?.screens[id]?.emptyColor).toBe('#123456');
-    expect(output?.screens[id]?.layout.background).toBeUndefined();
+    expect(output.screens[id]?.emptyColor).toBe('#123456');
+    expect(output.screens[id]?.layout.background).toBeUndefined();
     expect(
-      output?.screens[id]?.layout.elements.map(element => element.kind),
+      output.screens[id]?.layout.elements.map(element => element.kind),
     ).toEqual(
       kind === 'bible' ? ['currentText', 'reference'] : ['currentText'],
     );

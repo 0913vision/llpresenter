@@ -1,3 +1,4 @@
+import {resolveThemeOutput} from '@core/themes/output';
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -240,6 +241,7 @@ describe('the output preview', () => {
         },
       ],
     });
+    if (corrected.name !== 'screens') throw new Error('Missing screens');
     setup(corrected);
     await screen.findByText('본 화면');
     await choose('테스트 패턴');
@@ -248,6 +250,12 @@ describe('the output preview', () => {
       useLive.setState({
         state: {
           ...emptyLiveState(),
+          themeOutput: resolveThemeOutput({
+            file: null,
+            screens: corrected.value.screens,
+            item: null,
+            revision: 1,
+          }),
           testPatterns: [v.parse(screenIdSchema, MAIN_ID)],
         },
       }),

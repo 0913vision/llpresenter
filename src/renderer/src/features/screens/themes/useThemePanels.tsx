@@ -12,10 +12,7 @@ export function useThemePanels(
   const live = useLive(view => view.state);
   const liveId =
     live?.themeOutput?.themeId ??
-    (live !== null &&
-    live.themeMode?.kind !== 'legacy' &&
-    live.layers.slide === null &&
-    live.layers.media === null
+    (live !== null && live.layers.slide === null && live.layers.media === null
       ? model.file?.standby.id
       : undefined);
   const surfaces = useThemeSurfaces(model, liveId);

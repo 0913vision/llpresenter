@@ -15,6 +15,8 @@ import {emptyLayers} from '@core/live/state';
 import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {LiveThemeItem} from '@core/schema/liveTheme';
+import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {
   linearBlockAddress,
@@ -40,7 +42,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
     const accept = (document: SettingsDocument): void => {
       if (
         !alive ||
-        (document.name !== 'looks' && document.name !== 'screens')
+        (document.name !== 'themes' && document.name !== 'screens')
       ) {
         return;
       }
@@ -58,7 +60,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
       });
     };
     const stop = api.subscribe(accept);
-    for (const name of ['looks', 'screens'] as const) {
+    for (const name of ['themes', 'screens'] as const) {
       void api.get({name}).then(accept, (error: unknown) => {
         if (alive) console.error('Could not read song preview settings', error);
       });
@@ -69,7 +71,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
     };
   }, [api]);
   return {
-    looks: documents.find(item => item.name === 'looks')?.value,
+    themes: documents.find(item => item.name === 'themes')?.value,
     screens: documents.find(item => item.name === 'screens')?.value,
   };
 }
@@ -86,15 +88,20 @@ function Picture({
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
   const renderer = useRef<OutputRenderer | null>(null);
-  const draw = useEffectEvent(() =>
-    renderer.current?.render(layers, {screen: appearance.screen}),
-  );
+  const draw = useEffectEvent(() => {
+    try {
+      renderer.current?.render(layers, {
+        screen: appearance.screen,
+        theme: appearance.theme,
+      });
+    } catch (error) {
+      console.error('Could not update song preview', error);
+    }
+  });
   useLayoutEffect(() => {
     if (parent.current === null) return;
-    // TODO(0913vision): Draw the stage layout on the 무대 화면 once the
-    // renderer has a stage layout engine; until then it shows the lyric layer.
     const view = new OutputRenderer(parent.current, {
-      lyricStyle: appearance.style,
+      lyricStyle: DEFAULT_LYRIC_STYLE,
       mediaUrl,
       mode: 'preview',
       onError: (message, error) => console.error(message, error),
@@ -105,10 +112,10 @@ function Picture({
       renderer.current = null;
       view.dispose();
     };
-  }, [appearance.style]);
+  }, []);
   useLayoutEffect(() => {
     draw();
-  }, [layers, appearance.screen]);
+  }, [layers, appearance.screen, appearance.theme]);
   const style: ScreenStyle = {'--output-background': appearance.background};
   return (
     <div
@@ -125,6 +132,8 @@ export interface SongPicture {
   readonly song: AnySong;
   /** The 슬라이드's index in the song file. */
   readonly block: number;
+  /** The next source block in the selected order; absent after its last place. */
+  readonly nextBlock?: number | undefined;
   readonly background: string | undefined;
   /** The 1-based place in the shown order. */
   readonly position: number;
@@ -135,29 +144,54 @@ export interface SongPicture {
 export interface TilePicture {
   readonly itemId: string;
   readonly tile: ShowTile;
+  readonly next?: ShowTile | undefined;
   readonly position: number;
   readonly total: number;
 }
 
 /**
- * The 준비 미리보기 panel: a local picture with the current Look's styling,
+ * The 준비 미리보기 panel: a local picture with its item's theme,
  * never live layers, or an empty panel without a picture.
  */
 export function ContentPreviewFrame({
   settings,
   labels,
   picture,
+  item,
 }: {
   readonly settings: LlpApi['settings'];
   readonly labels: readonly Label[];
   readonly picture: SongPicture | TilePicture | null;
+  readonly item?: LiveThemeItem | undefined;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('main');
   const documents = usePreviewSettings(settings);
-  const appearance = useMemo(
-    () => previewAppearance(role, documents.looks, documents.screens),
-    [role, documents.looks, documents.screens],
-  );
+  const appearance = useMemo(() => {
+    const localItem =
+      item ??
+      (picture !== null && 'song' in picture
+        ? ({
+            id: picture.song.id,
+            kind: 'song',
+            source: 'external',
+            title: picture.song.title,
+          } as const)
+        : undefined);
+    return previewAppearance({
+      role,
+      themes: documents.themes,
+      screens: documents.screens,
+      item:
+        localItem === undefined
+          ? undefined
+          : {
+              ...localItem,
+              ...(picture === null
+                ? {}
+                : {slidePosition: picture.position - 1}),
+            },
+    });
+  }, [role, documents.themes, documents.screens, item, picture]);
   const songPicture =
     picture !== null && 'song' in picture ? picture : undefined;
   const tilePicture =
@@ -165,28 +199,34 @@ export function ContentPreviewFrame({
   const song = songPicture?.song;
   const block = songPicture?.block ?? 0;
   const background = songPicture?.background;
+  const nextBlock = songPicture?.nextBlock;
   const layers = useMemo(
     () =>
       tilePicture !== undefined
         ? {
             ...emptyLayers(),
-            slide: appearance.slide
-              ? {
-                  itemId: tilePicture.itemId,
-                  position: tilePicture.position - 1,
-                  label: tilePicture.tile.label,
-                  lines: tilePicture.tile.lines,
-                }
-              : null,
+            slide: {
+              itemId: tilePicture.itemId,
+              position: tilePicture.position - 1,
+              label: tilePicture.tile.label,
+              lines: tilePicture.tile.lines,
+              ...(tilePicture.tile.reference === undefined
+                ? {}
+                : {reference: tilePicture.tile.reference}),
+              ...(tilePicture.next === undefined
+                ? {}
+                : {
+                    next: {
+                      label: tilePicture.next.label,
+                      lines: tilePicture.next.lines,
+                    },
+                  }),
+            },
           }
         : song === undefined
           ? emptyLayers()
-          : selectedPreview(
-              song,
-              {block, background},
-              {slide: appearance.slide, media: appearance.media},
-            ),
-    [song, block, background, tilePicture, appearance.slide, appearance.media],
+          : selectedPreview(song, {block, background, nextBlock}),
+    [song, block, background, nextBlock, tilePicture],
   );
   if (picture === null) {
     return (
@@ -248,7 +288,7 @@ export function ContentPreviewFrame({
           <span>
             {position} / {total}
           </span>
-          <span className={styles.style}>{appearance.styleName}</span>
+          <span className={styles.style}>{appearance.themeName}</span>
         </div>
       </div>
     </Panel>
@@ -266,6 +306,9 @@ export function SongPreviewPanel({
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const session = state.session;
   const snapshot = session?.history.snapshot;
+  const order = session?.arrangementOrder.slides ?? [];
+  const at = session?.selectedOccurrence ?? -1;
+  const next = at < 0 ? undefined : order[at + 1];
   return (
     <ContentPreviewFrame
       settings={store.api.settings}
@@ -276,6 +319,7 @@ export function SongPreviewPanel({
           : {
               song: snapshot.song,
               block: snapshot.selection.block,
+              nextBlock: next === undefined ? undefined : next - 1,
               background: session.background,
               position: snapshot.selection.block + 1,
               total: slideCountOf(snapshot.song),

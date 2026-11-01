@@ -24,12 +24,10 @@ export const READY_POLL_MS = 16;
 function drawnContent(state: LiveState): string {
   return JSON.stringify([
     state.layers,
-    state.lookId,
     state.stageMessage,
     state.clearEffects,
     state.timers,
     state.testPatterns,
-    state.stageLayouts,
     state.stageTimerId,
     state.themeItem,
     state.themeOutput,
@@ -96,12 +94,17 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   const draw = (): void => {
     if (latest === null) return;
     if (!enabled()) revealPending = true;
-    const frame = frames.frame(latest);
-    renderer.render(latest.layers, {
-      ...frame,
-      transitions: enabled() && !revealPending,
-    });
-    drawCount += 1;
+    try {
+      const frame = frames.frame(latest);
+      if (frame === undefined) return;
+      renderer.render(latest.layers, {
+        ...frame,
+        transitions: enabled() && !revealPending,
+      });
+      drawCount += 1;
+    } catch (error) {
+      report('could not update the output frame', error);
+    }
   };
   const frames = new ScreenFrames({
     fonts: api.fonts,
@@ -110,15 +113,6 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     screenId,
     onChange: draw,
     onError: report,
-    onGap: (message, gap) =>
-      api.log.write({
-        level: 'warn',
-        message,
-        detail: `${gap.kind} ${gap.id} on screen ${screenId}`.slice(
-          0,
-          RENDERER_LOG_LIMITS.detail,
-        ),
-      }),
   });
   let stopMeter: (() => void) | null = null;
   if (!fontsReady) {

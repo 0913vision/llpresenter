@@ -44,6 +44,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
   private readonly persistence: SongSessionPersistence<S>;
   private backgroundEdited = false;
   private pickedArrangement: string | undefined;
+  private pointedSlide: {order: string | undefined; index: number} | null =
+    null;
   private readonly backspaceRefusedListeners = new Set<
     (block: number) => void
   >();
@@ -129,6 +131,28 @@ export class SongSession<S extends AnySong = GroupedSong> {
 
   get arrangementOrder() {
     return editedOrderWithLimit(this.history.snapshot.song, this.arrangement);
+  }
+
+  /** The selected occurrence in the active order, or -1 outside that order. */
+  get selectedOccurrence(): number {
+    const numbers = this.arrangementOrder.slides;
+    const block = this.history.snapshot.selection.block;
+    const pointed = this.pointedSlide;
+    return pointed !== null &&
+      pointed.order === this.arrangement &&
+      numbers[pointed.index] === block + 1
+      ? pointed.index
+      : numbers.indexOf(block + 1);
+  }
+
+  /** Shares thumbnail occurrence selection without adding it to lyric history. */
+  selectOccurrence(index: number): void {
+    const number = this.arrangementOrder.slides[index];
+    if (number === undefined) return;
+    this.pointedSlide = {order: this.arrangement, index};
+    const previous = this.history.snapshot.selection;
+    this.select({block: number - 1, start: 0, end: 0});
+    if (this.history.snapshot.selection === previous) this.options.changed();
   }
 
   onBackspaceRefused(listener: (block: number) => void): () => void {

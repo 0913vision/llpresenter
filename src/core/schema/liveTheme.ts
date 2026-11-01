@@ -26,10 +26,10 @@ export const liveThemeItemSchema = payloadObject({
   overlayStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
 });
 
-export const liveThemeModeSchema = v.variant('kind', [
-  v.object({kind: v.literal('manual'), id: themeIdSchema}),
-  v.object({kind: v.literal('legacy')}),
-]);
+export const liveThemeModeSchema = v.object({
+  kind: v.literal('manual'),
+  id: themeIdSchema,
+});
 
 export const themeCompositionSchema = payloadObject({
   sourceScreenId: screenIdSchema,

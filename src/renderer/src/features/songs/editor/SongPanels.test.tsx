@@ -32,6 +32,36 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 
 describe('song editor right panels', () => {
+  it('previews the next slide in the selected source arrangement and clears it at the end', async () => {
+    const fixture = editorFixture();
+    const [firstGroup, secondGroup] = fixture.first.song.groups;
+    if (firstGroup === undefined || secondGroup === undefined) {
+      throw new Error('Missing groups');
+    }
+    const first = {
+      ...fixture.first,
+      song: {
+        ...fixture.first.song,
+        arrangements: [
+          {name: 'Reversed', groups: [secondGroup.id, firstGroup.id]},
+        ],
+      },
+    };
+    fixture.documents.set(first.song.id, first);
+    const {session, store, user} = await editorSetup({...fixture, first});
+    render(<SongPreviewPanel store={store} />);
+    await user.click(screen.getByRole('radio', {name: '무대'}));
+    act(() => {
+      session.selectArrangement('Reversed');
+      session.select({block: 1, start: 0, end: 0});
+    });
+    expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
+      label: firstGroup.name,
+      lines: firstGroup.slides[0]?.lines,
+    });
+    act(() => session.select({block: 0, start: 0, end: 0}));
+    expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
+  });
   it('selects repeated occurrences, scrolls the block without moving grid focus, and previews unsaved input without output', async () => {
     const fixture = editorFixture();
     const output = vi.spyOn(fixture.api.live, 'send');
@@ -48,11 +78,19 @@ describe('song editor right panels', () => {
     expect(options).toHaveLength(3);
     const repeated = options[2];
     if (repeated === undefined) throw new Error('No repeated occurrence');
+    const middle = options[1];
+    if (middle === undefined) throw new Error('No middle occurrence');
+    fireEvent.click(middle);
+    expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
+      label: '후렴',
+      lines: ['빛을 따라가요'],
+    });
     act(() => repeated.focus());
     fireEvent.click(repeated);
     expect(session.history.snapshot.selection.block).toBe(1);
     expect(repeated.getAttribute('aria-selected')).toBe('true');
     expect(options[1]?.getAttribute('aria-selected')).toBe('false');
+    expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
     expect(document.activeElement).toBe(repeated);
     expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({
       block: 'nearest',
@@ -62,6 +100,10 @@ describe('song editor right panels', () => {
       position: 1,
       lines: ['Draft preview line'],
     });
+    expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
+    expect(drawing.render.mock.lastCall?.[1]?.theme?.item?.title).toBe(
+      session.history.snapshot.song.title,
+    );
     expect(output).not.toHaveBeenCalled();
     expect(list.querySelector('img,video')).toBeNull();
   });
@@ -86,13 +128,13 @@ describe('song editor right panels', () => {
     ).toBe('true');
   });
 
-  it('keeps newer Look pushes over delayed reads, switches screens, and releases settings and renderer', async () => {
+  it('keeps newer theme pushes over delayed reads, switches screens, and releases settings and renderer', async () => {
     const fixture = editorFixture();
-    const {looks} = editorPreviewFixture();
-    let release: ((document: typeof looks) => void) | undefined;
+    const {themes} = editorPreviewFixture();
+    let release: ((document: typeof themes) => void) | undefined;
     const get = fixture.api.settings.get;
     vi.spyOn(fixture.api.settings, 'get').mockImplementation(request =>
-      request.name === 'looks'
+      request.name === 'themes'
         ? new Promise(resolve => {
             release = resolve;
           })
@@ -102,27 +144,27 @@ describe('song editor right panels', () => {
     const before = fixture.listenerCount();
     const view = render(<SongPreviewPanel store={store} />);
     const current = {
-      ...looks,
+      ...themes,
       revision: 2,
       value: {
-        ...looks.value,
-        lyricStyles: looks.value.lyricStyles.map(style => ({
-          ...style,
+        ...themes.value,
+        themes: themes.value.themes.map(theme => ({
+          ...theme,
           name: '현재 가사',
-          color: '#123456',
         })),
       },
     };
     act(() => fixture.pushSettings(current));
     await screen.findByText('현재 가사');
     await act(async () => {
-      release?.(looks);
+      release?.(themes);
       await Promise.resolve();
     });
-    expect(screen.queryByText('기본 가사')).toBeNull();
+    expect(
+      screen.queryByText(themes.value.themes[0]?.name ?? '찬양'),
+    ).toBeNull();
     expect(drawing.create.mock.calls.at(-1)?.[0]).toMatchObject({
       mode: 'preview',
-      lyricStyle: {color: '#123456'},
     });
     await user.click(screen.getByRole('radio', {name: '무대'}));
     expect(drawing.render.mock.calls.at(-1)?.[1]?.screen?.kind).toBe('stage');

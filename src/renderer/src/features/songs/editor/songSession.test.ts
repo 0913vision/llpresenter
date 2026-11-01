@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {parseSongDocument} from '@core/schema/contentDocuments';
@@ -8,6 +8,26 @@ import {setup} from './songSessionFixture';
 import {SongSession} from './songSession';
 
 describe('grouped song sessions', () => {
+  it('publishes an occurrence-only selection without changing lyric history or saving', () => {
+    const {session, store, edits} = setup();
+    session.selectArrangement('주일용');
+    session.selectOccurrence(1);
+    expect(session.selectedOccurrence).toBe(1);
+    const snapshot = session.history.snapshot;
+    const mockChanged = vi.fn();
+    onTestFinished(store.subscribe(mockChanged));
+    session.selectOccurrence(2);
+    expect(session.selectedOccurrence).toBe(2);
+    expect(session.history.snapshot).toBe(snapshot);
+    expect(mockChanged).toHaveBeenCalledOnce();
+    expect(edits).toHaveLength(0);
+    session.select({block: 1, start: 1, end: 1});
+    expect(session.selectedOccurrence).toBe(2);
+    session.selectArrangement(undefined);
+    expect(session.selectedOccurrence).toBe(1);
+    session.selectOccurrence(99);
+    expect(session.selectedOccurrence).toBe(1);
+  });
   function setupGrouped() {
     vi.useFakeTimers();
     const fixture = editorFixture();

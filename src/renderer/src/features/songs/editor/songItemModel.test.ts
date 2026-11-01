@@ -61,7 +61,14 @@ describe('song item model', () => {
   it('pictures the selected place of the order the item plays', () => {
     expect(
       itemPicture({song, arrangement: '주일용', position: 2, background: 'bg'}),
-    ).toEqual({song, block: 1, background: 'bg', position: 3, total: 3});
+    ).toEqual({
+      song,
+      block: 1,
+      nextBlock: undefined,
+      background: 'bg',
+      position: 3,
+      total: 3,
+    });
     expect(
       itemPicture({
         song,
@@ -226,6 +233,7 @@ describe('song item model', () => {
     ).toEqual({
       song: grouped,
       block: 1,
+      nextBlock: 2,
       background: 'bg',
       position: 2,
       total: 5,

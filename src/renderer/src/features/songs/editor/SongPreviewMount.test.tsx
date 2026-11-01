@@ -8,7 +8,7 @@ import {SongPreviewFrame} from './SongPreview';
 
 afterEach(cleanup);
 
-it('keeps the mounted current picture instant through separate Look, screen and label redraws', async () => {
+it('keeps the mounted current picture instant through separate theme, screen and label redraws', async () => {
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -41,7 +41,7 @@ it('keeps the mounted current picture instant through separate Look, screen and 
   const root = () => view.container.querySelector(`.${classes.root}`);
   expect(root()?.classList.contains(classes.instant)).toBe(true);
   await act(async () => {
-    pending.get('looks')?.(documents.looks);
+    pending.get('themes')?.(documents.themes);
   });
   expect(root()?.classList.contains(classes.instant)).toBe(true);
   await act(async () => {

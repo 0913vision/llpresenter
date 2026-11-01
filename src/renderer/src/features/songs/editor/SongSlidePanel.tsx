@@ -1,4 +1,4 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useSyncExternalStore, type JSX} from 'react';
 import {
   Panel,
   PanelActions,
@@ -41,11 +41,6 @@ export function SongSlidePanel({
   readonly sizeClass: SizeClass;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
-  const [pointed, setPointed] = useState<{
-    songId: string;
-    order: string | undefined;
-    index: number;
-  } | null>(null);
   const scale = useThumbnailScale(sizeClass);
   const session = state.session;
   if (session === null) {
@@ -57,20 +52,11 @@ export function SongSlidePanel({
       </Panel>
     );
   }
-  const {song, selection} = session.history.snapshot;
+  const {song} = session.history.snapshot;
   const {slides: numbers, capped} = session.arrangementOrder;
-  const at =
-    pointed !== null &&
-    pointed.songId === song.id &&
-    pointed.order === session.arrangement &&
-    numbers[pointed.index] === selection.block + 1
-      ? pointed.index
-      : numbers.indexOf(selection.block + 1);
+  const at = session.selectedOccurrence;
   const select = (index: number): void => {
-    const number = numbers[index];
-    if (number === undefined) return;
-    setPointed({songId: song.id, order: session.arrangement, index});
-    session.select({block: number - 1, start: 0, end: 0});
+    session.selectOccurrence(index);
   };
   return (
     <Panel label="슬라이드" className={styles.panel}>
