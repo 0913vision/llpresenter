@@ -1,11 +1,10 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {sendLive, startLiveSync, useLive} from '@renderer/session/live';
 import {
   applyService,
@@ -258,31 +257,5 @@ describe('starting a service item', () => {
     expect(ids.has(first)).toBe(true);
     sendLive({type: 'item.start', itemId: first});
     expect(useLive.getState().startedItemIds).toBe(ids);
-  });
-});
-
-describe('service row progress', () => {
-  it('dims only started items above the current item, follows reorder, and keeps progress through clear', () => {
-    setup();
-    render(<ServiceOrderList />);
-    act(() => {
-      outputTile({itemId: first, index: 0});
-      outputTile({itemId: third, index: 0});
-    });
-    const row = (title: string) => screen.getByRole('option', {name: title});
-    expect(row('First').dataset['state']).toContain('done');
-    expect(row('Second').dataset['state']).toBeUndefined();
-    expect(row('Third').dataset['state']).toContain('live');
-    act(() => sendLive({type: 'layer.clear', target: 'slide'}));
-    expect(row('First').dataset['state']).toContain('done');
-    expect(row('Third').dataset['state']).toBeUndefined();
-    act(() =>
-      applyService({
-        ...service,
-        revision: 2,
-        rows: [...service.rows].reverse(),
-      }),
-    );
-    expect(row('First').dataset['state']).toBeUndefined();
   });
 });

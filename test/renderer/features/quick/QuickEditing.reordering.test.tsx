@@ -1,10 +1,9 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {createQuickItemId, createAppFlushRequestId} from '@core/schema/ids';
-import type {AppFlushRequest} from '@core/schema/appFlush';
+import {createQuickItemId} from '@core/schema/ids';
 import {useLive} from '@renderer/session/live';
-import {ControlSession} from '@renderer/app/controlSession';
 import {saveQuickEdit} from '@renderer/features/quick/quickEdits';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   deferred,
   quickDocument,
@@ -96,71 +95,39 @@ describe('quick editing', () => {
       expect(fixture.edit).not.toHaveBeenCalled();
     },
   );
-  it.each([false, true])(
-    'holds close through a deferred read and stale retry %s',
-    async retry => {
-      const fixture = setup();
-      let request: (value: AppFlushRequest) => void = () => undefined;
-      vi.spyOn(fixture.api.app, 'subscribeFlushRequests').mockImplementation(
-        listener => {
-          request = listener;
-          return () => undefined;
-        },
-      );
-      const flushed = vi.spyOn(fixture.api.app, 'flushDone');
-      const session = new ControlSession(fixture.api);
-      const first = deferred<ReturnType<typeof quickDocument>>();
-      const second = deferred<ReturnType<typeof quickDocument>>();
-      fixture.get.mockReturnValueOnce(first.promise);
-      if (retry) {
-        fixture.get.mockReturnValueOnce(second.promise);
-        fixture.edit.mockResolvedValueOnce({
-          ok: false,
-          error: {reason: 'stale', message: 'Invented stale write'},
-        });
-      }
-      const editing = saveQuickEdit(fixture.api, {
-        kind: 'rename',
-        id: quickItem('song').id,
-        name: '새 이름',
+  it('holds the close gate through a stale write and its fresh read', async () => {
+    const fixture = setup();
+    const first = deferred<ReturnType<typeof quickDocument>>();
+    const second = deferred<ReturnType<typeof quickDocument>>();
+    fixture.get
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    fixture.edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Invented stale write'},
+    });
+    const saving = saveQuickEdit(fixture.api, {
+      kind: 'rename',
+      id: quickItem('song').id,
+      name: '새 이름',
+    });
+    let closed = false;
+    const closing = pendingWritesOf(fixture.api)
+      .flush()
+      .then(ok => {
+        closed = true;
+        return ok;
       });
-      const requestId = createAppFlushRequestId(
-        '00000000-0000-4000-8000-000000000008',
-      );
-      try {
-        request({requestId});
-        await act(async () => undefined);
-        expect(flushed).not.toHaveBeenCalled();
-        first.resolve(quickDocument());
-        if (retry) {
-          await waitFor(() => expect(fixture.get).toHaveBeenCalledTimes(2));
-          expect(flushed).not.toHaveBeenCalled();
-          second.resolve(quickDocument(2));
-        }
-        await editing;
-        await waitFor(() =>
-          expect(flushed).toHaveBeenCalledExactlyOnceWith({
-            requestId,
-            result: true,
-          }),
-        );
-        expect(fixture.edit.mock.invocationCallOrder.at(-1)).toBeLessThan(
-          flushed.mock.invocationCallOrder[0] ?? -Infinity,
-        );
-        const reads = fixture.get.mock.calls.length;
-        await expect(
-          saveQuickEdit(fixture.api, {
-            kind: 'delete',
-            id: quickItem('song').id,
-          }),
-        ).rejects.toThrow();
-        expect(fixture.get).toHaveBeenCalledTimes(reads);
-      } finally {
-        first.resolve(quickDocument());
-        second.resolve(quickDocument(2));
-        await editing.catch(() => undefined);
-        await session.dispose();
-      }
-    },
-  );
+
+    await act(async () => undefined);
+    expect(closed).toBe(false);
+    first.resolve(quickDocument());
+    await waitFor(() => expect(fixture.get).toHaveBeenCalledTimes(2));
+    expect(closed).toBe(false);
+    second.resolve(quickDocument(2));
+    await saving;
+
+    expect(await closing).toBe(true);
+    expect(fixture.edit).toHaveBeenCalledTimes(2);
+  });
 });

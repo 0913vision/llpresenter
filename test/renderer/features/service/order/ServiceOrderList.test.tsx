@@ -217,3 +217,48 @@ describe('ServiceOrderList', () => {
     },
   );
 });
+
+describe('ServiceOrderList progress', () => {
+  function live(slideItemId: string | null): void {
+    const base = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...base,
+        layers: {
+          ...base.layers,
+          slide:
+            slideItemId === null
+              ? null
+              : {itemId: slideItemId, position: 0, label: null, lines: ['x']},
+        },
+      },
+      lastSlideItemId: 'psalm-23',
+      startedItemIds: new Set(['song-morning', 'psalm-23']),
+    });
+  }
+
+  function row(title: RegExp): HTMLElement {
+    return screen.getByRole('option', {name: title});
+  }
+
+  it('dims only started items above the current item, follows reorder, and keeps progress through clear', () => {
+    live('psalm-23');
+    render(<ServiceOrderList />);
+    expect(row(/아침이 밝아 오네/).dataset['state']).toContain('done');
+    expect(row(/맑은 시냇물/).dataset['state']).toBeUndefined();
+    expect(row(/시편 23편/).dataset['state']).toContain('live');
+
+    act(() => live(null));
+    expect(row(/아침이 밝아 오네/).dataset['state']).toContain('done');
+    expect(row(/시편 23편/).dataset['state']).toBeUndefined();
+    act(() =>
+      applyService({
+        ...sampleService,
+        revision: 2,
+        rows: [...sampleService.rows].reverse(),
+      }),
+    );
+
+    expect(row(/아침이 밝아 오네/).dataset['state']).toBeUndefined();
+  });
+});

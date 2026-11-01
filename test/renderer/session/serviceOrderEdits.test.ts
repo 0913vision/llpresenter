@@ -16,7 +16,10 @@ import {
 } from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {ServiceOrderEdits} from '@renderer/session/serviceOrderEdits';
+import {
+  ServiceOrderEdits,
+  serviceOrderEditsFor,
+} from '@renderer/session/serviceOrderEdits';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const otherId = createServiceId('00000000-0000-4000-8000-000000000002');
@@ -506,5 +509,16 @@ describe('service order edits', () => {
       redone++;
     }
     expect(redone).toBe(100);
+  });
+});
+
+describe('serviceOrderEditsFor', () => {
+  it('shares one edit history with every entry point of the same window', () => {
+    const api = mockLlpApi();
+
+    expect(serviceOrderEditsFor(api)).toBe(serviceOrderEditsFor(api));
+    expect(serviceOrderEditsFor(mockLlpApi())).not.toBe(
+      serviceOrderEditsFor(api),
+    );
   });
 });
