@@ -9,19 +9,19 @@ import {
   type GroupedSong,
 } from '@core/schema/groupedSong';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
-import {SongHistory, TYPING_PAUSE_MS} from '@core/songs/songHistory';
-import {editorTask} from './editorTask';
-import {normalizeSongTitle, SongTitleDraft} from '@core/songs/songTitle';
+import {SongHistory} from '@core/songs/songHistory';
+import {SongTitleDraft} from '@core/songs/songTitle';
 import {
   editedOrderWithLimit,
   newArrangement,
 } from '@core/songs/songArrangements';
 
-export interface EditorSongDocument<S extends AnySong = GroupedSong> {
-  readonly song: S;
-  readonly revision: number;
-  readonly access: 'editable' | 'readOnly';
-}
+import {
+  SongSessionPersistence,
+  type SongDraftCapture,
+  type EditorSongDocument,
+} from './songSessionPersistence';
+export type {EditorSongDocument} from './songSessionPersistence';
 
 interface SessionOptions<S extends AnySong = GroupedSong> {
   readonly document: EditorSongDocument<S>;
@@ -35,19 +35,13 @@ interface SessionOptions<S extends AnySong = GroupedSong> {
   readonly backspaceRefused?: (block: number) => void;
 }
 
-/** Coalesces typing-group saves and serializes one song's pending writes. */
+/** Owns lyric history and drafts, borrowing its private persistence coordinator. */
 export class SongSession<S extends AnySong = GroupedSong> {
-  document: EditorSongDocument<S>;
   history: SongHistory<S>;
   title: SongTitleDraft;
   background: MediaId | undefined;
-  blocked = false;
   private dirty = false;
-  private writing = false;
-  private accepting = true;
-  private pending: Promise<boolean> | undefined;
-  private incoming: EditorSongDocument<S> | undefined;
-  private saveTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly persistence: SongSessionPersistence<S>;
   private backgroundEdited = false;
   private pickedArrangement: string | undefined;
   private readonly backspaceRefusedListeners = new Set<
@@ -55,36 +49,65 @@ export class SongSession<S extends AnySong = GroupedSong> {
   >();
 
   constructor(private readonly options: SessionOptions<S>) {
-    this.document = options.document;
     this.history = new SongHistory(options.document.song);
     this.title = new SongTitleDraft(
       options.document.song.title,
       options.isDuplicateTitle,
     );
     this.background = options.document.song.background;
+    this.persistence = new SongSessionPersistence(options, {
+      hasChanges: () => this.hasChanges,
+      hasTitleDraft: () => this.title.hasDraft,
+      hasDraft: () =>
+        this.dirty || this.title.hasDraft || this.backgroundEdited,
+      nextTitle: () => this.title.nextValue,
+      endTyping: () => this.history.endTyping(),
+      capture: document => this.captureDraft(document),
+      reject: capture => {
+        this.title.reject(capture.song.title);
+        this.dirty ||= capture.lyricsDirty;
+      },
+      acknowledge: (document, capture) =>
+        this.acknowledgeDraft(document, capture),
+      install: document => this.installDraft(document),
+      discard: document => {
+        this.dirty = false;
+        this.title = new SongTitleDraft(document.song.title);
+        this.background = document.song.background;
+        this.backgroundEdited = false;
+      },
+    });
+  }
+
+  get document(): EditorSongDocument<S> {
+    return this.persistence.document;
+  }
+  set document(document: EditorSongDocument<S>) {
+    this.persistence.document = document;
+  }
+  get blocked(): boolean {
+    return this.persistence.blocked;
+  }
+  set blocked(blocked: boolean) {
+    this.persistence.blocked = blocked;
   }
 
   get readOnly(): boolean {
     return this.blocked || this.document.access === 'readOnly';
   }
+
   get saving(): boolean {
-    return this.writing;
+    return this.persistence.saving;
   }
 
   /** Nothing unsaved or pending: dropping the session loses only its undo. */
   get clean(): boolean {
-    return (
-      !this.hasChanges &&
-      !this.title.hasDraft &&
-      !this.writing &&
-      !this.blocked &&
-      this.saveTimer === undefined
-    );
+    return this.persistence.clean;
   }
 
   private get acceptsEdits(): boolean {
     return (
-      this.accepting &&
+      this.persistence.acceptsEdits &&
       !this.readOnly &&
       this.options.editingStopped?.() !== true
     );
@@ -256,8 +279,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
   editTitle(value: string): void {
     if (!this.acceptsEdits) return;
     this.title.edit(value);
-    if (this.hasChanges || this.writing) this.delaySave();
-    else this.cancelSaveTimer();
+    if (this.hasChanges || this.persistence.saving) this.persistence.schedule();
+    else this.persistence.cancelSaveTimer();
     this.options.changed();
   }
 
@@ -267,9 +290,10 @@ export class SongSession<S extends AnySong = GroupedSong> {
       return;
     }
     this.title.revertInvalid();
-    if (!this.writing && !this.blocked && !this.hasChanges) {
-      if (this.incoming !== undefined) this.install(this.incoming);
-      else this.title.accept(this.document.song.title, this.title.value);
+    if (!this.persistence.saving && !this.blocked && !this.hasChanges) {
+      if (this.persistence.incomingDocument !== undefined) {
+        this.install(this.persistence.incomingDocument);
+      } else this.title.accept(this.document.song.title, this.title.value);
     }
     this.endTyping();
     this.options.changed();
@@ -314,7 +338,7 @@ export class SongSession<S extends AnySong = GroupedSong> {
     this.reconcileArrangement();
     if (previous !== this.history.snapshot.song) {
       this.dirty = true;
-      if (this.history.inTypingGroup) this.delaySave();
+      if (this.history.inTypingGroup) this.persistence.schedule();
       else this.endTyping();
     }
     this.options.changed();
@@ -322,41 +346,15 @@ export class SongSession<S extends AnySong = GroupedSong> {
 
   /** Blur and block changes end both the undo group and its deferred save. */
   endTyping(): void {
-    this.history.endTyping();
-    this.cancelSaveTimer();
-    if (!this.writing) editorTask(this.save());
+    this.persistence.endTyping();
   }
 
   receive(document: EditorSongDocument<S>): void {
-    if (document.revision <= this.document.revision) return;
-    if (
-      this.dirty ||
-      this.title.hasDraft ||
-      this.backgroundEdited ||
-      this.writing ||
-      this.blocked
-    ) {
-      if (document.revision > (this.incoming?.revision ?? 0)) {
-        this.incoming = document;
-      }
-    } else this.install(document);
+    this.persistence.receive(document);
   }
 
   install(document: EditorSongDocument<S>): void {
-    this.cancelSaveTimer();
-    this.document = document;
-    this.history = new SongHistory(document.song);
-    this.reconcileArrangement();
-    this.title = new SongTitleDraft(
-      document.song.title,
-      this.options.isDuplicateTitle,
-    );
-    this.background = document.song.background;
-    this.backgroundEdited = false;
-    this.blocked = false;
-    this.dirty = false;
-    this.incoming = undefined;
-    this.options.changed();
+    this.persistence.install(document);
   }
 
   renamed(from: string, to: string, document?: EditorSongDocument<S>): void {
@@ -404,143 +402,72 @@ export class SongSession<S extends AnySong = GroupedSong> {
     }
   }
 
-  async flush(): Promise<boolean> {
-    if (this.options.persistence === 'manual') return true;
-    do {
-      this.cancelSaveTimer();
-      if (!(await this.save())) return false;
-    } while (this.hasChanges);
-    return true;
+  flush(): Promise<boolean> {
+    return this.persistence.flush();
   }
 
   close(): Promise<boolean> {
-    this.accepting = false;
-    return this.flush();
+    return this.persistence.close();
   }
 
   discard(): void {
-    this.cancelSaveTimer();
-    this.accepting = false;
+    this.persistence.discard();
+  }
+
+  private captureDraft(
+    document: EditorSongDocument<S>,
+  ): SongDraftCapture<S> | undefined {
+    const docSong = document.song;
+    const draft = this.history.snapshot.song;
+    if (!isGroupedSong(docSong) || !isGroupedSong(draft)) return undefined;
+
+    const lyricsDirty = this.dirty;
     this.dirty = false;
-    this.title = new SongTitleDraft(this.document.song.title);
-    this.background = this.document.song.background;
-    this.backgroundEdited = false;
+    const titleDraft =
+      this.title.reason === undefined ? this.title.value : undefined;
+    const background = this.background;
+
+    const {
+      background: _oldBackground,
+      arrangements: _oldArrangements,
+      ...baseSong
+    } = docSong;
+
+    const song: GroupedSong = {
+      ...baseSong,
+      ...draft,
+      title: this.title.nextValue,
+      groups: draft.groups,
+      ...(draft.arrangements === undefined
+        ? {}
+        : {arrangements: draft.arrangements}),
+      ...(background === undefined ? {} : {background}),
+    };
+
+    return {song, draft, lyricsDirty, titleDraft, background};
   }
 
-  private delaySave(): void {
-    if (this.options.persistence === 'manual') return;
-    this.cancelSaveTimer();
-    this.saveTimer = setTimeout(() => this.endTyping(), TYPING_PAUSE_MS);
-  }
-
-  private cancelSaveTimer(): void {
-    clearTimeout(this.saveTimer);
-    this.saveTimer = undefined;
-  }
-
-  private save(): Promise<boolean> {
-    if (this.options.persistence === 'manual') return Promise.resolve(true);
-    if (this.pending !== undefined) return this.pending;
-    if (!this.hasChanges || this.blocked) return Promise.resolve(!this.blocked);
-    this.writing = true;
-    this.pending = this.drain().finally(() => {
-      this.writing = false;
-      this.pending = undefined;
-      this.options.changed();
-    });
-    return this.pending;
-  }
-
-  private async drain(): Promise<boolean> {
-    while (this.hasChanges && !this.blocked && this.saveTimer === undefined) {
-      const docSong = this.document.song;
-      const draft = this.history.snapshot.song;
-      if (!isGroupedSong(docSong) || !isGroupedSong(draft)) return this.fail();
-
-      const lyricsDirty = this.dirty;
-      this.dirty = false;
-      const titleDraft =
-        this.title.reason === undefined ? this.title.value : undefined;
-      const background = this.background;
-
-      const {
-        background: _oldBackground,
-        arrangements: _oldArrangements,
-        ...baseSong
-      } = docSong;
-
-      const song: GroupedSong = {
-        ...baseSong,
-        ...draft,
-        title: this.title.nextValue,
-        groups: draft.groups,
-        ...(draft.arrangements === undefined
-          ? {}
-          : {arrangements: draft.arrangements}),
-        ...(background === undefined ? {} : {background}),
-      };
-
-      try {
-        const result = await this.options.api.edit({
-          type: 'song.update',
-          song,
-          baseRevision: this.document.revision,
-        });
-        if (
-          !result.ok &&
-          result.error.reason === 'duplicate-title' &&
-          song.title !== normalizeSongTitle(this.document.song.title)
-        ) {
-          this.title.reject(song.title);
-          this.dirty ||= lyricsDirty;
-          this.options.changed();
-          continue;
-        }
-        const applied = result.ok
-          ? result.value
-          : result.error.reason === 'write-failed'
-            ? result.error.applied
-            : undefined;
-        if (applied?.revision === undefined || applied.revision === null) {
-          return this.fail();
-        }
-        if (
-          this.incoming !== undefined &&
-          this.incoming.revision > applied.revision
-        ) {
-          return this.fail();
-        }
-        this.document =
-          this.incoming?.revision === applied.revision
-            ? this.incoming
-            : {
-                ...this.document,
-                song: {
-                  ...this.document.song,
-                  ...draft,
-                  title: this.title.nextValue,
-                  ...(background === undefined ? {} : {background}),
-                },
-                revision: applied.revision,
-              };
-        this.incoming = undefined;
-        this.title.accept(this.document.song.title, titleDraft);
-        if (!this.backgroundEdited || this.background === background) {
-          this.background = this.document.song.background;
-          this.backgroundEdited = false;
-        }
-        if (!result.ok) this.options.problem();
-      } catch {
-        return this.fail();
-      }
+  private acknowledgeDraft(
+    document: EditorSongDocument<S>,
+    capture: SongDraftCapture<S>,
+  ): void {
+    const {titleDraft, background} = capture;
+    this.title.accept(document.song.title, titleDraft);
+    if (!this.backgroundEdited || this.background === background) {
+      this.background = document.song.background;
+      this.backgroundEdited = false;
     }
-    return true;
   }
 
-  private fail(): false {
-    this.cancelSaveTimer();
-    this.blocked = true;
-    this.options.problem();
-    return false;
+  private installDraft(document: EditorSongDocument<S>): void {
+    this.history = new SongHistory(document.song);
+    this.reconcileArrangement();
+    this.title = new SongTitleDraft(
+      document.song.title,
+      this.options.isDuplicateTitle,
+    );
+    this.background = document.song.background;
+    this.backgroundEdited = false;
+    this.dirty = false;
   }
 }
