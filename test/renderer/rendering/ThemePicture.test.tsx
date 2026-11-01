@@ -4,7 +4,7 @@ import {createThemeElementId, createTimerId} from '@core/schema/ids';
 import {newThemeElement} from '@core/themes/newElement';
 import type {ThemeElement} from '@core/schema/themes';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {classes} from '@renderer/rendering/classes';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
@@ -93,7 +93,7 @@ it.each(['currentText', 'nextText'] as const)(
     expect(preview.style.fontSize).toBe('50px');
     const parent = document.createElement('div');
     const output = new SlideLayerView(parent, {
-      ...DEFAULT_LYRIC_STYLE,
+      ...DEFAULT_TEXT_STYLE,
       size: 100,
       lineHeight: 1,
       maxLines: 1,

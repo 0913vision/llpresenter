@@ -16,7 +16,7 @@ import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {
   linearBlockAddress,
@@ -101,7 +101,7 @@ function Picture({
   useLayoutEffect(() => {
     if (parent.current === null) return;
     const view = new OutputRenderer(parent.current, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
       mode: 'preview',
       onError: (message, error) => console.error(message, error),

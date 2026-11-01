@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';
@@ -74,7 +74,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   };
   const stopCatching = catchUncaughtErrors(report);
   const renderer = new OutputRenderer(root, {
-    lyricStyle: DEFAULT_LYRIC_STYLE,
+    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl,
     onError: report,
   });

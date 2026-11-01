@@ -9,7 +9,7 @@ import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {parseMacroId} from '@core/schema/ids';
-import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
+import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {settingsDefaults} from '@main/store/settingsDefaults';
 import {LiveStore, dispatchLogged} from '@main/live/store';
@@ -418,9 +418,9 @@ describe('live admission limits', () => {
                   kind: 'text',
                   text: 'x'.repeat(length),
                   style: {
-                    ...STARTER_LYRIC_STYLE,
-                    shadow: STARTER_LYRIC_STYLE.shadow.on,
-                    outline: STARTER_LYRIC_STYLE.outline.on,
+                    ...STARTER_TEXT_STYLE,
+                    shadow: STARTER_TEXT_STYLE.shadow.on,
+                    outline: STARTER_TEXT_STYLE.outline.on,
                   },
                 },
                 targets: [],

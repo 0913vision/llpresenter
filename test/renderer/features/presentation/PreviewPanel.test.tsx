@@ -16,7 +16,7 @@ import {commandBindingStore} from '@renderer/ui/commandBindings';
 interface Instance {
   readonly parent: HTMLElement;
   readonly options: {
-    readonly lyricStyle: unknown;
+    readonly textStyle: unknown;
     readonly mediaUrl: unknown;
     readonly onError: (message: string, error: unknown) => void;
     readonly mode: unknown;

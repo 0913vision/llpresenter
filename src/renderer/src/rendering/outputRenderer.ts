@@ -10,7 +10,7 @@ import type {
   RenderScreen,
 } from './layer';
 import {renderLayers} from './layers';
-import {scaleFor} from '@core/themes/lyricStyle';
+import {scaleFor} from '@core/themes/textStyle';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';

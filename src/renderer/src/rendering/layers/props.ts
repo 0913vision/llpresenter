@@ -3,7 +3,7 @@ import {classes} from '../classes';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
 import type {TimerNow} from '@core/timers/timerClock';
-import type {LyricStyle} from '@core/themes/lyricStyle';
+import type {TextStyle} from '@core/themes/textStyle';
 import {OverlayTextView} from '../overlayText';
 import {
   fillTimerTokens,
@@ -71,7 +71,7 @@ export const propsLayer = defineLayer({
     // the shared clock, so main sends nothing per second.
     const showText = (
       view: PropView,
-      {text, style}: {readonly text: string; readonly style: LyricStyle},
+      {text, style}: {readonly text: string; readonly style: TextStyle},
       now: TimerNow,
     ): void => {
       const filled = fillTimerTokens(text, timers, now);

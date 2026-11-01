@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
-import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
+import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {themeElementKinds} from '@core/themes/elementRules';
 import {
   parseThemes,
@@ -16,7 +16,7 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const text = {...STARTER_LYRIC_STYLE};
+const text = {...STARTER_TEXT_STYLE};
 const frame = {x: 0, y: 0, w: 1920, h: 1080};
 const element = {
   id: uuid(1),

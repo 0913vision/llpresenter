@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createItemOverlayId, createMediaId} from '@core/schema/ids';
 import {
   themeElementBase,
@@ -124,7 +124,7 @@ it.each([
     const root = document.createElement('div');
     const report = vi.fn();
     const renderer = new OutputRenderer(root, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl: id => `https://media.test/${id}`,
       onError: report,
     });

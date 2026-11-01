@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createMediaId, createThemeId} from '@core/schema/ids';
 import type {ThemeElement} from '@core/schema/themes';
 import {
@@ -57,7 +57,7 @@ function setup() {
   const root = document.createElement('div');
   const onError = vi.fn();
   const view = new ThemeCompositionView(root, {
-    lyricStyle: DEFAULT_LYRIC_STYLE,
+    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl: id => `https://media.test/${id}`,
     onError,
   });
@@ -80,7 +80,7 @@ describe('theme composition drawing', () => {
     mode => {
       const root = document.createElement('div');
       const view = new ThemeCompositionView(root, {
-        lyricStyle: DEFAULT_LYRIC_STYLE,
+        textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl: id => `https://media.test/${id}`,
         onError: vi.fn(),
         mode,

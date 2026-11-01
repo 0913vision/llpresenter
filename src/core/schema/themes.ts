@@ -17,7 +17,7 @@ import {
   mediaIdSchema,
   timerIdSchema,
 } from './ids';
-import {lyricOutlineSchema, lyricShadowSchema} from './lyricEffects';
+import {textOutlineSchema, textShadowSchema} from './textEffects';
 import {
   hexColor,
   jsonObject,
@@ -59,8 +59,8 @@ const textEntries = {
   size: range(THEME_LIMITS.fontSize.min, THEME_LIMITS.fontSize.max),
   lineHeight: range(THEME_LIMITS.lineHeight.min, THEME_LIMITS.lineHeight.max),
   align: v.picklist(['left', 'center', 'right']),
-  outline: lyricOutlineSchema,
-  shadow: lyricShadowSchema,
+  outline: textOutlineSchema,
+  shadow: textShadowSchema,
 };
 export const themeTextSchema = jsonObject(textEntries);
 const lyricText = jsonObject({...textEntries, maxLines});

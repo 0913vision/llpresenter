@@ -143,7 +143,7 @@ The Windows keys of every row in S1, and what this app does with each.
 | Open Planning Center, ProContent, Calendar                                     | Ctrl Alt P, Ctrl Shift R, Ctrl Alt C                                                    | None. The app has no such features.                                                             |
 | Open Download Manager                                                          | Ctrl J                                                                                  | None.                                                                                           |
 | Find My Mouse                                                                  | Alt M                                                                                   | None.                                                                                           |
-| Editor menu: fonts, bold, italic, underline, size, spacing, alignment, arrange | Ctrl T, B, I, U, Ctrl + and -, Ctrl Shift [ and ], Ctrl Alt F and B, Ctrl Shift F and B | None. The app has no slide editor. Text formatting lives in lyric styles.                       |
+| Editor menu: fonts, bold, italic, underline, size, spacing, alignment, arrange | Ctrl T, B, I, U, Ctrl + and -, Ctrl Shift [ and ], Ctrl Alt F and B, Ctrl Shift F and B | None. The app has no slide editor. Text formatting lives in the 테마's text elements.           |
 | Fit Slide into Edit Window                                                     | Ctrl 0                                                                                  | 화면에 맞춤 remains available without a default key; Ctrl 0 resets UI zoom (M2 check 1 row 11). |
 
 - The 7.5 guide lists F3 as Clear Background and F6 as Clear Logo (S4 p. 25). S1

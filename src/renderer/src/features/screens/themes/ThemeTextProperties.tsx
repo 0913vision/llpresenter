@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
-import {LYRIC_EFFECT_LIMITS} from '@core/schema/lyricEffects';
+import {TEXT_EFFECT_LIMITS} from '@core/schema/textEffects';
 import type {ThemeText} from '@core/schema/themes';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -148,8 +148,8 @@ export function ThemeTextProperties({
             <ThemeNumber
               label="두께"
               value={text.outline.width}
-              min={LYRIC_EFFECT_LIMITS.outlineWidth.min}
-              max={LYRIC_EFFECT_LIMITS.outlineWidth.max}
+              min={TEXT_EFFECT_LIMITS.outlineWidth.min}
+              max={TEXT_EFFECT_LIMITS.outlineWidth.max}
               reason={reason}
               change={width =>
                 change(value => ({
@@ -186,17 +186,17 @@ export function ThemeTextProperties({
                 {
                   key: 'blur',
                   label: '흐림',
-                  max: LYRIC_EFFECT_LIMITS.shadowBlur,
+                  max: TEXT_EFFECT_LIMITS.shadowBlur,
                 },
                 {
                   key: 'distance',
                   label: '거리',
-                  max: LYRIC_EFFECT_LIMITS.shadowDistance,
+                  max: TEXT_EFFECT_LIMITS.shadowDistance,
                 },
                 {
                   key: 'angle',
                   label: '각도',
-                  max: LYRIC_EFFECT_LIMITS.shadowAngle,
+                  max: TEXT_EFFECT_LIMITS.shadowAngle,
                 },
                 {key: 'opacity', label: '불투명도', max: 100},
               ] as const

@@ -6,10 +6,10 @@ export const lyricsLayer = defineLayer({
   order: 1,
   fades: 'slide',
   create: (parent, options) => {
-    const view = new SlideLayerView(parent, options.lyricStyle);
+    const view = new SlideLayerView(parent, options.textStyle);
     return {
       render: layers => {
-        view.setStyle(options.lyricStyle);
+        view.setStyle(options.textStyle);
         view.show(layers.slide);
       },
       rescale: scale => view.rescale(scale),

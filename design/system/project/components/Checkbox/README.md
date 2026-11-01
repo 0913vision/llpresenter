@@ -1,15 +1,16 @@
 # Checkbox
 
-A 16px checkbox for picking several things, and a check row that toggles when you click anywhere on it. Use them in the item tree of 다른 예배에서 가져오기 (import from another service) and in the states to restore in 출력 상태 복구 (restore output state).
+A 16px checkbox for picking several things, and a check row that toggles when you click anywhere on it. Use them in the item tree of 다른 예배에서 가져오기 (import from another service), in the states to restore in 출력 상태 복구 (restore output state), and for the on and off properties of a 테마 element.
 
 ## Where to use
 
 - 다른 예배에서 가져오기, and the 예배 순서 (service order) of a new service: picking groups (예배 전, 찬양) and items
 - 출력 상태 복구: the states to restore (화면 출력, 마지막 슬라이드, 표시 중이던 항목)
+- 테마 editor: the on and off properties of an element (그림자, 외곽선)
 
 ## Where not to use
 
-- On/off settings that apply at once (항상 위, 절전 막기, 오류 보고 보내기): use `Switch`.
+- On/off settings in Preferences, 화면 설정, and media properties (항상 위, 절전 막기, 오류 보고 보내기): use `Switch`.
 - Picking only one: use `SegmentedControl` or `Select`.
 - Marking the currently selected row in a list: use the `selection` background of the list row. Don't add a checkbox.
 

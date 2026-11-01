@@ -1,4 +1,4 @@
-import {STARTER_LYRIC_STYLE, STARTER_STAGE_ELEMENTS} from './starterLayout';
+import {STARTER_TEXT_STYLE, STARTER_STAGE_ELEMENTS} from './starterLayout';
 import {
   createScreenId,
   createThemeId,
@@ -49,7 +49,7 @@ const {
   maxLines,
   referencePosition: _referencePosition,
   ...basicText
-} = STARTER_LYRIC_STYLE;
+} = STARTER_TEXT_STYLE;
 export const DEFAULT_THEME_TEXT: ThemeText = basicText;
 const inset = margin / 100;
 const lyricFrame = {

@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createThemeId} from '@core/schema/ids';
 import type {ThemeElement} from '@core/schema/themes';
 import {fixedThemeText, THEME_MAIN} from '@fixtures/core/themeOutput';
@@ -65,7 +65,7 @@ describe('theme composition drawing', () => {
     );
     const root = document.createElement('div');
     const renderer = new OutputRenderer(root, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl: id => id,
       onError: vi.fn(),
     });

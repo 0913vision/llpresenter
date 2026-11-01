@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE, scaleFor} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {OUTPUT_TRANSITIONS} from '@renderer/rendering/transitions';
 
@@ -14,7 +14,7 @@ const VERSE: SlideLayer = {
 
 function setUp() {
   const parent = document.createElement('div');
-  const view = new SlideLayerView(parent, DEFAULT_LYRIC_STYLE);
+  const view = new SlideLayerView(parent, DEFAULT_TEXT_STYLE);
   const pages = (): HTMLElement[] => [
     ...parent.querySelectorAll<HTMLElement>(`.${classes.page}`),
   ];
@@ -33,7 +33,7 @@ describe('SlideLayerView', () => {
     view.show(VERSE);
     const page = shownPage();
     const style = {
-      ...DEFAULT_LYRIC_STYLE,
+      ...DEFAULT_TEXT_STYLE,
       outline: {on: true, width: 3, color: '#123456'},
       shadow: {
         on: true,
@@ -110,7 +110,7 @@ describe('SlideLayerView', () => {
       expect(element.style.getPropertyValue('--lyric-shadow-strength')).toBe(
         '60%',
       );
-      view.setStyle({...DEFAULT_LYRIC_STYLE, size: 12});
+      view.setStyle({...DEFAULT_TEXT_STYLE, size: 12});
       expect(element.style.getPropertyValue('--lyric-outline-width')).toBe(
         `${3 * scale}px`,
       );
@@ -123,7 +123,7 @@ describe('SlideLayerView', () => {
     const before = pages();
     const current = shownPage();
     view.setStyle({
-      ...DEFAULT_LYRIC_STYLE,
+      ...DEFAULT_TEXT_STYLE,
       font: `Missing "Display" O'Brien Font`,
       size: 60,
       weight: 400,
@@ -234,7 +234,7 @@ describe('SlideLayerView', () => {
   });
 
   describe('fitting', () => {
-    const LINE_HEIGHT = DEFAULT_LYRIC_STYLE.lineHeight;
+    const LINE_HEIGHT = DEFAULT_TEXT_STYLE.lineHeight;
 
     beforeEach(() => {
       vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
@@ -303,7 +303,7 @@ describe('SlideLayerView', () => {
       expect(
         page?.querySelector<HTMLElement>(`.${classes.block}`)?.style.fontSize,
       ).toBe('42px');
-      view.setStyle({...DEFAULT_LYRIC_STYLE, maxLines: 4});
+      view.setStyle({...DEFAULT_TEXT_STYLE, maxLines: 4});
       expect(shownPage()).toBe(page);
       expect(shownLines()).toEqual(['One', 'Two', 'Three', 'Four']);
       expect(

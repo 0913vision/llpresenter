@@ -7,7 +7,7 @@ type StageElementKind =
   | 'nextSlide'
   | 'stageMessage';
 
-export const STARTER_LYRIC_STYLE = {
+export const STARTER_TEXT_STYLE = {
   font: 'Pretendard',
   weight: 700,
   size: 84,

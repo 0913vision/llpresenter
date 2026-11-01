@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {failProbeDuring} from '@fixtures/renderer/rendering/layers/probe';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 
 vi.mock(
@@ -38,7 +38,7 @@ function setUp() {
   const parent = document.createElement('div');
   const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
-    lyricStyle: DEFAULT_LYRIC_STYLE,
+    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl: id => id,
     onError,
   });

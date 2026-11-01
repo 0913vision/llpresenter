@@ -1,10 +1,10 @@
-import type {LyricOutline, LyricShadow} from '../schema/lyricEffects';
+import type {TextOutline, TextShadow} from '../schema/textEffects';
 
 /**
  * How a text layer draws its text: the lyrics of a 장, a 테마 text element, a
  * 메시지, or 소품 text. Sizes are px on a 1920 x 1080 screen.
  */
-export interface LyricStyle {
+export interface TextStyle {
   readonly font: string;
   readonly weight: number;
   readonly size: number;
@@ -16,12 +16,12 @@ export interface LyricStyle {
   readonly maxLines: number;
   /** The margin on every side, in percent of the screen. */
   readonly margin: number;
-  readonly shadow: boolean | LyricShadow;
-  readonly outline: boolean | LyricOutline;
+  readonly shadow: boolean | TextShadow;
+  readonly outline: boolean | TextOutline;
 }
 
 /** The style of text that has no 테마 element to style it. */
-export const DEFAULT_LYRIC_STYLE = {
+export const DEFAULT_TEXT_STYLE = {
   font: 'Pretendard',
   weight: 700,
   size: 84,
@@ -33,13 +33,13 @@ export const DEFAULT_LYRIC_STYLE = {
   margin: 6,
   shadow: true,
   outline: false,
-} as const satisfies LyricStyle;
+} as const satisfies TextStyle;
 
 /** The screen size that text sizes are written for. */
 export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
 
 /** Fixed switch values from spec 03 and 10, in reference-screen pixels. */
-export const LYRIC_EFFECTS = {
+export const TEXT_EFFECTS = {
   outlineWidth: 3,
   shadowDistance: 4,
   shadowBlur: 8,

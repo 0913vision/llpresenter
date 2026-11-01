@@ -13,7 +13,7 @@ import {
   messageTemplateIdSchema,
   screenIdSchema,
 } from './ids';
-import {lyricOutlineSchema, lyricShadowSchema} from './lyricEffects';
+import {textOutlineSchema, textShadowSchema} from './textEffects';
 import type {MigrationStep} from './migration';
 import {
   hexColor,
@@ -52,8 +52,8 @@ const messageStyleSchema = jsonObject({
   ...textStyleEntries,
   maxLines: positiveInteger,
   margin: percent,
-  outline: lyricOutlineSchema,
-  shadow: lyricShadowSchema,
+  outline: textOutlineSchema,
+  shadow: textShadowSchema,
   background: v.exactOptional(jsonObject({color: hexColor, opacity: percent})),
 });
 

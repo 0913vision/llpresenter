@@ -1,18 +1,19 @@
 # Switch
 
-A 30×18 switch that turns on or off a setting that applies the moment you click it. Use it in setting rows in Preferences, 화면 설정 (Screen settings), the 테마 editor, media properties, and text import settings.
+A 30×18 switch that turns on or off a setting that applies the moment you click it. Use it in setting rows in Preferences, 화면 설정 (Screen settings), media properties, and text import settings.
 
 ## Where to use
 
 - Preferences: 오류 보고 보내기, 켤 때 화면 출력, 출력 중 절전 막기, 하드웨어 가속, 자동 백업, 절 번호, 자동 확인
 - 화면 설정: 항상 위, 절전 막기, 알파 채널
-- 테마 editor: 그림자, 외곽선 / on/off settings in media properties (소리 켜기)
+- Media properties: 소리 켜기
 - The settings row of text import: 이름표 인식 (detect labels)
 
 ## Where not to use
 
 - Picking several things (items to import, states to restore): use `Checkbox`.
 - A choice in a dialog that applies only after you click [확인]: use `Checkbox`.
+- On and off properties of a 테마 element (그림자, 외곽선): use `Checkbox`.
 - Large controls that change the current output state, such as turning on screen output: that is the screen output button on the toolbar (`ToolbarButton`).
 
 ## Anatomy

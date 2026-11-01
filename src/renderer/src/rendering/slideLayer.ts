@@ -1,7 +1,7 @@
 import type {SlideLayer} from '@core/live/state';
 import {fitTextInFrame} from './fitText';
 import {classes} from './classes';
-import {LYRIC_EFFECTS, type LyricStyle} from '@core/themes/lyricStyle';
+import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
@@ -20,7 +20,7 @@ export function fontFamilyFor(font: string): string {
 
 const NO_BREAK_SPACE = ' ';
 
-const JUSTIFY: Readonly<Record<LyricStyle['vAlign'], string>> = {
+const JUSTIFY: Readonly<Record<TextStyle['vAlign'], string>> = {
   top: 'flex-start',
   middle: 'center',
   bottom: 'flex-end',
@@ -28,13 +28,13 @@ const JUSTIFY: Readonly<Record<LyricStyle['vAlign'], string>> = {
 
 type PageIndex = 0 | 1;
 
-function effects(style: LyricStyle) {
+function effects(style: TextStyle) {
   return {
     outline:
       typeof style.outline === 'boolean'
         ? {
             on: style.outline,
-            width: LYRIC_EFFECTS.outlineWidth,
+            width: TEXT_EFFECTS.outlineWidth,
             color: '#000000',
           }
         : style.outline,
@@ -42,10 +42,10 @@ function effects(style: LyricStyle) {
       typeof style.shadow === 'boolean'
         ? {
             on: style.shadow,
-            distance: LYRIC_EFFECTS.shadowDistance,
-            blur: LYRIC_EFFECTS.shadowBlur,
+            distance: TEXT_EFFECTS.shadowDistance,
+            blur: TEXT_EFFECTS.shadowBlur,
             angle: 45,
-            opacity: LYRIC_EFFECTS.shadowOpacity * 100,
+            opacity: TEXT_EFFECTS.shadowOpacity * 100,
             color: '#000000',
           }
         : style.shadow,
@@ -67,7 +67,7 @@ function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
   );
 }
 
-function createPage(style: LyricStyle): Page {
+function createPage(style: TextStyle): Page {
   const element = document.createElement('div');
   const block = document.createElement('div');
   element.className = classes.page;
@@ -78,7 +78,7 @@ function createPage(style: LyricStyle): Page {
   return page;
 }
 
-function applyStyle({element, block}: Page, style: LyricStyle): void {
+function applyStyle({element, block}: Page, style: TextStyle): void {
   element.style.inset = `${style.margin}%`;
   element.style.justifyContent = JUSTIFY[style.vAlign];
   element.style.textAlign = style.align;
@@ -100,7 +100,7 @@ const STYLE_FIELDS = [
   'margin',
   'shadow',
   'outline',
-] as const satisfies ReadonlyArray<keyof LyricStyle>;
+] as const satisfies ReadonlyArray<keyof TextStyle>;
 
 function writeLines(block: HTMLElement, lines: readonly string[]): void {
   lines.forEach((line, index) => {
@@ -125,7 +125,7 @@ export class SlideLayerView {
 
   constructor(
     parent: HTMLElement,
-    private style: LyricStyle,
+    private style: TextStyle,
   ) {
     this.element.className = classes.layer;
     this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
@@ -168,7 +168,7 @@ export class SlideLayerView {
   }
 
   /** Applies a changed text style in place, without replacing pages or dissolving. */
-  setStyle(style: LyricStyle): void {
+  setStyle(style: TextStyle): void {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
     this.style = style;
     this.element.classList.add(classes.instant);

@@ -6,7 +6,7 @@ import type {TimerRuns} from '@core/schema/timerState';
 import type {TimerNow} from '@core/timers/timerClock';
 import {MAIN, overlayUuid, PROP, TEXT_STYLE} from '@fixtures/core/overlays';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MAX_REPORTED_TICK_ERRORS} from '@renderer/rendering/layers/props';
 import {OverlayTextView} from '@renderer/rendering/overlayText';
@@ -96,7 +96,7 @@ function setup() {
   const parent = document.createElement('div');
   const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
-    lyricStyle: DEFAULT_LYRIC_STYLE,
+    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl: id => `https://media.test/${id}`,
     onError,
   });

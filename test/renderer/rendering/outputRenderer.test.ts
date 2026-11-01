@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {RenderMode} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {MAIN} from '@fixtures/core/overlays';
@@ -43,7 +43,7 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
   const parent = document.createElement('div');
   const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
-    lyricStyle: DEFAULT_LYRIC_STYLE,
+    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
     onError,
     ...(mode === undefined ? {} : {mode}),
@@ -189,7 +189,7 @@ describe('OutputRenderer', () => {
       const parent = document.createElement('div');
       const onError = vi.fn();
       const renderer = new OutputRenderer(parent, {
-        lyricStyle: DEFAULT_LYRIC_STYLE,
+        textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl: mediaId => `llp-media://media/${mediaId}`,
         onError,
         mode,
@@ -315,7 +315,7 @@ describe('OutputRenderer', () => {
   it('passes the preview mode to the background', () => {
     const parent = document.createElement('div');
     const renderer = new OutputRenderer(parent, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
       onError: vi.fn(),
       mode: 'preview',

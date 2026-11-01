@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import type {RenderLayerOptions} from '@renderer/rendering/layer';
 import {backgroundLayer} from '@renderer/rendering/layers/background';
 
@@ -31,7 +31,7 @@ beforeEach(() => {
 });
 
 const options: RenderLayerOptions = {
-  lyricStyle: DEFAULT_LYRIC_STYLE,
+  textStyle: DEFAULT_TEXT_STYLE,
   mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
   onError: vi.fn(),
 };

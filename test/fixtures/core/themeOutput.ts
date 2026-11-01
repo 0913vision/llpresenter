@@ -2,7 +2,7 @@ import {createScreenId, createThemeElementId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {ThemeElement} from '@core/schema/themes';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
+import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {createDefaultThemes} from '@core/themes/defaults';
 
 export const THEME_MAIN = createScreenId(STARTER_SCREEN_IDS.main);
@@ -34,7 +34,7 @@ export function fixedThemeText(
     ),
     kind: 'text',
     frame: {x: 80, y: 80, w: 400, h: 200},
-    text: STARTER_LYRIC_STYLE,
+    text: STARTER_TEXT_STYLE,
     content,
   };
 }
@@ -45,6 +45,6 @@ export function themeElementBase(index = 30) {
       `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
     ),
     frame: {x: 0, y: 0, w: 1920, h: 1080},
-    text: {...STARTER_LYRIC_STYLE, maxLines: 12},
+    text: {...STARTER_TEXT_STYLE, maxLines: 12},
   };
 }

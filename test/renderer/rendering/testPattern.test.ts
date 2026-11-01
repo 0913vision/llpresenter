@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {MAIN} from '@fixtures/core/overlays';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {
   PATTERN_BARS,
@@ -168,7 +168,7 @@ describe('the 테스트 패턴 layer', () => {
   it('covers every other layer of the screen the frame marks', () => {
     const parent = document.createElement('div');
     const renderer = new OutputRenderer(parent, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl: id => `https://media.test/${id}`,
       onError: vi.fn(),
     });

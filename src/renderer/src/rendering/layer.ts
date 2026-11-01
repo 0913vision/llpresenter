@@ -1,7 +1,7 @@
 import type {LayerKind, LiveLayers} from '@core/live/state';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
-import type {LyricStyle} from '@core/themes/lyricStyle';
+import type {TextStyle} from '@core/themes/textStyle';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
@@ -55,7 +55,7 @@ export interface RenderFrame {
 }
 
 export interface RenderLayerOptions {
-  readonly lyricStyle: LyricStyle;
+  readonly textStyle: TextStyle;
   /** The URL that plays a library media file. */
   readonly mediaUrl: (mediaId: string) => string;
   /** Receives drawing errors, which never reach the other layers. */

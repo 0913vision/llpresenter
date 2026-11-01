@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {expect, it} from 'vitest';
 import {
-  STARTER_LYRIC_STYLE,
+  STARTER_TEXT_STYLE,
   STARTER_STAGE_ELEMENTS,
 } from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
@@ -24,8 +24,8 @@ it('converts the starter audience styles and stage geometry into theme elements'
       {
         kind: 'currentText',
         text: {
-          font: STARTER_LYRIC_STYLE.font,
-          size: STARTER_LYRIC_STYLE.size,
+          font: STARTER_TEXT_STYLE.font,
+          size: STARTER_TEXT_STYLE.size,
           vAlign: 'middle',
         },
       },

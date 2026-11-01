@@ -1,8 +1,8 @@
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
 import type {ThemeElement} from '@core/schema/themes';
-import type {LyricStyle} from '@core/themes/lyricStyle';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import type {TextStyle} from '@core/themes/textStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {
   isThemeTextElement,
   themeElementText,
@@ -82,7 +82,7 @@ export class ThemeElementView {
     }
     this.text =
       isThemeTextElement(element) || element.kind === 'overlay'
-        ? new SlideLayerView(this.box, DEFAULT_LYRIC_STYLE)
+        ? new SlideLayerView(this.box, DEFAULT_TEXT_STYLE)
         : null;
     this.image =
       element.kind === 'image' ? document.createElement('img') : null;
@@ -255,7 +255,7 @@ export class ThemeElementView {
   private showText(text: string | null, frame: RenderFrame): void {
     if (this.text === null) return;
     if (this.element.kind !== 'overlay') this.box.hidden = text === null;
-    let style: LyricStyle = DEFAULT_LYRIC_STYLE;
+    let style: TextStyle = DEFAULT_TEXT_STYLE;
     if (isThemeTextElement(this.element)) {
       const textStyle = this.element.text;
       const known = frame.fonts?.some(

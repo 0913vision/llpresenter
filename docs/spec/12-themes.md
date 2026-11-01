@@ -3,9 +3,8 @@
 Status: M4. The concept was agreed with the user on October 30, and the open
 points on October 31 (the approval page, accepted as proposed).
 
-This file is the single source for what a screen shows: the app has no Looks, no
-lyric styles (가사 스타일), and no stage layouts (무대 배치). 메시지 styles,
-공지 sets, and 그래픽 keep their own files and behavior.
+This file is the single source for what a screen shows. 메시지 styles, 공지
+sets, and 그래픽 keep their own files and behavior.
 
 ## Why
 

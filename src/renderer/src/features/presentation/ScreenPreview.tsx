@@ -1,7 +1,7 @@
 import {useEffect, useRef, type JSX} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {useLive} from '@renderer/session/live';
@@ -34,7 +34,7 @@ export function ScreenPreview({
     const screen = screenRef.current;
     if (!screen) return undefined;
     const renderer = new OutputRenderer(screen, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
+      textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
       onError: reportDrawingError,
       mode: 'preview',
