@@ -1,390 +1,203 @@
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
-import {parseServiceItemId} from '@core/schema/ids';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {parseService} from '@core/schema/service';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {LiveStore, dispatchLogged} from '@main/live/store';
-import {SliceRegistry} from '@main/live/sliceRegistry';
-import {batchSlice} from '@main/live/slices/batch';
-import {clearSlice} from '@main/live/slices/clear';
-import {contentSlice} from '@main/live/slices/content';
-import {macrosSlice} from '@main/live/slices/macros';
-import {propsSlice} from '@main/live/slices/props';
-import {screenSettingsSlice} from '@main/live/slices/screenSettings';
-import type {LiveSlice, MacroCommandPort} from '@main/live/slice';
-import {MacroRunner, MAX_LOGGED_MACRO_PROBLEMS} from '@main/macros/runner';
+import {describe, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@core/live/state';
 import {
-  environment,
-  findMacro,
-  IDS,
-  macro,
-  uuid,
-} from '@fixtures/main/macros/testing';
+  createMediaId,
+  createServiceItemId,
+  parseMacroId,
+} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
+import {MissingLiveTargetError} from '@main/live/commandErrors';
+import type {LiveHistory} from '@main/live/history';
+import type {SliceContext} from '@main/live/slice';
+import {compileMacro} from '@main/macros/compiler';
+import {MacroRunner, MAX_LOGGED_MACRO_PROBLEMS} from '@main/macros/runner';
+import type {MacroPlan, MacroProblem} from '@main/macros/types';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {environment, IDS, macro, uuid} from '@fixtures/main/macros/testing';
 
-function harness(
-  actions: readonly object[],
-  items: readonly object[] = [],
-  extraSlices: readonly LiveSlice[] = [],
-) {
-  const env = environment([macro(IDS.macro, actions)]);
-  const service = parseService(
-    JSON.stringify({
-      format: 'llservice',
-      schemaVersion: 1,
-      id: IDS.service,
-      name: 'Test',
-      date: '2026-10-26T10:00',
-      order: items,
-    }),
-    'service.llservice',
-  );
-  if (!service.ok) throw new Error(service.error.message);
-  const store = new LiveStore(
-    undefined,
-    () => 100,
-    new SliceRegistry([
-      batchSlice,
-      clearSlice,
-      contentSlice,
-      macrosSlice,
-      propsSlice,
-      ...extraSlices,
-    ]),
-  );
-  const releaseSettings = store.connectSettings(env.settings);
+vi.mock('@main/macros/compiler', () => ({compileMacro: vi.fn()}));
+
+const MACRO = expectSuccess(parseMacroId(IDS.macro));
+const ITEM = createServiceItemId(IDS.item);
+const VIDEO = createMediaId(IDS.video);
+
+function history(): LiveHistory {
+  return {state: emptyLiveState(), undo: null};
+}
+
+function plan(problems: readonly MacroProblem[] = []): MacroPlan {
+  return {
+    macroId: MACRO,
+    commands: [{type: 'layer.clear', target: 'slide'}],
+    problems,
+  };
+}
+
+function problem(reason: MacroProblem['reason']): MacroProblem {
+  return {macroId: MACRO, action: 0, reason, message: reason};
+}
+
+function setup(items: readonly ServiceItem[] = [], macros = [macro()]) {
+  const env = environment(macros);
+  const supports = vi.fn(() => true);
   const runner = new MacroRunner({
     settings: env.settings,
     media: () => env.media,
-    item: id => service.value.data.order.find(item => item.id === id),
-    supports: type => store.handles(type),
+    item: id => items.find(item => item.id === id),
+    supports,
     log: env.log,
   });
-  const release = store.connectMacros(runner);
-  onTestFinished(() => {
-    release();
-    releaseSettings();
-  });
-  const id = findMacro(env.catalog).id;
-  return {...env, store, runner, id, releaseMacros: release};
+  const effects: Array<() => void> = [];
+  const applied = history();
+  const context: SliceContext = {
+    now: 0,
+    defer: effect => effects.push(effect),
+    ranMacro: vi.fn(),
+    reject: vi.fn(),
+    apply: vi.fn(() => applied),
+  };
+  const flush = () => {
+    for (const effect of effects.splice(0)) effect();
+  };
+  vi.mocked(compileMacro).mockReturnValue(plan());
+  return {...env, runner, context, flush, applied, supports};
 }
 
-describe('macro live execution', () => {
-  it('skips an action of an unknown kind and runs the remaining action', () => {
-    const {store, runner, log, id} = harness([
-      {kind: 'camera', input: 2},
-      {kind: 'clearLayer', layer: 'slide'},
-    ]);
-    store.dispatch({
-      type: 'slide.show',
-      slide: {
-        itemId: 'item',
-        position: 0,
-        label: null,
-        lines: ['Invented slide'],
-      },
-    });
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(store.state.layers.slide).toBeNull();
-    expect(store.state.lastMacroId).toBe(id);
-    expect(runner.lastRun?.commands).toEqual([
-      {type: 'layer.clear', target: 'slide'},
-    ]);
-    expect(runner.lastRun?.problems).toEqual([
-      expect.objectContaining({action: 0, reason: 'unknown-action'}),
-    ]);
-  });
-  it('publishes the last run even for an empty macro and drops it in a new session', () => {
-    const {store, id} = harness([]);
-    const listener = vi.fn();
-    onTestFinished(store.subscribe(listener));
-    store.dispatch({type: 'macro.run', macroId: id});
-    expect(store.state.lastMacroId).toBe(id);
-    expect(listener).toHaveBeenCalledOnce();
-    expect(store.state.version).toBe(1);
-    expect(new LiveStore(store.state).state.lastMacroId).toBeUndefined();
-  });
+describe('MacroRunner', () => {
+  it('compiles the 매크로 against the state and applies its commands as one batch', () => {
+    const {runner, context, applied, supports} = setup();
+    const before = history();
 
-  it('drops the macro report and reports the 매크로 when another child makes the whole dispatch fail admission', () => {
-    const {store, runner, log, id} = harness([
-      {kind: 'theme', theme: uuid(99)},
-    ]);
-    const problems = vi.fn();
-    onTestFinished(store.subscribeProblems(problems));
-    dispatchLogged(
-      store,
-      {
-        type: 'live.batch',
-        commands: [
-          {type: 'macro.run', macroId: id},
-          {
-            type: 'message.show',
-            message: {
-              messageId: 'invalid',
-              text: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
-            },
-          },
-        ],
-      },
-      log,
+    const next = runner.run(
+      before,
+      {type: 'macro.run', macroId: MACRO},
+      context,
     );
-    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
-    expect(log.entries[0]).toMatchObject({
-      detail: {type: 'live.batch', macroIds: [id]},
-    });
-    expect(problems).toHaveBeenCalledExactlyOnceWith({
-      kind: 'macro-dropped',
-      macroId: id,
-      name: `Macro ${id}`,
-    });
-    expect(runner.lastRun).toBeNull();
-    expect(store.state.layers.message).toBeNull();
-  });
-  it('reports the start 매크로 of an item.start whose dispatch is dropped', () => {
-    const {store, log} = harness(
-      [{kind: 'clearLayer', layer: 'media'}],
-      [{id: IDS.item, media: IDS.video, macro: IDS.macro}],
-    );
-    const problems = vi.fn();
-    onTestFinished(store.subscribeProblems(problems));
-    dispatchLogged(
-      store,
-      {
-        type: 'live.batch',
-        commands: [
-          {
-            type: 'item.start',
-            itemId: expectSuccess(parseServiceItemId(IDS.item)),
-          },
-          {
-            type: 'message.show',
-            message: {
-              messageId: 'invalid',
-              text: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
-            },
-          },
-        ],
-      },
-      log,
-    );
-    expect(log.entries.at(-1)).toMatchObject({
-      message: 'dropped live dispatch',
-      detail: {macroIds: [IDS.macro]},
-    });
-    expect(problems).toHaveBeenCalledExactlyOnceWith({
-      kind: 'macro-dropped',
-      macroId: IDS.macro,
+
+    expect(context.ranMacro).toHaveBeenCalledExactlyOnceWith({
+      macroId: MACRO,
       name: `Macro ${IDS.macro}`,
     });
-  });
-  it('reports skipped actions in one bounded warning with the total count', () => {
-    const {store, runner, log, id} = harness(
-      Array.from({length: 12}, () => ({kind: 'theme', theme: uuid(99)})),
+    expect(compileMacro).toHaveBeenCalledWith(
+      expect.objectContaining({state: before.state, supports}),
     );
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
+    expect(context.apply).toHaveBeenCalledExactlyOnceWith(before, {
+      type: 'live.batch',
+      commands: [{type: 'layer.clear', target: 'slide'}],
+    });
+    expect(next.state).toEqual({...applied.state, lastMacroId: MACRO});
+  });
+
+  it('marks the last 매크로 with a new version when its commands change nothing', () => {
+    const {runner, context} = setup();
+    const before = history();
+    vi.mocked(context.apply).mockReturnValue(before);
+
+    const next = runner.run(
+      before,
+      {type: 'macro.run', macroId: MACRO},
+      context,
+    );
+
+    expect(next.state.lastMacroId).toBe(MACRO);
+    expect(next.state.version).toBe(before.state.version + 1);
+  });
+
+  it('keeps the last run only once the dispatch passes', () => {
+    const {runner, context, flush} = setup();
+
+    runner.run(history(), {type: 'macro.run', macroId: MACRO}, context);
+    expect(runner.lastRun).toBeNull();
+
+    flush();
+    expect(runner.lastRun).toEqual(plan());
+  });
+
+  it('warns once about skipped actions with the count and a bounded list, leaving out unsupported commands', () => {
+    const {runner, context, flush, log} = setup();
+    const problems = [
+      problem('unsupported-command'),
+      ...Array.from({length: 12}, () => problem('missing-target')),
+    ];
+    vi.mocked(compileMacro).mockReturnValue(plan(problems));
+
+    runner.run(history(), {type: 'macro.run', macroId: MACRO}, context);
+    flush();
+
     expect(log.messages('warn')).toEqual(['skipped macro actions']);
     expect(log.entries[0]).toHaveProperty('detail.count', 12);
     expect(log.entries[0]).toHaveProperty(
       'detail.problems.length',
       MAX_LOGGED_MACRO_PROBLEMS,
     );
-    expect(runner.lastRun?.problems).toHaveLength(12);
-  });
-  it('keeps the screen resync port and settings reader when the macro runtime is released', () => {
-    const {store, runner, id, catalog, log, releaseMacros} = harness(
-      [],
-      [],
-      [screenSettingsSlice],
-    );
-    const screens = {requireSaved: vi.fn(), queueRefresh: vi.fn()};
-    onTestFinished(store.connectScreenSettings(screens));
-    const parsed = parseLiveCommand({
-      type: 'screen.settings.apply',
-      screenId: IDS.main,
-    });
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    dispatchLogged(store, parsed.value, log);
-    expect(screens.requireSaved).toHaveBeenCalledExactlyOnceWith(IDS.main);
-    expect(screens.queueRefresh).toHaveBeenCalledOnce();
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(runner.lastRun?.macroId).toBe(id);
-    releaseMacros();
-    const prop = catalog.props.props[0];
-    if (prop === undefined) throw new Error('Missing prop');
-    expect(store.dispatch({type: 'prop.set', propId: prop.id, on: true})).toBe(
-      true,
-    );
-    expect(store.state.layers.prop?.items?.[0]?.propId).toBe(prop.id);
-    dispatchLogged(store, parsed.value, log);
-    expect(screens.requireSaved).toHaveBeenCalledTimes(2);
-    expect(screens.queueRefresh).toHaveBeenCalledTimes(2);
-    expect(log.messages('error')).toEqual([]);
-  });
-  it.each([uuid(99), 'invalid-id'])(
-    'reports a missing or invalid item macro %s without changing output',
-    macroId => {
-      const {store, log} = harness(
-        [],
-        [{id: IDS.item, media: IDS.video, macro: macroId}],
-      );
-      const command = parseLiveCommand({type: 'item.start', itemId: IDS.item});
-      if (!command.ok) throw new Error(command.error.message);
-      const before = store.state;
-      dispatchLogged(store, command.value, log);
-      expect(store.state).toBe(before);
-      expect(log.entries).toHaveLength(1);
-      expect(log.messages('error')).toEqual([]);
-      expect(log.messages('warn')).toHaveLength(1);
-      expect(log.entries[0]).toHaveProperty(
-        'message',
-        macroId === 'invalid-id'
-          ? 'skipped invalid item start macro'
-          : 'skipped live command',
-      );
-    },
-  );
-  it('skips a deleted theme and applies three clears as one batch with one notification and one undo', () => {
-    const {store, runner, log, id} = harness([
-      {kind: 'theme', theme: uuid(99)},
-      {kind: 'clearLayer', layer: 'slide'},
-      {kind: 'clearLayer', layer: 'media'},
-      {kind: 'clearLayer', layer: 'message'},
-    ]);
-    store.dispatch({
-      type: 'slide.show',
-      slide: {
-        itemId: 'item',
-        position: 0,
-        label: null,
-        lines: ['Invented slide'],
-      },
-    });
-    store.dispatch({
-      type: 'media.show',
-      media: {mediaId: IDS.video, loop: true},
-    });
-    store.dispatch({
-      type: 'message.show',
-      message: {messageId: 'message', text: 'Invented notice'},
-    });
-    const before = store.state;
-    const listener = vi.fn();
-    onTestFinished(store.subscribe(listener));
-    const batch = vi.spyOn(batchSlice, 'apply');
-    onTestFinished(() => batch.mockRestore());
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(batch).toHaveBeenCalledTimes(1);
-    expect(batch.mock.calls[0]?.[1]).toEqual({
-      type: 'live.batch',
-      commands: runner.lastRun?.commands,
-    });
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.state.version).toBe(before.version + 1);
-    expect(store.state.layers).toMatchObject({
-      slide: null,
-      media: null,
-      message: null,
-    });
-    const problem = log.entries.find(
-      entry => entry.message === 'skipped macro actions',
-    );
-    expect(problem).toHaveProperty('detail.count', 1);
-    expect(problem).toHaveProperty(
-      'detail.problems.0.reason',
-      'missing-target',
-    );
-    expect(problem).toHaveProperty('detail.problems.0.target', {
-      kind: 'theme',
-      id: uuid(99),
-    });
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers).toEqual(before.layers);
+    expect(runner.lastRun?.problems).toHaveLength(13);
   });
 
-  it('executes item.start before the following slide inside the same outer transaction', () => {
-    const {store, log} = harness(
-      [{kind: 'clearLayer', layer: 'media'}],
-      [{id: IDS.item, media: IDS.video, macro: IDS.macro}],
+  it('fails a 매크로 that does not exist as a missing target', () => {
+    const {runner, context} = setup();
+    const missing = expectSuccess(parseMacroId(uuid(99)));
+
+    expect(() =>
+      runner.run(history(), {type: 'macro.run', macroId: missing}, context),
+    ).toThrow(MissingLiveTargetError);
+    expect(context.apply).not.toHaveBeenCalled();
+  });
+
+  it('runs the start 매크로 of an item.start', () => {
+    const {runner, context} = setup([
+      {id: ITEM, media: VIDEO, macro: IDS.macro},
+    ]);
+
+    runner.run(history(), {type: 'item.start', itemId: ITEM}, context);
+
+    expect(context.ranMacro).toHaveBeenCalledWith(
+      expect.objectContaining({macroId: MACRO}),
     );
-    store.dispatch({
-      type: 'media.show',
-      media: {mediaId: IDS.video, loop: true},
-    });
-    const parsed = parseLiveCommand({
-      type: 'live.batch',
-      commands: [
-        {type: 'item.start', itemId: IDS.item},
-        {
-          type: 'slide.show',
-          slide: {
-            itemId: IDS.item,
-            position: 0,
-            label: null,
-            lines: ['After start'],
-          },
-        },
+    expect(context.apply).toHaveBeenCalledOnce();
+  });
+
+  it('leaves the history alone for an item without a start 매크로', () => {
+    const {runner, context} = setup([{id: ITEM, media: VIDEO}]);
+    const before = history();
+
+    expect(
+      runner.run(before, {type: 'item.start', itemId: ITEM}, context),
+    ).toBe(before);
+    expect(context.apply).not.toHaveBeenCalled();
+  });
+
+  it('fails an item that is not in the service as a missing target', () => {
+    const {runner, context} = setup();
+
+    expect(() =>
+      runner.run(history(), {type: 'item.start', itemId: ITEM}, context),
+    ).toThrow(MissingLiveTargetError);
+  });
+
+  it('skips an item whose start 매크로 is not an ID and warns once the dispatch passes', () => {
+    const {runner, context, flush, log} = setup([
+      {id: ITEM, media: VIDEO, macro: 'invalid-id'},
+    ]);
+    const before = history();
+
+    expect(
+      runner.run(before, {type: 'item.start', itemId: ITEM}, context),
+    ).toBe(before);
+    expect(log.messages('warn')).toEqual([]);
+    flush();
+    expect(log.messages('warn')).toEqual(['skipped invalid item start macro']);
+  });
+
+  it('lists the startup 매크로 in file order', () => {
+    const {runner} = setup(
+      [],
+      [
+        macro(IDS.macro, [], {runOnStartup: true}),
+        macro(uuid(21)),
+        macro(uuid(22), [], {runOnStartup: true}),
       ],
-    });
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    const listener = vi.fn();
-    onTestFinished(store.subscribe(listener));
-    dispatchLogged(store, parsed.value, log);
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.state.lastMacroId).toBe(IDS.macro);
-    expect(store.state.layers.media).toBeNull();
-    expect(store.state.layers.slide?.lines).toEqual(['After start']);
-  });
-
-  it('treats an item without a macro as a no-op and reports an unknown item as missing-target', () => {
-    const {store, log} = harness([], [{id: IDS.item, media: IDS.video}]);
-    for (const itemId of [IDS.item, uuid(31)]) {
-      const parsed = parseLiveCommand({type: 'item.start', itemId});
-      if (!parsed.ok) throw new Error(parsed.error.message);
-      dispatchLogged(store, parsed.value, log);
-    }
-    expect(store.state.version).toBe(0);
-    expect(log.entries).toContainEqual(
-      expect.objectContaining({
-        message: 'skipped live command',
-        detail: {
-          type: 'item.start',
-          reason: 'missing-target',
-          target: {kind: 'service-item', id: uuid(31)},
-        },
-      }),
     );
-  });
 
-  it('retains unsupported commands for the explicit test registry and executes the remaining actions', () => {
-    const theme = environment().catalog.themes.themes[0];
-    if (!theme) throw new Error('Missing theme fixture');
-    const {store, runner, log, id} = harness([
-      {kind: 'theme', theme: theme.id},
-      {kind: 'clearAll'},
-    ]);
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'item', position: 0, label: null, lines: ['Before']},
-    });
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(runner.lastRun?.problems[0]?.reason).toBe('unsupported-command');
-    expect(store.state.layers.slide).toBeNull();
-    expect(log.messages('warn')).toEqual(['unhandled live command']);
-  });
-
-  it('releases only the matching runtime connection and rejects execution after it is removed', () => {
-    const {store, log, id} = harness([]);
-    const first = {run: vi.fn<MacroCommandPort['run']>(history => history)};
-    const second = {run: vi.fn<MacroCommandPort['run']>(history => history)};
-    const removeFirst = store.connectMacros(first);
-    const removeSecond = store.connectMacros(second);
-    removeFirst();
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(first.run).not.toHaveBeenCalled();
-    expect(second.run).toHaveBeenCalledOnce();
-    removeSecond();
-    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
-    expect(second.run).toHaveBeenCalledOnce();
-    expect(log.messages('warn')).toEqual(['skipped live command']);
+    expect(runner.startupIds()).toEqual([IDS.macro, uuid(22)]);
   });
 });

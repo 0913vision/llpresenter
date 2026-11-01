@@ -1,180 +1,179 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
-import {parseService} from '@core/schema/service';
-import {LiveStore, dispatchLogged} from '@main/live/store';
-import {SliceRegistry} from '@main/live/sliceRegistry';
-import {batchSlice} from '@main/live/slices/batch';
-import {clearSlice} from '@main/live/slices/clear';
-import {contentSlice} from '@main/live/slices/content';
-import {macrosSlice} from '@main/live/slices/macros';
-import {ContentStore} from '@main/store/contentStore';
-import {MediaStore} from '@main/store/mediaStore';
-import {resolveLocations} from '@main/store/locations';
+import {createMediaId, createServiceItemId} from '@core/schema/ids';
+import type {MediaList} from '@core/schema/mediaList';
+import type {ServiceItem} from '@core/schema/service';
+import type {SettingsReader} from '@core/schema/settingsReader';
+import type {LiveStore} from '@main/live/store';
 import {registerMacros} from '@main/macros/register';
-import {environment, IDS, macro, uuid} from '@fixtures/main/macros/testing';
+import type {MacroRunnerOptions} from '@main/macros/runner';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 
-function harness(macros: readonly object[] = [macro()]) {
-  const env = environment(macros);
-  const {locations} = resolveLocations(
-    {},
-    {documents: resolve('/macro-tests'), developmentFolder: null},
-  );
-  const files = {
-    write: vi.fn(async () => ({ok: true, value: undefined}) as const),
-    remove: vi.fn(async () => ({ok: true, value: undefined}) as const),
-  };
-  const media = new MediaStore({
-    document: {
-      name: 'media',
-      value: env.media,
-      access: 'editable',
-      revision: 1,
-    },
-    file: join(locations.settings, 'media.json'),
-    mediaFolder: locations.media,
-    files,
-    log: env.log,
-  });
-  const services = [IDS.service, uuid(41)].map((id, index) => {
-    const parsed = parseService(
-      JSON.stringify({
-        format: 'llservice',
-        schemaVersion: 1,
-        id,
-        name: 'Service',
-        date: '2026-10-26T10:00',
-        order: [{id: IDS.item, media: IDS.video, macro: uuid(20 + index)}],
-      }),
-      `${id}.llservice`,
-    );
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    return {...parsed.value, file: join(locations.services, `${id}.llservice`)};
-  });
-  const content = new ContentStore({
-    locations,
-    songs: new Map(),
-    services: new Map(services.map(item => [item.data.id, item])),
-    templates: new Map(),
-    files,
-    log: env.log,
-    openServiceId: IDS.service,
-    events: {
-      songChanged: () => undefined,
-      songsListChanged: () => undefined,
-      serviceChanged: () => undefined,
-      servicesListChanged: () => undefined,
-      templateChanged: () => undefined,
-      templatesListChanged: () => undefined,
-    },
-  });
-  const store = new LiveStore(
-    undefined,
-    () => 100,
-    new SliceRegistry([batchSlice, clearSlice, contentSlice, macrosSlice]),
-  );
-  const releaseSettings = store.connectSettings(env.settings);
-  onTestFinished(async () => {
-    releaseSettings();
-    content.dispose();
-    await media.dispose();
-  });
-  const data = {
-    settings: Promise.resolve(env.settings),
-    media: Promise.resolve(media),
-    content: Promise.resolve(content),
-  };
-  return {...env, store, data, content};
+const runners = vi.hoisted(() => {
+  const state: {
+    options: MacroRunnerOptions[];
+    startup: string[];
+    lastRun: {macroId: string} | null;
+  } = {options: [], startup: [], lastRun: null};
+  return state;
+});
+
+vi.mock('@main/macros/runner', () => ({
+  MacroRunner: class {
+    constructor(options: MacroRunnerOptions) {
+      runners.options.push(options);
+    }
+    get lastRun() {
+      return runners.lastRun;
+    }
+    startupIds() {
+      return runners.startup;
+    }
+  },
+}));
+
+const settings: SettingsReader = {
+  get: vi.fn(),
+  preferences: vi.fn(),
+  subscribe: vi.fn(() => () => undefined),
+};
+const mediaList: MediaList = {
+  format: 'llmedia',
+  schemaVersion: 1,
+  items: [],
+  playlists: [],
+};
+const ITEM = createServiceItemId('00000000-0000-4000-8000-000000000030');
+const FIRST_VIDEO = createMediaId('00000000-0000-4000-8000-000000000009');
+const SECOND_VIDEO = createMediaId('00000000-0000-4000-8000-000000000010');
+
+interface MockContent {
+  openServiceId: string | null;
+  service(
+    id: string,
+  ): {readonly service: {readonly order: ServiceItem[]}} | null;
 }
 
-describe('macro startup and lifetime', () => {
-  it('runs flagged startup macros once in file order after a normal launch', async () => {
-    const {store, data, log} = harness([
-      macro(IDS.macro, [], {runOnStartup: true}),
-      macro(uuid(21)),
-      macro(uuid(22), [], {runOnStartup: true}),
-    ]);
-    const dispatch = vi.spyOn(store, 'dispatch');
+function mockStore() {
+  const release = vi.fn();
+  const store = {
+    handles: vi.fn<LiveStore['handles']>(() => true),
+    dispatch: vi.fn<LiveStore['dispatch']>(() => true),
+    connectMacros: vi.fn<LiveStore['connectMacros']>(() => release),
+  };
+  return {store, release};
+}
+
+function mockData(
+  settingsReader: Promise<SettingsReader | null> = Promise.resolve(settings),
+) {
+  const services = new Map<string, {service: {order: ServiceItem[]}}>([
+    ['first', {service: {order: [{id: ITEM, media: FIRST_VIDEO}]}}],
+    ['second', {service: {order: [{id: ITEM, media: SECOND_VIDEO}]}}],
+  ]);
+  const content: MockContent = {
+    openServiceId: 'first',
+    service: id => services.get(id) ?? null,
+  };
+  return {
+    content,
+    data: {
+      settings: settingsReader,
+      media: Promise.resolve({get: () => ({value: mediaList})}),
+      content: Promise.resolve(content),
+    },
+  };
+}
+
+function setup(startup: string[] = [], launch?: 'normal' | 'restore') {
+  runners.options.length = 0;
+  runners.startup = startup;
+  runners.lastRun = null;
+  const log = recordingLogger();
+  const {store, release} = mockStore();
+  const {data, content} = mockData();
+  return {log, store, release, data, content, launch};
+}
+
+function runs(store: ReturnType<typeof mockStore>['store']) {
+  return store.dispatch.mock.calls.map(([command]) => command);
+}
+
+describe('registerMacros', () => {
+  it('connects the runner and runs the startup macros in order after a normal launch', async () => {
+    const {log, store, data} = setup(['a', 'b']);
+    runners.lastRun = {macroId: 'b'};
     const registration = registerMacros({store, data, log});
     onTestFinished(registration.dispose);
     await registration.ready;
-    expect(registration.lastRun?.macroId).toBe(uuid(22));
-    expect(dispatch.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'macro.run', macroId: IDS.macro},
-      {type: 'macro.run', macroId: uuid(22)},
+
+    expect(store.connectMacros).toHaveBeenCalledOnce();
+    expect(runs(store)).toEqual([
+      {type: 'macro.run', macroId: 'a'},
+      {type: 'macro.run', macroId: 'b'},
     ]);
+    expect(registration.lastRun).toBe(runners.lastRun);
     expect(log.messages('error')).toEqual([]);
   });
 
-  it('does not run startup after restore and coalesces concurrent start-fresh calls', async () => {
-    const {store, data, log} = harness([
-      macro(IDS.macro, [], {runOnStartup: true}),
-      macro(uuid(21), [], {runOnStartup: true}),
-    ]);
-    const dispatch = vi.spyOn(store, 'dispatch');
+  it('waits for start fresh after a restore and runs the startup list once for concurrent calls', async () => {
+    const {log, store, data} = setup(['a', 'b']);
     const registration = registerMacros({store, data, log, launch: 'restore'});
     onTestFinished(registration.dispose);
     await registration.ready;
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
+
     await Promise.all([registration.startFresh(), registration.startFresh()]);
-    expect(dispatch.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'macro.run', macroId: IDS.macro},
-      {type: 'macro.run', macroId: uuid(21)},
+    expect(runs(store)).toEqual([
+      {type: 'macro.run', macroId: 'a'},
+      {type: 'macro.run', macroId: 'b'},
     ]);
   });
 
-  it('does not attach after disposal while data is still loading', async () => {
-    const {store, data, settings, log} = harness([
-      macro(IDS.macro, [], {runOnStartup: true}),
-    ]);
+  it('neither connects nor runs when disposed while the data is loading', async () => {
+    const {log, store} = setup(['a']);
     let resolveSettings: (value: SettingsReader | null) => void = () =>
       undefined;
     const pending = new Promise<SettingsReader | null>(resolve => {
       resolveSettings = resolve;
     });
-    const connect = vi.spyOn(store, 'connectMacros');
-    const dispatch = vi.spyOn(store, 'dispatch');
     const registration = registerMacros({
       store,
-      data: {...data, settings: pending},
+      data: mockData(pending).data,
       log,
     });
     registration.dispose();
     resolveSettings(settings);
     await registration.ready;
     await registration.startFresh();
-    expect(connect).not.toHaveBeenCalled();
-    expect(dispatch).not.toHaveBeenCalled();
+
+    expect(store.connectMacros).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
   });
 
-  it('stops the remaining startup list when disposed during a run', async () => {
-    const {store, data, log} = harness([
-      macro(IDS.macro, [], {runOnStartup: true}),
-      macro(uuid(21), [], {runOnStartup: true}),
-    ]);
-    const real = store.dispatch.bind(store);
-    const dispatch = vi
-      .spyOn(store, 'dispatch')
-      .mockImplementation((...args) => {
-        const changed = real(...args);
-        registration.dispose();
-        return changed;
-      });
+  it('stops the startup list and releases the runner when disposed during a run', async () => {
+    const {log, store, release, data} = setup(['a', 'b']);
+    store.dispatch.mockImplementation(() => {
+      registration.dispose();
+      return true;
+    });
     const registration = registerMacros({store, data, log});
     await registration.ready;
-    expect(dispatch).toHaveBeenCalledTimes(1);
+
+    expect(store.dispatch).toHaveBeenCalledOnce();
+    expect(release).toHaveBeenCalledOnce();
+    expect(registration.lastRun).toBeNull();
   });
 
-  it('reports failed loading and refuses a requested fresh run explicitly', async () => {
-    const {store, data, log} = harness();
+  it('logs data that could not load and refuses a fresh run', async () => {
+    const {log, store} = setup(['a']);
     const registration = registerMacros({
       store,
-      data: {...data, settings: Promise.resolve(null)},
+      data: mockData(Promise.resolve(null)).data,
       log,
     });
     onTestFinished(registration.dispose);
     await registration.ready;
+
     expect(log.messages('error')).toEqual([
       'could not connect macro execution',
     ]);
@@ -183,37 +182,22 @@ describe('macro startup and lifetime', () => {
     );
   });
 
-  it('reads item.start from the currently open service after a switch', async () => {
-    const {store, data, log, content} = harness([
-      macro(IDS.macro, [{kind: 'clearLayer', layer: 'slide'}]),
-      macro(uuid(21), [{kind: 'clearLayer', layer: 'media'}]),
-    ]);
+  it('gives the runner the item of the open service, the media list, and the store support check', async () => {
+    const {log, store, data, content} = setup([], 'restore');
     const registration = registerMacros({store, data, log, launch: 'restore'});
     onTestFinished(registration.dispose);
     await registration.ready;
-    const item = parseLiveCommand({type: 'item.start', itemId: IDS.item});
-    if (!item.ok) throw new Error(item.error.message);
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'item', position: 0, label: null, lines: ['Before']},
-    });
-    dispatchLogged(store, item.value, log);
-    expect(store.state.layers.slide).toBeNull();
-    const next = content.serviceList().find(service => service.id === uuid(41));
-    if (next === undefined) throw new Error('Missing second service');
-    expect(
-      await content.openService(next.id, () => Promise.resolve()),
-    ).toMatchObject({ok: true});
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'item', position: 0, label: null, lines: ['Kept']},
-    });
-    store.dispatch({
-      type: 'media.show',
-      media: {mediaId: IDS.video, loop: true},
-    });
-    dispatchLogged(store, item.value, log);
-    expect(store.state.layers.media).toBeNull();
-    expect(store.state.layers.slide?.lines).toEqual(['Kept']);
+    const [options] = runners.options;
+    if (options === undefined) throw new Error('No runner');
+
+    expect(options.settings).toBe(settings);
+    expect(options.media()).toBe(mediaList);
+    expect(options.item(ITEM)).toEqual({id: ITEM, media: FIRST_VIDEO});
+    content.openServiceId = 'second';
+    expect(options.item(ITEM)).toEqual({id: ITEM, media: SECOND_VIDEO});
+    content.openServiceId = null;
+    expect(options.item(ITEM)).toBeUndefined();
+    store.handles.mockReturnValueOnce(false);
+    expect(options.supports('clear.undo')).toBe(false);
   });
 });

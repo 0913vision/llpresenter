@@ -1,7 +1,9 @@
 import {setImmediate} from 'node:timers/promises';
+import type {MediaList} from '@core/schema/mediaList';
+import type {ServiceItem} from '@core/schema/service';
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {dispatchLogged, type LiveStore} from '../live/store';
 import type {Logger} from '../log';
-import type {DataStore} from '../store/register';
 import {MacroRunner} from './runner';
 import type {MacroPlan} from './types';
 
@@ -12,9 +14,21 @@ export interface MacroRegistration {
   readonly dispose: () => void;
 }
 
+/** The parts of the data store that macros read. */
+interface MacroData {
+  readonly settings: Promise<SettingsReader | null>;
+  readonly media: Promise<{get(): {readonly value: MediaList}} | null>;
+  readonly content: Promise<{
+    readonly openServiceId: string | null;
+    service(
+      id: string,
+    ): {readonly service: {readonly order: readonly ServiceItem[]}} | null;
+  } | null>;
+}
+
 interface RegisterMacrosOptions {
-  readonly store: LiveStore;
-  readonly data: Pick<DataStore, 'settings' | 'media' | 'content'>;
+  readonly store: Pick<LiveStore, 'handles' | 'dispatch' | 'connectMacros'>;
+  readonly data: MacroData;
   readonly log: Logger;
   readonly launch?: 'normal' | 'restore';
 }

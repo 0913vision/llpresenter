@@ -240,7 +240,7 @@ export class LiveStore {
  * @returns Whether the state changed.
  */
 export function dispatchLogged(
-  store: LiveStore,
+  store: Pick<LiveStore, 'handles' | 'dispatch'>,
   command: LiveCommand,
   log: Logger,
 ): boolean {

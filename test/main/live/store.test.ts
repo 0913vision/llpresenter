@@ -5,7 +5,12 @@ import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
-import {defineSlice} from '@main/live/slice';
+import {
+  defineSlice,
+  type MacroCommandPort,
+  type ScreenSettingsPort,
+} from '@main/live/slice';
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {LiveStore, dispatchBatched, dispatchLogged} from '@main/live/store';
@@ -205,5 +210,72 @@ describe('dropped dispatch problems', () => {
     live.subscribeProblems(problems);
     live.dispatch({type: 'output.set', screenId: 'main', on: true});
     expect(problems).not.toHaveBeenCalled();
+  });
+});
+
+describe('connected ports', () => {
+  function portStore() {
+    const seen: Array<{
+      readonly settings: SettingsReader | undefined;
+      readonly screenSettings: ScreenSettingsPort | undefined;
+      readonly macros: MacroCommandPort | undefined;
+    }> = [];
+    const portsSlice = defineSlice({
+      commands: ['clear.undo'],
+      initial: {},
+      reduce: (history, _command, {settings, screenSettings, macros}) => {
+        seen.push({settings, screenSettings, macros});
+        return history;
+      },
+    });
+    const live = new LiveStore(
+      undefined,
+      () => 0,
+      new SliceRegistry([portsSlice]),
+    );
+    const last = () => {
+      live.dispatch({type: 'clear.undo'});
+      return seen.at(-1);
+    };
+    return {live, last};
+  }
+  const settings: SettingsReader = {
+    get: vi.fn(),
+    preferences: vi.fn(),
+    subscribe: vi.fn(() => () => undefined),
+  };
+  const screens: ScreenSettingsPort = {
+    requireSaved: vi.fn(),
+    queueRefresh: vi.fn(),
+  };
+  const runtime = (): MacroCommandPort => ({run: vi.fn(history => history)});
+
+  it('gives slices every connected port and keeps the others when the 매크로 runtime is released', () => {
+    const {live, last} = portStore();
+    const macros = runtime();
+    live.connectSettings(settings);
+    live.connectScreenSettings(screens);
+    const release = live.connectMacros(macros);
+    expect(last()).toEqual({settings, screenSettings: screens, macros});
+
+    release();
+    expect(last()).toEqual({
+      settings,
+      screenSettings: screens,
+      macros: undefined,
+    });
+  });
+
+  it('releases only the 매크로 runtime it connected', () => {
+    const {live, last} = portStore();
+    const first = runtime();
+    const second = runtime();
+    const removeFirst = live.connectMacros(first);
+    const removeSecond = live.connectMacros(second);
+
+    removeFirst();
+    expect(last()?.macros).toBe(second);
+    removeSecond();
+    expect(last()?.macros).toBeUndefined();
   });
 });

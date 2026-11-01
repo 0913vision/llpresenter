@@ -2,7 +2,7 @@ import type {SingleLiveCommand} from '@core/live/commands';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {defineMacroAction, MacroActionRegistry} from './actionRegistry';
-import {fillMacroMessage} from './messageText';
+import {fillMessageText} from '@core/overlays/messageText';
 import type {ActionContext, ActionResolution} from './types';
 
 function command(value: SingleLiveCommand): ActionResolution {
@@ -124,7 +124,7 @@ export const macroActionHandlers = [
       }
       return command({
         type: 'message.send',
-        text: fillMacroMessage(template, action.values),
+        text: fillMessageText(template, action.values),
         targets: action.targets,
         duration: action.duration,
       });
