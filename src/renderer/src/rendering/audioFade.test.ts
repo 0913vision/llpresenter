@@ -51,4 +51,42 @@ describe('fadeAudio', () => {
     expect(onError).toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('reports an end that throws and still stops both timers', () => {
+    const onError = vi.fn();
+    const failure = new Error('End failed');
+    fadeAudio({
+      durationMs: 400,
+      now: () => 0,
+      gain: vi.fn(),
+      end: () => {
+        throw failure;
+      },
+      onError,
+    });
+    expect(() => vi.advanceTimersByTime(400)).not.toThrow();
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('reports the failure of the last gain update and still ends', () => {
+    const end = vi.fn();
+    const onError = vi.fn();
+    const failure = new Error('Last volume failed');
+    let calls = 0;
+    fadeAudio({
+      durationMs: 40,
+      now: () => 0,
+      gain: fraction => {
+        calls += 1;
+        if (fraction === 0) throw failure;
+      },
+      end,
+      onError,
+    });
+    vi.advanceTimersByTime(40);
+    expect(calls).toBeGreaterThan(0);
+    expect(onError).toHaveBeenCalledWith(failure);
+    expect(end).toHaveBeenCalledOnce();
+  });
 });
