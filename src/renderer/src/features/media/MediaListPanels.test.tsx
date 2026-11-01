@@ -363,6 +363,22 @@ describe('media list panels', () => {
     });
   });
 
+  it.each([
+    ['one item', /Backgrounds/, '미디어 1개는 모든 미디어에 남음'],
+    ['no item', /이름 없는 재생목록/, null],
+  ])(
+    'tells what stays when a playlist with %s is deleted',
+    async (_name, playlist, line) => {
+      setup();
+      fireEvent.contextMenu(await row('미디어 목록', playlist));
+      fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+      const dialog = await screen.findByRole('alertdialog');
+      const text = dialog.textContent;
+      if (line === null) expect(text).not.toContain('모든 미디어에 남음');
+      else expect(text).toContain(line);
+    },
+  );
+
   it('names a new playlist in its row', async () => {
     const {edit, pushDocument} = setup();
     edit.mockResolvedValue({ok: true, value: {id: playlistId(3), revision: 2}});

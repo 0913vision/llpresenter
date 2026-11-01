@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {usageMeta} from '@renderer/ui/usageMeta';
+import {countedMeta} from '@renderer/ui/countedMeta';
 import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {isKnownMacroAction} from '@core/schema/macros';
@@ -199,7 +199,7 @@ export function MacroEditors({
               ? ['예배 순서 사용 항목을 확인할 수 없습니다']
               : editor.uses === null
                 ? ['사용 항목을 확인하는 중']
-                : usageMeta(
+                : countedMeta(
                     editor.uses,
                     `예배 순서 항목 ${editor.uses}곳에서 씀`,
                   )

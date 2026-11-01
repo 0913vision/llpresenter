@@ -1,6 +1,7 @@
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState, type JSX} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {countedMeta} from '@renderer/ui/countedMeta';
 import {IconButton} from '@renderer/ui/IconButton';
 import {
   ListBox,
@@ -117,7 +118,10 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
         <AlertDialog
           icon={kind === 'media' ? 'film' : 'audio'}
           title={`‘${doomed.name || UNNAMED_PLAYLIST}’ 재생목록을 삭제할까요?`}
-          meta={[`미디어 ${doomed.items.length}개는 모든 미디어에 남음`]}
+          meta={countedMeta(
+            doomed.items.length,
+            `미디어 ${doomed.items.length}개는 모든 미디어에 남음`,
+          )}
           onCancel={() => setDeleting(null)}
           actions={[
             {

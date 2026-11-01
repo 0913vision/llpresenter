@@ -4,6 +4,7 @@ import type {SongId} from '@core/schema/ids';
 import {sourceSlideCount} from '@core/schema/groupedSong';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
+import {countedMeta} from '@renderer/ui/countedMeta';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {editorTask} from '../editor/editorTask';
 import type {SongEditorStore} from '../editor/songEditorStore';
@@ -148,7 +149,10 @@ export function ImportedSongActions({
           title={`‘${title}’ 곡이 이미 있습니다. 덮어쓸까요?`}
           meta={[
             '라이브러리 곡',
-            `슬라이드 ${sourceSlideCount(duplicate.song)}개`,
+            ...countedMeta(
+              sourceSlideCount(duplicate.song),
+              `슬라이드 ${sourceSlideCount(duplicate.song)}개`,
+            ),
             ...(newTitle === null ? [] : [`새 곡 제목: ‘${newTitle}’`]),
             ...(duplicate.song.updatedAt === undefined
               ? []
