@@ -9,7 +9,7 @@ import {macroActionHandlers} from './actions';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
 
 describe('macro compiler', () => {
-  it('compiles a theme action and skips a deleted theme without removing legacy Look execution', () => {
+  it('compiles a theme action and skips a deleted theme and legacy Look', () => {
     const initial = environment();
     const theme = initial.catalog.themes.themes[0];
     if (!theme) throw new Error('Missing theme fixture');
@@ -26,16 +26,14 @@ describe('macro compiler', () => {
       state: emptyLiveState(),
       supports: () => true,
     });
-    expect(plan.commands).toEqual([
-      {type: 'theme.set', themeId: theme.id},
-      {type: 'look.set', lookId: IDS.look},
-    ]);
+    expect(plan.commands).toEqual([{type: 'theme.set', themeId: theme.id}]);
     expect(plan.problems).toEqual([
       expect.objectContaining({
         action: 1,
         reason: 'missing-target',
         target: {kind: 'theme', id: uuid(999)},
       }),
+      expect.objectContaining({action: 2, reason: 'unknown-action'}),
     ]);
   });
   it('stops expansion once the command budget is reached and reports it once', () => {
@@ -118,7 +116,6 @@ describe('macro compiler', () => {
       [...macroActionKinds].sort(),
     );
     const actions = [
-      {kind: 'look', look: IDS.look},
       {kind: 'stageLayout', layout: IDS.layout, screen: IDS.stage},
       {kind: 'media', media: IDS.video},
       {kind: 'prop', prop: IDS.prop},
@@ -148,7 +145,6 @@ describe('macro compiler', () => {
     });
     expect(plan.problems).toEqual([]);
     expect(plan.commands).toEqual([
-      {type: 'look.set', lookId: IDS.look},
       {type: 'stage.layout.set', layoutId: IDS.layout, screenId: IDS.stage},
       {type: 'media.show', media: {mediaId: IDS.video, loop: true}},
       {type: 'prop.set', propId: IDS.prop, on: true},
@@ -174,7 +170,7 @@ describe('macro compiler', () => {
   });
 
   it.each([
-    {kind: 'look', look: uuid(99)},
+    {kind: 'theme', theme: uuid(99)},
     {kind: 'stageLayout', layout: uuid(99)},
     {kind: 'stageLayout', layout: IDS.layout, screen: uuid(99)},
     {kind: 'media', media: uuid(99)},

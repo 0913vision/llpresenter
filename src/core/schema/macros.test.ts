@@ -1,6 +1,7 @@
 import {describe, expect, expectTypeOf, it} from 'vitest';
 import {layerKinds} from '../live/state';
-import type {LookId} from './ids';
+import {legacyMacrosFile} from '../testing/legacyMacros';
+import type {ThemeId} from './ids';
 import {
   isKnownMacroAction,
   macroActionKinds,
@@ -17,6 +18,22 @@ import {
 } from './testHelpers';
 
 const codec = {parse: parseMacros, serialize: serializeMacros};
+
+it('preserves legacy Look actions as unsupported data through a file round trip', () => {
+  const loaded = expectSuccess(
+    parseMacros(JSON.stringify(legacyMacrosFile), 'macros.json'),
+  );
+  expect(loaded.data).toEqual(legacyMacrosFile);
+  expect(loaded.data.macros[0]?.actions.map(isKnownMacroAction)).toEqual([
+    false,
+    true,
+  ]);
+  const written = expectSuccess(serializeMacros(loaded.data, 'macros.json'));
+  expect(JSON.parse(written)).toEqual(legacyMacrosFile);
+  expect(parseKnownMacroAction(legacyMacrosFile.macros[0]?.actions[0]).ok).toBe(
+    false,
+  );
+});
 
 it('requires a valid theme ID in a theme macro action', () => {
   expect(parseKnownMacroAction({kind: 'theme', theme: 'missing'}).ok).toBe(
@@ -40,7 +57,6 @@ const SUNDAY_COLLECTION = '1a2b3c4d-5e6f-4a0b-9c1d-2e3f4a5b6c7d';
 
 function everyAction() {
   return [
-    {kind: 'look', look: NORMAL_LOOK},
     {kind: 'stageLayout', screen: STAGE_SCREEN, layout: STAGE_LAYOUT},
     {kind: 'clearAll'},
     {kind: 'clearLayer', layer: 'slide'},
@@ -151,7 +167,7 @@ describe('parseMacros', () => {
     ['a clear of nothing', {kind: 'clearLayer'}, 'macros.0.actions.0.layer'],
     [
       'message values that are an array',
-      {...everyAction()[6], values: []},
+      {...everyAction()[5], values: []},
       'macros.0.actions.0.values',
     ],
     [
@@ -166,7 +182,7 @@ describe('parseMacros', () => {
     ],
     [
       'a message to a screen name',
-      {...everyAction()[6], targets: ['본 화면']},
+      {...everyAction()[5], targets: ['본 화면']},
       'macros.0.actions.0.targets',
     ],
     [
@@ -180,9 +196,9 @@ describe('parseMacros', () => {
       'macros.0.actions.0.screen',
     ],
     [
-      'a Look name instead of an id',
-      {kind: 'look', look: '평상시'},
-      'macros.0.actions.0.look',
+      'a theme name instead of an id',
+      {kind: 'theme', theme: '평상시'},
+      'macros.0.actions.0.theme',
     ],
     [
       'an action without a kind',
@@ -240,8 +256,8 @@ describe('parseMacros', () => {
 describe('macro types', () => {
   it('narrows known actions by kind', () => {
     expectTypeOf<
-      Extract<KnownMacroAction, {kind: 'look'}>['look']
-    >().toEqualTypeOf<LookId>();
+      Extract<KnownMacroAction, {kind: 'theme'}>['theme']
+    >().toEqualTypeOf<ThemeId>();
     expectTypeOf<KnownMacroAction>().toExtend<MacroAction>();
   });
 });

@@ -37,7 +37,6 @@ function useMacroMedia(
 export function useMacroTargets(
   onProblem: ((notice: Notice) => void) | undefined,
 ): ReturnType<typeof buildMacroTargets> | null {
-  const looks = useSettingsDocument('looks', '\ub8e9', onProblem);
   const themes = useSettingsDocument('themes', '테마', onProblem);
   const layouts = useSettingsDocument(
     'stage-layouts',
@@ -57,7 +56,6 @@ export function useMacroTargets(
   const media = useMacroMedia(onProblem);
   return useMemo(() => {
     if (
-      !looks ||
       !themes ||
       !layouts ||
       !props ||
@@ -71,7 +69,6 @@ export function useMacroTargets(
       return null;
     }
     return buildMacroTargets({
-      looks: looks.value,
       themes: themes.value,
       layouts: layouts.value,
       props: props.value,
@@ -83,7 +80,6 @@ export function useMacroTargets(
       media: media.value,
     });
   }, [
-    looks,
     themes,
     layouts,
     props,

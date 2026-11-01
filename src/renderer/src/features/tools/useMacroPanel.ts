@@ -335,13 +335,8 @@ export function useMacroPanel({
     openAction: action => {
       if (action.kind === 'theme') {
         navigate?.('screens');
-      } else if (action.kind === 'look' || action.kind === 'stageLayout') {
-        useScreensSelection
-          .getState()
-          .select(
-            action.kind === 'look' ? 'look' : 'stage',
-            action.kind === 'look' ? action.look : action.layout,
-          );
+      } else if (action.kind === 'stageLayout') {
+        useScreensSelection.getState().select('stage', action.layout);
         navigate?.('screens');
       } else if (
         action.kind === 'timer' ||

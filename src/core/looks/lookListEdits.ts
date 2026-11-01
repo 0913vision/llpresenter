@@ -1,7 +1,7 @@
 import type {Result} from '../common/result';
 import type {LookId} from '../schema/ids';
 import type {Look, LooksFile} from '../schema/looks';
-import {isKnownMacroAction, type Macro} from '../schema/macros';
+import type {Macro} from '../schema/macros';
 import {nameProblem} from '../screens/screenEdits';
 
 /** Bounds newly created Looks without rejecting an existing imported list. */
@@ -106,9 +106,7 @@ function deleteLook(
     .filter(macro =>
       macro.actions.some(
         action =>
-          isKnownMacroAction(action) &&
-          action.kind === 'look' &&
-          action.look === edit.id,
+          action.kind === 'look' && 'look' in action && action.look === edit.id,
       ),
     )
     .map(macro => macro.name);

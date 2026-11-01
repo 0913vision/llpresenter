@@ -14,7 +14,6 @@ import {
 } from './fileFormat';
 import {
   audioPlaylistIdSchema,
-  lookIdSchema,
   macroCollectionIdSchema,
   macroIdSchema,
   mediaIdSchema,
@@ -49,7 +48,6 @@ export const MACRO_FILE_LIMITS = {
 
 /** The 매크로 action kinds of `docs/spec/07-macros.md`. */
 export const macroActionKinds = [
-  'look',
   'stageLayout',
   'clearAll',
   'clearLayer',
@@ -84,7 +82,6 @@ const clearBothSchema = v.never(
 
 const actionSchemas = {
   theme: jsonObject({kind: v.literal('theme'), theme: themeIdSchema}),
-  look: jsonObject({kind: v.literal('look'), look: lookIdSchema}),
   stageLayout: jsonObject({
     kind: v.literal('stageLayout'),
     screen: v.exactOptional(screenIdSchema),
@@ -147,7 +144,6 @@ const actionSchemas = {
 
 const knownActionSchema = v.union([
   actionSchemas.theme,
-  actionSchemas.look,
   actionSchemas.stageLayout,
   actionSchemas.clearAll,
   actionSchemas.clearLayer,

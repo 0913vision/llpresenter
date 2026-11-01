@@ -8,7 +8,6 @@ import {
 
 const id = '00000000-0000-4000-8000-000000000001';
 const drafts: readonly MacroActionDraft[] = [
-  {kind: 'look', target: id},
   {kind: 'stageLayout', target: id, screen: id},
   {kind: 'clearAll'},
   {kind: 'clearLayer', target: 'slide'},
@@ -51,7 +50,9 @@ it('prepares all supported action kinds through the shared schema', () => {
 
 it('rejects unsupported actions, bad IDs, operations and message settings', () => {
   expect(parseKnownMacroAction({kind: 'future'}).ok).toBe(false);
-  expect(prepareMacroAction({kind: 'look', target: 'missing'})).toBeUndefined();
+  expect(
+    prepareMacroAction({kind: 'theme', target: 'missing'}),
+  ).toBeUndefined();
   expect(
     prepareMacroAction({kind: 'timer', target: id, operation: 'invalid'}),
   ).toBeUndefined();

@@ -65,7 +65,6 @@ export const ACTION_KINDS: Readonly<Record<MacroActionKind, ActionKindRow>> = {
   theme: {kind: 'theme', label: '테마 바꾸기', icon: 'layers'},
   clearAll: {kind: 'clearAll', label: '모두 지우기', icon: 'eraser'},
   clearLayer: {kind: 'clearLayer', label: '레이어 지우기', icon: 'eraser'},
-  look: {kind: 'look', label: 'Look 바꾸기', icon: 'layers'},
   stageLayout: {kind: 'stageLayout', label: '무대 화면 배치', icon: 'monitor'},
   timer: {kind: 'timer', label: '타이머', icon: 'timer'},
   prop: {kind: 'prop', label: '그래픽', icon: 'prop'},
@@ -101,8 +100,6 @@ function targetId(action: MacroAction): string | undefined {
   switch (action.kind) {
     case 'theme':
       return action.theme;
-    case 'look':
-      return action.look;
     case 'stageLayout':
       return action.layout;
     case 'clearAll':
@@ -129,13 +126,14 @@ function targetId(action: MacroAction): string | undefined {
 }
 
 /**
- * The name a row gives an action: its target ("찬양" for a Look action), or
+ * The name a row gives an action: its target ("찬양" for a theme action), or
  * the kind when the action has no target or the targets are still loading.
  */
 export function macroActionName(
   action: MacroAction,
   targets: MacroMenuInput['targets'],
 ): string {
+  if (action.kind === 'look') return 'Look 바꾸기';
   if (!isKnownMacroAction(action)) return '알 수 없는 동작';
   const kind = ACTION_KINDS[action.kind];
   if (action.kind === 'audio' && action.operation !== 'play') {
@@ -437,9 +435,7 @@ function editEntries(
                     label:
                       action.kind === 'theme'
                         ? '테마 편집…'
-                        : action.kind === 'look'
-                          ? 'Look 편집…'
-                          : `${ACTION_KINDS[action.kind].label} 열기…`,
+                        : `${ACTION_KINDS[action.kind].label} 열기…`,
                     onSelect: () => handlers.openAction(action),
                   },
                 ]),

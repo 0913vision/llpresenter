@@ -33,9 +33,6 @@ export function prepareMacroAction(
     case 'theme':
       value = {kind: draft.kind, theme: target};
       break;
-    case 'look':
-      value = {kind: draft.kind, look: target};
-      break;
     case 'stageLayout':
       value = {
         kind: draft.kind,
@@ -113,8 +110,6 @@ export function draftMacroAction(action: KnownMacroAction): MacroActionDraft {
   switch (action.kind) {
     case 'theme':
       return {kind: action.kind, target: action.theme};
-    case 'look':
-      return {kind: action.kind, target: action.look};
     case 'stageLayout':
       return {kind: action.kind, target: action.layout, screen: action.screen};
     case 'clearAll':

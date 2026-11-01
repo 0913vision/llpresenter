@@ -15,6 +15,7 @@ import {screenSettingsSlice} from '../live/slices/screenSettings';
 import type {LiveSlice, MacroCommandPort} from '../live/slice';
 import {MacroRunner, MAX_LOGGED_MACRO_PROBLEMS} from './runner';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
+import {legacyMacrosFile} from '@core/testing/legacyMacros';
 
 function harness(
   actions: readonly object[],
@@ -64,6 +65,29 @@ function harness(
 }
 
 describe('macro live execution', () => {
+  it('skips the legacy Look in the saved fixture and runs the remaining action', () => {
+    const saved = legacyMacrosFile.macros[0];
+    if (!saved) throw new Error('Missing legacy fixture');
+    const {store, runner, log, id} = harness(saved.actions);
+    store.dispatch({
+      type: 'slide.show',
+      slide: {
+        itemId: 'item',
+        position: 0,
+        label: null,
+        lines: ['Invented slide'],
+      },
+    });
+    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
+    expect(store.state.layers.slide).toBeNull();
+    expect(store.state.lastMacroId).toBe(id);
+    expect(runner.lastRun?.commands).toEqual([
+      {type: 'layer.clear', target: 'slide'},
+    ]);
+    expect(runner.lastRun?.problems).toEqual([
+      expect.objectContaining({action: 0, reason: 'unknown-action'}),
+    ]);
+  });
   it('publishes the last run even for an empty macro and drops it in a new session', () => {
     const {store, id} = harness([]);
     const listener = vi.fn();
@@ -76,7 +100,9 @@ describe('macro live execution', () => {
   });
 
   it('drops the macro report and reports the 매크로 when another child makes the whole dispatch fail admission', () => {
-    const {store, runner, log, id} = harness([{kind: 'look', look: uuid(99)}]);
+    const {store, runner, log, id} = harness([
+      {kind: 'theme', theme: uuid(99)},
+    ]);
     const problems = vi.fn();
     onTestFinished(store.subscribeProblems(problems));
     dispatchLogged(
@@ -147,7 +173,7 @@ describe('macro live execution', () => {
   });
   it('reports skipped actions in one bounded warning with the total count', () => {
     const {store, runner, log, id} = harness(
-      Array.from({length: 12}, () => ({kind: 'look', look: uuid(99)})),
+      Array.from({length: 12}, () => ({kind: 'theme', theme: uuid(99)})),
     );
     dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
     expect(log.messages('warn')).toEqual(['skipped macro actions']);
@@ -211,9 +237,9 @@ describe('macro live execution', () => {
       );
     },
   );
-  it('skips a deleted Look and applies three clears as one batch with one notification and one undo', () => {
+  it('skips a deleted theme and applies three clears as one batch with one notification and one undo', () => {
     const {store, runner, log, id} = harness([
-      {kind: 'look', look: uuid(99)},
+      {kind: 'theme', theme: uuid(99)},
       {kind: 'clearLayer', layer: 'slide'},
       {kind: 'clearLayer', layer: 'media'},
       {kind: 'clearLayer', layer: 'message'},
@@ -262,7 +288,7 @@ describe('macro live execution', () => {
       'missing-target',
     );
     expect(problem).toHaveProperty('detail.problems.0.target', {
-      kind: 'look',
+      kind: 'theme',
       id: uuid(99),
     });
     store.dispatch({type: 'clear.undo'});
@@ -324,8 +350,10 @@ describe('macro live execution', () => {
   });
 
   it('retains unsupported commands for the explicit test registry and executes the remaining actions', () => {
+    const theme = environment().catalog.themes.themes[0];
+    if (!theme) throw new Error('Missing theme fixture');
     const {store, runner, log, id} = harness([
-      {kind: 'look', look: IDS.look},
+      {kind: 'theme', theme: theme.id},
       {kind: 'clearAll'},
     ]);
     store.dispatch({

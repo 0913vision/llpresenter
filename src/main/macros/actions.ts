@@ -39,17 +39,6 @@ export const macroActionHandlers = [
     },
   }),
   defineMacroAction({
-    kind: 'look',
-    compile: (action, {catalog}) => {
-      requireMacroTarget(
-        catalog.looks.looks.find(item => item.id === action.look),
-        'look',
-        action.look,
-      );
-      return command({type: 'look.set', lookId: action.look});
-    },
-  }),
-  defineMacroAction({
     kind: 'stageLayout',
     compile: (action, context) => {
       requireMacroTarget(

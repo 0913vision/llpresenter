@@ -7,21 +7,11 @@ import {
   type MacroMenuInput,
 } from './macroMenuEntries';
 import {MACRO_FILE_LIMITS} from '@core/schema/macros';
+import {legacyMacrosFile} from '@core/testing/legacyMacros';
 
 it('offers theme targets and explains why legacy Look actions cannot be edited', () => {
   const id = '00000000-0000-4000-8000-000000000001';
-  const doc = settingsDocument('macros', {
-    macros: [
-      {
-        id,
-        name: 'Macro',
-        icon: 'macro',
-        color: 'teal',
-        actions: [{kind: 'look', look: id}],
-      },
-    ],
-    collections: [],
-  });
+  const doc = settingsDocument('macros', legacyMacrosFile);
   if (doc.name !== 'macros') throw new Error('Invalid fixture');
   const item = doc.value.macros[0];
   if (!item) throw new Error('Missing macro fixture');
@@ -40,9 +30,18 @@ it('offers theme targets and explains why legacy Look actions cannot be edited',
     ),
   );
   expect(rows.find(row => row.id === 'edit-0')).toMatchObject({
+    label: '동작 편집: Look 바꾸기',
     disabled: true,
     title: 'Look 동작은 테마 바꾸기로 교체되었습니다',
+    loadSubmenu: undefined,
   });
+  const remove = menuItems(
+    rows.find(row => row.id === 'remove-actions')?.submenu ?? [],
+  ).find(row => row.id === 'remove-0');
+  expect(remove?.label).toBe('Look 바꾸기');
+  expect(remove?.disabled).not.toBe(true);
+  remove?.onSelect?.();
+  expect(handlers.removeAction).toHaveBeenCalledExactlyOnceWith(0);
   const add = menuItems(
     rows.find(row => row.id === 'add-action')?.submenu ?? [],
   );

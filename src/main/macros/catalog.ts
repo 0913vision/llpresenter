@@ -1,5 +1,4 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {LooksFile} from '@core/schema/looks';
 import type {MacrosFile} from '@core/schema/macros';
 import type {MediaList} from '@core/schema/mediaList';
 import type {MessagesFile} from '@core/schema/messages';
@@ -13,7 +12,6 @@ import type {ThemesFile} from '@core/schema/themes';
 export interface MacroCatalog {
   readonly themes: ThemesFile;
   readonly macros: MacrosFile;
-  readonly looks: LooksFile;
   readonly media: MediaList;
   readonly messages: MessagesFile;
   readonly notices: NoticesFile;
@@ -29,7 +27,6 @@ export function readMacroCatalog(
 ): MacroCatalog {
   const macros = settings.get('macros');
   const themes = settings.get('themes');
-  const looks = settings.get('looks');
   const messages = settings.get('messages');
   const notices = settings.get('notices');
   const props = settings.get('props');
@@ -39,7 +36,6 @@ export function readMacroCatalog(
   if (
     macros.name !== 'macros' ||
     themes.name !== 'themes' ||
-    looks.name !== 'looks' ||
     messages.name !== 'messages' ||
     notices.name !== 'notices' ||
     props.name !== 'props' ||
@@ -52,7 +48,6 @@ export function readMacroCatalog(
   return {
     macros: macros.value,
     themes: themes.value,
-    looks: looks.value,
     media,
     messages: messages.value,
     notices: notices.value,

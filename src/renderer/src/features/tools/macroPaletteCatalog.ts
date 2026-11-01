@@ -54,7 +54,7 @@ export const MACRO_PALETTE: readonly PaletteGroup[] = [
 export function readMacroActionDrag(
   value: string,
 ): MacroActionKind | undefined {
-  return macroActionKinds.find(kind => kind === value && kind !== 'look');
+  return macroActionKinds.find(kind => kind === value);
 }
 
 export function searchMacroPalette(query: string): readonly PaletteGroup[] {
