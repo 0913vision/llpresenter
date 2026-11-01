@@ -327,67 +327,12 @@ describe('text import conversion', () => {
     });
   });
 
-  it('preserves section identity for adjacent sections with identical names', () => {
+  it('numbers adjacent sections with identical names apart', () => {
     const text = '[후렴]\nFirst chorus\n[후렴]\nSecond chorus';
     const result = draft(text, {unitsPerSlide: 1});
     expect(result.slides).toEqual([
       {label: '후렴', lines: ['First chorus'], section: 0},
       {label: '후렴', lines: ['Second chorus'], section: 1},
-    ]);
-    const song = parseGroupedSongDraft(
-      JSON.stringify({
-        format: 'llsong',
-        schemaVersion: 1,
-        id: '00000000-0000-4000-8000-000000000002',
-        title: 'Chorus Song',
-        slides: result.slides,
-      }),
-      'Invented.llsong',
-    );
-    expect(song.ok).toBe(true);
-    if (!song.ok) return;
-    expect(song.value.data.groups).toHaveLength(2);
-    expect(song.value.data.groups[0]?.name).toBe('후렴');
-    expect(song.value.data.groups[0]?.slides).toEqual([
-      {lines: ['First chorus']},
-    ]);
-    expect(song.value.data.groups[1]?.name).toBe('후렴');
-    expect(song.value.data.groups[1]?.slides).toEqual([
-      {lines: ['Second chorus']},
-    ]);
-  });
-
-  it('constructs clean candidate groups through the import draft reader', () => {
-    const text =
-      '[1절]\nFirst invented line\nSecond invented line\n\n[후렴]\nChorus first line\nChorus second line';
-    const result = draft(text, {unitsPerSlide: 1});
-    const song = parseGroupedSongDraft(
-      JSON.stringify({
-        format: 'llsong',
-        schemaVersion: 1,
-        id: '00000000-0000-4000-8000-000000000001',
-        title: 'Invented Song',
-        slides: result.slides,
-      }),
-      'Invented.llsong',
-    );
-    if (!song.ok) throw new Error('Migration failed');
-    expect(song.value.data.groups).toHaveLength(2);
-    expect(song.value.data.groups[0]?.name).toBe('1절');
-    expect(song.value.data.groups[0]?.slides).toHaveLength(2);
-    expect(song.value.data.groups[0]?.slides[0]?.lines).toEqual([
-      'First invented line',
-    ]);
-    expect(song.value.data.groups[0]?.slides[1]?.lines).toEqual([
-      'Second invented line',
-    ]);
-    expect(song.value.data.groups[1]?.name).toBe('후렴');
-    expect(song.value.data.groups[1]?.slides).toHaveLength(2);
-    expect(song.value.data.groups[1]?.slides[0]?.lines).toEqual([
-      'Chorus first line',
-    ]);
-    expect(song.value.data.groups[1]?.slides[1]?.lines).toEqual([
-      'Chorus second line',
     ]);
   });
 });

@@ -1,5 +1,4 @@
 import {expect, it} from 'vitest';
-import {interruptsSongOutput} from '@core/live/commands';
 import {
   parseLiveCommand,
   parseLiveCommandRequest,
@@ -14,8 +13,6 @@ it.each([
   const command = {type: 'overlay.clear', target};
   const parsed = parseLiveCommand(command);
   expect(parsed).toEqual({ok: true, value: command});
-  if (!parsed.ok) throw new Error('Invalid fixture');
-  expect(interruptsSongOutput(parsed.value)).toBe(false);
   expect(parseLiveCommand({type: 'live.batch', commands: [command]}).ok).toBe(
     true,
   );

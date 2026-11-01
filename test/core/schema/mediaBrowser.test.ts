@@ -4,7 +4,7 @@ import {
   MEDIA_BROWSER,
   parseMediaBrowserChange,
 } from '@core/schema/mediaBrowser';
-import {parsePrepMediaChange, parseUiState} from '@core/schema/uiState';
+import {parseUiState} from '@core/schema/uiState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('media browser UI boundaries', () => {
@@ -60,30 +60,6 @@ describe('media browser UI boundaries', () => {
       }),
     ).toEqual({ok: true, value: {columns: 3, view: 'list'}});
   });
-
-  it.each([true, false])(
-    'keeps prep media visibility %s distinct from media strip visibility',
-    visible => {
-      expect(parsePrepMediaChange({visible, mediaStrip: !visible})).toEqual({
-        ok: true,
-        value: {visible},
-      });
-      expect(
-        parseUiState({
-          prepMedia: visible,
-          mediaStrip: !visible,
-          mediaBrowser: {columns: 2, view: 'list'},
-        }).ok,
-      ).toBe(true);
-    },
-  );
-
-  it.each([null, {}, [], {visible: 'true'}, {visible: 1}])(
-    'rejects malformed prep visibility %j',
-    value => {
-      expect(parsePrepMediaChange(value).ok).toBe(false);
-    },
-  );
 
   it('round-trips app state and unknown nested metadata without adding defaults', () => {
     const file = 'app.json';

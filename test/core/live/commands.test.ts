@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
   interruptsSongOutput,
-  isLiveCommand,
   type SingleLiveCommand,
 } from '@core/live/commands';
 
@@ -74,36 +73,15 @@ describe('interruptsSongOutput', () => {
     ).toBe(false);
     expect(
       interruptsSongOutput({
+        type: 'overlay.clear',
+        target: {kind: 'stage-message'},
+      }),
+    ).toBe(false);
+    expect(
+      interruptsSongOutput({
         type: 'message.show',
         message: {messageId: 'a', text: ''},
       }),
     ).toBe(false);
-  });
-});
-
-describe('isLiveCommand', () => {
-  it('rejects unknown types and malformed payloads', () => {
-    const slideWith = (fields: object): unknown => ({
-      type: 'slide.show',
-      slide: {itemId: 'a', position: 0, label: null, lines: [], ...fields},
-    });
-    const rejected: unknown[] = [
-      null,
-      undefined,
-      'clear.undo',
-      [],
-      {},
-      {type: 'delete.everything'},
-      {type: 'layer.clear', target: 'slides'},
-      {type: 'layer.clear'},
-      {type: 'output.set', screenId: '', on: true},
-      {type: 'output.set', screenId: 'main', on: 'yes'},
-      slideWith({position: -1}),
-      slideWith({position: 1.5}),
-      slideWith({label: 3}),
-      slideWith({lines: [1]}),
-      {type: 'media.show', media: {mediaId: 'x'}},
-    ];
-    for (const value of rejected) expect(isLiveCommand(value)).toBe(false);
   });
 });

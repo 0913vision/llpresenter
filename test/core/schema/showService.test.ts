@@ -151,6 +151,76 @@ describe('parseShowService', () => {
     ).toBe(false);
   });
 
+  it('keeps the source slide and hot key of a tile', () => {
+    const sourceSlide = {
+      songId: '00000000-0000-4000-8000-000000000001',
+      groupId: '00000000-0000-4000-8000-000000000002',
+      slideIndex: 1,
+    };
+    const tiles = [
+      {
+        label: '후렴',
+        labelColor: 'none',
+        lines: ['아멘'],
+        hotKey: 'KeyA',
+        sourceSlide,
+      },
+      {label: null, labelColor: 'none', lines: [], sourceSlide},
+      {label: null, labelColor: 'none', lines: []},
+    ];
+    const parsed = parseShowService({
+      ...showService(),
+      tiles: {'item-2': tiles},
+    });
+    expect(parsed.ok && parsed.value?.tiles['item-2']).toEqual(tiles);
+  });
+
+  it.each([
+    {hotKey: 'KeyA'},
+    {
+      hotKey: 'Numpad0',
+      sourceSlide: {
+        songId: '00000000-0000-4000-8000-000000000001',
+        groupId: '00000000-0000-4000-8000-000000000002',
+        slideIndex: 0,
+      },
+    },
+    {hotKey: null},
+    {
+      sourceSlide: {
+        songId: '00000000-0000-4000-8000-000000000001',
+        groupId: '00000000-0000-4000-8000-000000000002',
+        slideIndex: -1,
+      },
+    },
+    {
+      sourceSlide: {
+        songId: '00000000-0000-4000-8000-000000000001',
+        groupId: '00000000-0000-4000-8000-000000000002',
+        slideIndex: 0.5,
+      },
+    },
+    {
+      sourceSlide: {
+        songId: 'invalid',
+        groupId: '00000000-0000-4000-8000-000000000002',
+        slideIndex: 0,
+      },
+    },
+    {
+      sourceSlide: {
+        songId: '00000000-0000-4000-8000-000000000001',
+        groupId: 'invalid',
+        slideIndex: 0,
+      },
+    },
+  ])('rejects malformed tile metadata %j', metadata => {
+    const tile = {label: null, labelColor: 'none', lines: [], ...metadata};
+    expect(
+      parseShowService({...showService(), tiles: {'item-2': [tile]}}).ok,
+    ).toBe(false);
+  });
+
   it('accepts a service and no service', () => {
     expect(parseShowService(showService())).toEqual({
       ok: true,

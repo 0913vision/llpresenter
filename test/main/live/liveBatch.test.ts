@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {isLiveCommand} from '@core/live/commands';
 import {
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
@@ -23,7 +22,6 @@ describe('live batch contracts', () => {
         }),
       ),
     ).toEqual(value);
-    expect(isLiveCommand(value)).toBe(true);
     for (const commands of [
       [],
       Array.from({length: MAX_LIVE_BATCH_COMMANDS}, () => first),
@@ -43,7 +41,6 @@ describe('live batch contracts', () => {
         second,
       ],
     };
-    expect(isLiveCommand(request)).toBe(false);
     expect(parseLiveCommand(request).ok).toBe(false);
     const parsed = expectSuccess(parseLiveCommandRequest(request));
     expect(parsed.command).toEqual({

@@ -2,7 +2,6 @@ import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
 import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
 import {themeElementKinds} from '@core/themes/elementRules';
-import {createDefaultThemes} from '@core/themes/defaults';
 import {
   parseThemes,
   serializeThemes,
@@ -345,17 +344,5 @@ describe('theme documents', () => {
         parseThemes(JSON.stringify({...file, ...patch}), 'themes.json').ok,
       ).toBe(false);
     }
-  });
-
-  it('parses the built-in layouts for all four kinds and an empty standby', () => {
-    const defaults = createDefaultThemes();
-    expect(v.safeParse(themesSchema, defaults).success).toBe(true);
-    expect(defaults.themes.map(entry => entry.name)).toEqual([
-      '찬양',
-      '말씀',
-      '광고',
-      '영상',
-    ]);
-    expect(defaults.standby.screens).toEqual({});
   });
 });

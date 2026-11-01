@@ -90,6 +90,27 @@ describe('grouped song block edits', () => {
     expect(next.song.arrangements).toEqual(original.arrangements);
   });
 
+  it('keeps a group renamed like another group apart, and allows no name', () => {
+    const original = sampleGroupedSong();
+    const [first, second] = original.groups;
+    const sameName = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: '후렴'},
+    );
+    expect(
+      sameName.song.groups.map(group => ({id: group.id, name: group.name})),
+    ).toEqual([
+      {id: first?.id, name: '후렴'},
+      {id: second?.id, name: '후렴'},
+    ]);
+
+    const noName = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: undefined},
+    );
+    expect(noName.song.groups[0]).toMatchObject({id: first?.id, name: ''});
+  });
+
   it('merges within the same group when Backspace is pressed at start of non-first slide', () => {
     const original = sampleGroupedSong();
     // NOTE(0913vision): Block 1 is second slide of group 0

@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {expect, it} from 'vitest';
 import {
   STARTER_LYRIC_STYLE,
@@ -8,6 +9,7 @@ import {createScreenId} from '@core/schema/ids';
 import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
 import {resolveThemeOutput} from '@core/themes/output';
 import {themeItemKinds} from '@core/themes/elementRules';
+import {themesSchema} from '@core/schema/themes';
 
 it('converts the starter audience styles and stage geometry into theme elements', () => {
   const main = createScreenId(STARTER_SCREEN_IDS.main);
@@ -120,4 +122,16 @@ it('gives the 무대 화면 of the Bible 테마 no reference and the same elemen
     );
   expect(kinds('bible')).not.toContain('reference');
   expect(kinds('bible')).toEqual(kinds('song'));
+});
+
+it('makes a valid file with the four built-in 테마 and an empty 대기 화면', () => {
+  const defaults = createDefaultThemes();
+  expect(v.safeParse(themesSchema, defaults).success).toBe(true);
+  expect(defaults.themes.map(entry => entry.name)).toEqual([
+    '찬양',
+    '말씀',
+    '광고',
+    '영상',
+  ]);
+  expect(defaults.standby.screens).toEqual({});
 });

@@ -35,6 +35,10 @@ describe('parseLiveCommand', () => {
       },
       {type: 'media.show', media: {mediaId: 'warm-light', loop: false}},
       {type: 'message.show', message: {messageId: 'car', text: '12가 3456'}},
+      {type: 'theme.set', themeId: '00000000-0000-4000-8000-000000000111'},
+      {type: 'themes.refresh'},
+      {type: 'item.stop'},
+      {type: 'item.restore'},
     ];
 
     for (const command of commands) {
@@ -69,6 +73,13 @@ describe('parseLiveCommand', () => {
       {type: 'layer.clear', target: 'slides'},
       'target',
     ],
+    ['a missing clear target', {type: 'layer.clear'}, 'target'],
+    [
+      'a theme ID that is not an ID',
+      {type: 'theme.set', themeId: 'missing'},
+      'themeId',
+    ],
+    ['a missing theme ID', {type: 'theme.set'}, 'themeId'],
     [
       'an empty screen id',
       {type: 'output.set', screenId: '', on: true},
@@ -91,6 +102,14 @@ describe('parseLiveCommand', () => {
         slide: {itemId: 'a', position: -1, label: null, lines: []},
       },
       'slide.position',
+    ],
+    [
+      'a slide label that is not text',
+      {
+        type: 'slide.show',
+        slide: {itemId: 'a', position: 0, label: 3, lines: []},
+      },
+      'slide.label',
     ],
     [
       'a slide with a line that is not text',

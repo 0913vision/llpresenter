@@ -1,5 +1,4 @@
 import type {LayerKind, MediaChoice, MessageLayer, SlideLayer} from './state';
-import {parseLiveCommand} from '../schema/liveCommand';
 import type {LiveAction} from '../schema/liveActions';
 import type {ScreenCommand} from '../schema/screenCommands';
 import type {MessageExpiry} from '../schema/overlayState';
@@ -94,12 +93,4 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
       return unhandled;
     }
   }
-}
-
-/**
- * Checks that a value received over IPC is a well-formed command of a known
- * type. Use `parseLiveCommand` to learn which field failed.
- */
-export function isLiveCommand(value: unknown): value is LiveCommand {
-  return parseLiveCommand(value).ok;
 }

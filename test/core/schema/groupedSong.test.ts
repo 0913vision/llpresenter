@@ -323,6 +323,33 @@ describe('version 1 group migration', () => {
     expect(new Set(song.groups.map(group => group.id)).size).toBe(3);
   });
 
+  it('groups import draft slides that share a label and a section', () => {
+    const song = expectSuccess(
+      parseGroupedSongDraft(
+        JSON.stringify({
+          ...legacy(),
+          arrangements: [],
+          slides: [
+            {label: '1절', lines: ['First invented line'], section: 0},
+            {label: '1절', lines: ['Second invented line'], section: 0},
+            {label: '후렴', lines: ['Chorus first line'], section: 1},
+            {label: '후렴', lines: ['Chorus second line'], section: 1},
+          ],
+        }),
+        FILE,
+      ),
+    ).data;
+    expect(
+      song.groups.map(group => [
+        group.name,
+        group.slides.map(slide => slide.lines),
+      ]),
+    ).toEqual([
+      ['1절', [['First invented line'], ['Second invented line']]],
+      ['후렴', [['Chorus first line'], ['Chorus second line']]],
+    ]);
+  });
+
   it('splits import draft slides with identical names when explicit sections differ', () => {
     const source = legacy();
     const song = expectSuccess(

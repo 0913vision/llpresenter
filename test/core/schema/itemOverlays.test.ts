@@ -1,8 +1,6 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
 import {itemOverlaySchema, itemOverlaysSchema} from '@core/schema/itemOverlays';
-import {parseService} from '@core/schema/service';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -80,26 +78,5 @@ it('bounds overlay counts and requires unique identities', () => {
   expect(
     v.safeParse(itemOverlaysSchema, [overlay, {...overlay, from: 3, to: 3}])
       .success,
-  ).toBe(false);
-});
-
-it('validates service item extensions while accepting older items', () => {
-  const item = {id: uuid(4), media: uuid(5)};
-  const file = {
-    format: 'llservice',
-    schemaVersion: 1,
-    id: uuid(6),
-    name: 'Example',
-    date: '2026-10-31T10:00',
-    order: [item],
-  };
-  const parse = (order: unknown[]) =>
-    parseService(JSON.stringify({...file, order}), 'service.llservice');
-  expect(parse([item]).ok).toBe(true);
-  const extended = {...item, theme: uuid(7), overlays: [overlay]};
-  expect(expectSuccess(parse([extended])).data.order).toEqual([extended]);
-  expect(parse([{...item, theme: 'missing'}]).ok).toBe(false);
-  expect(
-    parse([{...extended, overlays: [overlay, {...overlay, id: uuid(8)}]}]).ok,
   ).toBe(false);
 });

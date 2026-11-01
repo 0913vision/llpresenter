@@ -7,7 +7,6 @@ import {
 } from '@core/schema/liveTheme';
 import {themeFile, themeScreens} from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
-import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createThemeId} from '@core/schema/ids';
 
 describe('live theme payloads', () => {
@@ -31,21 +30,6 @@ describe('live theme payloads', () => {
       success: true,
       output: item,
     });
-  });
-  it('accepts theme commands and rejects malformed theme IDs', () => {
-    const command = {
-      type: 'theme.set',
-      themeId: createThemeId('00000000-0000-4000-8000-000000000111'),
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    expect(parseLiveCommand({type: 'item.stop'}).ok).toBe(true);
-    expect(parseLiveCommand({type: 'item.restore'}).ok).toBe(true);
-    expect(parseLiveCommand({type: 'item.restores'}).ok).toBe(false);
-    expect(parseLiveCommand({type: 'themes.refresh'}).ok).toBe(true);
-    expect(parseLiveCommand({type: 'theme.set', themeId: 'missing'}).ok).toBe(
-      false,
-    );
-    expect(parseLiveCommand({type: 'theme.set'}).ok).toBe(false);
   });
   it('accepts a resolved composition and rejects invalid nested layouts and colors', () => {
     const output = resolveThemeOutput({

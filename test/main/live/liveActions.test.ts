@@ -3,7 +3,7 @@ import {dispatchLogged, LiveStore} from '@main/live/store';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {contentSlice} from '@main/live/slices/content';
 import {clearSlice} from '@main/live/slices/clear';
-import {interruptsSongOutput, isLiveCommand} from '@core/live/commands';
+import {interruptsSongOutput} from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -52,7 +52,6 @@ const validActions = [
 describe('M3 live action contracts', () => {
   it.each(validActions)('accepts $type %j', command => {
     expect(expectSuccess(parseLiveCommand(command))).toEqual(command);
-    expect(isLiveCommand(command)).toBe(true);
     expect(interruptsSongOutput(expectSuccess(parseLiveCommand(command)))).toBe(
       false,
     );
@@ -94,7 +93,6 @@ describe('M3 live action contracts', () => {
     {type: 'item.start', itemId: 'row'},
   ])('rejects malformed action %j', command => {
     expect(parseLiveCommand(command).ok).toBe(false);
-    expect(isLiveCommand(command)).toBe(false);
   });
 
   it('strips fields at each level and rejects non-object sources', () => {

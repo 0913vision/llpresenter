@@ -72,15 +72,4 @@ describe('shared playback order', () => {
     expect(playbackOrder(parsed.value.data, name)).toEqual([1, 2]);
     expect(playbackOrder(parsed.value.data, 'repeat')).toEqual([2, 1, 2]);
   });
-  it('rejects an out-of-range reference at the document boundary', () => {
-    expect(
-      parseSong(
-        JSON.stringify({
-          ...payload.song,
-          arrangements: [{name: 'invalid', slides: [3]}],
-        }),
-        'legacy-order.llsong',
-      ).ok,
-    ).toBe(false);
-  });
 });

@@ -86,6 +86,32 @@ describe('parseService', () => {
     ]);
   });
 
+  it('reads the 테마 and 오버레이 of an item and checks them', () => {
+    const overlay = {
+      id: itemId(20),
+      name: '후렴 자막',
+      from: 1,
+      to: 2,
+      screens: [itemId(21)],
+      content: {text: '아멘'},
+    };
+    const item = {id: itemId(5), media: MEDIA_ID};
+    const extended = {...item, theme: itemId(22), overlays: [overlay]};
+
+    expect(expectSuccess(parse(withItem(extended))).data.order).toEqual([
+      extended,
+    ]);
+    expect(parse(withItem({...item, theme: 'missing'})).ok).toBe(false);
+    expect(
+      parse(
+        withItem({
+          ...extended,
+          overlays: [overlay, {...overlay, id: itemId(23)}],
+        }),
+      ).ok,
+    ).toBe(false);
+  });
+
   it('keeps an item of an unknown kind unchanged', () => {
     const scripture = {id: itemId(9), scripture: {page: 3}, memo: '?'};
 

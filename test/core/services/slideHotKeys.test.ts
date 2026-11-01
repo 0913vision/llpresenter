@@ -1,8 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseGroupedSong} from '@core/schema/groupedSong';
-import {parseShowService, type ShowTile} from '@core/schema/showService';
-import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
+import type {ShowTile} from '@core/schema/showService';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const SONG = '00000000-0000-4000-8000-000000000001';
@@ -53,42 +52,7 @@ function tiles(): readonly ShowTile[] {
   });
 }
 
-function service(input: unknown) {
-  return parseShowService({
-    revision: 1,
-    id: 'invented-service',
-    name: 'Invented service',
-    readOnly: false,
-    rows: [],
-    tiles: {item: input},
-    jumpKeys: {},
-  });
-}
-
 describe('source-slide hot-key projection', () => {
-  it('keeps exact source identity through service and library projection validation', () => {
-    const input = tiles();
-    expect(expectSuccess(service(input))?.tiles['item']).toEqual(input);
-    expect(
-      expectSuccess(
-        parseShowLibrarySong({
-          songId: SONG,
-          songRevision: 1,
-          title: 'Invented song',
-          readOnly: false,
-          tiles: input,
-          jumpKeys: {},
-        }),
-      )?.tiles,
-    ).toEqual(input);
-    expect(input[2]?.sourceSlide).toEqual({
-      songId: SONG,
-      groupId: FIRST,
-      slideIndex: 1,
-    });
-    expect(input[5]?.sourceSlide).toEqual(input[2]?.sourceSlide);
-  });
-
   it('always resolves the first occurrence of the assigned source slide without cycling', () => {
     const input = tiles();
     for (let repeat = 0; repeat < 20; repeat += 1) {
@@ -112,35 +76,7 @@ describe('source-slide hot-key projection', () => {
     }
   });
 
-  it('accepts legacy tiles without metadata and unassigned grouped tiles', () => {
-    expectSuccess(service([{label: null, labelColor: 'none', lines: []}]));
-    expectSuccess(
-      service([
-        {
-          label: null,
-          labelColor: 'none',
-          lines: [],
-          sourceSlide: {songId: SONG, groupId: FIRST, slideIndex: 0},
-        },
-      ]),
-    );
+  it('finds no hot key on a tile without a source slide', () => {
     expect(findSlideHotKey([{hotKey: 'KeyA'}], 'KeyA')).toBeNull();
-  });
-
-  it.each([
-    {hotKey: 'KeyA'},
-    {
-      hotKey: 'Numpad0',
-      sourceSlide: {songId: SONG, groupId: FIRST, slideIndex: 0},
-    },
-    {hotKey: null},
-    {sourceSlide: {songId: SONG, groupId: FIRST, slideIndex: -1}},
-    {sourceSlide: {songId: SONG, groupId: FIRST, slideIndex: 0.5}},
-    {sourceSlide: {songId: 'invalid', groupId: FIRST, slideIndex: 0}},
-    {sourceSlide: {songId: SONG, groupId: 'invalid', slideIndex: 0}},
-  ])('rejects malformed metadata %j', metadata => {
-    expect(
-      service([{label: null, labelColor: 'none', lines: [], ...metadata}]).ok,
-    ).toBe(false);
   });
 });

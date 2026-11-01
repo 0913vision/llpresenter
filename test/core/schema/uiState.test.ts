@@ -4,6 +4,7 @@ import {
   isLayoutChange,
   parseLayoutChange,
   parseMediaStripChange,
+  parsePrepMediaChange,
   parseUiState,
 } from '@core/schema/uiState';
 
@@ -154,6 +155,23 @@ describe('panel visibility changes', () => {
       expect(parseUiState({layout: {normal: {leftCollapsed: value}}}).ok).toBe(
         false,
       );
+    },
+  );
+
+  it.each([true, false])(
+    'keeps prep media visibility %s apart from media strip visibility',
+    visible => {
+      expect(parsePrepMediaChange({visible, mediaStrip: !visible})).toEqual({
+        ok: true,
+        value: {visible},
+      });
+      expect(
+        parseUiState({
+          prepMedia: visible,
+          mediaStrip: !visible,
+          mediaBrowser: {columns: 2, view: 'list'},
+        }).ok,
+      ).toBe(true);
     },
   );
 
