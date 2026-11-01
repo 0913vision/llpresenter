@@ -12,6 +12,7 @@ import {
   editorSetup,
   mockMenuRowHeight,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
+import {DUPLICATE_TITLE_REASON} from '@core/songs/songTitle';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 
 function media(count = 3) {

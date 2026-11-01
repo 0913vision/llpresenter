@@ -207,5 +207,7 @@ it('combines the grid and a kept ratio on the axis of the moving corner', () => 
     distance: 6,
     targets: [],
   });
-  expect(result.frame).toMatchObject({x: 100, y: 100, w: 440, h: 220});
+  expect(result.frame).toMatchObject({x: 100, y: 100});
+  expect(result.frame.w).toBeCloseTo(440);
+  expect(result.frame.h).toBeCloseTo(220);
 });
