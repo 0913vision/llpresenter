@@ -18,10 +18,33 @@ concurrency:
   cancel-in-progress: true
 
 # NOTE(0913vision): The October 25 user decision moves branch verification to
-# GitHub runners. Main keeps its local pre-push check and only bumps here.
+# GitHub runners, and a push to main only bumps here. Since November 1 nothing
+# is checked locally, and a branch that changes only Markdown documents gets the
+# format check only.
 jobs:
-  checks:
+  changes:
     if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.files.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Find whether the branch changes more than documents
+        id: files
+        run: |
+          files=$(git diff --name-only "$(git merge-base origin/main HEAD)" HEAD)
+          code=true
+          if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -v -E '\.md$' | grep -q . && ! printf '%s\n' "$files" | grep -q '^design/'; then
+            code=false
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+  checks:
+    needs: changes
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -32,26 +55,38 @@ jobs:
         with:
           node-version: 24.20.0
           cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
       - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: ~\AppData\Local\electron\Cache
           key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: electron-${{ runner.os }}-
-      - run: npm ci
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Cache Prettier results
         uses: actions/cache@v6.1.0
         with:
           path: node_modules/.cache/prettier
           key: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-${{ github.sha }}
           restore-keys: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-
-      - run: npm run typecheck
-      - run: npm run lint -- --concurrency auto
+      - if: needs.changes.outputs.code == 'true'
+        run: npm run typecheck
+      - if: needs.changes.outputs.code == 'true'
+        run: npm run lint -- --concurrency auto
       - run: npm run format:check
-      - run: npm run build
+      - if: needs.changes.outputs.code == 'true'
+        run: npm run build
 
   tests:
-    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: windows-latest
     timeout-minutes: 30
     strategy:
@@ -66,13 +101,21 @@ jobs:
         with:
           node-version: 24.20.0
           cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
       - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: ~\AppData\Local\electron\Cache
           key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: electron-${{ runner.os }}-
-      - run: npm ci
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npx --no-install vitest run --coverage --coverage.reporter=text-summary --reporter=blob --shard=${{ matrix.shard }}/3
         env:
           LLP_CI_TEST_WORKERS: '1'
@@ -98,13 +141,21 @@ jobs:
         with:
           node-version: 24.20.0
           cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
       - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: ~\AppData\Local\electron\Cache
           key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: electron-${{ runner.os }}-
-      - run: npm ci
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Download shard results
         uses: actions/download-artifact@v8.0.1
         with:
