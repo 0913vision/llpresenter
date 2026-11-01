@@ -40,7 +40,7 @@ export function guardTestPatterns({
   log,
 }: {
   readonly control: PatternControl;
-  readonly store: LiveStore;
+  readonly store: Pick<LiveStore, 'state' | 'handles' | 'dispatch'>;
   readonly log: Logger;
 }): () => void {
   if (control.isDestroyed()) return () => undefined;

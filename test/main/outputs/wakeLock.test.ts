@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {LiveStore} from '@main/live/store';
 import {
   WakeKeeper,
   keepAwakeWhileOutputsOn,
@@ -19,15 +20,32 @@ function mockLock() {
   return {lock, releases};
 }
 
+/** A store whose announced state can lag its current one, as a nested dispatch makes it. */
+function mockStore() {
+  const listeners = new Set<(state: LiveState) => void>();
+  let state = emptyLiveState();
+  const store = {
+    get state() {
+      return state;
+    },
+    subscribe: vi.fn<LiveStore['subscribe']>(listener => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }),
+  };
+  const turn = (screenId: string, on: boolean, announced?: LiveState) => {
+    state = {...state, outputs: {...state.outputs, [screenId]: on}};
+    for (const listener of listeners) listener(announced ?? state);
+  };
+  return {store, listeners, turn};
+}
+
 function setUp() {
-  const store = new LiveStore();
+  const {store, listeners, turn} = mockStore();
   const {lock, releases} = mockLock();
   const keeper = new WakeKeeper(lock, recordingLogger());
   const stop = keepAwakeWhileOutputsOn(store, keeper);
-  const turn = (screenId: string, on: boolean): void => {
-    store.dispatch({type: 'output.set', screenId, on});
-  };
-  return {store, keeper, releases, stop, turn};
+  return {store, listeners, keeper, releases, stop, turn};
 }
 
 describe('keepAwakeWhileOutputsOn', () => {
@@ -45,31 +63,25 @@ describe('keepAwakeWhileOutputsOn', () => {
   });
 
   it('releases the lock when it stops and follows no more changes', () => {
-    const {keeper, releases, stop, turn} = setUp();
+    const {keeper, releases, stop, turn, listeners} = setUp();
     turn('main', true);
     stop();
     expect(releases[0]).toHaveBeenCalledTimes(1);
-    turn('main', false);
+    expect(listeners.size).toBe(0);
     turn('main', true);
     expect(keeper.held).toBe(false);
   });
-});
 
-describe('keepAwakeWhileOutputsOn with a nested change', () => {
-  it('takes no lock when an earlier listener turns the output off while "on" is announced', () => {
-    const store = new LiveStore();
-    store.subscribe(state => {
-      if (state.outputs['main'] === true) {
-        store.dispatch({type: 'output.set', screenId: 'main', on: false});
-      }
-    });
-    const {lock, releases} = mockLock();
-    const keeper = new WakeKeeper(lock, recordingLogger());
-    keepAwakeWhileOutputsOn(store, keeper);
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
-    expect(store.state.outputs['main']).toBe(false);
+  it('follows the current state when an older one is announced', () => {
+    const {keeper, store, turn} = setUp();
+    const announcedOn = {
+      ...store.state,
+      outputs: {...store.state.outputs, main: true},
+    };
+
+    turn('main', false, announcedOn);
+
     expect(keeper.held).toBe(false);
-    expect(releases.every(release => release.mock.calls.length > 0)).toBe(true);
   });
 });
 

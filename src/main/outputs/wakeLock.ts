@@ -76,7 +76,7 @@ function anyOutputOn({outputs}: LiveState): boolean {
  * @returns A function that stops following the outputs and releases the lock.
  */
 export function keepAwakeWhileOutputsOn(
-  store: LiveStore,
+  store: Pick<LiveStore, 'state' | 'subscribe'>,
   keeper: WakeKeeper,
 ): () => void {
   // NOTE(0913vision): A listener before this one can dispatch while a change

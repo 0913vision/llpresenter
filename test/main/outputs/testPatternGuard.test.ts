@@ -1,10 +1,13 @@
 import {EventEmitter} from 'node:events';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import {createScreenId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
-import {MAIN, overlaySettings, STAGE} from '@fixtures/core/overlays';
+import type {LiveStore} from '@main/live/store';
 import {guardTestPatterns} from '@main/outputs/testPatternGuard';
+
+const MAIN = createScreenId('00000000-0000-4000-8000-000000000001');
+const STAGE = createScreenId('00000000-0000-4000-8000-000000000003');
 
 class MockContents extends EventEmitter {
   destroyed = false;
@@ -27,18 +30,29 @@ class MockControl extends EventEmitter {
   }
 }
 
+/** A store that takes a pattern off when the guard asks. */
+function mockStore() {
+  let state: LiveState = {...emptyLiveState(), testPatterns: [MAIN, STAGE]};
+  return {
+    get state() {
+      return state;
+    },
+    handles: vi.fn<LiveStore['handles']>(() => true),
+    dispatch: vi.fn<LiveStore['dispatch']>(command => {
+      if (command.type !== 'screen.testPattern.set' || command.on) return false;
+      state = {
+        ...state,
+        testPatterns: (state.testPatterns ?? []).filter(
+          id => id !== command.screenId,
+        ),
+      };
+      return true;
+    }),
+  };
+}
+
 function setup() {
-  const store = new LiveStore();
-  onTestFinished(store.connectSettings(overlaySettings().reader));
-  for (const screenId of [MAIN, STAGE]) {
-    const command = parseLiveCommand({
-      type: 'screen.testPattern.set',
-      screenId,
-      on: true,
-    });
-    if (!command.ok) throw new Error(JSON.stringify(command.error));
-    store.dispatch(command.value);
-  }
+  const store = mockStore();
   const control = new MockControl();
   const log = recordingLogger();
   const stop = guardTestPatterns({control, store, log});
@@ -66,7 +80,7 @@ describe('guardTestPatterns', () => {
     control.destroyed = true;
     const stop = guardTestPatterns({
       control,
-      store: new LiveStore(),
+      store: mockStore(),
       log: recordingLogger(),
     });
     expect(stop).not.toThrow();
@@ -89,9 +103,11 @@ describe('guardTestPatterns', () => {
     ],
   ])('hides every pattern when the control window %s', (_name, leave) => {
     const {store, control, log} = setup();
-    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
     leave(control);
-    expect(store.state).not.toHaveProperty('testPatterns');
+    expect(store.dispatch.mock.calls.map(([command]) => command)).toEqual([
+      {type: 'screen.testPattern.set', screenId: MAIN, on: false},
+      {type: 'screen.testPattern.set', screenId: STAGE, on: false},
+    ]);
     expect(log.messages('warn')).toEqual([
       'hid the 테스트 패턴 because the control window went away',
     ]);
@@ -109,7 +125,7 @@ describe('guardTestPatterns', () => {
       isMainFrame: false,
       isSameDocument: false,
     });
-    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
+    expect(store.dispatch).not.toHaveBeenCalled();
   });
 
   it('stops watching, also after the control window is destroyed', () => {

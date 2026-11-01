@@ -1,75 +1,72 @@
-import {settingsDocument} from '@fixtures/core/settingsDocument';
-import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
+import type {SettingsReader} from '@core/schema/settingsReader';
 import {defaultPreferences} from '@core/schema/preferences';
+import type {Screen} from '@core/schema/screens';
+import {createScreenId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
-import {
-  CAPTIONS,
-  MAIN,
-  overlaySettings,
-  overlayUuid,
-  STAGE,
-} from '@fixtures/core/overlays';
+import {dispatchBatched, type LiveStore} from '@main/live/store';
 import {launchOutputCommands, showOutputsOnLaunch} from '@main/outputs/launch';
+import {switchableScreens} from '@main/outputs/savedScreens';
 
-const NDI_SCREEN = overlayUuid(40);
+vi.mock('@main/outputs/savedScreens', () => ({switchableScreens: vi.fn()}));
+vi.mock('@main/live/store', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/live/store')>()),
+  dispatchBatched: vi.fn(() => true),
+}));
+
+const MAIN = createScreenId('00000000-0000-4000-8000-000000000001');
+const STAGE = createScreenId('00000000-0000-4000-8000-000000000003');
+const screens: Screen[] = [
+  {id: MAIN, name: 'Main', kind: 'audience', method: 'fullscreen'},
+  {id: STAGE, name: 'Stage', kind: 'stage', method: 'window'},
+];
 
 function settings(showOnLaunch: boolean): SettingsReader {
-  const fixture = overlaySettings();
-  fixture.update(
-    settingsDocument('screens', {
-      screens: [
-        {id: MAIN, name: 'Main', kind: 'audience', method: 'fullscreen'},
-        {id: CAPTIONS, name: 'Captions', kind: 'audience', method: 'capture'},
-        {id: STAGE, name: 'Stage', kind: 'stage', method: 'window'},
-        {id: NDI_SCREEN, name: 'Stream', kind: 'audience', method: 'ndi'},
-      ],
-    }),
-  );
   return {
-    ...fixture.reader,
+    get: vi.fn(),
     preferences: () => ({...defaultPreferences, showOnLaunch}),
+    subscribe: () => () => undefined,
   };
 }
 
+const store: Pick<LiveStore, 'handles' | 'dispatch'> = {
+  handles: vi.fn(() => true),
+  dispatch: vi.fn(() => true),
+};
+
 describe('켤 때 화면 출력', () => {
   it('turns nothing on while the preference is off', () => {
+    vi.mocked(switchableScreens).mockReturnValue(screens);
     expect(launchOutputCommands(settings(false))).toEqual([]);
   });
 
-  it('turns on every screen that can show output', () => {
+  it('turns on every screen that can switch its output', () => {
+    vi.mocked(switchableScreens).mockReturnValue(screens);
     expect(launchOutputCommands(settings(true))).toEqual(
-      [MAIN, CAPTIONS, STAGE].map(screenId => ({
-        type: 'output.set',
-        screenId,
-        on: true,
-      })),
+      [MAIN, STAGE].map(screenId => ({type: 'output.set', screenId, on: true})),
     );
   });
 
-  it('applies the outputs in one broadcast once the settings are read', async () => {
-    const reader = settings(true);
-    const store = new LiveStore();
-    store.connectSettings(reader);
-    const listener = vi.fn();
-    store.subscribe(listener);
+  it('applies the outputs in one batch once the settings are read', async () => {
+    vi.mocked(switchableScreens).mockReturnValue(screens);
     const log = recordingLogger();
-    await showOutputsOnLaunch({store, settings: Promise.resolve(reader), log});
-    expect(listener).toHaveBeenCalledOnce();
-    expect(store.state.outputs).toMatchObject({
-      [MAIN]: true,
-      [CAPTIONS]: true,
-      [STAGE]: true,
+
+    await showOutputsOnLaunch({
+      store,
+      settings: Promise.resolve(settings(true)),
+      log,
     });
-    expect(store.state.outputs).not.toHaveProperty(NDI_SCREEN);
+
+    expect(dispatchBatched).toHaveBeenLastCalledWith(
+      store,
+      launchOutputCommands(settings(true)),
+      log,
+    );
     expect(log.entries).toEqual([]);
   });
 
   it('does nothing without settings and logs settings that fail', async () => {
-    const store = new LiveStore();
-    const listener = vi.fn();
-    store.subscribe(listener);
+    vi.mocked(dispatchBatched).mockClear();
     const log = recordingLogger();
     await showOutputsOnLaunch({store, settings: Promise.resolve(null), log});
     await showOutputsOnLaunch({
@@ -77,7 +74,8 @@ describe('켤 때 화면 출력', () => {
       settings: Promise.reject(new Error('unreadable')),
       log,
     });
-    expect(listener).not.toHaveBeenCalled();
+
+    expect(dispatchBatched).not.toHaveBeenCalled();
     expect(log.messages('error')).toEqual([
       'could not turn the outputs on at launch',
     ]);

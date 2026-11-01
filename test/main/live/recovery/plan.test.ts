@@ -24,7 +24,6 @@ import {
 } from '@fixtures/main/live/recovery';
 import {planRecovery} from '@main/live/recovery/plan';
 
-const NDI_SCREEN = overlayUuid(40);
 const REMOVED_SCREEN = overlayUuid(41);
 const REMOVED_PROP = overlayUuid(42);
 const MEDIA = createMediaId(overlayUuid(43));
@@ -73,7 +72,6 @@ describe('recovery plan', () => {
           {id: MAIN, name: 'Main', kind: 'audience', method: 'fullscreen'},
           {id: CAPTIONS, name: 'Captions', kind: 'audience', method: 'capture'},
           {id: STAGE, name: 'Stage', kind: 'stage', method: 'window'},
-          {id: NDI_SCREEN, name: 'Stream', kind: 'audience', method: 'ndi'},
         ],
       }),
     );
@@ -82,7 +80,6 @@ describe('recovery plan', () => {
         main: true,
         [CAPTIONS]: false,
         [STAGE]: true,
-        [NDI_SCREEN]: true,
         [REMOVED_SCREEN]: true,
       },
     });

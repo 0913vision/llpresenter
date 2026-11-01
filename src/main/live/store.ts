@@ -289,7 +289,7 @@ export function dispatchLogged(
  * @returns Whether any transaction changed the state.
  */
 export function dispatchBatched(
-  store: LiveStore,
+  store: Pick<LiveStore, 'handles' | 'dispatch'>,
   commands: readonly SingleLiveCommand[],
   log: Logger,
 ): boolean {
