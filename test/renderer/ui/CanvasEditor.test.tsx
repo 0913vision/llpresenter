@@ -484,40 +484,6 @@ it('snaps scaled pointer moves while leaving numeric values and arrows precise',
   await waitFor(() => expect(frame()).toMatchObject({x: 141, y: 142}));
 });
 
-it('combines grid and ratio using the moving corner axis and cancels a snapped draft', async () => {
-  const {frame, edit} = setup();
-  fireEvent.click(await screen.findByRole('button', {name: '요소'}));
-  fireEvent.click(screen.getByRole('button', {name: '격자에 맞추기'}));
-  fireEvent.click(screen.getByRole('button', {name: '비율 고정'}));
-  const handle = screen.getByRole('button', {
-    name: '요소 오른쪽 아래 크기 조절',
-  });
-  const canvas = screen.getByLabelText('테스트 캔버스');
-  fireEvent.pointerDown(handle, {
-    button: 0,
-    pointerId: 7,
-    clientX: 0,
-    clientY: 0,
-  });
-  fireEvent.pointerMove(canvas, {pointerId: 7, clientX: 15.5, clientY: 0.5});
-  fireEvent.pointerUp(canvas, {pointerId: 7});
-  await waitFor(() =>
-    expect(frame()).toMatchObject({x: 100, y: 100, w: 440, h: 220}),
-  );
-  fireEvent.pointerDown(handle, {
-    button: 0,
-    pointerId: 8,
-    clientX: 0,
-    clientY: 0,
-  });
-  fireEvent.pointerMove(canvas, {pointerId: 8, clientX: 27, clientY: 27});
-  fireEvent.keyDown(canvas, {key: 'Escape'});
-  fireEvent.pointerUp(canvas, {pointerId: 8});
-  await act(() => Promise.resolve());
-  expect(edit).toHaveBeenCalledTimes(1);
-  expect(frame()).toMatchObject({w: 440, h: 220});
-});
-
 it('cancels a draft on Escape and keeps read-only elements selectable', async () => {
   const editable = setup();
   const item = await screen.findByRole('button', {

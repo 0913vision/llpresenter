@@ -3,10 +3,8 @@ import type {SongDocument} from '@core/schema/contentDocuments';
 import {
   editorFixture,
   editorSong,
-  editorLegacySong,
 } from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
-import {editedOrder, newArrangement} from '@core/songs/songArrangements';
 
 function setup(document: SongDocument = editorSong(1)) {
   const fixture = editorFixture();
@@ -40,22 +38,6 @@ describe('song arrangement selection and creation', () => {
       },
     ]);
     expect(edits).toHaveLength(1);
-  });
-
-  it('chooses the first unused name and retains an intentionally empty order', () => {
-    const song = editorLegacySong(1);
-    const value = {
-      ...song,
-      arrangements: [
-        {name: '구성 1', slides: [2]},
-        {name: '구성 3', slides: []},
-      ],
-    };
-    expect(newArrangement(value, '구성 3')).toEqual({
-      name: '구성 2',
-      slides: [],
-    });
-    expect(editedOrder(value, undefined)).toEqual([1, 2]);
   });
 
   it('coalesces pending lyrics with creation and undoes back to an absent arrangements field', async () => {

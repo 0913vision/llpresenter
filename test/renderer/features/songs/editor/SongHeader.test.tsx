@@ -8,10 +8,7 @@ import {
   lyrics,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
-import {
-  DUPLICATE_TITLE_REASON,
-  EMPTY_TITLE_REASON,
-} from '@core/songs/songTitle';
+import {EMPTY_TITLE_REASON} from '@core/songs/songTitle';
 
 function title(): HTMLInputElement {
   const input = screen.getByRole('textbox', {name: '곡 제목'});
@@ -117,11 +114,7 @@ describe('song editor header', () => {
     }
   });
 
-  it.each([
-    ['', EMPTY_TITLE_REASON],
-    ['   ', EMPTY_TITLE_REASON],
-    ['새 노래 2', DUPLICATE_TITLE_REASON],
-  ])(
+  it.each([['', EMPTY_TITLE_REASON]])(
     'rejects invalid title %j and restores it on blur',
     async (value, reason) => {
       const {session, edits, first} = await editorSetup();

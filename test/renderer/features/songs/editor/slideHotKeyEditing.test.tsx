@@ -3,10 +3,6 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import {createSongId, createSongGroupId} from '@core/schema/ids';
-import {
-  assignSlideHotKey,
-  slideHotKeyView,
-} from '@core/songs/slideHotKeyEditing';
 import {GroupedSlideHotKeyDialog} from '@renderer/features/songs/editor/GroupedSlideHotKeyDialog';
 
 const songId = createSongId('00000000-0000-4000-8000-000000000001');
@@ -43,77 +39,6 @@ function fixture() {
   return parsed.value.data;
 }
 afterEach(cleanup);
-
-it('edits the particular grouped source once and preserves repeats, identities and unknown fields', () => {
-  const song = fixture();
-  const view = slideHotKeyView(song, source);
-  expect(view).toEqual({
-    slideNumber: 3,
-    value: undefined,
-    otherAssignments: [{code: 'KeyA', slideNumber: 1}],
-  });
-  const changed = assignSlideHotKey(song, source, 'KeyC');
-  if (!changed.ok) throw new Error(changed.error);
-  expect(changed.value.groups[1]?.slides[1]).toEqual({
-    lines: ['Invented third line'],
-    future: {retained: true},
-    hotKey: 'KeyC',
-  });
-  expect(changed.value.groups[0]).toBe(song.groups[0]);
-  expect(changed.value.groups[1]?.slides[0]).toBe(song.groups[1]?.slides[0]);
-  expect(changed.value.arrangements).toBe(song.arrangements);
-  expect(song.groups[1]?.slides[1]?.hotKey).toBeUndefined();
-  const unchanged = assignSlideHotKey(changed.value, source, 'KeyC');
-  expect(unchanged.ok && unchanged.value === changed.value).toBe(true);
-  const cleared = assignSlideHotKey(changed.value, source, undefined);
-  if (!cleared.ok) throw new Error(cleared.error);
-  expect(cleared.value).toEqual(song);
-});
-
-it('refuses duplicate/invalid assignments and mismatched or missing source identities', () => {
-  const song = fixture();
-  expect(assignSlideHotKey(song, source, 'KeyA')).toEqual({
-    ok: false,
-    error: 'duplicate-key',
-  });
-  expect(assignSlideHotKey(song, source, 'F1')).toEqual({
-    ok: false,
-    error: 'invalid-key',
-  });
-  expect(
-    assignSlideHotKey(
-      song,
-      {...source, songId: createSongId('00000000-0000-4000-8000-000000000004')},
-      'KeyC',
-    ),
-  ).toEqual({ok: false, error: 'missing-source'});
-  expect(assignSlideHotKey(song, {...source, slideIndex: 9}, 'KeyC')).toEqual({
-    ok: false,
-    error: 'missing-source',
-  });
-  expect(
-    assignSlideHotKey(
-      song,
-      {
-        ...source,
-        groupId: createSongGroupId('00000000-0000-4000-8000-000000000004'),
-      },
-      'KeyC',
-    ),
-  ).toEqual({ok: false, error: 'missing-source'});
-});
-
-it.each(['', 'KeyAA', 'Digit10', 'Numpad1', 'ControlLeft', 'Keya'])(
-  'refuses the invalid stored key %s without changing the song',
-  code => {
-    const song = fixture();
-    expect(assignSlideHotKey(song, source, code)).toEqual({
-      ok: false,
-      error: 'invalid-key',
-    });
-    expect(song.groups[1]?.slides[1]?.hotKey).toBeUndefined();
-  },
-);
 
 it('binds the editor recorder to the agreed grouped field without assigning another same-label slide', async () => {
   const song = fixture();

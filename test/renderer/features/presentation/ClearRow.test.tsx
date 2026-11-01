@@ -19,7 +19,6 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {hasSomethingToClear} from '@core/live/clear';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
 
 const iconRenders = vi.hoisted(() => {
@@ -169,16 +168,6 @@ afterEach(() => {
   resetTooltips();
   cleanup();
   delete window.llp;
-});
-
-describe('hasSomethingToClear', () => {
-  it('checks one layer, and any layer for all', () => {
-    const layers = {...emptyLayers(), slide};
-    expect(hasSomethingToClear(layers, 'slide')).toBe(true);
-    expect(hasSomethingToClear(layers, 'media')).toBe(false);
-    expect(hasSomethingToClear(layers, 'all')).toBe(true);
-    expect(hasSomethingToClear(emptyLayers(), 'all')).toBe(false);
-  });
 });
 
 describe('ClearRow', () => {

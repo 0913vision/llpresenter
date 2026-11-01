@@ -194,3 +194,18 @@ it.each([0, NaN, Infinity])(
     expect(move({scale}).guides).toEqual({});
   },
 );
+
+it('combines the grid and a kept ratio on the axis of the moving corner', () => {
+  const result = guideFrame({
+    start: {x: 100, y: 100, w: 400, h: 200},
+    delta: {x: 31, y: 1},
+    handle: 'se',
+    keepRatio: true,
+    snapGrid: true,
+    bypass: false,
+    scale: 0.5,
+    distance: 6,
+    targets: [],
+  });
+  expect(result.frame).toMatchObject({x: 100, y: 100, w: 440, h: 220});
+});

@@ -58,6 +58,32 @@ const activeLabel = (): string | null =>
   document.activeElement?.getAttribute('aria-label') ?? null;
 
 describe('calendar date field', () => {
+  it('works out today itself across midnight and keeps the chosen date', async () => {
+    vi.useFakeTimers({toFake: ['Date']});
+    try {
+      vi.setSystemTime(new Date(2026, 9, 26, 23, 59));
+      function Live(): JSX.Element {
+        const [date, setDate] = useState('2026-10-29');
+        return <DateSelect aria-label="날짜" value={date} onChange={setDate} />;
+      }
+      render(<Live />);
+      vi.setSystemTime(new Date(2026, 9, 27, 0, 1));
+
+      await userEvent.click(opener());
+      expect(
+        screen
+          .getByRole('button', {name: '2026년 10월 27일 화요일'})
+          .getAttribute('aria-current'),
+      ).toBe('date');
+      expect(opener().textContent).toBe('10월 29일 목요일');
+      await userEvent.click(screen.getByRole('button', {name: '오늘'}));
+
+      expect(opener().textContent).toBe('10월 27일 화요일');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('does not choose a day from modified keyboard activation', async () => {
     const change = vi.fn();
     render(<Field initial="2026-10-28" onChange={change} />);

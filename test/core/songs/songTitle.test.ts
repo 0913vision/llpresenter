@@ -1,5 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
-import {DUPLICATE_TITLE_REASON, SongTitleDraft} from '@core/songs/songTitle';
+import {
+  DUPLICATE_TITLE_REASON,
+  EMPTY_TITLE_REASON,
+  SongTitleDraft,
+} from '@core/songs/songTitle';
 
 const RAW = `  ${'가사'.normalize('NFD')}  `;
 
@@ -25,4 +29,16 @@ describe('SongTitleDraft', () => {
     expect(draft.value).toBe(`${RAW} `);
     expect(draft.changed).toBe(false);
   });
+
+  it.each(['', '   '])(
+    'refuses the empty title %j and keeps the saved one',
+    value => {
+      const draft = new SongTitleDraft('Original');
+
+      draft.edit(value);
+
+      expect(draft.reason).toBe(EMPTY_TITLE_REASON);
+      expect(draft.nextValue).toBe('Original');
+    },
+  );
 });
