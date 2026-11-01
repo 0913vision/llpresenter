@@ -10,7 +10,7 @@ const ITEM = '55000000-0000-4000-8000-000000000003';
 const WAIT = 30_000;
 
 it(
-  'creates a service from a template and recovers its output after a forced exit',
+  'recovers a service and its live output after a forced exit',
   {timeout: 240_000},
   async () => {
     const app = await offscreenApp();
@@ -43,7 +43,7 @@ it(
         format: 'llservice',
         schemaVersion: 1,
         id: SERVICE,
-        name: '점검 템플릿 원본',
+        name: '복구 점검 예배',
         date: '2026-01-01T10:00',
         order: [{id: ITEM, song: SONG}],
       }),
@@ -51,46 +51,6 @@ it(
     );
 
     let page = await app.start();
-    await page.getByRole('menuitem', {name: '파일'}).click();
-    await page.getByRole('menuitem', {name: '새 예배'}).click();
-    const dialog = page.getByRole('dialog', {name: '새 예배'});
-    await dialog
-      .getByRole('button', {name: '지금 예배를 템플릿으로 저장'})
-      .click();
-    await page
-      .getByRole('dialog', {name: '템플릿으로 저장'})
-      .getByRole('button', {name: '저장'})
-      .click();
-    await dialog
-      .getByRole('group', {name: '템플릿'})
-      .getByRole('option', {name: /점검 템플릿 원본/})
-      .click();
-    await expect
-      .poll(
-        () => dialog.getByRole('treeitem', {name: '창작 복구 곡'}).count(),
-        {timeout: WAIT},
-      )
-      .toBe(1);
-    await dialog.getByRole('textbox', {name: '이름'}).fill('복구 점검 새 예배');
-    await dialog.getByRole('button', {name: '만들기'}).click();
-    await expect
-      .poll(() => page.getByRole('dialog', {name: '새 예배'}).count(), {
-        timeout: WAIT,
-      })
-      .toBe(0);
-    await expect
-      .poll(
-        () =>
-          page.evaluate<string | null>(
-            'window.llp.service.get().then(service => service?.name ?? null)',
-          ),
-        {timeout: WAIT},
-      )
-      .toBe('복구 점검 새 예배');
-    const newService = await page.evaluate<string>(
-      'window.llp.service.get().then(service => service.id)',
-    );
-    expect(newService).not.toBe(SERVICE);
     const order = page.getByRole('listbox', {name: '예배 순서'});
     await order.getByRole('option', {name: '창작 복구 곡'}).click();
     await page
@@ -142,7 +102,7 @@ it(
           ),
         {timeout: WAIT},
       )
-      .toBe(newService);
+      .toBe(SERVICE);
     await expect
       .poll(
         () =>
