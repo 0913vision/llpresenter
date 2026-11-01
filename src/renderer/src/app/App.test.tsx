@@ -23,6 +23,11 @@ import {applyService, openItem} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {fixtureSong} from '@renderer/features/songs/library/fixture';
 import {
+  fixtureItems,
+  fixtureServiceId,
+  itemFixture,
+} from '@renderer/features/service/items/itemFixture';
+import {
   sampleService,
   seedSampleService,
 } from '@renderer/session/testing/sampleService';
@@ -151,14 +156,39 @@ describe('App', () => {
     }
   });
 
-  it('routes the clicked service slide through App to prep', () => {
-    window.llp = mockLlpApi();
-    seedSampleService();
-    openItem('song-morning');
+  it('opens the clicked service slide in the song editor and scrolls to its source block', async () => {
+    const fixture = itemFixture();
+    const [first, second] = fixture.first.song.groups;
+    if (first === undefined || second === undefined) {
+      throw new Error('Missing fixture groups');
+    }
+    window.llp = fixture.api;
+    const send = vi.spyOn(fixture.api.live, 'send');
+    applyService({
+      ...sampleService,
+      id: fixtureServiceId,
+      rows: [
+        {
+          kind: 'song',
+          id: fixtureItems.arranged,
+          title: fixture.first.song.title,
+        },
+      ],
+      tiles: {
+        [fixtureItems.arranged]: [first, second, second].map(group => ({
+          label: group.name,
+          labelColor: 'none',
+          lines: group.slides[0]?.lines ?? [],
+          sourceSlide: {
+            songId: fixture.first.song.id,
+            groupId: group.id,
+            slideIndex: 0,
+          },
+        })),
+      },
+    });
+    openItem(fixtureItems.arranged);
     const session = createSession();
-    session.startEditor();
-    const items = session.items;
-    if (!items) throw new Error('Missing item store');
     render(
       <App
         session={session}
@@ -173,7 +203,21 @@ describe('App', () => {
     expect(
       screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
     ).toBe('true');
-    expect(items.getSnapshot().position).toBe(2);
+    expect(await screen.findByRole('region', {name: '곡 편집'})).toBeDefined();
+    expect(session.editor?.getSnapshot().session?.document.song.id).toBe(
+      fixture.first.song.id,
+    );
+    expect(
+      session.editor?.getSnapshot().session?.history.snapshot.selection.block,
+    ).toBe(1);
+    const lyrics = screen.getByRole('textbox', {name: '슬라이드 2 가사'});
+    expect(
+      lyrics.closest('[data-editor-block]')?.getAttribute('data-active'),
+    ).toBe('true');
+    expect(screen.getByRole('group', {name: '가사'}).scrollTop).toBeGreaterThan(
+      0,
+    );
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('opens a library source slide in prep without inventing a service item', async () => {

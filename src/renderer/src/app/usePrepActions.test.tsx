@@ -1,20 +1,46 @@
-import {act, cleanup, render, renderHook} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  render,
+  renderHook,
+  waitFor,
+} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {createSongId} from '@core/schema/ids';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
+import type {ServiceRow, SlideTile} from '@core/presentation/model';
+import {
+  fixtureItems,
+  fixtureServiceId,
+  itemFixture,
+} from '@renderer/features/service/items/itemFixture';
+import {deferred} from '@renderer/features/tools/testing/quickTesting';
+import type {SongDocument} from '@core/schema/contentDocuments';
 import {ControlSession} from './controlSession';
 import {usePrepActions} from './usePrepActions';
 
 const mock = vi.hoisted(() => {
   const state = {hasEditor: true, imported: false, library: false};
+  const rows: ServiceRow[] = [];
+  const tiles: Record<string, readonly SlideTile[]> = {};
   return {
     state,
+    view: {
+      serviceId: 'sample',
+      openItemId: 'song-morning',
+      librarySong: {songId: '00000000-0000-4000-8000-000000000001'},
+      rows,
+      tiles,
+    },
     editor: {
       subscribe: vi.fn(() => () => undefined),
-      getSnapshot: vi.fn(() => ({imported: state.imported})),
+      getSnapshot: vi.fn(() => ({imported: state.imported, session: null})),
       requestLeave: vi.fn<(action: () => void) => void>(),
       open: vi.fn(),
+      attach: vi.fn((document: SongDocument) => ({
+        history: {snapshot: {song: document.song}},
+      })),
     },
     items: {show: vi.fn(), selectPosition: vi.fn()},
     selection: {
@@ -42,7 +68,7 @@ vi.mock('./usePrepSelection', () => ({usePrepSelection: () => mock.selection}));
 vi.mock('@renderer/session/show', () => ({
   openItem: mock.openItem,
   useShow: {
-    getState: () => ({serviceId: 'sample', librarySong: {songId: mock.songId}}),
+    getState: () => mock.view,
   },
 }));
 vi.mock('@renderer/session/showLibrary', () => ({
@@ -68,11 +94,18 @@ beforeEach(() => {
   mock.state.hasEditor = true;
   mock.state.imported = false;
   mock.state.library = false;
+  mock.view.serviceId = 'sample';
+  mock.view.openItemId = 'song-morning';
+  mock.view.rows = [];
+  mock.view.tiles = {};
+  mock.openItem.mockImplementation((itemId: string) => {
+    mock.view.openItemId = itemId;
+  });
   mock.editor.requestLeave.mockImplementation(() => undefined);
 });
 afterEach(cleanup);
 
-it('opens the clicked service slide in prep at its arrangement position after the leave guard', () => {
+it('opens a non-song service slide in prep at its position after the leave guard', () => {
   const {result, onWorkspace} = setup();
   act(() => result.current.onOpenPrep('song-morning', 2));
   expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
@@ -86,6 +119,141 @@ it('opens the clicked service slide in prep at its arrangement position after th
     itemId: 'song-morning',
   });
   expect(mock.items.selectPosition).toHaveBeenCalledExactlyOnceWith(2);
+});
+
+function setupServiceSong() {
+  const fixture = itemFixture();
+  const [first, second] = fixture.first.song.groups;
+  if (first === undefined || second === undefined) {
+    throw new Error('Missing fixture groups');
+  }
+  mock.view.serviceId = fixtureServiceId;
+  mock.view.rows = [
+    {kind: 'song', id: fixtureItems.arranged, title: fixture.first.song.title},
+  ];
+  mock.view.tiles = {
+    [fixtureItems.arranged]: [first, second, second].map(group => ({
+      label: group.name,
+      labelColor: 'none',
+      lines: [],
+      sourceSlide: {
+        songId: fixture.first.song.id,
+        groupId: group.id,
+        slideIndex: 0,
+      },
+    })),
+  };
+  return {...fixture, ...setup(fixture.api)};
+}
+
+it.each([2, undefined])(
+  'opens a service song in the editor at its source block for position %s',
+  async position => {
+    const {result, first} = setupServiceSong();
+    act(() => result.current.onOpenPrep(fixtureItems.arranged, position));
+    expect(mock.editor.open).not.toHaveBeenCalled();
+    act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+    await waitFor(() =>
+      expect(mock.editor.open).toHaveBeenLastCalledWith(first, {
+        block: position === undefined ? 0 : 1,
+        arrangement: '주일용',
+      }),
+    );
+    expect(mock.items.selectPosition).not.toHaveBeenCalled();
+  },
+);
+
+it('keeps the clicked source when the arrangement changes during lookup', async () => {
+  const {result, api, first} = setupServiceSong();
+  const [firstGroup, secondGroup] = first.song.groups;
+  if (firstGroup === undefined || secondGroup === undefined) {
+    throw new Error('Missing fixture groups');
+  }
+  const changed: SongDocument = {
+    ...first,
+    revision: 2,
+    song: {
+      ...first.song,
+      arrangements: [
+        {
+          name: '주일용',
+          groups: [secondGroup.id, firstGroup.id, firstGroup.id],
+        },
+      ],
+    },
+  };
+  vi.spyOn(api.songs, 'get').mockResolvedValue(changed);
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+  await waitFor(() =>
+    expect(mock.editor.open).toHaveBeenLastCalledWith(changed, {
+      block: 1,
+      arrangement: '주일용',
+    }),
+  );
+});
+
+it('selects the source block in the existing unsaved song session', async () => {
+  const {result, first} = setupServiceSong();
+  const [firstGroup, secondGroup] = first.song.groups;
+  if (firstGroup === undefined || secondGroup === undefined) {
+    throw new Error('Missing fixture groups');
+  }
+  mock.editor.attach.mockReturnValueOnce({
+    history: {
+      snapshot: {song: {...first.song, groups: [secondGroup, firstGroup]}},
+    },
+  });
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+  await waitFor(() =>
+    expect(mock.editor.open).toHaveBeenLastCalledWith(first, {
+      block: 0,
+      arrangement: '주일용',
+    }),
+  );
+});
+
+it.each(['item', 'workspace', 'unmount'])(
+  'does not open a delayed song after navigation to %s',
+  async destination => {
+    const {result, api, first, rerender, unmount} = setupServiceSong();
+    const reading = deferred<SongDocument | null>();
+    const get = vi.spyOn(api.songs, 'get').mockReturnValue(reading.promise);
+    act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+    act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+    await waitFor(() => expect(get).toHaveBeenCalled());
+    if (destination === 'item') {
+      act(() => result.current.prep?.onServiceItemOpen?.());
+    } else if (destination === 'workspace') {
+      rerender({workspace: 'prep'});
+      rerender({workspace: 'show'});
+    } else unmount();
+    await act(async () => reading.resolve(first));
+    expect(mock.editor.open.mock.calls).toEqual([[null]]);
+  },
+);
+
+it('reports a disappeared source slide instead of opening a different block', async () => {
+  const {result, session} = setupServiceSong();
+  const tiles = mock.view.tiles[fixtureItems.arranged];
+  if (tiles === undefined) throw new Error('Missing fixture tiles');
+  mock.view.tiles[fixtureItems.arranged] = tiles.map(tile => ({
+    ...tile,
+    ...(tile.sourceSlide === undefined
+      ? {}
+      : {
+          sourceSlide: {...tile.sourceSlide, slideIndex: 99},
+        }),
+  }));
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+  await waitFor(() =>
+    expect(session.report).toHaveBeenCalledWith(
+      expect.objectContaining({title: '곡 열기 실패'}),
+    ),
+  );
+  expect(mock.editor.open.mock.calls).toEqual([[null]]);
 });
 
 it('opens a library source slide without inventing a service item', () => {
