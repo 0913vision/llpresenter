@@ -1,7 +1,9 @@
+import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {
   buildContext,
   NOTES_PATH,
+  TEAM_DIR_PATH,
   roleFor,
   truncate,
   type SessionFacts,
@@ -12,6 +14,7 @@ const baseFacts: SessionFacts = {
   branch: 'docs/trial/workflow-check',
   notes: '# Notes\n\n## Now\n\nWriting the store test.',
   notesUpdated: '2026-10-24T09:00:00.000Z',
+  teamDir: 'team',
   status: '# Status\n\nPhase 1.',
   git: 'Working tree clean.',
 };
@@ -70,6 +73,15 @@ describe('buildContext', () => {
   it('asks for a notes file when there is none', () => {
     const text = buildContext({...baseFacts, notes: null, notesUpdated: null});
     expect(text).toContain(`There is no notes file yet. Create ${NOTES_PATH}`);
+  });
+
+  it('points to the brief in the team folder, or asks for the folder', () => {
+    expect(buildContext(baseFacts)).toContain(
+      `Read ${join('team', 'briefs', 'trial.md')}`,
+    );
+    expect(buildContext({...baseFacts, teamDir: null})).toContain(
+      `ask the lead for the team folder and write it to ${TEAM_DIR_PATH}`,
+    );
   });
 
   it('leaves out the status section when the file is missing', () => {

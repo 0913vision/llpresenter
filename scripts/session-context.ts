@@ -7,7 +7,11 @@ import {COMMIT_TAGS} from './version/subject.mts';
 /** Each session's working notes, relative to its worktree root. */
 export const NOTES_PATH = '.llp/notes.md';
 
-const STATUS_PATH = 'docs/STATUS.md';
+/**
+ * The file in which the lead writes the team folder's path for a worktree. The
+ * team documents (briefs, status) live there, outside the repository.
+ */
+export const TEAM_DIR_PATH = '.llp/team-dir';
 const LEAD_BRANCH = 'main';
 const MEMBER_BRANCH = new RegExp(
   `^(?:${COMMIT_TAGS.join('|')})/([a-z0-9-]+)/[a-z0-9-]+$`,
@@ -22,6 +26,8 @@ export interface SessionFacts {
   readonly branch: string;
   readonly notes: string | null;
   readonly notesUpdated: string | null;
+  /** The team folder, or `null` when the worktree doesn't name one. */
+  readonly teamDir: string | null;
   readonly status: string | null;
   readonly git: string;
 }
@@ -47,8 +53,15 @@ function firstLines(text: string, count: number): string {
   return `${lines.slice(0, count).join('\n')}\n[... ${lines.length - count} more lines in the file]`;
 }
 
-function arrivalNotice(source: string, role: string): string {
-  const brief = `docs/briefs/${role}.md`;
+function arrivalNotice(
+  source: string,
+  role: string,
+  teamDir: string | null,
+): string {
+  const brief =
+    teamDir === null
+      ? `your brief (ask the lead for the team folder and write it to ${TEAM_DIR_PATH})`
+      : join(teamDir, 'briefs', `${role}.md`);
   if (source === 'compact') {
     return [
       'Your context was just compacted, so only a summary of the earlier',
@@ -83,7 +96,7 @@ export function buildContext(facts: SessionFacts): string {
     '# Session context',
     '',
     `You are the ${role} session on branch ${facts.branch} (start: ${facts.source}).`,
-    arrivalNotice(facts.source, role),
+    arrivalNotice(facts.source, role, facts.teamDir),
     '',
     notesSection(facts),
     '',
@@ -94,7 +107,7 @@ export function buildContext(facts: SessionFacts): string {
   if (facts.status !== null) {
     sections.push(
       '',
-      `## Team status (${STATUS_PATH})`,
+      '## Team status (STATUS.md in the team folder)',
       '',
       firstLines(facts.status.trim(), MAX_STATUS_LINES),
     );
@@ -153,13 +166,16 @@ function gatherFacts(): SessionFacts {
   const branch = git(root, ['branch', '--show-current']);
   const notesFile = join(root, NOTES_PATH);
   const notes = readIfPresent(notesFile);
+  const teamText = readIfPresent(join(root, TEAM_DIR_PATH))?.trim() ?? '';
+  const teamDir = teamText === '' ? null : teamText;
   return {
     source: input.source ?? 'unknown',
     branch,
     notes,
     notesUpdated:
       notes === null ? null : statSync(notesFile).mtime.toISOString(),
-    status: readIfPresent(join(root, STATUS_PATH)),
+    teamDir,
+    status: teamDir === null ? null : readIfPresent(join(teamDir, 'STATUS.md')),
     git: gitSummary(root, roleFor(branch)),
   };
 }
@@ -170,7 +186,7 @@ function main(): void {
     context = buildContext(gatherFacts());
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    context = `# Session context\n\nThe session context hook failed (${reason}). Read ${NOTES_PATH} and docs/STATUS.md yourself.\n`;
+    context = `# Session context\n\nThe session context hook failed (${reason}). Read ${NOTES_PATH}, and STATUS.md and your brief in the team folder, yourself.\n`;
   }
   process.stdout.write(
     JSON.stringify({

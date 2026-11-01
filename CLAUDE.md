@@ -12,8 +12,8 @@ Korean. Don't use a playful tone.**
 ## Read first
 
 1.  The team documents (workflow, your brief, milestones and file ownership, the
-    member and review guides). They live outside the repository; the lead gives
-    you their folder.
+    member and review guides). They live outside the repository; the lead writes
+    their folder to `.llp/team-dir` in your worktree.
 2.  `README.md`, `CONTRIBUTING.md`, `docs/spec/` (behavior and data),
     `docs/TECH.md` (stack and quality bar), `docs/decisions.md` (decisions),
     `design/system/project/README.md` and the component docs (UI).
@@ -65,9 +65,10 @@ the process only at a milestone boundary, never in the middle of one.
   open branch only when the next work really builds on it, and wait for the
   review when the open change is risky or likely to change (the team workflow,
   "Stacked branches"). Own your ticket until it merges; don't let it drag.
-- **Before you push your branch:** rebase it onto `origin/main`. Don't run CI
-  checks locally (typecheck, lint, tests, verify); GitHub runs them on every
-  pushed branch. Never poll CI.
+- **Before you push your branch:** rebase it onto `origin/main` and run
+  `npx eslint --max-warnings 0` on the files you changed. Leave typecheck,
+  tests, and verify to GitHub, which runs them on every pushed branch. Never
+  poll CI.
 - **Review request:** one ticket is one branch and one pull request: a short
   file outside git whose title becomes the one squashed commit on `main` (the
   member guide). When your branch's CI passes, message the lead. The lead

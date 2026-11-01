@@ -808,3 +808,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   checks only commit messages and that `main` moves forward. This replaces the
   hook's verify step and its stamp from 2026-10-24 and 2026-10-25. GitHub still
   runs only the version bump on `main`.
+
+## 2026-11-01: Lint before a push, typecheck at the merge
+
+- Everyone, members and the lead, runs eslint on the files they changed before
+  pushing a branch, because a lint slip otherwise costs a whole CI round (user:
+  "린트정도는 로컬에서체크되잖아"). Typecheck, tests, and verify stay on GitHub.
+- The merge script keeps its typecheck after it lands a reviewed branch on the
+  local `main`: a branch that merges without a conflict can still break where
+  another branch renamed something, and nothing else checks that combination
+  before `main` is pushed (user agreed).
+- The merge script first takes the version bot's commit from `origin/main`, so
+  the local `main` never parts from GitHub's.
