@@ -19,14 +19,14 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 - Surface `ll-panel`: background `bg-panel`, radius `radius-lg` (5px), no shadow, overflow clipped.
 - Between panels `ll-panels` (`--column` stacks them vertically): gap `panel-gap` (4px). The left and right edges of the window are 4px too (`ll-panels--window`). Don't put a gap at the top and bottom of the work area, where it meets the toolbar and the status bar (`Layout`). The background that shows through the gaps is `bg-app`.
 - Header `ll-panel__header`: height `size-panel-header` (34px, including the 1px bottom line), left `panel-inset` (14px), right `space-8`, a 1px `line` at the bottom.
-  - Tab `ll-panel__tab`: `title` (18/26/600). The selected tab is `text`, with a 2px `text` underline right above the header line. Unselected tabs are `text-3`. 18px between tabs (no token, requested). A count badge in a tab is `ll-count` of `StatusMarks`, `space-6` from the name.
-  - Count `ll-panel__meta`: `space-10` after a tab or title, `label` (14/20) `text-3`, tabular numbers. For example: 라이브러리 128, 배경 영상 7.
-  - Title `ll-panel__title`: song title `ll-panel__title-text` (`title` 18/26/600) + position or count `ll-panel__meta` ("2 / 9", "슬라이드 9개"). Gap `space-10`, aligned on the text baseline. Truncate a long title with an ellipsis.
+  - Tab `ll-panel__tab`: `title` (18/26/600). The selected tab is `text`, with a 2px `text` underline right above the header line. Unselected tabs are `text-3`. 18px between tabs (no token, requested). Tabs show names only; item counts belong in the footer.
+  - Metadata `ll-panel__meta`: `space-10` after a title, `label` (14/20) `text-3`, tabular numbers. Keep live positions here; put item counts in the footer.
+  - Title `ll-panel__title`: song title `ll-panel__title-text` (`title` 18/26/600) + live position `ll-panel__meta` ("2 / 9"). Gap `space-10`, aligned on the text baseline. Truncate a long title with an ellipsis.
   - Service switcher `ll-panel__switch`: `space-4` right after the 예배 순서 tab. A ghost sm button: height `size-control-sm` (26px), padding left `space-6` and right `space-4`, `label` (14/20) `text-3`, a 12px `down` arrow, `space-4` between the text and the arrow, radius `radius-md`.
   - Controls on the right `ll-panel__actions`: attached at the right end, `space-8` between controls. Use sm controls only: `IconButton` (26×26), `Button` sm, `Select` sm.
 - Tool row `ll-panel__tools`: one row under the header with a search field or a Bible verse field. Padding top 8, left and right 8, bottom 6. The field fills the row width (`TextField` md). A list body right under it has no top padding.
 - Body `ll-panel__body`: padding `panel-inset` (14px). It takes all remaining height, and only the body scrolls vertically when the content overflows. A list body `ll-panel__body--list` has `space-4` at the top, `space-8` at the bottom, and 0 left and right (the rows carry the 14px). A body with no padding is `--flush`. Draw a thin scrollbar with a `line-strong` thumb.
-- Footer row `ll-panel__footer`: height 32px (no token, requested), left and right 14px, a 1px `line` at the top, `caption` (14/20) `text-3`. Counts and sizes go on the left ("7개 2.1GB"), and the thumbnail size slider (`ll-slider-row` of `Slider`) goes on the right in `ll-panel__footer-end`.
+- Footer row `ll-panel__footer`: height `size-panel-footer` (32px), left and right 14px, a 1px `line` at the top, `caption` (14/20) `text-3`. Counts and sizes go on the left ("7개 2.1GB"), and the thumbnail size slider (`ll-slider-row` of `Slider`) goes on the right in `ll-panel__footer-end`.
 
 - Keep `space-8` between the media tab and its playlist Select, matching the
   spacing between other header controls. They must not touch.
@@ -37,8 +37,8 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 | --- | --- | --- | --- |
 | Tab header | 34 | `title` 18/26/600 | 예배 순서, 퀵 실행, library, media, preview, 진행 도구 |
 | Tab + service switcher | 34 | Tab `title`, switcher `label` `text-3` | 예배 순서 |
-| Tab + count | 34 | `title` + `label` `text-3` | 라이브러리 128 |
-| Title header | 34 | `title` 18/26/600 + `label` `text-3` | 슬라이드 panel (만복의 근원 하나님 2 / 9), 예배 순서 item (슬라이드 9개), 배경 영상 7 |
+| Tab + footer count | 34 + 32 | `title`, footer `caption` `text-3` | 라이브러리 with 128개 below |
+| Title header | 34 | `title` 18/26/600 + `label` `text-3` | 슬라이드 panel (만복의 근원 하나님 2 / 9), 예배 순서 item, 배경 영상 |
 | Tool row | 44 (8 + 30 + 6) | `body` 16/22 | Library search, 퀵 실행 Bible verse |
 | Body | Remaining height | - | Lists (`--list`), thumbnail grid (padding 14) |
 | Footer row | 32 | `caption` 14/20 `text-3` | Count and thumbnail size in the 슬라이드 panel and media |
@@ -71,7 +71,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 ## Writing
 
 - Write tab and panel names as short nouns: "예배 순서", "퀵 실행", "라이브러리", "미리보기", "표시 중". Don't add verbs or descriptions.
-- Write a count in a header as a number only, and add a unit only when it isn't clear what is counted: "128", "7", "슬라이드 9개".
+- Write the panel item count only in the bottom footer: "128개", "7개", or "0개". Do not repeat the item name or a capacity fraction. Preserve existing facts such as media size and keep the footer outside scrolling content.
 - Write a position as "current / total", with spaces around the slash: "2 / 9".
 - Don't write help text or state descriptions in a header.
 
@@ -79,7 +79,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 
 - `<Panel label="예배 순서" tabs={[{ id: 'order', label: '예배 순서' }]} switcher={<ServiceSwitch value="주일 예배" />} actions={<IconButton icon="plus" label="항목 추가" />}>…</Panel>`
 - `<Panel title="만복의 근원 하나님" meta="2 / 9" actions={<Select size="sm" media={thumb} value="따뜻한 빛" />} footer={<SliderRow icon="grid" />}>`
-- Parts: `<PanelTabs>`, `<PanelSwitch>`, `<PanelTools>`, `<PanelBody variant="list" | "grid" | "flush">`, `<PanelFooter>`.
+- Parts: `<PanelTabs>`, `<PanelSwitch>`, `<PanelTools>`, `<PanelBody variant="list" | "grid" | "flush">`, `<PanelFooter count={9}>`.
 - Classes: `ll-panels`, `ll-panels--column`, `ll-panels--window`, `ll-panel`, `ll-panel__header`, `ll-panel__tabs`, `ll-panel__tab`, `ll-panel__title`, `ll-panel__title-text`, `ll-panel__meta`, `ll-panel__switch`, `ll-panel__actions`, `ll-panel__tools`, `ll-panel__body`, `ll-panel__body--list`, `ll-panel__body--flush`, `ll-panel__footer`, `ll-panel__footer-end`.
 - The header is 34px including the 1px line, with `box-sizing: border-box`.
 

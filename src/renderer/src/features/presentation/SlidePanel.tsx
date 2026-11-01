@@ -12,6 +12,7 @@ import {
   useThumbnailScale,
 } from '@renderer/platform/thumbnailScale';
 import {Icon, ThumbnailSizeControl} from '@renderer/ui';
+import {PanelFooter} from '@renderer/ui/Panel';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {
@@ -41,8 +42,7 @@ export function SlidePanelBody({
 }
 
 /**
- * The item name and the position in the header of the 장 panel: "2 / 9" when
- * the open item is the live one, and the 장 count otherwise.
+ * The item name and, for the live item, its current slide position.
  */
 export function SlidePanelMeta(): JSX.Element | null {
   const openItemId = useShow(view => view.openItemId);
@@ -67,9 +67,7 @@ export function SlidePanelMeta(): JSX.Element | null {
   const livePosition = useLiveTileIndex();
   if (title === undefined) return null;
   const position =
-    livePosition === null
-      ? `슬라이드 ${count}개`
-      : `${livePosition + 1} / ${count}`;
+    livePosition === null ? undefined : `${livePosition + 1} / ${count}`;
   return (
     <span className={styles.meta}>
       <span className={styles.name}>{title}</span>
@@ -86,8 +84,24 @@ export function SlidePanelMeta(): JSX.Element | null {
           {tooltip}
         </>
       ) : null}
-      <span className={styles.position}>{position}</span>
+      {position === undefined ? null : (
+        <span className={styles.position}>{position}</span>
+      )}
     </span>
+  );
+}
+
+export function SlidePanelFooter({
+  sizeClass,
+}: {
+  readonly sizeClass: SizeClass;
+}): JSX.Element {
+  const count = useShow(view => shownTiles(view)?.length ?? 0);
+  return (
+    <PanelFooter
+      count={count}
+      end={<SlideSizeControl sizeClass={sizeClass} />}
+    />
   );
 }
 

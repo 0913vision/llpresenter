@@ -7,7 +7,12 @@ import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {seedSampleService} from '../../session/testing/sampleService';
-import {SlidePanelBody, SlidePanelMeta, SlideSizeControl} from './SlidePanel';
+import {
+  SlidePanelBody,
+  SlidePanelMeta,
+  SlidePanelFooter,
+  SlideSizeControl,
+} from './SlidePanel';
 
 const GRID_WIDTH = 600;
 const setLayout = vi.fn<(change: LayoutChange) => void>();
@@ -83,11 +88,11 @@ describe('SlidePanelMeta', () => {
     expect(container.textContent).toBe('');
   });
 
-  it('shows the item name and the slide count when the item is not live', () => {
+  it('shows the item name without a header count when the item is not live', () => {
     openItem('song-morning');
     render(<SlidePanelMeta />);
     expect(screen.getByText('아침이 밝아 오네')).toBeTruthy();
-    expect(screen.getByText('슬라이드 4개')).toBeTruthy();
+    expect(screen.queryByText('슬라이드 4개')).toBeNull();
   });
 
   it('shows the live position of the open item', () => {
@@ -97,19 +102,29 @@ describe('SlidePanelMeta', () => {
     expect(screen.getByText('2 / 4')).toBeTruthy();
   });
 
-  it('shows the count when another item is live', () => {
+  it('keeps the count in the footer when another item is live', () => {
     openItem('song-morning');
     setLiveSlide('song-river', 0);
-    render(<SlidePanelMeta />);
-    expect(screen.getByText('슬라이드 4개')).toBeTruthy();
+    render(
+      <>
+        <SlidePanelMeta />
+        <SlidePanelFooter sizeClass="normal" />
+      </>,
+    );
+    expect(screen.getByText('4개')).toBeTruthy();
   });
 
   it('follows the open item', () => {
     openItem('song-morning');
-    render(<SlidePanelMeta />);
+    render(
+      <>
+        <SlidePanelMeta />
+        <SlidePanelFooter sizeClass="normal" />
+      </>,
+    );
     act(() => openItem('song-river'));
     expect(screen.getByText('맑은 시냇물')).toBeTruthy();
-    expect(screen.getByText('슬라이드 3개')).toBeTruthy();
+    expect(screen.getByText('3개')).toBeTruthy();
   });
 });
 

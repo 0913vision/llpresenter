@@ -53,10 +53,7 @@ export function BibleItemPanel({
   return (
     <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
       <PanelHeader>
-        <PanelTitle
-          title={item.bible.ref}
-          meta={`슬라이드 ${tiles.length}개`}
-        />
+        <PanelTitle title={item.bible.ref} />
       </PanelHeader>
       <PanelBody variant="flush">
         {children ?? (
@@ -71,17 +68,18 @@ export function BibleItemPanel({
           />
         )}
       </PanelBody>
-      {children === undefined ? (
-        <PanelFooter
-          end={
+      <PanelFooter
+        count={tiles.length}
+        end={
+          children === undefined ? (
             <ThumbnailSizeControl
               value={scale}
               onChange={value => showThumbnailScale(sizeClass, value)}
               onCommit={value => saveThumbnailScale(sizeClass, value)}
             />
-          }
-        />
-      ) : null}
+          ) : undefined
+        }
+      />
     </Panel>
   );
 }

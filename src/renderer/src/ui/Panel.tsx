@@ -14,7 +14,6 @@ import type {MenuAvailability} from './menuModel';
 import {menuButtonProps} from './menuButton';
 import {useButtonPress} from './press';
 import {useRovingSelection} from './roving';
-import {CountBadge} from './StatusMarks';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TruncatedText} from './TruncatedText';
 import styles from './Panel.module.css';
@@ -90,8 +89,6 @@ export function PanelHeader({
 export type PanelTab<T extends string> = MenuAvailability & {
   readonly value: T;
   readonly label: string;
-  /** A count badge after the name; hidden at zero. */
-  readonly count?: number | undefined;
 };
 
 interface PanelTabButtonProps<T extends string> {
@@ -103,25 +100,12 @@ interface PanelTabButtonProps<T extends string> {
   readonly onKeyDown: (event: KeyboardEvent) => void;
 }
 
-function tabLabel<T extends string>(tab: PanelTab<T>): string | undefined {
-  return tab.count === undefined || tab.count <= 0
-    ? undefined
-    : `${tab.label} ${tab.count}개`;
-}
-
 export function PanelTabContent({
   label,
-  count,
 }: {
   readonly label: string;
-  readonly count?: number | undefined;
 }): JSX.Element {
-  return (
-    <>
-      {label}
-      {count === undefined ? null : <CountBadge value={count} />}
-    </>
-  );
+  return <>{label}</>;
 }
 
 export function PanelMoreContent({
@@ -167,12 +151,11 @@ function PanelTabButton<T extends string>({
         type="button"
         role="tab"
         aria-selected={selected}
-        aria-label={tabLabel(tab)}
         aria-disabled={tab.disabled === true ? true : undefined}
         tabIndex={tabIndex}
         className={styles.tab}
       >
-        <PanelTabContent label={tab.label} count={tab.count} />
+        <PanelTabContent label={tab.label} />
       </button>
       {tooltip}
     </>
@@ -232,7 +215,7 @@ function PanelMoreTabs<T extends string>({
       </button>
       {current === undefined ? null : (
         <span id={tabId(base, current.value)} hidden>
-          {tabLabel(current) ?? current.label}
+          {current.label}
         </span>
       )}
       {expanded && button !== null ? (
@@ -297,7 +280,7 @@ export function PanelTabs<T extends string>({
   );
 }
 
-/** A count or position after a tab or title, such as 128 or 2 / 9. */
+/** Context after a title, such as a live position or reference availability. */
 export function PanelMeta({
   children,
 }: {
@@ -306,7 +289,7 @@ export function PanelMeta({
   return <span className={styles.meta}>{children}</span>;
 }
 
-/** A song title with its position or count, such as 만복의 근원 하나님 2 / 9. */
+/** A song title with optional context, such as 만복의 근원 하나님 2 / 9. */
 export function PanelTitle({
   title,
   meta,
@@ -422,16 +405,20 @@ export function PanelBody({
 
 /** The 32px footer row: counts on the left, controls such as a slider at the end. */
 export function PanelFooter({
+  count,
   end,
   children,
 }: {
+  /** The item count, including zero, without repeating the panel name. */
+  readonly count?: number | undefined;
   readonly end?: ReactNode;
   readonly children?: ReactNode;
 }): JSX.Element {
   return (
-    <div className={styles.footer}>
+    <footer className={styles.footer}>
+      {count === undefined ? null : <span>{count}개</span>}
       {children}
       {end === undefined ? null : <div className={styles.footerEnd}>{end}</div>}
-    </div>
+    </footer>
   );
 }

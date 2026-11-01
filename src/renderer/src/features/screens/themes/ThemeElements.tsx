@@ -13,8 +13,7 @@ import {
   PanelHeader,
   PanelTitle,
   PanelBody,
-  PanelMeta,
-  PanelActions,
+  PanelFooter,
 } from '@renderer/ui/Panel';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -74,11 +73,6 @@ export function ThemeElements({
       <Panel label="요소" className={styles.elementList}>
         <PanelHeader>
           <PanelTitle title="요소" />
-          <PanelActions>
-            <PanelMeta>
-              {elements.length} / {THEME_LIMITS.elements}
-            </PanelMeta>
-          </PanelActions>
         </PanelHeader>
         <div
           className={styles.elements}
@@ -150,6 +144,7 @@ export function ThemeElements({
             ))}
           </ListBox>
         </div>
+        <PanelFooter count={elements.length} />
       </Panel>
       <Panel label="요소 추가" className={styles.tilesPanel}>
         <PanelHeader>

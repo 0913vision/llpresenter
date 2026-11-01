@@ -6,7 +6,7 @@
   scrollbar-gutter: stable;
 }
 
-.footer > div {
+.footer > footer {
   height: auto;
   min-height: var(--size-panel-footer);
   flex-wrap: wrap;

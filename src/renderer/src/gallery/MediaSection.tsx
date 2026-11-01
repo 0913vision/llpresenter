@@ -133,7 +133,7 @@ function TryGrid(): JSX.Element {
   return (
     <Panel label="배경 영상">
       <PanelHeader>
-        <PanelTitle title="배경 영상" meta={`${library.length}`} />
+        <PanelTitle title="배경 영상" />
       </PanelHeader>
       <PanelBody>
         <MediaGrid
@@ -155,6 +155,7 @@ function TryGrid(): JSX.Element {
         </MediaGrid>
       </PanelBody>
       <PanelFooter
+        count={library.length}
         end={
           <Slider
             label="썸네일 크기"
@@ -166,7 +167,7 @@ function TryGrid(): JSX.Element {
           />
         }
       >
-        {`${library.length}개 2.1GB`}
+        2.1GB
       </PanelFooter>
     </Panel>
   );

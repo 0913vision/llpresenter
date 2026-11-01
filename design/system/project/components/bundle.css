@@ -762,7 +762,7 @@
 .ll-panel__body--flush { padding: 0; }
 
 /* Footer row: counts on the left, controls such as thumbnail size on the right */
-.ll-panel__footer { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-footer); padding: 0 var(--panel-inset); border-top: 1px solid var(--line); font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-panel__footer { margin-top: auto; flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-footer); padding: 0 var(--panel-inset); border-top: 1px solid var(--line); font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__footer-end { display: flex; align-items: center; gap: var(--space-10); margin-left: auto; }
 
 @media (prefers-reduced-motion: reduce) {

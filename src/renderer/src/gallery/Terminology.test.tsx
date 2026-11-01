@@ -21,7 +21,7 @@ describe('Gallery slide terminology', () => {
     expect(
       screen.getAllByRole('region', {name: '슬라이드'}).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByText('슬라이드 9개')).toBeDefined();
+    expect(screen.getByText('9개')).toBeDefined();
     expect(screen.getByText('2 / 9')).toBeDefined();
   });
 

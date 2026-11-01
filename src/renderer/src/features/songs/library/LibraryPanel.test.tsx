@@ -349,7 +349,7 @@ describe('library panel', () => {
       '찬송 2슬라이드 1개',
       '찬송 10슬라이드 1개',
     ]);
-    expect(screen.getByText('3')).toBeDefined();
+    expect(screen.getByText('3개')).toBeDefined();
     await user.click(screen.getByRole('option', {name: '찬송 2'}));
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({
@@ -764,6 +764,6 @@ describe('library panel', () => {
     fireEvent.keyDown(screen.getByRole('option', {name: '곡 0'}), {key: 'End'});
     const last = await screen.findByRole('option', {name: '곡 2999'});
     expect(document.activeElement).toBe(last);
-    expect(screen.getByText('3000')).toBeDefined();
+    expect(screen.getByText('3000개')).toBeDefined();
   });
 });

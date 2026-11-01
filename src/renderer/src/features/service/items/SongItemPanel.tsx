@@ -17,6 +17,7 @@ import {
   Panel,
   PanelActions,
   PanelBody,
+  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui/Panel';
@@ -119,7 +120,7 @@ function SongItemView({
         <PanelHeader>
           <PanelTitle
             title={session.document.song.title}
-            meta={capped ? '한도 초과' : `슬라이드 ${sequence.length}개`}
+            meta={capped ? '한도 초과' : undefined}
           />
           <PanelActions>
             {capped ? (
@@ -155,6 +156,7 @@ function SongItemView({
         <PanelBody variant="flush">
           <ItemOverlayTable items={items} editor={editor} />
         </PanelBody>
+        <PanelFooter count={sequence.length} />
       </Panel>
     </div>
   );

@@ -224,7 +224,6 @@ describe('song editor header', () => {
     await act(() => Promise.resolve());
     expect(store.getSnapshot().session).not.toBeNull();
     expect(screen.getByText('라이브러리')).toBeDefined();
-    expect(screen.getByText('슬라이드 2개')).toBeDefined();
     expect(
       (await hoverForTooltip(screen.getByText('예배 순서 2곳')))?.textContent,
     ).toBe('아침 예배, 저녁 예배');

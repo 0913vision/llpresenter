@@ -6,7 +6,13 @@ import {mediaName} from '@renderer/features/media/backgroundChoices';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {MediaTile} from '@renderer/ui/MediaTile';
 import {VirtualMediaGrid} from '@renderer/features/media/VirtualMediaGrid';
-import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
+import {
+  Panel,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelTitle,
+} from '@renderer/ui/Panel';
 import styles from './OtherItemPanel.module.css';
 import {useOtherSources} from './useOtherSources';
 
@@ -48,7 +54,7 @@ function NoticePanel({
   return (
     <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
       <PanelHeader>
-        <PanelTitle title={set.name} meta={`슬라이드 ${tiles.length}개`} />
+        <PanelTitle title={set.name} />
       </PanelHeader>
       <PanelBody variant="flush" className={styles.body}>
         {children ?? (
@@ -78,6 +84,7 @@ function NoticePanel({
           />
         )}
       </PanelBody>
+      <PanelFooter count={tiles.length} />
     </Panel>
   );
 }

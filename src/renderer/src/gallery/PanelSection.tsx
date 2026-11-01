@@ -32,7 +32,7 @@ import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
 type Tool = 'showing' | 'audio' | 'stage' | 'timer' | 'message';
 
 const tools: ReadonlyArray<PanelTab<Tool>> = [
-  {value: 'showing', label: '표시 중', count: 3},
+  {value: 'showing', label: '표시 중'},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
   {value: 'timer', label: '타이머'},
@@ -183,7 +183,7 @@ export function PanelSection(): JSX.Element {
         <SpecItem label="Tab + service switcher + controls" width={280}>
           <ServiceHeader state={{label: ''}} withActions />
         </SpecItem>
-        <SpecItem label="Tab + count" width={280}>
+        <SpecItem label="Tab + footer count" width={280}>
           <Panel label="라이브러리">
             <PanelHeader>
               <PanelTabs
@@ -191,12 +191,12 @@ export function PanelSection(): JSX.Element {
                 value="library"
                 onChange={ignore}
               />
-              <PanelMeta>128</PanelMeta>
               <PanelActions>
                 <IconButton icon="plus" label="새 곡" />
               </PanelActions>
             </PanelHeader>
             <MiniBody />
+            <PanelFooter count={128} />
           </Panel>
         </SpecItem>
         <SpecItem label="Several tabs, gap 18" width={320}>
@@ -253,15 +253,19 @@ export function PanelSection(): JSX.Element {
             <MiniBody />
           </Panel>
         </SpecItem>
-        <SpecItem label="Title + count, sm button on the right" width={440}>
+        <SpecItem
+          label="Title + footer count, sm button on the right"
+          width={440}
+        >
           <Panel label="슬라이드">
             <PanelHeader>
-              <PanelTitle title="만복의 근원 하나님" meta="슬라이드 9개" />
+              <PanelTitle title="만복의 근원 하나님" />
               <PanelActions>
                 <Button icon="edit">라이브러리 곡 편집</Button>
               </PanelActions>
             </PanelHeader>
             <MiniBody />
+            <PanelFooter count={9} />
           </Panel>
         </SpecItem>
       </SpecGroup>

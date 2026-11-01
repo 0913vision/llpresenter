@@ -6,6 +6,7 @@ import {Button, MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroCollectionPicker} from './MacroCollectionPicker';
 import type {MenuAnchor} from '@renderer/ui/Menu';
+import {PanelFooter} from '@renderer/ui/Panel';
 import styles from './MacroView.module.css';
 
 export type MacroViewMode = 'grid' | 'list';
@@ -125,7 +126,6 @@ export function MacroView({
           onProblem={onProblem}
           onNew={onNewCollection}
         />
-        <span>{`${shown.length}개`}</span>
         <Button aria-pressed={mode === 'grid'} onClick={() => onMode('grid')}>
           격자 보기
         </Button>
@@ -133,40 +133,43 @@ export function MacroView({
           목록 보기
         </Button>
       </div>
-      {mode === 'grid' ? (
-        <MacroGrid
-          {...props}
-          onNew={onNew}
-          newDisabledReason={newDisabledReason}
-        >
-          {shown.map(item => (
-            <MacroTile
-              key={item.id}
-              name={item.name}
-              icon={item.icon}
-              color={item.color}
-              selected={item.id === selectedId}
-              lastRun={item.id === lastRunId}
-              schedule={item.runOnStartup ? {kind: 'startup'} : undefined}
-            />
-          ))}
-        </MacroGrid>
-      ) : (
-        <MacroList {...props}>
-          {shown.map(item => (
-            <MacroRow
-              key={item.id}
-              name={item.name}
-              icon={item.icon}
-              color={item.color}
-              selected={item.id === selectedId}
-              lastRun={item.id === lastRunId}
-              schedule={item.runOnStartup ? {kind: 'startup'} : undefined}
-              actionCount={item.actions.length}
-            />
-          ))}
-        </MacroList>
-      )}
+      <div className={styles.content}>
+        {mode === 'grid' ? (
+          <MacroGrid
+            {...props}
+            onNew={onNew}
+            newDisabledReason={newDisabledReason}
+          >
+            {shown.map(item => (
+              <MacroTile
+                key={item.id}
+                name={item.name}
+                icon={item.icon}
+                color={item.color}
+                selected={item.id === selectedId}
+                lastRun={item.id === lastRunId}
+                schedule={item.runOnStartup ? {kind: 'startup'} : undefined}
+              />
+            ))}
+          </MacroGrid>
+        ) : (
+          <MacroList {...props}>
+            {shown.map(item => (
+              <MacroRow
+                key={item.id}
+                name={item.name}
+                icon={item.icon}
+                color={item.color}
+                selected={item.id === selectedId}
+                lastRun={item.id === lastRunId}
+                schedule={item.runOnStartup ? {kind: 'startup'} : undefined}
+                actionCount={item.actions.length}
+              />
+            ))}
+          </MacroList>
+        )}
+      </div>
+      <PanelFooter count={shown.length} />
     </div>
   );
 }

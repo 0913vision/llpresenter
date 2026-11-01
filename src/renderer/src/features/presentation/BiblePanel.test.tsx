@@ -221,7 +221,7 @@ describe('Bible panel integration', () => {
         target: {value: '18'},
       });
       const panel = await screen.findByRole('region', {name: '성경'});
-      expect(within(panel).getByText('슬라이드 3개')).toBeTruthy();
+      expect(within(panel).getByText('3개')).toBeTruthy();
       expect(fixture.send).not.toHaveBeenCalled();
       fireEvent.click(within(panel).getAllByRole('option')[1] ?? panel);
       expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({

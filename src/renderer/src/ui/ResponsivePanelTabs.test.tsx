@@ -9,7 +9,7 @@ import {mockPanelTabWidths} from './responsiveTabTesting';
 afterEach(cleanup);
 
 const tabs = [
-  {value: 'showing', label: '표시 중', count: 2},
+  {value: 'showing', label: '표시 중'},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
   {value: 'macro', label: '매크로'},
@@ -37,10 +37,10 @@ const visible = () => screen.getAllByRole('tab').map(tab => tab.textContent);
 it('fits tabs on resize and promotes the selected overflow tab to the last slot', async () => {
   const widths = mockPanelTabWidths(1000);
   render(<Fixture />);
-  expect(visible()).toEqual(['표시 중2', '오디오', '무대', '매크로']);
+  expect(visible()).toEqual(['표시 중', '오디오', '무대', '매크로']);
   expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
   widths.resize(180);
-  expect(visible()).toEqual(['표시 중2', '오디오']);
+  expect(visible()).toEqual(['표시 중', '오디오']);
   await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
   const menu = screen.getByRole('menu', {name: '더 보기'});
   expect(
@@ -51,7 +51,7 @@ it('fits tabs on resize and promotes the selected overflow tab to the last slot'
   await userEvent.click(
     within(menu).getByRole('menuitemradio', {name: '매크로'}),
   );
-  expect(visible()).toEqual(['표시 중2', '매크로']);
+  expect(visible()).toEqual(['표시 중', '매크로']);
   expect(
     screen.getByRole('tab', {name: '매크로'}).getAttribute('aria-selected'),
   ).toBe('true');
@@ -59,7 +59,7 @@ it('fits tabs on resize and promotes the selected overflow tab to the last slot'
   widths.resize(120);
   expect(visible()).toEqual(['매크로']);
   widths.resize(1000);
-  expect(visible()).toEqual(['표시 중2', '오디오', '무대', '매크로']);
+  expect(visible()).toEqual(['표시 중', '오디오', '무대', '매크로']);
   expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
 });
 

@@ -13,7 +13,6 @@ import {
   PanelBody,
   PanelFooter,
   PanelHeader,
-  PanelMeta,
   PanelTabs,
   Slider,
 } from '@renderer/ui';
@@ -233,7 +232,6 @@ export function MediaView({
             value="list"
             onChange={() => undefined}
           />
-          <PanelMeta>{items.length}</PanelMeta>
           <PanelActions>
             <MediaImportOptions onProblem={onProblem} />
             <Button

@@ -16,6 +16,7 @@ import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {
   SlidePanelBody,
   SlidePanelMeta,
+  SlidePanelFooter,
 } from '@renderer/features/presentation/SlidePanel';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {sampleService} from '@renderer/session/testing/sampleService';
@@ -82,10 +83,11 @@ it('opens a separate library source in the real slide panel without changing ser
     <>
       <SlidePanelMeta />
       <SlidePanelBody sizeClass="normal" />
+      <SlidePanelFooter sizeClass="normal" />
     </>,
   );
   expect(screen.getByText('새벽의 빛')).toBeDefined();
-  expect(screen.getByText('슬라이드 2개')).toBeDefined();
+  expect(screen.getByText('2개')).toBeDefined();
   expect(screen.getByText('창작한 첫 줄')).toBeDefined();
   expect(useShow.getState()).toMatchObject({
     openItemId: itemId,

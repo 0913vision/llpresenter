@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -21,7 +21,7 @@ afterEach(resetTooltips);
 type Tool = 'showing' | 'audio' | 'stage';
 
 const tools: ReadonlyArray<PanelTab<Tool>> = [
-  {value: 'showing', label: '표시 중', count: 3},
+  {value: 'showing', label: '표시 중'},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
 ];
@@ -55,7 +55,7 @@ describe('Panel', () => {
         fireEvent.click(target, {detail: 0});
       }
     }
-    expect(selectedTab()).toBe('표시 중3');
+    expect(selectedTab()).toBe('표시 중');
     fireEvent.click(target, {detail: 1, ctrlKey: true});
     expect(selectedTab()).toBe('오디오');
   });
@@ -65,11 +65,11 @@ describe('Panel', () => {
     expect(screen.getByRole('region', {name: '진행 도구'})).toBeDefined();
   });
 
-  it('names a tab with its count and labels the body by the selected tab', () => {
+  it('labels the body by the selected tab name', () => {
     render(<ShowTools />);
-    const showing = screen.getByRole('tab', {name: '표시 중 3개'});
+    const showing = screen.getByRole('tab', {name: '표시 중'});
     expect(showing.getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByRole('tabpanel', {name: '표시 중 3개'})).toBeDefined();
+    expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();
   });
 
   it('selects tabs on click and with the arrow keys', async () => {
@@ -80,7 +80,7 @@ describe('Panel', () => {
     await userEvent.keyboard('{ArrowRight}');
     expect(selectedTab()).toBe('무대');
     await userEvent.keyboard('{ArrowRight}');
-    expect(selectedTab()).toBe('표시 중3');
+    expect(selectedTab()).toBe('표시 중');
   });
 
   it('stops Tab only on the selected tab', async () => {
@@ -232,6 +232,42 @@ describe('PanelSwitch', () => {
 });
 
 describe('PanelTitle and PanelFooter', () => {
+  it.each([0, 3])(
+    'shows %i items in the footer without repeating the panel name',
+    count => {
+      const {container, rerender} = render(
+        <Panel label="라이브러리">
+          <PanelHeader>
+            <PanelTitle title="라이브러리" />
+          </PanelHeader>
+          <PanelBody>목록</PanelBody>
+          <PanelFooter count={count} end={<button type="button">크기</button>}>
+            1.8MB
+          </PanelFooter>
+        </Panel>,
+      );
+      const footer = container.querySelector('footer');
+      expect(footer).not.toBeNull();
+      if (footer === null) throw new Error('Missing panel footer');
+      expect(within(footer).getByText(`${count}개`)).toBeDefined();
+      expect(within(footer).getByText('1.8MB')).toBeDefined();
+      expect(within(footer).getByRole('button', {name: '크기'})).toBeDefined();
+      expect(
+        container.querySelector('section')?.firstElementChild?.textContent,
+      ).toBe('라이브러리');
+      rerender(
+        <Panel label="라이브러리">
+          <PanelHeader>
+            <PanelTitle title="라이브러리" />
+          </PanelHeader>
+          <PanelFooter count={count + 1} />
+        </Panel>,
+      );
+      expect(screen.getByText(`${count + 1}개`)).toBeDefined();
+      expect(screen.queryByText(`${count}개`)).toBeNull();
+    },
+  );
+
   it('shows a title with its position, actions, and footer parts', () => {
     render(
       <Panel label="슬라이드">
@@ -244,12 +280,12 @@ describe('PanelTitle and PanelFooter', () => {
         <PanelBody>
           <span>슬라이드 목록</span>
         </PanelBody>
-        <PanelFooter end={<span>크기</span>}>슬라이드 9개</PanelFooter>
+        <PanelFooter count={9} end={<span>크기</span>} />
       </Panel>,
     );
     expect(screen.getByText('만복의 근원 하나님')).toBeDefined();
     expect(screen.getByText('2 / 9')).toBeDefined();
-    expect(screen.getByText('슬라이드 9개')).toBeDefined();
+    expect(screen.getByText('9개')).toBeDefined();
     expect(screen.getByText('크기')).toBeDefined();
   });
 });

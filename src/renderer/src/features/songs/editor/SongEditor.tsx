@@ -19,7 +19,8 @@ import styles from './SongEditor.module.css';
 import type {SongId} from '@core/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
-import {linearSlidesOf} from '@core/songs/blockEdits';
+import {linearSlidesOf, slideCountOf} from '@core/songs/blockEdits';
+import {PanelFooter} from '@renderer/ui/Panel';
 import {useSongBlockWindow} from './useSongBlockWindow';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
@@ -47,6 +48,9 @@ export function SongEditor({
             busy={state.busy}
           />
           <SongBlocks store={store} session={state.session} />
+          <PanelFooter
+            count={slideCountOf(state.session.history.snapshot.song)}
+          />
         </div>
       )}
     </section>

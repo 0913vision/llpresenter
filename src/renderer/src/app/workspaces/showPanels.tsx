@@ -6,7 +6,7 @@ import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {
   SlidePanelBody,
   SlidePanelMeta,
-  SlideSizeControl,
+  SlidePanelFooter,
 } from '@renderer/features/presentation/SlidePanel';
 import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
@@ -99,7 +99,7 @@ function showPanelParts({
             <SongBackgroundControl onProblem={onProblem} />
           </>
         ),
-        footer: <SlideSizeControl sizeClass={sizeClass} />,
+        footer: <SlidePanelFooter sizeClass={sizeClass} />,
         stableScrollbar: true,
       };
     default:

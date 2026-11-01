@@ -31,10 +31,7 @@ export function BiblePanel({
   return (
     <Panel label="성경" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle
-          title={source.passage.displayRef}
-          meta={`슬라이드 ${source.tiles.length}개`}
-        />
+        <PanelTitle title={source.passage.displayRef} />
       </PanelHeader>
       <PanelTools>
         <BibleDisplayControls key={source.id} source={source} />
@@ -44,6 +41,7 @@ export function BiblePanel({
       </PanelBody>
       <div className={styles.footer}>
         <PanelFooter
+          count={source.tiles.length}
           end={
             <>
               <BibleAdjacentButtons key={source.id} source={source} />

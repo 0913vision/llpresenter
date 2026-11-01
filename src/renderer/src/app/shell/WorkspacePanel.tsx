@@ -83,9 +83,7 @@ export function Panel({
       >
         {parts.body}
       </div>
-      {parts.footer ? (
-        <div className={styles.footer}>{parts.footer}</div>
-      ) : null}
+      {parts.footer}
     </section>
   );
 }

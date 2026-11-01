@@ -128,7 +128,7 @@ describe('the center panel of other item kinds', () => {
   it('shows the images of a 공지 set without a way to change them', async () => {
     show({id: itemId, notice: noticeSet});
     expect(await screen.findByText('주보 공지')).toBeDefined();
-    expect(screen.getByText('슬라이드 2개')).toBeDefined();
+    expect(screen.getByText('2개')).toBeDefined();
     const names = screen
       .getAllByRole('option')
       .map(tile => tile.getAttribute('aria-label'));
@@ -287,10 +287,10 @@ describe('the center panel of other item kinds', () => {
       ),
     );
     expect(screen.getByText('Updated')).toBeDefined();
-    expect(screen.getByText('슬라이드 1개')).toBeDefined();
+    expect(screen.getByText('1개')).toBeDefined();
     act(() => fixture.pushDocument(mediaDocument([], 3)));
     expect(screen.queryAllByRole('option')).toHaveLength(0);
-    expect(screen.getByText('슬라이드 0개')).toBeDefined();
+    expect(screen.getByText('0개')).toBeDefined();
     const latest = noticesDocument({revision: 3});
     act(() =>
       fixture.pushNotices({...latest, value: {...latest.value, sets: []}}),

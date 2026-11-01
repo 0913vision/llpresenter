@@ -75,10 +75,7 @@ export function SongSlidePanel({
   return (
     <Panel label="슬라이드" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle
-          title="슬라이드"
-          meta={capped ? '한도 초과' : String(numbers.length)}
-        />
+        <PanelTitle title="슬라이드" meta={capped ? '한도 초과' : undefined} />
         {capped ? (
           <PanelActions>
             <span
@@ -124,6 +121,7 @@ export function SongSlidePanel({
         />
       </PanelBody>
       <PanelFooter
+        count={numbers.length}
         end={
           <ThumbnailSizeControl
             value={scale}

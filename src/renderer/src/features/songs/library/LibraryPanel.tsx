@@ -9,7 +9,7 @@ import {
   PanelActions,
   PanelBody,
   PanelHeader,
-  PanelMeta,
+  PanelFooter,
   PanelTabs,
   PanelTools,
 } from '@renderer/ui/Panel';
@@ -84,7 +84,6 @@ export function LibraryPanel({
             value="library"
             onChange={() => undefined}
           />
-          <PanelMeta>{library.songs.length}</PanelMeta>
           <PanelActions>
             <IconButton
               icon="plus"
@@ -125,6 +124,7 @@ export function LibraryPanel({
             />
           </div>
         </PanelBody>
+        <PanelFooter count={library.songs.length} />
       </Panel>
       {menu && menuSong ? (
         <Menu

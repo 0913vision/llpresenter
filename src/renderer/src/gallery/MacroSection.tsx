@@ -45,7 +45,7 @@ const SELECTED = 2;
 const LIST_LENGTH = 6;
 
 const toolTabs = [
-  {value: 'showing', label: '표시 중', count: 3},
+  {value: 'showing', label: '표시 중'},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
   {value: 'timer', label: '타이머'},

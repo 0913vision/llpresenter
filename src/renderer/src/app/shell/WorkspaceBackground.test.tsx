@@ -60,7 +60,7 @@ describe('workspace slide header connection', () => {
         sampleService.rows.find(row => row.id === 'song-morning')?.title ?? '',
       ),
     ).toBeDefined();
-    expect(panel.getByText('슬라이드 4개')).toBeDefined();
+    expect(panel.getByText('4개')).toBeDefined();
     fireEvent.click(panel.getByRole('button', {name: 'Background fixture'}));
     expect(onProblem).toHaveBeenCalledWith(problem);
     const base = emptyLiveState();

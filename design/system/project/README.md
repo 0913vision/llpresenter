@@ -227,13 +227,25 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 
 ## Writing
 
+### Counts
+
+- Put a panel's item count in its bottom footer, never beside its title or tab.
+  Write only the number and unit, such as `3개` or `0개`; the title already
+  names the items. Do not show a capacity fraction such as `3 / 10` there.
+- Use the shared `PanelFooter` count, `size-panel-footer` height,
+  `panel-inset` padding, `caption` text, `text-3`, and tabular numbers.
+  Keep the footer outside the scrolling content. Preserve existing details
+  such as media size (`3개 1.8MB`) and controls on the right.
+- A live slide position remains `current / total`; it describes the live
+  selection, rather than the panel's item count.
+
 - Write button names as short nouns or verbs: 출력, 지우기, 저장 (save), 가져오기 (import), 덮어쓰기 (overwrite), 새로 시작 (start over), 복구 (recover), 만들기 (create). Don't add "~하기" to a button name.
 - Write the title of a confirmation dialog as one question in 합니다체: "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" (A song named ‘만복의 근원 하나님’ already exists. Overwrite it?) The buttons answer that question.
 - Don't put explanatory text on screen. Examples removed from the drafts: "넣을 위치" (insert position), "방금 실행" (just ran), "같은 제목" (same title), "원본을 따름" (follows the source), "파일 없음 1" (1 missing file). Show state with shape and color, and reasons in tooltips.
 - Write only the name and the shortcut in a tooltip: "가사 지우기  F2". Don't end it with a period. Write a sentence only to give the reason for a problem: "모니터 2를 찾을 수 없습니다" (Can't find monitor 2).
 - For errors and problems, say what went wrong, and offer the fix as a button ("모니터 다시 찾기", "다시 가져오기"). Don't apologize.
-- Formats: date "10월 25일 일요일", time "오전 11:00", 슬라이드 position "2 / 9", counts "슬라이드 9개" and "항목 12개", duration "0:42", screen status "60fps".
-- Keep 장 for Bible chapters: "창세기 1장" and "요한복음 3장 16절". A Bible item's slide count still uses "슬라이드 2개"; it is separate from its chapter and verse reference. Keep unrelated words such as 저장 (save), 장치 (device), and 가장자리 (edge).
+- Formats: date "10월 25일 일요일", time "오전 11:00", 슬라이드 position "2 / 9", panel footer counts "9개" and "12개", duration "0:42", screen status "60fps".
+- Keep 장 for Bible chapters: "창세기 1장" and "요한복음 3장 16절". A Bible item's slide count uses "2개" in its panel footer, separate from its chapter and verse reference. Keep unrelated words such as 저장 (save), 장치 (device), and 가장자리 (edge).
 
 ### Glossary
 

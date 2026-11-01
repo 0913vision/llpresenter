@@ -160,7 +160,7 @@ describe('service song item panel', () => {
   it('shows the song, the chosen 구성 as chips, and its thumbnails', async () => {
     const {panel, first} = await setup();
     expect(within(panel).getByText(first.song.title)).toBeDefined();
-    expect(within(panel).getByText('슬라이드 3개')).toBeDefined();
+    expect(within(panel).getByText('3개')).toBeDefined();
     expect(
       within(panel).getByRole('button', {name: '구성'}).textContent,
     ).toContain('주일용');
@@ -356,7 +356,7 @@ describe('service song item panel', () => {
 
     await screen.findByRole('listbox', {name: '구성 순서'});
     const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    expect(within(panel).getByText('슬라이드 0개')).toBeDefined();
+    expect(within(panel).getByText('0개')).toBeDefined();
     expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
 
     const editBtn = within(panel).getByRole('button', {
@@ -428,7 +428,7 @@ describe('service song item panel', () => {
 
     await screen.findByRole('listbox', {name: '구성 순서'});
     const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    expect(within(panel).getByText('슬라이드 0개')).toBeDefined();
+    expect(within(panel).getByText('0개')).toBeDefined();
     expect(within(panel).queryByRole('img', {name: /구성이 없어/})).toBeNull();
     expect(
       within(panel)

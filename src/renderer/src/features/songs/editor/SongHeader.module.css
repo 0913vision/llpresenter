@@ -16,7 +16,6 @@
   min-width: var(--size-field-key);
 }
 
-.count,
 .used {
   flex: none;
   color: var(--text-3);

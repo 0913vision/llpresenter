@@ -89,7 +89,7 @@ export function ResponsivePanelTabs<T extends string>({
         <div ref={tabMeasure} className={styles.tabs}>
           {tabs.map(tab => (
             <span key={tab.value} className={styles.tab}>
-              <PanelTabContent label={tab.label} count={tab.count} />
+              <PanelTabContent label={tab.label} />
             </span>
           ))}
         </div>

@@ -1,14 +1,19 @@
 .root {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
   gap: var(--space-8);
 }
 .header {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-4);
 }
 
-.header > span {
-  flex: none;
-  white-space: nowrap;
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
