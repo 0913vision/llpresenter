@@ -713,3 +713,18 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `screens-message` and `theme-editor` into one test; move `macro-run` and
   `overlay-range` coverage to unit tests. `stop-electron.test.ts` stays (mocked
   unit tests of the helper).
+
+## 2026-11-01: Stylelint checks the CSS modules
+
+- The user approved adding a CSS linter ("CSS 린트 도입해"). CLAUDE.md requires
+  design token variables for every color, size, and spacing value in the UI, and
+  allows no comments other than NOTE and TODO, but only review enforced this in
+  CSS; the lead found 11 raw color values in CSS modules.
+- Add `stylelint` (exact version pinned) and run it in `npm run lint`, so the
+  pre-push checks and `npm run verify` include it. `design/` stays excluded (its
+  files are generated).
+- Rules: no raw colors (hex, named colors, and `rgb()` or `hsl()` outside token
+  definitions); no literal lengths in spacing, size, and radius properties
+  except 0 (use tokens); the comment rule of CLAUDE.md. Rules that would only
+  restate Prettier are left out. Existing violations are fixed in the same
+  request, not ignored.
