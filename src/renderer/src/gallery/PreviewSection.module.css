@@ -60,7 +60,7 @@
   bottom: 10%;
   left: 10%;
   padding: 1.3cqw 2.6cqw;
-  background: rgba(0, 0, 0, 0.82);
+  background: var(--scrim-strong);
   color: var(--text-on-fill);
   font-size: 2.65cqw;
   font-weight: 600;

@@ -36,8 +36,8 @@
 
 .divider {
   flex: none;
-  width: 1px;
-  height: 24px;
+  width: var(--size-hairline);
+  height: var(--size-toolbar-divider);
   margin: 0 var(--space-8);
   background: var(--line);
 }

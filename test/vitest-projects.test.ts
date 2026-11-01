@@ -86,7 +86,9 @@ describe('CI test workers', () => {
     if (typeof scripts !== 'object' || scripts === null) {
       throw new Error('Missing package scripts');
     }
-    expect(Reflect.get(scripts, 'lint')).toBe('eslint --max-warnings 0 .');
+    expect(Reflect.get(scripts, 'lint')).toBe(
+      'stylelint "src/**/*.css" --max-warnings 0 && eslint --max-warnings 0 .',
+    );
     const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
     expect(workflow).toContain('npm run lint -- --concurrency auto');
   });

@@ -184,8 +184,8 @@
 
 .description {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: var(--size-hairline);
+  height: var(--size-hairline);
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;

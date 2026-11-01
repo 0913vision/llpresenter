@@ -22,7 +22,7 @@
 }
 
 .bar::-webkit-scrollbar {
-  height: 6px;
+  height: var(--size-scrollbar-thumb);
 }
 
 .bar::-webkit-scrollbar-thumb {

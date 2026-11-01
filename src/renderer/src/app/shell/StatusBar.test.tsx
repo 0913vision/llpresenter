@@ -105,8 +105,11 @@ describe('StatusBar', () => {
       /\.bar > span\s*\{\s*flex:\s*none;\s*white-space:\s*nowrap/,
     );
     expect(css).toMatch(/overflow-x:\s*auto/);
-    expect(css).toMatch(/\.bar::-webkit-scrollbar\s*\{\s*height:\s*6px/);
+    expect(css).toMatch(
+      /\.bar::-webkit-scrollbar\s*\{\s*height:\s*var\(--size-scrollbar-thumb\)/,
+    );
     const tokens = readFileSync('src/renderer/src/styles/tokens.css', 'utf8');
+    expect(tokens).toMatch(/--size-scrollbar-thumb:\s*6px/);
     expect(tokens).toMatch(/--size-statusbar:\s*28px/);
     expect(tokens).toMatch(/--type-caption:\s*400 14px\/20px/);
   });

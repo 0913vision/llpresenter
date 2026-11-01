@@ -11,7 +11,7 @@
 
 .divider {
   flex: none;
-  width: 1px;
+  width: var(--size-hairline);
   height: var(--size-clear-divider);
   margin: 0 var(--space-4);
   background: var(--line);

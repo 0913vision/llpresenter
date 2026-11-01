@@ -76,8 +76,8 @@
 
 .divider {
   flex: none;
-  width: 1px;
-  height: 32px;
+  width: var(--size-hairline);
+  height: var(--size-clear-divider);
   margin: 0 var(--space-4);
   background: var(--line);
 }
@@ -91,6 +91,6 @@
 }
 
 .compact .divider {
-  height: 24px;
+  height: var(--size-clear-divider-compact);
   margin: 0 var(--space-2);
 }

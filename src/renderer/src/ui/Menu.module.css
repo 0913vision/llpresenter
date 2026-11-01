@@ -151,7 +151,7 @@
 
 .separator {
   flex: none;
-  height: 1px;
+  height: var(--size-hairline);
   margin: var(--space-6) var(--space-18);
   background: var(--line-menu);
 }

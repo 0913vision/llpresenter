@@ -9,7 +9,7 @@ so they behave the same in Git Bash and in PowerShell.
 Runs every check at once and waits for all of them:
 
 1.  `typecheck`: TypeScript 7 (`tsc`) on the node and web projects.
-2.  `lint`: ESLint, with no warnings allowed.
+2.  `lint`: ESLint, then Stylelint, with no warnings allowed.
 3.  `format:check`: Prettier, which skips files whose content hasn't changed
     since its last check (`node_modules/.cache/prettier`).
 4.  `test:coverage`: Vitest with a coverage report in `coverage/`.
@@ -88,6 +88,17 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
   structure"). It resolves both relative and alias imports.
   `llp/test-layer-imports` lets a test use any layer of its own process, never
   another process's code.
+- Stylelint checks `src/**/*.css` (`design/` is generated and skipped). The
+  config is `scripts/lint/stylelint-config.mts`, re-exported by the root
+  `stylelint.config.mjs`. It rejects raw colors (hex, named, `rgb()`, `hsl()`
+  and similar) and literal `px`, `em`, and `rem` lengths in spacing, size, and
+  radius properties, so those use tokens; `src/renderer/src/styles/tokens.css`
+  defines them and is exempt. `llp/allowed-comments`
+  (`scripts/lint/css-comment-rule.mts`) allows only
+  `/* NOTE(0913vision): ... */` and `/* TODO(0913vision): ... */`. A missing
+  token goes into `design/system/project/tokens.json`; regenerate with
+  `node gen-tokens-css.js` and copy it to the app (see the note at the top of
+  `tokens.css`).
 - Comments can't switch rules off (`noInlineConfig`). When existing code breaks
   a rule, add the narrowest entry to `scripts/lint/legacy-exclusions.mts` with a
   TODO, and the code's author fixes it.

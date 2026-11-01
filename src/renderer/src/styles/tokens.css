@@ -40,6 +40,16 @@
   --output-black: #000000;
   --scrim: rgba(0, 0, 0, 0.6);
   --scrim-strong: rgba(0, 0, 0, 0.72);
+  --hue-spectrum: linear-gradient(
+    to right,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
   --label-teal: #5fb8c2;
   --label-green: #8fbf7a;
   --label-yellow: #d6b35f;
@@ -96,6 +106,9 @@
   --space-menu-text: 23px;
   --space-menu-check: 4px;
   --space-menu-icon-gap: 9px;
+  --space-menubar-item-inline: 9px;
+  --space-test-pattern-label-block: 0.4em;
+  --space-test-pattern-label-inline: 0.8em;
   --radius-xs: 2px;
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -208,6 +221,13 @@
   --size-calendar-weekday: 24px;
   --size-guide-line: 1px;
   --size-guide-snap: 6px;
+  --size-hairline: 1px;
+  --size-toolbar-divider: 24px;
+  --size-menubar-item: 24px;
+  --size-window-control-width: 46px;
+  --size-scrollbar-thumb: 6px;
+  --size-audio-track-number: 2em;
+  --size-monitor-number-font: 160px;
   --z-popover: 100;
   --z-tooltip: 200;
   --z-dialog: 300;

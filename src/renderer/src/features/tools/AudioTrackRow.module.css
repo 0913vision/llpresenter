@@ -24,7 +24,7 @@
   cursor: default;
 }
 .number {
-  width: 2em;
+  width: var(--size-audio-track-number);
   flex: none;
   font-variant-numeric: tabular-nums;
 }
