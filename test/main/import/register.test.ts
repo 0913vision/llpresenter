@@ -3,16 +3,24 @@ import {join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import {
-  parseTextImportReadResult,
-  parseTextImportPreviewResult,
-} from '@core/schema/textImport';
 import {makeTempDir} from '@fixtures/tempDir';
 import {
   registerTextImport,
   TEST_IMPORT_FILE_VARIABLE,
 } from '@main/import/register';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {convertTextImport} from '@core/songs/textImport';
+import {readTextImport} from '@main/import/read';
+
+vi.mock('@main/import/read', async importOriginal => {
+  const actual = await importOriginal<typeof import('@main/import/read')>();
+  return {...actual, readTextImport: vi.fn(actual.readTextImport)};
+});
+vi.mock('@core/songs/textImport', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@core/songs/textImport')>();
+  return {...actual, convertTextImport: vi.fn(actual.convertTextImport)};
+});
 
 type Handler = (event: unknown, value: unknown) => unknown;
 interface Selection {
@@ -144,40 +152,45 @@ const previewRequest = {
 };
 
 describe('text import IPC registration', () => {
-  it('answers read and preview with validated values and a single text-file dialog', async () => {
+  it('reads a valid request through the file dialog and previews a valid one with the converter', async () => {
     const {control, log} = setup();
-    const folder = await makeTempDir();
-    const path = join(folder, 'Example.txt');
-    await writeFile(path, 'One\nTwo');
+    const file = {
+      source: 'file',
+      fileName: 'Example.txt',
+      text: 'One',
+    } as const;
+    vi.mocked(readTextImport).mockImplementationOnce(
+      async (_request, inputs) => {
+        expect(await inputs.chooseFile()).toBe('C:/data/Example.txt');
+        return {ok: true, value: file};
+      },
+    );
     electron.chooseFile.mockResolvedValueOnce({
       canceled: false,
-      filePaths: [path],
+      filePaths: ['C:/data/Example.txt'],
     });
-    const read = await handler(libraryEndpoints.readText.channel)(
-      {},
+
+    expect(
+      await handler(libraryEndpoints.readText.channel)({}, readRequest),
+    ).toEqual({ok: true, value: file});
+    expect(readTextImport).toHaveBeenLastCalledWith(
       readRequest,
+      expect.anything(),
     );
-    expect(read).toEqual({
-      ok: true,
-      value: {source: 'file', fileName: 'Example.txt', text: 'One\nTwo'},
-    });
-    expect(parseTextImportReadResult(read).ok).toBe(true);
     expect(electron.chooseFile).toHaveBeenCalledExactlyOnceWith(control, {
       properties: ['openFile'],
       filters: [{name: '텍스트 파일', extensions: ['txt']}],
     });
-    const preview = handler(libraryEndpoints.previewText.channel)(
-      {},
-      previewRequest,
-    );
-    expect(preview).toEqual({
+
+    const converted: ReturnType<typeof convertTextImport> = {
       ok: true,
-      value: {
-        title: 'Title',
-        slides: [{label: '후렴', lines: ['One', 'Two'], section: 0}],
-      },
-    });
-    expect(parseTextImportPreviewResult(preview).ok).toBe(true);
+      value: {title: 'Title', slides: []},
+    };
+    vi.mocked(convertTextImport).mockReturnValueOnce(converted);
+    expect(
+      handler(libraryEndpoints.previewText.channel)({}, previewRequest),
+    ).toBe(converted);
+    expect(convertTextImport).toHaveBeenLastCalledWith(previewRequest);
     expect(log.warn).not.toHaveBeenCalled();
   });
 

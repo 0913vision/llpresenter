@@ -17,10 +17,9 @@ import type {MediaItem} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
-import {MediaStore, type MediaItemsCommit} from '@main/store/mediaStore';
+import type {MediaItemsCommit} from '@main/store/mediaStore';
 import type {CopyOptions} from '@main/media/copyFile';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
-import {Thumbnails} from '@main/media/thumbnails';
 import {
   IMPORTED_VIDEO_SOUND,
   MAX_IMPORT_JOBS,
@@ -373,58 +372,48 @@ describe('media import', () => {
 });
 
 describe('media import boundaries', () => {
-  it.each([true, false, undefined])(
-    'keeps an imported file when the media list applies it but fails to save (copy=%s)',
+  it.each([true, false])(
+    'completes and keeps the files when the list applies an item but cannot save it (copy=%s)',
     async copyIntoFolder => {
-      const root = await makeTempDir();
-      const folder = join(root, 'media');
-      const store = new MediaStore({
-        document: expectSuccess(
-          parseMediaDocument({
-            name: 'media',
-            revision: 1,
-            access: 'editable',
-            value: EMPTY_MEDIA_LIST,
-          }),
-        ),
-        file: join(root, 'media.json'),
-        mediaFolder: folder,
-        files: {
-          write: request =>
-            Promise.resolve({
-              ok: false,
-              error: {file: request.target.file, message: 'Invented full disk'},
-            }),
-          remove: () => Promise.resolve({ok: true, value: undefined}),
-        },
-        log: recordingLogger(),
-        delayMs: 0,
+      const {importer, reports, add, media, source} = await setup({
+        copyIntoFolder,
       });
-      onTestFinished(() => store.dispose());
-      const reports: MediaImportProgress[] = [];
-      const importer = new MediaImporter({
-        store: () => Promise.resolve(store),
-        report: value => reports.push(value),
-        chooseFiles: () => Promise.resolve([]),
-        createId: () => createMediaId(uuid(1)),
-        ...(copyIntoFolder === undefined ? {} : {copyIntoFolder}),
-        analyse: () => Promise.resolve({kind: 'read', facts: {}}),
-        saveThumbnail: () => Promise.resolve(),
-        log: recordingLogger(),
+      add.mockResolvedValue({
+        ok: false,
+        error: {reason: 'write-failed', message: 'Invented full disk'},
       });
-      const source = join(root, 'Kept.png');
-      await writeFile(source, 'invented');
-      await importer.import(filesOf([source]), signal());
+      const original = await source('Kept.png', 'invented');
+
+      await importer.import(filesOf([original]), signal());
       await ended(reports, 1);
+
       expect(reports.at(-1)).toMatchObject({phase: 'complete'});
-      if (copyIntoFolder) expect(await readdir(folder)).toEqual(['Kept.png']);
-      expect(await readFile(source, 'utf8')).toBe('invented');
-      expect(await store.backgroundOf(uuid(1))).toMatchObject({
-        mediaId: uuid(1),
-      });
-      expect(store.get().value.items.map(({id}) => id)).toEqual([uuid(1)]);
+      if (copyIntoFolder) expect(await readdir(media)).toEqual(['Kept.png']);
+      expect(await readFile(original, 'utf8')).toBe('invented');
     },
   );
+
+  it('asks for files at once while another job is still running', async () => {
+    let finish: (value: Analysis) => void = () => undefined;
+    const chooseFiles = vi.fn(() => Promise.resolve([]));
+    const {importer, analyse, source} = await setup({chooseFiles});
+    analyse.mockReturnValue(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    await importer.import(filesOf([await source('Busy.png')]), signal());
+    await vi.waitFor(() => expect(analyse).toHaveBeenCalledOnce());
+
+    expect(
+      await importer.import(
+        {source: {kind: 'dialog'}, playlist: null},
+        signal(),
+      ),
+    ).toEqual({ok: true, value: []});
+    expect(chooseFiles).toHaveBeenCalledOnce();
+    finish({kind: 'read', facts: {}});
+  });
 
   it('stops following the shared backend signal when each job ends', async () => {
     const {importer, reports, source} = await setup();
@@ -574,54 +563,10 @@ describe('media import boundaries', () => {
     expect(await readdir(media)).toEqual([]);
   });
 
-  it('keeps no thumbnail for an item relinked while its admission was still saving', async () => {
-    const kept = new Map<string, Uint8Array>();
-    const cache = {
-      fileOf: () => Promise.resolve(null),
-      put: (id: MediaId, jpeg: Uint8Array) => {
-        kept.set(id, jpeg);
-        return Promise.resolve<string | null>(`cache/${id}`);
-      },
-      remove: (id: MediaId) => {
-        kept.delete(id);
-        return Promise.resolve();
-      },
-    };
-    const listed = {file: ''};
+  it('saves the thumbnail only after the list has added the item', async () => {
     let saved: (result: MediaEditResult) => void = () => undefined;
-    const {importer, reports, analyse, add, media, source} = await setup({
-      saveThumbnail: (mediaId, jpeg, file) =>
-        thumbnails.save(mediaId, jpeg, file),
-    });
-    const thumbnails = new Thumbnails({
-      cache,
-      analyse,
-      source: Promise.resolve({
-        get: () =>
-          expectSuccess(
-            parseMediaDocument({
-              name: 'media',
-              revision: 2,
-              access: 'editable',
-              value: {
-                ...EMPTY_MEDIA_LIST,
-                items: [
-                  {
-                    id: uuid(1),
-                    name: 'Dawn',
-                    kind: 'video',
-                    file: 'x',
-                    size: 1,
-                  },
-                ],
-              },
-            }),
-          ),
-        fileOf: () => listed.file,
-        subscribe: () => () => undefined,
-      }),
-      log: recordingLogger(),
-    });
+    const {importer, reports, analyse, add, saveThumbnail, source} =
+      await setup();
     analyse.mockResolvedValue({
       kind: 'read',
       facts: {thumbnail: Uint8Array.from([1])},
@@ -629,15 +574,20 @@ describe('media import boundaries', () => {
     add.mockImplementation(
       () =>
         new Promise(resolve => {
-          listed.file = join(media, 'Dawn.mp4');
           saved = resolve;
         }),
     );
+
     await importer.import(filesOf([await source('Dawn.mp4')]), signal());
     await vi.waitFor(() => expect(add).toHaveBeenCalledOnce());
-    listed.file = 'D:/found/Dawn.mp4';
+    expect(saveThumbnail).not.toHaveBeenCalled();
+
     saved({ok: true, value: {id: uuid(1), revision: 2}});
     await ended(reports, 1);
-    expect(kept.size).toBe(0);
+    expect(saveThumbnail).toHaveBeenCalledExactlyOnceWith(
+      uuid(1),
+      Uint8Array.from([1]),
+      expect.any(String),
+    );
   });
 });

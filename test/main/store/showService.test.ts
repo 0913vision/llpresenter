@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
 import type {Result} from '@core/common/result';
 import type {MediaChoice} from '@core/live/state';
@@ -21,9 +22,8 @@ import {
 } from '@fixtures/main/store/testFiles';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
-import {resolveServicePassages} from '@main/bible/servicePassages';
-import {resolvePassage} from '@core/bible/reference';
-import {passageSource} from '@fixtures/core/bible/testFiles';
+import type {ServicePassages} from '@main/bible/servicePassages';
+import {translationIdSchema} from '@core/schema/ids';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
@@ -65,8 +65,8 @@ function build(
 
 describe('buildShowService', () => {
   it.each([true, false])(
-    'projects normalized saved Bible identity and numbering %s with its tiles',
-    async verseNumbers => {
+    'shows the resolved Bible passage with the numbering %s of its item',
+    verseNumbers => {
       const document = loadedService(
         ['John 3 : 16 - 18', '시편 1:1'].map((ref, index) => ({
           id: itemId(index + 1),
@@ -80,21 +80,23 @@ describe('buildShowService', () => {
           },
         })),
       );
-      const passages = await resolveServicePassages(
-        document.data.order,
-        {
-          lookup: async request => ({
-            ...request,
-            suggestions: [],
-            result: await resolvePassage(passageSource(), request.input),
-          }),
-        },
-        {
-          reportError: error => {
-            throw error;
-          },
-        },
-      );
+      const tiles = [
+        {label: '3:16', labelColor: 'none', lines: ['구절']},
+      ] as const;
+      const passages: ServicePassages = {
+        tiles: new Map([[itemId(1), tiles]]),
+        references: new Map([
+          [
+            itemId(1),
+            {
+              ref: '요한복음 3:16-18',
+              translation: v.parse(translationIdSchema, 'sample'),
+            },
+          ],
+        ]),
+        unavailable: new Set([itemId(2)]),
+      };
+
       const show = buildShowService({
         service: document,
         songs: new Map(),
@@ -102,12 +104,13 @@ describe('buildShowService', () => {
         revision: 1,
         passages,
       });
+
       expect(show.rows[0]).toMatchObject({
         id: itemId(1),
         title: 'John 3 : 16 - 18',
         bible: {ref: '요한복음 3:16-18', translation: 'sample', verseNumbers},
       });
-      expect(show.tiles[itemId(1)]).toHaveLength(3);
+      expect(show.tiles[itemId(1)]).toBe(tiles);
       expect(show.rows[1]).toMatchObject({problem: 'missing-bible'});
       expect(show.rows[1]).not.toHaveProperty('bible');
     },
@@ -396,40 +399,6 @@ describe('buildShowService', () => {
       groupId: g1Id,
       slideIndex: 0,
     });
-  });
-
-  it('falls back to default group order for an empty named arrangement on grouped songs', () => {
-    const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
-    const gSongId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789a2');
-    const groupedSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 2,
-      id: gSongId,
-      title: '빈 구성 곡',
-      groups: [{id: g1Id, name: '1절', slides: [{lines: ['가사']}]}],
-      arrangements: [{name: '빈구성', groups: []}],
-    };
-
-    const show = buildShowService({
-      service: loadedService([
-        {id: itemId(1), song: gSongId, arrangement: '빈구성'},
-      ]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 2,
-            access: 'editable',
-            data: groupedSong,
-          },
-        ],
-      ]),
-      labels: [],
-      revision: 1,
-    });
-
-    expect(show.tiles[itemId(1)]).toHaveLength(1);
   });
 
   it('gives unnamed group label: null and labelColor: none', () => {

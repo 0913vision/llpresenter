@@ -248,7 +248,9 @@ describe('connected ports', () => {
     requireSaved: vi.fn(),
     queueRefresh: vi.fn(),
   };
-  const runtime = (): MacroCommandPort => ({run: vi.fn(history => history)});
+  const runtime = (): MacroCommandPort => ({
+    run: vi.fn<MacroCommandPort['run']>(history => history),
+  });
 
   it('gives slices every connected port and keeps the others when the 매크로 runtime is released', () => {
     const {live, last} = portStore();

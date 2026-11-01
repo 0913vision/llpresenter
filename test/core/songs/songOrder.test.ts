@@ -1,6 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
-import {expandGroupSlidesWithLimit, playbackOrder} from '@core/songs/songOrder';
+import {
+  expandGroupSlidesWithLimit,
+  playbackGroupIds,
+  playbackOrder,
+} from '@core/songs/songOrder';
+import type {GroupedSong} from '@core/schema/groupedSong';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 
 const payload = {
@@ -72,4 +78,34 @@ describe('shared playback order', () => {
     expect(playbackOrder(parsed.value.data, name)).toEqual([1, 2]);
     expect(playbackOrder(parsed.value.data, 'repeat')).toEqual([2, 1, 2]);
   });
+});
+
+describe('playbackGroupIds', () => {
+  const first = createSongGroupId('11111111-1111-4111-a111-111111111111');
+  const second = createSongGroupId('22222222-2222-4222-a222-222222222222');
+  const song: GroupedSong = {
+    format: 'llsong',
+    schemaVersion: 2,
+    id: createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789a2'),
+    title: '빈 구성 곡',
+    groups: [
+      {id: first, name: '1절', slides: [{lines: ['가사']}]},
+      {id: second, name: '후렴', slides: [{lines: ['후렴']}]},
+    ],
+    arrangements: [
+      {name: '반복', groups: [second, first, second]},
+      {name: '빈구성', groups: []},
+    ],
+  };
+
+  it('follows the named order', () => {
+    expect(playbackGroupIds(song, '반복')).toEqual([second, first, second]);
+  });
+
+  it.each([undefined, '빈구성', '없는 구성'])(
+    'uses the file order for the order %j',
+    name => {
+      expect(playbackGroupIds(song, name)).toEqual([first, second]);
+    },
+  );
 });

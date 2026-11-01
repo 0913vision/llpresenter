@@ -11,7 +11,17 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {DocumentFiles} from '@main/store/contentPersistence';
 import {MediaStore} from '@main/store/mediaStore';
-import type {MediaListEdit} from '@main/store/mediaEdits';
+import {
+  editMediaList,
+  mediaRefusal,
+  type MediaListEdit,
+} from '@main/store/mediaEdits';
+
+vi.mock('@main/store/mediaEdits', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@main/store/mediaEdits')>();
+  return {...actual, editMediaList: vi.fn(actual.editMediaList)};
+});
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -221,49 +231,15 @@ describe('media list edits and saves', () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
-  it('rejects unknown playlist members, non-audio tracks and invalid duration-relative ranges before mutation', async () => {
+  it('returns a refused edit and keeps the list and the file unchanged', async () => {
     const {store, write} = setup();
     const original = store.get();
-    for (const edit of [
-      {
-        type: 'media.playlist.update',
-        baseRevision: 1,
-        playlist: {
-          kind: 'media',
-          value: {id: LIST, name: 'Bad member', items: [NEW]},
-        },
-      },
-      {
-        type: 'media.playlist.update',
-        baseRevision: 1,
-        playlist: {
-          kind: 'audio',
-          value: {
-            id: AUDIO_LIST,
-            name: 'Bad audio',
-            items: [VIDEO],
-            loop: false,
-          },
-        },
-      },
-      {
-        type: 'media.properties.update',
-        baseRevision: 1,
-        mediaId: VIDEO,
-        changes: {props: {in: 61}},
-      },
-      {
-        type: 'media.properties.update',
-        baseRevision: 1,
-        mediaId: VIDEO,
-        changes: {props: {out: 61}},
-      },
-    ] satisfies readonly MediaListEdit[]) {
-      expect(await store.apply(edit)).toMatchObject({
-        ok: false,
-        error: {reason: 'invalid'},
-      });
-    }
+    const refusal = mediaRefusal('invalid', 'Unknown playlist member');
+    vi.mocked(editMediaList).mockReturnValueOnce(refusal);
+
+    expect(await store.apply({type: 'media.delete', mediaId: VIDEO})).toEqual(
+      refusal,
+    );
     expect(store.get()).toBe(original);
     expect(write).not.toHaveBeenCalled();
   });

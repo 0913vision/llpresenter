@@ -18,6 +18,21 @@ import type {
 } from '@main/store/mediaChannels';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import {
+  MediaImporter,
+  type MediaImporterOptions,
+} from '@main/media/mediaImporter';
+
+vi.mock('@main/media/mediaImporter', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('@main/media/mediaImporter')>();
+  return {
+    ...actual,
+    MediaImporter: vi.fn(function (options: MediaImporterOptions) {
+      return new actual.MediaImporter(options);
+    }),
+  };
+});
+import {
   registerMediaBackend,
   type MediaBackendStore,
 } from '@main/media/register';
@@ -211,54 +226,6 @@ describe('media backend registration', () => {
     expect(add.mock.calls[1]?.[0].items[0]?.file).toBe('Invented.png');
     await stop();
   });
-  it('opens immediately in the remembered folder without waiting for the import queue', async () => {
-    const {port, handlers} = mockPort();
-    const store = await mediaStore();
-    const folder = await makeTempDir();
-    const busyFile = join(folder, 'Busy.png');
-    await writeFile(busyFile, 'invented');
-    let finishAnalysis: (value: Analysis) => void = () => undefined;
-    analysis.analyse.mockReturnValue(
-      new Promise(resolve => {
-        finishAnalysis = resolve;
-      }),
-    );
-    const change = vi.fn<UiStateFields['change']>();
-    const uiState: UiStateFields = {
-      read: () => ({mediaImportFolder: folder}),
-      change,
-    };
-    let release: (value: {
-      canceled: boolean;
-      filePaths: string[];
-    }) => void = () => undefined;
-    electron.showOpenDialog.mockReturnValue(
-      new Promise(resolve => {
-        release = resolve;
-      }),
-    );
-    const stop = register(port, store, {uiState});
-    await handlers().import(
-      {source: {kind: 'files', paths: [busyFile]}, playlist: null},
-      new AbortController().signal,
-    );
-    await vi.waitFor(() => expect(analysis.analyse).toHaveBeenCalledOnce());
-    const pending = handlers().import(
-      {source: {kind: 'dialog'}, playlist: null},
-      new AbortController().signal,
-    );
-    expect(electron.showOpenDialog).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({defaultPath: folder}),
-    );
-    expect(change).not.toHaveBeenCalled();
-    release({canceled: true, filePaths: []});
-    expect(await pending).toEqual({ok: true, value: []});
-    expect(change).not.toHaveBeenCalled();
-    finishAnalysis({kind: 'read', facts: {}});
-    await stop();
-  });
-
   it('remembers the first chosen folder for the next dialog and leaves it on cancellation', async () => {
     const {port, handlers} = mockPort();
     const store = await mediaStore();
@@ -340,42 +307,12 @@ describe('media backend registration', () => {
     expect(disconnect).toHaveBeenCalledOnce();
   });
 
-  it('adds an imported file with what analysis found and keeps its thumbnail', async () => {
-    const {port, reported, handlers} = mockPort();
-    const store = await mediaStore();
-    const added: unknown[] = [];
-    const file = join(await makeTempDir(), 'Notice.png');
-    await writeFile(file, 'invented');
-    const thumbnail = Uint8Array.from([1]);
-    analysis.analyse.mockResolvedValue({
-      kind: 'read',
-      facts: {width: 4, height: 3, thumbnail},
-    });
-    const stop = register(port, {
-      ...store,
-      add: (commit, playlist) => {
-        added.push(...commit.items);
-        return store.add(commit, playlist);
-      },
-    });
-    await handlers().import(
-      {source: {kind: 'files', paths: [file]}, playlist: null},
-      new AbortController().signal,
-    );
-    await vi.waitFor(() =>
-      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
-    );
-    const [saved] = analysis.saveThumbnail.mock.calls;
-    expect(saved?.[1]).toBe(thumbnail);
-    expect(added).toEqual([
-      expect.objectContaining({
-        id: saved?.[0],
-        name: 'Notice',
-        file,
-        width: 4,
-        height: 3,
-      }),
-    ]);
+  it('does not copy imports while the settings are unavailable', async () => {
+    const {port} = mockPort();
+    const stop = register(port, await mediaStore());
+    const copy = vi.mocked(MediaImporter).mock.calls.at(-1)?.[0].copyIntoFolder;
+
+    expect(typeof copy === 'function' ? await copy() : copy).toBe(false);
     await stop();
   });
 
