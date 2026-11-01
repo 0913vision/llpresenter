@@ -206,6 +206,66 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
       .getByRole('spinbutton', {name: '최대 줄 수'})
       .getAttribute('aria-valuemax'),
   ).toBe('12');
+  const size = screen.getByRole('spinbutton', {name: '크기'});
+  fireEvent.change(size, {target: {value: '72'}});
+  fireEvent.keyDown(size, {key: 'Enter'});
+  fireEvent.click(screen.getByRole('checkbox', {name: '채우기'}));
+  await waitFor(() => {
+    const current = value().themes[0]?.screens[MAIN]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+    expect(current?.text.size).toBe(72);
+    expect(current?.box?.on).toBe(true);
+  });
+});
+
+it('renders the edited background through a screen link and restores retained elements after empty mode', async () => {
+  const {value} = setup();
+  await screen.findByLabelText('테마 캔버스');
+  const canvas = () => screen.getByLabelText('테마 캔버스');
+  await screen.findByRole('button', {name: '현재 가사'});
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  const background = screen.getByRole('textbox', {name: '배경색'});
+  background.focus();
+  fireEvent.change(background, {target: {value: '#1C355C'}});
+  fireEvent.keyDown(background, {key: 'Enter'});
+  await waitFor(() => {
+    expect(value().themes[0]?.screens[MAIN]?.background).toBe('#1C355C');
+    expect(canvas().querySelector('svg')?.style.backgroundColor).toBe(
+      'rgb(28, 53, 92)',
+    );
+  });
+  const mainElements = value().themes[0]?.screens[MAIN]?.elements;
+  const stageElements = value().themes[0]?.screens[STAGE]?.elements;
+  expect(mainElements?.length).toBeGreaterThan(0);
+  expect(stageElements?.length).toBeGreaterThan(0);
+  fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+  fireEvent.click(screen.getByRole('radio', {name: '본 화면과 동일'}));
+  await waitFor(() => {
+    expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({
+      kind: 'same',
+      screen: MAIN,
+    });
+    expect(canvas().querySelector('svg')?.style.backgroundColor).toBe(
+      'rgb(28, 53, 92)',
+    );
+    expect(canvas().querySelectorAll('[data-canvas-element]')).toHaveLength(
+      mainElements?.length ?? 0,
+    );
+  });
+  fireEvent.click(screen.getByRole('radio', {name: '비움'}));
+  await waitFor(() => {
+    expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({kind: 'empty'});
+    expect(canvas().querySelectorAll('[data-canvas-element]')).toHaveLength(0);
+  });
+  fireEvent.click(screen.getByRole('radio', {name: '직접 배치'}));
+  await waitFor(() => {
+    expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({kind: 'own'});
+    expect(value().themes[0]?.screens[STAGE]?.elements).toEqual(stageElements);
+    expect(canvas().querySelectorAll('[data-canvas-element]')).toHaveLength(
+      stageElements?.length ?? 0,
+    );
+  });
 });
 
 it.each(['single', 'all'] as const)(
