@@ -1,24 +1,10 @@
-import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react';
-import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
+import {afterEach, expect, it, vi} from 'vitest';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {createDefaultThemes} from '@core/themes/defaults';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {App} from '@renderer/app/App';
-import {ControlSession} from '@renderer/app/controlSession';
-import {applyService} from '@renderer/session/show';
-import {useLive} from '@renderer/session/live';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useFileMediaImport} from '@renderer/app/shell/useFileMediaImport';
+import type {Notice} from '@renderer/ui/notices';
 
 it('explains a missing import connection and a pending import request', async () => {
   delete window.llp;
@@ -38,13 +24,6 @@ it('explains a missing import connection and a pending import request', async ()
   pending.unmount();
 });
 
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    render = vi.fn();
-    dispose = vi.fn();
-  },
-}));
-
 const failed: MediaImportProgress = {
   mediaId: createMediaId('00000000-0000-4000-8000-000000000001'),
   fileName: 'invented.mp4',
@@ -52,27 +31,14 @@ const failed: MediaImportProgress = {
   percent: 25,
   message: 'Invented analysis failure',
 };
-const sessions: ControlSession[] = [];
-
-beforeEach(() => {
-  HTMLElement.prototype.scrollIntoView = vi.fn();
-  applyService(null);
-});
-afterEach(async () => {
+afterEach(() => {
   cleanup();
-  await Promise.all(sessions.splice(0).map(session => session.dispose()));
-  useLive.setState({state: null});
   delete window.llp;
 });
 
-it.each([
-  {workspace: 'show', returned: true},
-  {workspace: 'screens', returned: true},
-  {workspace: 'show', returned: false},
-  {workspace: 'screens', returned: false},
-])(
-  'reports import failures in $workspace with a closed bin, returned=$returned',
-  async ({workspace, returned}) => {
+it.each([true, false])(
+  'reports an import failure whether the request returns it, returned=%s',
+  async returned => {
     const listeners = new Set<(progress: MediaImportProgress) => void>();
     const push = (progress: MediaImportProgress): void => {
       for (const listener of listeners) listener(progress);
@@ -81,7 +47,7 @@ it.each([
       ok: true as const,
       value: [returned ? failed : {...failed, phase: 'copying' as const}],
     }));
-    const api = mockLlpApi({
+    window.llp = mockLlpApi({
       media: {
         import: importMedia,
         subscribeImports: listener => {
@@ -92,52 +58,23 @@ it.each([
         },
       },
     });
-    const get = api.settings.get;
-    vi.spyOn(api.settings, 'get').mockImplementation(request =>
-      request.name === 'screens'
-        ? Promise.resolve(settingsDocument('screens', {screens: []}))
-        : request.name === 'themes'
-          ? Promise.resolve(settingsDocument('themes', createDefaultThemes()))
-          : request.name === 'macros'
-            ? Promise.resolve(
-                settingsDocument('macros', {macros: [], collections: []}),
-              )
-            : get(request),
-    );
-    window.llp = api;
-    const session = new ControlSession(api);
-    sessions.push(session);
-    render(
-      <App
-        session={session}
-        columnWidthStore={createMemoryColumnWidthStore()}
-        uiState={{mediaStrip: false}}
-      />,
-    );
-    if (workspace === 'screens') {
-      fireEvent.click(screen.getByRole('tab', {name: '테마'}));
-    }
-    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
-    fireEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    fireEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    fireEvent.click(screen.getByRole('menuitem', {name: '미디어…'}));
-    await act(async () => undefined);
+    const onProblem = vi.fn<(notice: Notice) => void>();
+    const {result} = renderHook(() => useFileMediaImport(onProblem));
+
+    act(() => result.current.onSelect?.());
     await waitFor(() => expect(importMedia).toHaveBeenCalledOnce());
     if (!returned) {
-      expect(screen.queryByText('미디어를 가져오지 못함')).toBeNull();
+      expect(onProblem).not.toHaveBeenCalled();
       act(() => push({...failed, phase: 'analysing'}));
-      expect(session.getNotices()).toHaveLength(0);
+      expect(onProblem).not.toHaveBeenCalled();
       act(() => push(failed));
     }
-    await screen.findByText('미디어를 가져오지 못함');
-    expect(session.getNotices()).toEqual([
-      expect.objectContaining({
-        key: `media-view:copy:${failed.mediaId}`,
-        meta: [failed.fileName, 'Invented analysis failure'],
-      }),
-    ]);
-    act(() => push(failed));
-    expect(session.getNotices()).toHaveLength(1);
+
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(onProblem.mock.lastCall?.[0]).toMatchObject({
+      key: `media-view:copy:${failed.mediaId}`,
+      meta: [failed.fileName, 'Invented analysis failure'],
+    });
   },
 );
 

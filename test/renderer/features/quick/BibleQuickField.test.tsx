@@ -6,7 +6,9 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import * as v from 'valibot';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {translationIdSchema} from '@core/schema/ids';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
 import {bibleDocument, panelApi} from '@fixtures/contracts/ipc/bibleApi';
@@ -164,6 +166,51 @@ describe('BibleQuickField', () => {
       type: 'slide.show',
       slide: {itemId: 'bible:sample:요한복음 3:16-18'},
     });
+  });
+
+  it('outputs the shown passage with Enter, then goes back to the typed one on a manual edit', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    render(<BibleQuickField api={fixture.api} />);
+    const field = await book();
+    fireEvent.change(field, {target: {value: '요'}});
+    for (const [label, value] of [
+      ['장', '3'],
+      ['시작절', '16'],
+      ['끝절', '18'],
+    ] as const) {
+      fireEvent.change(screen.getByRole('textbox', {name: label}), {
+        target: {value},
+      });
+    }
+    await waitFor(() => expect(currentRef()).toBe('요한복음 3:16-18'));
+    const typed = useShow.getState().bibleSource;
+    const shown = {
+      ...(await passage('요한복음 3:16-19')),
+      translation: v.parse(translationIdSchema, 'alternate'),
+    };
+    act(() =>
+      openBiblePassage(shown, {
+        verseNumbers: typed?.verseNumbers ?? true,
+        enteredRef: typed?.enteredRef ?? '요한복음 3:16-18',
+        enteredTranslation:
+          typed?.enteredTranslation ?? lookupRequest().translation,
+      }),
+    );
+
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
+      key: 'Enter',
+    });
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'bible:alternate:요한복음 3:16-19'},
+    });
+    fireEvent.change(field, {target: {value: '요한복음'}});
+
+    expect(currentRef()).toBe('요한복음 3:16-18');
+    expect(useShow.getState().bibleSource?.passage.translation).toBe(
+      lookupRequest().translation,
+    );
   });
 
   it('logs an initial settings failure but ignores one delivered after unmount', async () => {

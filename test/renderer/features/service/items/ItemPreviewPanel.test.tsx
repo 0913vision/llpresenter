@@ -42,6 +42,7 @@ describe('ItemPreviewPanel', () => {
       openItemId: fixtureItems.arranged,
     });
     const view = render(<ItemPreviewPanel items={items} editor={editor} />);
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     onTestFinished(async () => {
       view.unmount();
       items.dispose();

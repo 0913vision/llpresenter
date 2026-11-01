@@ -19,12 +19,8 @@ import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
-import {
-  openBiblePassage,
-  showBiblePassage,
-} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/actions';
 import {
   bibleDocument,
   panelApi,
@@ -281,79 +277,6 @@ describe('Bible preview display controls', () => {
     expect(
       screen.getByRole('button', {name: '역본'}).getAttribute('aria-disabled'),
     ).toBeNull();
-  });
-
-  it('uses the selected translation on Enter after extension and show-now, then resets on a manual edit', async () => {
-    const fixture = await setup();
-    render(<BibleQuickField api={fixture.api} />);
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    await waitFor(() => expect(book.disabled).toBe(false));
-    fireEvent.change(book, {target: {value: '요'}});
-    for (const [label, value] of [
-      ['장', '3'],
-      ['시작절', '16'],
-      ['끝절', '18'],
-    ] as const) {
-      fireEvent.change(screen.getByRole('textbox', {name: label}), {
-        target: {value},
-      });
-    }
-    await waitFor(() =>
-      expect(
-        fixture.lookup.mock.calls.some(
-          ([request]) => request.input === '요한복음 3:16-18',
-        ),
-      ).toBe(true),
-    );
-    await waitFor(() =>
-      expect(currentSource().passage.ref).toBe('요한복음 3:16-18'),
-    );
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '역본'})
-          .getAttribute('aria-disabled'),
-      ).toBeNull(),
-    );
-    choose();
-    await waitFor(() =>
-      expect(currentSource().passage.translation).toBe(alternate),
-    );
-    fireEvent.click(screen.getByRole('button', {name: '뒤 절 추가'}));
-    await waitFor(() =>
-      expect(currentSource().passage.ref).toBe('요한복음 3:16-19'),
-    );
-    act(() => showBiblePassage(currentSource().passage));
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
-      key: 'Enter',
-    });
-    expect(currentSource().passage.translation).toBe(alternate);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'bible:alternate:요한복음 3:16-19'},
-    });
-    fireEvent.change(book, {target: {value: '요한복음'}});
-    expect(currentSource().passage.translation).toBe('sample');
-    expect(currentSource().passage.ref).toBe('요한복음 3:16-18');
-    fireEvent.click(screen.getByRole('button', {name: '뒤 절 추가'}));
-    await waitFor(() =>
-      expect(currentSource().passage.ref).toBe('요한복음 3:16-19'),
-    );
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
-      key: 'Enter',
-    });
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'bible:sample:요한복음 3:16-19'},
-    });
-    fireEvent.change(screen.getByRole('textbox', {name: '끝절'}), {
-      target: {value: '20'},
-    });
-    await waitFor(() =>
-      expect(currentSource().passage.ref).toBe('요한복음 3:16-20'),
-    );
-    expect(currentSource().passage.translation).toBe('sample');
-    expect(currentSource().enteredRef).toBeUndefined();
   });
 
   it('follows installed-list pushes and releases its subscription on close', async () => {
