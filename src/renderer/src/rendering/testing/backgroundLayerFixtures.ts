@@ -55,9 +55,8 @@ export function isShown(element: HTMLElement): boolean {
 }
 
 export function playsOf(video: HTMLVideoElement): number {
-  return (
-    playSpy?.mock.contexts.filter(context => context === video).length ?? 0
-  );
+  if (playSpy === undefined) throw new Error('The play spy is not installed');
+  return playSpy.mock.contexts.filter(context => context === video).length;
 }
 
 export function setReadyState(value: number): void {
