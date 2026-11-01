@@ -9,6 +9,20 @@ import {removeStaleTempFiles} from './staleTempFiles';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
+/** The parts of a loaded store that launch upkeep reads. */
+type UpkeepStore = Pick<LoadedStore, 'locations' | 'developmentFolder'> & {
+  readonly preferences: Pick<LoadedStore['preferences'], 'backup'>;
+};
+
+/** The parts of a loaded store that the startup log reads. */
+type LoggedStore = Pick<
+  LoadedStore,
+  'locations' | 'problems' | 'openServiceId'
+> & {
+  readonly songs: {readonly size: number};
+  readonly services: {readonly size: number};
+};
+
 // NOTE(0913vision): Leftover temporary files go before the backup, so a backup
 // never copies them.
 /**
@@ -17,7 +31,7 @@ const MAX_LOGGED_PROBLEMS = 50;
  * not register a recurring job.
  */
 export async function upkeepAtLaunch(
-  loading: Promise<LoadedStore | null>,
+  loading: Promise<UpkeepStore | null>,
   isAnyOutputOn: () => boolean,
   log: Logger,
 ): Promise<void> {
@@ -30,7 +44,7 @@ export async function upkeepAtLaunch(
 }
 
 async function removeLeftoverTempFiles(
-  store: LoadedStore,
+  store: UpkeepStore,
   log: Logger,
 ): Promise<void> {
   for (const name of dataFileFolders) {
@@ -41,7 +55,7 @@ async function removeLeftoverTempFiles(
 }
 
 async function backUpAtLaunch(
-  store: LoadedStore,
+  store: UpkeepStore,
   isAnyOutputOn: () => boolean,
   log: Logger,
 ): Promise<void> {
@@ -65,7 +79,9 @@ async function backUpAtLaunch(
  * Enumerates existing content startup problems, excluding settings and media
  * reported by their own feeds. It does not log, publish or mutate them.
  */
-export function contentProblems(store: LoadedStore): readonly FileError[] {
+export function contentProblems(
+  store: Pick<LoadedStore, 'locations' | 'problems'>,
+): readonly FileError[] {
   return store.problems.filter(
     problem =>
       ![...settingsNames, 'media'].some(
@@ -78,7 +94,7 @@ export function contentProblems(store: LoadedStore): readonly FileError[] {
  * Logs the existing loaded-store summary and at most 50 content problems plus
  * the remaining count. It does not repair files or publish problem cards.
  */
-export function logLoadedStore(store: LoadedStore, log: Logger): void {
+export function logLoadedStore(store: LoggedStore, log: Logger): void {
   log.info('read the data folder', {
     dataRoot: store.locations.dataRoot,
     songs: store.songs.size,

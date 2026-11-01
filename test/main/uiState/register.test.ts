@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
+import type {UiStateFields} from '@main/store/appConfigFile';
 import type {Logger} from '@main/log';
 
 type Handler = (event: unknown, value?: unknown) => unknown;
@@ -21,6 +21,37 @@ vi.mock('electron', () => ({
   },
 }));
 
+const stores = vi.hoisted(() => {
+  const created: Array<{
+    readonly options: unknown;
+    readonly state: unknown;
+    readonly calls: Array<[string, unknown]>;
+  }> = [];
+  return {created};
+});
+
+vi.mock('@main/uiState/uiStateStore', () => ({
+  UiStateStore: class {
+    readonly state = {mediaStrip: true};
+    readonly calls: Array<[string, unknown]> = [];
+    constructor(readonly options: unknown) {
+      stores.created.push(this);
+    }
+    setLayout(value: unknown) {
+      this.calls.push(['setLayout', value]);
+    }
+    setMediaStrip(value: unknown) {
+      this.calls.push(['setMediaStrip', value]);
+    }
+    setPrepMedia(value: unknown) {
+      this.calls.push(['setPrepMedia', value]);
+    }
+    setMediaBrowser(value: unknown) {
+      this.calls.push(['setMediaBrowser', value]);
+    }
+  },
+}));
+
 const {registerUiState} = await import('@main/uiState/register');
 
 const log: Logger = {
@@ -30,23 +61,7 @@ const log: Logger = {
   flush: () => Promise.resolve(),
 };
 
-function fieldsOf(initial: UiFields): {
-  readonly fields: UiStateFields;
-  readonly changes: UiFields[];
-} {
-  let current = initial;
-  const changes: UiFields[] = [];
-  return {
-    fields: {
-      read: () => current,
-      change: next => {
-        current = {...current, ...next};
-        changes.push(next);
-      },
-    },
-    changes,
-  };
-}
+const fields: UiStateFields = {read: () => ({}), change: () => undefined};
 
 afterEach(() => {
   handlers.handle.clear();
@@ -55,7 +70,7 @@ afterEach(() => {
 
 describe('registerUiState', () => {
   it('removes its channels when it is disposed', () => {
-    const registration = registerUiState(fieldsOf({}).fields, log);
+    const registration = registerUiState(fields, log);
     registration.dispose();
     expect(handlers.handle.has(uiEndpoints.get.channel)).toBe(false);
     expect(handlers.on.has(uiEndpoints.setLayout.channel)).toBe(false);
@@ -64,40 +79,27 @@ describe('registerUiState', () => {
     expect(handlers.on.has(uiEndpoints.setMediaBrowser.channel)).toBe(false);
   });
 
-  it('saves media and sidebar state through the shared fields', () => {
-    const {fields, changes} = fieldsOf({});
+  it('passes each channel to the matching store method and answers reads with its state', () => {
     registerUiState(fields, log);
-    handlers.on.get(uiEndpoints.setMediaStrip.channel)?.({}, {visible: false});
-    handlers.on.get(uiEndpoints.setLayout.channel)?.(
-      {},
-      {sizeClass: 'narrow', leftCollapsed: true},
-    );
-    expect(changes).toEqual([
-      {mediaStrip: false},
-      {layout: {narrow: {leftCollapsed: true}}},
-    ]);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
-      mediaStrip: false,
-      layout: {narrow: {leftCollapsed: true}},
-    });
-  });
+    const store = stores.created.at(-1);
+    if (store === undefined) throw new Error('No store');
+    const send = (channel: string, value: unknown) =>
+      handlers.on.get(channel)?.({}, value);
 
-  it('routes validated browser patches and the prep choice into shared fields', () => {
-    const {fields, changes} = fieldsOf({mediaStrip: true});
-    registerUiState(fields, log);
-    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {columns: 6});
-    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {view: 'list'});
-    handlers.on.get(uiEndpoints.setPrepMedia.channel)?.({}, {visible: false});
-    handlers.on.get(uiEndpoints.setMediaBrowser.channel)?.({}, {columns: 99});
-    expect(changes).toEqual([
-      {mediaBrowser: {columns: 6}},
-      {mediaBrowser: {columns: 6, view: 'list'}},
-      {prepMedia: false},
+    send(uiEndpoints.setLayout.channel, {sizeClass: 'narrow'});
+    send(uiEndpoints.setMediaStrip.channel, {visible: false});
+    send(uiEndpoints.setPrepMedia.channel, {visible: true});
+    send(uiEndpoints.setMediaBrowser.channel, {columns: 6});
+
+    expect(store.options).toEqual({fields, log});
+    expect(store.calls).toEqual([
+      ['setLayout', {sizeClass: 'narrow'}],
+      ['setMediaStrip', {visible: false}],
+      ['setPrepMedia', {visible: true}],
+      ['setMediaBrowser', {columns: 6}],
     ]);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toEqual({
-      mediaStrip: true,
-      prepMedia: false,
-      mediaBrowser: {columns: 6, view: 'list'},
-    });
+    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toBe(
+      store.state,
+    );
   });
 });

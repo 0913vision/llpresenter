@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {convertTextImport} from '@core/songs/textImport';
 import {decodeTextImport} from '@main/import/decode';
 import {
   encodedTextSamples,
@@ -9,35 +8,9 @@ import {
 
 describe('text import encoding', () => {
   it.each(encodedTextSamples)(
-    'gives the same draft from %s',
+    'decodes the same text from %s',
     (_name, bytes) => {
-      const decoded = decodeTextImport(bytes, 'auto');
-      expect(decoded).toEqual({ok: true, value: text});
-      if (!decoded.ok) throw new Error('Expected decoded text');
-      expect(
-        convertTextImport({
-          source: {
-            source: 'file',
-            fileName: 'Example.txt',
-            text: decoded.value,
-          },
-          options: {
-            split: 'lineBreak',
-            unitsPerSlide: 2,
-            labels: 'bracketLine',
-            firstLine: 'lyrics',
-          },
-        }),
-      ).toEqual({
-        ok: true,
-        value: {
-          title: 'Example',
-          slides: [
-            {lines: ['첫째 문장', '뷁 새 문장'], section: 0},
-            {label: '후렴', lines: ['마지막 문장'], section: 1},
-          ],
-        },
-      });
+      expect(decodeTextImport(bytes, 'auto')).toEqual({ok: true, value: text});
     },
   );
 

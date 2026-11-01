@@ -1,11 +1,20 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
-import {parseGroupedSong} from '@core/schema/groupedSong';
 import type {Logger} from '@main/log';
-import {hymnOne} from '@fixtures/main/store/testFiles';
 import {registerLibrarySearch} from '@main/search/register';
-import {SongSearchIndex} from '@main/search/songIndex';
+import type {SongSearchIndex} from '@main/search/songIndex';
+
+type Index = Pick<SongSearchIndex, 'search'>;
+
+function mockIndex() {
+  return {
+    search: vi.fn<Index['search']>(request => ({
+      query: request.query,
+      matches: [],
+    })),
+  };
+}
 
 type Handler = (event: unknown, value: unknown) => unknown;
 const electron = vi.hoisted(() => ({handlers: new Map<string, Handler>()}));
@@ -25,7 +34,7 @@ function log(): Logger {
     flush: async () => undefined,
   };
 }
-function register(ready: Promise<SongSearchIndex | null>, logger = log()) {
+function register(ready: Promise<Index | null>, logger = log()) {
   const stop = registerLibrarySearch(ready, logger);
   stops.push(stop);
   const handler = electron.handlers.get(libraryEndpoints.search.channel);
@@ -40,9 +49,9 @@ beforeEach(() => electron.handlers.clear());
 afterEach(() => stops.splice(0).forEach(stop => stop()));
 
 describe('registerLibrarySearch', () => {
-  it('waits for initial indexing and echoes the original query', async () => {
-    let finish: (value: SongSearchIndex) => void = () => undefined;
-    const ready = new Promise<SongSearchIndex>(resolve => {
+  it('waits for the index and answers with its search', async () => {
+    let finish: (value: Index) => void = () => undefined;
+    const ready = new Promise<Index>(resolve => {
       finish = resolve;
     });
     const {ask} = register(ready);
@@ -53,20 +62,17 @@ describe('registerLibrarySearch', () => {
     });
     await Promise.resolve();
     expect(completed).toBe(false);
-    const parsed = parseGroupedSong(JSON.stringify(hymnOne()), 'song.llsong');
-    if (!parsed.ok) throw new Error('Invalid test song');
-    const index = new SongSearchIndex();
-    index.upsert(parsed.value.data);
+    const index = mockIndex();
     finish(index);
-    await expect(answer).resolves.toMatchObject({
-      query: ' ㅁㅂㅇ ',
-      matches: [{title: '만복의 근원 하나님'}],
-    });
+    await expect(answer).resolves.toEqual({query: ' ㅁㅂㅇ ', matches: []});
+    expect(index.search).toHaveBeenCalledWith(
+      expect.objectContaining({query: ' ㅁㅂㅇ '}),
+    );
   });
 
   it('passes the shared default and maximum through the IPC boundary', async () => {
-    const index = new SongSearchIndex();
-    const search = vi.spyOn(index, 'search');
+    const index = mockIndex();
+    const {search} = index;
     const {ask} = register(Promise.resolve(index));
     await ask({query: ''});
     expect(search).toHaveBeenLastCalledWith({
@@ -88,7 +94,7 @@ describe('registerLibrarySearch', () => {
     {query: 'x', limit: 1.5},
     {query: 'x', limit: LIBRARY_SEARCH_LIMITS.max + 1},
   ])('rejects and logs malformed request %j', async value => {
-    const {ask, logger} = register(Promise.resolve(new SongSearchIndex()));
+    const {ask, logger} = register(Promise.resolve(mockIndex()));
     await expect(ask(value)).rejects.toThrow('Invalid library search request');
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
@@ -102,24 +108,23 @@ describe('registerLibrarySearch', () => {
   });
 
   it('removes the handler and ignores a read that finishes after disposal', async () => {
-    let finish: (value: SongSearchIndex) => void = () => undefined;
-    const ready = new Promise<SongSearchIndex>(resolve => {
+    let finish: (value: Index) => void = () => undefined;
+    const ready = new Promise<Index>(resolve => {
       finish = resolve;
     });
     const {ask, stop} = register(ready);
     const answer = ask({query: ''});
     stop();
     expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
-    const index = new SongSearchIndex();
-    const search = vi.spyOn(index, 'search');
+    const index = mockIndex();
     finish(index);
     await expect(answer).resolves.toEqual({query: '', matches: []});
-    expect(search).not.toHaveBeenCalled();
+    expect(index.search).not.toHaveBeenCalled();
   });
 
   it('logs unexpected search failures and rejects without stopping other work', async () => {
-    const index = new SongSearchIndex();
-    const search = vi.spyOn(index, 'search').mockImplementationOnce(() => {
+    const index = mockIndex();
+    index.search.mockImplementationOnce(() => {
       throw new Error('Search failed');
     });
     const {ask, logger} = register(Promise.resolve(index));
@@ -127,7 +132,6 @@ describe('registerLibrarySearch', () => {
       'Could not search the song library',
     );
     expect(logger.error).toHaveBeenCalledTimes(1);
-    search.mockRestore();
     await expect(ask({query: 'song'})).resolves.toEqual({
       query: 'song',
       matches: [],

@@ -41,6 +41,7 @@ const mediaList: MediaList = {
   schemaVersion: 1,
   items: [],
   playlists: [],
+  audioPlaylists: [],
 };
 const ITEM = createServiceItemId('00000000-0000-4000-8000-000000000030');
 const FIRST_VIDEO = createMediaId('00000000-0000-4000-8000-000000000009');

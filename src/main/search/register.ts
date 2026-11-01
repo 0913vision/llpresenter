@@ -6,7 +6,7 @@ import type {SongSearchIndex} from './songIndex';
 
 /** Registers the validated search read and returns its shutdown cleanup. */
 export function registerLibrarySearch(
-  ready: Promise<SongSearchIndex | null>,
+  ready: Promise<Pick<SongSearchIndex, 'search'> | null>,
   log: Logger,
 ): () => void {
   let disposed = false;

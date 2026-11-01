@@ -1,6 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {FrameRateTracker} from '@main/outputs/frameRates';
 import {
   WINDOW_LOG_LINES_PER_SECOND,
   WindowLogLimiter,
@@ -54,14 +53,16 @@ describe('handleLogWrite', () => {
 });
 
 describe('handleFrameRate', () => {
-  it('passes a valid report to the tracker', () => {
-    const log = recordingLogger();
-    const tracker = new FrameRateTracker(() => true, log);
-    handleFrameRate(report => tracker.report(report), log)(
+  it('passes a valid report on', () => {
+    const report = vi.fn();
+    handleFrameRate(report, recordingLogger())(
       {screenId: 'main', fps: 59.9},
       WINDOW,
     );
-    expect(tracker.current('main')).toEqual({fps: 59.9, status: 'normal'});
+    expect(report).toHaveBeenCalledExactlyOnceWith({
+      screenId: 'main',
+      fps: 59.9,
+    });
   });
 
   it.each([
@@ -69,10 +70,10 @@ describe('handleFrameRate', () => {
     {screenId: '', fps: 60},
     {fps: 60},
   ])('drops a malformed report: %j', value => {
+    const report = vi.fn();
     const log = recordingLogger();
-    const tracker = new FrameRateTracker(() => true, log);
-    handleFrameRate(report => tracker.report(report), log)(value, WINDOW);
-    expect(tracker.current('main')).toBeNull();
+    handleFrameRate(report, log)(value, WINDOW);
+    expect(report).not.toHaveBeenCalled();
     expect(log.messages('warn')).toEqual([
       'dropped a malformed frame rate report',
     ]);

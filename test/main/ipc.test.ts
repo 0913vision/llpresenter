@@ -2,7 +2,8 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {registerIpc} from '@main/ipc';
-import {LiveStore} from '@main/live/store';
+import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {LiveStore} from '@main/live/store';
 import type {Logger} from '@main/log';
 
 type Listener = (event: unknown, value: unknown) => void;
@@ -50,6 +51,29 @@ vi.mock('electron', () => ({
   },
 }));
 
+vi.mock('@main/live/mediaProgress', () => ({
+  startMediaProgress: vi.fn(() => () => undefined),
+}));
+
+function mockStore() {
+  const listeners = new Set<(state: LiveState) => void>();
+  return {
+    state: emptyLiveState(),
+    timerNow: vi.fn(() => 4321),
+    mediaProgress: vi.fn(() => null),
+    handles: vi.fn<LiveStore['handles']>(() => true),
+    dispatch: vi.fn<LiveStore['dispatch']>(() => true),
+    subscribe: vi.fn<LiveStore['subscribe']>(listener => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }),
+    publish: (state: LiveState) => {
+      for (const listener of listeners) listener(state);
+    },
+    listeners,
+  };
+}
+
 function mockLog() {
   return {
     info: vi.fn(),
@@ -79,11 +103,7 @@ beforeEach(() => {
 
 describe('registerIpc live clock', () => {
   it("answers with the store's 타이머 clock and removes the handler", () => {
-    const store = new LiveStore(undefined, {
-      wall: () => 1,
-      timer: () => 4321,
-    });
-    const dispose = registerIpc(store, mockLog(), 'offscreen');
+    const dispose = registerIpc(mockStore(), mockLog(), 'offscreen');
     expect(electron.handlers.get(liveEndpoints.clock.channel)?.()).toBe(4321);
     dispose();
     expect(electron.handlers.has(liveEndpoints.clock.channel)).toBe(false);
@@ -91,16 +111,9 @@ describe('registerIpc live clock', () => {
 });
 
 describe('registerIpc live commands', () => {
-  it('skips malformed batch children and sends each window exactly one final live state', () => {
-    const store = new LiveStore();
+  it('logs each malformed batch child, dispatches the rest, and stops on dispose', () => {
+    const store = mockStore();
     const log = mockLog();
-    const sends = [vi.fn(), vi.fn()];
-    for (const send of sends) {
-      electron.windows.add({
-        isDestroyed: () => false,
-        webContents: {isDestroyed: () => false, send},
-      });
-    }
     const dispose = registerIpc(store, log, 'offscreen');
     sendCommand({
       type: 'live.batch',
@@ -110,29 +123,50 @@ describe('registerIpc live commands', () => {
         {type: 'output.set', screenId: 'stage', on: true},
       ],
     });
-    expect(store.state.outputs).toEqual({main: true, stage: true});
     expect(log.warn).toHaveBeenCalledExactlyOnceWith(
       'dropped a malformed command',
       expect.objectContaining({field: 'commands.1.target'}),
     );
-    for (const send of sends) {
-      expect(send).toHaveBeenCalledExactlyOnceWith(
-        liveEndpoints.changed.channel,
-        store.state,
-      );
-    }
+    expect(store.dispatch).toHaveBeenCalledOnce();
+    expect(store.dispatch.mock.calls[0]?.[0]).toEqual({
+      type: 'live.batch',
+      commands: [
+        {type: 'output.set', screenId: 'main', on: true},
+        {type: 'output.set', screenId: 'stage', on: true},
+      ],
+    });
     dispose();
-    expect(store.listenerCount).toBe(0);
+    expect(store.listeners.size).toBe(0);
     expect(electron.listeners.has(liveEndpoints.command.channel)).toBe(false);
   });
 
+  it('sends every changed state to every open window', () => {
+    const store = mockStore();
+    const sends = [vi.fn(), vi.fn()];
+    for (const send of sends) {
+      electron.windows.add({
+        isDestroyed: () => false,
+        webContents: {isDestroyed: () => false, send},
+      });
+    }
+    const dispose = registerIpc(store, mockLog(), 'offscreen');
+    const state = {...emptyLiveState(), version: 1};
+    store.publish(state);
+    for (const send of sends) {
+      expect(send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        state,
+      );
+    }
+    dispose();
+  });
+
   it('rejects an invalid batch envelope without applying any command', () => {
-    const store = new LiveStore();
-    const dispatch = vi.spyOn(store, 'dispatch');
+    const store = mockStore();
     const log = mockLog();
     const dispose = registerIpc(store, log, 'offscreen');
     sendCommand({type: 'live.batch', commands: 'invalid'});
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
       'dropped a malformed command',
       expect.objectContaining({field: 'commands'}),
@@ -141,8 +175,7 @@ describe('registerIpc live commands', () => {
   });
 
   it('dispatches the parsed command, without fields it does not declare', () => {
-    const store = new LiveStore();
-    const dispatch = vi.spyOn(store, 'dispatch');
+    const store = mockStore();
     const dispose = registerIpc(store, mockLog(), 'normal');
 
     sendCommand({
@@ -151,8 +184,8 @@ describe('registerIpc live commands', () => {
       extra: true,
     });
 
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(dispatch.mock.calls[0]?.[0]).toEqual({
+    expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(store.dispatch.mock.calls[0]?.[0]).toEqual({
       type: 'media.show',
       media: {mediaId: 'warm-light', loop: true},
     });
@@ -160,14 +193,13 @@ describe('registerIpc live commands', () => {
   });
 
   it('logs the failing field of a malformed command and drops it', () => {
-    const store = new LiveStore();
-    const dispatch = vi.spyOn(store, 'dispatch');
+    const store = mockStore();
     const log = mockLog();
     const dispose = registerIpc(store, log, 'normal');
 
     sendCommand({type: 'layer.clear', target: 'slides'});
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
       'dropped a malformed command',
       expect.objectContaining({field: 'target'}),
@@ -178,7 +210,7 @@ describe('registerIpc live commands', () => {
 
 describe('registerIpc window actions', () => {
   it('minimizes, maximizes, and closes the window in normal mode', () => {
-    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
 
     sendWindowAction('minimize');
     sendWindowAction('toggle-maximize');
@@ -192,7 +224,7 @@ describe('registerIpc window actions', () => {
 
   it('restores a maximized window on toggle-maximize', () => {
     electron.window.isMaximized.mockReturnValue(true);
-    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
 
     sendWindowAction('toggle-maximize');
 
@@ -203,7 +235,7 @@ describe('registerIpc window actions', () => {
 
   it('never minimizes or maximizes an offscreen window, which would show it', () => {
     const log = mockLog();
-    const dispose = registerIpc(new LiveStore(), log, 'offscreen');
+    const dispose = registerIpc(mockStore(), log, 'offscreen');
 
     sendWindowAction('minimize');
     sendWindowAction('toggle-maximize');
@@ -219,7 +251,7 @@ describe('registerIpc window actions', () => {
   });
 
   it('still closes an offscreen window', () => {
-    const dispose = registerIpc(new LiveStore(), mockLog(), 'offscreen');
+    const dispose = registerIpc(mockStore(), mockLog(), 'offscreen');
 
     sendWindowAction('close');
 
@@ -228,7 +260,7 @@ describe('registerIpc window actions', () => {
   });
 
   it('ignores a value that is not a window action', () => {
-    const dispose = registerIpc(new LiveStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
 
     sendWindowAction('fullscreen');
 

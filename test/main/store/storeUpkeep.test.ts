@@ -1,69 +1,205 @@
-import {
-  askForService,
-  developmentContext,
-  mockLog,
-  register,
-} from '@fixtures/main/store/registerFixtures';
-import {readdir, utimes} from 'node:fs/promises';
-import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
-import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {writeJson} from '@fixtures/main/store/testFiles';
+import {resolve} from 'node:path';
+import {describe, expect, it, vi} from 'vitest';
+import type {FileError} from '@core/schema/fileFormat';
+import type {BackupOutcome, BackupsOptions} from '@main/store/backup';
+import {resolveLocations} from '@main/store/locations';
+import {settingsLocation} from '@main/store/settingsFile';
+import {removeStaleTempFiles} from '@main/store/staleTempFiles';
+import {logLoadedStore, upkeepAtLaunch} from '@main/store/storeUpkeep';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 
-describe('startup upkeep through registerStore', () => {
-  it('logs at most 50 problems and counts the rest', async () => {
-    const context = await developmentContext();
-    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, 'Songs');
-    await Promise.all(
-      Array.from({length: 52}, (_value, index) =>
-        writeJson(join(songs, `${index}.llsong`), '{"format": '),
-      ),
+const backups = vi.hoisted(() => {
+  const state: {
+    options: BackupsOptions[];
+    outcome: () => Promise<BackupOutcome>;
+    order: string[];
+  } = {
+    options: [],
+    outcome: () => Promise.resolve({kind: 'skipped', reason: 'auto-off'}),
+    order: [],
+  };
+  return state;
+});
+
+vi.mock('@main/store/backup', () => ({
+  Backups: class {
+    constructor(options: BackupsOptions) {
+      backups.options.push(options);
+    }
+    atLaunch() {
+      backups.order.push('backup');
+      return backups.outcome();
+    }
+  },
+}));
+vi.mock('@main/store/staleTempFiles', () => ({
+  removeStaleTempFiles: vi.fn(),
+}));
+
+const {locations} = resolveLocations(
+  {},
+  {documents: resolve('/upkeep-tests'), developmentFolder: null},
+);
+
+function store() {
+  return {
+    locations,
+    developmentFolder: null,
+    preferences: {backup: {auto: true, keep: 7}},
+  };
+}
+
+function setup(outcome?: () => Promise<BackupOutcome>) {
+  backups.options.length = 0;
+  backups.order.length = 0;
+  if (outcome !== undefined) backups.outcome = outcome;
+  vi.mocked(removeStaleTempFiles).mockImplementation(folder => {
+    backups.order.push(folder);
+    return Promise.resolve([]);
+  });
+  return recordingLogger();
+}
+
+describe('upkeepAtLaunch', () => {
+  it('does nothing without a loaded store', async () => {
+    const log = setup();
+
+    await upkeepAtLaunch(Promise.resolve(null), () => false, log);
+
+    expect(backups.order).toEqual([]);
+  });
+
+  it('removes leftover temporary files in every data folder before the backup', async () => {
+    const log = setup();
+
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+
+    expect(backups.order).toEqual([
+      locations.songs,
+      locations.services,
+      locations.templates,
+      locations.settings,
+      'backup',
+    ]);
+  });
+
+  it('logs each temporary file it could not remove and still backs up', async () => {
+    const log = setup();
+    vi.mocked(removeStaleTempFiles).mockResolvedValueOnce([
+      {file: 'a.tmp', message: 'busy'},
+    ]);
+
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+
+    expect(log.messages('warn')).toEqual([
+      'could not remove a leftover temporary file',
+    ]);
+    expect(backups.options).toHaveLength(1);
+  });
+
+  it('gives the backup the folders, the output check, and the backup preferences', async () => {
+    const log = setup();
+    const isAnyOutputOn = vi.fn(() => true);
+
+    await upkeepAtLaunch(Promise.resolve(store()), isAnyOutputOn, log);
+
+    const [options] = backups.options;
+    expect(options).toMatchObject({locations, developmentFolder: null});
+    expect(options?.preferences()).toEqual({auto: true, keep: 7});
+    expect(options?.isAnyOutputOn()).toBe(true);
+  });
+
+  it.each<[BackupOutcome, string, string[]]>([
+    [
+      {
+        kind: 'done',
+        backup: {folder: 'backup-1', problems: [{file: 'old', message: 'x'}]},
+      },
+      'backed up the data',
+      ['could not delete an old backup'],
+    ],
+    [{kind: 'skipped', reason: 'output-on'}, 'skipped the launch backup', []],
+    [
+      {kind: 'failed', problem: {file: 'copy', message: 'x'}},
+      '',
+      ['the launch backup failed'],
+    ],
+  ])('logs the backup outcome %j', async (outcome, info, warnings) => {
+    const log = setup(() => Promise.resolve(outcome));
+
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+
+    expect(log.messages('info')).toEqual(info === '' ? [] : [info]);
+    expect(log.messages('warn')).toEqual(warnings);
+  });
+
+  it('logs a backup that throws as an error', async () => {
+    const log = setup(() => Promise.reject(new Error('disk')));
+
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+
+    expect(log.messages('error')).toEqual(['the launch backup failed']);
+  });
+});
+
+describe('logLoadedStore', () => {
+  function problem(file: string): FileError {
+    return {kind: 'json', file, field: '', message: 'Broken JSON'};
+  }
+
+  it('logs the summary and at most 50 content problems, counting the rest', () => {
+    const log = recordingLogger();
+    const problems = Array.from({length: 52}, (_, index) =>
+      problem(resolve(locations.songs, `${index}.llsong`)),
     );
-    const log = mockLog();
-    await register(log, context);
 
-    await askForService();
+    logLoadedStore(
+      {
+        locations,
+        problems,
+        openServiceId: null,
+        songs: {size: 3},
+        services: {size: 1},
+      },
+      log,
+    );
 
-    expect(log.warn).toHaveBeenCalledTimes(51);
-    expect(log.warn).toHaveBeenLastCalledWith(
+    expect(log.entries[0]).toEqual({
+      level: 'info',
+      message: 'read the data folder',
+      detail: {
+        dataRoot: locations.dataRoot,
+        songs: 3,
+        services: 1,
+        openServiceId: null,
+      },
+    });
+    expect(log.messages('warn')).toHaveLength(51);
+    expect(log.messages('warn').at(-1)).toBe(
       'skipped 2 more data files or parts of them',
     );
   });
 
-  it('removes temporary files that a cut-off write left, before the backup', async () => {
-    const context = await developmentContext();
-    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, 'Songs');
-    const leftover = join(
-      songs,
-      '.a.llsong.3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293.tmp',
+  it('leaves out the settings and media problems that their own feeds report', () => {
+    const log = recordingLogger();
+
+    logLoadedStore(
+      {
+        locations,
+        problems: [
+          problem(settingsLocation(locations, 'macros').file),
+          problem(settingsLocation(locations, 'media').file),
+          problem(resolve(locations.songs, 'a.llsong')),
+        ],
+        openServiceId: null,
+        songs: {size: 0},
+        services: {size: 0},
+      },
+      log,
     );
-    await writeJson(leftover, 'half written');
-    const twoMinutesAgo = (Date.now() - 120_000) / 1000;
-    await utimes(leftover, twoMinutesAgo, twoMinutesAgo);
-    const {dispose} = await register(mockLog(), context);
 
-    await dispose();
-
-    expect(await readdir(songs)).toEqual([]);
-    const [backup = ''] = await readdir(
-      join(context.appDataFolder, 'LoveLightBackups'),
-    );
-    expect(
-      await readdir(
-        join(context.appDataFolder, 'LoveLightBackups', backup, 'Songs'),
-      ),
-    ).toEqual([]);
-  });
-
-  it('skips the launch backup while an output is on', async () => {
-    const context = await developmentContext();
-    const log = mockLog();
-    const {dispose} = await register(log, context, () => true);
-
-    await dispose();
-
-    expect(log.info).toHaveBeenCalledWith('skipped the launch backup', {
-      reason: 'output-on',
-    });
+    expect(log.messages('warn')).toEqual([
+      'skipped a data file or a part of one',
+    ]);
   });
 });

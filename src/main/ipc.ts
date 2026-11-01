@@ -108,7 +108,15 @@ export function listenToWindows(
  * @returns A function that removes everything this registered.
  */
 export function registerIpc(
-  store: LiveStore,
+  store: Pick<
+    LiveStore,
+    | 'state'
+    | 'timerNow'
+    | 'mediaProgress'
+    | 'handles'
+    | 'dispatch'
+    | 'subscribe'
+  >,
   log: Logger,
   windowMode: WindowMode,
 ): () => void {

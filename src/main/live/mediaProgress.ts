@@ -6,7 +6,7 @@ const UPDATE_MS = 500;
 
 /** Publishes a small progress sample without changing live state or output renderers. */
 export function startMediaProgress(
-  store: LiveStore,
+  store: Pick<LiveStore, 'state' | 'mediaProgress' | 'subscribe'>,
   publish: (reading: MediaProgress | null) => void,
   log: Logger,
 ): () => void {

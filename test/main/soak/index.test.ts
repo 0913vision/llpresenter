@@ -1,15 +1,20 @@
-import {readFile} from 'node:fs/promises';
-import {join} from 'node:path';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseSample} from '../../../scripts/soak/record.mts';
-import {installMockClock} from '@fixtures/mockClock';
-import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
 import {
   prepareSoakGarbageCollection,
   registerSoakRecorder,
 } from '@main/soak/index';
-import {SAMPLE_INTERVAL_MS, type OutputFrameRate} from '@main/soak/recorder';
+import {
+  sampleLine,
+  startSoakRecording,
+  type OutputFrameRate,
+} from '@main/soak/recorder';
+
+vi.mock('@main/soak/recorder', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/soak/recorder')>()),
+  startSoakRecording: vi.fn(() => () => Promise.resolve()),
+  sampleLine: vi.fn(() => 'line'),
+}));
 
 interface MockPage {
   readonly url: string;
@@ -57,6 +62,8 @@ beforeEach(() => {
   mocks.pages.length = 0;
   mocks.scripts.length = 0;
   mocks.appendSwitch.mockReset();
+  vi.mocked(startSoakRecording).mockClear();
+  vi.mocked(sampleLine).mockClear();
 });
 
 function mockLog(): Logger {
@@ -68,43 +75,40 @@ function mockLog(): Logger {
   };
 }
 
-async function recordOneSample(
-  frameRates?: () => readonly OutputFrameRate[],
-  log: Logger = mockLog(),
-): Promise<unknown> {
-  const recordPath = join(await makeTempDir(), 'soak.jsonl');
-  const clock = installMockClock();
-  const env = {LLP_SOAK_RECORD: recordPath};
-  const stop = registerSoakRecorder(
-    log,
+/** Starts a soak run and returns what it gave the recorder. */
+function startRun(frameRates?: () => readonly OutputFrameRate[]) {
+  const env = {LLP_SOAK_RECORD: 'C:\\data\\soak.jsonl'};
+  registerSoakRecorder(
+    mockLog(),
     frameRates === undefined ? {env} : {env, frameRates},
   );
-  await clock.advance(SAMPLE_INTERVAL_MS);
-  await stop();
-  const [line] = (await readFile(recordPath, 'utf8')).trim().split('\n');
-  return parseSample(JSON.parse(line ?? 'null'));
+  const options = vi.mocked(startSoakRecording).mock.calls[0]?.[0];
+  if (options === undefined) throw new Error('Recording did not start');
+  return options;
 }
 
 describe('registerSoakRecorder', () => {
-  it('records the frame rates it is given', async () => {
-    expect(
-      await recordOneSample(() => [{screen: 'main', fps: 59.9}]),
-    ).toMatchObject({
-      ok: true,
-      value: {
-        processes: [
-          {name: 'main', pid: 10, workingSetKb: 150_000, privateKb: 120_000},
-        ],
-        outputs: [{screen: 'main', fps: 59.9}],
-      },
-    });
+  it('samples the app processes with the frame rates it is given', () => {
+    const options = startRun(() => [{screen: 'main', fps: 59.9}]);
+
+    expect(options.sample(1000)).toBe('line');
+    expect(sampleLine).toHaveBeenCalledExactlyOnceWith(
+      1000,
+      [expect.objectContaining({name: 'main', pid: 10})],
+      [{screen: 'main', fps: 59.9}],
+    );
   });
 
-  it('records no outputs without a frame rate source', async () => {
-    expect(await recordOneSample()).toMatchObject({
-      ok: true,
-      value: {outputs: []},
-    });
+  it('samples no outputs without a frame rate source', () => {
+    const options = startRun();
+
+    options.sample(1000);
+    expect(sampleLine).toHaveBeenCalledWith(1000, expect.any(Array), []);
+  });
+
+  it('starts nothing outside a soak run', () => {
+    registerSoakRecorder(mockLog(), {env: {}});
+    expect(startSoakRecording).not.toHaveBeenCalled();
   });
 });
 
@@ -129,15 +133,14 @@ describe('soak garbage collection', () => {
       {url: 'file:///C:/data/out/renderer/analysis.html'},
       {url: audio, destroyed: true},
     );
-    await recordOneSample();
+    await startRun().collectGarbage();
     expect(mocks.scripts).toEqual([
       `${control} globalThis.gc?.()`,
       `${audio} globalThis.gc?.()`,
     ]);
   });
 
-  it('logs the pages that could not collect and still records the sample', async () => {
-    const log = mockLog();
+  it('fails naming how many pages could not collect', async () => {
     const gone = async (): Promise<never> => {
       throw new Error('render process gone');
     };
@@ -146,12 +149,8 @@ describe('soak garbage collection', () => {
       {url: audio, run: gone},
       {url: audio, run: gone},
     );
-    expect(await recordOneSample(undefined, log)).toMatchObject({ok: true});
-    expect(log.warn).toHaveBeenCalledWith(
-      'soak garbage collection failed',
-      expect.objectContaining({
-        message: 'could not collect garbage in 2 of 3 pages',
-      }),
+    await expect(startRun().collectGarbage()).rejects.toThrow(
+      'could not collect garbage in 2 of 3 pages',
     );
   });
 });
