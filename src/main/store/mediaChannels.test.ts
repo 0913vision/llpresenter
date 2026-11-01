@@ -33,11 +33,24 @@ vi.mock('electron', () => ({
   },
 }));
 const ID = createMediaId('00000000-0000-4000-8000-000000000001');
+const OTHER = createMediaId('00000000-0000-4000-8000-000000000002');
 
 function handler(channel: string): Handler {
   const found = electron.handlers.get(channel);
   if (found === undefined) throw new Error(`Missing handler ${channel}`);
   return found;
+}
+
+function mockBackend(): MediaBackend {
+  return {
+    import: vi.fn<MediaBackend['import']>(),
+    relink: vi
+      .fn<MediaBackend['relink']>()
+      .mockResolvedValue({ok: true, value: null}),
+    cancel: vi
+      .fn<MediaBackend['cancel']>()
+      .mockResolvedValue({ok: true, value: null}),
+  };
 }
 
 function setup(access: 'editable' | 'readOnly' = 'editable') {
@@ -233,20 +246,6 @@ describe('media backend boundary', () => {
     expect(electron.send).not.toHaveBeenCalled();
     next.disconnect();
   });
-
-  const OTHER = createMediaId('00000000-0000-4000-8000-000000000002');
-
-  function mockBackend(): MediaBackend {
-    return {
-      import: vi.fn<MediaBackend['import']>(),
-      relink: vi
-        .fn<MediaBackend['relink']>()
-        .mockResolvedValue({ok: true, value: null}),
-      cancel: vi
-        .fn<MediaBackend['cancel']>()
-        .mockResolvedValue({ok: true, value: null}),
-    };
-  }
 
   it('refuses a relink or a cancel of a read-only list before it reaches the backend', async () => {
     const {channels} = setup('readOnly');
