@@ -5,6 +5,9 @@ import type {LayoutChange} from '@core/schema/uiState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
+import {openLibrarySong} from '@renderer/session/showLibrary';
+import {createMediaId, createSongId} from '@core/schema/ids';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {
@@ -168,5 +171,62 @@ describe('SlideSizeControl', () => {
         .getByRole('slider', {name: '슬라이드 크기'})
         .getAttribute('aria-valuetext'),
     ).toBe('100%');
+  });
+});
+
+describe('SlidePanel with a library source', () => {
+  function librarySong(
+    overrides: Partial<ShowLibrarySong> = {},
+  ): ShowLibrarySong {
+    return {
+      songId: createSongId('10000000-0000-4000-8000-000000000001'),
+      songRevision: 1,
+      title: '새벽의 빛',
+      readOnly: false,
+      tiles: [
+        {label: '1절', labelColor: 'teal', lines: ['창작한 첫 줄']},
+        {label: '후렴', labelColor: 'orange', lines: ['창작한 두 번째 줄']},
+      ],
+      jumpKeys: {},
+      background: {
+        mediaId: createMediaId('30000000-0000-4000-8000-000000000001'),
+        loop: true,
+      },
+      ...overrides,
+    };
+  }
+
+  afterEach(() => {
+    useShow.setState({librarySong: null});
+  });
+
+  it('shows the source title, its 장 count, and its lyrics', () => {
+    openLibrarySong(librarySong());
+    render(
+      <>
+        <SlidePanelMeta />
+        <SlidePanelBody sizeClass="normal" />
+        <SlidePanelFooter sizeClass="normal" />
+      </>,
+    );
+
+    expect(screen.getByText('새벽의 빛')).toBeDefined();
+    expect(screen.getByText('2개')).toBeDefined();
+    expect(screen.getByText('창작한 첫 줄')).toBeDefined();
+  });
+
+  it.each([
+    {
+      source: librarySong({readOnly: true}),
+      reason: '새 버전의 파일이라 읽기 전용으로 엽니다.',
+    },
+    {
+      source: librarySong({problem: 'missing-background'}),
+      reason: '배경 파일을 찾을 수 없음',
+    },
+  ])('shows the library source problem: $reason', ({source, reason}) => {
+    openLibrarySong(source);
+    render(<SlidePanelMeta />);
+    expect(screen.getByRole('img', {name: reason})).toBeDefined();
   });
 });

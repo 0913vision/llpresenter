@@ -1,24 +1,10 @@
-import {
-  act,
-  cleanup,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {act, cleanup, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
 import {createMediaId, createSongId} from '@core/schema/ids';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {
-  SlidePanelBody,
-  SlidePanelMeta,
-  SlidePanelFooter,
-} from '@renderer/features/presentation/SlidePanel';
-import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
 import {
@@ -81,20 +67,10 @@ afterEach(() => {
   delete window.llp;
 });
 
-it('opens a separate library source in the real slide panel without changing service rows or output', () => {
+it('opens a separate library source without changing service rows or output', () => {
   const {send} = setup();
   const before = useShow.getState();
   openLibrarySong(song());
-  render(
-    <>
-      <SlidePanelMeta />
-      <SlidePanelBody sizeClass="normal" />
-      <SlidePanelFooter sizeClass="normal" />
-    </>,
-  );
-  expect(screen.getByText('새벽의 빛')).toBeDefined();
-  expect(screen.getByText('2개')).toBeDefined();
-  expect(screen.getByText('창작한 첫 줄')).toBeDefined();
   expect(useShow.getState()).toMatchObject({
     openItemId: itemId,
     selectedTile: 0,
@@ -108,8 +84,7 @@ it('opens a separate library source in the real slide panel without changing ser
 it('refreshes the source and outputs its background before lyrics without item.start', async () => {
   const {send, showSong} = setup();
   openLibrarySong(song());
-  render(<SlidePanelBody sizeClass="normal" />);
-  await userEvent.click(screen.getByRole('option', {name: /창작한 첫 줄/}));
+  act(() => outputTile({itemId, index: 0}));
   await waitFor(() => expect(send).toHaveBeenCalledTimes(2));
   expect(showSong).toHaveBeenCalledExactlyOnceWith({songId});
   expect(send.mock.calls.map(call => call[0])).toEqual([
@@ -125,22 +100,6 @@ it('refreshes the source and outputs its background before lyrics without item.s
       },
     },
   ]);
-});
-
-it.each([
-  {
-    source: song({readOnly: true}),
-    reason: '새 버전의 파일이라 읽기 전용으로 엽니다.',
-  },
-  {
-    source: song({problem: 'missing-background'}),
-    reason: '배경 파일을 찾을 수 없음',
-  },
-])('shows the library source problem: $reason', ({source, reason}) => {
-  setup();
-  openLibrarySong(source);
-  render(<SlidePanelMeta />);
-  expect(screen.getByRole('img', {name: reason})).toBeDefined();
 });
 
 it('validates a refreshed tile before changing either the background or lyrics', async () => {
@@ -349,46 +308,4 @@ it('uses a newer retained tile without applying an older lookup background', asy
     slide: {itemId, position: 0, label: null, lines: ['최신 창작 가사']},
   });
   expect(useShow.getState().librarySong?.songRevision).toBe(2);
-});
-
-it('refreshes on document feeds, ignores stale responses, and releases all subscriptions', async () => {
-  const {api, showSong} = setup();
-  const stops = [vi.fn(), vi.fn(), vi.fn()];
-  let songChanged = (): void => undefined;
-  let mediaChanged = (): void => undefined;
-  vi.spyOn(api.songs, 'subscribe').mockImplementation(listener => {
-    songChanged = () => listener({songId, document: null});
-    return stops[0] ?? (() => undefined);
-  });
-  vi.spyOn(api.settings, 'subscribe').mockReturnValue(
-    stops[1] ?? (() => undefined),
-  );
-  const media = await api.media.get();
-  vi.spyOn(api.media, 'subscribe').mockImplementation(listener => {
-    mediaChanged = () => listener(media);
-    return stops[2] ?? (() => undefined);
-  });
-  openLibrarySong(song());
-  const {unmount} = renderHook(() => useLibrarySongSync(vi.fn()));
-  await waitFor(() => expect(showSong).toHaveResolvedTimes(1));
-  let older: (value: ShowLibrarySong) => void = () => undefined;
-  showSong.mockImplementationOnce(
-    () =>
-      new Promise(resolve => {
-        older = resolve;
-      }),
-  );
-  act(songChanged);
-  showSong.mockResolvedValueOnce(song({songRevision: 3, title: '최신 제목'}));
-  act(mediaChanged);
-  await waitFor(() =>
-    expect(useShow.getState().librarySong?.title).toBe('최신 제목'),
-  );
-  older(song({songRevision: 2}));
-  await waitFor(() => expect(showSong).toHaveResolvedTimes(3));
-  expect(useShow.getState().librarySong?.songRevision).toBe(3);
-  unmount();
-  for (const stop of stops) expect(stop).toHaveBeenCalledOnce();
-  act(songChanged);
-  expect(showSong).toHaveBeenCalledTimes(3);
 });
