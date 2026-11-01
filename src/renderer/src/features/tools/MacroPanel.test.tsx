@@ -10,97 +10,20 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {
-  parseServiceDocument,
-  parseServiceEntries,
-} from '@core/schema/contentDocuments';
 import {deferred} from './testing/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {stageFixture} from './stageTesting';
-import userEvent from '@testing-library/user-event';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {LAYOUT_ID} from '@core/testing/screenDocuments';
 
-const id = '00000000-0000-4000-8000-000000000001';
-const groupId = '00000000-0000-4000-8000-000000000002';
-const serviceId = '00000000-0000-4000-8000-000000000003';
-const macro = {id, name: '찬양', icon: 'macro', color: 'teal', actions: []};
-const group = {id: groupId, name: '주일', macroIds: [id]};
-const entries = parseServiceEntries([
-  {id: serviceId, name: '예배', date: '2026-11-01T11:00', access: 'editable'},
-]);
-const service = parseServiceDocument({
-  revision: 1,
-  access: 'editable',
-  service: {
-    format: 'llservice',
-    schemaVersion: 1,
-    id: serviceId,
-    name: '예배',
-    date: '2026-11-01T11:00',
-    order: [
-      {
-        id: '00000000-0000-4000-8000-000000000004',
-        media: '00000000-0000-4000-8000-000000000005',
-        macro: id,
-      },
-      {
-        id: '00000000-0000-4000-8000-000000000006',
-        media: '00000000-0000-4000-8000-000000000005',
-        macro: id,
-      },
-    ],
-  },
-});
-if (!entries.ok || !service.ok || !service.value) {
-  throw new Error('Invalid fixture');
-}
-const serviceEntries = entries.value;
-const serviceDocument = service.value;
+import {
+  id,
+  macro,
+  group,
+  mockMacroPanel as fixture,
+} from './testing/macroPanelTesting';
 
-function fixture(actions: readonly object[] = []) {
-  const f = stageFixture([
-    settingsDocument('macros', {
-      macros: [{...macro, actions}],
-      collections: [group],
-    }),
-    settingsDocument('props', {props: []}),
-    settingsDocument('notices', {sets: []}),
-  ]);
-  const api = window.llp;
-  if (!api) throw new Error('Missing API');
-  const media = parseMediaDocument({
-    name: 'media',
-    revision: 1,
-    access: 'editable',
-    value: {
-      format: 'llmedia',
-      schemaVersion: 1,
-      items: [],
-      playlists: [],
-      audioPlaylists: [],
-    },
-  });
-  if (!media.ok) throw new Error('Invalid media');
-  window.llp = {
-    ...api,
-    media: {
-      ...api.media,
-      get: async () => media.value,
-      subscribe: () => () => undefined,
-    },
-    services: {
-      ...api.services,
-      list: async () => serviceEntries,
-      get: async () => serviceDocument,
-    },
-  };
-  f.edit.mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
-  return f;
-}
 afterEach(() => {
   cleanup();
   useMacroPalette.getState().close();
@@ -169,210 +92,14 @@ it('shows and closes the palette requested from View without a macro target', as
   expect(screen.queryByRole('region', {name: '동작 팔레트'})).toBeNull();
 });
 
-it('runs a macro and asks with the number of service items before deletion', async () => {
+it('runs a macro tile', async () => {
   const f = fixture();
   render(<MacroPanel />);
   const tile = await screen.findByRole('option', {name: '찬양'});
   fireEvent.click(tile);
   expect(f.send).toHaveBeenCalledWith({type: 'macro.run', macroId: id});
-  const contextTarget = tile;
-  fireEvent.contextMenu(contextTarget);
-  expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-  await screen.findByText('예배 순서 항목 2곳에서 씀');
-  expect(f.edit).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '삭제'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-});
-
-it('opens eight color swatches at the macro tile, restores focus, and saves a choice', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '찬양'});
-  const box = vi
-    .spyOn(tile, 'getBoundingClientRect')
-    .mockReturnValue(new DOMRect(80, 100, 100, 50));
-  fireEvent.contextMenu(tile, {clientX: 400, clientY: 300});
-  fireEvent.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
-  const popup = screen.getByRole('dialog', {name: '매크로 색'});
-  expect(screen.queryByRole('menu')).toBeNull();
-  expect(box).toHaveBeenCalled();
-  expect(screen.getAllByRole('radio')).toHaveLength(8);
-  const selected = screen.getByRole('radio', {name: '청록'});
-  expect(selected.getAttribute('aria-checked')).toBe('true');
-  expect(document.activeElement).toBe(selected);
-  fireEvent.keyDown(popup, {key: 'Escape'});
-  expect(screen.queryByRole('dialog')).toBeNull();
-  expect(document.activeElement).toBe(tile);
   fireEvent.contextMenu(tile);
-  fireEvent.click(screen.getByRole('menuitem', {name: '색 바꾸기'}));
-  await userEvent.click(screen.getByRole('radio', {name: '분홍'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  expect(edit.value.macros[0]?.color).toBe('rose');
-  await waitFor(() =>
-    expect(screen.queryByRole('dialog', {name: '매크로 색'})).toBeNull(),
-  );
-  expect(document.activeElement).toBe(tile);
-});
-
-it('immediately selects a macro in the displayed collection without renaming', async () => {
-  const f = fixture();
-  const pending = deferred<EditResult>();
-  f.edit.mockReturnValueOnce(pending.promise);
-  render(<MacroPanel />);
-  const select = await screen.findByRole('button', {name: '매크로 모음'});
-  await screen.findByRole('option', {name: '찬양'});
-  fireEvent.click(select);
-  fireEvent.click(screen.getByRole('option', {name: '주일'}));
-  fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
-  expect(
-    screen
-      .getByRole('option', {name: '새 매크로'})
-      .getAttribute('aria-selected'),
-  ).toBe('true');
-  expect(screen.queryByRole('dialog')).toBeNull();
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  const created = edit.value.macros[1];
-  if (!created) throw new Error('Missing new macro');
-  expect(created.name).toBe('새 매크로');
-  expect(edit.value.collections[0]?.macroIds).toContain(created.id);
-  await act(async () => {
-    f.push(settingsDocument('macros', edit.value, 2));
-    pending.resolve({ok: true, value: {id: 'macros', revision: 2}});
-  });
-  expect(screen.getAllByRole('option', {name: '새 매크로'})).toHaveLength(1);
-  expect(screen.queryByRole('dialog')).toBeNull();
-});
-
-it('rolls back a refused macro creation and reports the failure', async () => {
-  const f = fixture();
-  const pending = deferred<EditResult>();
-  f.edit.mockReturnValueOnce(pending.promise);
-  const onProblem = vi.fn();
-  render(<MacroPanel onProblem={onProblem} />);
-  await screen.findByRole('option', {name: '찬양'});
-  fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
-  expect(screen.getByRole('option', {name: '새 매크로'})).toBeDefined();
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  await act(async () => {
-    pending.resolve({
-      ok: false,
-      error: {reason: 'read-only', message: 'Refused'},
-    });
-  });
-  expect(screen.queryByRole('option', {name: '새 매크로'})).toBeNull();
-  expect(screen.getByRole('option', {name: '찬양'})).toBeDefined();
-  expect(onProblem).toHaveBeenCalledWith(
-    expect.objectContaining({title: '매크로 변경 실패'}),
-  );
-});
-
-it('uses the first free macro name and counts up after each accepted create', async () => {
-  const f = fixture();
-  act(() =>
-    f.push(
-      settingsDocument(
-        'macros',
-        {
-          macros: [
-            macro,
-            {...macro, id: groupId, name: '새 매크로'},
-            {...macro, id: serviceId, name: '새 매크로 3'},
-          ],
-          collections: [group],
-        },
-        2,
-      ),
-    ),
-  );
-  f.edit.mockImplementation(async edit => {
-    if (edit.name !== 'macros') throw new Error('Unexpected edit');
-    f.push(settingsDocument('macros', edit.value, edit.baseRevision + 1));
-    return {ok: true, value: {id: 'macros', revision: edit.baseRevision + 1}};
-  });
-  render(<MacroPanel />);
-  await screen.findByRole('option', {name: '찬양'});
-  for (const name of ['새 매크로 2', '새 매크로 4']) {
-    fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
-    expect(
-      screen.getByRole('option', {name}).getAttribute('aria-selected'),
-    ).toBe('true');
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '새 매크로'})
-          .getAttribute('aria-disabled'),
-      ).not.toBe('true'),
-    );
-  }
-  expect(screen.queryByRole('dialog')).toBeNull();
-});
-
-it('does not open rename over a newer selection after a delayed creation', async () => {
-  const f = fixture();
-  const pending = deferred<EditResult>();
-  f.edit.mockReturnValueOnce(pending.promise);
-  render(<MacroPanel />);
-  await screen.findByRole('option', {name: '찬양'});
-  fireEvent.click(screen.getByRole('button', {name: '새 매크로'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
-  fireEvent.click(screen.getByRole('option', {name: '주일'}));
-  pending.resolve({ok: true, value: {id: 'macros', revision: 2}});
-  await waitFor(() =>
-    expect(
-      screen
-        .getByRole('button', {name: '새 매크로'})
-        .getAttribute('aria-disabled'),
-    ).not.toBe('true'),
-  );
-  await waitFor(() =>
-    expect(
-      screen.getByRole('button', {name: '매크로 모음'}).textContent,
-    ).toContain('주일'),
-  );
-  expect(screen.queryByRole('dialog')).toBeNull();
-});
-
-it('creates in all macros after the selected collection is removed', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
-  );
-  fireEvent.click(screen.getByRole('option', {name: '\uc8fc\uc77c'}));
-  act(() =>
-    f.push(settingsDocument('macros', {macros: [macro], collections: []}, 2)),
-  );
-  fireEvent.click(
-    screen.getByRole('button', {name: '\uc0c8 \ub9e4\ud06c\ub85c'}),
-  );
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  expect(edit.value.collections).toEqual([]);
-  expect(edit.value.macros).toHaveLength(2);
-});
-
-it('duplicates the selected macro from its context menu', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  fireEvent.contextMenu(tile);
-  fireEvent.click(screen.getByRole('menuitem', {name: '\ubcf5\uc81c'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing macro edit');
-  expect(edit.value.macros).toHaveLength(2);
-  expect(edit.value.macros[1]?.name).toBe('\ucc2c\uc591 \ubcf5\uc0ac\ubcf8');
-  expect(edit.value.collections[0]?.macroIds).toContain(
-    edit.value.macros[1]?.id,
-  );
+  expect(tile.hasAttribute('data-menu-target')).toBe(true);
 });
 
 async function openMenu() {
@@ -532,43 +259,6 @@ it('cannot move a macro while the tab shows every macro', async () => {
   ).toBe('true');
 });
 
-it('creates a new collection containing the selected macro', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  await openActionSubmenu('모음에 추가');
-  fireEvent.click(screen.getByRole('menuitem', {name: '새 모음'}));
-  const dialog = screen.getByRole('dialog', {name: '\uc0c8 \ubaa8\uc74c'});
-  expect(dialog).toBeDefined();
-  fireEvent.change(screen.getByRole('textbox', {name: '\uc774\ub984'}), {
-    target: {value: 'Team'},
-  });
-  fireEvent.click(screen.getByRole('button', {name: '\ucd94\uac00'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing edit');
-  expect(edit.value.collections[1]).toMatchObject({
-    name: 'Team',
-    macroIds: [id],
-  });
-});
-
-it('saves an icon chosen from the macro menu', async () => {
-  const f = fixture();
-  render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  fireEvent.contextMenu(tile);
-  fireEvent.click(
-    screen.getByRole('menuitem', {
-      name: '\uc544\uc774\ucf58 \ubc14\uafb8\uae30',
-    }),
-  );
-  fireEvent.click(screen.getByRole('button', {name: '\uc544\uc774\ucf58 sun'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  const edit = f.edit.mock.calls[0]?.[0];
-  if (edit?.name !== 'macros') throw new Error('Missing edit');
-  expect(edit.value.macros[0]?.icon).toBe('sun');
-});
-
 it('opens the palette and drops an action on the target macro without running it', async () => {
   const f = fixture();
   const secondId = '00000000-0000-4000-8000-000000000007';
@@ -708,80 +398,6 @@ it('renames and deletes the displayed collection while retaining macros', async 
   expect(deletion.value.macros).toHaveLength(1);
 });
 
-it('keeps the selected collection when deleting another collection', async () => {
-  const f = fixture();
-  const other = {
-    ...group,
-    id: '00000000-0000-4000-8000-000000000008',
-    name: 'Other',
-  };
-  render(<MacroPanel />);
-  await screen.findByRole('option', {name: '찬양'});
-  act(() =>
-    f.push(
-      settingsDocument(
-        'macros',
-        {
-          macros: [macro],
-          collections: [group, other],
-        },
-        2,
-      ),
-    ),
-  );
-  await selectCollection('주일');
-  collectionMenu('Other');
-  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-  const dialog = await screen.findByRole('alertdialog');
-  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
-  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-  expect(
-    screen.getByRole('button', {name: '매크로 모음'}).textContent,
-  ).toContain('주일');
-  expect(f.edit).toHaveBeenCalledOnce();
-  const deletion = f.edit.mock.calls[0]?.[0];
-  if (deletion?.name !== 'macros') throw new Error('Missing deletion');
-  expect(deletion.value.collections).toEqual([group]);
-  expect(deletion.value.macros).toHaveLength(1);
-});
-
-it('does not reset a newer selection after a cancelled pending deletion', async () => {
-  const f = fixture();
-  const pending = deferred<EditResult>();
-  f.edit.mockReturnValueOnce(pending.promise);
-  const other = {
-    id: '00000000-0000-4000-8000-000000000008',
-    name: 'Other',
-    macroIds: [id],
-  };
-  render(<MacroPanel />);
-  await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  act(() =>
-    f.push(
-      settingsDocument(
-        'macros',
-        {macros: [macro], collections: [group, other]},
-        2,
-      ),
-    ),
-  );
-  await selectCollection('\uc8fc\uc77c');
-  collectionMenu('주일');
-  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
-  fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  fireEvent.click(screen.getByRole('button', {name: '\ucde8\uc18c'}));
-  await selectCollection('Other');
-  await act(async () => {
-    pending.resolve({ok: true, value: {id: 'macros', revision: 3}});
-    await pending.promise;
-  });
-  expect(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'})
-      .textContent,
-  ).toContain('Other');
-});
-
 it('lists the rows of the ProPresenter macro menu in its order', async () => {
   fixture([{kind: 'clearAll'}]);
   render(<MacroPanel />);
@@ -860,30 +476,6 @@ it('appends a timer operation from nested target menus', async () => {
     },
   ]);
   expect(f.send).not.toHaveBeenCalled();
-});
-
-it('opens the message dialog with the picked template before saving', async () => {
-  const f = fixture();
-  f.documents.set(
-    'messages',
-    settingsDocument('messages', {
-      templates: [{id, name: '안내', icon: 'msg', text: '안녕하세요'}],
-      stagePresets: [],
-    }),
-  );
-  render(<MacroPanel />);
-  await openActionSubmenu('동작 추가');
-  await openSubmenu('메시지');
-  fireEvent.click(screen.getByRole('menuitem', {name: '안내…'}));
-  await screen.findByRole('dialog', {name: '동작 설정'});
-  await waitFor(() =>
-    expect(screen.getByRole('button', {name: '대상'}).textContent).toContain(
-      '안내',
-    ),
-  );
-  expect(f.edit).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
-  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
 });
 
 it('lists action kinds in order and opens the theme workspace', async () => {
