@@ -1,4 +1,6 @@
 import {macroActionKinds, type MacroActionKind} from '@core/schema/macros';
+import {MACRO_PALETTE_GROUPS} from '@renderer/platform/macroActionDescriptor';
+import {MACRO_ACTIONS} from './macroActionCatalog';
 
 export const MACRO_ACTION_MIME = 'application/x-llpresenter-macro-action';
 
@@ -11,45 +13,29 @@ export interface PaletteGroup {
   readonly actions: readonly PaletteAction[];
 }
 
-export const MACRO_PALETTE: readonly PaletteGroup[] = [
-  {
-    label: '화면',
-    actions: [
-      {kind: 'theme', label: '테마 바꾸기'},
-      {kind: 'stageLayout', label: '무대 화면 배치'},
-    ],
-  },
-  {
-    label: '지우기',
-    actions: [
-      {kind: 'clearAll', label: '모두 지우기'},
-      {kind: 'clearLayer', label: '레이어 지우기'},
-    ],
-  },
-  {
-    label: '내용',
-    actions: [
-      {kind: 'media', label: '배경 미디어'},
-      {kind: 'prop', label: '그래픽'},
-      {kind: 'message', label: '메시지'},
-      {kind: 'notice', label: '공지'},
-    ],
-  },
-  {
-    label: '소리',
-    actions: [
-      {kind: 'audio', label: '오디오'},
-      {kind: 'audioPlaylist', label: '오디오 재생 목록'},
-    ],
-  },
-  {
-    label: '진행',
-    actions: [
-      {kind: 'timer', label: '타이머'},
-      {kind: 'macro', label: '매크로'},
-    ],
-  },
+const PALETTE_ORDER: readonly MacroActionKind[] = [
+  'theme',
+  'stageLayout',
+  'clearAll',
+  'clearLayer',
+  'media',
+  'prop',
+  'message',
+  'notice',
+  'audio',
+  'audioPlaylist',
+  'timer',
+  'macro',
 ];
+
+export const MACRO_PALETTE: readonly PaletteGroup[] = MACRO_PALETTE_GROUPS.map(
+  label => ({
+    label,
+    actions: PALETTE_ORDER.filter(
+      kind => MACRO_ACTIONS[kind].paletteGroup === label,
+    ).map(kind => ({kind, label: MACRO_ACTIONS[kind].label})),
+  }),
+);
 
 export function readMacroActionDrag(
   value: string,
