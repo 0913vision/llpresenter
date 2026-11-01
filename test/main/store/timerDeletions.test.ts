@@ -1,4 +1,4 @@
-import {expect, it, onTestFinished, vi} from 'vitest';
+import {expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
@@ -7,16 +7,13 @@ import {
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {createTimerId} from '@core/schema/ids';
-import {recordingLogger} from '@fixtures/main/displays/testing';
-import {MAIN, TEXT_STYLE} from '@fixtures/core/overlays';
-import type {DocumentFiles} from '@main/store/contentPersistence';
-import {SettingsStore} from '@main/store/settingsStore';
+import {prepareTimerDeletion} from '@main/store/timerDeletions';
 
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const TARGET = createTimerId(id(1));
 const KEEP = createTimerId(id(2));
-const edit = {type: 'timer.delete', name: 'timers', timerId: TARGET};
+const deletion = {type: 'timer.delete', name: 'timers', timerId: TARGET};
 const linked = {
   id: id(11),
   kind: 'timer',
@@ -25,7 +22,7 @@ const linked = {
   future: true,
 };
 
-function fixture(
+function documentsOf(
   options: {
     readonly kind?: Readonly<Record<string, unknown>>;
     readonly rows?: readonly object[];
@@ -33,7 +30,6 @@ function fixture(
     readonly missing?: 'quick' | 'timers';
   } = {},
 ) {
-  vi.useFakeTimers();
   const documents = new Map<SettingsName, SettingsDocument>();
   for (const name of ['timers', 'quick'] as const) {
     if (name === options.missing) continue;
@@ -66,65 +62,16 @@ function fixture(
       ),
     );
   }
-  documents.set(
-    'props',
-    expectSuccess(
-      parseSettingsDocument({
-        name: 'props',
-        revision: 1,
-        access: 'editable',
-        value: {
-          format: 'llsettings.props',
-          schemaVersion: 1,
-          props: [
-            {
-              id: id(99),
-              name: 'Reference',
-              targets: [MAIN],
-              content: {
-                kind: 'text',
-                text: `Deleted {timer:${TARGET}} kept {timer:${KEEP}}`,
-                style: TEXT_STYLE,
-              },
-            },
-          ],
-        },
-      }),
-    ),
-  );
-  const write = vi
-    .fn<DocumentFiles['write']>()
-    .mockResolvedValue({ok: true, value: undefined});
-  const store = new SettingsStore({
-    documents,
-    problems: [],
-    log: recordingLogger(),
-    saving: {
-      folder: '/settings',
-      files: {write, remove: async () => ({ok: true, value: undefined})},
-    },
-  });
-  onTestFinished(async () => {
-    await store.dispose();
-    vi.useRealTimers();
-  });
-  const save = async (value: unknown = edit) => {
-    const result = store.apply(expectSuccess(parseSettingsEdit(value)));
-    await vi.advanceTimersByTimeAsync(500);
-    return result;
-  };
-  const timers = () => {
-    const d = store.get('timers');
-    if (d.name !== 'timers') throw Error('Missing fixture');
-    return d;
-  };
-  const quick = () => {
-    const d = store.get('quick');
-    if (d.name !== 'quick') throw Error('Missing fixture');
-    return d;
-  };
-  const snapshot = () => Array.from(documents.keys(), name => store.get(name));
-  return {store, write, save, timers, quick, snapshot};
+  return documents;
+}
+
+function prepare(
+  documents: ReadonlyMap<SettingsName, SettingsDocument>,
+  value: object = deletion,
+) {
+  const edit = expectSuccess(parseSettingsEdit(value));
+  if (edit.type !== 'timer.delete') throw new Error('Not a timer deletion');
+  return prepareTimerDeletion(documents, edit);
 }
 
 it.each([
@@ -134,82 +81,60 @@ it.each([
   {kind: 'elapsed', start: 0},
   {kind: 'elapsedFrom', time: '09:00'},
 ])(
-  'deletes $kind and all linked known rows before either broadcast, preserving unrelated content',
-  async kind => {
+  'deletes $kind and every linked known row, keeping unrelated content',
+  kind => {
     const other = {...linked, id: id(13), ref: KEEP, name: 'Keep row'};
     const future = {...linked, id: id(14), kind: 'future', name: 'Opaque row'};
-    const f = fixture({
+    const documents = documentsOf({
       kind,
       rows: [linked, {...linked, id: id(12)}, other, future],
     });
-    const beforeTimers = f.timers();
-    const beforeProps = f.store.get('props');
-    const observed: object[] = [];
-    f.store.subscribe(() =>
-      observed.push({
-        timers: f.timers().value.timers.map(t => t.id),
-        rows: f.quick().value.items.map(t => t.id),
-      }),
-    );
-    expect(await f.save()).toMatchObject({
-      ok: true,
-      value: {id: TARGET, revision: 2},
+    const before = documents.get('timers');
+
+    const result = expectSuccess(prepare(documents));
+
+    expect(result.applied).toEqual({id: TARGET, revision: 2});
+    const [timers, quick] = result.documents;
+    if (timers?.name !== 'timers' || before?.name !== 'timers') {
+      throw Error('Missing timer documents');
+    }
+    expect(timers.value).toEqual({
+      ...before.value,
+      timers: before.value.timers.filter(timer => timer.id !== TARGET),
     });
-    expect(observed).toEqual(
-      Array.from({length: 2}, () => ({timers: [KEEP], rows: [id(13), id(14)]})),
-    );
-    expect(f.timers().value).toEqual({
-      ...beforeTimers.value,
-      timers: beforeTimers.value.timers.filter(t => t.id !== TARGET),
+    expect(quick).toMatchObject({
+      name: 'quick',
+      revision: 2,
+      value: {future: {keep: true}, items: [other, future]},
     });
-    expect(f.quick().value).toMatchObject({
-      future: {keep: true},
-      items: [other, future],
-    });
-    expect(f.store.get('props')).toBe(beforeProps);
-    expect(f.write).toHaveBeenCalledTimes(2);
   },
 );
 
-it('deletes a standalone definition with read-only quick settings and writes only timers', async () => {
-  const f = fixture({readOnly: 'quick', rows: []});
-  const before = f.quick();
-  expect(await f.save()).toMatchObject({ok: true});
-  expect(f.timers().value.timers.map(t => t.id)).toEqual([KEEP]);
-  expect(f.quick()).toBe(before);
-  expect(f.write).toHaveBeenCalledOnce();
+it('deletes a timer alone when the read-only quick settings have no linked row', () => {
+  const result = expectSuccess(
+    prepare(documentsOf({readOnly: 'quick', rows: []})),
+  );
+
+  expect(result.documents.map(document => document.name)).toEqual(['timers']);
 });
 
 it.each([
-  {readOnly: 'timers'},
-  {readOnly: 'quick'},
-  {missing: 'timers'},
-  {missing: 'quick'},
+  [{readOnly: 'timers'}, 'read-only'],
+  [{readOnly: 'quick'}, 'read-only'],
+  [{missing: 'timers'}, 'not-found'],
+  [{missing: 'quick'}, 'not-found'],
 ] as const)(
-  'refuses unavailable or unwritable documents without partial deletion: %j',
-  async options => {
-    const f = fixture(options);
-    const before = f.snapshot();
-    expect(await f.save()).toMatchObject({ok: false});
-    expect(f.snapshot()).toEqual(before);
-    expect(f.write).not.toHaveBeenCalled();
+  'refuses unavailable or unwritable documents: %j',
+  (options, reason) => {
+    expect(prepare(documentsOf(options))).toMatchObject({
+      ok: false,
+      error: {reason},
+    });
   },
 );
 
-it('refuses a missing ID and keeps an applied disk warning after removing both records', async () => {
-  const f = fixture();
-  expect(await f.save({...edit, timerId: id(100)})).toMatchObject({
-    ok: false,
-    error: {reason: 'not-found'},
-  });
-  f.write.mockImplementation(async request => ({
-    ok: false,
-    error: {file: request.target.file, message: 'Fixture disk'},
-  }));
-  expect(await f.save()).toMatchObject({
-    ok: false,
-    error: {reason: 'write-failed', applied: {id: TARGET}},
-  });
-  expect(f.timers().value.timers.map(t => t.id)).toEqual([KEEP]);
-  expect(f.quick().value.items).toEqual([]);
+it('refuses a missing timer', () => {
+  expect(prepare(documentsOf(), {...deletion, timerId: id(100)})).toMatchObject(
+    {ok: false, error: {reason: 'not-found'}},
+  );
 });

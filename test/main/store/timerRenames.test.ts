@@ -1,4 +1,4 @@
-import {expect, it, onTestFinished, vi} from 'vitest';
+import {expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
@@ -6,9 +6,7 @@ import {
   type SettingsName,
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {DocumentFiles} from '@main/store/contentPersistence';
-import {SettingsStore} from '@main/store/settingsStore';
+import {prepareTimerRename} from '@main/store/timerRenames';
 
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -26,7 +24,7 @@ const linked = {
   future: true,
 };
 
-function fixture(
+function documentsOf(
   options: {
     readonly kind?: Readonly<Record<string, unknown>>;
     readonly rows?: readonly object[];
@@ -34,7 +32,6 @@ function fixture(
     readonly missing?: 'quick' | 'timers';
   } = {},
 ) {
-  vi.useFakeTimers();
   const documents = new Map<SettingsName, SettingsDocument>();
   for (const name of ['timers', 'quick'] as const) {
     if (options.missing === name) continue;
@@ -72,39 +69,16 @@ function fixture(
       ),
     );
   }
-  const write = vi
-    .fn<DocumentFiles['write']>()
-    .mockResolvedValue({ok: true, value: undefined});
-  const store = new SettingsStore({
-    documents,
-    problems: [],
-    log: recordingLogger(),
-    saving: {
-      folder: '/settings',
-      files: {write, remove: async () => ({ok: true, value: undefined})},
-    },
-  });
-  onTestFinished(async () => {
-    await store.dispose();
-    vi.useRealTimers();
-  });
-  const save = async (value: unknown = rename) => {
-    const result = store.apply(expectSuccess(parseSettingsEdit(value)));
-    await vi.advanceTimersByTimeAsync(500);
-    return result;
-  };
-  const timerNames = () => {
-    const d = store.get('timers');
-    if (d.name !== 'timers') throw Error('Missing timers');
-    return d.value.timers.map(t => t.name);
-  };
-  const quickNames = () => {
-    const d = store.get('quick');
-    if (d.name !== 'quick') throw Error('Missing quick');
-    return d.value.items.map(t => t.name);
-  };
-  const snapshot = () => Array.from(documents.keys(), name => store.get(name));
-  return {store, write, save, timerNames, quickNames, snapshot};
+  return documents;
+}
+
+function prepare(
+  documents: ReadonlyMap<SettingsName, SettingsDocument>,
+  value: object = rename,
+) {
+  const edit = expectSuccess(parseSettingsEdit(value));
+  if (edit.type !== 'timer.rename') throw new Error('Not a timer rename');
+  return prepareTimerRename(documents, edit);
 }
 
 it.each([
@@ -113,45 +87,34 @@ it.each([
   {kind: 'countdownTo', time: '12:00', date: '2028-02-29', overrun: true},
   {kind: 'elapsed', start: 15},
   {kind: 'elapsedFrom', time: '09:00'},
-])(
-  'renames $kind and every linked quick row before either broadcast',
-  async kind => {
-    const f = fixture({
-      kind,
-      rows: [
-        linked,
-        {...linked, id: id(12)},
-        {...linked, id: id(13), ref: id(2), name: '다른 행'},
-        {...linked, id: id(14), kind: 'future', name: '미래 행'},
-      ],
-    });
-    const before = f.store.get('timers');
-    const observed: object[] = [];
-    f.store.subscribe(() =>
-      observed.push({timers: f.timerNames(), quick: f.quickNames()}),
-    );
-    expect(await f.save()).toMatchObject({
-      ok: true,
-      value: {id: id(1), revision: 2},
-    });
-    expect(observed).toEqual(
-      Array.from({length: 2}, () => ({
-        timers: ['설교', '다른 타이머'],
-        quick: ['설교', '설교', '다른 행', '미래 행'],
-      })),
-    );
-    const document = f.store.get('timers');
-    if (document.name !== 'timers' || before.name !== 'timers') {
-      throw Error('Missing timer fixture');
-    }
-    expect(document.value).toEqual({
-      ...before.value,
-      timers: [
-        {...before.value.timers[0], name: '설교'},
-        before.value.timers[1],
-      ],
-    });
-    expect(f.store.get('quick').value).toMatchObject({
+])('renames $kind and every linked quick row in new revisions', kind => {
+  const documents = documentsOf({
+    kind,
+    rows: [
+      linked,
+      {...linked, id: id(12)},
+      {...linked, id: id(13), ref: id(2), name: '다른 행'},
+      {...linked, id: id(14), kind: 'future', name: '미래 행'},
+    ],
+  });
+  const before = documents.get('timers');
+
+  const result = expectSuccess(prepare(documents));
+
+  expect(result.applied).toEqual({id: id(1), revision: 2});
+  const [timers, quick] = result.documents;
+  if (timers?.name !== 'timers' || before?.name !== 'timers') {
+    throw Error('Missing timer documents');
+  }
+  expect(timers).toMatchObject({revision: 2});
+  expect(timers.value).toEqual({
+    ...before.value,
+    timers: [{...before.value.timers[0], name: '설교'}, before.value.timers[1]],
+  });
+  expect(quick).toMatchObject({
+    name: 'quick',
+    revision: 2,
+    value: {
       future: {keep: true},
       items: [
         {...linked, name: '설교'},
@@ -159,72 +122,46 @@ it.each([
         {...linked, id: id(13), ref: id(2), name: '다른 행'},
         {...linked, id: id(14), kind: 'future', name: '미래 행'},
       ],
-    });
-    expect(await f.save()).toMatchObject({ok: true});
-    expect(f.write).toHaveBeenCalledTimes(2);
-  },
-);
+    },
+  });
+});
 
-it('allows standalone renaming with read-only quick settings when no quick name changes', async () => {
-  const f = fixture({readOnly: 'quick', rows: []});
-  expect(await f.save()).toMatchObject({ok: true});
-  expect(f.timerNames()[0]).toBe('설교');
-  expect(f.write).toHaveBeenCalledOnce();
+it('changes nothing when the timer and its rows already have the name', () => {
+  const documents = documentsOf({rows: [{...linked, name: '설교'}]});
+  const renamed = expectSuccess(prepare(documents));
+  for (const document of renamed.documents) {
+    documents.set(document.name, document);
+  }
+
+  expect(expectSuccess(prepare(documents)).documents).toEqual([]);
+});
+
+it('renames a timer alone when the read-only quick settings have no linked row', () => {
+  const result = expectSuccess(
+    prepare(documentsOf({readOnly: 'quick', rows: []})),
+  );
+
+  expect(result.documents.map(document => document.name)).toEqual(['timers']);
 });
 
 it.each([
-  {readOnly: 'quick'},
-  {readOnly: 'timers'},
-  {missing: 'quick'},
-  {missing: 'timers'},
+  [{readOnly: 'quick'}, 'read-only'],
+  [{readOnly: 'timers'}, 'read-only'],
+  [{missing: 'quick'}, 'not-found'],
+  [{missing: 'timers'}, 'not-found'],
 ] as const)(
-  'refuses unavailable or unwritable paired names without partial changes: %j',
-  async options => {
-    const f = fixture(options);
-    const before = f.snapshot();
-    expect(await f.save()).toMatchObject({ok: false});
-    expect(f.snapshot()).toEqual(before);
-    expect(f.write).not.toHaveBeenCalled();
+  'refuses unavailable or unwritable names: %j',
+  (options, reason) => {
+    expect(prepare(documentsOf(options))).toMatchObject({
+      ok: false,
+      error: {reason},
+    });
   },
 );
 
-it('refuses a missing timer and reports a disk warning after applying both names', async () => {
-  const f = fixture();
-  expect(await f.save({...rename, timerId: id(99)})).toMatchObject({
+it('refuses a missing timer', () => {
+  expect(prepare(documentsOf(), {...rename, timerId: id(99)})).toMatchObject({
     ok: false,
     error: {reason: 'not-found'},
   });
-  f.write.mockResolvedValue({
-    ok: false,
-    error: {file: '/settings/timers.json', message: 'Fixture disk'},
-  });
-  expect(await f.save()).toMatchObject({
-    ok: false,
-    error: {reason: 'write-failed', applied: {id: id(1)}},
-  });
-  expect(f.timerNames()[0]).toBe('설교');
-  expect(f.quickNames()[0]).toBe('설교');
-});
-
-it('retries queued files for an already-applied timer name and waits for durability', async () => {
-  const f = fixture();
-  f.write.mockImplementation(async request => ({
-    ok: false,
-    error: {file: request.target.file, message: 'Invented disk failure'},
-  }));
-  expect(await f.save()).toMatchObject({
-    ok: false,
-    error: {reason: 'write-failed'},
-  });
-  const before = f.snapshot();
-  const firstWrites = f.write.mock.calls.length;
-  expect(await f.save()).toMatchObject({
-    ok: false,
-    error: {reason: 'write-failed'},
-  });
-  expect(f.write.mock.calls.length).toBe(firstWrites + 2);
-  f.write.mockResolvedValue({ok: true, value: undefined});
-  expect(await f.save()).toMatchObject({ok: true});
-  expect(f.write.mock.calls.length).toBe(firstWrites + 4);
-  expect(f.snapshot()).toEqual(before);
 });

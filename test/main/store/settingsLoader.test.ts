@@ -19,6 +19,7 @@ import {
 } from '@main/store/settingsFile';
 import {loadSettingsArea} from '@main/store/settingsLoader';
 import {openSettingsStore} from '@main/store/settingsStore';
+import type {Saver} from '@main/store/saver';
 import {writeJson} from '@fixtures/main/store/testFiles';
 
 vi.mock('@core/schema/settingsDocuments', async importOriginal => {
@@ -42,7 +43,9 @@ const {locations} = resolveLocations(
 
 function mockSaver() {
   return {
-    save: vi.fn(() => Promise.resolve({ok: true, value: undefined} as const)),
+    save: vi.fn<Saver['save']>(() =>
+      Promise.resolve({ok: true, value: undefined}),
+    ),
   };
 }
 
@@ -109,7 +112,7 @@ describe('loadSettingsArea', () => {
       name: 'messages',
       access: 'editable',
       revision: 1,
-      value: {templates: [], stagePresets: []},
+      value: {templates: []},
     });
     expect(saver.save).toHaveBeenCalledExactlyOnceWith({
       target: {

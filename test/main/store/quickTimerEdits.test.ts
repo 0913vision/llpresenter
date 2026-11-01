@@ -1,5 +1,4 @@
-import {join} from 'node:path';
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
@@ -9,9 +8,7 @@ import {
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/quickTimerEdit';
 import {MAX_QUICK_ITEMS} from '@core/schema/quick';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {DocumentFiles} from '@main/store/contentPersistence';
-import {SettingsStore} from '@main/store/settingsStore';
+import {prepareQuickTimerEdit} from '@main/store/quickTimerEdits';
 
 const id = (n: number): string =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -36,8 +33,8 @@ interface FixtureOptions {
   readonly missing?: 'quick' | 'timers';
 }
 
+/** Applies each prepared edit to the documents, as the settings store would. */
 function setup(options: FixtureOptions = {}) {
-  vi.useFakeTimers();
   const documents = new Map<SettingsName, SettingsDocument>();
   for (const name of ['quick', 'timers'] as const) {
     if (name === options.missing) continue;
@@ -60,38 +57,35 @@ function setup(options: FixtureOptions = {}) {
       ),
     );
   }
-  const write = vi
-    .fn<DocumentFiles['write']>()
-    .mockResolvedValue({ok: true, value: undefined});
-  const store = new SettingsStore({
-    documents,
-    problems: [],
-    log: recordingLogger(),
-    saving: {
-      folder: '/settings',
-      files: {write, remove: async () => ({ok: true, value: undefined})},
-    },
-  });
-  onTestFinished(async () => {
-    await store.dispose();
-    vi.useRealTimers();
-  });
+  let written = 0;
   const quick = () => {
-    const d = store.get('quick');
-    if (d.name !== 'quick') throw new Error('Missing quick fixture');
+    const d = documents.get('quick');
+    if (d?.name !== 'quick') throw new Error('Missing quick fixture');
     return d;
   };
   const timers = () => {
-    const d = store.get('timers');
-    if (d.name !== 'timers') throw new Error('Missing timer fixture');
+    const d = documents.get('timers');
+    if (d?.name !== 'timers') throw new Error('Missing timer fixture');
     return d;
   };
-  const save = async (edit: unknown) => {
-    const pending = store.apply(expectSuccess(parseSettingsEdit(edit)));
-    await vi.advanceTimersByTimeAsync(500);
-    return pending;
+  const save = async (value: unknown) => {
+    const edit = expectSuccess(parseSettingsEdit(value));
+    if (
+      edit.type !== 'quick.timer.create' &&
+      edit.type !== 'quick.timer.rename' &&
+      edit.type !== 'quick.timers.separate'
+    ) {
+      throw new Error('Not a quick timer edit');
+    }
+    const result = prepareQuickTimerEdit(documents, edit);
+    if (!result.ok) return result;
+    for (const document of result.value.documents) {
+      documents.set(document.name, document);
+    }
+    written += result.value.documents.length;
+    return {ok: true, value: result.value.applied};
   };
-  return {store, write, quick, timers, save};
+  return {quick, timers, save, written: () => written};
 }
 
 describe('paired quick timer edits', () => {
@@ -108,7 +102,7 @@ describe('paired quick timer edits', () => {
       });
       expect(f.quick().value.items).toHaveLength(1);
       expect(f.timers().value.timers).toHaveLength(1);
-      expect(f.write).toHaveBeenCalledTimes(2);
+      expect(f.written()).toBe(2);
     },
   );
 
@@ -119,7 +113,7 @@ describe('paired quick timer edits', () => {
       ok: true,
     });
     expect(f.quick().value.items).toHaveLength(1);
-    expect(f.write).toHaveBeenCalledTimes(2);
+    expect(f.written()).toBe(2);
   });
   it('separates legacy shared references once, preserving the first ID, row order and unknown fields', async () => {
     const f = setup({
@@ -173,7 +167,7 @@ describe('paired quick timer edits', () => {
       ok: true,
       value: {id: 'quick', revision: 2},
     });
-    expect(f.write).toHaveBeenCalledTimes(2);
+    expect(f.written()).toBe(2);
   });
 
   it('refuses legacy separation at the definition cap without dropping a row or changing its reference', async () => {
@@ -195,25 +189,14 @@ describe('paired quick timer edits', () => {
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(f.quick().revision).toBe(1);
     expect(f.timers().revision).toBe(1);
-    expect(f.write).not.toHaveBeenCalled();
+    expect(f.written()).toBe(0);
   });
-  it('creates distinct numbered countdowns and publishes only after both documents are installed', async () => {
+  it('creates distinct numbered countdowns', async () => {
     const f = setup();
-    const observed: string[][] = [];
-    f.store.subscribe(() =>
-      observed.push([
-        f.quick().value.items.at(-1)?.id ?? '',
-        f.timers().value.timers.at(-1)?.id ?? '',
-      ]),
-    );
-    const first = f.store.apply(expectSuccess(parseSettingsEdit(create())));
-    expect(observed).toEqual([
-      [id(1), id(101)],
-      [id(1), id(101)],
-    ]);
-    expect(f.write).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(500);
-    expect(await first).toEqual({ok: true, value: {id: id(1), revision: 2}});
+    expect(await f.save(create())).toEqual({
+      ok: true,
+      value: {id: id(1), revision: 2},
+    });
     expect(await f.save(create(2))).toMatchObject({ok: true});
     expect(f.timers().value.timers).toEqual([
       {id: id(101), name: '타이머 1', kind: 'countdown', duration: 90},
@@ -226,7 +209,7 @@ describe('paired quick timer edits', () => {
     expect(
       f.quick().value.items.map(item => ('ref' in item ? item.ref : null)),
     ).toEqual([id(101), id(102)]);
-    expect(f.write).toHaveBeenCalledTimes(4);
+    expect(f.written()).toBe(4);
   });
 
   it('keeps unknown fields and renames the definition and quick row together without changing IDs', async () => {
@@ -252,13 +235,7 @@ describe('paired quick timer edits', () => {
         {id: id(102), kind: 'clock', name: '시계'},
       ],
     });
-    const listener = vi.fn(() => {
-      expect(f.quick().value.items[0]?.name).toBe('설교');
-      expect(f.timers().value.timers[0]?.name).toBe('설교');
-    });
-    f.store.subscribe(listener);
     expect(await f.save(rename)).toMatchObject({ok: true});
-    expect(listener).toHaveBeenCalledTimes(2);
     expect(f.quick().value).toMatchObject({
       future: {kept: 'quick'},
       items: [
@@ -273,22 +250,12 @@ describe('paired quick timer edits', () => {
         {id: id(102), name: '시계'},
       ],
     });
-    expect(
-      f.write.mock.calls.map(([request]): unknown => JSON.parse(request.text)),
-    ).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({format: 'llsettings.quick'}),
-        expect.objectContaining({format: 'llsettings.timers'}),
-      ]),
-    );
   });
 
   it('makes a repeated create idempotent even after a rename and does not write a redundant rename', async () => {
     const f = setup();
     await f.save(create());
     await f.save(rename);
-    const listener = vi.fn();
-    f.store.subscribe(listener);
     expect(await f.save(create())).toEqual({
       ok: true,
       value: {id: id(1), revision: 3},
@@ -299,8 +266,7 @@ describe('paired quick timer edits', () => {
     });
     expect(f.quick().value.items).toHaveLength(1);
     expect(f.timers().value.timers[0]?.name).toBe('설교');
-    expect(f.write).toHaveBeenCalledTimes(4);
-    expect(listener).not.toHaveBeenCalled();
+    expect(f.written()).toBe(4);
   });
 
   it('uses an unused numbered name across definitions and existing quick rows', async () => {
@@ -324,7 +290,7 @@ describe('paired quick timer edits', () => {
       });
       expect(f.quick().revision).toBe(1);
       expect(f.timers().revision).toBe(1);
-      expect(f.write).not.toHaveBeenCalled();
+      expect(f.written()).toBe(0);
     },
   );
 
@@ -336,7 +302,7 @@ describe('paired quick timer edits', () => {
         ok: false,
         error: {reason: 'not-found'},
       });
-      expect(f.write).not.toHaveBeenCalled();
+      expect(f.written()).toBe(0);
     },
   );
 
@@ -355,7 +321,7 @@ describe('paired quick timer edits', () => {
     });
     expect(f.quick().revision).toBe(2);
     expect(f.timers().revision).toBe(2);
-    expect(f.write).toHaveBeenCalledTimes(2);
+    expect(f.written()).toBe(2);
   });
 
   it.each(['quick', 'timers'] as const)(
@@ -385,36 +351,9 @@ describe('paired quick timer edits', () => {
       });
       expect(f.quick().revision).toBe(1);
       expect(f.timers().revision).toBe(1);
-      expect(f.write).not.toHaveBeenCalled();
+      expect(f.written()).toBe(0);
     },
   );
-
-  it('keeps a failed pair applied, reports the failed file and flushes its retry', async () => {
-    const f = setup();
-    const file = join('/settings', 'timers.json');
-    f.write.mockImplementation(async request =>
-      request.target.file === file
-        ? {ok: false, error: {file, message: 'Invented write failure'}}
-        : {ok: true, value: undefined},
-    );
-    expect(await f.save(create())).toEqual({
-      ok: false,
-      error: {
-        reason: 'write-failed',
-        message: 'Invented write failure',
-        applied: {id: id(1), revision: 2},
-        unchangedFiles: [file],
-      },
-    });
-    expect(f.quick().value.items).toHaveLength(1);
-    expect(f.timers().value.timers).toHaveLength(1);
-    expect(await f.save(create())).toMatchObject({ok: true});
-    expect(f.write).toHaveBeenCalledTimes(2);
-    f.write.mockResolvedValue({ok: true, value: undefined});
-    await f.store.flush();
-    expect(f.write).toHaveBeenCalledTimes(3);
-    expect(f.write.mock.calls[2]?.[0].target.file).toBe(file);
-  });
 
   it('rejects a legacy shared rename until the rows have distinct definitions', async () => {
     const f = setup({
@@ -436,17 +375,11 @@ describe('paired quick timer edits', () => {
     expect(f.timers().revision).toBe(1);
   });
 
-  it('refuses missing timer targets and writes after disposal', async () => {
+  it('refuses a rename of a missing timer row', async () => {
     const f = setup();
     expect(await f.save(rename)).toMatchObject({
       ok: false,
       error: {reason: 'not-found'},
     });
-    await f.store.dispose();
-    expect(await f.save(create())).toMatchObject({
-      ok: false,
-      error: {reason: 'not-found'},
-    });
-    expect(f.write).not.toHaveBeenCalled();
   });
 });

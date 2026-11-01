@@ -237,3 +237,84 @@ describe('settings edits and saves', () => {
     expect(late).not.toHaveBeenCalled();
   });
 });
+
+describe('edits that change two settings files', () => {
+  const id = (n: number) =>
+    `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+  const timers = expectSuccess(
+    parseSettingsDocument({
+      name: 'timers',
+      revision: 1,
+      access: 'editable',
+      value: {
+        format: 'llsettings.timers',
+        schemaVersion: 1,
+        timers: [{id: id(1), name: '기존', kind: 'clock'}],
+      },
+    }),
+  );
+  const quick = expectSuccess(
+    parseSettingsDocument({
+      name: 'quick',
+      revision: 1,
+      access: 'editable',
+      value: {
+        format: 'llsettings.quick',
+        schemaVersion: 1,
+        items: [{id: id(11), kind: 'timer', ref: id(1), name: '기존'}],
+      },
+    }),
+  );
+  const rename = expectSuccess(
+    parseSettingsEdit({
+      type: 'timer.rename',
+      name: 'timers',
+      timerId: id(1),
+      timerName: '설교',
+    }),
+  );
+  const names = (store: SettingsStore) => {
+    const t = store.get('timers');
+    const q = store.get('quick');
+    if (t.name !== 'timers' || q.name !== 'quick') throw new Error('Missing');
+    return [t.value.timers[0]?.name, q.value.items[0]?.name];
+  };
+
+  it('applies both files before telling any listener', async () => {
+    const {store, write} = setup('editable', [timers, quick]);
+    const seen: unknown[] = [];
+    store.subscribe(() => seen.push(names(store)));
+
+    const pending = store.apply(rename);
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(await pending).toMatchObject({ok: true});
+    expect(seen).toEqual([
+      ['설교', '설교'],
+      ['설교', '설교'],
+    ]);
+    expect(write).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps both files applied after a failed save and retries them on an edit that changes nothing', async () => {
+    const {store, write} = setup('editable', [timers, quick]);
+    write.mockImplementation(async request => ({
+      ok: false,
+      error: {file: request.target.file, message: 'Invented disk failure'},
+    }));
+    const first = store.apply(rename);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(await first).toMatchObject({
+      ok: false,
+      error: {reason: 'write-failed', applied: {id: id(1)}},
+    });
+    expect(names(store)).toEqual(['설교', '설교']);
+    const writes = write.mock.calls.length;
+
+    write.mockResolvedValue({ok: true, value: undefined});
+    const retry = store.apply(rename);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(await retry).toMatchObject({ok: true});
+    expect(write.mock.calls.length).toBe(writes + 2);
+  });
+});
