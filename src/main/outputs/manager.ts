@@ -34,7 +34,7 @@ export type OutputStatus = 'off' | 'fullscreen' | 'window' | 'monitorMissing';
 
 /** The arguments of the {@link OutputManager} constructor. */
 export interface OutputManagerOptions {
-  readonly store: LiveStore;
+  readonly store: Pick<LiveStore, 'state' | 'subscribe' | 'dispatch'>;
   readonly displays: MonitorFeed;
   readonly screens: ScreenSource;
   /** The control window's bounds, or null when it is gone. */

@@ -253,6 +253,26 @@ describe('OutputWindow', () => {
     expect(output.captureArea()).toBeNull();
   });
 
+  it('reports its shown placement and client size only while shown', () => {
+    const {output, windows} = setUp();
+    expect(output.shownPlacement()).toBeNull();
+    expect(output.shownContentSize()).toBeNull();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    const outer = {x: 1920, y: 100, width: 976, height: 579};
+    vi.spyOn(handle, 'bounds').mockReturnValue(outer);
+    vi.spyOn(handle, 'contentSize').mockReturnValue({width: 960, height: 540});
+
+    expect(output.shownPlacement()).toEqual({...FULL_SCREEN, bounds: outer});
+    expect(output.shownContentSize()).toEqual({width: 960, height: 540});
+    output.update(null);
+    expect(output.shownPlacement()).toBeNull();
+    expect(output.shownContentSize()).toBeNull();
+    output.update(FULL_SCREEN);
+    output.dispose();
+    expect(output.shownPlacement()).toBeNull();
+  });
+
   it('preloads the window before the output first turns on', () => {
     const {output, windows} = setUp();
     output.update(null);

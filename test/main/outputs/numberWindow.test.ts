@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {loadPage} from '@main/windows/page';
 import {openNumberWindow} from '@main/outputs/numberWindow';
+import {discardTestFrames, windowTestOptions} from '@main/windows/testWindows';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -29,6 +30,11 @@ const electron = await vi.hoisted(async () => {
 });
 
 vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
+vi.mock('@main/windows/testWindows', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/windows/testWindows')>()),
+  windowTestOptions: vi.fn(() => ({})),
+  discardTestFrames: vi.fn(),
+}));
 vi.mock('@main/windows/page', () => ({
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),
@@ -41,10 +47,19 @@ beforeEach(() => {
 });
 
 describe('openNumberWindow', () => {
-  it('renders offscreen without showing, focusing, or raising a native window', () => {
+  it('renders offscreen with the test page options, never showing, focusing, or raising a window', () => {
+    vi.mocked(windowTestOptions).mockReturnValueOnce({
+      webPreferences: {offscreen: {useSharedTexture: true}},
+    });
     openNumberWindow(SPOT, recordingLogger(), 'offscreen');
     const win = electron.created[0];
     win?.emit('ready-to-show');
+
+    expect(windowTestOptions).toHaveBeenCalledWith('offscreen');
+    expect(discardTestFrames).toHaveBeenCalledWith(
+      win?.webContents,
+      'offscreen',
+    );
     expect(win?.options).toMatchObject({
       show: false,
       focusable: false,

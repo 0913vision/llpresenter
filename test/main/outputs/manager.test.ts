@@ -1,33 +1,65 @@
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {installMockClock} from '@fixtures/mockClock';
-import type {Monitor} from '@main/displays/monitor';
+import {emptyLiveState, type LiveState} from '@core/live/state';
 import {
-  DISPLAY_RETRY_MS,
-  DISPLAY_SETTLE_MS,
-  DisplayRegistry,
-  type MonitorRemovedListener,
-} from '@main/displays/registry';
-import {
-  MockDisplaySource,
-  displayInfo,
   monitorById,
   monitorsOf,
   recordingLogger,
   type DisplaySpec,
 } from '@fixtures/main/displays/testing';
-import {LiveStore} from '@main/live/store';
-import {createDefaultScreenSource} from '@main/outputs/defaultScreens';
+import {fullScreenScreen} from '@fixtures/main/outputs/testing';
+import {assignMonitors} from '@main/displays/assign';
+import {findControlMonitor, type Monitor} from '@main/displays/monitor';
+import {centeredRect, type Rect, type Size} from '@main/displays/rect';
+import type {MonitorRemovedListener} from '@main/displays/registry';
+import type {LiveStore} from '@main/live/store';
 import {OutputManager, type MonitorFeed} from '@main/outputs/manager';
-import {OUTPUT_REVEAL_DEADLINE_MS} from '@main/outputs/outputWindow';
-import {OUTPUT_WINDOW_SIZE} from '@main/outputs/placement';
+import type {
+  CreateOutputWindowHandle,
+  OutputWindowOptions,
+} from '@main/outputs/outputWindow';
 import {
-  COOLDOWN_STEPS_MS,
-  RELAUNCH_DELAY_MS,
-} from '@main/outputs/rendererRecovery';
-import {CRASH_LIMIT} from '@main/outputs/restartBudget';
+  OUTPUT_WINDOW_SIZE,
+  planPlacement,
+  type ShownPlacement,
+} from '@main/outputs/placement';
 import type {OutputScreen, ScreenSource} from '@main/outputs/screens';
-import {mockWindows, fullScreenScreen} from '@fixtures/main/outputs/testing';
+
+const mocks = vi.hoisted(() => {
+  class Output {
+    rendererState: 'running' | 'restarting' | 'limited' = 'running';
+    readonly update =
+      vi.fn<
+        (placement: ShownPlacement | null, screen?: OutputScreen) => void
+      >();
+    readonly preload = vi.fn<(placement?: ShownPlacement) => void>();
+    readonly frameReady = vi.fn(() => true);
+    readonly frameReported = vi.fn();
+    readonly retry = vi.fn();
+    readonly prepareForMonitorRemoval = vi.fn();
+    readonly bringToFront = vi.fn();
+    readonly captureArea = vi.fn<() => Rect | null>(() => null);
+    readonly shownPlacement = vi.fn<() => ShownPlacement | null>(() => null);
+    readonly shownContentSize = vi.fn<() => Size | null>(() => null);
+    readonly dispose = vi.fn();
+    constructor(readonly options: OutputWindowOptions) {
+      outputs.push(this);
+    }
+  }
+  const outputs: Output[] = [];
+  return {Output, outputs};
+});
+
+vi.mock('@main/outputs/outputWindow', () => ({OutputWindow: mocks.Output}));
+vi.mock('@main/outputs/placement', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/outputs/placement')>()),
+  planPlacement: vi.fn(),
+}));
+vi.mock('@main/displays/assign', () => ({assignMonitors: vi.fn()}));
+vi.mock('@main/displays/monitor', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/displays/monitor')>()),
+  findControlMonitor: vi.fn(),
+}));
 
 class MockMonitorFeed implements MonitorFeed {
   private readonly listeners = new Set<() => void>();
@@ -53,30 +85,107 @@ class MockMonitorFeed implements MonitorFeed {
     };
   }
 
-  plug(...specs: readonly DisplaySpec[]): void {
-    this.monitors = monitorsOf(...specs);
+  change(monitors: readonly Monitor[] = this.monitors): void {
+    this.monitors = monitors;
     for (const listener of this.listeners) listener();
+  }
+
+  remove(monitorId: number): void {
+    for (const listener of this.removalListeners) listener(monitorId);
   }
 }
 
 class MockScreenSource implements ScreenSource {
+  ready = true;
+  private readonly listeners = new Set<() => void>();
+
   constructor(public screens: readonly OutputScreen[]) {}
+
+  get listenerCount(): number {
+    return this.listeners.size;
+  }
 
   list(): readonly OutputScreen[] {
     return this.screens;
   }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  announce(screens: readonly OutputScreen[]): void {
+    this.screens = screens;
+    for (const listener of this.listeners) listener();
+  }
+}
+
+function nextOutputs(
+  outputs: LiveState['outputs'],
+  command: LiveCommand,
+): LiveState['outputs'] {
+  if (command.type === 'live.batch') {
+    return command.commands.reduce(nextOutputs, outputs);
+  }
+  if (
+    command.type !== 'output.set' ||
+    outputs[command.screenId] === command.on
+  ) {
+    return outputs;
+  }
+  return {...outputs, [command.screenId]: command.on};
+}
+
+function mockStore() {
+  let state: LiveState = emptyLiveState();
+  const listeners = new Set<(state: LiveState) => void>();
+  return {
+    get state() {
+      return state;
+    },
+    listenerCount: () => listeners.size,
+    subscribe: vi.fn<LiveStore['subscribe']>(listener => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }),
+    dispatch: vi.fn<LiveStore['dispatch']>(command => {
+      state = {
+        ...state,
+        outputs: nextOutputs(state.outputs, command),
+        version: state.version + 1,
+      };
+      for (const listener of listeners) listener(state);
+      return true;
+    }),
+  };
 }
 
 const CONTROL: DisplaySpec = {id: 1, primary: true};
 const PROJECTOR: DisplaySpec = {id: 2, x: 1920, name: 'EPSON PJ'};
 const STAGE: DisplaySpec = {id: 3, x: 3840, name: 'LG TV'};
+const MONITORS = monitorsOf(CONTROL, PROJECTOR, STAGE);
 const CONTROL_WINDOW = {x: 0, y: 0, width: 1920, height: 1040};
+const FALLBACK: ShownPlacement = {
+  kind: 'window',
+  bounds: {x: 480, y: 250, width: 960, height: 540},
+  reason: 'monitorMissing',
+};
 
-const PROJECTOR_BOUNDS = {x: 1920, y: 0, width: 1920, height: 1080};
-const FALLBACK_BOUNDS = {x: 480, y: 250, ...OUTPUT_WINDOW_SIZE};
+function monitor(spec: DisplaySpec): Monitor {
+  return monitorById(MONITORS, spec.id);
+}
 
-function screenOn(spec: DisplaySpec, overrides: Partial<OutputScreen> = {}) {
-  const {id, name, bounds} = monitorById(monitorsOf(spec), spec.id);
+function fullScreenOn(spec: DisplaySpec): ShownPlacement {
+  return {kind: 'fullscreen', bounds: monitor(spec).bounds, alwaysOnTop: true};
+}
+
+function screenOn(
+  spec: DisplaySpec,
+  overrides: Partial<OutputScreen> = {},
+): OutputScreen {
+  const {id, name, bounds} = monitor(spec);
   return fullScreenScreen({display: {id, name, bounds}, ...overrides});
 }
 
@@ -84,514 +193,420 @@ function turn(on: boolean, screenId = 'main'): LiveCommand {
   return {type: 'output.set', screenId, on};
 }
 
-function simulateReadyFrames(
-  manager: OutputManager,
-  store: LiveStore,
-  windows: ReturnType<typeof mockWindows>,
-): void {
-  const ready = (): void => {
-    for (const id of manager.screenStates().keys()) {
-      const handle = windows.created.find(window => window.screen.id === id);
-      if (handle !== undefined) {
-        manager.frameReady(id, store.state.version, {
-          ...handle.contentSize(),
-          ready: true,
-        });
-      }
-    }
-  };
-  const dispatch = store.dispatch.bind(store);
-  vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
-    const outputs = store.state.outputs;
-    const result = dispatch(...args);
-    if (store.state.outputs !== outputs) ready();
-    return result;
-  });
-  ready();
+function outputOf(screenId: string) {
+  const found = mocks.outputs.filter(
+    ({options}) => options.screen.id === screenId,
+  );
+  const [output] = found;
+  if (found.length !== 1 || output === undefined) {
+    throw new Error(`Expected one ${screenId} output`);
+  }
+  return output;
 }
 
-function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
-  const store = new LiveStore();
-  const displays = new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE));
+function setUp(
+  screens: readonly OutputScreen[] = [screenOn(PROJECTOR)],
+  monitors: readonly Monitor[] = MONITORS,
+) {
+  const store = mockStore();
+  const displays = new MockMonitorFeed(monitors);
   const source = new MockScreenSource(screens);
-  const windows = mockWindows();
   const log = recordingLogger();
+  const onStatusChange = vi.fn();
   const manager = new OutputManager({
     store,
     displays,
     screens: source,
     controlBounds: () => CONTROL_WINDOW,
-    createHandle: windows.create,
+    createHandle: vi.fn<CreateOutputWindowHandle>(),
     log,
+    onStatusChange,
   });
   manager.start();
-  simulateReadyFrames(manager, store, windows);
-  return {store, displays, source, windows, log, manager};
+  return {store, displays, source, log, onStatusChange, manager};
 }
 
-describe('output identification', () => {
-  it.each(['window', 'capture'] as const)(
-    'keeps outer %s bounds separate from its client size',
-    method => {
-      const screen = screenOn(PROJECTOR, {method});
-      const {manager, store, windows} = setUp([screen]);
-      store.dispatch(turn(true));
-      const handle = windows.only('main');
-      const outer = {x: 1920, y: 100, width: 976, height: 579};
-      vi.spyOn(handle, 'bounds').mockReturnValue(outer);
-      vi.spyOn(handle, 'contentSize').mockReturnValue({
-        width: 960,
-        height: 540,
-      });
-      const identified = manager.shownOutputs()[0];
-      expect(identified?.screen).toEqual(screen);
-      expect(identified?.placement).toMatchObject({
-        kind: method,
-        bounds: outer,
-      });
-      expect(identified?.contentSize).toEqual({width: 960, height: 540});
-      if (method === 'capture') expect(manager.captureAreas()).toEqual([outer]);
-      manager.dispose();
-    },
+beforeEach(() => {
+  mocks.outputs.length = 0;
+  vi.clearAllMocks();
+  vi.mocked(findControlMonitor).mockImplementation(
+    monitors => monitors[0] ?? null,
   );
-  it('exposes only shown output placements, and removes hidden screens immediately', () => {
-    const screen = screenOn(PROJECTOR, {kind: 'audience', alwaysOnTop: true});
-    const {manager, store} = setUp([screen]);
-    expect(manager.shownOutputs()).toEqual([]);
-    store.dispatch(turn(true));
-    expect(manager.shownOutputs()).toEqual([
-      {
-        screen,
-        contentSize: {
-          width: PROJECTOR_BOUNDS.width,
-          height: PROJECTOR_BOUNDS.height,
-        },
-        placement: {
-          kind: 'fullscreen',
-          bounds: PROJECTOR_BOUNDS,
-          alwaysOnTop: true,
-        },
-      },
-    ]);
-    store.dispatch(turn(false));
-    expect(manager.shownOutputs()).toEqual([]);
-    manager.dispose();
-    expect(manager.shownOutputs()).toEqual([]);
-  });
+  vi.mocked(assignMonitors).mockImplementation(
+    ({requests, monitors}) =>
+      new Map(
+        requests.flatMap(({screenId, display}) => {
+          const found = monitors.find(({id}) => id === display.id);
+          return found === undefined ? [] : [[screenId, found] as const];
+        }),
+      ),
+  );
+  vi.mocked(planPlacement).mockImplementation(({monitor: assigned}) =>
+    assigned === null
+      ? FALLBACK
+      : {kind: 'fullscreen', bounds: assigned.bounds, alwaysOnTop: true},
+  );
 });
 
-function setUpRemoval(
-  screens: readonly OutputScreen[] = [
-    screenOn(PROJECTOR),
-    screenOn(STAGE, {id: 'stage'}),
-  ],
-) {
-  const source = new MockDisplaySource(
-    ...[CONTROL, PROJECTOR, STAGE].map(displayInfo),
-  );
-  const log = recordingLogger();
-  const displays = new DisplayRegistry(source, log);
-  const store = new LiveStore();
-  const windows = mockWindows();
-  const manager = new OutputManager({
-    store,
-    displays,
-    screens: new MockScreenSource(screens),
-    controlBounds: () => CONTROL_WINDOW,
-    createHandle: windows.create,
-    log,
-  });
-  manager.start();
-  simulateReadyFrames(manager, store, windows);
-  store.dispatch(turn(true));
-  store.dispatch(turn(true, 'stage'));
-  return {source, displays, store, windows, manager, log};
-}
+describe('OutputManager placement', () => {
+  it('prepares each screen at its planned placement while off, and shows and hides it with its switch', () => {
+    const screen = screenOn(PROJECTOR);
+    const {store} = setUp([screen]);
+    const output = outputOf('main');
 
-describe('OutputManager', () => {
-  it('reveals a bounded fallback even when the initial monitor service never answers', async () => {
-    const clock = installMockClock();
-    const store = new LiveStore();
-    const windows = mockWindows();
-    const manager = new OutputManager({
-      store,
-      displays: new MockMonitorFeed([]),
-      screens: new MockScreenSource([fullScreenScreen()]),
-      controlBounds: () => CONTROL_WINDOW,
-      createHandle: windows.create,
-      log: recordingLogger(),
+    expect(planPlacement).toHaveBeenCalledWith({
+      screen,
+      monitor: monitor(PROJECTOR),
+      controlMonitor: monitor(CONTROL),
     });
-    manager.start();
+    expect(output.preload).toHaveBeenCalledWith(fullScreenOn(PROJECTOR));
+    expect(output.update).toHaveBeenLastCalledWith(null, screen);
     store.dispatch(turn(true));
-    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
-    expect(windows.only('main').mode.kind).toBe('window');
-    expect(store.state.outputs.main).toBe(true);
-    manager.dispose();
-  });
-  it('prepares the configured viewport while output is still off', () => {
-    const {store, windows} = setUp();
-    expect(store.state.outputs.main).not.toBe(true);
-    expect(windows.only('main').prepared).toEqual(PROJECTOR_BOUNDS);
-    expect(windows.only('main').mode.kind).toBe('hidden');
-  });
-  it('replans a fallback after a later work-area change without replacing its page', async () => {
-    const clock = installMockClock();
-    const {source, displays, windows, manager} = setUpRemoval([
-      screenOn(PROJECTOR),
-    ]);
-    const primary = {
-      ...displayInfo(CONTROL),
-      bounds: {x: 0, y: 0, width: 3440, height: 1440},
-      workArea: {x: 0, y: 0, width: 3440, height: 1440},
-    };
-    source.remove(PROJECTOR.id);
-    source.change(primary);
-    await clock.advance(DISPLAY_SETTLE_MS);
-    const handle = windows.only('main');
-    expect(handle.mode).toMatchObject({
-      kind: 'window',
-      bounds: {x: 1240, y: 450},
-    });
-    source.change({
-      ...primary,
-      workArea: {x: 62, y: 0, width: 3378, height: 1440},
-    });
-    await clock.advance(DISPLAY_SETTLE_MS);
-    expect(handle.mode).toMatchObject({
-      kind: 'window',
-      bounds: {x: 1271, y: 450},
-    });
-    expect(windows.created).toHaveLength(1);
-    expect(handle.reloads).toBe(0);
-    expect(manager.screenStates().get('main')?.placement).toBe(
-      'monitorMissing',
+    expect(output.update).toHaveBeenLastCalledWith(
+      fullScreenOn(PROJECTOR),
+      screen,
     );
-    manager.dispose();
-    displays.dispose();
-  });
-  it('runs capture without consuming its saved monitor and closes only that output', () => {
-    const {store, windows, manager} = setUp([
-      screenOn(PROJECTOR, {id: 'capture', method: 'capture'}),
-      screenOn(PROJECTOR),
-    ]);
-    store.dispatch(turn(true, 'capture'));
-    store.dispatch(turn(true));
-    expect(windows.only('capture').mode).toMatchObject({
-      kind: 'capture',
-      bounds: {width: 1920, height: 1080},
-    });
-    expect(windows.only('main').mode.kind).toBe('fullscreen');
-    expect(manager.screenStates().get('capture')?.placement).toBe('window');
-    expect(manager.captureAreas()).toEqual([
-      expect.objectContaining({width: 1920, height: 1080}),
-    ]);
-    windows.only('capture').clickClose();
-    expect(manager.captureAreas()).toEqual([]);
-    expect(store.state.outputs).toMatchObject({capture: false, main: true});
-    expect(windows.only('capture').mode.kind).toBe('hidden');
-    manager.dispose();
-  });
-
-  it('demotes only the removed monitor output before settling and keeps its page running', async () => {
-    const clock = installMockClock();
-    const {source, displays, store, windows, manager} = setUpRemoval();
-    const main = windows.only('main');
-    const stage = windows.only('stage');
-
-    source.remove(PROJECTOR.id);
-
-    expect(main.monitorRemovals).toBe(1);
-    expect(main.mode).toMatchObject({kind: 'fullscreen', alwaysOnTop: false});
-    expect(stage.monitorRemovals).toBe(0);
-    expect(main.placements).toHaveLength(1);
-    expect(store.state.outputs['main']).toBe(true);
-    store.dispatch(turn(false, 'stage'));
-    await clock.advance(DISPLAY_SETTLE_MS - 1);
-    expect(main.placements).toHaveLength(1);
-    await clock.advance(1);
-
-    expect(main.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
-    expect(main.reloads).toBe(0);
-    expect(main.destroyed).toBe(false);
-    expect(windows.created).toHaveLength(2);
-    manager.dispose();
-    expect(displays.listenerCount).toBe(0);
-    displays.dispose();
-    expect(source.watcherCount).toBe(0);
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it('restores always on top when the removed monitor returns before settling', async () => {
-    const clock = installMockClock();
-    const {source, displays, windows, manager} = setUpRemoval();
-    const main = windows.only('main');
-
-    source.remove(PROJECTOR.id);
-    source.change(...[CONTROL, PROJECTOR, STAGE].map(displayInfo));
-    await clock.advance(DISPLAY_SETTLE_MS);
-
-    expect(main.mode).toMatchObject({kind: 'fullscreen', alwaysOnTop: true});
-    expect(main.placements).toHaveLength(2);
-    expect(main.reloads).toBe(0);
-    manager.dispose();
-    displays.dispose();
-  });
-
-  it('keeps other outputs running when a demotion fails', () => {
-    installMockClock();
-    const {source, displays, windows, manager, log} = setUpRemoval([
-      screenOn(PROJECTOR),
-      screenOn(PROJECTOR, {id: 'stage'}),
-    ]);
-    vi.spyOn(
-      windows.only('main'),
-      'prepareForMonitorRemoval',
-    ).mockImplementation(() => {
-      throw new Error('window closed during demotion');
-    });
-    source.remove(PROJECTOR.id);
-    expect(log.messages('error')).toEqual(['could not demote the main output']);
-    expect(windows.only('stage').monitorRemovals).toBe(1);
-    expect(windows.only('stage').mode).toMatchObject({
-      kind: 'fullscreen',
-      alwaysOnTop: false,
-    });
-    manager.dispose();
-    displays.dispose();
-  });
-
-  it('opens the output full screen on its monitor when it turns on, and hides it when it turns off', () => {
-    const {store, windows} = setUp();
-    expect(windows.created).toHaveLength(1);
-    store.dispatch(turn(true));
-    const handle = windows.only('main');
-    expect(handle.mode).toEqual({
-      kind: 'fullscreen',
-      bounds: PROJECTOR_BOUNDS,
-      alwaysOnTop: true,
-    });
     store.dispatch(turn(false));
-    expect(handle.mode).toEqual({kind: 'hidden'});
+    expect(output.update).toHaveBeenLastCalledWith(null, screen);
+    expect(mocks.outputs).toHaveLength(1);
   });
 
   it('leaves the windows alone when only the content changes', () => {
-    const {store, source, windows} = setUp();
+    const {store, source} = setUp();
     store.dispatch(turn(true));
     const list = vi.spyOn(source, 'list');
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'song', position: 0, label: null, lines: ['만복의 근원']},
-    });
+    outputOf('main').update.mockClear();
+
     store.dispatch({type: 'layer.clear', target: 'all'});
+
     expect(list).not.toHaveBeenCalled();
-    expect(windows.only('main').placements).toHaveLength(1);
+    expect(outputOf('main').update).not.toHaveBeenCalled();
   });
 
-  it('moves the output into a window on the control monitor when its monitor is unplugged, and back when it returns', () => {
-    const {store, displays, windows, log} = setUp();
-    store.dispatch(turn(true));
-    const handle = windows.only('main');
+  it('asks for saved monitors only for full screen screens, passing on the last assignment', () => {
+    const main = screenOn(PROJECTOR);
+    const capture = screenOn(STAGE, {id: 'capture', method: 'capture'});
+    const spare = fullScreenScreen({id: 'spare'});
+    const {displays} = setUp([main, capture, spare]);
 
-    displays.plug(CONTROL, STAGE);
-    expect(handle.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
-    expect(log.messages('warn')).toEqual(['output monitor missing']);
-
-    displays.plug(CONTROL, PROJECTOR, STAGE);
-    expect(handle.mode).toMatchObject({
-      kind: 'fullscreen',
-      bounds: PROJECTOR_BOUNDS,
-      alwaysOnTop: true,
+    expect(assignMonitors).toHaveBeenLastCalledWith({
+      requests: [{screenId: 'main', display: main.display}],
+      monitors: MONITORS,
+      controlMonitorId: CONTROL.id,
+      previous: new Map(),
     });
-    expect(windows.created).toHaveLength(1);
-    expect(handle.reloads).toBe(0);
-    expect(store.state.outputs['main']).toBe(true);
+    displays.change();
+    expect(vi.mocked(assignMonitors).mock.lastCall?.[0].previous).toEqual(
+      new Map([['main', PROJECTOR.id]]),
+    );
   });
 
-  it('reports the monitor number an output last showed full screen on, also after an unplug', () => {
-    const {store, displays, manager} = setUp();
-    expect(manager.screenStates().get('main')?.monitor).toBeUndefined();
+  it('replans every screen with the same window when the monitors or the screen list change', () => {
+    const screen = screenOn(PROJECTOR);
+    const {store, displays, source} = setUp([screen]);
     store.dispatch(turn(true));
-    expect(manager.screenStates().get('main')).toMatchObject({
-      placement: 'fullscreen',
-      monitor: 2,
+
+    displays.change(monitorsOf(CONTROL));
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(FALLBACK, screen);
+    const renamed = {...screen, name: '새 이름'};
+    source.announce([renamed]);
+
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(FALLBACK, renamed);
+    expect(outputOf('main').preload).toHaveBeenLastCalledWith(FALLBACK);
+  });
+
+  it('places every output over the control window while no monitor is known', () => {
+    const main = screenOn(PROJECTOR);
+    const capture = fullScreenScreen({
+      id: 'capture',
+      method: 'capture',
+      resolution: {width: 1280, height: 720},
+    });
+    const windowed = fullScreenScreen({id: 'window', method: 'window'});
+    const off = screenOn(PROJECTOR, {id: 'off', onDisconnect: 'off'});
+    const {store, log} = setUp([main, capture, windowed, off], []);
+
+    store.dispatch({
+      type: 'live.batch',
+      commands: ['main', 'capture', 'window', 'off'].map(screenId => ({
+        type: 'output.set' as const,
+        screenId,
+        on: true,
+      })),
     });
 
-    displays.plug(CONTROL, STAGE);
-    expect(manager.screenStates().get('main')).toMatchObject({
-      placement: 'monitorMissing',
-      monitor: 2,
-    });
+    const bounds = centeredRect(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(
+      {kind: 'window', bounds, reason: 'monitorMissing'},
+      main,
+    );
+    expect(outputOf('capture').update).toHaveBeenLastCalledWith(
+      {
+        kind: 'capture',
+        bounds: centeredRect(CONTROL_WINDOW, {width: 1280, height: 720}),
+        alwaysOnTop: true,
+      },
+      capture,
+    );
+    expect(outputOf('window').update).toHaveBeenLastCalledWith(
+      {kind: 'window', bounds, reason: 'method', alwaysOnTop: true},
+      windowed,
+    );
+    expect(outputOf('off').update).toHaveBeenLastCalledWith(null, off);
+    expect(store.state.outputs['off']).toBe(false);
+    expect(log.messages('warn')).toContain(
+      'no monitor to place the output windows on',
+    );
   });
 
-  it('keeps an output on the monitor it found when a look-alike monitor connects', () => {
-    const {store, displays, windows} = setUp();
-    const found = {...PROJECTOR, id: 22, x: 3840};
-    displays.plug(CONTROL, found);
+  it('turns an output off when its plan says off, or when the operator closes its window', () => {
+    const screen = screenOn(PROJECTOR, {onDisconnect: 'off'});
+    const {store, displays} = setUp([screen]);
     store.dispatch(turn(true));
-    const handle = windows.only('main');
-    expect(handle.mode).toMatchObject({bounds: {x: 3840}});
 
-    displays.plug(CONTROL, {...PROJECTOR, id: 44}, found);
-    expect(handle.mode).toMatchObject({kind: 'fullscreen', bounds: {x: 3840}});
-  });
-
-  it('turns the output off when its monitor is unplugged and 연결이 끊기면 says off', () => {
-    const {store, displays, windows} = setUp([
-      screenOn(PROJECTOR, {onDisconnect: 'off'}),
-    ]);
-    store.dispatch(turn(true));
-    displays.plug(CONTROL);
+    vi.mocked(planPlacement).mockReturnValue({kind: 'off'});
+    displays.change();
     expect(store.state.outputs['main']).toBe(false);
-    expect(windows.only('main').mode).toEqual({kind: 'hidden'});
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(null, screen);
+
+    vi.mocked(planPlacement).mockReturnValue(fullScreenOn(PROJECTOR));
+    store.dispatch(turn(true));
+    outputOf('main').options.onCloseRequested();
+    expect(store.state.outputs['main']).toBe(false);
   });
 
-  it('opens no window and warns about nothing when a monitor goes away while the output is off', () => {
-    const {store, displays, windows, log} = setUp();
-    displays.plug(CONTROL);
-    expect(windows.created).toHaveLength(1);
-    expect(log.messages('warn')).toEqual([]);
-    store.dispatch(turn(true));
-    expect(windows.only('main').mode.kind).toBe('window');
+  it('turns off the outputs of screens a ready list no longer has', () => {
+    const {store, source} = setUp([
+      screenOn(PROJECTOR),
+      fullScreenScreen({id: 'old'}),
+    ]);
+    store.dispatch(turn(true, 'old'));
+
+    source.ready = false;
+    source.announce([screenOn(PROJECTOR)]);
+    expect(store.state.outputs['old']).toBe(true);
+    source.ready = true;
+    source.announce([screenOn(PROJECTOR)]);
+
+    expect(store.state.outputs['old']).toBe(false);
+    expect(store.dispatch).toHaveBeenLastCalledWith(
+      {
+        type: 'live.batch',
+        commands: [{type: 'output.set', screenId: 'old', on: false}],
+      },
+      expect.any(Function),
+    );
+  });
+
+  it('closes the window of a screen that leaves the list and announces it', () => {
+    const {source, manager, onStatusChange} = setUp([
+      screenOn(PROJECTOR),
+      fullScreenScreen({id: 'stage'}),
+    ]);
+    const stage = outputOf('stage');
+    onStatusChange.mockClear();
+
+    source.announce([screenOn(PROJECTOR)]);
+
+    expect(stage.dispose).toHaveBeenCalledOnce();
+    expect(onStatusChange).toHaveBeenCalled();
+    expect(manager.screenStates().has('stage')).toBe(false);
   });
 
   it('keeps the other outputs going when one window fails', () => {
-    const store = new LiveStore();
-    const windows = mockWindows();
-    const log = recordingLogger();
-    const manager = new OutputManager({
-      store,
-      displays: new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE)),
-      screens: new MockScreenSource([
-        screenOn(PROJECTOR),
-        screenOn(STAGE, {id: 'stage'}),
-      ]),
-      controlBounds: () => CONTROL_WINDOW,
-      createHandle: (screen, events) => {
-        if (screen.id === 'main') throw new Error('no window today');
-        return windows.create(screen, events);
-      },
-      log,
-    });
-    manager.start();
-    simulateReadyFrames(manager, store, windows);
-    store.dispatch(turn(true, 'main'));
+    const stage = screenOn(STAGE, {id: 'stage'});
+    const {store, log} = setUp([screenOn(PROJECTOR), stage]);
+    const failure = () => {
+      throw new Error('no window today');
+    };
+    outputOf('main').update.mockImplementation(failure);
+    outputOf('main').preload.mockImplementation(failure);
+
     store.dispatch(turn(true, 'stage'));
-    expect(windows.only('stage').mode.kind).toBe('fullscreen');
+
+    expect(outputOf('stage').update).toHaveBeenLastCalledWith(
+      fullScreenOn(STAGE),
+      stage,
+    );
+    expect(log.messages('error')).toContain(
+      'could not preload the main output',
+    );
+    expect(log.messages('error')).toContain(
+      'could not prepare the main output',
+    );
     expect(log.messages('error')).toContain(
       'could not update the main output window',
     );
   });
+});
 
-  it('closes the window of a screen that leaves the list', () => {
-    const {store, source, windows} = setUp();
+describe('OutputManager monitor removal', () => {
+  it('demotes only the outputs on a removed monitor and holds their full screen placement until the monitors settle', () => {
+    const main = screenOn(PROJECTOR);
+    const {store, displays} = setUp([main, screenOn(STAGE, {id: 'stage'})]);
     store.dispatch(turn(true));
-    source.screens = [];
     store.dispatch(turn(true, 'stage'));
-    expect(windows.only('main').destroyed).toBe(true);
+
+    displays.remove(PROJECTOR.id);
+    expect(outputOf('main').prepareForMonitorRemoval).toHaveBeenCalledOnce();
+    expect(outputOf('stage').prepareForMonitorRemoval).not.toHaveBeenCalled();
+    outputOf('main').update.mockClear();
+    store.dispatch(turn(false, 'stage'));
+    expect(outputOf('main').update).not.toHaveBeenCalled();
+
+    displays.change(monitorsOf(CONTROL, STAGE));
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(FALLBACK, main);
   });
 
-  it('destroys every window and stops listening on dispose', () => {
-    const {store, displays, windows, manager} = setUp();
-    store.dispatch(turn(true));
-    manager.dispose();
-    expect(windows.only('main').destroyed).toBe(true);
-    expect(store.listenerCount).toBe(0);
-    expect(displays.listenerCount).toBe(0);
-    store.dispatch(turn(false));
-    expect(windows.only('main').mode.kind).toBe('fullscreen');
-  });
-
-  it('goes full screen on the projector once a failed first monitor read recovers', async () => {
-    const clock = installMockClock();
-    const source = new MockDisplaySource(
-      displayInfo(CONTROL),
-      displayInfo(PROJECTOR),
-    );
-    source.failure = new Error('display service starting');
-    const log = recordingLogger();
-    const displays = new DisplayRegistry(source, log);
-    const store = new LiveStore();
-    const windows = mockWindows();
-    const manager = new OutputManager({
-      store,
-      displays,
-      screens: createDefaultScreenSource(displays),
-      controlBounds: () => CONTROL_WINDOW,
-      createHandle: windows.create,
-      log,
-    });
-    manager.start();
-    simulateReadyFrames(manager, store, windows);
+  it('shows a demoted output full screen again when its monitor returns before settling', () => {
+    const main = screenOn(PROJECTOR);
+    const {store, displays} = setUp([main]);
     store.dispatch(turn(true));
 
-    source.failure = null;
-    await clock.advance(DISPLAY_RETRY_MS);
-    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
-    expect(windows.only('main').mode).toEqual({
-      kind: 'fullscreen',
-      bounds: PROJECTOR_BOUNDS,
-      alwaysOnTop: false,
-    });
-    manager.dispose();
-    displays.dispose();
+    displays.remove(PROJECTOR.id);
+    outputOf('main').update.mockClear();
+    displays.change(MONITORS);
+
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(
+      fullScreenOn(PROJECTOR),
+      main,
+    );
   });
 
-  it("tells a restarted window when its page drew, and ignores other screens' reports", async () => {
-    const clock = installMockClock();
-    const {store, windows, log, manager} = setUp();
-    store.dispatch(turn(true));
-    const handle = windows.only('main');
-    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
-      handle.crash();
-      await clock.advance(RELAUNCH_DELAY_MS);
-    }
-    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
-    manager.frameReported('stage');
-    expect(log.messages('info')).not.toContain(
-      'output window restart attempt works',
-    );
-    manager.frameReported('main');
-    expect(log.messages('info')).toContain(
-      'output window restart attempt works',
-    );
-    manager.dispose();
-  });
-
-  it("reports each screen's placement and renderer state, and announces changes", async () => {
-    const clock = installMockClock();
-    const store = new LiveStore();
-    const windows = mockWindows();
-    const onStatusChange = vi.fn();
-    const manager = new OutputManager({
-      store,
-      displays: new MockMonitorFeed(monitorsOf(CONTROL, PROJECTOR)),
-      screens: new MockScreenSource([screenOn(PROJECTOR)]),
-      controlBounds: () => CONTROL_WINDOW,
-      createHandle: windows.create,
-      log: recordingLogger(),
-      onStatusChange,
+  it('keeps demoting the other outputs when one demotion fails', () => {
+    const {displays, log} = setUp([
+      screenOn(PROJECTOR),
+      screenOn(PROJECTOR, {id: 'stage'}),
+    ]);
+    outputOf('main').prepareForMonitorRemoval.mockImplementation(() => {
+      throw new Error('window closed during demotion');
     });
-    manager.start();
-    simulateReadyFrames(manager, store, windows);
+
+    displays.remove(PROJECTOR.id);
+
+    expect(log.messages('error')).toEqual(['could not demote the main output']);
+    expect(outputOf('stage').prepareForMonitorRemoval).toHaveBeenCalledOnce();
+  });
+});
+
+describe('OutputManager status', () => {
+  it('reports each status change once, warns about a missing monitor, and keeps the last full screen monitor', () => {
+    const {store, displays, manager, log, onStatusChange} = setUp();
     expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'running',
     });
+
     store.dispatch(turn(true));
-    expect(onStatusChange).toHaveBeenCalledTimes(1);
-    expect(manager.screenStates().get('main')?.placement).toBe('fullscreen');
+    expect(manager.screenStates().get('main')).toEqual({
+      placement: 'fullscreen',
+      renderer: 'running',
+      monitor: monitor(PROJECTOR).number,
+    });
+    displays.change(monitorsOf(CONTROL));
+    displays.change();
 
-    const handle = windows.only('main');
-    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
-      handle.crash();
-      await clock.advance(RELAUNCH_DELAY_MS);
-    }
-    expect(manager.screenStates().get('main')?.renderer).toBe('limited');
-    expect(onStatusChange.mock.calls.length).toBeGreaterThan(1);
+    expect(manager.screenStates().get('main')).toEqual({
+      placement: 'monitorMissing',
+      renderer: 'running',
+      monitor: monitor(PROJECTOR).number,
+    });
+    expect(log.messages('warn')).toEqual(['output monitor missing']);
+    expect(onStatusChange).toHaveBeenCalledTimes(2);
+  });
 
-    const reloadsBefore = handle.reloads;
+  it('reports the renderer state under each alias of a screen, and announces renderer changes', () => {
+    const {manager, onStatusChange} = setUp([
+      screenOn(PROJECTOR, {aliases: ['old-main']}),
+    ]);
+    const output = outputOf('main');
+
+    output.rendererState = 'limited';
+    output.options.onRendererState?.('limited');
+
+    expect(onStatusChange).toHaveBeenCalledOnce();
+    expect(manager.screenStates().get('old-main')).toEqual({
+      placement: 'off',
+      renderer: 'limited',
+    });
+  });
+
+  it('keeps the monitor assignment across output toggles and tells its listeners only when it changes', () => {
+    const {store, displays, manager, log} = setUp();
+    const heard = vi.fn();
+    manager.subscribeAssignment(() => {
+      throw new Error('listener failed');
+    });
+    const stop = manager.subscribeAssignment(heard);
+
+    store.dispatch(turn(true));
+    store.dispatch(turn(false));
+    expect(manager.assignedMonitorIds).toEqual(
+      new Map([['main', PROJECTOR.id]]),
+    );
+    expect(heard).not.toHaveBeenCalled();
+    displays.change(monitorsOf(CONTROL));
+    expect(manager.assignedMonitorIds).toEqual(new Map());
+    stop();
+    displays.change(MONITORS);
+
+    expect(heard).toHaveBeenCalledOnce();
+    expect(log.messages('error')).toEqual([
+      'an assignment listener failed',
+      'an assignment listener failed',
+    ]);
+  });
+});
+
+describe('OutputManager routing', () => {
+  it("routes frames, 다시 시도 and 창 보기 to the screen's window, and lists shown outputs and capture areas", () => {
+    const stage = screenOn(STAGE, {id: 'stage', method: 'capture'});
+    const {manager} = setUp([screenOn(PROJECTOR), stage]);
+    const frame = {width: 1920, height: 1080, ready: true};
+
+    expect(manager.frameReady('main', 4, frame)).toBe(true);
+    expect(manager.frameReady('unknown', 4, frame)).toBe(false);
+    manager.frameReported('main');
     manager.retry('main');
-    expect(handle.reloads).toBe(reloadsBefore + 1);
+    manager.showWindow('main');
+    expect(outputOf('main').frameReady).toHaveBeenCalledExactlyOnceWith(
+      4,
+      frame,
+    );
+    expect(outputOf('main').frameReported).toHaveBeenCalledOnce();
+    expect(outputOf('main').retry).toHaveBeenCalledOnce();
+    expect(outputOf('main').bringToFront).toHaveBeenCalledOnce();
+    expect(outputOf('stage').frameReported).not.toHaveBeenCalled();
+
+    const placement: ShownPlacement = {
+      kind: 'capture',
+      bounds: {x: 1920, y: 100, width: 976, height: 579},
+    };
+    outputOf('stage').shownPlacement.mockReturnValue(placement);
+    outputOf('stage').shownContentSize.mockReturnValue({
+      width: 960,
+      height: 540,
+    });
+    outputOf('stage').captureArea.mockReturnValue(placement.bounds);
+    expect(manager.shownOutputs()).toEqual([
+      {screen: stage, placement, contentSize: {width: 960, height: 540}},
+    ]);
+    expect(manager.captureAreas()).toEqual([placement.bounds]);
+  });
+
+  it('destroys every window and stops listening on dispose', () => {
+    const {store, displays, source, manager} = setUp();
+
     manager.dispose();
+    manager.dispose();
+
+    expect(outputOf('main').dispose).toHaveBeenCalledOnce();
+    expect(store.listenerCount()).toBe(0);
+    expect(displays.listenerCount).toBe(0);
+    expect(source.listenerCount).toBe(0);
+    expect(manager.screenStates().get('main')).toEqual({
+      placement: 'off',
+      renderer: 'running',
+    });
   });
 });

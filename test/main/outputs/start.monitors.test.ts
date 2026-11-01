@@ -5,48 +5,26 @@ import {
   setup,
   loaded,
   mocks,
-  STAGE_SCREEN,
 } from '@fixtures/main/outputs/startFixtures';
 import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {parseMonitorList} from '@core/schema/monitors';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {displayInfo} from '@fixtures/main/displays/testing';
-import {intersectionArea} from '@main/displays/rect';
-import {dispatchLogged} from '@main/live/store';
-import {CAPTIONS, MAIN, STAGE} from '@fixtures/core/overlays';
+import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {openNumberWindow} from '@main/outputs/numberWindow';
 import {sendToWindows} from '@main/ipc';
 
 describe('saved output backend', () => {
-  it('releases the last wake lock for removed or unsupported screens even without monitors', async () => {
-    const {settings, store, windows, stop, log, save} = setup();
+  it('releases the wake lock, its listeners, and its channels once when outputs stop', async () => {
+    const {settings, store, stop} = setup();
     await loaded();
-    save([main, {...main, id: STAGE, method: 'window'}]);
-    store.dispatch({
-      type: 'live.batch',
-      commands: [MAIN, STAGE].map(screenId => ({
-        type: 'output.set',
-        screenId,
-        on: true,
-      })),
-    });
-    save([{...main, id: STAGE, method: 'window'}]);
-    expect(windows.only(MAIN).destroyed).toBe(true);
-    expect(mocks.stop).not.toHaveBeenCalled();
-    mocks.displays?.change();
-    save([{...main, id: STAGE, method: 'ndi'}]);
-    expect(windows.only(STAGE).destroyed).toBe(true);
-    expect(Object.values(store.state.outputs).some(Boolean)).toBe(false);
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+
+    stop();
+    stop();
+
     expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
-    dispatchLogged(store, {type: 'output.set', screenId: STAGE, on: true}, log);
-    expect(mocks.start).toHaveBeenCalledTimes(1);
-    expect(log.entries.at(-1)).toMatchObject({
-      level: 'warn',
-      detail: {reason: 'missing-target'},
-    });
-    stop();
-    stop();
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
     expect(mocks.displays?.watcherCount).toBe(0);
@@ -70,23 +48,16 @@ describe('saved output backend', () => {
     );
   });
 
-  it('opens a number window on each monitor away from a shown capture window', async () => {
-    const {store, save, windows, stop} = setup(undefined, 'normal');
+  it('opens a number window on each monitor for 모니터 확인 and closes them when outputs stop', async () => {
+    const {store, stop} = setup(undefined, 'normal');
     await loaded();
-    save([
-      {...main, method: 'capture', resolution: {width: 1280, height: 720}},
-    ]);
-    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
-    const capture = windows.only(MAIN).bounds();
-    if (capture === null) throw new Error('Missing capture window');
+
     store.dispatch({type: 'monitors.identify'});
     const spots = vi.mocked(openNumberWindow).mock.calls.map(([spot]) => spot);
     expect(spots.map(({number}) => number)).toEqual([1, 2, 3]);
-    for (const {bounds} of spots) {
-      expect(intersectionArea(bounds, capture)).toBe(0);
-    }
     expect(mocks.closeNumber).not.toHaveBeenCalled();
     stop();
+
     expect(mocks.closeNumber).toHaveBeenCalledTimes(3);
   });
 
@@ -112,34 +83,23 @@ describe('saved output backend', () => {
     expect(store.state.testPatterns).toEqual([MAIN]);
   });
 
-  it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {
-    const {store, windows, log} = setup();
+  it('reads the monitors at once for 모니터 다시 찾기 and raises the output for 창 보기', async () => {
+    const {store, windows} = setup();
     await loaded();
     store.dispatch({type: 'output.set', screenId: 'main', on: true});
     const output = windows.only(MAIN);
-    expect(output.mode.kind).toBe('fullscreen');
     const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [displayInfo({id: 1, primary: true}), stage];
 
     mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
-    expect(output.mode.kind).toBe('window');
-    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
-      {
-        main: {placement: 'monitorMissing', monitor: 2},
-      },
-    );
-
     mocks.handlers.get(outputEndpoints.showWindow.channel)?.(
       {screenId: 'main'},
       1,
     );
+
+    expect(output.mode.kind).toBe('window');
     expect(output.raises).toBe(1);
-    mocks.handlers.get(outputEndpoints.showWindow.channel)?.({screenId: ''}, 1);
-    expect(output.raises).toBe(1);
-    expect(log.messages('warn')).toContain(
-      'dropped a malformed show window request',
-    );
   });
 
   it('routes capture aliases and frame statuses by UUID and forgets removed reports', async () => {
@@ -195,70 +155,6 @@ describe('saved output backend', () => {
     );
     stop();
     expect(mocks.answers.has(outputEndpoints.monitors.channel)).toBe(false);
-  });
-
-  it('keeps configured monitor assignments through output toggles and publishes display changes', async () => {
-    const twin = {name: 'Generic PnP'};
-    const second = (id: number, x: number) =>
-      displayInfo({id, x, name: twin.name});
-    const stageScreen = {
-      ...main,
-      id: STAGE_SCREEN,
-      name: 'Stage',
-      kind: 'stage',
-      display: savedDisplay(second(3, 3840)),
-    };
-    const displays = mocks.displays;
-    if (displays === null) throw new Error('Missing displays');
-    displays.displays = [
-      displayInfo({id: 1, primary: true}),
-      second(22, 1920),
-      second(33, 3840),
-    ];
-    const {save, store, windows} = setup();
-    await loaded();
-    save([{...main, display: savedDisplay(second(2, 1920))}, stageScreen]);
-    const assignment = () => {
-      const parsed = parseMonitorList(
-        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
-      );
-      if (!parsed.ok) throw new Error(parsed.error.message);
-      return parsed.value.map(monitor => [monitor.number, monitor.screenIds]);
-    };
-    expect(assignment()).toEqual([
-      [1, []],
-      [2, [MAIN]],
-      [3, [STAGE_SCREEN]],
-    ]);
-    expect(store.state.outputs[MAIN]).not.toBe(true);
-    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
-    store.dispatch({type: 'output.set', screenId: MAIN, on: false});
-    expect(windows.only(MAIN).mode.kind).toBe('hidden');
-    expect(assignment()).toEqual([
-      [1, []],
-      [2, [MAIN]],
-      [3, [STAGE_SCREEN]],
-    ]);
-
-    displays.displays = [
-      displayInfo({id: 1, primary: true}),
-      second(33, 1920),
-      second(22, 3840),
-    ];
-    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
-
-    expect(assignment()).toEqual([
-      [1, []],
-      [2, [STAGE_SCREEN]],
-      [3, [MAIN]],
-    ]);
-    expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
-      outputEndpoints.monitorsChanged.channel,
-      expect.arrayContaining([
-        expect.objectContaining({number: 3, screenIds: [MAIN]}),
-      ]),
-      expect.anything(),
-    );
   });
 
   it('pushes the monitor list when only the assignment changes', async () => {

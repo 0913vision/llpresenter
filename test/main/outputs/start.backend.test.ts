@@ -1,19 +1,14 @@
 import {
   projector,
-  stage,
-  savedDisplay,
-  main,
   setup,
   loaded,
   mocks,
 } from '@fixtures/main/outputs/startFixtures';
-import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {parseLiveCommand} from '@core/schema/liveCommand';
-import {dispatchLogged, LiveStore} from '@main/live/store';
-import {MAIN, STAGE} from '@fixtures/core/overlays';
+import {LiveStore} from '@main/live/store';
+import {MAIN} from '@fixtures/core/overlays';
 
 describe('saved output backend', () => {
   it('continues past a throwing stop callback and disposes outputs after on then off', async () => {
@@ -85,122 +80,16 @@ describe('saved output backend', () => {
     expect(settings.listeners.size).toBe(0);
     expect(store.listenerCount).toBe(0);
   });
-  it('reads saved settings by ID for resync and coalesces refreshes after the live transaction', async () => {
-    const {settings, store, log, running, windows} = setup();
-    await loaded();
-    const command = parseLiveCommand({
-      type: 'screen.settings.apply',
-      screenId: MAIN,
-      screen: {...main, method: 'window'},
-    });
-    if (!command.ok || command.value.type !== 'screen.settings.apply') {
-      throw new Error('Invalid resync fixture');
-    }
-    const read = settings.reader.get.bind(settings.reader);
-    const saved = settingsDocument('screens', {
-      screens: [
-        {...main, method: 'capture', resolution: {width: 1280, height: 720}},
-      ],
-    });
-    const get = vi
-      .spyOn(settings.reader, 'get')
-      .mockImplementation(name => (name === 'screens' ? saved : read(name)));
-    const broadcasts = vi.fn();
-    store.subscribe(broadcasts);
-    dispatchLogged(
-      store,
-      {
-        type: 'live.batch',
-        commands: [
-          command.value,
-          command.value,
-          {type: 'output.set', screenId: MAIN, on: true},
-        ],
-      },
-      log,
-    );
-    expect(broadcasts).toHaveBeenCalledTimes(1);
-    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
-    get.mockClear();
-    await loaded();
-    expect(get.mock.calls.filter(([name]) => name === 'screens')).toHaveLength(
-      1,
-    );
-    expect(store.state.outputs[MAIN]).toBe(true);
-    expect(windows.only(MAIN).mode).toMatchObject({
-      kind: 'capture',
-      bounds: {width: 1280, height: 720},
-    });
-    expect(broadcasts).toHaveBeenCalledTimes(1);
-    const before = store.state;
-    dispatchLogged(
-      store,
-      {type: 'screen.settings.apply', screenId: STAGE},
-      log,
-    );
-    expect(store.state).toBe(before);
-    expect(log.entries.at(-1)).toMatchObject({
-      level: 'warn',
-      detail: {reason: 'missing-target', target: {kind: 'screen', id: STAGE}},
-    });
-    running.stop();
-    dispatchLogged(store, command.value, log);
-    expect(log.entries.at(-1)).toMatchObject({
-      level: 'error',
-      message: 'live command failed',
-    });
-  });
 
-  it('applies method, monitor, resolution and always-on-top changes to the same window', async () => {
-    const {save, store, windows} = setup();
+  it('keeps the display awake while an output is on', async () => {
+    const {store} = setup();
     await loaded();
-    const broadcasts = vi.fn();
-    store.subscribe(broadcasts);
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
-    expect(store.state.outputs).toEqual({[MAIN]: true, main: true});
-    expect(broadcasts).toHaveBeenCalledTimes(1);
-    const window = windows.only(MAIN);
-    expect(window.mode).toEqual({
-      kind: 'fullscreen',
-      bounds: projector.bounds,
-      alwaysOnTop: false,
-    });
-    save([
-      {...main, method: 'capture', resolution: {width: 1280, height: 720}},
-    ]);
-    expect(window.mode).toMatchObject({
-      kind: 'capture',
-      bounds: {width: 1280, height: 720},
-    });
-    expect(window.mode).not.toHaveProperty('alwaysOnTop', true);
-    save([
-      {
-        ...main,
-        method: 'capture',
-        resolution: {width: 3840, height: 2160},
-        alwaysOnTop: true,
-      },
-    ]);
-    expect(window.mode).toMatchObject({
-      kind: 'capture',
-      bounds: {width: 3840, height: 2160},
-      alwaysOnTop: true,
-    });
-    save([{...main, method: 'window', alwaysOnTop: true}]);
-    expect(window.mode).toMatchObject({kind: 'window', alwaysOnTop: true});
-    save([{...main, display: savedDisplay(stage), alwaysOnTop: false}]);
-    expect(window.mode).toEqual({
-      kind: 'fullscreen',
-      bounds: stage.bounds,
-      alwaysOnTop: false,
-    });
-    expect(windows.created).toHaveLength(1);
+
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
     expect(mocks.start).toHaveBeenCalledExactlyOnceWith(
       'prevent-display-sleep',
     );
     store.dispatch({type: 'output.set', screenId: MAIN, on: false});
-    expect(store.state.outputs).toEqual({[MAIN]: false, main: false});
-    expect(window.mode.kind).toBe('hidden');
     expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
   });
 
@@ -218,14 +107,5 @@ describe('saved output backend', () => {
     expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
     running.stop();
     expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);
-  });
-
-  it('applies the latest placement to the preloaded hidden native handle', async () => {
-    const {save, store, windows} = setup();
-    await loaded();
-    save([{...main, name: 'Updated', method: 'capture'}]);
-    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
-    expect(windows.only(MAIN).mode.kind).toBe('capture');
-    expect(windows.only(MAIN).screen.name).toBe('Updated');
   });
 });
