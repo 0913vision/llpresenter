@@ -1,6 +1,4 @@
 import type {FontCatalog, FontFamily} from '@core/schema/fontCatalog';
-import type {LooksFile} from '@core/schema/looks';
-import type {Screen} from '@core/schema/screens';
 import type {SelectOption} from '@renderer/ui/SelectMenu';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import type {FontCatalogState} from './useFontCatalog';
@@ -85,41 +83,4 @@ export function weightChoices(
         value === weight && !supported ? '이 글꼴에 없는 굵기' : undefined,
       ),
     }));
-}
-
-/** Marks only Look cards that reference an unavailable audience lyric font. */
-export function lookFontWarnings(
-  looks: LooksFile | undefined,
-  screens: readonly Screen[] | undefined,
-  state: FontCatalogState,
-): ReadonlyMap<string, string> {
-  const warnings = new Map<string, string>();
-  if (looks === undefined || state.status !== 'ready') return warnings;
-  const available = new Set([
-    ...BUNDLED_NAMES,
-    ...state.families.flatMap(namesOf),
-  ]);
-  const missing = new Map(
-    looks.lyricStyles
-      .filter(style => !available.has(normalizeFontName(style.font)))
-      .map(style => [
-        style.id,
-        `글꼴이 없어 Pretendard로 표시 중: ${style.font}`,
-      ]),
-  );
-  const audience = new Set<string>(
-    screens
-      ?.filter(screen => screen.kind === 'audience')
-      .map(screen => screen.id),
-  );
-  for (const look of looks.looks) {
-    const reasons = new Set<string>();
-    for (const [screen, card] of Object.entries(look.screens)) {
-      if (!audience.has(screen) || card.lyricStyle === undefined) continue;
-      const reason = missing.get(card.lyricStyle);
-      if (reason !== undefined) reasons.add(reason);
-    }
-    if (reasons.size > 0) warnings.set(look.id, [...reasons].join('\n'));
-  }
-  return warnings;
 }

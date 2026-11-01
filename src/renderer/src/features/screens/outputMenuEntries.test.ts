@@ -8,7 +8,6 @@ import {
   LAYOUT_ID,
   WIDE_LAYOUT_ID,
 } from '@core/testing/screenDocuments';
-import {useScreensSelection} from './selection';
 import {menuItems} from '@renderer/ui/menuModel';
 import {outputMenuFixture} from '@renderer/platform/testing/outputMenu';
 import {
@@ -59,7 +58,7 @@ it.each([false, true])(
   },
 );
 
-it('selects theme and layout editors and changes one stage screen', () => {
+it('opens the theme editor and changes one stage screen', () => {
   const {input, send, onWorkspace} = fixture();
   const live = parseLiveState({
     ...emptyLiveState(),
@@ -72,16 +71,11 @@ it('selects theme and layout editors and changes one stage screen', () => {
   menuItems(rows.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [])
     .find(row => row.id === 'edit')
     ?.onSelect?.();
-  rows.find(row => row.id === 'edit-layout')?.onSelect?.();
-  expect(useScreensSelection.getState().selection).toEqual({
-    kind: 'stage',
-    id: WIDE_LAYOUT_ID,
-  });
   const openScreens = vi.fn();
   window.llp = mockLlpApi({window: {openScreens}, live: {send}});
   rows.find(row => row.id === 'screens')?.onSelect?.();
   expect(openScreens).toHaveBeenCalledOnce();
-  expect(onWorkspace.mock.calls).toEqual([[], []]);
+  expect(onWorkspace.mock.calls).toEqual([[]]);
   const choices = menuItems(
     rows.find(row => row.id === `layout:${STAGE_ID}`)?.loadSubmenu?.() ?? [],
   );
@@ -98,18 +92,15 @@ it('keeps output commands usable before settings load and disables unavailable e
   const {input} = fixture();
   const rows = menuItems(screenEntries({...input, looks: null, layouts: null}));
   expect(rows.find(row => row.id === 'audience-output')?.disabled).toBe(false);
-  for (const id of ['edit-layout', `layout:${STAGE_ID}`]) {
-    expect(rows.find(row => row.id === id)?.disabled).toBe(true);
-  }
+  expect(rows.find(row => row.id === `layout:${STAGE_ID}`)?.disabled).toBe(
+    true,
+  );
   expect(rows.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
     '무대 배치 불러오는 중',
   );
-  expect(rows.find(row => row.id === 'edit-layout')?.title).toBe(
-    '선택한 배치 없음',
-  );
 });
 
-it('explains empty choices and unavailable editor callbacks separately', () => {
+it('explains empty choices', () => {
   const {input} = fixture();
   const empty = menuItems(
     screenEntries({
@@ -121,15 +112,6 @@ it('explains empty choices and unavailable editor callbacks separately', () => {
   expect(empty.find(row => row.id === `layout:${STAGE_ID}`)?.title).toBe(
     '무대 배치 없음',
   );
-  const disconnected = menuItems(
-    screenEntries({...input, onEditScreens: undefined}),
-  );
-  for (const id of ['edit-layout']) {
-    expect(disconnected.find(row => row.id === id)).toMatchObject({
-      disabled: true,
-      title: '화면 설정 연결 안 됨',
-    });
-  }
   const screen = input.screens[0];
   if (!screen) throw new Error('Missing screen fixture');
   const invalid = menuItems(

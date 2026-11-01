@@ -3,7 +3,7 @@ import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {parseScreenId} from '@core/schema/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
-import {sendLookChange} from '@renderer/features/screens/looks/lookActions';
+import {sendLookChange} from '@renderer/features/screens/lookActions';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';
 import {sendLive} from '@renderer/session/live';
 import type {JSX} from 'react';

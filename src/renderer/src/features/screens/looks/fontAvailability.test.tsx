@@ -1,70 +1,23 @@
-import {settingsDocument} from '@core/testing/settingsDocument';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {fontFamilyFixture} from '@core/testing/fontCatalog';
-import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
-const DEFAULT_LYRIC_STYLE = {
-  ...DEFAULT_MESSAGE_STYLE,
-  referencePosition: 'bottomRight' as const,
-};
-import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
-import {
-  LOOK_ID,
-  MAIN_ID,
-  STAGE_ID,
-  looksDocument,
-  screensDocument,
-} from '@core/testing/screenDocuments';
 import {
   installedFamily,
-  lookFontWarnings,
   missingFontReason,
   weightChoices,
 } from './fontAvailability';
-import {LyricStyleProperties} from './LyricStyleProperties';
 import {useFontCatalog} from './useFontCatalog';
 
 const family = fontFamilyFixture();
 const ready = {status: 'ready', families: [family]} as const;
-const STYLE_ID = '00000000-0000-4000-8000-000000000301';
 
 afterEach(() => {
   cleanup();
   delete window.llp;
-  resetTooltips();
   vi.useRealTimers();
 });
-
-function documentWithFont(font: string) {
-  const base = looksDocument();
-  if (base.name !== 'looks') throw new Error('Expected Looks');
-  const document = settingsDocument('looks', {
-    ...base.value,
-    lyricStyles: [{...DEFAULT_LYRIC_STYLE, id: STYLE_ID, name: '기본', font}],
-    looks: [
-      {
-        id: LOOK_ID,
-        name: '평상시',
-        screens: {
-          [MAIN_ID]: {layers: {slide: true}, lyricStyle: STYLE_ID},
-          [STAGE_ID]: {layers: {}, lyricStyle: STYLE_ID},
-        },
-      },
-    ],
-  });
-  if (document.name !== 'looks') throw new Error('Expected Looks');
-  return document.value;
-}
 
 it('recognizes localized aliases, waits for enumeration and keeps bundled variable fonts available', () => {
   expect(installedFamily('  FIXTURE SANS ', ready.families)).toBe(family);
@@ -126,65 +79,6 @@ it.each([
   ).toBe(disabled);
 });
 
-it('does not offer speculative weights before the installed family is known', async () => {
-  let resolve: (fonts: FontCatalog) => void = () => undefined;
-  window.llp = mockLlpApi({
-    fonts: {
-      get: () =>
-        new Promise(finish => {
-          resolve = finish;
-        }),
-    },
-  });
-  const style = documentWithFont(family.label).lyricStyles[0];
-  if (style === undefined) throw new Error('Missing style');
-  const change = vi.fn();
-  render(
-    <LyricStyleProperties
-      changeEffects={vi.fn()}
-      style={style}
-      reason={undefined}
-      change={change}
-    />,
-  );
-  const control = screen.getByLabelText('굵기');
-  expect(control.getAttribute('aria-disabled')).toBe('true');
-  fireEvent.click(control);
-  expect(screen.queryByRole('menu')).toBeNull();
-  await act(async () => {
-    resolve([family]);
-  });
-  expect(control.getAttribute('aria-disabled')).toBeNull();
-  expect(change).not.toHaveBeenCalled();
-  expect(weightChoices(family.family, 700, {status: 'failed'})).toHaveLength(1);
-});
-
-it('marks only referenced audience fonts and removes the warning when the restored font is available', () => {
-  const looks = documentWithFont('Absent Fixture');
-  const screens = screensDocument();
-  if (screens.name !== 'screens') throw new Error('Expected Screens');
-  expect(
-    lookFontWarnings(looks, screens.value.screens, ready).get(LOOK_ID),
-  ).toBe('글꼴이 없어 Pretendard로 표시 중: Absent Fixture');
-  expect(
-    lookFontWarnings(
-      looks,
-      screens.value.screens.filter(screen => screen.kind === 'stage'),
-      ready,
-    ).size,
-  ).toBe(0);
-  expect(
-    lookFontWarnings(looks, screens.value.screens, {status: 'loading'}).size,
-  ).toBe(0);
-  expect(
-    lookFontWarnings(
-      documentWithFont(family.label),
-      screens.value.screens,
-      ready,
-    ).size,
-  ).toBe(0);
-});
-
 it('loads once, ignores a late result after unmount and reports a failed read', async () => {
   let resolve: (fonts: FontCatalog) => void = () => undefined;
   const get = vi.fn(
@@ -208,61 +102,4 @@ it('loads once, ignores a late result after unmount and reports a failed read', 
   const failed = renderHook(useFontCatalog);
   await waitFor(() => expect(failed.result.current.status).toBe('failed'));
   expect(log).toHaveBeenCalledOnce();
-});
-
-it('sends a weight-only edit from the installed list and keeps read-only properties inert', async () => {
-  window.llp = mockLlpApi({fonts: {get: async () => [family]}});
-  const style = documentWithFont(family.label).lyricStyles[0];
-  if (style === undefined) throw new Error('Missing style');
-  const change = vi.fn();
-  const view = render(
-    <LyricStyleProperties
-      changeEffects={vi.fn()}
-      style={style}
-      reason={undefined}
-      change={change}
-    />,
-  );
-  await act(async () => undefined);
-  fireEvent.click(screen.getByLabelText('굵기'));
-  expect(screen.queryByRole('menuitemradio', {name: '100'})).toBeNull();
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '350'}));
-  expect(change).toHaveBeenCalledExactlyOnceWith({weight: 350});
-  view.rerender(
-    <LyricStyleProperties
-      changeEffects={vi.fn()}
-      style={style}
-      reason="읽기 전용"
-      change={change}
-    />,
-  );
-  fireEvent.click(screen.getByLabelText('굵기'));
-  fireEvent.click(screen.getByLabelText('글꼴'));
-  expect(screen.queryByRole('menu')).toBeNull();
-  expect(change).toHaveBeenCalledOnce();
-});
-
-it('shows the missing-font reason and saves only an explicit replacement', async () => {
-  window.llp = mockLlpApi({fonts: {get: async () => [family]}});
-  const style = documentWithFont('Absent Fixture').lyricStyles[0];
-  if (style === undefined) throw new Error('Missing style');
-  const change = vi.fn();
-  render(
-    <LyricStyleProperties
-      changeEffects={vi.fn()}
-      style={style}
-      reason={undefined}
-      change={change}
-    />,
-  );
-  await act(async () => undefined);
-  expect(change).not.toHaveBeenCalled();
-  expect(
-    (await hoverForTooltip(screen.getByLabelText('글꼴')))?.textContent,
-  ).toContain('글꼴이 없어 Pretendard로 표시 중: Absent Fixture');
-  resetTooltips();
-  vi.useRealTimers();
-  fireEvent.click(screen.getByLabelText('글꼴'));
-  fireEvent.click(screen.getByRole('option', {name: 'Pretendard'}));
-  expect(change).toHaveBeenCalledExactlyOnceWith({font: 'Pretendard'});
 });

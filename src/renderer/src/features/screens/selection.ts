@@ -14,21 +14,12 @@ interface SelectionView {
   readonly selection: ScreensSelection;
   readonly lastScreenId: string | null;
   readonly select: (kind: ScreensSelectionKind, id: string) => void;
-  readonly selectAfterStageRemoval: (id: string, next: string | null) => void;
-  readonly stageElement: {
-    readonly layoutId: string;
-    readonly elementId: string;
-  } | null;
-  readonly selectStageElement: (
-    layoutId: string,
-    elementId: string | null,
-  ) => void;
 }
 
 const initialSelection: ScreensSelection = {kind: 'screen', id: null};
 
 /**
- * The one selected row across the 화면, Look, and 무대 배치 lists. Choosing a
+ * The one selected row of 화면 설정. Choosing a
  * row in one list clears the selection in the others.
  */
 export const useScreensSelection = create<SelectionView>(set => ({
@@ -44,22 +35,6 @@ export const useScreensSelection = create<SelectionView>(set => ({
             ? view.selection.id
             : view.lastScreenId,
     })),
-  selectAfterStageRemoval: (id, next) =>
-    set(view => {
-      if (view.selection.kind !== 'stage' || view.selection.id !== id) {
-        return view;
-      }
-      return {
-        selection:
-          next === null
-            ? {kind: 'screen', id: view.lastScreenId}
-            : {kind: 'stage', id: next},
-        stageElement: null,
-      };
-    }),
-  stageElement: null,
-  selectStageElement: (layoutId, elementId) =>
-    set({stageElement: elementId === null ? null : {layoutId, elementId}}),
 }));
 
 /** Retains the screen view while a Look or stage-layout row is selected. */

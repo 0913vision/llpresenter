@@ -19,7 +19,6 @@ import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {Notice} from '@renderer/ui/notices';
 import type {ScreenSummary} from '@renderer/platform/screens';
 import {sendThemeChange} from './themeActions';
-import {useScreensSelection} from './selection';
 import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
 
 /** Screen/live/settings snapshots and an app-owned editor navigation callback. */
@@ -80,14 +79,6 @@ export function screenOutputSections(
       ? undefined
       : (stageLayouts?.[id] ?? current?.screens[id]?.stageLayout);
   };
-  const edit = (kind: 'look' | 'stage', id: string | undefined): void => {
-    if (id === undefined || onEditScreens === undefined) return;
-    useScreensSelection.getState().select(kind, id);
-    onEditScreens();
-  };
-  const layout = stage
-    .map(currentLayout)
-    .find(id => layouts?.layouts.some(item => item.id === id));
   const capture = outputGroup(captions, outputs);
   return {
     audience: [
@@ -154,19 +145,6 @@ export function screenOutputSections(
             })) ?? [],
         };
       }),
-      {
-        kind: 'item',
-        id: 'edit-layout',
-        label: '무대 배치 편집…',
-        ...menuAvailability(
-          onEditScreens === undefined
-            ? '화면 설정 연결 안 됨'
-            : layout === undefined
-              ? '선택한 배치 없음'
-              : undefined,
-        ),
-        onSelect: () => edit('stage', layout),
-      },
     ],
     broadcast: [
       menuSeparator('broadcast'),
