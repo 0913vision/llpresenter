@@ -1,3 +1,5 @@
+// NOTE(0913vision): The hooks below apply to each test file that imports this
+// module.
 import {
   cleanup,
   fireEvent,
@@ -12,7 +14,7 @@ import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {QuickPanel} from '.././QuickPanel';
+import {QuickPanel} from '../QuickPanel';
 import {
   quickDocument,
   quickFixture,

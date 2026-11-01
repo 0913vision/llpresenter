@@ -1,3 +1,5 @@
+// NOTE(0913vision): The hooks below apply to each test file that imports this
+// module.
 import {render, screen} from '@testing-library/react';
 import {beforeEach, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
@@ -12,7 +14,7 @@ import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {ServiceOrderList} from '.././ServiceOrderList';
+import {ServiceOrderList} from '../ServiceOrderList';
 
 export const serviceId = createServiceId(
   '00000000-0000-4000-8000-000000000001',
