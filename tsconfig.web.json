@@ -22,7 +22,8 @@
       "@core/*": ["./src/core/*"],
       "@contracts/*": ["./src/contracts/*"],
       "@renderer/*": ["./src/renderer/src/*"],
-      "@fixtures/*": ["./test/fixtures/*"]
+      "@fixtures/*": ["./test/fixtures/*"],
+      "@main/*": ["./src/main/*"]
     }
   },
   "include": [
