@@ -89,4 +89,29 @@ describe('queued document save outcomes', () => {
     });
     expect(log.messages('error')).toContain('could not save a queued document');
   });
+
+  it('reports a callback that throws something that is not an Error', async () => {
+    const {saves, log} = setup();
+    const work = vi
+      .fn<() => Promise<WriteResult>>()
+      .mockRejectedValue('invented failure');
+    const result = saves.schedule('C:/data/a.json', work);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(await result).toEqual({
+      ok: false,
+      error: {file: 'C:/data/a.json', message: 'invented failure'},
+    });
+    expect(log.messages('error')).toEqual(['could not save a queued document']);
+  });
+
+  it('does not run a save that disposal already settled', async () => {
+    const {saves, log} = setup();
+    const work = vi.fn<() => Promise<WriteResult>>();
+    const result = saves.schedule('C:/data/a.json', work);
+    saves.dispose();
+    expect(await result).toMatchObject({ok: false});
+    await vi.advanceTimersByTimeAsync(500);
+    expect(work).not.toHaveBeenCalled();
+    expect(log.messages('error')).toEqual([]);
+  });
 });

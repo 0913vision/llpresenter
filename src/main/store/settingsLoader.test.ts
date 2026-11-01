@@ -8,6 +8,7 @@ import {recordingLogger} from '../displays/testing';
 import {openAppConfig} from './appConfigFile';
 import {loadStore} from './fileStore';
 import {settingsCodecs} from './settingsCodecs';
+import {Saver} from './saver';
 import {openSettingsStore} from './settingsStore';
 import {writeJson} from './testFiles';
 
@@ -130,5 +131,85 @@ describe('independent settings area loading', () => {
         await readFile(join(loaded.locations.settings, 'notices.json'), 'utf8'),
       ),
     ).toMatchObject({format: settingsCodecs.notices.format});
+  });
+
+  it('uses defaults and reports the area when its serialization returns an error', async () => {
+    const {loaded, log} = await setup();
+    const spy = vi
+      .spyOn(settingsCodecs.messages, 'serialize')
+      .mockReturnValueOnce({
+        ok: false,
+        error: {
+          kind: 'invalid',
+          file: 'messages.json',
+          field: '',
+          message: 'No',
+        },
+      });
+    onTestFinished(() => spy.mockRestore());
+    const store = await openSettingsStore(loaded, log);
+    onTestFinished(() => store.dispose());
+    expect(store.get('messages').name).toBe('messages');
+    expect(store.get('notices').name).toBe('notices');
+    const problems: string[] = [];
+    store.subscribeProblems(problem =>
+      problems.push(`${problem.file}: ${problem.error.message}`),
+    );
+    expect(problems).toEqual(['messages.json: No']);
+  });
+
+  it('uses defaults and reports the area when creating its file fails', async () => {
+    const {loaded, log} = await setup();
+    const original = Saver.prototype.save;
+    const spy = vi.spyOn(Saver.prototype, 'save').mockImplementation(function (
+      this: Saver,
+      request,
+    ) {
+      return request.target.id === 'messages'
+        ? Promise.resolve({
+            ok: false,
+            error: {file: request.target.file, message: 'Disk is full'},
+          })
+        : original.call(this, request);
+    });
+    onTestFinished(() => spy.mockRestore());
+    const store = await openSettingsStore(loaded, log);
+    onTestFinished(() => store.dispose());
+    expect(store.get('messages').name).toBe('messages');
+    expect(store.get('notices').name).toBe('notices');
+    const problems: string[] = [];
+    store.subscribeProblems(problem => problems.push(problem.file));
+    expect(problems).toEqual(['messages.json']);
+  });
+
+  it('keeps the other areas when an area cannot build its defaults', async () => {
+    const {loaded, log} = await setup();
+    const actual = await vi.importActual<
+      typeof import('@core/schema/settingsDocuments')
+    >('@core/schema/settingsDocuments');
+    vi.mocked(parseSettingsDocument).mockImplementation(value =>
+      isRecord(value) && value.name === 'messages' && value.revision === 1
+        ? {
+            ok: false,
+            error: {
+              kind: 'invalid',
+              file: '',
+              field: '',
+              message: 'Bad defaults',
+            },
+          }
+        : actual.parseSettingsDocument(value),
+    );
+    onTestFinished(() => {
+      vi.mocked(parseSettingsDocument).mockImplementation(
+        actual.parseSettingsDocument,
+      );
+    });
+    const store = await openSettingsStore(loaded, log);
+    onTestFinished(() => store.dispose());
+    expect(store.get('notices').name).toBe('notices');
+    const problems: string[] = [];
+    store.subscribeProblems(problem => problems.push(problem.file));
+    expect(problems).toEqual(['messages.json']);
   });
 });
