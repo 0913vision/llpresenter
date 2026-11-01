@@ -83,6 +83,42 @@ function selectedChip(): string | null {
 }
 
 describe('ArrangementStrip', () => {
+  it('only selects chips in select mode, with no insert, move, or remove', async () => {
+    const onSelect = vi.fn();
+    const onMove = vi.fn();
+    const onRemove = vi.fn();
+    const onInsert = vi.fn();
+    render(
+      <ArrangementStrip
+        mode="select"
+        label="구성"
+        chips={chips}
+        selected={0}
+        onSelect={onSelect}
+        onMove={onMove}
+        onRemove={onRemove}
+        onInsert={onInsert}
+      />,
+    );
+    const list = screen.getByRole('listbox', {name: '구성'});
+    expect(list.getAttribute('aria-readonly')).toBe('true');
+    expect(screen.queryByRole('button', {name: /넣기/})).toBeNull();
+    expect(list.querySelector('[aria-hidden="true"]')).toBeNull();
+    const second = screen.getAllByRole('option')[1];
+    if (second === undefined) throw new Error('Missing chip');
+
+    await userEvent.click(second);
+    await userEvent.keyboard('{Alt>}{ArrowRight}{/Alt}{Delete}');
+    fireEvent.pointerDown(second, {pointerId: 7, button: 0, clientX: 10});
+    fireEvent.pointerMove(window, {pointerId: 7, clientX: 400});
+    fireEvent.pointerUp(window, {pointerId: 7, clientX: 400});
+
+    expect(onSelect).toHaveBeenCalledWith(1);
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(onInsert).not.toHaveBeenCalled();
+  });
+
   it('ignores modified keyboard presses on chips and the insert button', () => {
     const onInsert = vi.fn();
     render(<Strip onInsert={onInsert} />);

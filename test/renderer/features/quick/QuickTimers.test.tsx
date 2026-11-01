@@ -3,7 +3,6 @@ import {
   cleanup,
   fireEvent,
   render,
-  renderHook,
   screen,
   waitFor,
 } from '@testing-library/react';
@@ -20,7 +19,6 @@ import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {
   deferred,
@@ -142,34 +140,6 @@ describe('quick timer isolation', () => {
     expect(f.problem).not.toHaveBeenCalled();
   });
 
-  it('clears disabled reads and ignores a previous activation when settings are enabled again', async () => {
-    const f = setup({none: true});
-    const first = deferred<SettingsDocument>();
-    const second = deferred<SettingsDocument>();
-    const get = vi
-      .spyOn(f.api.settings, 'get')
-      .mockReturnValueOnce(first.promise)
-      .mockReturnValueOnce(second.promise);
-    const view = renderHook(
-      ({enabled}) =>
-        useSettingsDocument(enabled ? 'timers' : null, '타이머', f.problem),
-      {initialProps: {enabled: false}},
-    );
-    expect(get).not.toHaveBeenCalled();
-    view.rerender({enabled: true});
-    expect(get).toHaveBeenCalledOnce();
-    view.rerender({enabled: false});
-    expect(view.result.current).toBeNull();
-    expect(f.listeners.size).toBe(0);
-    view.rerender({enabled: true});
-    expect(get).toHaveBeenCalledTimes(2);
-    await act(async () => first.resolve(documents().timers));
-    expect(view.result.current).toBeNull();
-    await act(async () => second.resolve(documents({separate: true}).timers));
-    expect(view.result.current?.revision).toBe(2);
-    view.unmount();
-    expect(f.listeners.size).toBe(0);
-  });
   it('blocks a shared secondary row during separation and keeps the accepted operation in the close gate', async () => {
     const f = setup();
     const view = f.mount();

@@ -1,12 +1,8 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {createServiceItemId} from '@core/schema/ids';
-import {useShow} from '@renderer/session/show';
 import {useHeaderRename} from '@renderer/session/headerRename';
-import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
-import type {ServiceItem} from '@core/schema/service';
 import {
-  serviceId,
   headerId,
   firstId,
   lastId,
@@ -129,42 +125,6 @@ describe('service panel editing', () => {
     fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
     expect(await screen.findByRole('menuitem', {name: '삭제'})).toBeDefined();
     expect(screen.queryByRole('menuitem', {name: '이름 바꾸기'})).toBeNull();
-  });
-
-  it('selects the new section name for renaming while retaining the header kind', async () => {
-    const {api} = setup('prep');
-    const document = await api.services.get(serviceId);
-    if (document === null) throw new Error('No fixture service');
-    const inserted: ServiceItem[] = [];
-    const entries = otherItemEntries({
-      media: [],
-      notices: [],
-      onBible: () => undefined,
-      onInsert: item => inserted.push(item),
-    });
-    const command = entries.find(
-      entry => entry.kind === 'item' && entry.id === 'other:header',
-    );
-    if (command?.kind !== 'item') throw new Error('No section command');
-    command.onSelect?.();
-    const item = inserted[0];
-    if (item === undefined) throw new Error('No inserted section');
-    await act(async () => {
-      await api.content.edit({
-        type: 'service.update',
-        service: {
-          ...document.service,
-          order: [...document.service.order, item],
-        },
-        baseRevision: document.revision,
-      });
-      useHeaderRename.getState().request(item.id);
-    });
-    expect(useShow.getState().rows.at(-1)?.kind).toBe('header');
-    const field = screen.getByRole('textbox', {name: '새 구역 이름'});
-    expect(field).toHaveProperty('value', '새 구역');
-    expect(field).toHaveProperty('selectionStart', 0);
-    expect(field).toHaveProperty('selectionEnd', '새 구역'.length);
   });
 
   it('opens the field of a header that quick add asked for once it is listed', async () => {

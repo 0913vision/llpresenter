@@ -87,23 +87,12 @@ function selectedThumbnail(panel: HTMLElement): number {
 }
 
 describe('service song item panel', () => {
-  it('keeps named arrangement chips selection-only and leaves source history untouched', async () => {
+  it('shows the named arrangement for selection only and leaves source history untouched', async () => {
     const {panel, user, items, edits} = await setup();
     const session = items.getSnapshot().song;
     const before = session?.history.snapshot.song;
-    const list = strip(panel);
-    expect(list.getAttribute('aria-readonly')).toBe('true');
-    expect(within(panel).queryByRole('button', {name: /넣기/})).toBeNull();
-    expect(list.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(strip(panel).getAttribute('aria-readonly')).toBe('true');
     await user.click(chip(panel, 0));
-    await user.keyboard('{Alt>}{ArrowRight}{/Alt}{Delete}');
-    fireEvent.pointerDown(chip(panel, 0), {
-      pointerId: 7,
-      button: 0,
-      clientX: 10,
-    });
-    fireEvent.pointerMove(window, {pointerId: 7, clientX: 400});
-    fireEvent.pointerUp(window, {pointerId: 7, clientX: 400});
     expect(session?.history.snapshot.song).toBe(before);
     expect(edits).toEqual([]);
   });

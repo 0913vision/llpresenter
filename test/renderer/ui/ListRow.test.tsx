@@ -259,6 +259,22 @@ describe('ListGroup rename', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
+  it('selects the whole name when the field opens', () => {
+    render(
+      <ListGroup
+        label="새 구역"
+        rename={{onCommit: vi.fn().mockReturnValue(true), onClose: vi.fn()}}
+      >
+        <span>rows</span>
+      </ListGroup>,
+    );
+    const field = screen.getByRole('textbox', {name: '새 구역 이름'});
+
+    expect(field).toHaveProperty('value', '새 구역');
+    expect(field).toHaveProperty('selectionStart', 0);
+    expect(field).toHaveProperty('selectionEnd', '새 구역'.length);
+  });
+
   it('cancels on Esc without saving when the field loses focus afterwards', async () => {
     const onCommit = vi.fn().mockReturnValue(true);
     const onCancel = vi.fn();

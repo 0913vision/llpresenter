@@ -615,3 +615,22 @@ describe('screen creation and group outputs', () => {
     expect(useScreensSelection.getState().selection).toBe(previous);
   });
 });
+
+describe('screen row drags', () => {
+  it('keeps the selection when a native row drag ends in a click', async () => {
+    setup();
+    const row = await screen.findByRole('option', {name: '무대 화면'});
+    const previous = useScreensSelection.getState().selection;
+
+    fireEvent.dragStart(row, {
+      dataTransfer: {setData: vi.fn(), setDragImage: vi.fn()},
+    });
+    fireEvent.dragEnd(row);
+    fireEvent.click(row, {detail: 1});
+    expect(useScreensSelection.getState().selection).toBe(previous);
+    fireEvent.pointerDown(row);
+    fireEvent.click(row, {detail: 1});
+
+    expect(useScreensSelection.getState().selection.id).toBe(STAGE_ID);
+  });
+});
