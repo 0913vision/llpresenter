@@ -728,3 +728,23 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   except 0 (use tokens); the comment rule of CLAUDE.md. Rules that would only
   restate Prettier are left out. Existing violations are fixed in the same
   request, not ignored.
+
+## 2026-11-01: 테마 edits save on 저장 and ask before overwriting
+
+- The user wants the 테마 editor to ask before it overwrites a 테마 ("테마
+  편집은 저장할 때 덮어쓸 거냐고 물어보는 거고") and called "새 테마로 저장…"
+  wrong ("이런 건 좀 고쳐야 하지 않을까"). A 테마 is shared by every item that
+  uses it, so a stray drag must not change them, and a LIVE 테마 must not change
+  the output while someone edits it.
+- Edits stay in the editor until 저장 (Ctrl S). 저장 asks "<이름> 테마를
+  덮어쓸까요?" with 취소 and 덮어쓰기; under it, the usage line of the other
+  confirmations ("예배 순서 항목 4곳에서 씀"), counting items that use the 테마
+  directly or as their kind's default, hidden at 0 (`countedMeta`). 다른
+  이름으로 저장… (Ctrl Shift S) sits beside 저장 and makes a new 테마 from the
+  edits, leaving the original unchanged. A 테마 with unsaved edits shows a dot
+  after its name.
+- Leaving the 테마 (another row, another workspace, closing the window) with
+  unsaved edits asks 저장, 저장 안 함, 취소. The output of a LIVE 테마 changes
+  only on save.
+- This replaces "Every edit saves at once" in spec 12. Draft: B20 board f2, less
+  its breadcrumb, which ui-210 removed.
