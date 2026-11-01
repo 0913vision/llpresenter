@@ -59,6 +59,14 @@ describe('Checkbox', () => {
 });
 
 describe('CheckRow', () => {
+  it('focuses its control when its label is clicked', async () => {
+    render(<CheckRow label="이름표" checked={false} onChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByText('이름표'));
+
+    expect(document.activeElement).toBe(screen.getByRole('checkbox'));
+  });
+
   it('toggles from a press on the name or the icon', async () => {
     const {container} = render(<Row icon="mplay" />);
     await userEvent.click(screen.getByText('화면 출력'));

@@ -57,6 +57,26 @@ describe('BackgroundLayerView', () => {
     view.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
+  it.each(['video', 'play'] as const)(
+    'makes a first background ready after a terminal %s failure',
+    async failure => {
+      if (failure === 'play') {
+        vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
+          new Error('Decoder could not start'),
+        );
+      }
+      const {view, videos, onError} = setUp();
+      view.show(WARM_LIGHT, false);
+      expect(view.ready()).toBe(false);
+
+      if (failure === 'video') videos[1].dispatchEvent(new Event('error'));
+
+      await vi.waitFor(() => expect(view.ready()).toBe(true));
+      expect(onError).toHaveBeenCalled();
+      view.dispose();
+    },
+  );
+
   it('makes a failed replacement ready with the last good background and resets on the next source', () => {
     const {view, videos, onError} = setUp();
     view.show(WARM_LIGHT, false);

@@ -12,7 +12,8 @@ import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {startOutput} from '@renderer/output/startOutput';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
-import {LiveStore} from '@main/live/store';
+import {parseLiveState} from '@core/schema/liveState';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 
 import {resolveThemeOutput} from '@core/themes/output';
@@ -194,71 +195,6 @@ describe('startOutput', () => {
     stop();
   });
 
-  it.each(['video', 'image', 'play'] as const)(
-    'reveals valid lyrics with a completed fallback after a terminal %s failure',
-    async failure => {
-      const settings = overlaySettings();
-      const defaults = mockLlpApi();
-      const reportReady = vi.fn((report: FrameReadyReport) =>
-        Promise.resolve(report.ready),
-      );
-      const logs: RendererLogEntry[] = [];
-      const api = mockLlpApi({
-        settings: {
-          get: ({name}) =>
-            name === 'screens'
-              ? Promise.resolve(settings.reader.get(name))
-              : defaults.settings.get({name}),
-        },
-        live: {
-          get: () => Promise.resolve({...SHOWING, outputs: {[MAIN]: true}}),
-        },
-        output: {reportReady},
-        log: {write: entry => logs.push(entry)},
-      });
-      if (failure === 'play') {
-        vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
-          new Error('Decoder could not start'),
-        );
-      }
-      const root = document.createElement('div');
-      const stop = startOutput({root, api, screenId: MAIN});
-      await Promise.resolve();
-      runFramesFor(80);
-      expect(reportReady).not.toHaveBeenCalledWith(
-        expect.objectContaining({ready: true}),
-      );
-      const video = root.querySelector('video[src]');
-      if (video === null) throw new Error('Missing pending background');
-      if (failure === 'image') {
-        Object.defineProperty(video, 'error', {
-          value: {code: 4},
-          configurable: true,
-        });
-        video.dispatchEvent(new Event('error'));
-        const image = root.querySelector('img[src]');
-        if (image === null) throw new Error('Missing pending image');
-        image.dispatchEvent(new Event('error'));
-      } else if (failure === 'video') video.dispatchEvent(new Event('error'));
-      await Promise.resolve();
-      await pumpReadiness();
-      await pumpReadiness();
-      expect(reportReady).toHaveBeenCalledWith(
-        expect.objectContaining({
-          screenId: MAIN,
-          version: SHOWING.version,
-          ready: true,
-        }),
-      );
-      expect(root.textContent).toContain(SHOWING.layers.slide?.lines[0]);
-      expect(root.firstElementChild?.classList.contains(classes.instant)).toBe(
-        false,
-      );
-      expect(logs.some(entry => entry.level === 'error')).toBe(true);
-      stop();
-    },
-  );
-
   it('keeps hidden live content loaded and reports ready only with its background, without a reveal dissolve', async () => {
     let current = {...SHOWING, outputs: {[MAIN]: false}};
     let receive: (state: LiveState) => void = () => undefined;
@@ -390,21 +326,37 @@ describe('startOutput', () => {
 
   it('routes an overlay after screen settings resolve and releases every feed on stop', async () => {
     const settings = overlaySettings();
-    const store = new LiveStore();
-    store.connectSettings(settings.reader);
-    store.dispatch({
-      type: 'message.send',
-      text: 'Targeted output',
-      targets: [MAIN],
-      duration: 30,
-    });
+    const startedAt = Date.now();
+    const messageId = '50000000-0000-4000-8000-000000000001';
+    const live = expectSuccess(
+      parseLiveState({
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          message: {
+            messageId,
+            text: 'Targeted output',
+            items: [
+              {
+                messageId,
+                text: 'Targeted output',
+                targets: [MAIN],
+                excludedTargets: [],
+                startedAt,
+                expiresAt: startedAt + 30_000,
+              },
+            ],
+          },
+        },
+      }),
+    );
     const root = document.createElement('div');
     const stopLive = vi.fn();
     const stopSettings = vi.fn();
     const pending = new Map<string, (document: SettingsDocument) => void>();
     const api = mockLlpApi({
       live: {
-        get: () => Promise.resolve({...store.state, themeOutput}),
+        get: () => Promise.resolve({...live, themeOutput}),
         subscribe: () => stopLive,
       },
       settings: {

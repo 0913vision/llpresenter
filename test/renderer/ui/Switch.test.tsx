@@ -42,6 +42,14 @@ describe('Switch', () => {
 });
 
 describe('SwitchRow', () => {
+  it('focuses its control when its label is clicked', async () => {
+    render(<SwitchRow label="이름표" checked={false} onChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByText('이름표'));
+
+    expect(document.activeElement).toBe(screen.getByRole('switch'));
+  });
+
   it('is named by its label and toggles from a press on it', async () => {
     const onChange = vi.fn();
     render(<AlwaysOnTop onChange={onChange} />);
