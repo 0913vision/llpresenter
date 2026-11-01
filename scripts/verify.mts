@@ -6,7 +6,6 @@ import {
   type StepCommand,
   type StepOutcome,
 } from './verify/step-process.mts';
-import {beginStamp} from './verify/stamp.mts';
 
 /** The npm scripts that `npm run verify` runs, in the order it reports them. */
 export const VERIFY_STEPS = [
@@ -195,26 +194,6 @@ export async function verify(run: VerifyRun): Promise<number> {
   return exitCodeFor(result);
 }
 
-// NOTE(0913vision): The stamp only saves the pre-push hook a second run, so
-// a stamp that can't be written never changes verify's own result.
-async function beginStampOrSkip(
-  root: string,
-): Promise<(exitCode: number) => Promise<void>> {
-  try {
-    const finish = await beginStamp(root);
-    return async exitCode => {
-      try {
-        await finish(exitCode);
-      } catch (error) {
-        console.error('verify passed but could not record its stamp:', error);
-      }
-    };
-  } catch (error) {
-    console.error('verify runs without recording a stamp:', error);
-    return () => Promise.resolve();
-  }
-}
-
 async function main(): Promise<void> {
   // NOTE(0913vision): npm sets npm_execpath to its own CLI script. Running it
   // with this Node avoids spawning npm.cmd through a shell on Windows, so Git
@@ -225,7 +204,6 @@ async function main(): Promise<void> {
     process.exitCode = FAILURE_EXIT_CODE;
     return;
   }
-  const finishStamp = await beginStampOrSkip(process.cwd());
   const interruption = new AbortController();
   const interrupt = (): void => interruption.abort();
   for (const signal of INTERRUPT_SIGNALS) process.on(signal, interrupt);
@@ -238,7 +216,6 @@ async function main(): Promise<void> {
       console,
     });
     process.exitCode = exitCode;
-    await finishStamp(exitCode);
   } finally {
     for (const signal of INTERRUPT_SIGNALS) process.off(signal, interrupt);
   }

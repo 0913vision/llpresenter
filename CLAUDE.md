@@ -26,10 +26,10 @@ without exception.
 - Team members push only their own branches (`<tag>/<name>/<feature>`) to
   `origin`, so GitHub's runners verify them; after a rebase they push with
   `--force-with-lease` to their own branch only. Only the lead pushes `main`, in
-  sensible work units, without running checks locally. Nobody pushes tags or
-  force-pushes `main`. A merged branch is deleted from `origin` by the
-  dispatcher or the lead, like a pull request's delete-after-merge; members
-  never delete remote branches themselves.
+  sensible work units; the pre-push hook checks commit messages only. Nobody
+  pushes tags or force-pushes `main`. A merged branch is deleted from `origin`
+  by the dispatcher or the lead, like a pull request's delete-after-merge;
+  members never delete remote branches themselves.
 - Never run `reset --hard`, rewrite history, or delete branches on `main`.
   Members rebase only their own branch onto `origin/main`. Nobody rebases `main`
   itself.
@@ -75,8 +75,9 @@ the process only at a milestone boundary, never in the middle of one.
   yourself (for `package-lock.json`, take `main`'s file and run `npm install`).
   Answer findings once, one line each; nits go into your next branch.
 - **Merging:** when the review passes, the lead squash-merges the branch onto
-  the local `main`, one at a time, if its CI passed and its base is
-  `origin/main`. A conflict comes back to you.
+  the local `main`, one at a time, if its CI passed and it rebases cleanly onto
+  `main`, even when other branches landed after its review. A conflict comes
+  back to you.
 - **Nothing about the process is committed:** no review files, check sheets,
   sample data for checks, screenshots, measurements, run logs, plans, status
   pages, briefs, or notes. Committed files hold the product only: code, tests,

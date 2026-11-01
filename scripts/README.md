@@ -25,14 +25,8 @@ Vitest worker start errors, and unhandled errors from that step's output. That
 tells a busy-machine timeout from a broken test. Rerun the step alone, for
 example `npm run lint`. Branch pushes run verification on GitHub-hosted Windows
 runners. The lead reads the branch result before merging and checks that its
-head SHA is the commit under review. The hook keeps the local stamp rule for
-pushes to `main`.
+head SHA is the commit under review. A push to `main` runs no verification.
 
-- When every step passes, verify writes `.llp/verify-stamp.json` (Git ignores
-  `.llp/`): the tree of the checked-out commit, whether the working tree was
-  clean before and after the run, and when it passed. A run that fails or is
-  stopped leaves no stamp, because verify removes the old one first. The
-  pre-push check reads it.
 - Each step has 10 minutes. A step that runs longer fails, and verify ends it
   with every process it started (`taskkill /t /f`). Ctrl+C does the same for
   every running step. Five seconds after it starts to stop a step, verify lets
@@ -237,26 +231,17 @@ The lead owns it.
 `npm ci` runs the `prepare` script (`scripts/hooks/install.mts`), which sets
 `core.hooksPath` to `.githooks` in this repository's config, never the global
 one. From then on, git runs `.githooks/pre-push` (Git Bash on Windows) before
-every push. For every branch except `main`, it checks commit messages only;
-verification runs on GitHub after the push. These branches can be pushed from a
-different or dirty checkout. For a push that updates `main`, it stops the push
-with a one-line reason when:
+every push. It runs no verification: every branch passes verification on GitHub
+before its review, and a reviewed branch lands on `main` only when it rebases
+cleanly. It stops the push with a one-line reason when:
 
-- the pushed commit isn't checked out, or the working tree has changes, because
-  verify runs on the checked-out tree,
-- `origin` has a commit this clone lacks (pull the version bot commit first),
 - a pushed commit message isn't `tag(scope): sentence` or the bot's exact
   `Bump version: x.y.z`, or has a body or trailers, or
-- `npm run verify` fails.
+- a push to `main` isn't a fast-forward of `origin/main` (pull the version bot
+  commit first).
 
-The message check always runs. Verify doesn't run again when the stamp says the
-pushed commit's tree already passed `npm run verify` on a clean working tree;
-the hook prints `pre-push: verify skipped: ...` then. Otherwise it prints why it
-runs verify (no stamp, another tree, or uncommitted changes during that run) and
-runs it.
-
-The hook checks every branch in a mixed push before running main's verify. Tags
-and branch deletions pass without a check.
+Branches can be pushed from any checkout, clean or not. The hook checks every
+branch in a mixed push. Tags and branch deletions pass without a check.
 
 ## Version bot
 
@@ -303,8 +288,7 @@ runners. `.github/workflows/ci.yml` runs:
   `windows-latest`, with npm and the Electron download cached, and the coverage
   report uploaded as an artifact. The job has read-only repository permission,
   doesn't pass repository secrets, and doesn't persist checkout credentials.
-- On a push to `main`: only the `bump` job above. Main's pre-push hook retains
-  the local verification stamp rule.
+- On a push to `main`: only the `bump` job above.
 - On demand (`workflow_dispatch`, with the `major` input) on `main`: only the
   bump. Manual runs on other branches skip both jobs.
 
@@ -314,7 +298,7 @@ that branch. Tag pushes and pull request events don't start runs.
 ### Read a branch's latest result
 
 ```bash
-node scripts/ci/status.mts chore/devops/verify-stamp
+node scripts/ci/status.mts chore/devops/branch-ci
 ```
 
 This reads this public repository's GitHub REST API without a token, GitHub CLI,

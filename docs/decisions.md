@@ -796,3 +796,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `test/fixtures/`, and the Vitest setup files in `test/setup/`.
 - The component gallery shows design system components only. Its Library
   section, a feature panel with a mock library API in `src/`, was removed.
+
+## 2026-11-01: Main pushes run no local verification
+
+- Every branch passes verification on GitHub before its review. When the review
+  passes, the lead merges the branch if it rebases cleanly onto `main`, even
+  when other branches landed after the review; a conflict goes back to its
+  author (user: "리베이스 깔끔하게되는 브런치면 바로 합치면되고아니면
+  돌려보내면되잖아").
+- So a push to `main` runs no verification on our side either: the pre-push hook
+  checks only commit messages and that `main` moves forward. This replaces the
+  hook's verify step and its stamp from 2026-10-24 and 2026-10-25. GitHub still
+  runs only the version bump on `main`.

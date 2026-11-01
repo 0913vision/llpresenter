@@ -1,8 +1,6 @@
-import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
-import {git, gitSucceeds} from '../git.mts';
-import {readStamp, type VerifyStamp} from '../verify/stamp.mts';
+import {gitSucceeds} from '../git.mts';
 import {readCommitMessages, type CommitMessage} from '../version/commits.mts';
 import {classifySubject} from '../version/subject.mts';
 
@@ -16,30 +14,18 @@ export interface RefUpdate {
 
 /** What the hook reads from the repository it pushes from. */
 export interface PushedRepository {
-  /** The checked-out commit. */
-  head(): string;
-  /** Whether the working tree has no changes. */
-  isClean(): boolean;
   /** Whether `ancestor` is in the history of `commit`. */
   isAncestor(ancestor: string, commit: string): boolean;
-  /** The tree of a commit. */
-  treeOf(commit: string): string;
   /** The messages of the commits `git log` lists for these revisions. */
   messages(revisions: readonly string[]): CommitMessage[];
-  /** The last passing verify, or `null` when none is recorded. */
-  stamp(): VerifyStamp | null;
 }
 
 /** The repository in `cwd`, read with git. */
 export function repositoryAt(cwd: string): PushedRepository {
   return {
-    head: () => git(cwd, ['rev-parse', 'HEAD']),
-    isClean: () => git(cwd, ['status', '--porcelain']) === '',
     isAncestor: (ancestor, commit) =>
       gitSucceeds(cwd, ['merge-base', '--is-ancestor', ancestor, commit]),
-    treeOf: commit => git(cwd, ['rev-parse', `${commit}^{tree}`]),
     messages: revisions => readCommitMessages(cwd, revisions),
-    stamp: () => readStamp(cwd),
   };
 }
 
@@ -57,21 +43,6 @@ export function parseRefUpdates(input: string): RefUpdate[] {
         ? [{localRef, localSha, remoteRef, remoteSha}]
         : [],
     );
-}
-
-/**
- * Finds the update that pushes commits to `main`, ignoring tags, other
- * branches, and deletions.
- */
-export function findMainUpdate(
-  updates: readonly RefUpdate[],
-): RefUpdate | null {
-  return (
-    updates.find(
-      update =>
-        update.remoteRef === MAIN_REF && !NULL_COMMIT.test(update.localSha),
-    ) ?? null
-  );
 }
 
 function pushedRevisions(update: RefUpdate): string[] {
@@ -103,8 +74,8 @@ function checkCommitMessages(
 }
 
 /**
- * Checks a push to `main` before verify runs, so verify tests exactly what is
- * pushed.
+ * Checks a push to `main`: it only moves `main` forward, and every pushed
+ * commit message follows the format. Verification already ran on the branch.
  *
  * @returns the reason to stop the push, or `null` when it may go on
  */
@@ -112,12 +83,6 @@ export function checkMainPush(
   repo: PushedRepository,
   update: RefUpdate,
 ): string | null {
-  if (repo.head() !== update.localSha) {
-    return 'check out the main you push; verify runs on the checked-out tree';
-  }
-  if (!repo.isClean()) {
-    return 'commit or stash your changes first; verify runs on the working tree';
-  }
   const fastForward =
     NULL_COMMIT.test(update.remoteSha) ||
     repo.isAncestor(update.remoteSha, update.localSha);
@@ -127,52 +92,10 @@ export function checkMainPush(
   return checkCommitMessages(repo, update);
 }
 
-/** Whether the hook runs verify for a push, and why. */
-export type VerifyDecision =
-  | {readonly kind: 'skip'; readonly stamp: VerifyStamp}
-  | {readonly kind: 'run'; readonly reason: string};
-
-/**
- * Skips verify only when the stamp says the pushed commit's tree already
- * passed `npm run verify` on a clean working tree. Anything else runs it.
- */
-export function decideVerify(
-  repo: PushedRepository,
-  update: RefUpdate,
-): VerifyDecision {
-  const tree = repo.treeOf(update.localSha);
-  const stamp = repo.stamp();
-  if (stamp === null) {
-    return {kind: 'run', reason: 'no passing verify is recorded'};
-  }
-  if (stamp.tree !== tree) {
-    return {
-      kind: 'run',
-      reason: 'the last passing verify checked another tree',
-    };
-  }
-  if (!stamp.clean) {
-    return {
-      kind: 'run',
-      reason: 'the last passing verify ran with uncommitted changes',
-    };
-  }
-  return {kind: 'skip', stamp};
-}
-
-function runVerify(): boolean {
-  // NOTE(0913vision): One command string, because Node 24 warns about
-  // arguments passed through a shell. The shell finds npm.cmd on Windows.
-  return (
-    spawnSync('npm run verify', {stdio: 'inherit', shell: true}).status === 0
-  );
-}
-
-/** Checks every pushed branch's messages and verifies only a main update. */
+/** Checks the commit messages of every pushed branch, and that main moves forward. */
 export function runPrePush(
   repo: PushedRepository,
   updates: readonly RefUpdate[],
-  verify: () => boolean = runVerify,
 ): number {
   const branches = updates.filter(
     update =>
@@ -189,28 +112,10 @@ export function runPrePush(
       return FAILURE_EXIT_CODE;
     }
   }
-  const update = findMainUpdate(branches);
-  if (update === null) {
-    if (branches.length > 0) {
-      console.log(
-        'pre-push: commit messages passed; branch verify runs in GitHub Actions',
-      );
-    }
-    return 0;
-  }
-  const decision = decideVerify(repo, update);
-  if (decision.kind === 'skip') {
+  if (branches.length > 0) {
     console.log(
-      `pre-push: verify skipped: this tree passed npm run verify on a clean tree at ${decision.stamp.verifiedAt}`,
+      'pre-push: commit messages passed; verification runs on each branch in GitHub Actions',
     );
-    return 0;
-  }
-  console.log(`pre-push: running npm run verify: ${decision.reason}`);
-  if (!verify()) {
-    console.error(
-      'pre-push: push stopped: npm run verify failed on main; its summary above names the step and the failed tests',
-    );
-    return FAILURE_EXIT_CODE;
   }
   return 0;
 }
