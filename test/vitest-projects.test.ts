@@ -93,7 +93,7 @@ describe('CI test workers', () => {
     expect(workflow).toContain('npm run lint -- --concurrency auto');
   });
 
-  it('keeps all checks and merges every shard before reporting coverage', async () => {
+  it('keeps all checks on branches and measures coverage only on main', async () => {
     const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
     const checks = /\n {2}checks:\n([\s\S]*?)\n {2}tests:\n/.exec(
       workflow,
@@ -110,14 +110,10 @@ describe('CI test workers', () => {
     }
     expect(shards).toContain('shard: [1, 2, 3]');
     expect(shards).toContain('fail-fast: false');
-    expect(shards).toContain(
-      '--coverage --coverage.reporter=text-summary --reporter=blob',
-    );
-    expect(shards).toContain('--shard=${{ matrix.shard }}/3');
-    expect(shards).toContain('if-no-files-found: error');
-    expect(coverage).toContain('needs: tests');
-    expect(coverage).toContain('pattern: vitest-blob-*');
-    expect(coverage).toContain('merge-multiple: true');
-    expect(coverage).toContain('vitest run --merge-reports --coverage');
+    expect(shards).toContain('vitest run --shard=${{ matrix.shard }}/3');
+    expect(shards).not.toContain('--coverage');
+    expect(coverage).toContain("github.ref == 'refs/heads/main'");
+    expect(coverage).toContain('vitest run --coverage');
+    expect(coverage).not.toContain('thresholds');
   });
 });
