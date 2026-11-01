@@ -6,7 +6,6 @@ import {
   timerTimeReason,
   validTimerConfiguration,
 } from '@core/timers/timerConfiguration';
-import {parseTimerDuration} from '@renderer/features/tools/TimerDurationFields';
 
 it('checks real calendar dates and strict 24-hour times with the persisted schemas', () => {
   for (const date of ['2028-02-29', '2026-10-28']) {
@@ -24,10 +23,7 @@ it('checks real calendar dates and strict 24-hour times with the persisted schem
   expect(localDateText(new Date(2026, 9, 28, 0, 1))).toBe('2026-10-28');
 });
 
-it('bounds elapsed starts and keeps the countdown minimum independent', () => {
-  expect(parseTimerDuration('0', '0').duration).toBeUndefined();
-  expect(parseTimerDuration('0', '0', 0).duration).toBe(0);
-  expect(parseTimerDuration('1', '59', 0).duration).toBe(119);
+it('bounds elapsed starts and refuses a countdown to a date that does not exist', () => {
   for (const start of [-1, 0.5, NaN, Infinity, MAX_TIMER_SECONDS + 1]) {
     expect(validTimerConfiguration({kind: 'elapsed', start})).toBe(false);
   }

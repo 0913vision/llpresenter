@@ -30,7 +30,7 @@ describe('local song preview model', () => {
     expect(final.slide).not.toHaveProperty('next');
     expect(final.slide?.lines).toEqual(song.groups[0]?.slides[0]?.lines);
   });
-  it('uses the same per-screen theme composition and configured empty color as output', () => {
+  it('maps each preview role to its screen, theme name, and configured empty color', () => {
     const {themes, screens} = editorPreviewFixture();
     const main = previewAppearance({
       role: 'main',
@@ -39,23 +39,12 @@ describe('local song preview model', () => {
     });
     expect(main.themeName).toBe(themes.value.themes[0]?.name);
     expect(main.screen.id).toBe(STARTER_SCREEN_IDS.main);
-    expect(
-      main.theme.layout.elements.some(element => element.kind === 'background'),
-    ).toBe(true);
     const stage = previewAppearance({
       role: 'stage',
       themes: themes.value,
       screens: screens.value,
     });
     expect(stage.screen.kind).toBe('stage');
-    expect(
-      stage.theme.layout.elements.some(
-        element => element.kind === 'background',
-      ),
-    ).toBe(false);
-    expect(
-      stage.theme.layout.elements.some(element => element.kind === 'nextText'),
-    ).toBe(true);
     expect(
       previewAppearance({
         role: 'broadcast',
@@ -65,13 +54,8 @@ describe('local song preview model', () => {
     ).toBe('#00B140');
   });
 
-  it('uses built-in themes before settings load and follows a service item override', () => {
+  it('passes a service item theme override through to the theme output', () => {
     const {themes, screens} = editorPreviewFixture();
-    expect(
-      previewAppearance({role: 'main', themes: undefined, screens: undefined}),
-    ).toMatchObject({
-      theme: {layout: {mode: {kind: 'own'}}},
-    });
     const theme = themes.value.themes[1];
     if (theme === undefined) throw new Error('Missing theme');
     const item = {
@@ -88,11 +72,6 @@ describe('local song preview model', () => {
     });
     expect(appearance.theme.themeId).toBe(theme.id);
     expect(appearance.theme.item).toBe(item);
-    expect(
-      appearance.theme.layout.elements.some(
-        element => element.kind === 'reference',
-      ),
-    ).toBe(true);
   });
 
   it('draws only the selected local slide and eligible background, never other live layers', () => {

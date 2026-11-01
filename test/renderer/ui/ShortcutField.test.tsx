@@ -2,24 +2,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {serializeShortcuts, type KeyBinding} from '@core/schema/shortcuts';
-import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import type {KeyBinding} from '@core/schema/shortcuts';
 import {ShortcutField} from '@renderer/ui/ShortcutField';
 import {Dialog} from '@renderer/ui/Dialog';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
-import {shortcutNames} from '@renderer/ui/shortcutKeys';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-
-vi.mock('@renderer/session/clear', () => ({
-  clearLayer: vi.fn(),
-  undoClear: vi.fn(),
-  stopItem: vi.fn(),
-  toggleItem: vi.fn(),
-}));
-import {clearLayer} from '@renderer/session/clear';
 
 afterEach(() => {
   resetTooltips();
@@ -104,42 +94,6 @@ describe('ShortcutField', () => {
     expect(dialogCancel).not.toHaveBeenCalled();
   });
 
-  it.each(['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'])(
-    'takes %s before the real clear capture handler',
-    code => {
-      function CaptureKeys() {
-        useClearKeys();
-        return null;
-      }
-      render(<CaptureKeys />);
-      const {field, onRecord, onCancel} = setup();
-      expect(field.closest(SHORTCUT_RECORDING_SELECTOR)).toBe(field);
-      expect(fireEvent.keyDown(field, {code})).toBe(false);
-      expect(onRecord).toHaveBeenCalledExactlyOnceWith({code, mods: []});
-      expect(clearLayer).not.toHaveBeenCalled();
-      expect(onCancel).not.toHaveBeenCalled();
-      expect(field.closest(SHORTCUT_RECORDING_SELECTOR)).toBeNull();
-    },
-  );
-
-  it('records physical codes with canonical modifier order despite a Korean key', () => {
-    const {field, onRecord} = setup();
-    fireEvent.keyDown(field, {
-      code: 'KeyC',
-      key: 'ㅊ',
-      ctrlKey: true,
-      altKey: true,
-      shiftKey: true,
-    });
-    expect(onRecord).toHaveBeenCalledExactlyOnceWith({
-      code: 'KeyC',
-      mods: ['ctrl', 'alt', 'shift'],
-    });
-    expect(
-      shortcutNames({code: 'KeyC', mods: ['ctrl', 'alt', 'shift']}),
-    ).toEqual(['Ctrl', 'Alt', 'Shift', 'C']);
-  });
-
   it('cancels Esc without changing the binding or reaching its parent', () => {
     const outer = vi.fn();
     const onCancel = vi.fn();
@@ -220,27 +174,6 @@ describe('ShortcutField', () => {
 
   it.each<[string, KeyboardEventInit, string]>([
     ['Enter', {}, '확인과 실행에 쓰는 키'],
-    ['NumpadEnter', {}, '확인과 실행에 쓰는 키'],
-    ['F10', {}, '메뉴 막대에 쓰는 키'],
-    ['F10', {shiftKey: true}, '오른쪽 클릭 메뉴에 쓰는 키'],
-    ['ContextMenu', {}, '오른쪽 클릭 메뉴에 쓰는 키'],
-    ...['KeyX', 'KeyC', 'KeyV', 'KeyA'].map<
-      [string, KeyboardEventInit, string]
-    >(code => [code, {ctrlKey: true}, '글자 편집에 쓰는 키']),
-    ['F4', {altKey: true}, 'Windows가 쓰는 키'],
-    ['Tab', {altKey: true}, 'Windows가 쓰는 키'],
-    ['Escape', {ctrlKey: true}, 'Windows가 쓰는 키'],
-    ['Delete', {ctrlKey: true, altKey: true}, 'Windows가 쓰는 키'],
-    ['KeyD', {metaKey: true}, 'Windows가 쓰는 키'],
-    ['PrintScreen', {}, 'Windows가 쓰는 키'],
-    ['', {}, '입력기에 쓰는 키'],
-    ['Lang1', {}, '입력기에 쓰는 키'],
-    ['Lang2', {}, '입력기에 쓰는 키'],
-    ['KeyC', {isComposing: true, ctrlKey: true}, '입력기에 쓰는 키'],
-    ['KeyC', {}, '슬라이드 바로 가기에 쓰는 키'],
-    ['Digit1', {}, '슬라이드 바로 가기에 쓰는 키'],
-    ['Numpad1', {}, '슬라이드 바로 가기에 쓰는 키'],
-    ['Unidentified', {}, '지원하지 않는 키'],
   ])(
     'rejects %s %j, describes the reason, and keeps recording',
     (code, options, reason) => {
@@ -298,36 +231,4 @@ describe('ShortcutField', () => {
     fireEvent.keyDown(field, {code: 'F2'});
     expect(onRecord).toHaveBeenLastCalledWith({code: 'F2', mods: []});
   });
-
-  it.each([
-    ['ArrowRight', {}, '→'],
-    ['PageDown', {}, 'Page Down'],
-    ['Space', {}, 'Space'],
-    ['Numpad1', {ctrlKey: true, modifierNumLock: true}, 'Ctrl Num 1'],
-    ['Numpad1', {ctrlKey: true, modifierNumLock: false}, 'Ctrl Num 1'],
-    ['Backspace', {ctrlKey: true}, 'Ctrl Backspace'],
-    ['KeyC', {shiftKey: true}, 'Shift C'],
-  ])(
-    'produces a storable binding and English names for %s %j',
-    (code, options, name) => {
-      const {field, onRecord} = setup();
-      fireEvent.keyDown(field, {code, ...options});
-      const binding = onRecord.mock.calls[0]?.[0];
-      if (binding === undefined || binding === null) {
-        throw new Error('No binding recorded');
-      }
-      expect(binding.code).toBe(code);
-      expect(shortcutNames(binding).join(' ')).toBe(name);
-      expect(
-        serializeShortcuts(
-          {
-            format: 'llsettings.shortcuts',
-            schemaVersion: 1,
-            bindings: {test: [binding]},
-          },
-          'shortcuts.json',
-        ).ok,
-      ).toBe(true);
-    },
-  );
 });

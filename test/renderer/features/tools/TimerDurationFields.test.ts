@@ -46,3 +46,9 @@ it('bounds the combined value even when both fields are individually valid', () 
   expect(draft.duration).toBeUndefined();
   expect(draft.minutesReason).toBeTruthy();
 });
+
+it('allows zero only when the caller lowers the minimum', () => {
+  expect(parseTimerDuration('0', '0').duration).toBeUndefined();
+  expect(parseTimerDuration('0', '0', 0).duration).toBe(0);
+  expect(parseTimerDuration('1', '59', 0).duration).toBe(119);
+});

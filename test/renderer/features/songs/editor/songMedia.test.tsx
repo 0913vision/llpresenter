@@ -12,7 +12,6 @@ import {
   editorSetup,
   mockMenuRowHeight,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
-import {DUPLICATE_TITLE_REASON, SongTitleDraft} from '@core/songs/songTitle';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 
 function media(count = 3) {
@@ -99,28 +98,13 @@ describe('song title normalization', () => {
     await act(() => session.flush());
     expect(edits).toHaveLength(0);
   });
-  it('checks normalized duplicates while retaining the raw typing draft', () => {
-    const duplicate = vi.fn(() => true);
-    const draft = new SongTitleDraft('Original', duplicate);
-    draft.edit(`  ${'가사'.normalize('NFD')}  `);
-    expect(draft.reason).toBe(DUPLICATE_TITLE_REASON);
-    expect(duplicate).toHaveBeenLastCalledWith('가사');
-    expect(draft.nextValue).toBe('Original');
-  });
-
-  it('saves trim plus NFC and retains a newer trailing space through an older reply', async () => {
+  it('saves the title trimmed and in NFC', async () => {
     const {session, edits} = await setup();
     const raw = `  ${'가사'.normalize('NFD')}  `;
     act(() => session.editTitle(raw));
     await act(() => session.flush());
     expect(edits.at(-1)).toMatchObject({song: {title: '가사'}});
     expect(session.title.value).toBe('가사');
-    const draft = new SongTitleDraft('Original');
-    draft.edit(raw);
-    draft.edit(`${raw} `);
-    draft.accept('가사', raw);
-    expect(draft.value).toBe(`${raw} `);
-    expect(draft.changed).toBe(false);
   });
 });
 

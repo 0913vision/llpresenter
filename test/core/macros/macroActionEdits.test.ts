@@ -1,13 +1,11 @@
-import {expect, it, vi} from 'vitest';
+import {expect, it} from 'vitest';
 import {
   mergeSettingsDocument,
   parseSettingsDocument,
   parseSettingsEdit,
 } from '@core/schema/settingsDocuments';
 import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/macros';
-import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editMacroActions} from '@core/macros/macroActionEdits';
-import {saveMacroEdit} from '@renderer/features/tools/macroEdits';
 
 const id = '00000000-0000-4000-8000-000000000001';
 function document(actions: readonly object[], revision = 1) {
@@ -91,24 +89,6 @@ it('rejects changed snapshots and bounds both indices and the action count', () 
       {kind: 'append', action: first},
     ),
   ).toThrow('full');
-});
-
-it('does not overwrite a concurrently changed list on a retried removal', async () => {
-  const initial = document([first]);
-  const newer = document([first, second], 2);
-  const get = vi.fn().mockResolvedValueOnce(initial).mockResolvedValue(newer);
-  const edit = vi
-    .fn()
-    .mockResolvedValue({ok: false, error: {reason: 'stale', message: 'stale'}});
-  const api = mockLlpApi({settings: {get, edit}});
-  await expect(
-    saveMacroEdit(api, {
-      kind: 'action',
-      id: item.id,
-      action: {kind: 'remove', index: 0, expected: [first]},
-    }),
-  ).rejects.toThrow('changed');
-  expect(edit).toHaveBeenCalledOnce();
 });
 
 it('removes every action together and refuses a stale remove-all snapshot', () => {

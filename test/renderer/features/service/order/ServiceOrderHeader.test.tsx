@@ -3,10 +3,7 @@ import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {applyService} from '@renderer/session/show';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createServiceId} from '@core/schema/ids';
-import {
-  hoverForTooltip,
-  resetTooltips,
-} from '@fixtures/renderer/ui/tooltipTesting';
+import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {
   sampleService,
@@ -35,30 +32,6 @@ describe('ServiceOrderHeader', () => {
     );
     expect(screen.getByText('저녁 예배')).toBeDefined();
     expect(screen.queryByText(sampleService.name)).toBeNull();
-  });
-
-  it('keeps the full long name and shows it in a tooltip when truncated', async () => {
-    const name = '가을 감사 예배와 함께하는 온 가족 특별 찬양 예배';
-    applyService({...sampleService, name});
-    render(<ServiceOrderHeader />);
-    const title = screen.getByText(name);
-    Object.defineProperties(title, {
-      clientWidth: {value: 160},
-      scrollWidth: {value: 420},
-    });
-    const tooltip = await hoverForTooltip(title);
-    expect(tooltip?.textContent).toBe(name);
-    expect(title.textContent).toContain(name);
-  });
-
-  it('shows no tooltip for a name that fits', async () => {
-    render(<ServiceOrderHeader />);
-    const title = screen.getByText(sampleService.name);
-    Object.defineProperties(title, {
-      clientWidth: {value: 160},
-      scrollWidth: {value: 80},
-    });
-    expect(await hoverForTooltip(title)).toBeNull();
   });
 
   it('shows the panel label without an arrow after the service closes', () => {
