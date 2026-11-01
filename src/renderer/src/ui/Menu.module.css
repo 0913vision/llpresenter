@@ -108,11 +108,6 @@
   align-items: center;
 }
 
-.match {
-  color: var(--text);
-  font: var(--type-body-strong);
-}
-
 .meta {
   flex: none;
   margin-left: var(--space-6);

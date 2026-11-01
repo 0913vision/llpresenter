@@ -2,7 +2,6 @@ import type {ReactNode} from 'react';
 import type {GroupRename} from './ListRow';
 import type {MenuAnchor} from './Menu';
 import type {LabelColor} from '@core/labels/colors';
-import type {SearchRange} from '@core/search/searchText';
 
 /** How an item that can be on reports it: one of several, or on and off. */
 export type MenuCheckKind = 'radio' | 'checkbox';
@@ -12,8 +11,6 @@ interface MenuItemContent {
   readonly kind: 'item';
   readonly id: string;
   readonly label: string;
-  /** The part of the label a search matched, drawn strong. */
-  readonly match?: SearchRange | undefined;
   /** An 18px icon before the name. */
   readonly icon?: string | undefined;
   /** A noninteractive preview before the name, such as a monitor arrangement. */

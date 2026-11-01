@@ -38,25 +38,6 @@ export interface MenuSearch {
     | undefined;
 }
 
-function LabelText({
-  label,
-  match,
-}: {
-  readonly label: string;
-  readonly match: MenuItem['match'];
-}): JSX.Element {
-  if (match === undefined) return <>{label}</>;
-  return (
-    <>
-      {label.slice(0, match.start)}
-      <span className={styles.match}>
-        {label.slice(match.start, match.end)}
-      </span>
-      {label.slice(match.end)}
-    </>
-  );
-}
-
 /** The check mark in the left padding of a current or turned-on item. */
 export function MenuCheck(): JSX.Element {
   return (
@@ -172,7 +153,7 @@ export function MenuItemRow({
         data-renaming={item.rename !== undefined || undefined}
       >
         {item.rename === undefined ? (
-          <LabelText label={item.label} match={item.match} />
+          item.label
         ) : (
           <NameField
             label={item.label}
