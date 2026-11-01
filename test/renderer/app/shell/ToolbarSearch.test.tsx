@@ -540,6 +540,28 @@ it('releases the search feed and ignores an old callback after unmount', async (
   expect(search).toHaveBeenCalledTimes(1);
 });
 
+describe('ToolbarSearch focus requests', () => {
+  it('focuses and selects the field when asked, and says so', () => {
+    const {send} = setup();
+    const onSearchFocused = vi.fn();
+    const view = render(
+      <ToolbarSearch enabled onSearchFocused={onSearchFocused} />,
+    );
+    const field = screen.getByRole('combobox', {name: '검색'});
+    fireEvent.change(field, {target: {value: 'Invented'}});
+
+    view.rerender(
+      <ToolbarSearch enabled focusSearch onSearchFocused={onSearchFocused} />,
+    );
+
+    expect(document.activeElement).toBe(field);
+    expect(field).toHaveProperty('selectionStart', 0);
+    expect(field).toHaveProperty('selectionEnd', 8);
+    expect(onSearchFocused).toHaveBeenCalledOnce();
+    expect(send).not.toHaveBeenCalled();
+  });
+});
+
 describe('nextPointed', () => {
   it.each([
     {current: -1, key: 'ArrowDown', expected: 0},
