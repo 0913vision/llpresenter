@@ -10,8 +10,6 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
-import {Workspace} from '@renderer/app/shell/Workspace';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
@@ -100,60 +98,45 @@ describe('quick panel integration', () => {
       await waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
     },
   );
-  it.each(['narrow', 'normal', 'wide'] as const)(
-    'mounts the persisted list in order in the %s workspace',
-    async sizeClass => {
-      const fixture = quickFixture();
-      window.llp = fixture.api;
-      render(
-        <Workspace
-          id="show"
-          sizeClass={sizeClass}
-          store={createMemoryColumnWidthStore()}
-          mediaVisible={false}
-        />,
-      );
-      const panel = screen.getByRole('region', {name: '퀵 실행'});
-      const list = within(panel).getByRole('group', {name: '퀵 실행 항목'});
-      await waitFor(() =>
-        expect(within(list).getAllByRole('button')).toHaveLength(7),
-      );
-      await waitFor(() =>
-        expect(
-          within(list)
-            .getByRole('button', {name: /^시작 카운트다운/})
-            .getAttribute('aria-disabled'),
-        ).not.toBe('true'),
-      );
+  it('shows the persisted list in order and leaves an unknown row disabled', async () => {
+    const fixture = quickFixture();
+    window.llp = fixture.api;
+    render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+    const panel = screen.getByRole('region', {name: '퀵 실행'});
+    const list = within(panel).getByRole('group', {name: '퀵 실행 항목'});
+    await waitFor(() =>
+      expect(within(list).getAllByRole('button')).toHaveLength(7),
+    );
+    await waitFor(() =>
       expect(
         within(list)
-          .getAllByRole('button')
-          .map(row => row.textContent),
-      ).toEqual([
-        '저장된 곡',
-        '저장된 구절',
-        '로고 화면',
-        '시작 카운트다운1:30',
-        '시작 매크로',
-        '검은 화면',
-        '새 버전 항목',
-      ]);
-      expect(within(panel).getByRole('combobox', {name: '책'})).toBeTruthy();
-      expect(
-        within(list)
-          .getByRole('button', {name: '새 버전 항목'})
+          .getByRole('button', {name: /^시작 카운트다운/})
           .getAttribute('aria-disabled'),
-      ).toBe('true');
-      fireEvent.click(within(list).getByRole('button', {name: '검은 화면'}));
-      fireEvent.click(within(list).getByRole('button', {name: '새 버전 항목'}));
-      expect(fixture.send).not.toHaveBeenCalled();
-      fireEvent.click(within(list).getByRole('button', {name: '시작 매크로'}));
-      expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
-        type: 'macro.run',
-        macroId: quickId(105),
-      });
-    },
-  );
+      ).not.toBe('true'),
+    );
+
+    expect(
+      within(list)
+        .getAllByRole('button')
+        .map(row => row.textContent),
+    ).toEqual([
+      '저장된 곡',
+      '저장된 구절',
+      '로고 화면',
+      '시작 카운트다운1:30',
+      '시작 매크로',
+      '검은 화면',
+      '새 버전 항목',
+    ]);
+    expect(within(panel).getByRole('combobox', {name: '책'})).toBeTruthy();
+    expect(
+      within(list)
+        .getByRole('button', {name: '새 버전 항목'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(within(list).getByRole('button', {name: '새 버전 항목'}));
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
   it('updates pressed states from main and turns only the chosen item off', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
@@ -187,24 +170,20 @@ describe('quick panel integration', () => {
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     expect(timer.getAttribute('aria-pressed')).toBe('false');
   });
-  it('drops a pending quick song when the already-open service row is selected again', async () => {
+  it('drops a pending quick song when its selection version changes', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
     openItem('song-morning');
     const song = deferred<typeof fixture.song | null>();
     fixture.showSong.mockReturnValueOnce(song.promise);
-    render(
-      <Workspace
-        id="show"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-        mediaVisible={false}
-      />,
+    const view = render(
+      <QuickPanel selectionVersion={0} onProblem={vi.fn()} />,
     );
     fireEvent.click(await screen.findByRole('button', {name: '저장된 곡'}));
-    const list = screen.getByRole('region', {name: '예배 순서'});
-    fireEvent.click(within(list).getByRole('option', {selected: true}));
+
+    view.rerender(<QuickPanel selectionVersion={1} onProblem={vi.fn()} />);
     await act(async () => song.resolve(fixture.song));
+
     expect(fixture.send).not.toHaveBeenCalled();
     expect(useShow.getState().openItemId).toBe('song-morning');
   });

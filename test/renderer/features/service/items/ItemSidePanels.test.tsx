@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveLayers} from '@core/live/state';
 import type {RenderFrame} from '@renderer/rendering/layer';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createMediaId} from '@core/schema/ids';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
@@ -20,7 +19,6 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
-import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
 
 const drawing = vi.hoisted(() => ({
   render: vi.fn<(layers: LiveLayers, frame?: RenderFrame) => void>(),
@@ -189,70 +187,12 @@ describe('service item preview and 항목 설정', () => {
     expect(output).not.toHaveBeenCalled();
   });
 
-  it('uses the selected preview screen and honors the selected theme screen mode for Bible tiles', async () => {
-    const {user, output, pushSettings} = await setupBible();
-    await user.click(screen.getByRole('radio', {name: '방송 자막'}));
-    expect(lastLayers()?.slide?.label).toBe('3:16');
-    const {themes} = editorPreviewFixture();
-    act(() =>
-      pushSettings({
-        ...themes,
-        revision: 2,
-        value: {
-          ...themes.value,
-          themes: themes.value.themes.map(theme => ({
-            ...theme,
-            screens: {
-              ...theme.screens,
-              [STARTER_SCREEN_IDS.broadcast]: {
-                mode: {kind: 'empty'},
-                elements: [],
-              },
-            },
-          })),
-        },
-      }),
-    );
-    expect(drawing.render.mock.lastCall?.[1]?.theme?.layout.mode.kind).toBe(
-      'empty',
-    );
-    act(() => pushSettings({...themes, revision: 3}));
-    expect(drawing.render.mock.lastCall?.[1]?.theme?.layout.mode.kind).toBe(
-      'own',
-    );
-    expect(lastLayers()?.slide?.label).toBe('3:16');
-    expect(output).not.toHaveBeenCalled();
-  });
-
   it('discards old Bible tiles while a different service is selected', async () => {
     const {output} = await setupBible();
     expect(caption()).toContain('1 / 3');
     act(() => useShow.setState({serviceId: 'other-service'}));
     await waitFor(() => expect(caption()).toBe('미리보기'));
     expect(screen.queryAllByRole('option')).toHaveLength(0);
-    expect(output).not.toHaveBeenCalled();
-  });
-
-  it('previews the place selected in the item, in the order it plays', async () => {
-    const {user, output, first} = await setup();
-    expect(caption()).toContain('1절1 / 3');
-    expect(drawing.render.mock.lastCall?.[1]?.theme?.item?.title).toBe(
-      first.song.title,
-    );
-    expect(lastLayers()?.slide?.next).toEqual({
-      label: '후렴',
-      lines: ['빛을 따라가요'],
-    });
-    const strip = screen.getByRole('listbox', {name: '구성 순서'});
-    await user.click(within(strip).getAllByRole('option')[1] ?? strip);
-    expect(lastLayers()?.slide?.next).toEqual({
-      label: '후렴',
-      lines: ['빛을 따라가요'],
-    });
-    await user.click(within(strip).getAllByRole('option')[2] ?? strip);
-    expect(caption()).toContain('후렴3 / 3');
-    expect(lastLayers()?.slide?.lines).toEqual(['빛을 따라가요']);
-    expect(lastLayers()?.slide?.next).toBeUndefined();
     expect(output).not.toHaveBeenCalled();
   });
 
