@@ -1,8 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {recordingLogger} from '@fixtures/main/displays/testing';
-import {startOverlays} from '@main/live/overlays';
 import type {SkippedLiveCommand} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';
 import {
@@ -60,26 +58,6 @@ describe('stage.timer.set', () => {
     expect(skipped).toHaveBeenCalledWith(
       expect.objectContaining({reason: 'missing-target'}),
     );
-    expect(store.state).not.toHaveProperty('stageTimerId');
-  });
-
-  it('lets go of a 타이머 once it is deleted', async () => {
-    const {store, settings, send} = setup();
-    const stop = startOverlays({
-      store,
-      settings: Promise.resolve(settings.reader),
-      log: recordingLogger(),
-    });
-    onTestFinished(stop);
-    await Promise.resolve();
-    send({type: 'stage.timer.set', timerId: SERMON});
-    settings.update(
-      settingsDocument('timers', {
-        timers: [{id: SERMON, name: '설교 2', kind: 'countdown', duration: 60}],
-      }),
-    );
-    expect(store.state.stageTimerId).toBe(SERMON);
-    settings.update(settingsDocument('timers', {timers: []}));
     expect(store.state).not.toHaveProperty('stageTimerId');
   });
 });

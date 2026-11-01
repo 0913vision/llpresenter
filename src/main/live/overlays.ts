@@ -6,7 +6,15 @@ import {overlayRefreshCommands, timerRefreshCommands} from './overlayRefresh';
 import {followTimerCompletion} from './timerCompletion';
 
 interface OverlayOptions {
-  readonly store: LiveStore;
+  readonly store: Pick<
+    LiveStore,
+    | 'state'
+    | 'subscribe'
+    | 'connectSettings'
+    | 'timerNow'
+    | 'handles'
+    | 'dispatch'
+  >;
   readonly settings: Promise<SettingsReader | null>;
   readonly log: Logger;
   readonly now?: () => number;

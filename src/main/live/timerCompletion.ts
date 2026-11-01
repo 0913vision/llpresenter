@@ -10,7 +10,7 @@ import type {LiveStore} from './store';
 const RECHECK_MS = 250;
 
 export function followTimerCompletion(options: {
-  readonly store: LiveStore;
+  readonly store: Pick<LiveStore, 'state' | 'subscribe'>;
   readonly settings: SettingsReader;
   readonly now: () => TimerNow;
   readonly send: (command: SingleLiveCommand) => void;

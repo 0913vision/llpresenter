@@ -4,7 +4,7 @@ import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/noticeClock';
 
 /** Runs at most one main-process timer, rechecking deadlines after early wakes. */
 export function followMessageExpiry(options: {
-  readonly store: LiveStore;
+  readonly store: Pick<LiveStore, 'state' | 'subscribe'>;
   readonly send: (command: MessageExpiry) => void;
   readonly now: () => number;
 }): () => void {

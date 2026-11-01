@@ -21,6 +21,20 @@ describe('parseLiveCommand', () => {
     };
     expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
   });
+  it('keeps the next 장 of a slide command', () => {
+    const command = {
+      type: 'slide.show',
+      slide: {
+        itemId: 'item-1',
+        position: 0,
+        label: '1절',
+        lines: ['첫 줄'],
+        next: {label: '후렴', lines: ['둘째 줄']},
+      },
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+  });
+
   it('returns every well-formed command unchanged', () => {
     const commands: unknown[] = [
       {type: 'clear.undo'},

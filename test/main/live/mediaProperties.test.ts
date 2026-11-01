@@ -35,10 +35,9 @@ describe('media properties in the live store', () => {
   it('keeps current audio and background anchors when undoing an unrelated clear', () => {
     let now = 1000;
     let current = document(1);
-    let changed = (): void => {};
     const store = new LiveStore(undefined, () => now);
     const stop = store.connectAudioMedia(() => current.value);
-    changed = () => {
+    const changed = (): void => {
       store.dispatch({type: 'media.properties.refresh'});
     };
     store.dispatch({
@@ -75,10 +74,9 @@ describe('media properties in the live store', () => {
   it('restores current media properties when a clear toggle is undone', () => {
     let now = 1000;
     let current = document();
-    let changed = (): void => {};
     const store = new LiveStore(undefined, () => now);
     const stop = store.connectAudioMedia(() => current.value);
-    changed = () => {
+    const changed = (): void => {
       store.dispatch({type: 'media.properties.refresh'});
     };
     store.dispatch({type: 'media.show', media: {mediaId: VIDEO, loop: true}});
@@ -98,10 +96,9 @@ describe('media properties in the live store', () => {
   it('updates both live paths while preserving positions, pause and clear undo', () => {
     let now = 1000;
     let current = document();
-    let changed = (): void => {};
     const store = new LiveStore(undefined, () => now);
     const stop = store.connectAudioMedia(() => current.value);
-    changed = () => {
+    const changed = (): void => {
       store.dispatch({type: 'media.properties.refresh'});
     };
     store.dispatch({type: 'media.show', media: {mediaId: VIDEO, loop: true}});
