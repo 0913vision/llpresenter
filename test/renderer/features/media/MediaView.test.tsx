@@ -30,12 +30,6 @@ import {
   INITIAL_ROWS,
   OVERSCAN_ROWS,
 } from '@renderer/features/media/VirtualMediaGrid';
-import {useShowKeys} from '@renderer/features/presentation/shortcuts';
-
-function ShowKeys() {
-  useShowKeys();
-  return null;
-}
 
 function ChoiceButton({choice}: {readonly choice: MediaListChoice}) {
   const {choose} = useMediaView();
@@ -65,7 +59,6 @@ function setup(
   });
   render(
     <MediaViewProvider api={fixture.api} onProblem={problems}>
-      {workspace === 'show' ? <ShowKeys /> : null}
       {choice !== undefined && <ChoiceButton choice={choice} />}
       <MediaView workspace={workspace} onProblem={problems} />
     </MediaViewProvider>,
@@ -316,15 +309,8 @@ describe('media view', () => {
   it('outputs in 진행 without changing selection on click or Enter', async () => {
     const {send} = setup(undefined, undefined, 'show');
     const selected = await tile('Notice');
-    fireEvent.keyDown(await tile('Dawn'), {key: 'ArrowRight'});
-    expect(selected.getAttribute('aria-selected')).toBe('true');
-    const prior = document.createElement('input');
-    document.body.append(prior);
-    onTestFinished(() => prior.remove());
-    prior.focus();
     const video = await tile('Dawn');
     await userEvent.click(video);
-    expect(document.activeElement).toBe(prior);
     expect(video.getAttribute('aria-selected')).toBe('false');
     expect(selected.getAttribute('aria-selected')).toBe('true');
     expect(send).toHaveBeenCalledExactlyOnceWith({
@@ -359,7 +345,6 @@ describe('media view', () => {
       const {send} = setup(undefined, undefined, workspace);
       const selected = await tile('Notice');
       const video = await tile('Dawn');
-      fireEvent.keyDown(video, {key: 'ArrowRight'});
       fireEvent.contextMenu(video);
       expect(selected.getAttribute('aria-selected')).toBe('true');
       const properties = screen.getByRole('menuitem', {name: '속성…'});

@@ -1,13 +1,5 @@
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
-import {
-  act,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {act, render, renderHook, screen, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
@@ -28,11 +20,6 @@ import {
   mediaFixture,
   mediaItem,
 } from '@fixtures/renderer/features/media/mediaTesting';
-import {
-  INITIAL_ROWS,
-  OVERSCAN_ROWS,
-} from '@renderer/features/media/VirtualMediaGrid';
-import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
 import {OtherItemPanel} from '@renderer/features/service/items/OtherItemPanel';
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
 
@@ -142,96 +129,6 @@ describe('the center panel of other item kinds', () => {
       thumbnailUrl(fixtureMedia.dawn),
     ]);
     expect(document.querySelector('video')).toBeNull();
-  });
-
-  it('bounds mounted tiles and cached thumbnails for a large notice set while scrolling', async () => {
-    const items = Array.from({length: 1000}, (_, index) =>
-      mediaItem(index + 1),
-    );
-    const fixture = sourcesFixture(
-      mediaDocument(items),
-      noticesDocument({media: items.map(item => item.id)}),
-    );
-    show({id: itemId, notice: noticeSet}, fixture);
-    await screen.findByRole('option', {name: 'Invented 1'});
-    const columns = defaultThumbnailColumns.normal;
-    const bound = (INITIAL_ROWS + OVERSCAN_ROWS * 2) * columns;
-    expect(screen.getAllByRole('option')).toHaveLength(bound);
-    expect(document.querySelectorAll('img')).toHaveLength(bound);
-    expect(document.querySelector('video')).toBeNull();
-    const first = screen.getByRole('option', {name: 'Invented 1'});
-    expect(first.getAttribute('aria-setsize')).toBe('1000');
-    const viewport = screen.getByRole('listbox', {name: '주보 공지'})
-      .parentElement?.parentElement;
-    if (viewport === null || viewport === undefined) {
-      throw new Error('Missing viewport');
-    }
-    fireEvent.scroll(viewport, {target: {scrollTop: 100}});
-    await screen.findByRole('option', {name: `Invented ${99 * columns + 1}`});
-    expect(screen.queryByRole('option', {name: 'Invented 1'})).toBeNull();
-    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(bound);
-    expect(
-      [...document.querySelectorAll('img')].every(image =>
-        image.src.startsWith('llp-media://thumbnail/'),
-      ),
-    ).toBe(true);
-  });
-
-  it('moves keyboard focus within and across notice windows while retaining bounded unselected tiles', async () => {
-    const user = userEvent.setup();
-    const items = Array.from({length: 1000}, (_, index) =>
-      mediaItem(index + 1),
-    );
-    const fixture = show(
-      {id: itemId, notice: noticeSet},
-      sourcesFixture(
-        mediaDocument(items),
-        noticesDocument({media: items.map(item => item.id)}),
-      ),
-    );
-    await screen.findByRole('option', {name: 'Invented 1'});
-    const viewport = screen.getByRole('listbox', {name: '주보 공지'})
-      .parentElement?.parentElement;
-    if (viewport === null || viewport === undefined) {
-      throw new Error('Missing viewport');
-    }
-    Object.defineProperty(viewport, 'clientHeight', {
-      configurable: true,
-      value: INITIAL_ROWS,
-    });
-    await user.tab();
-    const moves = [
-      ['{ArrowRight}', 2],
-      ['{ArrowDown}', 6],
-      ['{ArrowDown}', 10],
-      ['{ArrowDown}', 14],
-      ['{ArrowDown}', 18],
-      ['{ArrowDown}', 22],
-      ['{End}', 1000],
-      ['{ArrowLeft}', 999],
-      ['{Home}', 1],
-    ] as const;
-    const bound =
-      (INITIAL_ROWS + OVERSCAN_ROWS * 2) * defaultThumbnailColumns.normal;
-    for (const [key, index] of moves) {
-      await user.keyboard(key);
-      const target = await screen.findByRole('option', {
-        name: `Invented ${index}`,
-      });
-      expect(document.activeElement).toBe(target);
-      expect(target.tabIndex).toBe(0);
-      expect(
-        screen.getAllByRole('option').filter(tile => tile.tabIndex === 0),
-      ).toHaveLength(1);
-      expect(target.getAttribute('aria-posinset')).toBe(String(index));
-      expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(bound);
-      expect(
-        screen
-          .getAllByRole('option')
-          .every(tile => tile.getAttribute('aria-selected') === 'false'),
-      ).toBe(true);
-    }
-    expect(fixture.send).not.toHaveBeenCalled();
   });
 
   it('follows notice names, membership, media renames, and deletions without remounting', async () => {

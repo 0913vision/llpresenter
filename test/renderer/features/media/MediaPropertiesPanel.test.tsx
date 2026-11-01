@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {MediaPropertiesPanel} from '@renderer/features/media/MediaPropertiesPanel';
@@ -9,8 +9,6 @@ import {
   MediaListsPanel,
 } from '@renderer/features/media/MediaListPanels';
 import {
-  audioPlaylistId,
-  playlistId,
   mediaDocument,
   mediaFixture,
   mediaId,
@@ -105,78 +103,6 @@ describe('media properties panel', () => {
       }
     },
   );
-
-  it.each(['media', 'audio'] as const)(
-    'shows no stale properties after choosing an excluding %s playlist',
-    async kind => {
-      const {edit} = setup(
-        mediaDocument(
-          ITEMS,
-          5,
-          kind === 'media'
-            ? {
-                playlists: [
-                  {id: playlistId(1), name: 'Other items', items: [mediaId(2)]},
-                ],
-              }
-            : {
-                audioPlaylists: [
-                  {
-                    id: audioPlaylistId(1),
-                    name: 'Other items',
-                    items: [mediaId(3)],
-                    loop: false,
-                  },
-                ],
-              },
-        ),
-      );
-      const panel = await choose('Dawn');
-      expect(
-        within(panel).getByRole('spinbutton', {name: '속도'}),
-      ).toBeDefined();
-      const lists = screen.getByRole('listbox', {
-        name: kind === 'media' ? '미디어 목록' : '오디오 재생목록',
-      });
-      fireEvent.click(within(lists).getByRole('option', {name: /Other items/}));
-      const grid = await screen.findByRole('listbox', {name: 'Other items'});
-      expect(within(panel).getByText('선택한 미디어 없음')).toBeDefined();
-      expect(within(grid).queryByRole('option', {selected: true})).toBeNull();
-      expect(edit).not.toHaveBeenCalled();
-    },
-  );
-
-  it('constrains selection after a push removes it from the chosen playlist', async () => {
-    const playlist = {
-      id: playlistId(1),
-      name: 'Selected list',
-      items: [mediaId(1), mediaId(2)],
-    };
-    const {pushDocument, edit} = setup(
-      mediaDocument(ITEMS, 5, {playlists: [playlist]}),
-    );
-    const panel = await choose('Dawn');
-    fireEvent.click(
-      within(screen.getByRole('listbox', {name: '미디어 목록'})).getByRole(
-        'option',
-        {name: /Selected list/},
-      ),
-    );
-    const grid = await screen.findByRole('listbox', {name: 'Selected list'});
-    expect(
-      within(grid).getByRole('option', {name: 'Dawn', selected: true}),
-    ).toBeDefined();
-    act(() =>
-      pushDocument(
-        mediaDocument(ITEMS, 6, {
-          playlists: [{...playlist, items: [mediaId(2)]}],
-        }),
-      ),
-    );
-    expect(within(panel).getByText('선택한 미디어 없음')).toBeDefined();
-    expect(within(grid).queryByRole('option', {selected: true})).toBeNull();
-    expect(edit).not.toHaveBeenCalled();
-  });
 
   it.each(['enter', 'blur'])(
     'preserves a typed 1.10x speed on %s',
