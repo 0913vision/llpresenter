@@ -43,10 +43,8 @@ function setup(width: number, height: number, uiState: UiState = {}) {
   return {save, send};
 }
 
-const serviceOrder = () => screen.queryByRole('region', {name: '예배 순서'});
 const COLLAPSE = '사이드바 접기';
 const EXPAND = '사이드바 펼치기';
-const collapseButton = () => screen.queryByRole('button', {name: COLLAPSE});
 const expandButton = () => screen.queryByRole('button', {name: EXPAND});
 
 function sentTypes(
@@ -70,17 +68,6 @@ afterEach(async () => {
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
   delete window.llp;
   useLive.setState({state: null});
-});
-
-it('keeps the 준비 left column while 진행 has it collapsed', async () => {
-  setup(NARROW.width, NARROW.height, {
-    layout: {narrow: {leftCollapsed: true}},
-  });
-  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
-  expect(serviceOrder()).not.toBeNull();
-  expect(collapseButton()).toBeNull();
-  await userEvent.click(screen.getByRole('tab', {name: '진행'}));
-  expect(serviceOrder()).toBeNull();
 });
 
 it('lets the focus fall to the body after a click, so Space is the next slide', async () => {

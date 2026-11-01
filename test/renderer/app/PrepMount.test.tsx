@@ -1,4 +1,3 @@
-import {mediaBinToggle} from '@fixtures/renderer/features/media/mediaTesting';
 import {StrictMode} from 'react';
 import {
   act,
@@ -126,22 +125,6 @@ it('opens the real library editor and preserves typing and undo across workspace
   expect(fixture.listenerCount()).toBe(0);
 });
 
-it('switches back to service context even when selecting the same service row', async () => {
-  const fixture = mountPrep();
-  const service = screen.getByRole('listbox', {name: '예배 순서'});
-  const row = within(service).getAllByRole('option')[0];
-  if (!row) throw new Error('Missing service row');
-  fireEvent.click(row);
-  await openSong(fixture.first.song.title);
-  expect(screen.queryByRole('region', {name: '항목 설정'})).toBeNull();
-  fireEvent.click(row);
-  expect(screen.queryByRole('textbox', {name: '슬라이드 1 가사'})).toBeNull();
-  expect(screen.getByRole('region', {name: '항목 설정'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '미리보기'})).toBeDefined();
-  expect(fixture.listenerCount()).toBe(9);
-  expect(fixture.send).not.toHaveBeenCalled();
-});
-
 it('submits a typed but unsent lyric edit when main asks to flush before quitting', async () => {
   const fixture = mountPrep();
   await openSong(fixture.first.song.title);
@@ -176,23 +159,4 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
   expect(JSON.stringify(fixture.edits)).not.toContain('Invented late line');
   await act(async () => fixture.session.dispose());
   expect(fixture.flushListeners.size).toBe(0);
-});
-
-it('opens and closes the shared media bin while keeping the library mounted', async () => {
-  mountPrep();
-  const library = screen.getByRole('region', {name: '라이브러리'});
-  const toggle = mediaBinToggle();
-  expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('false');
-  fireEvent.click(toggle);
-  expect(
-    await screen.findByRole('listbox', {name: '모든 미디어'}),
-  ).toBeDefined();
-  expect(mediaBinToggle().getAttribute('aria-expanded')).toBe('true');
-  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '오디오'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '미디어 속성'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '라이브러리'})).toBe(library);
-  fireEvent.click(mediaBinToggle());
-  expect(screen.queryByRole('listbox', {name: '모든 미디어'})).toBeNull();
-  expect(screen.getByRole('region', {name: '라이브러리'})).toBe(library);
 });

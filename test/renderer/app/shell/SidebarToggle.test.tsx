@@ -29,10 +29,12 @@ function mockUiApi() {
 }
 
 function Harness({
+  id = 'show',
   sizeClass,
   layout,
   api,
 }: {
+  readonly id?: 'show' | 'prep';
   readonly sizeClass: SizeClass;
   readonly layout?: UiState['layout'];
   readonly api: Pick<LlpApi, 'ui' | 'log'>;
@@ -40,7 +42,7 @@ function Harness({
   const sidebar = useSidebarCollapse(sizeClass, layout, api);
   return (
     <Workspace
-      id="show"
+      id={id}
       sizeClass={sizeClass}
       store={createMemoryColumnWidthStore()}
       sidebar={sidebar}
@@ -125,4 +127,18 @@ it('leaves the focus alone when it was outside the left column', async () => {
   outside?.focus();
   await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
   expect(document.activeElement).toBe(outside);
+});
+
+it('keeps the 준비 left column while 진행 has it collapsed', () => {
+  const {api} = mockUiApi();
+  const layout = {narrow: {leftCollapsed: true}};
+  const view = render(
+    <Harness id="prep" sizeClass="narrow" layout={layout} api={api} />,
+  );
+  expect(serviceOrder()).not.toBeNull();
+  expect(collapseButton()).toBeNull();
+
+  view.rerender(<Harness sizeClass="narrow" layout={layout} api={api} />);
+
+  expect(serviceOrder()).toBeNull();
 });

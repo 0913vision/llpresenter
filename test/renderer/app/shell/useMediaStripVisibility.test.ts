@@ -91,3 +91,23 @@ it('measures again after a zoom change and a resize without saving a choice', ()
   expect(result.current.visible).toBe(false);
   expect(save).not.toHaveBeenCalled();
 });
+
+it('keeps the local choice and logs a save that fails', () => {
+  const {api, save} = setup(1080);
+  const write = vi.spyOn(api.log, 'write');
+  save.mockImplementation(() => {
+    throw new Error('Invented visibility send failure');
+  });
+  const {result} = renderHook(() =>
+    useMediaStripVisibility('normal', undefined, api),
+  );
+
+  act(() => result.current.setVisible(false));
+
+  expect(result.current.visible).toBe(false);
+  expect(write).toHaveBeenCalledWith({
+    level: 'error',
+    message: 'Could not save media strip visibility',
+    detail: 'Invented visibility send failure',
+  });
+});

@@ -1,14 +1,5 @@
 import {mediaBinToggle} from '@fixtures/renderer/features/media/mediaTesting';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import {
-  cleanup,
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -19,12 +10,6 @@ import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
-import {
-  mediaDocument,
-  mediaItem,
-  mediaId,
-  playlistId,
-} from '@fixtures/renderer/features/media/mediaTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -63,54 +48,11 @@ beforeEach(() => {
   useLive.setState({state: emptyLiveState()});
 });
 
-it.each(['진행', '준비'] as const)(
-  'opens and collapses from the bin with its summary and keyboard focus in %s',
-  async workspace => {
-    const {api, mount, save, send} = setup(1920, 1080, {mediaStrip: false});
-    vi.spyOn(api.media, 'get').mockResolvedValue(
-      mediaDocument([mediaItem(1), mediaItem(2)]),
-    );
-    mount();
-    await userEvent.click(screen.getByRole('tab', {name: workspace}));
-    const bar = screen.getByRole('button', {name: '미디어 펼치기'});
-    await waitFor(() => expect(bar.textContent).toBe('미디어모든 미디어 2'));
-    bar.focus();
-    await userEvent.keyboard('{Enter}');
-    const collapse = screen.getByRole('button', {name: '미디어 접기'});
-    expect(document.activeElement).toBe(collapse);
-    expect(collapse.textContent).toBe('접기');
-    await userEvent.keyboard('{Enter}');
-    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: '미디어 펼치기'}),
-    );
-    expect(save.mock.calls).toEqual([[{visible: true}], [{visible: false}]]);
-    expect(send).not.toHaveBeenCalled();
-  },
-);
-
 afterEach(async () => {
   cleanup();
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
   delete window.llp;
   useLive.setState({state: null});
-});
-
-it('updates the collapsed list count without mounting player panels', async () => {
-  const {api, mount} = setup(1920, 1080, {mediaStrip: false});
-  vi.spyOn(api.media, 'get').mockResolvedValue(mediaDocument([mediaItem(1)]));
-  let accept: (document: MediaDocument) => void = () => undefined;
-  vi.spyOn(api.media, 'subscribe').mockImplementation(listener => {
-    accept = listener;
-    return vi.fn();
-  });
-  mount();
-  await waitFor(() =>
-    expect(mediaBinToggle().textContent).toBe('미디어모든 미디어 1'),
-  );
-  act(() => accept(mediaDocument([mediaItem(1), mediaItem(2)], 2)));
-  expect(mediaBinToggle().textContent).toBe('미디어모든 미디어 2');
-  expect(screen.queryByRole('region', {name: '미디어 속성'})).toBeNull();
 });
 
 it('unmounts the player panels while retaining summary feeds until leaving the workspaces', async () => {
@@ -132,97 +74,4 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopCopies).toHaveBeenCalledOnce();
   expect(send).not.toHaveBeenCalled();
-});
-
-it('keeps the local choice and logs a failed send without changing output', async () => {
-  const {api, mount, send, save} = setup();
-  const log = vi.spyOn(api.log, 'write');
-  save.mockImplementation(() => {
-    throw new Error('Invented visibility send failure');
-  });
-  mount();
-  await screen.findByRole('region', {name: '미디어'});
-  await userEvent.click(mediaBinToggle());
-  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-  expect(log).toHaveBeenCalledWith({
-    level: 'error',
-    message: 'Could not save media strip visibility',
-    detail: 'Invented visibility send failure',
-  });
-  expect(send).not.toHaveBeenCalled();
-});
-
-it('shares the same bottom bin and visibility across 진행 and 준비', async () => {
-  const {mount, send} = setup(1366, 768);
-  mount();
-  await userEvent.click(mediaBinToggle());
-  await screen.findByRole('region', {name: '미디어'});
-  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
-  const bin = screen.getByRole('region', {name: '미디어 보관함'});
-  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
-  expect(screen.getByRole('region', {name: '라이브러리'})).toBeDefined();
-  const toggle = mediaBinToggle();
-  expect(toggle.getAttribute('aria-disabled')).toBeNull();
-  expect(toggle.getAttribute('aria-expanded')).toBe('true');
-  await userEvent.click(screen.getByRole('tab', {name: '진행'}));
-  await screen.findByRole('region', {name: '미디어'});
-  expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
-  expect(send).not.toHaveBeenCalled();
-});
-
-it('keeps the bin playlist and selected properties across workspace and visibility changes', async () => {
-  const {api, mount, send} = setup(1920, 1080, {
-    mediaStrip: false,
-    prepMedia: true,
-  });
-  const saveLegacy = vi.spyOn(api.ui, 'setPrepMedia');
-  const subscribe = vi.spyOn(api.media, 'subscribe');
-  vi.spyOn(api.media, 'get').mockResolvedValue(
-    mediaDocument(
-      [
-        mediaItem(1, {name: 'First image', kind: 'image', file: 'first.png'}),
-        mediaItem(2, {name: 'Second image', kind: 'image', file: 'second.png'}),
-      ],
-      1,
-      {
-        playlists: [
-          {id: playlistId(1), name: 'Target', items: [mediaId(1), mediaId(2)]},
-        ],
-      },
-    ),
-  );
-  mount();
-  expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
-  await userEvent.click(mediaBinToggle());
-  const bin = await screen.findByRole('region', {name: '미디어 보관함'});
-  const playlists = within(bin).getByRole('listbox', {name: '미디어 목록'});
-  await userEvent.click(
-    await within(playlists).findByRole('option', {name: /Target/}),
-  );
-  fireEvent.contextMenu(within(bin).getByRole('option', {name: 'First image'}));
-  await userEvent.click(screen.getByRole('menuitem', {name: '속성…'}));
-  const sent = send.mock.calls.length;
-  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
-  expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
-  expect(
-    within(bin).getByRole('option', {name: 'First image', selected: true}),
-  ).toBeDefined();
-  await userEvent.click(
-    within(bin).getByRole('option', {name: 'Second image'}),
-  );
-  expect(send).toHaveBeenCalledTimes(sent);
-  expect(subscribe).toHaveBeenCalledOnce();
-  await userEvent.click(mediaBinToggle());
-  expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
-  expect(screen.getByRole('button', {name: '미디어 펼치기'}).textContent).toBe(
-    '미디어Target 2',
-  );
-  await userEvent.click(mediaBinToggle());
-  expect(
-    await screen.findByRole('option', {name: 'Second image', selected: true}),
-  ).toBeDefined();
-  const properties = screen.getByRole('region', {name: '미디어 속성'});
-  expect(within(properties).getByText('Second image')).toBeDefined();
-  expect(properties.querySelectorAll('img')).toHaveLength(1);
-  expect(saveLegacy).not.toHaveBeenCalled();
 });

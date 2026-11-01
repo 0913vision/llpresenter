@@ -9,6 +9,7 @@ import {
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
+import {mediaFixture} from '@fixtures/renderer/features/media/mediaTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -16,6 +17,24 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
     dispose = vi.fn();
   },
 }));
+
+vi.mock('@renderer/features/media/MediaBin', async () => {
+  const {createElement} = await import('react');
+  return {
+    MediaBin: ({
+      workspace,
+      open,
+    }: {
+      readonly workspace: string;
+      readonly open?: boolean | undefined;
+    }) =>
+      createElement('section', {
+        'aria-label': '미디어 보관함',
+        'data-workspace': workspace,
+        'data-open': String(open),
+      }),
+  };
+});
 
 const POINTER_ID = 1;
 
@@ -343,5 +362,54 @@ describe('Workspace column gaps', () => {
     );
     unmount();
     expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
+  });
+});
+
+describe('Workspace media bin', () => {
+  it('keeps one bottom bin across 진행 and 준비, and none in 화면', () => {
+    const media = mediaFixture().api.media;
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="show" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+    const bin = screen.getByRole('region', {name: '미디어 보관함'});
+
+    view.rerender(
+      <Workspace id="prep" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+    expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
+    expect(bin.dataset['workspace']).toBe('prep');
+    view.rerender(
+      <Workspace
+        id="screens"
+        sizeClass="normal"
+        store={store}
+        mediaApi={media}
+      />,
+    );
+
+    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
+  });
+
+  it('opens and closes the bin with its visibility', () => {
+    const media = mediaFixture().api.media;
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace
+        id="prep"
+        sizeClass="normal"
+        store={store}
+        mediaApi={media}
+        mediaVisible={false}
+      />,
+    );
+    const bin = screen.getByRole('region', {name: '미디어 보관함'});
+    expect(bin.dataset['open']).toBe('false');
+
+    view.rerender(
+      <Workspace id="prep" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+
+    expect(bin.dataset['open']).toBe('true');
   });
 });
