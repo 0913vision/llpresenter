@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {mkdir, readFile, rm, stat, utimes, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   openRecoverySession,

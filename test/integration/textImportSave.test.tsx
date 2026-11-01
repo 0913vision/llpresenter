@@ -3,7 +3,7 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {parseGroupedSong} from '@core/schema/groupedSong';
-import {contentFixture} from '../../../../content-fixture';
+import {contentFixture} from './contentFixture';
 import {convertTextImport} from '@core/songs/textImport';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';

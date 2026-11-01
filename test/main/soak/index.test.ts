@@ -2,8 +2,8 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseSample} from '../../../scripts/soak/record.mts';
-import {installMockClock} from '../../mock-clock';
-import {makeTempDir} from '../../temp-dir';
+import {installMockClock} from '@fixtures/mockClock';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
 import {
   prepareSoakGarbageCollection,

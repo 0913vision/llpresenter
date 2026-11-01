@@ -12,7 +12,7 @@ import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {
   fixtureSong,
   libraryFixture,
-} from '@renderer/features/songs/library/fixture';
+} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
 import {
   FixedObserver,

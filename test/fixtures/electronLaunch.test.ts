@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {electronTestArgs} from './electron-launch';
+import {electronTestArgs} from '@fixtures/electronLaunch';
 
 const APP_ARGS = ['fixture.mts', 'isolated-user-data'];
 

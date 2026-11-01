@@ -1,7 +1,7 @@
 import {ChildProcess} from 'node:child_process';
 import {expect, it, vi} from 'vitest';
 import {killProcessTree} from '../../scripts/process-tree.mts';
-import {installMockClock} from '../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {CLOSE_GRACE_MS, stopElectron} from './stop-electron';
 
 vi.mock('../../scripts/process-tree.mts', () => ({killProcessTree: vi.fn()}));

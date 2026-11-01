@@ -7,7 +7,7 @@ import {
   parseTextImportReadResult,
   parseTextImportPreviewResult,
 } from '@core/schema/textImport';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   registerTextImport,
   TEST_IMPORT_FILE_VARIABLE,

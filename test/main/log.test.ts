@@ -10,7 +10,7 @@ import type * as FsPromises from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {createLogger, flushWithin, type Logger} from '@main/log';
 
 vi.mock('node:fs/promises', async importOriginal => {

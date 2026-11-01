@@ -4,7 +4,7 @@ import type {AppProblem} from '@core/schema/appProblem';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import {join} from 'node:path';
 import {afterEach, beforeEach, vi} from 'vitest';
-import {makeTempDir} from '../../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {registerStore, type DataStore} from '@main/store/register';

@@ -1,7 +1,7 @@
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {onTestFinished, vi} from 'vitest';
-import {killProcessTree} from '../scripts/process-tree.mts';
+import {killProcessTree} from '../../scripts/process-tree.mts';
 
 /** The two processes of a hung tree. */
 export interface HungTreePids {

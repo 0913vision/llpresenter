@@ -3,7 +3,7 @@ import {symlink, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   createFileResponse,

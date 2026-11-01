@@ -1,5 +1,5 @@
 import {act, fireEvent, screen} from '@testing-library/react';
-import {installMockClock, type MockClock} from '../../../mock-clock';
+import {installMockClock, type MockClock} from '@fixtures/mockClock';
 import {
   TOOLTIP_DELAY_MS,
   tooltipController,

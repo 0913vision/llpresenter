@@ -1,7 +1,7 @@
 import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
 import {createSongId} from '@core/schema/ids';
 import type {Logger} from '@main/log';

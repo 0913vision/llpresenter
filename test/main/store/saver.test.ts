@@ -1,7 +1,7 @@
 import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {WriteProblem} from '@main/store/atomicWrite';
 import {RecoveryCopies, type RecoveryTarget} from '@main/store/recoveryCopies';
 import {Saver, type SaverOptions} from '@main/store/saver';

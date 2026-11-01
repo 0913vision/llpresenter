@@ -4,8 +4,8 @@ import {join, resolve} from 'node:path';
 import react from '@vitejs/plugin-react';
 import {build} from 'vite';
 import {expect, it, onTestFinished} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
-import {electronTestArgs} from '../../electron-launch';
+import {makeTempDir} from '@fixtures/tempDir';
+import {electronTestArgs} from '@fixtures/electronLaunch';
 import {runStepProcess} from '../../../scripts/verify/step-process.mts';
 
 const STARTUP_MS = 120_000;

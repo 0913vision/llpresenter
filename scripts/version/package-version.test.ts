@@ -1,7 +1,7 @@
 import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../test/temp-dir';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {writeFileAtomic} from './files.mts';
 import {readPackageVersion, writePackageVersion} from './package-version.mts';
 

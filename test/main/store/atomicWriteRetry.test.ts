@@ -1,7 +1,7 @@
 import {readdir, readFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   isTemporaryFileName,
   writeFileAtomically,

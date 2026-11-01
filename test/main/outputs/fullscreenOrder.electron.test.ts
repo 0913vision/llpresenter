@@ -4,8 +4,8 @@ import {join, resolve} from 'node:path';
 import {build} from 'vite';
 import {expect, it, onTestFinished} from 'vitest';
 import {runStepProcess} from '../../../scripts/verify/step-process.mts';
-import {electronTestArgs} from '../../electron-launch';
-import {makeTempDir} from '../../temp-dir';
+import {electronTestArgs} from '@fixtures/electronLaunch';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   ELECTRON_STARTUP_DEADLINE_MS,
   PIXEL_CHECK_DEADLINE_MS,

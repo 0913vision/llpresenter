@@ -2,7 +2,7 @@ import {getEventListeners} from 'node:events';
 import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   createMediaId,
   createMediaPlaylistId,

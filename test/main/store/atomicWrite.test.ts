@@ -1,7 +1,7 @@
 import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {writeFileAtomically} from '@main/store/atomicWrite';
 
 describe('writeFileAtomically', () => {

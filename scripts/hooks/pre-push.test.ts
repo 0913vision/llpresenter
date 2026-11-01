@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
+import {makeTempGitRepo, type TempGitRepo} from '../../test/fixtures/gitRepo';
 import {STAMP_PATH} from '../verify/stamp.mts';
 import type {CommitMessage} from '../version/commits.mts';
 import {

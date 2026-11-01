@@ -2,7 +2,7 @@ import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {parseLabels} from '@core/schema/labels';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {resolveLocations} from '@main/store/locations';
 import {
   readSettingsFile,

@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {itemMedia, fixtureMedia} from '@fixtures/core/mediaList';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {LiveStore} from '@main/live/store';
 import {startMediaProgress} from '@main/live/mediaProgress';
 

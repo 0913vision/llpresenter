@@ -2,7 +2,7 @@ import {existsSync} from 'node:fs';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
+import {makeTempGitRepo, type TempGitRepo} from '../../test/fixtures/gitRepo';
 import {
   beginStamp,
   parseStamp,

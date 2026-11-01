@@ -8,7 +8,7 @@ import {
 } from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ThumbnailCache} from '@main/media/thumbnailCache';

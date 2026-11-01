@@ -7,7 +7,7 @@ import {
   lastWindow,
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {ON_TOP_CHECK_MS} from '@main/outputs/onTopKeeper';
 
 describe('createElectronOutputWindow normal', () => {

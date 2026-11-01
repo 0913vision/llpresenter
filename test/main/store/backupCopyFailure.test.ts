@@ -1,7 +1,7 @@
 import {mkdir, readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {runBackup} from '@main/store/backup';
 import {resolveLocations} from '@main/store/locations';
 import {writeJson} from '@fixtures/main/store/testFiles';

@@ -1,7 +1,7 @@
 import {mkdir, rm, symlink} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   confineLocations,
   DATA_FOLDER_NAME,

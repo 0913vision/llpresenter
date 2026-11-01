@@ -1,6 +1,6 @@
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {BibleLookupSession} from '@main/bible/lookup';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';

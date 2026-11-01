@@ -1,7 +1,7 @@
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {loadFolder} from '@main/store/library';
 import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 

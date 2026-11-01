@@ -7,7 +7,7 @@ import {
 } from '../../src/core/schema/settingsDocuments';
 import {parseGroupedSong} from '../../src/core/schema/groupedSong';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {makeTempDir} from '../../test/temp-dir';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ContentStore} from '../../src/main/store/contentStore';
 import {documentFiles} from '../../src/main/store/documentFiles';

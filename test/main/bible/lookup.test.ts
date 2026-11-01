@@ -8,7 +8,7 @@ import {
 } from '@core/schema/bibleLookup';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {BibleLookupSession} from '@main/bible/lookup';
 import * as library from '@main/bible/library';
 import * as chapterFile from '@main/bible/chapterFile';

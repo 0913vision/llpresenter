@@ -8,7 +8,7 @@ import {
   lastWindow,
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {startLoading} from '@main/windows/page';
 import {createElectronOutputWindow} from '@main/outputs/electronWindow';
 import {ON_TOP_CHECK_MS} from '@main/outputs/onTopKeeper';

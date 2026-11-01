@@ -1,5 +1,4 @@
 import type {JSX} from 'react';
-import {LibrarySection} from '@renderer/gallery/LibrarySection';
 import {ButtonSection} from './ButtonSection';
 import {CheckboxSection} from './CheckboxSection';
 import {ClearSection} from './ClearSection';
@@ -36,7 +35,6 @@ interface GalleryEntry {
 /** Every component in the gallery, in the order of the design system. */
 export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'Typography', Section: TypographySection},
-  {name: 'Library', Section: LibrarySection},
   {name: 'Button', Section: ButtonSection},
   {name: 'IconButton', Section: IconButtonSection},
   {name: 'SegmentedControl', Section: SegmentedSection},

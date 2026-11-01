@@ -14,7 +14,7 @@ import type {AppProblem} from '@core/schema/appProblem';
 import {readdir, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {electronLocationContext, registerStore} from '@main/store/register';

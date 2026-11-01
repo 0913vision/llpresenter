@@ -2,7 +2,7 @@ import {readFile, readdir, writeFile} from 'node:fs/promises';
 import * as files from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {readTextImport, type TextImportInputs} from '@main/import/read';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 

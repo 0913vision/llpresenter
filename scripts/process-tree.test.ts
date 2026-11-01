@@ -2,8 +2,12 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {isRunning, waitForHungTree, writeHungTree} from '../test/process-trees';
-import {makeTempDir} from '../test/temp-dir';
+import {
+  isRunning,
+  waitForHungTree,
+  writeHungTree,
+} from '../test/fixtures/processTrees';
+import {makeTempDir} from '../test/fixtures/tempDir';
 import {killProcessTree, runHelper} from './process-tree.mts';
 
 describe('killProcessTree', () => {

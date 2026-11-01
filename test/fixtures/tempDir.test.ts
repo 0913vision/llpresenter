@@ -3,7 +3,7 @@ import {readdir, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, relative} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
-import {makeTempDir} from './temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 
 describe('makeTempDir', () => {
   it('creates an empty folder under the system temp folder', async () => {

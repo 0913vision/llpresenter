@@ -1,7 +1,7 @@
 import {getCompileCacheDir} from 'node:module';
 import {resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {COMPILE_CACHE_DIR} from '../scripts/compile-cache.mts';
+import {COMPILE_CACHE_DIR} from '../../scripts/compile-cache.mts';
 
 // NOTE(0913vision): Vitest sets NODE_DISABLE_COMPILE_CACHE while it measures
 // coverage, so the cache is off in `npm run test:coverage` by design.

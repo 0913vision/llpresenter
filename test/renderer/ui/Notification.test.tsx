@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {Dialog} from '@renderer/ui/Dialog';
 import {modalStack} from '@renderer/ui/modalStack';
 import {

@@ -10,7 +10,7 @@ import {
   NO_MEDIA,
 } from '@main/store/mediaLibrary';
 import {itemId} from '@fixtures/main/store/testFiles';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 
 const MEDIA = resolve('/data/LoveLight/미디어');
 const ELSEWHERE = resolve('/Volumes/영상/배경');

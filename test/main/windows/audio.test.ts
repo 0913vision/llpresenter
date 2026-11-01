@@ -6,7 +6,7 @@ import {LiveStore} from '@main/live/store';
 import {registerAudioOutput} from '@main/windows/audio';
 import {loadPage, startLoading} from '@main/windows/page';
 import type {WindowMode} from '@main/windows/testWindows';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   COOLDOWN_STEPS_MS,
   RELAUNCH_DELAY_MS,

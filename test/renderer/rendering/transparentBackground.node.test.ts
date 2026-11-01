@@ -10,8 +10,8 @@ import {
   ownPixelFixture,
 } from '../../fixtures/main/windows/pixelFixtureLifecycle.mts';
 import {runStepProcess} from '../../../scripts/verify/step-process.mts';
-import {makeTempDir} from '../../temp-dir';
-import {electronTestArgs} from '../../electron-launch';
+import {makeTempDir} from '@fixtures/tempDir';
+import {electronTestArgs} from '@fixtures/electronLaunch';
 
 const FIXTURE_ROOT = resolve('test/fixtures/renderer/rendering');
 const FIXTURE_MAIN = resolve(

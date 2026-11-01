@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {parseSample} from '../../../scripts/soak/record.mts';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import type {Logger} from '@main/log';
 import {
   pageProcessName,

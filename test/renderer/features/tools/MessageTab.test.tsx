@@ -1,6 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {emptyLayers} from '@core/live/state';
-import {installMockClock} from '../../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   act,
   cleanup,

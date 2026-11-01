@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/live/state';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_DISSOLVE_MS,
   SPARE_DELAY_MS,

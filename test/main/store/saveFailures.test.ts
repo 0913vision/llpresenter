@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from '@main/store/saveFailures';

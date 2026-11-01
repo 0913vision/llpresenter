@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   ANSWER_LIMIT_MS,
   FRAME_SILENCE_MS,

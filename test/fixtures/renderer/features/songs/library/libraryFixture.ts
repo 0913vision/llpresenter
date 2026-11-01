@@ -12,7 +12,7 @@ import {
 import {sourceSlideCount} from '@core/schema/groupedSong';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {LibraryApi} from './useLibrary';
+import type {LibraryApi} from '@renderer/features/songs/library/useLibrary';
 
 export function fixtureSong(number: number, title: string): SongDocument {
   const parsed = parseSongDocument({

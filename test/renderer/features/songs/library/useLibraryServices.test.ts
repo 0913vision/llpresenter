@@ -4,7 +4,7 @@ import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {libraryFixture} from '@renderer/features/songs/library/fixture';
+import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {pastDocument} from '@fixtures/core/serviceList';
 import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';

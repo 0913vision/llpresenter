@@ -4,7 +4,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {writeFileAtomically} from '@main/store/atomicWrite';
 import {serviceIdSchema} from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
 import {UiStateStore} from '@main/uiState/uiStateStore';
 import {openAppConfig} from '@main/store/appConfigFile';

@@ -5,8 +5,8 @@ import {
   waitForHungTree,
   writeHungTree,
   writeOrphaningTree,
-} from '../../test/process-trees';
-import {makeTempDir} from '../../test/temp-dir';
+} from '../../test/fixtures/processTrees';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {killProcessTree, type KillResult} from '../process-tree.mts';
 import {runStepProcess, type StepCommand} from './step-process.mts';
 

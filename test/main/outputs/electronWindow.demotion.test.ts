@@ -5,7 +5,7 @@ import {
   lastWindow,
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {expect, it} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {BOUNDS_RECHECK_MS} from '@main/outputs/windowPlacement';
 
 it.each([false, true])(

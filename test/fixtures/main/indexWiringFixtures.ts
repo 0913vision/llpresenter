@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';
 import type {MediaHandlerOptions} from '@main/windows/mediaResponse';

@@ -1,7 +1,7 @@
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../test/temp-dir';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {translationFile} from '@fixtures/core/bible/testFiles';
 import {runBibleConverter} from './cli';
 

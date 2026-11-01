@@ -16,7 +16,7 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
-import {fixtureSong} from '@renderer/features/songs/library/fixture';
+import {fixtureSong} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {

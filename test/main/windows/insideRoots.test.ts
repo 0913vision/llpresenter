@@ -1,7 +1,7 @@
 import {mkdir, symlink, writeFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {realPathInside} from '@main/windows/insideRoots';
 
 describe('realPathInside', () => {

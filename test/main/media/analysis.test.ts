@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';

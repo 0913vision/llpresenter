@@ -2,7 +2,7 @@ import {EventEmitter} from 'node:events';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {registerUiZoom, type ZoomControl} from '@main/store/uiZoom';

@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {parseScreens} from '@core/schema/screens';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {resolveOutputScreen, STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {resolveLocations} from '@main/store/locations';
 import {RecoveryCopies} from '@main/store/recoveryCopies';
 import {Saver} from '@main/store/saver';

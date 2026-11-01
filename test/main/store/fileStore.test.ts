@@ -1,7 +1,7 @@
 import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '@main/log';

@@ -1,7 +1,7 @@
 import {mkdir, readdir, readFile, rm, symlink} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   backupFolderName,
   Backups,

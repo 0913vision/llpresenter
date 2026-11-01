@@ -1,7 +1,7 @@
 import {appendFile, mkdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
-import {git} from '../scripts/git.mts';
-import {makeTempDir} from './temp-dir';
+import {git} from '../../scripts/git.mts';
+import {makeTempDir} from '@fixtures/tempDir';
 
 /** A throwaway git repository for one test. */
 export interface TempGitRepo {

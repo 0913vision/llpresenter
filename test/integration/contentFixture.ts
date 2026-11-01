@@ -3,15 +3,12 @@ import {
   ContentStore,
   type ContentEvents,
   type DocumentFiles,
-} from '../src/main/store/contentStore';
-import {resolveLocations} from '../src/main/store/locations';
+} from '@main/store/contentStore';
+import {resolveLocations} from '@main/store/locations';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {SettingsStore} from '../src/main/store/settingsStore';
-import {parseSettingsDocument} from '../src/core/schema/settingsDocuments';
-import type {
-  LibrarySong,
-  SongChange,
-} from '../src/core/schema/contentDocuments';
+import {SettingsStore} from '@main/store/settingsStore';
+import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import type {LibrarySong, SongChange} from '@core/schema/contentDocuments';
 
 /** A real content store with in-memory files and a window-like event feed. */
 export function contentFixture() {

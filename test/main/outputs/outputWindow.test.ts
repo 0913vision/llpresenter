@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   OutputWindow,

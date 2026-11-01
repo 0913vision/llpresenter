@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {MOCK_CLOCK_START, installMockClock} from './mock-clock';
+import {MOCK_CLOCK_START, installMockClock} from '@fixtures/mockClock';
 
 describe('installMockClock', () => {
   it('starts at the fixed start time', () => {

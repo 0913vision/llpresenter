@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   CRASH_LIMIT,
   CRASH_PERIOD_MS,

@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import * as mediaListSchema from '@core/schema/mediaList';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';

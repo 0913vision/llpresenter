@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../test/temp-dir';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {git, tryGit} from '../git.mts';
-import {makeTempGitRepo} from '../../test/git-repo';
+import {makeTempGitRepo} from '../../test/fixtures/gitRepo';
 import {HOOKS_PATH, installHooks} from './install.mts';
 
 describe('installHooks', () => {

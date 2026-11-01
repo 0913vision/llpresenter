@@ -1,5 +1,5 @@
 import {enableCompileCache} from 'node:module';
-import {COMPILE_CACHE_DIR} from '../scripts/compile-cache.mts';
+import {COMPILE_CACHE_DIR} from '../../scripts/compile-cache.mts';
 
 // NOTE(0913vision): Every worker loads ESLint, its plugins, and TypeScript
 // again. Node's compile cache keeps their compiled code between runs, which

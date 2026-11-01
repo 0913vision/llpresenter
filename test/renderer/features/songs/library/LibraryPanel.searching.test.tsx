@@ -5,7 +5,7 @@ import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import {
   fixtureSong,
   libraryFixture,
-} from '@renderer/features/songs/library/fixture';
+} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {setup} from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
 
 describe('library panel', () => {

@@ -2,8 +2,8 @@ import {spawnSync} from 'node:child_process';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempGitRepo} from '../test/git-repo';
-import {makeTempDir} from '../test/temp-dir';
+import {makeTempGitRepo} from '../test/fixtures/gitRepo';
+import {makeTempDir} from '../test/fixtures/tempDir';
 import {findBomFiles, trackedTextFiles} from './check-bom.mts';
 
 const SCRIPT = join(import.meta.dirname, 'check-bom.mts');

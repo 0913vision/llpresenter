@@ -1,7 +1,7 @@
 import {mkdir, readdir, rm, symlink, utimes} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {isTemporaryFileName} from '@main/store/atomicWrite';
 import {removeStaleTempFiles} from '@main/store/staleTempFiles';
 import {writeJson} from '@fixtures/main/store/testFiles';

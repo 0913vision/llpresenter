@@ -6,17 +6,14 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/notices';
-import {layerContainer} from '@renderer/ui/layers';
 import {
   fixtureSong,
   libraryFixture,
-} from '@renderer/features/songs/library/fixture';
+} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
-import {LibraryGalleryHost} from '@renderer/gallery/LibrarySection';
 import {pastDocument} from '@fixtures/core/serviceList';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
@@ -134,50 +131,6 @@ describe('library panel', () => {
         focusTitle: false,
       }),
     );
-  });
-
-  it('lets its gallery host share, replace, and cap notices in one stack', async () => {
-    const fixture = libraryFixture();
-    vi.spyOn(fixture.api.songs, 'list').mockRejectedValueOnce(
-      new Error('Read failed'),
-    );
-    render(<LibraryGalleryHost api={fixture.api} />);
-    const user = userEvent.setup();
-    await screen.findByText('라이브러리 불러오기 실패');
-    await user.click(screen.getByRole('button', {name: '다시 불러오기'}));
-    await screen.findByRole('option', {name: '찬송 10'});
-    expect(screen.queryByRole('alert')).toBeNull();
-    vi.spyOn(fixture.api.songs, 'get').mockRejectedValue(
-      new Error('Open failed'),
-    );
-    await user.click(screen.getByRole('option', {name: '찬송 10'}));
-    await screen.findByText('곡 열기 실패');
-    await user.click(screen.getByRole('option', {name: '찬송 2'}));
-    expect(screen.getAllByRole('alert')).toHaveLength(1);
-    vi.spyOn(fixture.api.library, 'search').mockRejectedValue(
-      new Error('Search failed'),
-    );
-    const input = screen.getByRole('textbox', {name: '라이브러리 검색'});
-    fireEvent.change(input, {target: {value: 'x'}});
-    await screen.findByText('라이브러리 검색 실패');
-    fireEvent.keyDown(input, {key: 'Escape'});
-    vi.spyOn(fixture.api.content, 'edit').mockRejectedValue(
-      new Error('Edit failed'),
-    );
-    await user.click(screen.getByRole('button', {name: '새 곡'}));
-    await screen.findByText('새 곡 만들기 실패');
-    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
-    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
-    await user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
-    await screen.findByText('곡 삭제 실패');
-    expect(screen.getAllByRole('alert')).toHaveLength(3);
-    expect(screen.queryByText('곡 열기 실패')).toBeNull();
-    expect(screen.queryByRole('button', {name: '다시 불러오기'})).toBeNull();
-    expect(layerContainer('notification').children).toHaveLength(1);
   });
 
   it('hands deletion failures to the host without a reload action', async () => {

@@ -8,8 +8,8 @@ import {
   isRunning,
   waitForHungTree,
   writeHungTree,
-} from '../../test/process-trees';
-import {makeTempDir} from '../../test/temp-dir';
+} from '../../test/fixtures/processTrees';
+import {makeTempDir} from '../../test/fixtures/tempDir';
 import {
   KILL_TIMEOUT_MS,
   killProcessTree,

@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {analysisTokenFromUrl} from '@contracts/ipc/mediaUrls';
 import type {PixelSize} from '@core/media/coverCrop';
 import {

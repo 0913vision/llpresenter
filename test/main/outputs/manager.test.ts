@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import type {Monitor} from '@main/displays/monitor';
 import {
   DISPLAY_RETRY_MS,

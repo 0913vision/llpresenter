@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {libraryFixture} from '@renderer/features/songs/library/fixture';
+import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {libraryMenuEntries} from '@renderer/features/songs/library/libraryMenuEntries';
 import {menuItems} from '@renderer/ui/menuModel';
 

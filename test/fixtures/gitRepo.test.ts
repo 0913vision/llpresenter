@@ -2,7 +2,7 @@ import {existsSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
-import {makeTempGitRepo} from './git-repo';
+import {makeTempGitRepo} from '@fixtures/gitRepo';
 
 describe('makeTempGitRepo', () => {
   it('starts an empty repository on main with a local identity', async () => {

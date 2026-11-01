@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {
   DISPLAY_RETRY_MS,
   DISPLAY_SETTLE_MS,

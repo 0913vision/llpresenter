@@ -3,8 +3,12 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
-import {isRunning, waitForHungTree, writeHungTree} from '../test/process-trees';
-import {makeTempDir} from '../test/temp-dir';
+import {
+  isRunning,
+  waitForHungTree,
+  writeHungTree,
+} from '../test/fixtures/processTrees';
+import {makeTempDir} from '../test/fixtures/tempDir';
 import {
   exitCodeFor,
   formatStepReport,

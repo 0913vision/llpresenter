@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../../mock-clock';
+import {installMockClock} from '@fixtures/mockClock';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Tooltip, ariaShortcut, withTooltipProps} from '@renderer/ui/Tooltip';

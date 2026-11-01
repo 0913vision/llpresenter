@@ -18,7 +18,7 @@ import {parseShowService} from '@core/schema/showService';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {registerStore} from '@main/store/register';

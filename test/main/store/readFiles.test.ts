@@ -2,7 +2,7 @@ import {join} from 'node:path';
 import {readFile, writeFile} from 'node:fs/promises';
 import {describe, expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {listFolder, loadFile, readTextFile} from '@main/store/readFiles';
 import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {
   readBibleBytes,
   readBibleChapter,

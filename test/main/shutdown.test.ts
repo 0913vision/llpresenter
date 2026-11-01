@@ -1,8 +1,8 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {installMockClock} from '../mock-clock';
-import {makeTempDir} from '../temp-dir';
+import {installMockClock} from '@fixtures/mockClock';
+import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createLogger, type Logger} from '@main/log';
 import {

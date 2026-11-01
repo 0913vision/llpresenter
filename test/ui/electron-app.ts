@@ -8,8 +8,8 @@ import {
 } from 'playwright-core';
 import {expect, onTestFinished} from 'vitest';
 import {runStepProcess} from '../../scripts/verify/step-process.mts';
-import {electronTestArgs} from '../electron-launch';
-import {makeTempDir} from '../temp-dir';
+import {electronTestArgs} from '@fixtures/electronLaunch';
+import {makeTempDir} from '@fixtures/tempDir';
 import {stopElectron} from './stop-electron';
 
 const BUILD_TIMEOUT = 120_000;

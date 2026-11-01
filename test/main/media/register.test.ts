@@ -2,7 +2,7 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {makeTempDir} from '../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';

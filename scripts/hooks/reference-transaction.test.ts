@@ -2,7 +2,7 @@ import {spawnSync} from 'node:child_process';
 import {chmod, readFile} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {expect, it} from 'vitest';
-import {makeTempGitRepo} from '../../test/git-repo';
+import {makeTempGitRepo} from '../../test/fixtures/gitRepo';
 
 async function fixture() {
   const repo = await makeTempGitRepo();

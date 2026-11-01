@@ -2,7 +2,7 @@ import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {parseGroupedSong} from '../../src/core/schema/groupedSong';
-import {makeTempDir} from '../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {offscreenApp} from './electron-app';
 
 const WAIT = 30_000;

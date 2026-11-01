@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
+import {makeTempGitRepo, type TempGitRepo} from '../../test/fixtures/gitRepo';
 import {
   BumpError,
   bumpFromCommits,

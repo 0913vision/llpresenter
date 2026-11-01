@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {isRunning} from '../process-trees';
+import {isRunning} from '@fixtures/processTrees';
 import {offscreenApp} from './electron-app';
 
 it(

@@ -32,6 +32,7 @@
     "src/contracts/**/*",
     "src/preload/*.d.ts",
     "test/renderer/**/*",
+    "test/integration/**/*.tsx",
     "test/core/**/*",
     "test/contracts/**/*",
     "test/fixtures/renderer/**/*",

@@ -5,7 +5,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {createMediaId, createMessageId, type ServiceId} from '@core/schema/ids';
 import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';
-import {makeTempDir} from '../../../temp-dir';
+import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';
