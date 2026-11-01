@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {usageMeta} from '@renderer/ui/usageMeta';
 import {AlertDialog, Dialog, TextField} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {isKnownMacroAction} from '@core/schema/macros';
@@ -193,13 +194,16 @@ export function MacroEditors({
         <AlertDialog
           icon="warning"
           title={`‘${editor.item.name}’ 매크로를 삭제할까요?`}
-          meta={[
+          meta={
             editor.failed
-              ? '예배 순서 사용 항목을 확인할 수 없습니다'
+              ? ['예배 순서 사용 항목을 확인할 수 없습니다']
               : editor.uses === null
-                ? '사용 항목을 확인하는 중'
-                : `예배 순서 항목 ${editor.uses}곳에서 씀`,
-          ]}
+                ? ['사용 항목을 확인하는 중']
+                : usageMeta(
+                    editor.uses,
+                    `예배 순서 항목 ${editor.uses}곳에서 씀`,
+                  )
+          }
           onCancel={close}
           actions={[
             {
