@@ -31,6 +31,18 @@ it(
         {timeout: WAIT},
       )
       .toBe('true');
+    await page.getByRole('menuitem', {name: '보기', exact: true}).click();
+    await expect
+      .poll(
+        () =>
+          page.getByRole('menuitem', {name: '준비', exact: true}).innerText(),
+        {timeout: WAIT},
+      )
+      .toContain('Ctrl Alt 9');
+    await page.keyboard.press('Escape');
+    await page
+      .getByRole('menu', {name: '보기', exact: true})
+      .waitFor({state: 'hidden'});
     await page.keyboard.press('Control+Alt+Digit9');
     await expect
       .poll(
