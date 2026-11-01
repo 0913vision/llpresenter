@@ -820,3 +820,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   before `main` is pushed (user agreed).
 - The merge script first takes the version bot's commit from `origin/main`, so
   the local `main` never parts from GitHub's.
+
+## 2026-11-02: Members rebase onto the local `main`
+
+- Members rebase their branch onto the local `main`, not `origin/main`, and
+  start new tickets from it (user: "그럼 rebase를 local main으로하라고해"). The
+  lead pushes `main` in batches, so `origin/main` can lack merges that already
+  landed, and a branch rebased onto it could keep conflicting with a merge its
+  author can't see. Every worktree shares the one repository, so the local
+  `main` is always in reach.
+- A member's pushed branch then also carries merges the lead hasn't pushed yet,
+  and GitHub checks them together with the branch.
+- Members build on the local `main`, so it is never rewritten: after a push to
+  `main`, the merge script waits for the version bot's commit before it lands
+  the next branch.

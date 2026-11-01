@@ -31,8 +31,8 @@ without exception.
   by the dispatcher or the lead, like a pull request's delete-after-merge;
   members never delete remote branches themselves.
 - Never run `reset --hard`, rewrite history, or delete branches on `main`.
-  Members rebase only their own branch onto `origin/main`. Nobody rebases `main`
-  itself.
+  Members rebase only their own branch, onto the local `main`. Nobody rebases
+  `main` itself.
 - Never change or delete files outside the repository or in another session's
   worktree.
 - Never change global settings (`git config --global`, system settings, the
@@ -61,14 +61,15 @@ the process only at a milestone boundary, never in the middle of one.
   an existing contract is tagged `break` and goes to data first.
 - **Branches:** always work on your own branch (`<tag>/<name>/<feature>`). While
   one is in review, decide for yourself what to do next, as a developer on a
-  real team would: start an independent ticket from `origin/main`, stack on the
-  open branch only when the next work really builds on it, and wait for the
+  real team would: start an independent ticket from the local `main`, stack on
+  the open branch only when the next work really builds on it, and wait for the
   review when the open change is risky or likely to change (the team workflow,
   "Stacked branches"). Own your ticket until it merges; don't let it drag.
-- **Before you push your branch:** rebase it onto `origin/main` and run
-  `npx eslint --max-warnings 0` on the files you changed. Leave typecheck,
-  tests, and verify to GitHub, which runs them on every pushed branch. Never
-  poll CI.
+- **Before you push your branch:** rebase it onto the local `main`
+  (`git rebase main`), not `origin/main`, which lacks the merges the lead hasn't
+  pushed yet, and run `npx eslint --max-warnings 0` on the files you changed.
+  Leave typecheck, tests, and verify to GitHub, which runs them on every pushed
+  branch. Never poll CI.
 - **Review request:** one ticket is one branch and one pull request: a short
   file outside git whose title becomes the one squashed commit on `main` (the
   member guide). When your branch's CI passes, message the lead. The lead
