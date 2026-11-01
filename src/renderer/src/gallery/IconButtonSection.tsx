@@ -103,9 +103,9 @@ export function IconButtonSection(): JSX.Element {
           label="On/off tools, 비율 고정 off, 격자에 맞추기 on"
           width={TOOLS_PANEL_WIDTH}
         >
-          <Panel label="무대 배치">
+          <Panel label="테마">
             <PanelHeader>
-              <HeaderTab label="무대 배치" />
+              <HeaderTab label="테마" />
               <PanelActions>
                 <Stateful<boolean> initial={false}>
                   {(pressed, setPressed) => (

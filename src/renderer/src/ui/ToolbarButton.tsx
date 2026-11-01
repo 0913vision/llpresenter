@@ -3,7 +3,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useButtonPress} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
-import {TOOLBAR_CHEVRON_SIZE, toolbarIconSize} from './toolbarLook';
+import {TOOLBAR_CHEVRON_SIZE, toolbarIconSize} from './toolbarIcons';
 import styles from './ToolbarButton.module.css';
 
 export interface ToolbarButtonProps extends Omit<

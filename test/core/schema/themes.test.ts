@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
-import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
+import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
 import {themeElementKinds} from '@core/themes/elementRules';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {
@@ -336,7 +336,7 @@ describe('theme documents', () => {
     const saved = expectSuccess(serializeThemes(parsed.data, 'themes.json'));
     expect(JSON.parse(saved)).toEqual(data);
     for (const patch of [
-      {format: 'llsettings.looks'},
+      {format: 'llsettings.macros'},
       {schemaVersion: 0},
       {standby: undefined},
       {defaults: undefined},

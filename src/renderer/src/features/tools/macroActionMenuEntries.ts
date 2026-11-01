@@ -47,26 +47,6 @@ const LATER_KINDS = {
   capture: {label: '녹화와 방송', icon: 'capture'},
 } as const;
 
-const RETIRED_ACTIONS: ReadonlyMap<
-  string,
-  {readonly name: string; readonly reason: string}
-> = new Map([
-  [
-    'look',
-    {
-      name: 'Look 바꾸기',
-      reason: 'Look 동작은 테마 바꾸기로 교체되었습니다',
-    },
-  ],
-  [
-    'stageLayout',
-    {
-      name: '무대 화면 배치',
-      reason: '무대 배치 동작은 테마로 교체되었습니다',
-    },
-  ],
-]);
-
 function targetId(action: MacroAction): string | undefined {
   if (!isKnownMacroAction(action)) return undefined;
   switch (action.kind) {
@@ -103,8 +83,6 @@ export function macroActionName(
   action: MacroAction,
   targets: MacroActionMenuInput['targets'],
 ): string {
-  const retired = RETIRED_ACTIONS.get(action.kind);
-  if (retired !== undefined) return retired.name;
   if (!isKnownMacroAction(action)) return '알 수 없는 동작';
   const kind = MACRO_ACTIONS[action.kind];
   if (action.kind === 'audio' && action.operation !== 'play') {
@@ -251,13 +229,7 @@ function editEntries(
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
       ...menuAvailability(
-        locked
-          ? '매크로 목록 잠김'
-          : RETIRED_ACTIONS.has(action.kind)
-            ? RETIRED_ACTIONS.get(action.kind)?.reason
-            : !known
-              ? '지원하지 않는 동작'
-              : undefined,
+        locked ? '매크로 목록 잠김' : !known ? '지원하지 않는 동작' : undefined,
       ),
       loadSubmenu: known
         ? () => [

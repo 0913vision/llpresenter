@@ -16,21 +16,18 @@ const main: PreviewScreen<ScreenName> = {
   id: 'main',
   name: '본 화면',
   target: {kind: 'display', label: '모니터 2'},
-  look: '기본',
   status: {kind: 'on'},
 };
 const stage: PreviewScreen<ScreenName> = {
   id: 'stage',
   name: '무대 화면',
   target: {kind: 'display', label: '모니터 3'},
-  look: '현재와 다음',
   status: {kind: 'on'},
 };
 const broadcast: PreviewScreen<ScreenName> = {
   id: 'broadcast',
   name: '방송 자막',
   target: {kind: 'ndi', label: 'NDI'},
-  look: '하단 자막',
   status: {kind: 'on'},
   chroma: true,
 };

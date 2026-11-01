@@ -39,7 +39,7 @@ export function Properties({
   );
 }
 
-/** Two columns of property groups, as in the Look editor. */
+/** Two columns of property groups, as in the 테마 element properties. */
 export function PropertyColumns({
   children,
 }: {

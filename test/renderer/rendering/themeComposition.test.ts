@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {createMediaId, createThemeId} from '@core/schema/ids';
 import type {ThemeElement} from '@core/schema/themes';
 import {

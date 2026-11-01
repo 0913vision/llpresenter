@@ -77,7 +77,7 @@ function move(
   );
 }
 
-/** Audio transport is independent of screens, Looks, and the control window. */
+/** Audio transport is independent of screens, 테마, and the control window. */
 export const audioSlice = defineSlice({
   commands: [
     'audio.play',

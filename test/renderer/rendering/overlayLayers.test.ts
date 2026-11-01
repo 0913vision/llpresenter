@@ -15,7 +15,7 @@ import {
 } from '@fixtures/core/overlays';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {OverlayImageView} from '@renderer/rendering/overlayImage';
 import type {RenderScreen} from '@renderer/rendering/layer';

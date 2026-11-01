@@ -21,14 +21,12 @@ const main: PreviewScreen<ScreenName> = {
   id: 'main',
   name: '본 화면',
   target: {kind: 'display', label: '모니터 2'},
-  look: '기본',
   status: {kind: 'on'},
 };
 const stage: PreviewScreen<ScreenName> = {
   id: 'stage',
   name: '무대 화면',
   target: {kind: 'display', label: '모니터 3'},
-  look: '현재와 다음',
   status: {
     kind: 'warning',
     reason: '모니터 3 연결 끊김',
@@ -39,7 +37,6 @@ const broadcast: PreviewScreen<ScreenName> = {
   id: 'broadcast',
   name: '방송 자막',
   target: {kind: 'ndi', label: 'NDI'},
-  look: '하단 자막',
   status: {kind: 'off'},
   chroma: true,
 };
@@ -98,13 +95,11 @@ describe('PreviewFrame', () => {
   it('shows one picture per screen and a selected marker in the fixed three-slot row', () => {
     const {container} = render(<Preview />);
     expect(screen.getByText('본 화면 출력')).toBeDefined();
-    expect(screen.getByText('기본')).toBeDefined();
     expect(smallNames()).toEqual([
       '본 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
       '방송 자막 크게 보기, 출력이 꺼져 있습니다',
     ]);
-    expect(screen.queryByText('현재와 다음')).toBe(null);
     expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
     const selected = screen.getByRole('button', {pressed: true});
     expect(selected.dataset['previewSlot']).toBe('main');
@@ -125,7 +120,6 @@ describe('PreviewFrame', () => {
       }),
     );
     expect(onBigChange).toHaveBeenCalledWith('stage');
-    expect(screen.getByText('현재와 다음')).toBeDefined();
     expect(smallNames()).toEqual([
       '본 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',

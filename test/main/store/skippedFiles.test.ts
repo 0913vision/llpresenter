@@ -7,7 +7,7 @@ import {
   type SkippedFile,
 } from '@main/store/skippedFiles';
 
-const LOOKS = 'D:/data/settings/looks.json';
+const THEMES = 'D:/data/settings/themes.json';
 const SONG = 'D:/data/Songs/a1.llsong';
 
 function settingsFeed() {
@@ -31,20 +31,20 @@ function settingsFeed() {
 describe('SkippedFiles', () => {
   it('keeps each skipped file once, with its own id and its file name', () => {
     const skipped = new SkippedFiles(recordingLogger());
-    expect(skipped.addSkippedFile(LOOKS)).toEqual({
+    expect(skipped.addSkippedFile(THEMES)).toEqual({
       kind: 'file-skipped',
       fileId: 1,
-      name: 'looks.json',
+      name: 'themes.json',
     });
-    expect(skipped.addSkippedFile(LOOKS)).toBeNull();
-    expect(skipped.addSkippedFile('D:/backup/settings/looks.json')).toEqual({
+    expect(skipped.addSkippedFile(THEMES)).toBeNull();
+    expect(skipped.addSkippedFile('D:/backup/settings/themes.json')).toEqual({
       kind: 'file-skipped',
       fileId: 2,
-      name: 'looks.json',
+      name: 'themes.json',
     });
     expect(skipped.list()).toEqual([
-      {kind: 'file-skipped', fileId: 1, name: 'looks.json'},
-      {kind: 'file-skipped', fileId: 2, name: 'looks.json'},
+      {kind: 'file-skipped', fileId: 1, name: 'themes.json'},
+      {kind: 'file-skipped', fileId: 2, name: 'themes.json'},
     ]);
   });
 
@@ -70,15 +70,15 @@ describe('startSkippedFileProblems', () => {
       skipped,
       sources: {
         settings: feed.subscribe,
-        content: Promise.resolve([{file: SONG}, {file: LOOKS}]),
+        content: Promise.resolve([{file: SONG}, {file: THEMES}]),
       },
       announce,
       log: recordingLogger(),
     });
-    feed.report(LOOKS);
+    feed.report(THEMES);
     await Promise.resolve();
     expect(announce.mock.calls.map(([problem]) => problem)).toEqual([
-      {kind: 'file-skipped', fileId: 1, name: 'looks.json'},
+      {kind: 'file-skipped', fileId: 1, name: 'themes.json'},
       {kind: 'file-skipped', fileId: 2, name: 'a1.llsong'},
     ]);
     expect(skipped.list()).toHaveLength(2);
@@ -124,7 +124,7 @@ describe('startSkippedFileProblems', () => {
     expect(log.messages('error')).toEqual([
       'could not list the skipped data files',
     ]);
-    feed.report(LOOKS);
+    feed.report(THEMES);
     expect(announce).toHaveBeenCalledOnce();
   });
 });

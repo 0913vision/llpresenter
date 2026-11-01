@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import type {RenderLayerOptions} from '@renderer/rendering/layer';
 import {backgroundLayer} from '@renderer/rendering/layers/background';
 

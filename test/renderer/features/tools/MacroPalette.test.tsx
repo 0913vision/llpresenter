@@ -27,7 +27,7 @@ it('offers every action kind exactly once in the specified groups', () => {
   );
   expect(actions).toHaveLength(macroActionKinds.length);
   expect(new Set(actions)).toEqual(new Set(macroActionKinds));
-  expect(readMacroActionDrag('look')).toBeUndefined();
+  expect(readMacroActionDrag('camera')).toBeUndefined();
   expect(MACRO_PALETTE.map(group => group.label)).toEqual([
     '화면',
     '지우기',

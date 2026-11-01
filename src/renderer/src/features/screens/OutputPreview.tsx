@@ -15,7 +15,7 @@ import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
-import {REFERENCE_SCREEN} from '@core/looks/lyricStyle';
+import {REFERENCE_SCREEN} from '@core/themes/lyricStyle';
 
 type PreviewMode = 'content' | 'pattern';
 

@@ -7,8 +7,8 @@ import {
   installedFamily,
   missingFontReason,
   weightChoices,
-} from '@renderer/features/screens/looks/fontAvailability';
-import {useFontCatalog} from '@renderer/features/screens/looks/useFontCatalog';
+} from '@renderer/features/screens/fonts/fontAvailability';
+import {useFontCatalog} from '@renderer/features/screens/fonts/useFontCatalog';
 
 const family = fontFamilyFixture();
 const ready = {status: 'ready', families: [family]} as const;

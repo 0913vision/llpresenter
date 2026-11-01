@@ -6,10 +6,10 @@ import type {ThemeText} from '@core/schema/themes';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {FontPicker} from '../looks/FontPicker';
-import {missingFontReason, weightChoices} from '../looks/fontAvailability';
-import {useFontCatalog} from '../looks/useFontCatalog';
-import {StageColorProperty} from '../stage/StageColorProperty';
+import {FontPicker} from '../fonts/FontPicker';
+import {missingFontReason, weightChoices} from '../fonts/fontAvailability';
+import {useFontCatalog} from '../fonts/useFontCatalog';
+import {ColorProperty} from '../ColorProperty';
 import {ThemeCheck, ThemeNumber} from './ThemePropertyFields';
 import type {ThemeModel} from './useThemeEditor';
 
@@ -72,7 +72,7 @@ export function ThemeTextProperties({
           reason={reason}
           change={size => change(value => ({...value, size}))}
         />
-        <StageColorProperty
+        <ColorProperty
           label="글자색"
           value={text.color}
           reason={reason}
@@ -158,7 +158,7 @@ export function ThemeTextProperties({
                 }))
               }
             />
-            <StageColorProperty
+            <ColorProperty
               label="외곽선 색"
               value={text.outline.color}
               reason={reason}
@@ -215,7 +215,7 @@ export function ThemeTextProperties({
                 }
               />
             ))}
-            <StageColorProperty
+            <ColorProperty
               label="그림자 색"
               value={text.shadow.color}
               reason={reason}

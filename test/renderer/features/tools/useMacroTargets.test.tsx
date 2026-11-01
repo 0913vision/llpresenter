@@ -62,7 +62,6 @@ it('uses the latest settings and media while ignoring an older initial reply and
   const {f, pending, stop, push} = fixture();
   const {result, unmount} = renderHook(() => useMacroTargets(undefined));
   await waitFor(() => expect(f.count()).toBe(7));
-  expect(f.get).not.toHaveBeenCalledWith({name: 'stage-layouts'});
   act(() => push(media(2, 'New audio')));
   await waitFor(() =>
     expect(result.current?.choices.audio).toEqual([{id, name: 'New audio'}]),

@@ -92,7 +92,7 @@ export const liveActionOptions = [
   v.object({type: v.literal('item.start'), itemId: serviceItemIdSchema}),
 ] as const;
 
-/** A live action for a content layer, Look, stage, audio, macro, or item. */
+/** A live action for a content layer, 테마, stage, audio, macro, or item. */
 export type LiveAction = ReadonlyKnown<v.InferOutput<typeof liveActionSchema>>;
 
 export const liveActionSchema = v.pipe(

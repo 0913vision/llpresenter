@@ -48,13 +48,6 @@
   gap: var(--panel-gap);
 }
 
-.lookEditing {
-  grid-template-columns: var(--ll-col-left) var(--panel-gap) minmax(
-      var(--col-center-min),
-      1fr
-    );
-}
-
 .panel {
   flex: 1;
   min-height: 0;

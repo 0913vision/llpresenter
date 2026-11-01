@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {MAIN} from '@fixtures/core/overlays';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {
   PATTERN_BARS,

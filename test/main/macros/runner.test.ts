@@ -21,7 +21,6 @@ import {
   macro,
   uuid,
 } from '@fixtures/main/macros/testing';
-import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
 
 function harness(
   actions: readonly object[],
@@ -71,10 +70,11 @@ function harness(
 }
 
 describe('macro live execution', () => {
-  it('skips the legacy Look in the saved fixture and runs the remaining action', () => {
-    const saved = legacyMacrosFile.macros[0];
-    if (!saved) throw new Error('Missing legacy fixture');
-    const {store, runner, log, id} = harness(saved.actions);
+  it('skips an action of an unknown kind and runs the remaining action', () => {
+    const {store, runner, log, id} = harness([
+      {kind: 'camera', input: 2},
+      {kind: 'clearLayer', layer: 'slide'},
+    ]);
     store.dispatch({
       type: 'slide.show',
       slide: {

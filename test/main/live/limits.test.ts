@@ -9,7 +9,7 @@ import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {parseMacroId} from '@core/schema/ids';
-import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
+import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {settingsDefaults} from '@main/store/settingsDefaults';
 import {LiveStore, dispatchLogged} from '@main/live/store';

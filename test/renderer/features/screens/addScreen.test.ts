@@ -45,7 +45,7 @@ describe('addScreen', () => {
     },
   );
 
-  it('uses the Stage kind without assigning a stage layout or enabling output', () => {
+  it('uses the Stage kind without enabling output', () => {
     expect(addScreen([], {...INPUT, kind: 'stage'})[0]).toEqual({
       ...INPUT,
       kind: 'stage',

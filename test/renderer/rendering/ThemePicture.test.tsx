@@ -4,7 +4,7 @@ import {createThemeElementId, createTimerId} from '@core/schema/ids';
 import {newThemeElement} from '@core/themes/newElement';
 import type {ThemeElement} from '@core/schema/themes';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {classes} from '@renderer/rendering/classes';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';

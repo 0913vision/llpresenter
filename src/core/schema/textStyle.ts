@@ -11,7 +11,7 @@ const FONT_WEIGHT_MIN = 1;
 const FONT_WEIGHT_MAX = 1000;
 
 /**
- * The text fields that lyric styles, stage layout text, and 소품 text share.
+ * The text fields that 테마 text elements, 메시지, and 소품 text share.
  * Sizes are px on a 1920 x 1080 screen.
  */
 export const textStyleEntries = {
@@ -29,7 +29,7 @@ export const textStyleEntries = {
   lineHeight: positiveNumber,
 };
 
-/** The fields of a lyric style without its id and name. 소품 text uses them too. */
+/** The shared text fields with the fit, margin, and effect switches of 소품 text. */
 export const lyricTextEntries = {
   ...textStyleEntries,
   maxLines: positiveInteger,

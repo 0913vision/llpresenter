@@ -71,7 +71,6 @@ describe('recovery summaries', () => {
             props: 0,
             stageMessages: 0,
             notices: 0,
-            stageLayouts: 0,
           },
         },
       ],

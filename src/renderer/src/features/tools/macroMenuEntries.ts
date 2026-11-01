@@ -185,7 +185,7 @@ function clipboardEntries(
 
 /**
  * The 매크로 right-click menu, row for row as ProPresenter's (spec 11): its
- * collections, its look and startup, its actions, then copy and delete.
+ * collections, its appearance and startup, its actions, then copy and delete.
  */
 export function macroMenuEntries(
   input: MacroMenuInput,

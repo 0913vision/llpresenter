@@ -78,10 +78,10 @@ function readState(state: unknown) {
 }
 
 describe('recovery record files', () => {
-  it('keeps the retired Look field of an old record as an unknown field', () => {
+  it('keeps an unknown field of the saved state', () => {
     expectRoundTrip(codec, {
       ...record(),
-      state: stateWith({}, {lookId: uuid(4)}),
+      state: stateWith({}, {laterField: uuid(4)}),
     });
   });
   it('round trips a current record, null service, BOM, and stable JSON', () => {

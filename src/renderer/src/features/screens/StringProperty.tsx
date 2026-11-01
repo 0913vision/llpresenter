@@ -3,7 +3,7 @@ import {PropertyRow, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 
 /** Buffers a string until blur or Enter; Escape and invalid values keep the saved value. */
-export function StageStringProperty({
+export function StringProperty({
   label,
   value,
   reason,

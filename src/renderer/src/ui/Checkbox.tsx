@@ -75,7 +75,7 @@ export function Checkbox({
   );
 }
 
-/** The look of a check row: in a dialog, in a list, or a group header. */
+/** Where a check row sits: in a dialog, in a list, or as a group header. */
 export type CheckRowVariant = 'plain' | 'list' | 'group';
 
 export interface CheckRowProps {

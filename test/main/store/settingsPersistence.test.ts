@@ -20,7 +20,11 @@ it('waits for a settings edit accepted while a flush is writing', async () => {
     {write, remove: vi.fn()},
     recordingLogger(),
   );
-  const target = {file: 'C:\\data\\looks.json', kind: 'settings', id: 'looks'};
+  const target = {
+    file: 'C:\\data\\themes.json',
+    kind: 'settings',
+    id: 'themes',
+  };
   const first = saves.save({target, text: 'first'});
   const flushing = saves.flush();
   expect(write).toHaveBeenCalledOnce();

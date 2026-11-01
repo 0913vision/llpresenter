@@ -16,8 +16,3 @@
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
-
-.look {
-  margin-left: auto;
-  color: var(--text-3);
-}

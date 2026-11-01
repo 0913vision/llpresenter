@@ -11,7 +11,7 @@ import {
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {StageColorProperty} from '../stage/StageColorProperty';
+import {ColorProperty} from '../ColorProperty';
 import {ThemeTextProperties} from './ThemeTextProperties';
 import {ThemeImageChoice} from './ThemeImageChoice';
 import {ThemeNumber, ThemeCheck, ThemeContent} from './ThemePropertyFields';
@@ -196,7 +196,7 @@ export function ThemeElementProperties({
           />
           {box?.on ? (
             <>
-              <StageColorProperty
+              <ColorProperty
                 label="색"
                 value={box.fill}
                 reason={reason}

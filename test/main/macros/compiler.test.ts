@@ -18,7 +18,7 @@ import {
 } from '@fixtures/main/macros/testing';
 
 describe('macro compiler', () => {
-  it('compiles a theme action and skips a deleted theme and the retired Look and stage layout actions', () => {
+  it('compiles a theme action and skips a deleted theme and an action of an unknown kind', () => {
     const initial = environment();
     const theme = initial.catalog.themes.themes[0];
     if (!theme) throw new Error('Missing theme fixture');
@@ -26,8 +26,7 @@ describe('macro compiler', () => {
       macro(IDS.macro, [
         {kind: 'theme', theme: theme.id},
         {kind: 'theme', theme: uuid(999)},
-        {kind: 'look', look: IDS.look},
-        {kind: 'stageLayout', layout: uuid(5), screen: IDS.stage},
+        {kind: 'camera', input: 2},
       ]),
     ]);
     const plan = compileMacro({
@@ -44,7 +43,6 @@ describe('macro compiler', () => {
         target: {kind: 'theme', id: uuid(999)},
       }),
       expect.objectContaining({action: 2, reason: 'unknown-action'}),
-      expect.objectContaining({action: 3, reason: 'unknown-action'}),
     ]);
   });
   it('stops expansion once the command budget is reached and reports it once', () => {

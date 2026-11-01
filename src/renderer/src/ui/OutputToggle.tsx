@@ -4,7 +4,7 @@ import {Icon} from './Icon';
 import {objectParticle} from './korean';
 import {useButtonPress} from './press';
 import {StatusDot} from './StatusMarks';
-import {toolbarIconSize} from './toolbarLook';
+import {toolbarIconSize} from './toolbarIcons';
 import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 

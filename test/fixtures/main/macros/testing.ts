@@ -18,7 +18,6 @@ export const uuid = (number: number): string =>
 export const IDS = {
   main: uuid(1),
   stage: uuid(3),
-  look: uuid(4),
   video: uuid(9),
   audio: uuid(10),
   playlist: uuid(11),

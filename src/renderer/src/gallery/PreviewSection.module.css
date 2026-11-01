@@ -1,5 +1,5 @@
 /* NOTE(0913vision): These stand in for the output renderer inside a preview
-   frame. A Look sets the sizes and colors of real output, not the UI tokens,
+   frame. A 테마 sets the sizes and colors of real output, not the UI tokens,
    so these copy the preview card's sample screens as they are. */
 .picture {
   position: absolute;

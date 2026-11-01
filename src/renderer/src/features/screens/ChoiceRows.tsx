@@ -11,7 +11,7 @@ import type {Choice} from './choices';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {GroupRename} from '@renderer/ui/ListRow';
-import styles from './looks/LookList.module.css';
+import styles from './ChoiceRows.module.css';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;

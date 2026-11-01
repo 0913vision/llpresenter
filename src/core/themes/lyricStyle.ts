@@ -1,8 +1,8 @@
 import type {LyricOutline, LyricShadow} from '../schema/lyricEffects';
 
 /**
- * How the lyrics layer draws a 장: the lyric style fields of a Look
- * (docs/spec/02-data.md). Sizes are px on a 1920 x 1080 screen.
+ * How a text layer draws its text: the lyrics of a 장, a 테마 text element, a
+ * 메시지, or 소품 text. Sizes are px on a 1920 x 1080 screen.
  */
 export interface LyricStyle {
   readonly font: string;
@@ -20,9 +20,7 @@ export interface LyricStyle {
   readonly outline: boolean | LyricOutline;
 }
 
-// TODO(0913vision): Take the lyric style from the current Look once the
-// settings store sends it.
-/** 기본 (default), with the values of the `Looks` board. */
+/** The style of text that has no 테마 element to style it. */
 export const DEFAULT_LYRIC_STYLE = {
   font: 'Pretendard',
   weight: 700,
@@ -37,7 +35,7 @@ export const DEFAULT_LYRIC_STYLE = {
   outline: false,
 } as const satisfies LyricStyle;
 
-/** The screen size that lyric style sizes are written for. */
+/** The screen size that text sizes are written for. */
 export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
 
 /** Fixed switch values from spec 03 and 10, in reference-screen pixels. */

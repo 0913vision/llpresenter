@@ -72,13 +72,13 @@ describe('app problem payloads', () => {
     {kind: 'disk-full', macroId: MACRO_ID, name: 'x'},
     {kind: 'file-skipped'},
     {kind: 'file-skipped', fileId: 1, name: ''},
-    {kind: 'file-skipped', name: 'looks.json'},
-    {kind: 'file-skipped', fileId: 0, name: 'looks.json'},
-    {kind: 'file-skipped', fileId: 1.5, name: 'looks.json'},
+    {kind: 'file-skipped', name: 'themes.json'},
+    {kind: 'file-skipped', fileId: 0, name: 'themes.json'},
+    {kind: 'file-skipped', fileId: 1.5, name: 'themes.json'},
     {
       kind: 'file-skipped',
       fileId: APP_PROBLEM_LIMITS.listed + 1,
-      name: 'looks.json',
+      name: 'themes.json',
     },
     {
       kind: 'file-skipped',
@@ -135,7 +135,7 @@ describe('fileSkippedProblem', () => {
   it.each([
     ['D:\\예배 데이터\\Songs\\a1.llsong', 'a1.llsong'],
     ['/data/settings/screens.json', 'screens.json'],
-    ['looks.json', 'looks.json'],
+    ['themes.json', 'themes.json'],
   ])('names %s by its file name %s', (file, name) => {
     const problem = fileSkippedProblem(3, file);
     expect(problem).toEqual({kind: 'file-skipped', fileId: 3, name});
@@ -154,12 +154,12 @@ describe('fileSkippedProblem', () => {
       parseAppProblem({
         kind: 'file-skipped',
         fileId: 2,
-        name: 'looks.json',
+        name: 'themes.json',
         file: 'x',
       }),
     ).toEqual({
       ok: true,
-      value: {kind: 'file-skipped', fileId: 2, name: 'looks.json'},
+      value: {kind: 'file-skipped', fileId: 2, name: 'themes.json'},
     });
   });
 });

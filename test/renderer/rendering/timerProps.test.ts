@@ -6,7 +6,7 @@ import type {TimerRuns} from '@core/schema/timerState';
 import type {TimerNow} from '@core/timers/timerClock';
 import {MAIN, overlayUuid, PROP, TEXT_STYLE} from '@fixtures/core/overlays';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MAX_REPORTED_TICK_ERRORS} from '@renderer/rendering/layers/props';
 import {OverlayTextView} from '@renderer/rendering/overlayText';

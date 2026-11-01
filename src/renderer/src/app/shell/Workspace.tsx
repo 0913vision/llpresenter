@@ -151,7 +151,6 @@ export function Workspace({
           styles.columns,
           toggle.collapsed && styles.leftCollapsed,
           id === 'screens' && styles.screenSettings,
-          screens.lookEditing && styles.lookEditing,
         )}
       >
         {panelColumns}

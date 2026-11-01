@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {RenderMode} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {MAIN} from '@fixtures/core/overlays';

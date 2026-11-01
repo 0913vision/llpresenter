@@ -1,7 +1,4 @@
-import {
-  STARTER_LYRIC_STYLE,
-  STARTER_STAGE_ELEMENTS,
-} from '../looks/starterLayout';
+import {STARTER_LYRIC_STYLE, STARTER_STAGE_ELEMENTS} from './starterLayout';
 import {
   createScreenId,
   createThemeId,

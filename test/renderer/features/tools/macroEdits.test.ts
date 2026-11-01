@@ -4,57 +4,6 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {saveMacroEdit} from '@renderer/features/tools/macroEdits';
-import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
-
-it('preserves the saved legacy Look action through edits and can remove only that action', async () => {
-  const parsed = parseSettingsDocument({
-    name: 'macros',
-    revision: 1,
-    access: 'editable',
-    value: legacyMacrosFile,
-  });
-  if (!parsed.ok || parsed.value.name !== 'macros') {
-    throw new Error('Invalid legacy fixture');
-  }
-  const document = parsed.value;
-  const item = document.value.macros[0];
-  const saved = legacyMacrosFile.macros[0];
-  if (!item || !saved) throw new Error('Missing legacy macro');
-  const edit = vi
-    .fn()
-    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
-  const api = mockLlpApi({
-    settings: {get: vi.fn().mockResolvedValue(document), edit},
-  });
-  await saveMacroEdit(api, {
-    kind: 'update',
-    id: item.id,
-    changes: {name: 'Renamed macro'},
-  });
-  expect(edit).toHaveBeenNthCalledWith(
-    1,
-    expect.objectContaining({
-      value: {
-        ...legacyMacrosFile,
-        macros: [{...saved, name: 'Renamed macro'}],
-      },
-    }),
-  );
-  await saveMacroEdit(api, {
-    kind: 'action',
-    id: item.id,
-    action: {kind: 'remove', index: 0, expected: item.actions},
-  });
-  expect(edit).toHaveBeenNthCalledWith(
-    2,
-    expect.objectContaining({
-      value: {
-        ...legacyMacrosFile,
-        macros: [{...saved, actions: [saved.actions[1]]}],
-      },
-    }),
-  );
-});
 
 const raw = {
   id: '00000000-0000-4000-8000-000000000001',

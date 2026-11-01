@@ -9,8 +9,8 @@ separate fixture folder are excluded. A new layer needs only a module exporting
   lyrics 1, preserving the existing relative stack and DOM attributes.
 - `create(parent, options)` returns a persistent view with `render(layers)`,
   optional `rescale(scale)`, and `dispose()`. Options preserve the media URL,
-  lyric style, preview mode, and error callback. A factory must release any
-  partially acquired resources if it throws before returning its view.
+  default text style, preview mode, and error callback. A factory must release
+  any partially acquired resources if it throws before returning its view.
 
 OutputRenderer creates each view once. It draws and rescales views without
 replacing them, gives every layer its own stacking context, and disposes every

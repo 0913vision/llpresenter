@@ -1,7 +1,7 @@
 import type {LayerKind, LiveLayers} from '@core/live/state';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
-import type {LyricStyle} from '@core/looks/lyricStyle';
+import type {LyricStyle} from '@core/themes/lyricStyle';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';

@@ -66,7 +66,7 @@ function setup(screenId = THEME_MAIN) {
   };
 }
 
-it('uses the main composition without subscribing to Look or stage layout settings', async () => {
+it('uses the main composition and subscribes only to screens and timers', async () => {
   const {frames, state, get, onChange} = setup(THEME_STAGE);
   expect(frames.frame(state)).toBeUndefined();
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
@@ -80,8 +80,6 @@ it('uses the main composition without subscribing to Look or stage layout settin
     revision: 7,
     item: state.themeItem,
   });
-  expect(frame).not.toHaveProperty('look');
-  expect(frame).not.toHaveProperty('stage');
 });
 
 it('waits for a complete theme snapshot without changing screen identity', async () => {

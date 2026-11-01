@@ -90,14 +90,6 @@ describe('parseLiveState', () => {
   ])('rejects malformed clear key flags %j', ({clearToggles}) => {
     expect(parseLiveState({...emptyLiveState(), clearToggles}).ok).toBe(false);
   });
-  it('drops the retired Look and stage layout fields of an old record', () => {
-    const result = parseLiveState({
-      ...emptyLiveState(),
-      lookId: '00000000-0000-4000-8000-000000000004',
-      stageLayouts: {'00000000-0000-4000-8000-000000000001': 'layout'},
-    });
-    expect(result).toEqual({ok: true, value: emptyLiveState()});
-  });
   it('accepts an empty state and a state with every layer', () => {
     expect(parseLiveState(emptyLiveState())).toEqual({
       ok: true,
@@ -234,7 +226,7 @@ describe('parseLiveState', () => {
     ).toBeUndefined();
   });
 
-  it('carries the next slide, the stage layout per stage screen, and the stage 타이머', () => {
+  it('carries the next slide and the stage 타이머', () => {
     const state = {
       ...busyState(),
       layers: {

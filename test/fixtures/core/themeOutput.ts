@@ -2,7 +2,7 @@ import {createScreenId, createThemeElementId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {ThemeElement} from '@core/schema/themes';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
+import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
 import {createDefaultThemes} from '@core/themes/defaults';
 
 export const THEME_MAIN = createScreenId(STARTER_SCREEN_IDS.main);

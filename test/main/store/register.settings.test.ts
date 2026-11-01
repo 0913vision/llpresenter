@@ -378,25 +378,6 @@ describe('registerStore', () => {
     expect(late).not.toHaveBeenCalled();
   });
 
-  it('neither reads nor changes the old Look and stage layout files', async () => {
-    const context = await developmentContext();
-    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, 'Settings');
-    const legacy = {format: 'wrong', future: [1, 2]};
-    await writeJson(join(folder, 'looks.json'), legacy);
-    await writeJson(join(folder, 'stage-layouts.json'), legacy);
-    const store = await register(mockLog(), context, () => true);
-    const listener = vi.fn<SettingsProblemListener>();
-    const unsubscribe = store.subscribeSettingsProblems(listener);
-    await ask(settingsEndpoints.get.channel, {name: 'themes'});
-    expect(listener).not.toHaveBeenCalled();
-    for (const file of ['looks.json', 'stage-layouts.json']) {
-      expect(JSON.parse(await readFile(join(folder, file), 'utf8'))).toEqual(
-        legacy,
-      );
-    }
-    unsubscribe();
-  });
-
   it('refuses malformed settings reads', async () => {
     await register(mockLog(), await developmentContext(), () => true);
     await expect(

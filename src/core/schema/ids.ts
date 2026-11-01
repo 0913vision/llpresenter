@@ -37,12 +37,6 @@ export const messageTemplateIdSchema = uuidId('MessageTemplateId');
 export const quickItemIdSchema = uuidId('QuickItemId');
 export const appFlushRequestIdSchema = uuidId('AppFlushRequestId');
 
-/** Stage layout elements are named within their layout, so they aren't UUIDs. */
-export const stageElementIdSchema = v.pipe(
-  nonBlankText,
-  v.brand('StageElementId'),
-);
-
 /** Bible translation ids name a bundled or added file, so they aren't UUIDs. */
 export const translationIdSchema = v.pipe(
   nonBlankText,
@@ -92,7 +86,6 @@ export function parseScreenId(value: unknown) {
 export function createScreenId(uuid: string): ScreenId {
   return v.parse(screenIdSchema, uuid);
 }
-export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
 
 /** Checks a message style ID received from a view. */

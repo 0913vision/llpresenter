@@ -5,7 +5,7 @@ import {
   parseScreenId,
 } from '@core/schema/ids';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '@core/schema/themes';
-import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
+import {STARTER_LYRIC_STYLE} from '@core/themes/starterLayout';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {builtInTheme, type ThemeScreen} from '@core/themes/defaults';
 import {themeItemKinds} from '@core/themes/elementRules';

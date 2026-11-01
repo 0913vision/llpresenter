@@ -11,11 +11,10 @@ export function useScreensPanels({
 }: {
   readonly active: boolean;
   readonly onProblem: ((notice: Notice) => void) | undefined;
-}): WorkspacePanels & {readonly lookEditing: boolean} {
+}): WorkspacePanels {
   const panels = useThemePanels(active, onProblem);
   return {
     columns: COLUMNS,
-    lookEditing: false,
     partsOf: title => ({
       embedded:
         title === '테마'

@@ -12,7 +12,7 @@ import {
 } from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseShortcuts, serialize: serializeShortcuts};
-const LOOK_COMMAND = 'look.5d2f0c52-7e1f-4a2b-8c3d-4e5f60718293';
+const THEME_COMMAND = 'theme.5d2f0c52-7e1f-4a2b-8c3d-4e5f60718293';
 
 function changedShortcuts() {
   return {
@@ -20,7 +20,7 @@ function changedShortcuts() {
     schemaVersion: 1,
     bindings: {
       'output.audience': [{code: 'Digit1', mods: ['ctrl']}],
-      [LOOK_COMMAND]: [{code: 'Digit2', mods: ['alt']}],
+      [THEME_COMMAND]: [{code: 'Digit2', mods: ['alt']}],
       'clear.all': [
         {code: 'F1', mods: []},
         {code: 'Escape', mods: ['shift']},

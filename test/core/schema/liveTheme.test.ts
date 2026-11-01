@@ -11,7 +11,7 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createThemeId} from '@core/schema/ids';
 
 describe('live theme payloads', () => {
-  it('accepts manual theme choices and rejects the retired legacy mode', () => {
+  it('accepts a manual theme choice and rejects an invalid theme ID', () => {
     const id = createThemeId('00000000-0000-4000-8000-000000000111');
     expect(v.safeParse(liveThemeModeSchema, {kind: 'manual', id}).success).toBe(
       true,
@@ -19,9 +19,6 @@ describe('live theme payloads', () => {
     expect(
       v.safeParse(liveThemeModeSchema, {kind: 'manual', id: 'invalid'}).success,
     ).toBe(false);
-    expect(v.safeParse(liveThemeModeSchema, {kind: 'legacy'}).success).toBe(
-      false,
-    );
   });
   it('preserves the independently retained slide position', () => {
     const item = {

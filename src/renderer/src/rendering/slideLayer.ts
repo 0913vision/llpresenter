@@ -1,7 +1,7 @@
 import type {SlideLayer} from '@core/live/state';
 import {fitTextInFrame} from './fitText';
 import {classes} from './classes';
-import {LYRIC_EFFECTS, type LyricStyle} from '@core/looks/lyricStyle';
+import {LYRIC_EFFECTS, type LyricStyle} from '@core/themes/lyricStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */

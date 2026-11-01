@@ -3,7 +3,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
 import {useButtonPress} from './press';
-import {toolbarIconSize} from './toolbarLook';
+import {toolbarIconSize} from './toolbarIcons';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 

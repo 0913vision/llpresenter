@@ -14,20 +14,20 @@ const MACRO_ID = expectSuccess(
 );
 
 it('names one skipped file and says it was skipped', () => {
-  expect(skippedFilesCard(['looks.json'], TIME)).toEqual({
+  expect(skippedFilesCard(['themes.json'], TIME)).toEqual({
     key: 'file-skipped',
     kind: 'warning',
     icon: 'filex',
     title: '파일을 읽을 수 없음',
     time: TIME,
-    meta: ['looks.json', '건너뜀'],
+    meta: ['themes.json', '건너뜀'],
   });
 });
 
 it('names the first skipped file and counts the others', () => {
   expect(
-    skippedFilesCard(['looks.json', 'a1.llsong', 'b2.llsong'], TIME)?.meta,
-  ).toEqual(['looks.json 외 2개', '건너뜀']);
+    skippedFilesCard(['themes.json', 'a1.llsong', 'b2.llsong'], TIME)?.meta,
+  ).toEqual(['themes.json 외 2개', '건너뜀']);
 });
 
 it('gives no card when no file was skipped', () => {

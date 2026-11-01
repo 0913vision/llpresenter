@@ -63,7 +63,7 @@ function setup({
         choices={choices}
         selected={selected}
         inUse={new Set(['layout-0', 'layout-1', 'layout-999'])}
-        label="Stage layouts"
+        label="Themes"
         renaming={renaming}
         {...(warnings === undefined ? {} : {warnings})}
         {...(onMenu === undefined ? {} : {onMenu})}
@@ -135,7 +135,7 @@ it('navigates from the focused row after tabbing back into a scrolled list', asy
           choices={choices}
           selected={selected}
           inUse={new Set()}
-          label="Stage layouts"
+          label="Themes"
           renaming={null}
           onSelect={id => {
             select(id);

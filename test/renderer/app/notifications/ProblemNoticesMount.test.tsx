@@ -72,21 +72,21 @@ afterEach(async () => {
 
 it('shows the files skipped before the window loaded as one card', async () => {
   setup([
-    fileSkippedProblem(1, 'D:/data/settings/looks.json'),
+    fileSkippedProblem(1, 'D:/data/settings/themes.json'),
     fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'),
   ]);
   const card = await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
-  expect(within(card).getByText('looks.json 외 1개')).toBeDefined();
+  expect(within(card).getByText('themes.json 외 1개')).toBeDefined();
   expect(within(card).getByText('건너뜀')).toBeDefined();
 });
 
 it('counts a file that arrives by push and by the list only once', async () => {
-  const {push} = setup([fileSkippedProblem(1, 'D:/data/settings/looks.json')]);
+  const {push} = setup([fileSkippedProblem(1, 'D:/data/settings/themes.json')]);
   await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
-  push(fileSkippedProblem(1, 'D:/data/settings/looks.json'));
-  expect(within(skippedCard()).getByText('looks.json')).toBeDefined();
+  push(fileSkippedProblem(1, 'D:/data/settings/themes.json'));
+  expect(within(skippedCard()).getByText('themes.json')).toBeDefined();
   push(fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'));
-  expect(within(skippedCard()).getByText('looks.json 외 1개')).toBeDefined();
+  expect(within(skippedCard()).getByText('themes.json 외 1개')).toBeDefined();
   expect(screen.getAllByRole('alert')).toHaveLength(1);
 });
 

@@ -33,8 +33,6 @@ export interface PreviewScreen<Id extends string> {
   /** 본 화면, 무대 화면, or 방송 자막. */
   readonly name: string;
   readonly target: PreviewTarget;
-  /** The Look name exactly as the user wrote it; the large preview shows it. */
-  readonly look?: string | undefined;
   readonly status: PreviewStatus;
   /** Draws the frame in `chroma`, as the capture window of 방송 자막 does. */
   readonly chroma?: boolean | undefined;
@@ -167,9 +165,6 @@ function Caption<Id extends string>({
           />
           {screen.target.label}
         </span>
-      )}
-      {small || screen.look === undefined ? null : (
-        <span className={styles.look}>{screen.look}</span>
       )}
     </div>
   );

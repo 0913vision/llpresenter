@@ -307,7 +307,6 @@ describe('the theme workspace and screen selection', () => {
     expect(
       screen.getByRole('region', {name: '테마 편집기'}).querySelector('header'),
     ).toBeNull();
-    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
     expect(screen.queryByRole('button', {name: '모니터 번호 표시'})).toBeNull();
   });
 });

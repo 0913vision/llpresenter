@@ -13,7 +13,7 @@ import {
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {menuAvailability} from '@renderer/ui/menuModel';
-import {StageColorProperty} from '../stage/StageColorProperty';
+import {ColorProperty} from '../ColorProperty';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {themeSamples} from './ThemeCanvas';
 import type {ThemeModel} from './useThemeEditor';
@@ -149,7 +149,7 @@ function ThemeScreenProperties({
             />
           )}
         </PropertyRow>
-        <StageColorProperty
+        <ColorProperty
           label="배경색"
           value={layout.background ?? ''}
           allowNone

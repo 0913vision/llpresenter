@@ -253,7 +253,6 @@ export function LabelSection(): JSX.Element {
             <LabelSwatch color="green" />
             <b>프리코러스</b>
             <span className={styles.meta}>5 / 9</span>
-            <span className={styles.look}>기본</span>
           </span>
         </SpecItem>
         <SpecItem label="8 colors and none">

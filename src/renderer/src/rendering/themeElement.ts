@@ -1,8 +1,8 @@
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
 import type {ThemeElement} from '@core/schema/themes';
-import type {LyricStyle} from '@core/looks/lyricStyle';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import type {LyricStyle} from '@core/themes/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {
   isThemeTextElement,
   themeElementText,

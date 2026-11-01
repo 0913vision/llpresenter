@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {isLyricTextColor} from '@core/schema/textStyle';
 import {Dialog, Properties, PropertyRow, Slider} from '@renderer/ui';
-import {StageStringProperty} from './StageStringProperty';
-import styles from './StageColorProperty.module.css';
+import {StringProperty} from './StringProperty';
+import styles from './ColorProperty.module.css';
 
 interface Channels {
   red: number;
@@ -32,7 +32,7 @@ function hex(color: Channels): string {
 }
 
 /** A hex field and a dialog for choosing its color without a native picker. */
-export function StageColorProperty({
+export function ColorProperty({
   label,
   value,
   reason,
@@ -62,7 +62,7 @@ export function StageColorProperty({
   const preview = draft === null ? '' : hex(draft);
   return (
     <>
-      <StageStringProperty
+      <StringProperty
         label={label}
         value={value}
         reason={reason}

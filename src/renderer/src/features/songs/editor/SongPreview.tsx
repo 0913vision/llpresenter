@@ -16,7 +16,7 @@ import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {
   linearBlockAddress,

@@ -15,12 +15,12 @@ const UNDO_LABEL = '되돌리기';
 const ICON_SIZE: IconSize = 18;
 const COMPACT_ICON_SIZE: IconSize = 16;
 
-interface ClearLook {
+interface ClearFace {
   readonly name: string;
   readonly icon: string;
 }
 
-const clearLooks: Readonly<Record<ClearTarget, ClearLook>> = {
+const clearFaces: Readonly<Record<ClearTarget, ClearFace>> = {
   all: {name: '모두', icon: 'layers'},
   slide: {name: '가사', icon: 'text'},
   media: {name: '미디어', icon: 'image'},
@@ -32,7 +32,7 @@ const clearLooks: Readonly<Record<ClearTarget, ClearLook>> = {
 
 /** The one-word name of a layer on its 지우기 button. */
 export function clearName(layer: ClearTarget): string {
-  return clearLooks[layer].name;
+  return clearFaces[layer].name;
 }
 
 /** The name of a 지우기 button, as its tooltip and `aria-label` say it. */
@@ -128,11 +128,11 @@ export function ClearButton({
   shortcut,
 }: ClearButtonProps): JSX.Element {
   const current = useShortcutText(`clear.${layer}`);
-  const look = clearLooks[layer];
+  const face = clearFaces[layer];
   return (
     <ClearControl
-      name={look.name}
-      icon={look.icon}
+      name={face.name}
+      icon={face.icon}
       label={clearLabel(layer)}
       shortcut={shortcut ?? current}
       available={active}

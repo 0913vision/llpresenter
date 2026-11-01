@@ -47,7 +47,7 @@ const propsFormat: FileFormat<typeof propsSchema> = {
 export type PropsFile = ReadonlyKnown<v.InferOutput<typeof propsSchema>>;
 
 /**
- * One 소품: an image, or text drawn with lyric style fields. A
+ * One 소품: an image, or text drawn with its own text style. A
  * `{timer:<타이머 id>}` token in the text draws that 타이머's value.
  */
 export type Prop = PropsFile['props'][number];

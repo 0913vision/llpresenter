@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
 import {layerKinds} from '@core/live/state';
-import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
 import {
   isKnownMacroAction,
   macroActionKinds,
@@ -16,22 +15,6 @@ import {
 
 const codec = {parse: parseMacros, serialize: serializeMacros};
 
-it('preserves legacy Look actions as unsupported data through a file round trip', () => {
-  const loaded = expectSuccess(
-    parseMacros(JSON.stringify(legacyMacrosFile), 'macros.json'),
-  );
-  expect(loaded.data).toEqual(legacyMacrosFile);
-  expect(loaded.data.macros[0]?.actions.map(isKnownMacroAction)).toEqual([
-    false,
-    true,
-  ]);
-  const written = expectSuccess(serializeMacros(loaded.data, 'macros.json'));
-  expect(JSON.parse(written)).toEqual(legacyMacrosFile);
-  expect(parseKnownMacroAction(legacyMacrosFile.macros[0]?.actions[0]).ok).toBe(
-    false,
-  );
-});
-
 it('requires a valid theme ID in a theme macro action', () => {
   expect(parseKnownMacroAction({kind: 'theme', theme: 'missing'}).ok).toBe(
     false,
@@ -40,9 +23,7 @@ it('requires a valid theme ID in a theme macro action', () => {
 });
 const SERVICE_START = 'd1d2d3d4-1111-4222-8333-444455556666';
 const PRAISE = 'd1d2d3d4-2222-4222-8333-444455556666';
-const NORMAL_LOOK = '44444444-4444-4444-8444-444444444444';
-const STAGE_SCREEN = '33333333-3333-4333-8333-333333333333';
-const STAGE_LAYOUT = '77777777-7777-4777-8777-777777777777';
+const PRAISE_THEME = '44444444-4444-4444-8444-444444444444';
 const WARM_LIGHT = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const COUNTDOWN_PROP = 'e1e2e3e4-1111-4222-8333-444455556666';
 const CAR_TEMPLATE = 'f1f2f3f4-1111-4222-8333-444455556666';
@@ -70,7 +51,7 @@ function everyAction() {
     {kind: 'audioPlaylist', playlist: PRE_SERVICE_MUSIC},
     {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
     {kind: 'macro', macro: PRAISE},
-    {kind: 'theme', theme: NORMAL_LOOK},
+    {kind: 'theme', theme: PRAISE_THEME},
   ];
 }
 
@@ -85,7 +66,7 @@ function macrosFile() {
         icon: 'play',
         color: 'green',
         actions: [
-          {kind: 'look', look: NORMAL_LOOK},
+          {kind: 'theme', theme: PRAISE_THEME},
           {kind: 'prop', prop: COUNTDOWN_PROP, mode: 'off'},
           {kind: 'audio', operation: 'fadeOut'},
           {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
@@ -99,7 +80,7 @@ function macrosFile() {
         icon: 'music-notes',
         color: 'teal',
         actions: [
-          {kind: 'look', look: NORMAL_LOOK},
+          {kind: 'theme', theme: PRAISE_THEME},
           {kind: 'media', media: WARM_LIGHT},
         ],
       },
@@ -124,21 +105,6 @@ describe('parseMacros', () => {
   it('reads every action kind', () => {
     expect(everyAction().map(({kind}) => kind)).toEqual(macroActionKinds);
     expectRoundTrip(codec, withActions(everyAction()));
-  });
-
-  it('keeps a retired stage layout action as an unknown action', () => {
-    const retired = {
-      kind: 'stageLayout',
-      layout: STAGE_LAYOUT,
-      screen: STAGE_SCREEN,
-    };
-    const loaded = expectSuccess(
-      parseMacros(JSON.stringify(withActions([retired])), 'macros.json'),
-    );
-    const action = loaded.data.macros[0]?.actions[0];
-    expect(action).toMatchObject(retired);
-    expect(action !== undefined && isKnownMacroAction(action)).toBe(false);
-    expectRoundTrip(codec, withActions([retired]));
   });
 
   it('keeps an action of an unknown kind and tells it apart', () => {
@@ -203,12 +169,12 @@ describe('parseMacros', () => {
     ],
     [
       'a theme name instead of an id',
-      {kind: 'theme', theme: '평상시'},
+      {kind: 'theme', theme: '찬양'},
       'macros.0.actions.0.theme',
     ],
     [
       'an action without a kind',
-      {look: NORMAL_LOOK},
+      {theme: PRAISE_THEME},
       'macros.0.actions.0.kind',
     ],
     ['a blank kind', {kind: ''}, 'macros.0.actions.0.kind'],

@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
+import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {createItemOverlayId, createMediaId} from '@core/schema/ids';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {

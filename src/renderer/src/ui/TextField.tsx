@@ -58,7 +58,7 @@ const clearIconSize = {sm: 12, md: 14} as const satisfies Record<
   number
 >;
 
-interface FrameLook {
+interface FrameStyle {
   readonly size: ControlSize;
   readonly variant: TextFieldVariant;
   readonly ring: boolean;
@@ -74,7 +74,7 @@ function frameClass({
   block,
   numeric,
   className,
-}: FrameLook): string {
+}: FrameStyle): string {
   return classNames(
     styles.field,
     variant === 'title' ? styles.title : size === 'sm' && styles.sm,

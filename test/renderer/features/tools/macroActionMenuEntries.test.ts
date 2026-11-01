@@ -1,14 +1,27 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
 import {hasSubmenu, menuItems} from '@renderer/ui/menuModel';
-import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
 import {macroActionEntries} from '@renderer/features/tools/macroActionMenuEntries';
 import type {MacroMenuHandlers} from '@renderer/features/tools/macroMenuEntries';
 import {mockHandlers} from '@fixtures/renderer/features/tools/macroMenuTesting';
 
-it('offers theme targets and explains why legacy Look actions cannot be edited', () => {
+it('offers theme targets and marks an action of an unknown kind as unsupported', () => {
   const id = '00000000-0000-4000-8000-000000000001';
-  const doc = settingsDocument('macros', legacyMacrosFile);
+  const doc = settingsDocument('macros', {
+    macros: [
+      {
+        id: '00000000-0000-4000-8000-000000000020',
+        name: '예배 시작',
+        color: 'teal',
+        icon: 'macro',
+        actions: [
+          {kind: 'camera', input: 2},
+          {kind: 'clearLayer', layer: 'slide'},
+        ],
+      },
+    ],
+    collections: [],
+  });
   if (doc.name !== 'macros') throw new Error('Invalid fixture');
   const item = doc.value.macros[0];
   if (!item) throw new Error('Missing macro fixture');
@@ -24,22 +37,21 @@ it('offers theme targets and explains why legacy Look actions cannot be edited',
     ),
   );
   expect(rows.find(row => row.id === 'edit-0')).toMatchObject({
-    label: '동작 편집: Look 바꾸기',
+    label: '동작 편집: 알 수 없는 동작',
     disabled: true,
-    title: 'Look 동작은 테마 바꾸기로 교체되었습니다',
+    title: '지원하지 않는 동작',
     loadSubmenu: undefined,
   });
   const remove = menuItems(
     rows.find(row => row.id === 'remove-actions')?.submenu ?? [],
   ).find(row => row.id === 'remove-0');
-  expect(remove?.label).toBe('Look 바꾸기');
+  expect(remove?.label).toBe('알 수 없는 동작');
   expect(remove?.disabled).not.toBe(true);
   remove?.onSelect?.();
   expect(handlers.removeAction).toHaveBeenCalledExactlyOnceWith(0);
   const add = menuItems(
     rows.find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  expect(add.some(row => row.id === 'look')).toBe(false);
   menuItems(
     add.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [],
   )[0]?.onSelect?.();

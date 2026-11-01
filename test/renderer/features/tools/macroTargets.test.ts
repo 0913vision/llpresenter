@@ -33,8 +33,6 @@ describe('buildMacroTargets', () => {
   it('maps each action to its current targets, separating audio and visual media', () => {
     const {choices} = buildMacroTargets(source);
     expect(choices.theme).toEqual([{id: 'theme', name: 'Theme'}]);
-    expect(Object.hasOwn(choices, 'look')).toBe(false);
-    expect(Object.hasOwn(choices, 'stageLayout')).toBe(false);
     expect(choices.media?.map(item => item.id)).toEqual(['image', 'video']);
     expect(choices.audio?.map(item => item.id)).toEqual(['audio']);
     expect(choices.audioPlaylist?.map(item => item.id)).toEqual(['playlist']);

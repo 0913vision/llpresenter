@@ -112,13 +112,11 @@ editing with explicit reload. Applied write failures report persistence trouble.
 ## Preview and slide panels
 
 `SongPreviewPanel` draws the selected local block and default background through
-the output renderer in preview mode. The screen selector resolves the current
-Look's lyric style, visibility, and solid/media background for 본 화면, 무대,
-and 방송 자막. Broadcast preview uses its configured green, black, or checker
-background. Newer looks/screens pushes supersede delayed reads. Settings and
-renderer resources are released at unmount. It subscribes to no live layers and
-sends no output commands. The existing renderer has no stage-layout engine yet;
-this panel uses its current lyric-layer support for the stage screen too.
+the output renderer in preview mode. The screen selector resolves the default 곡
+테마's composition for 본 화면, 무대, and 방송 자막. Broadcast preview uses its
+configured green, black, or checker background. Newer themes/screens pushes
+supersede delayed reads. Settings and renderer resources are released at
+unmount. It subscribes to no live layers and sends no output commands.
 
 `SongSlidePanel` displays `playbackOrder`, retaining repeated occurrences as
 separate selected positions. A click selects the source block and scrolls it

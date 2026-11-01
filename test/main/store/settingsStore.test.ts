@@ -4,10 +4,10 @@ import {SettingsStore} from '@main/store/settingsStore';
 
 describe('settings problem subscriptions', () => {
   const problem = {
-    file: 'looks.json',
+    file: 'themes.json',
     error: {
       kind: 'json',
-      file: '/settings/looks.json',
+      file: '/settings/themes.json',
       field: '',
       message: 'Broken JSON',
     },

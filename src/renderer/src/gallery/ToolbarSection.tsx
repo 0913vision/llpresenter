@@ -194,7 +194,7 @@ export function ToolbarSection(): JSX.Element {
           </Stateful>
         </SpecItem>
       </SpecGroup>
-      <SpecGroup title="Action buttons, view toggle (미디어), menu opener (Look)">
+      <SpecGroup title="Action buttons, view toggle (미디어), menu opener (테마)">
         <SpecItem label="On">
           <Stateful<boolean> initial>
             {(pressed, setPressed) => (
@@ -228,25 +228,20 @@ export function ToolbarSection(): JSX.Element {
         <SpecItem label="Disabled">
           <ToolbarButton icon="film" label="미디어" pressed={false} disabled />
         </SpecItem>
-        <SpecItem label="Look, default">
-          <ToolbarButton
-            icon="layers"
-            label="평상시"
-            title="Look 고르기"
-            menu
-          />
+        <SpecItem label="테마, default">
+          <ToolbarButton icon="layers" label="찬양" title="테마 바꾸기" menu />
         </SpecItem>
         <SpecItem label="Hover" pin="hover">
-          <ToolbarButton icon="layers" label="평상시" menu />
+          <ToolbarButton icon="layers" label="찬양" menu />
         </SpecItem>
         <SpecItem label="Menu open, pressed">
-          <ToolbarButton icon="layers" label="평상시" menu expanded />
+          <ToolbarButton icon="layers" label="찬양" menu expanded />
         </SpecItem>
         <SpecItem label="Focus" pin="focus">
-          <ToolbarButton icon="layers" label="평상시" menu />
+          <ToolbarButton icon="layers" label="찬양" menu />
         </SpecItem>
         <SpecItem label="Disabled">
-          <ToolbarButton icon="layers" label="평상시" menu disabled />
+          <ToolbarButton icon="layers" label="찬양" menu disabled />
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Screen output: on has a 6px live dot (ring-dot-cut), off a line-strong dot, no monitor a warning icon and dot">
@@ -274,8 +269,8 @@ export function ToolbarSection(): JSX.Element {
             pressed={false}
           />
         </SpecItem>
-        <SpecItem label="Look">
-          <ToolbarButton icon="layers" label="평상시" compact menu />
+        <SpecItem label="테마">
+          <ToolbarButton icon="layers" label="찬양" compact menu />
         </SpecItem>
         {compactOutputs.map(spec => (
           <OutputItem key={spec.label} spec={spec} icon="mplay" compact />

@@ -203,7 +203,7 @@ it('clears and restores one item at the existing active-message cap', () => {
   expect(store.state.layers.message?.items).toEqual(items);
 });
 
-it('clears and restores stage text without changing layers, Look or outputs', () => {
+it('clears and restores stage text without changing layers or outputs', () => {
   const {store, send} = setup();
   const original = store.state;
   send({type: 'overlay.clear', target: {kind: 'stage-message'}});

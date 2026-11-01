@@ -2,11 +2,11 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {fontFamilyFixture} from '@fixtures/core/fontCatalog';
-import {FontPicker} from '@renderer/features/screens/looks/FontPicker';
+import {FontPicker} from '@renderer/features/screens/fonts/FontPicker';
 import {
   familyChoices,
   filterFamilies,
-} from '@renderer/features/screens/looks/fontChoices';
+} from '@renderer/features/screens/fonts/fontChoices';
 
 afterEach(() => {
   cleanup();

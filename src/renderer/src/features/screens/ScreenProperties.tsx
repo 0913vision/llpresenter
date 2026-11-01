@@ -2,7 +2,7 @@ import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
-import {StageColorProperty} from './stage/StageColorProperty';
+import {ColorProperty} from './ColorProperty';
 import {
   NumberField,
   Properties,
@@ -350,7 +350,7 @@ function PropertyRows({
           reason={reason}
         />
         <RefreshRateRow screen={screen} monitor={monitor} />
-        <StageColorProperty
+        <ColorProperty
           label="빈 화면 색"
           value={emptyScreenColor(screen)}
           reason={reason}

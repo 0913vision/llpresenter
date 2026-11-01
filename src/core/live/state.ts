@@ -20,7 +20,7 @@ export type {
   NoticePlayback,
 } from '../schema/overlayState';
 
-/** Layer kinds from bottom to top. Each screen's Look decides which ones it shows. */
+/** Layer kinds from bottom to top. */
 export const layerKinds = [
   'media',
   'slide',
@@ -117,7 +117,7 @@ export interface LiveState {
   readonly audioTrackVersion?: number;
   /** The audio layer's live volume, from 0 to 100; absent means 100. */
   readonly audioVolume?: number;
-  /** The selected Look; absent or null uses the saved current Look. */
+  /** The 무대 메시지 sent from 진행 도구; absent or null means none. */
   readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;
@@ -133,7 +133,6 @@ export interface LiveState {
   readonly timers?: TimerRuns;
   /** The screens showing the 테스트 패턴; clears never touch it. Absent means none. */
   readonly testPatterns?: readonly ScreenId[];
-  /** Stage layouts chosen for this output, by stage screen, until the next Look change. */
   /** The 타이머 the 무대 화면's 타이머 element shows. Absent means none. */
   readonly stageTimerId?: TimerId;
 }

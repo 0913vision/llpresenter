@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import {
   STARTER_LYRIC_STYLE,
   STARTER_STAGE_ELEMENTS,
-} from '@core/looks/starterLayout';
+} from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId} from '@core/schema/ids';
 import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
@@ -112,7 +112,7 @@ it('reserves a separate bottom band for the capture Bible reference', () => {
   expect(reference.frame.w).toBe(verse.frame.w);
 });
 
-it('gives the Bible stage layout no reference and the same element kinds as the song stage', () => {
+it('gives the 무대 화면 of the Bible 테마 no reference and the same element kinds as the song 테마', () => {
   const id = createScreenId(STARTER_SCREEN_IDS.stage);
   const kinds = (kind: 'bible' | 'song') =>
     (builtInTheme(kind).screens[id]?.elements ?? []).map(
