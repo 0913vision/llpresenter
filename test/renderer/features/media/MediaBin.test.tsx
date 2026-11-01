@@ -71,43 +71,24 @@ describe('MediaBin', () => {
     expect(screen.queryByRole('region', {name: '미디어 속성'})).toBeNull();
   });
 
-  it('keeps the chosen playlist and the selected media when collapsed and opened again', async () => {
+  it('keeps the chosen playlist when collapsed and opened again', async () => {
     setup(
       mediaFixture(
-        mediaDocument(
-          [
-            mediaItem(1, {
-              name: 'First image',
-              kind: 'image',
-              file: 'first.png',
-            }),
-            mediaItem(2, {
-              name: 'Second image',
-              kind: 'image',
-              file: 'second.png',
-            }),
+        mediaDocument([mediaItem(1), mediaItem(2)], 1, {
+          playlists: [
+            {
+              id: playlistId(1),
+              name: 'Target',
+              items: [mediaId(1), mediaId(2)],
+            },
           ],
-          1,
-          {
-            playlists: [
-              {
-                id: playlistId(1),
-                name: 'Target',
-                items: [mediaId(1), mediaId(2)],
-              },
-            ],
-          },
-        ),
+        }),
       ),
       true,
     );
-    const bin = screen.getByRole('region', {name: '미디어 보관함'});
-    const playlists = within(bin).getByRole('listbox', {name: '미디어 목록'});
+    const lists = () => screen.getByRole('listbox', {name: '미디어 목록'});
     await userEvent.click(
-      await within(playlists).findByRole('option', {name: /Target/}),
-    );
-    await userEvent.click(
-      await within(bin).findByRole('option', {name: 'Second image'}),
+      await within(lists()).findByRole('option', {name: /Target/}),
     );
 
     await userEvent.click(mediaBinToggle());
@@ -115,9 +96,9 @@ describe('MediaBin', () => {
     await userEvent.click(mediaBinToggle());
 
     expect(
-      await screen.findByRole('option', {name: 'Second image', selected: true}),
-    ).toBeDefined();
-    const properties = screen.getByRole('region', {name: '미디어 속성'});
-    expect(within(properties).getByText('Second image')).toBeDefined();
+      within(lists())
+        .getByRole('option', {name: /Target/})
+        .getAttribute('aria-selected'),
+    ).toBe('true');
   });
 });

@@ -367,7 +367,7 @@ describe('Workspace column gaps', () => {
 
 describe('Workspace media bin', () => {
   it('keeps one bottom bin across 진행 and 준비, and none in 화면', () => {
-    const media = mediaFixture().api.media;
+    const media = mediaFixture().api;
     const store = createMemoryColumnWidthStore();
     const view = render(
       <Workspace id="show" sizeClass="normal" store={store} mediaApi={media} />,
@@ -392,7 +392,7 @@ describe('Workspace media bin', () => {
   });
 
   it('opens and closes the bin with its visibility', () => {
-    const media = mediaFixture().api.media;
+    const media = mediaFixture().api;
     const store = createMemoryColumnWidthStore();
     const view = render(
       <Workspace

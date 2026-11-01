@@ -322,3 +322,88 @@ describe('PreviewPanel pictures', () => {
     );
   });
 });
+
+describe('PreviewPanel screen list changes', () => {
+  function summary(id: string, name: string): ScreenSummary {
+    return {
+      id,
+      icon: 'mplay',
+      toolbarLabel: name,
+      statusLabel: name,
+      target: '창',
+      targetKind: 'window',
+      chroma: false,
+    };
+  }
+
+  it.each([16, 50])(
+    'keeps all %i screen slots reachable without replacing their pictures',
+    count => {
+      const screens = Array.from({length: count}, (_, index) =>
+        summary(
+          `60000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+          `긴 검증용 화면 ${index + 1}`,
+        ),
+      );
+      const view = render(
+        <ScreenSummariesContext value={screens}>
+          <PreviewPanel compact />
+        </ScreenSummariesContext>,
+      );
+      const last = screens.at(-1);
+      if (last === undefined) throw new Error('Missing final screen fixture');
+      const lastButton = screen.getByRole('button', {
+        name: `${last.toolbarLabel} 크게 보기, 출력이 꺼져 있습니다`,
+      });
+      const firstButton = screen.getAllByRole('button')[0];
+      if (firstButton === undefined) throw new Error('Missing first slot');
+      const pictures = [...view.container.querySelectorAll('[data-screen]')];
+      expect(pictures).toHaveLength(count);
+
+      for (let round = 0; round < 20; round++) {
+        fireEvent.click(lastButton);
+        expect(lastButton.getAttribute('aria-pressed')).toBe('true');
+        fireEvent.click(firstButton);
+      }
+
+      expect([...view.container.querySelectorAll('[data-screen]')]).toEqual(
+        pictures,
+      );
+    },
+  );
+
+  it('drops deleted screens and falls back from a deleted large preview', () => {
+    const view = render(
+      <ScreenSummariesContext
+        value={[
+          summary('main', '사용자 화면'),
+          summary('captions', '사용자 캡처'),
+        ]}
+      >
+        <PreviewPanel compact={false} />
+      </ScreenSummariesContext>,
+    );
+    fireEvent.click(
+      screen.getByRole('button', {name: /사용자 캡처 크게 보기/}),
+    );
+
+    view.rerender(
+      <ScreenSummariesContext value={[summary('main', '남은 화면')]}>
+        <PreviewPanel compact={false} />
+      </ScreenSummariesContext>,
+    );
+    expect(screen.queryByRole('button', {name: /사용자 캡처/})).toBeNull();
+    expect(
+      screen
+        .getByRole('button', {name: /남은 화면 크게 보기/})
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+    view.rerender(
+      <ScreenSummariesContext value={[]}>
+        <PreviewPanel compact={false} />
+      </ScreenSummariesContext>,
+    );
+
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+  });
+});

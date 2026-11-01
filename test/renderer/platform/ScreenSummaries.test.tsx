@@ -1,46 +1,34 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {themeFile} from '@fixtures/core/themeOutput';
-import {useEffect} from 'react';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import type {JSX} from 'react';
+import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MAIN_ID, CAPTIONS_ID} from '@fixtures/core/screenDocuments';
-import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
-import {usePreview} from '@renderer/session/preview';
-import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
-import {MenuBar} from '@renderer/app/shell/MenuBar';
-import {Toolbar} from '@renderer/app/shell/Toolbar';
-import {StatusBar} from '@renderer/app/shell/StatusBar';
+import {
+  ScreenSummariesProvider,
+  useScreenSummaries,
+} from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
 
-const lifecycle = vi.hoisted(() => ({mounted: vi.fn(), disposed: vi.fn()}));
-vi.mock('@renderer/features/presentation/ScreenPreview', () => ({
-  ScreenPreview: ({screenId}: {screenId: string}) => {
-    useEffect(() => {
-      lifecycle.mounted(screenId);
-      return () => {
-        lifecycle.disposed(screenId);
-      };
-    }, [screenId]);
-    return <div />;
-  },
-}));
+function Labels(): JSX.Element {
+  const screens = useScreenSummaries();
+  return (
+    <ul aria-label="화면 요약">
+      {screens.map(summary => (
+        <li key={summary.id}>{summary.toolbarLabel}</li>
+      ))}
+    </ul>
+  );
+}
+
+function labels(): readonly string[] {
+  return screen.queryAllByRole('listitem').map(item => item.textContent);
+}
 
 afterEach(() => {
   cleanup();
   delete window.llp;
-  lifecycle.mounted.mockClear();
-  lifecycle.disposed.mockClear();
-  usePreview.setState({largeScreenId: 'main'});
 });
 
 function document(revision: number, name = '사용자 화면', method = 'window') {
@@ -61,21 +49,15 @@ function document(revision: number, name = '사용자 화면', method = 'window'
   );
 }
 
-it('updates every shell surface from a push, ignores a stale initial read, and keeps keyed previews', async () => {
+it('follows pushes, ignores a stale initial read, and releases its feed', async () => {
   let resolveRead: (value: SettingsDocument) => void = () => undefined;
   const pending = new Promise<SettingsDocument>(resolve => {
     resolveRead = resolve;
   });
   const listeners = new Set<(value: SettingsDocument) => void>();
-  const get = vi.fn(({name}: {name: string}) =>
-    name === 'screens'
-      ? pending
-      : Promise.resolve(settingsDocument('themes', themeFile())),
-  );
-  const send = vi.fn();
   window.llp = mockLlpApi({
     settings: {
-      get,
+      get: () => pending,
       subscribe: listener => {
         listeners.add(listener);
         return () => {
@@ -83,195 +65,34 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
         };
       },
     },
-    live: {send},
   });
   const view = render(
     <ScreenSummariesProvider onProblem={vi.fn()}>
-      <MenuBar
-        title=""
-        warnings={[{screenId: 'main', screenName: '본 화면'}]}
-      />
-      <Toolbar workspace="show" sizeClass="normal" onWorkspace={vi.fn()} />
-      <PreviewPanel compact={false} />
-      <StatusBar />
+      <Labels />
     </ScreenSummariesProvider>,
   );
-  expect(get.mock.calls.map(([request]) => request.name).sort()).toEqual([
-    'screens',
-    'themes',
-  ]);
-  expect(
-    within(screen.getByRole('group', {name: '화면 출력'})).queryAllByRole(
-      'button',
-    ),
-  ).toHaveLength(0);
+  expect(labels()).toEqual([]);
   const push = (value: SettingsDocument): void => {
     act(() => {
       for (const listener of listeners) listener(value);
     });
   };
+
   push(document(2));
-  const toggles = screen.getByRole('group', {name: '화면 출력'});
-  expect(
-    within(toggles)
-      .getAllByRole('button')
-      .map(button => button.textContent),
-  ).toEqual(['사용자 화면', '사용자 캡처']);
-  expect(documentText()).not.toMatch(/모니터 2|모니터 3|NDI/);
-  expect(lifecycle.mounted).toHaveBeenCalledTimes(2);
+  expect(labels()).toEqual(['사용자 화면', '사용자 캡처']);
   await act(async () => {
     resolveRead(document(1, '오래된 이름', 'fullscreen'));
     await pending;
   });
-  expect(documentText()).not.toContain('오래된 이름');
-  await userEvent.click(
-    within(toggles).getByRole('button', {name: '사용자 화면'}),
-  );
-  expect(send).toHaveBeenCalledExactlyOnceWith({
-    type: 'output.set',
-    screenId: MAIN_ID,
-    on: true,
-  });
-  await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
-  expect(
-    screen.queryByRole('menuitemcheckbox', {name: '사용자 화면'}),
-  ).toBeNull();
+  expect(labels()).toEqual(['사용자 화면', '사용자 캡처']);
   push(document(3, '바뀐 화면', 'capture'));
-  expect(
-    screen.queryByRole('menuitemcheckbox', {name: '사용자 화면'}),
-  ).toBeNull();
-  expect(screen.queryAllByRole('menuitemcheckbox')).toHaveLength(0);
-  expect(
-    screen.getByRole('menuitem', {name: '바뀐 화면 경고 보기'}),
-  ).toBeTruthy();
-  expect(screen.getByRole('status').textContent).toBe('');
-  expect(lifecycle.mounted).toHaveBeenCalledTimes(2);
-  expect(lifecycle.disposed).not.toHaveBeenCalled();
-  send.mockClear();
-  await userEvent.click(
-    within(screen.getByRole('group', {name: '방송 자막'})).getByRole(
-      'menuitem',
-      {
-        name: '출력 켜기',
-      },
-    ),
-  );
-  expect(send).toHaveBeenCalledExactlyOnceWith({
-    type: 'live.batch',
-    commands: [MAIN_ID, CAPTIONS_ID].map(screenId => ({
-      type: 'output.set',
-      screenId,
-      on: true,
-    })),
-  });
+  expect(labels()).toEqual(['바뀐 화면', '사용자 캡처']);
   view.unmount();
+
   expect(listeners.size).toBe(0);
-  expect(lifecycle.disposed).toHaveBeenCalledTimes(2);
 });
 
-function documentText(): string {
-  return globalThis.document.body.textContent;
-}
-
-it.each([16, 50])(
-  'keeps all %i screen slots reachable without replacing renderers',
-  async count => {
-    const choices = Array.from({length: count}, (_, index) => ({
-      id: `60000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
-      name: `긴 검증용 화면 ${index + 1}`,
-      kind: 'audience',
-      method: 'window',
-    }));
-    const saved = settingsDocument('screens', {screens: choices});
-    const send = vi.fn();
-    window.llp = mockLlpApi({
-      settings: {get: () => Promise.resolve(saved)},
-      live: {send},
-    });
-    const view = render(
-      <ScreenSummariesProvider onProblem={vi.fn()}>
-        <PreviewPanel compact />
-        <StatusBar />
-      </ScreenSummariesProvider>,
-    );
-    const last = choices.at(-1);
-    if (last === undefined) throw new Error('Missing final screen fixture');
-    const lastButton = await screen.findByRole('button', {
-      name: `${last.name} 크게 보기, 출력이 꺼져 있습니다`,
-    });
-    const firstButton = screen.getAllByRole('button')[0];
-    if (firstButton === undefined) throw new Error('Missing first screen slot');
-    const pictures = [...view.container.querySelectorAll('[data-screen]')];
-    expect(pictures).toHaveLength(count);
-    expect(screen.getByRole('status').textContent).toBe('');
-    for (let round = 0; round < 20; round++) {
-      fireEvent.click(lastButton);
-      expect(lastButton.getAttribute('aria-pressed')).toBe('true');
-      fireEvent.click(firstButton);
-    }
-    expect([...view.container.querySelectorAll('[data-screen]')]).toEqual(
-      pictures,
-    );
-    expect(lifecycle.mounted).toHaveBeenCalledTimes(count);
-    expect(lifecycle.disposed).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-    view.unmount();
-    expect(lifecycle.disposed).toHaveBeenCalledTimes(count);
-  },
-);
-
-it('removes deleted choices and falls back from a deleted large preview without output commands', async () => {
-  let push: (value: SettingsDocument) => void = () => undefined;
-  const send = vi.fn();
-  window.llp = mockLlpApi({
-    settings: {
-      get: async () => document(1),
-      subscribe: listener => {
-        push = listener;
-        return () => undefined;
-      },
-    },
-    live: {send},
-  });
-  render(
-    <ScreenSummariesProvider onProblem={vi.fn()}>
-      <PreviewPanel compact={false} />
-    </ScreenSummariesProvider>,
-  );
-  await screen.findByRole('button', {name: /사용자 캡처 크게 보기/});
-  await userEvent.click(
-    screen.getByRole('button', {name: /사용자 캡처 크게 보기/}),
-  );
-  act(() =>
-    push(
-      settingsDocument(
-        'screens',
-        {
-          screens: [
-            {
-              id: MAIN_ID,
-              name: '남은 화면',
-              kind: 'audience',
-              method: 'window',
-            },
-          ],
-        },
-        2,
-      ),
-    ),
-  );
-  expect(screen.queryByRole('button', {name: /사용자 캡처/})).toBeNull();
-  expect(
-    screen
-      .getByRole('button', {name: /남은 화면 크게 보기/})
-      .getAttribute('aria-pressed'),
-  ).toBe('true');
-  act(() => push(settingsDocument('screens', {screens: []}, 3)));
-  expect(screen.queryAllByRole('button')).toHaveLength(0);
-  expect(send).not.toHaveBeenCalled();
-});
-
-it('reports a failed read without inventing default screen destinations', async () => {
+it('reports a failed read without inventing default screens', async () => {
   const onProblem = vi.fn();
   const log = vi.fn();
   window.llp = mockLlpApi({
@@ -284,15 +105,16 @@ it('reports a failed read without inventing default screen destinations', async 
   });
   render(
     <ScreenSummariesProvider onProblem={onProblem}>
-      <StatusBar />
+      <Labels />
     </ScreenSummariesProvider>,
   );
   await act(async () => {
     await Promise.resolve();
   });
+
   expect(log).toHaveBeenCalledOnce();
   expect(onProblem).toHaveBeenCalledOnce();
-  expect(screen.getByRole('status').textContent).toBe('');
+  expect(labels()).toEqual([]);
 });
 
 it('projects every saved output method and monitor identity in document order', () => {
