@@ -42,14 +42,6 @@ const lyricTextSchema = v.object(lyricTextEntries);
 
 export type LyricTextChange = Partial<v.InferInput<typeof lyricTextSchema>>;
 
-/** Validates the merged text fields before an editor submits a shared style. */
-export function parseLyricTextStyle(
-  value: unknown,
-): v.InferOutput<typeof lyricTextSchema> | undefined {
-  const result = v.safeParse(lyricTextSchema, value);
-  return result.success ? result.output : undefined;
-}
-
 /** Matches the saved text color format without exposing the validation library. */
 export function isLyricTextColor(value: string): boolean {
   return v.safeParse(hexColor, value).success;
