@@ -309,6 +309,8 @@ describe('media view', () => {
   it('outputs in 진행 without changing selection on click or Enter', async () => {
     const {send} = setup(undefined, undefined, 'show');
     const selected = await tile('Notice');
+    fireEvent.keyDown(await tile('Dawn'), {key: 'ArrowRight'});
+    expect(selected.getAttribute('aria-selected')).toBe('true');
     const video = await tile('Dawn');
     await userEvent.click(video);
     expect(video.getAttribute('aria-selected')).toBe('false');
@@ -345,6 +347,7 @@ describe('media view', () => {
       const {send} = setup(undefined, undefined, workspace);
       const selected = await tile('Notice');
       const video = await tile('Dawn');
+      fireEvent.keyDown(video, {key: 'ArrowRight'});
       fireEvent.contextMenu(video);
       expect(selected.getAttribute('aria-selected')).toBe('true');
       const properties = screen.getByRole('menuitem', {name: '속성…'});
