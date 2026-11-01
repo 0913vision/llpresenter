@@ -13,7 +13,7 @@ import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {fontFamilyFor} from './slideLayer';
 import {fitTextInFrame} from './fitText';
-import {stageClockText, STAGE_TICK_MS} from './stageLayout';
+import {stageClockText, STAGE_TICK_MS} from './stageClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
 

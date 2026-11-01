@@ -285,12 +285,6 @@ describe('registerStore', () => {
           '무대 화면',
         ]);
       }
-      if (reply.value.name === 'looks') {
-        expect(reply.value.value.looks[0]?.name).toBe('평상시');
-      }
-      if (reply.value.name === 'stage-layouts') {
-        expect(reply.value.value.layouts[0]?.elements).toHaveLength(7);
-      }
       if (reply.value.name === 'messages') {
         expect(reply.value.value.stagePresets).toHaveLength(7);
       }
@@ -338,7 +332,7 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const folder = join(context.appDataFolder, DATA_FOLDER_NAME, 'Settings');
     await writeJson(join(folder, 'labels.json'), {format: 'wrong'});
-    await writeJson(join(folder, 'looks.json'), {format: 'wrong'});
+    await writeJson(join(folder, 'themes.json'), {format: 'wrong'});
     await writeJson(join(folder, 'preferences.json'), {
       format: 'llsettings.preferences',
       schemaVersion: 1,
@@ -354,13 +348,13 @@ describe('registerStore', () => {
     await ask(settingsEndpoints.get.channel, {name: 'bible'});
     expect(cancelled).not.toHaveBeenCalled();
     expect(listener.mock.calls.map(([problem]) => problem.file)).toEqual([
-      'looks.json',
+      'themes.json',
       'labels.json',
       'preferences.json',
     ]);
     expect(listener.mock.calls[0]?.[0].error).toMatchObject({
       kind: 'format',
-      file: join(folder, 'looks.json'),
+      file: join(folder, 'themes.json'),
     });
     expect(
       log.warn.mock.calls.filter(
@@ -368,7 +362,7 @@ describe('registerStore', () => {
       ),
     ).toHaveLength(3);
     expect(
-      JSON.parse(await readFile(join(folder, 'looks.json'), 'utf8')),
+      JSON.parse(await readFile(join(folder, 'themes.json'), 'utf8')),
     ).toEqual({format: 'wrong'});
     unsubscribe();
     await store.dispose();
@@ -377,6 +371,25 @@ describe('registerStore', () => {
     store.subscribeSettingsProblems(late);
     await Promise.resolve();
     expect(late).not.toHaveBeenCalled();
+  });
+
+  it('neither reads nor changes the old Look and stage layout files', async () => {
+    const context = await developmentContext();
+    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, 'Settings');
+    const legacy = {format: 'wrong', future: [1, 2]};
+    await writeJson(join(folder, 'looks.json'), legacy);
+    await writeJson(join(folder, 'stage-layouts.json'), legacy);
+    const store = await register(mockLog(), context, () => true);
+    const listener = vi.fn<SettingsProblemListener>();
+    const unsubscribe = store.subscribeSettingsProblems(listener);
+    await ask(settingsEndpoints.get.channel, {name: 'themes'});
+    expect(listener).not.toHaveBeenCalled();
+    for (const file of ['looks.json', 'stage-layouts.json']) {
+      expect(JSON.parse(await readFile(join(folder, file), 'utf8'))).toEqual(
+        legacy,
+      );
+    }
+    unsubscribe();
   });
 
   it('refuses malformed settings reads', async () => {

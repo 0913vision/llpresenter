@@ -8,14 +8,22 @@ import {
   type LoadedFile,
   type ReadonlyKnown,
 } from './fileFormat';
-import {messageTemplateIdSchema, screenIdSchema} from './ids';
+import {
+  messageStyleIdSchema,
+  messageTemplateIdSchema,
+  screenIdSchema,
+} from './ids';
+import {lyricOutlineSchema, lyricShadowSchema} from './lyricEffects';
 import type {MigrationStep} from './migration';
 import {
+  hexColor,
   jsonObject,
   listWithUniqueIds,
+  percent,
   positiveInteger,
   seconds,
 } from './primitives';
+import {textStyleEntries} from './textStyle';
 
 /** Screens that a 메시지 goes to: a list of screens, or every screen. */
 export const messageTargetsSchema = v.union([
@@ -35,11 +43,35 @@ const templateSchema = jsonObject({
   duration: v.exactOptional(messageDurationSchema),
 });
 
+/** The most 메시지 styles a messages file holds. */
+export const MESSAGE_STYLE_LIMIT = 1000;
+
+const messageStyleSchema = jsonObject({
+  id: messageStyleIdSchema,
+  name: v.string(),
+  ...textStyleEntries,
+  maxLines: positiveInteger,
+  margin: percent,
+  outline: lyricOutlineSchema,
+  shadow: lyricShadowSchema,
+  background: v.exactOptional(jsonObject({color: hexColor, opacity: percent})),
+});
+
 export const messagesSchema = jsonObject({
   format: v.literal('llsettings.messages'),
   schemaVersion: positiveInteger,
   templates: listWithUniqueIds(templateSchema),
   stagePresets: v.array(v.string()),
+  messageStyles: v.exactOptional(
+    v.pipe(
+      v.array(messageStyleSchema),
+      v.maxLength(MESSAGE_STYLE_LIMIT),
+      v.check(
+        items => new Set(items.map(item => item.id)).size === items.length,
+        'Another style already has this id',
+      ),
+    ),
+  ),
 });
 
 const messagesMigrations: readonly MigrationStep[] = [];
@@ -50,7 +82,7 @@ const messagesFormat: FileFormat<typeof messagesSchema> = {
   migrations: messagesMigrations,
 };
 
-/** `messages.json`: the 메시지 templates and the preset stage messages. */
+/** `messages.json`: the 메시지 templates, styles, and preset stage messages. */
 export type MessagesFile = ReadonlyKnown<v.InferOutput<typeof messagesSchema>>;
 
 /**
@@ -72,3 +104,30 @@ export function serializeMessages(
 ): Result<string, FileError> {
   return serializeFile(messagesFormat, messages, file);
 }
+
+/** How a 메시지 is drawn: one entry of `messageStyles`. */
+export type MessageStyle = NonNullable<MessagesFile['messageStyles']>[number];
+
+/** The fixed appearance used before a screen chooses a message style. */
+export const DEFAULT_MESSAGE_STYLE: MessageStyle = v.parse(messageStyleSchema, {
+  id: '00000000-0000-4000-8000-000000000001',
+  name: '기본',
+  font: 'Pretendard',
+  weight: 700,
+  size: 84,
+  color: '#FFFFFF',
+  align: 'center',
+  vAlign: 'middle',
+  lineHeight: 1.4,
+  maxLines: 2,
+  margin: 6,
+  outline: {on: false, width: 3, color: '#000000'},
+  shadow: {
+    on: true,
+    blur: 8,
+    distance: 4,
+    angle: 45,
+    opacity: 60,
+    color: '#000000',
+  },
+});

@@ -48,7 +48,7 @@ describe('registerStore', () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     await writeJson(join(root, 'Songs', 'broken.llsong'), '{"format": ');
-    await writeJson(join(root, 'Settings', 'looks.json'), '{broken looks');
+    await writeJson(join(root, 'Settings', 'themes.json'), '{broken themes');
     const sources: Array<() => readonly AppProblem[]> = [];
     const push = vi.fn<(problem: AppProblem) => void>();
     const store = registerStore({
@@ -73,14 +73,14 @@ describe('registerStore', () => {
     });
     disposers.push(store.dispose);
     await askForService();
-    await ask(settingsEndpoints.get.channel, {name: 'looks'});
+    await ask(settingsEndpoints.get.channel, {name: 'themes'});
     const skipped = (): readonly AppProblem[] =>
       sources
         .flatMap(source => source())
         .filter(problem => problem.kind === 'file-skipped');
     const expected = [
       expect.objectContaining({kind: 'file-skipped', name: 'broken.llsong'}),
-      expect.objectContaining({kind: 'file-skipped', name: 'looks.json'}),
+      expect.objectContaining({kind: 'file-skipped', name: 'themes.json'}),
     ];
 
     await vi.waitFor(() =>

@@ -19,7 +19,6 @@ import {
 } from './fileStore';
 import {registerLibrarySong} from './librarySong';
 import {type LocationContext} from './locations';
-import {createLookSelection, type LookSelectionPort} from './lookSelection';
 import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
@@ -48,7 +47,7 @@ export interface StoreRegistration {
 }
 
 /** What the main process wiring uses of the data store. */
-export interface DataStore extends SettingsAccess, LookSelectionPort {
+export interface DataStore extends SettingsAccess {
   readonly bible: Pick<BibleLookupSession, 'lookup'>;
   readonly content: Promise<ContentStore | null>;
   readonly settings: Promise<SettingsReader | null>;
@@ -169,7 +168,6 @@ export function registerStore({
     log,
   });
   const settingsAccess = createSettingsAccess(settings, log);
-  const lookSelection = createLookSelection(settings, log);
   const serviceChannels = registerServiceChannels(opened, appConfig, log);
   ipcMain.handle(settingsEndpoints.preferences.channel, async () => {
     const ready = await settings;
@@ -217,12 +215,10 @@ export function registerStore({
     media,
     mediaBackend: mediaChannels.port,
     readSettings: settingsAccess.readSettings,
-    selectLook: lookSelection.selectLook,
     subscribeSettingsChanges: settingsAccess.subscribeSettingsChanges,
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
       settingsAccess.dispose();
-      lookSelection.dispose();
       const serviceClosing = serviceChannels.dispose();
       const mediaClosing = mediaChannels.dispose();
       await settingsChannels.dispose();

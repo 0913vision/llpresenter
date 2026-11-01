@@ -24,7 +24,6 @@ const counts = {
   props: 2,
   stageMessages: 1,
   notices: 1,
-  stageLayouts: 1,
 };
 const showing = {kind: 'showing', counts};
 

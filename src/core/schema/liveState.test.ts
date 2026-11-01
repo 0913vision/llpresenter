@@ -90,25 +90,13 @@ describe('parseLiveState', () => {
   ])('rejects malformed clear key flags %j', ({clearToggles}) => {
     expect(parseLiveState({...emptyLiveState(), clearToggles}).ok).toBe(false);
   });
-  it.each([null, '00000000-0000-4000-8000-000000000004'])(
-    'preserves an optional current Look %s',
-    lookId => {
-      const state = {...emptyLiveState(), lookId};
-      expect(parseLiveState(state)).toEqual({ok: true, value: state});
-    },
-  );
-
-  it.each([
-    undefined,
-    '',
-    'main',
-    'a'.repeat(37),
-    '00000000-0000-4000-8000-000000000004\n',
-    '00000000-0000-1000-8000-000000000004',
-    ['00000000-0000-4000-8000-000000000004'],
-  ])('rejects an invalid current Look %j', lookId => {
-    const result = parseLiveState({...emptyLiveState(), lookId});
-    expect(result.ok ? undefined : result.error.field).toBe('lookId');
+  it('drops the retired Look and stage layout fields of an old record', () => {
+    const result = parseLiveState({
+      ...emptyLiveState(),
+      lookId: '00000000-0000-4000-8000-000000000004',
+      stageLayouts: {'00000000-0000-4000-8000-000000000001': 'layout'},
+    });
+    expect(result).toEqual({ok: true, value: emptyLiveState()});
   });
   it('accepts an empty state and a state with every layer', () => {
     expect(parseLiveState(emptyLiveState())).toEqual({
@@ -259,7 +247,6 @@ describe('parseLiveState', () => {
           next: {label: null, lines: ['둘째 줄']},
         },
       },
-      stageLayouts: {[screenUuid(1)]: screenUuid(5)},
       stageTimerId: screenUuid(6),
     };
     expect(parseLiveState(state)).toEqual({ok: true, value: state});
@@ -267,22 +254,6 @@ describe('parseLiveState', () => {
       const result = parseLiveState({...emptyLiveState(), ...change});
       return result.ok ? undefined : result.error.field;
     };
-    expect(field({stageLayouts: {main: screenUuid(5)}})).toBe(
-      'stageLayouts.main',
-    );
-    expect(field({stageLayouts: {[screenUuid(1)]: 'layout'}})).toBe(
-      `stageLayouts.${screenUuid(1)}`,
-    );
-    expect(
-      field({
-        stageLayouts: Object.fromEntries(
-          Array.from({length: LIVE_STATE_LIMITS.outputs + 1}, (_, index) => [
-            screenUuid(index + 1),
-            screenUuid(5),
-          ]),
-        ),
-      }),
-    ).toBe('stageLayouts');
     expect(field({stageTimerId: 'clock'})).toBe('stageTimerId');
     expect(field({stageTimerId: null})).toBe('stageTimerId');
   });

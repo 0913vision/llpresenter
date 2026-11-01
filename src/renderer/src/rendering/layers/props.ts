@@ -35,7 +35,7 @@ interface PropView {
 export const propsLayer = defineLayer({
   kind: 'prop',
   order: 2,
-  look: 'prop',
+  fades: 'prop',
   create: (parent, options) => {
     const pool: PropView[] = [];
     let scale = 1;

@@ -61,8 +61,8 @@ afterEach(() => {
 it('uses the latest settings and media while ignoring an older initial reply and releases subscriptions', async () => {
   const {f, pending, stop, push} = fixture();
   const {result, unmount} = renderHook(() => useMacroTargets(undefined));
-  await waitFor(() => expect(f.count()).toBe(8));
-  expect(f.get).not.toHaveBeenCalledWith({name: 'looks'});
+  await waitFor(() => expect(f.count()).toBe(7));
+  expect(f.get).not.toHaveBeenCalledWith({name: 'stage-layouts'});
   act(() => push(media(2, 'New audio')));
   await waitFor(() =>
     expect(result.current?.choices.audio).toEqual([{id, name: 'New audio'}]),

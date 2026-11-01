@@ -1,4 +1,3 @@
-import {settingsDocument} from '@core/testing/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -34,8 +33,6 @@ import {RecoveryRecordWriter} from './recordWriter';
 
 const NOW = SAVED_AT_MS + 60_000;
 const FIRST_IMAGE = createMediaId(overlayUuid(30));
-const FIRST_LOOK = overlayUuid(61);
-const SECOND_LOOK = overlayUuid(62);
 
 const CRASH_STATE: LiveState = {
   ...emptyLiveState(),
@@ -140,7 +137,6 @@ describe('recovery controller', () => {
             props: 0,
             stageMessages: 1,
             notices: 0,
-            stageLayouts: 0,
           },
         },
       ],
@@ -174,27 +170,6 @@ describe('recovery controller', () => {
       await controller.apply({savedAt: SAVED_AT, rows: ['outputs']}),
     ).toMatchObject(UNAVAILABLE);
     expect(await controller.startFresh()).toMatchObject(UNAVAILABLE);
-  });
-
-  it('puts back the recorded Look while it still exists', async () => {
-    const {controller, store, settings} = await setup({
-      text: recoveryText({...CRASH_STATE, lookId: SECOND_LOOK}),
-    });
-    settings.update(
-      settingsDocument('looks', {
-        current: FIRST_LOOK,
-        looks: [
-          {id: FIRST_LOOK, name: 'First', screens: {}},
-          {id: SECOND_LOOK, name: 'Second', screens: {}},
-        ],
-        lyricStyles: [],
-      }),
-    );
-    await controller.apply({savedAt: SAVED_AT, rows: ['outputs']});
-    expect(store.state).toMatchObject({
-      lookId: SECOND_LOOK,
-      outputs: {[MAIN]: true},
-    });
   });
 
   it('resumes messages with the time they had left and a paused 공지 at its image', async () => {

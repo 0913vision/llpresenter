@@ -14,20 +14,6 @@ const EMPTY_SHOW_SETTINGS = new Map<SettingsName, SettingsDocument>();
 for (const [name, value] of [
   ['quick', {format: 'llsettings.quick', schemaVersion: 1, items: []}],
   ['screens', {format: 'llsettings.screens', schemaVersion: 1, screens: []}],
-  [
-    'looks',
-    {
-      format: 'llsettings.looks',
-      schemaVersion: 1,
-      current: '00000000-0000-4000-8000-000000000001',
-      looks: [],
-      lyricStyles: [],
-    },
-  ],
-  [
-    'stage-layouts',
-    {format: 'llsettings.stage', schemaVersion: 1, layouts: []},
-  ],
   ['timers', {format: 'llsettings.timers', schemaVersion: 1, timers: []}],
   [
     'messages',

@@ -17,7 +17,7 @@ import {
   mediaIdSchema,
   timerIdSchema,
 } from './ids';
-import {lyricOutlineSchema, lyricShadowSchema} from './looks';
+import {lyricOutlineSchema, lyricShadowSchema} from './lyricEffects';
 import {
   hexColor,
   jsonObject,

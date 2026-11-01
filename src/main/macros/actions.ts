@@ -39,22 +39,6 @@ export const macroActionHandlers = [
     },
   }),
   defineMacroAction({
-    kind: 'stageLayout',
-    compile: (action, context) => {
-      requireMacroTarget(
-        context.catalog.layouts.layouts.find(item => item.id === action.layout),
-        'stage-layout',
-        action.layout,
-      );
-      if (action.screen !== undefined) screenExists(context, action.screen);
-      return command({
-        type: 'stage.layout.set',
-        layoutId: action.layout,
-        ...(action.screen === undefined ? {} : {screenId: action.screen}),
-      });
-    },
-  }),
-  defineMacroAction({
     kind: 'clearAll',
     compile: action =>
       command({

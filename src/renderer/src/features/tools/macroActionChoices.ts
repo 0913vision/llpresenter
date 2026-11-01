@@ -56,10 +56,7 @@ export function macroActionChoices({
       clearTarget: target.clearTarget,
       ...(kind === 'audio' ? {operation: 'play'} : {}),
     };
-    const row = choice(
-      `${target.name}${kind === 'message' || kind === 'stageLayout' ? '…' : ''}`,
-      draft,
-    );
+    const row = choice(`${target.name}${kind === 'message' ? '…' : ''}`, draft);
     if (kind !== 'prop' && kind !== 'timer') return row;
     return {
       ...row,

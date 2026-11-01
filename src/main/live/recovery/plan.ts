@@ -61,19 +61,6 @@ export function planRecovery(
   return steps.filter(step => step !== null);
 }
 
-/** The record's Look, which restore applies while it still exists (spec 02). */
-export function lookCommands(
-  {lookId}: LiveState,
-  settings: Pick<SettingsReader, 'get'>,
-): readonly SingleLiveCommand[] {
-  if (lookId == null) return [];
-  const document = settings.get('looks');
-  const exists =
-    document.name === 'looks' &&
-    document.value.looks.some(({id}) => id === lookId);
-  return exists ? [{type: 'look.set', lookId}] : [];
-}
-
 function outputsStep(
   {outputs}: LiveState,
   screens: readonly Screen[],
@@ -175,9 +162,6 @@ function showingStep(
     props: props.length,
     stageMessages: stage.length,
     notices: notice.length === 0 ? 0 : 1,
-    // TODO(0913vision): Count and restore the stage layouts once the live
-    // state holds them (spec 08, proposal).
-    stageLayouts: 0,
   };
   if (Object.values(counts).every(count => count === 0)) return null;
   return {

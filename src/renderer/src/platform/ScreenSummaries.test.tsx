@@ -1,4 +1,5 @@
 import {settingsDocument} from '@core/testing/settingsDocument';
+import {themeFile} from '@core/testing/themeOutput';
 import {useEffect} from 'react';
 import {
   act,
@@ -12,11 +13,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {
-  looksDocument,
-  MAIN_ID,
-  CAPTIONS_ID,
-} from '@core/testing/screenDocuments';
+import {MAIN_ID, CAPTIONS_ID} from '@core/testing/screenDocuments';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {usePreview} from '@renderer/session/preview';
 import {ScreenSummariesProvider} from './ScreenSummaries';
@@ -71,7 +68,9 @@ it('updates every shell surface from a push, ignores a stale initial read, and k
   });
   const listeners = new Set<(value: SettingsDocument) => void>();
   const get = vi.fn(({name}: {name: string}) =>
-    name === 'screens' ? pending : Promise.resolve(looksDocument()),
+    name === 'screens'
+      ? pending
+      : Promise.resolve(settingsDocument('themes', themeFile())),
   );
   const send = vi.fn();
   window.llp = mockLlpApi({

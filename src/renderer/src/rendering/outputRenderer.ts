@@ -1,4 +1,4 @@
-import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {emptyLayers, type LayerKind, type LiveLayers} from '@core/live/state';
 import {ThemeCompositionView} from './themeComposition';
 import {classes} from './classes';
 import {ClearFades} from './clearFades';
@@ -12,11 +12,6 @@ import type {
 import {renderLayers} from './layers';
 import {scaleFor} from '@core/looks/lyricStyle';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
-import {
-  showsLayer,
-  type LookLayer,
-  type ScreenAppearance,
-} from '@core/looks/screenLook';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
 const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
@@ -27,7 +22,6 @@ const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
 const LEGACY_CONTENT_LAYERS = new Set([
   'background',
   'lyrics',
-  'stage',
   'stage-message',
 ]);
 const noContent = emptyLayers();
@@ -38,7 +32,7 @@ interface ActiveLayer {
   readonly kind: string;
   readonly view: RenderLayer;
   readonly box: HTMLElement;
-  readonly look: LookLayer | undefined;
+  readonly fades: LayerKind | undefined;
   hidden: boolean;
 }
 
@@ -117,12 +111,11 @@ export class OutputRenderer {
       clearOpacity: fading.opacity,
       propOpacity: fading.propOpacity,
     };
-    const look = frame.look ?? null;
     this.testPattern = frame.testPattern === true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
       (frame.theme === undefined
-        ? look?.background
+        ? undefined
         : (frame.theme.layout.background ?? frame.theme.emptyColor)) ??
         frame.screen?.emptyColor ??
         (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
@@ -134,22 +127,18 @@ export class OutputRenderer {
       }
       this.theme?.render(fading.layers, frame);
     });
-    const {stage: _stage, clearOpacity: _clearOpacity, ...legacyFrame} = frame;
+    const {clearOpacity: _clearOpacity, ...legacyFrame} = frame;
     for (const layer of this.layers) {
       const themed = frame.theme !== undefined;
       const legacy = LEGACY_CONTENT_LAYERS.has(layer.kind);
-      this.setHidden(layer, themed ? null : look, themed && legacy);
+      this.setHidden(layer, themed && legacy);
       const order =
         renderLayers.find(entry => entry.kind === layer.kind)?.order ?? 0;
       layer.box.style.zIndex = String(
         themed ? (THEME_LAYER_ORDERS[layer.kind] ?? order) : order,
       );
       const opacity =
-        layer.look === undefined ||
-        layer.look === 'clock' ||
-        layer.look === 'stageMessage'
-          ? undefined
-          : fading.opacity[layer.look];
+        layer.fades === undefined ? undefined : fading.opacity[layer.fades];
       layer.box.style.opacity = layer.hidden
         ? '0'
         : opacity === undefined
@@ -228,16 +217,10 @@ export class OutputRenderer {
     } else this.root.style.setProperty(PICTURE_TRANSFORM, transform);
   }
 
-  // NOTE(0913vision): A layer the Look turns off keeps drawing under opacity
-  // 0, so its content, layout, and video playback stay ready for the next
-  // Look, and a descendant's own visibility can't show it.
-  private setHidden(
-    layer: ActiveLayer,
-    look: ScreenAppearance | null,
-    suppress = false,
-  ): void {
-    const hidden =
-      suppress || (layer.look !== undefined && !showsLayer(look, layer.look));
+  // NOTE(0913vision): A hidden layer keeps drawing under opacity 0, so its
+  // content and video playback stay ready, and a descendant's own visibility
+  // can't show it.
+  private setHidden(layer: ActiveLayer, hidden: boolean): void {
     if (hidden === layer.hidden) return;
     layer.hidden = hidden;
     layer.box.classList.toggle(classes.hidden, hidden);
@@ -251,7 +234,7 @@ export class OutputRenderer {
           kind: layer.kind,
           view: layer.create(box, this.options),
           box,
-          look: layer.look,
+          fades: layer.fades,
           hidden: false,
         },
       ];

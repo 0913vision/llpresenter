@@ -12,7 +12,7 @@ export const DisplayTarget = memo(
         type="button"
         aria-label={name}
         aria-pressed={selected}
-        onClick={() => useScreensSelection.getState().select('screen', id)}
+        onClick={() => useScreensSelection.getState().select(id)}
         className={classNames(styles.target, selected && styles.selected)}
         data-target={id}
         aria-current={selected ? 'true' : undefined}

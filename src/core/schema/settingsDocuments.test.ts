@@ -21,14 +21,6 @@ const fixtures = {
     themes: [],
     defaults: {},
   },
-  looks: {
-    format: 'llsettings.looks',
-    schemaVersion: 1,
-    current: ID,
-    looks: [{id: ID, name: '평상시', screens: {}}],
-    lyricStyles: [],
-  },
-  'stage-layouts': {format: 'llsettings.stage', schemaVersion: 1, layouts: []},
   macros: {
     format: 'llsettings.macros',
     schemaVersion: 1,
@@ -281,24 +273,21 @@ describe('app-wide settings contracts', () => {
 
   it('preserves nested record extensions while removing deleted dynamic keys', () => {
     const other = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
+    const theme = (screens: object) => ({id: other, name: 'Example', screens});
     const current = expectSuccess(
       parseSettingsDocument({
-        name: 'looks',
+        name: 'themes',
         value: {
-          ...fixtures.looks,
-          looks: [
-            {
-              id: ID,
-              name: 'Example',
-              screens: {
-                [ID]: {
-                  layers: {slide: true, future: 1},
-                  lyricStyle: ID,
-                  future: 'kept',
-                },
-                [other]: {layers: {media: true}, future: 'deleted'},
+          ...fixtures.themes,
+          themes: [
+            theme({
+              [ID]: {mode: {kind: 'own'}, elements: [], future: 'kept'},
+              ['b52f1d63-8f2e-4b3c-9d4e-5f6071829304']: {
+                mode: {kind: 'empty'},
+                elements: [],
+                future: 'deleted',
               },
-            },
+            }),
           ],
         },
         revision: 1,
@@ -308,24 +297,18 @@ describe('app-wide settings contracts', () => {
     const edit = expectSuccess(
       parseSettingsEdit({
         type: 'settings.update',
-        name: 'looks',
+        name: 'themes',
         value: {
-          ...fixtures.looks,
-          looks: [
-            {
-              id: ID,
-              name: 'Example',
-              screens: {[ID]: {layers: {slide: false}}},
-            },
-          ],
+          ...fixtures.themes,
+          themes: [theme({[ID]: {mode: {kind: 'own'}, elements: []}})],
         },
         baseRevision: 1,
       }),
     );
     expect(
       expectSuccess(mergeSettingsDocument(current, edit)).value,
-    ).toHaveProperty('looks.0.screens', {
-      [ID]: {layers: {slide: false, future: 1}, future: 'kept'},
+    ).toHaveProperty('themes.0.screens', {
+      [ID]: {mode: {kind: 'own'}, elements: [], future: 'kept'},
     });
   });
 

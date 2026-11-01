@@ -6,11 +6,11 @@ import type {ThemeElement} from '@core/schema/themes';
 import {SlideLayerView} from './slideLayer';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {classes} from './classes';
-import {stageClockText} from './stageLayout';
+import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
 import {ThemePicture} from './ThemePicture';
 
-vi.mock('./stageLayout', () => ({
+vi.mock('./stageClock', () => ({
   STAGE_TICK_MS: 1000,
   stageClockText: vi.fn((wall: number, format: string) => `${wall}:${format}`),
 }));

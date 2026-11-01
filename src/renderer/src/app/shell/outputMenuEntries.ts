@@ -1,8 +1,5 @@
-import type {LookId, ThemeId} from '@core/schema/ids';
-import type {LooksFile} from '@core/schema/looks';
+import type {ThemeId} from '@core/schema/ids';
 import type {ThemesFile} from '@core/schema/themes';
-import type {StageLayoutsFile} from '@core/schema/stageLayouts';
-import type {LiveState} from '@core/live/state';
 import {resolveOutputScreen} from '@core/screens/screens';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
 import type {MenuEntry} from '@renderer/ui/menuModel';
@@ -15,20 +12,16 @@ import type {WarningScreen} from './MenuBar';
 interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
-  readonly looks: LooksFile | null;
   readonly themes: ThemesFile | null;
   readonly themeId: ThemeId | undefined;
   readonly hasItem: boolean;
-  readonly layouts: StageLayoutsFile | null;
-  readonly lookId: LookId | null | undefined;
-  readonly stageLayouts: LiveState['stageLayouts'];
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (id: string) => void;
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onProblem: (notice: Notice) => void;
 }
 
-/** Spec 11's grouped output commands, theme/layout choices, and warnings. */
+/** Spec 11's grouped output commands, theme choices, and warnings. */
 export function outputMenuEntries(
   input: OutputMenuInput,
 ): readonly MenuEntry[] {

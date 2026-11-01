@@ -3,7 +3,6 @@ import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {parseScreenId} from '@core/schema/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
-import {sendLookChange} from '@renderer/features/screens/lookActions';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';
 import {sendLive} from '@renderer/session/live';
 import type {JSX} from 'react';
@@ -33,10 +32,6 @@ export function OutputMenuList({
 }): JSX.Element | null {
   const screens = useScreenSummaries();
   const outputs = useOutputs();
-  const lookId = useLive(view =>
-    view.state === null ? undefined : (view.state.lookId ?? null),
-  );
-  const stageLayouts = useLive(view => view.state?.stageLayouts);
   const bindings = useSyncExternalStore(
     commandBindingStore.subscribe,
     commandBindingStore.get,
@@ -45,10 +40,9 @@ export function OutputMenuList({
     anchor !== null ||
     Object.keys(bindings).some(
       id =>
-        /^(output.|look.|theme.|workspace.(looks|themes|stage)$)/.test(id) &&
+        /^(output.|theme.|workspace.themes$)/.test(id) &&
         (bindings[id]?.length ?? 0) > 0,
     );
-  const looks = useSettingsDocument(needed ? 'looks' : null, 'Look', onProblem);
   const themes = useSettingsDocument(
     needed ? 'themes' : null,
     '테마',
@@ -56,21 +50,12 @@ export function OutputMenuList({
   );
   const themeId = useLive(view => view.state?.themeOutput?.themeId);
   const hasItem = useLive(view => view.state?.themeItem != null);
-  const layouts = useSettingsDocument(
-    needed ? 'stage-layouts' : null,
-    '무대 배치',
-    onProblem,
-  );
   const entries = outputMenuEntries({
     screens,
     outputs,
     themes: themes?.value ?? null,
     themeId,
     hasItem,
-    looks: looks?.value ?? null,
-    layouts: layouts?.value ?? null,
-    lookId,
-    stageLayouts,
     warnings,
     onShowWarning,
     onWorkspace,
@@ -86,10 +71,6 @@ export function OutputMenuList({
     ...(themes?.value.themes ?? []).map(theme => ({
       id: `theme.${theme.id}`,
       run: () => sendThemeChange(theme.id, onProblem),
-    })),
-    ...(looks?.value.looks ?? []).map(look => ({
-      id: `look.${look.id}`,
-      run: () => sendLookChange(look.id, onProblem),
     })),
     ...screens.map(screen => ({
       id: `output.screen.${screen.id}`,

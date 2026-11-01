@@ -3,17 +3,11 @@ import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createDefaultThemes} from '@core/themes/defaults';
-import {
-  STARTER_LYRIC_STYLE as style,
-  STARTER_STAGE_ELEMENTS,
-} from '@core/looks/starterLayout';
 import {DEFAULT_LABELS} from './defaults';
 
 const uuid = (number: number): string =>
   `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
-const LOOK = uuid(4);
-const LAYOUT = uuid(5);
 const screen = (
   id: string,
   name: string,
@@ -41,74 +35,6 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
         previewBackground: 'green',
       },
       screen(STAGE, '무대 화면', {kind: 'stage', method: 'fullscreen'}),
-    ],
-  },
-  looks: {
-    current: LOOK,
-    looks: [
-      {
-        id: LOOK,
-        name: '평상시',
-        screens: {
-          [MAIN]: {
-            layers: {
-              media: true,
-              slide: true,
-              prop: true,
-              message: true,
-              notice: false,
-            },
-            lyricStyle: uuid(6),
-          },
-          [CAPTIONS]: {
-            layers: {
-              media: true,
-              slide: true,
-              prop: false,
-              message: false,
-              notice: false,
-            },
-            lyricStyle: uuid(8),
-            background: {kind: 'color', color: '#00B140'},
-          },
-          [STAGE]: {
-            layers: {
-              slide: true,
-              clock: true,
-              stageMessage: true,
-              media: false,
-              message: false,
-            },
-            stageLayout: LAYOUT,
-            lyricStyle: uuid(7),
-          },
-        },
-      },
-    ],
-    lyricStyles: [
-      {...style, id: uuid(6), name: '기본'},
-      {
-        ...style,
-        id: uuid(7),
-        name: '현재와 다음',
-        size: 72,
-        align: 'left',
-        vAlign: 'top',
-        lineHeight: 1.3,
-        margin: 0,
-      },
-      {...style, id: uuid(8), name: '하단 자막', vAlign: 'bottom'},
-    ],
-  },
-  'stage-layouts': {
-    layouts: [
-      {
-        id: LAYOUT,
-        name: '현재와 다음',
-        width: 1920,
-        height: 1080,
-        elements: STARTER_STAGE_ELEMENTS,
-      },
     ],
   },
   macros: {macros: [], collections: []},

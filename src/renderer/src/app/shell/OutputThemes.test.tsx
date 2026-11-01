@@ -5,10 +5,7 @@ import {emptyLiveState} from '@core/live/state';
 import {createThemeId} from '@core/schema/ids';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {
-  looksDocument,
-  stageLayoutsDocument,
-} from '@core/testing/screenDocuments';
+import {} from '@core/testing/screenDocuments';
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {themeFile} from '@core/testing/themeOutput';
 import {useLive} from '@renderer/session/live';
@@ -46,12 +43,7 @@ function setup() {
   const api = mockLlpApi({
     live: {send},
     settings: {
-      get: async request =>
-        request.name === 'themes'
-          ? themesDocument()
-          : request.name === 'looks'
-            ? looksDocument()
-            : stageLayoutsDocument(),
+      get: async () => themesDocument(),
       subscribe: listener => {
         listeners.add(listener);
         return () => {

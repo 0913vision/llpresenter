@@ -5,14 +5,14 @@ import {OverlayTextView} from '../overlayText';
 export const messageLayer = defineLayer({
   kind: 'message',
   order: 4,
-  look: 'message',
+  fades: 'message',
   create: parent => {
     const view = new OverlayTextView(parent);
     return {
       render: (layers, frame) => {
         const message = layers.message;
         if (message?.items === undefined) {
-          view.show(message?.text ?? null, frame?.look?.messageStyle);
+          view.show(message?.text ?? null);
           return;
         }
         const id = frame?.screen?.id;
@@ -26,7 +26,7 @@ export const messageLayer = defineLayer({
                     (item.targets === 'all' || item.targets.includes(id)) &&
                     !item.excludedTargets.includes(id),
                 );
-        view.show(item?.text ?? null, frame?.look?.messageStyle);
+        view.show(item?.text ?? null);
       },
       rescale: scale => view.rescale(scale),
       dispose: () => view.dispose(),

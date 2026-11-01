@@ -79,7 +79,7 @@ function setup(
 }
 
 beforeEach(() => {
-  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
+  useScreensSelection.setState({selection: {id: null}});
 });
 
 afterEach(() => {
@@ -206,10 +206,7 @@ describe('the display layout', () => {
       },
     });
     expect(JSON.stringify(change)).not.toContain('Projector');
-    expect(useScreensSelection.getState().selection).toEqual({
-      kind: 'screen',
-      id: STAGE_ID,
-    });
+    expect(useScreensSelection.getState().selection).toEqual({id: STAGE_ID});
   });
 
   it('keeps screen selection when releasing a native row drag', async () => {
@@ -261,7 +258,7 @@ describe('the display layout', () => {
     expect(box(2).getAttribute('aria-current')).toBe('true');
     expect(box(1).getAttribute('aria-current')).toBeNull();
 
-    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
 
     expect(box(2).getAttribute('aria-current')).toBeNull();
     expect(

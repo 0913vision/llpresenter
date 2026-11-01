@@ -8,12 +8,6 @@ export const SCREEN_MACRO_ACTIONS = {
     icon: 'layers',
     paletteGroup: '화면',
   },
-  stageLayout: {
-    kind: 'stageLayout',
-    label: '무대 화면 배치',
-    icon: 'monitor',
-    paletteGroup: '화면',
-  },
   clearAll: {
     kind: 'clearAll',
     label: '모두 지우기',

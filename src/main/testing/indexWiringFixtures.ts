@@ -27,11 +27,8 @@ const mocks = vi.hoisted(() => {
     overlayContexts: new Array<unknown>(),
     audioContexts: new Array<unknown>(),
     audioStop: vi.fn<() => void>(),
-    lookSelectionContexts: new Array<unknown>(),
-    lookSelectionStop: vi.fn<() => void>(),
     themeOutputContexts: new Array<unknown>(),
     themeOutputStop: vi.fn<() => void>(),
-    selectLook: vi.fn(),
     recovery: {
       crashed: false,
       markQuitting: vi.fn<() => Promise<void>>(),
@@ -192,12 +189,6 @@ vi.mock('../live/overlays', () => ({
     return mocks.overlaysStop;
   },
 }));
-vi.mock('../live/lookSelection', () => ({
-  registerLookSelection: (context: unknown) => {
-    mocks.lookSelectionContexts.push(context);
-    return mocks.lookSelectionStop;
-  },
-}));
 vi.mock('../live/themes', () => ({
   registerThemeOutput: (context: unknown) => {
     mocks.themeOutputContexts.push(context);
@@ -270,7 +261,6 @@ vi.mock('../store/register', () => ({
       bible: mocks.bible,
       content: Promise.resolve(null),
       settings: mocks.settings,
-      selectLook: mocks.selectLook,
       dispose: mocks.storeDispose,
       findMediaFile: mocks.findMediaFile,
       mediaRoots: mocks.mediaRoots,
@@ -350,11 +340,8 @@ beforeEach(async () => {
   mocks.overlayContexts.length = 0;
   mocks.audioContexts.length = 0;
   mocks.audioStop.mockReset();
-  mocks.lookSelectionContexts.length = 0;
-  mocks.lookSelectionStop.mockReset();
   mocks.themeOutputContexts.length = 0;
   mocks.themeOutputStop.mockReset();
-  mocks.selectLook.mockReset();
   mocks.recovery.crashed = false;
   mocks.recovery.markQuitting.mockReset();
   mocks.recovery.cleanExit.mockReset();

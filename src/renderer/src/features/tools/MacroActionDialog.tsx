@@ -77,7 +77,6 @@ export function MacroActionDialog({
   const [operation, setOperation] = useState(
     initial?.operation ?? defaultMode[kind],
   );
-  const [stage, setStage] = useState(initial?.screen);
   const [values, setValues] = useState<Readonly<Record<string, string>>>(
     initial?.values ?? {},
   );
@@ -111,12 +110,10 @@ export function MacroActionDialog({
   }
   const messageTargetsValid =
     currentTargets === 'all' ? screens.length > 0 : currentTargets.length > 0;
-  const screenValid = !stage || screens.some(screen => screen.id === stage);
   const draft: MacroActionDraft = {
     kind,
     target: selected?.id,
     operation,
-    screen: stage,
     clearTarget: selected?.clearTarget,
     values: Object.fromEntries(blanks.map(name => [name, valueOf(name)])),
     targets: currentTargets,
@@ -125,7 +122,6 @@ export function MacroActionDialog({
   };
   const action =
     (!needsTarget || selected) &&
-    screenValid &&
     (kind !== 'message' || (messageValid && messageTargetsValid))
       ? prepareMacroAction(draft)
       : undefined;
@@ -179,26 +175,6 @@ export function MacroActionDialog({
                   label: option.name,
                 }))}
                 onChange={setTarget}
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {kind === 'stageLayout' ? (
-          <PropertyRow label="무대 화면">
-            {({controlId}) => (
-              <SelectMenu
-                id={controlId}
-                block
-                disabled={locked}
-                value={stage ?? 'default'}
-                options={[
-                  {value: 'default', label: '기본 무대 화면'},
-                  ...screens.map(screen => ({
-                    value: screen.id,
-                    label: screen.name,
-                  })),
-                ]}
-                onChange={id => setStage(id === 'default' ? undefined : id)}
               />
             )}
           </PropertyRow>

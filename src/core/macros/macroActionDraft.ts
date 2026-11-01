@@ -8,7 +8,6 @@ import {
 export interface MacroActionDraft {
   readonly kind: MacroActionKind;
   readonly target?: string | undefined;
-  readonly screen?: string | undefined;
   readonly operation?: string | undefined;
   readonly clearTarget?: 'layer' | 'prop' | undefined;
   readonly values?: Readonly<Record<string, string>> | undefined;
@@ -32,13 +31,6 @@ export function prepareMacroAction(
   switch (draft.kind) {
     case 'theme':
       value = {kind: draft.kind, theme: target};
-      break;
-    case 'stageLayout':
-      value = {
-        kind: draft.kind,
-        layout: target,
-        ...(draft.screen ? {screen: draft.screen} : {}),
-      };
       break;
     case 'clearAll':
       value = {
@@ -110,8 +102,6 @@ export function draftMacroAction(action: KnownMacroAction): MacroActionDraft {
   switch (action.kind) {
     case 'theme':
       return {kind: action.kind, target: action.theme};
-    case 'stageLayout':
-      return {kind: action.kind, target: action.layout, screen: action.screen};
     case 'clearAll':
       return {kind: action.kind, transition: action.transition};
     case 'clearLayer':

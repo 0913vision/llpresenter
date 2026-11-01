@@ -14,15 +14,7 @@ import {
 } from '@core/testing/overlays';
 
 const SECOND_STAGE = overlayUuid(60);
-const NOW_NEXT = overlayUuid(61);
-const LYRICS_ONLY = overlayUuid(62);
 const SERMON = overlayUuid(63);
-const FIRST_LOOK = overlayUuid(64);
-const SECOND_LOOK = overlayUuid(65);
-
-function layout(id: string, name: string) {
-  return {id, name, width: 1920, height: 1080, elements: []};
-}
 
 function setup() {
   const store = new LiveStore();
@@ -38,24 +30,8 @@ function setup() {
     }),
   );
   settings.update(
-    settingsDocument('stage-layouts', {
-      format: 'llsettings.stage',
-      layouts: [layout(NOW_NEXT, '현재와 다음'), layout(LYRICS_ONLY, '가사')],
-    }),
-  );
-  settings.update(
     settingsDocument('timers', {
       timers: [{id: SERMON, name: '설교', kind: 'countdown', duration: 60}],
-    }),
-  );
-  settings.update(
-    settingsDocument('looks', {
-      current: FIRST_LOOK,
-      looks: [
-        {id: FIRST_LOOK, name: 'First', screens: {}},
-        {id: SECOND_LOOK, name: 'Second', screens: {}},
-      ],
-      lyricStyles: [],
     }),
   );
   onTestFinished(store.connectSettings(settings.reader));
@@ -68,62 +44,11 @@ function setup() {
   return {store, settings, skipped, send};
 }
 
-describe('stage.layout.set', () => {
-  it('sets the layout of one stage screen or of every stage screen', () => {
-    const {store, send} = setup();
-    const start = store.state.version;
-    expect(
-      send({type: 'stage.layout.set', screenId: STAGE, layoutId: LYRICS_ONLY}),
-    ).toBe(true);
-    expect(store.state.stageLayouts).toEqual({[STAGE]: LYRICS_ONLY});
-    expect(store.state.version).toBe(start + 1);
-    send({type: 'stage.layout.set', layoutId: NOW_NEXT});
-    expect(store.state.stageLayouts).toEqual({
-      [STAGE]: NOW_NEXT,
-      [SECOND_STAGE]: NOW_NEXT,
-    });
-    expect(send({type: 'stage.layout.set', layoutId: NOW_NEXT})).toBe(false);
-  });
-
-  it('skips a layout or a screen that is missing, and an audience screen', () => {
-    const {store, skipped, send} = setup();
-    send({type: 'stage.layout.set', layoutId: overlayUuid(90)});
-    send({type: 'stage.layout.set', screenId: MAIN, layoutId: NOW_NEXT});
-    send({
-      type: 'stage.layout.set',
-      screenId: overlayUuid(91),
-      layoutId: NOW_NEXT,
-    });
-    expect(skipped.mock.calls.map(([skip]) => skip.reason)).toEqual([
-      'missing-target',
-      'missing-target',
-      'missing-target',
-    ]);
-    expect(store.state).not.toHaveProperty('stageLayouts');
-  });
-
-  it('lasts until the next Look change, and survives clears', () => {
-    const {store, send} = setup();
-    send({type: 'stage.layout.set', layoutId: LYRICS_ONLY});
-    send({type: 'layer.clear', target: 'all'});
-    send({type: 'look.set', lookId: FIRST_LOOK});
-    expect(store.state.stageLayouts).toEqual({
-      [STAGE]: LYRICS_ONLY,
-      [SECOND_STAGE]: LYRICS_ONLY,
-    });
-    send({type: 'look.set', lookId: SECOND_LOOK});
-    expect(store.state).not.toHaveProperty('stageLayouts');
-    expect(store.state.lookId).toBe(SECOND_LOOK);
-  });
-});
-
 describe('stage.timer.set', () => {
-  it('chooses and clears the stage 타이머, kept across a Look change', () => {
+  it('chooses and clears the stage 타이머', () => {
     const {store, send} = setup();
     expect(send({type: 'stage.timer.set', timerId: SERMON})).toBe(true);
     expect(send({type: 'stage.timer.set', timerId: SERMON})).toBe(false);
-    send({type: 'look.set', lookId: SECOND_LOOK});
-    expect(store.state.stageTimerId).toBe(SERMON);
     expect(send({type: 'stage.timer.set', timerId: null})).toBe(true);
     expect(store.state).not.toHaveProperty('stageTimerId');
     expect(send({type: 'stage.timer.set', timerId: null})).toBe(false);

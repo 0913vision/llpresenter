@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
-import {LYRIC_EFFECT_LIMITS} from '@core/schema/looks';
+import {LYRIC_EFFECT_LIMITS} from '@core/schema/lyricEffects';
 import type {ThemeText} from '@core/schema/themes';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';

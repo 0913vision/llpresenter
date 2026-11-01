@@ -1,4 +1,4 @@
-import type {LyricStyle as StoredLyricStyle} from '../schema/looks';
+import type {LyricOutline, LyricShadow} from '../schema/lyricEffects';
 
 /**
  * How the lyrics layer draws a 장: the lyric style fields of a Look
@@ -16,8 +16,8 @@ export interface LyricStyle {
   readonly maxLines: number;
   /** The margin on every side, in percent of the screen. */
   readonly margin: number;
-  readonly shadow: boolean | StoredLyricStyle['shadow'];
-  readonly outline: boolean | StoredLyricStyle['outline'];
+  readonly shadow: boolean | LyricShadow;
+  readonly outline: boolean | LyricOutline;
 }
 
 // TODO(0913vision): Take the lyric style from the current Look once the
@@ -54,9 +54,4 @@ export function scaleFor(width: number, height: number): number {
     width / REFERENCE_SCREEN.width,
     height / REFERENCE_SCREEN.height,
   );
-}
-
-/** Supplies the stored lyric style to the renderer. */
-export function renderLyricStyle(style: StoredLyricStyle): LyricStyle {
-  return style;
 }

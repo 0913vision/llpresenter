@@ -14,7 +14,7 @@ vi.mock('@renderer/ui/classNames', async importOriginal => {
 
 afterEach(() => {
   cleanup();
-  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
+  useScreensSelection.setState({selection: {id: null}});
 });
 
 it('redraws only the changed target when a different screen is selected', () => {
@@ -49,10 +49,7 @@ it('redraws only the changed target when a different screen is selected', () => 
     screen.getByRole('button', {name: 'Screen 1'}).getAttribute('aria-pressed'),
   ).toBe('true');
   fireEvent.click(screen.getByRole('button', {name: 'Screen 2'}));
-  expect(useScreensSelection.getState().selection).toEqual({
-    kind: 'screen',
-    id: 'screen-2',
-  });
+  expect(useScreensSelection.getState().selection).toEqual({id: 'screen-2'});
 });
 
 it('updates a target when its screen details change', () => {

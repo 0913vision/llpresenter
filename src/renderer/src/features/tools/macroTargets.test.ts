@@ -3,7 +3,6 @@ import {buildMacroTargets, type MacroTargetSources} from './macroTargets';
 
 const source: MacroTargetSources = {
   themes: {themes: [{id: 'theme', name: 'Theme'}]},
-  layouts: {layouts: [{id: 'layout', name: 'Layout'}]},
   props: {props: [{id: 'prop-id', name: 'Prop'}]},
   messages: {
     templates: [
@@ -32,7 +31,7 @@ describe('buildMacroTargets', () => {
     const {choices} = buildMacroTargets(source);
     expect(choices.theme).toEqual([{id: 'theme', name: 'Theme'}]);
     expect(Object.hasOwn(choices, 'look')).toBe(false);
-    expect(choices.stageLayout).toEqual([{id: 'layout', name: 'Layout'}]);
+    expect(Object.hasOwn(choices, 'stageLayout')).toBe(false);
     expect(choices.media?.map(item => item.id)).toEqual(['image', 'video']);
     expect(choices.audio?.map(item => item.id)).toEqual(['audio']);
     expect(choices.audioPlaylist?.map(item => item.id)).toEqual(['playlist']);
@@ -63,7 +62,6 @@ describe('buildMacroTargets', () => {
       clearTarget: 'prop',
     });
     expect(targets.screens.map(item => item.id)).toEqual(['audience', 'stage']);
-    expect(targets.stageScreens.map(item => item.id)).toEqual(['stage']);
     expect(
       buildMacroTargets({
         ...source,

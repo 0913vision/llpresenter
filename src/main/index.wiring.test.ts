@@ -257,25 +257,15 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
-  it('registers Look selection and theme output and releases both before closing data', async () => {
+  it('registers theme output and releases it before closing data', async () => {
     await startMain();
-    expect(mocks.lookSelectionContexts).toMatchObject([
-      {
-        store: mocks.outputContexts[0]?.store,
-        selection: {selectLook: mocks.selectLook},
-      },
-    ]);
     expect(mocks.themeOutputContexts).toMatchObject([
       {store: mocks.outputContexts[0]?.store},
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
-    expect(mocks.lookSelectionStop).toHaveBeenCalledOnce();
     expect(mocks.themeOutputStop).toHaveBeenCalledOnce();
     expect(mocks.themeOutputStop.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
-    );
-    expect(mocks.lookSelectionStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );
   });

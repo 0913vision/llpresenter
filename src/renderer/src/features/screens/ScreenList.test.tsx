@@ -90,7 +90,7 @@ async function add(label: string, method: string) {
 }
 
 beforeEach(() => {
-  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
+  useScreensSelection.setState({selection: {id: null}});
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(CREATED_ID);
 });
 afterEach(() => {
@@ -405,7 +405,7 @@ describe('screen creation and group outputs', () => {
     await screen.findByRole('option', {name: 'Screen 0'});
     const target = screens[99];
     if (target === undefined) throw new Error('Missing screen');
-    act(() => useScreensSelection.getState().select('screen', target.id));
+    act(() => useScreensSelection.getState().select(target.id));
     const selected = await screen.findByRole('option', {name: 'Screen 99'});
     expect(selected.getAttribute('aria-selected')).toBe('true');
   });
@@ -592,10 +592,7 @@ describe('screen creation and group outputs', () => {
       await held;
     });
     await screen.findByRole('option', {name: '새 청중 화면'});
-    expect(useScreensSelection.getState().selection).toEqual({
-      kind: 'screen',
-      id: STAGE_ID,
-    });
+    expect(useScreensSelection.getState().selection).toEqual({id: STAGE_ID});
   });
 
   it('does not select a created screen after its workspace unmounts', async () => {

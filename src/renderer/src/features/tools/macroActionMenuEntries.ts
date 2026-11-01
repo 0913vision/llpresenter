@@ -47,13 +47,31 @@ const LATER_KINDS = {
   capture: {label: '녹화와 방송', icon: 'capture'},
 } as const;
 
+const RETIRED_ACTIONS: ReadonlyMap<
+  string,
+  {readonly name: string; readonly reason: string}
+> = new Map([
+  [
+    'look',
+    {
+      name: 'Look 바꾸기',
+      reason: 'Look 동작은 테마 바꾸기로 교체되었습니다',
+    },
+  ],
+  [
+    'stageLayout',
+    {
+      name: '무대 화면 배치',
+      reason: '무대 배치 동작은 테마로 교체되었습니다',
+    },
+  ],
+]);
+
 function targetId(action: MacroAction): string | undefined {
   if (!isKnownMacroAction(action)) return undefined;
   switch (action.kind) {
     case 'theme':
       return action.theme;
-    case 'stageLayout':
-      return action.layout;
     case 'clearAll':
       return undefined;
     case 'clearLayer':
@@ -85,7 +103,8 @@ export function macroActionName(
   action: MacroAction,
   targets: MacroActionMenuInput['targets'],
 ): string {
-  if (action.kind === 'look') return 'Look 바꾸기';
+  const retired = RETIRED_ACTIONS.get(action.kind);
+  if (retired !== undefined) return retired.name;
   if (!isKnownMacroAction(action)) return '알 수 없는 동작';
   const kind = MACRO_ACTIONS[action.kind];
   if (action.kind === 'audio' && action.operation !== 'play') {
@@ -108,17 +127,15 @@ function kindRow(
   input: MacroActionMenuInput,
   handlers: MacroActionMenuHandlers,
 ): MenuItem {
-  const dialog = row.kind === 'stageLayout';
   const full = input.item.actions.length >= MACRO_FILE_LIMITS.actions;
   const empty =
-    !dialog &&
     row.kind !== 'audio' &&
     row.kind !== 'clearAll' &&
     !input.targets?.[row.kind]?.length;
   return {
     kind: 'item',
     id: row.kind,
-    label: `${row.label}${dialog ? '…' : ''}`,
+    label: row.label,
     icon: row.icon,
     ...menuAvailability(
       full
@@ -127,20 +144,14 @@ function kindRow(
           ? input.targets === undefined
             ? '대상을 불러오고 있습니다'
             : '대상이 없습니다'
-          : dialog &&
-              input.item.actions.some(action => action.kind === 'stageLayout')
-            ? '무대 배치 동작이 이미 있음'
-            : undefined,
+          : undefined,
     ),
-    loadSubmenu: dialog
-      ? undefined
-      : () =>
-          macroActionChoices({
-            kind: row.kind,
-            targets: input.targets?.[row.kind],
-            choose: handlers.chooseAction,
-          }),
-    onSelect: dialog ? () => handlers.addAction(row.kind) : undefined,
+    loadSubmenu: () =>
+      macroActionChoices({
+        kind: row.kind,
+        targets: input.targets?.[row.kind],
+        choose: handlers.chooseAction,
+      }),
   };
 }
 
@@ -187,7 +198,6 @@ function addActionEntries(
           ],
         },
         row('theme'),
-        row('stageLayout'),
         laterRow('slide-destination', slideDestination.label, {
           icon: slideDestination.icon,
           submenu: true,
@@ -243,8 +253,8 @@ function editEntries(
       ...menuAvailability(
         locked
           ? '매크로 목록 잠김'
-          : action.kind === 'look'
-            ? 'Look 동작은 테마 바꾸기로 교체되었습니다'
+          : RETIRED_ACTIONS.has(action.kind)
+            ? RETIRED_ACTIONS.get(action.kind)?.reason
             : !known
               ? '지원하지 않는 동작'
               : undefined,

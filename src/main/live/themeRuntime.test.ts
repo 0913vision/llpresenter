@@ -6,11 +6,9 @@ import {
   createItemOverlayId,
   createMediaId,
   createMessageId,
-  parseLookId,
 } from '@core/schema/ids';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {settingsDocument} from '@core/testing/settingsDocument';
-import {looksDocument} from '@core/testing/screenDocuments';
 import {
   THEME_MAIN,
   fixedThemeText,
@@ -47,7 +45,6 @@ function setup(
       if (name === 'screens') {
         return settingsDocument('screens', {screens: themeScreens});
       }
-      if (name === 'looks') return looksDocument();
       throw new Error(`Unexpected settings: ${name}`);
     },
   };
@@ -379,21 +376,6 @@ describe('main-process theme runtime', () => {
     expect(
       store.state.themeOutput?.screens[THEME_MAIN]?.layout.elements[0]?.kind,
     ).toBe('text');
-  });
-
-  it('keeps the live theme when a retiring Look command arrives', () => {
-    const {store, slide, dispatch, current} = setup();
-    slide();
-    const output = store.state.themeOutput;
-    const look = parseLookId('00000000-0000-4000-8000-0000000000a2');
-    if (!look.ok) throw new Error('Invalid Look');
-    dispatch({type: 'look.set', lookId: look.value});
-    expect(store.state.themeMode).toBeUndefined();
-    expect(store.state.themeOutput).toBe(output);
-    slide();
-    expect(store.state.themeOutput).toBe(output);
-    dispatch({type: 'item.start', itemId: ITEM});
-    expect(store.state.themeOutput?.themeId).toBe(current().defaults.bible);
   });
 
   it('clears metadata-only items with an undo snapshot and keeps a repeated clear idempotent', () => {

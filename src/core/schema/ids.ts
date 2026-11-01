@@ -24,13 +24,10 @@ export const messageIdSchema = uuidId('MessageId');
 export const noticeSetIdSchema = uuidId('NoticeSetId');
 export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
-export const lookIdSchema = uuidId('LookId');
 export const themeIdSchema = uuidId('ThemeId');
 export const themeElementIdSchema = uuidId('ThemeElementId');
 export const itemOverlayIdSchema = uuidId('ItemOverlayId');
-export const lyricStyleIdSchema = uuidId('LyricStyleId');
 export const messageStyleIdSchema = uuidId('MessageStyleId');
-export const stageLayoutIdSchema = uuidId('StageLayoutId');
 export const mediaPlaylistIdSchema = uuidId('MediaPlaylistId');
 export const audioPlaylistIdSchema = uuidId('AudioPlaylistId');
 export const macroIdSchema = uuidId('MacroId');
@@ -62,7 +59,6 @@ export type MessageId = v.InferOutput<typeof messageIdSchema>;
 export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
 export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
-export type LookId = v.InferOutput<typeof lookIdSchema>;
 export type ThemeId = v.InferOutput<typeof themeIdSchema>;
 export type ThemeElementId = v.InferOutput<typeof themeElementIdSchema>;
 export type ItemOverlayId = v.InferOutput<typeof itemOverlayIdSchema>;
@@ -78,9 +74,7 @@ export function createThemeElementId(uuid: string): ThemeElementId {
 export function createItemOverlayId(uuid: string): ItemOverlayId {
   return v.parse(itemOverlayIdSchema, uuid);
 }
-export type LyricStyleId = v.InferOutput<typeof lyricStyleIdSchema>;
 export type MessageStyleId = v.InferOutput<typeof messageStyleIdSchema>;
-export type StageLayoutId = v.InferOutput<typeof stageLayoutIdSchema>;
 export type MediaPlaylistId = v.InferOutput<typeof mediaPlaylistIdSchema>;
 export type AudioPlaylistId = v.InferOutput<typeof audioPlaylistIdSchema>;
 export type MacroId = v.InferOutput<typeof macroIdSchema>;
@@ -100,16 +94,6 @@ export function createScreenId(uuid: string): ScreenId {
 }
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
-
-/** Validates a main-process Look selection without throwing. UUIDs are exactly 36 characters. */
-export function parseLookId(value: unknown) {
-  return parsePayload(lookIdSchema, value);
-}
-
-/** Checks a generated lyric style UUID without throwing. */
-export function parseLyricStyleId(value: unknown) {
-  return parsePayload(lyricStyleIdSchema, value);
-}
 
 /** Checks a message style ID received from a view. */
 export function parseMessageStyleId(value: unknown) {

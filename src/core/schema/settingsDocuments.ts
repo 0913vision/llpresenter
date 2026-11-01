@@ -4,7 +4,6 @@ import {bibleSchema} from './bible';
 import {accessSchema, revisionSchema} from './contentDocuments';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {labelsSchema} from './labels';
-import {looksSchema} from './looks';
 import {themesSchema} from './themes';
 import {macrosSchema} from './macros';
 import {messagesSchema} from './messages';
@@ -15,7 +14,6 @@ import {propsSchema} from './props';
 import {quickSchema} from './quick';
 import {screensSchema} from './screens';
 import {shortcutsSchema} from './shortcuts';
-import {stageLayoutsSchema} from './stageLayouts';
 import {timersSchema} from './timers';
 import {timerDeleteSchema} from './timerDeletion';
 import {timerRenameSchema} from './timerEdit';
@@ -42,9 +40,7 @@ export function settingsDocumentSchema<
 
 const schemas = {
   screens: screensSchema,
-  looks: looksSchema,
   themes: themesSchema,
-  'stage-layouts': stageLayoutsSchema,
   macros: macrosSchema,
   quick: quickSchema,
   messages: messagesSchema,
@@ -59,9 +55,7 @@ const schemas = {
 
 export const settingsNames = [
   'screens',
-  'looks',
   'themes',
-  'stage-layouts',
   'macros',
   'quick',
   'messages',
@@ -82,9 +76,7 @@ const settingsDocument = v.pipe(
   plainObject,
   v.variant('name', [
     settingsDocumentSchema('screens', schemas.screens),
-    settingsDocumentSchema('looks', schemas.looks),
     settingsDocumentSchema('themes', schemas.themes),
-    settingsDocumentSchema('stage-layouts', schemas['stage-layouts']),
     settingsDocumentSchema('macros', schemas.macros),
     settingsDocumentSchema('quick', schemas.quick),
     settingsDocumentSchema('messages', schemas.messages),
@@ -112,9 +104,7 @@ function updateSchema<TName extends string, TValue extends v.GenericSchema>(
 
 const settingsUpdateSchema = v.variant('name', [
   updateSchema('screens', schemas.screens),
-  updateSchema('looks', schemas.looks),
   updateSchema('themes', schemas.themes),
-  updateSchema('stage-layouts', schemas['stage-layouts']),
   updateSchema('macros', schemas.macros),
   updateSchema('quick', schemas.quick),
   updateSchema('messages', schemas.messages),

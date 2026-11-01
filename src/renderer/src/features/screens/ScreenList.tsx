@@ -139,10 +139,7 @@ export function ScreenList({
   );
   const listRoot = useRef<HTMLDivElement>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
-  const selectScreen = useCallback(
-    (id: string) => select('screen', id),
-    [select],
-  );
+  const selectScreen = useCallback((id: string) => select(id), [select]);
   const windowed = useScreenListWindow({
     root: listRoot,
     sections,
@@ -182,7 +179,7 @@ export function ScreenList({
       <ListBox
         label={LIST_LABEL}
         selected={selected}
-        onSelect={id => select('screen', id)}
+        onSelect={id => select(id)}
       >
         {sections.map(section => {
           const outputsInGroup = groupOutputs(section.kind);

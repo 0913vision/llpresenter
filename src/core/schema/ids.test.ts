@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseScreenId,
-  parseLyricStyleId,
   createThemeId,
   createThemeElementId,
   createItemOverlayId,
@@ -22,13 +21,6 @@ it.each([createThemeId, createThemeElementId, createItemOverlayId])(
     }
   },
 );
-
-it('validates generated lyric style IDs', () => {
-  const value = '00000000-0000-4000-8000-000000000301';
-  expect(parseLyricStyleId(value)).toEqual({ok: true, value});
-  expect(parseLyricStyleId('invalid').ok).toBe(false);
-  expect(parseLyricStyleId(null).ok).toBe(false);
-});
 
 describe('parseScreenId', () => {
   it('accepts a lowercase v4 screen UUID', () => {

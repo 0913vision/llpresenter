@@ -1,4 +1,11 @@
-import type {StageElement} from '../schema/stageLayouts';
+type StageElementKind =
+  | 'currentLabel'
+  | 'currentSlide'
+  | 'clock'
+  | 'timer'
+  | 'nextLabel'
+  | 'nextSlide'
+  | 'stageMessage';
 
 export const STARTER_LYRIC_STYLE = {
   font: 'Pretendard',
@@ -22,7 +29,7 @@ export const STARTER_LYRIC_STYLE = {
   referencePosition: 'bottomRight',
 } as const;
 
-const element = <TKind extends StageElement['kind']>(
+const element = <TKind extends StageElementKind>(
   kind: TKind,
   name: string,
   [x, y, w, h]: readonly [number, number, number, number],

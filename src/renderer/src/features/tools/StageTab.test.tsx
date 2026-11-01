@@ -10,22 +10,11 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {screensDocument} from '@core/testing/screenDocuments';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {useScreensSelection} from '@renderer/features/screens/selection';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {ShowToolsPanel} from './ShowToolsPanel';
 import {StageTab} from './StageTab';
-import {
-  stageFixture,
-  STAGE_ID,
-  LOOK_ID,
-  SERMON_LOOK_ID,
-  WIDE_LAYOUT_ID,
-  TIMER_ID,
-  SECOND_STAGE,
-} from './stageTesting';
+import {stageFixture, TIMER_ID} from './stageTesting';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -47,96 +36,7 @@ async function choose(label: string, option: string): Promise<void> {
 }
 
 describe('stage tool', () => {
-  it('lists editing before layout thumbnails and checks the current layout', async () => {
-    const fixture = stageFixture();
-    const navigate = vi.fn();
-    render(
-      <WorkspaceNavigation value={navigate}>
-        <StageTab />
-      </WorkspaceNavigation>,
-    );
-    const select = await screen.findByRole('button', {
-      name: '무대 화면 무대 배치',
-    });
-    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
-    fireEvent.click(select);
-    const menu = screen.getByRole('menu', {name: '무대 화면 무대 배치'});
-    expect(
-      [...menu.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
-        row =>
-          row.getAttribute('role') === 'separator' ? '|' : row.textContent,
-      ),
-    ).toEqual(['선택한 배치 편집…', '|', '현재와 다음', '하단 자막']);
-    expect(menu.querySelectorAll('svg[viewBox="0 0 1920 1080"]')).toHaveLength(
-      2,
-    );
-    expect(
-      screen
-        .getByRole('menuitemradio', {name: '현재와 다음'})
-        .getAttribute('aria-checked'),
-    ).toBe('true');
-    act(() => fixture.live({stageLayouts: {[STAGE_ID]: WIDE_LAYOUT_ID}}));
-    expect(
-      screen
-        .getByRole('menuitemradio', {name: '하단 자막'})
-        .getAttribute('aria-checked'),
-    ).toBe('true');
-    fireEvent.click(screen.getByRole('menuitem', {name: '선택한 배치 편집…'}));
-    expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
-    expect(useScreensSelection.getState().selection).toEqual({
-      kind: 'stage',
-      id: WIDE_LAYOUT_ID,
-    });
-    expect(fixture.send).not.toHaveBeenCalled();
-    expect(screen.queryByRole('menu')).toBeNull();
-  });
-
-  it('disables editing when the current layout is removed while the menu is open', async () => {
-    const fixture = stageFixture();
-    render(
-      <WorkspaceNavigation value={vi.fn()}>
-        <StageTab />
-      </WorkspaceNavigation>,
-    );
-    const select = await screen.findByRole('button', {
-      name: '무대 화면 무대 배치',
-    });
-    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
-    fireEvent.click(select);
-    act(() =>
-      fixture.push(
-        settingsDocument(
-          'stage-layouts',
-          {
-            format: 'llsettings.stage',
-            layouts: [
-              {
-                id: WIDE_LAYOUT_ID,
-                name: '하단 자막',
-                width: 1920,
-                height: 1080,
-                elements: [],
-              },
-            ],
-          },
-          2,
-        ),
-      ),
-    );
-    expect(
-      screen
-        .getByRole('menuitem', {name: '선택한 배치 편집…'})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
-    fireEvent.click(screen.getByRole('menuitemradio', {name: '하단 자막'}));
-    expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'stage.layout.set',
-      screenId: STAGE_ID,
-      layoutId: WIDE_LAYOUT_ID,
-    });
-  });
-
-  it('mounts only on its tab and releases all five document subscriptions', async () => {
+  it('mounts only on its tab and releases all three document subscriptions', async () => {
     mockPanelTabWidths(300);
     const fixture = stageFixture();
     useShowToolTab.setState({tool: 'message'});
@@ -145,76 +45,14 @@ describe('stage tool', () => {
     fixture.get.mockClear();
     fireEvent.click(screen.getByRole('tab', {name: '무대'}));
     expect(
-      await screen.findByRole('button', {name: '무대 화면 무대 배치'}),
+      await screen.findByRole('button', {name: '무대 타이머'}),
     ).toBeTruthy();
-    expect(fixture.count()).toBe(5);
+    expect(fixture.count()).toBe(3);
     fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
     await waitFor(() => expect(fixture.count()).toBe(2));
     unmount();
     expect(fixture.count()).toBe(0);
     expect(fixture.send).not.toHaveBeenCalled();
-  });
-
-  it('uses the current Look and changes only the chosen stage screen layout', async () => {
-    const fixture = stageFixture();
-    const screens = screensDocument();
-    if (screens.name !== 'screens') throw new Error('Wrong fixture');
-    fixture.documents.set(
-      'screens',
-      settingsDocument('screens', {
-        screens: [
-          ...screens.value.screens,
-          {
-            id: SECOND_STAGE,
-            name: '보조 무대',
-            kind: 'stage',
-            method: 'window',
-          },
-        ],
-      }),
-    );
-    render(<StageTab />);
-    const select = await screen.findByRole('button', {
-      name: '무대 화면 무대 배치',
-    });
-    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
-    expect(
-      screen.queryByRole('button', {name: '본 화면 무대 배치'}),
-    ).toBeNull();
-    await choose('보조 무대 무대 배치', '하단 자막');
-    expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'stage.layout.set',
-      screenId: SECOND_STAGE,
-      layoutId: WIDE_LAYOUT_ID,
-    });
-    expect(fixture.edit).not.toHaveBeenCalled();
-    act(() => fixture.live({stageLayouts: {[STAGE_ID]: WIDE_LAYOUT_ID}}));
-    expect(select.textContent).toBe('하단 자막');
-    act(() => fixture.live({lookId: SERMON_LOOK_ID}));
-    expect(select.textContent).toBe('하단 자막');
-    act(() => fixture.live({lookId: LOOK_ID}));
-    expect(select.textContent).toBe('현재와 다음');
-  });
-
-  it('falls back from a missing live Look and identifies a deleted layout', async () => {
-    const fixture = stageFixture();
-    fixture.live({lookId: SECOND_STAGE});
-    render(<StageTab />);
-    const select = await screen.findByRole('button', {
-      name: '무대 화면 무대 배치',
-    });
-    await waitFor(() => expect(select.textContent).toBe('현재와 다음'));
-    act(() =>
-      fixture.push(
-        settingsDocument(
-          'stage-layouts',
-          {format: 'llsettings.stage', layouts: []},
-          2,
-        ),
-      ),
-    );
-    expect(select.textContent).toBe('삭제된 배치');
-    expect(select.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('selects and clears the live timer without starting it or saving settings', async () => {
@@ -225,7 +63,7 @@ describe('stage tool', () => {
       type: 'stage.timer.set',
       timerId: TIMER_ID,
     });
-    act(() => fixture.live({lookId: SERMON_LOOK_ID, stageTimerId: TIMER_ID}));
+    act(() => fixture.live({stageTimerId: TIMER_ID}));
     expect(screen.getByRole('button', {name: '무대 타이머'}).textContent).toBe(
       '예배 시작',
     );
@@ -245,7 +83,7 @@ describe('stage tool', () => {
   it('sends by button and Enter but does not send during IME composition', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
-    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '  마지막 후렴  '}});
     fireEvent.click(screen.getByRole('button', {name: '보내기'}));
@@ -268,7 +106,7 @@ describe('stage tool', () => {
         <StageTab />
       </div>,
     );
-    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '마지막 후렴'}});
     const enter = (repeat: boolean): boolean =>
@@ -295,7 +133,7 @@ describe('stage tool', () => {
   it('refuses blank and oversized text and accepts the text limit', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
-    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     for (const text of [
       '',
@@ -321,7 +159,7 @@ describe('stage tool', () => {
   it('follows live messages and preset edits while keeping the draft', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
-    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '아직 준비 중'}});
     fireEvent.click(await screen.findByRole('button', {name: '후렴 한 번 더'}));
@@ -369,7 +207,7 @@ describe('stage tool', () => {
   it('disables sends and presets when the stage screen disappears', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
-    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    await screen.findByRole('button', {name: '무대 타이머'});
     act(() => fixture.push(settingsDocument('screens', {screens: []}, 2)));
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '마지막 후렴'}});

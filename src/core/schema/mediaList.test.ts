@@ -2,7 +2,6 @@ import {describe, expectTypeOf, it} from 'vitest';
 import type {MediaId} from './ids';
 import type {Percent, Pixels, Seconds} from './primitives';
 import type {Screen} from './screens';
-import type {StageElement} from './stageLayouts';
 import {
   parseMediaList,
   serializeMediaList,
@@ -172,7 +171,6 @@ describe('media list types', () => {
     expectTypeOf<MediaItem['duration']>().toEqualTypeOf<Seconds | undefined>();
     expectTypeOf<MediaItem['width']>().toEqualTypeOf<Pixels | undefined>();
     expectTypeOf<Screen['edgeMargin']>().toEqualTypeOf<Percent | undefined>();
-    expectTypeOf<StageElement['frame']['x']>().toEqualTypeOf<Pixels>();
     expectTypeOf<Seconds>().not.toExtend<Percent>();
     expectTypeOf<Seconds>().not.toExtend<Pixels>();
     expectTypeOf<Percent>().not.toExtend<Pixels>();

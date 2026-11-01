@@ -46,7 +46,7 @@ export function useScreenRowActions(
     menu !== null,
     action => {
       if (action.kind === 'rename') {
-        select('screen', action.id);
+        select(action.id);
         setRenaming(action.id);
       } else setConfirming(action.id);
     },

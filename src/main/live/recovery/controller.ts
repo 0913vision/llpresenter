@@ -14,7 +14,6 @@ import type {Logger} from '../../log';
 import {isMissingFile} from '../../store/fsErrors';
 import {dispatchBatched, type LiveStore} from '../store';
 import {
-  lookCommands,
   planRecovery,
   type RecoveryContent,
   type RecoverySources,
@@ -161,9 +160,7 @@ export class RecoveryController implements RecoveryPort {
       return failure('invalid-selection', 'A selected row is not offered');
     }
     this.answered = true;
-    const {record, sources} = waiting.offer;
     const commands = [
-      ...lookCommands(record.state, sources.settings),
       ...waiting.steps
         .filter(({row}) => rows.includes(row.kind))
         .flatMap(({commands: rowCommands}) => rowCommands),

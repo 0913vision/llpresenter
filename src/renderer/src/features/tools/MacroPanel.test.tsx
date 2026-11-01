@@ -15,7 +15,6 @@ import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from './MacroPanel';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
-import {LAYOUT_ID} from '@core/testing/screenDocuments';
 
 import {
   id,
@@ -498,7 +497,6 @@ it('lists action kinds in order and opens the theme workspace', async () => {
   ).toEqual([
     '지우기',
     '테마 바꾸기',
-    '무대 화면 배치…',
     '슬라이드 출력 대상',
     '타이머',
     '그래픽',
@@ -535,15 +533,4 @@ it('lists action kinds in order and opens the theme workspace', async () => {
   ).toBe('true');
   fireEvent.click(screen.getByRole('menuitem', {name: '테마 편집…'}));
   expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
-});
-
-it('prevents a second stage-layout action', async () => {
-  fixture([{kind: 'stageLayout', layout: LAYOUT_ID}]);
-  render(<MacroPanel />);
-  await openActionSubmenu('동작 추가');
-  expect(
-    screen
-      .getByRole('menuitem', {name: '무대 화면 배치…'})
-      .getAttribute('aria-disabled'),
-  ).toBe('true');
 });

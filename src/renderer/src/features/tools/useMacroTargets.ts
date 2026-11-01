@@ -38,11 +38,6 @@ export function useMacroTargets(
   onProblem: ((notice: Notice) => void) | undefined,
 ): ReturnType<typeof buildMacroTargets> | null {
   const themes = useSettingsDocument('themes', '테마', onProblem);
-  const layouts = useSettingsDocument(
-    'stage-layouts',
-    '\ubb34\ub300 \ub808\uc774\uc544\uc6c3',
-    onProblem,
-  );
   const props = useSettingsDocument('props', '그래픽', onProblem);
   const messages = useSettingsDocument(
     'messages',
@@ -57,7 +52,6 @@ export function useMacroTargets(
   return useMemo(() => {
     if (
       !themes ||
-      !layouts ||
       !props ||
       !messages ||
       !notices ||
@@ -70,7 +64,6 @@ export function useMacroTargets(
     }
     return buildMacroTargets({
       themes: themes.value,
-      layouts: layouts.value,
       props: props.value,
       messages: messages.value,
       notices: notices.value,
@@ -79,15 +72,5 @@ export function useMacroTargets(
       screens: screens.value.screens,
       media: media.value,
     });
-  }, [
-    themes,
-    layouts,
-    props,
-    messages,
-    notices,
-    timers,
-    macros,
-    screens,
-    media,
-  ]);
+  }, [themes, props, messages, notices, timers, macros, screens, media]);
 }

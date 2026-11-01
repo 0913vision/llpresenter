@@ -76,25 +76,6 @@ describe('starter screen defaults', () => {
     ).toEqual(loaded.document);
   });
 
-  it('uses the same starter identities in default Look references', () => {
-    const parsed = parseSettingsDocument({
-      name: 'looks',
-      value: {
-        format: 'llsettings.looks',
-        schemaVersion: 1,
-        ...settingsDefaults.looks,
-      },
-      access: 'editable',
-      revision: 1,
-    });
-    if (!parsed.ok || parsed.value.name !== 'looks') {
-      throw new Error('Invalid default Look');
-    }
-    expect(
-      Object.keys(parsed.value.value.looks[0]?.screens ?? {}).sort(),
-    ).toEqual(Object.values(STARTER_SCREEN_IDS).sort());
-  });
-
   it('keeps existing custom IDs, names, explicit values and absent optional fields unchanged', async () => {
     const {locations, saver, file} = await setup();
     const original = JSON.stringify({

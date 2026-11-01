@@ -17,7 +17,6 @@ import {sendLive} from '@renderer/session/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useShowToolTab} from './state/showToolTab';
 import {useMacroPalette} from './state/macroPalette';
-import {useScreensSelection} from '@renderer/features/screens/selection';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {MacroViewMode} from './MacroView';
@@ -310,7 +309,7 @@ export function useMacroPanel({
     newCollection: () => setEditor({kind: 'new-collection', item}),
     addAction: actionKind => setEditor({kind: 'action', item, actionKind}),
     chooseAction: (draft, index) => {
-      if (draft.kind === 'message' || draft.kind === 'stageLayout') {
+      if (draft.kind === 'message') {
         setEditor({
           kind: 'action',
           item,
@@ -334,9 +333,6 @@ export function useMacroPanel({
     },
     openAction: action => {
       if (action.kind === 'theme') {
-        navigate?.('screens');
-      } else if (action.kind === 'stageLayout') {
-        useScreensSelection.getState().select('stage', action.layout);
         navigate?.('screens');
       } else if (
         action.kind === 'timer' ||

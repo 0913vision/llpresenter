@@ -8,7 +8,6 @@ import {
 
 const id = '00000000-0000-4000-8000-000000000001';
 const drafts: readonly MacroActionDraft[] = [
-  {kind: 'stageLayout', target: id, screen: id},
   {kind: 'clearAll'},
   {kind: 'clearLayer', target: 'slide'},
   {kind: 'media', target: id},
@@ -73,7 +72,6 @@ it('rejects unsupported actions, bad IDs, operations and message settings', () =
 it('round-trips every editable action and its variants', () => {
   const variants: readonly MacroActionDraft[] = [
     ...drafts,
-    {kind: 'stageLayout', target: id},
     {
       kind: 'clearLayer',
       clearTarget: 'prop',

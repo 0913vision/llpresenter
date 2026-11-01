@@ -66,7 +66,7 @@ function setup(document = screensDocument()) {
 beforeEach(() => {
   drawn.created.length = 0;
   drawn.frames.length = 0;
-  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
+  useScreensSelection.setState({selection: {id: null}});
 });
 
 afterEach(() => {
@@ -112,7 +112,7 @@ describe('the output preview', () => {
     const {patternCommands} = setup();
     await choose('테스트 패턴');
 
-    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
 
     await waitFor(() => expect(patternCommands()).toHaveLength(2));
     expect(patternCommands().at(-1)).toEqual({
@@ -127,29 +127,10 @@ describe('the output preview', () => {
     ).toBe('true');
   });
 
-  it('takes the pattern off when a Look takes the selection', async () => {
-    const {patternCommands} = setup();
-    await choose('테스트 패턴');
-
-    act(() => useScreensSelection.getState().select('look', 'x'));
-
-    expect(patternCommands().at(-1)).toEqual({
-      type: 'screen.testPattern.set',
-      screenId: MAIN_ID,
-      on: false,
-    });
-    expect(drawn.created).toHaveLength(1);
-    expect(
-      screen
-        .getByRole('radio', {name: '화면 내용'})
-        .getAttribute('aria-checked'),
-    ).toBe('true');
-  });
-
   it('keeps the pattern while a property edit pins the same visible screen', async () => {
     const {patternCommands} = setup();
     await choose('테스트 패턴');
-    act(() => useScreensSelection.getState().select('screen', MAIN_ID));
+    act(() => useScreensSelection.getState().select(MAIN_ID));
     expect(patternCommands()).toHaveLength(1);
     expect(
       screen
@@ -157,25 +138,6 @@ describe('the output preview', () => {
         .getAttribute('aria-checked'),
     ).toBe('true');
   });
-
-  it.each(['look', 'stage'] as const)(
-    'keeps a retained-screen pattern when a %s selection is pinned for correction',
-    async kind => {
-      const {patternCommands} = setup();
-      act(() => useScreensSelection.getState().select(kind, 'selected-row'));
-      await choose('테스트 패턴');
-      act(() => useScreensSelection.getState().select('screen', MAIN_ID));
-      expect(patternCommands()).toEqual([
-        {type: 'screen.testPattern.set', screenId: MAIN_ID, on: true},
-      ]);
-      expect(
-        screen
-          .getByRole('radio', {name: '테스트 패턴'})
-          .getAttribute('aria-checked'),
-      ).toBe('true');
-      expect(drawn.created).toHaveLength(1);
-    },
-  );
 
   it('takes the pattern off when the window is going away', async () => {
     const {patternCommands} = setup();
@@ -278,13 +240,5 @@ describe('the output preview', () => {
     await screen.findByText('모니터 2 EPSON 프로젝터');
 
     expect(patternCommands()).toEqual([]);
-  });
-
-  it('retains the previous screen while a Look holds the selection', async () => {
-    useScreensSelection.getState().select('screen', CAPTIONS_ID);
-    useScreensSelection.getState().select('look', 'x');
-    setup();
-
-    expect(await screen.findByText('방송 자막')).toBeDefined();
   });
 });

@@ -181,7 +181,7 @@ export function DisplayLayout({
                   const screenId = box.screenIds.includes(selectedId ?? '')
                     ? selectedId
                     : box.screenIds[0];
-                  if (screenId !== undefined) select('screen', screenId);
+                  if (screenId !== undefined) select(screenId);
                   setPickedMonitor({
                     number: box.number,
                     selection: useScreensSelection.getState().selection,
@@ -216,7 +216,7 @@ export function DisplayLayout({
                     return;
                   }
                   event.preventDefault();
-                  select('screen', screenId);
+                  select(screenId);
                   editor.assign(screenId, monitor);
                 }}
               />

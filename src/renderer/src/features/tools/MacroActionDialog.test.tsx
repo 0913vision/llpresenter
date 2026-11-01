@@ -14,7 +14,6 @@ const target = {id, name: '대상 가'};
 const screens = [{id, name: '본 화면'}];
 const kinds: readonly MacroActionKind[] = [
   'theme',
-  'stageLayout',
   'media',
   'prop',
   'notice',

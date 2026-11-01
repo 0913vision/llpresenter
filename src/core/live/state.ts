@@ -3,13 +3,7 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from '../schema/overlayState';
-import type {
-  LookId,
-  MacroId,
-  ScreenId,
-  StageLayoutId,
-  TimerId,
-} from '../schema/ids';
+import type {MacroId, ScreenId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
 import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
@@ -124,7 +118,6 @@ export interface LiveState {
   /** The audio layer's live volume, from 0 to 100; absent means 100. */
   readonly audioVolume?: number;
   /** The selected Look; absent or null uses the saved current Look. */
-  readonly lookId?: LookId | null;
   readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;
@@ -141,7 +134,6 @@ export interface LiveState {
   /** The screens showing the 테스트 패턴; clears never touch it. Absent means none. */
   readonly testPatterns?: readonly ScreenId[];
   /** Stage layouts chosen for this output, by stage screen, until the next Look change. */
-  readonly stageLayouts?: Readonly<Record<ScreenId, StageLayoutId>>;
   /** The 타이머 the 무대 화면's 타이머 element shows. Absent means none. */
   readonly stageTimerId?: TimerId;
 }

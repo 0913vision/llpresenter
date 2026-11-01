@@ -3,7 +3,6 @@ import {emptyLiveState, type LiveState} from '@core/live/state';
 import {DEFAULT_LYRIC_STYLE} from '@core/looks/lyricStyle';
 import {createItemOverlayId, createMediaId} from '@core/schema/ids';
 import {settingsDocument} from '@core/testing/settingsDocument';
-import {looksDocument} from '@core/testing/screenDocuments';
 import {
   themeElementBase,
   themeFile,
@@ -121,12 +120,8 @@ it.each([
     });
     const api = mockLlpApi({
       settings: {
-        get: ({name}) =>
-          Promise.resolve(
-            name === 'screens'
-              ? settingsDocument('screens', {screens: themeScreens})
-              : looksDocument(),
-          ),
+        get: () =>
+          Promise.resolve(settingsDocument('screens', {screens: themeScreens})),
       },
     });
     let now = 1000;

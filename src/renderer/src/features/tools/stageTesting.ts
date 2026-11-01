@@ -6,29 +6,18 @@ import {emptyLiveState} from '@core/live/state';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {parseLiveState} from '@core/schema/liveState';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {
-  screensDocument,
-  looksDocument,
-  stageLayoutsDocument,
-  STAGE_ID,
-  LOOK_ID,
-  SERMON_LOOK_ID,
-  WIDE_LAYOUT_ID,
-} from '@core/testing/screenDocuments';
+import {screensDocument, STAGE_ID} from '@core/testing/screenDocuments';
 import {useLive} from '@renderer/session/live';
 
-export {STAGE_ID, LOOK_ID, SERMON_LOOK_ID, WIDE_LAYOUT_ID};
+export {STAGE_ID};
 export const TIMER_ID = '00000000-0000-4000-8000-000000000011';
-export const SECOND_STAGE = '00000000-0000-4000-8000-000000000012';
 
 export function stageFixture(overrides: readonly SettingsDocument[] = []) {
   const listeners = new Set<(document: SettingsDocument) => void>();
   const documents = new Map(
     [
       screensDocument(),
-      looksDocument(),
       settingsDocument('themes', themeFile()),
-      stageLayoutsDocument(),
       settingsDocument('timers', {
         timers: [{id: TIMER_ID, name: '예배 시작', kind: 'clock'}],
       }),

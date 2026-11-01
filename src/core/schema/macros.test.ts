@@ -57,7 +57,6 @@ const SUNDAY_COLLECTION = '1a2b3c4d-5e6f-4a0b-9c1d-2e3f4a5b6c7d';
 
 function everyAction() {
   return [
-    {kind: 'stageLayout', screen: STAGE_SCREEN, layout: STAGE_LAYOUT},
     {kind: 'clearAll'},
     {kind: 'clearLayer', layer: 'slide'},
     {kind: 'media', media: WARM_LIGHT},
@@ -130,6 +129,21 @@ describe('parseMacros', () => {
     expectRoundTrip(codec, withActions(everyAction()));
   });
 
+  it('keeps a retired stage layout action as an unknown action', () => {
+    const retired = {
+      kind: 'stageLayout',
+      layout: STAGE_LAYOUT,
+      screen: STAGE_SCREEN,
+    };
+    const loaded = expectSuccess(
+      parseMacros(JSON.stringify(withActions([retired])), 'macros.json'),
+    );
+    const action = loaded.data.macros[0]?.actions[0];
+    expect(action).toMatchObject(retired);
+    expect(action !== undefined && isKnownMacroAction(action)).toBe(false);
+    expectRoundTrip(codec, withActions([retired]));
+  });
+
   it('keeps an action of an unknown kind and tells it apart', () => {
     const camera = {kind: 'camera', input: 2, on: true};
 
@@ -167,7 +181,7 @@ describe('parseMacros', () => {
     ['a clear of nothing', {kind: 'clearLayer'}, 'macros.0.actions.0.layer'],
     [
       'message values that are an array',
-      {...everyAction()[5], values: []},
+      {...everyAction()[4], values: []},
       'macros.0.actions.0.values',
     ],
     [
@@ -182,18 +196,13 @@ describe('parseMacros', () => {
     ],
     [
       'a message to a screen name',
-      {...everyAction()[5], targets: ['본 화면']},
+      {...everyAction()[4], targets: ['본 화면']},
       'macros.0.actions.0.targets',
     ],
     [
       'an unknown timer operation',
       {kind: 'timer', timer: ELAPSED_TIMER, operation: 'stop'},
       'macros.0.actions.0.operation',
-    ],
-    [
-      'a stage layout for a screen name',
-      {kind: 'stageLayout', screen: '무대 화면', layout: STAGE_LAYOUT},
-      'macros.0.actions.0.screen',
     ],
     [
       'a theme name instead of an id',
@@ -212,7 +221,6 @@ describe('parseMacros', () => {
 
   it('reads the actions spec 07 lets leave out a field', () => {
     const shortForms = [
-      {kind: 'stageLayout', layout: STAGE_LAYOUT},
       {kind: 'prop', prop: COUNTDOWN_PROP},
       {kind: 'timer', timer: ELAPSED_TIMER},
       {kind: 'clearLayer', prop: COUNTDOWN_PROP},
@@ -225,7 +233,6 @@ describe('parseMacros', () => {
     const reread: unknown = JSON.parse(written);
 
     expect(loaded.data.macros[0]?.actions).toEqual([
-      {kind: 'stageLayout', layout: STAGE_LAYOUT},
       {kind: 'prop', prop: COUNTDOWN_PROP, mode: 'on'},
       {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
       {kind: 'clearLayer', prop: COUNTDOWN_PROP},

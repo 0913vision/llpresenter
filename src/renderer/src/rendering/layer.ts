@@ -2,10 +2,8 @@ import type {LayerKind, LiveLayers} from '@core/live/state';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from '@core/looks/lyricStyle';
-import type {LookLayer, ScreenAppearance} from '@core/looks/screenLook';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
-import type {StageElement, StageLayout} from '@core/schema/stageLayouts';
 import type {Screen} from '@core/schema/screens';
 import type {
   LiveThemeItem,
@@ -40,14 +38,6 @@ export interface RenderScreen {
   readonly correction?: PictureCorrection;
 }
 
-/** What a 무대 화면 draws with its stage layout. */
-export interface StageFrame {
-  readonly layout: StageLayout;
-  readonly samples?: Readonly<Partial<Record<StageElement['kind'], string>>>;
-  /** The 타이머 the layout's 타이머 element shows; absent shows none. */
-  readonly timerId?: TimerId;
-}
-
 export interface RenderFrame {
   readonly stageTimerId?: TimerId;
   readonly theme?: ThemeFrame;
@@ -58,14 +48,10 @@ export interface RenderFrame {
   readonly transitions?: boolean;
   readonly screen?: RenderScreen;
   readonly stageMessage?: string | null;
-  /** The screen's appearance under the current Look; absent draws as before Looks. */
-  readonly look?: ScreenAppearance;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;
   /** Covers the picture with the 테스트 패턴. */
   readonly testPattern?: boolean;
-  /** A 무대 화면's stage layout; absent draws the lyrics as an audience screen. */
-  readonly stage?: StageFrame;
 }
 
 export interface RenderLayerOptions {
@@ -91,8 +77,8 @@ export interface LayerDefinition {
   readonly kind: string;
   /** Back to front, matching the stacking order in the output specification. */
   readonly order: number;
-  /** The Look switch that shows this layer; absent shows it on every Look. */
-  readonly look?: LookLayer;
+  /** The live layer whose clear fade dims this layer; absent never dims it. */
+  readonly fades?: LayerKind;
   readonly create: (
     parent: HTMLElement,
     options: RenderLayerOptions,

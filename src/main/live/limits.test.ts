@@ -9,6 +9,7 @@ import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {parseMacroId} from '@core/schema/ids';
+import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
 import {recordingLogger} from '../displays/testing';
 import {settingsDefaults} from '../store/settingsDefaults';
 import {LiveStore, dispatchLogged} from './store';
@@ -401,21 +402,6 @@ describe('live admission limits', () => {
   ])(
     'validates settings-derived prop text of length %s before committing it',
     length => {
-      const style = expectSuccess(
-        parseSettingsDocument({
-          name: 'looks',
-          revision: 1,
-          access: 'editable',
-          value: {
-            format: 'llsettings.looks',
-            schemaVersion: 1,
-            ...settingsDefaults.looks,
-          },
-        }),
-      );
-      if (style.name !== 'looks' || style.value.lyricStyles[0] === undefined) {
-        throw new Error('Missing style');
-      }
       const document = expectSuccess(
         parseSettingsDocument({
           name: 'props',
@@ -432,9 +418,9 @@ describe('live admission limits', () => {
                   kind: 'text',
                   text: 'x'.repeat(length),
                   style: {
-                    ...style.value.lyricStyles[0],
-                    shadow: style.value.lyricStyles[0].shadow.on,
-                    outline: style.value.lyricStyles[0].outline.on,
+                    ...STARTER_LYRIC_STYLE,
+                    shadow: STARTER_LYRIC_STYLE.shadow.on,
+                    outline: STARTER_LYRIC_STYLE.outline.on,
                   },
                 },
                 targets: [],

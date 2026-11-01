@@ -19,7 +19,6 @@ import {
   openRecoverySession,
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
-import {registerLookSelection} from './live/lookSelection';
 import {registerThemeOutput} from './live/themes';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
@@ -151,11 +150,6 @@ function start(): void {
         settings: dataStore.settings,
         log,
       });
-      const stopLookSelection = registerLookSelection({
-        store,
-        selection: dataStore,
-        log,
-      });
       const stopThemeOutput = registerThemeOutput({
         store,
         data: dataStore,
@@ -284,7 +278,6 @@ function start(): void {
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop audio', run: stopAudio});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
-      shutdown.add({name: 'stop Look selection', run: stopLookSelection});
       shutdown.add({name: 'stop theme output', run: stopThemeOutput});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});

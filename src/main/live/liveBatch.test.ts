@@ -11,7 +11,7 @@ import {
 import {expectSuccess} from '@core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
-const first = {type: 'look.set', lookId: ID};
+const first = {type: 'theme.set', themeId: ID};
 const second = {type: 'timer.start', timerId: ID};
 
 describe('live batch contracts', () => {

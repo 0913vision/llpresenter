@@ -2,7 +2,6 @@ import type {Result} from '@core/common/result';
 import type {FileError} from '@core/schema/fileFormat';
 import * as bible from '@core/schema/bible';
 import * as labels from '@core/schema/labels';
-import * as looks from '@core/schema/looks';
 import * as themes from '@core/schema/themes';
 import * as macros from '@core/schema/macros';
 import * as messages from '@core/schema/messages';
@@ -12,7 +11,6 @@ import * as props from '@core/schema/props';
 import * as quick from '@core/schema/quick';
 import * as screens from '@core/schema/screens';
 import * as shortcuts from '@core/schema/shortcuts';
-import * as stage from '@core/schema/stageLayouts';
 import * as timers from '@core/schema/timers';
 import type {
   SettingsDocument,
@@ -43,16 +41,10 @@ export const settingsCodecs = {
     screens.parseScreens,
     screens.serializeScreens,
   ),
-  looks: codec('llsettings.looks', looks.parseLooks, looks.serializeLooks),
   themes: codec(
     'llsettings.themes',
     themes.parseThemes,
     themes.serializeThemes,
-  ),
-  'stage-layouts': codec(
-    'llsettings.stage',
-    stage.parseStageLayouts,
-    stage.serializeStageLayouts,
   ),
   macros: codec(
     'llsettings.macros',

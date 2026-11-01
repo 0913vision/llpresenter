@@ -4,8 +4,6 @@ function objectCommands(document: SettingsDocument): readonly string[] {
   switch (document.name) {
     case 'macros':
       return document.value.macros.map(item => `macro.${item.id}`);
-    case 'looks':
-      return document.value.looks.map(item => `look.${item.id}`);
     case 'themes':
       return document.value.themes.map(item => `theme.${item.id}`);
     case 'props':
@@ -28,7 +26,6 @@ function objectCommands(document: SettingsDocument): readonly string[] {
     case 'notices':
     case 'preferences':
     case 'shortcuts':
-    case 'stage-layouts':
       return [];
   }
 }

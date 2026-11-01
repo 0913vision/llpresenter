@@ -134,7 +134,7 @@ it('mounts only on the message tab and releases both document subscriptions', as
     'screens',
   ]);
   fireEvent.click(screen.getByRole('tab', {name: '무대'}));
-  await waitFor(() => expect(fixture.count()).toBe(5));
+  await waitFor(() => expect(fixture.count()).toBe(3));
   unmount();
   expect(fixture.count()).toBe(0);
   expect(fixture.send).not.toHaveBeenCalled();

@@ -14,7 +14,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
         name: '매크로',
         color: 'teal',
         icon: 'macro',
-        actions: [{kind: 'stageLayout', layout: id}],
+        actions: [{kind: 'theme', theme: id}],
       },
     ],
     collections: [{id, name: '모음', macroIds: [id]}],
@@ -55,9 +55,6 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
   const kinds = menuItems(
     rows().find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  expect(kinds.find(row => row.id === 'stageLayout')?.title).toBe(
-    '무대 배치 동작이 이미 있음',
-  );
   expect(kinds.find(row => row.id === 'theme')?.title).toBe(
     '대상을 불러오고 있습니다',
   );
@@ -76,7 +73,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
       },
     }).find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  for (const id of ['clear', 'theme', 'stageLayout']) {
+  for (const id of ['clear', 'theme']) {
     expect(full.find(row => row.id === id)?.title).toBe('동작 한도 도달');
   }
   expect(

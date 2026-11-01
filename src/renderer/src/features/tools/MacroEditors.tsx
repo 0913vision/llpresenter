@@ -83,11 +83,7 @@ function ActionDialog({
     <MacroActionDialog
       kind={editor.actionKind}
       choices={targets.choices}
-      screens={
-        editor.actionKind === 'stageLayout'
-          ? targets.stageScreens
-          : targets.screens
-      }
+      screens={targets.screens}
       initial={
         editor.initial ??
         (previous && isKnownMacroAction(previous)

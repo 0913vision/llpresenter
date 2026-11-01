@@ -1,7 +1,6 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {createMessageId, createMediaId, parseLookId} from '@core/schema/ids';
-import {expectSuccess} from '@core/schema/testHelpers';
+import {createMessageId, createMediaId} from '@core/schema/ids';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
@@ -36,7 +35,6 @@ function setup(changes: Partial<LiveState> = {}) {
   const initial = emptyLiveState();
   const parsed = parseLiveState({
     ...initial,
-    lookId: expectSuccess(parseLookId(overlayUuid(500))),
     stageMessage: 'One more chorus',
     outputs: {[MAIN]: true},
     layers: {
@@ -117,7 +115,6 @@ it('takes one message off all its screens and pauses only that message for undo'
   expect(store.state.layers.media).toBe(original.layers.media);
   expect(store.state.layers.prop).toBe(original.layers.prop);
   expect(store.state.outputs).toBe(original.outputs);
-  expect(store.state.lookId).toBe(original.lookId);
   expect(store.state.canUndo).toBe(false);
 });
 

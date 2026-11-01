@@ -63,7 +63,7 @@ export function useScreenCreation(
           latest.current === id.value &&
           current.selection === previous
         ) {
-          current.select('screen', id.value);
+          current.select(id.value);
         }
       })
       .catch(report);

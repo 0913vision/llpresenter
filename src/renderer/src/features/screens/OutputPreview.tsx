@@ -9,11 +9,7 @@ import {
   signalText,
   type PreviewCaption,
 } from './previewCaption';
-import {
-  useScreenView,
-  useScreensSelection,
-  type ScreensSelection,
-} from './selection';
+import {useScreenView} from './selection';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
@@ -54,27 +50,11 @@ function useTestPatternOnOutput(
 function PreviewBody({
   screen,
   caption,
-  selection,
 }: {
   readonly screen: Screen;
   readonly caption: PreviewCaption;
-  readonly selection: ScreensSelection;
 }): JSX.Element {
-  const selectionKey =
-    selection.kind === 'screen'
-      ? `screen:${screen.id}`
-      : `${selection.kind}:${selection.id}`;
-  const [preview, setPreview] = useState<{
-    selectionKey: string;
-    mode: PreviewMode;
-  }>({selectionKey, mode: 'content'});
-  const mode =
-    selection.kind === 'screen' || preview.selectionKey === selectionKey
-      ? preview.mode
-      : 'content';
-  if (preview.selectionKey !== selectionKey) {
-    setPreview({selectionKey, mode});
-  }
+  const [mode, setMode] = useState<PreviewMode>('content');
   const [watchPicture, available] = useElementSize();
   const picture =
     available === undefined
@@ -88,7 +68,7 @@ function PreviewBody({
         label={MODE_LABEL}
         options={MODE_OPTIONS}
         value={mode}
-        onChange={mode => setPreview({selectionKey, mode})}
+        onChange={setMode}
         fill
         className={styles.mode}
       />
@@ -125,7 +105,6 @@ export function OutputPreview({
 }): JSX.Element | null {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const monitors = useMonitors();
-  const selection = useScreensSelection(view => view.selection);
   const selected = useScreenView(document?.value.screens ?? noScreens);
   const caption = useMemo(
     () =>
@@ -133,12 +112,5 @@ export function OutputPreview({
     [selected, monitors],
   );
   if (selected === undefined || caption === undefined) return null;
-  return (
-    <PreviewBody
-      key={selected.id}
-      screen={selected}
-      caption={caption}
-      selection={selection}
-    />
-  );
+  return <PreviewBody key={selected.id} screen={selected} caption={caption} />;
 }

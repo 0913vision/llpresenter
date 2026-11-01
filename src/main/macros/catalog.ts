@@ -5,7 +5,6 @@ import type {MessagesFile} from '@core/schema/messages';
 import type {NoticesFile} from '@core/schema/notices';
 import type {PropsFile} from '@core/schema/props';
 import type {ScreensFile} from '@core/schema/screens';
-import type {StageLayoutsFile} from '@core/schema/stageLayouts';
 import type {TimersFile} from '@core/schema/timers';
 import type {ThemesFile} from '@core/schema/themes';
 
@@ -17,7 +16,6 @@ export interface MacroCatalog {
   readonly notices: NoticesFile;
   readonly props: PropsFile;
   readonly screens: ScreensFile;
-  readonly layouts: StageLayoutsFile;
   readonly timers: TimersFile;
 }
 
@@ -31,7 +29,6 @@ export function readMacroCatalog(
   const notices = settings.get('notices');
   const props = settings.get('props');
   const screens = settings.get('screens');
-  const layouts = settings.get('stage-layouts');
   const timers = settings.get('timers');
   if (
     macros.name !== 'macros' ||
@@ -40,7 +37,6 @@ export function readMacroCatalog(
     notices.name !== 'notices' ||
     props.name !== 'props' ||
     screens.name !== 'screens' ||
-    layouts.name !== 'stage-layouts' ||
     timers.name !== 'timers'
   ) {
     throw new Error('Macro settings are unavailable');
@@ -53,7 +49,6 @@ export function readMacroCatalog(
     notices: notices.value,
     props: props.value,
     screens: screens.value,
-    layouts: layouts.value,
     timers: timers.value,
   };
 }

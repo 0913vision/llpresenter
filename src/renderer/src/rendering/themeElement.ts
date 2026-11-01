@@ -10,7 +10,7 @@ import {
 } from '@core/themes/content';
 import {BackgroundLayerView} from './backgroundLayer';
 import {SlideLayerView} from './slideLayer';
-import {stageClockText} from './stageLayout';
+import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
@@ -160,11 +160,10 @@ export class ThemeElementView {
     } else {
       const timer =
         element.kind === 'timer' &&
-        (element.timerId ?? frame.stageTimerId ?? frame.stage?.timerId) !==
-          undefined &&
+        (element.timerId ?? frame.stageTimerId) !== undefined &&
         frame.timers !== undefined
           ? fillTimerTokens(
-              `{timer:${element.timerId ?? frame.stageTimerId ?? frame.stage?.timerId}}`,
+              `{timer:${element.timerId ?? frame.stageTimerId}}`,
               frame.timers,
               frame.timers.now(),
             )

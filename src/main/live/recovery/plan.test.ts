@@ -22,15 +22,13 @@ import {
   SERVICE,
   SONG_ITEM,
 } from '../testing/recovery';
-import {lookCommands, planRecovery} from './plan';
+import {planRecovery} from './plan';
 
 const NDI_SCREEN = overlayUuid(40);
 const REMOVED_SCREEN = overlayUuid(41);
 const REMOVED_PROP = overlayUuid(42);
 const MEDIA = createMediaId(overlayUuid(43));
 const FIRST_IMAGE = createMediaId(overlayUuid(30));
-const KEPT_LOOK = overlayUuid(47);
-const DELETED_LOOK = overlayUuid(48);
 
 function sources() {
   const settings = overlaySettings();
@@ -217,7 +215,6 @@ describe('recovery plan', () => {
             props: 1,
             stageMessages: 1,
             notices: 1,
-            stageLayouts: 0,
           },
         },
         commands: [
@@ -307,26 +304,6 @@ describe('recovery plan', () => {
         commands: [{type: 'message.show', message: layer}],
       },
     ]);
-  });
-
-  it('applies the recorded Look only while it still exists', () => {
-    const fixture = sources();
-    const look = (id: string, name: string) => ({id, name, screens: {}});
-    fixture.update(
-      settingsDocument('looks', {
-        current: KEPT_LOOK,
-        looks: [look(KEPT_LOOK, 'Kept')],
-        lyricStyles: [],
-      }),
-    );
-    const lookOf = (lookId: string | null) =>
-      lookCommands(recoveryRecordOf({lookId}).state, fixture.settings);
-    expect(lookOf(KEPT_LOOK)).toEqual([{type: 'look.set', lookId: KEPT_LOOK}]);
-    expect(lookOf(DELETED_LOOK)).toEqual([]);
-    expect(lookOf(null)).toEqual([]);
-    expect(lookCommands(recoveryRecordOf({}).state, fixture.settings)).toEqual(
-      [],
-    );
   });
 
   it('lists the rows in the order they are applied', () => {

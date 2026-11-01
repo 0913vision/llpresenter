@@ -19,7 +19,6 @@ export const IDS = {
   main: uuid(1),
   stage: uuid(3),
   look: uuid(4),
-  layout: uuid(5),
   video: uuid(9),
   audio: uuid(10),
   playlist: uuid(11),

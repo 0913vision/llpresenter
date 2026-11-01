@@ -31,7 +31,6 @@ const allRows = [
       props: 1,
       stageMessages: 1,
       notices: 0,
-      stageLayouts: 0,
     },
   },
 ] as const;

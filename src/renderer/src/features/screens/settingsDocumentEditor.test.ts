@@ -1,13 +1,14 @@
 import {expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@contracts/ipc/testing/mockLlpApi';
-import {looksDocument} from '@core/testing/screenDocuments';
+import {settingsDocument} from '@core/testing/settingsDocument';
+import {themeFile} from '@core/testing/themeOutput';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {SettingsDocumentEditor} from './settingsDocumentEditor';
 
 it('retains applied revisions but requires disk success for rename completion', async () => {
-  const initial = looksDocument();
-  if (initial.name !== 'looks') throw Error('Expected Looks');
+  const initial = settingsDocument('themes', themeFile());
+  if (initial.name !== 'themes') throw Error('Expected themes');
   let revision = initial.revision;
   const edit = vi.fn<LlpApi['settings']['edit']>().mockImplementation(() =>
     Promise.resolve({
@@ -15,24 +16,24 @@ it('retains applied revisions but requires disk success for rename completion', 
       error: {
         reason: 'write-failed',
         message: 'Invented disk failure',
-        applied: {id: 'looks', revision: ++revision},
-        unchangedFiles: ['looks.json'],
+        applied: {id: 'themes', revision: ++revision},
+        unchangedFiles: ['themes.json'],
       },
     }),
   );
   const report = vi.fn();
-  const editor = new SettingsDocumentEditor<NamedDocument<'looks'>>(
+  const editor = new SettingsDocumentEditor<NamedDocument<'themes'>>(
     mockLlpApi({settings: {edit}}),
     {
       update: (base, value) => ({
         type: 'settings.update',
-        name: 'looks',
+        name: 'themes',
         value,
         baseRevision: base.revision,
       }),
       report,
       failureTitle: '저장 실패',
-      logMessage: 'Could not save Looks',
+      logMessage: 'Could not save themes',
     },
   );
   editor.adopt(initial);
@@ -48,8 +49,8 @@ it('retains applied revisions but requires disk success for rename completion', 
 });
 
 it('writes an unchanged retry at the applied revision until saving succeeds', async () => {
-  const initial = looksDocument();
-  if (initial.name !== 'looks') throw Error('Expected Looks');
+  const initial = settingsDocument('themes', themeFile());
+  if (initial.name !== 'themes') throw Error('Expected themes');
   let revision = 1;
   const edit = vi.fn<LlpApi['settings']['edit']>().mockImplementation(() =>
     Promise.resolve({
@@ -57,23 +58,23 @@ it('writes an unchanged retry at the applied revision until saving succeeds', as
       error: {
         reason: 'write-failed',
         message: 'Invented disk failure',
-        applied: {id: 'looks', revision: ++revision},
-        unchangedFiles: ['looks.json'],
+        applied: {id: 'themes', revision: ++revision},
+        unchangedFiles: ['themes.json'],
       },
     }),
   );
-  const editor = new SettingsDocumentEditor<NamedDocument<'looks'>>(
+  const editor = new SettingsDocumentEditor<NamedDocument<'themes'>>(
     mockLlpApi({settings: {edit}}),
     {
       update: (base, value) => ({
         type: 'settings.update',
-        name: 'looks',
+        name: 'themes',
         value,
         baseRevision: base.revision,
       }),
       report: vi.fn(),
       failureTitle: '저장 실패',
-      logMessage: 'Could not save Looks',
+      logMessage: 'Could not save themes',
     },
   );
   editor.adopt(initial);
@@ -83,7 +84,7 @@ it('writes an unchanged retry at the applied revision until saving succeeds', as
   const applied = editor.getSnapshot();
   editor.adopt(applied);
   expect(await editor.change(value => value, 'saved')).toBe(false);
-  edit.mockResolvedValueOnce({ok: true, value: {id: 'looks', revision: 4}});
+  edit.mockResolvedValueOnce({ok: true, value: {id: 'themes', revision: 4}});
   expect(await editor.change(value => value, 'saved')).toBe(true);
   expect(
     edit.mock.calls.map(([command]) =>

@@ -15,7 +15,6 @@ export interface PaletteGroup {
 
 const PALETTE_ORDER: readonly MacroActionKind[] = [
   'theme',
-  'stageLayout',
   'clearAll',
   'clearLayer',
   'media',

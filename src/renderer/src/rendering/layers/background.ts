@@ -4,7 +4,7 @@ import {defineLayer} from '../layer';
 export const backgroundLayer = defineLayer({
   kind: 'background',
   order: 0,
-  look: 'media',
+  fades: 'media',
   create: (parent, options) => {
     const view = new BackgroundLayerView(parent, options);
     return {

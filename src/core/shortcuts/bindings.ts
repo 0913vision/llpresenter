@@ -15,7 +15,7 @@ export function objectShortcutCommand(
   name = '',
 ): ShortcutCommand | undefined {
   const match =
-    /^(theme|look|prop|macro|quick|output\.screen|preview\.focus|timer)\.([0-9a-f-]{36})(?:\.(toggle|reset))?$/.exec(
+    /^(theme|prop|macro|quick|output\.screen|preview\.focus|timer)\.([0-9a-f-]{36})(?:\.(toggle|reset))?$/.exec(
       id,
     );
   const kind = match?.[1];
@@ -24,7 +24,6 @@ export function objectShortcutCommand(
   }
   const groups: Readonly<Record<string, string>> = {
     theme: '테마',
-    look: 'Look',
     prop: '그래픽',
     macro: '매크로',
     quick: '퀵 실행',

@@ -20,8 +20,6 @@ import {
   messageTemplateIdSchema,
   noticeSetIdSchema,
   propIdSchema,
-  screenIdSchema,
-  stageLayoutIdSchema,
   timerIdSchema,
   themeIdSchema,
 } from './ids';
@@ -48,7 +46,6 @@ export const MACRO_FILE_LIMITS = {
 
 /** The 매크로 action kinds of `docs/spec/07-macros.md`. */
 export const macroActionKinds = [
-  'stageLayout',
   'clearAll',
   'clearLayer',
   'media',
@@ -82,11 +79,6 @@ const clearBothSchema = v.never(
 
 const actionSchemas = {
   theme: jsonObject({kind: v.literal('theme'), theme: themeIdSchema}),
-  stageLayout: jsonObject({
-    kind: v.literal('stageLayout'),
-    screen: v.exactOptional(screenIdSchema),
-    layout: stageLayoutIdSchema,
-  }),
   clearAll: jsonObject({
     kind: v.literal('clearAll'),
     transition: v.exactOptional(clearFadeSchema),
@@ -144,7 +136,6 @@ const actionSchemas = {
 
 const knownActionSchema = v.union([
   actionSchemas.theme,
-  actionSchemas.stageLayout,
   actionSchemas.clearAll,
   actionSchemas.clearLayer,
   actionSchemas.media,
@@ -212,8 +203,7 @@ export type Macro = MacrosFile['macros'][number];
 export type MacroCollection = MacrosFile['collections'][number];
 
 /**
- * One action of a 매크로. A `stageLayout` action without `screen` changes the
- * 무대 화면. A `prop` action without `mode` turns the 소품 on, and a `timer`
+ * One action of a 매크로. A `prop` action without `mode` turns the 소품 on, and a `timer`
  * action without `operation` starts it; reading fills in those two, so the
  * file gets them on the next write. A `clearLayer` action names a layer, or one
  * 소품 to turn off. An action of a kind this version doesn't know is kept

@@ -95,7 +95,7 @@ function setup({
 }
 
 beforeEach(() => {
-  useScreensSelection.setState({selection: {kind: 'screen', id: null}});
+  useScreensSelection.setState({selection: {id: null}});
 });
 
 afterEach(() => {
@@ -116,7 +116,7 @@ describe('the screen properties', () => {
         'value',
       ),
     ).toBe('#000000');
-    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
     const color = await screen.findByRole('textbox', {name: '빈 화면 색'});
     expect(color.getAttribute('value')).toBe('#00B140');
     await userEvent.clear(color);
@@ -208,7 +208,7 @@ describe('the screen properties', () => {
 
   it('locks the capture resolution for a read-only file', async () => {
     useScreensSelection.setState({
-      selection: {kind: 'screen', id: CAPTIONS_ID},
+      selection: {id: CAPTIONS_ID},
     });
     const {edits} = setup({access: 'readOnly'});
     await nameField();
@@ -241,7 +241,7 @@ describe('the screen properties', () => {
 
   it('hides the device row for capture windows', async () => {
     useScreensSelection.setState({
-      selection: {kind: 'screen', id: CAPTIONS_ID},
+      selection: {id: CAPTIONS_ID},
     });
     setup();
     await nameField();
@@ -302,7 +302,7 @@ describe('the screen properties', () => {
     await user.type(first, '공통 이름{Enter}');
     await waitFor(() => expect(edits).toHaveLength(1));
 
-    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
     const second = await nameField();
     await user.clear(second);
     await user.type(second, '공통 이름{Enter}');
@@ -402,7 +402,7 @@ describe('the screen properties', () => {
 
   it('offers the capture sizes for a capture window and saves the choice', async () => {
     useScreensSelection.setState({
-      selection: {kind: 'screen', id: CAPTIONS_ID},
+      selection: {id: CAPTIONS_ID},
     });
     const {savedScreens} = setup();
     const user = userEvent.setup();
@@ -434,24 +434,4 @@ describe('the screen properties', () => {
       expect(savedScreens()[0]?.offset).toEqual({x: -30, y: 0}),
     );
   });
-
-  it('retains the previous screen while a Look holds the selection', async () => {
-    useScreensSelection.getState().select('screen', CAPTIONS_ID);
-    useScreensSelection.getState().select('look', 'x');
-    setup();
-
-    expect((await nameField()).getAttribute('value')).toBe('방송 자막');
-  });
-});
-
-it('keeps a screen name draft on modified Enter', async () => {
-  const {edits} = setup();
-  const field = await nameField();
-  field.focus();
-  fireEvent.change(field, {target: {value: 'Revised screen'}});
-  fireEvent.keyDown(field, {key: 'Enter', ctrlKey: true});
-  expect(document.activeElement).toBe(field);
-  expect(edits).toHaveLength(0);
-  fireEvent.keyDown(field, {key: 'Enter'});
-  await waitFor(() => expect(edits).toHaveLength(1));
 });

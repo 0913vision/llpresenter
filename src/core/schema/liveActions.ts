@@ -2,14 +2,11 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {
   audioPlaylistIdSchema,
-  lookIdSchema,
   macroIdSchema,
   mediaIdSchema,
   noticeSetIdSchema,
   propIdSchema,
-  screenIdSchema,
   serviceItemIdSchema,
-  stageLayoutIdSchema,
   timerIdSchema,
   themeIdSchema,
 } from './ids';
@@ -40,12 +37,6 @@ export const liveActionOptions = [
   v.object({type: v.literal('theme.set'), themeId: themeIdSchema}),
   v.object({type: v.literal('themes.refresh')}),
   v.object({type: v.literal('item.stop')}),
-  v.object({type: v.literal('look.set'), lookId: lookIdSchema}),
-  v.object({
-    type: v.literal('stage.layout.set'),
-    screenId: v.exactOptional(screenIdSchema),
-    layoutId: stageLayoutIdSchema,
-  }),
   v.object({
     type: v.literal('stage.timer.set'),
     timerId: v.nullable(timerIdSchema),

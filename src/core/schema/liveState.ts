@@ -2,13 +2,7 @@ import * as v from 'valibot';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {
-  lookIdSchema,
-  macroIdSchema,
-  screenIdSchema,
-  stageLayoutIdSchema,
-  timerIdSchema,
-} from './ids';
+import {macroIdSchema, screenIdSchema, timerIdSchema} from './ids';
 import {
   LIVE_STATE_LIMITS,
   liveTextSchema,
@@ -100,7 +94,6 @@ export const liveStateSchema = payloadObject({
     v.pipe(count, v.maxValue(Number.MAX_SAFE_INTEGER)),
   ),
   audioVolume: v.exactOptional(percent),
-  lookId: v.exactOptional(v.nullable(lookIdSchema)),
   stageMessage: v.exactOptional(v.nullable(liveNonBlankTextSchema)),
   version: count,
   layers: payloadObject({
@@ -134,12 +127,6 @@ export const liveStateSchema = payloadObject({
         screens => new Set(screens).size === screens.length,
         'Expected each screen once',
       ),
-    ),
-  ),
-  stageLayouts: v.exactOptional(
-    v.pipe(
-      v.record(screenIdSchema, stageLayoutIdSchema),
-      v.maxEntries(LIVE_STATE_LIMITS.outputs),
     ),
   ),
   stageTimerId: v.exactOptional(timerIdSchema),

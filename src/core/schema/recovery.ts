@@ -45,7 +45,6 @@ const showingCountsSchema = v.pipe(
     props: nonNegativeInteger,
     stageMessages: nonNegativeInteger,
     notices: nonNegativeInteger,
-    stageLayouts: nonNegativeInteger,
   }),
   v.check(
     counts => Object.values(counts).some(count => count > 0),

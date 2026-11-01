@@ -397,7 +397,7 @@ export function ScreenProperties({
       monitors={monitors}
       rename={name => {
         if (reason !== undefined) return;
-        select('screen', selected.id);
+        select(selected.id);
         save
           .rename(selected.id, name)
           .then(result => {
@@ -431,14 +431,14 @@ export function ScreenProperties({
       }}
       assign={target => {
         if (reason !== undefined) return;
-        select('screen', selected.id);
+        select(selected.id);
         save.assign(selected.id, target);
       }}
       change={change => {
         if (reason !== undefined) return;
         // NOTE(0913vision): A change of kind moves the screen to the other
         // group, which would move the fallback selection to another screen.
-        select('screen', selected.id);
+        select(selected.id);
         save.change(selected.id, change);
       }}
     />

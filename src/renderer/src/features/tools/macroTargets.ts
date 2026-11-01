@@ -18,7 +18,6 @@ interface Named {
 
 export interface MacroTargetSources {
   readonly themes: {readonly themes: readonly Named[]};
-  readonly layouts: {readonly layouts: readonly Named[]};
   readonly props: {readonly props: readonly Named[]};
   readonly messages: {
     readonly templates: ReadonlyArray<Named & {readonly text: string}>;
@@ -64,12 +63,10 @@ export function buildMacroTargets(source: MacroTargetSources): {
     Readonly<Record<MacroActionKind, readonly MacroTargetChoice[]>>
   >;
   readonly screens: readonly MacroTargetChoice[];
-  readonly stageScreens: readonly MacroTargetChoice[];
 } {
   return {
     choices: {
       theme: choices(source.themes.themes),
-      stageLayout: choices(source.layouts.layouts),
       clearLayer: [
         ...layers,
         ...source.props.props.map(({id, name}) => ({
@@ -93,8 +90,5 @@ export function buildMacroTargets(source: MacroTargetSources): {
       macro: choices(source.macros.macros),
     },
     screens: choices(source.screens),
-    stageScreens: choices(
-      source.screens.filter(screen => screen.kind === 'stage'),
-    ),
   };
 }

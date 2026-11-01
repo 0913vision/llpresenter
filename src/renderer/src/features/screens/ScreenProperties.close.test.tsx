@@ -16,7 +16,7 @@ const requestId = createAppFlushRequestId(
 let session: ControlSession | undefined;
 
 beforeEach(() => {
-  useScreensSelection.setState({selection: {kind: 'screen', id: MAIN_ID}});
+  useScreensSelection.setState({selection: {id: MAIN_ID}});
 });
 
 afterEach(async () => {

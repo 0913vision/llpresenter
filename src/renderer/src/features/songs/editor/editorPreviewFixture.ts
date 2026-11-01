@@ -2,47 +2,8 @@ import {createDefaultThemes} from '@core/themes/defaults';
 import {settingsDocument} from '@core/testing/settingsDocument';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {DEFAULT_MESSAGE_STYLE} from '@core/schema/looks';
-const DEFAULT_LYRIC_STYLE = {
-  ...DEFAULT_MESSAGE_STYLE,
-  referencePosition: 'bottomRight' as const,
-};
-
-const STYLE_ID = '00000000-0000-4000-8000-000000000010';
-
-/** Checked current-Look documents for editor tests and offscreen previews. */
+/** Checked screen and theme documents for editor tests and offscreen previews. */
 export function editorPreviewFixture() {
-  const looks = parseSettingsDocument({
-    name: 'looks',
-    revision: 1,
-    access: 'editable',
-    value: {
-      format: 'llsettings.looks',
-      schemaVersion: 1,
-      current: STYLE_ID,
-      looks: [
-        {
-          id: STYLE_ID,
-          name: '기본',
-          screens: {
-            [STARTER_SCREEN_IDS.main]: {
-              layers: {slide: true, media: true},
-              lyricStyle: STYLE_ID,
-            },
-            [STARTER_SCREEN_IDS.stage]: {
-              layers: {slide: true},
-              lyricStyle: STYLE_ID,
-            },
-            [STARTER_SCREEN_IDS.broadcast]: {
-              layers: {slide: true},
-              lyricStyle: STYLE_ID,
-            },
-          },
-        },
-      ],
-      lyricStyles: [{...DEFAULT_LYRIC_STYLE, id: STYLE_ID, name: '기본 가사'}],
-    },
-  });
   const screens = parseSettingsDocument({
     name: 'screens',
     revision: 1,
@@ -58,12 +19,7 @@ export function editorPreviewFixture() {
       })),
     },
   });
-  if (
-    !looks.ok ||
-    looks.value.name !== 'looks' ||
-    !screens.ok ||
-    screens.value.name !== 'screens'
-  ) {
+  if (!screens.ok || screens.value.name !== 'screens') {
     throw new Error('Invalid preview fixture');
   }
   const themes = settingsDocument(
@@ -71,5 +27,5 @@ export function editorPreviewFixture() {
     createDefaultThemes(screens.value.value.screens),
   );
   if (themes.name !== 'themes') throw new Error('Invalid theme fixture');
-  return {looks: looks.value, screens: screens.value, themes};
+  return {screens: screens.value, themes};
 }
