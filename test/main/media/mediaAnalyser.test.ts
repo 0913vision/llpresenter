@@ -6,7 +6,7 @@ import {
   THUMBNAIL_DATA_URL_PREFIX,
   type AnalysisJob,
 } from '@core/schema/mediaAnalysis';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {AnalysisFiles} from '@main/media/analysisFiles';
 import {
   ANALYSIS_IDLE_CLOSE_MS,

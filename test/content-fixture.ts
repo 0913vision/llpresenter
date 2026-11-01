@@ -5,7 +5,7 @@ import {
   type DocumentFiles,
 } from '../src/main/store/contentStore';
 import {resolveLocations} from '../src/main/store/locations';
-import {recordingLogger} from '../src/main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SettingsStore} from '../src/main/store/settingsStore';
 import {parseSettingsDocument} from '../src/core/schema/settingsDocuments';
 import type {

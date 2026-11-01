@@ -8,7 +8,7 @@ import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import type {UiStateFields} from '@main/store/appConfigFile';
 import type {

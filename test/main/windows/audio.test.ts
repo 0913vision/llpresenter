@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import type {MediaStore} from '@main/store/mediaStore';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {registerAudioOutput} from '@main/windows/audio';
 import {loadPage, startLoading} from '@main/windows/page';

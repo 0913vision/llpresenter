@@ -10,7 +10,7 @@ import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import {createMediaId, type MediaId} from '@core/schema/ids';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ThumbnailCache} from '@main/media/thumbnailCache';
 
 const mediaId = (index: number): MediaId =>

@@ -4,7 +4,7 @@ import {join, relative} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {makeTempDir} from '../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   createFileResponse,
   createMediaHandler,

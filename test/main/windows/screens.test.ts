@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {AppConfig} from '@core/schema/appConfig';
 import {windowEndpoints} from '@contracts/ipc/window';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {MAIN} from '@fixtures/core/overlays';
 import {registerScreensWindow} from '@main/windows/screens';

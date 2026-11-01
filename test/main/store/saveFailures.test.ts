@@ -1,7 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '../../mock-clock';
 import type {AppProblem} from '@core/schema/appProblem';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from '@main/store/saveFailures';
 
 function setup() {

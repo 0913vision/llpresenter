@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {numberMonitors} from '@main/displays/monitor';
 import type {Rect} from '@main/displays/rect';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   MONITOR_NUMBER_MS,
   MONITOR_NUMBER_SIDE,

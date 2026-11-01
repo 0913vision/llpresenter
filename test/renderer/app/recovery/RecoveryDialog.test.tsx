@@ -2,7 +2,7 @@ import {cleanup, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {RecoveryDialog} from '@renderer/app/recovery/RecoveryDialog';
-import {sampleOffer} from '@renderer/app/recovery/testing';
+import {sampleOffer} from '@fixtures/renderer/app/recovery/testing';
 
 afterEach(cleanup);
 

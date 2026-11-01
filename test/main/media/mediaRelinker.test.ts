@@ -10,7 +10,7 @@ import {
 } from '@core/schema/mediaEdit';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import type {MediaItemsCommit} from '@main/store/mediaStore';
 import type {MediaKind} from '@main/media/mediaKinds';

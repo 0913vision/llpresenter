@@ -5,7 +5,7 @@ import {parseLiveState} from '@core/schema/liveState';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createMediaId} from '@core/schema/ids';
 import {audioPositionSeconds} from '@core/schema/audioState';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {connectMediaPlayback} from '@main/live/mediaPlayback';
 import {LiveStore} from '@main/live/store';
 

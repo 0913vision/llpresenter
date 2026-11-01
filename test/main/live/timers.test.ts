@@ -5,7 +5,7 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
 import {localDay, timerText} from '@core/timers/timerClock';
 import {parseTimers} from '@core/schema/timers';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {MAIN, overlaySettings, overlayUuid} from '@fixtures/core/overlays';
 

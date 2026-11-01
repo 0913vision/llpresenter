@@ -2,7 +2,7 @@ import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../temp-dir';
 import type {BibleLookupSession} from '@main/bible/lookup';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
 import {openContent} from '@main/store/openContent';

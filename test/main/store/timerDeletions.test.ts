@@ -8,7 +8,7 @@ import {
 import {expectSuccess} from '@core/schema/testHelpers';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {createTimerId} from '@core/schema/ids';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {startOverlays} from '@main/live/overlays';
 import {MAIN, TEXT_STYLE} from '@fixtures/core/overlays';

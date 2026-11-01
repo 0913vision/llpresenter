@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import * as mediaListSchema from '@core/schema/mediaList';
 import {makeTempDir} from '../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
 import {openMediaStore} from '@main/store/mediaLoader';

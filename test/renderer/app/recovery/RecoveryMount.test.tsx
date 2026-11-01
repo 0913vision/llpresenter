@@ -16,7 +16,7 @@ import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
-import {sampleOffer} from '@renderer/app/recovery/testing';
+import {sampleOffer} from '@fixtures/renderer/app/recovery/testing';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {

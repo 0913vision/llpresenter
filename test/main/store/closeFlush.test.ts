@@ -10,7 +10,7 @@ import {APP_FLUSH_LIMITS, parseAppFlushRequest} from '@core/schema/appFlush';
 import {parseAppConfig} from '@core/schema/appConfig';
 import {installMockClock} from '../../mock-clock';
 import {makeTempDir} from '../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerControlClose} from '@main/windows/controlClose';
 import * as atomicWrite from '@main/store/atomicWrite';
 import {openAppConfig} from '@main/store/appConfigFile';

@@ -13,7 +13,7 @@ import {ContentStore} from '@main/store/contentStore';
 import {MediaStore} from '@main/store/mediaStore';
 import {resolveLocations} from '@main/store/locations';
 import {registerMacros} from '@main/macros/register';
-import {environment, IDS, macro, uuid} from '@main/macros/testing';
+import {environment, IDS, macro, uuid} from '@fixtures/main/macros/testing';
 
 function harness(macros: readonly object[] = [macro()]) {
   const env = environment(macros);

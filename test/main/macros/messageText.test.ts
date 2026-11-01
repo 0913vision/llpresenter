@@ -3,7 +3,7 @@ import {
   fillMacroMessage,
   MAX_MACRO_MESSAGE_CHARACTERS,
 } from '@main/macros/messageText';
-import {environment} from '@main/macros/testing';
+import {environment} from '@fixtures/main/macros/testing';
 
 describe('macro message rendering', () => {
   it('requires own blank values instead of inherited object properties', () => {

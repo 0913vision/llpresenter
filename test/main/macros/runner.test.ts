@@ -14,7 +14,13 @@ import {propsSlice} from '@main/live/slices/props';
 import {screenSettingsSlice} from '@main/live/slices/screenSettings';
 import type {LiveSlice, MacroCommandPort} from '@main/live/slice';
 import {MacroRunner, MAX_LOGGED_MACRO_PROBLEMS} from '@main/macros/runner';
-import {environment, findMacro, IDS, macro, uuid} from '@main/macros/testing';
+import {
+  environment,
+  findMacro,
+  IDS,
+  macro,
+  uuid,
+} from '@fixtures/main/macros/testing';
 import {legacyMacrosFile} from '@fixtures/core/legacyMacros';
 
 function harness(

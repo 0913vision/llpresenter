@@ -4,7 +4,7 @@ import {createMediaId, createThemeId} from '@core/schema/ids';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {NOTICE, overlaySettings} from '@fixtures/core/overlays';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {ContentStoreOptions} from '@main/store/contentStore';
 import {serviceFile, setUp} from '@fixtures/main/store/contentStoreFixtures';
 import {HYMN_ONE_ID, itemId, SUNDAY_ID} from '@main/store/testFiles';

@@ -4,7 +4,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {isRecord} from '@core/common/guards';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {makeTempDir} from '../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
 import {settingsCodecs} from '@main/store/settingsCodecs';

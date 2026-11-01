@@ -1,10 +1,10 @@
-import type {Rect, Size} from '../displays/rect';
+import type {Rect, Size} from '@main/displays/rect';
 import type {
   CreateOutputWindowHandle,
   OutputWindowEvents,
   OutputWindowHandle,
-} from './outputWindow';
-import type {OutputScreen} from './screens';
+} from '@main/outputs/outputWindow';
+import type {OutputScreen} from '@main/outputs/screens';
 
 /**
  * What a mock window was told to show: nothing, full screen on a monitor, or a

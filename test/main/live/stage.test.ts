@@ -1,7 +1,7 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {startOverlays} from '@main/live/overlays';
 import type {SkippedLiveCommand} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';

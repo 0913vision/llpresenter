@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {recoveryRows, recoveryTime} from '@renderer/app/recovery/recoveryView';
-import {sampleOffer} from '@renderer/app/recovery/testing';
+import {sampleOffer} from '@fixtures/renderer/app/recovery/testing';
 
 it('names each offered row with what it would restore', () => {
   expect(recoveryRows(sampleOffer())).toEqual([

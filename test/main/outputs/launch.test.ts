@@ -2,7 +2,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {defaultPreferences} from '@core/schema/preferences';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {Monitor} from '@main/displays/monitor';
-import {monitorsOf} from '@main/displays/testing';
+import {monitorsOf} from '@fixtures/main/displays/testing';
 import {
   MAIN_SCREEN_ID,
   createDefaultScreenSource,

@@ -4,7 +4,7 @@ import {audioPositionSeconds} from '@core/schema/audioState';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseMediaList} from '@core/schema/mediaList';
 import {parseLiveState} from '@core/schema/liveState';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 
 const FIRST = '00000000-0000-4000-8000-000000000001';

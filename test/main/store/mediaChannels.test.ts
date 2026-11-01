@@ -4,7 +4,7 @@ import {mediaEndpoints} from '@contracts/ipc/media';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MediaStore} from '@main/store/mediaStore';
 import {
   registerMediaChannels,

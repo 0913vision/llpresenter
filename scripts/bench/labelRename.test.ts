@@ -8,7 +8,7 @@ import {
 import {parseGroupedSong} from '../../src/core/schema/groupedSong';
 import {expectSuccess} from '../../src/core/schema/testHelpers';
 import {makeTempDir} from '../../test/temp-dir';
-import {recordingLogger} from '../../src/main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ContentStore} from '../../src/main/store/contentStore';
 import {documentFiles} from '../../src/main/store/documentFiles';
 import {resolveLocations} from '../../src/main/store/locations';

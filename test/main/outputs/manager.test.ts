@@ -15,7 +15,7 @@ import {
   monitorsOf,
   recordingLogger,
   type DisplaySpec,
-} from '@main/displays/testing';
+} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {createDefaultScreenSource} from '@main/outputs/defaultScreens';
 import {OutputManager, type MonitorFeed} from '@main/outputs/manager';
@@ -27,7 +27,7 @@ import {
 } from '@main/outputs/rendererRecovery';
 import {CRASH_LIMIT} from '@main/outputs/restartBudget';
 import type {OutputScreen, ScreenSource} from '@main/outputs/screens';
-import {mockWindows, fullScreenScreen} from '@main/outputs/testing';
+import {mockWindows, fullScreenScreen} from '@fixtures/main/outputs/testing';
 
 class MockMonitorFeed implements MonitorFeed {
   private readonly listeners = new Set<() => void>();

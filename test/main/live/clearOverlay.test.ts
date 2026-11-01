@@ -4,7 +4,7 @@ import {createMessageId, createMediaId} from '@core/schema/ids';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {messageLayer} from '@main/live/messageState';
 import {propLayer} from '@main/live/propState';

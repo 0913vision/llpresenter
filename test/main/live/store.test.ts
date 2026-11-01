@@ -3,7 +3,7 @@ import {emptyLiveState} from '@core/live/state';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {defineSlice} from '@main/live/slice';
 import {SliceRegistry} from '@main/live/sliceRegistry';

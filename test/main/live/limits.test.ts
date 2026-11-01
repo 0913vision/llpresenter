@@ -10,7 +10,7 @@ import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@core/schema/testHelpers';
 import {parseMacroId} from '@core/schema/ids';
 import {STARTER_LYRIC_STYLE} from '@core/looks/starterLayout';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {settingsDefaults} from '@main/store/settingsDefaults';
 import {LiveStore, dispatchLogged} from '@main/live/store';
 import {SliceRegistry} from '@main/live/sliceRegistry';

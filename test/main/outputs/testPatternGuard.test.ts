@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {MAIN, overlaySettings, STAGE} from '@fixtures/core/overlays';
 import {guardTestPatterns} from '@main/outputs/testPatternGuard';

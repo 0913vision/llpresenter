@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ON_TOP_CHECK_MS, OnTopKeeper} from '@main/outputs/onTopKeeper';
 
 function mockWindow() {

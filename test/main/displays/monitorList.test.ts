@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {toMonitorList, type MonitorListInput} from '@main/displays/monitorList';
-import {monitorsOf} from '@main/displays/testing';
+import {monitorsOf} from '@fixtures/main/displays/testing';
 
 const bounds = {x: 2000, y: 100, width: 800, height: 600};
 

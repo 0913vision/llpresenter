@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SettingsStore} from '@main/store/settingsStore';
 
 describe('settings problem subscriptions', () => {

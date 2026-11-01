@@ -7,7 +7,7 @@ import {createServiceId, type ServiceId} from '@core/schema/ids';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
 import {makeTempDir} from '../../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {WriteProblem} from '@main/store/atomicWrite';
 import {
   openServiceIdOf,

@@ -9,7 +9,13 @@ import {
   MacroActionRegistry,
 } from '@main/macros/actionRegistry';
 import {macroActionHandlers} from '@main/macros/actions';
-import {environment, findMacro, IDS, macro, uuid} from '@main/macros/testing';
+import {
+  environment,
+  findMacro,
+  IDS,
+  macro,
+  uuid,
+} from '@fixtures/main/macros/testing';
 
 describe('macro compiler', () => {
   it('compiles a theme action and skips a deleted theme and the retired Look and stage layout actions', () => {

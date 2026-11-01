@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {DocumentFiles} from '@main/store/contentPersistence';
 import type {WriteResult} from '@main/store/fileWriter';
 import {SettingsPersistence} from '@main/store/settingsPersistence';

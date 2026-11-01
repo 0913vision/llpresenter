@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveBatch, LiveCommand} from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {defineSlice} from '@main/live/slice';
 import {SliceRegistry} from '@main/live/sliceRegistry';

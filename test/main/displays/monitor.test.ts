@@ -4,7 +4,7 @@ import {
   numberMonitors,
   sameMonitors,
 } from '@main/displays/monitor';
-import {displayInfo, monitorsOf} from '@main/displays/testing';
+import {displayInfo, monitorsOf} from '@fixtures/main/displays/testing';
 
 describe('numberMonitors', () => {
   it('numbers monitors left to right, then top to bottom', () => {

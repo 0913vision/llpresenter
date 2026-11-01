@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '../../mock-clock';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   OutputWindow,
   OUTPUT_REVEAL_DEADLINE_MS,
@@ -12,7 +12,7 @@ import {
 } from '@main/outputs/rendererRecovery';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS} from '@main/outputs/hangWatch';
 import {CRASH_LIMIT} from '@main/outputs/restartBudget';
-import {mockWindows, fullScreenScreen} from '@main/outputs/testing';
+import {mockWindows, fullScreenScreen} from '@fixtures/main/outputs/testing';
 
 const PROJECTOR = {x: 1920, y: 0, width: 1920, height: 1080};
 const FULL_SCREEN: ShownPlacement = {

@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ShutdownCoordinator} from '@main/shutdown';
 
 const SHORT_LIMIT_MS = 50;

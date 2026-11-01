@@ -8,7 +8,7 @@ import {
   MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   noticePosition,
   nextNoticeChange,

@@ -8,7 +8,7 @@ import {
 import {parseMacroId} from '@core/schema/ids';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {expectSuccess} from '@core/schema/testHelpers';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {defineSlice} from '@main/live/slice';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';

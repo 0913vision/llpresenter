@@ -9,7 +9,7 @@ import {
   MockDisplaySource,
   displayInfo,
   recordingLogger,
-} from '@main/displays/testing';
+} from '@fixtures/main/displays/testing';
 
 const control = displayInfo({id: 1, primary: true});
 const projector = displayInfo({id: 2, x: 1920});

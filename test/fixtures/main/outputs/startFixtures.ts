@@ -8,12 +8,12 @@ import {
   MockDisplaySource,
   displayInfo,
   recordingLogger,
-} from '@main/displays/testing';
+} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {startOverlays} from '@main/live/overlays';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
 import type {WindowMode} from '@main/windows/testWindows';
-import {mockWindows, type MockWindows} from '@main/outputs/testing';
+import {mockWindows, type MockWindows} from '@fixtures/main/outputs/testing';
 import {startOutputs} from '@main/outputs/start';
 
 const mocks = vi.hoisted(() => {

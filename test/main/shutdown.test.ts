@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '../mock-clock';
 import {makeTempDir} from '../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createLogger, type Logger} from '@main/log';
 import {
   LOG_FLUSH_LIMIT_MS,

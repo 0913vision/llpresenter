@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerSettingsChannels} from '@main/store/settingsChannels';
 import {SettingsStore} from '@main/store/settingsStore';
 import type {EditResult} from '@core/schema/contentEdit';

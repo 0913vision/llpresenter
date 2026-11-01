@@ -1,5 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {Autosave} from '@main/store/autosave';
 import {QueuedSaves} from '@main/store/queuedSaves';
 import type {WriteResult} from '@main/store/fileWriter';

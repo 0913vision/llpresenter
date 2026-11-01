@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {monitorById, monitorsOf} from '@main/displays/testing';
+import {monitorById, monitorsOf} from '@fixtures/main/displays/testing';
 import {OUTPUT_WINDOW_SIZE, planPlacement} from '@main/outputs/placement';
-import {fullScreenScreen} from '@main/outputs/testing';
+import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 
 const monitors = monitorsOf({id: 1, primary: true}, {id: 2, x: 1920});
 const controlMonitor = monitorById(monitors, 1);

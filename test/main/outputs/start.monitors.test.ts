@@ -11,7 +11,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {parseMonitorList} from '@core/schema/monitors';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {displayInfo} from '@main/displays/testing';
+import {displayInfo} from '@fixtures/main/displays/testing';
 import {intersectionArea} from '@main/displays/rect';
 import {dispatchLogged} from '@main/live/store';
 import {CAPTIONS, MAIN, STAGE} from '@fixtures/core/overlays';

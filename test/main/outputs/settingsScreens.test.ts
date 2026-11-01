@@ -2,11 +2,11 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import {MAIN, STAGE, overlaySettings} from '@fixtures/core/overlays';
 import {createSettingsScreenSource} from '@main/outputs/settingsScreens';
-import {fullScreenScreen} from '@main/outputs/testing';
+import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 
 const fallback = {list: () => [fullScreenScreen()]};
 

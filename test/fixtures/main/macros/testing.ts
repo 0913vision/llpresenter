@@ -7,11 +7,11 @@ import {
   type SettingsName,
 } from '@core/schema/settingsDocuments';
 import type {Macro} from '@core/schema/macros';
-import {recordingLogger} from '../displays/testing';
-import {settingsDefaults} from '../store/settingsDefaults';
-import {settingsCodecs} from '../store/settingsCodecs';
-import {SettingsStore} from '../store/settingsStore';
-import {readMacroCatalog, type MacroCatalog} from './catalog';
+import {recordingLogger} from '@fixtures/main/displays/testing';
+import {settingsDefaults} from '@main/store/settingsDefaults';
+import {settingsCodecs} from '@main/store/settingsCodecs';
+import {SettingsStore} from '@main/store/settingsStore';
+import {readMacroCatalog, type MacroCatalog} from '@main/macros/catalog';
 
 export const uuid = (number: number): string =>
   `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;

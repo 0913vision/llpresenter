@@ -1,7 +1,11 @@
-import type {Logger} from '../log';
-import {numberMonitors, type DisplayInfo, type Monitor} from './monitor';
-import type {Size} from './rect';
-import type {DisplayChange, DisplaySource} from './registry';
+import type {Logger} from '@main/log';
+import {
+  numberMonitors,
+  type DisplayInfo,
+  type Monitor,
+} from '@main/displays/monitor';
+import type {Size} from '@main/displays/rect';
+import type {DisplayChange, DisplaySource} from '@main/displays/registry';
 
 export const FULL_HD: Size = {width: 1920, height: 1080};
 

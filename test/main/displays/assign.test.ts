@@ -10,7 +10,7 @@ import {
   monitorById,
   monitorsOf,
   type DisplaySpec,
-} from '@main/displays/testing';
+} from '@fixtures/main/displays/testing';
 
 function savedFrom({id, name, bounds}: Monitor): SavedDisplay {
   return {id, name, bounds};

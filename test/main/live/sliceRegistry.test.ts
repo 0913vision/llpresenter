@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {initialHistory, liveSlices, type LiveHistory} from '@main/live/reducer';
 import {defineSlice} from '@main/live/slice';
 import {registryOf, SliceRegistry} from '@main/live/sliceRegistry';

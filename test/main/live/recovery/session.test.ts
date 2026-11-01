@@ -3,7 +3,7 @@ import {mkdir, readFile, rm, stat, utimes, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../../temp-dir';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   openRecoverySession,
   RECOVERY_RECORD_FILE,

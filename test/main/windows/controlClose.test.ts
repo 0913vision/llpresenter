@@ -3,7 +3,7 @@ import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '../../mock-clock';
 import {appEndpoints} from '@contracts/ipc/app';
 import {APP_FLUSH_LIMITS} from '@core/schema/appFlush';
-import {recordingLogger} from '@main/displays/testing';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   registerControlClose,
   type CloseableWindow,
