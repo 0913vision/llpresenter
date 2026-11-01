@@ -133,14 +133,11 @@ function layoutFor(
     screen.kind === 'stage'
       ? stageElements()
       : audienceElements(lowerThird, kind);
-  if (kind === 'bible') {
+  if (kind === 'bible' && screen.kind !== 'stage') {
     elements.push({
       id: createThemeElementId(uuid(8)),
       kind: 'reference',
-      frame:
-        screen.kind === 'stage'
-          ? {x: 45, y: 384, w: 1194, h: referenceHeight}
-          : {...audienceReferenceFrame},
+      frame: {...audienceReferenceFrame},
       text: {...basicText, size: 42, align: 'right', vAlign: 'bottom'},
     });
   }

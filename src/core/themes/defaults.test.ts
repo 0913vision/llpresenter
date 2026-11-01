@@ -112,15 +112,12 @@ it('reserves a separate bottom band for the capture Bible reference', () => {
   expect(reference.frame.w).toBe(verse.frame.w);
 });
 
-it('keeps the stage Bible reference between the current and next text rows', () => {
+it('gives the Bible stage layout no reference and the same element kinds as the song stage', () => {
   const id = createScreenId(STARTER_SCREEN_IDS.stage);
-  const elements = builtInTheme('bible').screens[id]?.elements ?? [];
-  const current = elements.find(element => element.kind === 'currentText');
-  const reference = elements.find(element => element.kind === 'reference');
-  const next = elements.find(element => element.kind === 'nextLabel');
-  if (current === undefined || reference === undefined || next === undefined) {
-    throw new Error('Expected the starter stage text elements');
-  }
-  expect(current.frame.y + current.frame.h).toBeLessThan(reference.frame.y);
-  expect(reference.frame.y + reference.frame.h).toBeLessThan(next.frame.y);
+  const kinds = (kind: 'bible' | 'song') =>
+    (builtInTheme(kind).screens[id]?.elements ?? []).map(
+      element => element.kind,
+    );
+  expect(kinds('bible')).not.toContain('reference');
+  expect(kinds('bible')).toEqual(kinds('song'));
 });
