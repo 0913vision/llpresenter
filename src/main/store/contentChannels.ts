@@ -26,6 +26,18 @@ const HANDLED = [
   contentEndpoints.templates.get.channel,
 ] as const;
 
+/** The parts of the content store that the channels read and edit. */
+type ChannelStore = Pick<
+  ContentStore,
+  | 'apply'
+  | 'songList'
+  | 'serviceList'
+  | 'templateList'
+  | 'song'
+  | 'service'
+  | 'template'
+>;
+
 const NO_DATA: EditResult = {
   ok: false,
   error: {reason: 'not-found', message: 'The data folder could not be read'},
@@ -39,7 +51,7 @@ const NO_DATA: EditResult = {
  * @returns A function that removes every handler.
  */
 export function registerContentChannels(
-  content: Promise<ContentStore | null>,
+  content: Promise<ChannelStore | null>,
   log: Logger,
 ): () => void {
   ipcMain.handle(
@@ -125,8 +137,8 @@ export function broadcast(channel: string, value: unknown, log: Logger): void {
 
 function handleRead(
   channel: string,
-  content: Promise<ContentStore | null>,
-  read: (store: ContentStore) => readonly unknown[],
+  content: Promise<ChannelStore | null>,
+  read: (store: ChannelStore) => readonly unknown[],
 ): void {
   ipcMain.handle(channel, async () => {
     const store = await content;
@@ -136,14 +148,14 @@ function handleRead(
 
 function handleDocument(
   channel: string,
-  content: Promise<ContentStore | null>,
+  content: Promise<ChannelStore | null>,
   {
     parseId,
     read,
     log,
   }: {
     readonly parseId: (value: unknown) => Result<string, PayloadError>;
-    readonly read: (store: ContentStore, id: string) => unknown;
+    readonly read: (store: ChannelStore, id: string) => unknown;
     readonly log: Logger;
   },
 ): void {

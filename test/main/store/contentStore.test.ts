@@ -1,13 +1,14 @@
-import {serviceItemIdSchema} from '@core/schema/ids';
-import {parseTemplate} from '@core/schema/service';
+import {serviceIdSchema, serviceItemIdSchema} from '@core/schema/ids';
+import {parseService, parseTemplate} from '@core/schema/service';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {
   EVENING_ID,
   HYMN_ONE_ID,
   SUNDAY_ID,
   itemId,
+  service,
 } from '@fixtures/main/store/testFiles';
 import {
   EVENING,
@@ -18,6 +19,7 @@ import {
   locations,
   serviceFile,
   setUp,
+  stored,
   templateFile,
 } from '@fixtures/main/store/contentStoreFixtures';
 
@@ -550,5 +552,68 @@ describe('ContentStore persistence and notifications', () => {
         baseRevision: 1,
       }),
     ).toMatchObject({ok: false, error: {reason: 'stale'}});
+  });
+});
+
+describe('ContentStore.openService', () => {
+  const sundayFile = join(locations.services, `${SUNDAY_ID}.llservice`);
+  const twoServices = () => [
+    serviceFile(SUNDAY_ID, []),
+    serviceFile(EVENING_ID, []),
+  ];
+
+  it('saves and publishes the open service before switching, and moves the delete guard', async () => {
+    const {store, files} = setUp(twoServices(), {openServiceId: SUNDAY});
+    const publish = vi.fn(() => Promise.resolve());
+
+    expect(await store.openService(EVENING, publish)).toMatchObject({
+      ok: true,
+      value: {id: EVENING},
+    });
+    expect(files.written).toEqual([sundayFile]);
+    expect(publish).toHaveBeenCalledOnce();
+    expect(store.openServiceId).toBe(EVENING);
+    expect(
+      await store.apply({type: 'service.delete', serviceId: EVENING}),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      (await store.apply({type: 'service.delete', serviceId: SUNDAY})).ok,
+    ).toBe(true);
+  });
+
+  it('switches away from a read-only service without writing it', async () => {
+    const readOnly = stored(
+      parseService,
+      {...service(SUNDAY_ID, '2026-11-01T11:00', []), schemaVersion: 2},
+      sundayFile,
+    );
+    const {store, files} = setUp([readOnly, serviceFile(EVENING_ID, [])], {
+      openServiceId: SUNDAY,
+    });
+
+    expect((await store.openService(EVENING, () => Promise.resolve())).ok).toBe(
+      true,
+    );
+    expect(files.written).toEqual([]);
+    expect(store.openServiceId).toBe(EVENING);
+  });
+
+  it('keeps the open service for an unknown id and when saving it fails', async () => {
+    const {store, files} = setUp(twoServices(), {openServiceId: SUNDAY});
+    const publish = vi.fn(() => Promise.resolve());
+    const missing = testId(
+      serviceIdSchema,
+      '00000000-0000-4000-8000-000000000003',
+    );
+
+    expect(await store.openService(missing, publish)).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+    expect(files.written).toEqual([]);
+    files.failing = new Set([sundayFile]);
+    expect((await store.openService(EVENING, publish)).ok).toBe(false);
+    expect(store.openServiceId).toBe(SUNDAY);
+    expect(publish).not.toHaveBeenCalled();
   });
 });

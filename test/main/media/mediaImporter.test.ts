@@ -380,7 +380,12 @@ describe('media import boundaries', () => {
       });
       add.mockResolvedValue({
         ok: false,
-        error: {reason: 'write-failed', message: 'Invented full disk'},
+        error: {
+          reason: 'write-failed',
+          message: 'Invented full disk',
+          applied: {id: uuid(1), revision: 2},
+          unchangedFiles: [],
+        },
       });
       const original = await source('Kept.png', 'invented');
 

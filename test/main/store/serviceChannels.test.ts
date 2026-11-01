@@ -1,14 +1,9 @@
-import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {serviceEndpoints} from '@contracts/ipc/service';
+import type {EditResult} from '@core/schema/contentEdit';
 import {createServiceId, type ServiceId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
-import {parseService} from '@core/schema/service';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {ContentStore, type DocumentFiles} from '@main/store/contentStore';
-import {resolveLocations} from '@main/store/locations';
-import {OpenServiceFeed} from '@main/store/openServiceFeed';
 import {
   registerServiceChannels,
   MAX_PENDING_SERVICE_SWITCHES,
@@ -26,7 +21,6 @@ vi.mock('electron', () => ({
 }));
 const FIRST = createServiceId('00000000-0000-4000-8000-000000000001');
 const SECOND = createServiceId('00000000-0000-4000-8000-000000000002');
-const MISSING = createServiceId('00000000-0000-4000-8000-000000000003');
 
 function handler(channel: string): Handler {
   const found = handlers.get(channel);
@@ -34,134 +28,102 @@ function handler(channel: string): Handler {
   return found;
 }
 
-function setup({readOnlyCurrent = false} = {}) {
-  const {locations} = resolveLocations(
-    {},
-    {documents: resolve('/data'), developmentFolder: null},
-  );
-  const log = recordingLogger();
-  const files: DocumentFiles = {
-    write: vi
-      .fn<DocumentFiles['write']>()
-      .mockResolvedValue({ok: true, value: undefined}),
-    remove: vi
-      .fn<DocumentFiles['remove']>()
-      .mockResolvedValue({ok: true, value: undefined}),
+function shown(id: string): ShowService {
+  return {
+    revision: 1,
+    id,
+    name: `Invented service ${id}`,
+    readOnly: false,
+    rows: [],
+    tiles: {},
+    jumpKeys: {},
   };
-  const write = vi.mocked(files.write);
-  const services = [FIRST, SECOND].map((id, index) => {
-    const file = join(locations.services, `${id}.llservice`);
-    return {
-      ...expectSuccess(
-        parseService(
-          JSON.stringify({
-            format: 'llservice',
-            schemaVersion: readOnlyCurrent && id === FIRST ? 2 : 1,
-            id,
-            name: `Invented service ${index}`,
-            date: '2026-10-26T10:00',
-            order: [],
-          }),
-          file,
-        ),
-      ),
-      file,
-    };
+}
+
+function setup() {
+  const log = recordingLogger();
+  let openId: string = FIRST;
+  const opened = (id: ServiceId): EditResult => ({
+    ok: true,
+    value: {id, revision: 1},
   });
-  const content = new ContentStore({
-    locations,
-    songs: new Map(),
-    services: new Map(services.map(service => [service.data.id, service])),
-    templates: new Map(),
-    files,
-    log,
-    openServiceId: FIRST,
-    events: {
-      songChanged: () => undefined,
-      songsListChanged: () => undefined,
-      serviceChanged: () => undefined,
-      servicesListChanged: () => undefined,
-      templateChanged: () => undefined,
-      templatesListChanged: () => undefined,
-    },
-  });
-  const push = vi.fn<(shown: ShowService | null) => void>();
-  const feed = new OpenServiceFeed(
-    {
-      get serviceId() {
-        return content.openServiceId;
-      },
-      labels: [],
-      content,
-      backgroundOf: async () => null,
-    },
-    push,
-    error => {
-      throw error;
+  const openService = vi.fn<ServiceSession['content']['openService']>(
+    async id => {
+      openId = id;
+      return opened(id);
     },
   );
+  const feed = {
+    current: vi.fn(() => shown(openId)),
+    refresh: vi.fn(() => Promise.resolve()),
+  };
   const config = {
     setLastServiceId: vi.fn<(id: ServiceId) => void>(),
-    flush: vi.fn(async () => undefined),
+    flush: vi.fn(() => Promise.resolve()),
   };
   const channels = registerServiceChannels(
-    Promise.resolve({content, feed}),
+    Promise.resolve({content: {openService}, feed}),
     config,
     log,
   );
-  onTestFinished(async () => {
-    await channels.dispose();
-    await feed.dispose();
-    await content.flush();
-    content.dispose();
-  });
-  return {content, feed, push, config, channels, write, log, locations};
+  onTestFinished(() => channels.dispose());
+  /** Holds the next switch until the returned function is called. */
+  const holdNext = () => {
+    let release: () => void = () => undefined;
+    openService.mockImplementationOnce(async id => {
+      await new Promise<void>(resolve => {
+        release = resolve;
+      });
+      openId = id;
+      return opened(id);
+    });
+    return () => release();
+  };
+  return {openService, feed, config, channels, log, holdNext};
 }
 
+const open = (serviceId: unknown) =>
+  handler(serviceEndpoints.open.channel)({}, {serviceId});
+
 describe('service open channels', () => {
-  it('opens another service without writing over a read-only current service', async () => {
-    const {write, content} = setup({readOnlyCurrent: true});
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
-    ).toMatchObject({id: SECOND});
-    expect(write).not.toHaveBeenCalled();
-    expect(content.openServiceId).toBe(SECOND);
+  it('opens the chosen service, remembers it, and answers with the refreshed projection', async () => {
+    const {openService, feed, config} = setup();
+
+    expect(await open(SECOND)).toEqual(shown(SECOND));
+    expect(openService).toHaveBeenCalledExactlyOnceWith(
+      SECOND,
+      expect.any(Function),
+    );
+    expect(config.setLastServiceId).toHaveBeenCalledExactlyOnceWith(SECOND);
+    expect(config.flush).toHaveBeenCalledOnce();
+    expect(feed.refresh).toHaveBeenCalled();
   });
 
-  it('reports remembering failures while returning the service that actually opened', async () => {
-    const {config, content, log} = setup();
+  it('reports remembering failures while returning the service that opened', async () => {
+    const {config, log} = setup();
     config.flush.mockRejectedValueOnce(new Error('Config unavailable'));
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
-    ).toMatchObject({id: SECOND});
-    expect(content.openServiceId).toBe(SECOND);
+
+    expect(await open(SECOND)).toEqual(shown(SECOND));
     expect(log.messages('error')).toContain(
       'could not remember the open service',
     );
   });
-  it('caps queued switches and keeps reads available while the first save is held', async () => {
-    const {write, config, log} = setup();
-    let release: () => void = () => undefined;
-    write.mockImplementationOnce(async () => {
-      await new Promise<void>(resolve => {
-        release = resolve;
-      });
-      return {ok: true, value: undefined};
-    });
+
+  it('caps queued switches and keeps reads available while the first one is held', async () => {
+    const {openService, config, log, holdNext} = setup();
+    const release = holdNext();
     try {
       const pending = Array.from({length: MAX_PENDING_SERVICE_SWITCHES}, () =>
-        handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
+        open(SECOND),
       );
-      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
-      expect(
-        await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
-      ).toBeNull();
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
+      expect(await open(SECOND)).toBeNull();
       expect(log.messages('warn')).toContain(
         'too many pending service switches',
       );
-      expect(await handler(serviceEndpoints.get.channel)({})).toMatchObject({
-        id: FIRST,
-      });
+      expect(await handler(serviceEndpoints.get.channel)({})).toEqual(
+        shown(FIRST),
+      );
       release();
       await Promise.all(pending);
       expect(config.setLastServiceId).toHaveBeenCalledTimes(
@@ -171,94 +133,34 @@ describe('service open channels', () => {
       release();
     }
   });
-  it('saves and pushes the current service before the chosen projection and updates the active delete guard', async () => {
-    const {content, feed, push, config, write, locations} = setup();
-    await feed.refresh();
-    const current = content.service(FIRST);
-    if (current === null) throw new Error('Missing fixture service');
-    await content.apply({
-      type: 'service.update',
-      service: {...current.service, name: 'Updated first'},
-      baseRevision: 1,
-    });
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
-    ).toMatchObject({id: SECOND});
-    expect(write).toHaveBeenCalledTimes(1);
-    expect(write.mock.calls[0]?.[0].target.file).toBe(
-      join(locations.services, `${FIRST}.llservice`),
-    );
-    expect(push.mock.calls.map(([shown]) => shown)).toMatchObject([
-      {id: FIRST, name: 'Updated first'},
-      {id: SECOND},
-    ]);
-    expect(config.setLastServiceId).toHaveBeenCalledExactlyOnceWith(SECOND);
-    expect(config.flush).toHaveBeenCalledOnce();
-    expect(
-      await content.apply({type: 'service.delete', serviceId: SECOND}),
-    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(
-      (await content.apply({type: 'service.delete', serviceId: FIRST})).ok,
-    ).toBe(true);
-  });
 
-  it('keeps the current service on unknown IDs, malformed requests, and a failed current save', async () => {
-    const {content, config, write, locations} = setup();
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: MISSING}),
-    ).toBeNull();
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: 'bad'}),
-    ).toBeNull();
-    expect(write).not.toHaveBeenCalled();
-    const current = content.service(FIRST);
-    if (current === null) throw new Error('Missing fixture service');
-    await content.apply({
-      type: 'service.update',
-      service: {...current.service, name: 'Unsaved current'},
-      baseRevision: 1,
-    });
-    write.mockResolvedValueOnce({
+  it('keeps the current service on a refused switch and on a malformed request', async () => {
+    const {openService, config, log} = setup();
+    openService.mockResolvedValueOnce({
       ok: false,
-      error: {
-        file: join(locations.services, `${FIRST}.llservice`),
-        message: 'Disk unavailable',
-      },
+      error: {reason: 'not-found', message: 'No service has this id'},
     });
-    expect(
-      await handler(serviceEndpoints.open.channel)({}, {serviceId: SECOND}),
-    ).toBeNull();
-    expect(write).toHaveBeenCalledOnce();
-    expect(content.openServiceId).toBe(FIRST);
+
+    expect(await open(SECOND)).toBeNull();
+    expect(await open('bad')).toBeNull();
+    expect(openService).toHaveBeenCalledOnce();
     expect(config.setLastServiceId).not.toHaveBeenCalled();
-    expect(await handler(serviceEndpoints.get.channel)({})).toMatchObject({
-      id: FIRST,
-      name: 'Unsaved current',
-    });
+    expect(log.messages('warn')).toEqual([
+      'could not open a service',
+      'dropped a malformed service open request',
+    ]);
   });
 
   it('serializes whole switches so simultaneous callers receive their own chosen service', async () => {
-    const {write, config} = setup();
-    let release: () => void = () => undefined;
-    write.mockImplementationOnce(async () => {
-      await new Promise<void>(resolve => {
-        release = resolve;
-      });
-      return {ok: true, value: undefined};
-    });
+    const {openService, config, holdNext} = setup();
+    const release = holdNext();
     try {
-      const first = handler(serviceEndpoints.open.channel)(
-        {},
-        {serviceId: SECOND},
-      );
-      const second = handler(serviceEndpoints.open.channel)(
-        {},
-        {serviceId: FIRST},
-      );
-      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
+      const first = open(SECOND);
+      const second = open(FIRST);
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
       release();
-      expect(await first).toMatchObject({id: SECOND});
-      expect(await second).toMatchObject({id: FIRST});
+      expect(await first).toEqual(shown(SECOND));
+      expect(await second).toEqual(shown(FIRST));
       expect(config.setLastServiceId.mock.calls.map(([id]) => id)).toEqual([
         SECOND,
         FIRST,
@@ -269,24 +171,15 @@ describe('service open channels', () => {
   });
 
   it('finishes an accepted switch on close and refuses late loading requests', async () => {
-    const {write, config, channels} = setup();
-    let release: () => void = () => undefined;
-    write.mockImplementationOnce(async () => {
-      await new Promise<void>(resolve => {
-        release = resolve;
-      });
-      return {ok: true, value: undefined};
-    });
+    const {openService, config, channels, holdNext} = setup();
+    const release = holdNext();
     try {
-      const opening = handler(serviceEndpoints.open.channel)(
-        {},
-        {serviceId: SECOND},
-      );
-      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
+      const opening = open(SECOND);
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
       const closing = channels.dispose();
       expect(handlers.size).toBe(0);
       release();
-      expect(await opening).toMatchObject({id: SECOND});
+      expect(await opening).toEqual(shown(SECOND));
       await closing;
       expect(config.setLastServiceId).toHaveBeenCalledWith(SECOND);
     } finally {
@@ -301,10 +194,7 @@ describe('service open channels', () => {
       recordingLogger(),
     );
     const reading = handler(serviceEndpoints.get.channel)({});
-    const opening = handler(serviceEndpoints.open.channel)(
-      {},
-      {serviceId: SECOND},
-    );
+    const opening = open(SECOND);
     await late.dispose();
     finish(null);
     expect(await reading).toBeNull();

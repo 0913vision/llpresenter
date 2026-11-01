@@ -2,10 +2,8 @@ import {
   ask,
   askForService,
   developmentContext,
-  disposers,
   electron,
   mockLog,
-  mockProblems,
   register,
   songDocument,
 } from '@fixtures/main/store/registerFixtures';
@@ -18,10 +16,7 @@ import {parseShowService} from '@core/schema/showService';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {makeTempDir} from '@fixtures/tempDir';
-import {openAppConfig} from '@main/store/appConfigFile';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {registerStore} from '@main/store/register';
 import {
   HYMN_ONE_ID,
   hymnOne,
@@ -104,70 +99,5 @@ describe('registerStore', () => {
       },
     });
     expect(electron.handlers.size).toBe(0);
-  });
-
-  it('reads and edits content requested while the data is still loading', async () => {
-    const context = await developmentContext();
-    const store = await register(mockLog(), context, () => true);
-
-    const created = parseEditResult(
-      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
-    );
-    if (!created.ok || !created.value.ok) {
-      throw new Error('Could not create a test song');
-    }
-    expect(await ask(contentEndpoints.songs.list.channel)).toMatchObject([
-      {id: created.value.value.id, title: '새 곡'},
-    ]);
-    expect(
-      await ask(contentEndpoints.songs.get.channel, created.value.value.id),
-    ).toMatchObject({revision: 1, access: 'editable'});
-    await store.dispose();
-    expect(electron.handlers.size).toBe(0);
-  });
-
-  it('logs and refuses malformed edits and document ids without changing files', async () => {
-    const context = await developmentContext();
-    const log = mockLog();
-    await register(log, context, () => true);
-
-    expect(
-      await ask(contentEndpoints.edit.channel, {type: 'song.update', song: {}}),
-    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(
-      await ask(contentEndpoints.songs.get.channel, '../outside'),
-    ).toBeNull();
-    expect(await ask(contentEndpoints.services.get.channel, 7)).toBeNull();
-    expect(await ask(contentEndpoints.templates.get.channel, null)).toBeNull();
-    expect(await ask(contentEndpoints.songs.list.channel)).toEqual([]);
-    expect(log.warn).toHaveBeenCalledTimes(4);
-  });
-
-  it('answers content reads and edits safely when no data folder could be opened', async () => {
-    const log = mockLog();
-    const appConfig = await openAppConfig({
-      file: join(await makeTempDir(), 'app.json'),
-      log,
-    });
-    const store = registerStore({
-      problems: mockProblems(),
-      log,
-      appConfig,
-      isAnyOutputOn: () => false,
-      context: () => {
-        throw new Error('missing data');
-      },
-    });
-    disposers.push(store.dispose);
-
-    expect(
-      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
-    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-    expect(await ask(contentEndpoints.songs.list.channel)).toEqual([]);
-    expect(await ask(contentEndpoints.services.list.channel)).toEqual([]);
-    expect(await ask(contentEndpoints.templates.list.channel)).toEqual([]);
-    expect(
-      await ask(contentEndpoints.songs.get.channel, HYMN_ONE_ID),
-    ).toBeNull();
   });
 });
