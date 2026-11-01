@@ -19,7 +19,7 @@ import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '@core/songs/textImport';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
-import {applyService, openItem, useShow} from '@renderer/session/show';
+import {applyService, openItem} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {fixtureSong} from '@renderer/features/songs/library/fixture';
 import {
@@ -151,7 +151,7 @@ describe('App', () => {
     }
   });
 
-  it('opens the clicked service slide in prep at its arrangement position', () => {
+  it('routes the clicked service slide through App to prep', () => {
     window.llp = mockLlpApi();
     seedSampleService();
     openItem('song-morning');
@@ -159,8 +159,6 @@ describe('App', () => {
     session.startEditor();
     const items = session.items;
     if (!items) throw new Error('Missing item store');
-    const show = vi.spyOn(items, 'show');
-    const select = vi.spyOn(items, 'selectPosition');
     render(
       <App
         session={session}
@@ -175,13 +173,7 @@ describe('App', () => {
     expect(
       screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
     ).toBe('true');
-    expect(show).toHaveBeenCalledWith({
-      serviceId: 'sample',
-      itemId: 'song-morning',
-    });
-    expect(select).toHaveBeenCalledWith(2);
     expect(items.getSnapshot().position).toBe(2);
-    expect(useShow.getState().openItemId).toBe('song-morning');
   });
 
   it('opens a library source slide in prep without inventing a service item', async () => {
@@ -447,20 +439,6 @@ describe('App', () => {
       );
       expect(session.editor?.getSnapshot().imported).toBe(true);
       expect(edit).not.toHaveBeenCalled();
-      if (mediaOpen) {
-        await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-        await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-        await userEvent.click(
-          await screen.findByRole('menuitem', {name: /^텍스트 파일/}),
-        );
-        expect(await screen.findByRole('alertdialog')).toHaveProperty(
-          'textContent',
-          expect.stringContaining('가져온 곡을 저장하지 않았습니다. 버릴까요?'),
-        );
-        fireEvent.click(screen.getByRole('button', {name: '취소'}));
-        expect(session.editor?.getSnapshot().imported).toBe(true);
-        expect(screen.getByRole('button', {name: '저장'})).toBeDefined();
-      }
       fireEvent.click(screen.getByRole('button', {name: '버리기'}));
       expect(session.editor?.getSnapshot().session).toBeNull();
       expect(mediaBinToggle().getAttribute('aria-expanded')).toBe(

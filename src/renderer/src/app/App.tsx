@@ -1,5 +1,7 @@
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
-import {useObjectShortcuts} from './useObjectShortcuts';
+import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
+import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
+import {usePrepActions} from './usePrepActions';
 import {
   useCallback,
   useEffect,
@@ -8,7 +10,6 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import type {UiState} from '@core/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
@@ -21,8 +22,7 @@ import {
   useOutputWarnings,
   warningScreens,
 } from '@renderer/platform/outputWarnings';
-import {openItem, useShow} from '@renderer/session/show';
-import {isLibrarySource} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
@@ -44,7 +44,6 @@ import {useRecovery} from './recovery/useRecovery';
 import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
-import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
@@ -82,12 +81,6 @@ function ControlApp({
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
-  const [importSource, setImportSource] = useState<'file' | 'clipboard' | null>(
-    null,
-  );
-  const closeImport = useCallback(() => setImportSource(null), []);
-  const textImport = session.api?.textImport;
-  const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
   const onWorkspace = (next: WorkspaceId): void => {
@@ -98,22 +91,14 @@ function ControlApp({
     if (workspace === 'screens') onWorkspace('show');
     mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
-  const importText = (source: 'file' | 'clipboard'): void => {
-    if (session.api === undefined || importSource !== null) return;
-    onWorkspace('prep');
-    session.editor?.requestLeave(() => setImportSource(source));
-  };
-  const imported = useSyncExternalStore(
-    session.editor?.subscribe ?? noEditorSubscription,
-    () => session.editor?.getSnapshot().imported ?? false,
-  );
+  const textImport = session.api?.textImport;
+  const prepActions = usePrepActions({session, workspace, onWorkspace});
   useShortcutSettings(session.api);
-  useObjectShortcuts(session.api, session.report);
   useWindowShortcuts([
     ...workspaceShortcuts({
       onWorkspace,
       onMedia,
-      imported: workspace === 'prep' && imported,
+      imported: prepActions.imported,
     }),
     {
       id: 'search.focus',
@@ -124,8 +109,8 @@ function ControlApp({
     },
     {
       id: 'import.textFile',
-      when: () => session.api !== undefined && importSource === null,
-      run: () => importText('file'),
+      when: () => prepActions.canImport,
+      run: () => prepActions.importText('file'),
     },
   ]);
   useClearKeys();
@@ -146,6 +131,8 @@ function ControlApp({
         : undefined;
   return (
     <div className={styles.app} data-size={sizeClass}>
+      <ToolObjectShortcuts api={session.api} onProblem={session.report} />
+      <QuickObjectShortcuts api={session.api} onProblem={session.report} />
       <AudioShortcuts onProblem={session.report} />
       <MenuBar
         onWorkspace={onWorkspace}
@@ -154,7 +141,7 @@ function ControlApp({
           textImport && (() => textImport.clipboardAvailable())
         }
         onImportText={
-          session.api && importSource === null ? importText : undefined
+          prepActions.canImport ? prepActions.importText : undefined
         }
         title={serviceName}
         onProblem={session.report}
@@ -172,54 +159,17 @@ function ControlApp({
         workspace={workspace}
         onWorkspace={onWorkspace}
         onProblem={session.report}
-        onOpenPrepSong={prepSelection.openSong}
+        onOpenPrepSong={prepActions.openSong}
       />
       <WorkspaceNavigation value={onWorkspace}>
         <Workspace
           id={workspace}
           sizeClass={sizeClass}
           store={columnWidthStore}
-          onShowInLibrary={songId => {
-            const reveal = (): void => {
-              onWorkspace('prep');
-              prepSelection.openSong(songId);
-            };
-            if (session.editor) session.editor.requestLeave(reveal);
-            else reveal();
-          }}
+          onShowInLibrary={prepActions.onShowInLibrary}
           onProblem={session.report}
-          prep={
-            session.api && session.editor && session.items
-              ? {
-                  api: session.api,
-                  editor: session.editor,
-                  items: session.items,
-                  selectionRequest: prepSelection.request,
-                  onSelectionHandled: prepSelection.handled,
-                  onServiceItemOpen: prepSelection.clear,
-                  onImportedSave: prepSelection.openSong,
-                }
-              : undefined
-          }
-          onOpenPrep={(itemId, position) => {
-            onWorkspace('prep');
-            const open = (): void => {
-              const view = useShow.getState();
-              if (isLibrarySource(view, itemId)) {
-                prepSelection.openSong(view.librarySong.songId, position);
-                return;
-              }
-              prepSelection.clear();
-              openItem(itemId);
-              session.editor?.open(null);
-              if (position !== undefined && view.serviceId !== null) {
-                session.items?.show({serviceId: view.serviceId, itemId});
-                session.items?.selectPosition(position);
-              }
-            };
-            if (session.editor === undefined) open();
-            else session.editor.requestLeave(open);
-          }}
+          prep={prepActions.prep}
+          onOpenPrep={prepActions.onOpenPrep}
           warningHeight={warningHeight}
           mediaVisible={mediaStrip.visible}
           onMediaOpenChange={mediaStrip.setVisible}
@@ -228,18 +178,7 @@ function ControlApp({
         />
       </WorkspaceNavigation>
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />
-      {session.api && session.editor && importSource !== null ? (
-        <TextImportFlow
-          api={session.api}
-          store={session.editor}
-          source={importSource}
-          onDone={closeImport}
-          onEdit={() => {
-            prepSelection.clear();
-          }}
-          onProblem={session.report}
-        />
-      ) : null}
+      {prepActions.importSurface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack
         notices={notices}
