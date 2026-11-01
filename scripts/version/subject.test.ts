@@ -15,7 +15,7 @@ describe('parseSubject', () => {
     });
   });
 
-  it('knows the tags of CLAUDE.md, in its order', () => {
+  it('knows the tags of CONTRIBUTING.md, in its order', () => {
     expect(COMMIT_TAGS).toEqual([
       'break',
       'feat',

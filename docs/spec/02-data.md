@@ -1041,10 +1041,10 @@ used. The user decides.
   unpacked, last modified on 2026-08-24 (npm registry, read on 2026-10-25), from
   Toss (https://github.com/toss/es-hangul).
 - It's a proposal only. Adding it needs an entry in `docs/decisions.md` and the
-  lead's approval first (`CLAUDE.md`, `docs/TECH.md`, "Criteria for adding a
-  dependency"). Splitting Hangul syllables into letters takes a few dozen lines
-  and could be written in-house; converting QWERTY input to Hangul is a larger
-  piece of logic, which is the main reason to take the library.
+  lead's approval first (`CONTRIBUTING.md`, `docs/TECH.md`, "Criteria for adding
+  a dependency"). Splitting Hangul syllables into letters takes a few dozen
+  lines and could be written in-house; converting QWERTY input to Hangul is a
+  larger piece of logic, which is the main reason to take the library.
 
 Open questions (also in the README, row 4):
 

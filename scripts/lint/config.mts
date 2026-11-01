@@ -96,7 +96,7 @@ export const lintConfig = defineConfig(
   {
     plugins: {llp: llpPlugin},
     rules: {
-      // NOTE(0913vision): CLAUDE.md allows only TSDoc, NOTE, and TODO
+      // NOTE(0913vision): CONTRIBUTING.md allows only TSDoc, NOTE, and TODO
       // comments.
       'llp/allowed-comments': 'error',
       // NOTE(0913vision): Source files use UTF-8 without a byte order mark.
@@ -104,21 +104,21 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): Loose equality coerces types and hides bugs. The
       // Google style guide allows `== null` to cover undefined too.
       eqeqeq: ['error', 'always', {null: 'ignore'}],
-      // NOTE(0913vision): CLAUDE.md requires `const` and `let`.
+      // NOTE(0913vision): CONTRIBUTING.md requires `const` and `let`.
       'no-var': 'error',
       // NOTE(0913vision): A binding that never changes must say so.
       'prefer-const': 'error',
       // NOTE(0913vision): The Google style guide prefers arrow functions for
       // callbacks, and they keep `this` from changing under you.
       'prefer-arrow-callback': 'error',
-      // NOTE(0913vision): CLAUDE.md prefers template literals.
+      // NOTE(0913vision): CONTRIBUTING.md prefers template literals.
       'prefer-template': 'error',
-      // NOTE(0913vision): CLAUDE.md prefers `Object.hasOwn`.
+      // NOTE(0913vision): CONTRIBUTING.md prefers `Object.hasOwn`.
       'prefer-object-has-own': 'error',
       // NOTE(0913vision): The Google style guide requires braces unless the
       // whole statement fits on one line.
       curly: ['error', 'multi-line'],
-      // NOTE(0913vision): Deep nesting hides the main path. CLAUDE.md asks
+      // NOTE(0913vision): Deep nesting hides the main path. CONTRIBUTING.md asks
       // for early returns.
       'max-depth': ['error', MAX_DEPTH],
       // NOTE(0913vision): A focused test silently skips the rest of the
@@ -131,7 +131,7 @@ export const lintConfig = defineConfig(
           message: 'Remove `.only` before you commit.',
         })),
       ],
-      // NOTE(0913vision): Bans the syntax that CLAUDE.md and the Google
+      // NOTE(0913vision): Bans the syntax that CONTRIBUTING.md and the Google
       // TypeScript style guide rule out.
       'no-restricted-syntax': [
         'error',
@@ -155,15 +155,15 @@ export const lintConfig = defineConfig(
       parserOptions: {projectService: true, tsconfigRootDir: REPO_ROOT},
     },
     rules: {
-      // NOTE(0913vision): CLAUDE.md bans `any`.
+      // NOTE(0913vision): CONTRIBUTING.md bans `any`.
       '@typescript-eslint/no-explicit-any': 'error',
-      // NOTE(0913vision): CLAUDE.md bans type assertions that bypass checks.
+      // NOTE(0913vision): CONTRIBUTING.md bans type assertions that bypass checks.
       // Validate or narrow instead. `as const` stays allowed.
       '@typescript-eslint/consistent-type-assertions': [
         'error',
         {assertionStyle: 'never'},
       ],
-      // NOTE(0913vision): CLAUDE.md bans the non-null assertion `!`.
+      // NOTE(0913vision): CONTRIBUTING.md bans the non-null assertion `!`.
       '@typescript-eslint/no-non-null-assertion': 'error',
       // NOTE(0913vision): This stylistic rule asks for `!`, which the rule
       // above bans.
@@ -175,7 +175,7 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): A promise passed where a plain callback is expected
       // drops its rejection.
       '@typescript-eslint/no-misused-promises': 'error',
-      // NOTE(0913vision): CLAUDE.md requires every switch to be exhaustive. A
+      // NOTE(0913vision): CONTRIBUTING.md requires every switch to be exhaustive. A
       // `default` doesn't count for unions, so a new member shows up here.
       '@typescript-eslint/switch-exhaustiveness-check': [
         'error',
@@ -190,10 +190,10 @@ export const lintConfig = defineConfig(
         'error',
         {args: 'after-used', caughtErrors: 'all', ignoreRestSiblings: true},
       ],
-      // NOTE(0913vision): CLAUDE.md asks for `readonly` wherever a member
+      // NOTE(0913vision): CONTRIBUTING.md asks for `readonly` wherever a member
       // never changes.
       '@typescript-eslint/prefer-readonly': 'error',
-      // NOTE(0913vision): CLAUDE.md asks for an object once there are more
+      // NOTE(0913vision): CONTRIBUTING.md asks for an object once there are more
       // than three parameters.
       '@typescript-eslint/max-params': ['error', {max: MAX_PARAMS}],
       // NOTE(0913vision): Numbers read naturally in messages. Everything else
@@ -220,7 +220,7 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): The Google style guide uses interfaces for object
       // types.
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      // NOTE(0913vision): CLAUDE.md requires TSDoc, not JSDoc, so the syntax
+      // NOTE(0913vision): CONTRIBUTING.md requires TSDoc, not JSDoc, so the syntax
       // must parse as TSDoc.
       'tsdoc/syntax': 'error',
     },

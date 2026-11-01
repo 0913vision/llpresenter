@@ -1,4 +1,4 @@
-/** The commit tags that `CLAUDE.md` allows, in its order. */
+/** The commit tags that `CONTRIBUTING.md` allows, in its order. */
 export const COMMIT_TAGS = [
   'break',
   'feat',

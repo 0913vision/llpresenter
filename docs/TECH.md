@@ -38,7 +38,7 @@ library, or upgrade a version, record the reason in this document and in
 | Icons           | Phosphor Regular (MIT), 86 icons, `design/system/upload/Icons/` | Decide how to include them in phase 1 (SVG as components) | Use only the same set as the design system                                                                                                                                                                                                                                          |
 | Data validation | valibot 1.5.0                                                   | Pinned exactly                                            | Validates formats when files are read and IPC messages arrive. Smallest of zod, zod/mini, valibot, and arktype (2.7 KB gzip for the song schema), keeps unknown fields, has brands and exact optional fields, and reports the field path. Only `src/core/schema/` imports it        |
 | Logging         | One rotating log file (electron-log family)                     | Decide in phase 1                                         | Lets us see what happened after a service                                                                                                                                                                                                                                           |
-| Formatting      | Prettier with Google `gts` defaults (`.prettierrc.json`)        | Pinned exactly                                            | Formats code, CSS, JSON, and Markdown the same way in every session. Settings are in `CLAUDE.md`                                                                                                                                                                                    |
+| Formatting      | Prettier with Google `gts` defaults (`.prettierrc.json`)        | Pinned exactly                                            | Formats code, CSS, JSON, and Markdown the same way in every session. Settings are in `CONTRIBUTING.md`                                                                                                                                                                              |
 | Unit tests      | Vitest                                                          | Add in phase 1                                            | Models, conversions, live output state handling                                                                                                                                                                                                                                     |
 | UI tests        | Playwright's Electron support                                   | Add in phase 2                                            | Core flows such as opening a song, output, and clearing                                                                                                                                                                                                                             |
 
@@ -233,7 +233,8 @@ A pull request is approved only when it meets everything below
 ### Code health
 
 - Follow the clean code rules, the comment rules, and the modern language
-  features in `CLAUDE.md`. Reviewers request changes when a rule is broken.
+  features in `CONTRIBUTING.md`. Reviewers request changes when a rule is
+  broken.
 - `npm run format:check` passes.
 
 ## Verification

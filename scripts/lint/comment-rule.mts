@@ -87,7 +87,7 @@ function checkComments(context: Rule.RuleContext): void {
 }
 
 /**
- * Allows only the comments that `CLAUDE.md` permits: TSDoc block comments,
+ * Allows only the comments that `CONTRIBUTING.md` permits: TSDoc block comments,
  * `// NOTE(0913vision): ...`, and `// TODO(0913vision): ...`. Plain `//` lines
  * directly under a NOTE or TODO line, in the same column, continue it. A line
  * that starts like a tag never continues one; it must be a valid tag itself.

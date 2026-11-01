@@ -92,11 +92,11 @@ Source: product log (2026-10-23 product philosophy, 2026-10-24 decisions),
   the same command path. The same command gives the same result, wherever it
   comes from.
 - A command whose type the main process doesn't know, or whose payload fails its
-  schema, is dropped and logged, and the state doesn't change (`CLAUDE.md`:
-  validate every value from outside the process). A command that names something
-  that no longer exists, such as a deleted 테마 or 그래픽, is dropped and logged
-  the same way. Inside a 매크로 or a batch, that one action is skipped and the
-  rest run (07).
+  schema, is dropped and logged, and the state doesn't change
+  (`CONTRIBUTING.md`: validate every value from outside the process). A command
+  that names something that no longer exists, such as a deleted 테마 or 그래픽,
+  is dropped and logged the same way. Inside a 매크로 or a batch, that one
+  action is skipped and the rest run (07).
 - The live state has limits: at most 4,000 characters per text, 1,000 lines per
   슬라이드, and 200 screen outputs plus the four fixed names `main`, `stage`,
   `broadcast`, and `captions`. The whole state must also fit in the recovery

@@ -80,7 +80,7 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
   (`@typescript/typescript6`), used only by lint and the editor, and `tsc` comes
   from TypeScript 7 (`@typescript/native`). See `docs/decisions.md`.
 - `llp/allowed-comments` (`scripts/lint/comment-rule.mts`) allows only the
-  comments in `CLAUDE.md`: TSDoc, `// NOTE(0913vision): ...`, and
+  comments in `CONTRIBUTING.md`: TSDoc, `// NOTE(0913vision): ...`, and
   `// TODO(0913vision): ...`. Plain `//` lines right under a NOTE or TODO, in
   the same column, continue it. `tsdoc/syntax` checks TSDoc.
 - `llp/layer-imports` (`scripts/lint/layer-rule.mts`) allows an import only

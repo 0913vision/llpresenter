@@ -13,7 +13,7 @@ const messages = stylelint.utils.ruleMessages(CSS_COMMENT_RULE_NAME, {
     `Only /* NOTE(${COMMENT_OWNER}): ... */ and /* TODO(${COMMENT_OWNER}): ... */ comments are allowed. Delete this comment or rewrite it as one of those.`,
 });
 
-/** Allows only the CSS comments that `CLAUDE.md` permits: NOTE and TODO. */
+/** Allows only the CSS comments that `CONTRIBUTING.md` permits: NOTE and TODO. */
 export const cssCommentRule: stylelint.Rule = primary => {
   return (root, result) => {
     const valid = stylelint.utils.validateOptions(
