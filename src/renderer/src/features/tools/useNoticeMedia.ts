@@ -1,6 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 
 export function useNoticeMedia(
   onProblem: ((notice: Notice) => void) | undefined,
@@ -13,16 +14,7 @@ export function useNoticeMedia(
   useEffect(() => {
     const api = window.llp;
     if (!api) return undefined;
-    let active = true;
-    let revision = -1;
-    const accept = (next: MediaDocument): void => {
-      if (!active || next.revision <= revision) return;
-      revision = next.revision;
-      setDocument(next);
-    };
-    const stop = api.media.subscribe(accept);
-    api.media.get().then(accept, (cause: unknown) => {
-      if (!active || revision >= 0) return;
+    return subscribeMediaDocument(api.media, setDocument, (cause: unknown) => {
       api.log.write({
         level: 'error',
         message: 'Could not load notice media',
@@ -36,10 +28,6 @@ export function useNoticeMedia(
         time: noticeTime(),
       });
     });
-    return () => {
-      active = false;
-      stop();
-    };
   }, []);
   return document;
 }

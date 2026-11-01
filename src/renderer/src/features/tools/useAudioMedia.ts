@@ -1,6 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 
 export function useAudioMedia(
   onProblem: ((notice: Notice) => void) | undefined,
@@ -14,16 +15,7 @@ export function useAudioMedia(
   useEffect(() => {
     const api = window.llp;
     if (!api) return undefined;
-    let active = true;
-    let revision = -1;
-    const accept = (next: MediaDocument): void => {
-      if (!active || next.revision <= revision) return;
-      revision = next.revision;
-      setDocument(next);
-    };
-    const stop = api.media.subscribe(accept);
-    api.media.get().then(accept, (cause: unknown) => {
-      if (!active || revision >= 0) return;
+    return subscribeMediaDocument(api.media, setDocument, (cause: unknown) => {
       api.log.write({
         level: 'error',
         message:
@@ -43,10 +35,6 @@ export function useAudioMedia(
         time: noticeTime(),
       });
     });
-    return () => {
-      active = false;
-      stop();
-    };
   }, [area]);
   return document;
 }

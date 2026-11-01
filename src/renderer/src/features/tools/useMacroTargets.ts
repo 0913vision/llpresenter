@@ -2,6 +2,7 @@ import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 import {buildMacroTargets} from './macroTargets';
 
 function useMacroMedia(
@@ -15,16 +16,7 @@ function useMacroMedia(
   useEffect(() => {
     const api = window.llp;
     if (!api) return undefined;
-    let active = true;
-    let revision = -1;
-    const accept = (next: MediaDocument): void => {
-      if (!active || next.revision <= revision) return;
-      revision = next.revision;
-      setDocument(next);
-    };
-    const stop = api.media.subscribe(accept);
-    api.media.get().then(accept, (cause: unknown) => {
-      if (!active || revision >= 0) return;
+    return subscribeMediaDocument(api.media, setDocument, (cause: unknown) => {
       api.log.write({
         level: 'error',
         message: 'Could not load macro media',
@@ -38,10 +30,6 @@ function useMacroMedia(
         time: noticeTime(),
       });
     });
-    return () => {
-      active = false;
-      stop();
-    };
   }, []);
   return document;
 }
