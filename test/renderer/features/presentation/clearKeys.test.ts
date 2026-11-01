@@ -1,10 +1,7 @@
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as clearState from '@renderer/session/clear';
-import {
-  handleClearKey,
-  useClearKeys,
-} from '@renderer/features/presentation/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {emptyLiveState} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -122,8 +119,7 @@ function press(
     cancelable: true,
     ...options,
   });
-  Object.defineProperty(event, 'target', {value: target});
-  handleClearKey(event);
+  target.dispatchEvent(event);
   return event;
 }
 
@@ -145,7 +141,13 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe('handleClearKey F1 to F7', () => {
+describe('useClearKeys F1 to F7', () => {
+  let stop: () => void = () => undefined;
+  beforeEach(() => {
+    stop = renderHook(() => useClearKeys()).unmount;
+  });
+  afterEach(() => stop());
+
   it.each([
     ['F1', 'all'],
     ['F2', 'slide'],
@@ -181,7 +183,13 @@ describe('handleClearKey F1 to F7', () => {
   });
 });
 
-describe('handleClearKey Ctrl Z', () => {
+describe('useClearKeys Ctrl Z', () => {
+  let stop: () => void = () => undefined;
+  beforeEach(() => {
+    stop = renderHook(() => useClearKeys()).unmount;
+  });
+  afterEach(() => stop());
+
   it('does not undo a clear and leaves the key to others', () => {
     const event = press('KeyZ', {ctrlKey: true});
     expect(clearState.undoClear).not.toHaveBeenCalled();

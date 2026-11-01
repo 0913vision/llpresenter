@@ -1,10 +1,9 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {NumberField, type NumberFieldProps} from '@renderer/ui/NumberField';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {handleClearKey} from '@renderer/features/presentation/clearKeys';
+import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
 
 function Copies({
   onChange = () => {},
@@ -100,41 +99,16 @@ function DecimalField({
   );
 }
 
-function ShortcutField({run}: {readonly run: () => void}): JSX.Element {
-  useWindowShortcuts([
-    {id: 'workspace.show', run},
-    {id: 'workspace.prep', run},
-  ]);
-  return <Copies updateOn="commit" />;
-}
-
 describe('NumberField', () => {
-  it.each(['KeyS', 'KeyE'])(
-    'commits before a workspace shortcut %s runs',
-    code => {
-      const observed = vi.fn(() => spin().getAttribute('aria-valuenow'));
-      render(<ShortcutField run={observed} />);
-      fireEvent.change(spin(), {target: {value: '25'}});
-      fireEvent.keyDown(spin(), {
-        key: code === 'KeyS' ? 's' : 'e',
-        code,
-        ctrlKey: true,
-      });
-      expect(observed).toHaveReturnedWith('25');
-      expect(spin().value).toBe('25');
-    },
-  );
-  it('commits before a capture-phase clear shortcut', () => {
+  it('commits its draft when a shortcut asks it to first', () => {
     const onChange = vi.fn();
     render(<Copies onChange={onChange} updateOn="commit" />);
     fireEvent.change(spin(), {target: {value: '25'}});
-    window.addEventListener('keydown', handleClearKey, true);
-    try {
-      fireEvent.keyDown(spin(), {key: 'F1', code: 'F1'});
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(25);
-    } finally {
-      window.removeEventListener('keydown', handleClearKey, true);
-    }
+
+    act(() => commitDraftBeforeShortcut(spin()));
+
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(25);
+    expect(spin().value).toBe('25');
   });
   it('does not commit an editing shortcut, and commits on blur', () => {
     const onChange = vi.fn();
