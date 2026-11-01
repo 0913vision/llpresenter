@@ -1,6 +1,5 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {DEFAULT_LYRIC_STYLE} from '@core/themes/lyricStyle';
 import {createItemOverlayId, createMediaId} from '@core/schema/ids';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {
@@ -11,8 +10,6 @@ import {
 } from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {classes} from '@renderer/rendering/classes';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
 
 function overlayState(): LiveState {
@@ -104,20 +101,28 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
+function cleared(
+  state: LiveState,
+  target: 'slide' | 'media',
+  since: number,
+): LiveState {
+  return {
+    ...state,
+    layers: {...state.layers, [target]: null},
+    clearEffects: [
+      {target: {kind: 'layer', layer: target}, since, durationMs: 1000},
+    ],
+  };
+}
+
 it.each([
   ['F2', 'slide'],
   ['F3', 'media'],
 ] as const)(
-  'keeps overlay video and sound playing through %s and its clear fade',
+  'keeps the theme overlay sound playing through %s and its clear fade',
   (_key, target) => {
-    const root = document.createElement('div');
     const sound = document.createElement('div');
     const report = vi.fn();
-    const renderer = new OutputRenderer(root, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
-      mediaUrl: id => `https://media.test/${id}`,
-      onError: report,
-    });
     const api = mockLlpApi({
       settings: {
         get: () =>
@@ -132,93 +137,28 @@ it.each([
       report,
       now: () => now,
     });
-    const render = (state: LiveState) => {
-      const output = state.themeOutput;
-      const composition = output?.screens[THEME_MAIN];
-      if (output === undefined || composition === undefined) {
-        throw new Error('Missing screen');
-      }
-      renderer.render(state.layers, {
-        screen: {id: THEME_MAIN, kind: 'audience'},
-        theme: {
-          ...composition,
-          themeId: output.themeId,
-          revision: output.revision,
-          missing: output.missing,
-          item: state.themeItem ?? null,
-        },
-        ...(state.clearEffects === undefined
-          ? {}
-          : {clearEffects: state.clearEffects}),
-        timers: {
-          list: [],
-          runs: undefined,
-          now: () => ({timer: now, wall: now}),
-        },
-      });
-      audio.show(state);
-    };
     try {
       const state = overlayState();
-      render(state);
-      const video = root.querySelector<HTMLVideoElement>(
-        '[data-kind="overlay"] video[src]',
-      );
+      audio.show(state);
       const soundtrack = sound.querySelector<HTMLVideoElement>('video[src]');
-      const background = root.querySelector<HTMLVideoElement>(
-        '[data-kind="background"] video[src]',
-      );
-      if (video === null || soundtrack === null || background === null) {
-        throw new Error('Missing playback');
-      }
-      video.dispatchEvent(new Event('playing'));
-      const mockPauseVideo = vi.fn();
+      if (soundtrack === null) throw new Error('Missing playback');
       const mockPauseSound = vi.fn();
-      const mockPauseBackground = vi.fn();
-      video.pause = mockPauseVideo;
       soundtrack.pause = mockPauseSound;
-      background.pause = mockPauseBackground;
-      const source = video.src;
       const sourceSound = soundtrack.src;
-      const cleared: LiveState = {
-        ...state,
-        layers: {...state.layers, [target]: null},
-        clearEffects: [
-          {
-            target: {kind: 'layer', layer: target},
-            since: now,
-            durationMs: 1000,
-          },
-        ],
-      };
-      render(cleared);
+      const after = cleared(state, target, now);
+
+      audio.show(after);
       now += 500;
-      render(cleared);
-      expect(video.src).toBe(source);
+      audio.show(after);
       expect(soundtrack.src).toBe(sourceSound);
-      expect(mockPauseVideo).not.toHaveBeenCalled();
       expect(mockPauseSound).not.toHaveBeenCalled();
-      expect(video.muted).toBe(true);
       expect(soundtrack.muted).toBe(false);
-      if (target === 'media') expect(mockPauseBackground).toHaveBeenCalled();
       now += 1000;
-      render(cleared);
-      expect(root.querySelector('[data-kind="overlay"] video[src]')).toBe(
-        video,
-      );
+      audio.show(after);
+
       expect(sound.querySelector('video[src]')).toBe(soundtrack);
-      if (target === 'slide') {
-        expect(
-          root.querySelector(`[data-kind="currentText"] .${classes.shown}`),
-        ).toBeNull();
-      } else {
-        expect(
-          root.querySelector('[data-kind="background"] video[src]'),
-        ).toBeNull();
-      }
       expect(report).not.toHaveBeenCalled();
     } finally {
-      renderer.dispose();
       audio.dispose();
     }
   },

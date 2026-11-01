@@ -112,6 +112,21 @@ describe('OutputRenderer', () => {
     renderer.dispose();
   });
 
+  it('keeps the current picture instant through a screen redraw, but not through new content', () => {
+    const {parent, renderer} = setUp();
+    const root = parent.firstElementChild;
+    const screen = {id: MAIN, kind: 'audience', method: 'window'} as const;
+    renderer.render(WITH_SLIDE, {screen});
+    expect(root?.classList.contains(classes.instant)).toBe(true);
+
+    renderer.render(WITH_SLIDE, {screen: {...screen, method: 'capture'}});
+    expect(root?.classList.contains(classes.instant)).toBe(true);
+    renderer.render({...WITH_SLIDE, slide: null}, {screen});
+
+    expect(root?.classList.contains(classes.instant)).toBe(false);
+    renderer.dispose();
+  });
+
   it('switches the empty color between chroma and black without replacing the content', () => {
     const {parent, renderer} = setUp();
     const frame = {

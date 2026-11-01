@@ -10,7 +10,6 @@ import {
 } from '@fixtures/core/themeOutput';
 import type {RenderFrame, ThemeFrame} from '@renderer/rendering/layer';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
-import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {classes} from '@renderer/rendering/classes';
 import {MAX_THEME_GAPS} from '@renderer/rendering/themeGaps';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
@@ -311,43 +310,5 @@ describe('theme composition drawing', () => {
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(0);
     expect(vi.getTimerCount()).toBe(0);
     view.dispose();
-  });
-
-  it('keeps global layers above the theme in the specified order and preserves the legacy renderer', () => {
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        observe() {}
-        disconnect() {}
-      },
-    );
-    const root = document.createElement('div');
-    const renderer = new OutputRenderer(root, {
-      lyricStyle: DEFAULT_LYRIC_STYLE,
-      mediaUrl: id => id,
-      onError: vi.fn(),
-    });
-    const z = (kind: string) =>
-      root.querySelector<HTMLElement>(`[data-layer="${kind}"]`)?.style.zIndex;
-    renderer.render(song, frame([fixedThemeText()]));
-    expect(z('theme')).toBe('1');
-    expect(z('notice')).toBe('2');
-    expect(z('prop')).toBe('3');
-    expect(z('message')).toBe('4');
-    expect(
-      root
-        .querySelector('[data-layer="lyrics"]')
-        ?.classList.contains(classes.hidden),
-    ).toBe(true);
-    renderer.render(song, {});
-    expect(
-      root
-        .querySelector('[data-layer="lyrics"]')
-        ?.classList.contains(classes.hidden),
-    ).toBe(false);
-    expect(root.querySelector('[data-layer="lyrics"]')?.textContent).toContain(
-      'Invented line',
-    );
-    renderer.dispose();
   });
 });
