@@ -1,12 +1,7 @@
-import {act, cleanup, render, screen, within} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {
-  APP_PROBLEM_LIMITS,
-  fileSkippedProblem,
-  saveFailedProblem,
-  type AppProblem,
-} from '@core/schema/appProblem';
+import {type AppProblem} from '@core/schema/appProblem';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
@@ -55,10 +50,6 @@ function setup(
   };
 }
 
-function skippedCard() {
-  return screen.getByRole('alert', {name: '파일을 읽을 수 없음'});
-}
-
 beforeEach(() => {
   applyService(null);
   useLive.setState({state: emptyLiveState()});
@@ -70,109 +61,8 @@ afterEach(async () => {
   useLive.setState({state: null});
 });
 
-it('shows the files skipped before the window loaded as one card', async () => {
-  setup([
-    fileSkippedProblem(1, 'D:/data/settings/themes.json'),
-    fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'),
-  ]);
-  const card = await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
-  expect(within(card).getByText('themes.json 외 1개')).toBeDefined();
-  expect(within(card).getByText('건너뜀')).toBeDefined();
-});
-
-it('counts a file that arrives by push and by the list only once', async () => {
-  const {push} = setup([fileSkippedProblem(1, 'D:/data/settings/themes.json')]);
-  await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
-  push(fileSkippedProblem(1, 'D:/data/settings/themes.json'));
-  expect(within(skippedCard()).getByText('themes.json')).toBeDefined();
-  push(fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'));
-  expect(within(skippedCard()).getByText('themes.json 외 1개')).toBeDefined();
-  expect(screen.getAllByRole('alert')).toHaveLength(1);
-});
-
-it('counts at most the listed limit of skipped files', () => {
-  const {push} = setup();
-  for (let index = 0; index < APP_PROBLEM_LIMITS.listed + 5; index += 1) {
-    push(fileSkippedProblem(index + 1, `D:/data/Songs/${index}.llsong`));
-  }
-  expect(
-    within(skippedCard()).getByText(
-      `0.llsong 외 ${APP_PROBLEM_LIMITS.listed - 1}개`,
-    ),
-  ).toBeDefined();
-});
-
-it('counts two skipped files that share a file name as two', () => {
-  const {push} = setup();
-  push(fileSkippedProblem(1, 'D:/data/Songs/a1.llsong'));
-  push(fileSkippedProblem(2, 'D:/backup/Songs/a1.llsong'));
-  expect(within(skippedCard()).getByText('a1.llsong 외 1개')).toBeDefined();
-});
-
-it('counts two skipped files whose long names clip to the same text as two', () => {
-  const {push} = setup();
-  const stem = '가'.repeat(APP_PROBLEM_LIMITS.nameCharacters);
-  push(fileSkippedProblem(1, `D:/data/Songs/${stem}1.llsong`));
-  push(fileSkippedProblem(2, `D:/data/Songs/${stem}2.llsong`));
-  expect(within(skippedCard()).getByText(`${stem} 외 1개`)).toBeDefined();
-});
-
-it('keeps a pushed save change over an older one in a list that arrives late', async () => {
-  let finishList: (problems: readonly AppProblem[]) => void = () => undefined;
-  const lateList = new Promise<readonly AppProblem[]>(resolve => {
-    finishList = resolve;
-  });
-  const {push} = setup(lateList);
-  push(saveFailedProblem('주일 예배', 1));
-  push({kind: 'save-recovered'});
-  await act(async () => {
-    finishList([saveFailedProblem('주일 예배', 1)]);
-    await lateList;
-  });
-  expect(screen.queryByRole('alert', {name: '저장할 수 없음'})).toBeNull();
-});
-
-it('shows 저장할 수 없음 with 다시 시도 and closes it when every file is saved', () => {
-  const {push, retrySaves} = setup();
-  push(saveFailedProblem('주일 예배', 1));
-  const card = screen.getByRole('alert', {name: '저장할 수 없음'});
-  expect(within(card).getByText('주일 예배')).toBeDefined();
-  push(saveFailedProblem('주일 예배', 2));
-  expect(
-    within(screen.getByRole('alert', {name: '저장할 수 없음'})).getByText(
-      '주일 예배 외 1개',
-    ),
-  ).toBeDefined();
-  act(() =>
-    within(screen.getByRole('alert', {name: '저장할 수 없음'}))
-      .getByRole('button', {name: '다시 시도'})
-      .click(),
-  );
-  expect(retrySaves).toHaveBeenCalledOnce();
-  push(saveFailedProblem('주일 예배', 2));
-  expect(screen.getByRole('alert', {name: '저장할 수 없음'})).toBeDefined();
-  push({kind: 'save-recovered'});
-  expect(screen.queryByRole('alert', {name: '저장할 수 없음'})).toBeNull();
-});
-
-it('shows files still waiting to be saved when the window loads', async () => {
-  setup([saveFailedProblem('주일 예배', 1)]);
-  expect(
-    await screen.findByRole('alert', {name: '저장할 수 없음'}),
-  ).toBeDefined();
-});
-
 it('releases the problem listener when the app unmounts', () => {
   const {stop, view} = setup();
   view.unmount();
   expect(stop).toHaveBeenCalledOnce();
-});
-it('keeps status text in step with save failure and recovery pushes', () => {
-  const {push, view} = setup();
-  const bar = view.container.querySelector('footer[role="status"]');
-  expect(bar?.textContent).toBe('');
-  push(saveFailedProblem('service', 1));
-  expect(bar?.textContent).toBe('\uC800\uC7A5\uD558\uC9C0 \uBABB\uD568');
-  push({kind: 'save-recovered'});
-  expect(bar?.textContent).toBe('');
 });

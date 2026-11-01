@@ -1,0 +1,155 @@
+import {act, renderHook, waitFor} from '@testing-library/react';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import type {LlpApi} from '@contracts/ipc/api';
+import {
+  APP_PROBLEM_LIMITS,
+  fileSkippedProblem,
+  saveFailedProblem,
+  type AppProblem,
+} from '@core/schema/appProblem';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {
+  WAITING_SAVES_KEY,
+  skippedFilesCard,
+  waitingSavesCard,
+} from '@renderer/app/notifications/problemNotices';
+import {useProblemNotices} from '@renderer/app/notifications/useProblemNotices';
+import type {NoticeTarget} from '@renderer/app/notifications/useOutputNotices';
+
+vi.mock('@renderer/app/notifications/problemNotices', async importOriginal => {
+  const actual =
+    await importOriginal<
+      typeof import('@renderer/app/notifications/problemNotices')
+    >();
+  return {
+    ...actual,
+    skippedFilesCard: vi.fn(actual.skippedFilesCard),
+    waitingSavesCard: vi.fn(actual.waitingSavesCard),
+  };
+});
+
+function setup(
+  listed: readonly AppProblem[] | Promise<readonly AppProblem[]> = [],
+) {
+  let push: (problem: AppProblem) => void = () => undefined;
+  const stop = vi.fn();
+  const retrySaves = vi.fn<LlpApi['problems']['retrySaves']>();
+  const api = mockLlpApi({
+    problems: {
+      list: () => Promise.resolve(listed),
+      retrySaves,
+      subscribe: listener => {
+        push = listener;
+        return stop;
+      },
+    },
+  });
+  const target = {
+    report: vi.fn<NoticeTarget['report']>(),
+    dismiss: vi.fn<NoticeTarget['dismiss']>(),
+  };
+  const {result} = renderHook(() => useProblemNotices(api, target));
+  return {
+    result,
+    target,
+    retrySaves,
+    push: (problem: AppProblem): void => act(() => push(problem)),
+  };
+}
+
+function skippedNames(): readonly string[] | undefined {
+  return vi.mocked(skippedFilesCard).mock.lastCall?.[0];
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe('useProblemNotices', () => {
+  it('shows the files skipped before the window loaded as one card', async () => {
+    const {target} = setup([
+      fileSkippedProblem(1, 'D:/data/settings/themes.json'),
+      fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'),
+    ]);
+
+    await waitFor(() =>
+      expect(skippedNames()).toEqual(['themes.json', 'a1.llsong']),
+    );
+    expect(target.report.mock.lastCall?.[0].title).toBe('파일을 읽을 수 없음');
+  });
+
+  it('counts a file that arrives by push and by the list only once', async () => {
+    const {push} = setup([
+      fileSkippedProblem(1, 'D:/data/settings/themes.json'),
+    ]);
+    await waitFor(() => expect(skippedNames()).toEqual(['themes.json']));
+
+    push(fileSkippedProblem(1, 'D:/data/settings/themes.json'));
+    expect(skippedFilesCard).toHaveBeenCalledOnce();
+    push(fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'));
+
+    expect(skippedNames()).toEqual(['themes.json', 'a1.llsong']);
+  });
+
+  it('counts at most the listed limit of skipped files', () => {
+    const {push} = setup();
+
+    for (let index = 0; index < APP_PROBLEM_LIMITS.listed + 5; index += 1) {
+      push(fileSkippedProblem(index + 1, `D:/data/Songs/${index}.llsong`));
+    }
+
+    expect(skippedNames()).toHaveLength(APP_PROBLEM_LIMITS.listed);
+  });
+
+  it('counts skipped files by id, even when their names are the same', () => {
+    const {push} = setup();
+    const stem = '가'.repeat(APP_PROBLEM_LIMITS.nameCharacters);
+
+    push(fileSkippedProblem(1, 'D:/data/Songs/a1.llsong'));
+    push(fileSkippedProblem(2, 'D:/backup/Songs/a1.llsong'));
+    push(fileSkippedProblem(3, `D:/data/Songs/${stem}1.llsong`));
+    push(fileSkippedProblem(4, `D:/data/Songs/${stem}2.llsong`));
+
+    expect(skippedNames()).toHaveLength(4);
+  });
+
+  it('keeps a pushed save change over an older one in a list that arrives late', async () => {
+    let finishList: (problems: readonly AppProblem[]) => void = () => undefined;
+    const lateList = new Promise<readonly AppProblem[]>(resolve => {
+      finishList = resolve;
+    });
+    const {result, target, push} = setup(lateList);
+    push(saveFailedProblem('주일 예배', 1));
+    push({kind: 'save-recovered'});
+
+    await act(async () => {
+      finishList([saveFailedProblem('주일 예배', 1)]);
+      await lateList;
+    });
+
+    expect(waitingSavesCard).toHaveBeenCalledOnce();
+    expect(target.dismiss).toHaveBeenLastCalledWith(WAITING_SAVES_KEY);
+    expect(result.current).toBe(false);
+  });
+
+  it('shows 저장할 수 없음 with 다시 시도 and closes it when every file is saved', () => {
+    const {result, target, retrySaves, push} = setup();
+
+    push(saveFailedProblem('주일 예배', 1));
+    expect(result.current).toBe(true);
+    expect(target.report.mock.lastCall?.[0].title).toBe('저장할 수 없음');
+    vi.mocked(waitingSavesCard).mock.lastCall?.[1].retry();
+    expect(retrySaves).toHaveBeenCalledOnce();
+    push({kind: 'save-recovered'});
+
+    expect(result.current).toBe(false);
+    expect(target.dismiss).toHaveBeenCalledExactlyOnceWith(WAITING_SAVES_KEY);
+  });
+
+  it('shows files still waiting to be saved when the window loads', async () => {
+    const {result} = setup([saveFailedProblem('주일 예배', 1)]);
+
+    await waitFor(() => expect(result.current).toBe(true));
+    expect(waitingSavesCard).toHaveBeenCalledOnce();
+  });
+});

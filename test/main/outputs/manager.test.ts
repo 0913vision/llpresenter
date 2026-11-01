@@ -151,11 +151,11 @@ function mockStore() {
       return () => listeners.delete(listener);
     }),
     dispatch: vi.fn<LiveStore['dispatch']>(command => {
-      state = {
-        ...state,
-        outputs: nextOutputs(state.outputs, command),
-        version: state.version + 1,
-      };
+      const outputs = nextOutputs(state.outputs, command);
+      const switches =
+        command.type === 'output.set' || command.type === 'live.batch';
+      if (switches && outputs === state.outputs) return true;
+      state = {...state, outputs, version: state.version + 1};
       for (const listener of listeners) listener(state);
       return true;
     }),

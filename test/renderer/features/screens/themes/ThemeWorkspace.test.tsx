@@ -31,7 +31,7 @@ afterEach(() => {
   useLive.setState({state: null});
 });
 
-function setup() {
+function setup({idle = false}: {readonly idle?: boolean} = {}) {
   const initial = settingsDocument('themes', createDefaultThemes());
   if (initial.name !== 'themes') throw new Error('Expected themes');
   let themes = initial;
@@ -90,10 +90,17 @@ function setup() {
   });
   window.llp = api;
   useLive.setState({
-    state: {
-      ...emptyLiveState(),
-      themeOutput: {themeId: song.id, revision: 1, missing: [], screens: {}},
-    },
+    state: idle
+      ? emptyLiveState()
+      : {
+          ...emptyLiveState(),
+          themeOutput: {
+            themeId: song.id,
+            revision: 1,
+            missing: [],
+            screens: {},
+          },
+        },
   });
   const report = vi.fn();
   function Workspace() {
@@ -409,4 +416,18 @@ it('selects every element and pastes the clipboard into another screen with reta
     expect(pasted?.frame).toEqual(source?.frame);
     expect(pasted?.text).toEqual(source?.text);
   });
+});
+
+it('marks standby as live while the output is idle', async () => {
+  setup({idle: true});
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+
+  await waitFor(() =>
+    expect(
+      within(themes).getByRole('option', {name: '대기 화면'}).textContent,
+    ).toContain('LIVE'),
+  );
+  expect(
+    within(themes).getByRole('option', {name: '찬양'}).textContent,
+  ).not.toContain('LIVE');
 });

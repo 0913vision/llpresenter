@@ -1,9 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {LiveStore} from '@main/live/store';
 import {sendLive, startLiveSync, useLive} from '@renderer/session/live';
 import {
   applyService,
@@ -41,8 +40,52 @@ const service: ShowService = {
   jumpKeys: {},
 };
 
-let store: LiveStore;
 let now: number;
+let live: LiveState;
+
+function reduce(state: LiveState, command: LiveCommand): LiveState {
+  const next = {...state, version: state.version + 1};
+  const {layers} = state;
+  if (command.type === 'live.batch') {
+    return command.commands.reduce(reduce, state);
+  }
+  if (command.type === 'slide.show') {
+    return {...next, layers: {...layers, slide: command.slide}};
+  }
+  if (command.type === 'media.show') {
+    return {
+      ...next,
+      layers: {...layers, media: {...command.media, startedAt: now}},
+    };
+  }
+  if (command.type === 'layer.clear') {
+    const clears = (layer: string) => ['all', layer].includes(command.target);
+    return {
+      ...next,
+      layers: {
+        ...layers,
+        slide: clears('slide') ? null : layers.slide,
+        media: clears('media') ? null : layers.media,
+      },
+    };
+  }
+  if (command.type === 'output.set') {
+    return {
+      ...next,
+      outputs: {...state.outputs, [command.screenId]: command.on},
+    };
+  }
+  return next;
+}
+
+const store = {
+  get state(): LiveState {
+    return live;
+  },
+  dispatch(command: LiveCommand): void {
+    live = reduce(live, command);
+  },
+};
 const sent: LiveCommand[] = [];
 const getService = vi.fn<() => Promise<ShowService | null>>();
 const log = vi.fn();
@@ -59,7 +102,7 @@ async function expectSlide(itemId: string, position = 0): Promise<void> {
 
 beforeEach(() => {
   now = START;
-  store = new LiveStore(emptyLiveState(), () => now);
+  live = emptyLiveState();
   sent.length = 0;
   getService.mockReset().mockResolvedValue(service);
   log.mockReset();

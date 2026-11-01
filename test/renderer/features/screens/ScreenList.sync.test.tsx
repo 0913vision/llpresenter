@@ -9,9 +9,8 @@ import type {MonitorList} from '@core/schema/monitors';
 import type {OutputStatuses} from '@core/schema/outputStatus';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {Workspace} from '@renderer/app/shell/Workspace';
-import {ScreensWindow} from '@renderer/app/ScreensWindow';
+import {DisplayLayout} from '@renderer/features/screens/DisplayLayout';
+import {ScreenList} from '@renderer/features/screens/ScreenList';
 import {useLive} from '@renderer/session/live';
 import {
   hoverForTooltip,
@@ -61,15 +60,13 @@ function setup({
   outputs = {[MAIN_ID]: true},
   read = readDocument,
   monitors = [],
-  warningHeight = 0,
-  themes = false,
+  layout = false,
 }: {
   readonly statuses?: OutputStatuses;
   readonly outputs?: Readonly<Record<string, boolean>>;
   readonly read?: (name: string) => Promise<SettingsDocument>;
   readonly monitors?: MonitorList;
-  readonly warningHeight?: number;
-  readonly themes?: boolean;
+  readonly layout?: boolean;
 } = {}) {
   const settingsListeners = new Set<(document: SettingsDocument) => void>();
   let pushStatus: (next: OutputStatuses) => void = () => undefined;
@@ -98,16 +95,10 @@ function setup({
   });
   useLive.setState({state: {...emptyLiveState(), outputs}});
   const view = render(
-    themes ? (
-      <Workspace
-        id="screens"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-        onProblem={onProblem}
-        warningHeight={warningHeight}
-      />
+    layout ? (
+      <DisplayLayout onProblem={onProblem} />
     ) : (
-      <ScreensWindow onProblem={onProblem} />
+      <ScreenList onProblem={onProblem} />
     ),
   );
   return {
@@ -155,7 +146,11 @@ function selectedOf(name: string): string | null {
 
 describe('the 화면 list', () => {
   it('keeps the configured monitor selected and named while output is off', async () => {
-    const {send} = setup({outputs: {}, monitors: wideMonitorArrangement});
+    const {send} = setup({
+      outputs: {},
+      monitors: wideMonitorArrangement,
+      layout: true,
+    });
     const monitor = await screen.findByRole('button', {
       name: '모니터 2 Second monitor',
     });
@@ -176,10 +171,10 @@ describe('the 화면 list', () => {
     );
     expect(monitor.getAttribute('aria-pressed')).toBe('true');
     expect(monitor.textContent).toContain('본 화면');
-    await userEvent.click(option('방송 자막'));
+    act(() => useScreensSelection.setState({selection: {id: CAPTIONS_ID}}));
     expect(monitor.getAttribute('aria-pressed')).toBe('false');
     await userEvent.click(monitor);
-    expect(selectedOf('본 화면')).toBe('true');
+    expect(useScreensSelection.getState().selection).toEqual({id: MAIN_ID});
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -276,37 +271,5 @@ describe('the 화면 list', () => {
       ),
     );
     expect(screen.queryByRole('option')).toBeNull();
-  });
-});
-
-describe('the theme workspace and screen selection', () => {
-  it('marks standby as live while the output is idle', async () => {
-    setup({themes: true});
-    await screen.findByRole('option', {name: '대기 화면'});
-    await waitFor(() =>
-      expect(option('대기 화면').textContent).toContain('LIVE'),
-    );
-    expect(option('찬양').textContent).not.toContain('LIVE');
-  });
-
-  it('composes the theme list, canvas, and screen properties without physical screen controls', async () => {
-    setup({themes: true});
-    await screen.findByRole('option', {name: '찬양'});
-    expect(
-      screen
-        .getAllByRole('listbox')
-        .map(list => list.getAttribute('aria-label')),
-    ).toEqual(['테마', '요소']);
-    expect(screen.queryByRole('listbox', {name: '화면'})).toBeNull();
-    expect(screen.queryByRole('region', {name: '출력 미리보기'})).toBeNull();
-    await userEvent.click(option('말씀'));
-    expect(
-      await screen.findByRole('region', {name: '테마 편집기'}),
-    ).toBeDefined();
-    await userEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
-    expect(
-      screen.getByRole('region', {name: '테마 편집기'}).querySelector('header'),
-    ).toBeNull();
-    expect(screen.queryByRole('button', {name: '모니터 번호 표시'})).toBeNull();
   });
 });
