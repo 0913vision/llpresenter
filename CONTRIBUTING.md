@@ -145,8 +145,11 @@ grows:
   main answers it with the same endpoint.
 - A change that moves code changes nothing else. Moves and behavior changes go
   in separate commits.
-- A test lives beside the code it tests, in the same layer. A fixture lives in
-  the lowest layer that uses it. Don't test the same behavior twice.
+- `src/` holds no test code. Tests live in `test/`, in the folder that mirrors
+  the code they test (`src/core/x.ts` is tested in `test/core/x.test.ts`,
+  `src/renderer/src/ui/y.tsx` in `test/renderer/ui/y.test.tsx`). Shared mocks
+  and fixtures live in `test/fixtures/` and are imported as `@fixtures/...`.
+  Don't test the same behavior twice.
 
 ## Tests
 

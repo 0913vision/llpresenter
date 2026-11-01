@@ -766,3 +766,19 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - How the test shards are split stays open: Vitest splits by a hash of the file
   path with equal file counts, not by time. It is decided after the run times
   without coverage are measured.
+
+## 2026-11-01: Tests leave src, and the drafts leave the repository
+
+- The user: "src에는 테스트가 없어야 함. 테스트는 테스트로 가서 공용 테스트
+  픽스쳐 짜고 그런 식으로 해야지", "그래야 커버리지가 분리가 될 거 아냐
+  src-only로", and on the draft boards: "팀 폴더는 레포가 아님. 레포는 레포임."
+- Every test and test helper moved from `src/` to `test/`, in folders that
+  mirror `src/` (`src/renderer/src/` becomes `test/renderer/`). Shared mocks and
+  fixtures are in `test/fixtures/`, imported as `@fixtures/...`; tests import
+  the code they test as `@core/`, `@contracts/`, `@renderer/`, or `@main/`. The
+  layer lint checks a test as the `src/` folder it mirrors. Coverage counts
+  `src/` only.
+- The draft boards moved out of the repository to the team folder. The design
+  system stays in `design/system/`.
+- Reducing the number of tests ("테스트가 불필요하게 많은 것도 이상하고") comes
+  next, from a list of removals the user sees first.
