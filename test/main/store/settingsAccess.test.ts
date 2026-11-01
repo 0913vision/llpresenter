@@ -28,12 +28,12 @@ const document = expectSuccess(
 function mockReader() {
   const listeners = new Set<SettingsListener>();
   const reader: SettingsReader = {
-    get: vi.fn(name => {
+    get: vi.fn<SettingsReader['get']>(name => {
       if (name !== 'messages') throw new Error(`No ${name} settings`);
       return document;
     }),
     preferences: vi.fn(),
-    subscribe: vi.fn(listener => {
+    subscribe: vi.fn<SettingsReader['subscribe']>(listener => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     }),

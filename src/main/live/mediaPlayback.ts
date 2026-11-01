@@ -4,7 +4,7 @@ import {dispatchLogged, type LiveStore} from './store';
 
 /** Keeps output properties current through the revisioned media document. */
 export function connectMediaPlayback(
-  store: LiveStore,
+  store: Pick<LiveStore, 'handles' | 'dispatch' | 'connectAudioMedia'>,
   media: Pick<MediaStore, 'get' | 'subscribe'>,
   log: Logger,
 ): () => void {

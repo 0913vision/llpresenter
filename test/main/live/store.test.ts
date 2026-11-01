@@ -4,7 +4,10 @@ import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
+import {
+  MAX_LIVE_BATCH_COMMANDS,
+  parseLiveCommand,
+} from '@core/schema/liveCommand';
 import {
   defineSlice,
   type MacroCommandPort,
@@ -13,6 +16,8 @@ import {
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
+import {clearSlice} from '@main/live/slices/clear';
+import {contentSlice} from '@main/live/slices/content';
 import {LiveStore, dispatchBatched, dispatchLogged} from '@main/live/store';
 
 const uuid = (index: number) =>
@@ -279,5 +284,52 @@ describe('connected ports', () => {
     expect(last()?.macros).toBe(second);
     removeSecond();
     expect(last()?.macros).toBeUndefined();
+  });
+});
+
+describe('unhandled commands', () => {
+  const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+  const unhandled = [
+    {type: 'theme.set', themeId: ID},
+    {type: 'prop.set', propId: ID, on: true},
+    {type: 'audio.play'},
+    {type: 'macro.run', macroId: ID},
+  ];
+
+  it('logs commands absent from its registry and keeps the state, the undo, and the listeners', () => {
+    const store = new LiveStore(
+      undefined,
+      Date.now,
+      new SliceRegistry([contentSlice, clearSlice]),
+    );
+    store.dispatch({
+      type: 'message.show',
+      message: {messageId: 'old', text: 'Old'},
+    });
+    store.dispatch({type: 'layer.clear', target: 'message'});
+    expect(store.state.canUndo).toBe(true);
+    const before = store.state;
+    const listener = vi.fn();
+    const unsubscribe = store.subscribe(listener);
+    const log = {info: vi.fn(), warn: vi.fn(), error: vi.fn(), flush: vi.fn()};
+    try {
+      for (const value of unhandled) {
+        const command = expectSuccess(parseLiveCommand(value));
+        dispatchLogged(store, command, log);
+        expect(store.dispatch(command)).toBe(false);
+        expect(store.state).toBe(before);
+      }
+      expect(log.warn.mock.calls).toEqual(
+        unhandled.map(({type}) => ['unhandled live command', {type}]),
+      );
+      expect(listener).not.toHaveBeenCalled();
+      expect(store.listenerCount).toBe(1);
+      expect(log.error).not.toHaveBeenCalled();
+      store.dispatch({type: 'clear.undo'});
+      expect(store.state.layers.message?.text).toBe('Old');
+    } finally {
+      unsubscribe();
+    }
+    expect(store.listenerCount).toBe(0);
   });
 });

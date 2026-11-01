@@ -99,16 +99,6 @@ describe('audio transport', () => {
     expect(store.state.layers.audio).toBeNull();
     expect(store.state.canUndo).toBe(false);
   });
-  it.each([
-    {trackVersion: -1, since: 0},
-    {trackVersion: 1, since: NaN},
-    {trackVersion: 1, since: Infinity},
-    {trackVersion: 1, since: -1},
-  ])('rejects malformed fade completion %j', fields => {
-    expect(
-      parseLiveCommand({type: 'audio.fadeOut.complete', ...fields}).ok,
-    ).toBe(false);
-  });
   it('never reuses track versions after batched plays, next, or a clear', () => {
     const {store, send, start} = setup();
     send({
@@ -143,14 +133,6 @@ describe('audio transport', () => {
     expect(store.state.layers.audio?.mediaId).toBe(SECOND);
     expect(send({type: 'audio.next', trackVersion})).toBe(false);
   });
-  it.each([-1, 0.5, Infinity, Number.MAX_SAFE_INTEGER + 1])(
-    'rejects invalid ended track version %s',
-    trackVersion => {
-      expect(parseLiveCommand({type: 'audio.next', trackVersion}).ok).toBe(
-        false,
-      );
-    },
-  );
   it('plays playlist entries in order, including duplicate media, and stops after the last', () => {
     const {store, start, send} = setup();
     start();

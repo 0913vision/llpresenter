@@ -1,9 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '@main/live/store';
-import {SliceRegistry} from '@main/live/sliceRegistry';
-import {contentSlice} from '@main/live/slices/content';
-import {clearSlice} from '@main/live/slices/clear';
-import {interruptsSongOutput} from '@core/live/commands';
+import {describe, expect, it} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -49,12 +44,9 @@ const validActions = [
   {type: 'item.start', itemId: ID},
 ];
 
-describe('M3 live action contracts', () => {
+describe('live action commands', () => {
   it.each(validActions)('accepts $type %j', command => {
     expect(expectSuccess(parseLiveCommand(command))).toEqual(command);
-    expect(interruptsSongOutput(expectSuccess(parseLiveCommand(command)))).toBe(
-      false,
-    );
   });
 
   it.each([
@@ -115,40 +107,23 @@ describe('M3 live action contracts', () => {
     }
   });
 
-  it('logs actions absent from its registry and preserves state, undo, and listeners', () => {
-    const store = new LiveStore(
-      undefined,
-      Date.now,
-      new SliceRegistry([contentSlice, clearSlice]),
-    );
-    store.dispatch({
-      type: 'message.show',
-      message: {messageId: 'old', text: 'Old'},
-    });
-    store.dispatch({type: 'layer.clear', target: 'message'});
-    expect(store.state.canUndo).toBe(true);
-    const before = store.state;
-    const listener = vi.fn();
-    const unsubscribe = store.subscribe(listener);
-    const log = {info: vi.fn(), warn: vi.fn(), error: vi.fn(), flush: vi.fn()};
-    try {
-      for (const value of validActions) {
-        const command = expectSuccess(parseLiveCommand(value));
-        dispatchLogged(store, command, log);
-        expect(store.dispatch(command)).toBe(false);
-        expect(store.state).toBe(before);
-      }
-      expect(log.warn.mock.calls).toEqual(
-        validActions.map(({type}) => ['unhandled live command', {type}]),
-      );
-      expect(listener).not.toHaveBeenCalled();
-      expect(store.listenerCount).toBe(1);
-      expect(log.error).not.toHaveBeenCalled();
-      store.dispatch({type: 'clear.undo'});
-      expect(store.state.layers.message?.text).toBe('Old');
-    } finally {
-      unsubscribe();
-    }
-    expect(store.listenerCount).toBe(0);
+  it.each([
+    {trackVersion: -1, since: 0},
+    {trackVersion: 1, since: NaN},
+    {trackVersion: 1, since: Infinity},
+    {trackVersion: 1, since: -1},
+  ])('rejects malformed fade completion %j', fields => {
+    expect(
+      parseLiveCommand({type: 'audio.fadeOut.complete', ...fields}).ok,
+    ).toBe(false);
   });
+
+  it.each([-1, 0.5, Infinity, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid ended track version %s',
+    trackVersion => {
+      expect(parseLiveCommand({type: 'audio.next', trackVersion}).ok).toBe(
+        false,
+      );
+    },
+  );
 });

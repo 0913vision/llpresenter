@@ -1,6 +1,4 @@
-import {describe, expect, expectTypeOf, it, vi} from 'vitest';
-import {dispatchLogged, LiveStore} from '@main/live/store';
-import {SliceRegistry} from '@main/live/sliceRegistry';
+import {describe, expect, expectTypeOf, it} from 'vitest';
 import {interruptsSongOutput} from '@core/live/commands';
 import type {ScreenId} from '@core/schema/ids';
 import {
@@ -12,36 +10,18 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const screen = {id: ID, name: 'Audience', kind: 'audience', method: 'capture'};
-const commands = [
-  {type: 'screen.testPattern.set', screenId: ID, on: true},
-  {type: 'screen.testPattern.set', screenId: ID, on: false},
-  {type: 'monitors.identify'},
-  {type: 'screen.settings.apply', screenId: ID},
-];
 
-describe('screen command contracts', () => {
-  it.each(commands)(
-    'accepts $type and rejects it when absent from the test registry',
-    value => {
-      const command = expectSuccess(parseLiveCommand(value));
-      expect(command).toEqual(value);
-      expect(interruptsSongOutput(command)).toBe(false);
-      const store = new LiveStore(undefined, undefined, new SliceRegistry([]));
-      const state = store.state;
-      const log = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        flush: vi.fn(),
-      };
-      dispatchLogged(store, command, log);
-      expect(store.state).toBe(state);
-      expect(log.warn).toHaveBeenCalledExactlyOnceWith(
-        'unhandled live command',
-        {type: command.type},
-      );
-    },
-  );
+describe('screen commands', () => {
+  it.each([
+    {type: 'screen.testPattern.set', screenId: ID, on: true},
+    {type: 'screen.testPattern.set', screenId: ID, on: false},
+    {type: 'monitors.identify'},
+    {type: 'screen.settings.apply', screenId: ID},
+  ])('accepts $type and leaves song navigation alone', value => {
+    const command = expectSuccess(parseLiveCommand(value));
+    expect(command).toEqual(value);
+    expect(interruptsSongOutput(command)).toBe(false);
+  });
 
   it('keeps only the saved screen ID through both boundary parsers and batches', () => {
     const command = {type: 'screen.settings.apply', screenId: ID};

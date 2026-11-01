@@ -3,6 +3,8 @@ import {
   interruptsSongOutput,
   type SingleLiveCommand,
 } from '@core/live/commands';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('interruptsSongOutput', () => {
   it('interrupts pending song navigation when any batch child interrupts it', () => {
@@ -83,5 +85,32 @@ describe('interruptsSongOutput', () => {
         message: {messageId: 'a', text: ''},
       }),
     ).toBe(false);
+  });
+});
+
+describe('interruptsSongOutput for overlay, stage, audio, and 매크로 actions', () => {
+  const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+  it.each([
+    {type: 'message.expire', messageId: ID, expiresAt: 1_700_000_000_000},
+    {type: 'theme.set', themeId: ID},
+    {type: 'stage.message.set', text: 'Start again'},
+    {type: 'stage.timer.set', timerId: ID},
+    {type: 'prop.set', propId: ID, on: true},
+    {type: 'notice.start', noticeId: ID},
+    {
+      type: 'message.send',
+      text: 'Come forward',
+      targets: 'all',
+      duration: null,
+    },
+    {type: 'timer.start', timerId: ID},
+    {type: 'audio.play'},
+    {type: 'audio.volume.set', volume: 55.5},
+    {type: 'macro.run', macroId: ID},
+    {type: 'item.start', itemId: ID},
+  ])('leaves song navigation alone for $type', value => {
+    expect(interruptsSongOutput(expectSuccess(parseLiveCommand(value)))).toBe(
+      false,
+    );
   });
 });

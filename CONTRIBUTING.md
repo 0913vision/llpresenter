@@ -165,6 +165,10 @@ Every test is one of two kinds:
 A test that runs the real code of other layers to check one module is neither
 kind. Rewrite it as a unit test of that module.
 
+A module is what one public entry point does, together with the private parts
+registered into it. The live store and its slices are one module, tested through
+the store; a slice is not tested alone.
+
 ### Folders
 
 | Folder                                                                      | Holds                                                                                                                                                                                 |

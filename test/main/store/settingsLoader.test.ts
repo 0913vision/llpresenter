@@ -114,14 +114,14 @@ describe('loadSettingsArea', () => {
       revision: 1,
       value: {templates: []},
     });
-    expect(saver.save).toHaveBeenCalledExactlyOnceWith({
-      target: {
-        file: settingsLocation(locations, 'messages').file,
-        kind: 'settings',
-        id: 'messages',
-      },
-      text: expect.stringContaining('"llsettings.messages"'),
+    expect(saver.save).toHaveBeenCalledOnce();
+    const [request] = saver.save.mock.calls[0] ?? [];
+    expect(request?.target).toEqual({
+      file: settingsLocation(locations, 'messages').file,
+      kind: 'settings',
+      id: 'messages',
     });
+    expect(request?.text).toContain('"llsettings.messages"');
   });
 
   it('keeps the custom values of a file it read, adds no defaults, and saves nothing', async () => {

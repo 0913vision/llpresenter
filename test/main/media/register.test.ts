@@ -25,12 +25,10 @@ import {
 vi.mock('@main/media/mediaImporter', async importOriginal => {
   const actual =
     await importOriginal<typeof import('@main/media/mediaImporter')>();
-  return {
-    ...actual,
-    MediaImporter: vi.fn(function (options: MediaImporterOptions) {
-      return new actual.MediaImporter(options);
-    }),
-  };
+  function create(options: MediaImporterOptions) {
+    return new actual.MediaImporter(options);
+  }
+  return {...actual, MediaImporter: vi.fn(create)};
 });
 import {
   registerMediaBackend,
