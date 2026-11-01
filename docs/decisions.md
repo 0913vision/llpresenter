@@ -748,3 +748,21 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   only on save.
 - This replaces "Every edit saves at once" in spec 12. Draft: B20 board f2, less
   its breadcrumb, which ui-210 removed.
+
+## 2026-11-01: CI checks branches without coverage and measures it on main
+
+- The user: "대체 로컬 ci를 왜 돌려 불필요하게", "캐시하고 문서는 ci 스킵하는 건
+  적용해", "범퍼 돌아서 커밋 찍고 나면 커버리지 그냥 병렬로 하나 돌리면 될 거
+  같은데. 라인 커버리지 80%로 목표 잡고. 물론 각 애들은 코딩할 때 가급적 테스트
+  잘 짜야 하는 건 그대로고.", and "그냥 커버리지가 얼마인지 찍고 80% 이상 이하
+  언제 커버리지 다듬을지 이건 니가 나랑 판단하는 거야."
+- Nothing is checked locally. Branch CI caches the installed packages
+  (`node_modules`, keyed by `package-lock.json`), runs the format check only
+  when a branch changes only Markdown documents outside `design/`, and runs the
+  tests without coverage.
+- After a push to `main`, a coverage job runs beside the version bump. It
+  records the number and never fails on it; the target is 80% of lines (the
+  first measurement, November 1, was 93.94%).
+- How the test shards are split stays open: Vitest splits by a hash of the file
+  path with equal file counts, not by time. It is decided after the run times
+  without coverage are measured.

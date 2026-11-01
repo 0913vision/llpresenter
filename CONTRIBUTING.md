@@ -227,10 +227,14 @@ paths, user names, ports, or temp folders. Tests use neutral paths such as
 
 ## Checks
 
-- `npm run verify` runs the type check, lint, format check, unit tests, and
-  build. Since October 25 it runs on GitHub's Windows runners for every pushed
-  branch (not on this computer); a review request needs a green run of its head
-  commit. A push to `main` only bumps the version on GitHub.
+- GitHub's Windows runners check every pushed branch: type check, lint, format
+  check, build, and unit tests. Nothing is checked on this computer. A branch
+  that changes only Markdown documents gets the format check only. A review
+  request needs a green run of its head commit.
+- A push to `main` bumps the version and, beside it, measures test coverage. The
+  coverage run records the number and never fails on it. The target is 80% of
+  lines; the lead and the user decide from that number when to improve coverage.
+  Writing good tests with every change stays the rule.
 - The single steps are `npm run typecheck`, `npm test`, `npm run format:check`,
   and `npm run build`.
 - Passing checks prove the code, not the product. A UI change is done only when
