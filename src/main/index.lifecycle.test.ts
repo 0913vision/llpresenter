@@ -9,7 +9,7 @@ import {
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 
-describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(mocks.order).toEqual([
