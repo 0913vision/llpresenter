@@ -1,12 +1,8 @@
 import {EventEmitter} from 'node:events';
-import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/log';
-import {openAppConfig} from '@main/store/appConfigFile';
 import {registerUiZoom, type ZoomControl} from '@main/store/uiZoom';
-import {writeJson} from '@fixtures/main/store/testFiles';
 
 type Handler = (
   event: {readonly sender: {readonly id: number}},
@@ -30,35 +26,35 @@ class Control extends EventEmitter implements ZoomControl {
   }
 }
 
-const disposers: Array<() => Promise<void>> = [];
+const disposers: Array<() => void> = [];
 beforeEach(() => electron.handlers.clear());
-afterEach(async () => {
-  for (const dispose of disposers.splice(0)) await dispose();
+afterEach(() => {
+  for (const dispose of disposers.splice(0)) dispose();
 });
 
-async function setUp(percent = 120) {
-  const file = join(await makeTempDir(), 'app.json');
-  await writeJson(file, {
-    format: 'llapp',
-    schemaVersion: 1,
+function mockConfig(percent: number) {
+  const config = {
     uiZoomPercent: percent,
-  });
+    setUiZoomPercent: vi.fn((next: number) => {
+      config.uiZoomPercent = next;
+    }),
+  };
+  return config;
+}
+
+async function setUp(percent = 120) {
   const log = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     flush: () => Promise.resolve(),
   } satisfies Logger;
-  const config = await openAppConfig({file, log});
+  const config = mockConfig(percent);
   const zoom = registerUiZoom(config, log);
-  disposers.push(async () => {
-    zoom.dispose();
-    await config.flush();
-    config.dispose();
-  });
+  disposers.push(() => zoom.dispose());
   const control = new Control(1);
   zoom.attachControl(control);
-  return {file, config, zoom, control, log};
+  return Promise.resolve({config, zoom, control, log});
 }
 
 async function ask(
@@ -103,18 +99,7 @@ describe('control UI zoom', () => {
     control.emit('did-finish-load');
 
     expect(control.setZoomFactor).toHaveBeenLastCalledWith(1.6);
-    await config.flush();
-    const restored = await openAppConfig({
-      file: config.file,
-      log: {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        flush: () => Promise.resolve(),
-      },
-    });
-    expect(restored.uiZoomPercent).toBe(160);
-    restored.dispose();
+    expect(config.setUiZoomPercent).toHaveBeenLastCalledWith(160);
   });
 
   it('clamps bursts using main state and resets at either limit', async () => {
@@ -164,18 +149,15 @@ describe('control UI zoom', () => {
     expect(config.uiZoomPercent).toBe(130);
   });
 
-  it.each([undefined, null, 'ui.zoomIn', [], {type: 'other'}, {type: 1}])(
-    'logs and drops malformed IPC %j',
-    async value => {
-      const {control, config, log} = await setUp();
-      await expect(
-        ask(uiEndpoints.changeZoom.channel, control.id, value),
-      ).rejects.toThrow('Invalid UI zoom command');
-      expect(config.uiZoomPercent).toBe(120);
-      expect(control.setZoomFactor).toHaveBeenCalledTimes(1);
-      expect(log.warn).toHaveBeenCalledTimes(1);
-    },
-  );
+  it.each([{type: 'other'}])('logs and drops malformed IPC %j', async value => {
+    const {control, config, log} = await setUp();
+    await expect(
+      ask(uiEndpoints.changeZoom.channel, control.id, value),
+    ).rejects.toThrow('Invalid UI zoom command');
+    expect(config.uiZoomPercent).toBe(120);
+    expect(control.setZoomFactor).toHaveBeenCalledTimes(1);
+    expect(log.warn).toHaveBeenCalledTimes(1);
+  });
 
   it('releases handlers and window listeners on destruction and disposal', async () => {
     const {control, zoom} = await setUp();

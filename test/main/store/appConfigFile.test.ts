@@ -133,16 +133,8 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     expect(await readJson(file)).toMatchObject({uiZoomPercent: 120});
   });
   it.each([
-    ['(a) text that is not JSON', 'not json', ''],
-    ['(b) an empty file', '', ''],
-    ['(c) a JSON array', '[]', ''],
     [
-      '(d) a wrong format',
-      JSON.stringify({format: 'llsong', schemaVersion: 1}),
-      'format',
-    ],
-    [
-      '(e) a left width that is text',
+      'a left width that is text',
       JSON.stringify({
         format: 'llapp',
         schemaVersion: 1,

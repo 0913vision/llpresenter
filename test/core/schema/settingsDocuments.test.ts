@@ -540,3 +540,27 @@ describe('app-wide settings contracts', () => {
     });
   });
 });
+
+describe('label rename requests', () => {
+  const rename = {
+    type: 'labels.rename',
+    name: 'labels',
+    from: 'Before',
+    to: 'After',
+    baseRevision: 1,
+  };
+
+  it('accepts a rename of the label list and refuses a malformed one', () => {
+    expect(expectSuccess(parseSettingsEdit(rename))).toEqual(rename);
+    for (const value of [
+      {...rename, name: 'props'},
+      {...rename, from: ''},
+      {...rename, to: ' '},
+      {...rename, to: rename.from},
+      {...rename, baseRevision: 0},
+      {...rename, baseRevision: 1.5},
+    ]) {
+      expect(parseSettingsEdit(value).ok).toBe(false);
+    }
+  });
+});

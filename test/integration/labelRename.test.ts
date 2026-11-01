@@ -2,7 +2,6 @@ import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
   parseSettingsDocument,
-  parseSettingsEdit,
   type LabelRename,
 } from '@core/schema/settingsDocuments';
 import {parseGroupedSong} from '@core/schema/groupedSong';
@@ -133,7 +132,7 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
   return {content, settings, events, writes, failing, texts, files};
 }
 
-describe('global label rename', () => {
+describe('renaming a label in the label list and in every song', () => {
   it('retries failed label and song files without replaying the applied rename', async () => {
     const {content, settings, failing, writes, texts} = setup();
     const song = join(locations.songs, `${itemId(1)}.llsong`);
@@ -394,19 +393,5 @@ describe('global label rename', () => {
     failing.clear();
     await settings.flush();
     expect(writes.at(-1)).toBe(LABELS_FILE);
-  });
-
-  it('validates the labels-only rename request at the settings boundary', () => {
-    expect(expectSuccess(parseSettingsEdit(rename))).toEqual(rename);
-    for (const value of [
-      {...rename, name: 'props'},
-      {...rename, from: ''},
-      {...rename, to: ' '},
-      {...rename, to: rename.from},
-      {...rename, baseRevision: 0},
-      {...rename, baseRevision: 1.5},
-    ]) {
-      expect(parseSettingsEdit(value).ok).toBe(false);
-    }
   });
 });
