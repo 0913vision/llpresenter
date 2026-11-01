@@ -153,18 +153,38 @@ grows:
 
 ## Tests
 
-- A unit test checks one unit: the function, module, or component under test.
-  Other units and outside systems (git, the file system, Electron, another
-  process) are replaced by mocks. Name every test double a mock (`mockLlpApi`,
-  `installMockClock`), never a fake.
-- Keep real outside communication, such as real git, real files, or a real
-  Electron window, to the few integration tests that prove the wiring, not one
-  per case.
-- `test/ui` starts the real app, so it holds wiring checks only: the app starts
-  and quits, a window opens, a file survives save and restart, an edit in a
-  focused field is saved on close, crash recovery. Feature behavior goes in unit
-  or component tests. How a screen looks is checked by eye against its draft,
-  not by measuring a real window.
+Every test is one of two kinds:
+
+- A **unit test** checks one module at its own layer. Everything outside the
+  module is a mock: other layers, other modules' state, and outside systems
+  (git, the file system, Electron, another process).
+- An **integration test** runs several layers together for one user goal, and
+  its title names that goal, for example "saves an imported song to the
+  library". There are few of them: one per goal, not one per case.
+
+A test that runs the real code of other layers to check one module is neither
+kind. Rewrite it as a unit test of that module.
+
+### Folders
+
+| Folder                                                                      | Holds                                                                                                                                                                                 |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test/core`, `test/contracts`, `test/main`, `test/preload`, `test/renderer` | Unit tests, at the path of the module under `src/` (`test/renderer` mirrors `src/renderer/src`)                                                                                       |
+| `test/integration`                                                          | Integration tests that run in the test process: `.test.ts` in Node, `.test.tsx` in jsdom                                                                                              |
+| `test/ui`                                                                   | Integration tests that start the real app                                                                                                                                             |
+| `test/fixtures`                                                             | Shared mocks and sample data. Area folders mirror `src/`; files at its root are generic helpers (temporary folders, the mock clock, git repositories, process trees, Electron launch) |
+| `test/setup`                                                                | Vitest setup files                                                                                                                                                                    |
+
+`src/` holds no tests, mocks, or sample data for tests.
+
+### Rules
+
+- Name every test double a mock (`mockLlpApi`, `installMockClock`), never a
+  fake.
+- `test/ui` holds wiring checks only: the app starts and quits, a window opens,
+  a file survives save and restart, an edit in a focused field is saved on
+  close, crash recovery. Feature behavior goes in unit tests. How a screen looks
+  is checked by eye against its draft, not by measuring a real window.
 - Fix a flaky test by removing its race, not by waiting longer. A longer wait
   needs measured times in a `NOTE(0913vision)`.
 - Each test sets up what it needs and cleans up after itself. It never depends

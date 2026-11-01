@@ -782,3 +782,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   system stays in `design/system/`.
 - Reducing the number of tests ("테스트가 불필요하게 많은 것도 이상하고") comes
   next, from a list of removals the user sees first.
+
+## 2026-11-01: A test is a unit test or an integration test with one goal
+
+- The user: "테스트는 모듈별로 각 레이어만 원칙적으로 잘 검사하거나 아니면 큰
+  목적을 가지고 전체를 테스트하는 integration 테스트 이렇게 있어야지".
+- A unit test checks one module at its own layer and mocks everything outside
+  it. An integration test runs several layers for one user goal named in its
+  title. A test that runs other layers' real code to check one module is
+  rewritten as a unit test (CONTRIBUTING, "Tests").
+- Integration tests live in `test/integration/` (in the test process) and
+  `test/ui/` (the real app). Generic test helpers live at the root of
+  `test/fixtures/`, and the Vitest setup files in `test/setup/`.
+- The component gallery shows design system components only. Its Library
+  section, a feature panel with a mock library API in `src/`, was removed.
