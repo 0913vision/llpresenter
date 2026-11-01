@@ -6,8 +6,8 @@ import config, {
   testWorkerLimit,
 } from '../vitest.config.mts';
 
-const RENDERER_NODE_TEST = 'src/renderer/src/styles/assets.node.test.ts';
-const RENDERER_TEST = 'src/renderer/src/styles/assets.test.ts';
+const RENDERER_NODE_TEST = 'test/renderer/styles/assets.node.test.ts';
+const RENDERER_TEST = 'test/renderer/styles/assets.test.ts';
 
 interface ProjectGlobs {
   readonly include: readonly string[];
@@ -59,6 +59,21 @@ describe('renderer tests that need Node', () => {
     );
     expect((await tsconfigGlobs('tsconfig.web.json')).exclude).toContain(
       RENDERER_NODE_TESTS,
+    );
+  });
+});
+
+describe('test files', () => {
+  it('run only from test/ and scripts/, never from src/', () => {
+    for (const file of ['src/core/a.test.ts', 'src/main/a.test.ts']) {
+      expect(runs(projectGlobs('node'), file)).toBe(false);
+    }
+    expect(runs(projectGlobs('renderer'), 'src/renderer/src/a.test.tsx')).toBe(
+      false,
+    );
+    expect(runs(projectGlobs('node'), 'test/main/a.test.ts')).toBe(true);
+    expect(runs(projectGlobs('renderer'), 'test/renderer/a.test.tsx')).toBe(
+      true,
     );
   });
 });

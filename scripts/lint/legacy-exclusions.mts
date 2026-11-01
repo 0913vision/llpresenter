@@ -11,12 +11,12 @@ export const legacyExclusions: readonly Linter.Config[] = [
     // reducers to src/core with the M4 theme work and the rest to an
     // integration folder, then delete this entry.
     files: [
-      'src/renderer/src/output/startOutput.test.ts',
-      'src/renderer/src/rendering/overlayLayers.test.ts',
-      'src/renderer/src/rendering/previewOverlays.test.tsx',
-      'src/renderer/src/rendering/transparentBackground.node.test.ts',
-      'src/renderer/src/session/servicePreload.test.ts',
-      'src/renderer/src/session/songBackground.test.ts',
+      'test/renderer/output/startOutput.test.ts',
+      'test/renderer/rendering/overlayLayers.test.ts',
+      'test/renderer/rendering/previewOverlays.test.tsx',
+      'test/renderer/rendering/transparentBackground.node.test.ts',
+      'test/renderer/session/servicePreload.test.ts',
+      'test/renderer/session/songBackground.test.ts',
     ],
     rules: {'llp/test-layer-imports': 'off'},
   },

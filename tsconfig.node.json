@@ -19,7 +19,10 @@
     "skipLibCheck": true,
     "paths": {
       "@core/*": ["./src/core/*"],
-      "@contracts/*": ["./src/contracts/*"]
+      "@contracts/*": ["./src/contracts/*"],
+      "@renderer/*": ["./src/renderer/src/*"],
+      "@main/*": ["./src/main/*"],
+      "@fixtures/*": ["./test/fixtures/*"]
     },
     "rewriteRelativeImportExtensions": true
   },
@@ -31,7 +34,16 @@
     "src/core/**/*",
     "src/contracts/**/*",
     "scripts/**/*",
-    "test/**/*",
-    "src/renderer/**/*.node.test.ts"
+    "test/*.ts",
+    "test/ui/**/*",
+    "test/core/**/*",
+    "test/contracts/**/*",
+    "test/main/**/*",
+    "test/preload/**/*",
+    "test/fixtures/core/**/*",
+    "test/fixtures/contracts/**/*",
+    "test/fixtures/main/**/*",
+    "test/fixtures/preload/**/*",
+    "test/renderer/**/*.node.test.ts"
   ]
 }

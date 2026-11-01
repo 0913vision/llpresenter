@@ -1,0 +1,242 @@
+import {describe, expect, it, vi} from 'vitest';
+import type {LiveCommand} from '@core/live/commands';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {createAudioPlaylistId} from '@core/schema/ids';
+import {installMockClock} from '../../mock-clock';
+import type {Logger} from '@main/log';
+import {
+  deferSoakScenario,
+  registerSoakScenario,
+  scenarioSlide,
+  SLIDE_COUNT,
+  SLIDE_INTERVAL_MS,
+  startSoakScenario,
+} from '@main/soak/scenario';
+
+const MEDIA_ID = '3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b';
+const SOAK_ENV = {LLP_SOAK_RECORD: 'C:/data/record.jsonl'};
+
+function mockLog(): Logger {
+  return {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    flush: async () => undefined,
+  };
+}
+
+function shownPositions(commands: readonly LiveCommand[]): number[] {
+  return commands.flatMap(command =>
+    command.type === 'slide.show' ? [command.slide.position] : [],
+  );
+}
+
+describe('scenarioSlide', () => {
+  it('builds 장 that pass the live command check', () => {
+    for (let position = 0; position < SLIDE_COUNT; position += 1) {
+      const command = {type: 'slide.show', slide: scenarioSlide(position)};
+      expect(parseLiveCommand(command).ok).toBe(true);
+    }
+  });
+});
+
+describe('startSoakScenario', () => {
+  it('plays the silent looping playlist and cycles bounded overlay messages', async () => {
+    const clock = installMockClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: MEDIA_ID,
+      audioPlaylistId: createAudioPlaylistId(MEDIA_ID),
+      log: mockLog(),
+    });
+    await clock.advance(SLIDE_INTERVAL_MS * 3);
+    expect(commands).toContainEqual({
+      type: 'audio.play',
+      source: {kind: 'playlist', playlistId: MEDIA_ID, position: 0},
+    });
+    expect(
+      commands.filter(command => command.type === 'message.send'),
+    ).toHaveLength(4);
+    expect(commands.every(command => parseLiveCommand(command).ok)).toBe(true);
+    stop();
+    const count = commands.length;
+    await clock.advance(SLIDE_INTERVAL_MS);
+    expect(commands).toHaveLength(count);
+  });
+  it('starts the looping background, the 본 화면, and the first 장', () => {
+    installMockClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: MEDIA_ID,
+      log: mockLog(),
+    });
+    expect(commands).toEqual([
+      {type: 'media.show', media: {mediaId: MEDIA_ID, loop: true}},
+      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'slide.show', slide: scenarioSlide(0)},
+      {
+        type: 'message.send',
+        text: '시험 메시지 1',
+        targets: 'all',
+        duration: 10,
+      },
+    ]);
+    stop();
+  });
+
+  it('shows the next 장 every interval and starts over after the last', async () => {
+    const clock = installMockClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: null,
+      log: mockLog(),
+    });
+    await clock.advance(SLIDE_INTERVAL_MS * SLIDE_COUNT);
+    expect(shownPositions(commands)).toEqual([
+      ...Array.from({length: SLIDE_COUNT}, (_, position) => position),
+      0,
+    ]);
+    stop();
+  });
+
+  it('shows no background without a media id', () => {
+    installMockClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: null,
+      log: mockLog(),
+    });
+    expect(commands.some(command => command.type === 'media.show')).toBe(false);
+    stop();
+  });
+
+  it('logs a command that throws and keeps changing 장', async () => {
+    const clock = installMockClock();
+    const log = mockLog();
+    const positions: number[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => {
+        if (command.type !== 'slide.show') return;
+        if (command.slide.position === 1) throw new Error('store broke');
+        positions.push(command.slide.position);
+      },
+      mediaId: null,
+      log,
+    });
+    await clock.advance(SLIDE_INTERVAL_MS * 2);
+    expect(positions).toEqual([0, 2]);
+    expect(log.error).toHaveBeenCalledWith('soak scenario command failed', {
+      type: 'slide.show',
+      error: new Error('store broke'),
+    });
+    stop();
+  });
+
+  it('changes no 장 after it stops', async () => {
+    const clock = installMockClock();
+    const commands: LiveCommand[] = [];
+    const stop = startSoakScenario({
+      dispatch: command => commands.push(command),
+      mediaId: null,
+      log: mockLog(),
+    });
+    stop();
+    await clock.advance(SLIDE_INTERVAL_MS * 3);
+    expect(shownPositions(commands)).toEqual([0]);
+  });
+});
+
+describe('registerSoakScenario', () => {
+  it('waits for settings and media connections and cancels a late start', async () => {
+    installMockClock();
+    let resolve = () => {};
+    const ready = new Promise<void>(done => {
+      resolve = done;
+    });
+    const dispatch = vi.fn<(command: LiveCommand) => void>();
+    const stop = deferSoakScenario(
+      ready,
+      () => registerSoakScenario(mockLog(), dispatch, SOAK_ENV),
+      mockLog(),
+    );
+    expect(dispatch).not.toHaveBeenCalled();
+    resolve();
+    await ready;
+    await Promise.resolve();
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({type: 'message.send'}),
+    );
+    stop();
+    let finish = () => {};
+    const delayed = new Promise<void>(done => {
+      finish = done;
+    });
+    const later = vi.fn<(command: LiveCommand) => void>();
+    deferSoakScenario(
+      delayed,
+      () => registerSoakScenario(mockLog(), later, SOAK_ENV),
+      mockLog(),
+    )();
+    finish();
+    await delayed;
+    await Promise.resolve();
+    expect(later).not.toHaveBeenCalled();
+  });
+  it('does nothing without a soak record', async () => {
+    const clock = installMockClock();
+    const dispatch = vi.fn<(command: LiveCommand) => void>();
+    const stop = registerSoakScenario(mockLog(), dispatch, {});
+    await clock.advance(SLIDE_INTERVAL_MS * 2);
+    expect(dispatch).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it('does nothing when the soak settings are unusable', () => {
+    installMockClock();
+    const dispatch = vi.fn<(command: LiveCommand) => void>();
+    const stop = registerSoakScenario(mockLog(), dispatch, {
+      ...SOAK_ENV,
+      LLP_SOAK_EXIT_MS: 'soon',
+    });
+    expect(dispatch).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it('plays the background that LLP_SOAK_MEDIA_ID names', () => {
+    installMockClock();
+    const dispatch = vi.fn<(command: LiveCommand) => void>();
+    const stop = registerSoakScenario(mockLog(), dispatch, {
+      ...SOAK_ENV,
+      LLP_SOAK_MEDIA_ID: MEDIA_ID,
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'media.show',
+      media: {mediaId: MEDIA_ID, loop: true},
+    });
+    stop();
+  });
+
+  it('logs a media id that is not one and runs without a background', () => {
+    installMockClock();
+    const log = mockLog();
+    const commands: LiveCommand[] = [];
+    const stop = registerSoakScenario(log, command => commands.push(command), {
+      ...SOAK_ENV,
+      LLP_SOAK_MEDIA_ID: 'loop.webm',
+    });
+    expect(commands.map(command => command.type)).toEqual([
+      'output.set',
+      'slide.show',
+      'message.send',
+    ]);
+    expect(log.error).toHaveBeenCalledWith(
+      'LLP_SOAK_MEDIA_ID is not a media id; the soak scenario runs without a background',
+      {value: 'loop.webm'},
+    );
+    stop();
+  });
+});

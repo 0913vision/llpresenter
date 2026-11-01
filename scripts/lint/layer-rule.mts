@@ -20,6 +20,11 @@ export interface LayerMap {
   readonly layers: readonly Layer[];
   /** Import prefixes such as `@core/` and the folders they stand for. */
   readonly aliases: Readonly<Record<string, string>>;
+  /**
+   * Folders checked as if they were other folders, such as `test/core` for
+   * `src/core`. The longest matching folder wins.
+   */
+  readonly mirrors?: Readonly<Record<string, string>>;
 }
 
 type ModuleReference =
@@ -30,6 +35,18 @@ type ModuleReference =
 
 function toPosix(path: string): string {
   return path.split(sep).join('/');
+}
+
+function mirrored(path: string, mirrors: LayerMap['mirrors']): string {
+  const folder = Object.keys(mirrors ?? {})
+    .filter(dir => path === dir || path.startsWith(`${dir}/`))
+    .reduce<string | undefined>(
+      (best, dir) =>
+        best === undefined || dir.length > best.length ? dir : best,
+      undefined,
+    );
+  if (folder === undefined) return path;
+  return (mirrors?.[folder] ?? folder) + path.slice(folder.length);
 }
 
 function layerOf(layers: readonly Layer[], path: string): Layer | undefined {
@@ -81,13 +98,16 @@ export function layerImportsRule(map: LayerMap): Rule.RuleModule {
     },
     create(context) {
       const importer = toPosix(relative(context.cwd, context.filename));
-      const own = layerOf(map.layers, importer);
+      const own = layerOf(map.layers, mirrored(importer, map.mirrors));
       if (own === undefined) return {};
       const check = (node: ModuleReference): void => {
         const specifier = sourceOf(node);
         if (specifier === null) return;
         const path = targetPath(specifier, importer, map.aliases);
-        const target = path === null ? undefined : layerOf(map.layers, path);
+        const target =
+          path === null
+            ? undefined
+            : layerOf(map.layers, mirrored(path, map.mirrors));
         if (target === undefined || target === own) return;
         if (own.imports.includes(target.name)) return;
         context.report({

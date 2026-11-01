@@ -1,0 +1,13 @@
+import {describe, expect, it} from 'vitest';
+import {closeStepAfter} from '@core/app/closePolicy';
+
+describe('close policy after a flush', () => {
+  it.each([
+    ['flushed', 'close'],
+    ['forced', 'close'],
+    ['no-reply', 'close'],
+    ['refused', 'warn'],
+  ] as const)('answers %s with %s', (outcome, step) => {
+    expect(closeStepAfter(outcome)).toBe(step);
+  });
+});

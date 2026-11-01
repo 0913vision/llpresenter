@@ -10,7 +10,7 @@ const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 // probe is ever written to disk.
 const NODE_PROBE_DIR = 'scripts/lint/probes';
 const RENDERER_PROBE = 'src/renderer/src/lint-probe.tsx';
-const TEST_PROBE = 'src/main/lint-probe.test.ts';
+const TEST_PROBE = 'test/main/lint-probe.test.ts';
 
 // NOTE(0913vision): Type-aware rules get a tiny in-memory program with only
 // the probes and the ES2023 library, instead of the project's program of about
@@ -191,7 +191,7 @@ const RESTRICTED_IMPORTS = [
   ],
   [
     'a renderer import in a main test',
-    'src/main/lint-renderer.test.ts',
+    'test/main/lint-renderer.test.ts',
     "import '@renderer/session/live';",
   ],
 ] as const;
@@ -209,33 +209,33 @@ const ALLOWED_IMPORTS = [
   ],
   [
     'valibot in a main test',
-    'src/main/lint-valibot.test.ts',
+    'test/main/lint-valibot.test.ts',
     "import 'valibot';",
   ],
   [
     'valibot in a renderer test',
-    'src/renderer/src/lint-valibot.test.tsx',
+    'test/renderer/lint-valibot.test.tsx',
     "import 'valibot';",
   ],
   [
     'valibot in a main testing helper',
-    'src/main/testing/lint-valibot.ts',
+    'test/fixtures/main/lint-valibot.ts',
     "import 'valibot';",
   ],
   [
     'valibot in a renderer testing helper',
-    'src/renderer/src/testing/lint-valibot.ts',
+    'test/fixtures/renderer/lint-valibot.ts',
     "import 'valibot';",
   ],
   [
     'main in a renderer test',
-    'src/renderer/src/lint-main.test.ts',
-    "import '../../main/log';",
+    'test/renderer/lint-main.test.ts',
+    "import '../../src/main/log';",
   ],
   [
     'main in a renderer testing helper',
-    'src/renderer/src/testing/lint-main.ts',
-    "import '../../../main/log';",
+    'test/fixtures/renderer/lint-main.ts',
+    "import '../../../src/main/log';",
   ],
   [
     'a shared main dependency',

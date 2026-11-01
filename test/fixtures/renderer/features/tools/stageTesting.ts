@@ -1,0 +1,74 @@
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {themeFile} from '@fixtures/core/themeOutput';
+import {vi} from 'vitest';
+import type {LlpApi} from '@contracts/ipc/api';
+import {emptyLiveState} from '@core/live/state';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {parseLiveState} from '@core/schema/liveState';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {screensDocument, STAGE_ID} from '@fixtures/core/screenDocuments';
+import {useLive} from '@renderer/session/live';
+
+export {STAGE_ID};
+export const TIMER_ID = '00000000-0000-4000-8000-000000000011';
+
+export function stageFixture(overrides: readonly SettingsDocument[] = []) {
+  const listeners = new Set<(document: SettingsDocument) => void>();
+  const documents = new Map(
+    [
+      screensDocument(),
+      settingsDocument('themes', themeFile()),
+      settingsDocument('timers', {
+        timers: [{id: TIMER_ID, name: '예배 시작', kind: 'clock'}],
+      }),
+      settingsDocument('messages', {
+        templates: [],
+        stagePresets: ['후렴 한 번 더', '마무리'],
+      }),
+      ...overrides,
+    ].map(document => [document.name, document]),
+  );
+  const get = vi.fn<LlpApi['settings']['get']>(request => {
+    const document = documents.get(request.name);
+    if (!document) {
+      return Promise.reject(new Error(`Missing fixture ${request.name}`));
+    }
+    return Promise.resolve(document);
+  });
+  const edit = vi.fn<LlpApi['settings']['edit']>();
+  const send = vi.fn<LlpApi['live']['send']>();
+  const log = vi.fn();
+  window.llp = mockLlpApi({
+    settings: {
+      get,
+      edit,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      },
+    },
+    live: {send},
+    log: {write: log},
+  });
+  const live = (changes: object): void => {
+    const parsed = parseLiveState({...emptyLiveState(), ...changes});
+    if (!parsed.ok) throw new Error('Invalid stage live fixture');
+    useLive.setState({state: parsed.value});
+  };
+  live({});
+  return {
+    get,
+    edit,
+    send,
+    log,
+    live,
+    documents,
+    count: () => listeners.size,
+    push: (document: SettingsDocument) => {
+      documents.set(document.name, document);
+      for (const listener of listeners) listener(document);
+    },
+  };
+}

@@ -6,7 +6,7 @@ import {BIBLE_BOOKS} from '../../src/core/bible/bibleBooks';
 import {
   FULL_TRANSLATION_VERSES,
   fullTranslationText,
-} from '../../src/core/bible/testing/testFiles';
+} from '@fixtures/core/bible/testFiles';
 
 // NOTE(0913vision): A timing check, so it runs only with LLP_BENCH=1; machine
 // speed would make it flaky in the unit suite.

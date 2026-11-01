@@ -131,3 +131,50 @@ describe('the layers tests may import', () => {
     expect(importsOf('core')).toEqual([]);
   });
 });
+
+const mirroredRule = layerImportsRule({
+  aliases: {
+    '@base/': 'src/base',
+    '@top/': 'src/top',
+    '@fixtures/': 'test/fixtures',
+  },
+  mirrors: {
+    'test/base': 'src/base',
+    'test/top': 'src/top',
+    'test/fixtures/base': 'src/base',
+    'test/fixtures/top': 'src/top',
+  },
+  layers: [
+    {name: 'base', dir: 'src/base', imports: []},
+    {name: 'top', dir: 'src/top', imports: ['base']},
+  ],
+});
+
+ruleTester.run('layer-imports in mirrored test folders', mirroredRule, {
+  valid: [
+    {
+      name: 'a test that imports a listed layer of the folder it mirrors',
+      filename: at('test/top/a.test.ts'),
+      code: "import {b} from '@base/b';",
+    },
+    {
+      name: 'a test that imports a fixture of a listed layer',
+      filename: at('test/top/a.test.ts'),
+      code: "import {f} from '@fixtures/base/f';",
+    },
+  ],
+  invalid: [
+    {
+      name: 'a test that imports a higher layer than the folder it mirrors',
+      filename: at('test/base/a.test.ts'),
+      code: "import {t} from '@top/t';",
+      errors: crossing('base', 'top', 'nothing else'),
+    },
+    {
+      name: 'a fixture that imports a higher layer than the folder it mirrors',
+      filename: at('test/fixtures/base/f.ts'),
+      code: "import {t} from '../../../src/top/t';",
+      errors: crossing('base', 'top', 'nothing else'),
+    },
+  ],
+});

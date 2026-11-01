@@ -10,15 +10,22 @@ import {legacyExclusions} from './legacy-exclusions.mts';
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 
 const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
-const RENDERER_FILES = ['src/renderer/**/*.{ts,tsx}'];
+const RENDERER_FILES = [
+  'src/renderer/**/*.{ts,tsx}',
+  'test/renderer/**/*.{ts,tsx}',
+  'test/fixtures/renderer/**/*.{ts,tsx}',
+];
 const TEST_FILES = ['**/*.test.{ts,tsx}', 'test/**/*.{ts,tsx}'];
 const TOOL_CONFIG_FILES = ['**/*.config.{ts,mts,mjs}'];
 const SOAK_CLIP_PAGE_FILES = ['scripts/soak/clip/*.js'];
-const BOUNDARY_TEST_FILES = ['**/*.test.{ts,tsx}', 'src/**/testing/**'];
+const BOUNDARY_TEST_FILES = ['**/*.test.{ts,tsx}', 'test/**'];
 const MAIN_MODULE_FILES = ['src/main/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 const RENDERER_MODULE_FILES = ['src/renderer/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
 const SOURCE_MODULE_FILES = ['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
-const SOURCE_TEST_FILES = ['src/**/*.test.{ts,tsx}'];
+const MIRRORED_TEST_FILES = [
+  'test/{core,contracts,main,preload,renderer}/**/*.{ts,tsx}',
+  'test/fixtures/**/*.{ts,tsx}',
+];
 
 const VALIBOT_IMPORT = {
   regex: '^valibot(?:/|$)',
@@ -287,28 +294,24 @@ export const lintConfig = defineConfig(
   },
   {
     files: SOURCE_MODULE_FILES,
-    ignores: SOURCE_TEST_FILES,
     rules: {
       // NOTE(0913vision): Imports flow one way between the layers in
       // scripts/lint/layers.mts, so a change in a feature never reaches
-      // the layers below it. Fixtures in testing/ folders follow it too, so
-      // each one sits in the lowest layer that uses it.
+      // the layers below it.
       'llp/layer-imports': 'error',
     },
   },
   {
-    files: SOURCE_TEST_FILES,
+    files: MIRRORED_TEST_FILES,
     rules: {
       // NOTE(0913vision): A test may use any layer of its own process around
-      // the code it tests, but never another process's code.
+      // the code it tests, but never another process's code. Tests and
+      // fixtures in test/ are checked as the src/ folder they mirror.
       'llp/test-layer-imports': 'error',
     },
   },
   {
-    files: [
-      'src/main/**/*.test.{ts,tsx}',
-      'src/main/**/testing/**/*.{ts,tsx,mts,cts,js,mjs,cjs}',
-    ],
+    files: ['test/main/**/*.{ts,tsx}', 'test/fixtures/main/**/*.{ts,tsx}'],
     rules: {
       // NOTE(0913vision): Main tests may use Valibot, but not renderer modules.
       'no-restricted-imports': ['error', {patterns: [RENDERER_IMPORT]}],

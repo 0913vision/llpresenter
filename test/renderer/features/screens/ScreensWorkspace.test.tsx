@@ -1,0 +1,461 @@
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@core/live/state';
+import {createDefaultThemes} from '@core/themes/defaults';
+import type {LiveCommand} from '@core/live/commands';
+import type {MonitorList} from '@core/schema/monitors';
+import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import {Workspace} from '@renderer/app/shell/Workspace';
+import {ScreensWindow} from '@renderer/app/ScreensWindow';
+import {useLive} from '@renderer/session/live';
+import {
+  hoverForTooltip,
+  resetTooltips,
+} from '@fixtures/renderer/ui/tooltipTesting';
+import {useScreensSelection} from '@renderer/features/screens/selection';
+import {wideMonitorArrangement} from '@fixtures/renderer/features/screens/monitorArrangement';
+import {
+  CAPTIONS_ID,
+  MAIN_ID,
+  screensDocument,
+} from '@fixtures/core/screenDocuments';
+
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
+const running = {
+  placement: 'fullscreen',
+  renderer: 'running',
+  fps: 60,
+  fpsLow: false,
+} as const;
+
+function readDocument(name: string): Promise<SettingsDocument> {
+  switch (name) {
+    case 'screens':
+      return Promise.resolve(screensDocument());
+    case 'themes':
+      return Promise.resolve(settingsDocument('themes', createDefaultThemes()));
+    case 'macros':
+      return Promise.resolve(
+        settingsDocument('macros', {macros: [], collections: []}),
+      );
+    case 'timers':
+      return Promise.resolve(settingsDocument('timers', {timers: []}));
+    default:
+      return Promise.reject(new Error(`Unexpected settings read: ${name}`));
+  }
+}
+
+function setup({
+  statuses = {},
+  outputs = {[MAIN_ID]: true},
+  read = readDocument,
+  monitors = [],
+  warningHeight = 0,
+  themes = false,
+}: {
+  readonly statuses?: OutputStatuses;
+  readonly outputs?: Readonly<Record<string, boolean>>;
+  readonly read?: (name: string) => Promise<SettingsDocument>;
+  readonly monitors?: MonitorList;
+  readonly warningHeight?: number;
+  readonly themes?: boolean;
+} = {}) {
+  const settingsListeners = new Set<(document: SettingsDocument) => void>();
+  let pushStatus: (next: OutputStatuses) => void = () => undefined;
+  const stopStatus = vi.fn();
+  const onProblem = vi.fn();
+  const send = vi.fn<(command: LiveCommand) => void>();
+  window.llp = mockLlpApi({
+    live: {send, clock: () => Promise.resolve(1000)},
+    settings: {
+      get: request => read(request.name),
+      subscribe: listener => {
+        settingsListeners.add(listener);
+        return () => {
+          settingsListeners.delete(listener);
+        };
+      },
+    },
+    monitors: {get: () => Promise.resolve(monitors)},
+    output: {
+      getStatus: () => Promise.resolve(statuses),
+      subscribeStatus: listener => {
+        pushStatus = listener;
+        return stopStatus;
+      },
+    },
+  });
+  useLive.setState({state: {...emptyLiveState(), outputs}});
+  const view = render(
+    themes ? (
+      <Workspace
+        id="screens"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+        onProblem={onProblem}
+        warningHeight={warningHeight}
+      />
+    ) : (
+      <ScreensWindow onProblem={onProblem} />
+    ),
+  );
+  return {
+    view,
+    send,
+    onProblem,
+    stopStatus,
+    listenerCount: () => settingsListeners.size,
+    pushSettings: (document: SettingsDocument) => {
+      act(() => {
+        for (const listener of settingsListeners) listener(document);
+      });
+    },
+    pushStatus: (next: OutputStatuses) => act(() => pushStatus(next)),
+  };
+}
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  useScreensSelection.setState({selection: {id: null}});
+});
+
+afterEach(() => {
+  cleanup();
+  useLive.setState({state: null});
+  delete window.llp;
+  resetTooltips();
+  vi.unstubAllGlobals();
+});
+
+function option(name: string): HTMLElement {
+  return screen.getByRole('option', {name});
+}
+
+function selectedOf(name: string): string | null {
+  return option(name).getAttribute('aria-selected');
+}
+
+describe('the 화면 list', () => {
+  it('keeps the configured monitor selected and named while output is off', async () => {
+    const {send} = setup({outputs: {}, monitors: wideMonitorArrangement});
+    const monitor = await screen.findByRole('button', {
+      name: '모니터 2 Second monitor',
+    });
+    await waitFor(() =>
+      expect(monitor.getAttribute('aria-pressed')).toBe('true'),
+    );
+    expect(monitor.textContent).toContain('본 화면');
+    expect(document.querySelector(`[data-target="${MAIN_ID}"]`)).toBeNull();
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[MAIN_ID]: true}},
+      }),
+    );
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[MAIN_ID]: false}},
+      }),
+    );
+    expect(monitor.getAttribute('aria-pressed')).toBe('true');
+    expect(monitor.textContent).toContain('본 화면');
+    await userEvent.click(option('방송 자막'));
+    expect(monitor.getAttribute('aria-pressed')).toBe('false');
+    await userEvent.click(monitor);
+    expect(selectedOf('본 화면')).toBe('true');
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('opens the selected theme editor and keeps output warnings above the properties', async () => {
+    setup({warningHeight: 96, themes: true});
+    await userEvent.click(await screen.findByRole('option', {name: '말씀'}));
+    const editor = await screen.findByRole('region', {name: '테마 편집기'});
+    expect(editor.querySelector('header')).toBeNull();
+    expect(screen.getByRole('region', {name: '테마 속성'})).toBeDefined();
+    expect(
+      screen
+        .getByRole('region', {name: '테마 속성'})
+        .closest('[style*="padding-top"]')
+        ?.getAttribute('style'),
+    ).toContain('96px');
+  });
+  it('keeps only screens in the settings window', async () => {
+    setup();
+    await screen.findByRole('option', {name: '본 화면'});
+    const labels = screen
+      .getAllByRole('listbox')
+      .map(list => list.getAttribute('aria-label'));
+    expect(labels).toEqual(['화면']);
+    expect(screen.queryByRole('region', {name: 'Look 편집'})).toBeNull();
+    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
+  });
+
+  it('mounts the display layout in the center column', async () => {
+    setup();
+
+    expect(
+      await screen.findByRole('button', {name: '모니터 번호 표시'}),
+    ).toBeTruthy();
+  });
+
+  it('groups the screens under 청중 and 무대 with their targets', async () => {
+    setup();
+    await screen.findByRole('option', {name: '본 화면'});
+    const list = within(screen.getByRole('listbox', {name: '화면'}));
+    const audience = within(list.getByRole('group', {name: '청중'}));
+    const stage = within(list.getByRole('group', {name: '무대'}));
+    expect(audience.getAllByRole('option').map(row => row.textContent)).toEqual(
+      ['본 화면모니터 2', '방송 자막캡처용 창'],
+    );
+    expect(stage.getAllByRole('option').map(row => row.textContent)).toEqual([
+      '무대 화면모니터 미지정',
+    ]);
+  });
+
+  it('selects the first screen until another row is chosen', async () => {
+    setup();
+    await screen.findByRole('option', {name: '본 화면', selected: true});
+    await userEvent.setup().click(option('방송 자막'));
+    await screen.findByRole('option', {name: '방송 자막', selected: true});
+    expect(useScreensSelection.getState().selection).toEqual({id: CAPTIONS_ID});
+    expect(selectedOf('본 화면')).toBe('false');
+    expect(selectedOf('방송 자막')).toBe('true');
+  });
+
+  it('selects the first screen after a delayed settings read', async () => {
+    let resolveScreens: ((value: SettingsDocument) => void) | undefined;
+    const pending = new Promise<SettingsDocument>(resolve => {
+      resolveScreens = resolve;
+    });
+    setup({
+      read: name => (name === 'screens' ? pending : readDocument(name)),
+    });
+    expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull();
+
+    if (resolveScreens === undefined) throw new Error('Missing resolver');
+    resolveScreens(screensDocument());
+
+    await screen.findByRole('option', {name: '본 화면', selected: true});
+    expect(selectedOf('방송 자막')).toBe('false');
+    expect(useScreensSelection.getState().selection).toEqual({id: null});
+  });
+
+  it('shows the ok dot for a healthy output and none for an output that is off', async () => {
+    setup({statuses: {[MAIN_ID]: running}});
+    await screen.findByRole('option', {name: '본 화면'});
+    await waitFor(() =>
+      expect(
+        option('본 화면').querySelector('[data-tone="ok"]'),
+      ).not.toBeNull(),
+    );
+    expect(option('방송 자막').querySelector('[data-tone]')).toBeNull();
+  });
+
+  it('shows the amber dot with the reason in a tooltip', async () => {
+    setup({statuses: {[MAIN_ID]: {...running, placement: 'monitorMissing'}}});
+    await screen.findByRole('option', {name: '본 화면'});
+    await waitFor(() =>
+      expect(
+        option('본 화면').querySelector('[data-tone="warning"]'),
+      ).not.toBeNull(),
+    );
+    const tooltip = await hoverForTooltip(option('본 화면'));
+    expect(tooltip?.textContent).toBe('모니터를 찾을 수 없음');
+  });
+
+  it('follows a status push', async () => {
+    const {pushStatus} = setup();
+    await screen.findByRole('option', {name: '본 화면'});
+    pushStatus({[MAIN_ID]: {...running, fpsLow: true}});
+    expect(
+      option('본 화면').querySelector('[data-tone="warning"]'),
+    ).not.toBeNull();
+  });
+
+  it('keeps a newer settings push over an older one', async () => {
+    const {pushSettings} = setup();
+    await screen.findByRole('option', {name: '본 화면'});
+    const only = (revision: number, name: string) =>
+      settingsDocument(
+        'screens',
+        {
+          screens: [
+            {
+              id: MAIN_ID,
+              name,
+              kind: 'audience',
+              method: 'window',
+            },
+          ],
+        },
+        revision,
+      );
+    pushSettings(only(3, '새 이름'));
+    expect(screen.getAllByRole('option', {name: /새 이름/})).toHaveLength(1);
+    pushSettings(only(2, '옛 이름'));
+    expect(screen.queryByRole('option', {name: '옛 이름'})).toBeNull();
+    expect(option('새 이름').textContent).toContain('창');
+  });
+
+  it('releases its subscriptions on unmount', async () => {
+    const {view, stopStatus, listenerCount} = setup();
+    await screen.findByRole('option', {name: '본 화면'});
+    expect(listenerCount()).toBeGreaterThan(0);
+    view.unmount();
+    expect(stopStatus).toHaveBeenCalledOnce();
+    expect(listenerCount()).toBe(0);
+  });
+
+  it('reports a failed read and keeps the list empty', async () => {
+    const {onProblem} = setup({
+      read: () => Promise.reject(new Error('disk')),
+    });
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({key: 'screens:load:screens'}),
+      ),
+    );
+    expect(screen.queryByRole('option')).toBeNull();
+  });
+});
+
+describe('the theme workspace and screen selection', () => {
+  it('marks standby as live while the output is idle', async () => {
+    setup({themes: true});
+    await screen.findByRole('option', {name: '대기 화면'});
+    await waitFor(() =>
+      expect(option('대기 화면').textContent).toContain('LIVE'),
+    );
+    expect(option('찬양').textContent).not.toContain('LIVE');
+  });
+
+  it('moves the live mark with the theme selected on output', async () => {
+    setup({themes: true});
+    await screen.findByRole('option', {name: '대기 화면'});
+    const themes = createDefaultThemes();
+    const bible = themes.defaults.bible;
+    if (bible === undefined) throw new Error('Expected the Bible theme');
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          themeOutput: {themeId: bible, revision: 1, missing: [], screens: {}},
+        },
+      }),
+    );
+    expect(option('말씀').textContent).toContain('LIVE');
+    expect(option('찬양').textContent).not.toContain('LIVE');
+    expect(option('대기 화면').textContent).not.toContain('LIVE');
+  });
+
+  it('marks the first screen and its monitor before any pick, and follows the fallback after a removal', async () => {
+    const projector = {
+      number: 2,
+      name: 'Projector',
+      bounds: {x: 1920, y: 0, width: 1920, height: 1080},
+      scaleFactor: 1,
+      refreshRate: 60,
+      hasMainWindow: false,
+      screenIds: [MAIN_ID],
+    };
+    const control = {
+      ...projector,
+      number: 1,
+      hasMainWindow: true,
+      screenIds: [],
+    };
+    const {pushSettings} = setup({
+      monitors: [{...control, bounds: {...control.bounds, x: 0}}, projector],
+    });
+    await screen.findByRole('option', {name: '본 화면'});
+    const box = (number: number) =>
+      document.querySelector(`[data-monitor="${number}"]`);
+    await waitFor(() => expect(box(2)?.textContent).toContain('본 화면'));
+    expect(selectedOf('본 화면')).toBe('true');
+    expect(box(2)?.getAttribute('aria-current')).toBe('true');
+
+    const without = screensDocument(2);
+    if (without.name !== 'screens') throw new Error('Expected screens');
+    pushSettings(
+      settingsDocument(
+        'screens',
+        {screens: without.value.screens.filter(({id}) => id !== MAIN_ID)},
+        2,
+      ),
+    );
+
+    await waitFor(() => expect(selectedOf('방송 자막')).toBe('true'));
+    expect(box(2)?.getAttribute('aria-current')).toBeNull();
+    expect(
+      document
+        .querySelector(`[data-target="${CAPTIONS_ID}"]`)
+        ?.getAttribute('aria-current'),
+    ).toBe('true');
+  });
+
+  it('takes the test pattern off the real output when the workspace goes away', async () => {
+    const {view, send} = setup();
+    await userEvent
+      .setup()
+      .click(await screen.findByRole('radio', {name: '테스트 패턴'}));
+    expect(send).toHaveBeenCalledWith({
+      type: 'screen.testPattern.set',
+      screenId: MAIN_ID,
+      on: true,
+    });
+
+    view.unmount();
+
+    expect(send).toHaveBeenLastCalledWith({
+      type: 'screen.testPattern.set',
+      screenId: MAIN_ID,
+      on: false,
+    });
+  });
+
+  it('composes the theme list, canvas, and screen properties without physical screen controls', async () => {
+    setup({themes: true});
+    await screen.findByRole('option', {name: '찬양'});
+    expect(
+      screen
+        .getAllByRole('listbox')
+        .map(list => list.getAttribute('aria-label')),
+    ).toEqual(['테마', '요소']);
+    expect(screen.queryByRole('listbox', {name: '화면'})).toBeNull();
+    expect(screen.queryByRole('region', {name: '출력 미리보기'})).toBeNull();
+    await userEvent.click(option('말씀'));
+    expect(
+      await screen.findByRole('region', {name: '테마 편집기'}),
+    ).toBeDefined();
+    await userEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+    expect(
+      screen.getByRole('region', {name: '테마 편집기'}).querySelector('header'),
+    ).toBeNull();
+    expect(screen.queryByLabelText('무대 배치 캔버스')).toBeNull();
+    expect(screen.queryByRole('button', {name: '모니터 번호 표시'})).toBeNull();
+  });
+});

@@ -21,14 +21,21 @@
     "paths": {
       "@core/*": ["./src/core/*"],
       "@contracts/*": ["./src/contracts/*"],
-      "@renderer/*": ["./src/renderer/src/*"]
+      "@renderer/*": ["./src/renderer/src/*"],
+      "@fixtures/*": ["./test/fixtures/*"]
     }
   },
   "include": [
     "src/renderer/src/**/*",
     "src/core/**/*",
     "src/contracts/**/*",
-    "src/preload/*.d.ts"
+    "src/preload/*.d.ts",
+    "test/renderer/**/*",
+    "test/core/**/*",
+    "test/contracts/**/*",
+    "test/fixtures/renderer/**/*",
+    "test/fixtures/core/**/*",
+    "test/fixtures/contracts/**/*"
   ],
-  "exclude": ["src/renderer/**/*.node.test.ts"]
+  "exclude": ["test/renderer/**/*.node.test.ts"]
 }

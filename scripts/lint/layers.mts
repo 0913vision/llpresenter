@@ -90,13 +90,32 @@ function testImports(layer: Layer): readonly string[] {
     : layer.imports;
 }
 
+const TEST_FOLDERS: Readonly<Record<string, string>> = {
+  core: 'src/core',
+  contracts: 'src/contracts',
+  main: 'src/main',
+  preload: 'src/preload',
+  renderer: RENDERER,
+};
+
 /**
- * The layers that tests may import. A test sits beside the code it tests and
- * may render or call any layer of the same process around it, but never
- * another process's code.
+ * The layers that tests may import. A test in `test/` mirrors the folder of
+ * the code it tests and may render or call any layer of the same process
+ * around it, but never another process's code. Fixtures in `test/fixtures/`
+ * follow the same rule.
  */
 export const TEST_LAYER_MAP: LayerMap = {
-  aliases: LAYER_MAP.aliases,
+  aliases: {
+    ...LAYER_MAP.aliases,
+    '@main/': 'src/main',
+    '@fixtures/': 'test/fixtures',
+  },
+  mirrors: Object.fromEntries(
+    Object.entries(TEST_FOLDERS).flatMap(([area, dir]) => [
+      [`test/${area}`, dir],
+      [`test/fixtures/${area}`, dir],
+    ]),
+  ),
   layers: LAYER_MAP.layers.map(layer => ({
     ...layer,
     imports: testImports(layer),

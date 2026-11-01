@@ -5,7 +5,7 @@ import {configDefaults, defineConfig} from 'vitest/config';
  * Renderer tests that need Node's APIs, such as one that reads the design
  * system's files, run in the node project instead of jsdom.
  */
-export const RENDERER_NODE_TESTS = 'src/renderer/**/*.node.test.ts';
+export const RENDERER_NODE_TESTS = 'test/renderer/**/*.node.test.ts';
 
 /** Keep local concurrent verification bounded; CI shards run on separate runners. */
 export function testWorkerLimit(env: NodeJS.ProcessEnv): '50%' | '100%' {
@@ -18,6 +18,8 @@ export default defineConfig({
       '@core': resolve('src/core'),
       '@contracts': resolve('src/contracts'),
       '@renderer': resolve('src/renderer/src'),
+      '@main': resolve('src/main'),
+      '@fixtures': resolve('test/fixtures'),
     },
   },
   test: {
@@ -48,8 +50,8 @@ export default defineConfig({
     fsModuleCache: false,
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx,mts}', 'scripts/**/*.{ts,mts}'],
-      exclude: ['**/*.test.{ts,tsx}', '**/*.d.ts'],
+      include: ['src/**/*.{ts,tsx,mts}'],
+      exclude: ['**/*.d.ts'],
       reporter: ['text-summary', 'html'],
       reportsDirectory: 'coverage',
     },
@@ -59,12 +61,11 @@ export default defineConfig({
         test: {
           name: 'node',
           include: [
-            'src/main/**/*.test.ts',
-            'src/preload/**/*.test.ts',
-            'src/core/**/*.test.ts',
-            'src/contracts/**/*.test.ts',
             'scripts/**/*.test.ts',
-            'test/**/*.test.ts',
+            'test/*.test.ts',
+            'test/ui/**/*.test.ts',
+            'test/{core,contracts,main,preload}/**/*.test.ts',
+            'test/fixtures/{core,contracts,main,preload}/**/*.test.ts',
             RENDERER_NODE_TESTS,
           ],
           environment: 'node',
@@ -75,7 +76,10 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'renderer',
-          include: ['src/renderer/**/*.test.{ts,tsx}'],
+          include: [
+            'test/renderer/**/*.test.{ts,tsx}',
+            'test/fixtures/renderer/**/*.test.{ts,tsx}',
+          ],
           exclude: [...configDefaults.exclude, RENDERER_NODE_TESTS],
           environment: 'jsdom',
           setupFiles: ['test/setup-compile-cache.ts', 'test/setup-renderer.ts'],

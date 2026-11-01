@@ -6,7 +6,7 @@ import {
   readBibleChapter,
   readBibleChapterFile,
 } from '../../src/main/bible/chapterFile';
-import {translationFile} from '@core/bible/testing/testFiles';
+import {translationFile} from '@fixtures/core/bible/testFiles';
 import {convertBibleFile} from './convert';
 
 vi.mock('node:fs/promises', async importOriginal => {
