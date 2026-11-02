@@ -33,7 +33,7 @@ function withMessageStyle(
   return messageStyleId === null ? others : {...others, messageStyleId};
 }
 
-const KIND_NAMES = {
+export const KIND_NAMES = {
   audience: '청중',
   broadcast: '방송',
   stage: '무대',

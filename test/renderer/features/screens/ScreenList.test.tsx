@@ -107,7 +107,10 @@ afterEach(() => {
 const EXTRA_ID = '00000000-0000-4000-8000-0000000000aa';
 
 /** The sample screens plus a second 청중 화면, so the first one can be deleted. */
-function withExtraAudience(access: 'editable' | 'readOnly' = 'editable') {
+function withExtraAudience(
+  access: 'editable' | 'readOnly' = 'editable',
+  extraName = '보조 청중 화면',
+) {
   const base = screensDocument();
   if (base.name !== 'screens') throw new Error('Expected screens');
   const document = settingsDocument('screens', {
@@ -115,7 +118,7 @@ function withExtraAudience(access: 'editable' | 'readOnly' = 'editable') {
       ...base.value.screens,
       {
         id: EXTRA_ID,
-        name: '보조 청중 화면',
+        name: extraName,
         kind: 'audience',
         method: 'window',
       },
@@ -125,7 +128,7 @@ function withExtraAudience(access: 'editable' | 'readOnly' = 'editable') {
 }
 
 describe('screen creation and group outputs', () => {
-  it('lists screen commands in spec order and hides delete for the last screen of a group', async () => {
+  it('lists screen commands in spec order and disables delete with its reason for the last screen of a kind', async () => {
     setup();
     const contextTarget = await screen.findByRole('option', {
       name: '청중 화면',
@@ -138,13 +141,28 @@ describe('screen creation and group outputs', () => {
           .getByRole('menu')
           .querySelectorAll('[role="menuitem"], [role="separator"]'),
       ].map(row => row.textContent);
-    expect(rows()).toEqual(['이름 바꾸기', '사용']);
+    const expected = ['이름 바꾸기', '삭제', '사용'];
+    const remove = () => screen.getByRole('menuitem', {name: '삭제'});
+    expect(rows()).toEqual(expected);
+    expect(remove().getAttribute('aria-disabled')).toBe('true');
+    await userEvent.hover(remove());
+    expect((await screen.findByRole('tooltip')).textContent).toBe(
+      '마지막 청중 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+    );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '방송 화면'}));
-    expect(rows()).toEqual(['이름 바꾸기', '사용']);
+    expect(rows()).toEqual(expected);
+    await userEvent.hover(remove());
+    expect((await screen.findByRole('tooltip')).textContent).toBe(
+      '마지막 방송 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+    );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '무대 화면'}));
-    expect(rows()).toEqual(['이름 바꾸기', '사용']);
+    expect(rows()).toEqual(expected);
+    await userEvent.hover(remove());
+    expect((await screen.findByRole('tooltip')).textContent).toBe(
+      '마지막 무대 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+    );
   });
 
   it('toggles only the clicked output and waits for main confirmation', async () => {
@@ -317,6 +335,18 @@ describe('screen creation and group outputs', () => {
         row => row.textContent,
       ),
     ).toEqual(['이름 바꾸기', '삭제', '사용']);
+  });
+
+  it('asks with the object particle that fits a name ending in a vowel', async () => {
+    setup(withExtraAudience('editable', '보조 청중 화면 A'));
+    const row = await screen.findByRole('option', {name: '보조 청중 화면 A'});
+    fireEvent.contextMenu(row);
+    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    expect(
+      within(await screen.findByRole('alertdialog')).getByText(
+        '‘보조 청중 화면 A’를 삭제할까요?',
+      ),
+    ).toBeTruthy();
   });
 
   it('cancels deletion without a write and then removes only the confirmed screen', async () => {

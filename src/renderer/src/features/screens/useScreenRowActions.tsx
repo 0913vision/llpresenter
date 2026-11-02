@@ -12,7 +12,7 @@ import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
-import {nameProblem} from '@core/screens/screenEdits';
+import {KIND_NAMES, nameProblem} from '@core/screens/screenEdits';
 import {ScreenContextMenu} from './screenMenuEntries';
 import {NOT_YET} from '@renderer/ui/menuRows';
 
@@ -107,10 +107,12 @@ export function useScreenRowActions(
                   : target.method === 'ndi' && outputs[target.id] !== true
                     ? NOT_YET
                     : undefined,
-              canDelete:
+              deleteReason:
                 (document?.value.screens.filter(
                   screen => screen.kind === target.kind,
-                ).length ?? 0) > 1,
+                ).length ?? 0) > 1
+                  ? undefined
+                  : `마지막 ${KIND_NAMES[target.kind]} 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음`,
               on: outputs[target.id] === true,
               rename: () => {
                 handoff({kind: 'rename', id: target.id});

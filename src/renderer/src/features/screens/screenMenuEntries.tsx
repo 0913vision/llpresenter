@@ -72,7 +72,8 @@ export function screenAddMenuEntries({
 }
 
 interface ScreenMenuActions {
-  readonly canDelete: boolean;
+  /** Why the screen can't be deleted, shown on the disabled 삭제 row. */
+  readonly deleteReason: string | undefined;
   readonly on: boolean;
   readonly reason: string | undefined;
   readonly outputReason: string | undefined;
@@ -92,17 +93,13 @@ export function screenMenuEntries(
       ...menuAvailability(actions.reason),
       onSelect: actions.rename,
     },
-    ...(actions.canDelete
-      ? [
-          {
-            kind: 'item',
-            id: 'delete',
-            label: '삭제',
-            ...menuAvailability(actions.reason),
-            onSelect: actions.remove,
-          } as const,
-        ]
-      : []),
+    {
+      kind: 'item',
+      id: 'delete',
+      label: '삭제',
+      ...menuAvailability(actions.deleteReason ?? actions.reason),
+      onSelect: actions.remove,
+    },
     {
       kind: 'item',
       id: 'toggle',

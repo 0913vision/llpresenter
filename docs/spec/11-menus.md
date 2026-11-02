@@ -504,11 +504,11 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - Purpose: Act on this one screen.
 - PP: PP screen right-click (support article, 2026).
 
-| Group | Row               | Does                                                                                          | Status |
-| ----- | ----------------- | --------------------------------------------------------------------------------------------- | ------ |
-| 1     | 이름 바꾸기       |                                                                                               | Now    |
-| 1     | 삭제              | Hidden when the group has one screen.                                                         | Now    |
-| 1     | 사용 안 함 / 사용 | Turns this screen's output off or on (the same switch as the per-screen check in 출력 today). | New    |
+| Group | Row               | Does                                                                                                                                                   | Status |
+| ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1     | 이름 바꾸기       |                                                                                                                                                        | Now    |
+| 1     | 삭제              | Disabled when it is the only screen of its kind, with the reason "마지막 청중 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음" (방송, 무대 likewise). | Now    |
+| 1     | 사용 안 함 / 사용 | Turns this screen's output off or on (the same switch as the per-screen check in 출력 today).                                                          | New    |
 
 ### 파일
 
