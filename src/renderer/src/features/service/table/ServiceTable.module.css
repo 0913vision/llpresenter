@@ -84,7 +84,10 @@
 }
 
 .cell {
+  /* NOTE(0913vision): An empty 메모 cell keeps one line of height, so it can be
+     clicked to write a memo. */
   min-width: 0;
+  min-height: 1lh;
   overflow: hidden;
   padding: 0 var(--space-6);
   border: 0;
