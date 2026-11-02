@@ -258,26 +258,27 @@ Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them
 new item IDs (proposal).
 
-| Kind           | Kind key                    | Other fields                                 | Source                                                                   |
-| -------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
-| Section (구역) | `header`: name              | None                                         | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
-| Song           | `song`: song ID             | `arrangement`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
-| Bible passage  | `bible`: object (see below) | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
-| Media          | `media`: media ID           | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
-| 공지           | `notice`: 공지 set ID       | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
+| Kind           | Kind key                    | Other fields                                                | Source                                                                   |
+| -------------- | --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Section (구역) | `header`: name              | None                                                        | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
+| Song           | `song`: song ID             | `arrangement`, `customOrder`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
+| Bible passage  | `bible`: object (see below) | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
+| Media          | `media`: media ID           | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
+| 공지           | `notice`: 공지 set ID       | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
 
 Keep an item with an unknown kind key unchanged. Show it as a row with a warning
 icon, and don't let the operator output it (proposal).
 
 ### Song item fields
 
-| Field         | Type              | Required | Meaning                                                                                                                                                                                                         |
-| ------------- | ----------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `song`        | String (song ID)  | Yes      | The 라이브러리 song.                                                                                                                                                                                            |
-| `arrangement` | String            | No       | The chosen 구성 name. If absent, or if the song has no 구성 with that name, the item uses the default 구성.                                                                                                     |
-| `background`  | String (media ID) | No       | Background override for this service. If absent, the item uses the song's default background.                                                                                                                   |
-| `macro`       | String            | No       | The 매크로 to run when the item starts. The source sample shows a 매크로 name ("찬양"). Version 1 stores the 매크로 ID (proposal, open question). When you read a value that matches no ID, look it up by name. |
-| `memo`        | String            | No       | Memo. Can have several lines.                                                                                                                                                                                   |
+| Field         | Type               | Required | Meaning                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `song`        | String (song ID)   | Yes      | The 라이브러리 song.                                                                                                                                                                                                                                                                                                                                       |
+| `arrangement` | String             | No       | The chosen 구성 name. If absent, or if the song has no 구성 with that name, the item uses the default 구성.                                                                                                                                                                                                                                                |
+| `customOrder` | Array of group IDs | No       | This item's slide order for this 예배 only. When present it replaces the chosen 구성 for playing; `arrangement` stays as the 구성 the order started from. Repeated IDs repeat the whole group. An ID the song no longer has is skipped when played and kept in the file. An empty list plays no groups, like an empty named 구성. At most 100,000 entries. |
+| `background`  | String (media ID)  | No       | Background override for this service. If absent, the item uses the song's default background.                                                                                                                                                                                                                                                              |
+| `macro`       | String             | No       | The 매크로 to run when the item starts. The source sample shows a 매크로 name ("찬양"). Version 1 stores the 매크로 ID (proposal, open question). When you read a value that matches no ID, look it up by name.                                                                                                                                            |
+| `memo`        | String             | No       | Memo. Can have several lines.                                                                                                                                                                                                                                                                                                                              |
 
 ### Bible passage object (proposal)
 

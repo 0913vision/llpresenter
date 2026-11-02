@@ -71,6 +71,38 @@ describe('parseAppConfig', () => {
       }),
     );
   });
+  it('reads the editor window placements, the slide size, and unknown fields', () => {
+    const placement = {x: 10, y: 20, width: 900, height: 700, maximized: false};
+    const orderEditorWindow = {...placement, slideSize: 160, future: 'kept'};
+    const songEditorWindow = {...placement, future: 'kept'};
+    const loaded = expectSuccess(
+      parse({...fullConfig(), orderEditorWindow, songEditorWindow}),
+    );
+    expect(loaded.data.orderEditorWindow).toEqual(orderEditorWindow);
+    expect(loaded.data.songEditorWindow).toEqual(songEditorWindow);
+    expect(expectSuccess(parse(fullConfig())).data.orderEditorWindow).toBe(
+      undefined,
+    );
+  });
+
+  it.each([
+    {orderEditorWindow: {x: 0, y: 0, width: 0, height: 5, maximized: false}},
+    {
+      orderEditorWindow: {
+        x: 0,
+        y: 0,
+        width: 9,
+        height: 5,
+        maximized: false,
+        slideSize: 0,
+      },
+    },
+    {songEditorWindow: {x: 'left', y: 0, width: 9, height: 5, maximized: true}},
+    {songEditorWindow: {x: 0, y: 0, width: 9, height: 5}},
+  ])('rejects an invalid editor window placement %j', change => {
+    expectFailure(parse({...fullConfig(), ...change}));
+  });
+
   it.each([null, 42, {}, []])(
     'rejects an invalid import folder %j',
     mediaImportFolder => {

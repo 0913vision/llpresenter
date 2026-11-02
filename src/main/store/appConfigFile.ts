@@ -120,6 +120,28 @@ export class AppConfigFile implements UiStateFields {
     this.scheduleSave();
   }
 
+  get orderEditorWindow(): AppConfig['orderEditorWindow'] {
+    return this.config.orderEditorWindow;
+  }
+
+  setOrderEditorWindow(
+    placement: NonNullable<AppConfig['orderEditorWindow']>,
+  ): void {
+    this.config = {...this.config, orderEditorWindow: placement};
+    this.scheduleSave();
+  }
+
+  get songEditorWindow(): AppConfig['songEditorWindow'] {
+    return this.config.songEditorWindow;
+  }
+
+  setSongEditorWindow(
+    placement: NonNullable<AppConfig['songEditorWindow']>,
+  ): void {
+    this.config = {...this.config, songEditorWindow: placement};
+    this.scheduleSave();
+  }
+
   /** Whether the file couldn't be read or failed its check. */
   get isBroken(): boolean {
     return this.opened.problem !== null;

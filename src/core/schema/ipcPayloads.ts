@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
+import {serviceIdSchema, serviceItemIdSchema, songIdSchema} from './ids';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The highest frame rate a window may report. */
@@ -94,4 +95,99 @@ export function parseFrameRateReport(
 
 export function isFrameRateReport(value: unknown): value is FrameRateReport {
   return parseFrameRateReport(value).ok;
+}
+
+const orderEditorTargetSchema = payloadObject({
+  serviceId: serviceIdSchema,
+  itemId: serviceItemIdSchema,
+});
+
+/** The song item that the 순서 편집 window edits. */
+export type OrderEditorTarget = Readonly<
+  v.InferOutput<typeof orderEditorTargetSchema>
+>;
+
+export function parseOrderEditorTarget(
+  value: unknown,
+): Result<OrderEditorTarget, PayloadError> {
+  return parsePayload(orderEditorTargetSchema, value);
+}
+
+/** What the 곡 편집 window can start with besides the song. */
+export const songEditorActions = [
+  'create-arrangement',
+  'rename-arrangement',
+  'delete-arrangement',
+  'edit-arrangement',
+  'hot-key',
+] as const;
+
+export type SongEditorWindowAction = (typeof songEditorActions)[number];
+
+/** The most slides a window can be asked to select. */
+export const SONG_EDITOR_BLOCK_MAX = 100_000;
+
+const songEditorTargetSchema = payloadObject({
+  songId: songIdSchema,
+  block: v.exactOptional(
+    v.pipe(
+      v.number(),
+      v.integer(),
+      v.minValue(0),
+      v.maxValue(SONG_EDITOR_BLOCK_MAX),
+    ),
+  ),
+  arrangement: v.exactOptional(v.pipe(v.string(), v.maxLength(512))),
+  action: v.exactOptional(v.picklist(songEditorActions)),
+});
+
+/** The song, and where in it, that the 곡 편집 window opens. */
+export type SongEditorTarget = Readonly<
+  v.InferOutput<typeof songEditorTargetSchema>
+>;
+
+export function parseSongEditorTarget(
+  value: unknown,
+): Result<SongEditorTarget, PayloadError> {
+  return parsePayload(songEditorTargetSchema, value);
+}
+
+export const openWindowFailures = [
+  'not-implemented',
+  'no-such-target',
+  'failed',
+] as const;
+
+export type OpenWindowFailure = (typeof openWindowFailures)[number];
+
+/** Whether main opened the window, or why it didn't. */
+export type OpenWindowResult = Result<
+  void,
+  {readonly reason: OpenWindowFailure}
+>;
+
+const openWindowResultSchema = v.variant('ok', [
+  v.object({ok: v.literal(true), value: v.optional(v.undefined())}),
+  v.object({
+    ok: v.literal(false),
+    error: v.object({reason: v.picklist(openWindowFailures)}),
+  }),
+]);
+
+export function parseOpenWindowResult(
+  value: unknown,
+): Result<OpenWindowResult, PayloadError> {
+  const checked = parsePayload(openWindowResultSchema, value);
+  if (!checked.ok) return checked;
+  return {
+    ok: true,
+    value: checked.value.ok
+      ? {ok: true, value: undefined}
+      : {ok: false, error: {reason: checked.value.error.reason}},
+  };
+}
+
+/** The answer of a window request that fails its check. */
+export function refuseOpenWindow(): OpenWindowResult {
+  return {ok: false, error: {reason: 'failed'}};
 }

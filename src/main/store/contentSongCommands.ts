@@ -43,6 +43,7 @@ class SongContentCommands {
   readonly handlers: SongContentCommandsHandlers = {
     'song.import': edit => this.importSong(edit),
     'song.create': () => this.createSong(),
+    'song.saveAs': edit => this.saveSongAs(edit.song),
     'song.update': edit => this.updateSong(edit.song, edit.baseRevision),
     'song.delete': edit => this.deleteSong(edit.songId),
     'song.arrangement.rename': edit =>
@@ -209,6 +210,36 @@ class SongContentCommands {
     const full = this.context.savesFull([file]);
     if (full !== null) return full;
     const stored = this.context.songs.add(song, file);
+    const written = await this.context.write(this.context.kinds.song, stored);
+    this.context.announceSong(id);
+    return this.context.answer({id, revision: stored.revision}, [written]);
+  }
+
+  private async saveSongAs(input: GroupedSong): Promise<EditResult> {
+    const title = normalizeSongTitle(input.title);
+    if (title === '') {
+      return this.context.refuse('invalid', 'The song title must not be blank');
+    }
+    if (this.hasOtherSongTitled(title, '')) {
+      return this.context.refuse(
+        'duplicate-title',
+        `Another song is titled ${title}`,
+      );
+    }
+    const id = createSongId(this.context.newId());
+    const checked = checkPart(groupedSongSchema, {
+      ...input,
+      id,
+      title,
+      updatedAt: this.context.now(),
+    });
+    if (!checked.ok) {
+      return this.context.refuse('invalid', checked.error.message);
+    }
+    const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
+    const full = this.context.savesFull([file]);
+    if (full !== null) return full;
+    const stored = this.context.songs.add(checked.value, file);
     const written = await this.context.write(this.context.kinds.song, stored);
     this.context.announceSong(id);
     return this.context.answer({id, revision: stored.revision}, [written]);

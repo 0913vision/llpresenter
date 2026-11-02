@@ -26,6 +26,7 @@ import {
   type MonitorsApi,
   type OutputApi,
 } from './output';
+import {orderEditorApi, type OrderEditorApi} from './orderEditor';
 import {recoveryApi, type RecoveryApi} from './recovery';
 import {serviceApi, type ServiceApi} from './service';
 import {
@@ -34,6 +35,10 @@ import {
   type PreferencesApi,
   type SettingsApi,
 } from './settings';
+import {
+  songEditorWindowApi,
+  type SongEditorWindowApi,
+} from './songEditorWindow';
 import {uiApi, type UiApi} from './ui';
 import {windowApi, type WindowApi} from './window';
 import type {
@@ -87,6 +92,8 @@ export interface LlpApi {
   readonly library: LibraryApi;
   readonly textImport: TextImportApi;
   readonly recovery: RecoveryApi;
+  readonly orderEditor: OrderEditorApi;
+  readonly songEditorWindow: SongEditorWindowApi;
 }
 
 /** Builds `window.llp` on the preload script's port. */
@@ -113,5 +120,7 @@ export function llpApi(port: IpcPort, platform: WindowPlatform): LlpApi {
     library: libraryApi(port),
     textImport: textImportApi(port),
     recovery: recoveryApi(port),
+    orderEditor: orderEditorApi(port),
+    songEditorWindow: songEditorWindowApi(port),
   };
 }

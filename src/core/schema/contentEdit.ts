@@ -39,6 +39,7 @@ const songEditSchemas = [
     target: songImportTargetSchema,
   }),
   v.object({type: v.literal('song.create')}),
+  v.object({type: v.literal('song.saveAs'), song: groupedSongSchema}),
   v.object({
     type: v.literal('song.update'),
     song: groupedSongSchema,
@@ -126,7 +127,10 @@ const editResultSchema = v.pipe(
  * An edit of a song, a 예배 순서, or a 템플릿 that a window asks the main process
  * to apply over `content:edit`. `service.importItems` appends copies of the
  * items, in their source order and with new ids, to the end of the 예배 순서
- * (`docs/spec/05-prep.md`, "Importing from another service"). `*.update` carries the whole document and the
+ * (`docs/spec/05-prep.md`, "Importing from another service"). `song.saveAs`
+ * creates a new library song from a whole song document: main gives it a new
+ * id, keeps its groups and arrangements, and leaves the song it came from
+ * unchanged. `*.update` carries the whole document and the
  * revision it was edited from; the other edits change what they name, and the
  * main process rewrites every file they touch, such as the 예배 순서 items that
  * pick a renamed 구성.

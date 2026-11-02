@@ -42,7 +42,9 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {registerOrderEditorWindow} from './windows/orderEditor';
 import {registerScreensWindow} from './windows/screens';
+import {registerSongEditorWindow} from './windows/songEditor';
 import {registerAudioOutput} from './windows/audio';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
@@ -177,6 +179,15 @@ function start(): void {
         mode: windowMode,
         log,
       });
+      const editorWindowContext = {
+        control: win,
+        config: appConfig,
+        zoom,
+        mode: windowMode,
+        log,
+      };
+      const orderEditorWindow = registerOrderEditorWindow(editorWindowContext);
+      const songEditorWindow = registerSongEditorWindow(editorWindowContext);
       const stopFonts = registerFonts(win, log);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
@@ -270,6 +281,14 @@ function start(): void {
       shutdown.add({
         name: 'stop screen configuration',
         run: screensWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the order editor window',
+        run: orderEditorWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the song editor window',
+        run: songEditorWindow.dispose,
       });
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop font enumeration', run: stopFonts});

@@ -15,10 +15,12 @@ import {
   noticeSetIdSchema,
   serviceIdSchema,
   serviceItemIdSchema,
+  songGroupIdSchema,
   songIdSchema,
   templateIdSchema,
   themeIdSchema,
 } from './ids';
+import {SONG_GROUP_LIMITS} from './groupedSong';
 import {itemOverlaysSchema} from './itemOverlays';
 import type {MigrationStep} from './migration';
 import {
@@ -65,6 +67,12 @@ const itemSchemas = {
     ...itemFields,
     song: songIdSchema,
     arrangement: v.exactOptional(v.string()),
+    customOrder: v.exactOptional(
+      v.pipe(
+        v.array(songGroupIdSchema),
+        v.maxLength(SONG_GROUP_LIMITS.occurrences),
+      ),
+    ),
     background: v.exactOptional(mediaIdSchema),
     ...startFields,
   }),

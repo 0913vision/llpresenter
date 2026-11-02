@@ -202,6 +202,25 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
+  it('registers both editor window owners with the control window and stops them at quit', async () => {
+    await startMain();
+    const context: unknown = expect.objectContaining({
+      control: mocks.opened.control,
+      config: mocks.appConfig,
+      zoom: mocks.zoom,
+      mode: 'normal',
+    });
+    expect(mocks.editorWindowContexts).toEqual([
+      {name: 'order', context},
+      {name: 'song', context},
+    ]);
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(mocks.editorWindowStops.song).toHaveBeenCalledOnce(),
+    );
+    expect(mocks.editorWindowStops.order).toHaveBeenCalledOnce();
+  });
+
   it('asks the control window to flush before saving and keeps running when it refuses', async () => {
     mocks.confirmClose.mockResolvedValueOnce(false);
     await startMain();

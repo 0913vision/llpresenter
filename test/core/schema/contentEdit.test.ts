@@ -104,6 +104,7 @@ describe('parseContentEdit', () => {
   });
   it.each([
     [{type: 'song.create'}],
+    [{type: 'song.saveAs', song: song()}],
     [{type: 'song.update', song: song(), baseRevision: 3}],
     [{type: 'song.delete', songId: SONG_ID}],
     [

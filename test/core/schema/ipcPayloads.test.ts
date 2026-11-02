@@ -6,6 +6,10 @@ import {
   parseRendererLogEntry,
   parseFrameReadyReport,
   parseFrameReadyReply,
+  parseOpenWindowResult,
+  parseOrderEditorTarget,
+  parseSongEditorTarget,
+  refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
 
 describe('frame readiness', () => {
@@ -95,5 +99,68 @@ describe('parseFrameRateReport', () => {
   it('rejects values that are not objects', () => {
     expect(isFrameRateReport(null)).toBe(false);
     expect(isFrameRateReport([60])).toBe(false);
+  });
+});
+
+describe('editor window targets', () => {
+  const SERVICE = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
+  const ITEM = '00000000-0000-4000-8000-000000000001';
+  const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+
+  it('accepts an order editor target and drops unknown fields', () => {
+    expect(
+      parseOrderEditorTarget({serviceId: SERVICE, itemId: ITEM, extra: 1}),
+    ).toEqual({ok: true, value: {serviceId: SERVICE, itemId: ITEM}});
+  });
+
+  it.each([null, [], {serviceId: SERVICE}, {serviceId: 'x', itemId: ITEM}])(
+    'refuses the order editor target %j',
+    value => {
+      expect(parseOrderEditorTarget(value).ok).toBe(false);
+    },
+  );
+
+  it('accepts a song editor target with and without its options', () => {
+    expect(parseSongEditorTarget({songId: SONG})).toEqual({
+      ok: true,
+      value: {songId: SONG},
+    });
+    const full = {
+      songId: SONG,
+      block: 2,
+      arrangement: '짧게',
+      action: 'hot-key',
+    };
+    expect(parseSongEditorTarget(full)).toEqual({ok: true, value: full});
+  });
+
+  it.each([
+    {songId: 'x'},
+    {songId: SONG, block: -1},
+    {songId: SONG, block: 1.5},
+    {songId: SONG, action: 'delete-song'},
+    {songId: SONG, arrangement: 3},
+  ])('refuses the song editor target %j', value => {
+    expect(parseSongEditorTarget(value).ok).toBe(false);
+  });
+
+  it('reads a window answer and refuses an unknown reason', () => {
+    expect(parseOpenWindowResult({ok: true})).toEqual({
+      ok: true,
+      value: {ok: true, value: undefined},
+    });
+    expect(
+      parseOpenWindowResult({ok: false, error: {reason: 'no-such-target'}}),
+    ).toEqual({
+      ok: true,
+      value: {ok: false, error: {reason: 'no-such-target'}},
+    });
+    expect(
+      parseOpenWindowResult({ok: false, error: {reason: 'other'}}).ok,
+    ).toBe(false);
+    expect(refuseOpenWindow()).toEqual({
+      ok: false,
+      error: {reason: 'failed'},
+    });
   });
 });

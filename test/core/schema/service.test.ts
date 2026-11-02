@@ -308,3 +308,41 @@ function randomItem(random: TestRandom): object {
     {id, future: {kind: random.integer(0, 9)}},
   ]);
 }
+
+describe('customOrder', () => {
+  const GROUP_A = '11111111-1111-4111-a111-111111111111';
+  const GROUP_B = '22222222-2222-4222-a222-222222222222';
+  const songItem = {id: itemId(2), song: SONG_ID, arrangement: '주일용'};
+
+  it('reads an absent, empty, and valid order and keeps unknown fields', () => {
+    for (const customOrder of [undefined, [], [GROUP_A, GROUP_B, GROUP_A]]) {
+      const item =
+        customOrder === undefined
+          ? songItem
+          : {...songItem, customOrder, future: {kept: true}};
+      expect(expectSuccess(parse(withItem(item))).data.order).toEqual([item]);
+    }
+  });
+
+  it('refuses an entry that is not a group id and an order that is too long', () => {
+    expect(parse(withItem({...songItem, customOrder: ['not-an-id']})).ok).toBe(
+      false,
+    );
+    expect(
+      parse(
+        withItem({
+          ...songItem,
+          customOrder: new Array<string>(100_001).fill(GROUP_A),
+        }),
+      ).ok,
+    ).toBe(false);
+  });
+
+  it('lets a template hold the order', () => {
+    const item = {...songItem, customOrder: [GROUP_B]};
+    const template = expectSuccess(
+      parseTemplate(JSON.stringify({...sundayTemplate(), order: [item]}), FILE),
+    ).data;
+    expect(template.order).toEqual([item]);
+  });
+});

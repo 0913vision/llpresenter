@@ -29,7 +29,7 @@ const columnLayoutSchema = jsonObject({
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
 
-const windowPlacementSchema = jsonObject({
+const windowPlacementEntries = {
   x: v.pipe(
     v.number(),
     v.integer(),
@@ -45,6 +45,18 @@ const windowPlacementSchema = jsonObject({
   width: v.pipe(positiveInteger, v.maxValue(32_768)),
   height: v.pipe(positiveInteger, v.maxValue(32_768)),
   maximized: v.boolean(),
+};
+
+const windowPlacementSchema = jsonObject(windowPlacementEntries);
+
+/** The widest slide tile, in CSS pixels, that the 순서 편집 size slider keeps. */
+export const ORDER_EDITOR_SLIDE_SIZE_MAX = 4096;
+
+const orderEditorWindowSchema = jsonObject({
+  ...windowPlacementEntries,
+  slideSize: v.exactOptional(
+    v.pipe(positiveInteger, v.maxValue(ORDER_EDITOR_SLIDE_SIZE_MAX)),
+  ),
 });
 
 /** The window size classes of the design system `Layout`. */
@@ -70,6 +82,8 @@ const appConfigSchema = jsonObject({
   ),
   layout: v.exactOptional(appLayoutSchema),
   screensWindow: v.exactOptional(windowPlacementSchema),
+  orderEditorWindow: v.exactOptional(orderEditorWindowSchema),
+  songEditorWindow: v.exactOptional(windowPlacementSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),

@@ -466,6 +466,50 @@ describe('ContentStore song updates', () => {
   });
 });
 
+describe('ContentStore song.saveAs', () => {
+  it('creates a new song with a new id from the whole document and leaves the original', async () => {
+    const {store, files, song} = setUp();
+    const original = store.song(SONG);
+
+    const result = await store.apply({
+      type: 'song.saveAs',
+      song: {...song.data, title: '만복의 근원 2'},
+    });
+
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.id).not.toBe(SONG);
+    const saved = store.song(result.value.id);
+    expect(saved?.song).toMatchObject({
+      id: result.value.id,
+      title: '만복의 근원 2',
+      groups: song.data.groups,
+      arrangements: song.data.arrangements,
+    });
+    expect(store.song(SONG)).toEqual(original);
+    expect(files.written).toContain(
+      join(locations.songs, `${result.value.id}.llsong`),
+    );
+  });
+
+  it('refuses a title another song has and a blank title, and adds nothing', async () => {
+    const {store, song} = setUp();
+    const count = store.songList().length;
+
+    const duplicate = await store.apply({type: 'song.saveAs', song: song.data});
+    const blank = await store.apply({
+      type: 'song.saveAs',
+      song: {...song.data, title: '  '},
+    });
+
+    expect(duplicate).toMatchObject({
+      ok: false,
+      error: {reason: 'duplicate-title'},
+    });
+    expect(blank).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(store.songList()).toHaveLength(count);
+  });
+});
+
 describe('ContentStore song creation and deletion', () => {
   it('skips padded and decomposed legacy default titles when naming a new song', async () => {
     const one = songFile({...hymnOne(), title: ' 새 곡 '.normalize('NFD')});

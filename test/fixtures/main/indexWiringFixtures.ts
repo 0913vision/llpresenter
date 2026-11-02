@@ -53,6 +53,14 @@ const mocks = vi.hoisted(() => {
     screensWindowContexts: new Array<unknown>(),
     screensWindowStop: vi.fn<() => void>(),
     screensWindowClose: vi.fn<() => Promise<boolean>>(),
+    editorWindowContexts: new Array<{
+      readonly name: string;
+      readonly context: unknown;
+    }>(),
+    editorWindowStops: {
+      order: vi.fn<() => void>(),
+      song: vi.fn<() => void>(),
+    },
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
@@ -123,6 +131,18 @@ vi.mock('@main/windows/screens', () => ({
   registerScreensWindow: (context: unknown) => {
     mocks.screensWindowContexts.push(context);
     return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
+  },
+}));
+vi.mock('@main/windows/orderEditor', () => ({
+  registerOrderEditorWindow: (context: unknown) => {
+    mocks.editorWindowContexts.push({name: 'order', context});
+    return {dispose: mocks.editorWindowStops.order};
+  },
+}));
+vi.mock('@main/windows/songEditor', () => ({
+  registerSongEditorWindow: (context: unknown) => {
+    mocks.editorWindowContexts.push({name: 'song', context});
+    return {dispose: mocks.editorWindowStops.song};
   },
 }));
 vi.mock('@main/bible/register', () => ({
@@ -328,6 +348,9 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 
 beforeEach(async () => {
   mocks.screensWindowContexts.length = 0;
+  mocks.editorWindowContexts.length = 0;
+  mocks.editorWindowStops.order.mockClear();
+  mocks.editorWindowStops.song.mockClear();
   mocks.screensWindowStop.mockClear();
   mocks.screensWindowClose.mockReset().mockResolvedValue(true);
   mocks.electron.app.getPath.mockReturnValue(await makeTempDir());

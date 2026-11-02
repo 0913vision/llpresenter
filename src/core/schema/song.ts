@@ -35,6 +35,11 @@ export const arrangementNameSchema = v.pipe(
   ),
 );
 
+/** Whether a text can name a stored 구성. */
+export function isArrangementName(value: string): boolean {
+  return v.is(arrangementNameSchema, value);
+}
+
 const arrangementSchema = jsonObject({
   name: arrangementNameSchema,
   slides: v.array(positiveInteger),

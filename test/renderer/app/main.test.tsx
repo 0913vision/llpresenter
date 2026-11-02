@@ -170,3 +170,39 @@ it('flushes focused property drafts and queued writes in the settings renderer b
     window.history.replaceState({}, '', originalUrl);
   }
 });
+
+it.each([
+  {name: 'order', title: '순서 편집'},
+  {name: 'song', title: '곡 편집'},
+  {name: 'screens', title: '화면 설정'},
+])(
+  'starts the $name window page without the application and releases it on pagehide',
+  async ({name, title}) => {
+    vi.resetModules();
+    root.render.mockClear();
+    root.unmount.mockClear();
+    stops.live.mockClear();
+    stops.service.mockClear();
+    window.llp = mockLlpApi();
+    const originalUrl = window.location.href;
+    window.history.replaceState({}, '', `?window=${name}`);
+    const container = document.createElement('div');
+    container.id = 'root';
+    document.body.append(container);
+    try {
+      await act(async () => {
+        await import('@renderer/app/main');
+      });
+      await waitFor(() => expect(root.render).toHaveBeenCalledOnce());
+      expect(document.title).toBe(title);
+      expect(stops.service).not.toHaveBeenCalled();
+      window.dispatchEvent(new Event('pagehide'));
+      expect(root.unmount).toHaveBeenCalledOnce();
+      expect(stops.live).toHaveBeenCalledOnce();
+    } finally {
+      container.remove();
+      delete window.llp;
+      window.history.replaceState({}, '', originalUrl);
+    }
+  },
+);

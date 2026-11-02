@@ -85,6 +85,10 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     window: {
       control: () => undefined,
       openScreens: () => undefined,
+      openOrderEditor: () =>
+        Promise.resolve({ok: false, error: {reason: 'not-implemented'}}),
+      openSongEditor: () =>
+        Promise.resolve({ok: false, error: {reason: 'not-implemented'}}),
       ...overrides.window,
     },
     ui: {
@@ -184,6 +188,16 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
         }),
       startFresh: () => Promise.resolve({ok: true, value: null}),
       ...overrides.recovery,
+    },
+    orderEditor: {
+      target: () => Promise.resolve(null),
+      onRetarget: () => () => undefined,
+      ...overrides.orderEditor,
+    },
+    songEditorWindow: {
+      target: () => Promise.resolve(null),
+      onRetarget: () => () => undefined,
+      ...overrides.songEditorWindow,
     },
   };
 }
