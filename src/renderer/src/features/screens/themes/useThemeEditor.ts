@@ -118,6 +118,8 @@ export function useThemeEditor(
   useWindowShortcuts([
     {id: 'theme.save', when: () => active, run: flow.askOverwrite},
     {id: 'theme.saveAs', when: () => active, run: flow.askSaveAs},
+    {id: 'edit.undo', when: () => active, run: writes.undo},
+    {id: 'edit.redo', when: () => active, run: writes.redo},
   ]);
   const choose = (id: ThemeId): void => {
     setThemeId(id);

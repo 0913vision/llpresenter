@@ -9,7 +9,11 @@ import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {builtInTheme, type ThemeScreen} from '@core/themes/defaults';
 import {themeItemKinds} from '@core/themes/elementRules';
-import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
+import {
+  implicitScreenLayout,
+  resolveItemTheme,
+  resolveThemeScreen,
+} from '@core/themes/resolve';
 
 vi.mock('@core/themes/defaults', () => ({builtInTheme: vi.fn()}));
 beforeEach(() => vi.clearAllMocks());
@@ -175,5 +179,36 @@ describe('screen links', () => {
       sourceScreenId: third,
       layout: stage,
     });
+  });
+
+  it('shows a screen without a layout as the first screen of its kind', () => {
+    const theme = makeTheme({[first]: own});
+    expect(resolveThemeScreen(theme, second, screens)).toEqual({
+      sourceScreenId: first,
+      layout: own,
+    });
+    expect(implicitScreenLayout(second, screens)).toEqual(same(first));
+    expect(implicitScreenLayout(first, screens)).toBeUndefined();
+    expect(implicitScreenLayout(third, screens)).toBeUndefined();
+  });
+
+  it('keeps the first screen of its kind empty when it has no layout', () => {
+    const theme = makeTheme({});
+    expect(resolveThemeScreen(theme, first, screens).layout.mode.kind).toBe(
+      'empty',
+    );
+    expect(resolveThemeScreen(theme, second, screens).layout.mode.kind).toBe(
+      'empty',
+    );
+  });
+
+  it('keeps a saved empty layout instead of the default', () => {
+    const theme = makeTheme({
+      [first]: own,
+      [second]: {mode: {kind: 'empty'}, elements: []},
+    });
+    expect(resolveThemeScreen(theme, second, screens).layout.mode.kind).toBe(
+      'empty',
+    );
   });
 });

@@ -326,6 +326,7 @@ describe('screen creation and group outputs', () => {
     fireEvent.contextMenu(row);
     await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
     const first = await screen.findByRole('alertdialog');
+    expect(within(first).getByText('‘청중 화면’을 삭제할까요?')).toBeTruthy();
     await waitFor(() =>
       expect(document.activeElement).toBe(
         within(first).getByRole('button', {name: '삭제'}),
@@ -538,6 +539,24 @@ describe('screen creation and group outputs', () => {
     });
     expect(request.value.screens.at(-1)?.display).toBeUndefined();
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('switches a new screen on when its group is on', async () => {
+    const {send} = setup();
+    await screen.findByRole('option', {name: '청중 화면'});
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[MAIN_ID]: true}},
+      }),
+    );
+    await add('청중', '새 창');
+    await waitFor(() =>
+      expect(send).toHaveBeenCalledWith({
+        type: 'output.set',
+        screenId: CREATED_ID,
+        on: true,
+      }),
+    );
   });
 
   it('adds a Stage capture screen with the explicit output defaults', async () => {

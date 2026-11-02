@@ -28,6 +28,9 @@ interface DraftWrites {
   readonly report: (title: string) => void;
 }
 
+/** The most unsaved edits the working copy can step back through. */
+export const THEME_HISTORY_LIMIT = 100;
+
 /**
  * The editor's working copy of one 테마's layouts. Edits change only the
  * copy; 덮어쓰기 and 다른 이름으로 저장 write it.
@@ -39,9 +42,15 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
   useLayoutEffect(() => {
     savedRef.current = saved;
   });
+  const past = useRef<Array<ThemeDraft | null>>([]);
+  const future = useRef<Array<ThemeDraft | null>>([]);
   const keep = (next: ThemeDraft | null): void => {
     draftRef.current = next;
     setDraft(next);
+  };
+  const forget = (): void => {
+    past.current = [];
+    future.current = [];
   };
   const file = useMemo(
     () => (saved === null ? null : withDraft(saved, draft)),
@@ -69,9 +78,24 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
       transform,
     );
     if (!result.ok) report(themeProblems[result.error]);
-    else keep(result.value);
+    else {
+      past.current = [...past.current, draftRef.current].slice(
+        -THEME_HISTORY_LIMIT,
+      );
+      future.current = [];
+      keep(result.value);
+    }
     completed?.(result.ok);
   };
+
+  const step = (from: typeof past, to: typeof past): void => {
+    if (reason !== undefined || from.current.length === 0) return;
+    const previous = from.current.pop() ?? null;
+    to.current.push(draftRef.current);
+    keep(previous);
+  };
+  const undo = (): void => step(past, future);
+  const redo = (): void => step(future, past);
 
   const commit = async (
     write: (value: ThemesFile) => ThemeEditResult,
@@ -85,7 +109,10 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     const current = draftRef.current;
     if (current === null) return true;
     const written = await commit(value => commitDraft(value, current));
-    if (written && draftRef.current === current) keep(null);
+    if (written && draftRef.current === current) {
+      forget();
+      keep(null);
+    }
     return written;
   };
 
@@ -103,7 +130,10 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     const copy = {id: createThemeId(crypto.randomUUID()), name};
     const written = await commit(value => saveDraftAs(value, current, copy));
     if (!written) return undefined;
-    if (draftRef.current === current) keep(null);
+    if (draftRef.current === current) {
+      forget();
+      keep(null);
+    }
     return copy.id;
   };
 
@@ -114,6 +144,11 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     edit,
     save,
     saveAs,
-    discard: () => keep(null),
+    undo,
+    redo,
+    discard: () => {
+      forget();
+      keep(null);
+    },
   };
 }

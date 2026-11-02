@@ -189,7 +189,7 @@ export function dispatchShortcut(
         composing: ime,
         repeat: spec?.repeat ?? false,
         textHistoryOwner:
-          handler.context === 'song' &&
+          (handler.context === 'song' || handler.context === 'screens') &&
           (handler.id === 'edit.undo' || handler.id === 'edit.redo'),
         textAllowed: handler.id !== 'clear.undo',
         live: spec?.output ?? true,

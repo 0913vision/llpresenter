@@ -110,7 +110,9 @@ export function ScreenList({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
-  const add = useScreenCreation(document, onProblem);
+  const create = useScreenCreation(document, onProblem, screenId =>
+    sendLive({type: 'output.set', screenId, on: true}),
+  );
   const actions = useScreenRowActions(document, onProblem);
   const click = useDragClickGuard();
   const statuses = useOutputStatuses();
@@ -240,7 +242,14 @@ export function ScreenList({
                   on={outputsInGroup.some(
                     screen => outputs[screen.id] === true,
                   )}
-                  add={add}
+                  add={(kind, method, monitor) =>
+                    create(kind, method, {
+                      monitor,
+                      groupOn: outputsInGroup.some(
+                        screen => outputs[screen.id] === true,
+                      ),
+                    })
+                  }
                   toggle={on =>
                     sendLive({
                       type: 'live.batch',

@@ -19,6 +19,31 @@ function screens() {
 }
 
 describe('changeScreen', () => {
+  it('gives a default-named screen the default name of its new kind', () => {
+    const base = screens();
+    const named = base.map(screen =>
+      screen.id === MAIN_ID ? {...screen, name: '새 청중 화면 (2)'} : screen,
+    );
+    const changed = changeScreen(named, MAIN_ID, {kind: 'broadcast'});
+    expect(changed[0]?.name).toBe('새 방송 화면');
+  });
+
+  it('keeps a typed name that only looks like a numbered default', () => {
+    const named = screens().map(screen =>
+      screen.id === MAIN_ID ? {...screen, name: '일요일 아침예 (2)'} : screen,
+    );
+    expect(changeScreen(named, MAIN_ID, {kind: 'stage'})[0]?.name).toBe(
+      '일요일 아침예 (2)',
+    );
+  });
+
+  it('keeps a name the user typed when the kind changes', () => {
+    const named = screens().map(screen =>
+      screen.id === MAIN_ID ? {...screen, name: '본당'} : screen,
+    );
+    expect(changeScreen(named, MAIN_ID, {kind: 'stage'})[0]?.name).toBe('본당');
+  });
+
   it('sets a message style and removes it again with null', () => {
     const styleId = createMessageStyleId(
       '44444444-4444-4444-8444-444444444444',

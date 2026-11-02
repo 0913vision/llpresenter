@@ -1,4 +1,5 @@
 import type {Result} from '../common/result';
+import {sameJson} from '../common/sameJson';
 import type {ThemeId} from '../schema/ids';
 import type {Theme, ThemesFile} from '../schema/themes';
 import {
@@ -52,7 +53,8 @@ export function editDraft(
   const base = findTheme(saved, themeId)?.screens;
   return {
     ok: true,
-    value: screens === base ? null : {themeId, screens},
+    value:
+      screens === base || sameJson(screens, base) ? null : {themeId, screens},
   };
 }
 

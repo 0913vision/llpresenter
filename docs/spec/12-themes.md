@@ -32,6 +32,16 @@ they have the same limit. A 테마 sets the elements of each screen itself.
     a copy.
   - 비움 (empty): nothing from the item. The screen shows its empty color (see
     "Empty screens").
+- A screen with no layout in a 테마, such as one added in 화면 설정 after the
+  테마 was made, takes the mode `<first screen of its kind>`과 동일 in every
+  테마, so it shows what its group shows the moment it is added. The first
+  screen of a kind with no layout is 비움. Picking a mode and then the earlier
+  one back leaves the 테마 without edits. If the first screen of a kind is
+  deleted or moved, the screens that follow it by default follow the new first
+  screen.
+- Ctrl Z and Ctrl Y (실행 취소, 다시 실행) in the 테마 workspace step through
+  the unsaved edits of the working copy, mode changes included, back to the last
+  save.
 - A canvas is 1920 x 1080 reference pixels. Every size and position is in
   reference pixels and scales to the screen's real resolution.
 - An element is one of a fixed set of kinds (see "Elements"). There are no
@@ -306,10 +316,10 @@ kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 Theme:
 
-| Field        | Type                               | Meaning                                        |
-| ------------ | ---------------------------------- | ---------------------------------------------- |
-| `id`, `name` | String                             | ID and name, at most 80 characters.            |
-| `screens`    | Object: screen ID to Screen layout | One entry per screen; a missing entry is 비움. |
+| Field        | Type                               | Meaning                                                                                                                 |
+| ------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `id`, `name` | String                             | ID and name, at most 80 characters.                                                                                     |
+| `screens`    | Object: screen ID to Screen layout | One entry per screen; a missing entry is `<first screen of its kind>`과 동일, or 비움 for the first screen of its kind. |
 
 Screen layout:
 

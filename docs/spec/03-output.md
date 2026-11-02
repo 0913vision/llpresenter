@@ -90,6 +90,9 @@ screen's output on and off. There is no confirmation.
 
 - The text in parentheses is the output target name from 화면 설정, for example
   모니터 2 (monitor 2), 캡처용 창, or NDI.
+- A screen added in 화면 설정 follows its group: it starts on when the group
+  button is on and off when it is off. A screen without its own layout in a 테마
+  shows what the first screen of its kind shows (12).
 - Clicking a button in the monitor missing state turns the output off.
 - Turning an output off keeps the output state (the live 슬라이드, background,
   그래픽, and so on). Turning it back on shows that content at once. While the

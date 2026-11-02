@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from 'react';
-import {parseScreenId} from '@core/schema/ids';
+import {parseScreenId, type ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -8,10 +8,15 @@ import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 
-/** Creates screens without overriding a newer selection or an unmounted workspace. */
+/**
+ * Creates screens without overriding a newer selection or an unmounted
+ * workspace. A screen added while its group is on is switched on once saved,
+ * through `switchOn`.
+ */
 export function useScreenCreation(
   document: NamedDocument<'screens'> | null,
   onProblem: ((notice: Notice) => void) | undefined,
+  switchOn: (screenId: ScreenId) => void,
 ) {
   const editor = useScreenEditor(document, onProblem);
   const mounted = useRef(false);
@@ -39,8 +44,13 @@ export function useScreenCreation(
   return (
     kind: Screen['kind'],
     method: NewScreen['method'],
-    monitor?: MonitorInfo,
+    options: {
+      readonly monitor?: MonitorInfo | undefined;
+      /** Whether the group of the new screen is on, so the screen starts on. */
+      readonly groupOn?: boolean;
+    } = {},
   ): void => {
+    const {monitor, groupOn = false} = options;
     const id = parseScreenId(crypto.randomUUID());
     if (!id.ok) {
       report(new Error('Invalid generated screen ID'));
@@ -56,6 +66,7 @@ export function useScreenCreation(
         ...(monitor === undefined ? {} : {monitor}),
       })
       .then(saved => {
+        if (saved && groupOn) switchOn(id.value);
         const current = useScreensSelection.getState();
         if (
           saved &&

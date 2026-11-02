@@ -3,6 +3,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {objectParticle} from '@renderer/ui/korean';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
@@ -139,7 +140,7 @@ export function useScreenRowActions(
         {confirmedTarget === undefined ? null : (
           <AlertDialog
             icon="trash"
-            title={`‘${confirmedTarget.name}’ 화면을 삭제할까요?`}
+            title={`‘${confirmedTarget.name}’${objectParticle(confirmedTarget.name)} 삭제할까요?`}
             onCancel={() => setConfirming(null)}
             actions={[
               {

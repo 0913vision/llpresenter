@@ -1,5 +1,6 @@
 import {copyName} from '../common/copyName';
 import {freeName} from '../common/freeName';
+import {sameJson} from '../common/sameJson';
 import type {Result} from '../common/result';
 import {checkPart} from '../schema/fileFormat';
 import type {ScreenId, ThemeId} from '../schema/ids';
@@ -17,7 +18,7 @@ import {
   type ThemeItemKind,
 } from './elementRules';
 import {standbyLayoutOf} from './defaults';
-import {resolveThemeScreen} from './resolve';
+import {implicitScreenLayout, resolveThemeScreen} from './resolve';
 
 export type ThemeEditProblem =
   | 'missing'
@@ -190,7 +191,8 @@ export function themeLayout(
   return (
     (theme?.id === file.standby.id
       ? standbyLayoutOf(theme, target.screen)
-      : theme?.screens[target.screen.id]) ?? {
+      : theme?.screens[target.screen.id]) ??
+    implicitScreenLayout(target.screen.id, target.screens) ?? {
       mode: {kind: 'empty'},
       elements: [],
     }
@@ -226,9 +228,16 @@ export function editThemeLayout(
   ) {
     return {ok: false, error: 'standby'};
   }
+  const implicit = implicitScreenLayout(target.screen.id, screens);
+  const others = Object.fromEntries(
+    Object.entries(theme.screens).filter(([id]) => id !== target.screen.id),
+  );
   const next = {
     ...theme,
-    screens: {...theme.screens, [target.screen.id]: layout},
+    screens:
+      implicit !== undefined && sameJson(layout, implicit)
+        ? others
+        : {...others, [target.screen.id]: layout},
   };
   if (Object.keys(next.screens).length > THEME_LIMITS.screens) {
     return {ok: false, error: 'full'};

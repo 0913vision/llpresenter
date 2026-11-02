@@ -33,6 +33,32 @@ function withMessageStyle(
   return messageStyleId === null ? others : {...others, messageStyleId};
 }
 
+const KIND_NAMES = {
+  audience: '청중',
+  broadcast: '방송',
+  stage: '무대',
+} as const;
+
+/** The name a new screen of this kind gets, with a number when it is taken. */
+export function defaultScreenName(
+  kind: Screen['kind'],
+  screens: ReadonlyArray<Pick<Screen, 'name'>>,
+): string {
+  const base = `새 ${KIND_NAMES[kind]} 화면`;
+  const names = new Set(screens.map(screen => screen.name.trim()));
+  let name = base;
+  for (let suffix = 2; names.has(name); suffix++) name = `${base} (${suffix})`;
+  return name;
+}
+
+function isDefaultName(kind: Screen['kind'], name: string): boolean {
+  const base = `새 ${KIND_NAMES[kind]} 화면`;
+  const trimmed = name.trim();
+  return (
+    trimmed.startsWith(base) && /^( \(\d+\))?$/.test(trimmed.slice(base.length))
+  );
+}
+
 /**
  * The screens with the change applied to the screen with this id. Other
  * screens and unknown fields stay as they are.
@@ -45,9 +71,23 @@ export function changeScreen(
   return screens.map(screen => {
     if (screen.id !== id) return screen;
     const {offset, messageStyleId, ...fields} = change;
+    const kind = fields.kind;
+    const renamed =
+      kind !== undefined &&
+      kind !== screen.kind &&
+      fields.name === undefined &&
+      isDefaultName(screen.kind, screen.name);
     const updated = {
       ...withMessageStyle(screen, messageStyleId),
       ...fields,
+      ...(renamed
+        ? {
+            name: defaultScreenName(
+              kind,
+              screens.filter(other => other.id !== id),
+            ),
+          }
+        : {}),
     };
     return offset === undefined
       ? updated

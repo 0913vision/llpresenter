@@ -272,3 +272,34 @@ describe('the 대기 화면 of a file from before it had a 무대 화면 layout'
     ).toBe('empty');
   });
 });
+
+describe('a screen added without a layout', () => {
+  const added = {
+    id: createScreenId('00000000-0000-4000-8000-000000000010'),
+    kind: 'audience',
+  } as const;
+  const both = [main, added, stage];
+
+  it('reads as the first screen of its kind and drops the entry again when picked back', () => {
+    const {file, theme} = setup();
+    const target = {theme: theme.id, screen: added, screens: both};
+    expect(themeLayout(file, target).mode).toEqual({
+      kind: 'same',
+      screen: main.id,
+    });
+    const own = value(
+      editThemeLayout(file, target, layout => ({
+        ...layout,
+        mode: {kind: 'own'},
+      })),
+    );
+    expect(own.themes[0]?.screens[added.id]?.mode).toEqual({kind: 'own'});
+    const back = value(
+      editThemeLayout(own, target, layout => ({
+        ...layout,
+        mode: {kind: 'same', screen: main.id},
+      })),
+    );
+    expect(back.themes[0]?.screens).toEqual(theme.screens);
+  });
+});

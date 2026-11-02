@@ -564,6 +564,38 @@ it('keeps edits in the working copy until 저장 asks before overwriting', async
   expect(saveButton.getAttribute('aria-disabled')).toBe('true');
 });
 
+it('undoes and redoes a change of 방식 with Ctrl+Z and Ctrl+Y, and picking the old one back leaves no edit', async () => {
+  const {edit} = setup();
+  await screen.findByRole('button', {name: '현재 가사'});
+  const saveButton = await screen.findByRole('button', {name: '저장'});
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+  const own = screen.getByRole('radio', {name: '직접 배치'});
+  expect(own.getAttribute('aria-checked')).toBe('true');
+  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 동일'}));
+  expect(saveButton.getAttribute('aria-disabled')).not.toBe('true');
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('radio', {name: '직접 배치'})
+        .getAttribute('aria-checked'),
+    ).toBe('true'),
+  );
+  expect(saveButton.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.keyDown(document.body, {key: 'y', code: 'KeyY', ctrlKey: true});
+  await waitFor(() =>
+    expect(
+      screen
+        .getByRole('radio', {name: '청중 화면과 동일'})
+        .getAttribute('aria-checked'),
+    ).toBe('true'),
+  );
+  fireEvent.click(screen.getByRole('radio', {name: '직접 배치'}));
+  expect(saveButton.getAttribute('aria-disabled')).toBe('true');
+  expect(edit).not.toHaveBeenCalled();
+});
+
 it('counts the items that use the theme in the overwrite question and hides a zero', async () => {
   const used = setup({services: servicesWithSongItems(2)});
   await editCurrentTextX();

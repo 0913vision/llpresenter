@@ -231,12 +231,18 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['control'],
       [],
     ],
-    ['edit.undo', '실행 취소', '준비 편집', ['song', 'service'], ['ctrl KeyZ']],
+    [
+      'edit.undo',
+      '실행 취소',
+      '준비 편집',
+      ['song', 'service', 'screens'],
+      ['ctrl KeyZ'],
+    ],
     [
       'edit.redo',
       '다시 실행',
       '준비 편집',
-      ['song', 'service'],
+      ['song', 'service', 'screens'],
       ['ctrl KeyY', 'ctrl shift KeyZ'],
     ],
     [
