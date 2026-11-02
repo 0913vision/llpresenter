@@ -1,9 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {createThemeId, createScreenId} from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
+import {themeScreens} from '@fixtures/core/themeOutput';
+import {resolveThemeOutput} from '@core/themes/output';
 import {
   editThemeLayout,
   editThemeList,
+  themeLayout,
   type ThemeEditResult,
 } from '@core/themes/themeEdits';
 
@@ -187,5 +190,59 @@ describe('screen layout edits', () => {
         mode: {kind: 'same', screen: main.id},
       })),
     ).toEqual({ok: false, error: 'link'});
+  });
+});
+
+describe('the 대기 화면 of a file from before it had a 무대 화면 layout', () => {
+  function oldFile() {
+    const file = createDefaultThemes();
+    return {...file, standby: {...file.standby, screens: {}}};
+  }
+  const target = (file: ReturnType<typeof oldFile>) => ({
+    theme: file.standby.id,
+    screen: stage,
+    screens,
+  });
+
+  it('shows the editor the same clock and timer the output draws', () => {
+    const file = oldFile();
+    const layout = themeLayout(file, target(file));
+    expect(layout.mode.kind).toBe('own');
+    expect(layout.elements.map(element => element.kind)).toEqual([
+      'clock',
+      'timer',
+    ]);
+  });
+
+  it('edits the fallback and saves it as the layout', () => {
+    const file = oldFile();
+    const next = value(
+      editThemeLayout(file, target(file), layout => ({
+        ...layout,
+        elements: layout.elements.filter(element => element.kind === 'clock'),
+      })),
+    );
+    expect(
+      next.standby.screens[stage.id]?.elements.map(element => element.kind),
+    ).toEqual(['clock']);
+  });
+
+  it('clears the fallback to 비움 and keeps it cleared', () => {
+    const file = oldFile();
+    const cleared = value(
+      editThemeLayout(file, target(file), layout => ({
+        ...layout,
+        mode: {kind: 'empty'},
+      })),
+    );
+    expect(themeLayout(cleared, target(cleared)).mode.kind).toBe('empty');
+    expect(
+      resolveThemeOutput({
+        file: cleared,
+        screens: themeScreens,
+        item: null,
+        revision: 1,
+      }).screens[stage.id]?.layout.mode.kind,
+    ).toBe('empty');
   });
 });

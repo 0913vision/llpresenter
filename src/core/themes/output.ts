@@ -1,11 +1,11 @@
 import type {Screen} from '../schema/screens';
-import type {ThemesFile} from '../schema/themes';
+import type {Theme, ThemesFile} from '../schema/themes';
 import type {
   LiveThemeItem,
   LiveThemeMode,
   LiveThemeOutput,
 } from '../schema/liveTheme';
-import {createDefaultThemes} from './defaults';
+import {createDefaultThemes, standbyLayoutOf} from './defaults';
 import {resolveItemTheme, resolveThemeScreen} from './resolve';
 import {emptyScreenColor} from '../screens/emptyColor';
 
@@ -45,7 +45,10 @@ export function resolveThemeOutput({
   const theme =
     chosen ??
     (item === null
-      ? (file?.standby ?? createDefaultThemes(screens).standby)
+      ? withStageStandby(
+          file?.standby ?? createDefaultThemes(screens).standby,
+          screens,
+        )
       : resolveItemTheme({
           file,
           kind,
@@ -64,6 +67,22 @@ export function resolveThemeOutput({
           screens.find(candidate => candidate.id === resolved.sourceScreenId) ??
           screen;
         return [screen.id, {...resolved, emptyColor: emptyScreenColor(source)}];
+      }),
+    ),
+  };
+}
+
+/** The 대기 화면 with every screen's layout from {@link standbyLayoutOf}. */
+export function withStageStandby(
+  standby: Theme,
+  screens: readonly Screen[],
+): Theme {
+  return {
+    ...standby,
+    screens: Object.fromEntries(
+      screens.flatMap(screen => {
+        const layout = standbyLayoutOf(standby, screen);
+        return layout === undefined ? [] : [[screen.id, layout]];
       }),
     ),
   };

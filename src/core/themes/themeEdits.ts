@@ -14,6 +14,7 @@ import {
   themeElementProblem,
   type ThemeItemKind,
 } from './elementRules';
+import {standbyLayoutOf} from './defaults';
 import {resolveThemeScreen} from './resolve';
 
 export type ThemeEditProblem =
@@ -182,8 +183,11 @@ export function themeLayout(
   file: ThemesFile,
   target: ThemeTarget,
 ): ThemeScreenLayout {
+  const theme = findTheme(file, target.theme);
   return (
-    findTheme(file, target.theme)?.screens[target.screen.id] ?? {
+    (theme?.id === file.standby.id
+      ? standbyLayoutOf(theme, target.screen)
+      : theme?.screens[target.screen.id]) ?? {
       mode: {kind: 'empty'},
       elements: [],
     }

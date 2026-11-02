@@ -6,11 +6,16 @@ import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 const monitors = monitorsOf({id: 1, primary: true}, {id: 2, x: 1920});
 const controlMonitor = monitorById(monitors, 1);
 const projector = monitorById(monitors, 2);
+const saved = {
+  id: projector.id,
+  name: projector.name,
+  bounds: projector.bounds,
+};
 
 describe('planPlacement', () => {
   it('centers fallback bounds in a work area offset by a left taskbar', () => {
     const placement = planPlacement({
-      screen: fullScreenScreen(),
+      screen: fullScreenScreen({display: saved}),
       monitor: null,
       controlMonitor: {
         ...controlMonitor,
@@ -88,7 +93,7 @@ describe('planPlacement', () => {
 
   it('moves a full screen output into a window on the control monitor when its monitor is missing', () => {
     const placement = planPlacement({
-      screen: fullScreenScreen(),
+      screen: fullScreenScreen({display: saved}),
       monitor: null,
       controlMonitor,
     });
@@ -99,9 +104,21 @@ describe('planPlacement', () => {
     });
   });
 
+  it('opens a screen that never had a monitor as a window, not as a lost monitor', () => {
+    for (const onDisconnect of ['window', 'off'] as const) {
+      expect(
+        planPlacement({
+          screen: fullScreenScreen({display: null, onDisconnect}),
+          monitor: null,
+          controlMonitor,
+        }),
+      ).toMatchObject({kind: 'window', reason: 'method'});
+    }
+  });
+
   it('turns the output off when its monitor is missing and 연결이 끊기면 says off', () => {
     const placement = planPlacement({
-      screen: fullScreenScreen({onDisconnect: 'off'}),
+      screen: fullScreenScreen({display: saved, onDisconnect: 'off'}),
       monitor: null,
       controlMonitor,
     });

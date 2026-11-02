@@ -40,7 +40,13 @@ export type ThemeItemKind = (typeof themeItemKinds)[number];
 
 const repeatable = new Set<ThemeElementKind>(['text', 'image', 'box', 'timer']);
 const stageOnly = new Set<ThemeElementKind>(['stageMessage', 'memo']);
-const fixed = new Set<ThemeElementKind>(['text', 'image', 'box', 'clock']);
+const fixed = new Set<ThemeElementKind>([
+  'text',
+  'image',
+  'box',
+  'clock',
+  'timer',
+]);
 
 export function canRepeatThemeElement(kind: ThemeElementKind): boolean {
   return repeatable.has(kind);

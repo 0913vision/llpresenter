@@ -95,6 +95,34 @@ function stageElements(): ThemeElement[] {
   });
 }
 
+/**
+ * What a 무대 화면 shows with nothing live until its 대기 화면 is edited: the
+ * clock and the timer, which draws only while a timer is set for the screen.
+ */
+export function standbyStageLayout(): ThemeScreenLayout {
+  return {
+    mode: {kind: 'own'},
+    elements: stageElements().filter(
+      element => element.kind === 'clock' || element.kind === 'timer',
+    ),
+  };
+}
+
+/**
+ * The layout of a screen in the 대기 화면: the saved one, which may be empty,
+ * or for a 무대 화면 with none saved (a file from before the 대기 화면 had
+ * one) the built-in clock and timer. Output and the editor both read it here.
+ */
+export function standbyLayoutOf(
+  standby: Theme,
+  screen: Pick<Screen, 'id' | 'kind'>,
+): ThemeScreenLayout | undefined {
+  return (
+    standby.screens[screen.id] ??
+    (screen.kind === 'stage' ? standbyStageLayout() : undefined)
+  );
+}
+
 function audienceElements(
   lowerThird: boolean,
   kind: ThemeItemKind,
@@ -164,7 +192,15 @@ export function createDefaultThemes(
   return {
     format: 'llsettings.themes',
     schemaVersion: 1,
-    standby: {id: createThemeId(uuid(100)), name: '대기 화면', screens: {}},
+    standby: {
+      id: createThemeId(uuid(100)),
+      name: '대기 화면',
+      screens: Object.fromEntries(
+        screens
+          .filter(screen => screen.kind === 'stage')
+          .map(screen => [screen.id, standbyStageLayout()]),
+      ),
+    },
     themes: themeItemKinds.map(kind => builtInTheme(kind, screens)),
     defaults: {...themeIds},
   };

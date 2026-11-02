@@ -33,6 +33,7 @@
   --tools-min-height: 240px;
   --slides-min-height: 320px;
   --settings-min-height: 100px;
+  --preview-min-height: 140px;
   flex: 1;
   min-height: 0;
   display: grid;
@@ -45,6 +46,7 @@
 .column {
   min-width: 0;
   min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--panel-gap);
@@ -106,6 +108,7 @@
 
 .content {
   flex: 0 1 auto;
+  min-height: var(--preview-min-height);
 }
 
 .content .body {

@@ -41,13 +41,24 @@ afterEach(() => {
 function setup({
   idle = false,
   services,
+  oldStandby = false,
 }: {
   readonly idle?: boolean;
+  /** A 대기 화면 saved before it had any screen layout. */
+  readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
 } = {}) {
   const initial = settingsDocument('themes', createDefaultThemes());
   if (initial.name !== 'themes') throw new Error('Expected themes');
-  let themes = initial;
+  let themes = oldStandby
+    ? {
+        ...initial,
+        value: {
+          ...initial.value,
+          standby: {...initial.value.standby, screens: {}},
+        },
+      }
+    : initial;
   const song = themes.value.themes[0];
   if (song === undefined) throw new Error('Expected song theme');
   const screens = settingsDocument('screens', {
@@ -633,4 +644,38 @@ it('lets the shell leave at once with no edits and asks first with unsaved edits
   expect(proceed).toHaveBeenCalledTimes(2);
   expect(edit).not.toHaveBeenCalled();
   expect(modifiedMark()).toBeNull();
+});
+
+it('shows, selects and edits the clock and timer of an older 대기 화면 without a 무대 화면 layout', async () => {
+  const {value} = setup({oldStandby: true});
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  fireEvent.click(
+    await within(themes).findByRole('option', {name: '대기 화면'}),
+  );
+  fireEvent.click(await screen.findByRole('button', {name: '무대 화면 편집'}));
+
+  const list = await screen.findByRole('listbox', {name: '요소'});
+  await waitFor(() =>
+    expect(
+      within(list)
+        .getAllByRole('option')
+        .map(option => option.textContent),
+    ).toEqual(expect.arrayContaining(['시계', '타이머'])),
+  );
+  fireEvent.click(within(list).getByRole('option', {name: '시계'}));
+  const field = await screen.findByRole('spinbutton', {name: 'X'});
+  fireEvent.change(field, {target: {value: String(EDITED_X)}});
+  fireEvent.keyDown(field, {key: 'Enter'});
+  await saveEdits();
+  await waitFor(() => {
+    const layout = value().standby.screens[STAGE];
+    expect(layout?.mode).toEqual({kind: 'own'});
+    expect(
+      layout?.elements.find(element => element.kind === 'clock')?.frame.x,
+    ).toBe(EDITED_X);
+    expect(layout?.elements.map(element => element.kind)).toEqual([
+      'clock',
+      'timer',
+    ]);
+  });
 });

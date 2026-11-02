@@ -359,6 +359,19 @@ describe('OutputManager placement', () => {
     );
   });
 
+  it('opens a screen that never had a monitor as a plain window while no monitor is known', () => {
+    const unassigned = fullScreenScreen({id: 'plain', onDisconnect: 'off'});
+    const {store} = setUp([unassigned], []);
+    store.dispatch({type: 'output.set', screenId: 'plain', on: true});
+
+    const bounds = centeredRect(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
+    expect(outputOf('plain').update).toHaveBeenLastCalledWith(
+      {kind: 'window', bounds, reason: 'method'},
+      unassigned,
+    );
+    expect(store.state.outputs['plain']).toBe(true);
+  });
+
   it('turns an output off when its plan says off, or when the operator closes its window', () => {
     const screen = screenOn(PROJECTOR, {onDisconnect: 'off'});
     const {store, displays} = setUp([screen]);

@@ -124,7 +124,7 @@ it('gives the 무대 화면 of the Bible 테마 no reference and the same elemen
   expect(kinds('bible')).toEqual(kinds('song'));
 });
 
-it('makes a valid file with the four built-in 테마 and an empty 대기 화면', () => {
+it('makes a valid file with the four built-in 테마 and a 대기 화면 with a clock and a timer on the 무대 화면', () => {
   const defaults = createDefaultThemes();
   expect(v.safeParse(themesSchema, defaults).success).toBe(true);
   expect(defaults.themes.map(entry => entry.name)).toEqual([
@@ -133,5 +133,8 @@ it('makes a valid file with the four built-in 테마 and an empty 대기 화면'
     '광고',
     '영상',
   ]);
-  expect(defaults.standby.screens).toEqual({});
+  const stage = createDefaultThemes().standby.screens;
+  expect(
+    Object.values(stage).map(layout => layout.elements.map(e => e.kind)),
+  ).toEqual([['clock', 'timer']]);
 });

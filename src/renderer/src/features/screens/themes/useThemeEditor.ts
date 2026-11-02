@@ -6,6 +6,7 @@ import {
   themeLayout,
   type ThemeTarget,
 } from '@core/themes/themeEdits';
+import {withStageStandby} from '@core/themes/output';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {
   pendingWritesOf,
@@ -35,12 +36,18 @@ export function useThemeEditor(
 
   const [screenId, setScreenId] = useState<ScreenId | null>(null);
 
-  const theme =
+  const chosen =
     file === null
       ? undefined
       : ((themeId === null ? undefined : findTheme(file, themeId)) ??
         file.themes[0] ??
         file.standby);
+  // NOTE(0913vision): The 대기 화면 of an older file may have no 무대 화면
+  // layout; the editor shows the built-in one that output draws.
+  const theme =
+    file !== null && chosen?.id === file.standby.id
+      ? withStageStandby(chosen, screens)
+      : chosen;
 
   const screen = screens.find(value => value.id === screenId) ?? screens[0];
 

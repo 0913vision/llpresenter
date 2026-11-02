@@ -102,7 +102,13 @@ export function planPlacement({
     case 'window':
       return windowOn(controlMonitor, 'method', screen.alwaysOnTop ?? false);
     case 'fullscreen':
-      if (monitor === null) return whenMonitorMissing(screen, controlMonitor);
+      if (monitor === null) {
+        // NOTE(0913vision): A screen that never had a monitor is not
+        // disconnected: it opens as a window and raises no warning.
+        return screen.display === null
+          ? windowOn(controlMonitor, 'method')
+          : whenMonitorMissing(screen, controlMonitor);
+      }
       return {
         kind: 'fullscreen',
         bounds: monitor.bounds,

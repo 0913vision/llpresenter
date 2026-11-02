@@ -312,8 +312,11 @@ export class OutputManager {
           ? (screen.resolution ?? CAPTURE_WINDOW_SIZE)
           : OUTPUT_WINDOW_SIZE,
       );
+      const unassigned = screen.display === null;
       const planned: Placement =
-        screen.method === 'fullscreen' && screen.onDisconnect === 'off'
+        screen.method === 'fullscreen' &&
+        !unassigned &&
+        screen.onDisconnect === 'off'
           ? {kind: 'off'}
           : screen.method === 'capture'
             ? {
@@ -325,7 +328,9 @@ export class OutputManager {
                 kind: 'window',
                 bounds,
                 reason:
-                  screen.method === 'fullscreen' ? 'monitorMissing' : 'method',
+                  screen.method === 'fullscreen' && !unassigned
+                    ? 'monitorMissing'
+                    : 'method',
                 ...(screen.method === 'window' && screen.alwaysOnTop === true
                   ? {alwaysOnTop: true}
                   : {}),

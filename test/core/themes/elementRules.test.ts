@@ -20,6 +20,7 @@ it('offers unused unique kinds even at the count limit while keeping repeatable 
     'image',
     'box',
     'clock',
+    'timer',
   ]);
 });
 
@@ -35,7 +36,7 @@ it.each(themeElementKinds)(
       stageOnly ? {reason: 'stage-only', kind} : undefined,
     );
     expect(isStandbyElement(kind)).toBe(
-      ['text', 'image', 'box', 'clock'].includes(kind),
+      ['text', 'image', 'box', 'clock', 'timer'].includes(kind),
     );
   },
 );

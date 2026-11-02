@@ -26,6 +26,22 @@ describe('published theme compositions', () => {
     expect(output.screens[THEME_CAPTURE]?.emptyColor).toBe('#00B140');
   });
 
+  it('gives a 무대 화면 without a 대기 화면 layout a clock and a timer', () => {
+    const stage = themeScreens.find(screen => screen.kind === 'stage');
+    if (stage === undefined) throw new Error('Missing stage screen');
+    const output = resolveThemeOutput({
+      file: themeFile(),
+      screens: themeScreens,
+      item: null,
+      revision: 1,
+    });
+    expect(output.screens[stage.id]?.layout.elements.map(e => e.kind)).toEqual([
+      'clock',
+      'timer',
+    ]);
+    expect(output.screens[THEME_MAIN]?.layout.mode.kind).toBe('empty');
+  });
+
   it('inherits the linked source composition and its configured empty color', () => {
     const file = themeFile();
     const first = file.themes[0];
