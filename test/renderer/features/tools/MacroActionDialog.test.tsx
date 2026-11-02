@@ -14,7 +14,7 @@ import {
 
 const id = '00000000-0000-4000-8000-000000000001';
 const target = {id, name: '대상 가'};
-const screens = [{id, name: '본 화면'}];
+const screens = [{id, name: '청중 화면'}];
 const kinds: readonly MacroActionKind[] = [
   'theme',
   'media',
@@ -137,7 +137,7 @@ it('requires message blanks and at least one selected screen', () => {
   const targets = screen.getByRole('group', {name: '보낼 화면'});
   fireEvent.click(within(targets).getByRole('button', {name: '모든 화면'}));
   expect(done.getAttribute('aria-disabled')).toBe('true');
-  fireEvent.click(within(targets).getByRole('button', {name: '본 화면'}));
+  fireEvent.click(within(targets).getByRole('button', {name: '청중 화면'}));
   fireEvent.click(done);
   expect(save).toHaveBeenCalledWith({
     kind: 'message',

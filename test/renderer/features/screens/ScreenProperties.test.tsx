@@ -198,7 +198,7 @@ describe('the screen properties', () => {
     const name = await nameField();
     expect(name).toHaveProperty('readOnly', true);
     await user.type(name, '새 이름{Enter}');
-    expect(name).toHaveProperty('value', '본 화면');
+    expect(name).toHaveProperty('value', '청중 화면');
     const kind = screen.getByRole('radio', {name: '무대'});
     expect(kind.getAttribute('aria-disabled')).toBe('true');
     await user.click(kind);
@@ -269,7 +269,7 @@ describe('the screen properties', () => {
 
     const name = await nameField();
 
-    expect(name).toHaveProperty('value', '본 화면');
+    expect(name).toHaveProperty('value', '청중 화면');
     expect(
       screen.getByRole('radio', {name: '청중'}).getAttribute('aria-checked'),
     ).toBe('true');
@@ -332,7 +332,7 @@ describe('the screen properties', () => {
     );
     expect(edits).toHaveLength(1);
     expect(savedScreens()[0]?.name).toBe('공통 이름');
-    expect(savedScreens()[1]?.name).toBe('방송 자막');
+    expect(savedScreens()[1]?.name).toBe('방송 화면');
   });
 
   it('keeps a queued reversion to the displayed name while the first rename is held', async () => {
@@ -347,12 +347,12 @@ describe('the screen properties', () => {
     await user.type(name, '임시 이름{Enter}');
     await waitFor(() => expect(edits).toHaveLength(1));
     await user.clear(name);
-    await user.type(name, '본 화면{Enter}');
+    await user.type(name, '청중 화면{Enter}');
     expect(edits).toHaveLength(1);
 
     release();
     await waitFor(() => expect(edits).toHaveLength(2));
-    expect(savedScreens()[0]?.name).toBe('본 화면');
+    expect(savedScreens()[0]?.name).toBe('청중 화면');
   });
 
   it('keeps the screen name focused when Enter confirms an IME composition', async () => {
@@ -378,13 +378,13 @@ describe('the screen properties', () => {
     await user.clear(name);
     expect(name.getAttribute('aria-invalid')).toBe('true');
     await user.tab();
-    expect(name).toHaveProperty('value', '본 화면');
+    expect(name).toHaveProperty('value', '청중 화면');
 
     await user.clear(name);
     await user.type(name, '무대 화면');
     expect(name.getAttribute('aria-invalid')).toBe('true');
     await user.tab();
-    expect(name).toHaveProperty('value', '본 화면');
+    expect(name).toHaveProperty('value', '청중 화면');
     expect(edits).toEqual([]);
   });
 
@@ -395,7 +395,7 @@ describe('the screen properties', () => {
 
     await user.click(screen.getByRole('radio', {name: '무대'}));
     await waitFor(() => expect(savedScreens()[0]?.kind).toBe('stage'));
-    expect(await nameField()).toHaveProperty('value', '본 화면');
+    expect(await nameField()).toHaveProperty('value', '청중 화면');
     await user.click(screen.getByRole('checkbox'));
 
     await waitFor(() => expect(savedScreens()[0]?.alwaysOnTop).toBe(true));
@@ -478,7 +478,7 @@ describe('the screen properties', () => {
       await waitFor(() =>
         expect(savedScreens()[0]?.messageStyleId).toBeUndefined(),
       );
-      expect(savedScreens()[0]?.name).toBe('본 화면');
+      expect(savedScreens()[0]?.name).toBe('청중 화면');
     });
 
     it('stays locked with its reason for a read-only file', async () => {

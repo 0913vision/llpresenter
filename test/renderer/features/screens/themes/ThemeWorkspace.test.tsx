@@ -65,13 +65,13 @@ function setup({
     screens: [
       {
         id: '00000000-0000-4000-8000-000000000001',
-        name: '본 화면',
+        name: '청중 화면',
         kind: 'audience',
         method: 'fullscreen',
       },
       {
         id: '00000000-0000-4000-8000-000000000002',
-        name: '방송 자막',
+        name: '방송 화면',
         kind: 'audience',
         method: 'capture',
       },
@@ -285,7 +285,7 @@ it('renders the edited background through a screen link and restores retained el
   expect(mainElements?.length).toBeGreaterThan(0);
   expect(stageElements?.length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
-  fireEvent.click(screen.getByRole('radio', {name: '본 화면과 동일'}));
+  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 동일'}));
   await saveEdits();
   await waitFor(() => {
     expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({

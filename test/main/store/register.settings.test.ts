@@ -204,8 +204,8 @@ describe('registerStore', () => {
       });
       if (reply.value.name === 'screens') {
         expect(reply.value.value.screens.map(screen => screen.name)).toEqual([
-          '본 화면',
-          '방송 자막',
+          '청중 화면',
+          '방송 화면',
           '무대 화면',
         ]);
       }

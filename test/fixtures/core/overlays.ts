@@ -77,7 +77,12 @@ export function overlaySettings() {
       settingsDocument('screens', {
         screens: [
           {id: MAIN, name: 'Main', kind: 'audience', method: 'fullscreen'},
-          {id: CAPTIONS, name: 'Captions', kind: 'audience', method: 'capture'},
+          {
+            id: CAPTIONS,
+            name: 'Captions',
+            kind: 'broadcast',
+            method: 'capture',
+          },
           {id: STAGE, name: 'Stage', kind: 'stage', method: 'fullscreen'},
         ],
       }),

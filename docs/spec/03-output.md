@@ -2,13 +2,13 @@
 
 This document defines the output windows, turning screen outputs on and off,
 layers and stacking order, outputting 슬라이드 and backgrounds, clearing and
-undo, the 방송 자막, the 무대 화면, handling a lost monitor, and recording the
+undo, the 방송 화면, the 무대 화면, handling a lost monitor, and recording the
 output state. The main process owns the output state (see 01). Every behavior in
 this document is a command that the main process handles.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
-order), 구성 (arrangement), 이름표 (label), 본 화면 (main screen), 무대 화면
-(stage screen), 방송 자막 (broadcast captions), 그래픽 (prop), 공지 (notice),
+order), 구성 (arrangement), 이름표 (label), 청중 화면 (main screen), 무대 화면
+(stage screen), 방송 화면 (broadcast captions), 그래픽 (prop), 공지 (notice),
 메시지 (message), 타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵
 실행 (quick launch), 진행 (Show workspace), 준비 (Prep workspace), 화면 설정
 (Screen settings workspace).
@@ -79,14 +79,14 @@ native resolution), `docs/TECH.md` (output windows show no dialogs).
 
 ## Turning screen outputs on and off
 
-The 본 화면, 무대, and 방송 자막 buttons at the right of the toolbar turn each
+The 청중 화면, 무대, and 방송 화면 buttons at the right of the toolbar turn each
 screen's output on and off. There is no confirmation.
 
-| State           | Meaning                                                                                                      | Toolbar button           | Tooltip                                                                    |
-| --------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------ | -------------------------------------------------------------------------- |
-| On              | The output window shows and draws content.                                                                   | Red dot                  | "본 화면 출력 끄기 (모니터 2)" (turn off main screen output, monitor 2)    |
-| Off             | The output window is hidden.                                                                                 | No dot, dim label        | "본 화면 출력 켜기 (모니터 2)" (turn on main screen output)                |
-| Monitor missing | The output is on, but the app can't find the monitor, so it shows in a window instead (see "Lost monitors"). | Amber dot and amber icon | "본 화면: 모니터 2를 찾을 수 없습니다" (main screen: can't find monitor 2) |
+| State           | Meaning                                                                                                      | Toolbar button           | Tooltip                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------ | ---------------------------------------------------------------------------- |
+| On              | The output window shows and draws content.                                                                   | Red dot                  | "청중 화면 출력 끄기 (모니터 2)" (turn off main screen output, monitor 2)    |
+| Off             | The output window is hidden.                                                                                 | No dot, dim label        | "청중 화면 출력 켜기 (모니터 2)" (turn on main screen output)                |
+| Monitor missing | The output is on, but the app can't find the monitor, so it shows in a window instead (see "Lost monitors"). | Amber dot and amber icon | "청중 화면: 모니터 2를 찾을 수 없습니다" (main screen: can't find monitor 2) |
 
 - The text in parentheses is the output target name from 화면 설정, for example
   모니터 2 (monitor 2), 캡처용 창, or NDI.
@@ -103,11 +103,15 @@ screen's output on and off. There is no confirmation.
 - Off means the output window is hidden (proposal: ProPresenter turns audience
   and stage screens off from the Preview window, S4 p. 24, and doesn't say what
   an off screen shows). The capture window is hidden too.
-- Shortcuts: Ctrl 1 turns the audience screen outputs (본 화면 and 방송 자막) on
-  and off together, and Ctrl 2 turns the 무대 화면 output on and off (decided;
-  follows ProPresenter's Toggle Output Screens and Toggle Stage Display Screens,
-  S1; S4 p. 172 for Ctrl 1). If some of those outputs are on and some off, the
-  shortcut turns them all on (proposal).
+- Screens have three roles: 청중 화면 (audience), 방송 화면 (broadcast), and
+  무대 화면 (stage). Each toolbar button, each 출력 menu row, and each shortcut
+  command turns on and off only the screens of its own role. Ctrl 1 turns the
+  청중 화면 outputs on and off together, Ctrl 2 turns the 무대 화면 outputs on
+  and off (decided; follows ProPresenter's Toggle Output Screens and Toggle
+  Stage Display Screens, S1; S4 p. 172 for Ctrl 1), and 방송 화면 has its own
+  command with no default key. If some outputs of a role are on and some off,
+  the shortcut turns them all on (proposal). Turning on 청중 화면 leaves 방송
+  화면 as it is.
 - Don't save whether outputs are on. At launch, if the 환경설정 option 켤 때
   화면 출력 (output on launch, default off) is on, turn every screen output on.
   Otherwise start with all outputs off. After a crash, the answer to the output
@@ -129,7 +133,7 @@ The live 테마 lays out every screen (12). A screen draws, from the bottom up:
    테마 can't hide them.
 
 - With nothing live and no 대기 화면 element, the screen shows its 빈 화면 색:
-  black (`output-black`) by default, and chroma key green for the 방송 자막
+  black (`output-black`) by default, and chroma key green for the 방송 화면
   capture window (12, "Empty screens").
 - Audio is a layer without a picture. It exists only as a unit for clearing.
 - Only while no 테마 composition exists (before `themes.json` is read), the
@@ -369,12 +373,12 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 ## Where 메시지, 공지, 그래픽, and stage messages go
 
-| Content       | Sent to                                                          | Layer                               | Controlled from               |
-| ------------- | ---------------------------------------------------------------- | ----------------------------------- | ----------------------------- |
-| 메시지        | Chosen screens (모든 화면 all screens, 본 화면, 무대, 방송 자막) | 메시지                              | 진행 도구 메시지 tab (see 04) |
-| 공지          | Chosen screens (본 화면, 무대, 방송 자막)                        | 공지                                | 진행 도구 공지 tab            |
-| 그래픽        | The screens set for each 그래픽                                  | 그래픽                              | 진행 도구 그래픽 tab, 퀵 실행 |
-| Stage message | 무대 화면                                                        | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab            |
+| Content       | Sent to                                                            | Layer                               | Controlled from               |
+| ------------- | ------------------------------------------------------------------ | ----------------------------------- | ----------------------------- |
+| 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                              | 진행 도구 메시지 tab (see 04) |
+| 공지          | Chosen screens (청중 화면, 무대, 방송 화면)                        | 공지                                | 진행 도구 공지 tab            |
+| 그래픽        | The screens set for each 그래픽                                    | 그래픽                              | 진행 도구 그래픽 tab, 퀵 실행 |
+| Stage message | 무대 화면                                                          | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab            |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).
@@ -386,15 +390,15 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 (메시지 and 공지 to specific screens or all screens).
 
-## 방송 자막
+## 방송 화면
 
-- The app doesn't broadcast. It makes only the 방송 자막 screen. OBS takes it
+- The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.
 - In version 1, the method is the capture window. It's a window without a
   monitor. It fills its background with chroma key green (`chroma`) and draws
   the lyrics in the lower third style. OBS picks it up with window capture and a
   chroma key.
-- The in-app preview of the 방송 자막 also has a green background.
+- The in-app preview of the 방송 화면 also has a green background.
 - The default 테마s draw only the lyrics in the 하단 자막 text style on the 방송
   자막, over its 빈 화면 색 (green for the capture window).
 - The target method is NDI with an alpha channel, which needs no chroma key. The
@@ -403,7 +407,7 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   자막 target "NDI" (open question).
 
 Source: product log (2026-10-23 capture window, 2026-10-24 NDI preferred with
-the window as fallback), `Main` decision "방송 자막은 NDI로", `Screens`,
+the window as fallback), `Main` decision "방송 화면은 NDI로", `Screens`,
 `ScreensNDI`, `Outputs`.
 
 ## 무대 화면

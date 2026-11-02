@@ -30,11 +30,11 @@ export type PreviewStatus =
 /** One output screen in the preview panel. */
 export interface PreviewScreen<Id extends string> {
   readonly id: Id;
-  /** 본 화면, 무대 화면, or 방송 자막. */
+  /** 청중 화면, 무대 화면, or 방송 화면. */
   readonly name: string;
   readonly target: PreviewTarget;
   readonly status: PreviewStatus;
-  /** Draws the frame in `chroma`, as the capture window of 방송 자막 does. */
+  /** Draws the frame in `chroma`, as the capture window of 방송 화면 does. */
   readonly chroma?: boolean | undefined;
   /** A picture-specific state, separate from whether the screen output is on. */
   readonly indicator?:

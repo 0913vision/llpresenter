@@ -122,7 +122,7 @@ export function CheckboxSection(): JSX.Element {
             <Row
               icon="mplay"
               label="화면 출력"
-              value="본 화면, 무대 화면, 방송 자막"
+              value="청중 화면, 무대 화면, 방송 화면"
               initial
             />
             <Row

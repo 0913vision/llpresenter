@@ -17,14 +17,14 @@ The user's needs (October 30):
 5. The freedom is limited, like a very simple Photoshop.
 
 Showing or hiding layers, with one 배경 layer for every screen, cannot give
-"video A on the 본 화면, video B on the 무대 화면, lyrics on the 방송 자막".
+"video A on the 청중 화면, video B on the 무대 화면, lyrics on the 방송 화면".
 ProPresenter's Looks turn layers on and off per screen (S4 pp. 37 to 38), so
 they have the same limit. A 테마 sets the elements of each screen itself.
 
 ## Concepts
 
-- A 테마 (theme) is a saved preset that sets all three screens at once: 본 화면,
-  무대 화면, and 방송 자막.
+- A 테마 (theme) is a saved preset that sets all three screens at once: 청중
+  화면, 무대 화면, and 방송 화면.
 - Each screen of a 테마 has one mode:
   - 직접 배치 (own layout): the screen has its own canvas of elements.
   - `<screen>`과 동일 (same as another screen): a live link. The screen always
@@ -78,8 +78,8 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   not in the 테마, so a 메시지 keeps its look when the item and its 테마 change
   (06; user decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
-  테마 has no 현재 가사 on the 본 화면, the item's settings show a warning mark
-  with the reason in its tooltip and a 테마 편집… button.
+  테마 has no 현재 가사 on the 청중 화면, the item's settings show a warning
+  mark with the reason in its tooltip and a 테마 편집… button.
 
 ### Element properties
 
@@ -158,13 +158,13 @@ until the operator or an action changes it (S4 pp. 37 to 38).
 4. A cleared layer draws nothing in the elements that show it: 지우기 가사
    empties 현재 가사, 다음 가사, 이름표, and 성경 출처; 지우기 미디어 empties
    미디어 and 배경; 지우기 모두 empties every element that shows live content.
-   Fixed elements (글, 그림, 사각형, 시계) stay, so a cleared 본 화면 can still
-   show the church logo.
+   Fixed elements (글, 그림, 사각형, 시계) stay, so a cleared 청중 화면 can
+   still show the church logo.
 
 ### Empty screens
 
 - Each screen has one 빈 화면 색 (empty color), set in the 화면 설정 window:
-  black by default, and `chroma` green on the 방송 자막 when its method is the
+  black by default, and `chroma` green on the 방송 화면 when its method is the
   capture window, as today.
 - A screen in 비움, or a screen with nothing live and no 대기 화면 element,
   shows its 빈 화면 색.
@@ -269,7 +269,7 @@ row has no 삭제 and no 기본으로 쓰기.
   the 오버레이 targets, the 슬라이드 list in 준비 shows a warning mark above the
   thumbnails with the reason in its tooltip and 테마 편집….
 - Example (user, October 30): a 특송 item with an MR video on the 무대 화면
-  only, across every lyric 슬라이드, while the 본 화면 and the 방송 자막 show
+  only, across every lyric 슬라이드, while the 청중 화면 and the 방송 화면 show
   the lyrics as usual.
 
 ## 항목 끄기 and the 대기 화면
@@ -286,8 +286,8 @@ row has no 삭제 and no 기본으로 쓰기.
   그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
   and new output content invalidates it, as for the other clear keys.
 - With nothing live, every screen shows the 대기 화면 테마, for example the
-  church logo on the 본 화면, the clock on the 무대 화면, and nothing on the
-  방송 자막. The same screens show at launch when outputs turn on and nothing is
+  church logo on the 청중 화면, the clock on the 무대 화면, and nothing on the
+  방송 화면. The same screens show at launch when outputs turn on and nothing is
   live.
 - The 대기 화면 is edited in the same editor and can't be deleted. Elements that
   show live content (현재 가사, 미디어, 오버레이, and the like) aren't offered

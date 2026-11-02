@@ -108,7 +108,7 @@ beforeEach(() => {
   log.mockReset();
   useLive.setState({
     state: store.state,
-    lastSlideItemId: null,
+    lastStartedItemId: null,
     commandVersion: 0,
   });
   applyService(null);

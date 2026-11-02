@@ -126,6 +126,6 @@ describe('closing with focused screen property drafts', () => {
       expect(fixture.flushDone).toHaveBeenCalledWith({requestId, result: true}),
     );
     expect(fixture.edits).toEqual([]);
-    expect(field).toHaveProperty('value', '본 화면');
+    expect(field).toHaveProperty('value', '청중 화면');
   });
 });

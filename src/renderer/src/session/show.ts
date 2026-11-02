@@ -87,7 +87,7 @@ export function selectTile(index: number): void {
 
 function startServiceItem(itemId: ItemId): void {
   const live = useLive.getState();
-  if ((live.lastSlideItemId ?? live.state?.layers.slide?.itemId) === itemId) {
+  if ((live.lastStartedItemId ?? live.state?.layers.slide?.itemId) === itemId) {
     return;
   }
   if (
@@ -127,7 +127,8 @@ export function outputTile(cursor: TileCursor): void {
   if (!slide) return;
   const request = beginOutputRequest();
   const live = useLive.getState();
-  const previousItem = live.lastSlideItemId ?? live.state?.layers.slide?.itemId;
+  const previousItem =
+    live.lastStartedItemId ?? live.state?.layers.slide?.itemId;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   if (

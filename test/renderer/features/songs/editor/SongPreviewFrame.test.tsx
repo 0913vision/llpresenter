@@ -62,7 +62,7 @@ describe('SongPreviewFrame', () => {
     );
     await waitFor(() => expect(drawing.render).toHaveBeenCalled());
 
-    await userEvent.click(screen.getByRole('radio', {name: '방송 자막'}));
+    await userEvent.click(screen.getByRole('radio', {name: '방송 화면'}));
     expect(drawing.render.mock.lastCall?.[0].slide?.label).toBe('3:16');
     push({
       ...themes,

@@ -28,12 +28,14 @@ function mainRow(statuses: OutputStatuses, on = true) {
 }
 
 describe('screenGroups', () => {
-  it('splits 청중 and 무대 in file order with icon and target', () => {
+  it('splits 청중, 방송, and 무대 in file order with icon and target', () => {
     const groups = screenGroups(screens(), {}, {});
     expect(groups.audience.map(row => [row.id, row.icon, row.target])).toEqual([
       [MAIN_ID, 'monitor', '모니터 2'],
-      [CAPTIONS_ID, 'capture', '캡처용 창'],
     ]);
+    expect(groups.broadcast.map(row => [row.id, row.icon, row.target])).toEqual(
+      [[CAPTIONS_ID, 'capture', '캡처용 창']],
+    );
     expect(groups.stage.map(row => [row.id, row.icon, row.target])).toEqual([
       [STAGE_ID, 'monitor', '모니터 미지정'],
     ]);

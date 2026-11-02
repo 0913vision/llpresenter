@@ -440,7 +440,7 @@ describe('ScreenEditor', () => {
     const screens = last?.name === 'screens' ? last.value.screens : [];
     expect(screens.map(screen => screen.name)).toEqual([
       '본당',
-      '방송 자막',
+      '방송 화면',
       '무대 화면',
     ]);
     expect(screens[1]?.alwaysOnTop).toBe(true);

@@ -34,7 +34,7 @@ export function StatusMarksSection(): JSX.Element {
         <SpecItem label="On an icon, --cut">
           <OutputToggle
             icon="mplay"
-            label="본 화면"
+            label="청중 화면"
             target="모니터 2"
             state="live"
             onToggle={ignore}
@@ -43,7 +43,7 @@ export function StatusMarksSection(): JSX.Element {
         <SpecItem label="Output off">
           <OutputToggle
             icon="capture"
-            label="방송 자막"
+            label="방송 화면"
             target="NDI"
             state="off"
             onToggle={ignore}
@@ -52,7 +52,8 @@ export function StatusMarksSection(): JSX.Element {
         <SpecItem label="Status bar" width={STATUS_BAR_WIDTH}>
           <div className={styles.statusBar}>
             <span>
-              <StatusDot tone="ok" />본 화면 60fps
+              <StatusDot tone="ok" />
+              청중 화면 60fps
             </span>
             <span className={styles.warn}>
               <StatusDot tone="warning" />
@@ -60,7 +61,7 @@ export function StatusMarksSection(): JSX.Element {
             </span>
             <span>
               <span className={styles.offDot} aria-hidden="true" />
-              방송 자막
+              방송 화면
             </span>
           </div>
         </SpecItem>

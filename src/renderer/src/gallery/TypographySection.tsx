@@ -10,7 +10,7 @@ const specimens = [
   ['body', '함께 걷는 길, 목록과 메뉴'],
   ['label', '기본 배경, 속성 이름'],
   ['caption', '11월 1일 일요일, 슬라이드 6개'],
-  ['toolbar-label', '미디어, 본 화면'],
+  ['toolbar-label', '미디어, 청중 화면'],
   ['micro', 'LIVE'],
 ] as const;
 

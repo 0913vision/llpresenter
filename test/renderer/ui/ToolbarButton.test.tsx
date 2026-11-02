@@ -137,22 +137,22 @@ describe('ToolbarButton', () => {
 
 describe('OutputToggle', () => {
   it.each([
-    ['live', 'true', '본 화면 출력 끄기 (모니터 2)'],
-    ['off', 'false', '본 화면 출력 켜기 (모니터 2)'],
-    ['warning', 'true', '본 화면: 모니터 2를 찾을 수 없습니다'],
+    ['live', 'true', '청중 화면 출력 끄기 (모니터 2)'],
+    ['off', 'false', '청중 화면 출력 켜기 (모니터 2)'],
+    ['warning', 'true', '청중 화면: 모니터 2를 찾을 수 없습니다'],
   ] as const)(
     'draws the %s state with aria-pressed %s, its dot, and its tooltip',
     async (state, pressed, tooltip) => {
       render(
         <OutputToggle
           icon="mplay"
-          label="본 화면"
+          label="청중 화면"
           target="모니터 2"
           state={state}
           onToggle={() => {}}
         />,
       );
-      const button = screen.getByRole('button', {name: '본 화면'});
+      const button = screen.getByRole('button', {name: '청중 화면'});
       expect(button.getAttribute('aria-pressed')).toBe(pressed);
       expect(button.getAttribute('data-state')).toBe(state);
       const dots = button.querySelectorAll('[data-tone]');
@@ -184,7 +184,7 @@ describe('OutputToggle', () => {
 describe('outputTooltip', () => {
   it('names what a click does for the target', () => {
     expect(
-      outputTooltip({screenName: '방송 자막', target: 'NDI', state: 'live'}),
-    ).toBe('방송 자막 출력 끄기 (NDI)');
+      outputTooltip({screenName: '방송 화면', target: 'NDI', state: 'live'}),
+    ).toBe('방송 화면 출력 끄기 (NDI)');
   });
 });

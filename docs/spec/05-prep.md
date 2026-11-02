@@ -7,8 +7,8 @@ the shared bottom 미디어 bin.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지
-(notice), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
-captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
+(notice), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면
+(broadcast captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 
@@ -340,8 +340,9 @@ name.
 
 ### Preview
 
-- A segmented control switches between 본 화면, 무대, and 방송 자막. The preview
-  shows the selected 슬라이드 drawn with the 테마 of the item for that screen.
+- A segmented control switches between 청중 화면, 무대, and 방송 화면. The
+  preview shows the selected 슬라이드 drawn with the 테마 of the item for that
+  screen.
 - Caption: the 이름표 color swatch and name, and the position ("3 / 4").
 
 ### 슬라이드 list

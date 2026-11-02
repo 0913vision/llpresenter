@@ -8,7 +8,7 @@ it('names each offered row with what it would restore', () => {
       kind: 'outputs',
       icon: 'mplay',
       label: '화면 출력',
-      value: '본 화면, 무대 화면',
+      value: '청중 화면, 무대 화면',
     },
     {
       kind: 'slide',

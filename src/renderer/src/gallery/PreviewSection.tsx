@@ -14,7 +14,7 @@ const LYRICS = '저 천사여 찬송하세\n찬송 성부 성자 성령';
 
 const main: PreviewScreen<ScreenName> = {
   id: 'main',
-  name: '본 화면',
+  name: '청중 화면',
   target: {kind: 'display', label: '모니터 2'},
   status: {kind: 'on'},
 };
@@ -26,7 +26,7 @@ const stage: PreviewScreen<ScreenName> = {
 };
 const broadcast: PreviewScreen<ScreenName> = {
   id: 'broadcast',
-  name: '방송 자막',
+  name: '방송 화면',
   target: {kind: 'ndi', label: 'NDI'},
   status: {kind: 'on'},
   chroma: true,

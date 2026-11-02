@@ -32,7 +32,7 @@ export interface MacroTargetSources {
     readonly audioPlaylists: readonly Named[];
   };
   readonly screens: ReadonlyArray<
-    Named & {readonly kind: 'stage' | 'audience'}
+    Named & {readonly kind: 'stage' | 'audience' | 'broadcast'}
   >;
 }
 const CLEARED_LAYERS = [

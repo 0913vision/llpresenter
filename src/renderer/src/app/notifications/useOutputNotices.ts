@@ -16,9 +16,9 @@ import {
 // TODO(0913vision): Name the screens from the screen settings once they reach
 // the control window; until then only the built-in screens get cards.
 const screenNames: ReadonlyMap<string, ScreenNames> = new Map([
-  ['main', {monitor: '본 화면', window: '본 화면'}],
+  ['main', {monitor: '청중 화면', window: '청중 화면'}],
   ['stage', {monitor: '무대', window: '무대 화면'}],
-  ['broadcast', {monitor: '방송 자막', window: '방송 자막'}],
+  ['broadcast', {monitor: '방송 화면', window: '방송 화면'}],
 ]);
 
 /** Where the cards go: the app's one notice list. */

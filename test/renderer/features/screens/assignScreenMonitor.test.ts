@@ -69,7 +69,7 @@ describe('assignScreenMonitor', () => {
       screenId: MAIN_ID,
       monitor: projector,
     });
-    expect(result[0]).toMatchObject({name: '본 화면', method: 'fullscreen'});
+    expect(result[0]).toMatchObject({name: '청중 화면', method: 'fullscreen'});
     expect(result[1]).toBe(source[1]);
   });
 

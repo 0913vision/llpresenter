@@ -541,9 +541,9 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 
 | Group     | Row                                             | Does                                                                               | Status |
 | --------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- | ------ |
-| 본 화면   | 출력 끄기 / 출력 켜기, 테마 바꾸기 ›, 항목 끄기 |                                                                                    | New    |
+| 청중 화면 | 출력 끄기 / 출력 켜기, 테마 바꾸기 ›, 항목 끄기 |                                                                                    | New    |
 | 무대 화면 | 출력 끄기 / 출력 켜기                           |                                                                                    | New    |
-| 방송 자막 | 출력 끄기 / 출력 켜기, 방송 설정… (off)         | Same output command as the other screen groups.                                    | Now    |
+| 방송 화면 | 출력 끄기 / 출력 켜기, 방송 설정… (off)         | Same output command as the other screen groups.                                    | Now    |
 | -         | <화면> 경고 보기                                | Only while a warning holds, before the final settings row.                         | Now    |
 | 2         | 화면 설정…                                      | Opens or focuses the single 화면 설정 window. Last, after a separator. Ctrl Alt 1. | Moved  |
 | -         | Per-screen checks                               | Moved to 화면 설정 (사용 안 함).                                                   | Moved  |

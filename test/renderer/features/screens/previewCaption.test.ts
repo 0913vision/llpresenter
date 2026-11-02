@@ -38,7 +38,7 @@ describe('previewCaption', () => {
     const result = caption(MAIN_ID, [projector]);
 
     expect(result).toEqual({
-      name: '본 화면',
+      name: '청중 화면',
       target: '모니터 2 EPSON 프로젝터',
       resolution: '1920×1080',
       refreshRate: '60Hz',

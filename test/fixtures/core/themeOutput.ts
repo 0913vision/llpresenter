@@ -16,7 +16,7 @@ export const themeScreens: readonly Screen[] = [
     method: 'fullscreen',
     emptyColor: '#123456',
   },
-  {id: THEME_CAPTURE, name: 'Capture', kind: 'audience', method: 'capture'},
+  {id: THEME_CAPTURE, name: 'Capture', kind: 'broadcast', method: 'capture'},
   {id: THEME_STAGE, name: 'Stage', kind: 'stage', method: 'window'},
 ];
 

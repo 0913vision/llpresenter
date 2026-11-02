@@ -11,7 +11,7 @@ import {
 
 const TIME = '11:24';
 const screens = new Map<string, ScreenNames>([
-  ['main', {monitor: '본 화면', window: '본 화면'}],
+  ['main', {monitor: '청중 화면', window: '청중 화면'}],
   ['stage', {monitor: '무대', window: '무대 화면'}],
 ]);
 
@@ -113,7 +113,7 @@ describe('outputNoticeChanges, lost monitor', () => {
     expect(notice).toMatchObject({
       key: 'screen:main',
       kind: 'warning',
-      title: '본 화면 모니터 연결 끊김',
+      title: '청중 화면 모니터 연결 끊김',
       meta: ['모니터 2', '출력 꺼짐'],
     });
     expect(notice.actions?.map(action => action.label)).toEqual([
@@ -211,7 +211,7 @@ describe('outputNoticeChanges, restart limit', () => {
     expect(notice).toMatchObject({
       key: 'output-window:main',
       kind: 'warning',
-      title: '본 화면 출력 창을 다시 띄울 수 없음',
+      title: '청중 화면 출력 창을 다시 띄울 수 없음',
       meta: ['빈 화면으로 표시 중'],
     });
     notice.actions?.[0]?.onSelect();

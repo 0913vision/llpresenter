@@ -204,7 +204,7 @@ describe('parseAppConfig', () => {
     ],
     [
       'a screen name for the large preview',
-      {previewBig: '본 화면'},
+      {previewBig: '청중 화면'},
       'previewBig',
     ],
     ['an unknown macro view', {macroView: 'tiles'}, 'macroView'],

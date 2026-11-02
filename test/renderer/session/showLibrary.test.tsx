@@ -54,7 +54,7 @@ beforeEach(() => {
   applyService(sampleService);
   useLive.setState({
     state: emptyLiveState(),
-    lastSlideItemId: null,
+    lastStartedItemId: null,
     commandVersion: 0,
   });
 });

@@ -19,7 +19,7 @@ type ScreenName = 'main' | 'stage' | 'broadcast';
 
 const main: PreviewScreen<ScreenName> = {
   id: 'main',
-  name: '본 화면',
+  name: '청중 화면',
   target: {kind: 'display', label: '모니터 2'},
   status: {kind: 'on'},
 };
@@ -35,7 +35,7 @@ const stage: PreviewScreen<ScreenName> = {
 };
 const broadcast: PreviewScreen<ScreenName> = {
   id: 'broadcast',
-  name: '방송 자막',
+  name: '방송 화면',
   target: {kind: 'ndi', label: 'NDI'},
   status: {kind: 'off'},
   chroma: true,
@@ -94,11 +94,11 @@ describe('PreviewFrame', () => {
 
   it('shows one picture per screen and a selected marker in the fixed three-slot row', () => {
     const {container} = render(<Preview />);
-    expect(screen.getByText('본 화면 출력')).toBeDefined();
+    expect(screen.getByText('청중 화면 출력')).toBeDefined();
     expect(smallNames()).toEqual([
-      '본 화면 크게 보기',
+      '청중 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+      '방송 화면 크게 보기, 출력이 꺼져 있습니다',
     ]);
     expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
     const selected = screen.getByRole('button', {pressed: true});
@@ -106,7 +106,7 @@ describe('PreviewFrame', () => {
     expect(
       selected.querySelector('[data-selected-marker="main"]'),
     ).not.toBeNull();
-    expect(selected.textContent).toBe('본 화면');
+    expect(selected.textContent).toBe('청중 화면');
     expect(selected.querySelector('[data-screen]')).toBeNull();
     expect(screen.getAllByText(/출력$/)).toHaveLength(3);
   });
@@ -121,9 +121,9 @@ describe('PreviewFrame', () => {
     );
     expect(onBigChange).toHaveBeenCalledWith('stage');
     expect(smallNames()).toEqual([
-      '본 화면 크게 보기',
+      '청중 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+      '방송 화면 크게 보기, 출력이 꺼져 있습니다',
     ]);
     expect(
       screen.getByRole('button', {pressed: true}).dataset['previewSlot'],
@@ -169,7 +169,7 @@ describe('PreviewFrame', () => {
         />,
       );
       const stageOutput = screen.getByText('무대 화면 출력');
-      const mainOutput = screen.getByText('본 화면 출력');
+      const mainOutput = screen.getByText('청중 화면 출력');
       const parents = [stageOutput.parentElement, mainOutput.parentElement];
       lifecycle.length = 0;
       await userEvent.click(
@@ -179,12 +179,12 @@ describe('PreviewFrame', () => {
       );
       await userEvent.click(
         screen.getByRole('button', {
-          name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+          name: '방송 화면 크게 보기, 출력이 꺼져 있습니다',
         }),
       );
       expect(lifecycle).toEqual([]);
       expect(screen.getByText('무대 화면 출력')).toBe(stageOutput);
-      expect(screen.getByText('본 화면 출력')).toBe(mainOutput);
+      expect(screen.getByText('청중 화면 출력')).toBe(mainOutput);
       expect([stageOutput.parentElement, mainOutput.parentElement]).toEqual(
         parents,
       );
@@ -204,11 +204,11 @@ describe('PreviewFrame', () => {
     );
     resetTooltips();
     const off = screen.getByRole('button', {
-      name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+      name: '방송 화면 크게 보기, 출력이 꺼져 있습니다',
     });
     expect(off.closest('[data-state]')?.getAttribute('data-state')).toBe('off');
     expect((await hoverForTooltip(off))?.textContent).toBe(
-      '방송 자막 출력이 꺼져 있습니다',
+      '방송 화면 출력이 꺼져 있습니다',
     );
   });
 });
@@ -216,7 +216,7 @@ describe('PreviewFrame', () => {
 describe('preview texts', () => {
   it('writes no reason while the output is on', () => {
     expect(previewReason(main)).toBe(undefined);
-    expect(smallPreviewName(main)).toBe('본 화면 크게 보기');
+    expect(smallPreviewName(main)).toBe('청중 화면 크게 보기');
   });
 
   it('writes a warning without a detail as its reason alone', () => {

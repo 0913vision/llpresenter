@@ -143,7 +143,7 @@ describe('Toolbar', () => {
     render(
       <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
     );
-    await userEvent.click(screen.getByRole('button', {name: '무대'}));
+    await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
     expect(send).toHaveBeenCalledWith({
       type: 'output.set',
       screenId: 'stage',
@@ -158,7 +158,7 @@ describe('Toolbar', () => {
     render(
       <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,
     );
-    const main = screen.getByRole('button', {name: '본 화면'});
+    const main = screen.getByRole('button', {name: '청중 화면'});
     expect(main.getAttribute('aria-pressed')).toBe('true');
     expect(main.getAttribute('data-state')).toBe('live');
   });
@@ -183,7 +183,7 @@ describe('Toolbar design system parts', () => {
     render(
       <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
     );
-    const stage = screen.getByRole('button', {name: '무대'});
+    const stage = screen.getByRole('button', {name: '무대 화면'});
     expect((await hoverForTooltip(stage))?.textContent).toBe(
       '무대 화면 출력 켜기 (창)',
     );

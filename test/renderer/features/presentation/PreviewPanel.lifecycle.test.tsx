@@ -103,7 +103,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
 
     for (const compact of [true, false]) {
       rerender(<PreviewPanel compact={compact} />);
-      for (const name of ['무대 화면', '방송 자막', '본 화면', '본 화면']) {
+      for (const name of ['무대 화면', '방송 화면', '청중 화면', '청중 화면']) {
         fireEvent.click(screen.getByRole('button', {name: new RegExp(name)}));
         expect([...container.querySelectorAll('video')]).toEqual(videos);
         expect(videos.map(video => video.parentElement)).toEqual(parents);

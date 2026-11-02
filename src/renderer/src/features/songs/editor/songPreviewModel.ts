@@ -11,9 +11,9 @@ import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
-  {value: 'main', label: '본 화면'},
+  {value: 'main', label: '청중 화면'},
   {value: 'stage', label: '무대'},
-  {value: 'broadcast', label: '방송 자막'},
+  {value: 'broadcast', label: '방송 화면'},
 ] as const;
 export type PreviewRole = (typeof PREVIEW_ROLES)[number]['value'];
 
@@ -35,7 +35,7 @@ export function previewAppearance({
   const target: Screen = configured ?? {
     id: starter.value,
     name: role,
-    kind: role === 'stage' ? 'stage' : 'audience',
+    kind: role === 'main' ? 'audience' : role,
     method: role === 'broadcast' ? 'capture' : 'fullscreen',
   };
   const all =

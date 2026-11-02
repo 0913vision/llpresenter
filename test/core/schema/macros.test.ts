@@ -159,7 +159,7 @@ describe('parseMacros', () => {
     ],
     [
       'a message to a screen name',
-      {...everyAction()[4], targets: ['본 화면']},
+      {...everyAction()[4], targets: ['청중 화면']},
       'macros.0.actions.0.targets',
     ],
     [

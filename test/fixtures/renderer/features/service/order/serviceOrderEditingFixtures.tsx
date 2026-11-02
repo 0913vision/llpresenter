@@ -196,5 +196,5 @@ export function transfer(payload = '') {
 
 beforeEach(() => {
   applyService(null);
-  useLive.setState({state: null, lastSlideItemId: null});
+  useLive.setState({state: null, lastStartedItemId: null});
 });

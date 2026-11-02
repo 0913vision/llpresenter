@@ -13,7 +13,8 @@ import type {ScreenRow} from '@core/screens/screenRows';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;
-type SectionKind = 'audience' | 'stage';
+type SectionKind = 'audience' | 'broadcast' | 'stage';
+const KINDS: readonly SectionKind[] = ['audience', 'broadcast', 'stage'];
 interface Section {
   readonly kind: SectionKind;
   readonly rows: readonly ScreenRow[];
@@ -28,8 +29,7 @@ interface View {
   readonly top: number;
   readonly height: number;
   readonly row: number;
-  readonly audience: number;
-  readonly stage: number;
+  readonly offsets: Readonly<Record<SectionKind, number>>;
 }
 
 function measureView(
@@ -56,19 +56,21 @@ function measureView(
       viewport.scrollTop
     );
   };
-  const next = {
+  const next: View = {
     top: viewport.scrollTop,
     height: viewport.clientHeight,
     row,
-    audience: offset('audience'),
-    stage: offset('stage'),
+    offsets: {
+      audience: offset('audience'),
+      broadcast: offset('broadcast'),
+      stage: offset('stage'),
+    },
   };
   setView(previous =>
     previous.top === next.top &&
     previous.height === next.height &&
     previous.row === next.row &&
-    previous.audience === next.audience &&
-    previous.stage === next.stage
+    KINDS.every(kind => previous.offsets[kind] === next.offsets[kind])
       ? previous
       : next,
   );
@@ -77,16 +79,14 @@ function measureView(
 function revealScreen({
   root,
   sections,
-  audience,
-  stage,
+  offsets,
   row,
   measure,
   id,
 }: {
   readonly root: RefObject<HTMLDivElement | null>;
   readonly sections: readonly Section[];
-  readonly audience: number;
-  readonly stage: number;
+  readonly offsets: Readonly<Record<SectionKind, number>>;
   readonly row: number;
   readonly measure: () => void;
   readonly id: string;
@@ -99,8 +99,7 @@ function revealScreen({
     return;
   }
   const index = section.rows.findIndex(item => item.id === id);
-  const top =
-    (section.kind === 'audience' ? audience : stage) + index * (row || 30);
+  const top = offsets[section.kind] + index * (row || 30);
   if (
     top < viewport.scrollTop ||
     top + (row || 30) >
@@ -124,6 +123,7 @@ export function useScreenListWindow({
 }) {
   const anchors = useRef<Record<SectionKind, HTMLDivElement | null>>({
     audience: null,
+    broadcast: null,
     stage: null,
   });
   const focusNext = useRef<string | null>(null);
@@ -131,8 +131,7 @@ export function useScreenListWindow({
     top: 0,
     height: 0,
     row: 0,
-    audience: 0,
-    stage: 0,
+    offsets: {audience: 0, broadcast: 0, stage: 0},
   });
   const measure = useCallback(
     () => measureView(root, anchors, setView),
@@ -165,41 +164,52 @@ export function useScreenListWindow({
       observer?.disconnect();
     };
   }, [measure, root]);
-  const audienceCount = sections[0]?.rows.length;
-  const stageCount = sections[1]?.rows.length;
+  const lengths = sections.map(section => section.rows.length).join(',');
   useLayoutEffect(() => {
     measure();
-  }, [measure, audienceCount, stageCount]);
+  }, [measure, lengths]);
   const count =
     view.height > 0 && view.row > 0
       ? Math.ceil(view.height / view.row)
       : INITIAL_ROWS;
-  const range = (kind: SectionKind, length: number) => {
+  const range = (kind: SectionKind) => {
+    const length =
+      sections.find(section => section.kind === kind)?.rows.length ?? 0;
     const start = Math.max(
       0,
       Math.min(
-        Math.floor((view.top - view[kind]) / (view.row || 30)) - OVERSCAN,
+        Math.floor((view.top - view.offsets[kind]) / (view.row || 30)) -
+          OVERSCAN,
         length - count,
       ),
     );
     return {start, end: Math.min(length, start + count + OVERSCAN * 2)};
   };
   const ranges = {
-    audience: range('audience', audienceCount ?? 0),
-    stage: range('stage', stageCount ?? 0),
+    audience: range('audience'),
+    broadcast: range('broadcast'),
+    stage: range('stage'),
   };
-  const {row, audience, stage} = view;
+  const {row} = view;
+  const {audience, broadcast, stage} = view.offsets;
   const reveal = useCallback(
     (id: string): void =>
-      revealScreen({root, sections, audience, stage, row, measure, id}),
-    [root, sections, audience, stage, row, measure],
+      revealScreen({
+        root,
+        sections,
+        offsets: {audience, broadcast, stage},
+        row,
+        measure,
+        id,
+      }),
+    [root, sections, audience, broadcast, stage, row, measure],
   );
   const revealSelected = useEffectEvent(reveal);
   useLayoutEffect(() => {
     if (selected !== undefined) {
       revealSelected(selected);
     }
-  }, [selected, audience, stage, row]);
+  }, [selected, audience, broadcast, stage, row]);
   useLayoutEffect(() => {
     if (focusNext.current === null) return;
     const row = root.current?.querySelector<HTMLElement>(

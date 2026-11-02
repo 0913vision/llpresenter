@@ -116,8 +116,8 @@ describe('PreviewPanel layout', () => {
       {
         id: STARTER_SCREEN_IDS.main,
         icon: 'mplay',
-        toolbarLabel: '본 화면',
-        statusLabel: '본 화면',
+        toolbarLabel: '청중 화면',
+        statusLabel: '청중 화면',
         target: '창',
         targetKind: 'window',
         chroma: false,
@@ -153,12 +153,12 @@ describe('PreviewPanel layout', () => {
     expect(screensWithRole(container, 'large')).toEqual([
       STARTER_SCREEN_IDS.stage,
     ]);
-    fireEvent.click(screen.getByRole('button', {name: /본 화면/}));
+    fireEvent.click(screen.getByRole('button', {name: /청중 화면/}));
     expect(usePreview.getState().largeScreenId).toBe(STARTER_SCREEN_IDS.main);
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('falls back to the 본 화면 when the large screen is unknown', () => {
+  it('falls back to the 청중 화면 when the large screen is unknown', () => {
     setLayers({}, allOn);
     showLarge('gone');
     const {container} = render(<PreviewPanel compact={false} />);
@@ -202,7 +202,7 @@ describe('PreviewPanel swap', () => {
     const before = created();
     const counts = drawCounts();
     fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
-    fireEvent.click(screen.getByRole('button', {name: /방송 자막/}));
+    fireEvent.click(screen.getByRole('button', {name: /방송 화면/}));
     expect(created()).toHaveLength(3);
     expect(created()).toEqual(before);
     for (const instance of created()) {
@@ -220,7 +220,7 @@ describe('PreviewPanel states', () => {
     expect(large.getAttribute('data-state')).toBe('off');
     expect(
       screen.getByRole('button', {pressed: true}).getAttribute('aria-label'),
-    ).toBe('본 화면 크게 보기, 출력이 꺼져 있습니다');
+    ).toBe('청중 화면 크게 보기, 출력이 꺼져 있습니다');
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
       expect.anything(),

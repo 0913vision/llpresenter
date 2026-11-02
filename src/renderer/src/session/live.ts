@@ -10,7 +10,7 @@ interface LiveView {
    * The item last put on output, of any kind: its slide, or its start when
    * it has no slide. Kept after a clear.
    */
-  readonly lastSlideItemId: string | null;
+  readonly lastStartedItemId: string | null;
   readonly commandVersion: number;
   readonly startedItemIds: ReadonlySet<string>;
 }
@@ -31,7 +31,7 @@ function rememberItem(ids: ReadonlySet<string>, itemId: string | undefined) {
 
 export const useLive = create<LiveView>(() => ({
   state: null,
-  lastSlideItemId: null,
+  lastStartedItemId: null,
   commandVersion: 0,
   startedItemIds: new Set(),
 }));
@@ -41,8 +41,10 @@ function accept(next: LiveState): void {
   if (current !== null && next.version < current.version) return;
   useLive.setState(view => ({
     state: next,
-    lastSlideItemId:
-      next.themeItem?.id ?? next.layers.slide?.itemId ?? view.lastSlideItemId,
+    // NOTE(0913vision): The main process sets the theme item when an item
+    // starts, so it is the last started item; a slide's item is the fallback.
+    lastStartedItemId:
+      next.themeItem?.id ?? next.layers.slide?.itemId ?? view.lastStartedItemId,
     startedItemIds: rememberItem(
       view.startedItemIds,
       next.layers.slide?.itemId,
@@ -74,12 +76,12 @@ export function sendLive(command: LiveCommand): void {
   useLive.setState(view => ({
     commandVersion:
       view.commandVersion + (interruptsSongOutput(command) ? 1 : 0),
-    lastSlideItemId:
+    lastStartedItemId:
       command.type === 'slide.show'
         ? command.slide.itemId
         : command.type === 'item.start'
           ? command.itemId
-          : view.lastSlideItemId,
+          : view.lastStartedItemId,
     startedItemIds:
       command.type === 'item.start'
         ? rememberItem(view.startedItemIds, command.itemId)

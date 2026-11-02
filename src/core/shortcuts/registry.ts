@@ -139,6 +139,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['item.stop', '항목 끄기', '지우기', ['control'], []],
     ['stage.hideMessage', '무대 메시지 내리기', '지우기', ['control'], []],
     ['output.audience', '청중 화면 출력', '화면', ['control'], []],
+    ['output.broadcast', '방송 화면 출력', '화면', ['control'], []],
     ['output.stage', '무대 화면 출력', '화면', ['control'], []],
     ['screens.redetect', '모니터 다시 찾기', '화면', ['control'], []],
     ['screens.showFallbackWindow', '창 보기', '화면', ['control'], []],

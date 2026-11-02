@@ -4,8 +4,8 @@ This document covers the 화면 설정 (Screen settings) window (screens, displa
 layout, test pattern, output method), the 테마 workspace, the 환경설정
 (Preferences) window, and shortcuts.
 
-Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 본 화면 (main screen),
-무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show
+Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 청중 화면 (main screen),
+무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행 도구 (show
 tools), 퀵 실행 (quick launch), 그래픽 (prop), 공지 (notice), 메시지 (message),
 타이머 (timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
@@ -28,7 +28,7 @@ monitor is brought into the current work area.
 
 | Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
 | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Left   | 화면 list, grouped into 청중 and 무대                                                 | 테마 list, then 요소 and 요소 추가 for the current screen |
+| Left   | 화면 list, grouped into 청중, 방송, and 무대                                          | 테마 list, then 요소 and 요소 추가 for the current screen |
 | Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | The canvas of the current screen                          |
 | Right  | Selected screen properties                                                            | The three screens, then the 요소 and 화면 tabs            |
 
@@ -44,9 +44,9 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
 
 ### Screen list
 
-- Two groups, 청중 (audience) and 무대 (stage). Each row shows an icon (본 화면
-  and 무대 화면 use monitor icons, 방송 자막 uses the capture icon), the name,
-  the target (모니터 2, 캡처용 창), and a health dot.
+- Three groups, 청중 (audience), 방송 (broadcast), and 무대 (stage). Each row
+  shows an icon (청중 화면 and 무대 화면 use monitor icons, 방송 화면 uses the
+  capture icon), the name, the target (모니터 2, 캡처용 창), and a health dot.
 - 화면 추가 (add screen, plus icon) is in the board. Version 1 keeps exactly
   three screens (see 01, open question).
 - Selecting a screen shows its display layout, output preview, and properties.
@@ -58,7 +58,7 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
   assigned screen, the resolution, and the monitor name.
 - The monitor that holds the main window reads "컨트롤" (control), with dim
   text. The monitor of the selected screen is highlighted.
-- A separate box shows targets without a monitor, such as the 방송 자막 capture
+- A separate box shows targets without a monitor, such as the 방송 화면 capture
   window, with its resolution.
 - 모니터 번호 표시 (show monitor numbers) shows a large number on each physical
   monitor for 3 seconds, so the operator can match boxes to monitors (proposal
@@ -77,7 +77,7 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
     (method). A second square on the same monitor takes the first free corner. A
     monitor with no screen on it shows its own name, resolution, and refresh
     rate.
-  - A number never covers a shown 방송 자막 capture window. When the centre
+  - A number never covers a shown 방송 화면 capture window. When the centre
     would, the number moves to the first free corner, 48 device-independent
     pixels in from the edges (top left, top right, bottom left, bottom right);
     with no free corner, that monitor shows no number (proposal).
@@ -146,7 +146,7 @@ screen's properties (user decision, m3-check3).
 | Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                                                                                                                                            |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                                                    |
-| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | The kind decides which elements the 테마 editor offers on the screen (12).                                                                                                                                                                                                          |
+| 화면               | 종류 (kind)                           | 청중, 방송, or 무대                                                               | The kind decides which elements the 테마 editor offers on the screen (12).                                                                                                                                                                                                          |
 | 화면               | 메시지 스타일 (message style)         | Select: 기본 and each saved 메시지 style by name                                  | How a 메시지 sent to this screen is drawn, whatever the 테마 (12; user decision, November 2). Default 기본, the built-in style. A 메시지 showing on this screen redraws in the new style at once. Until 메시지 styles can be made (10, open question 13), the list holds only 기본. |
 | 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                                                            |
 | 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                                                        |
@@ -166,15 +166,15 @@ doesn't build them (see 09), but keeps the data fields (see 02).
 
 | Group              | Row                                                                                                                                                                                                             |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 자막"), 해상도, 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
+| 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도, 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
 | 네트워크 (network) | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                              |
 
 The display layout box of an NDI target shows "보내는 중 수신 1" (sending, 1
-receiver), and the status bar shows "방송 자막 NDI 30fps".
+receiver), and the status bar shows "방송 화면 NDI 30fps".
 
-### Preview background of the 방송 자막
+### Preview background of the 방송 화면
 
-The in-app preview of the 방송 자막 is green by default. The `ScreensNDI` board
+The in-app preview of the 방송 화면 is green by default. The `ScreensNDI` board
 puts the choice of 초록, 검정, and 체크 무늬 in the NDI properties. In version
 1, with the capture window, the preview stays green (proposal).
 

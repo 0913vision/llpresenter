@@ -7,7 +7,7 @@ afterEach(() => {
   delete window.llp;
   useLive.setState({
     state: null,
-    lastSlideItemId: null,
+    lastStartedItemId: null,
     startedItemIds: new Set(),
   });
 });

@@ -1,10 +1,10 @@
 import type {Monitor} from '../displays/monitor';
 import type {OutputScreen, ScreenSource} from './screens';
 
-/** The id the toolbar sends in `output.set` for the 본 화면. */
+/** The id the toolbar sends in `output.set` for the 청중 화면. */
 export const MAIN_SCREEN_ID = 'main';
 
-const MAIN_SCREEN_NAME = '본 화면';
+const MAIN_SCREEN_NAME = '청중 화면';
 
 function mainScreenFor(monitors: readonly Monitor[]): OutputScreen {
   const target = monitors.find(monitor => !monitor.primary);

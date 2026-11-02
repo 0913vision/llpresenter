@@ -14,7 +14,7 @@ export function screensDocument(revision = 1): SettingsDocument {
       screens: [
         {
           id: MAIN_ID,
-          name: '본 화면',
+          name: '청중 화면',
           kind: 'audience',
           method: 'fullscreen',
           display: {
@@ -27,8 +27,8 @@ export function screensDocument(revision = 1): SettingsDocument {
         },
         {
           id: CAPTIONS_ID,
-          name: '방송 자막',
-          kind: 'audience',
+          name: '방송 화면',
+          kind: 'broadcast',
           method: 'capture',
         },
         {id: STAGE_ID, name: '무대 화면', kind: 'stage', method: 'fullscreen'},

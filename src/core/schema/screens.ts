@@ -48,7 +48,7 @@ const ndiSchema = jsonObject({
 export const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
-  kind: v.picklist(['audience', 'stage']),
+  kind: v.picklist(['audience', 'broadcast', 'stage']),
   messageStyleId: v.exactOptional(messageStyleIdSchema),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
   emptyColor: v.exactOptional(hexColor),

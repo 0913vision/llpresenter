@@ -44,7 +44,7 @@ describe('changeScreen', () => {
     const changed = changeScreen(before, CAPTIONS_ID, {name: '자막'});
 
     expect(changed.map(screen => screen.name)).toEqual([
-      '본 화면',
+      '청중 화면',
       '자막',
       '무대 화면',
     ]);
@@ -56,7 +56,7 @@ describe('changeScreen', () => {
     const [main] = changeScreen(screens(), MAIN_ID, {alwaysOnTop: false});
 
     expect(main).toMatchObject({
-      name: '본 화면',
+      name: '청중 화면',
       method: 'fullscreen',
       alwaysOnTop: false,
     });
@@ -71,7 +71,7 @@ describe('changeScreen', () => {
 describe('nameProblem', () => {
   it("accepts a new name and the screen's own name", () => {
     expect(nameProblem('새 화면', screens(), MAIN_ID)).toBeUndefined();
-    expect(nameProblem('본 화면', screens(), MAIN_ID)).toBeUndefined();
+    expect(nameProblem('청중 화면', screens(), MAIN_ID)).toBeUndefined();
   });
 
   it.each(['', '   '])('rejects the empty name %j', name => {

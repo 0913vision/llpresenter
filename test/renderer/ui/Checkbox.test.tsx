@@ -78,11 +78,11 @@ describe('CheckRow', () => {
   });
 
   it('is named by its label and described by its value', () => {
-    render(<Row value="본 화면, 무대 화면, 방송 자막" />);
+    render(<Row value="청중 화면, 무대 화면, 방송 화면" />);
     expect(
       screen.getByRole('checkbox', {
         name: '화면 출력',
-        description: '본 화면, 무대 화면, 방송 자막',
+        description: '청중 화면, 무대 화면, 방송 화면',
       }),
     ).toBeDefined();
   });

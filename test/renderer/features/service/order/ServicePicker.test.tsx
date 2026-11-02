@@ -34,7 +34,7 @@ function setup() {
   applyService(null);
   applyService(projection());
   const live = emptyLiveState();
-  useLive.setState({state: live, lastSlideItemId: null});
+  useLive.setState({state: live, lastStartedItemId: null});
   let push: (entries: readonly ServiceEntry[]) => void = () => undefined;
   const stopList = vi.fn();
   const send = vi.fn();

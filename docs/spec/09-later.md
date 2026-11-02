@@ -5,14 +5,14 @@ hooks that version 1 must leave open so that each feature can come later without
 restructuring. It ends with the ideas that the sources dropped, which aren't
 planned at all.
 
-Terms: 슬라이드 (slide), 방송 자막 (broadcast captions), 퀵 실행 (quick launch),
+Terms: 슬라이드 (slide), 방송 화면 (broadcast captions), 퀵 실행 (quick launch),
 매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
 
 ## NDI output
 
 ### What it is
 
-- The 방송 자막 goes to OBS over NDI with an alpha channel, so OBS needs no
+- The 방송 화면 goes to OBS over NDI with an alpha channel, so OBS needs no
   chroma key. The user prefers this method because it matches the idea of a
   virtual display.
 - The green capture window stays as the fallback for setups without NDI.
@@ -22,10 +22,10 @@ Terms: 슬라이드 (slide), 방송 자막 (broadcast captions), 퀵 실행 (qui
 
 | Place                               | Content                                                                                                                                                                                                                                                  |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Screen properties, 출력 group       | 방식 (method): NDI, 소스 이름 (source name, "LOVELIGHT 방송 자막"), 해상도 (resolution), 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel, on), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard; default green) |
+| Screen properties, 출력 group       | 방식 (method): NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도 (resolution), 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel, on), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard; default green) |
 | Screen properties, 네트워크 group   | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                                                                       |
 | Display layout                      | An NDI box that shows "보내는 중 수신 1" (sending, 1 receiver)                                                                                                                                                                                           |
-| Status bar                          | "방송 자막 NDI 30fps"                                                                                                                                                                                                                                    |
+| Status bar                          | "방송 화면 NDI 30fps"                                                                                                                                                                                                                                    |
 | Toolbar tooltip and preview caption | Target name "NDI"                                                                                                                                                                                                                                        |
 
 ### Requirements outside the app
@@ -44,12 +44,12 @@ Terms: 슬라이드 (slide), 방송 자막 (broadcast captions), 퀵 실행 (qui
   `docs/TECH.md` describes.
 - Draw the background as a layer, not as the window or page background, so the
   renderer can produce frames with a transparent background later.
-- Keep the 방송 자막 preview background choice in the data
+- Keep the 방송 화면 preview background choice in the data
   (`previewBackground`).
 - Run native modules only in a helper process (`docs/TECH.md`).
 
 Source: product log (2026-10-24 NDI update, version 56, version 61 SDK note),
-`Main` decisions "방송 자막은 NDI로" and "NDI SDK", `Main` remaining items,
+`Main` decisions "방송 화면은 NDI로" and "NDI SDK", `Main` remaining items,
 `ScreensNDI`, `docs/TECH.md`.
 
 ## PowerPoint import

@@ -66,7 +66,7 @@ const fill = (name: string, value: string): void => {
   fireEvent.change(screen.getByRole('textbox', {name}), {target: {value}});
 };
 async function ready(): Promise<void> {
-  await screen.findByRole('button', {name: '본 화면'});
+  await screen.findByRole('button', {name: '청중 화면'});
   await screen.findByRole('option', {name: '차량 이동'});
 }
 
@@ -151,22 +151,22 @@ it('makes all and individual targets exclusive and disables sending with none', 
   expect(sendButton().getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(sendButton());
   expect(fixture.send).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
-  fireEvent.click(screen.getByRole('button', {name: '방송 자막'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '방송 화면'}));
   expect(all.getAttribute('aria-pressed')).toBe('false');
   fireEvent.click(sendButton());
   expect(fixture.send).toHaveBeenLastCalledWith(
     expect.objectContaining({targets: [MAIN_ID, CAPTIONS_ID]}),
   );
   fireEvent.click(all);
-  for (const name of ['본 화면', '방송 자막', '무대 화면']) {
+  for (const name of ['청중 화면', '방송 화면', '무대 화면']) {
     expect(
       screen.getByRole('button', {name}).getAttribute('aria-pressed'),
     ).toBe('false');
   }
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   expect(all.getAttribute('aria-pressed')).toBe('false');
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   expect(sendButton().getAttribute('aria-disabled')).toBe('true');
 });
 
@@ -221,11 +221,13 @@ it('keeps a draft on unrelated pushes, resets changed defaults, and follows temp
   render(<MessageTab />);
   await ready();
   fill('차량 번호', 'kept');
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   fixture.pushMessages([first, second], 2, ['마무리']);
   expect(preview().textContent).toBe('kept 차량 이동 부탁드립니다');
   expect(
-    screen.getByRole('button', {name: '본 화면'}).getAttribute('aria-pressed'),
+    screen
+      .getByRole('button', {name: '청중 화면'})
+      .getAttribute('aria-pressed'),
   ).toBe('true');
   fixture.pushMessages([{...first, duration: 30}, second], 3);
   expect(
@@ -247,7 +249,7 @@ it('drops deleted explicit targets and keeps all literal when configured screens
   render(<MessageTab />);
   await ready();
   fill('차량 번호', '12가');
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   act(() => fixture.push(settingsDocument('screens', {screens: []}, 2)));
   expect(sendButton().getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(sendButton());

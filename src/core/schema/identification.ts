@@ -10,7 +10,7 @@ const dimension = v.pipe(
 );
 const identificationSchema = payloadObject({
   name: v.pipe(v.string(), v.maxLength(MONITOR_NAME_MAX)),
-  kind: v.nullable(v.picklist(['audience', 'stage'])),
+  kind: v.nullable(v.picklist(['audience', 'broadcast', 'stage'])),
   method: v.picklist(['fullscreen', 'window', 'capture', 'display']),
   width: dimension,
   height: dimension,

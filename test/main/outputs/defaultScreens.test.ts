@@ -11,7 +11,7 @@ function feed(monitors: readonly Monitor[]): {monitors: readonly Monitor[]} {
 }
 
 describe('createDefaultScreenSource', () => {
-  it('puts the 본 화면 on the first monitor that is not the primary one', () => {
+  it('puts the 청중 화면 on the first monitor that is not the primary one', () => {
     const monitors = monitorsOf(
       {id: 5, x: -1920, name: 'Left'},
       {id: 1, primary: true},
@@ -27,7 +27,7 @@ describe('createDefaultScreenSource', () => {
     });
   });
 
-  it('leaves the 본 화면 unassigned with only the primary monitor', () => {
+  it('leaves the 청중 화면 unassigned with only the primary monitor', () => {
     const [main] = createDefaultScreenSource(
       feed(monitorsOf({id: 1, primary: true})),
     ).list();

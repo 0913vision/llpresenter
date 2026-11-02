@@ -104,10 +104,32 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const EXTRA_ID = '00000000-0000-4000-8000-0000000000aa';
+
+/** The sample screens plus a second 청중 화면, so the first one can be deleted. */
+function withExtraAudience(access: 'editable' | 'readOnly' = 'editable') {
+  const base = screensDocument();
+  if (base.name !== 'screens') throw new Error('Expected screens');
+  const document = settingsDocument('screens', {
+    screens: [
+      ...base.value.screens,
+      {
+        id: EXTRA_ID,
+        name: '보조 청중 화면',
+        kind: 'audience',
+        method: 'window',
+      },
+    ],
+  });
+  return {...document, access};
+}
+
 describe('screen creation and group outputs', () => {
   it('lists screen commands in spec order and hides delete for the last screen of a group', async () => {
     setup();
-    const contextTarget = await screen.findByRole('option', {name: '본 화면'});
+    const contextTarget = await screen.findByRole('option', {
+      name: '청중 화면',
+    });
     fireEvent.contextMenu(contextTarget);
     expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
     const rows = () =>
@@ -116,7 +138,10 @@ describe('screen creation and group outputs', () => {
           .getByRole('menu')
           .querySelectorAll('[role="menuitem"], [role="separator"]'),
       ].map(row => row.textContent);
-    expect(rows()).toEqual(['이름 바꾸기', '삭제', '사용']);
+    expect(rows()).toEqual(['이름 바꾸기', '사용']);
+    fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
+    fireEvent.contextMenu(screen.getByRole('option', {name: '방송 화면'}));
+    expect(rows()).toEqual(['이름 바꾸기', '사용']);
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '무대 화면'}));
     expect(rows()).toEqual(['이름 바꾸기', '사용']);
@@ -124,7 +149,7 @@ describe('screen creation and group outputs', () => {
 
   it('toggles only the clicked output and waits for main confirmation', async () => {
     const {send, edit} = setup();
-    const row = await screen.findByRole('option', {name: '본 화면'});
+    const row = await screen.findByRole('option', {name: '청중 화면'});
     const previous = useScreensSelection.getState().selection;
     fireEvent.contextMenu(row);
     fireEvent.click(screen.getByRole('menuitem', {name: '사용'}));
@@ -155,7 +180,9 @@ describe('screen creation and group outputs', () => {
     send.mockImplementation(() => {
       throw new Error('Transport failed');
     });
-    fireEvent.contextMenu(await screen.findByRole('option', {name: '본 화면'}));
+    fireEvent.contextMenu(
+      await screen.findByRole('option', {name: '청중 화면'}),
+    );
     fireEvent.click(screen.getByRole('menuitem', {name: '사용'}));
     expect(onProblem).toHaveBeenCalledWith(
       expect.objectContaining({title: '화면 출력 변경 실패'}),
@@ -204,18 +231,20 @@ describe('screen creation and group outputs', () => {
 
   it.each([
     {draft: '', reason: '이름이 비어 있음'},
-    {draft: '방송 자막', reason: '같은 이름의 화면이 있음'},
+    {draft: '방송 화면', reason: '같은 이름의 화면이 있음'},
   ])(
     'shows inline draft validation for $reason before committing',
     async ({draft, reason}) => {
       const {edit} = setup();
       fireEvent.contextMenu(
-        await screen.findByRole('option', {name: '본 화면'}),
+        await screen.findByRole('option', {name: '청중 화면'}),
       );
       await userEvent.click(
         await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
       );
-      const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+      const field = await screen.findByRole('textbox', {
+        name: '청중 화면 이름',
+      });
       await userEvent.clear(field);
       if (draft !== '') await userEvent.type(field, draft);
       expect(field.getAttribute('aria-invalid')).toBe('true');
@@ -224,7 +253,7 @@ describe('screen creation and group outputs', () => {
       resetTooltips();
       vi.useRealTimers();
       await userEvent.keyboard('{Enter}');
-      expect(screen.getByRole('textbox', {name: '본 화면 이름'})).toBe(field);
+      expect(screen.getByRole('textbox', {name: '청중 화면 이름'})).toBe(field);
       expect(edit).not.toHaveBeenCalled();
       await userEvent.clear(field);
       await userEvent.type(field, '고친 이름');
@@ -235,38 +264,42 @@ describe('screen creation and group outputs', () => {
     },
   );
 
-  it.each(['', '방송 자막'])(
+  it.each(['', '방송 화면'])(
     'restores the saved name on blur after invalid draft %j',
     async draft => {
       const {edit} = setup();
       fireEvent.contextMenu(
-        await screen.findByRole('option', {name: '본 화면'}),
+        await screen.findByRole('option', {name: '청중 화면'}),
       );
       await userEvent.click(
         await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
       );
-      const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+      const field = await screen.findByRole('textbox', {
+        name: '청중 화면 이름',
+      });
       await userEvent.clear(field);
       if (draft !== '') await userEvent.type(field, draft);
       await userEvent.keyboard('{Enter}');
-      expect(screen.getByRole('textbox', {name: '본 화면 이름'})).toBe(field);
+      expect(screen.getByRole('textbox', {name: '청중 화면 이름'})).toBe(field);
       expect(edit).not.toHaveBeenCalled();
       await userEvent.click(screen.getByRole('option', {name: '무대 화면'}));
-      expect(screen.queryByRole('textbox', {name: '본 화면 이름'})).toBeNull();
-      expect(screen.getByRole('option', {name: '본 화면'})).toBeDefined();
+      expect(
+        screen.queryByRole('textbox', {name: '청중 화면 이름'}),
+      ).toBeNull();
+      expect(screen.getByRole('option', {name: '청중 화면'})).toBeDefined();
       expect(edit).not.toHaveBeenCalled();
     },
   );
 
   it('hands focused keyboard-menu rename off after cleanup and saves only once', async () => {
     const {edit} = setup();
-    const row = await screen.findByRole('option', {name: '본 화면'});
+    const row = await screen.findByRole('option', {name: '청중 화면'});
     row.focus();
     fireEvent.keyDown(row, {key: 'ContextMenu'});
     await userEvent.click(
       await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
     );
-    const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+    const field = await screen.findByRole('textbox', {name: '청중 화면 이름'});
     await waitFor(() => expect(document.activeElement).toBe(field));
     expect(edit).not.toHaveBeenCalled();
     await userEvent.keyboard('{Control>}a{/Control}새 이름{Enter}');
@@ -274,9 +307,21 @@ describe('screen creation and group outputs', () => {
     expect(edit).toHaveBeenCalledOnce();
   });
 
+  it('offers delete for a screen that is not the last of its group', async () => {
+    setup(withExtraAudience());
+    fireEvent.contextMenu(
+      await screen.findByRole('option', {name: '청중 화면'}),
+    );
+    expect(
+      [...screen.getByRole('menu').querySelectorAll('[role="menuitem"]')].map(
+        row => row.textContent,
+      ),
+    ).toEqual(['이름 바꾸기', '삭제', '사용']);
+  });
+
   it('cancels deletion without a write and then removes only the confirmed screen', async () => {
-    const {edit, send} = setup();
-    const row = await screen.findByRole('option', {name: '본 화면'});
+    const {edit, send} = setup(withExtraAudience());
+    const row = await screen.findByRole('option', {name: '청중 화면'});
     await userEvent.click(row);
     fireEvent.contextMenu(row);
     await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
@@ -296,25 +341,28 @@ describe('screen creation and group outputs', () => {
       }),
     );
     await waitFor(() =>
-      expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull(),
+      expect(screen.queryByRole('option', {name: '청중 화면'})).toBeNull(),
     );
     expect(
-      (await screen.findByRole('option', {name: '방송 자막'})).getAttribute(
-        'aria-selected',
-      ),
+      (
+        await screen.findByRole('option', {name: '보조 청중 화면'})
+      ).getAttribute('aria-selected'),
     ).toBe('true');
     const request = edit.mock.calls[0]?.[0];
     if (request?.name !== 'screens') throw new Error('Missing removal');
     expect(request.value.screens.map(screen => screen.id)).toEqual([
       CAPTIONS_ID,
       STAGE_ID,
+      EXTRA_ID,
     ]);
     expect(send).not.toHaveBeenCalled();
   });
 
   it('disables row lifecycle actions in read-only settings', async () => {
-    const {edit, send} = setup({...screensDocument(), access: 'readOnly'});
-    fireEvent.contextMenu(await screen.findByRole('option', {name: '본 화면'}));
+    const {edit, send} = setup(withExtraAudience('readOnly'));
+    fireEvent.contextMenu(
+      await screen.findByRole('option', {name: '청중 화면'}),
+    );
     const rename = await screen.findByRole('menuitem', {name: '이름 바꾸기'});
     expect(rename.getAttribute('aria-disabled')).toBe('true');
     expect(
@@ -521,7 +569,7 @@ describe('screen creation and group outputs', () => {
 
   it('does not write from a read-only creation button and explains why', async () => {
     const {edit} = setup({...screensDocument(), access: 'readOnly'});
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     const button = screen.getByRole('button', {name: '새 청중 화면'});
     expect(button.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(button);
@@ -535,7 +583,7 @@ describe('screen creation and group outputs', () => {
 
   it('opens from the keyboard without moving row selection and restores opener focus', async () => {
     setup();
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     const button = screen.getByRole('button', {name: '새 청중 화면'});
     const before = useScreensSelection.getState().selection;
     button.focus();
@@ -548,7 +596,7 @@ describe('screen creation and group outputs', () => {
 
   it('enables or disables only the System outputs of the selected group atomically', async () => {
     const {send, edit} = setup();
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     act(() =>
       useLive.setState({
         state: {...emptyLiveState(), outputs: {[MAIN_ID]: true}},
@@ -559,10 +607,7 @@ describe('screen creation and group outputs', () => {
     await userEvent.click(button);
     expect(send).toHaveBeenLastCalledWith({
       type: 'live.batch',
-      commands: [
-        {type: 'output.set', screenId: MAIN_ID, on: false},
-        {type: 'output.set', screenId: CAPTIONS_ID, on: false},
-      ],
+      commands: [{type: 'output.set', screenId: MAIN_ID, on: false}],
     });
     act(() =>
       useLive.setState({
@@ -573,10 +618,7 @@ describe('screen creation and group outputs', () => {
     await userEvent.click(button);
     expect(send).toHaveBeenLastCalledWith({
       type: 'live.batch',
-      commands: [
-        {type: 'output.set', screenId: MAIN_ID, on: true},
-        {type: 'output.set', screenId: CAPTIONS_ID, on: true},
-      ],
+      commands: [{type: 'output.set', screenId: MAIN_ID, on: true}],
     });
     expect(edit).not.toHaveBeenCalled();
   });

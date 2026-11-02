@@ -69,9 +69,9 @@ const fits: ReadonlyArray<SegmentOption<Fit>> = [
 ];
 
 const screens: ReadonlyArray<SegmentOption<Screen>> = [
-  {value: 'main', label: '본 화면'},
+  {value: 'main', label: '청중 화면'},
   {value: 'stage', label: '무대'},
-  {value: 'captions', label: '방송 자막'},
+  {value: 'captions', label: '방송 화면'},
 ];
 
 function FillRow<T extends string>({

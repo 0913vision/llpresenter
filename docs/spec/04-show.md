@@ -6,7 +6,7 @@ does. Layout and sizes follow the design system and the `ShowH` and `Compact`
 boards.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
-(label), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
+(label), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
 captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 공지
 (notice), 메시지 (message), 타이머 (timer), 매크로 (macro), 라이브러리
 (library), 준비 (Prep workspace). See 01.
@@ -269,7 +269,7 @@ each preview follows ProPresenter's rule: it shows what goes out.
   preview frame whose 테마 shows that media, with the tooltip "배경 영상 파일을
   찾을 수 없어 정지 화면으로 표시 중" (08). A frame that has no 배경 or 미디어
   element, or that replaces it with a solid background, does not show the mark.
-  This includes 무대 and 방송 자막 when their 테마 show it.
+  This includes 무대 and 방송 화면 when their 테마 show it.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
@@ -296,10 +296,10 @@ each preview follows ProPresenter's rule: it shows what goes out.
 
 - A clear removes its layer from the previews at the same moment as from the
   outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
-  본 화면 preview shows the background without the lyrics.
+  청중 화면 preview shows the background without the lyrics.
 - When every layer of a screen is clear, its preview shows the empty picture:
-  black (`output-black`) for the 본 화면 and the 무대 화면, and green for the
-  방송 자막. The 무대 화면 keeps the elements that no clear touches: the clock,
+  black (`output-black`) for the 청중 화면 and the 무대 화면, and green for the
+  방송 화면. The 무대 화면 keeps the elements that no clear touches: the clock,
   the 타이머, and the stage message (03, "Clear buttons and shortcuts").
 - The optional 되돌리기 button brings the cleared layers back in the previews
   and the outputs together (03). Ctrl Z only undoes edits.
@@ -311,8 +311,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
 ### Layout and states
 
 - The panel shows one of the three screens large and the other two small. The
-  small ones are always in the order 본 화면, 무대 화면, 방송 자막, without the
-  large one. ProPresenter shows one screen at a time; the small previews are
+  small ones are always in the order 청중 화면, 무대 화면, 방송 화면, without
+  the large one. ProPresenter shows one screen at a time; the small previews are
   this app's addition for several screens (product log, 2026-10-24).
 - Clicking a small preview makes it large and moves the large one to the small
   row, with no transition. The large preview isn't clickable. The app remembers
@@ -327,7 +327,7 @@ each preview follows ProPresenter's rule: it shows what goes out.
   has an amber outline (08). Tooltips give the reasons.
 - A background that froze because its file is missing shows the same still frame
   as the output, with the marks in 08.
-- The 방송 자막 frame has a green background.
+- The 방송 화면 frame has a green background.
 
 Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
 (S4 in 10: Preview window pp. 24 to 26, Grid View p. 12, triggering slides p.
@@ -500,8 +500,8 @@ T03, T07 and T09.
 - The template list: icon, name, and the sentence with its blanks shown as
   chips. Choosing a template shows one field per blank below it (the board shows
   "차량 번호" with "12가 3456").
-- 보낼 화면 (send to): chips for 모든 화면 (all screens), 본 화면, 무대, and
-  방송 자막, each a toggle. Turning on 모든 화면 turns the others off, and
+- 보낼 화면 (send to): chips for 모든 화면 (all screens), 청중 화면, 무대, and
+  방송 화면, each a toggle. Turning on 모든 화면 turns the others off, and
   turning on any other turns 모든 화면 off (proposal).
 - 표시 시간 (display time): 계속 (until cleared), 30초, 1분, 2분.
 - Choosing a template sets the chips and the display time from the template's
@@ -538,7 +538,7 @@ T03, T07 and T09.
   6개"), the interval ("8초"), 반복 (repeat), and 일시 정지 (pause) or 재생
   (play).
 - Middle: the grid of 공지 images. The image that is showing has a red ring.
-- Bottom: 보낼 화면 chips (본 화면, 무대, 방송 자막).
+- Bottom: 보낼 화면 chips (청중 화면, 무대, 방송 화면).
 - Clicking an image shows it at once on the 공지 layer of the target screens,
   and then advances to the next image at each interval. After the last image,
   the set starts over if 반복 is on, and otherwise stays on the last image
@@ -781,7 +781,7 @@ that ProPresenter's Edit mode has the same behavior.
   band shows the number and the reference ("3:16"). Clicking a tile outputs that
   슬라이드 at once. The next and previous keys work within the passage.
 - 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
-  on the 본 화면 and the 방송 자막, with the screen name, target, and style
+  on the 청중 화면 and the 방송 화면, with the screen name, target, and style
   name.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
@@ -880,7 +880,7 @@ keys are changed are in 10, "Shortcut system".
 | Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |
 | F1 to F7                                         | Clear all, lyrics, media, 그래픽, audio, 메시지, 공지                    | Follows ProPresenter (S1)                                                                |
 | Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)                  | M2 check 1 row 8; never restores cleared output (03, 10)                                 |
-| Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off                | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
+| Ctrl 1                                           | Audience screen outputs (청중 화면 and 방송 화면) on or off              | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
 | Ctrl Alt B                                       | The Bible field in 퀵 실행                                               | Follows ProPresenter (Open Bibles Mode, S1)                                              |

@@ -189,7 +189,7 @@ export function fullScreenScreen(
 ): OutputScreen {
   return {
     id: 'main',
-    name: '본 화면',
+    name: '청중 화면',
     method: 'fullscreen',
     display: null,
     onDisconnect: 'window',

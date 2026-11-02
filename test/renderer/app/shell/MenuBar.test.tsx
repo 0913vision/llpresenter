@@ -75,16 +75,16 @@ describe('MenuBar', () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
     expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
-    expect(outputItem('본 화면').textContent).toBe('출력 끄기');
+    expect(outputItem('청중 화면').textContent).toBe('출력 끄기');
     expect(outputItem('무대 화면').textContent).toBe('출력 켜기');
-    expect(outputItem('방송 자막').textContent).toBe('출력 켜기');
+    expect(outputItem('방송 화면').textContent).toBe('출력 켜기');
     expect(screen.queryByRole('menuitem', {name: /경고 보기/})).toBeNull();
   });
 
   it.each([
-    {name: '본 화면', screenId: 'main', on: false},
+    {name: '청중 화면', screenId: 'main', on: false},
     {name: '무대 화면', screenId: 'stage', on: true},
-    {name: '방송 자막', screenId: 'broadcast', on: true},
+    {name: '방송 화면', screenId: 'broadcast', on: true},
   ])(
     'turns $name output on=$on with a click and closes the menu',
     async ({name, screenId, on}) => {
@@ -94,9 +94,7 @@ describe('MenuBar', () => {
       await userEvent.click(outputItem(name));
       expect(send).toHaveBeenCalledExactlyOnceWith({
         type: 'live.batch',
-        commands: (name === '본 화면' ? ['main', 'broadcast'] : [screenId]).map(
-          id => ({type: 'output.set', screenId: id, on}),
-        ),
+        commands: [{type: 'output.set', screenId, on}],
       });
       expect(screen.queryByRole('menu', {name: '출력'})).toBeNull();
     },
@@ -111,10 +109,7 @@ describe('MenuBar', () => {
     await userEvent.keyboard('{Enter}');
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'live.batch',
-      commands: [
-        {type: 'output.set', screenId: 'main', on: false},
-        {type: 'output.set', screenId: 'broadcast', on: false},
-      ],
+      commands: [{type: 'output.set', screenId: 'main', on: false}],
     });
   });
 });

@@ -1,3 +1,7 @@
+import type {Screen} from '../schema/screens';
+
+type ScreenKind = Screen['kind'];
+
 export const THEME_LIMITS = {
   themes: 200,
   name: 80,
@@ -58,7 +62,7 @@ export function isStandbyElement(kind: ThemeElementKind): boolean {
 
 export function availableThemeElementKinds(
   elements: ReadonlyArray<{readonly kind: ThemeElementKind}>,
-  screenKind: 'audience' | 'stage',
+  screenKind: ScreenKind,
   standby: boolean,
 ): readonly ThemeElementKind[] {
   return themeElementKinds.filter(
@@ -80,12 +84,16 @@ export type ThemeElementProblem =
 /** Validates a whole canvas; omit screenKind only at the file-schema boundary. */
 export function themeElementProblem(
   elements: ReadonlyArray<{readonly kind: ThemeElementKind}>,
-  screenKind?: 'audience' | 'stage',
+  screenKind?: ScreenKind,
 ): ThemeElementProblem | undefined {
   if (elements.length > THEME_LIMITS.elements) return {reason: 'too-many'};
   const seen = new Set<ThemeElementKind>();
   for (const {kind} of elements) {
-    if (screenKind === 'audience' && stageOnly.has(kind)) {
+    if (
+      screenKind !== undefined &&
+      screenKind !== 'stage' &&
+      stageOnly.has(kind)
+    ) {
       return {reason: 'stage-only', kind};
     }
     if (seen.has(kind) && !repeatable.has(kind)) {

@@ -6,7 +6,7 @@ missing media file, a crashed output window, and a crash with the 출력 상태 
 must never happen during a service.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
-order), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
+order), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
 captions), 그래픽 (prop), 공지 (notice), 메시지 (message), 매크로 (macro), 진행
 도구 (show tools). See 01.
 
@@ -19,7 +19,7 @@ captions), 그래픽 (prop), 공지 (notice), 메시지 (message), 매크로 (ma
 | Output window crashed      | Log file. After 3 crashes in 60 seconds, a warning notification and an amber outline on the preview frame                              | The main process loads the window again; at the limit, the window shows an empty picture and retries after a cool-down | Automatic, or 다시 시도 (try again)                                                       | `docs/TECH.md` process structure, lead rule |
 | Control window crashed     | Nothing on the outputs. After it loads again, an information card                                                                      | The outputs keep their picture                                                                                         | The main process reloads the control window                                               | `docs/TECH.md`                              |
 | App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved                                                                        | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                                  |
-| Frame rate dropped         | Status bar text ("프레임 속도가 낮아지는 중: 방송 자막 (41fps)")                                                                       | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
+| Frame rate dropped         | Status bar text ("프레임 속도가 낮아지는 중: 방송 화면 (41fps)")                                                                       | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
 | Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
 | File can't be read         | Warning notification, and a log entry                                                                                                  | The app skips that file and keeps running                                                                              | Fix or remove the file                                                                    | `docs/TECH.md` storage                      |
 | Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 슬라이드 (proposal).              | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
@@ -125,7 +125,7 @@ the quick restarts:
 
 1. The window stays shown, at its place and size, and shows the screen's empty
    picture: black (`output-black`) for a screen on a monitor or in a window, and
-   the chroma color for the 방송 자막 capture window, which OBS keys out. The
+   the chroma color for the 방송 화면 capture window, which OBS keys out. The
    audience never sees the desktop, another window, or a white page. Every
    output window gets this color as its native background when it's created, so
    the window paints it even while no page is loaded.
@@ -142,7 +142,7 @@ the quick restarts:
 
 While the limit holds:
 
-- The warning notification "본 화면 출력 창을 다시 띄울 수 없음" (can't reopen
+- The warning notification "청중 화면 출력 창을 다시 띄울 수 없음" (can't reopen
   the main screen output window) shows, with the detail "빈 화면으로 표시 중"
   (showing an empty screen) and the action 다시 시도 (try again). 다시 시도
   starts an attempt at once; if it dies, the next cool-down follows (proposal).
@@ -237,7 +237,7 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 
 | Row                                        | Value example                       | Restores                                                                                                                 |
 | ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"     | Turns on the outputs that were on.                                                                                       |
+| 화면 출력 (screen output)                  | "청중 화면, 무대 화면, 방송 화면"   | Turns on the outputs that were on.                                                                                       |
 | 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background).                             |
 | 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed),. |
 

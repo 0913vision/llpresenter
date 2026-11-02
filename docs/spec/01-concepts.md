@@ -20,10 +20,10 @@ including the words the app must not use.
 | 템플릿          | template           | A 예배 순서 that you use to create a new 예배 순서.                                                                               |
 | 구성            | arrangement        | A named 슬라이드 order stored in a song, with repeats (기본, 주일용, 짧게).                                                       |
 | 이름표          | label              | The name of a 슬라이드, such as 1절 (verse 1), 프리코러스 (pre-chorus), or 후렴 (chorus).                                         |
-| 본 화면         | main screen        | The main audience screen.                                                                                                         |
+| 청중 화면       | main screen        | The main audience screen.                                                                                                         |
 | 무대 화면       | stage screen       | The screen that faces the people on stage.                                                                                        |
-| 방송 자막       | broadcast captions | The lower-third caption screen that OBS picks up.                                                                                 |
-| 테마            | theme              | A saved preset that lays out all three screens: 본 화면, 무대 화면, and 방송 자막. Also the name of its workspace (see 12).       |
+| 방송 화면       | broadcast captions | The lower-third caption screen that OBS picks up.                                                                                 |
+| 테마            | theme              | A saved preset that lays out all three screens: 청중 화면, 무대 화면, and 방송 화면. Also the name of its workspace (see 12).     |
 | 진행 도구       | show tools         | The tabbed panel at the bottom right of the 진행 workspace.                                                                       |
 | 퀵 실행         | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
 | 그래픽          | prop               | A logo, caption, or notice card that sits above the lyrics.                                                                       |
@@ -243,11 +243,11 @@ Source: `Main` "프로프리젠터와 다른 점", design system principle 2, pr
 
 ## Windows
 
-| Window             | Count        | Role                                       | Details                   |
-| ------------------ | ------------ | ------------------------------------------ | ------------------------- |
-| Main window        | 1            | Menu bar, toolbar, workspaces, status bar  | This document, 04, 05, 06 |
-| Output window      | 1 per screen | Draws the 본 화면, 무대 화면, or 방송 자막 | 03                        |
-| Preferences window | 1            | 환경설정 (Preferences) and shortcuts       | 06, 10                    |
+| Window             | Count        | Role                                         | Details                   |
+| ------------------ | ------------ | -------------------------------------------- | ------------------------- |
+| Main window        | 1            | Menu bar, toolbar, workspaces, status bar    | This document, 04, 05, 06 |
+| Output window      | 1 per screen | Draws the 청중 화면, 무대 화면, or 방송 화면 | 03                        |
+| Preferences window | 1            | 환경설정 (Preferences) and shortcuts         | 06, 10                    |
 
 - The main window's minimum size is 1280 x 720. Size classes (narrow, regular,
   wide) and column widths follow the design system `Layout` document.
@@ -283,7 +283,7 @@ READMEs, `Prefs`.
   | ------------- | --------------------------------------------------------------------------------------------------------------------- |
   | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                  |
   | 보기 (View)   | 진행, 준비, 테마, 미디어 (Media), UI 확대, UI 축소, UI 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
-  | 출력 (Output) | 본 화면, 무대 화면, 방송 자막 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                    |
+  | 출력 (Output) | 청중 화면, 무대 화면, 방송 화면 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                  |
   | 창 (Window)   | Minimize, maximize, 환경설정                                                                                          |
   | 도움말 (Help) | Version information, open the log folder                                                                              |
 
@@ -303,7 +303,7 @@ The toolbar has the same buttons in the same places in every workspace.
 | Left     | 미디어 (Media)                                                   | Shows or hides one shared bottom 미디어 bin in 진행 and 준비 (04, 05); it does not switch workspaces. |
 | Center   | Search field "곡, 가사, 초성" (song, lyrics, initial consonants) | Searches the 라이브러리 (see 04 and 05).                                                              |
 | Right    | 테마 (shows the live 테마 name)                                  | Opens the 테마 menu. Choosing a 테마 applies it at once (see 12).                                     |
-| Right    | 본 화면, 무대, 방송 자막                                         | Turns that screen's output on or off (see 03).                                                        |
+| Right    | 청중 화면, 무대 화면, 방송 화면                                  | Turns that screen's output on or off (see 03).                                                        |
 
 Source: `ShowH`, `Toolbar` README, `ToolbarButton` README, `Media`.
 
@@ -353,11 +353,11 @@ workspaces).
 
 ## The three screens
 
-| Screen    | Kind     | Version 1 output method                                         | Toolbar name | Example in the boards |
-| --------- | -------- | --------------------------------------------------------------- | ------------ | --------------------- |
-| 본 화면   | Audience | Full screen (monitor)                                           | 본 화면      | Monitor 2             |
-| 무대 화면 | Stage    | Full screen (monitor)                                           | 무대         | Monitor 3             |
-| 방송 자막 | Audience | Capture window with green background. NDI comes later (see 09). | 방송 자막    | Capture window        |
+| Screen    | Kind      | Version 1 output method                                         | Toolbar name | Example in the boards |
+| --------- | --------- | --------------------------------------------------------------- | ------------ | --------------------- |
+| 청중 화면 | Audience  | Full screen (monitor)                                           | 청중 화면    | Monitor 2             |
+| 무대 화면 | Stage     | Full screen (monitor)                                           | 무대         | Monitor 3             |
+| 방송 화면 | Broadcast | Capture window with green background. NDI comes later (see 09). | 방송 화면    | Capture window        |
 
 - The app doesn't use a lobby screen.
 - Make the screen list data that can grow, but version 1 has exactly these three
@@ -366,7 +366,7 @@ workspaces).
 - Each screen draws the same output state differently, using the screen's layout
   in the live 테마. See 12.
 
-Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product log
+Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product log
 (2026-10-24: no lobby, NDI preferred), `Screens`, `Outputs`.
 
 ## Data objects and how they relate
@@ -385,7 +385,7 @@ Source: `Main` decisions "화면 세 개" and "방송 자막은 NDI로", product
 | 템플릿                         | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 템플릿         | 템플릿 ID                                         |
 | Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                                          |
 | Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                                       |
-| Screen                         | One output target (본 화면, 무대 화면, 방송 자막).                                                                | App-wide settings                        | Screen ID                                         |
+| Screen                         | One output target (청중 화면, 무대 화면, 방송 화면).                                                              | App-wide settings                        | Screen ID                                         |
 | 테마                           | Per screen: 직접 배치 with its own elements, the same as another screen, or 비움 (12).                            | App-wide settings                        | 테마 ID                                           |
 | 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
 | 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |

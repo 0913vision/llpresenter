@@ -9,7 +9,7 @@ export interface RecoveryRowView {
   readonly kind: RecoveryRowKind;
   readonly icon: string;
   readonly label: string;
-  /** What the row would restore, such as 본 화면, 무대 화면. */
+  /** What the row would restore, such as 청중 화면, 무대 화면. */
   readonly value: string;
 }
 

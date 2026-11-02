@@ -16,6 +16,7 @@ export interface ScreenRow {
 
 export interface ScreenGroups {
   readonly audience: readonly ScreenRow[];
+  readonly broadcast: readonly ScreenRow[];
   readonly stage: readonly ScreenRow[];
 }
 
@@ -97,7 +98,7 @@ function rowOf(
   };
 }
 
-/** The 청중 and 무대 groups of the screen list, each in file order. */
+/** The 청중, 방송, and 무대 groups of the screen list, each in file order. */
 export function screenGroups(
   screens: readonly Screen[],
   statuses: OutputStatuses,
@@ -109,5 +110,9 @@ export function screenGroups(
   }));
   const of = (kind: Screen['kind']): readonly ScreenRow[] =>
     rows.filter(entry => entry.kind === kind).map(entry => entry.row);
-  return {audience: of('audience'), stage: of('stage')};
+  return {
+    audience: of('audience'),
+    broadcast: of('broadcast'),
+    stage: of('stage'),
+  };
 }

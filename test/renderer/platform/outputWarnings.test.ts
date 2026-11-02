@@ -23,7 +23,7 @@ beforeEach(() => useOutputWarnings.setState({warnings: new Map()}));
 
 it('keeps each warning by its key and replaces it in place', () => {
   keepOutputWarning(warning('screen:stage', 'stage', '무대 화면'));
-  keepOutputWarning(warning('screen:main', 'main', '본 화면'));
+  keepOutputWarning(warning('screen:main', 'main', '청중 화면'));
   keepOutputWarning(warning('screen:stage', 'stage', '무대 화면'));
   expect([...useOutputWarnings.getState().warnings.keys()]).toEqual([
     'screen:stage',
@@ -41,12 +41,12 @@ it('drops a warning and ignores an unknown key without a new state', () => {
 });
 
 it('lists each warned screen once and gives all its cards', () => {
-  keepOutputWarning(warning('screen:main', 'main', '본 화면'));
+  keepOutputWarning(warning('screen:main', 'main', '청중 화면'));
   keepOutputWarning(warning('screen:stage', 'stage', '무대 화면'));
-  keepOutputWarning(warning('output-window:main', 'main', '본 화면'));
+  keepOutputWarning(warning('output-window:main', 'main', '청중 화면'));
   const {warnings} = useOutputWarnings.getState();
   expect(warningScreens(warnings)).toEqual([
-    {screenId: 'main', screenName: '본 화면'},
+    {screenId: 'main', screenName: '청중 화면'},
     {screenId: 'stage', screenName: '무대 화면'},
   ]);
   expect(outputWarningCards('main').map(notice => notice.key)).toEqual([

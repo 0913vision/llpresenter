@@ -40,7 +40,7 @@ const mainBack: Notice = {
   key: 'screen:main',
   kind: 'info',
   icon: 'monitor',
-  title: '본 화면 모니터 다시 연결됨',
+  title: '청중 화면 모니터 다시 연결됨',
   time: '11:25',
   meta: ['모니터 2'],
 };
@@ -63,7 +63,7 @@ const arrivals: readonly Notice[] = [
     key: 'screen:main',
     kind: 'warning',
     icon: 'plug',
-    title: '본 화면 모니터 연결 끊김',
+    title: '청중 화면 모니터 연결 끊김',
     time: '11:28',
     meta: ['모니터 2', '창으로 표시 중'],
     actions: monitorActions,

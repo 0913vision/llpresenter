@@ -25,7 +25,7 @@ beforeEach(() => {
     openItemId: null,
     selectedTile: 0,
   });
-  useLive.setState({state: emptyLiveState(), lastSlideItemId: null});
+  useLive.setState({state: emptyLiveState(), lastStartedItemId: null});
   applyService(sampleService);
 });
 afterEach(() => {
@@ -203,7 +203,7 @@ describe('Bible slide source', () => {
             },
           },
         },
-        lastSlideItemId: 'song-morning',
+        lastStartedItemId: 'song-morning',
       });
       openBiblePassage({
         ...passageA,

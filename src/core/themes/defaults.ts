@@ -34,7 +34,7 @@ const starterScreens: readonly ThemeScreen[] = [
   },
   {
     id: createScreenId(STARTER_SCREEN_IDS.broadcast),
-    kind: 'audience',
+    kind: 'broadcast',
     method: 'capture',
   },
   {
@@ -153,7 +153,7 @@ function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
 ): ThemeScreenLayout {
-  const lowerThird = screen.kind === 'audience' && screen.method === 'capture';
+  const lowerThird = screen.kind === 'broadcast';
   const elements =
     screen.kind === 'stage'
       ? stageElements()

@@ -56,7 +56,9 @@ function showIdentification(
       ? ''
       : details.kind === 'audience'
         ? '청중, '
-        : '무대, ';
+        : details.kind === 'broadcast'
+          ? '방송, '
+          : '무대, ';
   const refresh =
     details.refreshRate === 0
       ? '주사율 미확인'

@@ -150,13 +150,13 @@ it('locks every draft control until an outstanding save finishes', async () => {
   fireEvent.click(screen.getByRole('menuitemradio', {name: '이미지'}));
   fireEvent.click(screen.getByRole('button', {name: '이미지'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '로고 그림'}));
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(
     screen.getByRole('textbox', {name: '이름'}).hasAttribute('readonly'),
   ).toBe(true);
-  for (const name of ['내용 종류', '이미지', '본 화면']) {
+  for (const name of ['내용 종류', '이미지', '청중 화면']) {
     expect(
       screen.getByRole('button', {name}).getAttribute('aria-disabled'),
     ).toBe('true');
@@ -164,7 +164,9 @@ it('locks every draft control until an outstanding save finishes', async () => {
   }
   expect(screen.queryByRole('menu')).toBeNull();
   expect(
-    screen.getByRole('button', {name: '본 화면'}).getAttribute('aria-pressed'),
+    screen
+      .getByRole('button', {name: '청중 화면'})
+      .getAttribute('aria-pressed'),
   ).toBe('true');
   pending.resolve({ok: true, value: {id: 'props', revision: 2}});
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());

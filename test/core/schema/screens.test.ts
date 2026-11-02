@@ -14,7 +14,7 @@ const STAGE_ID = '33333333-3333-4333-8333-333333333333';
 function mainScreen() {
   return {
     id: MAIN_ID,
-    name: '본 화면',
+    name: '청중 화면',
     kind: 'audience',
     method: 'fullscreen',
     display: {
@@ -40,7 +40,7 @@ function defaultScreens() {
       mainScreen(),
       {
         id: CAPTION_ID,
-        name: '방송 자막',
+        name: '방송 화면',
         kind: 'audience',
         method: 'capture',
         resolution: {width: 1920, height: 1080},
@@ -84,7 +84,7 @@ describe('parseScreens', () => {
         ...mainScreen(),
         method: 'ndi',
         ndi: {
-          sourceName: 'LOVELIGHT 방송 자막',
+          sourceName: 'LOVELIGHT 방송 화면',
           resolution: {width: 1920, height: 1080},
           fps: 30,
           alpha: true,

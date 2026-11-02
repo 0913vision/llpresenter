@@ -157,7 +157,7 @@ describe('the 화면 list', () => {
     await waitFor(() =>
       expect(monitor.getAttribute('aria-pressed')).toBe('true'),
     );
-    expect(monitor.textContent).toContain('본 화면');
+    expect(monitor.textContent).toContain('청중 화면');
     expect(document.querySelector(`[data-target="${MAIN_ID}"]`)).toBeNull();
     act(() =>
       useLive.setState({
@@ -170,7 +170,7 @@ describe('the 화면 list', () => {
       }),
     );
     expect(monitor.getAttribute('aria-pressed')).toBe('true');
-    expect(monitor.textContent).toContain('본 화면');
+    expect(monitor.textContent).toContain('청중 화면');
     act(() => useScreensSelection.setState({selection: {id: CAPTIONS_ID}}));
     expect(monitor.getAttribute('aria-pressed')).toBe('false');
     await userEvent.click(monitor);
@@ -180,12 +180,12 @@ describe('the 화면 list', () => {
 
   it('selects the first screen until another row is chosen', async () => {
     setup();
-    await screen.findByRole('option', {name: '본 화면', selected: true});
-    await userEvent.setup().click(option('방송 자막'));
-    await screen.findByRole('option', {name: '방송 자막', selected: true});
+    await screen.findByRole('option', {name: '청중 화면', selected: true});
+    await userEvent.setup().click(option('방송 화면'));
+    await screen.findByRole('option', {name: '방송 화면', selected: true});
     expect(useScreensSelection.getState().selection).toEqual({id: CAPTIONS_ID});
-    expect(selectedOf('본 화면')).toBe('false');
-    expect(selectedOf('방송 자막')).toBe('true');
+    expect(selectedOf('청중 화면')).toBe('false');
+    expect(selectedOf('방송 화면')).toBe('true');
   });
 
   it('selects the first screen after a delayed settings read', async () => {
@@ -196,40 +196,40 @@ describe('the 화면 list', () => {
     setup({
       read: name => (name === 'screens' ? pending : readDocument(name)),
     });
-    expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull();
+    expect(screen.queryByRole('option', {name: '청중 화면'})).toBeNull();
 
     if (resolveScreens === undefined) throw new Error('Missing resolver');
     resolveScreens(screensDocument());
 
-    await screen.findByRole('option', {name: '본 화면', selected: true});
-    expect(selectedOf('방송 자막')).toBe('false');
+    await screen.findByRole('option', {name: '청중 화면', selected: true});
+    expect(selectedOf('방송 화면')).toBe('false');
     expect(useScreensSelection.getState().selection).toEqual({id: null});
   });
 
   it('shows the amber dot with the reason in a tooltip', async () => {
     setup({statuses: {[MAIN_ID]: {...running, placement: 'monitorMissing'}}});
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     await waitFor(() =>
       expect(
-        option('본 화면').querySelector('[data-tone="warning"]'),
+        option('청중 화면').querySelector('[data-tone="warning"]'),
       ).not.toBeNull(),
     );
-    const tooltip = await hoverForTooltip(option('본 화면'));
+    const tooltip = await hoverForTooltip(option('청중 화면'));
     expect(tooltip?.textContent).toBe('모니터를 찾을 수 없음');
   });
 
   it('follows a status push', async () => {
     const {pushStatus} = setup();
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     pushStatus({[MAIN_ID]: {...running, fpsLow: true}});
     expect(
-      option('본 화면').querySelector('[data-tone="warning"]'),
+      option('청중 화면').querySelector('[data-tone="warning"]'),
     ).not.toBeNull();
   });
 
   it('keeps a newer settings push over an older one', async () => {
     const {pushSettings} = setup();
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     const only = (revision: number, name: string) =>
       settingsDocument(
         'screens',
@@ -254,7 +254,7 @@ describe('the 화면 list', () => {
 
   it('releases its subscriptions on unmount', async () => {
     const {view, stopStatus, listenerCount} = setup();
-    await screen.findByRole('option', {name: '본 화면'});
+    await screen.findByRole('option', {name: '청중 화면'});
     expect(listenerCount()).toBeGreaterThan(0);
     view.unmount();
     expect(stopStatus).toHaveBeenCalledOnce();

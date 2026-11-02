@@ -182,7 +182,7 @@ export function ServiceOrderList({
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
   const currentItemId = useLive(
-    view => view.lastSlideItemId ?? view.state?.layers.slide?.itemId,
+    view => view.lastStartedItemId ?? view.state?.layers.slide?.itemId,
   );
   const started = useLive(view => view.startedItemIds);
   const done = useMemo(() => {

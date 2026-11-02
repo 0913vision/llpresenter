@@ -195,7 +195,7 @@ describe('the output preview', () => {
       screens: [
         {
           id: MAIN_ID,
-          name: '본 화면',
+          name: '청중 화면',
           kind: 'audience',
           method: 'fullscreen',
           edgeMargin: 10,
@@ -205,7 +205,7 @@ describe('the output preview', () => {
     });
     if (corrected.name !== 'screens') throw new Error('Missing screens');
     setup(corrected);
-    await screen.findByText('본 화면');
+    await screen.findByText('청중 화면');
     await choose('테스트 패턴');
 
     act(() =>
@@ -227,7 +227,7 @@ describe('the output preview', () => {
       expect(drawn.frames.at(-1)).toMatchObject({
         testPattern: true,
         screen: {
-          name: '본 화면',
+          name: '청중 화면',
           correction: {edgeMargin: 10, offset: {x: 20, y: -10}},
         },
       }),

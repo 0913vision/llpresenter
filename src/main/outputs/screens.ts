@@ -10,9 +10,9 @@ export type DisconnectAction = 'window' | 'off';
 /** What the output windows need to know about one screen in 화면 설정. */
 export interface OutputScreen {
   readonly id: string;
-  /** The window title in window mode, for example "본 화면". */
+  /** The window title in window mode, for example "청중 화면". */
   readonly name: string;
-  readonly kind?: 'audience' | 'stage';
+  readonly kind?: 'audience' | 'broadcast' | 'stage';
   readonly method: OutputMethod;
   /** The monitor of a full screen output, or null while unassigned. */
   readonly display: SavedDisplay | null;

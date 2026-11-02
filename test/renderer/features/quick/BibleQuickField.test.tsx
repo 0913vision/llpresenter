@@ -50,7 +50,7 @@ beforeEach(() => {
     openItemId: null,
     selectedTile: 0,
   });
-  useLive.setState({state: emptyLiveState(), lastSlideItemId: null});
+  useLive.setState({state: emptyLiveState(), lastStartedItemId: null});
 });
 afterEach(() => {
   cleanup();

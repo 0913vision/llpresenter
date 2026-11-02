@@ -11,16 +11,17 @@ const screens: readonly ScreenSummary[] = [
   {
     id: 'main',
     icon: 'mplay',
-    toolbarLabel: '본 화면',
-    statusLabel: '본 화면',
+    toolbarLabel: '청중 화면',
+    statusLabel: '청중 화면',
     target: '창',
     targetKind: 'window',
     chroma: false,
+    kind: 'audience',
   },
   {
     id: 'stage',
     icon: 'mplay',
-    toolbarLabel: '무대',
+    toolbarLabel: '무대 화면',
     statusLabel: '무대 화면',
     target: '창',
     targetKind: 'window',
@@ -30,11 +31,12 @@ const screens: readonly ScreenSummary[] = [
   {
     id: 'broadcast',
     icon: 'capture',
-    toolbarLabel: '방송 자막',
-    statusLabel: '방송 자막',
+    toolbarLabel: '방송 화면',
+    statusLabel: '방송 화면',
     target: '캡처용 창',
     targetKind: 'capture',
     chroma: true,
+    kind: 'broadcast',
   },
 ];
 

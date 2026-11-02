@@ -8,8 +8,8 @@ marked as proposals.
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 그래픽
 (prop), 공지 (notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch),
-본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions).
-See 01 for the full list.
+청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
+captions). See 01 for the full list.
 
 ## Common rules
 
@@ -383,8 +383,8 @@ locations (the defaults), and no other fields.
 | -------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `screens[]`          | Array                                                  | The screens, in list order within the 청중 (audience) and 무대 (stage) groups.                                                                                                            | `Screens`                                                                |
 | `.id`                | String                                                 | Screen ID.                                                                                                                                                                                | Proposal                                                                 |
-| `.name`              | String                                                 | Name, for example "본 화면".                                                                                                                                                              | `Screens` property 이름 (name)                                           |
-| `.kind`              | `"audience"` \| `"stage"`                              | 종류 (kind): 청중 (audience) or 무대 (stage).                                                                                                                                             | `Screens` property 종류                                                  |
+| `.name`              | String                                                 | Name, for example "청중 화면".                                                                                                                                                            | `Screens` property 이름 (name)                                           |
+| `.kind`              | `"audience"` \| `"broadcast"` \| `"stage"`             | 종류 (kind): 청중 (audience), 방송 (broadcast), or 무대 (stage).                                                                                                                          | `Screens` property 종류                                                  |
 | `.messageStyleId`    | Message style ID, optional                             | 메시지 스타일 (message style). Absent, or an ID with no entry in `messageStyles` of `messages.json`, means the built-in 기본 style.                                                       | `Screens` property 메시지 스타일 (user decision, November 2)             |
 | `.method`            | `"fullscreen"` \| `"window"` \| `"capture"` \| `"ndi"` | 방식 (method): 전체 화면 (full screen), 창 (window), 캡처용 창 (capture window), NDI. `"ndi"` comes later. If version 1 reads `"ndi"`, it runs the screen as a capture window (proposal). | `Screens`, `ScreensNDI`                                                  |
 | `.display`           | Object or absent                                       | The target monitor for full screen: `{ id, name, number, bounds: { x, y, width, height }, scaleFactor }`. The app uses these values to find the monitor again (see 03).                   | `Screens` property 장치 (device), display layout. Fields are a proposal. |
@@ -394,11 +394,11 @@ locations (the defaults), and no other fields.
 | `.preventSleep`      | Boolean                                                | 절전 막기 (prevent sleep).                                                                                                                                                                | `Screens`                                                                |
 | `.edgeMargin`        | Number (%)                                             | 가장자리 여백 (edge margin).                                                                                                                                                              | `Screens` 보정 (correction) group                                        |
 | `.offset`            | `{ x, y }` (px)                                        | 위치 미세 조정 (position fine-tuning).                                                                                                                                                    | `Screens` 보정 group                                                     |
-| `.previewBackground` | `"green"` \| `"black"` \| `"checker"`                  | Background of the in-app preview of the 방송 자막. Default `"green"`.                                                                                                                     | `ScreensNDI`, product log version 56                                     |
+| `.previewBackground` | `"green"` \| `"black"` \| `"checker"`                  | Background of the in-app preview of the 방송 화면. Default `"green"`.                                                                                                                     | `ScreensNDI`, product log version 56                                     |
 | `.ndi`               | Object                                                 | NDI settings, later (see 09): `sourceName`, `resolution`, `fps`, `alpha`, `networkInterface`, `group`.                                                                                    | `ScreensNDI`                                                             |
 
-Defaults: 본 화면 (audience, full screen), 방송 자막 (audience, capture window,
-1920 x 1080), 무대 화면 (stage, full screen). Full screen monitors start
+Defaults: 청중 화면 (audience, full screen), 방송 화면 (audience, capture
+window, 1920 x 1080), 무대 화면 (stage, full screen). Full screen monitors start
 unassigned (proposal).
 
 Don't save whether a screen output is on. At launch, the 환경설정 option 켤 때

@@ -77,7 +77,7 @@ export const WINDOW_BOUNDS: Rect = {x: 100, y: 100, width: 960, height: 540};
 
 export const SCREEN: OutputScreen = {
   id: 'main',
-  name: '본 화면',
+  name: '청중 화면',
   method: 'fullscreen',
   display: null,
   onDisconnect: 'window',

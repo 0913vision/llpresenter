@@ -27,7 +27,7 @@ function ClearLyrics(): JSX.Element {
       <Tooltip text="가사 지우기" shortcut="F2">
         <button type="button">가사</button>
       </Tooltip>
-      <Tooltip text="모두 지우기" shortcut="F1" sub="본 화면, 무대 화면">
+      <Tooltip text="모두 지우기" shortcut="F1" sub="청중 화면, 무대 화면">
         <button type="button">모두</button>
       </Tooltip>
     </>
@@ -90,7 +90,7 @@ describe('Tooltip', () => {
     pointAway(button('가사'));
     pointAt(button('모두'));
     expect(screen.getByRole('tooltip').textContent).toBe(
-      '모두 지우기F1본 화면, 무대 화면',
+      '모두 지우기F1청중 화면, 무대 화면',
     );
   });
 

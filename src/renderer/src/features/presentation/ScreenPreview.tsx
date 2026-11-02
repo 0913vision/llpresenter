@@ -19,7 +19,7 @@ function reportDrawingError(message: string, error: unknown): void {
  * fed with the live layers. It draws what the live state holds, never the
  * selection, and a change of the live state does not render React.
  *
- * @param chroma - Draws the empty picture green, as the 방송 자막 does.
+ * @param chroma - Draws the empty picture green, as the 방송 화면 does.
  */
 export function ScreenPreview({
   screenId,

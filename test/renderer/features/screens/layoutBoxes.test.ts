@@ -79,7 +79,7 @@ describe('displayLayout', () => {
 
     expect(model.monitors.map(box => [box.screens, box.selected])).toEqual([
       [[], false],
-      [['본 화면'], true],
+      [['청중 화면'], true],
     ]);
   });
 
@@ -94,7 +94,7 @@ describe('displayLayout', () => {
     expect(
       model.monitors.map(box => [box.number, box.screens, box.selected]),
     ).toEqual([
-      [1, ['본 화면'], true],
+      [1, ['청중 화면'], true],
       [2, [], false],
     ]);
   });

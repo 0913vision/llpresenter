@@ -58,7 +58,7 @@ function send(scenario: SoakScenario, command: LiveCommand): void {
 }
 
 /**
- * Plays the soak test scenario: the looping background, the 본 화면 on, and
+ * Plays the soak test scenario: the looping background, the 청중 화면 on, and
  * the next 장 every {@link SLIDE_INTERVAL_MS}, around {@link SLIDE_COUNT} 장.
  * A command that throws is logged, and the scenario goes on.
  *

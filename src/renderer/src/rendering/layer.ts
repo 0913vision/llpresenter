@@ -31,7 +31,7 @@ export interface RenderScreen {
   readonly id: ScreenId;
   /** The saved screen name; absent for a picture of no saved screen. */
   readonly name?: string;
-  readonly kind: 'audience' | 'stage';
+  readonly kind: Screen['kind'];
   readonly messageStyleId?: string;
   readonly method?: Screen['method'];
   readonly emptyColor?: string;

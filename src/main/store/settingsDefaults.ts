@@ -28,9 +28,12 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   themes: createDefaultThemes(),
   screens: {
     screens: [
-      screen(MAIN, '본 화면', {kind: 'audience', method: 'fullscreen'}),
+      screen(MAIN, '청중 화면', {kind: 'audience', method: 'fullscreen'}),
       {
-        ...screen(CAPTIONS, '방송 자막', {kind: 'audience', method: 'capture'}),
+        ...screen(CAPTIONS, '방송 화면', {
+          kind: 'broadcast',
+          method: 'capture',
+        }),
         resolution: {width: 1920, height: 1080},
         previewBackground: 'green',
       },

@@ -59,7 +59,7 @@ it('does not replace a newer selection after a pending creation is dismissed', a
   fireEvent.click(screen.getByRole('button', {name: '이미지 재생목록'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '공지 그림'}));
   fireEvent.click(
-    within(screen.getByRole('dialog')).getByRole('button', {name: '본 화면'}),
+    within(screen.getByRole('dialog')).getByRole('button', {name: '청중 화면'}),
   );
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
@@ -255,11 +255,13 @@ it('creates a notice from a playlist and locks every draft control during save',
   fireEvent.click(add);
   fireEvent.click(screen.getByRole('button', {name: '이미지 재생목록'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '공지 그림'}));
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(
-    screen.getByRole('button', {name: '본 화면'}).getAttribute('aria-disabled'),
+    screen
+      .getByRole('button', {name: '청중 화면'})
+      .getAttribute('aria-disabled'),
   ).toBe('true');
   expect(
     screen

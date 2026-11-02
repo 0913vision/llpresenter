@@ -47,6 +47,7 @@ const NAME_PROBLEMS = {
 
 const KIND_OPTIONS = [
   {value: 'audience', label: '청중'},
+  {value: 'broadcast', label: '방송'},
   {value: 'stage', label: '무대'},
 ] as const;
 const METHOD_OPTIONS = [

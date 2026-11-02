@@ -229,7 +229,7 @@ describe('the display layout', () => {
 
   it('highlights the monitor of the selected screen', async () => {
     setup();
-    await waitFor(() => expect(box(2).textContent).toContain('본 화면'));
+    await waitFor(() => expect(box(2).textContent).toContain('청중 화면'));
     expect(box(2).getAttribute('aria-current')).toBe('true');
     expect(box(1).getAttribute('aria-current')).toBeNull();
 
@@ -288,7 +288,7 @@ describe('the display layout', () => {
       expect(parseFloat(box(2).style.left)).toBeCloseTo(
         parseFloat(box(1).style.width),
       );
-      await userEvent.click(screen.getByRole('button', {name: '방송 자막'}));
+      await userEvent.click(screen.getByRole('button', {name: '방송 화면'}));
       expect(useScreensSelection.getState().selection.id).toBe(CAPTIONS_ID);
       await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
       expect(useScreensSelection.getState().selection.id).toBe(STAGE_ID);

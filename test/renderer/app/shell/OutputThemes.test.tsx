@@ -220,7 +220,7 @@ it('reports a failed theme load and retries after closing Output', async () => {
       expect.objectContaining({title: '테마 불러오기 실패'}),
     ),
   );
-  expect(screen.getByRole('group', {name: '본 화면'})).toBeTruthy();
+  expect(screen.getByRole('group', {name: '청중 화면'})).toBeTruthy();
   await userEvent.keyboard('{Escape}');
   await openMenu();
   await screen.findByRole('menuitemradio', {name: '평상시'});

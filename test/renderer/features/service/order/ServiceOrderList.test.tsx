@@ -232,7 +232,7 @@ describe('ServiceOrderList progress', () => {
               : {itemId: slideItemId, position: 0, label: null, lines: ['x']},
         },
       },
-      lastSlideItemId: 'psalm-23',
+      lastStartedItemId: 'psalm-23',
       startedItemIds: new Set(['song-morning', 'psalm-23']),
     });
   }

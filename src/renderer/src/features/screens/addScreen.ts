@@ -4,6 +4,8 @@ import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import type {MonitorInfo} from '@core/schema/monitors';
 import {assignScreenMonitor} from './assignScreenMonitor';
 
+const NEW_NAMES = {audience: '청중', broadcast: '방송', stage: '무대'} as const;
+
 export interface NewScreen {
   readonly id: ScreenId;
   readonly kind: Screen['kind'];
@@ -23,7 +25,7 @@ export function addScreen(
   if (screens.some(screen => screen.id === input.id)) {
     throw new Error('화면 추가 실패');
   }
-  const base = input.kind === 'audience' ? '새 청중 화면' : '새 무대 화면';
+  const base = `새 ${NEW_NAMES[input.kind]} 화면`;
   const names = new Set(screens.map(screen => screen.name.trim()));
   let name = base;
   for (let suffix = 2; names.has(name); suffix++) name = `${base} (${suffix})`;

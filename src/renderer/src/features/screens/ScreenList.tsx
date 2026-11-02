@@ -35,6 +35,7 @@ import {useMonitors} from './useMonitors';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
+const BROADCAST_LABEL = '방송';
 const STAGE_LABEL = '무대';
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
@@ -125,6 +126,7 @@ export function ScreenList({
     () =>
       [
         {kind: 'audience', label: AUDIENCE_LABEL, rows: groups.audience},
+        {kind: 'broadcast', label: BROADCAST_LABEL, rows: groups.broadcast},
         {kind: 'stage', label: STAGE_LABEL, rows: groups.stage},
       ] as const,
     [groups],

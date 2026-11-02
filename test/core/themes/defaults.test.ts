@@ -57,7 +57,7 @@ it.each(themeItemKinds)(
       {
         id,
         name: 'Capture',
-        kind: 'audience',
+        kind: 'broadcast',
         method: 'capture',
         emptyColor: '#123456',
       },

@@ -8,7 +8,7 @@ import type {Notice, NoticeAction} from '@renderer/ui/notices';
 export interface ScreenNames {
   /** Before 모니터, such as 무대 in 무대 모니터 연결 끊김. */
   readonly monitor: string;
-  /** Before 출력 창, such as 본 화면 in 본 화면 출력 창 다시 띄움. */
+  /** Before 출력 창, such as 청중 화면 in 청중 화면 출력 창 다시 띄움. */
   readonly window: string;
 }
 

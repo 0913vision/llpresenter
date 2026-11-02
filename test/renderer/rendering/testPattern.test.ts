@@ -11,7 +11,7 @@ import {
 
 const SCREEN = {
   id: MAIN,
-  name: '본 화면',
+  name: '청중 화면',
   kind: 'audience',
   method: 'fullscreen',
 } as const;
@@ -107,11 +107,11 @@ describe('TestPatternView', () => {
     vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(1440);
     vi.stubGlobal('devicePixelRatio', 1.5);
     view.show(SCREEN, true);
-    expect(label?.textContent).toBe('본 화면\n3840×2160');
+    expect(label?.textContent).toBe('청중 화면\n3840×2160');
     vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(960);
     vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(540);
     view.rescale(0.5);
-    expect(label?.textContent).toBe('본 화면\n1440×810');
+    expect(label?.textContent).toBe('청중 화면\n1440×810');
   });
 
   it('follows a new Windows scale at the same CSS size, watching only while it shows', () => {
@@ -121,12 +121,12 @@ describe('TestPatternView', () => {
     vi.stubGlobal('devicePixelRatio', 1);
     view.show(SCREEN, true);
     view.show(SCREEN, true);
-    expect(label?.textContent).toBe('본 화면\n1280×720');
+    expect(label?.textContent).toBe('청중 화면\n1280×720');
     expect(listening()).toEqual(['(resolution: 1dppx)']);
     expect(MockMediaQuery.made).toHaveLength(1);
     vi.stubGlobal('devicePixelRatio', 1.5);
     MockMediaQuery.made.at(-1)?.change();
-    expect(label?.textContent).toBe('본 화면\n1920×1080');
+    expect(label?.textContent).toBe('청중 화면\n1920×1080');
     expect(listening()).toEqual(['(resolution: 1.5dppx)']);
     view.show(SCREEN, false);
     expect(listening()).toEqual([]);
@@ -139,7 +139,7 @@ describe('TestPatternView', () => {
   it('prints only the name in a preview, and no label without one', () => {
     const {view, label} = setup('preview');
     view.show(SCREEN, true);
-    expect(label?.textContent).toBe('본 화면');
+    expect(label?.textContent).toBe('청중 화면');
     expect(MockMediaQuery.made).toHaveLength(0);
     view.show({id: MAIN, kind: 'audience'}, true);
     expect(label instanceof HTMLElement && label.hidden).toBe(true);

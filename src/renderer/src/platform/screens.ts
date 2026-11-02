@@ -9,7 +9,7 @@ export interface ScreenSummary {
   readonly statusLabel: string;
   readonly target: string;
   readonly targetKind: PreviewTarget['kind'];
-  /** Draws the empty picture green (the 방송 자막). */
+  /** Draws the empty picture green (the 방송 화면). */
   readonly chroma: boolean;
   /** 청중 or 무대; summaries made without it count as 청중. */
   readonly kind?: Screen['kind'] | undefined;

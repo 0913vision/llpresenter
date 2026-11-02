@@ -72,7 +72,7 @@ beforeEach(() => {
       subscribe: () => () => undefined,
     },
   });
-  useLive.setState({state: null, lastSlideItemId: null, commandVersion: 0});
+  useLive.setState({state: null, lastStartedItemId: null, commandVersion: 0});
   applyService(null);
   applyService(service);
 });

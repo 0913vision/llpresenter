@@ -19,13 +19,13 @@ function starters(): readonly Screen[] {
   return configuredScreens([
     {
       id: STARTER_SCREEN_IDS.main,
-      name: '본 화면',
+      name: '청중 화면',
       kind: 'audience',
       method: 'fullscreen',
     },
     {
       id: STARTER_SCREEN_IDS.broadcast,
-      name: '방송 자막',
+      name: '방송 화면',
       kind: 'audience',
       method: 'capture',
     },
@@ -139,7 +139,7 @@ describe('resolveOutputScreen', () => {
     const screens = configuredScreens([
       {
         id: '11111111-1111-4111-8111-111111111111',
-        name: '본 화면',
+        name: '청중 화면',
         kind: 'audience',
         method: 'fullscreen',
       },

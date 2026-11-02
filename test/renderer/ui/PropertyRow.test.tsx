@@ -17,7 +17,7 @@ afterEach(resetTooltips);
 
 function ScreenSettings(): JSX.Element {
   const [onTop, setOnTop] = useState(false);
-  const [name, setName] = useState('본 화면');
+  const [name, setName] = useState('청중 화면');
   const [kind, setKind] = useState<'audience' | 'stage'>('stage');
   return (
     <Properties>

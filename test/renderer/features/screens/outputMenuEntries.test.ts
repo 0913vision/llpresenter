@@ -36,7 +36,7 @@ it.each([false, true])(
     if (!broadcastId) throw new Error('Missing broadcast fixture');
     const row = menuItems(
       screenEntries({...input, outputs: {[broadcastId]: on}}),
-    ).find(item => item.id === 'broadcast');
+    ).find(item => item.id === 'broadcast-output');
     expect(row?.label).toBe(on ? '출력 끄기' : '출력 켜기');
     expect(row?.check).toBeUndefined();
     expect(
@@ -51,6 +51,45 @@ it.each([false, true])(
     });
   },
 );
+
+it('turns each role on or off with only its own screens', () => {
+  const {input, send} = fixture();
+  const rows = menuItems(screenEntries({...input, outputs: {}}));
+  const byRole = {
+    'audience-output': input.screens.filter(
+      screen => screen.kind === 'audience',
+    ),
+    'broadcast-output': input.screens.filter(
+      screen => screen.kind === 'broadcast',
+    ),
+    'stage-output': input.screens.filter(screen => screen.kind === 'stage'),
+  };
+  for (const [id, screens] of Object.entries(byRole)) {
+    expect(screens).toHaveLength(1);
+    send.mockClear();
+    rows.find(row => row.id === id)?.onSelect?.();
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'live.batch',
+      commands: screens.map(screen => ({
+        type: 'output.set',
+        screenId: screen.id,
+        on: true,
+      })),
+    });
+  }
+});
+
+it('leaves 방송 화면 off when 청중 화면 turns on, and the reverse', () => {
+  const {input} = fixture();
+  const audience = input.screens.find(screen => screen.kind === 'audience');
+  const broadcast = input.screens.find(screen => screen.kind === 'broadcast');
+  if (!audience || !broadcast) throw new Error('Missing fixture screens');
+  const label = (id: string, outputs: Record<string, boolean>) =>
+    menuItems(screenEntries({...input, outputs})).find(row => row.id === id)
+      ?.label;
+  expect(label('audience-output', {[broadcast.id]: true})).toBe('출력 켜기');
+  expect(label('broadcast-output', {[audience.id]: true})).toBe('출력 켜기');
+});
 
 it('opens the theme editor and the screen settings window', () => {
   const {input, send, onWorkspace} = fixture();
@@ -85,7 +124,7 @@ it('keeps the saved broadcast output available when its destination is a window'
   }));
   expect(
     menuItems(screenEntries({...input, screens})).find(
-      row => row.id === 'broadcast',
+      row => row.id === 'broadcast-output',
     )?.disabled,
   ).toBe(false);
 });

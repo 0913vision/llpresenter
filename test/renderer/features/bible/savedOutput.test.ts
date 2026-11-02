@@ -56,7 +56,7 @@ beforeEach(() => {
     selectedTile: 0,
     revision: null,
   });
-  useLive.setState({state: emptyLiveState(), lastSlideItemId: null});
+  useLive.setState({state: emptyLiveState(), lastStartedItemId: null});
   applyService(service());
 });
 

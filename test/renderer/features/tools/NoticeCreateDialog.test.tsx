@@ -59,7 +59,7 @@ it('requires a playlist and screen, then copies image order and defaults', () =>
   expect(screen.queryByRole('menuitemradio', {name: '영상 포함'})).toBeNull();
   fireEvent.click(screen.getByRole('menuitemradio', {name: '이미지 모음'}));
   expect(add.getAttribute('aria-disabled')).toBe('true');
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   fireEvent.click(add);
   expect(save).toHaveBeenCalledOnce();
   const item = save.mock.calls[0]?.[0];
@@ -100,7 +100,7 @@ it('blocks adding when the selected screen is removed', () => {
   );
   fireEvent.click(screen.getByRole('button', {name: '이미지 재생목록'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '이미지 모음'}));
-  fireEvent.click(screen.getByRole('button', {name: '본 화면'}));
+  fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
   expect(
     screen.getByRole('button', {name: '추가'}).getAttribute('aria-disabled'),
   ).toBeNull();

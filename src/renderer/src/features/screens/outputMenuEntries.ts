@@ -2,7 +2,6 @@ import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {ThemeId} from '@core/schema/ids';
 import type {ThemesFile} from '@core/schema/themes';
-import {outputStateKeys, STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {
   outputGroup,
   itemStopEntry,
@@ -38,18 +37,14 @@ export function screenOutputSections(
   input: ScreenOutputInput,
 ): ScreenOutputSections {
   const {screens, outputs, onEditScreens} = input;
-  const audience = screens.filter(screen => screen.kind !== 'stage');
-  const stage = screens.filter(screen => screen.kind === 'stage');
-  const captions = audience.filter(
-    screen =>
-      outputStateKeys(screen.id)[0] === STARTER_SCREEN_IDS.broadcast ||
-      screen.targetKind === 'capture' ||
-      screen.targetKind === 'ndi',
+  const audience = screens.filter(
+    screen => screen.kind !== 'stage' && screen.kind !== 'broadcast',
   );
-  const capture = outputGroup(captions, outputs);
+  const stage = screens.filter(screen => screen.kind === 'stage');
+  const broadcast = screens.filter(screen => screen.kind === 'broadcast');
   return {
     audience: [
-      {kind: 'group', id: 'audience', label: '본 화면'},
+      {kind: 'group', id: 'audience', label: '청중 화면'},
       {
         ...outputGroup(audience, outputs),
         id: 'audience-output',
@@ -80,8 +75,12 @@ export function screenOutputSections(
     ],
     broadcast: [
       menuSeparator('broadcast'),
-      {kind: 'group', id: 'broadcast-group', label: '방송 자막'},
-      {...capture, id: 'broadcast'},
+      {kind: 'group', id: 'broadcast-group', label: '방송 화면'},
+      {
+        ...outputGroup(broadcast, outputs),
+        id: 'broadcast-output',
+        command: 'output.broadcast',
+      },
       laterRow('broadcast-settings', '방송 설정…'),
     ],
     settings: [

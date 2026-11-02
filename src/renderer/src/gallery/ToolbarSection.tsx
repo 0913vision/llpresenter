@@ -61,22 +61,22 @@ interface OutputSpec {
 const outputs: readonly OutputSpec[] = [
   {
     label: 'On',
-    name: '본 화면',
-    screenName: '본 화면',
+    name: '청중 화면',
+    screenName: '청중 화면',
     target: '모니터 2',
     state: 'live',
   },
   {
     label: 'Off',
-    name: '본 화면',
-    screenName: '본 화면',
+    name: '청중 화면',
+    screenName: '청중 화면',
     target: '모니터 2',
     state: 'off',
   },
   {
     label: 'No monitor',
-    name: '본 화면',
-    screenName: '본 화면',
+    name: '청중 화면',
+    screenName: '청중 화면',
     target: '모니터 2',
     state: 'warning',
   },
@@ -98,8 +98,8 @@ const outputs: readonly OutputSpec[] = [
   },
   {
     label: 'Focus',
-    name: '방송 자막',
-    screenName: '방송 자막',
+    name: '방송 화면',
+    screenName: '방송 화면',
     target: 'NDI',
     state: 'live',
     pin: 'focus',
@@ -109,8 +109,8 @@ const outputs: readonly OutputSpec[] = [
 const compactOutputs: readonly OutputSpec[] = [
   {
     label: 'On',
-    name: '본 화면',
-    screenName: '본 화면',
+    name: '청중 화면',
+    screenName: '청중 화면',
     target: '모니터 2',
     state: 'live',
   },
@@ -159,7 +159,7 @@ function OutputItem({
 }
 
 function outputIcon(name: string): string {
-  return name === '방송 자막' ? 'capture' : 'mplay';
+  return name === '방송 화면' ? 'capture' : 'mplay';
 }
 
 export function ToolbarSection(): JSX.Element {

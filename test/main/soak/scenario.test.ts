@@ -64,7 +64,7 @@ describe('startSoakScenario', () => {
     await clock.advance(SLIDE_INTERVAL_MS);
     expect(commands).toHaveLength(count);
   });
-  it('starts the looping background, the 본 화면, and the first 장', () => {
+  it('starts the looping background, the 청중 화면, and the first 장', () => {
     installMockClock();
     const commands: LiveCommand[] = [];
     const stop = startSoakScenario({
