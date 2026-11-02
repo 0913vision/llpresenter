@@ -52,14 +52,56 @@ export interface BackupsOptions {
   readonly preferences: () => Preferences['backup'];
   readonly isAnyOutputOn: () => boolean;
   readonly now?: () => Date;
+  /** The gate shared with every other backup; the app's own by default. */
+  readonly gate?: BackupGate;
 }
+
+/**
+ * Owns "a backup is running" for the whole app, so the launch backup and
+ * 지금 백업 never copy into the backup location at once.
+ */
+export class BackupGate {
+  private active = false;
+  private readonly listeners = new Set<() => void>();
+
+  get running(): boolean {
+    return this.active;
+  }
+
+  /** Takes the gate; false when a backup already holds it. */
+  enter(): boolean {
+    if (this.active) return false;
+    this.active = true;
+    this.notify();
+    return true;
+  }
+
+  leave(): void {
+    this.active = false;
+    this.notify();
+  }
+
+  /** Calls the listener whenever the gate opens or closes. */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notify(): void {
+    for (const listener of [...this.listeners]) listener();
+  }
+}
+
+/** The gate every `Backups` shares unless a test gives its own. */
+export const backupGate = new BackupGate();
 
 /**
  * Starts backups one at a time, and never while an output is on, because
  * backups don't run during a service.
  */
 export class Backups {
-  private running = false;
   private readonly now: () => Date;
 
   constructor(private readonly options: BackupsOptions) {
@@ -94,10 +136,10 @@ export class Backups {
     if (this.options.isAnyOutputOn()) {
       return {kind: 'skipped', reason: 'output-on'};
     }
-    if (this.running) {
+    const gate = this.options.gate ?? backupGate;
+    if (!gate.enter()) {
       return {kind: 'skipped', reason: 'running'};
     }
-    this.running = true;
     try {
       const backup = await runBackup({
         locations: this.options.locations,
@@ -109,7 +151,7 @@ export class Backups {
         ? {kind: 'done', backup: backup.value}
         : {kind: 'failed', problem: backup.error};
     } finally {
-      this.running = false;
+      gate.leave();
     }
   }
 }

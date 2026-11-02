@@ -104,5 +104,10 @@ export function registerLibraryLocations({
     onChange: broadcastLocations(log),
     log,
   });
-  return registerLocationsChannels(locations, log);
+  const stopWatching = locations.watchBackups();
+  const stopChannels = registerLocationsChannels(locations, log);
+  return () => {
+    stopWatching();
+    stopChannels();
+  };
 }

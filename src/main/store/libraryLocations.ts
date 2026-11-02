@@ -8,7 +8,7 @@ import type {
 } from '@core/schema/libraryLocations';
 import type {Preferences} from '@core/schema/preferences';
 import type {Logger} from '../log';
-import {Backups, lastBackupTime} from './backup';
+import {backupGate, Backups, lastBackupTime, type BackupGate} from './backup';
 import {isInside, resolveLocations, type DataLocations} from './locations';
 import type {LocationContext, LocationFields} from './locations';
 
@@ -32,6 +32,8 @@ export interface LibraryLocationsOptions {
   readonly onChange: (view: LocationsView) => void;
   readonly log: Logger;
   readonly now?: () => Date;
+  /** Shared with the launch backup; the app's own gate by default. */
+  readonly gate?: BackupGate;
 }
 
 /** Picks a folder in the system dialog, or answers null on cancel. */
@@ -43,9 +45,25 @@ export type FolderChooser = (current: string) => Promise<string | null>;
  * files never move.
  */
 export class LibraryLocations {
-  private backingUp = false;
+  private readonly gate: BackupGate;
 
-  constructor(private readonly options: LibraryLocationsOptions) {}
+  constructor(private readonly options: LibraryLocationsOptions) {
+    this.gate = options.gate ?? backupGate;
+  }
+
+  /**
+   * Publishes the folders again whenever a backup starts or ends, also one the
+   * launch backup runs.
+   *
+   * @returns A function that stops it.
+   */
+  watchBackups(): () => void {
+    return this.gate.subscribe(() => {
+      this.publish().catch((error: unknown) =>
+        this.options.log.warn('could not publish the folders', error),
+      );
+    });
+  }
 
   async view(): Promise<LocationsView> {
     const {inUse} = this.options;
@@ -60,7 +78,7 @@ export class LibraryLocations {
       media: {path: now.media, pending: now.media !== inUse.media},
       backup: {path: now.backups, pending: false},
       lastBackup: time === null ? null : time.getTime(),
-      backingUp: this.backingUp,
+      backingUp: this.gate.running,
     };
   }
 
@@ -94,18 +112,6 @@ export class LibraryLocations {
   }
 
   async backUpNow(): Promise<BackUpNowResult> {
-    if (this.backingUp) return {ok: false, error: {reason: 'running'}};
-    this.backingUp = true;
-    await this.publish();
-    try {
-      return await this.runBackup();
-    } finally {
-      this.backingUp = false;
-      await this.publish();
-    }
-  }
-
-  private async runBackup(): Promise<BackUpNowResult> {
     const {options} = this;
     const preferences = await options.backupPreferences();
     const backups = new Backups({
@@ -113,6 +119,7 @@ export class LibraryLocations {
       developmentFolder: options.context().developmentFolder,
       preferences: () => preferences,
       isAnyOutputOn: options.isAnyOutputOn,
+      gate: this.gate,
       ...(options.now === undefined ? {} : {now: options.now}),
     });
     const outcome = await backups.backUpNow();

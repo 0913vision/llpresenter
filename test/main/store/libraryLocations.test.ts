@@ -1,13 +1,13 @@
 import {mkdir, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {
   LibraryLocationField,
   LocationsView,
 } from '@core/schema/libraryLocations';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '@main/log';
-import {backupFolderName} from '@main/store/backup';
+import {BackupGate, backupFolderName} from '@main/store/backup';
 import {
   LibraryLocations,
   type FolderChooser,
@@ -41,6 +41,7 @@ async function setUp({
     error: vi.fn(),
     flush: () => Promise.resolve(),
   } satisfies Logger;
+  const gate = new BackupGate();
   const onChange = vi.fn<(view: LocationsView) => void>();
   const locations = new LibraryLocations({
     config,
@@ -51,10 +52,12 @@ async function setUp({
     onChange,
     log,
     now: () => NOW,
+    gate,
   });
+  onTestFinished(locations.watchBackups());
   const choosing = (folder: string | null): FolderChooser =>
     vi.fn(() => Promise.resolve(folder));
-  return {root, inUse, config, locations, onChange, log, choosing};
+  return {root, inUse, config, locations, onChange, log, choosing, gate};
 }
 
 describe('the folders shown', () => {
@@ -263,10 +266,27 @@ describe('지금 백업', () => {
 
     expect(second).toEqual({ok: false, error: {reason: 'running'}});
     expect(finished).toEqual({ok: true, value: undefined});
-    const states = onChange.mock.calls.map(([view]) => view.backingUp);
-    expect(states[0]).toBe(true);
-    expect(states.at(-1)).toBe(false);
+    await vi.waitFor(() =>
+      expect(onChange.mock.calls.at(-1)?.[0].backingUp).toBe(false),
+    );
+    expect(onChange.mock.calls.some(([view]) => view.backingUp)).toBe(true);
     expect((await locations.view()).lastBackup).toBe(NOW.getTime());
+  });
+
+  it('refuses while the launch backup holds the gate, and shows it running', async () => {
+    const {locations, onChange, gate} = await setUp();
+
+    expect(gate.enter()).toBe(true);
+    const view = await locations.view();
+    const refused = await locations.backUpNow();
+    gate.leave();
+
+    expect(view.backingUp).toBe(true);
+    expect(refused).toEqual({ok: false, error: {reason: 'running'}});
+    await vi.waitFor(() =>
+      expect(onChange.mock.calls.at(-1)?.[0].backingUp).toBe(false),
+    );
+    expect(onChange.mock.calls.some(([next]) => next.backingUp)).toBe(true);
   });
 
   it('does not back up while an output is on', async () => {

@@ -1141,6 +1141,9 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   folder, or one that holds any of them. It likewise refuses a 곡 or 미디어
   folder inside or equal to the backup location. The row's tooltip gives the
   reason, and nothing is stored (lead decision, November 2, 2026).
+- One backup runs at a time in the app: while the launch backup or 지금 백업
+  copies, another request is refused as running, and 환경설정 shows 지금 백업
+  disabled (lint-312).
 - 지금 백업 (back up now) runs a backup at once. Keep as many backups as the
   보관 option says (default 30).
 - If the backup location isn't writable (for example, the drive is missing),

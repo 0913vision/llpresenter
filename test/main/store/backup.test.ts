@@ -1,9 +1,10 @@
 import {mkdir, readdir, readFile, rm, symlink} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
-import {describe, expect, it, onTestFinished} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {
   backupFolderName,
+  BackupGate,
   Backups,
   lastBackupTime,
   runBackup,
@@ -379,5 +380,66 @@ describe('Backups', () => {
 
     expect(first.kind).toBe('done');
     expect(second).toEqual({kind: 'skipped', reason: 'running'});
+  });
+
+  it('refuses the launch backup and 지금 백업 of other Backups while one holds the gate', async () => {
+    const locations = await dataLocations();
+    const gate = new BackupGate();
+    const launch = backups(locations, {gate});
+    const now = backups(locations, {gate});
+
+    expect(gate.enter()).toBe(true);
+    const launchRefused = await launch.atLaunch();
+    const nowRefused = await now.backUpNow();
+    gate.leave();
+    const afterwards = await now.backUpNow();
+
+    expect(launchRefused).toEqual({kind: 'skipped', reason: 'running'});
+    expect(nowRefused).toEqual({kind: 'skipped', reason: 'running'});
+    expect(afterwards.kind).toBe('done');
+    expect(gate.running).toBe(false);
+  });
+
+  it('refuses the launch backup while 지금 백업 of another Backups copies', async () => {
+    const locations = await dataLocations();
+    const gate = new BackupGate();
+    const running = backups(locations, {gate}).backUpNow();
+
+    const launch = await backups(locations, {gate}).atLaunch();
+
+    expect(launch).toMatchObject({kind: 'skipped'});
+    expect((await running).kind).toBe('done');
+  });
+
+  it('releases the gate when a backup fails or throws', async () => {
+    const locations = await dataLocations();
+    await writeJson(locations.backups, 'a file where the folder should be');
+    const gate = new BackupGate();
+
+    const failed = await backups(locations, {gate}).backUpNow();
+    const thrown = backups(locations, {
+      gate,
+      preferences: () => {
+        throw new Error('preferences are gone');
+      },
+    }).backUpNow();
+
+    expect(failed.kind).toBe('failed');
+    await expect(thrown).rejects.toThrow('preferences are gone');
+    expect(gate.running).toBe(false);
+  });
+
+  it('tells its listeners when the gate opens and closes', () => {
+    const gate = new BackupGate();
+    const listener = vi.fn();
+    const stop = gate.subscribe(listener);
+
+    expect(gate.enter()).toBe(true);
+    expect(gate.enter()).toBe(false);
+    gate.leave();
+    stop();
+    gate.enter();
+
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 });
