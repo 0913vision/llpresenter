@@ -15,6 +15,7 @@ import {
   PanelTools,
 } from '@renderer/ui/Panel';
 import {TextField} from '@renderer/ui/TextField';
+import {EmptyState} from '@renderer/ui/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
@@ -109,6 +110,12 @@ export function LibraryPanel({
         </PanelTools>
         <PanelBody tab="library" variant="flush" className={styles.body}>
           <div className={styles.list} aria-busy={library.loading}>
+            {library.visible.length === 0 &&
+            (library.query === '' ? library.listed : library.searched) ? (
+              <EmptyState
+                text={library.query === '' ? '곡 없음' : '검색 결과 없음'}
+              />
+            ) : null}
             <LibraryList
               rows={library.visible}
               selected={library.selected}

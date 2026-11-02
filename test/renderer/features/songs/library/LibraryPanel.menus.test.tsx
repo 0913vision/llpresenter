@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
   fireEvent,
@@ -41,7 +42,9 @@ describe('library panel', () => {
     const {onOpenSong, user} = await setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
     expect(onOpenSong).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('menuitem', {name: '곡 편집'}));
+    await user.click(
+      screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
+    );
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({
         document: fixtureSong(1, '찬송 10'),

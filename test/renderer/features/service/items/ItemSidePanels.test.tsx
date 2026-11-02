@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -227,7 +228,9 @@ describe('service item preview and 항목 설정', () => {
     expect(source.textContent).not.toContain('라이브러리');
     const usage = within(settings).getByRole('group', {name: '쓰는 곳'});
     expect(usage.textContent).toMatch(/예배 순서 \d+곳/);
-    await user.click(within(source).getByRole('button', {name: '곡 편집'}));
+    await user.click(
+      within(source).getByRole('button', {name: windowCommandLabels.editSong}),
+    );
     expect(openWindow).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({songId: first.song.id}),
     );

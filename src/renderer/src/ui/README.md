@@ -11,3 +11,10 @@ change the shared parts in this folder without the lead's approval.
   `Select`, `Checkbox`, `Switch`, `Slider`, `Menu`, `Tooltip`, `Dialog`,
   `AlertDialog`, `Panel`, `ListRow`, `StatusMarks`, `MenuBar`, `Toolbar`,
   `ToolbarButton`, `StatusBar`.
+
+## Empty list or grid
+
+`EmptyState` is what a panel body shows with no rows. The rule is the "Empty
+state" section of `design/system/project/components/Panel/README.md`: one short
+line in `text-3`, centered, in the app's words, plus one button only when an
+obvious next action already exists. Show it only after a successful read.

@@ -20,9 +20,9 @@ import {
   PanelTitle,
 } from '@renderer/ui/Panel';
 import {ItemSlideGrid} from './ItemSlideGrid';
-import {openItemOrder, ORDER_EDIT_LABEL} from './openItemOrder';
+import {openItemOrder} from './openItemOrder';
 import {openItemSong} from './openItemSong';
-import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -137,7 +137,7 @@ function SongItemView({
               title={editReason}
               onClick={() => openItemOrder({items})}
             >
-              {ORDER_EDIT_LABEL}
+              {windowCommandLabels.editOrder}
             </Button>
             <Button
               icon="edit"
@@ -147,7 +147,7 @@ function SongItemView({
                 openItemSong({items, editor});
               }}
             >
-              {SONG_EDIT_LABEL}
+              {windowCommandLabels.editSong}
             </Button>
           </PanelActions>
         </PanelHeader>

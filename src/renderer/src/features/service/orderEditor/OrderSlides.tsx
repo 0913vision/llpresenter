@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {useState, type JSX} from 'react';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -31,7 +32,7 @@ function slideMenuEntries(
     {
       kind: 'item',
       id: 'edit-song',
-      label: '곡 편집…',
+      label: windowCommandLabels.editSong,
       onSelect: () => onEditSong(tile.block),
     },
     menuSeparator('overlay-separator'),

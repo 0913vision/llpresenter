@@ -3,7 +3,10 @@ import type {KeyBinding} from '@core/schema/shortcuts';
 import {shortcutNames} from '@core/shortcuts/keys';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
+import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {KeyCombo, KeyList} from '@renderer/ui/KeyCap';
+import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {ShortcutField} from '@renderer/ui/ShortcutField';
 import {TextField} from '@renderer/ui/TextField';
@@ -20,10 +23,28 @@ import {useShortcutEdits} from './useShortcutEdits';
 import styles from './ShortcutsPage.module.css';
 
 const NO_DEFAULT = '기본값 없음';
+const RESET_LABEL = '기본값으로';
+const CLEAR_LABEL = '지우기';
 const LIST_LABEL = '명령';
 
 function keysOf(binding: KeyBinding): readonly string[] {
   return shortcutNames(binding);
+}
+
+function commandRowOf(
+  target: EventTarget,
+): {readonly id: string; readonly element: HTMLElement} | null {
+  const element =
+    target instanceof Element
+      ? target.closest<HTMLElement>('[data-command]')
+      : null;
+  const id = element?.dataset['command'];
+  return element === null || id === undefined ? null : {id, element};
+}
+
+/** Opens below the row itself, also when a key opened the menu. */
+function rowAnchor(row: HTMLElement): MenuAnchor {
+  return {kind: 'element', element: row, target: row};
 }
 
 function KeyCells({row}: {readonly row: ShortcutRow}): JSX.Element {
@@ -115,6 +136,9 @@ export function ShortcutsPage({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingAll, setConfirmingAll] = useState(false);
+  const [menu, setMenu] = useState<{id: string; anchor: MenuAnchor} | null>(
+    null,
+  );
   const list = useRef<HTMLDivElement>(null);
   const rows = useMemo(
     () => buildRows(edits.commands, edits.overrides),
@@ -134,6 +158,32 @@ export function ShortcutsPage({
         ?.focus();
     }
   }, [editingId, selectedId]);
+  const menuRow = rows.find(row => row.command.id === menu?.id);
+  const rowMenuEntries = (row: ShortcutRow): readonly MenuEntry[] => [
+    {
+      kind: 'item',
+      id: 'reset',
+      label: RESET_LABEL,
+      ...menuAvailability(
+        edits.lockedReason ?? (row.changed ? undefined : '바꾼 키가 없음'),
+      ),
+      onSelect: () => edits.reset(row.command.id),
+    },
+    {
+      kind: 'item',
+      id: 'clear',
+      label: CLEAR_LABEL,
+      ...menuAvailability(
+        edits.lockedReason ??
+          (row.bindings.length === 0 ? '지울 키가 없음' : undefined),
+      ),
+      onSelect: () => edits.record(row.command, null),
+    },
+  ];
+  const openMenu = (id: string, anchor: MenuAnchor): void => {
+    setSelectedId(id);
+    setMenu({id, anchor});
+  };
   const moveSelection = (step: 1 | -1): void => {
     const at = shown.findIndex(row => row.command.id === selectedId);
     const next = shown[Math.max(0, Math.min(shown.length - 1, at + step))];
@@ -195,6 +245,25 @@ export function ShortcutsPage({
         role="listbox"
         aria-label={LIST_LABEL}
         className={styles.list}
+        onContextMenu={event => {
+          const row = commandRowOf(event.target);
+          if (row === null) return;
+          event.preventDefault();
+          openMenu(
+            row.id,
+            event.clientX === 0 && event.clientY === 0
+              ? rowAnchor(row.element)
+              : contextMenuAnchor(event),
+          );
+        }}
+        onKeyDownCapture={event => {
+          if (!isContextMenuKey(event)) return;
+          const row = commandRowOf(event.target);
+          if (row === null) return;
+          event.preventDefault();
+          event.stopPropagation();
+          openMenu(row.id, rowAnchor(row.element));
+        }}
         onKeyDown={event => {
           if (event.target !== event.currentTarget) {
             if (
@@ -235,6 +304,14 @@ export function ShortcutsPage({
           </div>
         ))}
       </div>
+      {menu === null || menuRow === undefined ? null : (
+        <Menu
+          label="단축키 행 메뉴"
+          anchor={menu.anchor}
+          onClose={() => setMenu(null)}
+          entries={rowMenuEntries(menuRow)}
+        />
+      )}
       <footer className={styles.bar}>
         {selected === undefined ? null : (
           <>
@@ -261,14 +338,14 @@ export function ShortcutsPage({
               title={edits.lockedReason}
               onClick={() => edits.reset(selected.command.id)}
             >
-              기본값으로
+              {RESET_LABEL}
             </Button>
             <Button
               disabled={locked || selected.bindings.length === 0}
               title={edits.lockedReason}
               onClick={() => edits.record(selected.command, null)}
             >
-              지우기
+              {CLEAR_LABEL}
             </Button>
           </>
         )}

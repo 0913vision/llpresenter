@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {ThemeId} from '@core/schema/ids';
 import type {ThemesFile} from '@core/schema/themes';
@@ -88,7 +89,7 @@ export function screenOutputSections(
       {
         kind: 'item',
         id: 'screens',
-        label: '화면 설정…',
+        label: windowCommandLabels.screens,
         command: 'workspace.screens',
         meta: shortcutText('workspace.screens'),
         ...menuAvailability(

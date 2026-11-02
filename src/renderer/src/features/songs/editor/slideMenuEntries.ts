@@ -1,11 +1,10 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {
   laterClipboardRows,
   laterRow,
   menuSeparator,
 } from '@renderer/ui/menuRows';
-
-export const SONG_EDIT_LABEL = '곡 편집';
 
 export function slideMenuEntries(
   edit: (() => void) | undefined,
@@ -16,7 +15,7 @@ export function slideMenuEntries(
     {
       kind: 'item',
       id: 'edit',
-      label: SONG_EDIT_LABEL,
+      label: windowCommandLabels.editSong,
       ...menuAvailability(
         edit === undefined
           ? '이 슬라이드는 준비에서 편집할 수 없습니다'

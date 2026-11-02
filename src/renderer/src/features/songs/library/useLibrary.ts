@@ -52,6 +52,7 @@ export function useLibrary(
   const [searchVersion, setSearchVersion] = useState(0);
   const [selected, setSelected] = useState<SongId | null>(null);
   const [loading, setLoading] = useState(true);
+  const [listed, setListed] = useState(false);
   const [busy, setBusy] = useState(false);
   const problemHandler = useRef(onProblem);
   useEffect(() => {
@@ -89,6 +90,7 @@ export function useLibrary(
     setSongs(sorted);
     setSearch(null);
     setLoading(false);
+    setListed(true);
     setSelected(current =>
       sorted.some(song => song.id === current) ? current : null,
     );
@@ -313,6 +315,10 @@ export function useLibrary(
       setSelected(null);
     },
     loading,
+    /** The song list has been read at least once, so an empty list is real. */
+    listed,
+    /** The search for the current query has answered. */
+    searched: query !== '' && search?.query === query,
     busy,
     report,
     open,

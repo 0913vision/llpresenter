@@ -47,6 +47,13 @@ feature we lack), Moved, Removed.
   stay as they are.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). A row that opens a dialog
   or asks for more input ends with "…" as in PP (수정…, 전환 효과…).
+- **Window commands:** A command that opens a window ends with "…" and has one
+  label everywhere it is offered: 곡 편집…, 순서 편집…, 환경설정…, 화면 설정….
+  The library menu, the 진행 and 준비 row menus, the slide menus, and the
+  buttons that open the same window use that one label (`windowCommandLabels`).
+- **Row actions in a footer:** When a list keeps a row's actions in a bar below
+  it (the 단축키 page's 기본값으로 and 지우기), the row's right-click and Menu
+  key menu offers the same actions.
 - **Two-row menus:** No separator between the only two rows.
 - **List-row rule:** For a named thing in a list whose PP menu we could not see,
   use the shape PP gives such things (Look preset: Make Live | Duplicate,

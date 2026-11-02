@@ -207,6 +207,81 @@ describe('ShortcutsPage', () => {
     await waitFor(() => expect(written()).toMatchObject({'clear.media': []}));
   });
 
+  it('answers a right-click with the same two actions as the bottom bar and writes them', async () => {
+    await mount({
+      'clear.slide': [{code: 'KeyJ', mods: ['ctrl']}],
+      'future.command': [{code: 'F8', mods: []}],
+    });
+    fireEvent.contextMenu(rowOf(/가사 지우기/));
+    expect(
+      screen.getAllByRole('menuitem').map(item => item.textContent),
+    ).toEqual(['기본값으로', '지우기']);
+    await userEvent.click(screen.getByRole('menuitem', {name: '기본값으로'}));
+    await waitFor(() =>
+      expect(written()).toEqual({'future.command': [{code: 'F8', mods: []}]}),
+    );
+
+    edit.mockClear();
+    fireEvent.contextMenu(rowOf(/미디어 지우기/));
+    await userEvent.click(screen.getByRole('menuitem', {name: '지우기'}));
+    await waitFor(() => expect(written()).toMatchObject({'clear.media': []}));
+  });
+
+  it('opens the row menu with the Menu key, and disables what does not apply with its reason', async () => {
+    await mount();
+    const row = rowOf(/가사 지우기/);
+    row.focus();
+
+    fireEvent.keyDown(row, {key: 'ContextMenu'});
+
+    const reset = await screen.findByRole('menuitem', {name: '기본값으로'});
+    expect(reset.getAttribute('aria-disabled')).toBe('true');
+    expect(reset.getAttribute('title')).toBeNull();
+    expect(screen.getByRole('menuitem', {name: '지우기'})).toBeTruthy();
+  });
+
+  it.each([
+    ['the Menu key', {key: 'ContextMenu'}],
+    ['Shift F10', {key: 'F10', shiftKey: true}],
+  ])(
+    'opens the menu from %s below the focused row, not below the list',
+    async (_name, key) => {
+      await mount({'clear.slide': [{code: 'KeyJ', mods: ['ctrl']}]});
+      const row = rowOf(/가사 지우기/);
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect',
+      ).mockImplementation(function (this: HTMLElement): DOMRect {
+        if (this === row) return new DOMRect(300, 200, 400, 30);
+        if (this.getAttribute('role') === 'menu') {
+          return new DOMRect(0, 0, 160, 80);
+        }
+        return new DOMRect(10, 10, 900, 600);
+      });
+      row.focus();
+
+      fireEvent.keyDown(row, key);
+
+      const menu = await screen.findByRole('menu', {name: '단축키 행 메뉴'});
+      expect(menu.style.left).toBe('300px');
+      expect(Number.parseInt(menu.style.top, 10)).toBeGreaterThanOrEqual(230);
+      expect(row.hasAttribute('data-menu-target')).toBe(true);
+    },
+  );
+
+  it('keeps the row menu actions disabled for a file of a newer version', async () => {
+    await mount({'clear.slide': [{code: 'KeyJ', mods: ['ctrl']}]}, 'readOnly');
+
+    fireEvent.contextMenu(rowOf(/가사 지우기/));
+
+    for (const name of ['기본값으로', '지우기']) {
+      expect(
+        screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
+      ).toBe('true');
+    }
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('shows 기본값 없음 for a command without a default key', async () => {
     await mount();
     await userEvent.click(rowOf(/첫 슬라이드/));

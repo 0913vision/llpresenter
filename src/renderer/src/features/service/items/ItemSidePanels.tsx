@@ -25,7 +25,7 @@ import {savedPassageTiles} from './bibleItemModel';
 import {openItemSong} from './openItemSong';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
-import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {ItemThemeRow} from './ItemThemeRow';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;
@@ -148,7 +148,7 @@ export function ItemSettingsPanel({
                   action={
                     <IconButton
                       icon="open"
-                      label={SONG_EDIT_LABEL}
+                      label={windowCommandLabels.editSong}
                       onClick={() => {
                         openItemSong({items, editor});
                       }}

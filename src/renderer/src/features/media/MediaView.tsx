@@ -1,3 +1,4 @@
+import {EmptyState} from '@renderer/ui/EmptyState';
 import {useMemo, useState, type DragEvent, type JSX} from 'react';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {mediaLoops} from '@core/media/mediaEndRule';
@@ -263,6 +264,27 @@ export function MediaView({
           </PanelActions>
         </PanelHeader>
         <PanelBody tab="list" className={styles.body}>
+          {view.document !== null && entries.length === 0 ? (
+            <div
+              className={styles.emptyDrop}
+              onDragOver={dragOver}
+              onDrop={drop}
+            >
+              <EmptyState
+                text="미디어 없음"
+                action={
+                  <Button
+                    icon="upload"
+                    disabled={importReason !== undefined}
+                    title={importReason}
+                    onClick={() => startImport()}
+                  >
+                    가져오기
+                  </Button>
+                }
+              />
+            </div>
+          ) : null}
           <VirtualMediaGrid
             workspace={workspace}
             onDragOver={dragOver}

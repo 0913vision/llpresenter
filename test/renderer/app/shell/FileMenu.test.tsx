@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -205,7 +206,9 @@ describe('the 파일 menu', () => {
     window.llp = mockLlpApi({window: {openPreferences}});
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '환경설정'}));
+    await userEvent.click(
+      screen.getByRole('menuitem', {name: windowCommandLabels.preferences}),
+    );
 
     expect(openPreferences).toHaveBeenCalledOnce();
     expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();

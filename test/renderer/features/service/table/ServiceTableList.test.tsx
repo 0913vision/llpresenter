@@ -132,6 +132,30 @@ it('draws one row per item under the column names, without the plain count', asy
   expect(row.textContent).not.toContain('슬라이드 0개');
 });
 
+it('shows 항목 없음 for a service with no items, 예배 없음 with no service, and nothing otherwise', async () => {
+  setup();
+  await screen.findByRole('option', {name: '첫 곡'});
+  expect(screen.queryByRole('status')).toBeNull();
+
+  act(() =>
+    applyService({
+      id: SERVICE_ID,
+      revision: 2,
+      name: 'Invented service',
+      readOnly: false,
+      rows: [],
+      tiles: {},
+      jumpKeys: {},
+    }),
+  );
+  expect((await screen.findByRole('status')).textContent).toBe('항목 없음');
+
+  act(() => applyService(null));
+  await waitFor(() =>
+    expect(screen.getByRole('status').textContent).toBe('예배 없음'),
+  );
+});
+
 it('adds a 머리글 at the end of the table', async () => {
   const {edits} = setup();
   await screen.findByRole('option', {name: '첫 곡'});

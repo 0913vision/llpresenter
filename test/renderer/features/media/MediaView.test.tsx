@@ -194,8 +194,12 @@ describe('media view', () => {
       const {importFiles, pathForFile} = setup(fixture);
       const grid = screen.getByRole('listbox', {name: '모든 미디어'});
       await act(() => Promise.resolve());
-      const button = screen.getByRole('button', {name: '가져오기'});
-      expect(button.getAttribute('aria-disabled')).toBe('true');
+      const buttons = screen.getAllByRole('button', {name: '가져오기'});
+      for (const each of buttons) {
+        expect(each.getAttribute('aria-disabled')).toBe('true');
+      }
+      const [button] = buttons;
+      if (button === undefined) throw new Error('Missing 가져오기 button');
       expect((await hoverForTooltip(button))?.textContent).toBe(
         state === 'loading' ? '미디어를 불러오는 중' : '읽기 전용 미디어',
       );
@@ -263,6 +267,40 @@ describe('media view', () => {
     expect(image.textContent).not.toContain('0:30');
     expect((await tile('Hymn')).querySelector('img')).toBeNull();
     expect(screen.getByText('3개 3.0KB')).toBeDefined();
+  });
+
+  it('shows 미디어 없음 with 가져오기 for an empty list, and not once there are items', async () => {
+    setup(mediaFixture(mediaDocument([])));
+    await act(() => Promise.resolve());
+
+    const status = screen.getByRole('status');
+    expect(status.textContent).toContain('미디어 없음');
+    expect(
+      within(status).getByRole('button', {name: '가져오기'}),
+    ).toBeDefined();
+  });
+
+  it.each(['pending', 'rejected'] as const)(
+    'shows no empty state while the list read is %s',
+    async state => {
+      const fixture = mediaFixture(mediaDocument([]));
+      vi.spyOn(fixture.api.media, 'get').mockImplementation(() =>
+        state === 'pending'
+          ? new Promise<MediaDocument>(() => undefined)
+          : Promise.reject(new Error('read failed')),
+      );
+      setup(fixture);
+      await act(() => Promise.resolve());
+
+      expect(screen.queryByRole('status')).toBeNull();
+    },
+  );
+
+  it('shows no empty state while the list has items', async () => {
+    setup();
+    await tile('Dawn');
+
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('imports through the dialog and shows each copy in progress', async () => {

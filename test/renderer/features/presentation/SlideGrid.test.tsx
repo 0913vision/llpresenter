@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -34,7 +35,9 @@ it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
     const tile = slide(2);
     tile.focus();
     fireEvent.keyDown(tile, keys);
-    fireEvent.click(screen.getByRole('menuitem', {name: '곡 편집'}));
+    fireEvent.click(
+      screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
+    );
     expect(onOpenPrep).toHaveBeenCalledExactlyOnceWith('song-morning', 2);
     expect(send).not.toHaveBeenCalled();
     expect(screen.queryByRole('menu')).toBeNull();

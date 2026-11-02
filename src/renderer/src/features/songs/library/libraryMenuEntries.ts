@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
@@ -34,7 +35,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'lyrics',
-      label: '곡 편집',
+      label: windowCommandLabels.editSong,
       ...menuAvailability(busy ? '곡 작업 중' : undefined),
       onSelect: open,
     },

@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
   fireEvent,
@@ -234,7 +235,9 @@ describe('service song item panel', () => {
   it('opens the source song in the 곡 편집 window at the clicked slide', async () => {
     const {panel, user, openWindow, first} = await setup();
     await user.click(chip(panel, 2));
-    await user.click(within(panel).getByRole('button', {name: '곡 편집'}));
+    await user.click(
+      within(panel).getByRole('button', {name: windowCommandLabels.editSong}),
+    );
     expect(openWindow).toHaveBeenCalledExactlyOnceWith({
       songId: first.song.id,
       block: 1,
@@ -273,7 +276,9 @@ describe('service song item panel', () => {
         last.slides.length,
       ),
     );
-    await user.click(within(panel).getByRole('button', {name: '곡 편집'}));
+    await user.click(
+      within(panel).getByRole('button', {name: windowCommandLabels.editSong}),
+    );
     expect(openWindow).toHaveBeenCalledWith(
       expect.objectContaining({block: before}),
     );
@@ -398,7 +403,7 @@ describe('service song item panel', () => {
     expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
 
     const editBtn = within(panel).getByRole('button', {
-      name: '곡 편집',
+      name: windowCommandLabels.editSong,
     });
     expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
     const user = userEvent.setup();

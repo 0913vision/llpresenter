@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   menuAvailability,
   type MenuEntry,
@@ -39,14 +40,14 @@ function songEditRows({
     {
       kind: 'item',
       id: 'edit-order',
-      label: '순서 편집…',
+      label: windowCommandLabels.editOrder,
       ...menuAvailability(song?.reason),
       onSelect: editSong.editOrder,
     },
     {
       kind: 'item',
       id: 'edit-song',
-      label: '곡 편집…',
+      label: windowCommandLabels.editSong,
       ...menuAvailability(
         song?.reason ??
           (editSong.editSong === undefined
@@ -89,7 +90,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
               {
                 kind: 'item',
                 id: 'prep',
-                label: '곡 편집',
+                label: windowCommandLabels.editSong,
                 onSelect: openInPrep,
               } as const,
             ]),

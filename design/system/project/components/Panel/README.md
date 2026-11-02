@@ -58,6 +58,23 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 | Service switcher focus | Unchanged | Unchanged | outline 2px `accent`, offset 1px |
 | Service switcher disabled | Transparent | `text-off` | No hover |
 
+## Empty state
+
+A panel body with nothing to list (the 라이브러리 with no songs, the media
+grids with no media, the 예배 순서 with no service or no items) shows one short
+line, centered in the free space of the body, in `text-3`. The line says what is
+empty in the app's own words: "곡 없음", "미디어 없음", "예배 없음", "항목
+없음", and "검색 결과 없음" after a search with no match. When one obvious next
+action already exists in the app, one button for it sits under the line (가져오기
+for an empty media grid). There is no icon art and no second sentence.
+
+- Show it only after the read has succeeded. While a list is loading, or after
+  its read failed, the body shows no empty state (the failure has its own
+  notice).
+- The body keeps its drop and key behavior: media files can still be dropped on
+  an empty media grid.
+- Code: `EmptyState` in `src/renderer/src/ui/`.
+
 ## Behavior
 
 - Modified Space and Enter pass to their owner without switching tabs or opening the service switcher or the extra-tabs menu.

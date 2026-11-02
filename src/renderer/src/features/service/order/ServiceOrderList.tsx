@@ -1,3 +1,4 @@
+import {EmptyState} from '@renderer/ui/EmptyState';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
@@ -492,6 +493,9 @@ export function ServiceOrderList({
           ),
         )}
       </ListBox>
+      {rows.length === 0 ? (
+        <EmptyState text={serviceId === null ? '예배 없음' : '항목 없음'} />
+      ) : null}
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
       {menu?.serviceId === serviceId ? (

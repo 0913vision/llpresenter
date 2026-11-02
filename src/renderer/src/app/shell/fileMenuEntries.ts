@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
@@ -87,7 +88,7 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
     {
       kind: 'item',
       id: 'preferences',
-      label: '환경설정',
+      label: windowCommandLabels.preferences,
       command: 'app.preferences',
       meta: shortcutText('app.preferences'),
       onSelect: () => window.llp?.window.openPreferences(),

@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
   cleanup,
@@ -65,7 +66,9 @@ describe('Bible panel integration', () => {
     const contextTarget = tile;
     fireEvent.contextMenu(contextTarget);
     expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-    const edit = screen.getByRole('menuitem', {name: '곡 편집'});
+    const edit = screen.getByRole('menuitem', {
+      name: windowCommandLabels.editSong,
+    });
     expect(edit.getAttribute('aria-disabled')).toBe('true');
     expect((await hoverForTooltip(edit))?.textContent).toBe(
       '이 슬라이드는 준비에서 편집할 수 없습니다',

@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
   cleanup,
@@ -406,7 +407,9 @@ it('keeps slide selection local and exposes the shared source slide menu', async
   expect(items.getSnapshot().position).toBe(2);
   expect(edits).toHaveLength(0);
   fireEvent.contextMenu(slide(2));
-  await user.click(screen.getByRole('menuitem', {name: '곡 편집'}));
+  await user.click(
+    screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
+  );
   expect(openWindow).toHaveBeenCalledOnce();
 });
 

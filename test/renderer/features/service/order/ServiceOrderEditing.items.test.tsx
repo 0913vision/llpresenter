@@ -1,3 +1,4 @@
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
@@ -62,7 +63,7 @@ describe('service panel editing', () => {
     const {onOpenPrep, send} = setup();
     fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
     await userEvent.click(
-      await screen.findByRole('menuitem', {name: '곡 편집'}),
+      await screen.findByRole('menuitem', {name: windowCommandLabels.editSong}),
     );
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();

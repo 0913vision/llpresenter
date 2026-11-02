@@ -1,7 +1,5 @@
 import type {ServiceItemStore} from './serviceItemStore';
 
-export const ORDER_EDIT_LABEL = '순서 편집…';
-
 /** Opens the 순서 편집 window on the song item shown in 준비. */
 export function openItemOrder({
   items,
