@@ -210,4 +210,18 @@ describe('BackgroundLayerView seeking', () => {
     videos[1].dispatchEvent(new Event('loadedmetadata'));
     expect(seek).not.toHaveBeenCalled();
   });
+  // NOTE(0913vision): Spec 08, "What must never happen during a service": a
+  // missing or broken background file never turns the output black.
+  it('keeps the last frame shown when the playing background fails', () => {
+    const {view, videos, onError} = setUp();
+    const front = videos[1];
+    view.show(STILL_WATER);
+    front.dispatchEvent(new Event('playing'));
+    expect(isShown(front)).toBe(true);
+
+    front.dispatchEvent(new Event('error'));
+
+    expect(isShown(front)).toBe(true);
+    expect(onError).toHaveBeenCalledOnce();
+  });
 });

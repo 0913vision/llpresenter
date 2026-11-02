@@ -30,17 +30,25 @@ type LoggedStore = Pick<
  * protection. The caller awaits completion during shutdown; this function does
  * not register a recurring job.
  */
+/** Where upkeep writes its log, and who hears that the launch backup failed. */
+export interface UpkeepReport {
+  readonly log: Logger;
+  /** Called with the backup folder when the launch backup could not be made. */
+  readonly onBackupFailed?: ((folder: string) => void) | undefined;
+}
+
 export async function upkeepAtLaunch(
   loading: Promise<UpkeepStore | null>,
   isAnyOutputOn: () => boolean,
-  log: Logger,
+  report: UpkeepReport,
 ): Promise<void> {
+  const {log} = report;
   const store = await loading;
   if (store === null) {
     return;
   }
   await removeLeftoverTempFiles(store, log);
-  await backUpAtLaunch(store, isAnyOutputOn, log);
+  await backUpAtLaunch(store, isAnyOutputOn, report);
 }
 
 async function removeLeftoverTempFiles(
@@ -57,7 +65,7 @@ async function removeLeftoverTempFiles(
 async function backUpAtLaunch(
   store: UpkeepStore,
   isAnyOutputOn: () => boolean,
-  log: Logger,
+  {log, onBackupFailed}: UpkeepReport,
 ): Promise<void> {
   try {
     const backups = new Backups({
@@ -66,9 +74,12 @@ async function backUpAtLaunch(
       preferences: () => store.preferences.backup,
       isAnyOutputOn,
     });
-    logBackupOutcome(await backups.atLaunch(), log);
+    const outcome = await backups.atLaunch();
+    logBackupOutcome(outcome, log);
+    if (outcome.kind === 'failed') onBackupFailed?.(store.locations.backups);
   } catch (error: unknown) {
     log.error('the launch backup failed', error);
+    onBackupFailed?.(store.locations.backups);
   }
 }
 

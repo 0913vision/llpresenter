@@ -5,6 +5,7 @@ import {noticeTime} from '@renderer/ui/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,
+  backupFailedCard,
   macroDroppedCard,
   skippedFilesCard,
   waitingSavesCard,
@@ -48,6 +49,9 @@ export function useProblemNotices(
               retry: () => problems.retrySaves(),
             }),
           );
+          return;
+        case 'backup-failed':
+          show(backupFailedCard(problem, noticeTime()));
           return;
         case 'save-recovered':
           setSaveFailed(false);

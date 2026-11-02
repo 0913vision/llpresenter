@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   APP_PROBLEM_LIMITS,
+  backupFailedProblem,
   fileSkippedProblem,
   macroDroppedProblem,
   parseAppProblem,
@@ -31,6 +32,7 @@ describe('app problem payloads', () => {
     {kind: 'save-failed', name: 'songs.llsong', count: 1},
     {kind: 'save-failed', name: 'x', count: 1000},
     {kind: 'save-recovered'},
+    {kind: 'backup-failed', name: '백업'},
   ])('reads %j', value => {
     expect(parseAppProblem(value)).toEqual({ok: true, value});
   });
@@ -161,5 +163,22 @@ describe('fileSkippedProblem', () => {
       ok: true,
       value: {kind: 'file-skipped', fileId: 2, name: 'themes.json'},
     });
+  });
+});
+
+describe('backup failed problem', () => {
+  it('names the backup folder without its path', () => {
+    expect(backupFailedProblem('E:/예배/백업/')).toEqual({
+      kind: 'backup-failed',
+      name: '백업',
+    });
+  });
+
+  it('cuts a long name at a whole character and refuses an empty one', () => {
+    const long = '가'.repeat(APP_PROBLEM_LIMITS.nameCharacters + 5);
+    expect(backupFailedProblem(long).name).toHaveLength(
+      APP_PROBLEM_LIMITS.nameCharacters,
+    );
+    expect(parseAppProblem({kind: 'backup-failed', name: ''}).ok).toBe(false);
   });
 });

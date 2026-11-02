@@ -140,6 +140,27 @@ describe('NotificationCard', () => {
 });
 
 describe('NotificationStack', () => {
+  it('never takes focus from the field being typed in when a warning card arrives', () => {
+    const {rerender} = render(
+      <>
+        <input aria-label="메모" />
+        <NotificationStack notices={[]} onClose={() => {}} />
+      </>,
+    );
+    const field = screen.getByRole('textbox', {name: '메모'});
+    field.focus();
+
+    rerender(
+      <>
+        <input aria-label="메모" />
+        <NotificationStack notices={[lost]} onClose={() => {}} />
+      </>,
+    );
+
+    expect(screen.getByRole('alert')).toBeDefined();
+    expect(document.activeElement).toBe(field);
+  });
+
   it('shows its cards first in the page, outside a dialog that makes the app inert', () => {
     render(<Stack initial={[lost, back]} />);
     const layer = screen.getByRole('alert').closest('[data-llp-layer]');

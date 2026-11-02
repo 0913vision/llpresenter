@@ -1,5 +1,6 @@
 import {appEndpoints} from '@contracts/ipc/app';
 import {settingsEndpoints} from '@contracts/ipc/settings';
+import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {app, ipcMain} from 'electron';
@@ -184,7 +185,17 @@ export function registerStore({
     opened.then(ready => ready?.library ?? null),
     log,
   );
-  const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
+  let backupProblem: AppProblem | null = null;
+  const removeBackupProblem = problems.addStanding(() =>
+    backupProblem === null ? [] : [backupProblem],
+  );
+  const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, {
+    log,
+    onBackupFailed: folder => {
+      backupProblem = backupFailedProblem(folder);
+      problems.push(backupProblem);
+    },
+  });
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
   );
@@ -242,6 +253,7 @@ export function registerStore({
         ready?.content.dispose();
         stopSkippedFiles();
         removeSkippedFiles();
+        removeBackupProblem();
         removeSaveProblems();
         saveFailures.dispose();
       }

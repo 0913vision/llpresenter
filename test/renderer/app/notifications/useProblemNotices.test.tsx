@@ -152,4 +152,19 @@ describe('useProblemNotices', () => {
     await waitFor(() => expect(result.current).toBe(true));
     expect(waitingSavesCard).toHaveBeenCalledOnce();
   });
+
+  it('shows the backup card for a standing problem and for a push, as one card', async () => {
+    const {target, push} = setup([{kind: 'backup-failed', name: '백업'}]);
+    await waitFor(() =>
+      expect(target.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          key: 'backup-failed',
+          title: '백업 위치를 사용할 수 없음',
+        }),
+      ),
+    );
+    push({kind: 'backup-failed', name: '백업'});
+    expect(target.report).toHaveBeenCalledTimes(2);
+    expect(target.report.mock.calls[1]?.[0].key).toBe('backup-failed');
+  });
 });

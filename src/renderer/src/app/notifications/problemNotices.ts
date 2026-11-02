@@ -7,6 +7,9 @@ export const SKIPPED_FILES_KEY = 'file-skipped';
 /** One card stands for every file that waits to be saved. */
 export const WAITING_SAVES_KEY = 'save-failed';
 
+/** One card stands for the launch backup that failed. */
+export const BACKUP_FAILED_KEY = 'backup-failed';
+
 const UNNAMED_MACRO = '이름 없는 매크로';
 
 /**
@@ -68,5 +71,23 @@ export function macroDroppedCard(
     title: '매크로 적용 실패',
     time,
     meta: [name === '' ? UNNAMED_MACRO : name],
+  };
+}
+
+/**
+ * The 백업 위치를 사용할 수 없음 card for a launch backup that failed (spec 08);
+ * the detail names the folder and says nothing was backed up.
+ */
+export function backupFailedCard(
+  {name}: AppProblemOf<'backup-failed'>,
+  time: string,
+): Notice {
+  return {
+    key: BACKUP_FAILED_KEY,
+    kind: 'warning',
+    icon: 'warning',
+    title: '백업 위치를 사용할 수 없음',
+    time,
+    meta: [name, '백업하지 않음'],
   };
 }

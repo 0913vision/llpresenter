@@ -64,7 +64,7 @@ describe('upkeepAtLaunch', () => {
   it('does nothing without a loaded store', async () => {
     const log = setup();
 
-    await upkeepAtLaunch(Promise.resolve(null), () => false, log);
+    await upkeepAtLaunch(Promise.resolve(null), () => false, {log});
 
     expect(backups.order).toEqual([]);
   });
@@ -72,7 +72,7 @@ describe('upkeepAtLaunch', () => {
   it('removes leftover temporary files in every data folder before the backup', async () => {
     const log = setup();
 
-    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {log});
 
     expect(backups.order).toEqual([
       locations.songs,
@@ -89,7 +89,7 @@ describe('upkeepAtLaunch', () => {
       {file: 'a.tmp', message: 'busy'},
     ]);
 
-    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {log});
 
     expect(log.messages('warn')).toEqual([
       'could not remove a leftover temporary file',
@@ -101,7 +101,7 @@ describe('upkeepAtLaunch', () => {
     const log = setup();
     const isAnyOutputOn = vi.fn(() => true);
 
-    await upkeepAtLaunch(Promise.resolve(store()), isAnyOutputOn, log);
+    await upkeepAtLaunch(Promise.resolve(store()), isAnyOutputOn, {log});
 
     const [options] = backups.options;
     expect(options).toMatchObject({locations, developmentFolder: null});
@@ -127,16 +127,41 @@ describe('upkeepAtLaunch', () => {
   ])('logs the backup outcome %j', async (outcome, info, warnings) => {
     const log = setup(() => Promise.resolve(outcome));
 
-    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {log});
 
     expect(log.messages('info')).toEqual(info === '' ? [] : [info]);
     expect(log.messages('warn')).toEqual(warnings);
   });
 
+  it('reports the backup folder when the launch backup fails or throws, and not when it works or is skipped', async () => {
+    const failed = vi.fn();
+    const outcomes: BackupOutcome[] = [
+      {kind: 'failed', problem: {file: 'copy', message: 'x'}},
+      {kind: 'skipped', reason: 'output-on'},
+      {kind: 'done', backup: {folder: 'backup-1', problems: []}},
+    ];
+    for (const outcome of outcomes) {
+      const log = setup(() => Promise.resolve(outcome));
+      await upkeepAtLaunch(Promise.resolve(store()), () => false, {
+        log,
+        onBackupFailed: failed,
+      });
+    }
+    expect(failed).toHaveBeenCalledExactlyOnceWith(locations.backups);
+
+    failed.mockClear();
+    const log = setup(() => Promise.reject(new Error('disk')));
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {
+      log,
+      onBackupFailed: failed,
+    });
+    expect(failed).toHaveBeenCalledExactlyOnceWith(locations.backups);
+  });
+
   it('logs a backup that throws as an error', async () => {
     const log = setup(() => Promise.reject(new Error('disk')));
 
-    await upkeepAtLaunch(Promise.resolve(store()), () => false, log);
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {log});
 
     expect(log.messages('error')).toEqual(['the launch backup failed']);
   });

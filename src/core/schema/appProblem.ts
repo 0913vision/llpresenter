@@ -28,6 +28,10 @@ const appProblemSchema = v.pipe(
     }),
     v.object({kind: v.literal('save-recovered')}),
     v.object({
+      kind: v.literal('backup-failed'),
+      name: v.pipe(nameSchema, v.nonEmpty()),
+    }),
+    v.object({
       kind: v.literal('file-skipped'),
       fileId: v.pipe(
         v.number(),
@@ -56,6 +60,9 @@ const appProblemListSchema = v.pipe(
  *   (spec 02 and 08, 저장할 수 없음); `name` names the next one to retry,
  *   and `count` is how many wait. Main pushes it again whenever either changes.
  * - `save-recovered`: every waiting file is written now.
+ * - `backup-failed`: the backup at launch could not be made; `name` is the
+ *   backup location's folder name without the path (spec 08, "Backup
+ *   location unavailable").
  * - `file-skipped`: a data file couldn't be read at startup and was skipped
  *   (spec 08, "File can't be read"); `fileId` tells the skipped files apart
  *   for as long as the app runs, and `name` is the file name without the
@@ -134,5 +141,22 @@ export function fileSkippedProblem(
     kind: 'file-skipped',
     fileId,
     name: clipped(name, APP_PROBLEM_LIMITS.nameCharacters),
+  };
+}
+
+/**
+ * The problem for a launch backup that failed, with the name of the backup
+ * folder without its path. A name over the limit is cut at a whole character.
+ */
+export function backupFailedProblem(
+  folder: string,
+): AppProblemOf<'backup-failed'> {
+  const name = folder.split(FOLDER_SEPARATOR).filter(Boolean).at(-1) ?? folder;
+  return {
+    kind: 'backup-failed',
+    name: clipped(
+      name === '' ? '백업' : name,
+      APP_PROBLEM_LIMITS.nameCharacters,
+    ),
   };
 }

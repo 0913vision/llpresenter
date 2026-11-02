@@ -3,6 +3,7 @@ import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {saveFailedProblem} from '@core/schema/appProblem';
 import {
+  backupFailedCard,
   macroDroppedCard,
   skippedFilesCard,
   waitingSavesCard,
@@ -83,4 +84,17 @@ it('names the oldest waiting file and counts the others', () => {
       retry: () => undefined,
     }).meta,
   ).toEqual(['주일 예배 외 2개']);
+});
+
+it('warns that the backup location is unavailable, with its folder and what happened', () => {
+  expect(backupFailedCard({kind: 'backup-failed', name: '백업'}, TIME)).toEqual(
+    {
+      key: 'backup-failed',
+      kind: 'warning',
+      icon: 'warning',
+      title: '백업 위치를 사용할 수 없음',
+      time: TIME,
+      meta: ['백업', '백업하지 않음'],
+    },
+  );
 });
