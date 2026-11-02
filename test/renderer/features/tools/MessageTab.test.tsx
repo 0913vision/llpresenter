@@ -335,3 +335,17 @@ it('reports failed settings reads, blocks output, and releases subscriptions', a
   expect(fixture.count()).toBe(0);
   expect(fixture.send).not.toHaveBeenCalled();
 });
+
+it('keeps the 보내기 row as a direct child of the scrolling tab body, after the lists', async () => {
+  messageFixture();
+  const {container} = render(<MessageTab />);
+  await ready();
+  const row = sendButton().parentElement;
+  expect(row?.parentElement).toBe(container);
+  const list = screen.getByRole('listbox', {name: '메시지 문구'});
+  const children = [...container.children];
+  const listAt = children.findIndex(child => child.contains(list));
+  const rowAt = children.findIndex(child => child === row);
+  expect(listAt).toBeGreaterThan(-1);
+  expect(rowAt).toBeGreaterThan(listAt);
+});

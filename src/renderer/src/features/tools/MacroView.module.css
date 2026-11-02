@@ -16,4 +16,5 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  scroll-snap-type: y proximity;
 }

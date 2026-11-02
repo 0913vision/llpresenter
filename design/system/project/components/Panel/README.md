@@ -84,6 +84,7 @@ for an empty media grid). There is no icon art and no second sentence.
 - Focus order: header (tabs, service switcher, controls on the right) → tool row → body → footer row.
 - Give a panel's `section` the panel name as its `aria-label`. If the panel has only one tab, that tab name is the panel name.
 - Changing column widths by dragging the gap between panels follows `Layout`.
+- Pinned actions: a tab whose main button must stay in reach, such as 보내기 on the 진행 도구 메시지 tab, puts it in a row at the end of the body that stays at the bottom edge while the lists above scroll (`position: sticky`, padding `space-8` and `panel-inset`, a 1px `line` on top, `bg-panel`). It holds at the default size and at the 240px 진행 도구 minimum of `Layout`. A grid of tiles that wraps to more rows than fit scrolls by rows (`scroll-snap-type: y proximity`, each tile `scroll-snap-align: start`).
 
 ## Writing
 

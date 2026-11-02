@@ -27,6 +27,7 @@
   width: 100%;
   min-width: 0;
   padding: 0;
+  scroll-snap-align: start;
   border: 0;
   background: transparent;
   color: var(--text-2);

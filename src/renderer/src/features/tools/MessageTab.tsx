@@ -141,66 +141,68 @@ function Composer({
     });
   }
   return (
-    <div className={styles.composer}>
-      <Properties>
-        {messageBlankNames(template.text).map(name => (
-          <BlankField
-            key={name}
-            name={name}
-            value={values.get(name) ?? ''}
-            setValues={setValues}
-          />
-        ))}
-        <PropertyRow label="보낼 화면" alignTop>
-          {({labelId, controlId}) => (
-            <div
-              id={controlId}
-              role="group"
-              aria-labelledby={labelId}
-              className={styles.targets}
-            >
-              <Button
-                aria-pressed={targets === 'all'}
-                onClick={() => setTargets(targets === 'all' ? [] : 'all')}
-              >
-                모든 화면
-              </Button>
-              {screens.map(screen => (
-                <Button
-                  key={screen.id}
-                  aria-pressed={
-                    targets !== 'all' && targets.includes(screen.id)
-                  }
-                  onClick={() =>
-                    setTargets(current =>
-                      toggleMessageScreen(current, screen.id),
-                    )
-                  }
-                >
-                  {screen.name || '이름 없음'}
-                </Button>
-              ))}
-            </div>
-          )}
-        </PropertyRow>
-        <PropertyRow label="표시 시간">
-          {({controlId}) => (
-            <SelectMenu
-              id={controlId}
-              aria-label="메시지 표시 시간"
-              block
-              value={duration === null ? 'until' : String(duration)}
-              options={durations}
-              onChange={value =>
-                setDuration(value === 'until' ? null : Number(value))
-              }
+    <>
+      <div className={styles.composer}>
+        <Properties>
+          {messageBlankNames(template.text).map(name => (
+            <BlankField
+              key={name}
+              name={name}
+              value={values.get(name) ?? ''}
+              setValues={setValues}
             />
-          )}
-        </PropertyRow>
-      </Properties>
-      <output className={styles.preview} aria-label="메시지 미리보기">
-        {ready.text}
-      </output>
+          ))}
+          <PropertyRow label="보낼 화면" alignTop>
+            {({labelId, controlId}) => (
+              <div
+                id={controlId}
+                role="group"
+                aria-labelledby={labelId}
+                className={styles.targets}
+              >
+                <Button
+                  aria-pressed={targets === 'all'}
+                  onClick={() => setTargets(targets === 'all' ? [] : 'all')}
+                >
+                  모든 화면
+                </Button>
+                {screens.map(screen => (
+                  <Button
+                    key={screen.id}
+                    aria-pressed={
+                      targets !== 'all' && targets.includes(screen.id)
+                    }
+                    onClick={() =>
+                      setTargets(current =>
+                        toggleMessageScreen(current, screen.id),
+                      )
+                    }
+                  >
+                    {screen.name || '이름 없음'}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </PropertyRow>
+          <PropertyRow label="표시 시간">
+            {({controlId}) => (
+              <SelectMenu
+                id={controlId}
+                aria-label="메시지 표시 시간"
+                block
+                value={duration === null ? 'until' : String(duration)}
+                options={durations}
+                onChange={value =>
+                  setDuration(value === 'until' ? null : Number(value))
+                }
+              />
+            )}
+          </PropertyRow>
+        </Properties>
+        <output className={styles.preview} aria-label="메시지 미리보기">
+          {ready.text}
+        </output>
+      </div>
       <div className={styles.actions}>
         <Button
           variant="primary"
@@ -217,7 +219,7 @@ function Composer({
           보내기
         </Button>
       </div>
-    </div>
+    </>
   );
 }
 

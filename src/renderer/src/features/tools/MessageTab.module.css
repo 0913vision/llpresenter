@@ -1,5 +1,5 @@
 .composer {
-  padding: var(--space-8) var(--panel-inset) var(--space-14);
+  padding: var(--space-8) var(--panel-inset) 0;
 }
 .sentence {
   white-space: nowrap;
@@ -27,9 +27,17 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* NOTE(0913vision): The actions row is a direct child of the scrolling tab
+   body, so 보내기 stays at the bottom edge however long the lists above are. */
 .actions {
+  position: sticky;
+  z-index: 1;
+  bottom: 0;
   display: flex;
   justify-content: flex-end;
+  padding: var(--space-8) var(--panel-inset);
+  border-top: 1px solid var(--line);
+  background: var(--bg-panel);
 }
 .editingTools {
   display: flex;
