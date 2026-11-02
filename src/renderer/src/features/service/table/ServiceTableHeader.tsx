@@ -16,7 +16,7 @@ export function ServiceTableHeader(): JSX.Element {
   return (
     <div className={styles.header} aria-hidden="true">
       <span className={styles.headerName}>이름</span>
-      <span className={styles.headerCells}>
+      <span className={styles.grid}>
         {COLUMNS.map(([label, width]) => (
           <span key={label} className={classNames(styles.cell, width)}>
             {label}

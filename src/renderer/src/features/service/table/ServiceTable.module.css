@@ -1,14 +1,23 @@
 .table {
-  /* NOTE(0913vision): The design system has no table tokens yet; these
-     widths follow draft g5 of the 예배 순서 table. */
-  --table-arrangement: 96px;
-  --table-slides: 72px;
-  --table-theme: 140px;
-  --table-background: 168px;
-  --table-start: 112px;
-  --table-memo: 160px;
+  /* NOTE(0913vision): The design system has no table tokens yet. The columns
+     share the width of the table in the proportions of draft g5, up to
+     --table-cells-width, and the name takes the rest, so a narrow center
+     truncates text instead of scrolling. */
+  --table-cells-width: 800px;
+  --table-cells-share: 62cqw;
+  --table-columns: 96fr 124fr 120fr 130fr 124fr 130fr;
   --table-thumb: 20px;
   --table-name-inset: 32px;
+
+  container-type: inline-size;
+}
+
+.grid {
+  display: grid;
+  flex: none;
+  grid-template-columns: var(--table-columns);
+  align-items: center;
+  width: min(var(--table-cells-width), var(--table-cells-share));
 }
 
 .header {
@@ -27,23 +36,15 @@
   padding-inline-start: var(--table-name-inset);
 }
 
-.headerCells {
-  display: flex;
-  flex: none;
-  align-items: center;
-}
-
 .header .cell {
   color: inherit;
   font: var(--type-caption);
 }
 
 .cell {
-  flex: none;
   min-width: 0;
   overflow: hidden;
-  margin-inline-start: var(--space-10);
-  padding: 0;
+  padding: 0 var(--space-6);
   border: 0;
   background: transparent;
   color: var(--text);
@@ -61,24 +62,14 @@ button.cell {
   color: var(--text-3);
 }
 
-.arrangement {
-  width: var(--table-arrangement);
-}
-
 .slides {
-  width: var(--table-slides);
   font-variant-numeric: tabular-nums;
-}
-
-.theme {
-  width: var(--table-theme);
 }
 
 .background {
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  width: var(--table-background);
 }
 
 .thumb {
@@ -87,14 +78,6 @@ button.cell {
   height: var(--table-thumb);
   border-radius: var(--radius-sm);
   object-fit: cover;
-}
-
-.start {
-  width: var(--table-start);
-}
-
-.memo {
-  width: var(--table-memo);
 }
 
 .footer {

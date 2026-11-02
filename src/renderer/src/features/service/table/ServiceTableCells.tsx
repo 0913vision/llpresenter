@@ -147,7 +147,7 @@ export function ServiceTableCells({
       : undefined;
   const reason = readOnly ? NEWER_FILE_REASON : undefined;
   return (
-    <>
+    <span className={styles.grid}>
       <span className={classNames(styles.cell, styles.arrangement)}>
         {song === undefined ? '' : (song.arrangement ?? DEFAULT_ARRANGEMENT)}
       </span>
@@ -161,7 +161,6 @@ export function ServiceTableCells({
           label="테마"
           text={themeCell.name}
           dim={themeCell.followsDefault}
-          width={styles.theme}
           reason={reason}
           hint={themeCell.followsDefault ? DEFAULT_THEME_REASON : undefined}
           entries={themeEntries({
@@ -183,7 +182,6 @@ export function ServiceTableCells({
             macro?.name ?? (item.macro === undefined ? NONE : MISSING_MACRO)
           }
           dim={macro === undefined}
-          width={styles.start}
           reason={reason}
           entries={macroEntries({
             current: macro,
@@ -198,6 +196,6 @@ export function ServiceTableCells({
       <span className={classNames(styles.cell, styles.memo)}>
         {item !== undefined && isStartItem(item) ? (item.memo ?? '') : ''}
       </span>
-    </>
+    </span>
   );
 }

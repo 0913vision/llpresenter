@@ -12,7 +12,6 @@ export function CellMenu({
   label,
   text,
   dim,
-  width,
   entries,
   reason,
   hint,
@@ -20,7 +19,6 @@ export function CellMenu({
   readonly label: string;
   readonly text: string;
   readonly dim: boolean;
-  readonly width: string | undefined;
   readonly entries: readonly MenuEntry[];
   /** Why the cell can't change now; it becomes the tooltip. */
   readonly reason: string | undefined;
@@ -41,7 +39,7 @@ export function CellMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-disabled={reason !== undefined ? true : undefined}
-        className={classNames(styles.cell, width, dim && styles.dim)}
+        className={classNames(styles.cell, dim && styles.dim)}
         onClick={() => {
           if (reason === undefined) setOpen(true);
         }}

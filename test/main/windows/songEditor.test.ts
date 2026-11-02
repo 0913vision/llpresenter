@@ -41,6 +41,7 @@ const mocks = await vi.hoisted(async () => {
     }
   }
   const created: MockWindow[] = [];
+  const workArea = {x: 0, y: 0, width: 1920, height: 1080};
   const createHandshake = () => ({
     confirmClose: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
     dispose: vi.fn(),
@@ -48,6 +49,7 @@ const mocks = await vi.hoisted(async () => {
   return {
     MockWindow,
     created,
+    workArea,
     ipc: {
       handlers: new Map<string, (event: unknown, value: unknown) => unknown>(),
       handle(
@@ -73,10 +75,10 @@ vi.mock('electron', () => ({
   ipcMain: mocks.ipc,
   screen: {
     getPrimaryDisplay: () => ({
-      workArea: {x: 0, y: 0, width: 1920, height: 1080},
+      workArea: mocks.workArea,
     }),
     getDisplayMatching: () => ({
-      workArea: {x: 0, y: 0, width: 1920, height: 1080},
+      workArea: mocks.workArea,
     }),
   },
 }));
@@ -102,6 +104,7 @@ beforeEach(() => {
   mocks.handshakes.length = 0;
   mocks.closeOptions.length = 0;
   mocks.created.length = 0;
+  Object.assign(mocks.workArea, {width: 1920, height: 1080});
   mocks.ipc.handlers.clear();
   vi.mocked(loadPage).mockClear();
 });
@@ -193,6 +196,20 @@ describe('song editor window', () => {
 
     await owner.dispose();
     expect(mocks.ipc.handlers.size).toBe(0);
+  });
+
+  it('never asks for a minimum size larger than a small work area', async () => {
+    Object.assign(mocks.workArea, {width: 800, height: 560});
+    const {open, last, owner} = setup();
+    await open({songId: SONG});
+
+    expect(last().options).toMatchObject({
+      width: 800,
+      height: 560,
+      minWidth: 800,
+      minHeight: 560,
+    });
+    await owner.dispose();
   });
 
   it('remembers the bounds when it closes through the handshake', async () => {

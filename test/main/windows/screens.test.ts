@@ -42,6 +42,7 @@ const mocks = await vi.hoisted(async () => {
     }
   }
   const created: MockWindow[] = [];
+  const workArea = {x: 0, y: 0, width: 1920, height: 1080};
   const createHandshake = () => ({
     confirmClose: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
     dispose: vi.fn(),
@@ -49,6 +50,7 @@ const mocks = await vi.hoisted(async () => {
   return {
     MockWindow,
     created,
+    workArea,
     ipc: new EventEmitter(),
     quit: vi.fn(),
     closeOptions: new Array<ControlCloseOptions>(),
@@ -64,10 +66,10 @@ vi.mock('electron', () => ({
   ipcMain: mocks.ipc,
   screen: {
     getPrimaryDisplay: () => ({
-      workArea: {x: 0, y: 0, width: 1920, height: 1080},
+      workArea: mocks.workArea,
     }),
     getDisplayMatching: () => ({
-      workArea: {x: 0, y: 0, width: 1920, height: 1080},
+      workArea: mocks.workArea,
     }),
   },
 }));
@@ -97,6 +99,7 @@ beforeEach(() => {
   mocks.handshakes.length = 0;
   mocks.closeOptions.length = 0;
   mocks.created.length = 0;
+  Object.assign(mocks.workArea, {width: 1920, height: 1080});
   mocks.ipc.removeAllListeners();
   vi.mocked(loadPage).mockClear();
 });
@@ -193,6 +196,20 @@ describe('screen configuration window', () => {
     expect(mocks.ipc.listenerCount(windowEndpoints.openScreens.channel)).toBe(
       0,
     );
+  });
+
+  it('never asks for a minimum size larger than a small work area', async () => {
+    Object.assign(mocks.workArea, {width: 1200, height: 680});
+    const {open, last, stop} = setup();
+    open();
+
+    expect(last().options).toMatchObject({
+      width: 1200,
+      height: 680,
+      minWidth: 1200,
+      minHeight: 680,
+    });
+    await stop();
   });
 
   it('restores saved size and place, clamps detached monitors, and remembers normal bounds', async () => {
