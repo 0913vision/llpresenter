@@ -132,7 +132,7 @@ export class ScreenEditor {
         target === undefined ||
         lastOfKind(value.screens, target) !== undefined
       ) {
-        return value;
+        return undefined;
       }
       return {
         ...value,

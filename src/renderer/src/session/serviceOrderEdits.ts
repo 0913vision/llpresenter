@@ -20,6 +20,33 @@ const HISTORY_LIMIT = 100;
 type Order = Service['order'];
 type EditApi = Pick<LlpApi, 'services' | 'songs' | 'content'>;
 const editors = new WeakMap<EditApi, ServiceOrderEdits>();
+const histories = new WeakMap<object, OrderHistory>();
+
+// NOTE(0913vision): The history belongs to the API object itself, so every
+// caller must pass the window's own `window.llp`, never a copy of it.
+function historyFor(api: object): OrderHistory {
+  let history = histories.get(api);
+  if (history === undefined) {
+    history = new OrderHistory();
+    histories.set(api, history);
+  }
+  return history;
+}
+
+/**
+ * Records a saved edit of one item's own fields (메모, 테마, 구성, 배경, 시작할
+ * 때, 오버레이) as one step of the 예배 순서 history, whichever path saved it.
+ */
+export function recordItemEdit(
+  api: object,
+  entry: {
+    readonly serviceId: ServiceId;
+    readonly before: Order;
+    readonly after: Order;
+  },
+): void {
+  historyFor(api).record(entry, 'record');
+}
 
 /** Shares the service list's undo history with every service order entry point. */
 export function serviceOrderEditsFor(api: EditApi): ServiceOrderEdits {
@@ -82,16 +109,53 @@ function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
     : order.findIndex(item => item.id === beforeId);
 }
 
+/** The undo and redo steps of the 예배 순서, at most HISTORY_LIMIT deep. */
+class OrderHistory {
+  readonly past: HistoryEntry[] = [];
+  readonly future: HistoryEntry[] = [];
+
+  record(entry: HistoryEntry, action: HistoryAction): void {
+    if (action === 'undo') {
+      const previous = this.past.pop();
+      if (previous !== undefined) this.future.push(previous);
+      return;
+    }
+    if (action === 'redo') {
+      const next = this.future.pop();
+      if (next !== undefined) this.past.push(next);
+      return;
+    }
+    this.future.length = 0;
+    this.past.push(entry);
+    if (this.past.length > HISTORY_LIMIT) this.past.shift();
+  }
+
+  clear(): void {
+    this.past.length = 0;
+    this.future.length = 0;
+  }
+}
+
 /**
  * Edits main-owned service orders without access to output commands.
- * A later change to any item's own fields makes undo or redo refuse as stale.
+ * An edit of an item's own fields is recorded here too (`recordItemEdit`); a
+ * change nobody recorded makes undo or redo refuse as stale.
  */
 export class ServiceOrderEdits {
-  private readonly past: HistoryEntry[] = [];
-  private readonly future: HistoryEntry[] = [];
+  private readonly history: OrderHistory;
   private busy = false;
 
-  constructor(private readonly api: EditApi) {}
+  constructor(private readonly api: EditApi) {
+    this.history = historyFor(api);
+  }
+
+  private get past(): HistoryEntry[] {
+    return this.history.past;
+  }
+
+  private get future(): HistoryEntry[] {
+    return this.history.future;
+  }
 
   canUndo(serviceId: ServiceId): boolean {
     return this.past.at(-1)?.serviceId === serviceId;
@@ -245,8 +309,7 @@ export class ServiceOrderEdits {
   }
 
   clear(): void {
-    this.past.length = 0;
-    this.future.length = 0;
+    this.history.clear();
   }
 
   private replay(serviceId: ServiceId, action: 'undo' | 'redo') {
@@ -325,7 +388,7 @@ export class ServiceOrderEdits {
         baseRevision: document.revision,
       });
       if (saved.ok || saved.error.reason === 'write-failed') {
-        this.record({serviceId, before, after}, action);
+        this.history.record({serviceId, before, after}, action);
       }
       return saved.ok ? {ok: true, value: true} : saved;
     } catch (cause) {
@@ -339,21 +402,5 @@ export class ServiceOrderEdits {
     } finally {
       this.busy = false;
     }
-  }
-
-  private record(entry: HistoryEntry, action: HistoryAction): void {
-    if (action === 'undo') {
-      const previous = this.past.pop();
-      if (previous !== undefined) this.future.push(previous);
-      return;
-    }
-    if (action === 'redo') {
-      const next = this.future.pop();
-      if (next !== undefined) this.past.push(next);
-      return;
-    }
-    this.future.length = 0;
-    this.past.push(entry);
-    if (this.past.length > HISTORY_LIMIT) this.past.shift();
   }
 }

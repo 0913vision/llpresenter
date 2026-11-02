@@ -150,7 +150,7 @@ describe('ScreenEditor', () => {
     const {editor, edits} = setup();
     const document = screensAt(1);
     editor.adopt(document);
-    expect(await editor.remove(MAIN_ID)).toBe(true);
+    expect(await editor.remove(MAIN_ID)).toBe(false);
     expect(edits).toEqual([]);
   });
 
@@ -166,7 +166,7 @@ describe('ScreenEditor', () => {
       ...screensAt(2),
       value: {...screensAt(2).value, screens: []},
     });
-    expect(await editor.remove(MAIN_ID)).toBe(true);
+    expect(await editor.remove(MAIN_ID)).toBe(false);
     expect(await editor.rename(MAIN_ID, '없음')).toEqual({
       ok: false,
       error: 'missing',

@@ -133,7 +133,10 @@ Source: drafts o1 to o6 and g5, user decision, November 2.
 - The operator drags rows to reorder them. Dragging a 구역 moves it with its
   items, up to the next 구역, as one section (user decision, October 26). Delete
   removes the selected item without confirmation, and Ctrl Z restores it
-  (proposal). The right-click menu has 삭제 (delete) (proposal).
+  (proposal). Ctrl Z and 편집 > 실행 취소 undo every edit of an item the same
+  way, one step each: a change in its cells or the right column (메모, 테마,
+  구성, 배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
+  precedence"). The right-click menu has 삭제 (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
 

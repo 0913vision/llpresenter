@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
 import {isItemOfKind} from '@core/schema/service';
+import {recordItemEdit} from './serviceOrderEdits';
 
 interface RequestFailure {
   readonly reason: 'request-failed';
@@ -71,16 +72,22 @@ export async function updateServiceItem(
         value: {id: document.service.id, revision: document.revision},
       };
     }
-    return await api.content.edit({
+    const order = document.service.order.map(row =>
+      row.id === itemId ? updated : row,
+    );
+    const saved = await api.content.edit({
       type: 'service.update',
       baseRevision: document.revision,
-      service: {
-        ...document.service,
-        order: document.service.order.map(row =>
-          row.id === itemId ? updated : row,
-        ),
-      },
+      service: {...document.service, order},
     });
+    if (saved.ok || saved.error.reason === 'write-failed') {
+      recordItemEdit(api, {
+        serviceId: document.service.id,
+        before: document.service.order,
+        after: order,
+      });
+    }
+    return saved;
   } catch (cause) {
     return {
       ok: false,

@@ -356,7 +356,14 @@ the keys that earlier rules pass on.
    F7 and the commands with Ctrl or Alt that aren't text editing keys.
 4. **An open menu, a dialog, or a drag** takes its own keys (arrows, Enter, Esc,
    Space). Only F1 to F7 and UI zoom pass through; Ctrl Z can undo text in a
-   dialog field but never restores cleared output.
+   dialog field but never restores cleared output. Outside a text field, Ctrl Z
+   and 편집 > 실행 취소 undo the last edit of the 예배 순서 from 준비, whatever
+   kind it was: an order edit (add, move, delete) or a change of an item's own
+   fields in its cells or the right column (메모, 테마, 구성, 배경, 시작할 때,
+   오버레이). A 메모 is one step per save, not per key. The history holds the
+   newest 100 steps and ends with the window. An edit made in another window (곡
+   편집, 순서 편집) is not in it; if one changed the order since, 실행 취소
+   refuses instead of overwriting it.
 5. **In 진행, the 슬라이드 grid and the 예배 순서 list** take ↑, ↓, and Enter
    (the list also Home and End), and pass ←, →, Space, Page Up, and Page Down to
    다음 슬라이드 and 이전 슬라이드. This is ProPresenter's behavior: after the

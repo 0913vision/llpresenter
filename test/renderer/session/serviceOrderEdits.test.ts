@@ -12,8 +12,13 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
+  createThemeId,
   createSongGroupId,
 } from '@core/schema/ids';
+import {withStartField} from '@core/services/itemFieldChanges';
+import {withArrangementChoice} from '@core/songs/itemOrder';
+import {themeRequest} from '@renderer/features/service/items/itemAppearanceCommands';
+import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
@@ -21,6 +26,8 @@ import {
   serviceOrderEditsFor,
 } from '@renderer/session/serviceOrderEdits';
 
+const THEME_ID = '40000000-0000-4000-8000-000000000001';
+const MACRO_ID = '50000000-0000-4000-8000-000000000001';
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const otherId = createServiceId('00000000-0000-4000-8000-000000000002');
 const songId = createSongId('10000000-0000-4000-8000-000000000001');
@@ -479,6 +486,155 @@ describe('service order edits', () => {
     });
     await edits.remove(serviceId, second);
     expect(edit).toHaveBeenCalledTimes(1);
+  });
+
+  it('undoes and redoes every kind of item edit as one step each, in the order they were made', async () => {
+    const {api, state, edits} = fixture();
+    const memoOf = () =>
+      state.document?.service.order.find(item => item.id === second);
+    const changes = [
+      withStartField('memo', '새 메모'),
+      themeRequest(null, createThemeId(THEME_ID)).change,
+      withArrangementChoice('주일용'),
+      withStartField('macro', MACRO_ID),
+    ];
+    const original = memoOf();
+    for (const change of changes) {
+      await updateServiceItem(api, {serviceId, itemId: second, change});
+    }
+    const finished = memoOf();
+    expect(finished).toMatchObject({
+      memo: '새 메모',
+      theme: THEME_ID,
+      arrangement: '주일용',
+      macro: MACRO_ID,
+    });
+    for (const step of changes.keys()) {
+      expect(edits.canUndo(serviceId), `undo ${step}`).toBe(true);
+      expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+    }
+    expect(memoOf()).toEqual(original);
+    expect(edits.canUndo(serviceId)).toBe(false);
+    for (const step of changes.keys()) {
+      expect(await edits.redo(serviceId), `redo ${step}`).toEqual({
+        ok: true,
+        value: true,
+      });
+    }
+    expect(memoOf()).toEqual(finished);
+  });
+
+  it('records a memo saved in one go as a single step and an unchanged save as none', async () => {
+    const {api, state, edits} = fixture();
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => ({...item, memo: '한 번에 쓴 메모'}),
+    });
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => item,
+    });
+    expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+    expect(state.document?.service.order[1]).toMatchObject({memo: 'Keep this'});
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('undoes an item edit after an order edit and the other way round', async () => {
+    const {api, ids, state, edits} = fixture();
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => ({...item, memo: '먼저'}),
+    });
+    await edits.move(serviceId, second, null);
+    expect(ids()).toEqual([first, third, second]);
+    await edits.undo(serviceId);
+    expect(ids()).toEqual([first, second, third]);
+    await edits.undo(serviceId);
+    expect(state.document?.service.order[1]).toMatchObject({memo: 'Keep this'});
+  });
+
+  it('records no step for an item edit the main process refuses, and keeps the earlier step on top', async () => {
+    const {api, edit, edits, ids, state} = fixture();
+    await edits.remove(serviceId, third);
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Changed'},
+    });
+    const result = await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => ({...item, memo: '거절된 메모'}),
+    });
+    expect(result).toMatchObject({ok: false, error: {reason: 'stale'}});
+    expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+    expect(ids()).toEqual([first, second, third]);
+    expect(state.document?.service.order[1]).toMatchObject({memo: 'Keep this'});
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('records the step of an item edit whose disk write failed after it applied, as order edits do', async () => {
+    const {api, edit, edits, state} = fixture();
+    const save = edit.getMockImplementation();
+    if (save === undefined) throw new Error('Missing save');
+    edit.mockImplementationOnce(async command => {
+      const applied = await save(command);
+      if (!applied.ok) return applied;
+      return {
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: 'Disk full',
+          applied: applied.value,
+          unchangedFiles: ['invented.llservice'],
+        },
+      };
+    });
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => ({...item, memo: '디스크 오류 메모'}),
+    });
+    expect(edits.canUndo(serviceId)).toBe(true);
+    await edits.undo(serviceId);
+    expect(state.document?.service.order[1]).toMatchObject({memo: 'Keep this'});
+  });
+
+  it('records no step for an item edit whose request throws', async () => {
+    const {api, edit, edits} = fixture();
+    edit.mockRejectedValueOnce(new Error('Connection lost'));
+    const result = await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: item => ({...item, memo: '끊긴 메모'}),
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: {reason: 'request-failed'},
+    });
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('counts item edits and order edits against the same 100 steps', async () => {
+    const {api, edits} = fixture();
+    for (let index = 0; index < 60; index++) {
+      await updateServiceItem(api, {
+        serviceId,
+        itemId: second,
+        change: item => ({...item, memo: `메모 ${index}`}),
+      });
+    }
+    for (let index = 0; index < 60; index++) {
+      await edits.move(serviceId, second, index % 2 === 0 ? null : first);
+    }
+    let undone = 0;
+    while (edits.canUndo(serviceId)) {
+      expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+      undone++;
+    }
+    expect(undone).toBe(100);
   });
 
   it('does not undo another service and can release its bounded history', async () => {
