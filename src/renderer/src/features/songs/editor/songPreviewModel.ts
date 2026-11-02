@@ -12,7 +12,7 @@ import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
   {value: 'main', label: '청중 화면'},
-  {value: 'stage', label: '무대'},
+  {value: 'stage', label: '무대 화면'},
   {value: 'broadcast', label: '방송 화면'},
 ] as const;
 export type PreviewRole = (typeof PREVIEW_ROLES)[number]['value'];

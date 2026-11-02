@@ -98,7 +98,7 @@ describe('arrangement row', () => {
       '|',
       '새 구성…',
       '이름 바꾸기…',
-      '지우기',
+      '삭제',
       '|',
       '구성 편집…',
     ]);
@@ -106,7 +106,7 @@ describe('arrangement row', () => {
     expect(rename.getAttribute('aria-disabled')).toBe('true');
     expect(
       within(list)
-        .getByRole('menuitem', {name: '지우기'})
+        .getByRole('menuitem', {name: '삭제'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     expect(edits).toEqual([]);
@@ -145,7 +145,7 @@ describe('arrangement row', () => {
     await user.click(movedFirst);
     await user.keyboard('{Delete}');
     expect(session.arrangementGroups).toHaveLength(before.length - 1);
-    await user.click(within(strip).getByRole('button', {name: '그룹 넣기'}));
+    await user.click(within(strip).getByRole('button', {name: '이름표 넣기'}));
     await user.click(screen.getByRole('menuitem', {name: '1절'}));
     expect(session.arrangementGroups).toHaveLength(before.length);
   });
@@ -168,7 +168,7 @@ describe('arrangement row', () => {
       expect(field.getAttribute('aria-invalid')).toBe('true');
     }
     fireEvent.change(field, {target: {value: '  저녁용  '}});
-    await user.click(screen.getByRole('button', {name: '확인'}));
+    await user.click(screen.getByRole('button', {name: '만들기'}));
     expect(session.arrangement).toBe('저녁용');
     expect(session.arrangementSlides).toEqual([1, 2, 2]);
     expect(document.activeElement).toBe(
@@ -189,7 +189,7 @@ describe('arrangement row', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(session.arrangement).toBe('새 이름');
     await user.click(
-      within(await menu(user)).getByRole('menuitem', {name: '지우기'}),
+      within(await menu(user)).getByRole('menuitem', {name: '삭제'}),
     );
     await waitFor(() => expect(session.arrangement).toBeUndefined());
     expect(edits.at(-1)).toMatchObject({
@@ -206,7 +206,7 @@ describe('arrangement row', () => {
     await choose(user, '주일용');
     expect(session.arrangement).toBe('주일용');
     const list = await menu(user);
-    for (const name of ['새 구성…', '이름 바꾸기…', '지우기']) {
+    for (const name of ['새 구성…', '이름 바꾸기…', '삭제']) {
       expect(
         within(list)
           .getByRole('menuitem', {name})

@@ -15,9 +15,9 @@ describe('ReadOnlyMark', () => {
     render(<ReadOnlyMark />);
     expect(
       screen.getByRole('img', {
-        name: '새 버전의 파일이라 읽기 전용으로 엽니다.',
+        name: '새 버전의 파일이라 바꿀 수 없습니다',
       }).title,
-    ).toBe('새 버전의 파일이라 읽기 전용으로 엽니다.');
+    ).toBe('새 버전의 파일이라 바꿀 수 없습니다');
   });
 
   it('shows nothing for an editable service or none', () => {

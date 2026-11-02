@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
@@ -11,6 +12,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelHeader, PanelTitle, PanelActions} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {USAGE_LABEL, USAGE_LOADING, usageMeta} from '@renderer/ui/usageText';
 import {ChoiceRows} from '../ChoiceRows';
 import {themeKindNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
@@ -26,15 +28,15 @@ function usedMeta(
     kind => file?.defaults[kind] === theme.id,
   );
   const lines = [
-    ...countedMeta(uses, `예배 순서 항목 ${uses}곳에서 씀`),
+    ...usageMeta(uses, '예배 순서 항목'),
     ...countedMeta(
       kinds.length,
-      `${kinds.map(kind => themeKindNames[kind]).join(', ')}의 기본으로 씀`,
+      `${USAGE_LABEL}: ${kinds.map(kind => themeKindNames[kind]).join(', ')} 기본`,
     ),
   ];
   return lines.length === 0
     ? lines
-    : [...lines, '사용 항목은 종류별 기본 테마로 표시됩니다.'];
+    : [...lines, '쓰는 곳은 종류별 기본 테마로 표시됩니다.'];
 }
 
 export function ThemeList({
@@ -165,7 +167,7 @@ export function ThemeList({
             ...menuAvailability(
               model.reason ??
                 (model.file?.themes.length === THEME_LIMITS.themes
-                  ? '테마는 200개까지 추가할 수 있음'
+                  ? limitReason('테마', THEME_LIMITS.themes)
                   : undefined),
             ),
             onSelect: () =>
@@ -190,8 +192,7 @@ export function ThemeList({
                   id: 'delete',
                   label: '삭제',
                   ...menuAvailability(
-                    model.reason ??
-                      (checking ? '사용 항목 확인 중' : undefined),
+                    model.reason ?? (checking ? USAGE_LOADING : undefined),
                   ),
                   onSelect: () => requestDelete(target),
                 },

@@ -31,9 +31,12 @@ export function copyName(
   const base = stem === '' ? original : stem;
   for (let number = 1; ; number++) {
     const ending = ` ${COPY_WORD}${number === 1 ? '' : ` ${number}`}`;
+    const letters = Array.from(base);
     const room =
-      maxLength === undefined ? base.length : maxLength - ending.length;
-    const candidate = normalize(`${base.slice(0, Math.max(room, 0))}${ending}`);
+      maxLength === undefined ? letters.length : maxLength - ending.length;
+    const candidate = normalize(
+      `${letters.slice(0, Math.max(room, 0)).join('')}${ending}`,
+    );
     if (!used.has(candidate)) return candidate;
   }
 }

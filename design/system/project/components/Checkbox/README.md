@@ -61,7 +61,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 ## Writing
 
 - Write only the name of what is picked as the row name: "화면 출력", "마지막 슬라이드", "표시 중이던 항목". Don't write sentences such as "~을 복구합니다" (Restores ~).
-- In the value, list what is in it now, separated by commas: "본 화면, 무대 화면, 방송 자막".
+- In the value, list what is in it now, separated by commas: "청중 화면, 무대 화면, 방송 화면".
 
 ## Implementation notes
 

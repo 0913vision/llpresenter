@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -35,18 +36,18 @@ type SourceActionsApi = Pick<
   'content' | 'services' | 'templates' | 'log'
 >;
 
-const OPEN_SERVICE = '열린 예배 순서는 삭제할 수 없습니다';
+const OPEN_SERVICE = '열린 예배는 삭제할 수 없습니다';
 const problemTitles = {
   rename: '이름을 바꿀 수 없음',
   delete: '삭제할 수 없음',
 } as const;
 
 function kindName(source: NamedSource): string {
-  return source.kind === 'template' ? '템플릿' : '예배 순서';
+  return source.kind === 'template' ? '템플릿' : '예배';
 }
 
 function kindObject(source: NamedSource): string {
-  return source.kind === 'template' ? '템플릿을' : '예배 순서를';
+  return source.kind === 'template' ? '템플릿을' : '예배를';
 }
 
 // NOTE(0913vision): A rename sends the whole document with the revision it
@@ -162,9 +163,7 @@ export function useSourceActions({
   const isOpen = (row: SourceRow): boolean =>
     row.source.kind === 'service' && row.source.id === currentId;
   const readOnlyReason =
-    menu?.row.access === 'readOnly'
-      ? `읽기 전용 ${kindName(menu.row.source)}`
-      : undefined;
+    menu?.row.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
 
   const overlays = (
     <>

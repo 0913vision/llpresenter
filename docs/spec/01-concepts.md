@@ -15,7 +15,10 @@ including the words the app must not use.
 | --------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
 | 출력            | output             | Sending content to a screen. In prose, this spec uses the English verb "output" for this term.                                    |
 | 지우기          | clear              | Taking a layer off the screens. In prose, this spec uses the English verb "clear". Deleting a file or an item is "삭제" (delete). |
+| 복원            | restore            | Putting back what a 지우기 took off, with the same clear button.                                                                  |
+| 되돌리기        | undo               | Cancelling the last 지우기 (one step). The button at the end of the 지우기 row.                                                   |
 | 슬라이드        | slide              | One screen of lyrics or other content.                                                                                            |
+| 예배            | service            | One service as a file (`.llservice`). Its item list is the 예배 순서.                                                             |
 | 예배 순서       | service order      | The item list of one service. One `.llservice` file.                                                                              |
 | 템플릿          | template           | A 예배 순서 that you use to create a new 예배 순서.                                                                               |
 | 구성            | arrangement        | A named 슬라이드 order stored in a song, with repeats (기본, 주일용, 짧게).                                                       |
@@ -279,13 +282,13 @@ READMEs, `Prefs`.
 - No source lists the items of the other menus. Version 1 has only these items
   (proposal, open question):
 
-  | Menu          | Items                                                                                                                 |
-  | ------------- | --------------------------------------------------------------------------------------------------------------------- |
-  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                  |
-  | 보기 (View)   | 진행, 준비, 테마, 미디어 (Media), UI 확대, UI 축소, UI 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
-  | 출력 (Output) | 청중 화면, 무대 화면, 방송 화면 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                  |
-  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                          |
-  | 도움말 (Help) | Version information, open the log folder                                                                              |
+  | Menu          | Items                                                                                                                       |
+  | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                        |
+  | 보기 (View)   | 진행, 준비, 테마, 미디어 (Media), 화면 확대, 화면 축소, 화면 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
+  | 출력 (Output) | 청중 화면, 무대 화면, 방송 화면 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                        |
+  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                                |
+  | 도움말 (Help) | Version information, open the log folder                                                                                    |
 
 - Menu keyboard behavior follows the design system `MenuBar` and `Menu`
   documents.
@@ -389,7 +392,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | 테마                           | Per screen: 직접 배치 with its own elements, the same as another screen, or 비움 (12).                            | App-wide settings                        | 테마 ID                                           |
 | 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
 | 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
-| 메시지 template                | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
+| 메시지 문구                    | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
 | 공지 set                       | A list of 공지 images that advance in turn.                                                                       | App-wide settings                        | Set ID                                            |
 | 그래픽                         | An element above the lyrics, such as a logo, a caption, or a notice card.                                         | App-wide settings                        | 그래픽 ID                                         |
 | 타이머                         | Time left until a set time, a fixed duration, time since a set time, or a clock.                                  | App-wide settings                        | 타이머 ID                                         |
@@ -413,24 +416,24 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
   the media list.
 - A 테마 holds, for each screen ID, a mode and its elements. A 예배 순서 item
   names its 테마 by ID (12).
-- 매크로 actions refer to 테마, media, 그래픽, 메시지 templates, 공지 sets,
-  타이머, audio playlists, and other 매크로 by ID.
+- 매크로 actions refer to 테마, media, 그래픽, 메시지 문구, 공지 sets, 타이머,
+  audio playlists, and other 매크로 by ID.
 - A 퀵 실행 item points to a song, a Bible passage, a 그래픽, a 타이머, or a
   매크로. See 04.
 
 ### What belongs to a service, a song, or the app
 
-| Per service (`.llservice`)            | Per song (`.llsong`)                    | One for the whole app                       |
-| ------------------------------------- | --------------------------------------- | ------------------------------------------- |
-| Service name, date and time           | Title                                   | Screens                                     |
-| Items and their order                 | Source slides (lines, optional hot key) | 테마                                        |
-| The 구성 name each song item picks    | Default background                      |                                             |
-| Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                      |
-| Start 매크로 of each song item        |                                         | 퀵 실행                                     |
-| Memo of each song item                |                                         | 메시지 templates, 공지 sets, 그래픽, 타이머 |
-|                                       |                                         | 이름표 list (name, color)                   |
-|                                       |                                         | 환경설정, shortcuts, Bible translations     |
-|                                       |                                         | Media list and playlists                    |
+| Per service (`.llservice`)            | Per song (`.llsong`)                    | One for the whole app                   |
+| ------------------------------------- | --------------------------------------- | --------------------------------------- |
+| Service name, date and time           | Title                                   | Screens                                 |
+| Items and their order                 | Source slides (lines, optional hot key) | 테마                                    |
+| The 구성 name each song item picks    | Default background                      |                                         |
+| Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                  |
+| Start 매크로 of each song item        |                                         | 퀵 실행                                 |
+| Memo of each song item                |                                         | 메시지 문구, 공지 sets, 그래픽, 타이머  |
+|                                       |                                         | 이름표 list (name, color)               |
+|                                       |                                         | 환경설정, shortcuts, Bible translations |
+|                                       |                                         | Media list and playlists                |
 
 - To make one service look different from another, give its items different 테마
   or switch the 테마 with the start 매크로 of an item.
@@ -452,8 +455,8 @@ clears.
 | Lyrics                   | The live 슬라이드 (lyrics or Bible verse)      | F2 가사                                     |
 | 공지                     | Images from a 공지 set                         | F7 공지                                     |
 | 그래픽                   | Logo, caption, notice card                     | F4 그래픽                                   |
-| 메시지                   | Text made from a 메시지 template               | F6 메시지                                   |
+| 메시지                   | Text made from a 메시지 문구                   | F6 메시지                                   |
 | Audio                    | Audio playback (no picture)                    | F5 오디오                                   |
-| Clock, stage message     | Elements that exist only on the 무대 화면      | 내리기 (Take down) in the 무대 tab (see 04) |
+| Clock, stage message     | Elements that exist only on the 무대 화면      | 지우기 (Take down) in the 무대 tab (see 04) |
 
 Source: `ShowH` (clear row), `ClearButton` README, `Overlays`.

@@ -61,7 +61,7 @@ it(
     await page.getByRole('tab', {name: '테마'}).click();
     await page
       .getByRole('region', {name: '요소 추가'})
-      .getByRole('button', {name: '글', exact: true})
+      .getByRole('button', {name: '글자', exact: true})
       .click();
     const content = page.getByRole('textbox', {name: '내용', exact: true});
     await content.fill('종료 저장 문장');

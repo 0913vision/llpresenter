@@ -95,11 +95,11 @@ afterEach(() => {
   delete window.llp;
 });
 
-describe('일반 > UI 확대', () => {
+describe('일반 > 화면 확대', () => {
   it('shows the stored zoom, sets a chosen step, and follows other windows', async () => {
     const api = install({zoom: 120});
     await mount();
-    const row = await screen.findByRole('button', {name: /UI 확대/});
+    const row = await screen.findByRole('button', {name: /화면 확대/});
     await waitFor(() => expect(row.textContent).toContain('120%'));
 
     await userEvent.click(row);
@@ -118,7 +118,9 @@ describe('일반 > UI 확대', () => {
   it('lists every step of the zoom', async () => {
     install({});
     await mount();
-    await userEvent.click(await screen.findByRole('button', {name: /UI 확대/}));
+    await userEvent.click(
+      await screen.findByRole('button', {name: /화면 확대/}),
+    );
 
     const steps = (await screen.findAllByRole('menuitemradio')).map(
       item => item.textContent,

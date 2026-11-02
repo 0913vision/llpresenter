@@ -53,7 +53,7 @@ export function arrangementMenuEntries(
     {
       kind: 'item',
       id: 'delete',
-      label: '지우기',
+      label: '삭제',
       ...menuAvailability(manageReason),
       onSelect: input.remove,
     },

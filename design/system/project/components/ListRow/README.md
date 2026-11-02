@@ -11,7 +11,7 @@ Renaming stays in place, with Enter/blur to save and Escape to cancel.
 Modified Enter and Escape pass through without finishing the rename.
 
 Selecting a section chooses where 항목 추가 appends content, before the next
-section. The section row remains after content is added. There is no 빈 자리
+section. The section row remains after content is added. There is no 빈 항목
 creation or fill flow in service orders or templates. Legacy file normalization
 belongs to the data reader, which converts those rows to named sections.
 
@@ -44,7 +44,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 - Put a list in a panel inside `ll-panel__body--list` of `Panel` (top 4, bottom 8).
 - Two-line item `ll-row--double`: height `size-row-double` (52px), horizontal padding `space-10`, radius `radius-lg`. Name in `body`, with a second line `ll-row__sub` under it (`caption` `text-3`, `space-2` from the name, `space-8` between values).
   - Put it inside the pick list `ll-rowlist--inset`, which has 8px padding. One-line items in the same list (empty service) also get 10 left and right and `radius-lg`, and group headers get 10 left and right. As a result, all text in the list on the left of a dialog starts at the same 18px line from the left.
-- Empty slot `ll-row__slot`: a 24px box that takes the remaining width in the row. 1px dashed `line-control`, radius `radius-md`, horizontal padding `space-6`, icon and name in `text-3`, "빈 자리" (empty slot) at the right end in `ll-row__slot-mark` (`caption`).
+- Empty slot `ll-row__slot`: a 24px box that takes the remaining width in the row. 1px dashed `line-control`, radius `radius-md`, horizontal padding `space-6`, icon and name in `text-3`, "빈 항목" (empty slot) at the right end in `ll-row__slot-mark` (`caption`).
 - Drop position `ll-row-insert`: a zero-height element placed between two rows. A 2px `accent` line (12px from left and right, 1px rounded ends) + an 8px ring dot on the left (2px `accent` border, filled with the background color). Change the dot fill with `--ll-insert-bg`. The default is `bg-panel`, and inside the list box of `Dialog` it is `bg-inset`.
 - Drag ghost row `ll-row--ghost`: width 220px, background `bg-control`, 1px `accent` ring + `shadow-popover`, radius `radius-md`, padding left 10 and right 8. Over a place where it can be dropped, add a 16px `accent-fill` circle with a white 12px `plus` (`ll-row__add`) at the end. It follows the pointer and doesn't receive pointer events.
 
@@ -92,7 +92,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 - Write the name exactly as the item's name: "만복의 근원 하나님", "요한복음 3장 16절". Don't put the type in front (the icon shows the type).
 - Write extra information as compact counts or durations: "슬라이드 9개", "5:00", "42". Keep chapter numbers in Bible titles, such as "요한복음 3장 16절"; a separate "슬라이드 2개" describes that item's slides. The second line of a two-line item is date, then count: "10월 25일 일요일  항목 12개".
 - Don't add the state as text (no "출력 중", "완료", or "재생됨"). Show it only with the LIVE badge, color, and bars.
-- Write an empty slot as the name of the type that goes there and "빈 자리": "찬양 … 빈 자리".
+- Write an empty slot as the name of the type that goes there and "빈 항목": "찬양 … 빈 항목".
 
 ## Implementation notes
 

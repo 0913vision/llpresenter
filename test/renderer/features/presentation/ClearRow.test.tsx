@@ -331,7 +331,7 @@ describe('ClearRow', () => {
   it('shows the names in the regular form and only icons in the compact form', async () => {
     const {unmount} = await renderWithUndo();
     expect(screen.getByText('가사')).toBeTruthy();
-    expect(screen.getByText('되돌림')).toBeTruthy();
+    expect(screen.getByText('되돌리기')).toBeTruthy();
     unmount();
     await renderWithUndo(true);
     expect(screen.queryByText('가사')).toBeNull();

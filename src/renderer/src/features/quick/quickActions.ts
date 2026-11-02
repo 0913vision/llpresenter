@@ -18,7 +18,7 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
-  if (!isKnownQuickItem(item)) return '이 버전에서 지원하지 않는 항목입니다';
+  if (!isKnownQuickItem(item)) return '이번 버전에서는 쓸 수 없는 항목';
   if (item.kind === 'black') return '검은 화면을 사용할 수 없습니다';
   if (
     item.kind === 'bible' &&

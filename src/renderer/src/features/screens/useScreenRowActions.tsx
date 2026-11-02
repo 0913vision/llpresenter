@@ -1,3 +1,5 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -36,7 +38,7 @@ export function useScreenRowActions(
     document === null
       ? '설정을 불러오는 중'
       : document.access === 'readOnly'
-        ? '새 버전에서 만든 설정이므로 변경할 수 없음'
+        ? NEWER_FILE_REASON
         : undefined;
   const target = document?.value.screens.find(screen => screen.id === menu?.id);
   const confirmedTarget = document?.value.screens.find(
@@ -100,7 +102,7 @@ export function useScreenRowActions(
               reason,
               outputReason:
                 window.llp === undefined
-                  ? '출력에 연결되지 않음'
+                  ? NOT_IN_THIS_WINDOW
                   : target.method === 'ndi' && outputs[target.id] !== true
                     ? NOT_YET
                     : undefined,

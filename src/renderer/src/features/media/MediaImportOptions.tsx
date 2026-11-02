@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {
@@ -8,7 +9,7 @@ import {IconButton, Menu} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
-const TITLE = '가져오기 설정';
+const TITLE = '미디어 가져오기 설정';
 
 /** The bin's shared preference for the next import, separate from opening files. */
 export function MediaImportOptions({
@@ -38,7 +39,7 @@ export function MediaImportOptions({
         key: 'media:import-options',
         kind: 'warning',
         icon: 'warning',
-        title: '가져오기 설정을 저장하지 못함',
+        title: '미디어 가져오기 설정을 저장하지 못함',
         time: noticeTime(),
       });
     }
@@ -131,7 +132,7 @@ function ImportOptionsMenu({
     document === null
       ? '설정을 불러오는 중'
       : document.access !== 'editable'
-        ? '읽기 전용 설정'
+        ? NEWER_FILE_REASON
         : undefined;
   return (
     <Menu

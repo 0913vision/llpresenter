@@ -1,3 +1,5 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
@@ -69,9 +71,9 @@ export function TimerTab({
     document === null
       ? '타이머를 불러오고 있습니다'
       : document.access !== 'editable'
-        ? '타이머를 변경할 수 없습니다'
+        ? NEWER_FILE_REASON
         : document.value.timers.length >= MAX_TIMER_DEFINITIONS
-          ? '타이머가 가득 찼습니다'
+          ? limitReason('타이머', MAX_TIMER_DEFINITIONS)
           : undefined;
   return (
     <div className={styles.root} ref={root}>

@@ -157,7 +157,7 @@ describe('stage tool', () => {
         .getAttribute('aria-pressed'),
     ).toBe('true');
     expect(input.getAttribute('value')).toBe('아직 준비 중');
-    fireEvent.click(screen.getByRole('button', {name: '내리기'}));
+    fireEvent.click(screen.getByRole('button', {name: '지우기'}));
     expect(fixture.send).toHaveBeenLastCalledWith({
       type: 'stage.message.set',
       text: null,
@@ -166,7 +166,7 @@ describe('stage tool', () => {
     expect(screen.queryByText('LIVE')).toBeNull();
     expect(
       screen
-        .getByRole('button', {name: '내리기'})
+        .getByRole('button', {name: '지우기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     act(() =>
@@ -219,7 +219,7 @@ describe('stage tool', () => {
     );
     render(<StageTab />);
     const group = await screen.findByRole('group', {
-      name: '무대 메시지 프리셋',
+      name: '무대 메시지 문구',
     });
     await waitFor(() =>
       expect(within(group).getAllByRole('button')).toHaveLength(50),

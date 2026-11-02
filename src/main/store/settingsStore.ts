@@ -201,8 +201,7 @@ export class SettingsStore implements SettingsReader {
     }
     if (
       edit.type === 'quick.timer.create' ||
-      edit.type === 'quick.timer.rename' ||
-      edit.type === 'quick.timers.separate'
+      edit.type === 'quick.timer.rename'
     ) {
       const prepared = prepareQuickTimerEdit(this.documents, edit);
       if (!prepared.ok) {

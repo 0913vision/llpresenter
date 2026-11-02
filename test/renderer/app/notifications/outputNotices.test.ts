@@ -12,7 +12,7 @@ import {
 const TIME = '11:24';
 const screens = new Map<string, ScreenNames>([
   ['main', {monitor: '청중 화면', window: '청중 화면'}],
-  ['stage', {monitor: '무대', window: '무대 화면'}],
+  ['stage', {monitor: '무대 화면', window: '무대 화면'}],
 ]);
 
 function status(change: Partial<OutputScreenStatus> = {}): OutputScreenStatus {
@@ -59,7 +59,7 @@ describe('outputNoticeChanges, lost monitor', () => {
       key: 'screen:stage',
       kind: 'warning',
       icon: 'plug',
-      title: '무대 모니터 연결 끊김',
+      title: '무대 화면 모니터 연결 끊김',
       time: TIME,
       meta: ['모니터 3', '창으로 표시 중'],
     });
@@ -96,7 +96,7 @@ describe('outputNoticeChanges, lost monitor', () => {
       key: 'screen:stage',
       kind: 'info',
       icon: 'monitor',
-      title: '무대 모니터 다시 연결됨',
+      title: '무대 화면 모니터 다시 연결됨',
       time: TIME,
       meta: ['모니터 3'],
     });
@@ -134,7 +134,7 @@ describe('outputNoticeChanges, lost monitor', () => {
       {},
       {stage: status({placement: 'monitorMissing'})},
     );
-    expect(shown(result[0]).title).toBe('무대 모니터 연결 끊김');
+    expect(shown(result[0]).title).toBe('무대 화면 모니터 연결 끊김');
   });
 
   it('names no monitor when the screen never had one', () => {

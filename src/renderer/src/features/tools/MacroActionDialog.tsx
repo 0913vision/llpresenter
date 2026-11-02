@@ -47,7 +47,7 @@ const modes: Partial<
   audio: [
     {value: 'play', label: '재생'},
     {value: 'fadeOut', label: '페이드 아웃'},
-    {value: 'stop', label: '멈춤'},
+    {value: 'stop', label: '정지'},
   ],
 };
 const defaultMode: Partial<Readonly<Record<MacroActionKind, string>>> = {
@@ -131,7 +131,7 @@ export function MacroActionDialog({
       size="s"
       onCancel={onCancel}
       primary={{
-        label: '완료',
+        label: '적용',
         disabled: locked || !action,
         title: action ? undefined : '동작 설정을 확인하세요',
         onSelect: () => {

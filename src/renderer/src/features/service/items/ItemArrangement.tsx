@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
   useRef,
@@ -14,7 +15,7 @@ import type {SongEditorAction} from '@renderer/features/songs/editor/songEditorS
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useLive} from '@renderer/session/live';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {usageMeta} from '@renderer/ui/usageText';
 import {countServiceItemUses} from '../serviceItemUsage';
 import {ArrangementStrip} from '@renderer/ui/LabelChip';
 import {ArrangementPicker} from '../../songs/editor/ArrangementPicker';
@@ -30,7 +31,7 @@ import {
 } from '../../songs/editor/songItemModel';
 import styles from './SongItemPanel.module.css';
 
-export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다';
+export {NEWER_FILE_REASON};
 
 export interface ItemArrangementProps {
   readonly items: ServiceItemStore;
@@ -152,10 +153,7 @@ export function ItemArrangement({
           icon="trash"
           title={`‘${deleting.name}’ 구성을 삭제할까요?`}
           meta={[
-            ...countedMeta(
-              deleting.uses,
-              `이 곡의 예배 순서 항목 ${deleting.uses}곳에서 씀`,
-            ),
+            ...usageMeta(deleting.uses, '예배 순서 항목'),
             '곡의 구성만 지우며, 쓰던 항목은 기본 구성으로 바뀝니다',
           ]}
           onCancel={() => setDeleting(null)}

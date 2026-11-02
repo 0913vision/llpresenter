@@ -103,7 +103,7 @@ it.each([false, true])(
       await screen.findByRole('option', {name: '차량 이동'}),
     );
     expect(
-      renderedToolMenuRows(screen.getByRole('menu', {name: '메시지 템플릿'})),
+      renderedToolMenuRows(screen.getByRole('menu', {name: '메시지 문구'})),
     ).toEqual(['수정…', '|', '복제', '이름 바꾸기', '|', '삭제']);
     if (locked) {
       for (const row of screen.getAllByRole('menuitem')) {
@@ -120,14 +120,14 @@ it('adds a validated template, selects it, and leaves sends and presets alone', 
   const fixture = setup();
   render(<MessageTab />);
   await screen.findByRole('option', {name: '차량 이동'});
-  fireEvent.click(button('메시지 템플릿 추가'));
+  fireEvent.click(button('메시지 문구 추가'));
   expect(button('추가').getAttribute('aria-disabled')).toBe('true');
   fill('이름', '  새 안내  ');
-  fill('문장', '  ');
+  fill('문구', '  ');
   expect(
-    screen.getByRole('textbox', {name: '문장'}).getAttribute('aria-invalid'),
+    screen.getByRole('textbox', {name: '문구'}).getAttribute('aria-invalid'),
   ).toBe('true');
-  fill('문장', '{이름} 안내석으로 와 주세요');
+  fill('문구', '{이름} 안내석으로 와 주세요');
   fireEvent.click(button('추가'));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(
@@ -148,7 +148,7 @@ it('edits only name and sentence, preserving defaults and unknown fields', async
   render(<MessageTab />);
   await openRow('수정…');
   fill('이름', ' 바뀐 안내 ');
-  fill('문장', '{차량} 이동해 주세요');
+  fill('문구', '{차량} 이동해 주세요');
   fireEvent.click(button('저장'));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(fixture.current().value).toEqual(
@@ -196,16 +196,16 @@ it('keeps an applied addition with a disk warning and prevents duplicate clicks'
   });
   render(<MessageTab onProblem={fixture.problem} />);
   await screen.findByRole('option', {name: '차량 이동'});
-  fireEvent.click(button('메시지 템플릿 추가'));
+  fireEvent.click(button('메시지 문구 추가'));
   fill('이름', '새 안내');
-  fill('문장', '안내석으로 와 주세요');
+  fill('문구', '안내석으로 와 주세요');
   fireEvent.click(button('추가'));
   fireEvent.click(button('추가'));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(fixture.edit).toHaveBeenCalledOnce();
   expect(fixture.current().value.templates).toHaveLength(2);
   expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({title: '메시지 템플릿 저장 실패'}),
+    expect.objectContaining({title: '메시지 문구 저장 실패'}),
   );
   expect(await pendingWritesOf(fixture.api).flush()).toBe(true);
 });

@@ -185,7 +185,9 @@ describe('slide-header background control', () => {
       expect(screen.queryByRole('listbox')).toBeNull();
       expect(onChoose).not.toHaveBeenCalled();
       expect((await hoverForTooltip(button))?.textContent).toBe(
-        'readOnly' in props ? '읽기 전용 예배 순서' : '배경 변경 중',
+        'readOnly' in props
+          ? '새 버전의 파일이라 바꿀 수 없습니다'
+          : '배경 변경 중',
       );
     },
   );
@@ -200,7 +202,7 @@ describe('slide-header background control', () => {
     expect(relink.getAttribute('aria-disabled')).toBe('true');
     await user.click(relink);
     expect((await hoverForTooltip(relink))?.textContent).toBe(
-      '현재 버전에서는 미디어 파일을 다시 연결할 수 없음',
+      '이번 버전에서는 쓸 수 없음',
     );
   });
 

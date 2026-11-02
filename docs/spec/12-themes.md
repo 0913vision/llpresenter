@@ -57,7 +57,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 | 오버레이       | The item's 오버레이 for the live 슬라이드                    | All            | One        |
 | 항목 이름      | The live item's name                                         | All            | One        |
 | 글             | Fixed text written in the 테마                               | All            | Several    |
-| 그림           | A fixed image from the media list                            | All            | Several    |
+| 이미지         | A fixed image from the media list                            | All            | Several    |
 | 사각형         | A filled box                                                 | All            | Several    |
 | 시계           | The current time                                             | All            | One        |
 | 타이머         | A 타이머 picked in the element                               | All            | Several    |
@@ -73,10 +73,10 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   the screens it is sent to, and they always draw on top of the 테마 in the
   order 공지, 그래픽, 메시지. A 테마 can't hide them.
 - A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
-  over ProPresenter's style per 메시지 template (user decision, October 28).
-  Each screen picks its style in its 메시지 스타일 row in the 화면 설정 window,
-  not in the 테마, so a 메시지 keeps its look when the item and its 테마 change
-  (06; user decision, November 2).
+  over ProPresenter's style per 메시지 문구 (user decision, October 28). Each
+  screen picks its style in its 메시지 스타일 row in the 화면 설정 window, not
+  in the 테마, so a 메시지 keeps its look when the item and its 테마 change (06;
+  user decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 청중 화면, the item's settings show a warning
   mark with the reason in its tooltip and a 테마 편집… button.
@@ -102,8 +102,8 @@ one-pixel increment (ten with Shift).
 | 최대 줄 수       | 현재 가사, 다음 가사                        | 1 to 12; the text shrinks to fit (03, "Drawing text")  |
 | 외곽선, 그림자   | Text elements                               | On or off                                              |
 | 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                    |
-| 모서리           | 사각형, 그림, 미디어, 배경                  | 0 to 200                                               |
-| 맞춤             | 그림, 미디어, 배경, 오버레이                | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)    |
+| 모서리           | 사각형, 이미지, 미디어, 배경                | 0 to 200                                               |
+| 맞춤             | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)    |
 
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
@@ -158,7 +158,7 @@ until the operator or an action changes it (S4 pp. 37 to 38).
 4. A cleared layer draws nothing in the elements that show it: 지우기 가사
    empties 현재 가사, 다음 가사, 이름표, and 성경 출처; 지우기 미디어 empties
    미디어 and 배경; 지우기 모두 empties every element that shows live content.
-   Fixed elements (글, 그림, 사각형, 시계) stay, so a cleared 청중 화면 can
+   Fixed elements (글, 이미지, 사각형, 시계) stay, so a cleared 청중 화면 can
    still show the church logo.
 
 ### Empty screens
@@ -232,9 +232,9 @@ Saving (user decision, November 1):
   while its working copy has unsaved edits.
 - **Saving.** 저장 (Ctrl S), top right of the canvas, asks "<이름> 테마를
   덮어쓸까요?" with 취소 and 덮어쓰기. Under the question it counts the 예배
-  순서 항목 that use the 테마 directly or as their kind's default ("예배 순서
-  항목 4곳에서 씀"), and shows nothing at 0. 덮어쓰기 writes the 테마. 저장 is
-  disabled while there are no edits; its tooltip says so. 다른 이름으로 저장…
+  순서 항목 that use the 테마 directly or as their kind's default ("쓰는 곳:
+  예배 순서 항목 4곳"), and shows nothing at 0. 덮어쓰기 writes the 테마. 저장
+  is disabled while there are no edits; its tooltip says so. 다른 이름으로 저장…
   (Ctrl Shift S) sits beside it: it asks for a name in the shared rename dialog,
   prefilled `<이름> 복사본` (`복사본 2`, 3, … when taken), and makes a new 테마
   from the working copy while the original keeps its saved state. 새 테마로 저장
@@ -259,7 +259,7 @@ kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 - An item may have several 오버레이. Each has content (a video, an image, or
   text), a range (슬라이드 n부터 m까지), the screens it shows on, and for a
-  video 반복 or 멈춤 and 소리.
+  video 반복 or 정지 and 소리.
 - Ranges never overlap: at most one 오버레이 per 슬라이드.
 - Where it shows on a screen is the 테마's 오버레이 element. No default 테마 has
   one, so most items never use 오버레이. Whoever needs one makes a 테마 for the
@@ -323,7 +323,7 @@ Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 `stageMessage`, `memo`, `nextLabel`, `videoTimeLeft`), `frame` `{ x, y, w, h }`,
 and the properties of its kind from "Element properties" (`text` fields as the
 text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
-`content` for 글, `mediaId` for 그림, `timerId` for 타이머, `clockFormat` for
+`content` for 글, `mediaId` for 이미지, `timerId` for 타이머, `clockFormat` for
 시계). Keep unknown fields, as every settings file does (02).
 
 ### Item fields (`.llservice`)
@@ -343,7 +343,7 @@ text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
 
 - 03: the layers of an output and the stacking order follow "Drawing a screen".
 - 02: `themes.json` holds the 테마. `messageStyles` live in `messages.json` with
-  the 메시지 templates.
+  the 메시지 문구.
 - 06 and the 화면 설정 workspace: the workspace is 테마 and holds the 테마
   editor. Screens and monitors are in the 화면 설정 window.
 - 07: the 매크로 action 테마 바꾸기 ("테마 바꾸기" above).

@@ -41,7 +41,7 @@ it('explains busy commands without hiding read-only and open-service protections
   for (const id of ['rename', 'save-template', 'delete']) {
     expect(busy.find(row => row.id === id)).toMatchObject({
       disabled: true,
-      title: '예배 순서 저장 중',
+      title: '예배 저장 중',
     });
   }
   const protectedRows = menuItems(
@@ -52,10 +52,10 @@ it('explains busy commands without hiding read-only and open-service protections
     }),
   );
   expect(protectedRows.find(row => row.id === 'rename')?.title).toBe(
-    '읽기 전용 예배 순서',
+    '새 버전의 파일이라 바꿀 수 없습니다',
   );
   expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
-    '열린 예배 순서는 삭제할 수 없습니다',
+    '열린 예배는 삭제할 수 없습니다',
   );
 });
 beforeEach(() => {
@@ -207,7 +207,7 @@ it('cancels an inline rename with Escape without closing the picker', async () =
   const field = await screen.findByRole('textbox', {name: `${pastName} 이름`});
   fireEvent.change(field, {target: {value: '취소할 이름'}});
   fireEvent.keyDown(field, {key: 'Escape', code: 'Escape'});
-  expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeTruthy();
+  expect(screen.getByRole('menu', {name: '예배 선택'})).toBeTruthy();
   expect(document.activeElement).toBe(
     screen.getByRole('combobox', {name: '검색'}),
   );
@@ -286,7 +286,7 @@ it('makes the picker inert while the open service renames and commits an outside
     service: {id: ids.created, name: '새로 적은 예배'},
   });
   expect(screen.queryByRole('dialog', {name: '새 예배'})).toBeNull();
-  expect(screen.getByRole('menu', {name: '예배 순서 선택'})).toBeDefined();
+  expect(screen.getByRole('menu', {name: '예배 선택'})).toBeDefined();
   expect(open).not.toHaveBeenCalled();
 });
 

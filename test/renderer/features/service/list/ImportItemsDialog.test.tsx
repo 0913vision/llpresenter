@@ -347,15 +347,13 @@ describe('ImportItemsDialog', () => {
     );
     expect(importButton().getAttribute('aria-disabled')).toBe('true');
     const tooltip = await hoverForTooltip(importButton());
-    expect(tooltip?.textContent).toBe(
-      '읽기 전용 예배 순서에는 가져올 수 없습니다',
-    );
+    expect(tooltip?.textContent).toBe('새 버전의 파일이라 바꿀 수 없습니다');
   });
 
   it('says so when there is nothing to import from', async () => {
     setup({templates: [], services: [current]});
     expect(
-      await screen.findByText('가져올 템플릿이나 예배 순서가 없습니다'),
+      await screen.findByText('가져올 템플릿이나 예배가 없습니다'),
     ).toBeDefined();
     expect(screen.queryByRole('tree')).toBeNull();
   });

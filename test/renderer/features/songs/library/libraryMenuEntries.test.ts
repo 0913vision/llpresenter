@@ -32,7 +32,7 @@ it('retains specific reasons ahead of busy state and explains busy commands', ()
     '열린 예배 없음',
   );
   expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
-    '읽기 전용 곡입니다',
+    '새 버전의 파일이라 바꿀 수 없습니다',
   );
 });
 
@@ -51,7 +51,7 @@ it('adds to the open service with one command and no submenu', () => {
   const add = rows[0];
   for (const row of rows) {
     if (row.kind === 'item' && row.disabled && row.id !== 'add-to') {
-      expect(row.title).toBe('아직 없는 기능');
+      expect(row.title).toBe('이번 버전에서는 쓸 수 없음');
     }
   }
   if (add?.kind !== 'item') throw new Error('Missing command');

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useLayoutEffect, useRef, useSyncExternalStore, type JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {TextField} from '@renderer/ui/TextField';
@@ -67,7 +68,7 @@ export function SongHeader({
             session.blocked
               ? '저장 오류 해결 필요'
               : session.readOnly
-                ? '읽기 전용 곡'
+                ? NEWER_FILE_REASON
                 : state.busy
                   ? '저장 중'
                   : undefined

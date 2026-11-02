@@ -17,7 +17,7 @@ import {
 // the control window; until then only the built-in screens get cards.
 const screenNames: ReadonlyMap<string, ScreenNames> = new Map([
   ['main', {monitor: '청중 화면', window: '청중 화면'}],
-  ['stage', {monitor: '무대', window: '무대 화면'}],
+  ['stage', {monitor: '무대 화면', window: '무대 화면'}],
   ['broadcast', {monitor: '방송 화면', window: '방송 화면'}],
 ]);
 

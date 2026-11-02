@@ -35,15 +35,15 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
     '속성…',
     '전환 효과…',
     '|',
-    '동작 방식',
-    '크기 맞춤',
-    '알파 종류',
+    '동작',
+    '맞춤',
+    '알파',
     '|',
-    '재생 방식',
-    '반복 방식',
-    '끝날 때',
+    '재생',
+    '반복',
+    '끝나면',
     '|',
-    '다음 큐',
+    '다음 항목',
     '|',
     '잘라내기',
     '복사',
@@ -62,7 +62,10 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
   ).toEqual(['cut', 'copy', 'paste', 'duplicate', 'delete']);
   for (const row of entries) {
     if (row.kind === 'item' && !['delete', 'properties'].includes(row.id)) {
-      expect(row).toMatchObject({disabled: true, title: '아직 없는 기능'});
+      expect(row).toMatchObject({
+        disabled: true,
+        title: '이번 버전에서는 쓸 수 없음',
+      });
     }
   }
 });
@@ -74,7 +77,7 @@ it('lists the audio playlist item rows without icons', () => {
   );
   expect(rows(entries)).toEqual([
     '탐색기에서 보기',
-    '재생 방식',
+    '재생',
     '효과음으로 지정',
     '|',
     '속성…',

@@ -112,7 +112,7 @@ it('adds an image prop only after choosing an image and target', async () => {
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '로고'},
   });
-  fireEvent.click(screen.getByRole('button', {name: '내용 종류'}));
+  fireEvent.click(screen.getByRole('button', {name: '내용'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '이미지'}));
   const save = screen.getByRole('button', {name: '추가'});
   expect(save.getAttribute('aria-disabled')).toBe('true');
@@ -146,7 +146,7 @@ it('locks every draft control until an outstanding save finishes', async () => {
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '로고'},
   });
-  fireEvent.click(screen.getByRole('button', {name: '내용 종류'}));
+  fireEvent.click(screen.getByRole('button', {name: '내용'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '이미지'}));
   fireEvent.click(screen.getByRole('button', {name: '이미지'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '로고 그림'}));
@@ -156,7 +156,7 @@ it('locks every draft control until an outstanding save finishes', async () => {
   expect(
     screen.getByRole('textbox', {name: '이름'}).hasAttribute('readonly'),
   ).toBe(true);
-  for (const name of ['내용 종류', '이미지', '청중 화면']) {
+  for (const name of ['내용', '이미지', '청중 화면']) {
     expect(
       screen.getByRole('button', {name}).getAttribute('aria-disabled'),
     ).toBe('true');

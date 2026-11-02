@@ -115,7 +115,7 @@ export function MenuSurface(props: MenuSurfaceProps): JSX.Element {
         key={item.id}
         item={
           nav.renaming && item.rename === undefined
-            ? {...item, disabled: true, title: '이름 편집 중'}
+            ? {...item, disabled: true, title: '이름 바꾸는 중'}
             : item
         }
         id={itemId(index)}

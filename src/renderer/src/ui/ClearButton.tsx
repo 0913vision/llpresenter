@@ -10,7 +10,7 @@ import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ClearButton.module.css';
 
 const ROW_NAME = '지우기';
-const UNDO_NAME = '되돌림';
+const UNDO_NAME = '되돌리기';
 const UNDO_LABEL = '되돌리기';
 const ICON_SIZE: IconSize = 18;
 const COMPACT_ICON_SIZE: IconSize = 16;
@@ -50,7 +50,7 @@ const CompactRow = createContext(false);
 
 /**
  * The 지우기 row of the 진행 workspace (`ll-clear-row`): the 지우기 buttons in
- * their order, then optional 되돌림. `compact` is the narrow window form, with
+ * their order, then optional 되돌리기. `compact` is the narrow window form, with
  * icons only and the names in the tooltips.
  */
 export function ClearRow({
@@ -150,7 +150,7 @@ export interface ClearUndoProps {
   readonly shortcut?: string | undefined;
 }
 
-/** 되돌림, after the divider at the end of the 지우기 row. */
+/** 되돌리기, after the divider at the end of the 지우기 row. */
 export function ClearUndo({
   available,
   onUndo,

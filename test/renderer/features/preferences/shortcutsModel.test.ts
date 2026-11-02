@@ -37,7 +37,7 @@ describe('allCommands', () => {
     expect(commands).toHaveLength(shortcutCommands.length + 3);
     expect(commands.slice(-3).map(command => command.name)).toEqual([
       '로고',
-      '설교 시작과 멈춤',
+      '설교 시작과 정지',
       '설교 처음으로',
     ]);
   });

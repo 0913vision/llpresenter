@@ -47,9 +47,9 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   with the reason in the tooltip. 배경 shows the picture and name, dimmed when
   the item follows the song's. 테마 and 시작할 때 change in the cell, which
   opens its list of choices; the other columns are changed on the right or in
-  the windows. A 머리글 row shows only its name.
-- 항목 and 머리글 at the end of the table add a row after the last one. 항목
-  opens the list of "Quick add" (below).
+  the windows. A 구역 row shows only its name.
+- 항목 and 구역 at the end of the table add a row after the last one. 항목 opens
+  the list of "Quick add" (below).
 - The right column's 슬라이드 panel has 순서 편집…, which opens the 순서 편집
   window on the song item.
 - A song row's right-click has 순서 편집… and 곡 편집… after 구성 › (11). A
@@ -87,7 +87,7 @@ right.
   changes the range.
 - Clicking a bar opens its settings, with the labels and controls of the
   existing 오버레이 settings: 바꾸기…, 슬라이드 (부터, 까지), 화면 (a checkbox
-  per screen), 끝나면 (반복, 멈춤), 소리 (the label with a lone checkbox), and
+  per screen), 끝나면 (반복, 정지), 소리 (the label with a lone checkbox), and
   오버레이 삭제.
 - Remove: 오버레이 삭제 in those settings or on the 슬라이드's right-click,
   beside 오버레이 바꾸기…; or choose a bar and press Delete.
@@ -185,7 +185,7 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 - The right-click menu of a 라이브러리 row has 삭제. It opens a confirmation
   dialog, for example "‘만복의 근원 하나님’ 곡을 삭제할까요?" (Delete this
-  song?), with the detail "예배 순서 2곳에서 씀" (used in 2 services), and the
+  song?), with the detail "쓰는 곳: 예배 2곳" (used in 2 services), and the
   buttons 취소 (cancel) and 삭제.
 - After the delete, 예배 순서 items that point to the song show the problem
   state, with the tooltip "곡을 찾을 수 없습니다" (song not found), and can't
@@ -203,9 +203,9 @@ the editor until 저장 ("곡 편집" under B20 above).
 ### Header
 
 - The title and the 슬라이드 count ("슬라이드 4개"), a 라이브러리 tag (folder
-  icon), and "예배 순서 2곳" (used in 2 services, link icon). The second tag
-  counts the 예배 순서 files that point to the song. Its tooltip lists their
-  names (proposal).
+  icon), and "예배 2곳" (used in 2 services, link icon). The second tag counts
+  the 예배 순서 files that point to the song. Its tooltip lists their names
+  (proposal).
 - 기본 배경 (default background): a select with a small image and the media
   name. It opens the shared searchable media list: 없음 (none), then image and
   video media. Choosing a media saves it as the song's `background`.
@@ -223,14 +223,14 @@ the editor until 저장 ("곡 편집" under B20 above).
 
 - The label "구성" and the same dropdown as the item view, at every number of
   choices: 기본, a separator, the named 구성, a separator, 새 구성…, 이름
-  바꾸기…, 지우기, a separator, 구성 편집…. 기본 has rename and delete disabled
+  바꾸기…, 삭제, a separator, 구성 편집…. 기본 has rename and delete disabled
   with the reason "기본 구성은 바꿀 수 없습니다" (October 31 B22).
 - A 구성 is an ordered list of named groups, with repeats (October 27 user
   decision). Choosing it shows the expanded slides on the right. The source
   editor keeps master group order; repeated group occurrences share the same
   lyrics. 구성 편집… opens the editable group chip strip in the song editor.
 - 새 구성… asks for a name and copies the chosen order. 이름 바꾸기… opens the
-  naming dialog; 지우기 removes the selected named 구성.
+  naming dialog; 삭제 removes the selected named 구성.
   - Because 예배 순서 items pick a 구성 by name, a rename also updates the
     `arrangement` value of every 예배 순서 item that points to this song and the
     old name (proposal).
@@ -399,7 +399,7 @@ settings) panel.
 | Group                    | Row                  | Control                                                             | Behavior                                                                                                                                                                     |
 | ------------------------ | -------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 원본 (source)            | 곡 (song)            | Song title, link icon, 라이브러리 detail and the shared edit action | Opens the song editor at the selected source slide.                                                                                                                          |
-| 원본                     | 쓰는 곳              | "예배 순서 n곳", with service names in the tooltip                  | Uses the same live library usage as the song header.                                                                                                                         |
+| 원본                     | 쓰는 곳              | "예배 n곳", with service names in the tooltip                       | Uses the same live library usage as the song header.                                                                                                                         |
 | 이번 예배 (this service) | 배경 (background)    | Select with a small image                                           | Shows the item's background. Without an override, the detail reads "곡 기본값" (song default). Choosing a media saves the override. Choosing 곡 기본값 removes the override. |
 | 이번 예배                | 시작할 때 (on start) | Select with the 매크로's color tile and the detail "매크로"         | The 매크로 to run when the item starts (see 07). The menu has 없음 (none) and the 매크로 list.                                                                               |
 | 메모 (memo)              |                      | Multiline text field                                                | Free text for this item.                                                                                                                                                     |
@@ -625,8 +625,8 @@ The service list opens from the service name in the 예배 순서 header in both
   rename and keeps the newer document intact. A refusal keeps the rename dialog
   and reports 이름을 바꿀 수 없음.
 - 삭제 asks for confirmation. The open service can't be deleted: the menu item
-  is unavailable with the tooltip 열린 예배 순서는 삭제할 수 없습니다, and main
-  also refuses the delete. A refused delete reports 삭제할 수 없음.
+  is unavailable with the tooltip 열린 예배는 삭제할 수 없습니다, and main also
+  refuses the delete. A refused delete reports 삭제할 수 없음.
 - Both prompts wait for their operation's result before dismissal. A rename's
   document read and write both take part in the window's close flush, so the
   window can't close before an already-started rename reaches main; closing also
@@ -711,9 +711,9 @@ row-menu decision.
 - If the 라이브러리 already has the title, the title field shows the error ring,
   with the tooltip "라이브러리에 같은 제목의 곡이 있습니다". Don't add labels,
   chips, or status text.
-- Footer: 버리기 (discard) and 편집 (edit, the primary button). The dialog has
-  no save button.
-- 버리기 closes the dialog. Nothing is saved.
+- Footer: 저장 안 함 (discard) and 편집 (edit, the primary button). The dialog
+  has no save button.
+- 저장 안 함 closes the dialog. Nothing is saved.
 - 편집 closes the dialog, switches to 준비, and opens the unsaved song in the
   song editor.
 
@@ -721,14 +721,14 @@ row-menu decision.
 
 - The editor is the song editor, with these differences:
   - The header has an editable title field (the duplicate outline stays), the
-    기본 배경 select, and the buttons 버리기 and 저장 (save, the primary
+    기본 배경 select, and the buttons 저장 안 함 and 저장 (save, the primary
     button).
   - The song isn't in the 라이브러리 and isn't saved until 저장. It isn't
     autosaved, and a crash loses it (proposal).
 - While the draft is open, if the operator selects another song or item or
   starts another import, ask in a confirmation dialog: "가져온 곡을 저장하지
   않았습니다. 버릴까요?" (The imported song isn't saved. Discard it?) with 취소
-  and 버리기 (proposal).
+  and 저장 안 함 (proposal).
 - 저장 is unavailable while the title is empty, with the tooltip "곡 제목을
   적어야 저장할 수 있습니다".
 - 저장 with a new title saves the song to the 라이브러리 with a new ID. The
@@ -790,7 +790,7 @@ and 59.
 
 | Group           | Row                  | Control                                       |
 | --------------- | -------------------- | --------------------------------------------- |
-| 재생 (playback) | 끝나면 (at the end)  | 반복 (loop) or 멈춤 (stop)                    |
+| 재생 (playback) | 끝나면 (at the end)  | 반복 (loop) or 정지 (stop)                    |
 | 재생            | 구간 (range)         | 시작 (start) and 끝 (end) time fields         |
 | 재생            | 속도 (speed)         | Number field, for example 1.0×                |
 | 화면 (screen)   | 맞춤 (fit)           | 맞추기 (fit), 채우기 (fill), 늘리기 (stretch) |
@@ -832,10 +832,11 @@ and 59.
     media joins 모든 미디어 and the selected playlist.
   - A file that can't play shows a warning icon on its tile, with the reason in
     a tooltip (proposal).
-  - 가져오기 설정 beside 가져오기 opens a checked menu item 미디어 폴더로 복사.
-    It edits the same preference as 환경설정 > 미디어. This local placement
-    keeps the option reachable before the full Preferences window lands; it does
-    not add a separate import mode or delay opening the file dialog.
+  - 미디어 가져오기 설정 beside 가져오기 opens a checked menu item 미디어 폴더로
+    복사. It edits the same preference as 환경설정 > 미디어. This local
+    placement keeps the option reachable before the full Preferences window
+    lands; it does not add a separate import mode or delay opening the file
+    dialog.
 - Dropping files from Windows Explorer on the grid imports them (proposal).
 - Dragging tiles onto a playlist in the left column adds them to that playlist
   (proposal).
@@ -848,7 +849,7 @@ and 59.
 - The 효과음 (sound effects) playlist has a different icon in the board. Whether
   it behaves differently is an open question.
 - A tile whose file is missing opens a file dialog to relink it when clicked.
-  Its right-click menu has 다시 연결 (relink). See 08.
+  Its right-click menu has 다시 연결. See 08.
 
 Source: the user's October 26 shared-bin decision (04), `Media`, `MediaTile`
 README, `StatusMarks` README (progress bar), `Slider` README, `docs/TECH.md`

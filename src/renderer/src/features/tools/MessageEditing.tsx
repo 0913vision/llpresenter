@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import type {MessageTemplate} from '@core/schema/messages';
@@ -55,9 +56,7 @@ function TemplateDialog({
   const textReason = messageTextReason(text);
   return (
     <Dialog
-      title={
-        editor.kind === 'add' ? '메시지 템플릿 추가' : '메시지 템플릿 수정'
-      }
+      title={editor.kind === 'add' ? '메시지 문구 추가' : '메시지 문구 수정'}
       size="s"
       onCancel={onCancel}
       primary={{
@@ -83,7 +82,7 @@ function TemplateDialog({
             />
           )}
         </PropertyRow>
-        <PropertyRow label="문장" alignTop>
+        <PropertyRow label="문구" alignTop>
           {({controlId}) => (
             <TextArea
               id={controlId}
@@ -123,7 +122,7 @@ export function MessageEditing({
     onProblem,
     area: {
       key: 'messages',
-      label: '메시지 템플릿',
+      label: '메시지 문구',
       log: 'Could not edit message templates',
     },
   });
@@ -158,9 +157,11 @@ export function MessageEditing({
       <div className={styles.editingTools}>
         <IconButton
           icon="plus"
-          label="메시지 템플릿 추가"
+          label="메시지 문구 추가"
           disabled={locked || full}
-          title={full ? '메시지 템플릿이 가득 찼습니다' : undefined}
+          title={
+            full ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES) : undefined
+          }
           onClick={() => setEditor({kind: 'add'})}
         />
       </div>
@@ -197,7 +198,7 @@ export function MessageEditing({
       </div>
       {menu ? (
         <Menu
-          label="메시지 템플릿"
+          label="메시지 문구"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={messageMenuEntries({
@@ -210,7 +211,7 @@ export function MessageEditing({
       {editor?.kind === 'delete' ? (
         <AlertDialog
           icon="msg"
-          title={`‘${editor.item.name}’ 메시지 템플릿을 삭제할까요?`}
+          title={`‘${editor.item.name}’ 메시지 문구을 삭제할까요?`}
           onCancel={() => setEditor(null)}
           actions={[
             {

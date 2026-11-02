@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {
   menuAvailability,
@@ -63,7 +64,9 @@ function collectionRows(
       kind: 'item',
       id: 'new',
       label: '새 모음',
-      ...menuAvailability(full ? '모음 한도 도달' : undefined),
+      ...menuAvailability(
+        full ? limitReason('모음', MACRO_FILE_LIMITS.collections) : undefined,
+      ),
       onSelect: onNew,
     },
   ];
@@ -165,7 +168,7 @@ function clipboardEntries(
         input.locked
           ? '매크로 목록 잠김'
           : full
-            ? '매크로 한도 도달'
+            ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
             : undefined,
       ),
       onSelect: handlers.duplicate,

@@ -37,7 +37,7 @@ ${LINE}`,
     const title = page.getByRole('textbox', {name: '곡 제목'});
     await title.fill(TITLE);
     await title.press('Enter');
-    await page.getByRole('button', {name: '저장'}).click();
+    await page.getByRole('button', {name: '저장', exact: true}).click();
 
     const directory = join(app.data, 'LoveLight', 'Songs');
     const saved = async (): Promise<string | undefined> => {

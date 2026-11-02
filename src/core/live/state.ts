@@ -124,7 +124,7 @@ export interface LiveState {
   readonly layers: LiveLayers;
   /** Output on or off per screen id. A missing screen is off. */
   readonly outputs: Readonly<Record<string, boolean>>;
-  /** Whether the last clear can be undone, so the 되돌림 button can dim. */
+  /** Whether the last clear can be undone, so the 되돌리기 button can dim. */
   readonly canUndo: boolean;
   /** Clear keys with captured content available for a second press to restore. */
   readonly clearToggles?: readonly ClearTarget[];

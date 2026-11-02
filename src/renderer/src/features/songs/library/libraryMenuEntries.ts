@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -51,7 +52,7 @@ export function libraryMenuEntries({
       danger: true,
       ...menuAvailability(
         song.access === 'readOnly'
-          ? '읽기 전용 곡입니다'
+          ? NEWER_FILE_REASON
           : busy
             ? '곡 작업 중'
             : undefined,
@@ -61,6 +62,6 @@ export function libraryMenuEntries({
     menuSeparator('export-separator'),
     laterRow('reveal', '탐색기에서 보기'),
     laterRow('export-bundle', '묶음으로 내보내기…'),
-    laterRow('export-images', '그림으로 내보내기…'),
+    laterRow('export-images', '이미지로 내보내기…'),
   ];
 }

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   withPreferenceDefaults,
   type Preferences,
@@ -8,7 +9,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {useQueuedWrites} from './useQueuedWrites';
 
 const TITLE = '환경설정';
-export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다';
+export {NEWER_FILE_REASON};
 const SAVE_FAILURE: Notice = {
   key: 'preferences:save',
   kind: 'warning',

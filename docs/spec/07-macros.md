@@ -101,7 +101,7 @@ The rows, groups, and order of the 매크로 right-click menu follow ProPresente
 and are set in [11-menus.md](11-menus.md), "매크로 오른쪽 클릭". 삭제 asks in a
 confirmation dialog, for example "‘예배 시작’ 매크로를 삭제할까요?" (Delete this
 매크로?). If 예배 순서 items use it as a start 매크로, the detail says how many
-("예배 순서 항목 3곳에서 씀") (proposal).
+("쓰는 곳: 예배 순서 항목 3곳") (proposal).
 
 Source: `Macros`, 11-menus.md.
 
@@ -142,7 +142,7 @@ camera input) are additions, not changes (see `docs/TECH.md` and 09).
 | 그래픽           | 그래픽 ID and a mode: 켜기 (on, default), 끄기 (off), 바꾸기 (toggle) (proposal for the mode)                        | Turns the 그래픽 on, off, or over.                                                                | "그래픽 설교 본문 자막", "그래픽 로고"                                                       |
 | 메시지           | Template ID, blank values, target screens, display time                                                              | Sends the 메시지 (see 04).                                                                        | None                                                                                         |
 | 공지             | 공지 set ID                                                                                                          | Starts the 공지 set on its target screens from its first image (proposal for the start image).    | "공지 주일 광고"                                                                             |
-| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 멈춤 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                                 | "오디오 페이드 아웃", "오디오 헌금 연주"                                                     |
+| 오디오           | A track (media ID), or 페이드 아웃 (fade out), or 정지 (stop) (proposal for the list)                                | Plays the track, or fades out or stops the audio.                                                 | "오디오 페이드 아웃", "오디오 헌금 연주"                                                     |
 | 오디오 재생 목록 | Audio playlist ID                                                                                                    | Plays the playlist from its first track.                                                          | None                                                                                         |
 | 타이머           | 타이머 ID and an operation: 시작 (start, default), 일시 정지 (pause), 처음으로 (reset) (proposal for the operations) | Controls the 타이머.                                                                              | "타이머 예배 경과", "타이머 설교"                                                            |
 | 매크로           | 매크로 ID                                                                                                            | Runs that 매크로 (see the loop rule above).                                                       | None                                                                                         |

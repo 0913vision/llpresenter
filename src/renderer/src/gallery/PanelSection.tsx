@@ -43,20 +43,20 @@ const MINI_BODY_HEIGHT = 12;
 const usageStates = [
   {
     label: 'Pending usage',
-    text: '예배 순서 …',
-    tip: '사용처를 불러오는 중입니다',
+    text: '예배 …',
+    tip: '쓰는 곳을 확인하는 중',
     failed: false,
   },
   {
     label: 'Unavailable usage',
-    text: '예배 순서 ?',
-    tip: '곡 사용처 정보를 확인할 수 없습니다',
+    text: '예배 ?',
+    tip: '쓰는 곳을 확인할 수 없습니다',
     failed: true,
   },
   {
     label: 'Known zero',
-    text: '예배 순서 0곳',
-    tip: '사용 중인 예배 순서 없음',
+    text: '예배 0곳',
+    tip: '쓰는 예배 없음',
     failed: false,
   },
 ];

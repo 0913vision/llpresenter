@@ -65,7 +65,7 @@ function setup(initial = document()) {
 }
 
 async function open() {
-  fireEvent.click(screen.getByRole('button', {name: '가져오기 설정'}));
+  fireEvent.click(screen.getByRole('button', {name: '미디어 가져오기 설정'}));
   const item = await screen.findByRole('menuitemcheckbox', {
     name: '미디어 폴더로 복사',
   });
@@ -132,7 +132,7 @@ it('uses the latest saved choice after reopening and releases every menu subscri
 
 it('refuses changes to a read-only document', async () => {
   const {edit} = setup(document(1, {media: {copyOnImport: true}}, 'readOnly'));
-  fireEvent.click(screen.getByRole('button', {name: '가져오기 설정'}));
+  fireEvent.click(screen.getByRole('button', {name: '미디어 가져오기 설정'}));
   const item = await screen.findByRole('menuitemcheckbox');
   await waitFor(() => expect(item.getAttribute('aria-checked')).toBe('true'));
   expect(item.getAttribute('aria-disabled')).toBe('true');
@@ -152,10 +152,10 @@ it('keeps one write in flight and reports failure after the menu closes', async 
   fireEvent.click(await open());
   expect(
     screen
-      .getByRole('button', {name: '가져오기 설정'})
+      .getByRole('button', {name: '미디어 가져오기 설정'})
       .getAttribute('aria-disabled'),
   ).toBe('true');
-  fireEvent.click(screen.getByRole('button', {name: '가져오기 설정'}));
+  fireEvent.click(screen.getByRole('button', {name: '미디어 가져오기 설정'}));
   expect(edit).toHaveBeenCalledOnce();
   await act(async () => {
     finish({
@@ -164,11 +164,11 @@ it('keeps one write in flight and reports failure after the menu closes', async 
     });
   });
   expect(onProblem).toHaveBeenCalledWith(
-    expect.objectContaining({title: '가져오기 설정을 저장하지 못함'}),
+    expect.objectContaining({title: '미디어 가져오기 설정을 저장하지 못함'}),
   );
   expect(
     screen
-      .getByRole('button', {name: '가져오기 설정'})
+      .getByRole('button', {name: '미디어 가져오기 설정'})
       .getAttribute('aria-disabled'),
   ).not.toBe('true');
 });
@@ -182,9 +182,12 @@ it('ignores an older initial read and releases a pending read when dismissed', a
         finish = resolve;
       }),
   );
-  fireEvent.keyDown(screen.getByRole('button', {name: '가져오기 설정'}), {
-    key: 'ArrowDown',
-  });
+  fireEvent.keyDown(
+    screen.getByRole('button', {name: '미디어 가져오기 설정'}),
+    {
+      key: 'ArrowDown',
+    },
+  );
   expect(
     screen.getByRole('menuitemcheckbox').getAttribute('aria-disabled'),
   ).toBe('true');

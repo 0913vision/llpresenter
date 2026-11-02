@@ -15,7 +15,7 @@ const TITLES = new Intl.Collator('ko', {numeric: true});
 
 /**
  * The 라이브러리 rows by title, each with the 예배 순서 that use the song (05,
- * "Header": "예배 순서 2곳" and its tooltip).
+ * "Header": "예배 2곳" and its tooltip).
  */
 export function librarySongs(
   songs: ReadonlyArray<StoredDocument<GroupedSong>>,

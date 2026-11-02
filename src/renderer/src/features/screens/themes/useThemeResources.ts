@@ -74,7 +74,7 @@ export function useThemeResources(
           key: 'screens:themes:images',
           kind: 'warning',
           icon: 'warning',
-          title: '그림 목록 불러오기 실패',
+          title: '이미지 목록 불러오기 실패',
           time: noticeTime(),
         });
       }

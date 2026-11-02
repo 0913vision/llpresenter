@@ -74,7 +74,7 @@ export function macroActionChoices({
       ...rows,
       ...(rows.length > 0 ? [menuSeparator('audio-operations')] : []),
       choice('페이드 아웃', {kind, operation: 'fadeOut'}),
-      choice('멈춤', {kind, operation: 'stop'}),
+      choice('정지', {kind, operation: 'stop'}),
     ];
   }
   return rows;

@@ -70,7 +70,7 @@ export function StageMessage({
           title={!live ? '표시 중인 무대 메시지가 없습니다' : undefined}
           onClick={hideStageMessage}
         >
-          내리기
+          지우기
         </Button>
         <Button
           variant="primary"
@@ -85,7 +85,7 @@ export function StageMessage({
         <div
           className={styles.presets}
           role="group"
-          aria-label="무대 메시지 프리셋"
+          aria-label="무대 메시지 문구"
         >
           {presets.slice(0, MAX_PRESETS).map((preset, index) => {
             const reason = messageReason(preset, available);

@@ -77,13 +77,15 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
     }).find(row => row.id === 'add-action')?.submenu ?? [],
   );
   for (const id of ['clear', 'theme']) {
-    expect(full.find(row => row.id === id)?.title).toBe('동작 한도 도달');
+    expect(full.find(row => row.id === id)?.title).toBe(
+      '동작은 256개까지 추가할 수 있음',
+    );
   }
   expect(
     rows({macroCount: MACRO_FILE_LIMITS.macros}).find(
       row => row.id === 'duplicate',
     )?.title,
-  ).toBe('매크로 한도 도달');
+  ).toBe('매크로는 1000개까지 추가할 수 있음');
   const collections = menuItems(
     rows({
       collections: Array.from(
@@ -93,7 +95,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
     }).find(row => row.id === 'add-to')?.submenu ?? [],
   );
   expect(collections[0]?.title).toBe('현재 포함된 모음');
-  expect(collections.at(-1)?.title).toBe('모음 한도 도달');
+  expect(collections.at(-1)?.title).toBe('모음은 200개까지 추가할 수 있음');
   const unknown = settingsDocument('macros', {
     macros: [{...item, actions: [{kind: 'futureAction'}]}],
     collections: [],
@@ -104,5 +106,5 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
   expect(
     rows({item: unknown.value.macros[0]}).find(row => row.id === 'edit-0')
       ?.title,
-  ).toBe('지원하지 않는 동작');
+  ).toBe('이번 버전에서는 쓸 수 없는 동작');
 });

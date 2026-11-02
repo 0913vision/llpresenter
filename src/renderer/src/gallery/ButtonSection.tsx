@@ -62,7 +62,7 @@ export function ButtonSection(): JSX.Element {
         {catalogStates.map(state => (
           <SpecItem key={state.label} label={state.label} width={HEADER_WIDTH}>
             <div className={styles.dialogFooter}>
-              <Button>버리기</Button>
+              <Button>저장 안 함</Button>
               <Button
                 variant="primary"
                 disabled={state.reason !== undefined}
@@ -93,7 +93,7 @@ export function ButtonSection(): JSX.Element {
       />
       <SpecGroup title="Size comparison">
         <SpecItem label="sm text only, horizontal 10">
-          <Button>버리기</Button>
+          <Button>저장 안 함</Button>
         </SpecItem>
         <SpecItem label="sm leading icon, left 8">
           <Button icon="plus">가져오기</Button>
@@ -132,7 +132,7 @@ export function ButtonSection(): JSX.Element {
             <PanelHeader>
               <PanelTitle title="만복의 근원 하나님" />
               <PanelActions>
-                <Button>버리기</Button>
+                <Button>저장 안 함</Button>
                 <Button variant="primary">저장</Button>
               </PanelActions>
             </PanelHeader>

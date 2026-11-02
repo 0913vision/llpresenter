@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useShortcutText} from '@renderer/ui/commandBindings';
 import {ariaShortcut} from '@renderer/ui/Tooltip';
@@ -146,11 +147,11 @@ export function ToolbarSearch({
   const editing = useServiceOrderEditing(serviceId, onProblem);
   const addReason =
     serviceId === null
-      ? '열린 예배 순서가 없습니다'
+      ? '열린 예배가 없습니다'
       : readOnly
-        ? '읽기 전용 예배 순서'
+        ? NEWER_FILE_REASON
         : editing.busy
-          ? '예배 순서를 변경하는 중'
+          ? '예배를 변경하는 중'
           : undefined;
   const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);
@@ -297,7 +298,7 @@ export function ToolbarSearch({
               </div>
             ) : null}
             <div className={styles.footer}>
-              <span>Enter 열기</span>
+              <span>Enter 키로 열기</span>
               <span
                 {...addTooltip.targetProps}
                 aria-disabled={addReason !== undefined}

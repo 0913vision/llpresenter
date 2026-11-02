@@ -9,7 +9,7 @@ The layout rules that set the size classes of the main window (narrow window, re
 
 ## Where not to use
 
-- Output windows (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions)): separate windows that open at the native resolution of their display. They don't follow these rules.
+- Output windows (청중 화면 (audience screen), 무대 화면 (stage screen), 방송 화면 (broadcast screen)): separate windows that open at the native resolution of their display. They don't follow these rules.
 - Layout inside a panel: follow the document of each component, such as Panel, SlideThumbnail, and PreviewFrame.
 
 ## Anatomy

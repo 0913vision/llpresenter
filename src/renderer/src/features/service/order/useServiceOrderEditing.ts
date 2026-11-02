@@ -50,8 +50,8 @@ export function useServiceOrderEditing(
           icon: 'warning',
           title:
             result.error.reason === 'write-failed'
-              ? '예배 순서 저장 실패'
-              : '예배 순서 변경 실패',
+              ? '예배 저장 실패'
+              : '예배 변경 실패',
           time: noticeTime(),
         });
       }
@@ -66,7 +66,7 @@ export function useServiceOrderEditing(
         key: 'service-order:request',
         kind: 'warning',
         icon: 'warning',
-        title: '예배 순서 변경 실패',
+        title: '예배 변경 실패',
         time: noticeTime(),
       });
       return false;

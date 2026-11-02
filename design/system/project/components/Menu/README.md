@@ -31,7 +31,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 - Search match: in a list filtered by a search, the part of an item name that matched is drawn in `body-strong` `text` (the 항목 추가 popover, `AddSongsQuick`). In code: `match` on the item.
 - Search field `ll-menu__search`: at the top of the menu, height `size-control-md` (30px), background `bg-well`, `radius-md`, horizontal padding `space-8`, magnifying glass 16px `text-3`, gap to the text `space-8`, `space-4` below. Placeholder "검색". The text starts on the same line as the item names. Focus `ring-field-focus`.
 - Delete item `ll-menu__item--danger`: don't give the text its own color; keep it `text`, because red is only for 출력. Put it last, in its own group or at the end of the clipboard group as ProPresenter has it, and ask once more with a confirmation dialog (`AlertDialog`) for a deletion that can't be undone.
-- A ProPresenter row that the app doesn't have yet is a disabled row with the tooltip "아직 없는 기능".
+- A ProPresenter row that the app doesn't have yet is a disabled row with the tooltip "이번 버전에서는 쓸 수 없음".
 - Position
   - Menu bar menu: directly under the menu bar (30px from the top), with its left edge aligned to the menu name button.
   - Menus and popover lists that a button opens: 4px below the button, with the left edge aligned to the button. If there isn't enough room below, open 4px above the button.
@@ -58,7 +58,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 | Submenu open, not pointed | `bg-menu-open` | Unchanged | `aria-expanded="true"` on the parent item |
 | Current item | Transparent | `check` 16px in the left padding | `aria-checked="true"` |
 | Delete | Transparent, `accent-fill` when pointed | `text` | Last |
-| Disabled | Transparent | Name, icon, trailing info, arrow `text-off` | No hover, reason in a tooltip ("아직 없는 기능" for a row we don't have yet) |
+| Disabled | Transparent | Name, icon, trailing info, arrow `text-off` | No hover, reason in a tooltip ("이번 버전에서는 쓸 수 없음" for a row we don't have yet) |
 | Search field focus | `bg-well` | Text `text`, magnifying glass `text-3` | `ring-field-focus` |
 
 ## Behavior

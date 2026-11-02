@@ -30,7 +30,7 @@ const METHODS: Readonly<Record<Identification['method'], string>> = {
   fullscreen: '전체 화면',
   window: '창',
   capture: '캡처 창',
-  display: '시스템 디스플레이',
+  display: '시스템 화면',
 };
 
 function showIdentification(

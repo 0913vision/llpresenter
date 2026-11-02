@@ -50,7 +50,7 @@ it('creates one fresh timer with duration and overrun, closing only after accept
   render(<QuickTimerDialog locked={false} save={save} onClose={close} />);
   fill('분', '1');
   fill('초', '30');
-  fireEvent.click(screen.getByRole('radio', {name: '멈춤'}));
+  fireEvent.click(screen.getByRole('radio', {name: '정지'}));
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   await waitFor(() => expect(close).toHaveBeenCalledOnce());
   expect(save).toHaveBeenCalledExactlyOnceWith({

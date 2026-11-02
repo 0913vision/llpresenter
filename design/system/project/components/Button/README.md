@@ -6,7 +6,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 
 - Footers of dialogs and confirmation dialogs: [취소] … [새 곡으로 저장] [덮어쓰기], [새로 시작] [복구하고 시작] (md)
 - Actions at the end of Preferences rows: 지금 백업, 지금 확인, 바꾸기, 기본값으로, 모두 기본값으로 (md)
-- Actions in panel headers and caption rows: 라이브러리 곡 편집, 가져오기, 버리기, 저장 (sm)
+- Actions in panel headers and caption rows: 라이브러리 곡 편집, 가져오기, 저장 안 함, 저장 (sm)
 - Less important commands that add an item at the end of a list: 역본 추가, 지금 예배를 템플릿으로 저장 (ghost)
 
 ## Where not to use
@@ -82,7 +82,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 - All boards: primary button background #3d8bf0 → `accent-fill` (#2a70dc), hover of the same color → `accent-fill-hover`.
 - NewService, ServiceImport: [취소] 12px → 13px (`body`), [만들기] [가져오기] 12px with horizontal padding 16 → 13px 600 with horizontal padding 14.
 - ImportSave: background of [취소] [새 곡으로 저장] in the confirmation dialog #333333 → `bg-control`. [저장] in the panel: horizontal padding 14 → 10, 6px before it → `space-8` between buttons.
-- ImportEdit: [저장] in the panel horizontal padding 14 → 10, [버리기] horizontal padding 12 → 10.
+- ImportEdit: [저장] in the panel horizontal padding 14 → 10, [저장 안 함] horizontal padding 12 → 10.
 - ImportText: [편집] 32px with horizontal padding 18 → md 30 with horizontal padding 14.
 - Recovery: [새로 시작] [복구하고 시작] height 32 → 30 (md), primary button horizontal padding 16 → 14.
 - Prefs, Shortcuts: 28px buttons (바꾸기, 지금 백업, 지금 확인, 기본값으로, 지우기, 모두 기본값으로) 12px with horizontal padding 12 → md 30, 13px, horizontal padding 14 (with a leading icon, left 12 and icon 14 → 16). "역본 추가" 32px 12px → ghost md 30, 13px, icon 16.

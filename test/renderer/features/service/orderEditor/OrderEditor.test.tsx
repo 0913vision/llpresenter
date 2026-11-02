@@ -206,7 +206,7 @@ describe('OrderEditor', () => {
   it('saves the order as a new 구성 and makes the item use it', async () => {
     mountEditor({extra: {customOrder: [CHORUS, VERSE]}});
     fireEvent.click(screen.getByRole('button', {name: '구성으로 저장…'}));
-    fireEvent.click(screen.getByRole('button', {name: '확인'}));
+    fireEvent.click(screen.getByRole('button', {name: '만들기'}));
 
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
     const saved = songUpdate(0);
@@ -227,7 +227,7 @@ describe('OrderEditor', () => {
     });
     mountEditor({extra: {customOrder: [CHORUS]}});
     fireEvent.click(screen.getByRole('button', {name: '구성으로 저장…'}));
-    fireEvent.click(screen.getByRole('button', {name: '확인'}));
+    fireEvent.click(screen.getByRole('button', {name: '만들기'}));
 
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(

@@ -45,7 +45,7 @@ it.each(kinds)('requires a valid target for %s and builds its action', kind => {
       onSave={save}
     />,
   );
-  const done = screen.getByRole('button', {name: '완료'});
+  const done = screen.getByRole('button', {name: '적용'});
   expect(done.getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(screen.getByRole('button', {name: '대상'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
@@ -78,7 +78,7 @@ it('supports a clear action and audio stop without a target', () => {
     />,
   );
   expect(screen.getByText('\ubaa8\ub450 \uc9c0\uc6b0\uae30')).toBeDefined();
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).toHaveBeenCalledWith({kind: 'clearAll'});
   view.rerender(
     <MacroActionDialog
@@ -92,8 +92,8 @@ it('supports a clear action and audio stop without a target', () => {
     />,
   );
   fireEvent.click(screen.getByRole('button', {name: '동작'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: '멈춤'}));
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  fireEvent.click(screen.getByRole('menuitemradio', {name: '정지'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).toHaveBeenLastCalledWith({kind: 'audio', operation: 'stop'});
 });
 
@@ -111,7 +111,7 @@ it('can clear one prop without treating it as a layer', () => {
   );
   fireEvent.click(screen.getByRole('button', {name: '대상'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).toHaveBeenCalledWith({kind: 'clearLayer', prop: id});
 });
 
@@ -129,7 +129,7 @@ it('requires message blanks and at least one selected screen', () => {
   );
   fireEvent.click(screen.getByRole('button', {name: '대상'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
-  const done = screen.getByRole('button', {name: '완료'});
+  const done = screen.getByRole('button', {name: '적용'});
   expect(done.getAttribute('aria-disabled')).toBe('true');
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '안내'},
@@ -173,7 +173,7 @@ it('blocks a removed choice and locks all draft controls during save', () => {
     />,
   );
   expect(
-    screen.getByRole('button', {name: '완료'}).getAttribute('aria-disabled'),
+    screen.getByRole('button', {name: '적용'}).getAttribute('aria-disabled'),
   ).toBe('true');
   view.rerender(
     <MacroActionDialog
@@ -191,7 +191,7 @@ it('blocks a removed choice and locks all draft controls during save', () => {
   expect(
     screen.getByRole('button', {name: '대상'}).getAttribute('aria-disabled'),
   ).toBe('true');
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).not.toHaveBeenCalled();
 });
 
@@ -217,7 +217,7 @@ it('handles prototype-named blanks and rejects oversized expanded messages', () 
   );
   fireEvent.click(screen.getByRole('button', {name: '대상'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
-  const done = screen.getByRole('button', {name: '완료'});
+  const done = screen.getByRole('button', {name: '적용'});
   expect(done.getAttribute('aria-disabled')).toBe('true');
   fireEvent.change(screen.getByRole('textbox', {name: 'constructor'}), {
     target: {value: 'a'.repeat(2000)},
@@ -251,7 +251,7 @@ it.each(['', '  \n\t '])(
     fireEvent.click(
       screen.getByRole('menuitemradio', {name: '\ub300\uc0c1 \uac00'}),
     );
-    const done = screen.getByRole('button', {name: '\uc644\ub8cc'});
+    const done = screen.getByRole('button', {name: '\uc801\uc6a9'});
     expect(done.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(done);
     expect(save).not.toHaveBeenCalled();
@@ -271,7 +271,7 @@ it('preserves an existing clear transition when the dialog saves', () => {
       onSave={save}
     />,
   );
-  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  fireEvent.click(screen.getByRole('button', {name: '\uc801\uc6a9'}));
   expect(save).toHaveBeenCalledWith({
     kind: 'clearAll',
     transition: {fade: true, durationMs: 1200},

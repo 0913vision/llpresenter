@@ -16,7 +16,7 @@ The 예배 순서 of the 준비 (Prep) workspace as a table: one row per item, w
 
 - Header `ll-table__header`: height `size-table-header` (40), `caption` `text-3`, the column names above the cells. It is hidden from assistive technology, because each cell names itself.
 - Row `ll-table__row`: a `ListRow` at `size-row-double` (52), with the cells after the name.
-  - Item number `ll-row__lead`: `size-table-number` (24) wide, right-aligned, `caption` `text-3`, tabular numbers, before the type icon. It counts items only, not 머리글 (section heads).
+  - Item number `ll-row__lead`: `size-table-number` (24) wide, right-aligned, `caption` `text-3`, tabular numbers, before the type icon. It counts items only, not 구역 (section heads).
   - Name: `body`, as in the list. The header's 이름 starts where the name does.
   - Cells, each `space-10` after the one before, `body` `text`, one line, truncated:
 
@@ -30,7 +30,7 @@ The 예배 순서 of the 준비 (Prep) workspace as a table: one row per item, w
     | 메모 | `size-table-memo` (160) | The text. |
 
 - Section head: the list's group head (`ListGroup`), unchanged.
-- Footer: the 항목 and 머리글 add buttons after the last row.
+- Footer: the 항목 and 구역 add buttons after the last row.
 
 ## Sizes and variants
 
@@ -56,7 +56,7 @@ The width follows the table, which never scrolls sideways (checked at 1280x720):
 | Cell hover | Pointer stays the default arrow; the tooltip shows the cell's reason |
 | Cell focus | `outline: 2px solid accent`, as other focus rings |
 | Cell open | The list or picker below the cell; `aria-expanded` |
-| Cell locked (읽기 전용 파일) | `aria-disabled`; the tooltip says the file is a newer version |
+| Cell locked (새 버전의 파일) | `aria-disabled`; the tooltip says the file is a newer version |
 | Memo editing | A field in the cell: `bg-well`, `ring-field-focus` |
 
 ## Behavior
@@ -64,7 +64,7 @@ The width follows the table, which never scrolls sideways (checked at 1280x720):
 - 구성, 테마, 시작할 때 open a menu of radio choices below the cell. 배경 opens the media picker of the item settings, with 곡 기본값 first. 메모 turns into text: Enter or leaving the cell saves, Esc puts the saved text back. An empty memo removes it. Each choice is one write of this item, as the same rows in the right column.
 - Keyboard: with a row selected, ArrowRight moves into its first cell and ArrowLeft and ArrowRight move between cells. Enter (or Space) opens the cell. Esc, or ArrowLeft from the first cell, goes back to the row. While a cell has focus, Delete, rename, and the arrows of the list do not act on the row.
 - Cells sit out of the Tab order, so Tab still goes from the list to the next panel.
-- A kind that has no such choice leaves the cell empty or read-only: only song items have a 구성 and a 배경 to choose, and 머리글 rows have no cells.
+- A kind that has no such choice leaves the cell empty or read-only: only song items have a 구성 and a 배경 to choose, and 구역 rows have no cells.
 
 ## Writing
 

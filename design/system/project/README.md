@@ -39,7 +39,7 @@ is never wrong.
    cuts 출력, such as turning off a screen output or opening another 예배 순서,
    can be undone and asks for no confirmation. Only an action that can't be
    undone, such as overwriting or deleting, asks for confirmation. The optional
-   되돌림 button restores the last 지우기; it is hidden by default and has no
+   되돌리기 button restores the last 지우기; it is hidden by default and has no
    default shortcut. Ctrl Z undoes edits and never restores a 지우기.
 7. **Dense but readable.** Design for a 1920×1080 full-screen window. UI text is
    never smaller than 14px, `body` text is 16px, and the default row height is
@@ -110,7 +110,7 @@ Don't put a control on a surface of its own color.
 
 ### Output screen colors
 
-- An output screen's background is `output-black`, and the 방송 자막 capture
+- An output screen's background is `output-black`, and the 방송 화면 capture
   window's is `chroma`. Neither is a UI color.
 - The 테마 decides the text, colors, and backgrounds inside the output screens.
   The tokens of this system don't.
@@ -281,7 +281,7 @@ is 1536×864, and at 150% it is 1280×720. Design at 1920×1080 and 100%.
 - Every workspace fits at 1920×1080 and at 1280×720: rows and controls keep
   their heights, nothing clips or scrolls the page sideways, and lists and
   property fields scroll vertically instead of shrinking text.
-- Output windows (본 화면, 무대 화면, 방송 자막) are separate windows at their
+- Output windows (청중 화면, 무대 화면, 방송 화면) are separate windows at their
   monitor's native resolution. None of these rules apply to them.
 
 ### 준비 song editor
@@ -335,7 +335,7 @@ remaining space.
 | 구성                          | arrangement                                   | A named 슬라이드 order saved in a song (기본, 주일용, 짧게)             |
 | 이름표                        | label                                         | The name of a 슬라이드, such as 1절, 프리코러스, or 후렴                |
 | 지우기                        | clear                                         | Taking content off the screens; only removing a file or an item is 삭제 |
-| 본 화면, 무대 화면, 방송 자막 | main screen, stage screen, broadcast captions | The three output screens                                                |
+| 청중 화면, 무대 화면, 방송 화면 | audience screen, stage screen, broadcast screen | The three output screens                                                |
 | 테마                          | theme                                         | A saved preset that sets what each of the three screens shows           |
 | 진행 도구                     | show tools                                    | The group of tabs at the bottom right of the 진행 workspace             |
 | 퀵 실행                       | quick launch                                  | Frequently used items at the bottom left of the 진행 workspace          |

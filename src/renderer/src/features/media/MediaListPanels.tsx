@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState, type JSX} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -168,7 +169,7 @@ function useCreate(kind: 'media' | 'audio', onCreated: (id: string) => void) {
     : view.document === null
       ? '미디어 불러오는 중'
       : view.document.access === 'readOnly'
-        ? '읽기 전용 미디어 목록'
+        ? NEWER_FILE_REASON
         : undefined;
   return {create, disabledReason};
 }

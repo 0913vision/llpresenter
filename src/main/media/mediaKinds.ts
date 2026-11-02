@@ -16,7 +16,7 @@ export const MEDIA_EXTENSIONS: Readonly<Record<MediaKind, readonly string[]>> =
   };
 
 const KIND_LABELS: Readonly<Record<MediaKind, string>> = {
-  video: '동영상',
+  video: '영상',
   image: '이미지',
   audio: '오디오',
 };

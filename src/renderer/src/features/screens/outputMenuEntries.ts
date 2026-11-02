@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {ThemeId} from '@core/schema/ids';
@@ -92,7 +93,7 @@ export function screenOutputSections(
         command: 'workspace.screens',
         meta: shortcutText('workspace.screens'),
         ...menuAvailability(
-          window.llp === undefined ? '화면 설정 연결 안 됨' : undefined,
+          window.llp === undefined ? NOT_IN_THIS_WINDOW : undefined,
         ),
         onSelect: () => window.llp?.window.openScreens(),
       },

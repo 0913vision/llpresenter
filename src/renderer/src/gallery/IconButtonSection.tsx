@@ -8,7 +8,7 @@ import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 const LEFT_COLUMN_WIDTH = 280;
 const TOOLS_PANEL_WIDTH = 220;
 const DIALOG_HEADER_WIDTH = 300;
-// NOTE(0913vision): 내리기 comes after the tab, 항목 추가, and the row.
+// NOTE(0913vision): 지우기 comes after the tab, 항목 추가, and the row.
 const TAKE_DOWN_INDEX = 3;
 
 function HeaderTab({label}: {readonly label: string}): JSX.Element {
@@ -77,7 +77,7 @@ export function IconButtonSection(): JSX.Element {
       </SpecGroup>
       <SpecGroup>
         <SpecItem
-          label="Panel header +, 내리기 at row end (hover)"
+          label="Panel header +, 지우기 at row end (hover)"
           pin="hover"
           pinIndex={TAKE_DOWN_INDEX}
           width={LEFT_COLUMN_WIDTH}
@@ -94,7 +94,7 @@ export function IconButtonSection(): JSX.Element {
                 value="message"
                 icon="msg"
                 title="12가 3456 차량 이동 부탁드립니다"
-                end={<IconButton icon="x" label="내리기" />}
+                end={<IconButton icon="x" label="지우기" />}
               />
             </ListBox>
           </Panel>

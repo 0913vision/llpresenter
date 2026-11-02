@@ -109,9 +109,7 @@ export class ItemSourceFollower {
     } catch (error) {
       console.error('Could not read the service of the item', error);
       if (read === this.serviceRead) {
-        this.problem('예배 순서 불러오기 실패', () =>
-          this.retryService(serviceId),
-        );
+        this.problem('예배 불러오기 실패', () => this.retryService(serviceId));
       }
     }
   }

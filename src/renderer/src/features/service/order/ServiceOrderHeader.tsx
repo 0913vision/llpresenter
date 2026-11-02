@@ -69,7 +69,7 @@ export function ServiceOrderHeader({
       </button>
       {picker.open && anchor ? (
         <Menu
-          label="예배 순서 선택"
+          label="예배 선택"
           anchor={{kind: 'element', element: anchor}}
           width={PICKER_WIDTH}
           onClose={() => {

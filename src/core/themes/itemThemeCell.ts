@@ -14,7 +14,7 @@ export interface ItemThemeCell {
 /**
  * The 테마 an item draws with: its own choice, or the default of its kind. An
  * item whose chosen 테마 is gone also follows the default. Items with no 테마
- * (머리글, unknown kinds) have no cell.
+ * (구역, unknown kinds) have no cell.
  */
 export function itemThemeCell(
   item: ServiceItem,

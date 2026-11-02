@@ -67,7 +67,7 @@ export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
       objectCommand(`macro.${item.id}`, item.name),
     ),
     ...names.timers.flatMap(item => [
-      ...objectCommand(`timer.${item.id}.toggle`, `${item.name} 시작과 멈춤`),
+      ...objectCommand(`timer.${item.id}.toggle`, `${item.name} 시작과 정지`),
       ...objectCommand(`timer.${item.id}.reset`, `${item.name} 처음으로`),
     ]),
     ...names.screens.flatMap(item => [

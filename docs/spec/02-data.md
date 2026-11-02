@@ -13,15 +13,15 @@ captions). See 01 for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                                            | Source                                                           |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                  | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                              | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                     | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                           | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                              | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                  |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                                       | Source                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                             | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                         | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 문구, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                      | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                         | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                             |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -330,21 +330,21 @@ items).
 Split the app-wide settings into one JSON file per area (proposal). If one file
 breaks, the other areas still work. File names and `format` values (proposal):
 
-| File (in the data folder `Settings\`) | `format`                 | Content                                             |
-| ------------------------------------- | ------------------------ | --------------------------------------------------- |
-| `screens.json`                        | `llsettings.screens`     | Screens                                             |
-| `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
-| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
-| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
-| `messages.json`                       | `llsettings.messages`    | 메시지 templates, styles, and stage message presets |
-| `notices.json`                        | `llsettings.notices`     | 공지 sets                                           |
-| `props.json`                          | `llsettings.props`       | 그래픽                                              |
-| `timers.json`                         | `llsettings.timers`      | 타이머                                              |
-| `labels.json`                         | `llsettings.labels`      | 이름표 list                                         |
-| `preferences.json`                    | `llsettings.preferences` | 환경설정                                            |
-| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                                   |
-| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages             |
-| `media.json`                          | `llmedia`                | Media list                                          |
+| File (in the data folder `Settings\`) | `format`                 | Content                                            |
+| ------------------------------------- | ------------------------ | -------------------------------------------------- |
+| `screens.json`                        | `llsettings.screens`     | Screens                                            |
+| `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind |
+| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                             |
+| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                      |
+| `messages.json`                       | `llsettings.messages`    | 메시지 문구, styles, and stage message presets     |
+| `notices.json`                        | `llsettings.notices`     | 공지 sets                                          |
+| `props.json`                          | `llsettings.props`       | 그래픽                                             |
+| `timers.json`                         | `llsettings.timers`      | 타이머                                             |
+| `labels.json`                         | `llsettings.labels`      | 이름표 list                                        |
+| `preferences.json`                    | `llsettings.preferences` | 환경설정                                           |
+| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                                  |
+| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages            |
+| `media.json`                          | `llmedia`                | Media list                                         |
 
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
@@ -454,29 +454,17 @@ keeps the applied pair in memory and uses the existing save retry mechanism.
 Renaming a timer row updates its `.name` and the referenced timer's `.name`
 together. Other quick item names remain independent (user decision, October 26).
 
-When older quick rows share a timer ID, keep that timer's ID for the first row
-and give each later row a copy with a new timer ID before those rows can run.
-Copy its configuration and unknown fields, and retain the original quick row's
-ID, name and position. Stage picks and other references to the original timer
-keep that ID. Each resulting timer starts stopped on launch, as before.
+### 메시지 문구, styles, and stage message presets (`messages.json`)
 
-Separation copies each definition's original kind and settings, including a
-`countdownTo` time/date, or `clock`. It does not invent a duration or convert
-those records. Their quick display and click behavior is defined by kind in 04.
-The original definition and references from stage selections and prop tokens
-keep their IDs and meaning.
-
-### 메시지 templates, styles, and stage message presets (`messages.json`)
-
-| Field            | Type                                        | Meaning                                                                                                   | Source                                                 |
-| ---------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `templates[]`    | Array                                       | 메시지 templates, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
-| `.id`, `.name`   | String                                      | ID and name.                                                                                              | `Overlays`                                             |
-| `.icon`          | `"msg"` \| `"user"`                         | List icon.                                                                                                | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
-| `.text`          | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".             | `Overlays`                                             |
-| `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                                   | `Overlays` 보낼 화면 (send to)                         |
-| `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                      | `Overlays` 표시 시간 (display time)                    |
-| `stagePresets[]` | Array of strings                            | Preset stage messages, for example 후렴 한 번 더 (chorus once more) or 마지막 후렴 (last chorus).         | `Overlays` 무대 tab. Location is a proposal.           |
+| Field            | Type                                        | Meaning                                                                                              | Source                                                 |
+| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `templates[]`    | Array                                       | 메시지 문구, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
+| `.id`, `.name`   | String                                      | ID and name.                                                                                         | `Overlays`                                             |
+| `.icon`          | `"msg"` \| `"user"`                         | List icon.                                                                                           | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
+| `.text`          | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".        | `Overlays`                                             |
+| `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                              | `Overlays` 보낼 화면 (send to)                         |
+| `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                 | `Overlays` 표시 시간 (display time)                    |
+| `stagePresets[]` | Array of strings                            | Preset stage messages, for example 후렴 한 번 더 (chorus once more) or 마지막 후렴 (last chorus).    | `Overlays` 무대 tab. Location is a proposal.           |
 
 | Field             | Type                                            | Meaning                                                                                          |
 | ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -711,7 +699,7 @@ change this picker preference.
 | `.size`                   | Integer (bytes)                     | File size.                                                                                                                                                                                        | `Media` footer "2.1GB"          |
 | `.duration`               | Seconds, or absent                  | Duration (video, audio).                                                                                                                                                                          | `Media`                         |
 | `.width`, `.height`       | Integer                             | Size of images and videos.                                                                                                                                                                        | Proposal                        |
-| `.props.end`              | `"loop"` \| `"stop"`                | 끝나면 (at the end): 반복 (loop) or 멈춤 (stop).                                                                                                                                                  | `Media` properties              |
+| `.props.end`              | `"loop"` \| `"stop"`                | 끝나면 (at the end): 반복 (loop) or 정지 (stop).                                                                                                                                                  | `Media` properties              |
 | `.props.in`, `.props.out` | Seconds                             | 구간 (range) start and end.                                                                                                                                                                       | `Media` properties              |
 | `.props.speed`            | Number                              | 속도 (speed), for example 1.0.                                                                                                                                                                    | `Media` properties              |
 | `.props.fit`              | `"fit"` \| `"fill"` \| `"stretch"`  | 맞춤 (fit): 맞추기 (fit), 채우기 (fill), 늘리기 (stretch).                                                                                                                                        | `Media` properties              |

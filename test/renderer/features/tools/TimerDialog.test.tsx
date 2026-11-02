@@ -38,7 +38,7 @@ it('requires a positive countdown and saves its overrun choice', async () => {
   ).toBe('true');
   change('분', '2');
   change('초', '5');
-  fireEvent.click(screen.getByRole('radio', {name: '멈춤'}));
+  fireEvent.click(screen.getByRole('radio', {name: '정지'}));
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   expect(f.save).toHaveBeenCalledExactlyOnceWith({
     kind: 'countdown',
@@ -63,7 +63,7 @@ it('rejects nonexistent dates and invalid local times before saving a dated targ
   expect(f.save).not.toHaveBeenCalled();
   change('날짜', '2028-02-29');
   change('시각', '23:59');
-  fireEvent.click(screen.getByRole('radio', {name: '멈춤'}));
+  fireEvent.click(screen.getByRole('radio', {name: '정지'}));
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   expect(f.save).toHaveBeenCalledExactlyOnceWith({
     kind: 'countdownTo',
@@ -146,7 +146,7 @@ it('starts an edit with the configured countdown and overrun choice', async () =
     '5',
   );
   expect(
-    screen.getByRole('radio', {name: '멈춤'}).getAttribute('aria-checked'),
+    screen.getByRole('radio', {name: '정지'}).getAttribute('aria-checked'),
   ).toBe('true');
   fireEvent.click(screen.getByRole('button', {name: '저장'}));
   expect(save).toHaveBeenCalledExactlyOnceWith(initial);

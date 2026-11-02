@@ -21,7 +21,7 @@ it('keeps locked commands visible with a reason while future rows retain their o
     for (const item of menuItems(entries)) {
       expect(item.disabled).toBe(true);
       expect(item.title).toBe(
-        item.onSelect ? '저장 중입니다' : '아직 없는 기능',
+        item.onSelect ? '저장 중입니다' : '이번 버전에서는 쓸 수 없음',
       );
     }
   }

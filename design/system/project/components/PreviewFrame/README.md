@@ -1,7 +1,7 @@
 # PreviewFrame
 
 The live monitoring panel shows one output screen large above a fixed row of
-본 화면, 무대 화면, and 방송 자막. The selected slot shows an upward arrow and
+청중 화면, 무대 화면, and 방송 화면. The selected slot shows an upward arrow and
 a check instead of a second picture. There are three rendered pictures total.
 
 This is alternative B chosen in the M2 comparison, whose images are kept
@@ -24,7 +24,7 @@ their editing canvases instead.
   Vertical gap is `space-12`, or `space-8` in the narrow window form.
   Horizontal slot gap is `space-8`.
 - Pictures keep `aspect-output` (16:9), with `output-black` background and a
-  1px `line` frame. 방송 자막 uses `chroma`, matching its capture background.
+  1px `line` frame. 방송 화면 uses `chroma`, matching its capture background.
   The upper corners use `radius-sm`; the caption joins directly below.
 - The picture has `container-type: inline-size`. Output text scales with the
   renderer and does not use UI type tokens.
@@ -33,7 +33,7 @@ their editing canvases instead.
   `type-label-strong` and `text`; the target uses `type-label` and `text-3`
   at the right. A display target has a 14px monitor icon, gap `space-4`.
   NDI has text only.
-- All three small slots stay in the order 본 화면, 무대 화면, 방송 자막.
+- All three small slots stay in the order 청중 화면, 무대 화면, 방송 화면.
   Each is at most `size-preview-small-max` wide. An unselected slot has the
   screen's picture and a centered name, with no target text.
 - A picture-specific indicator follows the caption name in either size. A
@@ -73,7 +73,7 @@ available below it.
 
 Output off never dims or stops the picture. The operator can still monitor
 what will appear when output is enabled. Give reasons in tooltips, for example
-"본 화면 출력이 꺼져 있습니다" or "모니터 3 연결 끊김, 창으로 표시 중".
+"청중 화면 출력이 꺼져 있습니다" or "모니터 3 연결 끊김, 창으로 표시 중".
 
 ## Behavior and accessibility
 

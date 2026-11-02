@@ -1,7 +1,4 @@
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
-import {randomUUID} from 'node:crypto';
-import {createTimerId, type TimerId} from '@core/schema/ids';
-import type {Timer} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
 import type {Result} from '@core/common/result';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
@@ -155,14 +152,6 @@ function renameTimer(
   }
   const timer = timers.value.timers.find(timer => timer.id === item.ref);
   if (!timer) return refuse('not-found', 'The timer is missing');
-  if (
-    quick.value.items.filter(
-      row =>
-        isKnownQuickItem(row) && row.kind === 'timer' && row.ref === timer.id,
-    ).length > 1
-  ) {
-    return refuse('invalid', 'The quick timer needs a separate definition');
-  }
   if (item.name === edit.timerName && timer.name === edit.timerName) {
     return unchanged(current, item.id);
   }
@@ -183,51 +172,6 @@ function renameTimer(
       },
     },
     item.id,
-  );
-}
-
-function separateTimers(current: TimerDocuments): PreparedResult {
-  const {quick, timers} = current;
-  if (quick.value.items.length > MAX_QUICK_ITEMS) {
-    return refuse('invalid', 'Too many quick rows to separate timers');
-  }
-  const definitions = new Map(
-    timers.value.timers.map(timer => [timer.id, timer]),
-  );
-  const used = new Set<string>([
-    ...quick.value.items.map(item => item.id),
-    ...definitions.keys(),
-  ]);
-  const seen = new Set<TimerId>();
-  const copies: Timer[] = [];
-  const items = quick.value.items.map(item => {
-    if (!isKnownQuickItem(item) || item.kind !== 'timer') return item;
-    const timer = definitions.get(item.ref);
-    if (!timer) return item;
-    if (!seen.has(item.ref)) {
-      seen.add(item.ref);
-      return item;
-    }
-    const id = createTimerId(randomUUID());
-    if (used.has(id)) throw new Error('Generated a timer ID already in use');
-    used.add(id);
-    copies.push({...timer, id, name: item.name});
-    return {...item, ref: id};
-  });
-  if (copies.length === 0) return unchanged(current, 'quick');
-  if (timers.value.timers.length + copies.length > MAX_TIMER_DEFINITIONS) {
-    return refuse(
-      'invalid',
-      'Too many timer definitions to separate quick rows',
-    );
-  }
-  return prepared(
-    current,
-    {
-      quick: {...quick.value, items},
-      timers: {...timers.value, timers: [...timers.value.timers, ...copies]},
-    },
-    'quick',
   );
 }
 
@@ -252,7 +196,5 @@ export function prepareQuickTimerEdit(
       return createTimer(current, edit);
     case 'quick.timer.rename':
       return renameTimer(current, edit);
-    case 'quick.timers.separate':
-      return separateTimers(current);
   }
 }

@@ -229,7 +229,7 @@ it('remembers an applied insertion when persistence fails and retains the warnin
   await view.user.click(view.button);
   await waitFor(() => expect(view.problem).toHaveBeenCalledOnce());
   expect(view.problem).toHaveBeenCalledWith(
-    expect.objectContaining({title: '예배 순서 저장 실패'}),
+    expect.objectContaining({title: '예배 저장 실패'}),
   );
   expect(view.service().service.order).toHaveLength(6);
   await waitFor(() =>

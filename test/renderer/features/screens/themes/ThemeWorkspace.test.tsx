@@ -199,7 +199,7 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
   });
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
   const used = await screen.findByRole('alertdialog');
-  expect(used.textContent).toContain('성경의 기본으로 씀');
+  expect(used.textContent).toContain('쓰는 곳: 성경 기본');
   fireEvent.click(within(used).getByRole('button', {name: '삭제'}));
   await waitFor(() =>
     expect(value().themes.some(theme => theme.name === '말씀')).toBe(false),
@@ -399,7 +399,7 @@ it('shares the aspect-ratio toggle with numeric frame properties and commits mul
   fireEvent.click(
     within(screen.getByRole('region', {name: '요소 추가'})).getByRole(
       'button',
-      {name: '글'},
+      {name: '글자'},
     ),
   );
   const content = await screen.findByRole('textbox', {name: '내용'});
@@ -551,7 +551,7 @@ it('counts the items that use the theme in the overwrite question and hides a ze
   fireEvent.click(screen.getByRole('button', {name: '저장'}));
   const dialog = await screen.findByRole('alertdialog');
   await waitFor(() =>
-    expect(dialog.textContent).toContain('예배 순서 항목 2곳에서 씀'),
+    expect(dialog.textContent).toContain('쓰는 곳: 예배 순서 항목 2곳'),
   );
   expect(used.edit).not.toHaveBeenCalled();
   cleanup();
@@ -560,7 +560,7 @@ it('counts the items that use the theme in the overwrite question and hides a ze
   fireEvent.click(screen.getByRole('button', {name: '저장'}));
   const empty = await screen.findByRole('alertdialog');
   await waitFor(() =>
-    expect(empty.textContent).not.toContain('사용 항목을 확인하는 중'),
+    expect(empty.textContent).not.toContain('쓰는 곳을 확인하는 중'),
   );
   expect(empty.textContent).not.toContain('곳에서 씀');
 });

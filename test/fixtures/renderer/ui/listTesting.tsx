@@ -58,7 +58,7 @@ export function ServiceOrder({
           icon="song"
           title="주 하나님 지으신 모든 세계"
           warning="미디어 파일 없음"
-          end={<IconButton icon="x" label="내리기" onClick={onDismiss} />}
+          end={<IconButton icon="x" label="지우기" onClick={onDismiss} />}
         />
       </ListGroup>
     </ListBox>

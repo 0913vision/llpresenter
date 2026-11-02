@@ -1,5 +1,6 @@
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
+import {USAGE_LOADING, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
 
 /** Formats usage from the editor's existing live library feed. */
 export function songUsage(
@@ -13,14 +14,13 @@ export function songUsage(
     unavailable,
     text:
       usedBy === undefined
-        ? `예배 순서 ${unavailable ? '?' : '…'}`
-        : `예배 순서 ${usedBy.length}곳`,
+        ? `예배 ${unavailable ? '?' : '…'}`
+        : `예배 ${usedBy.length}곳`,
     tooltip:
       usedBy === undefined
         ? unavailable
-          ? '곡 사용처 정보를 확인할 수 없습니다'
-          : '사용처를 불러오는 중입니다'
-        : usedBy.map(service => service.name).join(', ') ||
-          '사용 중인 예배 순서 없음',
+          ? USAGE_UNAVAILABLE
+          : USAGE_LOADING
+        : usedBy.map(service => service.name).join(', ') || '쓰는 예배 없음',
   };
 }

@@ -6,7 +6,7 @@ import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 const ROW_WIDTH = 480;
 const COMPACT_ROW_WIDTH = 360;
 const SINGLE_WIDTH = 60;
-// NOTE(0913vision): 되돌림 brings its divider (1px and 4px on each side), so
+// NOTE(0913vision): 되돌리기 brings its divider (1px and 4px on each side), so
 // its specimen is that much wider to keep the button at the card's 60px.
 const UNDO_WIDTH = SINGLE_WIDTH + 9;
 const SINGLE_BOX = {display: 'flex', width: '100%'} as const;
@@ -61,8 +61,8 @@ const singleStates: readonly SingleState[] = [
   {label: 'Focus', available: true, pin: 'focus'},
   {label: 'Nothing to clear', available: false},
   {label: 'Nothing to clear + hover', available: false, pin: 'hover'},
-  {label: '되돌림', undo: true, available: true},
-  {label: '되돌림 hover', undo: true, available: true, pin: 'hover'},
+  {label: '되돌리기', undo: true, available: true},
+  {label: '되돌리기 hover', undo: true, available: true, pin: 'hover'},
   {label: 'Nothing to undo', undo: true, available: false},
 ];
 
@@ -92,7 +92,7 @@ export function ClearSection(): JSX.Element {
           <Row isActive={layer => !quietLayers.has(layer)} undoAvailable />
         </SpecItem>
         <SpecItem
-          label="After 모두, only 되돌림 is available"
+          label="After 모두, only 되돌리기 is available"
           width={ROW_WIDTH}
         >
           <Row isActive={() => false} undoAvailable />

@@ -5,7 +5,7 @@ import {
   SONG_TITLE_LIMIT,
 } from '@core/songs/songTitle';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {usageMeta} from '@renderer/ui/usageText';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import type {SongEditorWindowModel} from './useSongEditorWindow';
 
@@ -50,7 +50,7 @@ export function SongSaveDialogs({
       <AlertDialog
         icon="song"
         title={`‘${title}’ 곡을 덮어쓸까요?`}
-        meta={countedMeta(used, `예배 순서 ${used}곳에서 씀`)}
+        meta={usageMeta(used, '예배')}
         onCancel={model.close}
         actions={[
           {

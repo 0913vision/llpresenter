@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useContext, useEffect, useRef, useState} from 'react';
@@ -487,7 +488,7 @@ export function useMacroPanel({
     newDisabledReason:
       toolMenuReason(locked, busy || collectionEdit.busy) ??
       (macros.length >= MACRO_FILE_LIMITS.macros
-        ? '매크로 목록이 가득 찼습니다'
+        ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
         : undefined),
     create,
     createCollection,

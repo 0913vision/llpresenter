@@ -26,7 +26,7 @@ export function BibleInsertButton({
   const api = window.llp;
   const reason =
     serviceId === null
-      ? '열린 예배 순서 없음'
+      ? '열린 예배 없음'
       : readOnly
         ? NEWER_FILE_REASON
         : api === undefined

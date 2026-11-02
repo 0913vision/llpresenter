@@ -82,7 +82,7 @@ describe('service picker', () => {
   it('lists every service, the separator and the new-service command in spec order', async () => {
     const {user} = setup();
     await openMenu(user);
-    const menu = screen.getByRole('menu', {name: '예배 순서 선택'});
+    const menu = screen.getByRole('menu', {name: '예배 선택'});
     expect(
       [...menu.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
         row => [row.getAttribute('role'), row.textContent],

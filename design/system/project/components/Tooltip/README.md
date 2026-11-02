@@ -4,7 +4,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 ## Where to use
 
-- Names of icon-only buttons and toolbar buttons: "사이드바 접기", "본 화면 출력 끄기 (모니터 2)"
+- Names of icon-only buttons and toolbar buttons: "사이드바 접기", "청중 화면 출력 끄기 (모니터 2)"
 - Controls that have a shortcut: "가사 지우기 F2", "되돌리기 Ctrl Z"
 - The reason a control is disabled, the reason for a text field error: "라이브러리에 같은 제목의 곡이 있습니다"
 - The detailed reason behind a status icon: "미디어 파일 없음", "배경 파일을 찾을 수 없음"
@@ -15,7 +15,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 - Warnings that the user must read: use `Notification` or `AlertDialog`.
 - Content with choices to make: use `Menu`.
 - Don't show a tooltip that only repeats the name on a button whose text is visible. Show one only when there is a shortcut or a reason.
-- Don't show tooltips inside the output screens (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions)).
+- Don't show tooltips inside the output screens (청중 화면 (audience screen), 무대 화면 (stage screen), 방송 화면 (broadcast screen)).
 
 ## Anatomy
 
@@ -55,7 +55,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 ## Writing
 
-- Write the name as what happens on a click: "가사 지우기", "사이드바 접기". For a toggle button, write the state that a click leads to, not the current state: when it is on, "본 화면 출력 끄기 (모니터 2)".
+- Write the name as what happens on a click: "가사 지우기", "사이드바 접기". For a toggle button, write the state that a click leads to, not the current state: when it is on, "청중 화면 출력 끄기 (모니터 2)".
 - Put the shortcut after the name, as text: "F2", "Ctrl Z".
 - Write a reason as one sentence about what is wrong, with no period: "라이브러리에 같은 제목의 곡이 있습니다", "배경 파일을 찾을 수 없음". Don't write long instructions for the fix.
 - Don't repeat a name that is already visible on the target.

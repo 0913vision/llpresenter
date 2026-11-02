@@ -24,7 +24,7 @@ export {ListBox, type ListBoxProps} from './ListBox';
 const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
-const SLOT_MARK = '빈 자리';
+const SLOT_MARK = '빈 항목';
 const MODIFIED_LABEL = '저장하지 않은 변경';
 export type GroupRename = RenameContract;
 
@@ -369,7 +369,7 @@ export function ListGroup({
   );
 }
 
-/** The dashed box of a 템플릿 cell that isn't filled yet: 찬양 … 빈 자리. */
+/** The dashed box of a 템플릿 cell that isn't filled yet: 찬양 … 빈 항목. */
 export function ListSlotBox({
   icon,
   label,

@@ -76,7 +76,7 @@ it('lists audio tracks before fade out and stop and switches back to play', () =
     choose,
   });
   expect(rows.map(row => (row.kind === 'separator' ? '|' : row.label))).toEqual(
-    ['음악', '|', '페이드 아웃', '멈춤'],
+    ['음악', '|', '페이드 아웃', '정지'],
   );
   const choices = menuItems(rows);
   expect(choices.map(row => row.checked)).toEqual([false, false, true]);
@@ -90,7 +90,7 @@ it('lists audio tracks before fade out and stop and switches back to play', () =
     menuItems(
       macroActionChoices({kind: 'audio', targets: undefined, choose}),
     ).map(row => row.label),
-  ).toEqual(['페이드 아웃', '멈춤']);
+  ).toEqual(['페이드 아웃', '정지']);
 });
 
 it('distinguishes layers and individual props and keeps the clear transition', () => {

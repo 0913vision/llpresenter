@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useSyncExternalStore, type JSX} from 'react';
 import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress} from '@core/songs/blockEdits';
@@ -31,7 +32,7 @@ export function SlideHotKeyControl({
   const disabledReason = session.blocked
     ? '저장 오류 해결 필요'
     : session.readOnly
-      ? '읽기 전용 곡입니다'
+      ? NEWER_FILE_REASON
       : busy
         ? '작업을 마친 뒤 다시 시도하세요'
         : undefined;

@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {toggleTimer, resetTimer} from './toolCommands';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
@@ -48,7 +49,7 @@ export const TimerRow = memo(
     const running = run?.state === 'running';
     const reason =
       run === undefined && full
-        ? '시작할 수 있는 타이머가 가득 찼습니다'
+        ? limitReason('타이머', MAX_LIVE_TIMERS, '시작')
         : undefined;
     const toggle = (): void =>
       toggleTimer(timer, command => api.live.send(command));

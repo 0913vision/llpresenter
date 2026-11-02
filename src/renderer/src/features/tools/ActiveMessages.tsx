@@ -42,8 +42,8 @@ export function ActiveMessages(): JSX.Element | null {
           </span>
           <IconButton
             icon="x"
-            label="내리기"
-            title="메시지 내리기"
+            label="지우기"
+            title="메시지 지우기"
             onClick={() => dismissMessage(message.messageId)}
           />
         </div>

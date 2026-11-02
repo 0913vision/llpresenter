@@ -243,7 +243,7 @@
 /* Action button that opens a menu, such as the 테마 picker */
 .ll-tbtn.ll-tbtn--menu { padding: 0 var(--space-12); }
 
-/* Screen output (본 화면, 무대, 방송 자막) */
+/* Screen output (청중 화면, 무대 화면, 방송 화면) */
 .ll-tbtn.ll-tbtn--output { min-width: 64px; }
 .ll-tbtn__dot {
   position: absolute; top: -3px; right: -4px; width: 6px; height: 6px;

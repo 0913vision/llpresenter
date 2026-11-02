@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useRef, useSyncExternalStore, type JSX} from 'react';
 import type {AnySong} from '@core/schema/groupedSong';
 import {ArrangementPicker} from './ArrangementPicker';
@@ -28,7 +29,7 @@ export function ArrangementRow({
   const reason = busy
     ? '저장 중'
     : session.readOnly
-      ? '읽기 전용 곡'
+      ? NEWER_FILE_REASON
       : undefined;
   const close = (): void => {
     store.requestAction(null);

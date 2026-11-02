@@ -106,7 +106,7 @@ function PlaybackGroup({shown, duration, disabled, change}: Editing) {
             disabled={disabled}
             options={[
               {value: 'loop', label: '반복'},
-              {value: 'stop', label: '멈춤'},
+              {value: 'stop', label: '정지'},
             ]}
             value={shown.end}
             onChange={end => change({end})}

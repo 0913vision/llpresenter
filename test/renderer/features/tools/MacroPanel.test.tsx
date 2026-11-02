@@ -181,7 +181,7 @@ it('edits and removes actions with their original transition and expected list',
   render(<MacroPanel />);
   await openMenu();
   fireEvent.click(
-    screen.getByRole('menuitem', {name: '동작 빼기: 모두 지우기'}),
+    screen.getByRole('menuitem', {name: '동작 삭제: 모두 지우기'}),
   );
   await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
   const removal = next.edit.mock.calls[0]?.[0];
@@ -305,11 +305,11 @@ it('opens the palette and drops an action on the target macro without running it
   await waitFor(() =>
     expect(
       screen
-        .getByRole('button', {name: '\uc644\ub8cc'})
+        .getByRole('button', {name: '\uc801\uc6a9'})
         .getAttribute('aria-disabled'),
     ).not.toBe('true'),
   );
-  fireEvent.click(screen.getByRole('button', {name: '\uc644\ub8cc'}));
+  fireEvent.click(screen.getByRole('button', {name: '\uc801\uc6a9'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
@@ -401,9 +401,9 @@ it('turns the remove row into a submenu with two or more actions', async () => {
   const f = fixture([{kind: 'clearAll'}, {kind: 'clearAll'}]);
   render(<MacroPanel />);
   await openMenu();
-  expect(screen.queryByRole('menuitem', {name: /^동작 빼기:/})).toBeNull();
-  await openSubmenu('동작 빼기');
-  fireEvent.click(screen.getByRole('menuitem', {name: '모두 빼기'}));
+  expect(screen.queryByRole('menuitem', {name: /^동작 삭제:/})).toBeNull();
+  await openSubmenu('동작 삭제');
+  fireEvent.click(screen.getByRole('menuitem', {name: '모두 삭제'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
@@ -460,7 +460,7 @@ it('lists action kinds in order and opens the theme workspace', async () => {
     '오디오 재생 목록',
     '외부 장치 신호',
     '오디오 입력',
-    '비디오 입력',
+    '영상 입력',
     '매크로',
     '녹화와 방송',
     '|',
@@ -476,7 +476,7 @@ it('lists action kinds in order and opens the theme workspace', async () => {
   ).toEqual([
     ...themes.map(theme => theme.name),
     '|',
-    `동작 빼기: ${first.name}`,
+    `동작 삭제: ${first.name}`,
     '테마 편집…',
   ]);
   expect(

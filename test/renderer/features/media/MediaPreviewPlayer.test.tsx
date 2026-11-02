@@ -128,7 +128,7 @@ describe('media preview player', () => {
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
   });
 
-  it('shows 재생 after the natural file end for 멈춤', () => {
+  it('shows 재생 after the natural file end for 정지', () => {
     const {media} = player(mediaItem(1, {duration: 30, props: {end: 'stop'}}));
     if (media === null) throw new Error('No media element');
     fireEvent.play(media);

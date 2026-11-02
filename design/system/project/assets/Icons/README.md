@@ -13,8 +13,8 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | prop.svg | sticker | Prop |
 | audio.svg | speaker-high | Audio |
 | monitor.svg | monitor | Monitor |
-| mplay.svg | monitor-play | Screen output (본 화면 (main screen), 무대 (stage)) |
-| capture.svg | subtitles | 방송 자막 (broadcast captions) |
+| mplay.svg | monitor-play | Screen output (청중 화면 (audience screen), 무대 화면 (stage)) |
+| capture.svg | subtitles | 방송 화면 (broadcast screen) |
 | search.svg | magnifying-glass | Search |
 | gear.svg | gear-six | Settings |
 | plus.svg | plus | Add |

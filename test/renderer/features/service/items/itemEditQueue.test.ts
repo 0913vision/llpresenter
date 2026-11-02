@@ -30,7 +30,7 @@ describe('item edit queue', () => {
       },
     });
     expect(await queue.submit(arrangementRequest(target, '주일용'))).toBe(true);
-    expect(problem.mock.calls.at(-1)?.[0]).toBe('예배 순서 저장 실패');
+    expect(problem.mock.calls.at(-1)?.[0]).toBe('예배 저장 실패');
   });
 
   it('runs item edits one after another without refusing the later ones', async () => {

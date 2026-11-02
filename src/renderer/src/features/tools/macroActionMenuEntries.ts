@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import {
   MACRO_FILE_LIMITS,
   isKnownMacroAction,
@@ -43,7 +44,7 @@ const LATER_KINDS = {
   slideDestination: {label: '슬라이드 출력 대상', icon: 'slides'},
   communication: {label: '외부 장치 신호', icon: 'plugs'},
   audioInput: {label: '오디오 입력', icon: 'mic'},
-  videoInput: {label: '비디오 입력', icon: 'film'},
+  videoInput: {label: '영상 입력', icon: 'film'},
   capture: {label: '녹화와 방송', icon: 'capture'},
 } as const;
 
@@ -86,7 +87,7 @@ export function macroActionName(
   if (!isKnownMacroAction(action)) return '알 수 없는 동작';
   const kind = MACRO_ACTIONS[action.kind];
   if (action.kind === 'audio' && action.operation !== 'play') {
-    return action.operation === 'stop' ? '오디오 멈춤' : '오디오 페이드 아웃';
+    return action.operation === 'stop' ? '오디오 정지' : '오디오 페이드 아웃';
   }
   const id = targetId(action);
   const name = targets?.[action.kind]?.find(choice => choice.id === id)?.name;
@@ -117,7 +118,7 @@ function kindRow(
     icon: row.icon,
     ...menuAvailability(
       full
-        ? '동작 한도 도달'
+        ? limitReason('동작', MACRO_FILE_LIMITS.actions)
         : empty
           ? input.targets === undefined
             ? '대상을 불러오고 있습니다'
@@ -155,7 +156,7 @@ function addActionEntries(
           icon: 'eraser',
           ...menuAvailability(
             input.item.actions.length >= MACRO_FILE_LIMITS.actions
-              ? '동작 한도 도달'
+              ? limitReason('동작', MACRO_FILE_LIMITS.actions)
               : undefined,
           ),
           loadSubmenu: () => [
@@ -229,7 +230,11 @@ function editEntries(
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
       ...menuAvailability(
-        locked ? '매크로 목록 잠김' : !known ? '지원하지 않는 동작' : undefined,
+        locked
+          ? '매크로 목록 잠김'
+          : !known
+            ? '이번 버전에서는 쓸 수 없는 동작'
+            : undefined,
       ),
       loadSubmenu: known
         ? () => [
@@ -243,7 +248,7 @@ function editEntries(
             {
               kind: 'item',
               id: 'remove',
-              label: `동작 빼기: ${macroActionName(action, targets)}`,
+              label: `동작 삭제: ${macroActionName(action, targets)}`,
               icon: actionIcon(action),
               onSelect: () => handlers.removeAction(index),
             },
@@ -281,7 +286,7 @@ function editEntries(
       {
         kind: 'item',
         id: 'remove-0',
-        label: `동작 빼기: ${macroActionName(only, targets)}`,
+        label: `동작 삭제: ${macroActionName(only, targets)}`,
         icon: actionIcon(only),
         ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
         onSelect: () => handlers.removeAction(0),
@@ -295,7 +300,7 @@ function editEntries(
     {
       kind: 'item',
       id: 'remove-actions',
-      label: '동작 빼기',
+      label: '동작 삭제',
       ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
       submenu: [
         ...removes,
@@ -303,7 +308,7 @@ function editEntries(
         {
           kind: 'item',
           id: 'remove-all',
-          label: '모두 빼기',
+          label: '모두 삭제',
           onSelect: handlers.removeAllActions,
         },
       ],

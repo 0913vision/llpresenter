@@ -13,7 +13,7 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 ## Where not to use
 
-- When there are 2 to 4 choices and all have short names: use `SegmentedControl` (청중/무대, 반복/멈춤).
+- When there are 2 to 4 choices and all have short names: use `SegmentedControl` (청중/무대, 반복/정지).
 - A menu button that runs commands (더 보기, 매크로 추가): give `IconButton` or `Button` `aria-haspopup="menu"`.
 - A switch button with a transparent background and only an arrow, like the service name in a panel header: that is `ll-panel__switch` of `Panel`.
 - The 테마 picker on the toolbar (찬양): that is `ToolbarButton`.

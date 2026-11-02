@@ -119,7 +119,7 @@ function SongItemView({
         <PanelHeader>
           <PanelTitle
             title={session.document.song.title}
-            meta={capped ? '한도 초과' : undefined}
+            meta={capped ? '슬라이드가 너무 많음' : undefined}
           />
           <PanelActions>
             {capped ? (

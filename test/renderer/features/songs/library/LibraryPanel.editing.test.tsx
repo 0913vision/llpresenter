@@ -28,7 +28,7 @@ describe('library panel', () => {
       await user.click(screen.getByRole('menuitem', {name: '삭제'}));
     };
     await openDelete();
-    expect(screen.getByText('예배 순서 2곳에서 씀')).toBeDefined();
+    expect(screen.getByText('쓰는 곳: 예배 2곳')).toBeDefined();
     expect(edit).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', {name: '취소'}));
     expect(edit).not.toHaveBeenCalled();
@@ -36,7 +36,7 @@ describe('library panel', () => {
     act(() =>
       fixture.pushList(fixture.list().map(song => ({...song, usedBy: []}))),
     );
-    expect(screen.queryByText('예배 순서 0곳에서 씀')).toBeNull();
+    expect(screen.queryByText('쓰는 곳: 예배 0곳')).toBeNull();
     await user.click(
       within(screen.getByRole('alertdialog')).getByRole('button', {
         name: '삭제',

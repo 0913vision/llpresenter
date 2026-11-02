@@ -1,3 +1,5 @@
+import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NoServiceState} from './NoServiceState';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
@@ -46,13 +48,13 @@ const iconByKind: Readonly<Record<ItemKind, string>> = {
 };
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
-  'missing-song': '곡 파일을 찾을 수 없습니다.',
+  'missing-song': '곡 파일을 찾을 수 없습니다',
   'missing-bible': '성경 구절 없음',
-  'missing-background': '배경 파일을 찾을 수 없습니다.',
-  'missing-media': '미디어 파일을 찾을 수 없습니다.',
-  'unknown-kind': '이 버전에서 알 수 없는 항목입니다.',
-  'newer-version': '새 버전의 파일이라 읽기 전용으로 엽니다.',
-  'tile-limit': '슬라이드 수가 한도를 초과합니다.',
+  'missing-background': '배경 파일을 찾을 수 없습니다',
+  'missing-media': '미디어 파일을 찾을 수 없습니다',
+  'unknown-kind': '이번 버전에서는 쓸 수 없는 항목',
+  'newer-version': NEWER_FILE_REASON,
+  'tile-limit': ARRANGEMENT_LIMIT_REASON,
 };
 
 interface RowGroup {

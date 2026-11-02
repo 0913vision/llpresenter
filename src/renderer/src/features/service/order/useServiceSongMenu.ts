@@ -129,7 +129,7 @@ export function useServiceSongMenu(
               icon: 'warning',
               title:
                 result.error.reason === 'write-failed'
-                  ? '예배 순서 저장 실패'
+                  ? '예배 저장 실패'
                   : '구성 변경 실패',
               time: noticeTime(),
             });

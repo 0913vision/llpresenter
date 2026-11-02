@@ -5,9 +5,9 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const names = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
-  load: '예배 순서 목록 불러오기 실패',
-  open: '예배 순서 열기 실패',
-  missing: '예배 순서를 찾을 수 없음',
+  load: '예배 목록 불러오기 실패',
+  open: '예배 열기 실패',
+  missing: '예배를 찾을 수 없음',
 };
 
 function problemNotice(cause: keyof typeof problemTitles): Notice {

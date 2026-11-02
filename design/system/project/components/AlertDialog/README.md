@@ -19,7 +19,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 - Scrim and position: same as `Dialog` (`ll-scrim`, covers from under the menu bar, centered).
 - Surface `ll-alert`: width `dialog-s` (460px), background `bg-dialog`, corner radius `radius-2xl`, shadow `shadow-dialog`, padding `space-20` top, `space-20` left and right, `space-16` bottom. There are no header or footer lines.
 - Head group `ll-alert__head`: icon cell + `space-14` + text group, aligned to the top.
-  - When long names would exceed the viewport height, the head shrinks and scrolls vertically with a thin `line-strong` scrollbar. The button row remains visible. Only an overflowing head joins the Tab cycle as a region named "확인 내용"; its inset focus ring uses `ring-field-focus`.
+  - When long names would exceed the viewport height, the head shrinks and scrolls vertically with a thin `line-strong` scrollbar. The button row remains visible. Only an overflowing head joins the Tab cycle as a region named "내용 확인"; its inset focus ring uses `ring-field-focus`.
   - Icon cell `ll-alert__icon`: 40×40, background `bg-panel`, corner radius `radius-lg`, icon 24px `text-2`. It shows what the question is about (song `song`, recovery `history`).
   - Title `ll-alert__title`: `heading` (22/30/600), wraps at word boundaries, or within an unbroken name when needed to fit.
   - Extra info `ll-alert__meta`: `space-2` under the title, `label` (14/20) `text-3`, tabular numbers. With two or more values, `space-10` between them ("비정상 종료  10월 25일 오전 11:26").
@@ -70,7 +70,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 ## Implementation notes
 
 - `<AlertDialog icon="song" title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']} cancel="취소" actions={[{ label: '새 곡으로 저장' }, { label: '덮어쓰기', primary: true }]} />`
-- `<AlertDialog icon="history" title="출력 상태 복구" meta={['비정상 종료', '10월 25일 오전 11:26']} list={{ label: '복구할 상태', items: [{ icon: 'mplay', label: '화면 출력', value: '본 화면, 무대 화면, 방송 자막', checked: true }, …] }} actions={[{ label: '새로 시작', escape: true }, { label: '복구', primary: true }]} />`
+- `<AlertDialog icon="history" title="출력 상태 복구" meta={['비정상 종료', '10월 25일 오전 11:26']} list={{ label: '복구할 상태', items: [{ icon: 'mplay', label: '화면 출력', value: '청중 화면, 무대 화면, 방송 화면', checked: true }, …] }} actions={[{ label: '새로 시작', escape: true }, { label: '복구', primary: true }]} />`
 - Classes: `ll-alert`, `ll-alert--list`, `ll-alert__head`, `ll-alert__icon`, `ll-alert__text`, `ll-alert__title`, `ll-alert__meta`, `ll-alert__list`, `ll-alert__actions`, `ll-alert__cancel`.
 
 ## Changes from the drafts

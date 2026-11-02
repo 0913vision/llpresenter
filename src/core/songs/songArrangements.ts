@@ -1,3 +1,5 @@
+import {limitReason} from '../common/limitReason';
+import {SHOW_SERVICE_LIMITS} from '../schema/showService';
 import {
   DEFAULT_ARRANGEMENT_NAME,
   type Arrangement,
@@ -10,7 +12,11 @@ import {
 } from './songOrder';
 
 const NEW_ARRANGEMENT_PREFIX = '구성';
-export const ARRANGEMENT_LIMIT_REASON = '슬라이드 수가 한도를 초과합니다.';
+export const ARRANGEMENT_LIMIT_REASON = limitReason(
+  '슬라이드',
+  SHOW_SERVICE_LIMITS.tiles,
+  '사용',
+);
 
 /** The implicit default order followed by the song's named arrangements. */
 export function arrangementOptions(song: Song | GroupedSong) {

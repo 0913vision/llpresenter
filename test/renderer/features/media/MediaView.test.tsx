@@ -111,7 +111,7 @@ describe('media view', () => {
       ),
     ).toEqual([
       '탐색기에서 보기',
-      '재생 방식',
+      '재생',
       '효과음으로 지정',
       '|',
       '속성…',
@@ -201,7 +201,9 @@ describe('media view', () => {
       const [button] = buttons;
       if (button === undefined) throw new Error('Missing 가져오기 button');
       expect((await hoverForTooltip(button))?.textContent).toBe(
-        state === 'loading' ? '미디어를 불러오는 중' : '읽기 전용 미디어',
+        state === 'loading'
+          ? '미디어를 불러오는 중'
+          : '새 버전의 파일이라 바꿀 수 없습니다',
       );
       const dataTransfer = {
         types: ['Files'],

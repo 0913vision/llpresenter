@@ -24,7 +24,7 @@ describe('media kinds', () => {
     const filters = mediaDialogFilters();
     expect(filters.map(({name}) => name)).toEqual([
       '미디어',
-      '동영상',
+      '영상',
       '이미지',
       '오디오',
     ]);

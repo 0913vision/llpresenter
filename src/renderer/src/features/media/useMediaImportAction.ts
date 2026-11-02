@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 
@@ -20,7 +21,7 @@ export function useMediaImportAction(
     : document === null
       ? '미디어를 불러오는 중'
       : document.access !== 'editable'
-        ? '읽기 전용 미디어'
+        ? NEWER_FILE_REASON
         : undefined;
   const startImport = (files?: readonly File[]): void => {
     if (!mounted.current || reason !== undefined || pending.current) return;

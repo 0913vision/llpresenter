@@ -2,16 +2,20 @@ import type {JSX} from 'react';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {copyThemeName} from '@core/themes/themeEdits';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {
+  USAGE_LOADING,
+  USAGE_UNAVAILABLE,
+  usageMeta as usageLine,
+} from '@renderer/ui/usageText';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import {useThemeUsage, type ThemeUsage} from './useThemeUsage';
 
 function usageMeta(usage: ThemeUsage): readonly string[] {
-  if (usage === 'loading') return ['사용 항목을 확인하는 중'];
-  if (usage === 'failed') return ['예배 순서 사용 항목을 확인할 수 없습니다'];
-  return countedMeta(usage, `예배 순서 항목 ${usage}곳에서 씀`);
+  if (usage === 'loading') return [USAGE_LOADING];
+  if (usage === 'failed') return [USAGE_UNAVAILABLE];
+  return usageLine(usage, '예배 순서 항목');
 }
 
 /** The questions of 저장, 다른 이름으로 저장…, and leaving with unsaved edits. */

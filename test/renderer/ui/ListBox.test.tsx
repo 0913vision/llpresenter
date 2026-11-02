@@ -114,7 +114,7 @@ describe('ListBox', () => {
     await userEvent.tab();
     await userEvent.tab();
     expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: '내리기'}),
+      screen.getByRole('button', {name: '지우기'}),
     );
   });
 

@@ -141,8 +141,8 @@ service needs no confirmation), product log version 63.
   Changing it saves the new media as the item's background override (proposal).
   If the item is on output, the new background goes out at once (proposal).
 - If the background file is missing, an amber icon (tooltip "배경 파일을 찾을 수
-  없음", background file not found) and a 다시 연결 (relink) button show before
-  the select. See 08.
+  없음", background file not found) and a 다시 연결 button show before the
+  select. See 08.
 
 ### 슬라이드 grid
 
@@ -390,7 +390,7 @@ and per-item controls in the owning tool tab (October 31 B16).
   (the board shows "시계 11:24") (proposal). The choice belongs to the current
   output: a 테마 change keeps it, it isn't saved, and deleting that 타이머
   clears it (lead decision, October 26).
-- Stage message: a text field, a LIVE badge while the message is on, 내리기
+- Stage message: a text field, a LIVE badge while the message is on, 지우기
   (take down), and 보내기 (send). 보내기 or Enter sends the text to the 무대
   화면 (Enter is a proposal). A new message replaces the previous one.
 - Preset chips: 후렴 한 번 더 (chorus once more), 마지막 후렴 (last chorus),
@@ -422,8 +422,8 @@ and per-item controls in the owning tool tab (October 31 B16).
     and a local 24-hour time. While running, it counts toward that fixed target,
     including tomorrow or a later date. Starting it does not replace the target
     date with the start date (user decision, October 27).
-  - Both countdown kinds have 0 지나면: 계속 or 멈춤. 계속 counts below zero
-    with a leading "-". 멈춤 stops at zero, holds zero and clears the running
+  - Both countdown kinds have 0 지나면: 계속 or 정지. 계속 counts below zero
+    with a leading "-". 정지 stops at zero, holds zero and clears the running
     state. Starting a finished fixed-duration countdown starts again from its
     full duration; 처음으로 restores its configured value without starting.
     Existing records without the option keep 계속, the current default (10).
@@ -515,7 +515,7 @@ T03, T07 and T09.
   comes down by itself.
 - The 메시지 tab lists each active sent message independently of the selected
   template, with its text, time left (for example "0:42") when timed, and its
-  own 내리기. Expired messages leave the list. 내리기 takes only that message
+  own 지우기. Expired messages leave the list. 지우기 takes only that message
   down from every target screen through `overlay.clear` with `message` and
   `messageId`, preserving the existing last-clear undo. Legacy single-item
   layers with older IDs use the existing whole-message clear; invalid IDs in a
@@ -582,9 +582,9 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
 - A timer row shows its current value in place, using the same formatter and
   kind rules as the timer tab. A running non-clock row keeps the red bar. A
-  finished 멈춤 countdown holds zero with the bar off until started or reset.
-- Older quick rows keep their timer kind when separated into independent
-  definitions. They are not converted to fixed-duration countdowns:
+  finished 정지 countdown holds zero with the bar off until started or reset.
+- Older quick rows keep their timer kind. They are not converted to
+  fixed-duration countdowns:
   - `countdownTo` shows time to its configured target. A legacy undated target
     uses the run's start day, or today before starting. A stopped row draws its
     value once; clicking starts it and clicking while running resets it. Reset

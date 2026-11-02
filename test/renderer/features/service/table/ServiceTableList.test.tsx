@@ -151,7 +151,7 @@ it('shows 항목 없음 and keeps the adders for a service with no items', async
 
   expect((await screen.findByRole('status')).textContent).toBe('항목 없음');
   expect(screen.getByRole('button', {name: '항목'})).toBeDefined();
-  expect(screen.getByRole('button', {name: '머리글'})).toBeDefined();
+  expect(screen.getByRole('button', {name: '구역'})).toBeDefined();
 });
 
 it('shows 예배 없음 with 새 예배… and no adders when no service is open', async () => {
@@ -164,16 +164,16 @@ it('shows 예배 없음 with 새 예배… and no adders when no service is open
     expect(screen.getByRole('status').textContent).toContain('예배 없음'),
   );
   expect(screen.queryByRole('button', {name: '항목'})).toBeNull();
-  expect(screen.queryByRole('button', {name: '머리글'})).toBeNull();
+  expect(screen.queryByRole('button', {name: '구역'})).toBeNull();
   await userEvent.click(screen.getByRole('button', {name: '새 예배…'}));
   expect(await screen.findByRole('dialog', {name: /새 예배/})).toBeDefined();
 });
 
-it('adds a 머리글 at the end of the table', async () => {
+it('adds a 구역 at the end of the table', async () => {
   const {edits} = setup();
   await screen.findByRole('option', {name: '첫 곡'});
 
-  await userEvent.click(screen.getByRole('button', {name: '머리글'}));
+  await userEvent.click(screen.getByRole('button', {name: '구역'}));
 
   await waitFor(() => expect(edits).toHaveLength(1));
   const [command] = edits;

@@ -81,7 +81,7 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           onChange={onLaunch => change(stored => ({...stored, onLaunch}))}
         />
         <SelectRow
-          label="UI 확대"
+          label="화면 확대"
           disabled={zoom.percent === null}
           options={ZOOM_OPTIONS}
           value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}

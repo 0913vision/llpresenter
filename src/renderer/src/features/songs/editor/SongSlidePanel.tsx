@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useSyncExternalStore, type JSX} from 'react';
 import {
   Panel,
@@ -61,7 +62,10 @@ export function SongSlidePanel({
   return (
     <Panel label="슬라이드" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle title="슬라이드" meta={capped ? '한도 초과' : undefined} />
+        <PanelTitle
+          title="슬라이드"
+          meta={capped ? '슬라이드가 너무 많음' : undefined}
+        />
         {capped ? (
           <PanelActions>
             <span
@@ -99,7 +103,7 @@ export function SongSlidePanel({
             session.blocked
               ? '저장 오류 해결 필요'
               : session.readOnly
-                ? '읽기 전용 곡입니다'
+                ? NEWER_FILE_REASON
                 : state.busy
                   ? '작업을 마친 뒤 다시 시도하세요'
                   : undefined

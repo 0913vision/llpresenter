@@ -60,7 +60,7 @@ export function otherItemEntries({
       onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
     },
     laterRow('other:placeholder', '자리 표시 추가'),
-    laterRow('other:cue', '큐 추가'),
+    laterRow('other:cue', '빈 항목 추가'),
     menuSeparator('other:items'),
     {
       kind: 'item',
@@ -99,7 +99,7 @@ export function otherItemEntries({
         '공지 없음',
       ),
     },
-    laterRow('other:video-stream', '비디오 스트림 항목…'),
+    laterRow('other:video-stream', '영상 스트림 항목…'),
     laterRow('other:audio-stream', '오디오 스트림 항목…'),
   ];
 }

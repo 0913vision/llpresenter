@@ -130,7 +130,7 @@ export type TemplateDocument = ReadonlyKnown<
 
 /**
  * One row of the 라이브러리: what the list shows, and the 예배 순서 that use
- * the song (the "예배 순서 2곳" tag and its tooltip).
+ * the song (the "예배 2곳" tag and its tooltip).
  */
 export type LibrarySong = ReadonlyKnown<
   v.InferOutput<typeof librarySongSchema>

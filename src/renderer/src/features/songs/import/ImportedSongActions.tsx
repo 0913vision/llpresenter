@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
@@ -118,7 +119,7 @@ export function ImportedSongActions({
   return (
     <>
       <Button size="sm" disabled={busy} onClick={() => store.discardImported()}>
-        버리기
+        저장 안 함
       </Button>
       <Button
         size="sm"
@@ -136,7 +137,7 @@ export function ImportedSongActions({
           onCancel={() => store.cancelDiscard()}
           actions={[
             {
-              label: '버리기',
+              label: '저장 안 함',
               primary: true,
               onSelect: () => store.discardImported(),
             },
@@ -148,7 +149,7 @@ export function ImportedSongActions({
           icon="song"
           title={`‘${title}’ 곡이 이미 있습니다. 덮어쓸까요?`}
           meta={[
-            '라이브러리 곡',
+            '곡',
             ...countedMeta(
               sourceSlideCount(duplicate.song),
               `슬라이드 ${sourceSlideCount(duplicate.song)}개`,
@@ -182,7 +183,7 @@ export function ImportedSongActions({
               disabled: unavailable || duplicate.access === 'readOnly',
               title:
                 duplicate.access === 'readOnly'
-                  ? '읽기 전용 곡'
+                  ? NEWER_FILE_REASON
                   : libraryReason,
               onSelect: () =>
                 editorTask(

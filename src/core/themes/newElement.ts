@@ -52,7 +52,7 @@ export function newThemeElement({
       value = {...base, box};
       break;
     case 'text':
-      value = {...base, text, content: '글'};
+      value = {...base, text, content: '글자'};
       break;
     case 'clock':
       value = {...base, text, clockFormat: '24h'};

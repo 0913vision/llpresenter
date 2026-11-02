@@ -1,3 +1,4 @@
+import {NOT_YET} from '@renderer/ui/menuRows';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {TextImportReadRequest} from '@core/schema/textImport';
@@ -33,7 +34,7 @@ function textImportRow(
     ),
     ...menuAvailability(
       onImportText === undefined
-        ? '텍스트 가져오기를 준비 중입니다'
+        ? NOT_YET
         : source === 'file' || clipboard === 'ready'
           ? undefined
           : clipboard === 'checking'
@@ -70,7 +71,7 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
         laterRow('songselect', 'SongSelect…'),
         menuSeparator('powerpoint'),
         laterRow('powerpoint-slides', 'PowerPoint를 슬라이드로…'),
-        laterRow('powerpoint-images', 'PowerPoint를 그림으로…'),
+        laterRow('powerpoint-images', 'PowerPoint를 이미지로…'),
         laterRow('powerpoint-objects', 'PowerPoint를 개체와 글자로…'),
       ],
     },

@@ -49,7 +49,7 @@ export function QuickPanel({
 }): JSX.Element | null {
   const api = window.llp;
   const document = useSettingsDocument('quick', '퀵 실행', onProblem);
-  const timers = useQuickTimers(api, document, onProblem);
+  const timers = useQuickTimers(document, onProblem);
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;

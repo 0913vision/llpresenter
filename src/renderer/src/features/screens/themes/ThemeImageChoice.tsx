@@ -29,10 +29,10 @@ export function ThemeImageChoice({
     <>
       <Select
         id={id}
-        aria-label="그림"
+        aria-label="이미지"
         ref={setButton}
         block
-        value={image?.name ?? '그림 선택…'}
+        value={image?.name ?? '이미지 선택…'}
         lead={{kind: 'icon', icon: 'image'}}
         expanded={open}
         onExpandedChange={setOpen}
@@ -42,7 +42,7 @@ export function ThemeImageChoice({
       {!open || button === null ? null : (
         <MediaPicker
           allowNone={false}
-          label="그림"
+          label="이미지"
           anchor={button}
           items={images}
           selected={selected}

@@ -18,7 +18,7 @@ The 56px row under the menu bar. It holds the workspace tabs and media on the le
 - Left: workspace tabs (진행, 준비, 화면 설정), divider, the separate horizontal
   30px media-bin toggle. The toggle keeps its label and outlined on/off states.
 - Center: the search field, centered in a cell that takes the remaining width. The search field is TextField md (`ll-field ll-field--ring`, `size-control-md` 30, `bg-well`, magnifier 16 `text-3`, gap `space-8`), width 420, and it shrinks when space runs short. Placeholder "곡, 가사, 초성".
-- Right: 테마 (the live 테마 name, such as 찬양), divider, the three screen output buttons (본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)).
+- Right: 테마 (the live 테마 name, such as 찬양), divider, the three screen output buttons (청중 화면 (audience screen), 무대 화면 (stage), 방송 화면 (broadcast screen)).
 - Divider: 1×24, `line`, horizontal margin `space-8` (14 together with the gap between items).
 - Narrow window: height `size-toolbar-compact` (40px), other buttons in the
   narrow ToolbarButton form (32), media remains a labeled 30px horizontal
@@ -45,7 +45,7 @@ The toolbar itself has no states. Each button follows ToolbarButton, and the sea
 
 ## Behavior
 
-- Focus order: workspace tabs (the one selected tab) → media → search field → 테마 → 본 화면 → 무대 → 방송 자막.
+- Focus order: workspace tabs (the one selected tab) → media → search field → 테마 → 청중 화면 → 무대 → 방송 화면.
 - Search field: the clear-text button and the Esc behavior follow TextField. This component doesn't decide where results appear.
 - Don't use `role="toolbar"` on the toolbar. It mixes a tab group (`tablist`) and an output group (`group`), so each group follows its own keyboard rules.
 - When the window gets narrower, the search field shrinks first (no minimum width). Don't shorten button names. If space still runs short, switch to the narrow window form.

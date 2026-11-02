@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -36,7 +37,7 @@ function deleteRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
     label: '삭제',
     icon: actions.audioPlaylist ? undefined : 'trash',
     danger: true,
-    ...menuAvailability(actions.editable ? undefined : '읽기 전용 미디어 목록'),
+    ...menuAvailability(actions.editable ? undefined : NEWER_FILE_REASON),
     onSelect: () => actions.remove(item),
   };
 }
@@ -47,7 +48,7 @@ function audioRows(
 ): readonly MenuEntry[] {
   return [
     laterRow('reveal', '탐색기에서 보기'),
-    laterRow('playback', '재생 방식', {submenu: true}),
+    laterRow('playback', '재생', {submenu: true}),
     laterRow('sound-effect', '효과음으로 지정'),
     menuSeparator('properties-separator'),
     propertiesRow(item, actions),
@@ -65,15 +66,15 @@ function mediaRows(
     propertiesRow(item, actions),
     laterRow('transition', '전환 효과…'),
     menuSeparator('behavior-separator'),
-    laterRow('behavior', '동작 방식', {submenu: true}),
-    laterRow('scaling', '크기 맞춤', {submenu: true}),
-    laterRow('alpha', '알파 종류', {submenu: true}),
+    laterRow('behavior', '동작', {submenu: true}),
+    laterRow('scaling', '맞춤', {submenu: true}),
+    laterRow('alpha', '알파', {submenu: true}),
     menuSeparator('playback-separator'),
-    laterRow('playback', '재생 방식', {submenu: true}),
-    laterRow('loop', '반복 방식', {submenu: true}),
-    laterRow('end', '끝날 때', {submenu: true}),
+    laterRow('playback', '재생', {submenu: true}),
+    laterRow('loop', '반복', {submenu: true}),
+    laterRow('end', '끝나면', {submenu: true}),
     menuSeparator('next-separator'),
-    laterRow('next', '다음 큐', {submenu: true}),
+    laterRow('next', '다음 항목', {submenu: true}),
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
     laterRow('duplicate', '복제', {icon: 'duplicate'}),
@@ -85,7 +86,7 @@ function mediaRows(
             id: 'leave',
             label: '재생목록에서 빼기',
             ...menuAvailability(
-              actions.editable ? undefined : '읽기 전용 미디어 목록',
+              actions.editable ? undefined : NEWER_FILE_REASON,
             ),
             onSelect: () => actions.leave(item.id),
           },
@@ -139,7 +140,7 @@ export function mediaTileMenuEntries(
 }
 
 export function playlistMenuEntries(editable: boolean): readonly MenuEntry[] {
-  const title = editable ? undefined : '읽기 전용 미디어 목록';
+  const title = editable ? undefined : NEWER_FILE_REASON;
   return [
     laterRow('communications', '통신에 사용'),
     menuSeparator('edit-separator'),

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useId, useMemo, useRef, useState, type JSX} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
@@ -64,7 +65,7 @@ export function SongBackground({
   const reason = session.blocked
     ? '저장 오류 해결 필요'
     : session.readOnly
-      ? '읽기 전용 곡'
+      ? NEWER_FILE_REASON
       : busy
         ? '저장 중'
         : state.failed

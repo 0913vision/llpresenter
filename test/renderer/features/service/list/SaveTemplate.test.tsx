@@ -125,7 +125,7 @@ it('explains a missing service connection and a template name prompt already in 
   );
   expect(result.current.entries.saveTemplate).toMatchObject({
     disabled: true,
-    title: '예배 순서 연결 안 됨',
+    title: '이 창에서는 쓸 수 없음',
   });
   unmount();
   window.llp = mockLlpApi();

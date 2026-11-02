@@ -15,7 +15,7 @@ export function ThemeImageDialog({
   const image = model.images.find(value => value.id === selected);
   return (
     <Dialog
-      title="그림 선택"
+      title="이미지 선택"
       size="s"
       onCancel={model.cancelImage}
       primary={{

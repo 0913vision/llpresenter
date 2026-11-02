@@ -79,7 +79,7 @@ describe('SourceTree', () => {
     expect(position('광고')).toEqual(['1', '4', '4']);
     expect(state('찬양')).toBe('true');
     expect(item('헌금 찬양').getAttribute('aria-describedby')).toBeNull();
-    expect(screen.queryByText('빈 자리')).toBeNull();
+    expect(screen.queryByText('빈 항목')).toBeNull();
     expect(screen.getByText('주일용')).toBeDefined();
   });
 
@@ -183,11 +183,11 @@ describe('SourceTree', () => {
         rows={[]}
         selection={new Set()}
         onChange={() => undefined}
-        empty="예배 순서를 읽을 수 없습니다"
+        empty="예배를 읽을 수 없습니다"
       />,
     );
     expect(screen.getByText('항목 0개')).toBeDefined();
-    expect(screen.getByText('예배 순서를 읽을 수 없습니다')).toBeDefined();
+    expect(screen.getByText('예배를 읽을 수 없습니다')).toBeDefined();
     expect(screen.queryByRole('checkbox')).toBeNull();
     expect(screen.queryByRole('tree')).toBeNull();
   });

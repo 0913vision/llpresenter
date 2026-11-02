@@ -67,12 +67,12 @@ describe('Tooltip', () => {
           <Button>가사</Button>
         </Tooltip>
         <Tooltip text="되돌리기" shortcut="Ctrl Z">
-          <IconButton icon="undo" label="되돌림" />
+          <IconButton icon="undo" label="되돌리기" />
         </Tooltip>
       </>,
     );
     expect(button('가사').getAttribute('aria-keyshortcuts')).toBe('F2');
-    expect(button('되돌림').getAttribute('aria-keyshortcuts')).toBe(
+    expect(button('되돌리기').getAttribute('aria-keyshortcuts')).toBe(
       'Control+Z',
     );
   });
@@ -122,7 +122,7 @@ describe('Tooltip', () => {
   it('keeps the target own handlers', async () => {
     const onPointerEnter = vi.fn();
     render(
-      <Tooltip text="내리기">
+      <Tooltip text="지우기">
         <button type="button" onPointerEnter={onPointerEnter}>
           x
         </button>

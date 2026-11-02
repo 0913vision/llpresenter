@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
@@ -14,7 +15,7 @@ import {
 
 const NOTHING: TreeSelection = new Set();
 const NONE_PICKED = '항목을 골라야 가져올 수 있습니다';
-const READ_ONLY = '읽기 전용 예배 순서에는 가져올 수 없습니다';
+const READ_ONLY = NEWER_FILE_REASON;
 const FAILED = '항목을 가져올 수 없음';
 
 /**

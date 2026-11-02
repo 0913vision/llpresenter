@@ -147,7 +147,7 @@ export function AlertDialog({
           className={styles.head}
           tabIndex={scrollable ? 0 : undefined}
           role={scrollable ? 'region' : undefined}
-          aria-label={scrollable ? '확인 내용' : undefined}
+          aria-label={scrollable ? '내용 확인' : undefined}
         >
           <span className={styles.icon}>
             <Icon name={icon} size={ICON_SIZE} />

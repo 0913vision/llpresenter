@@ -136,8 +136,16 @@ afterEach(() => {
 
 describe('the service source menu', () => {
   it.each([
-    {kind: 'template', name: /^주일 예배/, reason: '읽기 전용 템플릿'},
-    {kind: 'service', name: /^지난 주일 예배/, reason: '읽기 전용 예배 순서'},
+    {
+      kind: 'template',
+      name: /^주일 예배/,
+      reason: '새 버전의 파일이라 바꿀 수 없습니다',
+    },
+    {
+      kind: 'service',
+      name: /^지난 주일 예배/,
+      reason: '새 버전의 파일이라 바꿀 수 없습니다',
+    },
   ])(
     'disables read-only $kind commands with a reason',
     async ({kind, name, reason}) => {

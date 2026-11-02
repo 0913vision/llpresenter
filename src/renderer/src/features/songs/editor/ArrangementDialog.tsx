@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useState, type JSX} from 'react';
 import {useRenameDraft} from '@renderer/ui/useRenameDraft';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
@@ -66,7 +67,7 @@ export function ArrangementDialog({
       primary={{
         label: '저장',
         disabled: draft.busy || !draft.valid,
-        title: draft.problem ?? (locked ? '변경할 수 없는 곡' : undefined),
+        title: draft.problem ?? (locked ? NEWER_FILE_REASON : undefined),
         onSelect: () => draft.commit(),
       }}
     >

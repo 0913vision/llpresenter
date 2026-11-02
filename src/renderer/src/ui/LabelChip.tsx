@@ -19,7 +19,7 @@ import styles from './LabelChip.module.css';
 const GRIP_SIZE = 14;
 const ADD_ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
-const INSERT_LABEL = '슬라이드 넣기';
+const INSERT_LABEL = '이름표 넣기';
 const PICKER_PLACEHOLDER = '이름표';
 
 /** One group of 슬라이드 in a 구성: its 이름표 name and color, or its number. */

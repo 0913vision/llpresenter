@@ -128,7 +128,7 @@ export function TextImportDialog({
       size="xl"
       subtitle={{icon: 'filetext', text: source.fileName ?? '클립보드 텍스트'}}
       onCancel={onDiscard}
-      cancelLabel="버리기"
+      cancelLabel="저장 안 함"
       primary={{
         label: '편집',
         disabled: preview.draft === null,

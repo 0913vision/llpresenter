@@ -14,7 +14,7 @@ it('explains a missing import connection and a pending import request', async ()
   const {result, unmount} = renderHook(() => useFileMediaImport(vi.fn()));
   expect(result.current).toMatchObject({
     disabled: true,
-    title: '미디어 가져오기 연결 안 됨',
+    title: '이 창에서는 쓸 수 없음',
   });
   unmount();
   window.llp = mockLlpApi({media: {import: () => new Promise(() => {})}});

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {
   arrangementGroupIds,
@@ -14,7 +15,11 @@ import {
   movedOrder,
   withoutPosition,
 } from './songItemModel';
-import {editedOrder, editedOrderWithLimit} from '@core/songs/songArrangements';
+import {
+  ARRANGEMENT_LIMIT_REASON,
+  editedOrder,
+  editedOrderWithLimit,
+} from '@core/songs/songArrangements';
 import type {SongSession} from './songSession';
 import styles from './ArrangementRow.module.css';
 import {useChipDrag} from './useChipDrag';
@@ -86,9 +91,9 @@ function StripContent({
     ? {chips: [], entries: [], move: () => false, remove: () => false}
     : stripModel(session, labels);
   const reason = locked
-    ? '변경할 수 없는 곡'
+    ? NEWER_FILE_REASON
     : capped
-      ? '슬라이드 수가 한도를 초과합니다'
+      ? ARRANGEMENT_LIMIT_REASON
       : session.arrangement === undefined
         ? '기본 구성은 바꿀 수 없습니다'
         : undefined;
@@ -105,14 +110,14 @@ function StripContent({
           onMove={model.move}
           onRemove={model.remove}
           onInsert={setAnchor}
-          insertLabel="그룹 넣기"
+          insertLabel="이름표 넣기"
           dropIndex={drag.dropIndex}
           draggingIndex={drag.draggingIndex}
         />
       </div>
       {anchor && reason === undefined ? (
         <Menu
-          label="그룹 넣기"
+          label="이름표 넣기"
           anchor={{kind: 'element', element: anchor}}
           entries={model.entries}
           onClose={() => setAnchor(null)}

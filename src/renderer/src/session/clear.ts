@@ -43,7 +43,7 @@ export function clearLayer(target: ClearTarget): void {
   sendLive({type: 'layer.clear.toggle', target});
 }
 
-/** Whether the live state has a clear that 되돌림 can undo. */
+/** Whether the live state has a clear that 되돌리기 can undo. */
 export function useCanUndo(): boolean {
   return useLive(view => view.state?.canUndo ?? false);
 }

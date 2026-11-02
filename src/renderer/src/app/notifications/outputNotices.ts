@@ -6,7 +6,7 @@ import type {Notice, NoticeAction} from '@renderer/ui/notices';
 
 /** How the cards name one screen, such as 무대 and 무대 화면. */
 export interface ScreenNames {
-  /** Before 모니터, such as 무대 in 무대 모니터 연결 끊김. */
+  /** Before 모니터, such as 무대 화면 in 무대 화면 모니터 연결 끊김. */
   readonly monitor: string;
   /** Before 출력 창, such as 청중 화면 in 청중 화면 출력 창 다시 띄움. */
   readonly window: string;

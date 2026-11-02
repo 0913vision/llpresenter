@@ -158,7 +158,7 @@ it.each(['section', 'end'])(
     const field = screen.getByRole('combobox', {name: '검색'});
     await userEvent.type(field, '노래');
     await screen.findByRole('option', {name: new RegExp(second.song.title)});
-    expect(screen.getByText('Enter 열기')).toBeDefined();
+    expect(screen.getByText('Enter 키로 열기')).toBeDefined();
     expect(screen.getByText('Ctrl Enter 예배 순서에 추가')).toBeDefined();
     await userEvent.keyboard('{ArrowDown}');
     fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
@@ -238,7 +238,7 @@ it('reports a refused Ctrl Enter insertion without opening or outputting the son
   fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
   await waitFor(() =>
     expect(report).toHaveBeenCalledWith(
-      expect.objectContaining({title: '예배 순서 변경 실패'}),
+      expect.objectContaining({title: '예배 변경 실패'}),
     ),
   );
   expect(service().service.order).toHaveLength(5);

@@ -15,10 +15,12 @@ it('follows the open service access without enumerating saved service files', as
   const song = libraryFixture().list()[0];
   if (!song) throw new Error('Missing song');
   const {result} = renderHook(() => useLibraryServices(api, vi.fn()));
-  expect(result.current.disabledReason).toBe('열린 예배 순서가 없습니다');
+  expect(result.current.disabledReason).toBe('열린 예배가 없습니다');
   await act(() => result.current.append(song.id));
   act(() => applyService({...sampleService, readOnly: true}));
-  expect(result.current.disabledReason).toBe('읽기 전용 예배 순서입니다');
+  expect(result.current.disabledReason).toBe(
+    '새 버전의 파일이라 바꿀 수 없습니다',
+  );
   await act(() => result.current.append(song.id));
   expect(edit).not.toHaveBeenCalled();
   act(() => useShow.setState({readOnly: false}));

@@ -306,11 +306,11 @@ describe('AlertDialog', () => {
       .mockReturnValue(100);
     const onOverwrite = vi.fn();
     const view = render(<Overwrite onOverwrite={onOverwrite} />);
-    expect(screen.queryByRole('region', {name: '확인 내용'})).toBeNull();
+    expect(screen.queryByRole('region', {name: '내용 확인'})).toBeNull();
     expect(observe).toHaveBeenCalledTimes(2);
     scrollHeight.mockReturnValue(400);
     act(() => resize?.());
-    const details = screen.getByRole('region', {name: '확인 내용'});
+    const details = screen.getByRole('region', {name: '내용 확인'});
     expect(details.tabIndex).toBe(0);
     expect(document.activeElement).toBe(
       screen.getByRole('button', {name: '덮어쓰기'}),
@@ -319,7 +319,7 @@ describe('AlertDialog', () => {
     expect(document.activeElement).toBe(details);
     scrollHeight.mockReturnValue(100);
     act(() => resize?.());
-    expect(screen.queryByRole('region', {name: '확인 내용'})).toBeNull();
+    expect(screen.queryByRole('region', {name: '내용 확인'})).toBeNull();
     await userEvent.tab();
     expect(document.activeElement).toBe(
       screen.getByRole('button', {name: '취소'}),

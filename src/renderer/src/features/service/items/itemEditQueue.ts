@@ -92,7 +92,7 @@ export class ItemEditQueue {
     this.setRunning(-1);
     if (result.ok) return true;
     if (result.error.reason === 'write-failed') {
-      this.problem('예배 순서 저장 실패');
+      this.problem('예배 저장 실패');
       return true;
     }
     this.problem(failure, retry, RETRY_SAVE_LABEL);

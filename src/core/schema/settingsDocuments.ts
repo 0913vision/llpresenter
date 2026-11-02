@@ -19,11 +19,7 @@ import {timerDeleteSchema} from './timerDeletion';
 import {timerRenameSchema} from './timerEdit';
 import {preserveUnknownFields} from './preserveUnknown';
 import {nonBlankText} from './primitives';
-import {
-  quickTimerCreateSchema,
-  quickTimerRenameSchema,
-  quickTimersSeparateSchema,
-} from './quickTimerEdit';
+import {quickTimerCreateSchema, quickTimerRenameSchema} from './quickTimerEdit';
 
 /** Shared metadata for settings and the separately edited media list. */
 export function settingsDocumentSchema<
@@ -135,7 +131,6 @@ const settingsEditSchema = v.pipe(
     labelRenameSchema,
     quickTimerCreateSchema,
     quickTimerRenameSchema,
-    quickTimersSeparateSchema,
     timerDeleteSchema,
     timerRenameSchema,
   ]),

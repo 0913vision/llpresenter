@@ -53,7 +53,7 @@ describe('song editor right panels', () => {
     fixture.documents.set(first.song.id, first);
     const {session, store, user} = await editorSetup({...fixture, first});
     render(<SongPreviewPanel store={store} />);
-    await user.click(screen.getByRole('radio', {name: '무대'}));
+    await user.click(screen.getByRole('radio', {name: '무대 화면'}));
     act(() => {
       session.selectArrangement('Reversed');
       session.select({block: 1, start: 0, end: 0});
@@ -169,7 +169,7 @@ describe('song editor right panels', () => {
     expect(drawing.create.mock.calls.at(-1)?.[0]).toMatchObject({
       mode: 'preview',
     });
-    await user.click(screen.getByRole('radio', {name: '무대'}));
+    await user.click(screen.getByRole('radio', {name: '무대 화면'}));
     expect(drawing.render.mock.calls.at(-1)?.[1]?.screen?.kind).toBe('stage');
     view.unmount();
     expect(fixture.listenerCount()).toBe(before);

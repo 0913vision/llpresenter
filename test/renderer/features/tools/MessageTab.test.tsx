@@ -109,7 +109,7 @@ it('shows each sent message time and clears only that message', async () => {
   expect(within(messages).getByText('0:42')).toBeDefined();
   await act(() => clock.advance(1000));
   expect(within(messages).getByText('0:41')).toBeDefined();
-  fireEvent.click(within(messages).getByRole('button', {name: '내리기'}));
+  fireEvent.click(within(messages).getByRole('button', {name: '지우기'}));
   expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
     type: 'overlay.clear',
     target: {kind: 'message', messageId},

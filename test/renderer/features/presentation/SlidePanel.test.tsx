@@ -218,7 +218,7 @@ describe('SlidePanel with a library source', () => {
   it.each([
     {
       source: librarySong({readOnly: true}),
-      reason: '새 버전의 파일이라 읽기 전용으로 엽니다.',
+      reason: '새 버전의 파일이라 바꿀 수 없습니다',
     },
     {
       source: librarySong({problem: 'missing-background'}),

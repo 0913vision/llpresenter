@@ -57,7 +57,7 @@ it('explains protected edits and unavailable arrangement and library actions', (
     '구성 변경 불가',
   );
   expect(missing.find(row => row.id === 'show-in-library')?.title).toBe(
-    '라이브러리 연결 안 됨',
+    '이 창에서는 쓸 수 없음',
   );
   const loading = menuItems(
     serviceOrderMenuEntries({

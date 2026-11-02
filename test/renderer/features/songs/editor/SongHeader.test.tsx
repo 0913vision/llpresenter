@@ -28,14 +28,14 @@ describe('song editor header', () => {
         }),
     );
     await editorSetup(fixture);
-    expect(screen.queryByText('예배 순서 0곳')).toBeNull();
-    expect(screen.getByText('예배 순서 …')).toBeDefined();
+    expect(screen.queryByText('예배 0곳')).toBeNull();
+    expect(screen.getByText('예배 …')).toBeDefined();
     await act(async () => {
       finish(entries.map(entry => ({...entry, usedBy: []})));
       await Promise.resolve();
     });
-    expect(screen.queryByText('예배 순서 …')).toBeNull();
-    expect(screen.getByText('예배 순서 0곳')).toBeDefined();
+    expect(screen.queryByText('예배 …')).toBeNull();
+    expect(screen.getByText('예배 0곳')).toBeDefined();
   });
 
   it('distinguishes a failed usage read and returns to pending during retry', async () => {
@@ -51,8 +51,8 @@ describe('song editor header', () => {
           }),
       );
     const {onProblem} = await editorSetup(fixture);
-    expect(screen.queryByText('예배 순서 0곳')).toBeNull();
-    expect(screen.getByText('예배 순서 ?')).toBeDefined();
+    expect(screen.queryByText('예배 0곳')).toBeNull();
+    expect(screen.getByText('예배 ?')).toBeDefined();
     const retry = onProblem.mock.calls[0]?.[0].actions?.[0]?.onSelect;
     if (retry === undefined) {
       throw new Error('Missing catalog retry');
@@ -60,13 +60,13 @@ describe('song editor header', () => {
     act(() => {
       retry();
     });
-    expect(screen.getByText('예배 순서 …')).toBeDefined();
+    expect(screen.getByText('예배 …')).toBeDefined();
     await act(async () => {
       finish(entries);
       await Promise.resolve();
     });
-    expect(screen.queryByText('예배 순서 …')).toBeNull();
-    expect(screen.queryByText('예배 순서 ?')).toBeNull();
+    expect(screen.queryByText('예배 …')).toBeNull();
+    expect(screen.queryByText('예배 ?')).toBeNull();
   });
 
   it('ignores a rejected startup read after a newer catalog push', async () => {
@@ -86,7 +86,7 @@ describe('song editor header', () => {
       await Promise.resolve();
     });
     expect(onProblem).not.toHaveBeenCalled();
-    expect(screen.queryByText('예배 순서 ?')).toBeNull();
+    expect(screen.queryByText('예배 ?')).toBeNull();
   });
 
   it('coalesces title typing and keeps the saved title through lyric undo', async () => {
@@ -221,7 +221,7 @@ describe('song editor header', () => {
     expect(store.getSnapshot().session).not.toBeNull();
     expect(screen.queryByText('라이브러리')).toBeNull();
     expect(
-      (await hoverForTooltip(screen.getByText('예배 순서 2곳')))?.textContent,
+      (await hoverForTooltip(screen.getByText('예배 2곳')))?.textContent,
     ).toBe('아침 예배, 저녁 예배');
   });
 });

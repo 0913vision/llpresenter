@@ -213,7 +213,7 @@ describe('imported song actions', () => {
     expect(f.store.getSnapshot().imported).toBe(true);
     expect(
       screen
-        .getByRole('button', {name: '버리기'})
+        .getByRole('button', {name: '저장 안 함'})
         .getAttribute('aria-disabled'),
     ).toBeNull();
     const retry = f.problem.mock.calls[0]?.[0].actions?.[0]?.onSelect;
@@ -403,7 +403,7 @@ describe('imported song actions', () => {
     act(() => f.store.open(f.first));
     fireEvent.click(
       within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '버리기',
+        name: '저장 안 함',
       }),
     );
     expect(f.store.getSnapshot().imported).toBe(false);

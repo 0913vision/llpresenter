@@ -1,11 +1,11 @@
 # IconButton
 
-A square ghost button with only an icon. Use it for adding in panel headers, 내리기 (take down) at the end of list rows, closing dialogs, and small on/off tools.
+A square ghost button with only an icon. Use it for adding in panel headers, 지우기 (take down) at the end of list rows, closing dialogs, and small on/off tools.
 
 ## Where to use
 
 - Right side of panel headers: 항목 추가, 새 곡, 퀵 실행 추가, 구성 추가, 새 매크로 (sm)
-- End of list rows: 내리기 in the 표시 중 (showing) list of 진행 도구 (show tools), 라이브러리 곡 열기 (sm)
+- End of list rows: 지우기 in the 표시 중 (showing) list of 진행 도구 (show tools), 라이브러리 곡 열기 (sm)
 - On/off tools (`aria-pressed`): 반복 (repeat) in audio, 비율 고정 (lock aspect ratio) and 격자에 맞추기 (snap to grid) in the 테마 editor (sm)
 - 더 보기 (more) that opens a menu (`aria-expanded`) (sm)
 - 닫기 (close) in dialog headers (md)
@@ -52,7 +52,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 
 ## Writing
 
-- Write `aria-label` and tooltips as short nouns or verbs: 항목 추가, 새 곡, 내리기, 닫기, 반복, 격자에 맞추기, 비율 고정.
+- Write `aria-label` and tooltips as short nouns or verbs: 항목 추가, 새 곡, 지우기, 닫기, 반복, 격자에 맞추기, 비율 고정.
 - Don't include words like "버튼" (button) or "클릭" (click).
 
 ## Implementation notes
@@ -71,7 +71,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 
 - NewService, ServiceImport: dialog 닫기 28×28 → 30×30 (md).
 - PrepService, NewService, ServiceImport, AddSongs, Media: 28×28 buttons in panels (라이브러리 곡 열기 and others) → 26×26.
-- ShowH, Overlays: 내리기 icon 14px `text-3` → 16px `text-2`.
+- ShowH, Overlays: 지우기 icon 14px `text-3` → 16px `text-2`.
 - Overlays: 반복 on state, #ececec with no background → `bg-control-hover` + `text`.
 - StageEditor: 비율 고정, 격자에 맞추기 28×28 icon 14 → 26×26 icon 16. On background #262626 → `bg-control-hover`, off icon #8c8c8c → `text-2`.
 - Prefs, Bible, Problems: icon of 26×26 buttons #8c8c8c → `text-2`.

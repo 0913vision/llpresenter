@@ -43,7 +43,7 @@ it.each([false, true])(
       menuItems(screenEntries(input)).find(
         row => row.id === 'broadcast-settings',
       ),
-    ).toMatchObject({disabled: true, title: '아직 없는 기능'});
+    ).toMatchObject({disabled: true, title: '이번 버전에서는 쓸 수 없음'});
     row?.onSelect?.();
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'live.batch',
@@ -112,7 +112,7 @@ it('opens screen settings without a workspace callback and explains a missing wi
   const unavailable = menuItems(screenEntries(input));
   expect(unavailable.find(row => row.id === 'screens')).toMatchObject({
     disabled: true,
-    title: '화면 설정 연결 안 됨',
+    title: '이 창에서는 쓸 수 없음',
   });
 });
 

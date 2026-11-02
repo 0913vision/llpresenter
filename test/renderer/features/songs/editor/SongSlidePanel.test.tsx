@@ -39,7 +39,7 @@ function createGroupedSession(document = editorGroupedSong(1)) {
 }
 
 describe('SongSlidePanel with grouped songs', () => {
-  it('shows 한도 초과 for an arrangement over the slide limit', () => {
+  it('shows 슬라이드가 너무 많음 for an arrangement over the slide limit', () => {
     const original = editorGroupedSong(1);
     const group = original.song.groups[0];
     if (group === undefined) throw new Error('Missing group');
@@ -64,12 +64,16 @@ describe('SongSlidePanel with grouped songs', () => {
     render(<SongSlidePanel store={store} sizeClass="normal" />);
     act(() => session.selectArrangement('Large'));
     expect(
-      screen.getByRole('status', {name: '슬라이드 수가 한도를 초과합니다.'}),
+      screen.getByRole('status', {
+        name: '슬라이드는 10000개까지 사용할 수 있음',
+      }),
     ).toBeDefined();
-    expect(screen.getByText('한도 초과')).toBeDefined();
+    expect(screen.getByText('슬라이드가 너무 많음')).toBeDefined();
     act(() => session.selectArrangement(undefined));
     expect(
-      screen.queryByRole('status', {name: '슬라이드 수가 한도를 초과합니다.'}),
+      screen.queryByRole('status', {
+        name: '슬라이드는 10000개까지 사용할 수 있음',
+      }),
     ).toBeNull();
   });
 

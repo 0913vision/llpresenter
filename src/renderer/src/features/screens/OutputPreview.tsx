@@ -20,7 +20,7 @@ import {REFERENCE_SCREEN} from '@core/themes/textStyle';
 type PreviewMode = 'content' | 'pattern';
 
 const LOAD_TITLE = '화면';
-const MODE_LABEL = '미리보기 종류';
+const MODE_LABEL = '미리보기';
 const MODE_OPTIONS = [
   {value: 'content', label: '화면 내용'},
   {value: 'pattern', label: '테스트 패턴'},

@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   menuAvailability,
@@ -147,13 +148,13 @@ function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
       ...menuAvailability(
         input.song?.reason ??
           (input.song?.showInLibrary === undefined
-            ? '라이브러리 연결 안 됨'
+            ? NOT_IN_THIS_WINDOW
             : undefined),
       ),
       onSelect: input.song?.showInLibrary,
     },
     laterRow('export-bundle', '묶음으로 내보내기…'),
-    laterRow('export-images', '그림으로 내보내기…'),
+    laterRow('export-images', '이미지로 내보내기…'),
   ];
 }
 

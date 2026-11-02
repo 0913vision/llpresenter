@@ -101,7 +101,7 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
         onClick={undoClear}
       >
         <Icon name="undo" size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>되돌림</span>}
+        {compact ? null : <span className={styles.label}>되돌리기</span>}
       </button>
       {tooltip}
     </>

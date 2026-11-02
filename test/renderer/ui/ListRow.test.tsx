@@ -131,7 +131,7 @@ describe('ListRow', () => {
     const onSelect = vi.fn();
     const onDismiss = vi.fn();
     render(<ServiceOrder onSelect={onSelect} onDismiss={onDismiss} />);
-    await userEvent.click(screen.getByRole('button', {name: '내리기'}));
+    await userEvent.click(screen.getByRole('button', {name: '지우기'}));
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
   });
@@ -139,7 +139,7 @@ describe('ListRow', () => {
   it('keeps row keys on an end control from moving or selecting the row', async () => {
     const onSelect = vi.fn();
     render(<ServiceOrder onSelect={onSelect} />);
-    screen.getByRole('button', {name: '내리기'}).focus();
+    screen.getByRole('button', {name: '지우기'}).focus();
     await userEvent.keyboard('{ArrowUp}{Home}{End}');
     expect(onSelect).not.toHaveBeenCalled();
   });
@@ -147,7 +147,7 @@ describe('ListRow', () => {
   it('passes keys with a modifier on from an end control', async () => {
     const onSelect = vi.fn();
     render(<ServiceOrder initial="hymn1" onSelect={onSelect} />);
-    screen.getByRole('button', {name: '내리기'}).focus();
+    screen.getByRole('button', {name: '지우기'}).focus();
     const keys = recordWindowKeys();
     await userEvent.keyboard('{Control>}{ArrowDown}{ArrowUp}{Home}{/Control}');
     expect(onSelect).not.toHaveBeenCalled();
@@ -196,7 +196,7 @@ describe('ListRow', () => {
     window.addEventListener('keydown', listener);
     onTestFinished(() => window.removeEventListener('keydown', listener));
     render(<ServiceOrder />);
-    screen.getByRole('button', {name: '내리기'}).focus();
+    screen.getByRole('button', {name: '지우기'}).focus();
     await userEvent.keyboard('{Escape}{F1}{F7}');
     expect(seen).toEqual(['Escape', 'F1', 'F7']);
   });
@@ -241,7 +241,7 @@ describe('ListActionRow', () => {
 describe('ListSlot and ListDragGhost', () => {
   it('names an empty slot by its type', () => {
     render(<ListSlot icon="song" label="찬양" />);
-    expect(screen.getByText('빈 자리')).toBeDefined();
+    expect(screen.getByText('빈 항목')).toBeDefined();
     expect(screen.getByText('찬양')).toBeDefined();
   });
 

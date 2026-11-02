@@ -215,7 +215,7 @@ describe('item source follower', () => {
     source.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});
     await vi.waitFor(() => expect(problem).toHaveBeenCalled());
     const notice = problem.mock.calls[0];
-    expect(notice?.[0]).toBe('예배 순서 불러오기 실패');
+    expect(notice?.[0]).toBe('예배 불러오기 실패');
     notice?.[1]?.();
     await vi.waitFor(() => expect(source.snapshot().item).not.toBeNull());
   });

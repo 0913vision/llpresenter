@@ -30,21 +30,6 @@ describe('quick timer edit boundary', () => {
       expect(parseSettingsEdit({...create, overrun}).ok).toBe(false);
     }
   });
-  it('accepts a bounded separation command and rejects another settings area', () => {
-    expect(
-      parseSettingsEdit({
-        type: 'quick.timers.separate',
-        name: 'quick',
-        extra: true,
-      }),
-    ).toEqual({
-      ok: true,
-      value: {type: 'quick.timers.separate', name: 'quick'},
-    });
-    expect(
-      parseSettingsEdit({type: 'quick.timers.separate', name: 'timers'}).ok,
-    ).toBe(false);
-  });
   it('accepts a duration and distinct checked IDs without a stale whole-file copy', () => {
     expect(parseSettingsEdit({...create, future: true})).toEqual({
       ok: true,

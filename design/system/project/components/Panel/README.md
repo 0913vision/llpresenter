@@ -109,4 +109,4 @@ for an empty media grid). There is no icon art and no second sentence.
 
 ## Unavailable reference counts
 
-Song usage metadata shows `예배 순서 …` while its catalog is pending, and `예배 순서 ?` with a `warning` icon and color when usage cannot be read. Explain the state in a tooltip rather than a sentence in the header. Show `예배 순서 0곳` only after a known catalog entry confirms no references. Keep the existing link icon, names tooltip and count for known data; a failed refresh must not replace a known count with zero. A newer catalog push supersedes older replies and failures.
+Song usage metadata shows `예배 순서 …` while its catalog is pending, and `예배 순서 ?` with a `warning` icon and color when usage cannot be read. Explain the state in a tooltip rather than a sentence in the header. Show `예배 0곳` only after a known catalog entry confirms no references. Keep the existing link icon, names tooltip and count for known data; a failed refresh must not replace a known count with zero. A newer catalog push supersedes older replies and failures.

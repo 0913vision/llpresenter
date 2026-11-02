@@ -1,3 +1,5 @@
+import {NOT_YET} from '@renderer/ui/menuRows';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
@@ -38,8 +40,7 @@ import styles from './ScreenProperties.module.css';
 
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
-const NDI_UNAVAILABLE = '이번 버전에서는 사용할 수 없음';
-const READ_ONLY_REASON = '새 버전에서 만든 설정이므로 변경할 수 없음';
+const READ_ONLY_REASON = NEWER_FILE_REASON;
 const NAME_PROBLEMS = {
   empty: '이름이 비어 있음',
   taken: '같은 이름의 화면이 있음',
@@ -54,7 +55,7 @@ const METHOD_OPTIONS = [
   {value: 'fullscreen', label: '전체 화면'},
   {value: 'window', label: '창'},
   {value: 'capture', label: '캡처용 창'},
-  {value: 'ndi', label: 'NDI', disabled: true, title: NDI_UNAVAILABLE},
+  {value: 'ndi', label: 'NDI', disabled: true, title: NOT_YET},
 ] as const;
 const DISCONNECT_OPTIONS = [
   {value: 'window', label: '창으로 바꾸기'},

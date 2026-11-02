@@ -85,7 +85,7 @@ describe('the 파일 menu', () => {
           }),
         )
       )?.textContent,
-    ).toBe('열린 예배 순서가 없습니다');
+    ).toBe('열린 예배가 없습니다');
   });
 
   it.each([
@@ -126,7 +126,7 @@ describe('the 파일 menu', () => {
       '텍스트 파일',
       '클립보드 텍스트',
       'PowerPoint를 슬라이드로',
-      'PowerPoint를 그림으로',
+      'PowerPoint를 이미지로',
       'PowerPoint를 개체와 글자로',
     ]) {
       expect(
@@ -141,7 +141,7 @@ describe('the 파일 menu', () => {
           screen.getByRole('menuitem', {name: /^텍스트 파일/}),
         )
       )?.textContent,
-    ).toBe('텍스트 가져오기를 준비 중입니다');
+    ).toBe('이번 버전에서는 쓸 수 없음');
   });
 
   it('imports media into the library once while the request is pending', async () => {

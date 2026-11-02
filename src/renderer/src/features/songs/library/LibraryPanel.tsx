@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, useState, type JSX} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {usageMeta} from '@renderer/ui/usageText';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -161,10 +161,7 @@ export function LibraryPanel({
         <AlertDialog
           icon="song"
           title={`‘${candidate.title}’ 곡을 삭제할까요?`}
-          meta={countedMeta(
-            candidate.usedBy.length,
-            `예배 순서 ${candidate.usedBy.length}곳에서 씀`,
-          )}
+          meta={usageMeta(candidate.usedBy.length, '예배')}
           onCancel={() => setDeleting(null)}
           actions={[
             {

@@ -4,7 +4,7 @@ A control that lines up two or three segments in a sunken track and picks one. U
 
 ## Where to use
 
-- Panel headers and caption rows: 구성 (기본, 주일용, 짧게), the screen in the preview (본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)), output preview (화면 내용, 테스트 패턴)
+- Panel headers and caption rows: 구성 (기본, 주일용, 짧게), the screen in the preview (청중 화면 (audience screen), 무대 화면 (stage), 방송 화면 (broadcast screen)), output preview (화면 내용, 테스트 패턴)
 - Property fields (fill variant): 종류 (type) and 방식 (mode) in 화면 설정 (Screen settings), 끝나면 (when done) and 맞춤 (fit) in media, 채널 (channel) in Preferences
 - Filters above a list: 전체, 바꾼 것, 겹침 in shortcuts (with counts)
 - View switches (icon segments): 진행 도구 (show tools) and macros, grid view and list view in media, alignment in the 테마 editor

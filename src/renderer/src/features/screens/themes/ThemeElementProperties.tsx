@@ -138,7 +138,7 @@ export function ThemeElementProperties({
           </PropertyRow>
         ) : null}
         {element.kind === 'image' ? (
-          <PropertyRow label="그림">
+          <PropertyRow label="이미지">
             {({controlId}) => (
               <ThemeImageChoice
                 id={controlId}

@@ -44,12 +44,12 @@ describe('quick add other items', () => {
     ).toEqual([
       '구역 추가',
       '자리 표시 추가',
-      '큐 추가',
+      '빈 항목 추가',
       '|',
       '미디어',
       '성경 구절…',
       '공지',
-      '비디오 스트림 항목…',
+      '영상 스트림 항목…',
       '오디오 스트림 항목…',
     ]);
     expect(
@@ -57,11 +57,11 @@ describe('quick add other items', () => {
     ).toEqual([
       ['구역 추가', false],
       ['자리 표시 추가', true],
-      ['큐 추가', true],
+      ['빈 항목 추가', true],
       ['미디어', false],
       ['성경 구절…', false],
       ['공지', false],
-      ['비디오 스트림 항목…', true],
+      ['영상 스트림 항목…', true],
       ['오디오 스트림 항목…', true],
     ]);
     expect(items(entries).every(item => item.icon === undefined)).toBe(true);

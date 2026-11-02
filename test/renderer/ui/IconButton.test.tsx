@@ -92,10 +92,10 @@ describe('IconButton at the end of a row', () => {
           }}
         >
           만복의 근원 하나님
-          <IconButton icon="x" label="내리기" disabled={disabled} />
+          <IconButton icon="x" label="지우기" disabled={disabled} />
         </div>,
       );
-      const button = screen.getByRole('button', {name: '내리기'});
+      const button = screen.getByRole('button', {name: '지우기'});
       await userEvent.click(button);
       await userEvent.keyboard('{Enter}');
       await userEvent.keyboard(' ');
@@ -117,10 +117,10 @@ describe('IconButton at the end of a row', () => {
         }}
       >
         만복의 근원 하나님
-        <IconButton icon="x" label="내리기" />
+        <IconButton icon="x" label="지우기" />
       </div>,
     );
-    screen.getByRole('button', {name: '내리기'}).focus();
+    screen.getByRole('button', {name: '지우기'}).focus();
     await userEvent.keyboard('{Shift>}{Enter} {/Shift}');
     expect(onRowKey.mock.calls).toEqual([['Shift'], ['Enter'], [' ']]);
   });

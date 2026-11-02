@@ -172,7 +172,7 @@ export function OverlayPopover({
                   labelledBy={labelId}
                   options={[
                     {value: 'loop', label: '반복'},
-                    {value: 'stop', label: '멈춤'},
+                    {value: 'stop', label: '정지'},
                   ]}
                   value={mediaContent.loop ? 'loop' : 'stop'}
                   disabled={reason !== undefined}

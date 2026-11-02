@@ -318,7 +318,7 @@ duration clears at once; an enabled fade uses its configured duration, capped at
   records (decided; 10, focus precedence).
 - Ctrl Z only undoes edits. It never restores cleared output (decided, M2 check
   1 row 8; 10).
-- The 내리기 (take down) button on each row of the 진행 도구 표시 중 (Showing)
+- The 지우기 (take down) button on each row of the 진행 도구 표시 중 (Showing)
   tab takes down only that one thing (see 04).
 
 ### Clearing several layers at once

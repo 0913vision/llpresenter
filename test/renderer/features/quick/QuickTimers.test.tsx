@@ -1,5 +1,4 @@
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -17,7 +16,6 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {
@@ -26,26 +24,20 @@ import {
   quickId,
 } from '@fixtures/renderer/features/tools/quickTesting';
 
-function documents({
-  separate = false,
-  readOnly = false,
-  missing = false,
-  clock = false,
-  none = false,
-} = {}) {
+function documents({missing = false, clock = false, none = false} = {}) {
   const quick = expectSuccess(
     parseSettingsDocument({
       name: 'quick',
-      revision: separate ? 2 : 1,
-      access: readOnly ? 'readOnly' : 'editable',
+      revision: 1,
+      access: 'editable',
       value: {
         format: 'llsettings.quick',
         schemaVersion: 1,
-        items: (none ? [] : clock ? [1] : [1, 2]).map(n => ({
+        items: (none ? [] : [1]).map(n => ({
           id: quickId(n),
           kind: 'timer',
-          name: n === 1 ? '첫 타이머' : '둘째 타이머',
-          ref: quickId(separate && n === 2 ? 105 : 104),
+          name: '첫 타이머',
+          ref: quickId(104),
         })),
       },
     }),
@@ -53,18 +45,20 @@ function documents({
   const timers = expectSuccess(
     parseSettingsDocument({
       name: 'timers',
-      revision: separate ? 2 : 1,
-      access: readOnly ? 'readOnly' : 'editable',
+      revision: 1,
+      access: 'editable',
       value: {
         format: 'llsettings.timers',
         schemaVersion: 1,
         timers: missing
           ? []
-          : (separate ? [104, 105] : [104]).map(n => ({
-              id: quickId(n),
-              name: '설정',
-              ...(clock ? {kind: 'clock'} : {kind: 'countdown', duration: 2}),
-            })),
+          : [
+              {
+                id: quickId(104),
+                name: '설정',
+                ...(clock ? {kind: 'clock'} : {kind: 'countdown', duration: 2}),
+              },
+            ],
       },
     }),
   );
@@ -73,7 +67,7 @@ function documents({
 
 function setup(options: Parameters<typeof documents>[0] = {}) {
   const base = quickFixture();
-  let current = documents(options);
+  const current = documents(options);
   const listeners = new Set<(document: SettingsDocument) => void>();
   const pending = deferred<EditResult>();
   const edit = vi.fn<LlpApi['settings']['edit']>(() => pending.promise);
@@ -107,12 +101,6 @@ function setup(options: Parameters<typeof documents>[0] = {}) {
     problem,
     mount: () =>
       render(<QuickPanel selectionVersion={0} onProblem={problem} />),
-    separate: () => {
-      current = documents({separate: true});
-      for (const document of [current.timers, current.quick]) {
-        for (const listener of listeners) listener(document);
-      }
-    },
   };
 }
 
@@ -124,7 +112,7 @@ afterEach(() => {
   delete window.llp;
 });
 
-describe('quick timer isolation', () => {
+describe('quick timers', () => {
   it('does not read timer settings when the quick list has no timer rows', async () => {
     const f = setup({none: true});
     const get = vi.spyOn(f.api.settings, 'get');
@@ -140,89 +128,12 @@ describe('quick timer isolation', () => {
     expect(f.problem).not.toHaveBeenCalled();
   });
 
-  it('blocks a shared secondary row during separation and keeps the accepted operation in the close gate', async () => {
-    const f = setup();
-    const view = f.mount();
-    const second = await screen.findByRole('button', {name: /^둘째 타이머/});
-    await waitFor(() =>
-      expect(f.edit).toHaveBeenCalledExactlyOnceWith({
-        type: 'quick.timers.separate',
-        name: 'quick',
-      }),
-    );
-    expect(second.getAttribute('aria-disabled')).toBe('true');
-    fireEvent.click(second);
-    expect(f.send).not.toHaveBeenCalled();
-    let finished = false;
-    const closing = pendingWritesOf(f.api)
-      .flush()
-      .then(result => {
-        finished = true;
-        return result;
-      });
-    await act(async () => undefined);
-    expect(finished).toBe(false);
-    await act(async () => {
-      f.separate();
-      f.pending.resolve({ok: true, value: {id: 'quick', revision: 2}});
-    });
-    expect(await closing).toBe(true);
-    await waitFor(() =>
-      expect(second.getAttribute('aria-disabled')).toBeNull(),
-    );
-    fireEvent.click(second);
-    expect(f.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'timer.start',
-      timerId: quickId(105),
-    });
-    view.unmount();
-    expect(f.listeners.size).toBe(0);
-  });
-
-  it('catches synchronous failures, stops retrying that revision and resolves its warning after an explicit retry', async () => {
-    const f = setup();
-    f.edit.mockImplementation(() => {
-      throw new Error('Invented separation failure');
-    });
+  it('keeps a row without a definition from starting and writes nothing', async () => {
+    const f = setup({missing: true});
     f.mount();
-    await waitFor(() => expect(f.problem).toHaveBeenCalledOnce());
-    expect(f.edit).toHaveBeenCalledOnce();
-    const retry = f.problem.mock.calls[0]?.[0].actions?.[0];
-    if (!retry) throw new Error('Missing retry action');
-    act(retry.onSelect);
-    await waitFor(() => expect(f.problem).toHaveBeenCalledTimes(2));
-    expect(f.edit).toHaveBeenCalledTimes(2);
-    fireEvent.click(screen.getByRole('button', {name: /^둘째 타이머/}));
-    expect(f.send).not.toHaveBeenCalled();
-    f.edit.mockImplementation(() => f.pending.promise);
-    const again = f.problem.mock.calls[1]?.[0].actions?.[0];
-    if (!again) throw new Error('Missing second retry action');
-    act(again.onSelect);
-    await waitFor(() => expect(f.edit).toHaveBeenCalledTimes(3));
-    await act(async () => {
-      f.separate();
-      f.pending.resolve({ok: true, value: {id: 'quick', revision: 2}});
-    });
-    await waitFor(() =>
-      expect(f.problem).toHaveBeenLastCalledWith(
-        expect.objectContaining({key: 'quick:timer-separation', kind: 'info'}),
-      ),
-    );
-  });
-
-  it('keeps read-only shared rows and missing definitions from starting', async () => {
-    const f = setup({readOnly: true});
-    const view = f.mount();
-    const second = await screen.findByRole('button', {name: /^둘째 타이머/});
-    fireEvent.click(second);
+    fireEvent.click(await screen.findByRole('button', {name: /^첫 타이머/}));
     expect(f.send).not.toHaveBeenCalled();
     expect(f.edit).not.toHaveBeenCalled();
-    view.unmount();
-    const missing = setup({missing: true});
-    missing.mount();
-    fireEvent.click(await screen.findByRole('button', {name: /^첫 타이머/}));
-    expect(missing.send).not.toHaveBeenCalled();
-    expect(missing.edit).not.toHaveBeenCalled();
   });
 
   it('shows a legacy clock without offering a start or reset action', async () => {

@@ -129,8 +129,9 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
     size. A preview prints the screen name only, since it can't know the
     output's size (lead decision, October 26).
   - The pattern covers every layer while the layers keep playing underneath, so
-    the content is back at once. Clears and 되돌림 don't touch it, only a saved
-    screen can show it, and it never comes back after a restart (proposal).
+    the content is back at once. Clears and 되돌리기 don't touch it, only a
+    saved screen can show it, and it never comes back after a restart
+    (proposal).
   - So a pattern never stays on a projector during a service, the app also hides
     every pattern when the main window closes, crashes, or reloads, and hides a
     screen's pattern when its output turns off (lead decision, October 26).
@@ -260,12 +261,12 @@ table. See "What this proposal would replace" in 10.
 Source: `Prefs`, `PropertyRow` README, `MenuBar` README (secondary window title
 bar), `docs/TECH.md` operating rules.
 
-M2 check 1 updates the proposal in 10 with 일반 > UI 확대 (default 100%, Ctrl +,
-Ctrl -, Ctrl 0) and 진행 > 지우기 되돌리기 단추 보이기 (proposal, default off).
-The zoom scales control windows; it never changes output rendering. These rows
-supersede the earlier omission from this window. 일반 > UI 확대 is a select with
-the steps 100% to 200% in 10% steps, kept in step with the keys and with every
-other control window; main applies it and stores it in `app.json`.
+M2 check 1 updates the proposal in 10 with 일반 > 화면 확대 (default 100%, Ctrl
++, Ctrl -, Ctrl 0) and 진행 > 지우기 되돌리기 단추 보이기 (proposal, default
+off). The zoom scales control windows; it never changes output rendering. These
+rows supersede the earlier omission from this window. 일반 > 화면 확대 is a
+select with the steps 100% to 200% in 10% steps, kept in step with the keys and
+with every other control window; main applies it and stores it in `app.json`.
 
 ## Shortcuts
 

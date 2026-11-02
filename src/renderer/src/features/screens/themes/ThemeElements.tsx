@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import type {DragEvent, JSX} from 'react';
 import {
   THEME_LIMITS,
@@ -156,7 +157,7 @@ export function ThemeElements({
               const reason =
                 model.elementReason ??
                 (elements.length >= THEME_LIMITS.elements
-                  ? '요소는 10개까지 추가할 수 있음'
+                  ? limitReason('요소', THEME_LIMITS.elements)
                   : undefined);
               return (
                 <Button

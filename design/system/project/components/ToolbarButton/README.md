@@ -10,7 +10,7 @@ kind of navigation.
 - Workspace tabs: 진행 (Show), 준비 (Prep), 화면 설정 (Screen settings)
 - View toggle: 미디어 (opens and closes the shared bottom bin in 진행 and 준비)
 - Action button that opens a menu: 테마 picker (찬양)
-- Screen output: 본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)
+- Screen output: 청중 화면 (audience screen), 무대 화면 (stage screen), 방송 화면 (broadcast screen)
 - On the 40px toolbar of a narrow window (1366), use the compact form of the same buttons.
 
 ## Where not to use
@@ -27,7 +27,7 @@ kind of navigation.
 - Workspace tab: width 64, no horizontal padding.
 - Action and output buttons: horizontal padding `space-8`, minimum width 64. A button that opens a menu, like 테마, has horizontal padding `space-12` and a `size-icon-12` down arrow (`text-3`) `space-4` to the right of the icon.
 - Status dot on output buttons: a 6px circle (`radius-full`) over the top right corner of the icon (top −3px, right −4px). `ring-dot-cut` sets it apart from the icon. When the button is hovered or pressed, the ring color also changes to the button background (`bg-toolbar-hover`, `bg-raised`).
-- Icons: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, 테마 `layers` + `down`, 본 화면 and 무대 `mplay`, 방송 자막 `capture`.
+- Icons: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, 테마 `layers` + `down`, 청중 화면 and 무대 화면 `mplay`, 방송 화면 `capture`.
 - Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (14/20), horizontal padding `space-8` `space-10`. 테마 puts the arrow after the name, with right padding `space-6`. Workspace tabs also fit their width to the text. The media toggle keeps its separate form below.
 
 ### Media view toggle
@@ -57,7 +57,7 @@ kind of navigation.
 | Workspace tab | `size-toolbar-button` 48, width 64 | `toolbar-label` | 진행, 준비, 화면 설정 |
 | View toggle | 30, minimum width 64, horizontal | `label` 14/20 | 미디어 at every width |
 | Menu action | 48, horizontal padding 12 | `toolbar-label` | 테마 (찬양) |
-| Screen output | 48, minimum 64 | `toolbar-label` | 본 화면, 무대, 방송 자막 |
+| Screen output | 48, minimum 64 | `toolbar-label` | 청중 화면, 무대 화면, 방송 화면 |
 | Compact | 32 | `label` | Other buttons on the 40 toolbar (`size-toolbar-compact`) |
 
 ## States
@@ -87,17 +87,17 @@ kind of navigation.
 - Screen output: a click turns 출력 for that screen on or off. `aria-pressed` reports whether the output is turned on (`true` for on and for no monitor), and `data-state="live|off|warning"` gives the drawn state. Group the three buttons in `role="group"` (name "화면 출력").
 - When the monitor is found again, the button goes back to on at once. A click in the no-monitor state turns the output off.
 - Tooltips (after 600ms, following the Tooltip rules):
-  - On: "본 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 자막 출력 끄기 (NDI)"
-  - Off: "본 화면 출력 켜기 (모니터 2)"
-  - No monitor: "본 화면: 모니터 2를 찾을 수 없습니다"
+  - On: "청중 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 화면 출력 끄기 (NDI)"
+  - Off: "청중 화면 출력 켜기 (모니터 2)"
+  - No monitor: "청중 화면: 모니터 2를 찾을 수 없습니다"
 - The media toggle's name remains visible in every form. Other icon-only
   controls keep an `aria-label`.
 
 ## Writing
 
-- Names are nouns of one or two words: 진행, 준비, 화면 설정, 미디어, 본 화면, 무대, 방송 자막.
-- Write an output button tooltip as "what a click does (target)": "본 화면 출력 끄기 (모니터 2)". For the target, use the output target name from 화면 설정 as it is.
-- Write a problem tooltip as "screen name: what doesn't work": "본 화면: 모니터 2를 찾을 수 없습니다". Don't write out a long fix.
+- Names are nouns of one or two words: 진행, 준비, 화면 설정, 미디어, 청중 화면, 무대 화면, 방송 화면.
+- Write an output button tooltip as "what a click does (target)": "청중 화면 출력 끄기 (모니터 2)". For the target, use the output target name from 화면 설정 as it is.
+- Write a problem tooltip as "screen name: what doesn't work": "청중 화면: 모니터 2를 찾을 수 없습니다". Don't write out a long fix.
 
 ## Implementation notes
 
@@ -105,8 +105,8 @@ kind of navigation.
 <ToolbarTab icon="slides" label="진행" selected={ws === 'show'} onSelect={() => setWs('show')} />
 <ToolbarButton icon="film" label="미디어" pressed={binOpen} onPressedChange={setBinOpen} />
 <ToolbarButton icon="layers" label={theme.name} title="테마 바꾸기" menu expanded={themeMenuOpen} />
-<OutputToggle icon="mplay" label="본 화면" target="모니터 2" state="live" onToggle={toggleMain} />
-<OutputToggle icon="capture" label="방송 자막" target="NDI" state="off" compact />
+<OutputToggle icon="mplay" label="청중 화면" target="모니터 2" state="live" onToggle={toggleMain} />
+<OutputToggle icon="capture" label="방송 화면" target="NDI" state="off" compact />
 ```
 
 - `state` of `OutputToggle`: `'live'` | `'off'` | `'warning'`. Build the tooltip text from `label` (the full name in the tooltip, such as "무대 화면"), `target`, and `state`.
@@ -116,7 +116,7 @@ kind of navigation.
 ```html
 <button class="ll-tbtn ll-tbtn--output" aria-pressed="true" data-state="live">
   <span class="ll-tbtn__icon"><span class="ll-i ll-i-mplay"></span><span class="ll-tbtn__dot"></span></span>
-  <span class="ll-tbtn__label">본 화면</span>
+  <span class="ll-tbtn__label">청중 화면</span>
 </button>
 ```
 

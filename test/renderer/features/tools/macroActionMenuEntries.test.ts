@@ -39,7 +39,7 @@ it('offers theme targets and marks an action of an unknown kind as unsupported',
   expect(rows.find(row => row.id === 'edit-0')).toMatchObject({
     label: '동작 편집: 알 수 없는 동작',
     disabled: true,
-    title: '지원하지 않는 동작',
+    title: '이번 버전에서는 쓸 수 없는 동작',
     loadSubmenu: undefined,
   });
   const remove = menuItems(

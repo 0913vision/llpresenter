@@ -223,7 +223,7 @@ describe('ItemArrangement with grouped songs', () => {
     for (const [label, action] of [
       ['새 구성…', 'create-arrangement'],
       ['이름 바꾸기…', 'rename-arrangement'],
-      ['지우기', 'delete-arrangement'],
+      ['삭제', 'delete-arrangement'],
       ['구성 편집…', 'edit-arrangement'],
     ] as const) {
       await user.click(screen.getByRole('button', {name: '구성'}));
@@ -280,11 +280,11 @@ describe('ItemArrangement with grouped songs', () => {
     );
 
     await user.click(screen.getByRole('button', {name: '구성'}));
-    await user.click(screen.getByRole('menuitem', {name: '지우기'}));
+    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
     const question = await screen.findByRole('alertdialog');
 
     expect(question.textContent).toContain('‘주일용’ 구성을 삭제할까요?');
-    expect(question.textContent).toContain('이 곡의 예배 순서 항목 2곳에서 씀');
+    expect(question.textContent).toContain('쓰는 곳: 예배 순서 항목 2곳');
     await user.click(within(question).getByRole('button', {name: '취소'}));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(onEditSong).not.toHaveBeenCalledWith('delete-arrangement');
@@ -321,7 +321,7 @@ describe('ItemArrangement with grouped songs', () => {
         'option',
       ),
     ).toHaveLength(0);
-    expect(screen.queryByRole('button', {name: '그룹 넣기'})).toBeNull();
+    expect(screen.queryByRole('button', {name: '이름표 넣기'})).toBeNull();
     expect(
       session.history.snapshot.song.arrangements?.[0]?.groups,
     ).toHaveLength(100_000);

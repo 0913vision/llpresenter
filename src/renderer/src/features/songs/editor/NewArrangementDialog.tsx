@@ -40,7 +40,7 @@ export function NewArrangementDialog({
       size="s"
       onCancel={onClose}
       primary={{
-        label: '확인',
+        label: '만들기',
         disabled: locked || reason !== undefined,
         title: reason,
         onSelect: () =>

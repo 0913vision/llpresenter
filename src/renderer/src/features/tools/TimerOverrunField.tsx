@@ -22,7 +22,7 @@ export function TimerOverrunField({
           onChange={choice => onChange(choice === 'continue')}
           options={[
             {value: 'continue', label: '계속'},
-            {value: 'stop', label: '멈춤'},
+            {value: 'stop', label: '정지'},
           ]}
         />
       )}

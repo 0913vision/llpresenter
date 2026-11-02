@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   mediaImportFailureNotice,
@@ -74,7 +75,7 @@ export function useFileMediaImport(
     label: '미디어…',
     ...menuAvailability(
       window.llp === undefined
-        ? '미디어 가져오기 연결 안 됨'
+        ? NOT_IN_THIS_WINDOW
         : busy
           ? '미디어를 가져오는 중'
           : undefined,

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState} from 'react';
 import {createServiceId, type SongId} from '@core/schema/ids';
 import {useShow} from '@renderer/session/show';
@@ -43,7 +44,7 @@ export function useLibraryServices(
           icon: 'warning',
           title:
             result.error.reason === 'write-failed'
-              ? '예배 순서 저장 실패'
+              ? '예배 저장 실패'
               : '예배 순서에 추가 실패',
           time: noticeTime(),
         });
@@ -55,9 +56,9 @@ export function useLibraryServices(
   };
   const disabledReason =
     serviceId === null
-      ? '열린 예배 순서가 없습니다'
+      ? '열린 예배가 없습니다'
       : readOnly
-        ? '읽기 전용 예배 순서입니다'
+        ? NEWER_FILE_REASON
         : busy
           ? '예배 순서에 추가하는 중'
           : undefined;

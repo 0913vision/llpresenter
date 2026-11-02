@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
   useRef,
@@ -109,9 +110,7 @@ export function LabelManagerDialog({
             variant="ghost"
             disabled={locked}
             title={
-              document?.access !== 'editable'
-                ? '읽기 전용 이름표 목록'
-                : undefined
+              document?.access !== 'editable' ? NEWER_FILE_REASON : undefined
             }
             onClick={() => editorTask(runAction(create))}
           >

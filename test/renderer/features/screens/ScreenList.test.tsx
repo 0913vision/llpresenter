@@ -576,7 +576,7 @@ describe('screen creation and group outputs', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     await hoverForTooltip(button);
     expect(screen.getByRole('tooltip').textContent).toContain(
-      '새 버전에서 만든 설정',
+      '새 버전의 파일이라 바꿀 수 없습니다',
     );
     expect(edit).not.toHaveBeenCalled();
   });

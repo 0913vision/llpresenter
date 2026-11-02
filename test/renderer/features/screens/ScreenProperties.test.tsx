@@ -218,7 +218,7 @@ describe('the screen properties', () => {
     }
     expect(edits).toEqual([]);
     expect((await hoverForTooltip(alwaysOnTop))?.textContent).toBe(
-      '새 버전에서 만든 설정이므로 변경할 수 없음',
+      '새 버전의 파일이라 바꿀 수 없습니다',
     );
   });
 
@@ -492,7 +492,7 @@ describe('the screen properties', () => {
       expect(screen.queryByRole('menu')).toBeNull();
       expect(edits).toEqual([]);
       expect((await hoverForTooltip(row))?.textContent).toBe(
-        '새 버전에서 만든 설정이므로 변경할 수 없음',
+        '새 버전의 파일이라 바꿀 수 없습니다',
       );
     });
   });

@@ -378,7 +378,7 @@ describe('항목 추가', () => {
     await user.click(add);
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
     expect(onProblem).toHaveBeenCalledWith(
-      expect.objectContaining({title: '예배 순서 저장 실패'}),
+      expect.objectContaining({title: '예배 저장 실패'}),
     );
     expect(service().service.order).toHaveLength(6);
     await waitFor(() =>

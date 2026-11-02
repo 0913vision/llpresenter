@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import {commandBindings} from '@core/shortcuts/bindings';
 import {matchesBinding} from '@core/shortcuts/matching';
@@ -62,7 +63,7 @@ function workspaceRow(
     meta: shortcutText(`workspace.${row.id}`),
     command: `workspace.${row.id}`,
     ...menuAvailability(
-      onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+      onWorkspace === undefined ? NOT_IN_THIS_WINDOW : undefined,
     ),
     onSelect: () => onWorkspace?.(row.id),
   };
@@ -113,7 +114,7 @@ function toolRows(
     command: toolCommands[tool],
     label: SHOW_TOOLS.find(entry => entry.value === tool)?.label ?? tool,
     ...menuAvailability(
-      onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+      onWorkspace === undefined ? NOT_IN_THIS_WINDOW : undefined,
     ),
     onSelect: () => {
       openTool(tool, onWorkspace);
@@ -152,7 +153,7 @@ export function workspaceMenu({
       command: 'workspace.media',
       meta: shortcutText('workspace.media'),
       ...menuAvailability(
-        onMedia === undefined ? '미디어 화면 연결 안 됨' : undefined,
+        onMedia === undefined ? NOT_IN_THIS_WINDOW : undefined,
       ),
       onSelect: onMedia,
     },
@@ -163,7 +164,7 @@ export function workspaceMenu({
       command: 'tools.actionPalette',
       label: '동작 팔레트',
       ...menuAvailability(
-        onWorkspace === undefined ? '작업 화면 연결 안 됨' : undefined,
+        onWorkspace === undefined ? NOT_IN_THIS_WINDOW : undefined,
       ),
       onSelect: () => {
         openPalette(onWorkspace);

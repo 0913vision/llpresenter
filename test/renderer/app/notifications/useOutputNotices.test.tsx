@@ -36,7 +36,7 @@ function lostCard(onSelect = vi.fn()): Notice {
     key: 'screen:stage',
     kind: 'warning',
     icon: 'plug',
-    title: '무대 모니터 연결 끊김',
+    title: '무대 화면 모니터 연결 끊김',
     time: '11:24',
     actions: [{icon: 'refresh', label: '모니터 다시 찾기', onSelect}],
   };

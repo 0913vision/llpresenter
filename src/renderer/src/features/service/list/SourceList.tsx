@@ -96,7 +96,7 @@ export function SourceList({
   return (
     <>
       <ListBox
-        label="시작할 예배 순서"
+        label="시작할 예배"
         selected={selected === null ? undefined : sourceKey(selected)}
         onSelect={value => {
           const source = sources.get(value);

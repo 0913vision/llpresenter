@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {useState, type ReactNode} from 'react';
 import {useShow} from '@renderer/session/show';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
@@ -13,7 +14,7 @@ export type ServiceActionEntries = Readonly<
   Record<'newService' | 'importItems' | 'saveTemplate', MenuItem>
 >;
 
-const NO_SERVICE = '열린 예배 순서가 없습니다';
+const NO_SERVICE = '열린 예배가 없습니다';
 
 /**
  * The service commands at the end of the service picker, and the dialog the
@@ -59,7 +60,7 @@ export function useServiceActions({
         !hasService
           ? NO_SERVICE
           : window.llp === undefined
-            ? '예배 순서 연결 안 됨'
+            ? NOT_IN_THIS_WINDOW
             : !saver.canSave
               ? '템플릿 저장 진행 중'
               : undefined,

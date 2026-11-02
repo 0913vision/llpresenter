@@ -16,7 +16,7 @@ The 28px row at the very bottom of the window. It stays empty when nothing needs
 ## Anatomy
 
 - Row: height `size-statusbar` (28px), background `bg-app`, horizontal padding 18px, gap between items 18px, text `caption` (14/20) `text-3`, tabular numbers.
-- Messages: pushed to the right end, one per condition, in the order 대기, the save state, then each screen's problems in the order 본 화면, 무대 화면, 방송 자막. A long row scrolls sideways instead of wrapping.
+- Messages: pushed to the right end, one per condition, in the order 대기, the save state, then each screen's problems in the order 청중 화면, 무대 화면, 방송 화면. A long row scrolls sideways instead of wrapping.
 - Text keeps at least 4.5:1 contrast on `bg-app`.
 
 ## Sizes and variants
@@ -34,9 +34,9 @@ The 28px row at the very bottom of the window. It stays empty when nothing needs
 | Saving takes a while | "저장을 시도하는 중..." |
 | Saving failed | "저장하지 못함" |
 | No monitor | "무대 화면 창으로 표시 중" |
-| Output window restarting | "본 화면 출력 창을 다시 시작하는 중" |
-| Restart limit reached | "본 화면 다시 시작 시도 제한됨" |
-| Dropped frames | "프레임 속도가 낮아지는 중: 방송 자막 (41fps)" |
+| Output window restarting | "청중 화면 출력 창을 다시 시작하는 중" |
+| Restart limit reached | "청중 화면 다시 시작 시도 제한됨" |
+| Dropped frames | "프레임 속도가 낮아지는 중: 방송 화면 (41fps)" |
 
 ## Behavior
 
@@ -47,7 +47,7 @@ The 28px row at the very bottom of the window. It stays empty when nothing needs
 ## Writing
 
 - Each message says plainly what is happening, as a short Korean phrase: "저장을 시도하는 중...", "무대 화면 창으로 표시 중". Never a code or a bare number.
-- Write the full screen names (본 화면, 무대 화면, 방송 자막). They can differ from the short names on the toolbar buttons (무대).
+- Write the full screen names (청중 화면, 무대 화면, 방송 화면). They can differ from the short names on the toolbar buttons (무대).
 - Don't add words such as "정상" (healthy) or "OK".
 
 ## Implementation notes

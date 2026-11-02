@@ -99,7 +99,7 @@ export function PropDialog({
             />
           )}
         </PropertyRow>
-        <PropertyRow label="내용 종류">
+        <PropertyRow label="내용">
           {({controlId}) => (
             <SelectMenu
               id={controlId}
@@ -107,7 +107,7 @@ export function PropDialog({
               value={kind}
               disabled={locked}
               options={[
-                {value: 'text', label: '텍스트'},
+                {value: 'text', label: '글자'},
                 {value: 'image', label: '이미지'},
               ]}
               onChange={value => setKind(value === 'image' ? 'image' : 'text')}

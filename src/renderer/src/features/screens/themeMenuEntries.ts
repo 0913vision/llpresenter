@@ -1,3 +1,4 @@
+import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import type {ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -43,9 +44,7 @@ export function themeMenuEntries({
       id: 'edit',
       command: 'workspace.themes',
       label: '테마 편집…',
-      ...menuAvailability(
-        edit === undefined ? '테마 편집 연결 안 됨' : undefined,
-      ),
+      ...menuAvailability(edit === undefined ? NOT_IN_THIS_WINDOW : undefined),
       onSelect: edit,
     },
   ];

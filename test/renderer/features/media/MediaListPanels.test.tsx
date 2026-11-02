@@ -204,7 +204,7 @@ describe('media list panels', () => {
       const button = screen.getByRole('button', {name});
       expect(button.getAttribute('aria-disabled')).toBe('true');
       expect((await hoverForTooltip(button))?.textContent).toBe(
-        '읽기 전용 미디어 목록',
+        '새 버전의 파일이라 바꿀 수 없습니다',
       );
     },
   );

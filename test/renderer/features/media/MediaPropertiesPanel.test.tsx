@@ -142,7 +142,7 @@ describe('media properties panel', () => {
   it('saves each change at once, keeping the other properties', async () => {
     const {edit} = setup();
     const panel = await choose('Dawn');
-    fireEvent.click(within(panel).getByRole('radio', {name: '멈춤'}));
+    fireEvent.click(within(panel).getByRole('radio', {name: '정지'}));
     expect(edit).toHaveBeenLastCalledWith({
       type: 'media.properties.update',
       mediaId: mediaId(1),
@@ -226,7 +226,7 @@ describe('media properties panel', () => {
   it('changes nothing in a list a newer version wrote', async () => {
     const {edit} = setup({...mediaDocument(ITEMS, 5), access: 'readOnly'});
     const panel = await choose('Dawn');
-    fireEvent.click(within(panel).getByRole('radio', {name: '멈춤'}));
+    fireEvent.click(within(panel).getByRole('radio', {name: '정지'}));
     expect(edit).not.toHaveBeenCalled();
   });
 

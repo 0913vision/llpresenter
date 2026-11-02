@@ -85,7 +85,7 @@ describe('imported song editor sessions', () => {
     expect(f.store.getSnapshot().session).toBe(f.session);
     expect(f.session.title.value).toBe('Newest invented title');
     expect(f.problem).toHaveBeenCalledWith(
-      expect.objectContaining({title: '슬라이드 수가 한도를 초과합니다.'}),
+      expect.objectContaining({title: '슬라이드는 10000개까지 사용할 수 있음'}),
     );
     expect(f.session.readOnly).toBe(false);
   });

@@ -122,12 +122,12 @@ describe('workspaceMenu', () => {
     ]) {
       expect(rows.find(row => row.id === id)).toMatchObject({
         disabled: true,
-        title: '작업 화면 연결 안 됨',
+        title: '이 창에서는 쓸 수 없음',
       });
     }
     expect(rows.find(row => row.id === 'workspace.media')).toMatchObject({
       disabled: true,
-      title: '미디어 화면 연결 안 됨',
+      title: '이 창에서는 쓸 수 없음',
     });
   });
 

@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {ThemeElementKind, ThemeItemKind} from '@core/themes/elementRules';
 import type {ThemeEditProblem} from '@core/themes/themeEdits';
 
@@ -11,8 +12,8 @@ export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
   background: '배경',
   overlay: '오버레이',
   itemName: '항목 이름',
-  text: '글',
-  image: '그림',
+  text: '글자',
+  image: '이미지',
   box: '사각형',
   clock: '시계',
   timer: '타이머',
@@ -38,4 +39,4 @@ export const themeProblems: Readonly<Record<ThemeEditProblem, string>> = {
   link: '연결할 수 없는 화면',
   invalid: '변경할 수 없는 값',
 };
-export const THEME_READ_ONLY = '설정을 변경할 수 없음';
+export const THEME_READ_ONLY = NEWER_FILE_REASON;

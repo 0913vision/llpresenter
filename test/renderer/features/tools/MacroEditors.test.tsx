@@ -141,6 +141,6 @@ it('opens the message dialog with the picked template before saving', async () =
     ),
   );
   expect(f.edit).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '완료'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
 });

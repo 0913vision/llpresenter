@@ -1,3 +1,4 @@
+import {limitReason} from '@core/common/limitReason';
 import type {ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
@@ -20,7 +21,7 @@ export function addScreen(
   observedScreens?: readonly Screen[],
 ): readonly Screen[] {
   if (screens.length >= MAX_TARGET_SCREENS) {
-    throw new Error('화면은 200개까지 추가할 수 있음');
+    throw new Error(limitReason('화면', MAX_TARGET_SCREENS));
   }
   if (screens.some(screen => screen.id === input.id)) {
     throw new Error('화면 추가 실패');

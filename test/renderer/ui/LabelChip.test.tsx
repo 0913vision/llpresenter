@@ -110,7 +110,7 @@ describe('ArrangementStrip', () => {
     const onInsert = vi.fn();
     render(<Strip onInsert={onInsert} />);
     const chip = screen.getByRole('option', {name: '후렴'});
-    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
+    const insert = screen.getByRole('button', {name: '이름표 넣기'});
     for (const target of [chip, insert]) {
       for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey']) {
         for (const key of [' ', 'Enter']) {
@@ -230,7 +230,7 @@ describe('ArrangementStrip', () => {
     expect(onRemove).not.toHaveBeenCalled();
     expect(passedKeys(keys)).toEqual(['Alt']);
     expect(selectedChip()).toBe('후렴');
-    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
+    const insert = screen.getByRole('button', {name: '이름표 넣기'});
     expect(insert.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(insert);
     expect(onInsert).not.toHaveBeenCalled();
@@ -302,7 +302,7 @@ describe('ArrangementStrip', () => {
     await userEvent.keyboard('{Delete}{Delete}{Delete}');
     expect(screen.queryAllByRole('option')).toEqual([]);
     expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: '슬라이드 넣기'}),
+      screen.getByRole('button', {name: '이름표 넣기'}),
     );
   });
 
@@ -323,14 +323,14 @@ describe('ArrangementStrip', () => {
 
   it('names the insert button in a tooltip', async () => {
     render(<Strip />);
-    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
-    expect((await hoverForTooltip(insert))?.textContent).toBe('슬라이드 넣기');
+    const insert = screen.getByRole('button', {name: '이름표 넣기'});
+    expect((await hoverForTooltip(insert))?.textContent).toBe('이름표 넣기');
   });
 
   it('asks to insert from a named button', async () => {
     const onInsert = vi.fn();
     render(<Strip onInsert={onInsert} />);
-    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
+    const insert = screen.getByRole('button', {name: '이름표 넣기'});
     await userEvent.click(insert);
     expect(onInsert).toHaveBeenCalledWith(insert);
   });

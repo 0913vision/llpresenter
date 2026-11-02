@@ -1,3 +1,4 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {
   ChooseLocationFailure,
@@ -12,7 +13,7 @@ const FOLDER_REFUSALS: Readonly<
   'not-writable': '이 폴더에는 쓸 수 없음',
   'outside-development': '개발용 폴더 밖은 쓸 수 없음',
   'overlaps-backup': '백업 위치와 겹치는 폴더',
-  'settings-locked': '새 버전의 파일이라 바꿀 수 없습니다',
+  'settings-locked': NEWER_FILE_REASON,
 };
 const BACKUP_FAILED = '백업하지 못함';
 const BACKUP_OUTPUT_ON = '출력 중에는 백업하지 않음';

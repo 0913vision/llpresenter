@@ -20,7 +20,7 @@ function notice(cause: 'load' | 'change' | 'save'): Notice {
   const titles = {
     load: '배경 정보 불러오기 실패',
     change: '배경 변경 실패',
-    save: '예배 순서 저장 실패',
+    save: '예배 저장 실패',
   };
   return {
     key: `song-background:${cause}`,

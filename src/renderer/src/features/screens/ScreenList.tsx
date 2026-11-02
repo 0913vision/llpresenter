@@ -1,3 +1,5 @@
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   useCallback,
@@ -144,9 +146,9 @@ export function ScreenList({
     document === null
       ? '설정을 불러오는 중'
       : document.access !== 'editable'
-        ? '새 버전에서 만든 설정이므로 변경할 수 없음'
+        ? NEWER_FILE_REASON
         : screens.length >= MAX_TARGET_SCREENS
-          ? '화면은 200개까지 추가할 수 있음'
+          ? limitReason('화면', MAX_TARGET_SCREENS)
           : undefined;
   const groupOutputs = (kind: Screen['kind']) =>
     screens.filter(screen => screen.kind === kind && screen.method !== 'ndi');

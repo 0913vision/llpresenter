@@ -73,7 +73,7 @@ export function useMediaDurations(
           key: 'service-order:details',
           kind: 'warning',
           icon: 'warning',
-          title: '예배 순서 정보 불러오기 실패',
+          title: '예배 정보 불러오기 실패',
           time: noticeTime(),
         });
       }

@@ -38,15 +38,6 @@ export const quickTimerRenameSchema = v.object({
   ),
 });
 
-export const quickTimersSeparateSchema = v.object({
-  type: v.literal('quick.timers.separate'),
-  name: v.literal('quick'),
-});
-
 export type QuickTimerEdit = ReadonlyKnown<
-  v.InferOutput<
-    | typeof quickTimerCreateSchema
-    | typeof quickTimerRenameSchema
-    | typeof quickTimersSeparateSchema
-  >
+  v.InferOutput<typeof quickTimerCreateSchema | typeof quickTimerRenameSchema>
 >;
