@@ -3,7 +3,7 @@ import {emptyLayers} from '@core/live/state';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText} from '@core/themes/content';
 
-it('resolves timed and stage content and clears it while fixed content remains', () => {
+it('resolves timed and stage content and keeps the stage timer and message through a clear', () => {
   const content = {
     layers: emptyLayers(),
     item: {id: 'song', kind: 'song', source: 'service'} as const,
@@ -12,21 +12,18 @@ it('resolves timed and stage content and clears it while fixed content remains',
     clock: '12:00',
     videoTimeLeft: '0:42',
   };
-  const sources = [
+  const cleared = {...content, item: {...content.item, contentCleared: true}};
+  const video = {...themeElementBase(), kind: 'videoTimeLeft'} as const;
+  expect(themeElementText(video, content)).toBe('0:42');
+  expect(themeElementText(video, cleared)).toBeNull();
+  const kept = [
     [{...themeElementBase(), kind: 'stageMessage'} as const, 'Stage message'],
     [{...themeElementBase(), kind: 'timer'} as const, '1:23'],
-    [{...themeElementBase(), kind: 'videoTimeLeft'} as const, '0:42'],
   ] as const;
-  for (const [element, text] of sources) {
+  for (const [element, text] of kept) {
     expect(themeElementText(element, content)).toBe(text);
-    expect(
-      themeElementText(element, {
-        ...content,
-        item: {...content.item, contentCleared: true},
-      }),
-    ).toBeNull();
+    expect(themeElementText(element, cleared)).toBe(text);
   }
-  const cleared = {...content, item: {...content.item, contentCleared: true}};
   expect(
     themeElementText(
       {...themeElementBase(), kind: 'text', content: 'Fixed'},

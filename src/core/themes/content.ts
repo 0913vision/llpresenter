@@ -43,7 +43,10 @@ export interface ThemeContent {
   readonly videoTimeLeft?: string | undefined;
 }
 
-/** Resolves text sources once for output, previews, and editor thumbnails. */
+/**
+ * Resolves text sources once for output, previews, and editor thumbnails. A
+ * clear leaves the stage timer and the stage message alone (03).
+ */
 export function themeElementText(
   element: ThemeElement,
   content: ThemeContent,
@@ -70,11 +73,11 @@ export function themeElementText(
     case 'clock':
       return content.clock ?? null;
     case 'timer':
-      return item?.contentCleared ? null : (content.timer ?? null);
+      return content.timer ?? null;
     case 'videoTimeLeft':
       return item?.contentCleared ? null : (content.videoTimeLeft ?? null);
     case 'stageMessage':
-      return item?.contentCleared ? null : (content.stageMessage ?? null);
+      return content.stageMessage ?? null;
     case 'media':
     case 'background':
     case 'overlay':
