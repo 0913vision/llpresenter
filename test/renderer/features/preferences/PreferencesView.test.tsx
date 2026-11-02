@@ -1,4 +1,6 @@
+import * as v from 'valibot';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -16,6 +18,8 @@ import {
   defaultPreferences,
   type PreferencesFile,
 } from '@core/schema/preferences';
+import {translationIdSchema} from '@core/schema/ids';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 
@@ -30,16 +34,52 @@ const STORED: PreferencesFile = {
 const edit = vi.fn<(request: SettingsEdit) => Promise<EditResult>>();
 const onProblem = vi.fn();
 
+const BIBLE_FILE = {
+  format: 'llsettings.bible',
+  schemaVersion: 1,
+  translations: [
+    {
+      id: v.parse(translationIdSchema, 'krv'),
+      name: '개역한글',
+      lang: '한국어',
+      file: 'krv.llbible',
+      default: true,
+    },
+    {
+      id: v.parse(translationIdSchema, 'kjv'),
+      name: 'KJV',
+      lang: 'English',
+      file: 'kjv.llbible',
+      default: false,
+    },
+  ],
+  recents: [],
+  ...UNKNOWN_FIELDS,
+} as const;
+
+const listeners = new Set<(document: SettingsDocument) => void>();
+
+function pushed(document: SettingsDocument): void {
+  for (const listener of listeners) listener(document);
+}
+
 function install(options: {readonly access?: 'editable' | 'readOnly'} = {}) {
-  const document: SettingsDocument = {
-    name: 'preferences',
-    value: STORED,
-    revision: 5,
-    access: options.access ?? 'editable',
+  const access = options.access ?? 'editable';
+  const documents: Record<'preferences' | 'bible', SettingsDocument> = {
+    preferences: {name: 'preferences', value: STORED, revision: 5, access},
+    bible: {name: 'bible', value: BIBLE_FILE, revision: 3, access},
   };
   window.llp = mockLlpApi({
     settings: {
-      get: () => Promise.resolve(document),
+      get: ({name}) => {
+        const document =
+          name === 'bible' ? documents.bible : documents.preferences;
+        return Promise.resolve(document);
+      },
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
       edit: request => edit(request),
     },
   });
@@ -76,7 +116,7 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
-  it('lists the six pages and fills only 일반, 출력, and 라이브러리', async () => {
+  it('lists the six pages and leaves 단축키 without rows', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
@@ -87,8 +127,8 @@ describe('PreferencesView', () => {
       '가져오기',
       '단축키',
     ]);
-    await openPage('성경');
-    expect(screen.getByRole('heading').textContent).toBe('성경');
+    await openPage('단축키');
+    expect(screen.getByRole('heading').textContent).toBe('단축키');
     expect(screen.queryAllByRole('switch')).toHaveLength(0);
   });
 
@@ -237,5 +277,158 @@ describe('PreferencesView', () => {
     );
 
     expect(edit).not.toHaveBeenCalled();
+  });
+
+  it('lists the installed translations with the default tagged', async () => {
+    await mount();
+    await openPage('성경');
+
+    expect(await screen.findByText('개역한글')).toBeTruthy();
+    expect(screen.getByText('KJV')).toBeTruthy();
+    expect(screen.getAllByText('기본')).toHaveLength(1);
+  });
+
+  it('makes a translation the only default and keeps unknown fields', async () => {
+    await mount();
+    await openPage('성경');
+    await userEvent.click(
+      await screen.findByRole('button', {name: 'KJV 메뉴'}),
+    );
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '기본으로'}),
+    );
+
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    const request = edit.mock.calls[0]?.[0];
+    if (request?.type !== 'settings.update' || request.name !== 'bible') {
+      throw new Error('Expected a bible update');
+    }
+    expect(request.baseRevision).toBe(3);
+    expect(
+      request.value.translations.map(item => [item.id, item.default]),
+    ).toEqual([
+      ['krv', false],
+      ['kjv', true],
+    ]);
+    expect(request.value).toMatchObject(UNKNOWN_FIELDS);
+  });
+
+  it('disables 기본으로 on the default translation', async () => {
+    await mount();
+    await openPage('성경');
+    await userEvent.click(
+      await screen.findByRole('button', {name: '개역한글 메뉴'}),
+    );
+
+    expect(
+      (await screen.findByRole('menuitem', {name: '기본으로'})).getAttribute(
+        'aria-disabled',
+      ),
+    ).toBe('true');
+  });
+
+  it('shows a failed default change and writes 절 번호 into the preferences', async () => {
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'changed'},
+    });
+    await mount();
+    await openPage('성경');
+    await userEvent.click(
+      await screen.findByRole('button', {name: 'KJV 메뉴'}),
+    );
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '기본으로'}),
+    );
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({title: '기본 역본을 저장하지 못함'}),
+      ),
+    );
+
+    edit.mockClear();
+    await userEvent.click(screen.getByRole('switch', {name: '절 번호'}));
+    await waitFor(() =>
+      expect(written()).toMatchObject({bible: {verseNumbers: false}}),
+    );
+  });
+
+  it('writes 한 슬라이드 최대 줄 수 within its range', async () => {
+    await mount();
+    await openPage('성경');
+    const lines = await screen.findByRole('spinbutton', {
+      name: '한 슬라이드 최대 줄 수',
+    });
+    fireEvent.change(lines, {target: {value: '30'}});
+    fireEvent.keyDown(lines, {key: 'Enter'});
+
+    await waitFor(() =>
+      expect(written()).toMatchObject({bible: {maxLines: 12}}),
+    );
+  });
+
+  it.each([
+    ['슬라이드 나누기', '줄 바꿈', {split: 'lineBreak'}],
+    ['이름표', '사용 안 함', {labels: 'off'}],
+    ['첫 줄', '가사', {firstLine: 'lyrics'}],
+    ['글자 인코딩', 'CP949', {encoding: 'cp949'}],
+  ])('writes the 가져오기 select %s', async (label, choice, expected) => {
+    await mount();
+    await openPage('가져오기');
+    await userEvent.click(
+      screen.getByRole('button', {name: new RegExp(label)}),
+    );
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {name: choice}),
+    );
+
+    await waitFor(() =>
+      expect(written()).toMatchObject({import: {txt: expected}}),
+    );
+  });
+
+  it('never replaces a newer pushed document with an older reply', async () => {
+    let answer: (result: EditResult) => void = () => undefined;
+    edit.mockImplementationOnce(
+      () =>
+        new Promise<EditResult>(resolve => {
+          answer = resolve;
+        }),
+    );
+    await mount();
+    await openPage('출력');
+    await userEvent.click(
+      screen.getByRole('switch', {name: '켤 때 화면 출력'}),
+    );
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    act(() =>
+      pushed({
+        name: 'preferences',
+        value: {...STORED, showOnLaunch: true},
+        revision: 9,
+        access: 'editable',
+      }),
+    );
+    answer({ok: true, value: {id: 'preferences', revision: 6}});
+    await userEvent.click(
+      screen.getByRole('switch', {name: '출력 창 항상 위'}),
+    );
+
+    await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+    expect(edit.mock.calls[1]?.[0]).toMatchObject({baseRevision: 9});
+  });
+
+  it('sends no queued write once the close gate has stopped writing', async () => {
+    await mount();
+    await openPage('출력');
+    const api = window.llp;
+    if (api === undefined) throw new Error('Missing api');
+    await pendingWritesOf(api).flush();
+    await userEvent.click(
+      screen.getByRole('switch', {name: '켤 때 화면 출력'}),
+    );
+
+    expect(edit).not.toHaveBeenCalled();
+    pendingWritesOf(api).resume();
   });
 });

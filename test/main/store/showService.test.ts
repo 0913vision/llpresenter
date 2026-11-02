@@ -6,6 +6,7 @@ import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
 import {parseService, type Service} from '@core/schema/service';
 import {parseSong, type Song} from '@core/schema/song';
+import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {DEFAULT_LABELS} from '@main/store/defaults';
 import {
   buildShowService,
@@ -602,6 +603,19 @@ describe('projectSongTiles custom order', () => {
     const gone = createSongGroupId('d0000000-0000-4000-8000-0000000000a9');
     expect(linesOf({customOrder: [gone, verse]})).toEqual(['verse']);
     expect(linesOf({customOrder: []})).toEqual([]);
+  });
+
+  it('plays an empty 구성 as all groups, as the 슬라이드 list does', () => {
+    const empty: GroupedSong = {
+      ...song,
+      arrangements: [{name: 'empty', groups: []}],
+    };
+    const play = {arrangement: 'empty'};
+
+    expect(
+      songTiles(empty, new Map(), play).map(tile => tile.lines.join('')),
+    ).toEqual(['verse', 'chorus']);
+    expect(playedOrderWithLimit(empty, play).slides).toEqual([1, 2]);
   });
 
   it('keeps playing the named 구성 when there is no custom order', () => {

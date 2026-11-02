@@ -22,7 +22,7 @@ import {
 } from '@core/schema/showService';
 import type {Slide} from '@core/schema/song';
 import {playedGroupIds, type SongPlay} from '@core/songs/itemOrder';
-import {playbackGroupIds, playbackOrder} from '@core/songs/songOrder';
+import {playbackOrder} from '@core/songs/songOrder';
 import type {ServicePassages} from '../bible/servicePassages';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
@@ -205,10 +205,7 @@ function projectGroupedSongTiles(
   colors: ReadonlyMap<string, LabelColor>,
   play: SongPlay,
 ): ProjectedSongTiles {
-  const groupIds =
-    play.customOrder === undefined
-      ? playbackGroupIds(song, play.arrangement)
-      : playedGroupIds(song, play);
+  const groupIds = playedGroupIds(song, play);
 
   const groupsById = new Map<string, SongGroup>(
     song.groups.map(group => [group.id, group]),

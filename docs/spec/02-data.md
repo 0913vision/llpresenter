@@ -618,7 +618,7 @@ source file.
 | 라이브러리 | `backup.keep`          | Integer, 30                                  | 보관 30개 (keep 30)                                                     | `Prefs`               |
 | Bible      | `bible.verseNumbers`   | Boolean, true                                | 절 번호 (verse numbers)                                                 | `Prefs`               |
 | Bible      | `bible.maxLines`       | Integer, 4                                   | 한 슬라이드 최대 줄 수 (maximum lines per 슬라이드)                     | `Prefs`               |
-| Bible      | `bible.sourcePosition` | `"bottomRight"`                              | 출처 위치: 오른쪽 아래 (reference position: bottom right)               | `Prefs`               |
+| Bible      | `bible.sourcePosition` | `"bottomRight"`                              | Unused: no 환경설정 row, nothing reads it. Kept so old files load.      | `Prefs`               |
 | Import     | `import.txt.split`     | `"blankLine"` \| `"lineBreak"` \| `"symbol"` | 슬라이드 나누기: 빈 줄 (split: blank line)                              | `Prefs`, `ImportText` |
 | Import     | `import.txt.labels`    | `"bracketLine"` \| `"off"`                   | 이름표: 대괄호 줄 (이름표: bracket lines)                               | `Prefs`               |
 | Import     | `import.txt.firstLine` | `"title"` \| `"lyrics"`                      | 첫 줄: 제목 (first line: title)                                         | `Prefs`               |

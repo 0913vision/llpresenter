@@ -9,6 +9,9 @@ import {
   preferencePages,
   type PreferencePageId,
 } from './preferencePages';
+import {BiblePage} from './BiblePage';
+import {ImportPage} from './ImportPage';
+import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
 import styles from './PreferencesView.module.css';
 
@@ -22,6 +25,7 @@ export function PreferencesView({
 }): JSX.Element {
   const [page, setPage] = useState<PreferencePageId>('general');
   const edits = usePreferenceEdits(onProblem);
+  const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
   return (
     <div className={styles.view}>
@@ -52,6 +56,8 @@ export function PreferencesView({
           {page === 'library' ? (
             <LibraryPage edits={edits} onProblem={onProblem} />
           ) : null}
+          {page === 'bible' ? <BiblePage edits={edits} bible={bible} /> : null}
+          {page === 'import' ? <ImportPage edits={edits} /> : null}
         </Properties>
       </section>
     </div>

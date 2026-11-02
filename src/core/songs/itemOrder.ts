@@ -1,15 +1,12 @@
 import type {Result} from '../common/result';
-import {
-  arrangementGroupIds,
-  SONG_GROUP_LIMITS,
-  type GroupedSong,
-} from '../schema/groupedSong';
+import {SONG_GROUP_LIMITS, type GroupedSong} from '../schema/groupedSong';
 import type {ServiceItemId, SongGroupId, SongId} from '../schema/ids';
 import {isArrangementName} from '../schema/song';
 import {isItemOfKind, type Service, type ServiceItem} from '../schema/service';
 import type {ServiceItemChange} from '../services/itemFieldChanges';
 import {
   expandGroupSlidesWithLimit,
+  playbackGroupIds,
   type ExpandedGroupSlides,
 } from './songOrder';
 
@@ -19,13 +16,17 @@ export interface SongPlay {
   readonly customOrder?: readonly SongGroupId[] | undefined;
 }
 
-/** The group ids an item plays: customOrder, else its 구성, else all groups. */
+/**
+ * The group ids an item plays: customOrder, else its 구성, else all groups.
+ * A missing or empty 구성 plays all groups (02); an empty customOrder plays
+ * none. Every reader of what plays uses this one rule.
+ */
 export function playedGroupIds(
   song: GroupedSong,
   play: SongPlay,
 ): readonly SongGroupId[] {
   if (play.customOrder === undefined) {
-    return arrangementGroupIds(song, play.arrangement);
+    return playbackGroupIds(song, play.arrangement);
   }
   const known = new Set(song.groups.map(group => group.id));
   return play.customOrder.filter(id => known.has(id));

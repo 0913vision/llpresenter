@@ -8,6 +8,7 @@ import {
 import type {ServiceItemChange} from '../services/itemFieldChanges';
 import {remapOverlayRanges} from '../themes/overlayRanges';
 import {
+  playedGroupIds,
   playedOrderWithLimit,
   withArrangementChoice,
   withCustomOrder,
@@ -71,12 +72,7 @@ export function withArrangementPick(
     if (!isItemOfKind(item, 'song')) return null;
     const next = pick(item);
     if (next === null) return null;
-    // NOTE(0913vision): An empty named 구성 plays all groups on the output
-    // (playbackGroupIds) but none in playedOrderWithLimit, so the ranges of an
-    // item that picks an empty 구성 can disagree with what plays.
-    const nextIds =
-      song.arrangements?.find(entry => entry.name === name)?.groups ??
-      song.groups.map(group => group.id);
+    const nextIds = playedGroupIds(song, {arrangement: name});
     return withRemappedOverlays({song, item, next, nextGroupIds: nextIds});
   };
 }

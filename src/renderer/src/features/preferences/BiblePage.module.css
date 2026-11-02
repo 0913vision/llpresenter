@@ -1,0 +1,29 @@
+.translation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: var(--size-row-double);
+  max-width: calc(var(--size-field-title) * 2);
+  border-top: var(--radius-hairline) solid var(--line);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font: var(--type-body);
+}
+
+.language {
+  flex: none;
+  font: var(--type-caption);
+  color: var(--text-3);
+}
+
+.tag {
+  flex: none;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--selection);
+  color: var(--text-on-selection);
+  font: var(--type-micro);
+}

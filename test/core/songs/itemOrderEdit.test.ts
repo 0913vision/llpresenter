@@ -98,4 +98,16 @@ describe('withArrangementPick', () => {
       overlays: [{from: 3, to: 3}],
     });
   });
+
+  it('moves the ranges to all groups when the picked 구성 is empty', () => {
+    const withEmpty = sampleGroupedSong(undefined, [
+      {name: '빈구성', groups: []},
+    ]);
+    const changed = withArrangementPick(
+      withEmpty,
+      '빈구성',
+    )(songItem({customOrder: [CHORUS, VERSE], overlays: [overlay(1, 1)]}));
+
+    expect(changed).toMatchObject({overlays: [{from: 3, to: 3}]});
+  });
 });

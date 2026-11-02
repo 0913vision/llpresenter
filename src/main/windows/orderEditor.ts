@@ -133,6 +133,9 @@ export function registerOrderEditorWindow({
 
   const showTarget = async (next: OrderEditorTarget): Promise<void> => {
     target = next;
+    // NOTE(0913vision): The first caller stored `creating` before it awaited,
+    // so a second open always sees it and waits for the same window. If the
+    // creation fails, both opens answer failed.
     if (creating !== null) {
       await creating;
     }

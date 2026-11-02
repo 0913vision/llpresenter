@@ -79,6 +79,25 @@ describe('playedGroupIds', () => {
     ).toEqual([CHORUS, VERSE, CHORUS]);
   });
 
+  it('plays an empty or missing 구성 as all groups and an empty custom order as none', () => {
+    const withEmpty = sampleGroupedSong(undefined, [
+      {name: '빈구성', groups: []},
+    ]);
+
+    expect(
+      playedGroupIds(withEmpty, songItem({arrangement: '빈구성'})),
+    ).toEqual([VERSE, CHORUS]);
+    expect(
+      playedGroupIds(withEmpty, songItem({arrangement: '없는구성'})),
+    ).toEqual([VERSE, CHORUS]);
+    expect(
+      playedGroupIds(
+        withEmpty,
+        songItem({arrangement: '빈구성', customOrder: []}),
+      ),
+    ).toEqual([]);
+  });
+
   it('skips a group the song no longer has and plays an empty order as empty', () => {
     const gone = '33333333-3333-4333-a333-333333333333';
     expect(
