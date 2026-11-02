@@ -11,6 +11,7 @@ import type {
   ThemeComposition,
 } from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
+import type {MessageBand} from '@core/screens/messageStyle';
 
 export interface ThemeFrame extends ThemeComposition {
   readonly themeId: LiveThemeOutput['themeId'];
@@ -50,6 +51,8 @@ export interface RenderFrame {
   readonly screen?: RenderScreen;
   /** How this screen draws a 메시지; absent draws the 기본 style. */
   readonly messageStyle?: TextStyle;
+  /** Set when the screen's style is the built-in 기본 band; absent draws `messageStyle` as text. */
+  readonly messageBand?: MessageBand;
   readonly stageMessage?: string | null;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;

@@ -19,4 +19,6 @@ export const classes = {
   shadow: classOf('shadow'),
   outline: classOf('outline'),
   hidden: classOf('hidden'),
+  band: classOf('band'),
+  bandText: classOf('bandText'),
 } as const;

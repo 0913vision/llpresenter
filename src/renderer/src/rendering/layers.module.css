@@ -86,3 +86,33 @@
   -webkit-text-stroke: var(--lyric-outline-width) var(--lyric-outline-color);
   paint-order: stroke fill;
 }
+
+/* NOTE(0913vision): The 기본 메시지 band hangs from the top edge. Its box
+   fades with the same dissolve as a 장; the text clamps at the line count. */
+.band {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  text-align: center;
+  opacity: 0;
+  transition: opacity var(--slide-dissolve) linear;
+}
+
+.band.shown {
+  opacity: 1;
+}
+
+.instant .band {
+  transition: none;
+}
+
+.bandText {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}

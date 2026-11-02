@@ -108,26 +108,34 @@ export function serializeMessages(
 /** How a 메시지 is drawn: one entry of `messageStyles`. */
 export type MessageStyle = NonNullable<MessagesFile['messageStyles']>[number];
 
-/** The fixed appearance used before a screen chooses a message style. */
+/** The dark translucent background of the built-in 기본 메시지 band. */
+export const MESSAGE_BAND_BACKGROUND = {color: '#000000', opacity: 72} as const;
+
+/**
+ * The fixed appearance used before a screen chooses a message style: a band
+ * across the top of the screen (user decision, November 3). The size is 5% of
+ * the 1080-line reference screen.
+ */
 export const DEFAULT_MESSAGE_STYLE: MessageStyle = v.parse(messageStyleSchema, {
   id: '00000000-0000-4000-8000-000000000001',
   name: '기본',
   font: 'Pretendard',
-  weight: 700,
-  size: 84,
+  weight: 600,
+  size: 54,
   color: '#FFFFFF',
   align: 'center',
-  vAlign: 'middle',
-  lineHeight: 1.4,
+  vAlign: 'top',
+  lineHeight: 1.3,
   maxLines: 2,
-  margin: 6,
+  margin: 0,
   outline: {on: false, width: 3, color: '#000000'},
   shadow: {
-    on: true,
+    on: false,
     blur: 8,
     distance: 4,
     angle: 45,
     opacity: 60,
     color: '#000000',
   },
+  background: MESSAGE_BAND_BACKGROUND,
 });

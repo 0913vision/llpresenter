@@ -13,6 +13,7 @@ import {
   windowTestOptions,
   type WindowMode,
 } from '../windows/testWindows';
+import {CHROMA_KEY_COLOR} from '@core/screens/emptyColor';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {OnTopKeeper} from './onTopKeeper';
@@ -20,7 +21,8 @@ import {WindowPlacement} from './windowPlacement';
 import {forwardOutputKeys, type OutputKeyControl} from './outputKeys';
 
 export const OUTPUT_BACKGROUND = '#000000';
-const CAPTURE_BACKGROUND = '#00b140';
+// NOTE(0913vision): The design token `chroma` spells the same green in lower case.
+const CAPTURE_BACKGROUND = CHROMA_KEY_COLOR.toLowerCase();
 const PING_SCRIPT = '0';
 
 function halfOf({width, height}: Rect): Size {

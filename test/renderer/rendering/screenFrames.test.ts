@@ -88,6 +88,80 @@ it('uses the main composition and subscribes only to screens, messages, and time
   });
 });
 
+it('draws the 기본 band opaque where the screen background is the chroma green', async () => {
+  const {frames, state, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  const output = state.themeOutput;
+  const composition = output?.screens[THEME_MAIN];
+  if (output === undefined || composition === undefined) {
+    throw new Error('Missing theme snapshot');
+  }
+  const over = (background: string): LiveState => ({
+    ...state,
+    themeOutput: {
+      ...output,
+      screens: {
+        ...output.screens,
+        [THEME_MAIN]: {
+          ...composition,
+          layout: {...composition.layout, background},
+        },
+      },
+    },
+  });
+  expect(frames.frame(over('#00B140'))?.messageBand?.background.opacity).toBe(
+    100,
+  );
+  expect(frames.frame(over('#00b140'))?.messageBand?.background.opacity).toBe(
+    100,
+  );
+  expect(frames.frame(over('#112233'))?.messageBand?.background.opacity).toBe(
+    72,
+  );
+});
+
+it('draws the band opaque over the own key color of a 캡처용 창 screen', async () => {
+  const {frames, state, onChange, push} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  push(
+    settingsDocument(
+      'screens',
+      {
+        screens: themeScreens.map(screen =>
+          screen.id === THEME_MAIN
+            ? {...screen, method: 'capture', emptyColor: '#FF00FF'}
+            : screen,
+        ),
+      },
+      2,
+    ),
+  );
+  const output = state.themeOutput;
+  const composition = output?.screens[THEME_MAIN];
+  if (output === undefined || composition === undefined) {
+    throw new Error('Missing theme snapshot');
+  }
+  const over = (background: string): LiveState => ({
+    ...state,
+    themeOutput: {
+      ...output,
+      screens: {
+        ...output.screens,
+        [THEME_MAIN]: {
+          ...composition,
+          layout: {...composition.layout, background},
+        },
+      },
+    },
+  });
+  expect(frames.frame(over('#ff00ff'))?.messageBand?.background.opacity).toBe(
+    100,
+  );
+  expect(frames.frame(over('#112233'))?.messageBand?.background.opacity).toBe(
+    72,
+  );
+});
+
 it('waits for a complete theme snapshot without changing screen identity', async () => {
   const {frames, state, onChange} = setup();
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
@@ -141,6 +215,7 @@ it('draws a message in the style its screen picked and falls back to 기본', as
   const {frames, state, push, onChange} = setup();
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
   expect(frames.frame(state)?.messageStyle).toEqual(DEFAULT_MESSAGE_STYLE);
+  expect(frames.frame(state)?.messageBand).toBeDefined();
 
   const picked = {
     ...DEFAULT_MESSAGE_STYLE,
@@ -170,5 +245,6 @@ it('draws a message in the style its screen picked and falls back to 기본', as
     ),
   );
   expect(frames.frame(state)?.messageStyle).toMatchObject({size: 120});
+  expect(frames.frame(state)?.messageBand).toBeUndefined();
   expect(onChange).toHaveBeenCalledTimes(5);
 });

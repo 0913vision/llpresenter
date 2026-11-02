@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {classes} from '@renderer/rendering/classes';
 import {
-  DEFAULT_MESSAGE_STYLE,
+  DEFAULT_OVERLAY_TEXT_STYLE,
   OverlayTextView,
 } from '@renderer/rendering/overlayText';
 
@@ -46,10 +46,10 @@ describe('OverlayTextView', () => {
     const {view, front} = setUp();
     view.show('Same text');
     const page = front();
-    view.show('Same text', {...DEFAULT_MESSAGE_STYLE});
+    view.show('Same text', {...DEFAULT_OVERLAY_TEXT_STYLE});
     expect(front()).toBe(page);
     view.show('Same text', {
-      ...DEFAULT_MESSAGE_STYLE,
+      ...DEFAULT_OVERLAY_TEXT_STYLE,
       color: '#00FF00',
       align: 'left',
       margin: 10,

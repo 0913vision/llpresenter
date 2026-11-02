@@ -1,7 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
 import type {MessageStyle} from '@core/schema/messages';
-import {resolveMessageStyle} from '@core/screens/messageStyle';
+import {isKeyBackground} from '@core/screens/emptyColor';
+import {messageBandFor, resolveMessageStyle} from '@core/screens/messageStyle';
 import type {Timer} from '@core/schema/timers';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
@@ -95,6 +96,17 @@ export class ScreenFrames {
       missing: output.missing,
       item: state?.themeItem ?? null,
     };
+    const messageStyle = resolveMessageStyle(
+      this.messageStyles,
+      screen.messageStyleId,
+    );
+    const band = messageBandFor(
+      messageStyle,
+      isKeyBackground(
+        composition.layout.background ?? composition.emptyColor,
+        screen,
+      ),
+    );
     return {
       theme,
       ...(this.fonts === undefined ? {} : {fonts: this.fonts}),
@@ -102,10 +114,8 @@ export class ScreenFrames {
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
-      messageStyle: resolveMessageStyle(
-        this.messageStyles,
-        screen.messageStyleId,
-      ),
+      messageStyle,
+      ...(band === undefined ? {} : {messageBand: band}),
       ...(state?.clearEffects === undefined
         ? {}
         : {clearEffects: state.clearEffects}),

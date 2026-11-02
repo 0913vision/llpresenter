@@ -389,6 +389,18 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
   (proposal).
 - Several 그래픽 can be on at the same time (proposal).
 - A 메시지 with a set display time comes down by itself when the time ends.
+- The built-in 기본 메시지 style is a band across the top of the screen (user
+  decision, November 3): full width, black at 72% behind white text of weight
+  600, centered. The text is 5% of the screen height per line, with padding of
+  1.6% of the height above and below and 4% of the width at the sides, at most
+  two lines and then an ellipsis. All sizes scale with the screen like every
+  other output element, and the band fades with the 메시지 layer as before. It
+  applies on every kind of screen whose 메시지 스타일 is 기본 (06). The 무대
+  메시지 of the 무대 화면 is not a 메시지 and keeps the 테마 element (04). Where
+  the screen's background is the chroma key green (a 캡처용 창 screen whose 테마
+  background or empty color is `#00B140`), the band is opaque black instead, so
+  a keyer leaves a clean band rather than a half-keyed dark green box. A saved
+  메시지 style draws as before, as text in its own font, size, and position.
 
 Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 (메시지 and 공지 to specific screens or all screens).

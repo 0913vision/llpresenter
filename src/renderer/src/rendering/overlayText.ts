@@ -1,8 +1,8 @@
 import {DEFAULT_TEXT_STYLE, type TextStyle} from '@core/themes/textStyle';
 import {SlideLayerView} from './slideLayer';
 
-/** One fixed message style until M3-X1; text props can supply their stored style. */
-export const DEFAULT_MESSAGE_STYLE: TextStyle = DEFAULT_TEXT_STYLE;
+/** The style of overlay text with no style of its own (the 무대 메시지; 소품 text supplies its stored style). */
+export const DEFAULT_OVERLAY_TEXT_STYLE: TextStyle = DEFAULT_TEXT_STYLE;
 
 /** Reuses two text pages; even multiline text occupies one row per page. */
 export class OverlayTextView {
@@ -10,10 +10,13 @@ export class OverlayTextView {
   private text: string | null = null;
 
   constructor(parent: HTMLElement) {
-    this.view = new SlideLayerView(parent, DEFAULT_MESSAGE_STYLE);
+    this.view = new SlideLayerView(parent, DEFAULT_OVERLAY_TEXT_STYLE);
   }
 
-  show(text: string | null, style: TextStyle = DEFAULT_MESSAGE_STYLE): void {
+  show(
+    text: string | null,
+    style: TextStyle = DEFAULT_OVERLAY_TEXT_STYLE,
+  ): void {
     this.view.setStyle(style);
     if (text === this.text) return;
     this.text = text;
