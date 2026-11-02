@@ -166,7 +166,7 @@ function otherTiles(
         label: null,
         labelColor: NO_LABEL_COLOR,
         lines: [mediaTitle(found)],
-        notice: {noticeId: set.id, position},
+        notice: {noticeId: set.id, position, media: mediaId},
       });
     });
     return tiles;

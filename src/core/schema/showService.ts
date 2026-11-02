@@ -5,6 +5,7 @@ import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {
+  mediaIdSchema,
   noticeSetIdSchema,
   songIdSchema,
   songGroupIdSchema,
@@ -99,6 +100,7 @@ export const showTileSchema = v.pipe(
       payloadObject({
         noticeId: noticeSetIdSchema,
         position: nonNegativeInteger,
+        media: v.exactOptional(mediaIdSchema),
       }),
     ),
   }),
@@ -150,7 +152,7 @@ export type ShowRow = ShowService['rows'][number];
  * One tile of a song item, in the order of the item's 구성. A 장 that repeats
  * has a tile for each time, and a tile's position is its index in the list.
  * A tile of a media item carries the media to output, and a tile of a 공지
- * item carries the set and the image to start from.
+ * item carries the set and the image to start from, whose picture it shows.
  */
 export type ShowTile = ShowService['tiles'][string][number];
 

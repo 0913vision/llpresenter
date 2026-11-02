@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/session/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
+import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
@@ -76,18 +77,25 @@ export function SlideGrid({
         }}
         className={styles.grid}
       >
-        {tiles?.map((tile, index) => (
-          <SlideThumbnail
-            key={index}
-            number={index + 1}
-            label={tile.label ?? undefined}
-            labelColor={tile.labelColor}
-            text={tile.lines.join('\n')}
-            selected={index === selectedTile}
-            live={index === liveIndex}
-            hotKey={tile.hotKey}
-          />
-        ))}
+        {tiles?.map((tile, index) => {
+          const picture = tile.media?.mediaId ?? tile.notice?.media;
+          return (
+            <SlideThumbnail
+              key={index}
+              number={index + 1}
+              label={
+                tile.label ??
+                (picture === undefined ? undefined : tile.lines.join(' '))
+              }
+              labelColor={tile.labelColor}
+              text={picture === undefined ? tile.lines.join('\n') : undefined}
+              media={picture === undefined ? undefined : thumbnailUrl(picture)}
+              selected={index === selectedTile}
+              live={index === liveIndex}
+              hotKey={tile.hotKey}
+            />
+          );
+        })}
       </ThumbnailGrid>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
         <Menu

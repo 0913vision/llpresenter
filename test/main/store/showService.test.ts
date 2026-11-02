@@ -673,8 +673,11 @@ describe('buildShowService media and 공지 items', () => {
     expect(
       show.tiles[itemId(1)]?.map(tile => [tile.lines, tile.notice]),
     ).toEqual([
-      [['광고 배경'], {noticeId: NOTICE_ID, position: 0}],
-      [['이름 없는 미디어'], {noticeId: NOTICE_ID, position: 2}],
+      [['광고 배경'], {noticeId: NOTICE_ID, position: 0, media: IMAGE_ID}],
+      [
+        ['이름 없는 미디어'],
+        {noticeId: NOTICE_ID, position: 2, media: OTHER_IMAGE_ID},
+      ],
     ]);
   });
 
