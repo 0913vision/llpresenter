@@ -193,6 +193,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     orderEditor: {
       target: () => Promise.resolve(null),
       onRetarget: () => () => undefined,
+      slideSize: () => Promise.resolve(null),
+      setSlideSize: () => undefined,
       ...overrides.orderEditor,
     },
     songEditorWindow: {

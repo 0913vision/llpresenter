@@ -53,6 +53,9 @@ const mocks = vi.hoisted(() => {
     screensWindowContexts: new Array<unknown>(),
     screensWindowStop: vi.fn<() => void>(),
     screensWindowClose: vi.fn<() => Promise<boolean>>(),
+    orderEditorWindowClose: vi.fn<() => Promise<boolean>>(() =>
+      Promise.resolve(true),
+    ),
     editorWindowContexts: new Array<{
       readonly name: string;
       readonly context: unknown;
@@ -142,7 +145,10 @@ vi.mock('@main/windows/preferences', () => ({
 vi.mock('@main/windows/orderEditor', () => ({
   registerOrderEditorWindow: (context: unknown) => {
     mocks.editorWindowContexts.push({name: 'order', context});
-    return {dispose: mocks.editorWindowStops.order};
+    return {
+      close: mocks.orderEditorWindowClose,
+      dispose: mocks.editorWindowStops.order,
+    };
   },
 }));
 vi.mock('@main/windows/songEditor', () => ({
@@ -359,6 +365,7 @@ beforeEach(async () => {
   mocks.editorWindowStops.song.mockClear();
   mocks.screensWindowStop.mockClear();
   mocks.screensWindowClose.mockReset().mockResolvedValue(true);
+  mocks.orderEditorWindowClose.mockReset().mockResolvedValue(true);
   mocks.electron.app.getPath.mockReturnValue(await makeTempDir());
   mocks.electron.app.quit.mockReset();
   mocks.electron.app.releaseSingleInstanceLock.mockClear();

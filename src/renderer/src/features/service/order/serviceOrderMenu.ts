@@ -14,12 +14,49 @@ export interface ServiceOrderMenuInput {
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
   readonly remove: () => void;
+  /** 순서 편집 and 곡 편집 of the 준비 menu; undefined outside 준비. */
+  readonly editSong?:
+    | {
+        readonly editOrder: () => void;
+        readonly editSong: (() => void) | undefined;
+      }
+    | undefined;
   readonly song?: {
     readonly arrangements: readonly MenuEntry[];
     readonly locked: boolean;
     readonly reason: string | undefined;
     readonly showInLibrary: (() => void) | undefined;
   };
+}
+
+function songEditRows({
+  editSong,
+  song,
+}: ServiceOrderMenuInput): readonly MenuEntry[] {
+  if (editSong === undefined) return [];
+  return [
+    menuSeparator('song-edit-separator'),
+    {
+      kind: 'item',
+      id: 'edit-order',
+      label: '순서 편집…',
+      ...menuAvailability(song?.reason),
+      onSelect: editSong.editOrder,
+    },
+    {
+      kind: 'item',
+      id: 'edit-song',
+      label: '곡 편집…',
+      ...menuAvailability(
+        song?.reason ??
+          (editSong.editSong === undefined
+            ? '곡을 찾을 수 없습니다'
+            : undefined),
+      ),
+      onSelect: editSong.editSong,
+    },
+    menuSeparator('song-edit-end'),
+  ];
 }
 
 function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
@@ -43,6 +80,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
                     : undefined)),
           ),
         },
+        ...songEditRows(input),
         laterRow('destination', '출력 대상', {submenu: true}),
         ...(openInPrep === undefined
           ? []

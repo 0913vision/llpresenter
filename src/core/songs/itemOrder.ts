@@ -6,36 +6,37 @@ import {
 } from '../schema/groupedSong';
 import type {ServiceItemId, SongGroupId, SongId} from '../schema/ids';
 import {isArrangementName} from '../schema/song';
-import {
-  isItemOfKind,
-  type Service,
-  type ServiceItem,
-  type ServiceItemOf,
-} from '../schema/service';
+import {isItemOfKind, type Service, type ServiceItem} from '../schema/service';
 import type {ServiceItemChange} from '../services/itemFieldChanges';
 import {
   expandGroupSlidesWithLimit,
   type ExpandedGroupSlides,
 } from './songOrder';
 
+/** The two song item fields that decide which groups play, and in what order. */
+export interface SongPlay {
+  readonly arrangement?: string | undefined;
+  readonly customOrder?: readonly SongGroupId[] | undefined;
+}
+
 /** The group ids an item plays: customOrder, else its 구성, else all groups. */
 export function playedGroupIds(
   song: GroupedSong,
-  item: ServiceItemOf<'song'>,
+  play: SongPlay,
 ): readonly SongGroupId[] {
-  if (item.customOrder === undefined) {
-    return arrangementGroupIds(song, item.arrangement);
+  if (play.customOrder === undefined) {
+    return arrangementGroupIds(song, play.arrangement);
   }
   const known = new Set(song.groups.map(group => group.id));
-  return item.customOrder.filter(id => known.has(id));
+  return play.customOrder.filter(id => known.has(id));
 }
 
 /** The played slide numbers of an item, or an empty order flagged as capped. */
 export function playedOrderWithLimit(
   song: GroupedSong,
-  item: ServiceItemOf<'song'>,
+  play: SongPlay,
 ): ExpandedGroupSlides {
-  return expandGroupSlidesWithLimit(song, playedGroupIds(song, item));
+  return expandGroupSlidesWithLimit(song, playedGroupIds(song, play));
 }
 
 /** Item change that sets the order, or clears it when ids is undefined. */

@@ -7,6 +7,7 @@ import {
   parseFrameReadyReport,
   parseFrameReadyReply,
   parseOpenWindowResult,
+  parseOrderEditorSlideSize,
   parseOrderEditorTarget,
   parseSongEditorTarget,
   refuseOpenWindow,
@@ -164,5 +165,15 @@ describe('editor window targets', () => {
       ok: false,
       error: {reason: 'failed'},
     });
+  });
+});
+
+describe('parseOrderEditorSlideSize', () => {
+  it.each([1, 240, 4096])('accepts %j', value => {
+    expect(parseOrderEditorSlideSize(value)).toEqual({ok: true, value});
+  });
+
+  it.each([0, -1, 4097, 2.5, Number.NaN, '240', null])('rejects %j', value => {
+    expect(parseOrderEditorSlideSize(value).ok).toBe(false);
   });
 });

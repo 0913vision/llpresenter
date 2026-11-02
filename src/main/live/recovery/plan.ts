@@ -119,7 +119,7 @@ function slideStep(
   const {serviceId, item} = source;
   const song = content.song(item.song)?.song;
   if (song === undefined) return null;
-  const slideCount = songTiles(song, NO_LABEL_COLORS, item.arrangement).length;
+  const slideCount = songTiles(song, NO_LABEL_COLORS, item).length;
   if (slide.position >= slideCount) return null;
   const media = state.layers.media;
   const commands: SingleLiveCommand[] = [{type: 'slide.show', slide}];

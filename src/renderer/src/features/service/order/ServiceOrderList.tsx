@@ -7,7 +7,14 @@ import {
 } from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
+import {parseOrderEditorTarget} from '@core/schema/ipcPayloads';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {isInTextEntry} from '@renderer/ui/textEntry';
+import {
+  openOrderEditorWindow,
+  openSongEditorWindow,
+} from '../orderEditor/openWindows';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -280,6 +287,25 @@ export function ServiceOrderList({
     },
   ]);
 
+  const openOrderEditor = (itemId: string): void => {
+    const api = window.llp;
+    const target = parseOrderEditorTarget({serviceId, itemId});
+    if (api === undefined || !target.ok) return;
+    editorTask(openOrderEditorWindow(api, target.value, onProblem));
+  };
+  const openSongEditor = (songId: SongId): void => {
+    const api = window.llp;
+    if (api !== undefined) {
+      editorTask(openSongEditorWindow(api, {songId}, onProblem));
+    }
+  };
+  const openOrderOfSongRow = (id: string | null): boolean => {
+    if (workspace !== 'prep' || id === null) return false;
+    if (rows.find(row => row.id === id)?.kind !== 'song') return false;
+    openOrderEditor(id);
+    return true;
+  };
+
   const menuEntries = (
     target: NonNullable<typeof menu>,
   ): readonly MenuEntry[] => {
@@ -288,6 +314,21 @@ export function ServiceOrderList({
     return serviceOrderMenuEntries({
       row,
       editable,
+      editSong:
+        workspace === 'prep'
+          ? {
+              editOrder: () => {
+                openOrderEditor(target.id);
+                setMenu(null);
+              },
+              editSong: songMenu.songId
+                ? () => {
+                    if (songMenu.songId) openSongEditor(songMenu.songId);
+                    setMenu(null);
+                  }
+                : undefined,
+            }
+          : undefined,
       song: {
         arrangements: songMenu.entries,
         reason: songMenu.reason,
@@ -340,8 +381,15 @@ export function ServiceOrderList({
           },
         });
       }}
+      onDoubleClick={event => {
+        if (isInTextEntry(event.target)) return;
+        openOrderOfSongRow(serviceOrderRowId(event.target));
+      }}
       onKeyDownCapture={event => {
         if (isInTextEntry(event.target)) return;
+        if (event.key === 'Enter' && !hasModifier(event)) {
+          openOrderOfSongRow(serviceOrderRowId(event.target));
+        }
         if (isContextMenuKey(event)) {
           const id = serviceOrderRowId(event.target);
           if (id === null) return;

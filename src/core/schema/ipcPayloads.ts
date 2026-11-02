@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {serviceIdSchema, serviceItemIdSchema, songIdSchema} from './ids';
+import {ORDER_EDITOR_SLIDE_SIZE_MAX} from './appConfig';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The highest frame rate a window may report. */
@@ -111,6 +112,20 @@ export function parseOrderEditorTarget(
   value: unknown,
 ): Result<OrderEditorTarget, PayloadError> {
   return parsePayload(orderEditorTargetSchema, value);
+}
+
+const orderEditorSlideSizeSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(1),
+  v.maxValue(ORDER_EDITOR_SLIDE_SIZE_MAX),
+);
+
+/** Checks the slide tile width, in CSS pixels, that the 순서 편집 window keeps. */
+export function parseOrderEditorSlideSize(
+  value: unknown,
+): Result<number, PayloadError> {
+  return parsePayload(orderEditorSlideSizeSchema, value);
 }
 
 /** What the 곡 편집 window can start with besides the song. */

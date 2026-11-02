@@ -21,6 +21,7 @@ import {
   type ShowTile,
 } from '@core/schema/showService';
 import type {Slide} from '@core/schema/song';
+import {playedGroupIds, type SongPlay} from '@core/songs/itemOrder';
 import {playbackGroupIds, playbackOrder} from '@core/songs/songOrder';
 import type {ServicePassages} from '../bible/servicePassages';
 
@@ -71,7 +72,7 @@ export function buildShowService({
     if (!isItemOfKind(item, 'song')) continue;
     const song = songs.get(item.song);
     if (song === undefined) continue;
-    const projected = projectSongTiles(song.data, colors, item.arrangement);
+    const projected = projectSongTiles(song.data, colors, item);
     if (projected.capped) {
       cappedItems.add(item.id);
       itemTiles[item.id] = [];
@@ -181,12 +182,12 @@ function songRow(
 export function projectSongTiles(
   song: AnySong,
   colors: ReadonlyMap<string, LabelColor>,
-  arrangement?: string,
+  play: SongPlay = {},
 ): ProjectedSongTiles {
   if (isGroupedSong(song)) {
-    return projectGroupedSongTiles(song, colors, arrangement);
+    return projectGroupedSongTiles(song, colors, play);
   }
-  const order = playbackOrder(song, arrangement);
+  const order = playbackOrder(song, play.arrangement);
   const tiles: ShowTile[] = [];
   for (const number of order) {
     const slide = song.slides[number - 1];
@@ -202,9 +203,12 @@ export function projectSongTiles(
 function projectGroupedSongTiles(
   song: GroupedSong,
   colors: ReadonlyMap<string, LabelColor>,
-  arrangement?: string,
+  play: SongPlay,
 ): ProjectedSongTiles {
-  const groupIds = playbackGroupIds(song, arrangement);
+  const groupIds =
+    play.customOrder === undefined
+      ? playbackGroupIds(song, play.arrangement)
+      : playedGroupIds(song, play);
 
   const groupsById = new Map<string, SongGroup>(
     song.groups.map(group => [group.id, group]),
@@ -244,9 +248,9 @@ function projectGroupedSongTiles(
 export function songTiles(
   song: AnySong,
   colors: ReadonlyMap<string, LabelColor>,
-  arrangement?: string,
+  play: SongPlay = {},
 ): ShowTile[] {
-  return [...projectSongTiles(song, colors, arrangement).tiles];
+  return [...projectSongTiles(song, colors, play).tiles];
 }
 
 function tileOf(

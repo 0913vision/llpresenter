@@ -205,6 +205,7 @@ function start(): void {
         async () =>
           (await screensWindow.close()) &&
           (await preferencesWindow.close()) &&
+          (await orderEditorWindow.close()) &&
           (await closing.confirmClose()),
       );
       const stopMediaBackend = registerMediaBackend({

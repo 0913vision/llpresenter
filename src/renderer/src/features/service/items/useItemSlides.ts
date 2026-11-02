@@ -1,6 +1,8 @@
 import {useMemo, useSyncExternalStore} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {linearSlidesOf} from '@core/songs/blockEdits';
+import {isGroupedSong} from '@core/schema/groupedSong';
+import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {editedOrderWithLimit} from '@core/songs/songArrangements';
 import type {MediaId} from '@core/schema/ids';
 import type {LabelColor} from '@core/labels/colors';
@@ -47,7 +49,13 @@ export function useItemSlides(
     if (isItemOfKind(item, 'song') && snapshot !== undefined) {
       const value = snapshot.song;
       const slides = linearSlidesOf(value);
-      return editedOrderWithLimit(value, arrangement).slides.map(number => {
+      const played = isGroupedSong(value)
+        ? playedOrderWithLimit(value, {
+            arrangement,
+            customOrder: item.customOrder,
+          })
+        : editedOrderWithLimit(value, arrangement);
+      return played.slides.map(number => {
         const slide = slides[number - 1];
         return {
           text: slide?.lines.join('\n') ?? '',

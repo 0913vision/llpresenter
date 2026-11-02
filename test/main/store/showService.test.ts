@@ -459,7 +459,9 @@ describe('buildShowService', () => {
       arrangements: [{name: '한계구성', groups: repeatedGroups}],
     };
 
-    const projected = projectSongTiles(maxSong, new Map(), '한계구성');
+    const projected = projectSongTiles(maxSong, new Map(), {
+      arrangement: '한계구성',
+    });
     expect(projected.capped).toBe(false);
     expect(projected.tiles).toHaveLength(10_000);
 
@@ -502,7 +504,9 @@ describe('buildShowService', () => {
       arrangements: [{name: '초과구성', groups: repeatedGroups}],
     };
 
-    const projected = projectSongTiles(hugeSong, new Map(), '초과구성');
+    const projected = projectSongTiles(hugeSong, new Map(), {
+      arrangement: '초과구성',
+    });
     expect(projected.capped).toBe(true);
     expect(projected.tiles).toEqual([]);
 
@@ -532,7 +536,9 @@ describe('buildShowService', () => {
     });
     expect(show.tiles[itemId(1)]).toEqual([]);
 
-    expect(songTiles(hugeSong, new Map(), '초과구성')).toEqual([]);
+    expect(songTiles(hugeSong, new Map(), {arrangement: '초과구성'})).toEqual(
+      [],
+    );
     expect(SHOW_SERVICE_LIMITS.tiles).toBe(10_000);
   });
 
@@ -546,7 +552,9 @@ describe('buildShowService', () => {
         },
       ],
     };
-    const maxProjected = projectSongTiles(maxV1Song, new Map(), '한계구성');
+    const maxProjected = projectSongTiles(maxV1Song, new Map(), {
+      arrangement: '한계구성',
+    });
     expect(maxProjected.capped).toBe(false);
     expect(maxProjected.tiles).toHaveLength(10_000);
 
@@ -559,8 +567,44 @@ describe('buildShowService', () => {
         },
       ],
     };
-    const overProjected = projectSongTiles(overV1Song, new Map(), '초과구성');
+    const overProjected = projectSongTiles(overV1Song, new Map(), {
+      arrangement: '초과구성',
+    });
     expect(overProjected.capped).toBe(true);
     expect(overProjected.tiles).toEqual([]);
+  });
+});
+
+describe('projectSongTiles custom order', () => {
+  const verse = createSongGroupId('d0000000-0000-4000-8000-0000000000a1');
+  const chorus = createSongGroupId('d0000000-0000-4000-8000-0000000000a2');
+  const song: GroupedSong = {
+    format: 'llsong',
+    schemaVersion: 2,
+    id: createSongId('20000000-0000-4000-8000-0000000000a1'),
+    title: 'Order Song',
+    groups: [
+      {id: verse, name: '1절', slides: [{lines: ['verse']}]},
+      {id: chorus, name: '후렴', slides: [{lines: ['chorus']}]},
+    ],
+    arrangements: [{name: 'short', groups: [verse]}],
+  };
+  const linesOf = (play: Parameters<typeof songTiles>[2]): string[] =>
+    songTiles(song, new Map(), play).map(tile => tile.lines.join(''));
+
+  it('plays the custom order instead of the named 구성', () => {
+    expect(
+      linesOf({arrangement: 'short', customOrder: [chorus, verse, chorus]}),
+    ).toEqual(['chorus', 'verse', 'chorus']);
+  });
+
+  it('skips a group the song no longer has and plays an empty order as empty', () => {
+    const gone = createSongGroupId('d0000000-0000-4000-8000-0000000000a9');
+    expect(linesOf({customOrder: [gone, verse]})).toEqual(['verse']);
+    expect(linesOf({customOrder: []})).toEqual([]);
+  });
+
+  it('keeps playing the named 구성 when there is no custom order', () => {
+    expect(linesOf({arrangement: 'short'})).toEqual(['verse']);
   });
 });
