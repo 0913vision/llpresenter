@@ -14,6 +14,8 @@ export function useLibraryServices(
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const active = useRef(false);
+  // NOTE(0913vision): A failure is reported even after the library is gone,
+  // because the handler is the app's and the write was not undone.
   useEffect(() => {
     active.current = true;
     return () => {
@@ -34,7 +36,7 @@ export function useLibraryServices(
         song,
         null,
       );
-      if (!result.ok && active.current) {
+      if (!result.ok) {
         onProblem({
           key: 'library:append',
           kind: 'warning',

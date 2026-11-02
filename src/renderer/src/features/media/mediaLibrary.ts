@@ -155,7 +155,6 @@ export class MediaLibrary {
       for (const stop of stops) stop();
       this.active.clear();
       this.update({jobs: [], destinations: new Map()});
-      this.onProblem = () => undefined;
     };
   }
 

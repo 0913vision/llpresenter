@@ -3,7 +3,10 @@ import {afterEach, expect, it, vi} from 'vitest';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {useFileMediaImport} from '@renderer/app/shell/useFileMediaImport';
+import {
+  REPORTED_FAILURES_LIMIT,
+  useFileMediaImport,
+} from '@renderer/app/shell/useFileMediaImport';
 import type {Notice} from '@renderer/ui/notices';
 
 it('explains a missing import connection and a pending import request', async () => {
@@ -77,6 +80,62 @@ it.each([true, false])(
     });
   },
 );
+
+it('makes one card for one failed import that the push and the reply both report', async () => {
+  let push: (progress: MediaImportProgress) => void = () => undefined;
+  window.llp = mockLlpApi({
+    media: {
+      subscribeImports: listener => {
+        push = listener;
+        return () => undefined;
+      },
+      import: () => {
+        push(failed);
+        return Promise.resolve({ok: true as const, value: [failed]});
+      },
+    },
+  });
+  const onProblem = vi.fn<(notice: Notice) => void>();
+  const {result} = renderHook(() => useFileMediaImport(onProblem));
+
+  act(() => result.current.onSelect?.());
+
+  await waitFor(() => expect(onProblem).toHaveBeenCalled());
+  await act(() => Promise.resolve());
+  expect(onProblem).toHaveBeenCalledOnce();
+});
+
+it('forgets the oldest failed ids across many batches, and still reports a failure once', async () => {
+  let push: (progress: MediaImportProgress) => void = () => undefined;
+  window.llp = mockLlpApi({
+    media: {
+      subscribeImports: listener => {
+        push = listener;
+        return () => undefined;
+      },
+    },
+  });
+  const onProblem = vi.fn<(notice: Notice) => void>();
+  renderHook(() => useFileMediaImport(onProblem));
+  const failure = (index: number): MediaImportProgress => ({
+    ...failed,
+    mediaId: createMediaId(
+      `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+    ),
+  });
+  const total = REPORTED_FAILURES_LIMIT * 3;
+
+  act(() => {
+    for (let index = 1; index <= total; index += 1) push(failure(index));
+  });
+  expect(onProblem).toHaveBeenCalledTimes(total);
+
+  act(() => push(failure(total)));
+  expect(onProblem).toHaveBeenCalledTimes(total);
+
+  act(() => push(failure(1)));
+  expect(onProblem).toHaveBeenCalledTimes(total + 1);
+});
 
 it('releases the progress subscription and ignores late progress and import replies', async () => {
   let push: (progress: MediaImportProgress) => void = () => undefined;

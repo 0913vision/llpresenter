@@ -67,18 +67,18 @@ export function useLibrary(
 
   const report = useCallback(
     (cause: keyof typeof problemTitles, action?: NoticeAction) => {
-      if (isActive()) {
-        problemHandler.current({
-          key: `library:${cause}`,
-          kind: 'warning',
-          icon: 'warning',
-          title: problemTitles[cause],
-          time: noticeTime(),
-          ...(action === undefined ? {} : {actions: [action]}),
-        });
-      }
+      // NOTE(0913vision): The handler belongs to the app, not to this panel, so
+      // a failure that ends after the panel is gone still gets its card.
+      problemHandler.current({
+        key: `library:${cause}`,
+        kind: 'warning',
+        icon: 'warning',
+        title: problemTitles[cause],
+        time: noticeTime(),
+        ...(action === undefined ? {} : {actions: [action]}),
+      });
     },
-    [isActive],
+    [],
   );
 
   const accept = useCallback((entries: readonly LibrarySong[]) => {
@@ -256,9 +256,8 @@ export function useLibrary(
     opening.current = null;
     try {
       const result = await api.content.edit({type: 'song.create'});
-      if (!isActive()) return;
       const id = appliedId(result);
-      if (id === null) return;
+      if (id === null || !isActive()) return;
       if (!(await readList())) report('load', loadAction(reload));
       const document = await api.songs.get(id);
       if (!isActive() || version !== requests.current.open) return;

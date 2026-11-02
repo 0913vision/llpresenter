@@ -7,6 +7,13 @@ import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
 
+/**
+ * How many failed media ids are remembered to report each failure once. The
+ * push and the reply of one import arrive together, so a short history is
+ * enough, and the oldest id is forgotten first.
+ */
+export const REPORTED_FAILURES_LIMIT = 64;
+
 export function useFileMediaImport(
   onProblem: (notice: Notice) => void,
 ): MenuItem {
@@ -17,10 +24,17 @@ export function useFileMediaImport(
   useEffect(() => {
     report.current = onProblem;
   }, [onProblem]);
+  const reported = useRef(new Set<string>());
   const reportFailure = useCallback((progress: MediaImportProgress): void => {
-    if (!alive.current) return;
+    if (!alive.current || reported.current.has(progress.mediaId)) return;
     const failure = mediaImportFailureNotice(progress);
-    if (failure) report.current(failure);
+    if (!failure) return;
+    reported.current.add(progress.mediaId);
+    if (reported.current.size > REPORTED_FAILURES_LIMIT) {
+      const oldest = reported.current.values().next();
+      if (!oldest.done) reported.current.delete(oldest.value);
+    }
+    report.current(failure);
   }, []);
   useEffect(() => {
     alive.current = true;

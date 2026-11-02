@@ -358,6 +358,35 @@ describe('media library for the media view', () => {
     expect(fixture.listeners.missing.size).toBe(0);
   });
 
+  it('still reports a rename that fails after the view has stopped', async () => {
+    const list = mediaDocument([], 1, {
+      playlists: [{id: playlistId(1), name: 'Old', items: []}],
+    });
+    const {library, edit, problems, stop} = setup(mediaFixture(list));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document).not.toBeNull(),
+    );
+    let finish: (reply: Awaited<ReturnType<typeof edit>>) => void = () =>
+      undefined;
+    edit.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    const renaming = library.renamePlaylist(
+      {kind: 'media', id: playlistId(1), name: 'Old', items: []},
+      'New',
+    );
+
+    stop();
+    finish({ok: false, error: {reason: 'invalid', message: 'Invented'}});
+
+    expect(await renaming).toBe(false);
+    expect(problems).toHaveBeenCalledWith(
+      expect.objectContaining({key: 'media-view:playlist-name'}),
+    );
+  });
+
   it('keeps a missing-files push over a first reply that arrives later', async () => {
     const fixture = mediaFixture();
     let reply: (missing: readonly MediaId[]) => void = () => undefined;
