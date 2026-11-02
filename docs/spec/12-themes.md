@@ -74,8 +74,9 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   order 공지, 그래픽, 메시지. A 테마 can't hide them.
 - A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
   over ProPresenter's style per 메시지 template (user decision, October 28).
-  Where a screen picks its style after the Look became 테마 is open (README,
-  open question 27).
+  Each screen picks its style in its 메시지 스타일 row in the 화면 설정 window,
+  not in the 테마, so a 메시지 keeps its look when the item and its 테마 change
+  (06; user decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 본 화면, the item's settings show a warning mark
   with the reason in its tooltip and a 테마 편집… button.
