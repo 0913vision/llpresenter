@@ -9,6 +9,7 @@ import type {AppConfigFile} from '../store/appConfigFile';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath} from './page';
+import {reloadAfterCrash} from './crashReload';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   discardTestFrames,
@@ -119,12 +120,7 @@ function createSongEditorWindow({
     if (saved?.maximized === true) created.maximize();
     created.show();
   });
-  created.webContents.on('render-process-gone', (_event, details) => {
-    log.error('song editor window process gone', details);
-    if (details.reason !== 'clean-exit' && !created.isDestroyed()) {
-      loadPage(created, PAGE, log);
-    }
-  });
+  reloadAfterCrash({win: created, page: PAGE, label: 'song editor', log});
   loadPage(created, PAGE, log);
   return created;
 }

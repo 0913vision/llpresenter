@@ -10,6 +10,9 @@ export const WAITING_SAVES_KEY = 'save-failed';
 /** One card stands for the launch backup that failed. */
 export const BACKUP_FAILED_KEY = 'backup-failed';
 
+/** One card stands for the control window that loaded again. */
+export const CONTROL_RELOADED_KEY = 'control-reloaded';
+
 const UNNAMED_MACRO = '이름 없는 매크로';
 
 /**
@@ -89,5 +92,20 @@ export function backupFailedCard(
     title: '백업 위치를 사용할 수 없음',
     time,
     meta: [name, '백업하지 않음'],
+  };
+}
+
+/**
+ * The 제어 창 다시 불러옴 information card after the control window's renderer
+ * died and loaded again (spec 08); it closes by itself.
+ */
+export function controlReloadedCard(time: string): Notice {
+  return {
+    key: CONTROL_RELOADED_KEY,
+    kind: 'info',
+    icon: 'refresh',
+    title: '제어 창 다시 불러옴',
+    time,
+    meta: ['출력은 그대로'],
   };
 }

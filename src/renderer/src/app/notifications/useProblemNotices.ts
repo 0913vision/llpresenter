@@ -6,6 +6,7 @@ import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,
   backupFailedCard,
+  controlReloadedCard,
   macroDroppedCard,
   skippedFilesCard,
   waitingSavesCard,
@@ -49,6 +50,9 @@ export function useProblemNotices(
               retry: () => problems.retrySaves(),
             }),
           );
+          return;
+        case 'control-reloaded':
+          show(controlReloadedCard(noticeTime()));
           return;
         case 'backup-failed':
           show(backupFailedCard(problem, noticeTime()));

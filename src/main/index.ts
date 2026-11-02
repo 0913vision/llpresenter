@@ -43,6 +43,7 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerOrderEditorWindow} from './windows/orderEditor';
 import {registerPreferencesWindow} from './windows/preferences';
 import {registerScreensWindow} from './windows/screens';
@@ -179,6 +180,9 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
+        problems.feed.report({kind: 'control-reloaded'}),
+      );
       const screensWindow = registerScreensWindow({
         control: win,
         store,
@@ -339,6 +343,10 @@ function start(): void {
         run: () => closing.dispose(),
       });
       shutdown.add({name: 'stop the problem feed', run: problems.dispose});
+      shutdown.add({
+        name: 'stop the control reload notice',
+        run: stopReloadNotice,
+      });
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       shutdown.add({
         name: 'remove the recovery channels',

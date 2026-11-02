@@ -326,7 +326,9 @@ vi.mock('@main/windows/control', () => ({
   createControlWindow: (_log: unknown, _mode: unknown, zoom: unknown) => {
     mocks.zoomForControl.push(zoom);
     mocks.order.push('control window');
-    const win = Object.assign(new EventEmitter(), mocks.controlWindow);
+    const win = Object.assign(new EventEmitter(), mocks.controlWindow, {
+      webContents: new EventEmitter(),
+    });
     mocks.opened.control = win;
     return win;
   },

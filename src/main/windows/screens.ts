@@ -5,6 +5,7 @@ import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {guardTestPatterns} from '../outputs/testPatternGuard';
 import {blockNavigation, loadPage, preloadPath} from './page';
+import {reloadAfterCrash} from './crashReload';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   discardTestFrames,
@@ -111,12 +112,7 @@ function createScreensWindow({
     if (saved?.maximized === true) created.maximize();
     created.show();
   });
-  created.webContents.on('render-process-gone', (_event, details) => {
-    log.error('screens window process gone', details);
-    if (details.reason !== 'clean-exit' && !created.isDestroyed()) {
-      loadPage(created, PAGE, log);
-    }
-  });
+  reloadAfterCrash({win: created, page: PAGE, label: 'screens', log});
   loadPage(created, PAGE, log);
   return created;
 }

@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createControlWindow} from '@main/windows/control';
 import {loadPage} from '@main/windows/page';
+import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/outputs/restartBudget';
 import {audioMutedByDefault} from '@main/windows/audioPolicy';
 
 const electron = await vi.hoisted(async () => {
@@ -133,6 +134,32 @@ describe('createControlWindow', () => {
     it('does not reload a window that is already destroyed', () => {
       crash('crashed', true);
       expect(loadPage).not.toHaveBeenCalled();
+    });
+    it('stops loading after the crash limit within the period, says so, and starts counting again later', () => {
+      const log = recordingLogger();
+      createControlWindow(log, 'normal', {attachControl: vi.fn()});
+      const win = lastWindow();
+      vi.useFakeTimers();
+      vi.mocked(loadPage).mockClear();
+      for (let crash = 0; crash < CRASH_LIMIT + 2; crash++) {
+        win.webContents.emit('render-process-gone', {}, {reason: 'crashed'});
+      }
+      expect(loadPage).toHaveBeenCalledTimes(CRASH_LIMIT - 1);
+      expect(log.messages('error')).toContain(
+        'control window keeps crashing; not loading it again',
+      );
+
+      vi.advanceTimersByTime(CRASH_PERIOD_MS);
+      win.webContents.emit('render-process-gone', {}, {reason: 'crashed'});
+      expect(loadPage).toHaveBeenCalledTimes(CRASH_LIMIT);
+      vi.useRealTimers();
+    });
+
+    it('touches nothing on the window but its page', () => {
+      const {win} = crash('crashed');
+      expect(win.maximize).not.toHaveBeenCalled();
+      expect(win.show).not.toHaveBeenCalled();
+      expect(loadPage).toHaveBeenCalledOnce();
     });
   });
 });

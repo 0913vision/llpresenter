@@ -167,4 +167,12 @@ describe('useProblemNotices', () => {
     expect(target.report).toHaveBeenCalledTimes(2);
     expect(target.report.mock.calls[1]?.[0].key).toBe('backup-failed');
   });
+
+  it('shows the information card when main reports the control window loaded again', () => {
+    const {target, push} = setup();
+    push({kind: 'control-reloaded'});
+    expect(target.report).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({key: 'control-reloaded', kind: 'info'}),
+    );
+  });
 });

@@ -17,7 +17,7 @@ captions), 그래픽 (prop), 공지 (notice), 메시지 (message), 매크로 (ma
 | Output monitor lost        | Toolbar button (amber dot and icon), status bar ("무대 화면 창으로 표시 중"), amber outline on the preview frame, warning notification | The output continues in a window on the control monitor                                                                | 모니터 다시 찾기 (find monitor again), 창 보기 (show window), or reconnecting the monitor | `Problems`                                  |
 | Media file missing         | Media tile, background select in the 슬라이드 panel header, 예배 순서 row, 표시 중 row                                                 | The output holds a still frame                                                                                         | Clicking the tile, or 다시 연결 (relink)                                                  | `Problems`, `MediaTile` README              |
 | Output window crashed      | Log file. After 3 crashes in 60 seconds, a warning notification and an amber outline on the preview frame                              | The main process loads the window again; at the limit, the window shows an empty picture and retries after a cool-down | Automatic, or 다시 시도 (try again)                                                       | `docs/TECH.md` process structure, lead rule |
-| Control window crashed     | Nothing on the outputs                                                                                                                 | The outputs keep their picture                                                                                         | The main process reloads the control window (proposal)                                    | `docs/TECH.md`                              |
+| Control window crashed     | Nothing on the outputs. After it loads again, an information card                                                                      | The outputs keep their picture                                                                                         | The main process reloads the control window                                               | `docs/TECH.md`                              |
 | App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved                                                                        | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                                  |
 | Frame rate dropped         | Status bar text ("프레임 속도가 낮아지는 중: 방송 자막 (41fps)")                                                                       | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
 | Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
@@ -165,11 +165,17 @@ Source: `docs/TECH.md` process structure, the lead's rule in
 `docs/reviews/output-1.md` (round 3), `PreviewFrame` README (warning state),
 `Notification` README.
 
-## Control window crash (proposal)
+## Control window crash
 
-- If the control window's renderer process dies, the main process reloads it and
-  sends the current state. The output windows aren't affected, because the main
-  process owns the output state.
+- If the control window's renderer process dies, the main process loads the page
+  again, and the page reads its state the normal way (services, live state,
+  settings). The output windows aren't affected, because the main process owns
+  the output state. A clean exit isn't reloaded.
+- Every window that holds a page (control, 환경설정, 곡 편집, 순서 편집, 화면
+  설정) reloads the same way. A window that dies 3 times within 60 seconds is
+  not loaded again, so a crash loop can't spin; the log says so.
+- When the control window has loaded again, an information card "제어 창 다시
+  불러옴" with the detail "출력은 그대로" shows and closes after 6 seconds.
 - Changes that had already reached the main process are saved. An imported song
   that wasn't saved yet is lost.
 

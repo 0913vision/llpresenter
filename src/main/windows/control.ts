@@ -2,6 +2,7 @@ import {app, BrowserWindow, screen} from 'electron';
 import type {Logger} from '../log';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from './audioPolicy';
+import {reloadAfterCrash} from './crashReload';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {
   discardTestFrames,
@@ -15,17 +16,6 @@ const DEFAULT_WIDTH = 1920;
 const DEFAULT_HEIGHT = 1080;
 const BACKGROUND = '#0e0e0e';
 const CONTROL_PAGE: PageRequest = {name: 'index'};
-
-function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
-  // NOTE(0913vision): The main process keeps the live state, so reloading the
-  // control window loses nothing on output.
-  win.webContents.on('render-process-gone', (_event, details) => {
-    log.error('control window process gone', details);
-    if (details.reason !== 'clean-exit' && !win.isDestroyed()) {
-      loadPage(win, CONTROL_PAGE, log);
-    }
-  });
-}
 
 /**
  * Creates the control window without the Windows title bar; the app's menu
@@ -67,7 +57,9 @@ export function createControlWindow(
   discardTestFrames(win.webContents, mode);
   zoom.attachControl(win.webContents);
   blockNavigation(win);
-  reloadAfterCrash(win, log);
+  // NOTE(0913vision): The main process keeps the live state, so reloading the
+  // control window loses nothing on output.
+  reloadAfterCrash({win, page: CONTROL_PAGE, label: 'control', log});
   win.once('ready-to-show', () => {
     if (mode === 'offscreen') return;
     const fitsScreen =

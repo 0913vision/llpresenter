@@ -4,6 +4,7 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {saveFailedProblem} from '@core/schema/appProblem';
 import {
   backupFailedCard,
+  controlReloadedCard,
   macroDroppedCard,
   skippedFilesCard,
   waitingSavesCard,
@@ -97,4 +98,15 @@ it('warns that the backup location is unavailable, with its folder and what happ
       meta: ['백업', '백업하지 않음'],
     },
   );
+});
+
+it('tells that the control window loaded again, as information that closes by itself', () => {
+  expect(controlReloadedCard(TIME)).toEqual({
+    key: 'control-reloaded',
+    kind: 'info',
+    icon: 'refresh',
+    title: '제어 창 다시 불러옴',
+    time: TIME,
+    meta: ['출력은 그대로'],
+  });
 });

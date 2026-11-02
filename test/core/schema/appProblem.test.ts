@@ -33,6 +33,7 @@ describe('app problem payloads', () => {
     {kind: 'save-failed', name: 'x', count: 1000},
     {kind: 'save-recovered'},
     {kind: 'backup-failed', name: '백업'},
+    {kind: 'control-reloaded'},
   ])('reads %j', value => {
     expect(parseAppProblem(value)).toEqual({ok: true, value});
   });

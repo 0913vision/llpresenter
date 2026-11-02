@@ -27,6 +27,7 @@ const appProblemSchema = v.pipe(
       count: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
     }),
     v.object({kind: v.literal('save-recovered')}),
+    v.object({kind: v.literal('control-reloaded')}),
     v.object({
       kind: v.literal('backup-failed'),
       name: v.pipe(nameSchema, v.nonEmpty()),
@@ -63,6 +64,8 @@ const appProblemListSchema = v.pipe(
  * - `backup-failed`: the backup at launch could not be made; `name` is the
  *   backup location's folder name without the path (spec 08, "Backup
  *   location unavailable").
+ * - `control-reloaded`: the control window's renderer process died and the
+ *   window loaded again (spec 08, "Control window crash").
  * - `file-skipped`: a data file couldn't be read at startup and was skipped
  *   (spec 08, "File can't be read"); `fileId` tells the skipped files apart
  *   for as long as the app runs, and `name` is the file name without the

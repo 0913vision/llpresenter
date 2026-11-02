@@ -2,6 +2,7 @@ import {BrowserWindow} from 'electron';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
+import {reloadAfterCrash} from './crashReload';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -69,12 +70,7 @@ export function createEditorWindow({
     if (maximized) created.maximize();
     created.show();
   });
-  created.webContents.on('render-process-gone', (_event, details) => {
-    log.error(`${title} window process gone`, details);
-    if (details.reason !== 'clean-exit' && !created.isDestroyed()) {
-      loadPage(created, page, log);
-    }
-  });
+  reloadAfterCrash({win: created, page: page, label: title, log});
   loadPage(created, page, log);
   return created;
 }
