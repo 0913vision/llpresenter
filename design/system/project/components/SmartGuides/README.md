@@ -1,8 +1,8 @@
 # Smart guides
 
 Temporary alignment lines for moving and resizing elements on the 테마 editor
-canvas. It follows the user's decision in `docs/decisions.md`, not a
-verified ProPresenter behavior.
+canvas. It follows the user's decision of October 26 (`docs/spec/06-settings.md`),
+not a verified ProPresenter behavior.
 
 ## Tokens and coordinates
 

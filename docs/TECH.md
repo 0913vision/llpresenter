@@ -2,8 +2,7 @@
 
 This app must not stop during a service. Every technical choice first asks:
 "Does the output keep running during a service?" Before you add a feature, add a
-library, or upgrade a version, record the reason in this document and in
-`docs/decisions.md`.
+library, or upgrade a version, record the reason in this document.
 
 ## Principles
 
@@ -25,22 +24,23 @@ library, or upgrade a version, record the reason in this document and in
 
 ## Stack
 
-| Area            | Choice                                                          | Version policy                                            | Reason                                                                                                                                                                                                                                                                              |
-| --------------- | --------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App framework   | Electron                                                        | Pinned to 44.9.x (lowered from 45.0.0 in phase 1)         | 45.0.0 is the first release, out on October 21, 2026. 44 has reached its ninth patch and is within its support period. Upgrade to 45 after a few patches, in a week without a service, after the checklist                                                                          |
-| Build           | electron-vite 6, Vite 8                                         | Pinned exactly                                            | Builds main, preload, and renderer with one configuration. It's a tool that doesn't affect runtime stability                                                                                                                                                                        |
-| Language        | TypeScript 7, strict                                            | Pinned exactly                                            | Used for type checking only (`tsc`, TypeScript 7). Lint runs typescript-eslint, which supports only up to TypeScript 6.0, so `typescript` is aliased to `@typescript/typescript6` for lint and the editor, and TypeScript 7 is installed as `@typescript/native` and provides `tsc` |
-| UI              | React 19                                                        | Pinned exactly                                            |                                                                                                                                                                                                                                                                                     |
-| Styling         | CSS Modules and design tokens (CSS variables in `tokens.css`)   |                                                           | We build the design system components ourselves instead of using a UI library, to match the appearance exactly and to stay unaffected by changes in outside libraries                                                                                                               |
-| Renderer state  | Zustand 5                                                       | Pinned exactly                                            | Holds only the copy of the live output state that the main process sends and the state inside the window (selected row, open menu)                                                                                                                                                  |
-| Panel resizing  | react-resizable-panels 4                                        | Compare with building it ourselves in phase 1             | We need dragging between columns and remembering sizes per window size range                                                                                                                                                                                                        |
-| Font            | Pretendard Variable (OFL), bundled with the app                 |                                                           |                                                                                                                                                                                                                                                                                     |
-| Icons           | Phosphor Regular (MIT), 86 icons, `design/system/upload/Icons/` | Decide how to include them in phase 1 (SVG as components) | Use only the same set as the design system                                                                                                                                                                                                                                          |
-| Data validation | valibot 1.5.0                                                   | Pinned exactly                                            | Validates formats when files are read and IPC messages arrive. Smallest of zod, zod/mini, valibot, and arktype (2.7 KB gzip for the song schema), keeps unknown fields, has brands and exact optional fields, and reports the field path. Only `src/core/schema/` imports it        |
-| Logging         | One rotating log file (electron-log family)                     | Decide in phase 1                                         | Lets us see what happened after a service                                                                                                                                                                                                                                           |
-| Formatting      | Prettier with Google `gts` defaults (`.prettierrc.json`)        | Pinned exactly                                            | Formats code, CSS, JSON, and Markdown the same way in every session. Settings are in `CONTRIBUTING.md`                                                                                                                                                                              |
-| Unit tests      | Vitest                                                          | Add in phase 1                                            | Models, conversions, live output state handling                                                                                                                                                                                                                                     |
-| UI tests        | Playwright's Electron support                                   | Add in phase 2                                            | Core flows such as opening a song, output, and clearing                                                                                                                                                                                                                             |
+| Area            | Choice                                                          | Version policy                                            | Reason                                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | --------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App framework   | Electron                                                        | Pinned to 44.9.x (lowered from 45.0.0 in phase 1)         | 45.0.0 is the first release, out on October 21, 2026. 44 has reached its ninth patch and is within its support period. Upgrade to 45 after a few patches, in a week without a service, after the checklist                                                                                                                                                                                  |
+| Build           | electron-vite 6, Vite 8                                         | Pinned exactly                                            | Builds main, preload, and renderer with one configuration. It's a tool that doesn't affect runtime stability                                                                                                                                                                                                                                                                                |
+| Language        | TypeScript 7, strict                                            | Pinned exactly                                            | Used for type checking only (`tsc`, TypeScript 7). Lint runs typescript-eslint, which supports only up to TypeScript 6.0, so `typescript` is aliased to `@typescript/typescript6` for lint and the editor, and TypeScript 7 is installed as `@typescript/native` and provides `tsc`                                                                                                         |
+| UI              | React 19                                                        | Pinned exactly                                            |                                                                                                                                                                                                                                                                                                                                                                                             |
+| Styling         | CSS Modules and design tokens (CSS variables in `tokens.css`)   |                                                           | We build the design system components ourselves instead of using a UI library, to match the appearance exactly and to stay unaffected by changes in outside libraries                                                                                                                                                                                                                       |
+| Renderer state  | Zustand 5                                                       | Pinned exactly                                            | Holds only the copy of the live output state that the main process sends and the state inside the window (selected row, open menu)                                                                                                                                                                                                                                                          |
+| Panel resizing  | react-resizable-panels 4                                        | Compare with building it ourselves in phase 1             | We need dragging between columns and remembering sizes per window size range                                                                                                                                                                                                                                                                                                                |
+| Font            | Pretendard Variable (OFL), bundled with the app                 |                                                           |                                                                                                                                                                                                                                                                                                                                                                                             |
+| Icons           | Phosphor Regular (MIT), 86 icons, `design/system/upload/Icons/` | Decide how to include them in phase 1 (SVG as components) | Use only the same set as the design system                                                                                                                                                                                                                                                                                                                                                  |
+| Data validation | valibot 1.5.0                                                   | Pinned exactly                                            | Validates formats when files are read and IPC messages arrive. Smallest of zod, zod/mini, valibot, and arktype (2.7 KB gzip for the song schema), keeps unknown fields, has brands and exact optional fields, and reports the field path. Only `src/core/schema/` imports it, behind `parse<Format>` and `serialize<Format>`, so replacing it touches only that folder; zod is the fallback |
+| Logging         | One rotating log file (electron-log family)                     | Decide in phase 1                                         | Lets us see what happened after a service                                                                                                                                                                                                                                                                                                                                                   |
+| Formatting      | Prettier with Google `gts` defaults (`.prettierrc.json`)        | Pinned exactly                                            | Formats code, CSS, JSON, and Markdown the same way in every session. Settings are in `CONTRIBUTING.md`                                                                                                                                                                                                                                                                                      |
+| Unit tests      | Vitest                                                          | Add in phase 1                                            | Models, conversions, live output state handling                                                                                                                                                                                                                                                                                                                                             |
+| UI tests        | Playwright's Electron support                                   | Add in phase 2                                            | Core flows such as opening a song, output, and clearing. Only `playwright-core` is installed: it drives the app's own Electron and downloads no browsers                                                                                                                                                                                                                                    |
+| Text import     | iconv-lite 0.7.3                                                | Pinned exactly                                            | Decodes CP949 text files. Node's `TextDecoder` decodes `windows-949` as EUC-KR and breaks CP949 extended Hangul (for example 뷁). Used only behind one wrapper in `src/main/import/`; UTF-8 and UTF-16 stay on the strict built-in decoder, and a result with replacement characters is rejected                                                                                            |
 
 ## Process structure
 
@@ -138,9 +138,12 @@ Each registry entry registers a type name, a data format (schema), a renderer
 - To write a file, write a temporary file, flush it to disk, then rename it to
   the original name. A power cut in the middle never leaves a half-written file.
 - Keep a few earlier versions of each file as backups (proposal: 5).
-- Every file carries a format version, and reading converts old versions to the
-  new one (migration). Unknown fields aren't deleted; they're written back as
-  they are.
+- Every file carries a format version. Unknown fields aren't deleted; they're
+  written back as they are.
+- No migrations before the first release: no user files exist yet, so a format
+  change replaces the format in place, with no conversion from the earlier
+  version, no backup of old files, and no parallel schema. From the first
+  release on, reading converts old versions to the new one.
 - If a song or 예배 순서 file has a bad format, don't touch the original. Skip
   only that file, keep running with the rest, and report it in a notification.
 - If an app-wide settings file is broken, run that area from its newest readable
@@ -148,6 +151,10 @@ Each registry entry registers a type name, a data format (schema), a renderer
   before the next write, so its content is kept (`docs/spec/02-data.md`). A
   broken `app.json` is never overwritten; only its valid location fields are
   used.
+- The data store (`src/main/store/`) is the only module that reads, validates,
+  and writes `app.json`. Other modules, the UI state store included, read and
+  change their fields through its interface, because two whole-file writers
+  would overwrite each other's fields.
 - To keep search fast even with thousands of songs in the library, keep an index
   of titles, lyrics, and initial consonants in memory (phase 3 decides the
   method).
@@ -162,6 +169,17 @@ Each registry entry registers a type name, a data format (schema), a renderer
   that point.
 - Turn on hardware acceleration. Measure the output window frame rate and show
   it in the status bar.
+- Media analysis runs in a hidden renderer, not the utility process. Video and
+  audio duration, whether a file can play, and video thumbnails come from a
+  hidden, sandboxed window that main opens on demand. It decodes with the same
+  Chromium media stack as the output windows, so "can't play" means the output
+  really can't play it and a thumbnail is a real frame. It never shows, analyzes
+  one file at a time from a capped queue, and closes after a short idle time.
+  Rejected: container parsers in the utility process (a dozen parsers, and a
+  codec name only guesses at playability) and ffprobe or ffmpeg binaries (size
+  and licensing).
+- Images are measured and scaled in main with Electron's `nativeImage`, at the
+  tile size, into the capped thumbnail cache.
 
 ## Quality bar
 
@@ -186,9 +204,8 @@ A pull request is approved only when it meets everything below
 
 ### Tests
 
-- The data model, format conversion and migration, import conversion, live
-  output state handling, macro execution, and autosave and recovery must have
-  unit tests.
+- The data model, format conversion, import conversion, live output state
+  handling, macro execution, and autosave and recovery must have unit tests.
 - When you fix a bug, first add a test that reproduces it.
 - Test live output state handling in the form "given a sequence of commands, the
   expected state comes out." Also add a test that random command sequences don't
@@ -210,6 +227,10 @@ A pull request is approved only when it meets everything below
 - Make thumbnails and preview images at their displayed size, and keep them in a
   cache with a size cap.
 - Cap the size of lists such as logs, undo history, and recent items.
+- A cap on unsaved work (memo drafts, files waiting to be written) never drops
+  an entry. Coalesce entries for the same document so only the latest waits, set
+  one named hard cap, and at the cap refuse the new edit before anything is
+  accepted, with the reason visible in a tooltip or the edit result.
 - Soak tests record the memory of the main process, the control window, and the
   output windows separately. If memory keeps growing for 60 minutes, the test
   fails. Before each sample the recorder collects garbage in every window, so
@@ -228,8 +249,9 @@ A pull request is approved only when it meets everything below
 - The control window re-renders only what's needed. Select only the values you
   need from the state store, and render only the visible part of long lists
   (library, media).
-- Move heavy work (import conversion, media analysis, building the search index)
-  to the utility process, or split it into small chunks.
+- Keep heavy work off the main process: import conversion runs in the utility
+  process, media analysis in the hidden media analysis window, and other work
+  (building the search index) is split into small chunks.
 
 ### Code health
 
@@ -255,8 +277,8 @@ A pull request is approved only when it meets everything below
 
 ## Criteria for adding a dependency
 
-Add a new library only when it meets all of the following, you've recorded it in
-`docs/decisions.md`, and the lead has approved it.
+Add a new library only when it meets all of the following, you've recorded the
+reason in this document, and the lead has approved it.
 
 - It's actively maintained (a release within the last year), and its license
   fits this project.

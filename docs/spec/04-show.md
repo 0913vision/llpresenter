@@ -90,8 +90,9 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### Editing the 예배 순서 in 진행
 
-- In 진행, the operator can also drag rows to reorder them and add items with
-  항목 추가 (proposal: the header has an 항목 추가 button).
+- In 진행, the operator can also drag rows to reorder them (a 구역 moves with
+  its items, 05) and add items with 항목 추가 (proposal: the header has an 항목
+  추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
   in 준비) and "삭제" (delete) (proposal). Delete works without confirmation,
   and Ctrl Z or 편집 > 실행 취소 restores the item (proposal). Both always run
@@ -701,10 +702,8 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
   the October 31 user decision and ProPresenter's click-to-fire and right-click
   Inspector actions (S4 in 10, pp. 21 and 104).
 
-Source: the user's October 26 decision, "Media lives in one bottom 미디어 bin"
-in
-[decisions](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
-Renewed Vision's
+Source: the user's October 26 decision that media lives in one bottom 미디어
+bin. Renewed Vision's
 [interface documentation](https://support.renewedvision.com/hc/en-us/articles/360041345954-Understanding-The-ProPresenter-User-Interface)
 (S21 in 10, checked October 26) documents the toolbar Media toggle, bottom Media
 Bin and its left playlist column. Sharing that bin with 준비 and keeping
@@ -766,6 +765,9 @@ that ProPresenter's Edit mode has the same behavior.
     later verse remains. A failed or superseded lookup keeps the old preview.
   - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
     슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
+  - Later: a verse too long for one 슬라이드 splits into several 슬라이드 marked
+    [계속], following copible's slide module. It is discussed with the user
+    before it is built (user decision, 2026-10-26).
   - 참조 decides where the reference (3:16) appears. The board shows only
     "슬라이드마다". The reference text draws at the 환경설정 option 출처 위치
     (reference position, bottom right) (proposal).

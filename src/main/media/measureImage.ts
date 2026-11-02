@@ -7,8 +7,7 @@ export const THUMBNAIL_JPEG_QUALITY = 80;
 
 /**
  * Measures an image with Electron's `nativeImage` and draws the middle of it
- * as a thumbnail when one is asked for (`docs/decisions.md`, "Media analysis
- * runs in a hidden renderer").
+ * as a thumbnail when one is asked for (`docs/TECH.md`, "Media").
  *
  * @returns Null when `nativeImage` can't read the image, such as a WebP file,
  * which the analysis page reads instead.

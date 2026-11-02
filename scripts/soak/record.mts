@@ -44,8 +44,8 @@ type Parsed<T> =
   | {readonly ok: true; readonly value: T}
   | {readonly ok: false; readonly reason: string};
 
-// TODO(0913vision): Switch these checks to valibot (docs/decisions.md) once
-// it is a dependency.
+// TODO(0913vision): Switch these checks to valibot (docs/TECH.md) once it is
+// a dependency.
 
 function isAmount(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;

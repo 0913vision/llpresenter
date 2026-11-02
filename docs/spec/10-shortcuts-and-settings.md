@@ -7,12 +7,17 @@ of 06, 02, and the README that change once it's accepted.
 
 Decision status:
 
-- **Shortcuts: decided** (user, 2026-10-25, `docs/decisions.md`): "단축키는
-  프로프리젠터를 따르면될듯. 나중에고칠수있으니.. 당연히 영어로 단축키를
-  표시해야함 키 이름은." Where ProPresenter has a default key or a behavior, the
-  app follows it. Where no ProPresenter source was found, the app uses this
-  proposal. Keys are matched by physical key, and key names are written in
-  English. The 단축키 settings can change any key later.
+- **Shortcuts: decided** (user, 2026-10-25). Where ProPresenter has a default
+  key or a behavior, the app follows it. Where no ProPresenter source was found,
+  the app uses this proposal. Keys are matched by physical key, and key names
+  are written in English. The 단축키 settings can change any key later.
+- **Key map: waiting for the user** (2026-10-31). The user will give the whole
+  key map. Until then the current defaults stay, and the shortcut system
+  (registry, physical keys, focus precedence, `shortcuts.json`) must make any
+  map work. Shortcut text in menus stays muted (`--text-3`).
+- **Run a service from the keyboard** (user, 2026-10-28). The operator can run a
+  service without the mouse, as a PowerPoint slide show runs from the keyboard.
+  Every frequent 진행 action gets a short, easy key.
 - **Settings: proposal.** The settings use this proposal's defaults until the
   user decides otherwise (open questions 10 to 18). Until then, 06 stays the
   spec for settings.
@@ -739,18 +744,18 @@ workspace. "All" means every workspace of the main window, within the rules of
 
 These actions have no command ID and no shortcut, for the reason given:
 
-| Action                                                                                         | Reason                                                                                                                                              | How the keyboard reaches it                                                          |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Outputting one specific 슬라이드, media tile, or 공지 image                                    | The target is one item on screen. 다음 슬라이드, 이전 슬라이드, slide hot keys, and 다음 배경 cover live navigation.                                | The 슬라이드 grid with focus, ↑ ↓ and Enter (rule 5); other tiles with Tab and Enter |
-| Selecting a 예배 순서 row                                                                      | Selection isn't output (04).                                                                                                                        | ↑ ↓ in the focused list, or 다음 항목 and 이전 항목                                  |
-| Changing a value in a property panel, the media properties, or the 메시지 and 공지 tabs        | The control holds the value and has its own keys.                                                                                                   | Tab to the control, then its keys                                                    |
-| Drag and drop (reordering items, chips, and tiles, files from Explorer)                        | A gesture. The spec gives keyboard moves only to the chip strip (Alt ← and Alt →, 05).                                                              | Chip strip only                                                                      |
-| Right-click menu items (이름 바꾸기, 삭제, 아이콘 바꾸기, 색, 모음, 시작할 때 실행, and so on) | They act on the item under the menu.                                                                                                                | Shift F10 or the Menu key on the focused item (07)                                   |
-| Dialog buttons (만들기, 가져오기, 덮어쓰기, 복구, 새로 시작)                                   | They belong to one dialog.                                                                                                                          | Enter for the primary button, Esc for 취소 (fixed)                                   |
-| The 다시 시도 button of a save failure notification                                            | Bound to one notification. Notifications never take focus (08).                                                                                     | None; the app keeps the content in memory until a retry (02)                         |
-| The 테스트 패턴 choice in 화면 설정                                                            | It changes a real output, and only in 화면 설정 by the operator's choice (08). A global key could put color bars on the projector during a service. | The segmented control in 화면 설정                                                   |
-| Bible panel buttons (앞 절 추가, 뒤 절 추가, 예배 순서에 넣기)                                 | They act on the passage in the open Bible panel. 바로 띄우기 is Enter in the Bible field (04).                                                      | Tab and Enter                                                                        |
-| Choosing a search result, a service in the service list, or a suggestion                       | They belong to an open list.                                                                                                                        | ↑ ↓ and Enter (04, `Menu` README)                                                    |
+| Action                                                                                         | Reason                                                                                                                                                                      | How the keyboard reaches it                                                          |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Outputting one specific 슬라이드, media tile, or 공지 image                                    | The target is one item on screen. 다음 슬라이드, 이전 슬라이드, slide hot keys, and 다음 배경 cover live navigation.                                                        | The 슬라이드 grid with focus, ↑ ↓ and Enter (rule 5); other tiles with Tab and Enter |
+| Selecting a 예배 순서 row                                                                      | Selection isn't output (04).                                                                                                                                                | ↑ ↓ in the focused list, or 다음 항목 and 이전 항목                                  |
+| Changing a value in a property panel, the media properties, or the 메시지 and 공지 tabs        | The control holds the value and has its own keys.                                                                                                                           | Tab to the control, then its keys                                                    |
+| Drag and drop (reordering items, chips, and tiles, files from Explorer)                        | A gesture. The spec gives keyboard moves only to the chip strip (Alt ← and Alt →, 05).                                                                                      | Chip strip only                                                                      |
+| Right-click menu items (이름 바꾸기, 삭제, 아이콘 바꾸기, 색, 모음, 시작할 때 실행, and so on) | They act on the item under the menu.                                                                                                                                        | Shift F10 or the Menu key on the focused item (07)                                   |
+| Dialog buttons (만들기, 가져오기, 덮어쓰기, 복구, 새로 시작)                                   | They belong to one dialog.                                                                                                                                                  | Enter for the primary button, Esc for 취소 (fixed)                                   |
+| The 다시 시도 button of a save failure notification                                            | Bound to one notification. Notifications never take focus (08).                                                                                                             | None; the app keeps the content in memory until a retry (02)                         |
+| The 테스트 패턴 choice in 화면 설정                                                            | It changes a real output, and only in 화면 설정 by the operator's choice (08). A global key could put color bars on the projector during a service.                         | The segmented control in 화면 설정                                                   |
+| Bible panel buttons (앞 절 추가, 뒤 절 추가, 예배 순서에 넣기)                                 | They act on the passage in the open Bible panel. 바로 띄우기 is Enter in the Bible field, and Shift+→ and Shift+← add a verse at the passage's ends while they output (04). | Tab and Enter                                                                        |
+| Choosing a search result, a service in the service list, or a suggestion                       | They belong to an open list.                                                                                                                                                | ↑ ↓ and Enter (04, `Menu` README)                                                    |
 
 ### Default key map
 
@@ -1175,7 +1180,7 @@ and preview content keeps its output proportions. Changing zoom doesn't edit
     after the window and zoom reset, then fit the widths using the existing
     center-column minimum rule. Other remembered selections and panel states
     stay as they were. Save through the data store, the only `app.json` writer
-    (`docs/decisions.md`, "One owner of app.json").
+    (`docs/TECH.md`, "Storage").
 - The reset affects only the control window layout. It keeps live content,
   output toggles and output-window bounds, screen assignments, 테마, services,
   and preferences. Opening or accepting it never clears or re-triggers a slide.

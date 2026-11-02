@@ -138,7 +138,7 @@ Each textarea is a single slide. Enter, blank-line splitting, Backspace merging,
 plain-text paste, Ctrl Enter, Ctrl Shift N, Ctrl Z, Ctrl Y, and Ctrl Shift Z
 dispatch to the approved block model. A paste without plain text leaves the
 selection and lyrics untouched. Structural edits remap every named arrangement
-under the split/merge decision in `docs/decisions.md`. Up/down cross logical
+under the split and merge rules in `docs/spec/02-data.md`. Up/down cross logical
 line boundaries at the same column; lyrics do not soft-wrap. Selection with
 Shift and unrelated modifier shortcuts remain native. IME composition owns its
 Enter and other command keys. Handled commands stop propagation; the host must

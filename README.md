@@ -9,7 +9,6 @@ more than features.
 - Feature spec: [`docs/spec/`](docs/spec/)
 - Design system: [`design/`](design/)
 - Stack and quality bar: [`docs/TECH.md`](docs/TECH.md)
-- Decision log: [`docs/decisions.md`](docs/decisions.md)
 - How to contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ## Development
@@ -21,3 +20,6 @@ npm run dev
 
 - To change the dev server port and the app data folder, set `LLP_DEV_PORT` and
   `LLP_USER_DATA`.
+- `npm ci` runs Electron's `install-electron` as `postinstall`, because Electron
+  44 no longer downloads its binary on install and electron-vite needs it. It
+  skips the download when the binary is already there.

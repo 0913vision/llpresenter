@@ -127,7 +127,7 @@ feature we lack), Moved, Removed.
 | Group | Row                                                | Does                                                                                                                       | Status |
 | ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                             | Off    |
-| 1     | 곡 편집                                            | Opens 준비 with this slide selected and scrolled into view, like 곡 편집 on a 예배 순서 song item.                         | New    |
+| 1     | 곡 편집…                                           | Opens the 곡 편집 window (05) with this slide selected and scrolled into view, like 곡 편집… on a 예배 순서 song item.     | New    |
 | 2     | 사용 안 함                                         | PP Disable.                                                                                                                | Off    |
 | 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                         | Off    |
 | 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 빼기: <대상>" rows here.                                                     | Off    |
@@ -270,7 +270,8 @@ feature we lack), Moved, Removed.
 | 1      | 항목 숨기기                                     | PP Hide Item.                                                                                                                                                                    | Off    |
 | song   | 구성 ›                                          | Song items: the song's 구성 with ✓ on the one this item uses; picking one sets it for this item (PP Arrangement, 3:37 and 4:00). The same choice as the item's 구성 setting row. | New    |
 | song   | 출력 대상 ›                                     | PP Destination.                                                                                                                                                                  | Off    |
-| song   | 곡 편집                                         | Opens the song in 준비 (PP Reflow). Replaces 준비에서 열기 on song items.                                                                                                        | Moved  |
+| song   | 순서 편집…                                      | 준비 only: opens the 순서 편집 window for this item (05).                                                                                                                        |
+| song   | 곡 편집…                                        | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                                      | Moved  |
 | other  | 준비에서 열기                                   | Items that are not songs, 진행 only (ours).                                                                                                                                      | Now    |
 | header | 색 바꾸기                                       | 구역 rows only (PP Change Color on a header).                                                                                                                                    | Off    |
 | 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V), 복제 (Ctrl D) | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                                | Off    |
@@ -279,9 +280,9 @@ feature we lack), Moved, Removed.
 | song   | 라이브러리에서 보기                             | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                                         | New    |
 | song   | 묶음으로 내보내기…, 그림으로 내보내기…          | PP Export as Bundle, Export as Images.                                                                                                                                           | Off    |
 
-- Groups: 숨기기 | 구성 and 출력 대상 | 곡 편집 | clipboard and 삭제 |
-  라이브러리와 내보내기. Omit the 곡 편집 group in 준비, where the song already
-  opens in the editor.
+- Groups: 숨기기 | 구성 and 출력 대상 | 곡 편집… | clipboard and 삭제 |
+  라이브러리와 내보내기. In 준비, 순서 편집… and 곡 편집… follow 구성 › in its
+  group (05, B20).
 
 ### 예배 순서 고르기
 
@@ -327,7 +328,7 @@ feature we lack), Moved, Removed.
 | 1     | 예배 순서에 추가 ›                                      | Submenu under the heading 예배 순서: services, newest first. Picking one appends the song.                                                      | New    |
 | 2     | 구성 ›                                                  | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits. | Off    |
 | 2     | 출력 대상 ›                                             | PP Destination.                                                                                                                                 | Off    |
-| 3     | 곡 편집                                                 | Opens the song in 준비 (PP Reflow).                                                                                                             | New    |
+| 3     | 곡 편집…                                                | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                           | New    |
 | 4     | 복사, 붙여넣기, 복제                                    | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                        | Off    |
 | 4     | 이름 바꾸기                                             | No icon, text aligned with the icon rows.                                                                                                       | Off    |
 | 4     | 삭제                                                    | No icon, as in PP. Confirms, then deletes.                                                                                                      | Now    |

@@ -133,8 +133,8 @@ Rules:
   any group it does nothing, leaving lyrics, group IDs and all arrangements
   unchanged. Show the reason in a tooltip: 그룹 경계에서는 슬라이드를 합칠 수
   없습니다. This applies even when the adjacent groups have the same name.
-  Whole-group references cannot represent every cross-group slide merge. See the
-  [October 26 split/merge decision](../decisions.md#2026-10-26-a-구성-never-loses-lyrics-through-a-split-or-merge).
+  Whole-group references cannot represent every cross-group slide merge. A split
+  or a merge never drops lyrics from an arrangement (lead decision, October 26).
 - For adjacent single-slide groups A and B, cross-boundary Backspace leaves
   separate arrangements `[A]` and `[B]` unchanged, leaves reversed `[B, A]`
   unchanged, and leaves repeated `[A, B, A, B]` unchanged. No special-case merge
@@ -311,9 +311,8 @@ icon, and don't let the operator output it (proposal).
   `slides` slots follow the same rule. The stored `header` key is unchanged by
   the UI terminology change.
 
-Source: the user's October 26 check decision, recorded under
-[Decisions from the m3-check3 user check](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
-It replaces the slot behavior in the earlier service samples and draft boards.
+Source: the user's decision from the m3-check3 check, October 26. It replaces
+the slot behavior in the earlier service samples and draft boards.
 
 ## Templates
 
@@ -327,9 +326,9 @@ It replaces the slot behavior in the earlier service samples and draft boards.
   shows 예배 전 카운트다운, 주일 광고, and 축도 in a 템플릿. It has no slot
   items.
 
-Source: `Main` service notes (same file format), `NewService`, and the
-[October 26 user check decision](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check)
-(empty sections replace slot items).
+Source: `Main` service notes (same file format), `NewService`, and the user's
+decision from the m3-check3 check, October 26 (empty sections replace slot
+items).
 
 ## App-wide settings
 
@@ -675,7 +674,7 @@ M2 check 1 adds `uiZoomPercent` (100 to 200, step 10 percentage points,
 default 100) for control windows on this computer. 10 defines UI zoom and the
 proposed layout reset, which restores local window bounds, zoom, and all size
 classes' column widths and thumbnail percentages. The data store remains the
-only writer (`docs/decisions.md`, "One owner of app.json").
+only writer (`docs/TECH.md`, "Storage").
 
 Media browser UI choices are optional app-local fields. `mediaStrip` remembers
 the shared bottom bin's visibility in 진행 and 준비 (04). `prepMedia` is a
@@ -741,6 +740,11 @@ change this picker preference.
 - Translations are prepared in advance and delivered with an app update. The
   installed list in 환경설정 offers 기본으로 (make default); the app never
   installs or removes translations (user decision, 2026-10-26). See 06.
+- The translation files are built once on the user's computer, from a one-time
+  crawl that runs slowly and within what the site allows, for the user's own use
+  only and never redistributed (user decision, 2026-10-25). No crawled text and
+  no file built from it is ever committed; the files live in the app data
+  folder.
 - Every Bible feature works without the network (01). The app never fetches
   verse text.
 
@@ -1037,7 +1041,7 @@ used. The user decides.
 - es-hangul 2.4.0 on npm: MIT license, no runtime dependencies, about 148 KB
   unpacked, last modified on 2026-08-24 (npm registry, read on 2026-10-25), from
   Toss (https://github.com/toss/es-hangul).
-- It's a proposal only. Adding it needs an entry in `docs/decisions.md` and the
+- It's a proposal only. Adding it needs its reason in `docs/TECH.md` and the
   lead's approval first (`CONTRIBUTING.md`, `docs/TECH.md`, "Criteria for adding
   a dependency"). Splitting Hangul syllables into letters takes a few dozen
   lines and could be written in-house; converting QWERTY input to Hangul is a

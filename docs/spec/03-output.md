@@ -204,8 +204,7 @@ colors), 12.
   the text elements of a 테마 (12). Until M3-X2 activates the staged stored
   fields, the existing switches draw the provisional defaults: a 3 px black
   outline and an 8 px blur, 4 px distance down and to the right, 60 % opacity,
-  black shadow. See the
-  [decision](../decisions.md#2026-10-28-outline-and-shadow-controls-follow-propresenter).
+  black shadow (user decision, October 28: follow ProPresenter's controls).
 
 ### Transitions
 
@@ -482,8 +481,8 @@ It closes after 6 seconds.
   outputs.
 
 Source: `Problems`, `Notification` README, `ToolbarButton` README, `StatusBar`
-README, `PreviewFrame` README, `Screens` (연결이 끊기면: 창으로 바꾸기),
-[2026-10-25 fallback-window decision](../decisions.md#2026-10-25-a-fallback-output-window-goes-behind-the-control-window).
+README, `PreviewFrame` README, `Screens` (연결이 끊기면: 창으로 바꾸기), and the
+user's fallback-window decision of October 25.
 
 ## When an output window crashes
 

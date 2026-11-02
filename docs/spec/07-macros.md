@@ -226,5 +226,4 @@ Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라�
   the same.
 
 Source: `Main` decision "다중 레이어 지우기는 v1에서 뺌", `Main` "프로프리젠터와
-다른 점" (지우기), `ClearButton` README, product log (2026-10-24, version 65),
-`docs/decisions.md`.
+다른 점" (지우기), `ClearButton` README, product log (2026-10-24, version 65).

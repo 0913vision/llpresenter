@@ -72,7 +72,7 @@ remove the leading `EF BB BF` bytes without decoding and rewriting the body.
 - typescript-eslint needs the TypeScript compiler API, which TypeScript 7
   doesn't have. So the `typescript` package is the TypeScript 6 API
   (`@typescript/typescript6`), used only by lint and the editor, and `tsc` comes
-  from TypeScript 7 (`@typescript/native`). See `docs/decisions.md`.
+  from TypeScript 7 (`@typescript/native`).
 - `llp/allowed-comments` (`scripts/lint/comment-rule.mts`) allows only the
   comments in `CONTRIBUTING.md`: TSDoc, `// NOTE(0913vision): ...`, and
   `// TODO(0913vision): ...`. Plain `//` lines right under a NOTE or TODO, in
@@ -281,14 +281,19 @@ the version bot commit first". Merge commits on `main` aren't allowed.
 
 ## CI
 
-The October 25 user decision moves heavy branch verification to GitHub-hosted
-runners. `.github/workflows/ci.yml` runs:
+Branch verification runs on GitHub-hosted runners. `.github/workflows/ci.yml`
+runs:
 
-- On a push to any branch except `main`: `npm ci` and `npm run verify` on
-  `windows-latest`, with npm and the Electron download cached, and the coverage
-  report uploaded as an artifact. The job has read-only repository permission,
-  doesn't pass repository secrets, and doesn't persist checkout credentials.
-- On a push to `main`: only the `bump` job above.
+- On a push to any branch except `main`: the `checks` job (typecheck, lint,
+  format check, build) and the `tests` job (Vitest in three shards, without
+  coverage) on `windows-latest`, with the installed packages and the Electron
+  download cached. A branch that changes only Markdown documents outside
+  `design/` gets the format check only. The jobs have read-only repository
+  permission, don't pass repository secrets, and don't persist checkout
+  credentials.
+- On a push to `main`: the `bump` job above and, beside it, the `coverage` job,
+  which runs the tests with coverage, uploads the report as an artifact, and
+  never fails on the number.
 - On demand (`workflow_dispatch`, with the `major` input) on `main`: only the
   bump. Manual runs on other branches skip both jobs.
 

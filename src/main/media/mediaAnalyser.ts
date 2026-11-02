@@ -114,8 +114,7 @@ function analysisOf(reply: AnalysisReply): Analysis {
 }
 
 /**
- * Analyses media files one at a time (`docs/decisions.md`, "Media analysis
- * runs in a hidden renderer"). Images that `nativeImage` reads are measured in
+ * Analyses media files one at a time (`docs/TECH.md`, "Media"). Images that `nativeImage` reads are measured in
  * main; video, audio, and other images go to the hidden analysis page, which
  * opens on demand, gets {@link ANALYSIS_TIMEOUT_MS} per file, and closes after
  * {@link ANALYSIS_IDLE_CLOSE_MS} with nothing to read. At most

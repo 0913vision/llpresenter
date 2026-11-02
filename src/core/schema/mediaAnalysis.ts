@@ -23,8 +23,7 @@ export const analysisFailureReasons = [
 export type AnalysisFailureReason = (typeof analysisFailureReasons)[number];
 
 /**
- * One file for the hidden analysis page (`docs/decisions.md`, "Media analysis
- * runs in a hidden renderer"): the URL it loads, how to read it, and the
+ * One file for the hidden analysis page (`docs/TECH.md`, "Media"): the URL it loads, how to read it, and the
  * thumbnail to draw, if any. Main builds it, so it isn't validated.
  */
 export interface AnalysisJob {

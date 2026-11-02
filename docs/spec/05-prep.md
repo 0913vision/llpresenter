@@ -29,6 +29,73 @@ captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
 Source: `Reflow`, `PrepService`, `Main` decision "작업 공간 세 개", design
 system README (window sizes and layout).
 
+## The 예배 순서 table and the editor windows (B20)
+
+The user decided this on November 2 (drafts o1 to o6 and g5, outside the
+repository). It is being built. When it lands, it replaces the center column in
+"Layout", "Item panel (center)", and the item's 오버레이 table (12, draft K).
+
+### 준비
+
+- The center of 준비 is the 예배 순서 table, one row per item. Clicking a row
+  shows that item's preview, 슬라이드, and settings on the right. The 라이브러리
+  stays on the left.
+- A song row's right-click has 순서 편집… and 곡 편집… after 구성 › (11). A
+  double-click or Enter on a song row opens 순서 편집.
+
+### 순서 편집
+
+- A window for this service's order of the song and its 오버레이. The order
+  belongs to this item only; 구성으로 저장… saves it as a 구성 of the song. It
+  shows the order as group tokens, as ProPresenter's arrangements do (02), with
+  the 구성 picker.
+- It opens beside the 라이브러리, its left edge at the library's right edge, and
+  is not modal, so media can be dragged in from the library.
+- 슬라이드 fill rows to the window's width, and the window scrolls. A size
+  slider at the bottom right sets their size, remembered with the window's
+  bounds.
+- An order change (moving, adding, or removing a token) moves the 오버레이
+  ranges in the same write: a range stays on its start and end 슬라이드, and
+  removing the end 슬라이드 makes the 슬라이드 before it the end. A range whose
+  슬라이드 are all removed is kept and clamped when read.
+
+### 오버레이 on 슬라이드
+
+The same bar and menus work in 순서 편집 and in the 슬라이드 list on 준비's
+right.
+
+- Add: drag media from the 라이브러리 미디어 list or the 미디어 bin onto a
+  슬라이드, or choose 오버레이 추가… on the 슬라이드's right-click. The range
+  runs from that 슬라이드 to the song's end, or to the 슬라이드 before the next
+  오버레이.
+- A 슬라이드 has at most one 오버레이 (12). Dropping media on a 슬라이드 that
+  has one replaces its media.
+- A bar under the 슬라이드 shows each range. It is drawn per row, with › where
+  it runs on to the next row and a handle at each real end. Dragging an end
+  changes the range.
+- Clicking a bar opens its settings, with the labels and controls of the
+  existing 오버레이 settings: 바꾸기…, 슬라이드 (부터, 까지), 화면 (a checkbox
+  per screen), 끝나면 (반복, 멈춤), 소리 (the label with a lone checkbox), and
+  오버레이 삭제.
+- Remove: 오버레이 삭제 in those settings or on the 슬라이드's right-click,
+  beside 오버레이 바꾸기…; or choose a bar and press Delete.
+
+### 곡 편집
+
+- A window for the 라이브러리 song itself (lyrics, 이름표, 구성), like the 화면
+  설정 window. 곡 편집 from 진행 opens it at the clicked 슬라이드.
+- Edits stay in the window until 저장 (Ctrl S). 저장 always asks "<제목> 곡을
+  덮어쓸까요?" with 취소 and 덮어쓰기, with the usage line when other services
+  use the song. This replaces saving 라이브러리 songs on every edit.
+- 다른 이름으로 저장… (Ctrl Shift S) opens a name dialog filled with "<제목> 2",
+  makes a new 라이브러리 song from the edits, and leaves the original unchanged.
+  When the window was opened from an item (순서 편집… or a 준비 row), that item
+  switches to the new song.
+- Unsaved edits show a dot before the title. Closing the window with unsaved
+  edits asks 저장, 저장 안 함, 취소, as the 테마 editor does (12).
+
+Source: drafts o1 to o6 and g5, user decision, November 2.
+
 ## 예배 순서 panel in 준비
 
 - The header, service switcher, and 항목 추가 (add item) work as in 진행 (see
@@ -44,9 +111,10 @@ system README (window sizes and layout).
   - Media: the media properties of that media.
   - 공지: the images of the 공지 set.
   - Section (구역): an empty center panel.
-- The operator drags rows to reorder them. Delete removes the selected item
-  without confirmation, and Ctrl Z restores it (proposal). The right-click menu
-  has 삭제 (delete) (proposal).
+- The operator drags rows to reorder them. Dragging a 구역 moves it with its
+  items, up to the next 구역, as one section (user decision, October 26). Delete
+  removes the selected item without confirmation, and Ctrl Z restores it
+  (proposal). The right-click menu has 삭제 (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
 
@@ -116,7 +184,8 @@ Source: `Reflow`, `PrepService`, `TextField` README, `AlertDialog` README.
 ## Song editor
 
 The song editor edits the 라이브러리 song, which is the source for every 예배
-순서 that uses it. Edits save automatically and show at once in every 예배 순서.
+순서 that uses it. Saved edits show at once in every 예배 순서. Edits stay in
+the editor until 저장 ("곡 편집" under B20 above).
 
 ### Header
 
@@ -391,8 +460,7 @@ Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).
   converts its legacy slots into section rows with their titles and unknown
   fields preserved, as 02 defines.
 
-Source: the user's October 26 check decision, recorded under
-[Decisions from the m3-check3 user check](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
+Source: the user's decision from the m3-check3 check, October 26.
 
 ## New service
 

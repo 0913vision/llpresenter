@@ -179,6 +179,15 @@ Source: design system principle 4 and state table, `Main` decision "빨강은
 Source: design system principle 3 and writing rules, product log versions 56
 and 61.
 
+### Dragging rows
+
+- In every list (예배 순서, 퀵 실행, and the others), a dragged row lands by the
+  target row's midpoint: over its upper half the row goes above it, over its
+  lower half below it, so the top of a list is easy to reach.
+- Once the pointer passes the drag threshold, releasing never counts as a click,
+  so a drag can't select a row or run a 퀵 실행 action (user decision,
+  m3-check3).
+
 ### Windows only
 
 - Version 1 runs only on Windows. The target is Windows 10 or later (proposal).
@@ -300,13 +309,15 @@ Source: `ShowH`, `Toolbar` README, `ToolbarButton` README, `Media`.
 
 ### Status bar
 
-- Left: the time of the last save, for example "23:41 저장됨" (saved at 23:41).
-  It changes each time an autosave finishes.
-- Right: the output health of the 본 화면, 무대 화면, and 방송 자막, in that
-  order, for example "본 화면 60fps" or "무대 화면 창으로 표시 중" (stage screen
-  showing in a window). A screen whose output is off shows only its name. While
-  the output state recovery dialog is open, the status reads "대기" (standby).
-  See 08.
+- It stays empty when nothing needs attention. The toolbar output buttons
+  already show which screens are on, so it never lists the screens (user
+  decision, October 29).
+- It shows text only for a problem or a wait: a screen showing in a window
+  ("무대 화면 창으로 표시 중"), an output window restarting or at its restart
+  limit, a low frame rate, a slow or failed save ("저장을 시도하는 중..."), and
+  "대기" (standby) while the output state recovery dialog is open. See 08.
+- Each message says plainly what is happening, as a short Korean phrase, never a
+  code or a bare number. Its text keeps at least 4.5:1 contrast.
 - Nothing is clickable, with one exception: if the operator closed a warning
   notification, clicking that screen's text reopens the notification. See 08.
 
@@ -324,6 +335,10 @@ All three workspaces use the same three-column frame (left, center, right). The
 | 테마      | 테마 list, 요소       | 테마 canvas                    | 요소 and 화면 properties                                | 12      |
 
 - Switching workspaces never changes the output.
+- 진행 and 준비 must be told apart at a glance (user decision, October 31). The
+  first trial is ours: 진행 uses one warm palette at the same lightness steps
+  with an amber accent, and 준비 keeps the default colors. The user judges it in
+  a check build.
 - All three workspaces share the current service. The 예배 순서 panels in 진행
   and 준비 show the same 예배 순서.
 - F1 to F7 work in every workspace, even with a dialog open (10, focus

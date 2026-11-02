@@ -107,6 +107,17 @@ README, `Notification` README.
 - Output windows never show error UI of their own. On a drawing error, they keep
   the last good picture.
 
+### A hung output window (lead rule)
+
+- An output that is on and has drawn sends a frame rate report every second.
+  After 5 seconds without one (`FRAME_SILENCE_MS`), the main process pings the
+  page's main thread.
+- Only a page that doesn't answer within 10 seconds (`ANSWER_LIMIT_MS`) counts
+  as hung. The main process crashes its renderer on purpose, so the restart
+  above reloads it and counts it toward the restart limit.
+- A page that answers but draws nothing is logged and never restarted, because a
+  wrong restart blanks a live output during a service.
+
 ### The restart limit (lead rule)
 
 If the same output window dies 3 times within 60 seconds, the main process stops
@@ -186,8 +197,8 @@ editor can change meanwhile.
 - Enter presses 다시 시도 when it is available. Esc does nothing, and the dialog
   has no close button.
 
-Source: `docs/decisions.md`, "Closing the app while edits are still being saved"
-(user decision), `AlertDialog` README.
+Source: user decision, October 26 (the app holds its window while it saves, as
+VS Code does), `AlertDialog` README.
 
 The status bar keeps its height and stays empty in normal operation. It shows
 readable text only for a problem or standby.
@@ -310,9 +321,9 @@ writing rules.
 
 ## What must never happen during a service
 
-- Never show a dialog, notification, tooltip, menu, or mouse cursor on an output
-  window. Keep full screen outputs above other windows, so that no system window
-  covers them (항상 위, on by default).
+- Never show a dialog, notification, tooltip, or menu on an output window. The
+  mouse pointer stays visible over outputs, and 항상 위 is a screen option that
+  is off by default (03, "Rules for output windows").
 - Never ask for confirmation before an action that affects the output. Never
   block F1 to F7: they work with a dialog open and with a text field focused.
 - Never depend on the network. Bible texts, fonts, and icons are bundled. Media

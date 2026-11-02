@@ -24,8 +24,7 @@ function load(win: BrowserWindow, signal: AbortSignal): Promise<void> {
 
 /**
  * Opens the analysis page in a window that is never shown or focused,
- * sandboxed and without a preload (`docs/decisions.md`, "Media analysis runs
- * in a hidden renderer"). Main calls the page's `analyseMedia` with
+ * sandboxed and without a preload (`docs/TECH.md`, "Media"). Main calls the page's `analyseMedia` with
  * `executeJavaScript`. The signal destroys the window at any time, also while
  * the page loads, which the analyser's deadline bounds.
  *

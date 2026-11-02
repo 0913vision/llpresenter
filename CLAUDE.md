@@ -12,11 +12,12 @@ Korean. Don't use a playful tone.**
 ## Read first
 
 1.  The team documents (workflow, your brief, milestones and file ownership, the
-    member and review guides). They live outside the repository; the lead writes
-    their folder to `.llp/team-dir` in your worktree.
+    member and review guides, the decision log). They live outside the
+    repository; the lead writes their folder to `.llp/team-dir` in your
+    worktree.
 2.  `README.md`, `CONTRIBUTING.md`, `docs/spec/` (behavior and data),
-    `docs/TECH.md` (stack and quality bar), `docs/decisions.md` (decisions),
-    `design/system/project/README.md` and the component docs (UI).
+    `docs/TECH.md` (stack and quality bar), `design/system/project/README.md`
+    and the component docs (UI).
 
 ## Safety rules
 
@@ -83,19 +84,19 @@ the process only at a milestone boundary, never in the middle of one.
   back to you.
 - **Nothing about the process is committed:** no review files, check sheets,
   sample data for checks, screenshots, measurements, run logs, plans, status
-  pages, briefs, or notes. Committed files hold the product only: code, tests,
-  `docs/spec/`, `docs/TECH.md`, `docs/decisions.md`, the design system, README,
-  and CONTRIBUTING. Process documents live in the team folder outside the
-  repository.
+  pages, briefs, notes, or decision logs. Committed files hold the product only:
+  code, tests, `docs/spec/`, `docs/TECH.md`, the design system, README, and
+  CONTRIBUTING. Process documents, the decision log included, live in the team
+  folder outside the repository.
 - **Reporting:** send the lead one short message when your branch's CI passes,
   when you finish a task, when you're blocked, and when you have no work left.
   The lead gives you the next task. Don't wait silently.
 - Use the dev server port and app data folder the lead gives you. Never let a
   window or an error dialog appear on the user's screen; check scripts with
   `node --check` before they start Electron.
-- The lead alone edits `CLAUDE.md`, `docs/TECH.md`, `docs/decisions.md`, and the
-  team documents; members change `docs/spec/` with their requests. The lead
-  manages and doesn't write code.
+- The lead alone edits `CLAUDE.md`, `docs/TECH.md`, and the team documents;
+  members change `docs/spec/` with their requests. The lead manages and doesn't
+  write code.
 
 ## Context and compaction
 
@@ -113,8 +114,9 @@ what you need on disk, not in the conversation.
   before you wait on anything, and as soon as you learn something that isn't
   written in the repository: a decision, an agent or session id, a port, the
   reason behind a choice.
-- Write decisions other sessions need into `docs/decisions.md`; everything else
-  about the process goes to the lead, not into the repository.
+- Send decisions other sessions need to the lead, who records them in the team
+  folder's decision log and writes the rule into `docs/spec/`, `docs/TECH.md`,
+  or CONTRIBUTING. Nothing else about the process goes into the repository.
 - Never put secrets in the notes.
 - After a compaction, read your notes, your brief, and the files you were
   editing before you change anything. Trust the files over the summary.

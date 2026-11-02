@@ -72,6 +72,10 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 - 공지, 메시지, and 그래픽 are not elements. Each keeps its own appearance and
   the screens it is sent to, and they always draw on top of the 테마 in the
   order 공지, 그래픽, 메시지. A 테마 can't hide them.
+- A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
+  over ProPresenter's style per 메시지 template (user decision, October 28).
+  Where a screen picks its style after the Look became 테마 is open (README,
+  open question 27).
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 본 화면, the item's settings show a warning mark
   with the reason in its tooltip and a 테마 편집… button.
@@ -136,7 +140,8 @@ is no 다음 항목 이름 element.
 - The 매크로 action 테마 바꾸기 has a 테마 as its target (07).
 - A 테마 picked by hand or by a 매크로 holds until the next item starts; then
   the new item's 테마 applies.
-- Edits to the live 테마 in the editor apply to the output at once.
+- Edits to the live 테마 reach the output when the editor saves them ("The 테마
+  editor").
 
 Switching the 테마 with the item is our design. In ProPresenter a Look stays
 until the operator or an action changes it (S4 pp. 37 to 38).
@@ -217,15 +222,29 @@ Editing:
 - Ctrl C and Ctrl V copy elements, with position and style, between screens and
   테마. Ctrl A selects every element of the screen. Pasting a one-per-screen
   kind the screen already has replaces its position and style.
-- Every edit saves at once, as other settings do (06).
+
+Saving (user decision, November 1):
+
+- Edits stay in the editor until 저장 (Ctrl S). A 테마 is shared by every item
+  that uses it, so a stray drag must not change them, and a LIVE 테마 must not
+  change the output while someone edits it.
+- 저장 asks "<이름> 테마를 덮어쓸까요?" with 취소 and 덮어쓰기. Under it, the
+  usage line of the other confirmations ("예배 순서 항목 4곳에서 씀") counts the
+  items that use the 테마 directly or as their kind's default, and is hidden
+  at 0.
+- 다른 이름으로 저장… (Ctrl Shift S) sits beside 저장. It makes a new 테마 from
+  the edits and leaves the original unchanged.
+- A 테마 with unsaved edits shows a dot after its name. Leaving it (another row,
+  another workspace, closing the window) with unsaved edits asks 저장, 저장 안
+  함, 취소. The output of a LIVE 테마 changes only on save.
 
 The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › (곡, 성경,
 공지, 미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제.
 The row shows the kinds that use it as small tags. The live 테마's row shows
-LIVE to the left of those tags (user, October 31), because an edit to it changes
-the output at once. 복제 makes `<name> 복사본`. 삭제 asks first when a kind or
-an item uses the 테마; its items fall back to their kind's default. The 대기
-화면 row has no 삭제 and no 기본으로 쓰기.
+LIVE to the left of those tags (user, October 31), because saving it changes the
+output at once. 복제 makes `<name> 복사본`. 삭제 asks first when a kind or an
+item uses the 테마; its items fall back to their kind's default. The 대기 화면
+row has no 삭제 and no 기본으로 쓰기.
 
 ## 오버레이
 
@@ -236,14 +255,12 @@ an item uses the 테마; its items fall back to their kind's default. The 대기
 - Where it shows on a screen is the 테마's 오버레이 element. No default 테마 has
   one, so most items never use 오버레이. Whoever needs one makes a 테마 for the
   item (복제, then add the element).
-- Edit it in the item's 오버레이 table (draft K): one row per 슬라이드, one
-  오버레이 column. The start row holds the 오버레이's name and a vertical bar
-  covers every row of the range, from the top of the start row to the bottom of
-  the end row, through the row borders. A small spacing-token gap at each outer
-  end separates adjacent ranges; a one-row range also spans its row.
-- When an item has 오버레이 rows but its 테마 has no 오버레이 element on a
-  screen the 오버레이 targets, the table header shows a warning mark with the
-  reason in its tooltip and 테마 편집….
+- Edit it on the 슬라이드, in 순서 편집 and in 준비's 슬라이드 list (05,
+  "오버레이 on 슬라이드"). This replaces the item's 오버레이 table (draft K)
+  when B20 lands.
+- When an item has an 오버레이 but its 테마 has no 오버레이 element on a screen
+  the 오버레이 targets, the item's settings (until B20, the 오버레이 table
+  header) show a warning mark with the reason in its tooltip and 테마 편집….
 - Example (user, October 30): a 특송 item with an MR video on the 무대 화면
   only, across every lyric 슬라이드, while the 본 화면 and the 방송 자막 show
   the lyrics as usual.
