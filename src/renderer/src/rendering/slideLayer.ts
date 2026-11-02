@@ -211,7 +211,10 @@ export class SlideLayerView {
 
   private clearAtOnce(): void {
     this.element.classList.add(classes.instant);
-    for (const page of this.pages) page.element.classList.remove(classes.shown);
+    for (const page of this.pages) {
+      page.element.classList.remove(classes.shown);
+      writeLines(page.block, ['']);
+    }
   }
 
   private fit({element, block}: Page): void {

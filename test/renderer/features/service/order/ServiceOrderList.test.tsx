@@ -9,6 +9,7 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
+import {createNoticeSetId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {
@@ -137,6 +138,90 @@ describe('ServiceOrderList', () => {
     const live = screen.getByRole('option', {name: /맑은 시냇물/});
     expect(live.textContent).toContain('LIVE');
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
+  });
+
+  describe('the LIVE badge of a media or 공지 item', () => {
+    const NOTICE_SET = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
+
+    function setOther(
+      layers: Partial<ReturnType<typeof emptyLiveState>['layers']>,
+      started: string | null,
+    ): void {
+      const base = emptyLiveState();
+      useShow.setState({
+        tiles: {
+          ...useShow.getState().tiles,
+          countdown: [
+            {
+              label: null,
+              labelColor: 'none',
+              lines: ['x'],
+              media: {mediaId: 'countdown-video', loop: true},
+            },
+          ],
+          'notice-sunday': [
+            {
+              label: null,
+              labelColor: 'none',
+              lines: ['x'],
+              notice: {noticeId: createNoticeSetId(NOTICE_SET), position: 0},
+            },
+          ],
+        },
+      });
+      useLive.setState({
+        state: {...base, layers: {...base.layers, ...layers}},
+        lastStartedItemId: started,
+      });
+    }
+    const mediaLayer = (mediaId: string) => ({
+      mediaId,
+      loop: true,
+      startedAt: 0,
+    });
+
+    it('marks a media item while its media is out', () => {
+      setOther({media: mediaLayer('countdown-video')}, 'countdown');
+      render(<ServiceOrderList />);
+      expect(
+        screen.getByRole('option', {name: /예배 전 카운트다운/}).textContent,
+      ).toContain('LIVE');
+      expect(screen.getAllByText('LIVE')).toHaveLength(1);
+    });
+
+    it('marks a 공지 item while its 공지 plays', () => {
+      setOther({notice: {noticeId: NOTICE_SET}}, 'notice-sunday');
+      render(<ServiceOrderList />);
+      expect(
+        screen.getByRole('option', {name: /주일 광고/}).textContent,
+      ).toContain('LIVE');
+      expect(screen.getAllByText('LIVE')).toHaveLength(1);
+    });
+
+    it('marks nothing once the media is cleared or another media is out', () => {
+      setOther({}, 'countdown');
+      const view = render(<ServiceOrderList />);
+      expect(screen.queryAllByText('LIVE')).toHaveLength(0);
+      setOther({media: mediaLayer('other-video')}, 'countdown');
+      view.rerender(<ServiceOrderList />);
+      expect(screen.queryAllByText('LIVE')).toHaveLength(0);
+    });
+
+    it('keeps the mark of a song with a slide ahead of a media item', () => {
+      setOther({media: mediaLayer('countdown-video')}, 'countdown');
+      setLiveSlide('song-river', 0);
+      useLive.setState(view => ({
+        state: view.state && {
+          ...view.state,
+          layers: {...view.state.layers, media: mediaLayer('countdown-video')},
+        },
+      }));
+      render(<ServiceOrderList />);
+      expect(screen.getAllByText('LIVE')).toHaveLength(1);
+      expect(
+        screen.getByRole('option', {name: /맑은 시냇물/}).textContent,
+      ).toContain('LIVE');
+    });
   });
 
   it('redraws only the rows whose open state changed', () => {

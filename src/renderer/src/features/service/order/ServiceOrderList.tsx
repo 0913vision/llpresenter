@@ -82,8 +82,27 @@ function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
   return groups;
 }
 
+/**
+ * The item on output: the one with a slide, or else the last started media or
+ * 공지 item while its own media or 공지 is still out.
+ */
 function useLiveItemId(): string | null {
-  return useLive(view => view.state?.layers.slide?.itemId ?? null);
+  const slideItem = useLive(view => view.state?.layers.slide?.itemId ?? null);
+  const mediaId = useLive(view => view.state?.layers.media?.mediaId);
+  const noticeId = useLive(view => view.state?.layers.notice?.noticeId);
+  const started = useLive(view => view.lastStartedItemId);
+  const row = useShow(view => view.rows.find(item => item.id === started));
+  const tile = useShow(view =>
+    started === null ? undefined : view.tiles[started]?.[0],
+  );
+  if (slideItem !== null) return slideItem;
+  if (row?.kind === 'media' && tile?.media?.mediaId === mediaId) {
+    return mediaId === undefined ? null : row.id;
+  }
+  if (row?.kind === 'notice' && tile?.notice?.noticeId === noticeId) {
+    return noticeId === undefined ? null : row.id;
+  }
+  return null;
 }
 
 function ItemRows({

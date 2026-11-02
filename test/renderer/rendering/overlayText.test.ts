@@ -27,6 +27,13 @@ describe('OverlayTextView', () => {
     expect(parent.children).toHaveLength(0);
   });
 
+  it('leaves no text on a cleared layer', () => {
+    const {parent, view} = setUp();
+    view.show('설교 시간 30분 남음');
+    view.show(null);
+    expect(parent.textContent).not.toContain('설교 시간');
+  });
+
   it('renders text literally and preserves newlines in one row', () => {
     const {view, front} = setUp();
     const text = '<script>not markup</script>\nSecond line';
