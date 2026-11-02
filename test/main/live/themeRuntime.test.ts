@@ -31,7 +31,7 @@ function setup(
   let revision = 1;
   const bible = file.defaults.bible;
   if (bible === undefined) throw new Error('Missing Bible theme');
-  const service: LiveThemeItem = {
+  let service: LiveThemeItem = {
     id: ITEM,
     kind: 'song',
     source: 'service',
@@ -88,6 +88,9 @@ function setup(
     dispatch,
     slide,
     service,
+    save: (next: LiveThemeItem) => {
+      service = next;
+    },
     advance: (ms: number) => {
       now += ms;
     },
@@ -415,6 +418,30 @@ describe('main-process theme runtime', () => {
     );
     slide();
     expect(store.state.layers.slide?.itemId).toBe(ITEM);
+  });
+
+  it('reads the item again on each slide, so an overlay added while it is live shows on the next one', () => {
+    const {store, slide, service, save} = setup();
+    slide(ITEM, undefined, 0);
+    const startedAt = store.state.themeItem?.startedAt;
+    const overlay = {
+      id: createItemOverlayId('00000000-0000-4000-8000-000000000304'),
+      name: 'Invented late overlay',
+      from: 2,
+      to: 2,
+      screens: [THEME_MAIN],
+      content: {text: 'Invented overlay text'},
+    };
+    save({...service, overlays: [overlay]});
+    slide(ITEM, undefined, 1);
+    expect(store.state.themeItem?.startedAt).toBe(startedAt);
+    expect(
+      themeOverlay(
+        store.state.themeItem ?? null,
+        store.state.layers,
+        THEME_MAIN,
+      ),
+    ).toEqual(overlay);
   });
 
   it('holds one overlay epoch through its range, pauses it across undo, and restarts on reentry', () => {

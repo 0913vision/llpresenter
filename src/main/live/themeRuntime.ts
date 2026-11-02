@@ -27,6 +27,25 @@ function affectsTheme(command: LiveCommand): command is ThemeCommand {
   return THEME_COMMANDS.some(type => command.type === type);
 }
 
+/**
+ * The item as it is saved now, so edits made while it is live (its 오버레이,
+ * 메모, 테마) reach the next slide, with the times it gathered on output. A new
+ * slide also ends a clear.
+ */
+function withPlayback(
+  saved: LiveThemeItem,
+  live: LiveThemeItem,
+): LiveThemeItem {
+  const {contentCleared: _cleared, ...item} = saved;
+  const {startedAt, overlayStartedAt, slidePosition} = live;
+  return {
+    ...item,
+    ...(startedAt === undefined ? {} : {startedAt}),
+    ...(overlayStartedAt === undefined ? {} : {overlayStartedAt}),
+    ...(slidePosition === undefined ? {} : {slidePosition}),
+  };
+}
+
 interface ThemeRuntimeOptions {
   readonly settings: Pick<SettingsReader, 'get'>;
   readonly item: (id: string) => LiveThemeItem | undefined;
@@ -91,7 +110,9 @@ export class ThemeRuntime {
               : {memo: command.slide.memo}),
           };
           mode = undefined;
-        } else if (item.contentCleared) item = {...item, contentCleared: false};
+        } else {
+          item = withPlayback(this.options.item(item.id) ?? item, item);
+        }
         {
           const position = command.slide.position + 1;
           const active = item.overlays?.find(
