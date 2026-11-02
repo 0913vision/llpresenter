@@ -148,7 +148,7 @@ describe('곡 편집 window', () => {
       screen.getByRole('button', {name: '다른 이름으로 저장…'}),
     );
     const name = within(await screen.findByRole('dialog')).getByRole('textbox');
-    expect(name).toHaveProperty('value', '새 노래 1 2');
+    expect(name).toHaveProperty('value', '새 노래 1 복사본');
 
     await userEvent.keyboard('{Enter}');
 
@@ -161,7 +161,7 @@ describe('곡 편집 window', () => {
     expect(documents.get(FIRST_ID)).toEqual(first);
     const [saveAs, update] = edits;
     expect(saveAs).toMatchObject({
-      song: {title: '새 노래 1 2'},
+      song: {title: '새 노래 1 복사본'},
     });
     expect(update).toMatchObject({
       type: 'service.update',

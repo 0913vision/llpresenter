@@ -36,7 +36,7 @@ const existing: TemplateEntry = {
 };
 const second: TemplateEntry = {
   id: createTemplateId('30000000-0000-4000-8000-000000000006'),
-  name: '이번 주일 예배 2',
+  name: '이번 주일 예배 복사본',
   access: 'editable',
 };
 const REFUSED: EditResult = {
@@ -219,14 +219,14 @@ describe('지금 예배를 템플릿으로 저장', () => {
     expect(onProblem).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'info',
-        title: '템플릿으로 저장함: 이번 주일 예배 3',
+        title: '템플릿으로 저장함: 이번 주일 예배 복사본 2',
       }),
     );
     expect(edits).toEqual([
       {
         type: 'service.saveAsTemplate',
         serviceId: currentId,
-        name: '이번 주일 예배 3',
+        name: '이번 주일 예배 복사본 2',
       },
     ]);
     expect(screen.queryByRole('alertdialog')).toBeNull();

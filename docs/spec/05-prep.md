@@ -99,9 +99,10 @@ right.
 - Edits stay in the window until 저장 (Ctrl S). 저장 always asks "<제목> 곡을
   덮어쓸까요?" with 취소 and 덮어쓰기, with the usage line when other services
   use the song. This replaces saving 라이브러리 songs on every edit.
-- 다른 이름으로 저장… (Ctrl Shift S) opens a name dialog filled with "<제목> 2",
-  makes a new 라이브러리 song from the edits, and leaves the original unchanged.
-  When the window was opened from an item (순서 편집… or a 준비 row), that item
+- 다른 이름으로 저장… (Ctrl Shift S) opens a name dialog filled with "<제목>
+  복사본" (and 복사본 2, 3, … when taken: the one copy-name rule, 11), makes a
+  new 라이브러리 song from the edits, and leaves the original unchanged. When
+  the window was opened from an item (순서 편집… or a 준비 row), that item
   switches to the new song.
 - Unsaved edits show a dot before the title. Closing the window with unsaved
   edits asks 저장, 저장 안 함, 취소, as the 테마 editor does (12).

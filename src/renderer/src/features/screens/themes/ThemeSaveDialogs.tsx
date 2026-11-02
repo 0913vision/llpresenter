@@ -1,14 +1,12 @@
 import type {JSX} from 'react';
 import {THEME_LIMITS} from '@core/themes/elementRules';
-import {unusedName} from '@core/themes/themeEdits';
+import {copyThemeName} from '@core/themes/themeEdits';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {countedMeta} from '@renderer/ui/countedMeta';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import {useThemeUsage, type ThemeUsage} from './useThemeUsage';
-
-const COPY_SUFFIX = ' 복사본';
 
 function usageMeta(usage: ThemeUsage): readonly string[] {
   if (usage === 'loading') return ['사용 항목을 확인하는 중'];
@@ -35,7 +33,7 @@ export function ThemeSaveDialogs({
       <RenameDialog
         title="다른 이름으로 저장"
         label="테마 이름"
-        name={unusedName(theme.name, file, COPY_SUFFIX)}
+        name={copyThemeName(theme.name, file)}
         maxLength={THEME_LIMITS.name}
         rename={{
           commitsUnchanged: true,

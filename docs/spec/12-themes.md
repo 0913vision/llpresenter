@@ -236,8 +236,9 @@ Saving (user decision, November 1):
   항목 4곳에서 씀"), and shows nothing at 0. 덮어쓰기 writes the 테마. 저장 is
   disabled while there are no edits; its tooltip says so. 다른 이름으로 저장…
   (Ctrl Shift S) sits beside it: it asks for a name in the shared rename dialog,
-  prefilled `<이름> 복사본`, and makes a new 테마 from the working copy while
-  the original keeps its saved state. 새 테마로 저장 does not exist.
+  prefilled `<이름> 복사본` (`복사본 2`, 3, … when taken), and makes a new 테마
+  from the working copy while the original keeps its saved state. 새 테마로 저장
+  does not exist.
 - **Leaving.** Choosing another 테마 row, another workspace, or closing the
   window or quitting while the working copy has edits asks 저장, 저장 안 함, or
   취소. 취소 keeps the window open on the 테마. The 저장 중 dialog of the close
@@ -250,9 +251,9 @@ The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › 
 공지, 미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제.
 The row shows the kinds that use it as small tags. The live 테마's row shows
 LIVE to the left of those tags (user, October 31), because saving it changes the
-output at once. 복제 makes `<name> 복사본`. 삭제 asks first when a kind or an
-item uses the 테마; its items fall back to their kind's default. The 대기 화면
-row has no 삭제 and no 기본으로 쓰기.
+output at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제
+asks first when a kind or an item uses the 테마; its items fall back to their
+kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 ## 오버레이
 

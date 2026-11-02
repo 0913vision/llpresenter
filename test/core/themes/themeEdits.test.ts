@@ -81,6 +81,32 @@ describe('theme lifecycle edits', () => {
     });
   });
 
+  it('names a second copy of a theme 복사본 2 and a copy of a copy from its original', () => {
+    const {file, theme} = setup();
+    const second = createThemeId('00000000-0000-4000-8000-000000000901');
+    const third = createThemeId('00000000-0000-4000-8000-000000000902');
+    const once = value(
+      editThemeList(file, {kind: 'duplicate', id, source: theme.id}, new Set()),
+    );
+    const twice = value(
+      editThemeList(
+        once,
+        {kind: 'duplicate', id: second, source: theme.id},
+        new Set(),
+      ),
+    );
+    const ofCopy = value(
+      editThemeList(
+        twice,
+        {kind: 'duplicate', id: third, source: id},
+        new Set(),
+      ),
+    );
+
+    expect(twice.themes.at(-1)?.name).toBe(`${theme.name} 복사본 2`);
+    expect(ofCopy.themes.at(-1)?.name).toBe(`${theme.name} 복사본 3`);
+  });
+
   it('trims names and refuses blank, long or taken names without changing unknown fields', () => {
     const {file, theme} = setup();
     const imported = {...file, future: 1};

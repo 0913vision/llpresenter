@@ -1,3 +1,5 @@
+import {copyName} from '../common/copyName';
+import {freeName} from '../common/freeName';
 import type {Result} from '../common/result';
 import {checkPart} from '../schema/fileFormat';
 import type {ScreenId, ThemeId} from '../schema/ids';
@@ -60,6 +62,8 @@ export function findTheme(file: ThemesFile, id: ThemeId): Theme | undefined {
     : file.themes.find(theme => theme.id === id);
 }
 
+const NEW_THEME_NAME = '새 테마';
+
 export function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
   return file.standby.id === theme.id
     ? {...file, standby: theme}
@@ -71,19 +75,19 @@ export function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
       };
 }
 
-export function unusedName(
-  base: string,
-  file: ThemesFile,
-  ending: string,
-): string {
-  const names = new Set(
-    [file.standby, ...file.themes].map(theme => theme.name),
-  );
-  for (let index = 1; ; index++) {
-    const suffix = ending + (index === 1 ? '' : ` ${index}`);
-    const name = base.slice(0, THEME_LIMITS.name - suffix.length) + suffix;
-    if (!names.has(name)) return name;
-  }
+/** The names every 테마 of the file has, including the 대기 화면. */
+export function themeNames(file: ThemesFile): readonly string[] {
+  return [file.standby, ...file.themes].map(theme => theme.name);
+}
+
+/** The name of a new 테마: `새 테마`, then `새 테마 2`, `3`, and so on. */
+export function newThemeName(file: ThemesFile): string {
+  return freeName(NEW_THEME_NAME, new Set(themeNames(file)));
+}
+
+/** The name of a copy of a 테마, by the one copy-name rule. */
+export function copyThemeName(source: string, file: ThemesFile): string {
+  return copyName(source, themeNames(file), {maxLength: THEME_LIMITS.name});
 }
 
 /** Item references are supplied by the service usage reader; dangling IDs keep fallback behavior. */
@@ -111,11 +115,10 @@ export function editThemeList(
     const theme = {
       ...source,
       id: edit.id,
-      name: unusedName(
-        source?.name ?? '새 테마',
-        file,
-        source === undefined ? '' : ' 복사본',
-      ),
+      name:
+        source === undefined
+          ? newThemeName(file)
+          : copyThemeName(source.name, file),
       screens:
         source?.screens ??
         Object.fromEntries(

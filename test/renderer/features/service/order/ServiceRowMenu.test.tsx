@@ -312,7 +312,7 @@ it('uses the existing conflict prompt and saves a new template for the clicked s
     expect(edit).toHaveBeenCalledExactlyOnceWith({
       type: 'service.saveAsTemplate',
       serviceId: ids.past,
-      name: `${pastName} 2`,
+      name: `${pastName} 복사본`,
     }),
   );
 });

@@ -1,5 +1,9 @@
 import {expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
+import {
+  parseSettingsDocument,
+  type SettingsEdit,
+} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
@@ -179,6 +183,36 @@ it('duplicates next to its source in the list and its collections', async () => 
       },
     }),
   );
+});
+
+it('names a second copy 복사본 2', async () => {
+  const copyId = document([
+    {...raw, id: '00000000-0000-4000-8000-000000000003'},
+  ]).value.macros[0]?.id;
+  if (!copyId) throw new Error('Missing copy ID');
+  const taken = {...raw, id: '00000000-0000-4000-8000-000000000004'};
+  const doc = document([
+    {...raw, name: 'Source'},
+    {...taken, name: 'Source 복사본'},
+  ]);
+  const edit = vi
+    .fn<(request: SettingsEdit) => Promise<EditResult>>()
+    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
+  await saveMacroEdit(mockLlpApi({settings: {get: async () => doc, edit}}), {
+    kind: 'duplicate',
+    id: item.id,
+    copyId,
+  });
+
+  const request = edit.mock.calls[0]?.[0];
+  if (request?.type !== 'settings.update' || request.name !== 'macros') {
+    throw new Error('Expected a macros update');
+  }
+  expect(request.value.macros.map(macro => macro.name)).toEqual([
+    'Source',
+    'Source 복사본 2',
+    'Source 복사본',
+  ]);
 });
 
 it('duplicates the latest source after a stale revision and treats a repeated ID as applied', async () => {

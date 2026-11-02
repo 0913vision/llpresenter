@@ -2,13 +2,12 @@ import type {JSX} from 'react';
 import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
+  SONG_TITLE_LIMIT,
 } from '@core/songs/songTitle';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {countedMeta} from '@renderer/ui/countedMeta';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import type {SongEditorWindowModel} from './useSongEditorWindow';
-
-const TITLE_LIMIT = 200;
 
 /** The questions of 저장, 다른 이름으로 저장…, and leaving with unsaved edits. */
 export function SongSaveDialogs({
@@ -30,7 +29,7 @@ export function SongSaveDialogs({
         title="다른 이름으로 저장"
         label="곡 제목"
         name={model.suggestedName}
-        maxLength={TITLE_LIMIT}
+        maxLength={SONG_TITLE_LIMIT}
         rename={{
           commitsUnchanged: true,
           validate: name =>

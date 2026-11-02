@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {freeName} from '@core/common/freeName';
+import {copyName} from '@core/common/copyName';
 import type {ServiceId, TemplateId} from '@core/schema/ids';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -164,7 +164,7 @@ export function useSaveTemplate({
 
   const saveNew = (): void => {
     if (api === undefined || conflict === null || busy) return;
-    const name = freeName(conflict.name, conflict.taken);
+    const name = copyName(conflict.name, conflict.taken);
     setBusy(true);
     finish(writeTemplate({api, serviceId: conflict.serviceId, name}), name);
   };
