@@ -8,7 +8,7 @@ import {
   type LoadedFile,
   type ReadonlyKnown,
 } from './fileFormat';
-import {screenIdSchema} from './ids';
+import {messageStyleIdSchema, screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
@@ -49,6 +49,7 @@ export const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
   kind: v.picklist(['audience', 'stage']),
+  messageStyleId: v.exactOptional(messageStyleIdSchema),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
   emptyColor: v.exactOptional(hexColor),
   display: v.exactOptional(displaySchema),

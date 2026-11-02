@@ -28,6 +28,7 @@ import {
   onDisconnectOf,
   type ScreenChange,
 } from '@core/screens/screenEdits';
+import {MessageStyleRow} from './MessageStyleRow';
 import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useScreenEditor} from './useScreenEditor';
@@ -287,6 +288,7 @@ function PropertyRows({
   monitors,
   assign,
   rename,
+  onProblem,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
@@ -296,6 +298,7 @@ function PropertyRows({
   readonly monitors: MonitorList;
   readonly assign: (monitor: MonitorInfo) => void;
   readonly rename: (name: string) => void;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   return (
     <Properties className={styles.inset}>
@@ -320,6 +323,12 @@ function PropertyRows({
             />
           )}
         </PropertyRow>
+        <MessageStyleRow
+          screen={screen}
+          reason={reason}
+          onProblem={onProblem}
+          onChange={messageStyleId => change({messageStyleId})}
+        />
       </PropertyGroup>
       <PropertyGroup title="출력">
         <PropertyRow label="방식">
@@ -441,6 +450,7 @@ export function ScreenProperties({
         select(selected.id);
         save.change(selected.id, change);
       }}
+      onProblem={onProblem}
     />
   );
 }

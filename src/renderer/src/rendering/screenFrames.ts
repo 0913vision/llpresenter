@@ -1,5 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
+import type {MessageStyle} from '@core/schema/messages';
+import {resolveMessageStyle} from '@core/screens/messageStyle';
 import type {Timer} from '@core/schema/timers';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
@@ -23,6 +25,7 @@ export class ScreenFrames {
   private disposed = false;
   private screen: RenderScreen | undefined;
   private timers: readonly Timer[] = [];
+  private messageStyles: readonly MessageStyle[] | undefined;
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
@@ -62,6 +65,19 @@ export class ScreenFrames {
         },
         onError: error => onError('could not read the 타이머', error),
       }),
+      followSettingsDocument({
+        settings,
+        name: 'messages',
+        select: document =>
+          document.name === 'messages'
+            ? (document.value.messageStyles ?? [])
+            : undefined,
+        receive: styles => {
+          this.messageStyles = styles;
+          options.onChange();
+        },
+        onError: error => onError('could not read the 메시지 styles', error),
+      }),
     ];
   }
 
@@ -86,6 +102,10 @@ export class ScreenFrames {
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
+      messageStyle: resolveMessageStyle(
+        this.messageStyles,
+        screen.messageStyleId,
+      ),
       ...(state?.clearEffects === undefined
         ? {}
         : {clearEffects: state.clearEffects}),

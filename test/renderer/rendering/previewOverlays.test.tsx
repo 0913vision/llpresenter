@@ -86,7 +86,7 @@ function setup() {
   };
 }
 
-const SETTINGS_FEEDS_PER_PREVIEW = 2;
+const SETTINGS_FEEDS_PER_PREVIEW = 3;
 
 describe('preview overlay wiring', () => {
   it('passes the three preview identities and stage text, then releases every feed', async () => {

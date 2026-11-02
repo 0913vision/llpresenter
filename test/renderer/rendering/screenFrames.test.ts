@@ -10,7 +10,10 @@ import {
   THEME_MAIN,
   THEME_STAGE,
 } from '@fixtures/core/themeOutput';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
+
+const STYLE_ID = '44444444-4444-4444-8444-444444444444';
 
 function setup(screenId = THEME_MAIN) {
   const listeners = new Set<(document: SettingsDocument) => void>();
@@ -18,7 +21,9 @@ function setup(screenId = THEME_MAIN) {
   const get = vi.fn(async ({name}: {name: string}) =>
     name === 'screens'
       ? settingsDocument('screens', {screens: themeScreens})
-      : settingsDocument('timers', {timers: []}),
+      : name === 'messages'
+        ? settingsDocument('messages', {templates: [], stagePresets: []})
+        : settingsDocument('timers', {timers: []}),
   );
   const api = mockLlpApi({
     settings: {
@@ -66,11 +71,12 @@ function setup(screenId = THEME_MAIN) {
   };
 }
 
-it('uses the main composition and subscribes only to screens and timers', async () => {
+it('uses the main composition and subscribes only to screens, messages, and timers', async () => {
   const {frames, state, get, onChange} = setup(THEME_STAGE);
   expect(frames.frame(state)).toBeUndefined();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
   expect(get.mock.calls.map(call => call[0].name).sort()).toEqual([
+    'messages',
     'screens',
     'timers',
   ]);
@@ -84,7 +90,7 @@ it('uses the main composition and subscribes only to screens and timers', async 
 
 it('waits for a complete theme snapshot without changing screen identity', async () => {
   const {frames, state, onChange} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
   const frame = frames.frame(state);
   expect(frame).toBeDefined();
   expect(frames.frame(null)).toBeUndefined();
@@ -100,7 +106,7 @@ it('waits for a complete theme snapshot without changing screen identity', async
 
 it('preserves test patterns, stage messages, clears, timers, and screen correction', async () => {
   const {frames, state, push, onChange, unsubscribe} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
   push(
     settingsDocument(
       'screens',
@@ -126,7 +132,43 @@ it('preserves test patterns, stage messages, clears, timers, and screen correcti
     timers: {list: []},
   });
   frames.dispose();
-  expect(unsubscribe).toHaveBeenCalledTimes(2);
+  expect(unsubscribe).toHaveBeenCalledTimes(3);
   push(settingsDocument('timers', {timers: []}, 2));
-  expect(onChange).toHaveBeenCalledTimes(3);
+  expect(onChange).toHaveBeenCalledTimes(4);
+});
+
+it('draws a message in the style its screen picked and falls back to 기본', async () => {
+  const {frames, state, push, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  expect(frames.frame(state)?.messageStyle).toEqual(DEFAULT_MESSAGE_STYLE);
+
+  const picked = {
+    ...DEFAULT_MESSAGE_STYLE,
+    id: STYLE_ID,
+    name: '큰 글씨',
+    size: 120,
+  };
+  push(
+    settingsDocument(
+      'screens',
+      {
+        screens: themeScreens.map(screen =>
+          screen.id === THEME_MAIN
+            ? {...screen, messageStyleId: STYLE_ID}
+            : screen,
+        ),
+      },
+      2,
+    ),
+  );
+  expect(frames.frame(state)?.messageStyle).toEqual(DEFAULT_MESSAGE_STYLE);
+  push(
+    settingsDocument(
+      'messages',
+      {templates: [], stagePresets: [], messageStyles: [picked]},
+      2,
+    ),
+  );
+  expect(frames.frame(state)?.messageStyle).toMatchObject({size: 120});
+  expect(onChange).toHaveBeenCalledTimes(5);
 });

@@ -13,12 +13,25 @@ export const CAPTURE_RESOLUTIONS = [
   {width: 3840, height: 2160},
 ] as const;
 
-export type ScreenChange = Partial<Omit<Screen, 'id' | 'offset'>> & {
+export type ScreenChange = Partial<
+  Omit<Screen, 'id' | 'offset' | 'messageStyleId'>
+> & {
   readonly offset?: Partial<NonNullable<Screen['offset']>>;
+  /** `null` returns the screen to the built-in 기본 style. */
+  readonly messageStyleId?: NonNullable<Screen['messageStyleId']> | null;
 };
 
 /** Why a screen name can't be saved, or `undefined` when it can. */
 export type NameProblem = 'empty' | 'taken';
+
+function withMessageStyle(
+  screen: Screen,
+  messageStyleId: ScreenChange['messageStyleId'],
+): Screen {
+  if (messageStyleId === undefined) return screen;
+  const {messageStyleId: _replaced, ...others} = screen;
+  return messageStyleId === null ? others : {...others, messageStyleId};
+}
 
 /**
  * The screens with the change applied to the screen with this id. Other
@@ -31,8 +44,11 @@ export function changeScreen(
 ): readonly Screen[] {
   return screens.map(screen => {
     if (screen.id !== id) return screen;
-    const {offset, ...fields} = change;
-    const updated = {...screen, ...fields};
+    const {offset, messageStyleId, ...fields} = change;
+    const updated = {
+      ...withMessageStyle(screen, messageStyleId),
+      ...fields,
+    };
     return offset === undefined
       ? updated
       : {...updated, offset: {x: 0, y: 0, ...screen.offset, ...offset}};

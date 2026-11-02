@@ -1,4 +1,5 @@
 import {describe, expect, it} from 'vitest';
+import {createMessageStyleId} from '@core/schema/ids';
 import {
   alwaysOnTopOf,
   changeScreen,
@@ -18,6 +19,19 @@ function screens() {
 }
 
 describe('changeScreen', () => {
+  it('sets a message style and removes it again with null', () => {
+    const styleId = createMessageStyleId(
+      '44444444-4444-4444-8444-444444444444',
+    );
+    const picked = changeScreen(screens(), MAIN_ID, {messageStyleId: styleId});
+    expect(picked[0]?.messageStyleId).toBe(styleId);
+
+    const cleared = changeScreen(picked, MAIN_ID, {messageStyleId: null});
+    expect(cleared[0] && Object.hasOwn(cleared[0], 'messageStyleId')).toBe(
+      false,
+    );
+  });
+
   it('merges each offset axis into the latest screen value', () => {
     const horizontal = changeScreen(screens(), MAIN_ID, {offset: {x: 20}});
     const vertical = changeScreen(horizontal, MAIN_ID, {offset: {y: 30}});

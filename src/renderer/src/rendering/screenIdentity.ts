@@ -24,6 +24,9 @@ export function resolveRenderScreen(
     id: screen.id,
     name: screen.name,
     kind: screen.kind,
+    ...(screen.messageStyleId === undefined
+      ? {}
+      : {messageStyleId: screen.messageStyleId}),
     method: screen.method,
     emptyColor: emptyScreenColor(screen),
     ...(correction === undefined ? {} : {correction}),

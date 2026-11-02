@@ -9,6 +9,8 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {DEFAULT_MESSAGE_STYLE, type MessageStyle} from '@core/schema/messages';
+import {createMessageStyleId} from '@core/schema/ids';
 import type {MonitorList} from '@core/schema/monitors';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {
@@ -54,7 +56,9 @@ const monitors: MonitorList = [
 function setup({
   access = 'editable',
   beforeSave = () => Promise.resolve(),
+  messageStyles = [],
 }: {
+  readonly messageStyles?: readonly MessageStyle[];
   readonly access?: 'editable' | 'readOnly';
   readonly beforeSave?: () => Promise<void>;
 } = {}) {
@@ -64,7 +68,16 @@ function setup({
   window.llp = mockLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {
-      get: () => Promise.resolve({...screensDocument(), access}),
+      get: ({name}) =>
+        Promise.resolve(
+          name === 'messages'
+            ? settingsDocument('messages', {
+                templates: [],
+                stagePresets: [],
+                messageStyles,
+              })
+            : {...screensDocument(), access},
+        ),
       subscribe: listener => {
         listeners.add(listener);
         return () => {
@@ -436,5 +449,51 @@ describe('the screen properties', () => {
     await waitFor(() =>
       expect(savedScreens()[0]?.offset).toEqual({x: -30, y: 0}),
     );
+  });
+
+  describe('the 메시지 스타일 row', () => {
+    const bigStyle: MessageStyle = {
+      ...DEFAULT_MESSAGE_STYLE,
+      id: createMessageStyleId('44444444-4444-4444-8444-444444444444'),
+      name: '큰 글씨',
+      size: 120,
+    };
+
+    it('saves a chosen style and returns to 기본', async () => {
+      const {savedScreens} = setup({messageStyles: [bigStyle]});
+      const user = userEvent.setup();
+      await nameField();
+      expect(
+        screen.getByRole('button', {name: '메시지 스타일'}).textContent,
+      ).toContain('기본');
+
+      await user.click(screen.getByRole('button', {name: '메시지 스타일'}));
+      await user.click(screen.getByRole('menuitemradio', {name: '큰 글씨'}));
+      await waitFor(() =>
+        expect(savedScreens()[0]?.messageStyleId).toBe(bigStyle.id),
+      );
+
+      await user.click(screen.getByRole('button', {name: '메시지 스타일'}));
+      await user.click(screen.getByRole('menuitemradio', {name: '기본'}));
+      await waitFor(() =>
+        expect(savedScreens()[0]?.messageStyleId).toBeUndefined(),
+      );
+      expect(savedScreens()[0]?.name).toBe('본 화면');
+    });
+
+    it('stays locked with its reason for a read-only file', async () => {
+      const {edits} = setup({access: 'readOnly', messageStyles: [bigStyle]});
+      const user = userEvent.setup();
+      await nameField();
+      const row = screen.getByRole('button', {name: '메시지 스타일'});
+
+      expect(row.getAttribute('aria-disabled')).toBe('true');
+      await user.click(row);
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(edits).toEqual([]);
+      expect((await hoverForTooltip(row))?.textContent).toBe(
+        '새 버전에서 만든 설정이므로 변경할 수 없음',
+      );
+    });
   });
 });

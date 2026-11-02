@@ -8,6 +8,7 @@ import {
 const codec = {parse: parseScreens, serialize: serializeScreens};
 const MAIN_ID = '11111111-1111-4111-8111-111111111111';
 const CAPTION_ID = '22222222-2222-4222-8222-222222222222';
+const STYLE_ID = '44444444-4444-4444-8444-444444444444';
 const STAGE_ID = '33333333-3333-4333-8333-333333333333';
 
 function mainScreen() {
@@ -98,6 +99,11 @@ describe('parseScreens', () => {
   });
 
   it.each([
+    [
+      'a message style id that is not an id',
+      {messageStyleId: 'big'},
+      'screens.0.messageStyleId',
+    ],
     ['an unknown kind', {kind: 'main'}, 'screens.0.kind'],
     ['an offset that is an array', {offset: []}, 'screens.0.offset'],
     ['an NDI block that is an array', {ndi: []}, 'screens.0.ndi'],
@@ -125,6 +131,13 @@ describe('parseScreens', () => {
     ],
   ])('rejects %s', (_name, change, field) => {
     expectInvalidField(codec, withScreen({...mainScreen(), ...change}), field);
+  });
+
+  it('keeps the message style a screen picked', () => {
+    expectRoundTrip(
+      codec,
+      withScreen({...mainScreen(), messageStyleId: STYLE_ID}),
+    );
   });
 
   it('rejects two screens with the same id', () => {

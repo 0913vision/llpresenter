@@ -32,6 +32,7 @@ export interface RenderScreen {
   /** The saved screen name; absent for a picture of no saved screen. */
   readonly name?: string;
   readonly kind: 'audience' | 'stage';
+  readonly messageStyleId?: string;
   readonly method?: Screen['method'];
   readonly emptyColor?: string;
   /** Absent draws the picture over the whole screen. */
@@ -47,6 +48,8 @@ export interface RenderFrame {
   readonly propOpacity?: ReadonlyMap<string, number>;
   readonly transitions?: boolean;
   readonly screen?: RenderScreen;
+  /** How this screen draws a 메시지; absent draws the 기본 style. */
+  readonly messageStyle?: TextStyle;
   readonly stageMessage?: string | null;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;
