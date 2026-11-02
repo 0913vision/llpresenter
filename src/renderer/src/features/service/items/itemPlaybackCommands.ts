@@ -36,3 +36,14 @@ export function startMacroRequest(
     target,
   };
 }
+/** Captures the supported item's memo, or its removal when the text is empty. */
+export function memoRequest(
+  target: ItemTarget | null,
+  memo: string,
+): ItemEditRequest {
+  return {
+    change: withStartField('memo', memo === '' ? undefined : memo),
+    failure: '메모 저장 실패',
+    target,
+  };
+}

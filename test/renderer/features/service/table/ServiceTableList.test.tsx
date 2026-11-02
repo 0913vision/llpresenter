@@ -1,4 +1,4 @@
-import {cleanup, render, screen, waitFor} from '@testing-library/react';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
@@ -9,6 +9,8 @@ import {
   createSongId,
 } from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
+import type {SongChange, SongDocument} from '@core/schema/contentDocuments';
+import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
@@ -42,8 +44,25 @@ function setup() {
     jumpKeys: {},
   });
   const edits: ContentEdit[] = [];
+  let songDocument: SongDocument = {
+    song: {
+      ...sampleGroupedSong(),
+      id: SONG_ID,
+      arrangements: [{name: '짧게', groups: []}],
+    },
+    revision: 1,
+    access: 'editable',
+  };
+  const songListeners = new Set<(change: SongChange) => void>();
   const api = mockLlpApi({
     services: {get: () => Promise.resolve(document)},
+    songs: {
+      get: () => Promise.resolve(songDocument),
+      subscribe: listener => {
+        songListeners.add(listener);
+        return () => songListeners.delete(listener);
+      },
+    },
     settings: {
       get: ({name}) =>
         Promise.resolve(
@@ -69,7 +88,20 @@ function setup() {
       onProblem={vi.fn()}
     />,
   );
-  return {edits};
+  const changeSong = (names: readonly string[]): void => {
+    songDocument = {
+      song: {
+        ...songDocument.song,
+        arrangements: names.map(name => ({name, groups: []})),
+      },
+      revision: songDocument.revision + 1,
+      access: 'editable',
+    };
+    for (const listener of songListeners) {
+      listener({songId: SONG_ID, document: songDocument});
+    }
+  };
+  return {edits, changeSong};
 }
 
 beforeEach(() => {
@@ -112,4 +144,71 @@ it('adds a 머리글 at the end of the table', async () => {
   expect(command.service.order.map(item => item.id)[0]).toBe(SONG_ITEM);
   expect(command.service.order).toHaveLength(2);
   expect('header' in (command.service.order[1] ?? {})).toBe(true);
+});
+
+it('moves from a row into its cells with ArrowRight, opens a cell with Enter, and goes back with Esc', async () => {
+  const {edits} = setup();
+  const row = await screen.findByRole('option', {name: '첫 곡'});
+  await screen.findByRole('button', {name: /^메모, /});
+  row.focus();
+
+  await userEvent.keyboard('{ArrowRight}');
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', {name: /^구성, /}),
+  );
+  await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', {name: /^배경, /}),
+  );
+  await userEvent.keyboard('{ArrowLeft}');
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', {name: /^테마, /}),
+  );
+
+  await userEvent.keyboard('{Enter}');
+  expect(await screen.findByRole('menu')).toBeDefined();
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+
+  screen.getByRole('button', {name: /^메모, /}).focus();
+  await userEvent.keyboard('{Delete}');
+  expect(edits).toHaveLength(0);
+  await userEvent.keyboard('{Escape}');
+  expect(document.activeElement).toBe(row);
+});
+
+it('offers a 구성 added in the song editor without a change of the service', async () => {
+  const {changeSong} = setup();
+  await screen.findByRole('option', {name: '첫 곡'});
+  await userEvent.click(screen.getByRole('button', {name: /^구성, /}));
+  expect(
+    await screen.findByRole('menuitemradio', {name: '짧게'}),
+  ).toBeDefined();
+  expect(screen.queryByRole('menuitemradio', {name: '길게'})).toBeNull();
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+
+  act(() => changeSong(['짧게', '길게']));
+  await userEvent.click(screen.getByRole('button', {name: /^구성, /}));
+  expect(
+    await screen.findByRole('menuitemradio', {name: '길게'}),
+  ).toBeDefined();
+});
+
+it('types a memo with spaces and arrow keys without the row taking them', async () => {
+  setup();
+  const row = await screen.findByRole('option', {name: '첫 곡'});
+  await screen.findByRole('button', {name: /^메모, /});
+  row.focus();
+  expect(row.getAttribute('aria-selected')).toBe('false');
+  await userEvent.keyboard(
+    '{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}',
+  );
+  await userEvent.keyboard('{Enter}');
+  const field = await screen.findByRole('textbox', {name: /^메모, /});
+  const selected = row.getAttribute('aria-selected');
+  await userEvent.keyboard('가 나{ArrowLeft}{ArrowRight}{Home}{End} 다');
+  expect(field).toHaveProperty('value', '가 나 다');
+  expect(document.activeElement).toBe(field);
+  expect(row.getAttribute('aria-selected')).toBe(selected);
 });

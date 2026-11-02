@@ -20,11 +20,11 @@ export interface OrderEdits {
   readonly busy: boolean;
   /** Sets this 예배's order, and moves the 오버레이 ranges with it. */
   readonly setOrder: (ids: readonly SongGroupId[]) => Promise<boolean>;
-  /** Picks a 구성, or 기본 with undefined, and drops the custom order. */
   /** Changes the 오버레이 ranges of the item, checked against the fresh item. */
   readonly changeOverlays: (
     change: (rows: readonly ItemOverlay[]) => readonly ItemOverlay[],
   ) => Promise<boolean>;
+  /** Picks a 구성, or 기본 with undefined, and drops the custom order. */
   readonly pickArrangement: (name: string | undefined) => Promise<boolean>;
   /** Saves the order as a new 구성 of the song and makes the item use it. */
   readonly saveAsArrangement: (

@@ -7,6 +7,8 @@ export interface ServiceTableParts {
   readonly header: ReactNode;
   /** The columns of one item row; `detail` is its 슬라이드 count or duration. */
   readonly cellsOf: (row: ItemRow, detail: string | undefined) => ReactNode;
+  /** The class of an item row, which sets its height. */
+  readonly rowClass: string | undefined;
   /** The buttons after the last row. */
   readonly footer: ReactNode;
 }

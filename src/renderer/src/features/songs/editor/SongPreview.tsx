@@ -276,7 +276,9 @@ export function ContentPreviewFrame({
         />
       </PanelHeader>
       <div className={styles.previewBody}>
-        <Picture layers={layers} appearance={appearance} />
+        <div className={styles.stage}>
+          <Picture layers={layers} appearance={appearance} />
+        </div>
         <div className={styles.caption}>
           {color === 'none' ? null : (
             <span

@@ -241,4 +241,9 @@ describe('곡 편집 window', () => {
     expect(await pendingWritesOf(opened.api).settleDrafts()).toBe('settled');
     expect(opened.edits).toHaveLength(0);
   });
+  it('puts the cursor in the title field when the target asks for it', async () => {
+    openWindow({songId: FIRST_ID, focusTitle: true});
+    const title = await screen.findByRole('textbox', {name: '곡 제목'});
+    await waitFor(() => expect(document.activeElement).toBe(title));
+  });
 });

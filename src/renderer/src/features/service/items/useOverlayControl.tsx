@@ -104,7 +104,11 @@ export function useOverlayControl(editing: OverlayEditing): OverlayControl {
     const same =
       'media' in existing.content && existing.content.media === media;
     if (same) return;
-    editorTask(setContent(existing.id, {media, loop: false, sound: false}));
+    const kept =
+      'media' in existing.content
+        ? {loop: existing.content.loop, sound: existing.content.sound}
+        : {loop: false, sound: false};
+    editorTask(setContent(existing.id, {media, ...kept}));
   };
   const entries = (position: number): readonly MenuEntry[] => {
     const existing = overlayAt(overlays, position);

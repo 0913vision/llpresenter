@@ -1,37 +1,79 @@
 .table {
-  /* NOTE(0913vision): The design system has no table tokens yet. The columns
-     share the width of the table in the proportions of draft g5, up to
-     --table-cells-width, and the name takes the rest, so a narrow center
-     truncates text instead of scrolling. */
-  --table-cells-width: 800px;
-  --table-cells-share: 62cqw;
-  --table-columns: 96fr 124fr 120fr 130fr 124fr 130fr;
-  --table-thumb: 20px;
-  --table-name-inset: 32px;
+  /* NOTE(0913vision): The name and the cells share one row. At the regular
+     width the five cells keep their size-table-* widths and 메모 the rest of
+     its own; a narrower table shrinks the cells together and truncates; below
+     --table-memo-hides, where the name would get less than 160px, 메모 hides
+     (it stays in 항목 설정); a wider table gives the extra space to the name
+     and 메모 as 1.5 to 1.2, as draft g5 does. */
+  --table-name-min: 160px;
+  --table-name-grow: 1.5;
+  --table-memo-grow: 1.2;
+  --table-name-inset: calc(
+    var(--size-table-number) + var(--space-10) + var(--size-icon-16) +
+      var(--space-10)
+  );
+  --table-fixed-width: calc(
+    var(--size-table-arrangement) + var(--size-table-slides) +
+      var(--size-table-theme) + var(--size-table-background) +
+      var(--size-table-start)
+  );
+  --table-cells-width: calc(var(--table-fixed-width) + var(--size-table-memo));
 
+  min-width: 0;
   container-type: inline-size;
+}
+
+.table .row {
+  height: var(--size-row-double);
+}
+
+/* NOTE(0913vision): The row title sits after the number and the icon, and shares the extra
+   width with the cells. */
+.table .row > [id] {
+  flex: var(--table-name-grow) 0 var(--table-name-min);
+  min-width: 0;
+}
+
+/* NOTE(0913vision): The list row wraps the cells in a box of its own, which
+   would size to the memo text; it takes the cells' share of the row instead,
+   so every row has the grid of the header. */
+.table .row > :has(> .grid) {
+  flex: var(--table-memo-grow) 1 var(--table-cells-width);
+  min-width: 0;
 }
 
 .grid {
   display: grid;
-  flex: none;
-  grid-template-columns: var(--table-columns);
+  flex: 1 1 0;
+  grid-template-columns:
+    minmax(0, var(--size-table-arrangement))
+    minmax(0, var(--size-table-slides))
+    minmax(0, var(--size-table-theme))
+    minmax(0, var(--size-table-background))
+    minmax(0, var(--size-table-start))
+    minmax(0, 1fr);
   align-items: center;
-  width: min(var(--table-cells-width), var(--table-cells-share));
+  min-width: 0;
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-10);
-  height: var(--size-row);
+  height: var(--size-table-header);
   padding: 0 var(--panel-inset);
   color: var(--text-3);
   font: var(--type-caption);
 }
 
+.header > .grid {
+  flex: var(--table-memo-grow) 1 var(--table-cells-width);
+}
+
 .headerName {
-  flex: 1 1 auto;
+  box-sizing: border-box;
+  flex: var(--table-name-grow) 0
+    calc(var(--table-name-min) + var(--table-name-inset));
   min-width: 0;
   padding-inline-start: var(--table-name-inset);
 }
@@ -72,10 +114,39 @@ button.cell {
   gap: var(--space-6);
 }
 
+.truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memo {
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.header .memo {
+  color: inherit;
+}
+
+.memoField {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0 var(--space-6);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-well);
+  box-shadow: var(--ring-field-focus);
+  color: var(--text);
+  font: var(--type-body);
+}
+
 .thumb {
   flex: none;
-  width: var(--table-thumb);
-  height: var(--table-thumb);
+  width: var(--size-table-thumb);
+  height: var(--size-table-thumb);
   border-radius: var(--radius-sm);
   object-fit: cover;
 }
@@ -84,4 +155,26 @@ button.cell {
   display: flex;
   gap: var(--space-10);
   padding: var(--space-8) var(--panel-inset);
+}
+
+/* NOTE(0913vision): The width where the name keeps its 160px with all six columns: the panel
+   inset, the number and the icon, the name, one gap, and the cells. */
+@container (max-width: 1010px) {
+  .memo {
+    display: none;
+  }
+
+  .header > .grid,
+  .table .row > :has(> .grid) {
+    flex-basis: var(--table-fixed-width);
+  }
+
+  .grid {
+    grid-template-columns:
+      minmax(0, var(--size-table-arrangement))
+      minmax(0, var(--size-table-slides))
+      minmax(0, var(--size-table-theme))
+      minmax(0, var(--size-table-background))
+      minmax(0, var(--size-table-start));
+  }
 }

@@ -2,7 +2,27 @@
   height: 100%;
 }
 .previewBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   padding: var(--panel-inset);
+}
+
+/* NOTE(0913vision): The stage is 16:9 at the panel width. When the panel
+   gives it less height, the screen inside shrinks as a whole instead of being
+   cropped. */
+.stage {
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: var(--aspect-output);
+  container-type: size;
+}
+
+.stage > .screen {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  margin-inline: auto;
 }
 .screen {
   position: relative;
@@ -14,6 +34,7 @@
 }
 .caption {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-8);
   padding-top: var(--space-10);

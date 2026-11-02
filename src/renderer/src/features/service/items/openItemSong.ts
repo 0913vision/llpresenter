@@ -1,4 +1,5 @@
-import {editedOrderWithLimit} from '@core/songs/songArrangements';
+import {itemSlideOrder} from '@core/songs/itemOrder';
+import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {SongEditorWindowAction} from '@core/schema/ipcPayloads';
@@ -33,7 +34,13 @@ export function openItemSong({
     }
     return;
   }
-  const order = editedOrderWithLimit(song.history.snapshot.song, arrangement);
+  const order = itemSlideOrder(song.history.snapshot.song, {
+    arrangement,
+    customOrder:
+      item !== null && isItemOfKind(item, 'song')
+        ? item.customOrder
+        : undefined,
+  });
   const number = order.slides[position ?? selected];
   window.llp?.window
     .openSongEditor({

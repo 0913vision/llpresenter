@@ -96,6 +96,7 @@ export function useSongEditorWindow(
       }
       from.current = target.from;
       store.open(document, {
+        ...(target.focusTitle === true ? {focusTitle: true} : {}),
         ...(target.block === undefined ? {} : {block: target.block}),
         arrangement: target.arrangement,
         action: target.action,

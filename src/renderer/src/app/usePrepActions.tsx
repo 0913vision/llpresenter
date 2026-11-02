@@ -10,7 +10,7 @@ import type {SongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongSlideSource} from '@core/schema/showService';
 import {linearSlidesOf} from '@core/songs/blockModel';
-import {editedOrderWithLimit} from '@core/songs/songArrangements';
+import {itemSlideOrder} from '@core/songs/itemOrder';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import {openItem, useShow} from '@renderer/session/show';
 import {isLibrarySource} from '@renderer/session/showLibrary';
@@ -48,9 +48,10 @@ async function openServiceSong(
   const draft = editor.attach(document);
   if (draft === undefined) return;
   const song = draft.history.snapshot.song;
-  const number = editedOrderWithLimit(song, item.arrangement).slides[
-    target.position ?? 0
-  ];
+  const number = itemSlideOrder(song, {
+    arrangement: item.arrangement,
+    customOrder: item.customOrder,
+  }).slides[target.position ?? 0];
   let block = number === undefined ? 0 : number - 1;
   const source = target.source;
   if (source !== undefined) {

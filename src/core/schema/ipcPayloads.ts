@@ -155,11 +155,13 @@ const songEditorTargetSchema = payloadObject({
   arrangement: v.exactOptional(v.pipe(v.string(), v.maxLength(512))),
   action: v.exactOptional(v.picklist(songEditorActions)),
   from: v.exactOptional(orderEditorTargetSchema),
+  focusTitle: v.exactOptional(v.boolean()),
 });
 
 /**
  * The song, and where in it, that the 곡 편집 window opens. `from` names the
  * 예배 순서 item it was opened from, which 다른 이름으로 저장 switches.
+ * `focusTitle` puts the cursor in the title field, for a song just made.
  */
 export type SongEditorTarget = Readonly<
   v.InferOutput<typeof songEditorTargetSchema>

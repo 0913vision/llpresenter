@@ -4,10 +4,8 @@ import {isItemOfKind} from '@core/schema/service';
 import {isGroupedSong} from '@core/schema/groupedSong';
 import {playbackOrder} from '@core/songs/songOrder';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
-import {
-  ARRANGEMENT_LIMIT_REASON,
-  editedOrderWithLimit,
-} from '@core/songs/songArrangements';
+import {playedOrderWithLimit} from '@core/songs/itemOrder';
+import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SizeClass} from '@renderer/ui/sizeClass';
@@ -110,7 +108,7 @@ function SongItemView({
       .labels ?? [];
   const {song} = session.history.snapshot;
   const {slides: sequence, capped} = isGroupedSong(song)
-    ? editedOrderWithLimit(song, arrangement)
+    ? playedOrderWithLimit(song, {arrangement, customOrder: item.customOrder})
     : {slides: playbackOrder(song, arrangement), capped: false};
   const shown = shownPosition(position, sequence.length);
   const select = (index: number): void => items.selectPosition(index);

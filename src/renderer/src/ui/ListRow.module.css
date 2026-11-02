@@ -39,6 +39,15 @@
   color: var(--text-2);
 }
 
+.lead {
+  flex: none;
+  width: var(--size-table-number);
+  color: var(--text-3);
+  font: var(--type-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .title {
   flex: 1 1 auto;
   min-width: 0;

@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {ItemRow} from '@core/presentation/model';
-import type {ThemeId} from '@core/schema/ids';
+import type {MediaId, SongId, ThemeId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {isStartItem} from '@core/services/itemFieldChanges';
 import type {ThemesFile} from '@core/schema/themes';
@@ -11,10 +11,18 @@ import {classNames} from '@renderer/ui/classNames';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '../items/ItemArrangement';
 import {themeRequest} from '../items/itemAppearanceCommands';
-import {startMacroRequest} from '../items/itemPlaybackCommands';
+import {
+  arrangementRequest,
+  backgroundRequest,
+  memoRequest,
+  startMacroRequest,
+} from '../items/itemPlaybackCommands';
 import {resolveMacro} from '../items/ItemSettingsRows';
 import type {ServiceItemStore} from '../items/serviceItemStore';
+import {BackgroundCell} from './BackgroundCell';
 import {CellMenu} from './CellMenu';
+import {MemoCell} from './MemoCell';
+import type {SongFacts} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
 
 const NONE = '없음';
@@ -35,6 +43,8 @@ export interface ServiceTableCellsProps {
   readonly detail: string | undefined;
   readonly themes: ThemesFile | null;
   readonly macros: ReadonlyArray<NonNullable<Macro>>;
+  readonly media: readonly MediaItem[];
+  readonly songs: ReadonlyMap<SongId, SongFacts>;
   readonly items: Pick<ServiceItemStore, 'submitItemEdit'>;
   readonly serviceId: string | null;
   readonly readOnly: boolean;
@@ -71,6 +81,35 @@ function themeEntries({
   ];
 }
 
+function arrangementEntries({
+  current,
+  names,
+  choose,
+}: {
+  readonly current: string | undefined;
+  readonly names: readonly string[];
+  readonly choose: (name: string | undefined) => void;
+}): readonly MenuEntry[] {
+  return [
+    {
+      kind: 'item',
+      id: 'default',
+      label: DEFAULT_ARRANGEMENT,
+      check: 'radio',
+      checked: current === undefined,
+      onSelect: () => choose(undefined),
+    },
+    ...names.map((name): MenuEntry => ({
+      kind: 'item',
+      id: `arrangement:${name}`,
+      label: name,
+      check: 'radio',
+      checked: current === name,
+      onSelect: () => choose(name),
+    })),
+  ];
+}
+
 function macroEntries({
   current,
   macros,
@@ -100,32 +139,6 @@ function macroEntries({
   ];
 }
 
-function BackgroundCell({
-  row,
-  item,
-}: Pick<ServiceTableCellsProps, 'row' | 'item'>) {
-  const {background} = row;
-  const own = item !== undefined && 'background' in item;
-  return (
-    <span
-      className={classNames(styles.cell, styles.background, !own && styles.dim)}
-    >
-      {background === undefined ? (
-        NONE
-      ) : (
-        <>
-          <img
-            className={styles.thumb}
-            src={mediaUrl(background.mediaId)}
-            alt=""
-          />
-          {background.title ?? NONE}
-        </>
-      )}
-    </span>
-  );
-}
-
 /** The 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모 cells of an item row. */
 export function ServiceTableCells({
   row,
@@ -133,6 +146,8 @@ export function ServiceTableCells({
   detail,
   themes,
   macros,
+  media,
+  songs,
   items,
   serviceId,
   readOnly,
@@ -148,9 +163,25 @@ export function ServiceTableCells({
   const reason = readOnly ? NEWER_FILE_REASON : undefined;
   return (
     <span className={styles.grid}>
-      <span className={classNames(styles.cell, styles.arrangement)}>
-        {song === undefined ? '' : (song.arrangement ?? DEFAULT_ARRANGEMENT)}
-      </span>
+      {song === undefined ? (
+        <span className={classNames(styles.cell, styles.arrangement)} />
+      ) : (
+        <CellMenu
+          label={`구성, ${row.title}`}
+          text={song.arrangement ?? DEFAULT_ARRANGEMENT}
+          dim={false}
+          width={styles.arrangement}
+          reason={reason}
+          entries={arrangementEntries({
+            current: song.arrangement,
+            names: songs.get(song.song)?.arrangements ?? [],
+            choose: name =>
+              editorTask(
+                items.submitItemEdit(arrangementRequest(target, name)),
+              ),
+          })}
+        />
+      )}
       <span className={classNames(styles.cell, styles.slides)}>
         {detail ?? ''}
       </span>
@@ -158,9 +189,10 @@ export function ServiceTableCells({
         <span className={classNames(styles.cell, styles.theme)} />
       ) : (
         <CellMenu
-          label="테마"
+          label={`테마, ${row.title}`}
           text={themeCell.name}
           dim={themeCell.followsDefault}
+          width={styles.theme}
           reason={reason}
           hint={themeCell.followsDefault ? DEFAULT_THEME_REASON : undefined}
           entries={themeEntries({
@@ -172,16 +204,33 @@ export function ServiceTableCells({
           })}
         />
       )}
-      <BackgroundCell row={row} item={item} />
+      <BackgroundCell
+        row={row}
+        item={item}
+        media={media}
+        songBackground={
+          song === undefined ? undefined : songs.get(song.song)?.background
+        }
+        reason={reason}
+        choose={
+          song === undefined
+            ? undefined
+            : (mediaId: MediaId | null) =>
+                editorTask(
+                  items.submitItemEdit(backgroundRequest(target, mediaId)),
+                )
+        }
+      />
       {item === undefined || !isStartItem(item) ? (
         <span className={classNames(styles.cell, styles.start)} />
       ) : (
         <CellMenu
-          label="시작할 때"
+          label={`시작할 때, ${row.title}`}
           text={
             macro?.name ?? (item.macro === undefined ? NONE : MISSING_MACRO)
           }
           dim={macro === undefined}
+          width={styles.start}
           reason={reason}
           entries={macroEntries({
             current: macro,
@@ -193,9 +242,17 @@ export function ServiceTableCells({
           })}
         />
       )}
-      <span className={classNames(styles.cell, styles.memo)}>
-        {item !== undefined && isStartItem(item) ? (item.memo ?? '') : ''}
-      </span>
+      {item === undefined || !isStartItem(item) ? (
+        <span className={classNames(styles.cell, styles.memo)} />
+      ) : (
+        <MemoCell
+          label={`메모, ${row.title}`}
+          key={item.memo ?? ''}
+          memo={item.memo ?? ''}
+          reason={reason}
+          save={memo => items.submitItemEdit(memoRequest(target, memo))}
+        />
+      )}
     </span>
   );
 }

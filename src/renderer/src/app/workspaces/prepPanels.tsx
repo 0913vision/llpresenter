@@ -127,11 +127,13 @@ function prepPanelParts({
   }
   if (title === '항목 설정') {
     return {
+      size: 'settings',
       embedded: <ItemSettingsPanel items={prep.items} editor={prep.editor} />,
     };
   }
   if (title === '슬라이드') {
     return {
+      size: 'list',
       embedded: hasDraft ? (
         <SongSlidePanel store={prep.editor} sizeClass={sizeClass} />
       ) : (

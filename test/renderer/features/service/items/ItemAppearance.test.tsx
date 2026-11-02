@@ -281,8 +281,8 @@ it('removes the chosen clip with Delete', async () => {
   await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
 });
 
-it('puts a dropped media file on a slide as a new overlay, and replaces the media of one that has it', async () => {
-  const {stored} = await setup();
+it('puts a dropped media file on a slide as a new overlay, and replaces the media of one that has it keeping the choices', async () => {
+  const {user, stored} = await setup();
   const total = slides().length;
   const drop = (media: string, position: number): void => {
     fireEvent.drop(slide(position), {
@@ -301,12 +301,17 @@ it('puts a dropped media file on a slide as a new overlay, and replaces the medi
       content: {media: fixtureMedia.dawn, loop: false, sound: false},
     }),
   );
+  await user.click(bar(/, 슬라이드 2부터/));
+  await user.click(screen.getByRole('checkbox', {name: '소리'}));
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]?.content).toMatchObject({sound: true}),
+  );
   drop(fixtureMedia.warm, 3);
   await waitFor(() =>
     expect(stored()?.overlays?.[0]).toMatchObject({
       from: 2,
       to: total,
-      content: {media: fixtureMedia.warm},
+      content: {media: fixtureMedia.warm, sound: true},
     }),
   );
   expect(stored()?.overlays).toHaveLength(1);

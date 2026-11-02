@@ -52,6 +52,20 @@
   background-size: cover;
   background-position: center;
 }
+.slideList {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.warningRow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--panel-inset);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
 .grid {
   position: relative;
   flex: 1;

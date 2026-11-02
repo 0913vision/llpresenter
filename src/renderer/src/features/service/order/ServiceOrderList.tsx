@@ -90,6 +90,7 @@ function ItemRows({
   durations,
   done,
   table,
+  numbers,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
@@ -99,6 +100,8 @@ function ItemRows({
   readonly durations: Readonly<Record<string, string>>;
   readonly done: ReadonlySet<string>;
   readonly table: ServiceTableParts | undefined;
+  /** The place of each item among all items, shown in the table. */
+  readonly numbers: ReadonlyMap<string, number>;
 }): JSX.Element {
   const tiles = useShow(view => view.tiles);
   return (
@@ -110,6 +113,8 @@ function ItemRows({
             <ListRow
               value={row.id}
               title={row.title}
+              lead={table === undefined ? undefined : numbers.get(row.id)}
+              className={table?.rowClass}
               icon={iconByKind[row.kind]}
               live={row.id === liveItemId}
               done={done.has(row.id)}
@@ -158,6 +163,15 @@ export function ServiceOrderList({
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
+  const numbers = useMemo(
+    () =>
+      new Map(
+        rows
+          .filter(row => row.kind !== 'header')
+          .map((row, index) => [row.id, index + 1] as const),
+      ),
+    [rows],
+  );
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
   const currentItemId = useLive(
@@ -241,6 +255,9 @@ export function ServiceOrderList({
   useEffect(() => {
     const list = listRef.current;
     if (!list?.contains(document.activeElement)) return;
+    // NOTE(0913vision): A cell that edits as text keeps its focus when the
+    // click that opened it selects the row.
+    if (isInTextEntry(document.activeElement)) return;
     list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
   }, [openItemId]);
 
@@ -422,6 +439,7 @@ export function ServiceOrderList({
               durations={durations}
               done={done}
               table={table}
+              numbers={numbers}
             />
           ) : (
             <div
@@ -467,6 +485,7 @@ export function ServiceOrderList({
                   durations={durations}
                   done={done}
                   table={table}
+                  numbers={numbers}
                 />
               </ListGroup>
             </div>

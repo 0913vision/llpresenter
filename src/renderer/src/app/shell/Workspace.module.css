@@ -31,6 +31,8 @@
 
 .columns {
   --tools-min-height: 240px;
+  --slides-min-height: 320px;
+  --settings-min-height: 100px;
   flex: 1;
   min-height: 0;
   display: grid;
@@ -112,6 +114,15 @@
 
 .rest {
   flex: 1 0 var(--tools-min-height);
+}
+
+.list {
+  flex: 1 0 var(--slides-min-height);
+}
+
+.settings {
+  flex: 1 1 0;
+  min-height: var(--settings-min-height);
 }
 
 .leftCollapsed {

@@ -132,6 +132,15 @@
   --size-row: 30px;
   --size-row-menu: 28px;
   --size-row-double: 52px;
+  --size-table-header: 40px;
+  --size-table-number: 24px;
+  --size-table-arrangement: 96px;
+  --size-table-slides: 72px;
+  --size-table-theme: 140px;
+  --size-table-background: 168px;
+  --size-table-start: 112px;
+  --size-table-memo: 160px;
+  --size-table-thumb: 20px;
   --size-toolbar-button: 48px;
   --size-toolbar-button-compact: 32px;
   --size-clear-button: 52px;

@@ -1,14 +1,14 @@
 import {useMemo, type ComponentProps, type JSX} from 'react';
-import type {LlpApi} from '@contracts/ipc/api';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {ServiceOrderList} from '../order/ServiceOrderList';
 import type {ServiceTableParts} from '../order/serviceTableParts';
+import {handleCellKey} from './cellKeys';
 import {ServiceTableCells} from './ServiceTableCells';
 import {ServiceTableFooter} from './ServiceTableFooter';
 import {ServiceTableHeader} from './ServiceTableHeader';
-import {useServiceTableData} from './useServiceTableData';
+import {useServiceTableData, type TableApi} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
 
 const noProblem = (): void => undefined;
@@ -19,7 +19,7 @@ export function ServiceTableList({
   items,
   ...list
 }: Omit<ComponentProps<typeof ServiceOrderList>, 'table' | 'workspace'> & {
-  readonly api: Pick<LlpApi, 'services' | 'settings'>;
+  readonly api: TableApi;
   readonly items: Pick<ServiceItemStore, 'submitItemEdit'>;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
@@ -29,6 +29,7 @@ export function ServiceTableList({
   const table = useMemo<ServiceTableParts>(
     () => ({
       header: <ServiceTableHeader />,
+      rowClass: styles.row,
       cellsOf: (row, detail) => (
         <ServiceTableCells
           row={row}
@@ -36,6 +37,8 @@ export function ServiceTableList({
           detail={detail}
           themes={data.themeFile}
           macros={data.macroList}
+          media={data.media}
+          songs={data.songs}
           items={items}
           serviceId={serviceId}
           readOnly={readOnly}
@@ -46,7 +49,7 @@ export function ServiceTableList({
     [data, items, serviceId, readOnly, onProblem],
   );
   return (
-    <div className={styles.table}>
+    <div className={styles.table} onKeyDownCapture={handleCellKey}>
       <ServiceOrderList {...list} workspace="prep" table={table} />
     </div>
   );

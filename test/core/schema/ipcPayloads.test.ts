@@ -132,6 +132,7 @@ describe('editor window targets', () => {
       arrangement: '짧게',
       action: 'hot-key',
       from: {serviceId: SERVICE, itemId: ITEM},
+      focusTitle: true,
     };
     expect(parseSongEditorTarget(full)).toEqual({ok: true, value: full});
   });
@@ -143,6 +144,7 @@ describe('editor window targets', () => {
     {songId: SONG, action: 'delete-song'},
     {songId: SONG, arrangement: 3},
     {songId: SONG, from: {serviceId: SERVICE}},
+    {songId: SONG, focusTitle: 'yes'},
   ])('refuses the song editor target %j', value => {
     expect(parseSongEditorTarget(value).ok).toBe(false);
   });

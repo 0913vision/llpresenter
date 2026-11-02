@@ -34,6 +34,8 @@ export interface ListRowProps {
   readonly value: string;
   readonly title: string;
   readonly className?: string | undefined;
+  /** A number before the icon, such as an item's place in the 예배 순서. */
+  readonly lead?: number | undefined;
   /** A 16px type icon, such as `song`. */
   readonly icon?: string | undefined;
   /** Extra information at the right end, such as 슬라이드 9개 or 5:00. */
@@ -127,6 +129,7 @@ function RowContent({
   readonly titleId: string;
 }): JSX.Element {
   const {
+    lead,
     icon,
     title,
     meta,
@@ -149,6 +152,7 @@ function RowContent({
     );
   return (
     <>
+      {lead === undefined ? null : <span className={styles.lead}>{lead}</span>}
       {icon === undefined ? null : (
         <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
       )}

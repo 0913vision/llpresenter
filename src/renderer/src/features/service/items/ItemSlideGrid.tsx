@@ -60,77 +60,87 @@ export function ItemSlideGrid({
   return (
     <div
       key={`${state.service?.service.id}:${state.item.id}`}
-      className={styles.grid}
-      onDoubleClick={event => {
-        const tile =
-          event.target instanceof Element
-            ? event.target.closest('[role="option"]')
-            : null;
-        const index =
-          tile === null
-            ? -1
-            : Array.from(
-                event.currentTarget.querySelectorAll('[role="option"]'),
-              ).indexOf(tile);
-        if (index >= 0) edit(index);
-      }}
+      className={styles.slideList}
     >
-      <OverlayWarning missing={missing} />
-      <ThumbnailGrid
-        workspace="prep"
-        label={GRID_LABEL}
-        columns={COLUMNS}
-        tileWidth={TILE_WIDTH}
-        selected={slides.length === 0 ? undefined : selected}
-        onSelect={index => items.selectPosition(index)}
-        onMenu={(index, anchor) => {
-          items.selectPosition(index);
-          setMenu({index, anchor});
+      {missing.length === 0 ? null : (
+        <div className={styles.warningRow}>
+          <OverlayWarning missing={missing} />
+        </div>
+      )}
+      <div
+        className={styles.grid}
+        onDoubleClick={event => {
+          const tile =
+            event.target instanceof Element
+              ? event.target.closest('[role="option"]')
+              : null;
+          const index =
+            tile === null
+              ? -1
+              : Array.from(
+                  event.currentTarget.querySelectorAll('[role="option"]'),
+                ).indexOf(tile);
+          if (index >= 0) edit(index);
         }}
       >
-        {slides.map((slide, index) => (
-          <SlideThumbnail
-            key={index}
-            number={index + 1}
-            label={slide.label}
-            labelColor={slide.color}
-            text={slide.media === undefined ? slide.text : undefined}
-            media={
-              slide.media === undefined ? undefined : thumbnailUrl(slide.media)
-            }
-            selected={index === selected}
+        <ThumbnailGrid
+          workspace="prep"
+          label={GRID_LABEL}
+          columns={COLUMNS}
+          tileWidth={TILE_WIDTH}
+          selected={slides.length === 0 ? undefined : selected}
+          onSelect={index => items.selectPosition(index)}
+          onMenu={(index, anchor) => {
+            items.selectPosition(index);
+            setMenu({index, anchor});
+          }}
+        >
+          {slides.map((slide, index) => (
+            <SlideThumbnail
+              key={index}
+              number={index + 1}
+              label={slide.label}
+              labelColor={slide.color}
+              text={slide.media === undefined ? slide.text : undefined}
+              media={
+                slide.media === undefined
+                  ? undefined
+                  : thumbnailUrl(slide.media)
+              }
+              selected={index === selected}
+            />
+          ))}
+        </ThumbnailGrid>
+        <OverlayClips control={control} />
+        {menu === null ? null : (
+          <Menu
+            label="슬라이드 메뉴"
+            anchor={menu.anchor}
+            onClose={() => setMenu(null)}
+            entries={[
+              ...slideMenuEntries(
+                song ? () => edit(menu.index) : undefined,
+                song
+                  ? {
+                      open: () =>
+                        openItemSong({
+                          items,
+                          editor,
+                          position: menu.index,
+                          action: 'hot-key',
+                        }),
+                      ...(state.song?.readOnly
+                        ? {reason: NEWER_FILE_REASON}
+                        : {}),
+                    }
+                  : undefined,
+              ),
+              menuSeparator('overlay-separator'),
+              ...control.entries(menu.index + 1),
+            ]}
           />
-        ))}
-      </ThumbnailGrid>
-      <OverlayClips control={control} />
-      {menu === null ? null : (
-        <Menu
-          label="슬라이드 메뉴"
-          anchor={menu.anchor}
-          onClose={() => setMenu(null)}
-          entries={[
-            ...slideMenuEntries(
-              song ? () => edit(menu.index) : undefined,
-              song
-                ? {
-                    open: () =>
-                      openItemSong({
-                        items,
-                        editor,
-                        position: menu.index,
-                        action: 'hot-key',
-                      }),
-                    ...(state.song?.readOnly
-                      ? {reason: NEWER_FILE_REASON}
-                      : {}),
-                  }
-                : undefined,
-            ),
-            menuSeparator('overlay-separator'),
-            ...control.entries(menu.index + 1),
-          ]}
-        />
-      )}
+        )}
+      </div>
     </div>
   );
 }

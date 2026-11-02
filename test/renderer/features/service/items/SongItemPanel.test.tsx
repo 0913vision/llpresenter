@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {isGroupedSong} from '@core/schema/groupedSong';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {GroupedSong} from '@core/schema/groupedSong';
@@ -242,6 +243,42 @@ describe('service song item panel', () => {
     });
   });
 
+  it('counts and opens 곡 편집 by the custom order of the item, not its 구성', async () => {
+    const {panel, user, openWindow, first, service, pushService} =
+      await setup();
+    if (!isGroupedSong(first.song)) throw new Error('Expected a grouped song');
+    const last = first.song.groups.at(-1);
+    if (last === undefined) throw new Error('Expected a group');
+    const before = first.song.groups
+      .slice(0, -1)
+      .reduce((total, group) => total + group.slides.length, 0);
+    const document = service();
+    act(() =>
+      pushService({
+        ...document,
+        revision: document.revision + 1,
+        service: {
+          ...document.service,
+          order: document.service.order.map(item =>
+            item.id === fixtureItems.arranged
+              ? {...item, customOrder: [last.id]}
+              : item,
+          ),
+        },
+      }),
+    );
+    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
+    await waitFor(() =>
+      expect(within(grid).getAllByRole('option')).toHaveLength(
+        last.slides.length,
+      ),
+    );
+    await user.click(within(panel).getByRole('button', {name: '곡 편집'}));
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({block: before}),
+    );
+  });
+
   it.each([
     ['새 구성…', 'create-arrangement'],
     ['이름 바꾸기…', 'rename-arrangement'],
@@ -285,7 +322,7 @@ describe('service song item panel', () => {
     expect(remove).toHaveBeenCalledExactlyOnceWith('주일용');
   });
 
-  it('shows zero slides for an empty named group arrangement and enables library editing', async () => {
+  it('plays every slide for an empty named group arrangement, shows no chips, and enables library editing', async () => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     const fixture = itemFixture();
     const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
@@ -357,7 +394,7 @@ describe('service song item panel', () => {
 
     await screen.findByRole('listbox', {name: '구성 순서'});
     const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    expect(within(panel).getByText('0개')).toBeDefined();
+    expect(within(panel).getByText('1개')).toBeDefined();
     expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
 
     const editBtn = within(panel).getByRole('button', {
