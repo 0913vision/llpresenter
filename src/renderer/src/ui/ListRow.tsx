@@ -150,12 +150,8 @@ function RowContent({
     ) : (
       <NameField id={titleId} label={title} rename={rename} />
     );
-  return (
+  const name = (
     <>
-      {lead === undefined ? null : <span className={styles.lead}>{lead}</span>}
-      {icon === undefined ? null : (
-        <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
-      )}
       {sub === undefined ? (
         titleText
       ) : (
@@ -173,8 +169,21 @@ function RowContent({
       ) : null}
       {warning === undefined ? null : <WarningMark reason={warning} />}
       {live ? <LiveBadge /> : null}
-      {cells === undefined ? null : (
-        <span className={styles.cells}>{cells}</span>
+    </>
+  );
+  return (
+    <>
+      {lead === undefined ? null : <span className={styles.lead}>{lead}</span>}
+      {icon === undefined ? null : (
+        <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
+      )}
+      {cells === undefined ? (
+        name
+      ) : (
+        <>
+          <span className={styles.name}>{name}</span>
+          <span className={styles.cells}>{cells}</span>
+        </>
       )}
       {live || meta === undefined ? null : (
         <span className={styles.meta}>{meta}</span>

@@ -27,9 +27,9 @@
   height: var(--size-row-double);
 }
 
-/* NOTE(0913vision): The row title sits after the number and the icon, and shares the extra
-   width with the cells. */
-.table .row > [id] {
+/* NOTE(0913vision): The row title and its marks sit after the number and the
+   icon, and share the extra width with the cells. */
+.table .row > :has(> [id]) {
   flex: var(--table-name-grow) 0 var(--table-name-min);
   min-width: 0;
 }

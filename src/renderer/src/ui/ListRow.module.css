@@ -73,6 +73,15 @@
   flex: 1 1 0;
 }
 
+/* NOTE(0913vision): In a table row the name and its marks share the name
+   column, so a LIVE badge or a warning never moves the cells. */
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
 .cells {
   display: flex;
   flex: none;
