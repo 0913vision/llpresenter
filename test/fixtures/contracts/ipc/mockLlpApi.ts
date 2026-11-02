@@ -101,6 +101,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       getZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       getZoomFactor: () => UI_ZOOM_FACTOR.default,
       changeZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
+      onZoomChanged: () => () => undefined,
       ...overrides.ui,
     },
     log: {write: () => undefined, ...overrides.log},
@@ -189,6 +190,20 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
         }),
       startFresh: () => Promise.resolve({ok: true, value: null}),
       ...overrides.recovery,
+    },
+    locations: {
+      get: () =>
+        Promise.resolve({
+          songs: {path: String.raw`C:\data\Songs`, pending: false},
+          media: {path: String.raw`C:\data\Media`, pending: false},
+          backup: {path: String.raw`C:\data\Backups`, pending: false},
+          lastBackup: null,
+          backingUp: false,
+        }),
+      subscribe: () => () => undefined,
+      choose: () => Promise.resolve({ok: false, error: {reason: 'canceled'}}),
+      backUpNow: () => Promise.resolve({ok: true, value: undefined}),
+      ...overrides.locations,
     },
     orderEditor: {
       target: () => Promise.resolve(null),

@@ -56,8 +56,11 @@ Documents\LoveLight\                 data folder (default)
   the data folder under it. This keeps several development sessions from sharing
   one Documents folder. See `docs/WORKFLOW.md`.
 - When the operator changes the 곡 (songs) or 미디어 (media) location in
-  환경설정 (Preferences), read the new folder. Don't move existing files
-  (proposal).
+  환경설정 (Preferences), the stores keep their folders from launch, so the new
+  folder applies at the next launch, and the row says "다음에 켤 때 적용" until
+  then. Existing files never move (user decision, November 2). A new 백업 위치
+  applies to the next backup. A folder that can't be written is refused with the
+  reason, and nothing is stored.
 
 Source: `Prefs` (라이브러리 > 위치: 곡, 미디어, 백업 위치), `Main` notes on song
 and service files. The folder names and the rest are proposals.

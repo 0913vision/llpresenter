@@ -9,6 +9,8 @@ type Handler = (
   value?: unknown,
 ) => unknown;
 const electron = vi.hoisted(() => ({handlers: new Map<string, Handler>()}));
+const broadcastMock = vi.hoisted(() => vi.fn());
+vi.mock('@main/store/contentChannels', () => ({broadcast: broadcastMock}));
 vi.mock('electron', () => ({
   ipcMain: {
     handle: (channel: string, handler: Handler) =>
@@ -68,6 +70,41 @@ async function ask(
 }
 
 describe('control UI zoom', () => {
+  it('sets a chosen step, applies it, and tells every window', async () => {
+    const {control, config, log} = await setUp(100);
+
+    await expect(
+      ask(uiEndpoints.changeZoom.channel, control.id, {
+        type: 'ui.zoomSet',
+        percent: 140,
+      }),
+    ).resolves.toBe(140);
+
+    expect(config.setUiZoomPercent).toHaveBeenCalledExactlyOnceWith(140);
+    expect(control.setZoomFactor).toHaveBeenLastCalledWith(1.4);
+    expect(broadcastMock).toHaveBeenCalledExactlyOnceWith(
+      uiEndpoints.zoomChanged.channel,
+      140,
+      log,
+    );
+  });
+
+  it.each([90, 105, 210, '140', null])(
+    'refuses to set the zoom to %j',
+    async percent => {
+      const {control, config} = await setUp(100);
+
+      await expect(
+        ask(uiEndpoints.changeZoom.channel, control.id, {
+          type: 'ui.zoomSet',
+          percent,
+        }),
+      ).rejects.toThrow('Invalid UI zoom command');
+
+      expect(config.setUiZoomPercent).not.toHaveBeenCalled();
+    },
+  );
+
   it('reapplies reset to every control even when the stored value is already 100', async () => {
     const {control, zoom, config} = await setUp(100);
     const second = new Control(2);

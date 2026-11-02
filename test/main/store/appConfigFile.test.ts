@@ -99,6 +99,43 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     expect(await readFile(file)).toEqual(bytes);
   });
 
+  it('stores a chosen library folder, keeps the other fields, and reopens with it', async () => {
+    const file = await appJson();
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      future: {keep: true},
+    });
+    const config = await openAppConfig({file, log: mockLog()});
+    const folder = join(await makeTempDir(), 'Songs');
+
+    config.setLibraryLocation('songsPath', folder);
+    await config.flush();
+    config.dispose();
+
+    expect(config.libraryLocations).toEqual({songsPath: folder});
+    expect(await readJson(file)).toMatchObject({
+      songsPath: folder,
+      future: {keep: true},
+    });
+    const reopened = await openAppConfig({file, log: mockLog()});
+    onTestFinished(() => reopened.dispose());
+    expect(reopened.libraryLocations).toEqual({songsPath: folder});
+  });
+
+  it('reports a file of a newer version as read-only and never writes it', async () => {
+    const file = await appJson();
+    await writeJson(file, {format: 'llapp', schemaVersion: 99});
+    const config = await openAppConfig({file, log: mockLog()});
+    onTestFinished(() => config.dispose());
+
+    expect(config.isReadOnly).toBe(true);
+    config.setLibraryLocation('mediaPath', join(await makeTempDir(), 'Media'));
+    await config.flush();
+
+    expect(await readJson(file)).toEqual({format: 'llapp', schemaVersion: 99});
+  });
+
   it('keeps the import folder per app data file across UI edits and reopening', async () => {
     const file = await appJson();
     await writeJson(file, {

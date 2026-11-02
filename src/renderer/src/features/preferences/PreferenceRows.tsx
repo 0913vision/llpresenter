@@ -1,6 +1,8 @@
 import type {JSX} from 'react';
 import {NumberField} from '@renderer/ui/NumberField';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
+import {Button} from '@renderer/ui/Button';
+import {PropertyRow, PropertyValue} from '@renderer/ui/PropertyRow';
+import {TextField} from '@renderer/ui/TextField';
 import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
 import {Switch} from '@renderer/ui/Switch';
 
@@ -101,5 +103,66 @@ export function CountRow({
         />
       )}
     </PropertyRow>
+  );
+}
+
+const NO_CHANGE = (): void => undefined;
+
+/** A read-only folder path with a folder icon and 바꾸기. */
+export function PathRow({
+  label,
+  title,
+  disabled,
+  path,
+  onChange,
+}: RowProps & {
+  readonly path: string;
+  readonly onChange: () => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {({controlId}) => (
+        <>
+          <TextField
+            id={controlId}
+            block
+            readOnly
+            icon="folder"
+            value={path}
+            title={title}
+            onChange={NO_CHANGE}
+          />
+          <Button size="sm" disabled={disabled} onClick={onChange}>
+            바꾸기
+          </Button>
+        </>
+      )}
+    </PropertyRow>
+  );
+}
+
+/** A read-only value with a button at its end, such as 마지막 백업. */
+export function ValueActionRow({
+  label,
+  value,
+  action,
+  disabled,
+  title,
+  onAction,
+}: RowProps & {
+  readonly value: string;
+  readonly action: string;
+  readonly onAction: () => void;
+}): JSX.Element {
+  return (
+    <PropertyValue
+      label={label}
+      value={value}
+      action={
+        <Button size="sm" disabled={disabled} title={title} onClick={onAction}>
+          {action}
+        </Button>
+      }
+    />
   );
 }

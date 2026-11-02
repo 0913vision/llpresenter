@@ -19,6 +19,7 @@ import {
 } from '@core/schema/uiZoom';
 import {
   message,
+  push,
   query,
   request,
   type IpcPort,
@@ -46,6 +47,7 @@ export const uiEndpoints = {
     request: parseUiZoomCommand,
     reply: parseUiZoomPercent,
   }),
+  zoomChanged: push<number>('ui:zoom:changed', parseUiZoomPercent),
 };
 
 /** The UI state part of `window.llp`. */
@@ -73,6 +75,8 @@ export function uiApi(port: IpcPort, platform: WindowPlatform) {
     getZoomFactor: (): number => platform.zoomFactor(),
     /** Applies one clamped zoom command in main; rejects after logging on failure. */
     changeZoom: port.request(uiEndpoints.changeZoom),
+    /** Follows the zoom percentage when any window changes it. */
+    onZoomChanged: port.subscribe(uiEndpoints.zoomChanged),
   };
 }
 

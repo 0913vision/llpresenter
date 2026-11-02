@@ -49,7 +49,9 @@ export function PreferencesView({
         <Properties placement="window">
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
-          {page === 'library' ? <LibraryPage edits={edits} /> : null}
+          {page === 'library' ? (
+            <LibraryPage edits={edits} onProblem={onProblem} />
+          ) : null}
         </Properties>
       </section>
     </div>

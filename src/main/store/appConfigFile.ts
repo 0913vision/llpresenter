@@ -2,6 +2,7 @@ import {serializeAppConfig, type AppConfig} from '@core/schema/appConfig';
 import type {FileError} from '@core/schema/fileFormat';
 import type {ServiceId} from '@core/schema/ids';
 import {UI_ZOOM} from '@core/schema/uiZoom';
+import type {LibraryLocationField} from '@core/schema/libraryLocations';
 import type {Logger} from '../log';
 import {writeFileAtomically} from './atomicWrite';
 import {Autosave} from './autosave';
@@ -140,6 +141,26 @@ export class AppConfigFile implements UiStateFields {
   ): void {
     this.config = {...this.config, songEditorWindow: placement};
     this.scheduleSave();
+  }
+
+  /** The folders 환경설정 stored for 곡, 미디어, and 백업; empty is the default. */
+  get libraryLocations(): LocationFields {
+    const {songsPath, mediaPath, backupPath} = this.config;
+    return {
+      ...(songsPath === undefined ? {} : {songsPath}),
+      ...(mediaPath === undefined ? {} : {mediaPath}),
+      ...(backupPath === undefined ? {} : {backupPath}),
+    };
+  }
+
+  setLibraryLocation(field: LibraryLocationField, folder: string): void {
+    this.config = {...this.config, [field]: folder};
+    this.scheduleSave();
+  }
+
+  /** Whether a change would be dropped: the file is broken or from a newer app. */
+  get isReadOnly(): boolean {
+    return this.isBroken || this.opened.newer;
   }
 
   /** Whether the file couldn't be read or failed its check. */

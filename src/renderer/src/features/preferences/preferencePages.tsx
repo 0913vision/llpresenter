@@ -1,8 +1,19 @@
 import type {JSX} from 'react';
+import {UI_ZOOM} from '@core/schema/uiZoom';
+import {lastBackupText} from '@core/ui/lastBackupText';
+import type {Notice} from '@renderer/ui/notices';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import {PREFERENCE_LIMITS, previewFpsChoices} from '@core/schema/preferences';
 import type {PreferenceEdits} from './usePreferenceEdits';
-import {CountRow, SelectRow, SwitchRow} from './PreferenceRows';
+import {
+  CountRow,
+  PathRow,
+  SelectRow,
+  SwitchRow,
+  ValueActionRow,
+} from './PreferenceRows';
+import {useLibraryLocations} from './useLibraryLocations';
+import {useUiZoom} from './useUiZoom';
 
 /** The pages of the 환경설정 list, in the order it shows them. */
 export const preferencePages = [
@@ -30,6 +41,16 @@ const FPS_OPTIONS = previewFpsChoices.map(fps => ({
   label: `${fps}fps`,
 }));
 
+const ZOOM_OPTIONS = Array.from(
+  {length: (UI_ZOOM.max - UI_ZOOM.min) / UI_ZOOM.step + 1},
+  (_, index) => {
+    const percent = UI_ZOOM.min + index * UI_ZOOM.step;
+    return {value: String(percent), label: `${percent}%`};
+  },
+);
+const NEXT_LAUNCH_NOTE = '다음에 켤 때 적용됩니다';
+const BACKUP_NOTE = '다음 백업부터 적용됩니다';
+
 interface PageProps {
   readonly edits: PreferenceEdits;
 }
@@ -37,6 +58,7 @@ interface PageProps {
 /** 일반: 앱, 저장, 지우기. */
 export function GeneralPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
+  const zoom = useUiZoom();
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   return (
@@ -57,6 +79,13 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           options={LAUNCH_OPTIONS}
           value={preferences.onLaunch}
           onChange={onLaunch => change(stored => ({...stored, onLaunch}))}
+        />
+        <SelectRow
+          label="UI 확대"
+          disabled={zoom.percent === null}
+          options={ZOOM_OPTIONS}
+          value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
+          onChange={percent => zoom.setPercent(Number(percent))}
         />
       </PropertyGroup>
       <PropertyGroup title="저장">
@@ -166,33 +195,74 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
   );
 }
 
-/** 라이브러리: 백업. */
-export function LibraryPage({edits}: PageProps): JSX.Element | null {
+/** 라이브러리: 위치, 백업. */
+export function LibraryPage({
+  edits,
+  onProblem,
+}: PageProps & {
+  readonly onProblem: (notice: Notice) => void;
+}): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
+  const locations = useLibraryLocations(onProblem);
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
+  const {view} = locations;
+  const unavailable = disabled || view === null;
   return (
-    <PropertyGroup title="백업">
-      <SwitchRow
-        label="자동 백업"
-        disabled={disabled}
-        title={lockedReason}
-        checked={preferences.backup.auto}
-        onChange={auto =>
-          change(stored => ({...stored, backup: {...stored.backup, auto}}))
-        }
-      />
-      <CountRow
-        label="보관"
-        unit="개"
-        disabled={disabled}
-        title={lockedReason}
-        value={preferences.backup.keep}
-        {...PREFERENCE_LIMITS.backupKeep}
-        onChange={keep =>
-          change(stored => ({...stored, backup: {...stored.backup, keep}}))
-        }
-      />
-    </PropertyGroup>
+    <>
+      <PropertyGroup title="위치">
+        <PathRow
+          label="곡"
+          path={view?.songs.path ?? ''}
+          disabled={unavailable}
+          title={view?.songs.pending ? NEXT_LAUNCH_NOTE : lockedReason}
+          onChange={() => locations.choose('songsPath')}
+        />
+        <PathRow
+          label="미디어"
+          path={view?.media.path ?? ''}
+          disabled={unavailable}
+          title={view?.media.pending ? NEXT_LAUNCH_NOTE : lockedReason}
+          onChange={() => locations.choose('mediaPath')}
+        />
+      </PropertyGroup>
+      <PropertyGroup title="백업">
+        <SwitchRow
+          label="자동 백업"
+          disabled={disabled}
+          title={lockedReason}
+          checked={preferences.backup.auto}
+          onChange={auto =>
+            change(stored => ({...stored, backup: {...stored.backup, auto}}))
+          }
+        />
+        <PathRow
+          label="백업 위치"
+          path={view?.backup.path ?? ''}
+          disabled={unavailable}
+          title={lockedReason ?? BACKUP_NOTE}
+          onChange={() => locations.choose('backupPath')}
+        />
+        <CountRow
+          label="보관"
+          unit="개"
+          disabled={disabled}
+          title={lockedReason}
+          value={preferences.backup.keep}
+          {...PREFERENCE_LIMITS.backupKeep}
+          onChange={keep =>
+            change(stored => ({...stored, backup: {...stored.backup, keep}}))
+          }
+        />
+        <ValueActionRow
+          label="마지막 백업"
+          value={lastBackupText(view?.lastBackup ?? null, new Date())}
+          action="지금 백업"
+          disabled={view === null || view.backingUp}
+          title={view?.backingUp ? '백업 중' : undefined}
+          onAction={locations.backUpNow}
+        />
+      </PropertyGroup>
+    </>
   );
 }

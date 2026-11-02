@@ -7,6 +7,7 @@ import type {IpcPort, WindowPlatform} from '@contracts/ipc/endpoint';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
+import {locationsEndpoints} from '@contracts/ipc/locations';
 import {orderEditorEndpoints} from '@contracts/ipc/orderEditor';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
@@ -36,6 +37,7 @@ const DECLARED = [
   uiEndpoints,
   windowEndpoints,
   outputEndpoints,
+  locationsEndpoints,
   orderEditorEndpoints,
   songEditorWindowEndpoints,
 ].flatMap(endpointsIn);

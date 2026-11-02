@@ -6,6 +6,7 @@ import {
   type UiZoomCommand,
 } from '@core/schema/uiZoom';
 import type {Logger} from '../log';
+import {broadcast} from './contentChannels';
 import type {AppConfigFile} from './appConfigFile';
 
 const PERCENT_PER_FACTOR = 100;
@@ -65,6 +66,7 @@ export function registerUiZoom(
     if (changed || command.value.type === 'ui.zoomReset') {
       for (const control of controls.values()) control.apply();
     }
+    if (changed) broadcast(uiEndpoints.zoomChanged.channel, percent, log);
     return percent;
   });
 
@@ -112,5 +114,7 @@ function changedZoom(percent: number, command: UiZoomCommand): number {
       return Math.max(UI_ZOOM.min, percent - UI_ZOOM.step);
     case 'ui.zoomReset':
       return UI_ZOOM.defaultPercent;
+    case 'ui.zoomSet':
+      return command.percent;
   }
 }

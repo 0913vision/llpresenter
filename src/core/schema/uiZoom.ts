@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
-import {parsePayload, payloadObject, type PayloadError} from './payload';
+import {parsePayload, plainObject, type PayloadError} from './payload';
 
 export const UI_ZOOM = {
   min: 100,
@@ -39,9 +39,13 @@ export const uiZoomPercentSchema = v.pipe(
   ),
 );
 
-const uiZoomCommandSchema = payloadObject({
-  type: v.picklist(['ui.zoomIn', 'ui.zoomOut', 'ui.zoomReset']),
-});
+const uiZoomCommandSchema = v.pipe(
+  plainObject,
+  v.variant('type', [
+    v.object({type: v.picklist(['ui.zoomIn', 'ui.zoomOut', 'ui.zoomReset'])}),
+    v.object({type: v.literal('ui.zoomSet'), percent: uiZoomPercentSchema}),
+  ]),
+);
 
 export type UiZoomCommand = Readonly<v.InferOutput<typeof uiZoomCommandSchema>>;
 

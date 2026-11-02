@@ -41,6 +41,20 @@ describe('UI zoom contract', () => {
     expect(parseUiZoomCommand({type})).toEqual({ok: true, value: {type}});
   });
 
+  it.each([100, 140, 200])('accepts setting the zoom to %i', percent => {
+    expect(parseUiZoomCommand({type: 'ui.zoomSet', percent})).toEqual({
+      ok: true,
+      value: {type: 'ui.zoomSet', percent},
+    });
+  });
+
+  it.each([undefined, 90, 105, 210, '140', null])(
+    'refuses setting the zoom to %j',
+    percent => {
+      expect(parseUiZoomCommand({type: 'ui.zoomSet', percent}).ok).toBe(false);
+    },
+  );
+
   it.each([
     undefined,
     null,

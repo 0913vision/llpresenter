@@ -34,6 +34,7 @@ import {
 } from './soak';
 import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
+import {registerLibraryLocations} from './store/locationsChannels';
 import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
 import {
@@ -134,6 +135,12 @@ function start(): void {
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         appConfig,
         problems: problems.feed,
+      });
+      const stopLocations = registerLibraryLocations({
+        config: appConfig,
+        settings: dataStore,
+        isAnyOutputOn: () => isAnyOutputOn(store.state),
+        log,
       });
       const recoveryRecord = new RecoveryRecordWriter({
         file: join(recoveryFolder, RECOVERY_RECORD_FILE),
@@ -295,6 +302,10 @@ function start(): void {
       shutdown.add({
         name: 'stop screen configuration',
         run: screensWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the location channels',
+        run: stopLocations,
       });
       shutdown.add({
         name: 'stop the preferences window',

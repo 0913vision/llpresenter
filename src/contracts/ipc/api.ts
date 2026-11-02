@@ -26,6 +26,7 @@ import {
   type MonitorsApi,
   type OutputApi,
 } from './output';
+import {locationsApi, type LocationsApi} from './locations';
 import {orderEditorApi, type OrderEditorApi} from './orderEditor';
 import {recoveryApi, type RecoveryApi} from './recovery';
 import {serviceApi, type ServiceApi} from './service';
@@ -92,6 +93,7 @@ export interface LlpApi {
   readonly library: LibraryApi;
   readonly textImport: TextImportApi;
   readonly recovery: RecoveryApi;
+  readonly locations: LocationsApi;
   readonly orderEditor: OrderEditorApi;
   readonly songEditorWindow: SongEditorWindowApi;
 }
@@ -120,6 +122,7 @@ export function llpApi(port: IpcPort, platform: WindowPlatform): LlpApi {
     library: libraryApi(port),
     textImport: textImportApi(port),
     recovery: recoveryApi(port),
+    locations: locationsApi(port),
     orderEditor: orderEditorApi(port),
     songEditorWindow: songEditorWindowApi(port),
   };

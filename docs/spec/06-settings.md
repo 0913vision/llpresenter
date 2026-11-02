@@ -263,7 +263,9 @@ bar), `docs/TECH.md` operating rules.
 M2 check 1 updates the proposal in 10 with 일반 > UI 확대 (default 100%, Ctrl +,
 Ctrl -, Ctrl 0) and 진행 > 지우기 되돌리기 단추 보이기 (proposal, default off).
 The zoom scales control windows; it never changes output rendering. These rows
-supersede the earlier omission from this window.
+supersede the earlier omission from this window. 일반 > UI 확대 is a select with
+the steps 100% to 200% in 10% steps, kept in step with the keys and with every
+other control window; main applies it and stores it in `app.json`.
 
 ## Shortcuts
 
