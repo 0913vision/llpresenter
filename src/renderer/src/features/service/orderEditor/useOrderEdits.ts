@@ -3,6 +3,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import type {SongGroupId} from '@core/schema/ids';
 import {arrangementFromOrder} from '@core/songs/itemOrder';
+import {overlayRequest} from '@renderer/features/service/items/itemAppearanceCommands';
+import type {ItemOverlay} from '@core/schema/itemOverlays';
 import {withArrangementPick, withOrderEdit} from '@core/songs/itemOrderEdit';
 import {
   ItemEditQueue,
@@ -19,6 +21,10 @@ export interface OrderEdits {
   /** Sets this 예배's order, and moves the 오버레이 ranges with it. */
   readonly setOrder: (ids: readonly SongGroupId[]) => Promise<boolean>;
   /** Picks a 구성, or 기본 with undefined, and drops the custom order. */
+  /** Changes the 오버레이 ranges of the item, checked against the fresh item. */
+  readonly changeOverlays: (
+    change: (rows: readonly ItemOverlay[]) => readonly ItemOverlay[],
+  ) => Promise<boolean>;
   readonly pickArrangement: (name: string | undefined) => Promise<boolean>;
   /** Saves the order as a new 구성 of the song and makes the item use it. */
   readonly saveAsArrangement: (
@@ -68,6 +74,7 @@ export function useOrderEdits({
         failure: ORDER_FAILURE,
         target,
       }),
+    changeOverlays: change => queue.submit(overlayRequest(target, change)),
     pickArrangement: name =>
       queue.submit({
         change: withArrangementPick(song, name),

@@ -4,18 +4,18 @@ import {overlayRangesOverlap} from '@core/themes/overlayRanges';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {NumberField} from '@renderer/ui/NumberField';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
-import type {ServiceItemStore} from './serviceItemStore';
+import type {OverlayEditing} from './overlayEditing';
 import styles from './ItemOverlays.module.css';
 export function ItemOverlayRange({
   overlay,
   rows,
-  items,
+  change,
   count,
   reason,
 }: {
   readonly overlay: ItemOverlay;
   readonly rows: readonly ItemOverlay[];
-  readonly items: ServiceItemStore;
+  readonly change: OverlayEditing['change'];
   readonly count: number;
   readonly reason: string | undefined;
 }): JSX.Element {
@@ -41,23 +41,21 @@ export function ItemOverlayRange({
     setRangeReason(failure);
     if (failure === undefined) {
       editorTask(
-        items
-          .changeOverlays(current =>
-            current.map(row =>
-              row.id === overlay.id
-                ? {...row, from: next.from, to: next.to}
-                : row,
-            ),
-          )
-          .then(saved => {
-            if (saved) {
-              setRangeDraft(current =>
-                current?.from === next.from && current.to === next.to
-                  ? null
-                  : current,
-              );
-            }
-          }),
+        change(current =>
+          current.map(row =>
+            row.id === overlay.id
+              ? {...row, from: next.from, to: next.to}
+              : row,
+          ),
+        ).then(saved => {
+          if (saved) {
+            setRangeDraft(current =>
+              current?.from === next.from && current.to === next.to
+                ? null
+                : current,
+            );
+          }
+        }),
       );
     }
   };

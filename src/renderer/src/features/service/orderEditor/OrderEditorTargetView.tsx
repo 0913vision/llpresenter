@@ -9,7 +9,13 @@ import {useFollowedService, useFollowedSong} from './useOrderEditorSources';
 
 type ViewApi = Pick<
   LlpApi,
-  'orderEditor' | 'content' | 'services' | 'songs' | 'window'
+  | 'orderEditor'
+  | 'content'
+  | 'services'
+  | 'songs'
+  | 'window'
+  | 'settings'
+  | 'media'
 >;
 
 interface ViewProps {

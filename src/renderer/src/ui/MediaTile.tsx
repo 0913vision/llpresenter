@@ -1,6 +1,7 @@
 import {
   memo,
   type CSSProperties,
+  type DragEvent,
   type JSX,
   type ReactElement,
   type ReactNode,
@@ -45,6 +46,9 @@ export interface MediaTileProps {
   readonly missingFile?: string | undefined;
   /** How far copying into the media folder has come, 0 to 100, while it copies. */
   readonly copying?: number | undefined;
+  /** Makes the tile draggable; the host puts what it carries on the drag. */
+  readonly onDragStart?:
+    ((event: DragEvent<HTMLButtonElement>) => void) | undefined;
 }
 
 function tileState({
@@ -152,6 +156,8 @@ export const MediaTile = memo((props: MediaTileProps): JSX.Element => {
       aria-label={name}
       aria-selected={selected}
       aria-disabled={copying === undefined ? undefined : true}
+      draggable={props.onDragStart === undefined ? undefined : true}
+      onDragStart={props.onDragStart}
       data-state={tileState({
         live,
         missing: missingFile !== undefined,

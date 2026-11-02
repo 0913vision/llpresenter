@@ -31,6 +31,7 @@ import {
 } from './mediaEntries';
 import {useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
+import {writeMediaDrag} from './mediaDrag';
 import {useMediaImportAction} from './useMediaImportAction';
 import {MediaImportOptions} from './MediaImportOptions';
 import styles from './MediaView.module.css';
@@ -93,6 +94,11 @@ function EntryTile({
       missingFile={missing ? item.file : undefined}
       live={live}
       selected={selected}
+      onDragStart={
+        copying === undefined
+          ? event => writeMediaDrag(event.dataTransfer, item.id)
+          : undefined
+      }
     />
   );
 }

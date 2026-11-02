@@ -87,11 +87,11 @@ function chip(panel: HTMLElement, index: number): HTMLElement {
 }
 
 function selectedThumbnail(panel: HTMLElement): number {
-  const thumbnails = within(panel).getAllByRole('button', {
-    name: /^슬라이드 \d+$/,
-  });
+  const thumbnails = within(
+    within(panel).getByRole('listbox', {name: '슬라이드'}),
+  ).getAllByRole('option');
   return thumbnails.findIndex(
-    option => option.getAttribute('aria-pressed') === 'true',
+    option => option.getAttribute('aria-selected') === 'true',
   );
 }
 
@@ -264,15 +264,10 @@ describe('service song item panel', () => {
 
   it('uses the shared slide menu to hand off the clicked repeated slide and its key', async () => {
     const {panel, user, openWindow, service, edits} = await setup();
-    const grid = within(panel).getByRole('table', {
-      name: '슬라이드와 오버레이',
-    });
-    const third = within(grid).getAllByRole('button', {
-      name: /^슬라이드 \d+$/,
-    })[2];
+    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
+    const third = within(grid).getAllByRole('option')[2];
     if (!third) throw new Error('Missing repeated thumbnail');
     fireEvent.contextMenu(third);
-    expect(third.hasAttribute('data-menu-target')).toBe(true);
     await user.click(screen.getByRole('menuitem', {name: '단축키…'}));
     expect(openWindow).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({block: 1, action: 'hot-key'}),

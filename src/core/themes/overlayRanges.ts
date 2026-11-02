@@ -90,3 +90,122 @@ export function remapOverlayRanges<T extends OverlaySpan>(
     ];
   });
 }
+
+/** The overlay whose inclusive range holds `position` (1-based), if any. */
+export function overlayAt<T extends OverlaySpan>(
+  overlays: readonly T[],
+  position: number,
+): T | undefined {
+  return overlays.find(
+    overlay => overlay.from <= position && overlay.to >= position,
+  );
+}
+
+/**
+ * The range a new overlay gets when it starts on `position`: to the last
+ * slide, or to the slide before the next overlay. Undefined when an overlay
+ * already holds that slide.
+ */
+export function newOverlaySpan(
+  overlays: readonly OverlaySpan[],
+  position: number,
+  total: number,
+): OverlaySpan | undefined {
+  if (position < 1 || position > total) return undefined;
+  if (overlayAt(overlays, position) !== undefined) return undefined;
+  const following = overlays
+    .filter(overlay => overlay.from > position)
+    .map(overlay => overlay.from);
+  return {from: position, to: Math.min(total, ...following.map(f => f - 1))};
+}
+
+/**
+ * The range after one end is dragged to `position`: it stays on a slide, never
+ * crosses the other end, and stops short of the neighbouring overlays.
+ */
+export function resizedSpan({
+  overlays,
+  id,
+  edge,
+  position,
+  total,
+}: {
+  readonly overlays: ReadonlyArray<OverlaySpan & {readonly id: string}>;
+  readonly id: string;
+  readonly edge: 'from' | 'to';
+  readonly position: number;
+  readonly total: number;
+}): OverlaySpan | undefined {
+  const current = overlays.find(overlay => overlay.id === id);
+  if (current === undefined) return undefined;
+  const others = overlays.filter(overlay => overlay.id !== id);
+  if (edge === 'from') {
+    const floor = Math.max(
+      1,
+      ...others.filter(o => o.to < current.from).map(o => o.to + 1),
+    );
+    return {
+      from: Math.min(current.to, Math.max(floor, position)),
+      to: current.to,
+    };
+  }
+  const ceiling = Math.min(
+    total,
+    ...others.filter(o => o.from > current.to).map(o => o.from - 1),
+  );
+  return {
+    from: current.from,
+    to: Math.max(current.from, Math.min(ceiling, position)),
+  };
+}
+
+/** The 1-based slide whose centre is nearest `x`, or undefined without slides. */
+export function nearestSlide(
+  x: number,
+  centres: readonly number[],
+): number | undefined {
+  let best: number | undefined;
+  let distance = Infinity;
+  centres.forEach((centre, index) => {
+    const gap = Math.abs(centre - x);
+    if (gap < distance) {
+      distance = gap;
+      best = index + 1;
+    }
+  });
+  return best;
+}
+
+/** One row of an overlay's clip: columns are 0-based and inclusive. */
+export interface ClipSegment {
+  readonly row: number;
+  readonly firstColumn: number;
+  readonly lastColumn: number;
+  /** The range began on an earlier row, so the clip opens with ›. */
+  readonly continuesBefore: boolean;
+  /** The range goes on to the next row, so the clip ends with ›. */
+  readonly continuesAfter: boolean;
+}
+
+/** Splits a range over rows of `columns` slides, as the clip is drawn. */
+export function clipSegments(
+  span: OverlaySpan,
+  columns: number,
+): readonly ClipSegment[] {
+  if (columns < 1 || span.from < 1 || span.to < span.from) return [];
+  const first = span.from - 1;
+  const last = span.to - 1;
+  const firstRow = Math.floor(first / columns);
+  const lastRow = Math.floor(last / columns);
+  const segments: ClipSegment[] = [];
+  for (let row = firstRow; row <= lastRow; row++) {
+    segments.push({
+      row,
+      firstColumn: row === firstRow ? first % columns : 0,
+      lastColumn: row === lastRow ? last % columns : columns - 1,
+      continuesBefore: row > firstRow,
+      continuesAfter: row < lastRow,
+    });
+  }
+  return segments;
+}

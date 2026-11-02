@@ -124,13 +124,17 @@ function lastLayers(): LiveLayers | undefined {
   return drawing.render.mock.calls.at(-1)?.[0];
 }
 
+function slideOption(grid: HTMLElement, index: number): HTMLElement {
+  const found = within(grid).getAllByRole('option')[index];
+  if (found === undefined) throw new Error(`No slide ${index}`);
+  return found;
+}
+
 describe('service item preview and 항목 설정', () => {
   it('selects saved Bible verses by pointer and keyboard with local preview and no output', async () => {
     const {user, output, edits} = await setupBible();
-    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
-    expect(
-      within(grid).getAllByRole('button', {name: /^슬라이드 \d+$/}),
-    ).toHaveLength(3);
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    expect(within(grid).getAllByRole('option')).toHaveLength(3);
     expect(caption()).toContain('3:161 / 3');
     expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
     expect(drawing.render.mock.lastCall?.[1]?.theme?.item?.title).toBe(
@@ -140,11 +144,11 @@ describe('service item preview and 항목 설정', () => {
       label: '3:17',
       lines: ['17 Invented verse 17'],
     });
-    await user.click(within(grid).getByRole('button', {name: '슬라이드 3'}));
+    await user.click(slideOption(grid, 2));
     expect(caption()).toContain('3:183 / 3');
     expect(lastLayers()?.slide?.lines).toEqual(['18 Invented verse 18']);
     expect(lastLayers()?.slide?.next).toBeUndefined();
-    await user.keyboard('{Home}{ArrowDown}');
+    await user.keyboard('{ArrowLeft}');
     expect(caption()).toContain('3:172 / 3');
     expect(lastLayers()?.slide?.next).toEqual({
       label: '3:18',
@@ -158,40 +162,29 @@ describe('service item preview and 항목 설정', () => {
 
   it('clamps a saved Bible selection after projection shrink and clears an unavailable preview', async () => {
     const {user, output, tiles} = await setupBible();
-    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
-    await user.click(within(grid).getByRole('button', {name: '슬라이드 3'}));
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    await user.click(slideOption(grid, 2));
     act(() =>
       useShow.setState({tiles: {[fixtureItems.arranged]: tiles.slice(0, 1)}}),
     );
-    expect(
-      within(grid).getAllByRole('button', {name: /^슬라이드 \d+$/}),
-    ).toHaveLength(1);
+    expect(within(grid).getAllByRole('option')).toHaveLength(1);
     expect(caption()).toContain('3:161 / 1');
     expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
     act(() => useShow.setState({tiles: {}}));
-    expect(
-      within(grid).queryAllByRole('button', {name: /^슬라이드 \d+$/}),
-    ).toHaveLength(0);
+    expect(within(grid).queryAllByRole('option')).toHaveLength(0);
     expect(caption()).toBe('미리보기');
     expect(output).not.toHaveBeenCalled();
   });
 
-  it('starts another saved Bible item at its first tile and resets the old scroll position', async () => {
-    const {output} = await setupBible();
-    const grid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
-    const viewport = within(grid).getByRole('rowgroup');
-    const initialScrollTop = viewport.scrollTop;
-    viewport.scrollTop = 500;
+  it('starts another saved Bible item at its first tile', async () => {
+    const {user, output} = await setupBible();
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    await user.click(slideOption(grid, 1));
     act(() => useShow.setState({openItemId: fixtureItems.plain}));
     await waitFor(() => expect(caption()).toContain('3:171 / 2'));
-    const nextGrid = screen.getByRole('table', {name: '슬라이드와 오버레이'});
-    expect(within(nextGrid).getByRole('rowgroup').scrollTop).toBe(
-      initialScrollTop,
-    );
+    const nextGrid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(
-      within(nextGrid)
-        .getByRole('button', {name: '슬라이드 1'})
-        .getAttribute('aria-pressed'),
+      within(nextGrid).getAllByRole('option')[0]?.getAttribute('aria-selected'),
     ).toBe('true');
     expect(output).not.toHaveBeenCalled();
   });

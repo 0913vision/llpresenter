@@ -1,5 +1,5 @@
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {ItemOverlayId, MediaId, ThemeId} from '@core/schema/ids';
+import type {MediaId, ThemeId} from '@core/schema/ids';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
 import type {ServiceItem} from '@core/schema/service';
 import {effectiveArrangement} from '@core/services/itemFieldChanges';
@@ -54,7 +54,6 @@ export interface ServiceItemState {
    * thumbnails, and preview. Readers clamp it to the order's length.
    */
   readonly position: number;
-  readonly overlay: ItemOverlayId | null;
   readonly busy: boolean;
 }
 const NO_ITEM: ServiceItemState = {
@@ -64,7 +63,6 @@ const NO_ITEM: ServiceItemState = {
   songStatus: null,
   arrangement: undefined,
   position: 0,
-  overlay: null,
   busy: false,
 };
 const RETRY_READ_LABEL = '다시 불러오기';
@@ -84,7 +82,6 @@ export class ServiceItemStore {
   private readonly stopWrites: () => void;
   private target: ItemTarget | null = null;
   private position = 0;
-  private overlay: ItemOverlayId | null = null;
   private alive = true;
   private state = NO_ITEM;
   readonly memoRoomReason = TOO_MANY_DRAFTS;
@@ -116,7 +113,6 @@ export class ServiceItemStore {
     if (!this.alive || sameTarget(target, this.target)) return;
     this.target = target;
     this.position = 0;
-    this.overlay = null;
     this.source.show(target);
   }
   /** Selects a place in the order without changing the output. */
@@ -133,17 +129,6 @@ export class ServiceItemStore {
   /** Picks the item's arrangement, or 기본 when omitted. */
   chooseArrangement(name: string | undefined): Promise<boolean> {
     return this.submitItemEdit(arrangementRequest(this.target, name));
-  }
-  selectOverlay(id: ItemOverlayId | null): void {
-    if (!this.alive || this.overlay === id) return;
-    if (
-      id !== null &&
-      !this.source.currentItem()?.overlays?.some(row => row.id === id)
-    ) {
-      return;
-    }
-    this.overlay = id;
-    this.publish();
   }
   /** Omitting the theme follows the item's kind default. */
   setTheme(theme: ThemeId | undefined): Promise<boolean> {
@@ -213,12 +198,6 @@ export class ServiceItemStore {
   private publish(): void {
     if (!this.alive) return;
     const {service, item, song, songStatus} = this.source.snapshot();
-    if (
-      this.overlay !== null &&
-      !item?.overlays?.some(row => row.id === this.overlay)
-    ) {
-      this.overlay = null;
-    }
     this.state = {
       service,
       item,
@@ -226,10 +205,6 @@ export class ServiceItemStore {
       songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
-      overlay:
-        item?.overlays?.some(row => row.id === this.overlay) === true
-          ? this.overlay
-          : null,
       busy: this.edits.busy,
     };
     for (const listener of this.listeners) listener();

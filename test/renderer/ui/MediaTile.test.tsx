@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -187,5 +187,26 @@ describe('MediaStrip', () => {
         .getByRole('listbox', {name: '미디어'})
         .getAttribute('data-workspace'),
     ).toBe('show');
+  });
+});
+
+describe('MediaTile drag', () => {
+  it('is draggable only when the host takes the drag', () => {
+    const onDragStart = vi.fn();
+    render(
+      <MediaStrip
+        label="미디어"
+        selected={0}
+        onSelect={() => {}}
+        onActivate={() => {}}
+      >
+        <MediaTile name="끌 수 있음" onDragStart={onDragStart} />
+        <MediaTile name="고정" />
+      </MediaStrip>,
+    );
+    fireEvent.dragStart(tile('끌 수 있음'));
+    expect(onDragStart).toHaveBeenCalledOnce();
+    expect(tile('끌 수 있음').getAttribute('draggable')).toBe('true');
+    expect(tile('고정').getAttribute('draggable')).toBeNull();
   });
 });

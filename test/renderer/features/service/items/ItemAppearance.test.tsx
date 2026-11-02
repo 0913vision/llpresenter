@@ -18,7 +18,6 @@ import {
 import {createNoticeSetId} from '@core/schema/ids';
 import {checkPart} from '@core/schema/fileFormat';
 import {biblePassageSchema} from '@core/schema/biblePassage';
-import {isGroupedSong} from '@core/schema/groupedSong';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {Theme} from '@core/schema/themes';
@@ -31,8 +30,8 @@ import {
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {useShow} from '@renderer/session/show';
-import {commitDraftBeforeShortcut} from '@renderer/ui/commitDraft';
-import {ItemOverlayTable} from '@renderer/features/service/items/ItemOverlayTable';
+import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
+import {ItemSlideGrid} from '@renderer/features/service/items/ItemSlideGrid';
 import {ItemSettingsPanel} from '@renderer/features/service/items/ItemSidePanels';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
@@ -108,7 +107,7 @@ async function setup(
   const navigate = vi.fn();
   const view = render(
     <WorkspaceNavigation.Provider value={navigate}>
-      <ItemOverlayTable items={items} editor={editor} />
+      <ItemSlideGrid items={items} editor={editor} />
       <ItemSettingsPanel items={items} editor={editor} />
     </WorkspaceNavigation.Provider>,
   );
@@ -117,7 +116,7 @@ async function setup(
     items.dispose();
     await editor.dispose();
   });
-  await screen.findByRole('button', {name: '슬라이드 3'});
+  await waitFor(() => expect(slides().length).toBeGreaterThanOrEqual(3));
   await waitFor(() =>
     expect(
       screen.getByRole('button', {name: '테마'}).getAttribute('aria-disabled'),
@@ -151,42 +150,64 @@ it('stores a chosen theme, follows its kind default again, and opens the theme w
   await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
 });
 
-it('adds at the selected slide, edits its inclusive range, and refuses overlap with a tooltip', async () => {
-  const {user, stored, edits} = await setup();
-  await user.click(screen.getByRole('button', {name: '슬라이드 2'}));
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await waitFor(() =>
-    expect(stored()?.overlays?.[0]).toMatchObject({
-      from: 2,
-      to: 2,
-      screens: [SCREEN],
-      content: {text: ''},
-    }),
+function slides(): HTMLElement[] {
+  return screen.queryAllByRole('option');
+}
+
+function slide(position: number): HTMLElement {
+  const found = slides()[position - 1];
+  if (found === undefined) throw new Error(`No slide ${position}`);
+  return found;
+}
+
+type Session = Awaited<ReturnType<typeof setup>>;
+
+/** Adds an 오버레이 with text from the right-click menu of a slide. */
+async function addOverlay(
+  user: Session['user'],
+  position: number,
+  text = '',
+): Promise<void> {
+  fireEvent.contextMenu(slide(position));
+  await user.click(
+    await screen.findByRole('menuitem', {name: '오버레이 추가…'}),
   );
-  const to = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
-  fireEvent.change(to, {target: {value: '3'}});
-  fireEvent.blur(to);
-  await waitFor(() => expect(stored()?.overlays?.[0]?.to).toBe(3));
-  expect(
-    screen.getAllByRole('button', {name: '오버레이 1, 슬라이드 2부터 3까지'}),
-  ).toHaveLength(2);
-  await user.click(screen.getByRole('button', {name: '슬라이드 1'}));
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await waitFor(() => expect(stored()?.overlays).toHaveLength(2));
-  const before = edits.length;
-  const secondTo = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
-  fireEvent.change(secondTo, {target: {value: '2'}});
-  fireEvent.blur(secondTo);
-  expect(stored()?.overlays?.[1]?.to).toBe(1);
-  expect(edits).toHaveLength(before);
-  expect((await hoverForTooltip(secondTo))?.textContent).toContain(
-    '다른 오버레이와 슬라이드 범위가 겹칩니다',
+  if (text !== '') {
+    await user.type(screen.getByRole('textbox', {name: '오버레이 글자'}), text);
+  }
+  await user.click(screen.getByRole('button', {name: '적용'}));
+}
+
+function bar(name: RegExp | string) {
+  return screen.getByRole('button', {name});
+}
+
+function pointer(
+  type: 'pointerdown' | 'pointermove' | 'pointerup',
+  target: Element,
+  point: {clientX: number; clientY: number} = {clientX: 0, clientY: 0},
+): void {
+  fireEvent(target, new MouseEvent(type, {bubbles: true, ...point}));
+}
+
+/** Lays the slides out two to a row, 100px apart, as the grid would. */
+function layOutSlides(): void {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: Element) {
+      const index = slides().findIndex(option => option === this);
+      return index < 0
+        ? new DOMRect()
+        : new DOMRect((index % 2) * 100, Math.floor(index / 2) * 80, 90, 60);
+    },
   );
-});
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+  });
+}
 
 it('warns about an overlay without a theme element and clears the warning for a suitable theme', async () => {
   const {user} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
+  await addOverlay(user, 1);
   const warning = await screen.findByRole('img', {
     name: '오버레이 요소가 없는 화면: 무대 화면',
   });
@@ -201,10 +222,101 @@ it('warns about an overlay without a theme element and clears the warning for a 
   );
 });
 
+it('adds from the slide menu to the song end, and edits the range in the popover with a tooltip on overlap', async () => {
+  const {user, stored, edits} = await setup();
+  const total = slides().length;
+  await addOverlay(user, 2);
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]).toMatchObject({
+      from: 2,
+      to: total,
+      screens: [SCREEN],
+      content: {text: ''},
+    }),
+  );
+  await user.click(bar(`오버레이 1, 슬라이드 2부터 ${total}까지`));
+  const to = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
+  fireEvent.change(to, {target: {value: '3'}});
+  fireEvent.blur(to);
+  await waitFor(() => expect(stored()?.overlays?.[0]?.to).toBe(3));
+  await addOverlay(user, 1);
+  await waitFor(() => expect(stored()?.overlays).toHaveLength(2));
+  expect(stored()?.overlays?.[1]).toMatchObject({from: 1, to: 1});
+  await user.click(bar('오버레이 2, 슬라이드 1부터 1까지'));
+  const before = edits.length;
+  const secondTo = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
+  fireEvent.change(secondTo, {target: {value: '2'}});
+  fireEvent.blur(secondTo);
+  expect(stored()?.overlays?.[1]?.to).toBe(1);
+  expect(edits).toHaveLength(before);
+  expect((await hoverForTooltip(secondTo))?.textContent).toContain(
+    '다른 오버레이와 슬라이드 범위가 겹칩니다',
+  );
+});
+
+it('offers 오버레이 바꾸기… and 삭제 on a slide that has one, and 추가… on one that does not', async () => {
+  const {user, stored} = await setup();
+  await addOverlay(user, 2);
+  await waitFor(() => expect(stored()?.overlays).toHaveLength(1));
+  fireEvent.contextMenu(slide(1));
+  expect(
+    await screen.findByRole('menuitem', {name: '오버레이 추가…'}),
+  ).toBeDefined();
+  await user.keyboard('{Escape}');
+  fireEvent.contextMenu(slide(2));
+  expect(
+    await screen.findByRole('menuitem', {name: '오버레이 바꾸기…'}),
+  ).toBeDefined();
+  expect(screen.queryByRole('menuitem', {name: '오버레이 추가…'})).toBeNull();
+  await user.click(screen.getByRole('menuitem', {name: '오버레이 삭제'}));
+  await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
+});
+
+it('removes the chosen clip with Delete', async () => {
+  const {user, stored} = await setup();
+  await addOverlay(user, 1);
+  await waitFor(() => expect(stored()?.overlays).toHaveLength(1));
+  await user.click(bar(/^오버레이 1,/));
+  await user.keyboard('{Delete}');
+  await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
+});
+
+it('puts a dropped media file on a slide as a new overlay, and replaces the media of one that has it', async () => {
+  const {stored} = await setup();
+  const total = slides().length;
+  const drop = (media: string, position: number): void => {
+    fireEvent.drop(slide(position), {
+      dataTransfer: {
+        types: [MEDIA_DRAG_MIME],
+        getData: () => media,
+        dropEffect: 'none',
+      },
+    });
+  };
+  drop(fixtureMedia.dawn, 2);
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]).toMatchObject({
+      from: 2,
+      to: total,
+      content: {media: fixtureMedia.dawn, loop: false, sound: false},
+    }),
+  );
+  drop(fixtureMedia.warm, 3);
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]).toMatchObject({
+      from: 2,
+      to: total,
+      content: {media: fixtureMedia.warm},
+    }),
+  );
+  expect(stored()?.overlays).toHaveLength(1);
+});
+
 it('stores text or video content and the video loop and sound choices', async () => {
   const {user, stored} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await user.click(await screen.findByRole('button', {name: '바꾸기…'}));
+  await addOverlay(user, 1);
+  await user.click(await screen.findByRole('button', {name: /^오버레이 1,/}));
+  await user.click(screen.getByRole('button', {name: '바꾸기…'}));
   await user.type(
     screen.getByRole('textbox', {name: '오버레이 글자'}),
     'Invented caption',
@@ -217,7 +329,10 @@ it('stores text or video content and the video loop and sound choices', async ()
   );
   await user.click(screen.getByRole('button', {name: '바꾸기…'}));
   await user.click(
-    within(screen.getByRole('dialog')).getByRole('radio', {name: '미디어'}),
+    within(screen.getByRole('dialog', {name: '오버레이 내용'})).getByRole(
+      'radio',
+      {name: '미디어'},
+    ),
   );
   await user.click(screen.getByRole('button', {name: '오버레이 미디어'}));
   await user.click(screen.getByRole('option', {name: '새벽 하늘'}));
@@ -239,7 +354,7 @@ it('stores text or video content and the video loop and sound choices', async ()
   );
 });
 
-it('refuses invalid overlay arrays through the service writer and enforces the add cap', async () => {
+it('refuses invalid overlay arrays through the service writer and disables the add item at the cap', async () => {
   const {items, stored, edits, user} = await setup();
   await act(async () => {
     expect(
@@ -271,24 +386,141 @@ it('refuses invalid overlay arrays through the service writer and enforces the a
       })),
     );
   });
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
+  fireEvent.contextMenu(slide(1));
+  const add = await screen.findByRole('menuitem', {name: '오버레이 추가…'});
+  expect(add.getAttribute('aria-disabled')).toBe('true');
+  await user.keyboard('{Escape}');
   expect(stored()?.overlays).toHaveLength(50);
   expect(edits).toHaveLength(1);
 });
 
-it('keeps table selection local and exposes the shared source slide menu', async () => {
+it('keeps slide selection local and exposes the shared source slide menu', async () => {
   const {user, items, openWindow, edits} = await setup();
-  const second = screen.getByRole('button', {name: '슬라이드 2'});
-  second.focus();
-  await user.keyboard('{ArrowDown}');
+  slide(2).focus();
+  await user.keyboard('{ArrowRight}');
   expect(items.getSnapshot().position).toBe(2);
-  expect(document.activeElement).toBe(
-    screen.getByRole('button', {name: '슬라이드 3'}),
-  );
   expect(edits).toHaveLength(0);
-  fireEvent.contextMenu(screen.getByRole('button', {name: '슬라이드 2'}));
+  fireEvent.contextMenu(slide(2));
   await user.click(screen.getByRole('menuitem', {name: '곡 편집'}));
   expect(openWindow).toHaveBeenCalledOnce();
+});
+
+it('locks the theme and overlay edits when the service becomes read-only', async () => {
+  const {user, service, pushService, edits} = await setup();
+  await addOverlay(user, 1);
+  await user.click(await screen.findByRole('button', {name: /^오버레이 1,/}));
+  const document = service();
+  act(() =>
+    pushService({
+      ...document,
+      revision: document.revision + 1,
+      access: 'readOnly',
+    }),
+  );
+  expect(
+    screen.getByRole('button', {name: '테마'}).getAttribute('aria-disabled'),
+  ).toBe('true');
+  expect(screen.getByRole('spinbutton', {name: '끝 슬라이드'})).toHaveProperty(
+    'readOnly',
+    true,
+  );
+  const before = edits.length;
+  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
+  expect(edits).toHaveLength(before);
+  fireEvent.contextMenu(slide(2));
+  expect(
+    (
+      await screen.findByRole('menuitem', {name: '오버레이 바꾸기…'})
+    ).getAttribute('aria-disabled'),
+  ).toBe('true');
+});
+
+it('keeps a failed content draft available for retry', async () => {
+  const {user, api, stored} = await setup();
+  fireEvent.contextMenu(slide(1));
+  await user.click(
+    await screen.findByRole('menuitem', {name: '오버레이 추가…'}),
+  );
+  await user.type(
+    screen.getByRole('textbox', {name: '오버레이 글자'}),
+    'Keep this draft',
+  );
+  vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
+    ok: false,
+    error: {reason: 'stale', message: 'Changed'},
+  });
+  await user.click(screen.getByRole('button', {name: '적용'}));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', {name: '적용'}).getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  expect(screen.getByRole('textbox', {name: '오버레이 글자'})).toHaveProperty(
+    'value',
+    'Keep this draft',
+  );
+  await user.click(screen.getByRole('button', {name: '적용'}));
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]?.content).toEqual({text: 'Keep this draft'}),
+  );
+});
+
+it('draws one bar for each row of slides with › where it runs on, and drags an end to another slide', async () => {
+  layOutSlides();
+  const {items, stored} = await setup();
+  await act(async () => {
+    await items.changeOverlays(() => [
+      {
+        id: createItemOverlayId('90000000-0000-4000-8000-000000000030'),
+        name: 'First',
+        from: 2,
+        to: 2,
+        screens: [],
+        content: {text: ''},
+      },
+    ]);
+  });
+  const handle = (edge: string): Element => {
+    const found = document.querySelector(`[data-edge="${edge}"]`);
+    if (found === null) throw new Error(`No ${edge} handle`);
+    return found;
+  };
+  const end = handle('to');
+  pointer('pointerdown', end);
+  pointer('pointermove', document.body, {clientX: 100, clientY: 20});
+  pointer('pointermove', document.body, {clientX: 45, clientY: 100});
+  pointer('pointerup', document.body);
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]).toMatchObject({from: 2, to: 3}),
+  );
+  expect(document.querySelectorAll('[data-overlay-clip] button')).toHaveLength(
+    2,
+  );
+  expect(screen.getByText('›')).toBeDefined();
+  expect(screen.getByText('‹')).toBeDefined();
+  const start = handle('from');
+  pointer('pointerdown', start);
+  pointer('pointermove', document.body, {clientX: 5, clientY: 10});
+  pointer('pointerup', document.body);
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]).toMatchObject({from: 1, to: 3}),
+  );
+});
+
+it('confirms deletion in the popover and clears the last overlay', async () => {
+  const {user, stored} = await setup();
+  await addOverlay(user, 1);
+  await user.click(await screen.findByRole('button', {name: /^오버레이 1,/}));
+  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
+  const dialog = screen.getByRole('alertdialog');
+  expect(stored()?.overlays).toHaveLength(1);
+  await user.click(within(dialog).getByRole('button', {name: '취소'}));
+  expect(stored()?.overlays).toHaveLength(1);
+  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
+  await user.click(
+    within(screen.getByRole('alertdialog')).getByRole('button', {name: '삭제'}),
+  );
+  await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
 });
 
 it.each(['bible', 'notice', 'media'] as const)(
@@ -331,142 +563,6 @@ it.each(['bible', 'notice', 'media'] as const)(
   },
 );
 
-it('locks the theme and overlay edits when the service becomes read-only', async () => {
-  const {user, service, pushService, edits} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await screen.findByRole('textbox', {name: '이름'});
-  const document = service();
-  act(() =>
-    pushService({
-      ...document,
-      revision: document.revision + 1,
-      access: 'readOnly',
-    }),
-  );
-  expect(
-    screen.getByRole('button', {name: '테마'}).getAttribute('aria-disabled'),
-  ).toBe('true');
-  expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
-    'readOnly',
-    true,
-  );
-  const before = edits.length;
-  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
-  expect(edits).toHaveLength(before);
-});
-
-it('keeps a failed content draft available for retry', async () => {
-  const {user, api, stored} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await user.click(await screen.findByRole('button', {name: '바꾸기…'}));
-  await user.type(
-    screen.getByRole('textbox', {name: '오버레이 글자'}),
-    'Keep this draft',
-  );
-  vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
-    ok: false,
-    error: {reason: 'stale', message: 'Changed'},
-  });
-  await user.click(screen.getByRole('button', {name: '적용'}));
-  await waitFor(() =>
-    expect(
-      screen.getByRole('button', {name: '적용'}).getAttribute('aria-disabled'),
-    ).not.toBe('true'),
-  );
-  expect(screen.getByRole('textbox', {name: '오버레이 글자'})).toHaveProperty(
-    'value',
-    'Keep this draft',
-  );
-  await user.click(screen.getByRole('button', {name: '적용'}));
-  await waitFor(() =>
-    expect(stored()?.overlays?.[0]?.content).toEqual({text: 'Keep this draft'}),
-  );
-});
-
-async function setupLongSequence() {
-  const fixture = await setup();
-  const {first, pushSong} = fixture;
-  if (!isGroupedSong(first.song)) throw new Error('Expected grouped fixture');
-  const song = {
-    ...first.song,
-    groups: first.song.groups.map((group, index) =>
-      index === 0
-        ? {
-            ...group,
-            slides: Array.from({length: 40}, () => ({
-              lines: ['Invented line'],
-            })),
-          }
-        : group,
-    ),
-  };
-  act(() => pushSong({...first, revision: first.revision + 1, song}));
-  const table = screen.getByRole('table', {name: '슬라이드와 오버레이'});
-  await waitFor(() =>
-    expect(Number(table.getAttribute('aria-rowcount'))).toBeGreaterThan(40),
-  );
-  return {...fixture, table};
-}
-
-it('windows a long sequence and reveals the last row by keyboard', async () => {
-  const {user, table} = await setupLongSequence();
-  expect(
-    within(table).getAllByRole('button', {name: /^슬라이드 \d+$/}).length,
-  ).toBeLessThanOrEqual(12);
-  screen.getByRole('button', {name: '슬라이드 1'}).focus();
-  await user.keyboard('{End}');
-  const last = Number(table.getAttribute('aria-rowcount')) - 1;
-  expect(document.activeElement).toBe(
-    screen.getByRole('button', {name: `슬라이드 ${last}`}),
-  );
-});
-
-it('keeps manual scrolling away from the selected slide until the selection changes', async () => {
-  class MockResizeObserver implements ResizeObserver {
-    constructor(private readonly callback: ResizeObserverCallback) {}
-    disconnect = vi.fn();
-    unobserve = vi.fn();
-    observe(target: Element): void {
-      const height = target.getAttribute('role') === 'rowgroup' ? 300 : 100;
-      this.callback(
-        [
-          {
-            target,
-            contentRect: new DOMRect(0, 0, 500, height),
-            borderBoxSize: [],
-            contentBoxSize: [],
-            devicePixelContentBoxSize: [],
-          },
-        ],
-        this,
-      );
-    }
-  }
-  vi.stubGlobal('ResizeObserver', MockResizeObserver);
-  onTestFinished(() => {
-    vi.unstubAllGlobals();
-  });
-  const {items, user, table} = await setupLongSequence();
-  const viewport = within(table).getByRole('rowgroup');
-  Object.defineProperty(viewport, 'clientHeight', {value: 300});
-  expect(items.getSnapshot().position).toBe(0);
-  fireEvent.scroll(viewport, {target: {scrollTop: 2000}});
-  expect(viewport.scrollTop).toBe(2000);
-  expect(within(table).queryByRole('button', {name: '슬라이드 1'})).toBeNull();
-  const visible = within(table).getByRole('button', {name: '슬라이드 21'});
-  visible.focus();
-  await user.keyboard('{ArrowDown}');
-  expect(items.getSnapshot().position).toBe(21);
-  expect(document.activeElement).toBe(
-    within(table).getByRole('button', {name: '슬라이드 22'}),
-  );
-  await user.keyboard('{Home}');
-  expect(viewport.scrollTop).toBe(0);
-  expect(document.activeElement).toBe(
-    within(table).getByRole('button', {name: '슬라이드 1'}),
-  );
-});
-
 it('offers the built-in default when the saved default theme is gone', async () => {
   const {user, stored} = await setup({...defaults, themes: [special]});
   await user.click(screen.getByRole('button', {name: '테마'}));
@@ -475,81 +571,4 @@ it('offers the built-in default when the saved default theme is gone', async () 
   await user.click(screen.getByRole('button', {name: '테마'}));
   await user.click(screen.getByRole('menuitemradio', {name: /찬양/}));
   await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
-});
-
-it('confirms deletion and clears the last overlay and its selection', async () => {
-  const {user, items, stored} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  await user.click(await screen.findByRole('button', {name: '오버레이 삭제'}));
-  const dialog = screen.getByRole('alertdialog');
-  expect(stored()?.overlays).toHaveLength(1);
-  await user.click(within(dialog).getByRole('button', {name: '취소'}));
-  expect(stored()?.overlays).toHaveLength(1);
-  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
-  await user.click(
-    within(screen.getByRole('alertdialog')).getByRole('button', {name: '삭제'}),
-  );
-  await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
-  expect(items.getSnapshot().overlay).toBeNull();
-});
-
-it('moves a complete range past another overlay without saving invalid intermediate endpoints', async () => {
-  const {items, stored, edits} = await setup();
-  const first = createItemOverlayId('90000000-0000-4000-8000-000000000030');
-  const second = createItemOverlayId('90000000-0000-4000-8000-000000000031');
-  await act(async () => {
-    await items.changeOverlays(() => [
-      {
-        id: first,
-        name: 'First',
-        from: 1,
-        to: 1,
-        screens: [],
-        content: {text: ''},
-      },
-      {
-        id: second,
-        name: 'Second',
-        from: 2,
-        to: 2,
-        screens: [],
-        content: {text: ''},
-      },
-    ]);
-    items.selectOverlay(first);
-  });
-  const before = edits.length;
-  const from = screen.getByRole('spinbutton', {name: '시작 슬라이드'});
-  fireEvent.change(from, {target: {value: '3'}});
-  fireEvent.blur(from);
-  expect(edits).toHaveLength(before);
-  expect(from).toHaveProperty('value', '3');
-  const to = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
-  fireEvent.change(to, {target: {value: '3'}});
-  fireEvent.blur(to);
-  await waitFor(() =>
-    expect(stored()?.overlays?.[0]).toMatchObject({from: 3, to: 3}),
-  );
-  expect(stored()?.overlays?.[1]).toMatchObject({from: 2, to: 2});
-});
-
-it('commits a name draft before a global command and pins a departing draft to its original item', async () => {
-  const {user, items, stored, service} = await setup();
-  await user.click(screen.getByRole('button', {name: '오버레이 추가'}));
-  const input = await screen.findByRole('textbox', {name: '이름'});
-  await user.clear(input);
-  await user.type(input, 'First name');
-  act(() => commitDraftBeforeShortcut(input));
-  await waitFor(() => expect(stored()?.overlays?.[0]?.name).toBe('First name'));
-  await user.clear(input);
-  await user.type(input, 'Departing name');
-  act(() =>
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain}),
-  );
-  await waitFor(() =>
-    expect(stored()?.overlays?.[0]?.name).toBe('Departing name'),
-  );
-  expect(
-    service().service.order.find(row => row.id === fixtureItems.plain),
-  ).not.toHaveProperty('overlays');
 });

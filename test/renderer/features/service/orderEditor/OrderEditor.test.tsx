@@ -250,4 +250,19 @@ describe('OrderEditor', () => {
       }),
     );
   });
+  it('adds an 오버레이 from a tile menu and saves it with the item', async () => {
+    mountEditor({extra: {customOrder: [CHORUS, VERSE]}});
+    fireEvent.contextMenu(chipAt('슬라이드', 0));
+    fireEvent.click(
+      await screen.findByRole('menuitem', {name: '오버레이 추가…'}),
+    );
+    fireEvent.click(await screen.findByRole('button', {name: '적용'}));
+
+    await waitFor(() =>
+      expect(serviceUpdate(0).overlays?.[0]).toMatchObject({
+        from: 1,
+        content: {text: ''},
+      }),
+    );
+  });
 });

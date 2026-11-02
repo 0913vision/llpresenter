@@ -15,6 +15,8 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {Button} from '@renderer/ui/Button';
 import {Slider} from '@renderer/ui/Slider';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {useOverlayControl} from '@renderer/features/service/items/useOverlayControl';
+import {useOverlayEditing} from '@renderer/features/service/items/useOverlayEditing';
 import {OrderRows} from './OrderRows';
 import {OrderSlides} from './OrderSlides';
 import {orderTiles} from './orderEditorModel';
@@ -29,7 +31,7 @@ export const MAX_SLIDE_SIZE = 480;
 
 type EditorApi = Pick<
   LlpApi,
-  'orderEditor' | 'content' | 'services' | 'window'
+  'orderEditor' | 'content' | 'services' | 'window' | 'settings' | 'media'
 >;
 
 export interface OrderEditorProps {
@@ -130,6 +132,14 @@ export function OrderEditor({
     : capped
       ? ARRANGEMENT_LIMIT_REASON
       : undefined;
+  const {editing} = useOverlayEditing({
+    api,
+    item,
+    count: tiles.length,
+    reason: lockedReason ?? (edits.busy ? '저장 중' : undefined),
+    change: edits.changeOverlays,
+  });
+  const overlays = useOverlayControl(editing);
   const shown =
     selectedTile === undefined
       ? undefined
@@ -166,6 +176,7 @@ export function OrderEditor({
         selected={shown}
         onSelect={setSelectedTile}
         tileWidth={slideSize.size}
+        overlays={overlays}
         onEditSong={block => openSong({block})}
       />
       <footer className={styles.footer}>

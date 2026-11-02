@@ -21,7 +21,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui/Panel';
-import {ItemOverlayTable} from './ItemOverlayTable';
+import {ItemSlideGrid} from './ItemSlideGrid';
 import {openItemOrder, ORDER_EDIT_LABEL} from './openItemOrder';
 import {openItemSong} from './openItemSong';
 import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
@@ -66,14 +66,14 @@ export function ServiceItemPanel({
         onSelect={index => items.selectPosition(index)}
         sizeClass={sizeClass}
       >
-        <ItemOverlayTable items={items} editor={editor} />
+        <ItemSlideGrid items={items} editor={editor} />
       </BibleItemPanel>
     );
   }
   if (item === null || !isItemOfKind(item, 'song') || song === null) {
     return (
       <OtherItemPanel item={item} sizeClass={sizeClass}>
-        <ItemOverlayTable items={items} editor={editor} />
+        <ItemSlideGrid items={items} editor={editor} />
       </OtherItemPanel>
     );
   }
@@ -163,7 +163,7 @@ function SongItemView({
           onEditSong={action => openItemSong({items, editor, action})}
         />
         <PanelBody variant="flush">
-          <ItemOverlayTable items={items} editor={editor} />
+          <ItemSlideGrid items={items} editor={editor} />
         </PanelBody>
         <PanelFooter count={sequence.length} />
       </Panel>

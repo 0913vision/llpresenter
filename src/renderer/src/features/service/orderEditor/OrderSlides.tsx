@@ -2,7 +2,9 @@ import {useState, type JSX} from 'react';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {OrderEditorOverlayClips} from './OverlayClips';
+import {menuSeparator} from '@renderer/ui/menuRows';
+import {OverlayClips} from '@renderer/features/service/items/OverlayClip';
+import type {OverlayControl} from '@renderer/features/service/items/useOverlayControl';
 import type {OrderTile} from './orderEditorModel';
 import styles from './OrderEditor.module.css';
 
@@ -15,6 +17,7 @@ export interface OrderSlidesProps {
   readonly onSelect: (index: number) => void;
   /** The tile width in CSS pixels. */
   readonly tileWidth: number;
+  readonly overlays: OverlayControl;
   /** Opens 곡 편집 at a slide of the song, by its place in the song. */
   readonly onEditSong: (block: number) => void;
 }
@@ -22,6 +25,7 @@ export interface OrderSlidesProps {
 function slideMenuEntries(
   tile: OrderTile,
   onEditSong: (block: number) => void,
+  overlays: OverlayControl,
 ): readonly MenuEntry[] {
   return [
     {
@@ -30,6 +34,8 @@ function slideMenuEntries(
       label: '곡 편집…',
       onSelect: () => onEditSong(tile.block),
     },
+    menuSeparator('overlay-separator'),
+    ...overlays.entries(tile.number),
   ];
 }
 
@@ -39,6 +45,7 @@ export function OrderSlides({
   selected,
   onSelect,
   tileWidth,
+  overlays,
   onEditSong,
 }: OrderSlidesProps): JSX.Element {
   const [menu, setMenu] = useState<{
@@ -68,12 +75,12 @@ export function OrderSlides({
           />
         ))}
       </ThumbnailGrid>
-      <OrderEditorOverlayClips />
+      <OverlayClips control={overlays} />
       {menu !== null && menuTile !== undefined ? (
         <Menu
           label={GRID_LABEL}
           anchor={menu.anchor}
-          entries={slideMenuEntries(menuTile, onEditSong)}
+          entries={slideMenuEntries(menuTile, onEditSong, overlays)}
           onClose={() => setMenu(null)}
         />
       ) : null}

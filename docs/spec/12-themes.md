@@ -264,11 +264,10 @@ row has no 삭제 and no 기본으로 쓰기.
   one, so most items never use 오버레이. Whoever needs one makes a 테마 for the
   item (복제, then add the element).
 - Edit it on the 슬라이드, in 순서 편집 and in 준비's 슬라이드 list (05,
-  "오버레이 on 슬라이드"). This replaces the item's 오버레이 table (draft K)
-  when B20 lands.
+  "오버레이 on 슬라이드").
 - When an item has an 오버레이 but its 테마 has no 오버레이 element on a screen
-  the 오버레이 targets, the item's settings (until B20, the 오버레이 table
-  header) show a warning mark with the reason in its tooltip and 테마 편집….
+  the 오버레이 targets, the 슬라이드 list in 준비 shows a warning mark above the
+  thumbnails with the reason in its tooltip and 테마 편집….
 - Example (user, October 30): a 특송 item with an MR video on the 무대 화면
   only, across every lyric 슬라이드, while the 본 화면 and the 방송 자막 show
   the lyrics as usual.

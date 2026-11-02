@@ -1,7 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {
+  clipSegments,
+  nearestSlide,
+  newOverlaySpan,
+  overlayAt,
   overlayRangesOverlap,
   remapOverlayRanges,
+  resizedSpan,
 } from '@core/themes/overlayRanges';
 
 it.each([
@@ -112,5 +117,126 @@ describe('remapOverlayRanges', () => {
       [1, 3],
       [4, 4],
     ]);
+  });
+});
+
+describe('overlay span rules', () => {
+  const rows = [
+    {id: 'a', from: 3, to: 4},
+    {id: 'b', from: 8, to: 9},
+  ];
+
+  it('finds the overlay that holds a slide', () => {
+    expect(overlayAt(rows, 4)?.id).toBe('a');
+    expect(overlayAt(rows, 5)).toBeUndefined();
+  });
+
+  it('runs a new range to the song end or to the slide before the next overlay', () => {
+    expect(newOverlaySpan(rows, 5, 12)).toEqual({from: 5, to: 7});
+    expect(newOverlaySpan(rows, 10, 12)).toEqual({from: 10, to: 12});
+    expect(newOverlaySpan(rows, 1, 12)).toEqual({from: 1, to: 2});
+    expect(newOverlaySpan([], 3, 5)).toEqual({from: 3, to: 5});
+  });
+
+  it('starts no range on a slide that has one or outside the slides', () => {
+    expect(newOverlaySpan(rows, 3, 12)).toBeUndefined();
+    expect(newOverlaySpan(rows, 0, 12)).toBeUndefined();
+    expect(newOverlaySpan(rows, 13, 12)).toBeUndefined();
+  });
+
+  it('keeps a dragged end on a slide, off the other end, and clear of neighbours', () => {
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'a',
+        edge: 'to',
+        position: 7,
+        total: 12,
+      }),
+    ).toEqual({from: 3, to: 7});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'a',
+        edge: 'to',
+        position: 11,
+        total: 12,
+      }),
+    ).toEqual({from: 3, to: 7});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'a',
+        edge: 'to',
+        position: 1,
+        total: 12,
+      }),
+    ).toEqual({from: 3, to: 3});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'b',
+        edge: 'from',
+        position: 4,
+        total: 12,
+      }),
+    ).toEqual({from: 5, to: 9});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'b',
+        edge: 'from',
+        position: 11,
+        total: 12,
+      }),
+    ).toEqual({from: 9, to: 9});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'a',
+        edge: 'from',
+        position: -4,
+        total: 12,
+      }),
+    ).toEqual({from: 1, to: 4});
+    expect(
+      resizedSpan({
+        overlays: rows,
+        id: 'x',
+        edge: 'to',
+        position: 5,
+        total: 12,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('picks the slide whose centre is nearest an x', () => {
+    expect(nearestSlide(130, [50, 150, 250])).toBe(2);
+    expect(nearestSlide(-10, [50, 150])).toBe(1);
+    expect(nearestSlide(10, [])).toBeUndefined();
+  });
+
+  it('draws a range per row with › where it runs on', () => {
+    expect(clipSegments({from: 3, to: 8}, 5)).toEqual([
+      {
+        row: 0,
+        firstColumn: 2,
+        lastColumn: 4,
+        continuesBefore: false,
+        continuesAfter: true,
+      },
+      {
+        row: 1,
+        firstColumn: 0,
+        lastColumn: 2,
+        continuesBefore: true,
+        continuesAfter: false,
+      },
+    ]);
+    expect(clipSegments({from: 2, to: 3}, 5)).toHaveLength(1);
+    expect(clipSegments({from: 1, to: 11}, 5).map(s => s.row)).toEqual([
+      0, 1, 2,
+    ]);
+    expect(clipSegments({from: 1, to: 2}, 0)).toEqual([]);
   });
 });

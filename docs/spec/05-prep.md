@@ -32,9 +32,8 @@ system README (window sizes and layout).
 ## The 예배 순서 table and the editor windows (B20)
 
 The user decided this on November 2 (drafts o1 to o6 and g5, outside the
-repository). The table has landed. The windows land with their own requests, and
-until they do, "Song editor" below and the item's 오버레이 table (12, draft K)
-describe what the right column still holds.
+repository). The table, the 순서 편집 window, the 곡 편집 window, and the
+오버레이 bar on the 슬라이드 have landed.
 
 ### 준비
 
@@ -381,12 +380,12 @@ settings) panel.
   - Selecting a chip selects the first thumbnail of that occurrence. The chip
     containing the live slide has the on-output ring. Repeated occurrences have
     distinct sequence positions even though they reference one group.
-- 슬라이드와 오버레이 table (12, draft K): one row per sequence position, with
-  its number, thumbnail, 이름표, first line, and overlay span. Clicking selects
-  locally; an overlay selects its settings in the right column. The header's +
-  adds one at the selected position. Item rows and song-editor thumbnails use
-  the same 슬라이드 menu model as 진행, with supported source actions enabled.
-  진행 keeps its thumbnail grid.
+- 슬라이드 list (draft g5): the sequence positions as compact thumbnails with
+  the 오버레이 bar under each row (see "오버레이 on 슬라이드"). Clicking selects
+  locally and double clicking a song's slide opens 곡 편집. Item thumbnails use
+  the same 슬라이드 menu model as 진행, with supported source actions enabled,
+  and add 오버레이 추가…, 오버레이 바꾸기…, and 오버레이 삭제. 진행 keeps its
+  thumbnail grid.
 
 ### Preview and 항목 설정 (right)
 
