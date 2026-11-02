@@ -31,6 +31,20 @@ describe('live 타이머 runs', () => {
       );
     }
   });
+  it('keeps the definition a run started with, and refuses a broken one', () => {
+    const held = {id: uuid(1), name: '설교', kind: 'countdown', duration: 60};
+    const parsed = withTimers({[uuid(1)]: {...PAUSED, timer: held}});
+    expect(parsed.ok && Object.values(parsed.value.timers ?? {})[0]).toEqual({
+      ...PAUSED,
+      timer: held,
+    });
+    for (const invalid of [null, 'countdown', {...held, duration: -1}]) {
+      expect(withTimers({[uuid(1)]: {...PAUSED, timer: invalid}}).ok).toBe(
+        false,
+      );
+    }
+  });
+
   it('keeps running and paused runs, and a state without any', () => {
     const timers = {
       [uuid(1)]: {state: 'running', since: SINCE, countedMs: 1500, day: SINCE},

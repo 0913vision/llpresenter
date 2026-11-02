@@ -25,7 +25,7 @@ export const MAX_TIMER_DEFINITIONS = 500;
 
 const timerFields = {id: timerIdSchema, name: v.string()};
 
-const timerSchema = v.variant('kind', [
+export const timerSchema = v.variant('kind', [
   v.looseObject({
     ...timerFields,
     kind: v.literal('countdownTo'),

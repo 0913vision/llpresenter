@@ -3,6 +3,7 @@ import {MAX_LIVE_TIMERS, type TimerRun} from '@core/schema/timerState';
 import {
   countedMs,
   countdownRemainingMs,
+  heldTimer,
   localDay,
   stopsAtZero,
 } from '@core/timers/timerClock';
@@ -21,6 +22,10 @@ function withRuns(
   };
 }
 
+/**
+ * A resume keeps the definition the count started with. A first start, and a
+ * restart after a finish, take the saved one.
+ */
 function start(
   history: LiveHistory,
   {timerId}: CommandOf<'timer.start'>,
@@ -48,6 +53,7 @@ function start(
       since: timerNow,
       countedMs: completed ? 0 : (run?.countedMs ?? 0),
       day: completed ? localDay(now) : (run?.day ?? localDay(now)),
+      timer: completed ? timer : heldTimer(timer, run),
     },
   });
 }
@@ -65,10 +71,11 @@ function pause(
     document?.name === 'timers'
       ? document.value.timers.find(t => t.id === timerId)
       : undefined;
+  const held = timer === undefined ? run.timer : heldTimer(timer, run);
   const completed =
-    timer !== undefined &&
-    stopsAtZero(timer) &&
-    countdownRemainingMs(timer, run, {wall: now, timer: timerNow}) <= 0;
+    held !== undefined &&
+    stopsAtZero(held) &&
+    countdownRemainingMs(held, run, {wall: now, timer: timerNow}) <= 0;
   return withRuns(history, {
     ...runs,
     [timerId]: {
@@ -77,6 +84,7 @@ function pause(
       countedMs: countedMs(run, timerNow),
       day: run.day,
       wallAt: now,
+      ...(run.timer === undefined ? {} : {timer: run.timer}),
       ...(completed ? {completed: true} : {}),
     },
   });

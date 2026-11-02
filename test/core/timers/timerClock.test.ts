@@ -230,3 +230,27 @@ describe('isTimerTicking', () => {
     expect(isTimerTicking(timer({kind: 'clock'}), undefined)).toBe(true);
   });
 });
+
+describe('a run that holds its definition', () => {
+  const held = timer({kind: 'countdown', duration: 600});
+  const edited = timer({kind: 'elapsed', start: 5});
+
+  it('shows the held definition, whatever the saved one became', () => {
+    const run = {...running(0), timer: held};
+    expect(timerText(edited, run, after(MINUTE))).toBe('9:00');
+    expect(
+      timerText(edited, {...paused(WALL, MINUTE), timer: held}, after(HOUR)),
+    ).toBe('9:00');
+    expect(timerText(edited, running(0), after(MINUTE))).toBe('1:05');
+  });
+
+  it('ticks by the held kind, so an edit to a clock does not stop it', () => {
+    expect(isTimerTicking(timer({kind: 'clock'}), undefined)).toBe(true);
+    expect(
+      isTimerTicking(timer({kind: 'clock'}), {...running(0), timer: held}),
+    ).toBe(true);
+    expect(
+      isTimerTicking(timer({kind: 'clock'}), {...paused(WALL, 0), timer: held}),
+    ).toBe(false);
+  });
+});

@@ -5,6 +5,7 @@ import {epochMillisecondsSchema} from './overlayState';
 import type {Result} from '../common/result';
 import {parsePayload, plainObject, type PayloadError} from './payload';
 import {nonNegativeNumber} from './primitives';
+import {timerSchema} from './timers';
 
 /** At most this many 타이머 carry a run in the live state. */
 export const MAX_LIVE_TIMERS = 200;
@@ -22,6 +23,7 @@ const timerRunSchema = v.pipe(
       since: epochMillisecondsSchema,
       countedMs,
       day: epochMillisecondsSchema,
+      timer: v.exactOptional(timerSchema),
     }),
     v.object({
       state: v.literal('paused'),
@@ -30,6 +32,7 @@ const timerRunSchema = v.pipe(
       day: epochMillisecondsSchema,
       wallAt: epochMillisecondsSchema,
       completed: v.exactOptional(v.literal(true)),
+      timer: v.exactOptional(timerSchema),
     }),
   ]),
 );
@@ -47,7 +50,9 @@ export const timerRunsSchema = v.pipe(
  * the local midnight, on the wall clock, of the day it started, and `wallAt`
  * the wall-clock moment of a pause, so a 타이머 that reads the time of day
  * keeps its day across midnight. `completed` holds a stop-at-zero countdown
- * at zero until reset or restarted, separately from an operator pause.
+ * at zero until reset or restarted, separately from an operator pause. `timer`
+ * is the definition the run started with: an edit to the saved 타이머 reaches
+ * it only after a reset or a finish, never mid-count (docs/spec/04-show.md).
  */
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 

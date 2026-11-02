@@ -143,16 +143,22 @@ describe('countdown completion lifecycle', () => {
     expect(env.value()).toBe('1:58');
   });
 
-  it('uses edited settings and does not stop a reset or manually paused run', async () => {
+  it('counts by the definition it started with and does not stop a reset or manually paused run', async () => {
     const env = await setup();
-    env.send('timer.start');
     env.update(true);
+    env.send('timer.start');
     expect(vi.getTimerCount()).toBe(0);
     vi.advanceTimersByTime(2 * SECOND);
     expect(env.run()?.state).toBe('running');
     env.update(false);
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(SECOND);
+    expect(env.run()?.state).toBe('running');
+    expect(env.run()).not.toHaveProperty('completed');
+    env.send('timer.reset');
+    env.send('timer.start');
     expect(vi.getTimerCount()).toBe(1);
-    vi.advanceTimersByTime(250);
+    vi.advanceTimersByTime(1250);
     expect(env.run()).toMatchObject({completed: true});
     env.send('timer.reset');
     env.send('timer.start');

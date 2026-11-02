@@ -2,6 +2,7 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {
   countdownRemainingMs,
+  heldTimer,
   stopsAtZero,
   type TimerNow,
 } from '@core/timers/timerClock';
@@ -31,8 +32,9 @@ export function followTimerCompletion(options: {
     if (document.name !== 'timers') return [];
     return document.value.timers.flatMap(timer => {
       const run = runs?.[timer.id];
-      return stopsAtZero(timer) && run?.state === 'running'
-        ? [{timer, run}]
+      const held = heldTimer(timer, run);
+      return stopsAtZero(held) && run?.state === 'running'
+        ? [{timer: held, run}]
         : [];
     });
   };

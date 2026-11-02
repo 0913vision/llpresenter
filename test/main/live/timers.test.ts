@@ -1,17 +1,24 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
+import {createTimerId} from '@core/schema/ids';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
-import {localDay} from '@core/timers/timerClock';
+import {localDay, timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {MAIN, overlaySettings, overlayUuid} from '@fixtures/core/overlays';
 
-const SERMON = overlayUuid(90);
+const SERMON = createTimerId(overlayUuid(90));
 const CLOCK = overlayUuid(91);
 const START_TIME = overlayUuid(92);
 const SECOND = 1000;
+const SERMON_TIMER = {
+  id: SERMON,
+  name: '설교',
+  kind: 'countdown',
+  duration: 35 * 60,
+} as const;
 
 function command(
   type: 'timer.start' | 'timer.pause' | 'timer.reset',
@@ -44,7 +51,7 @@ function setup(extraTimers: readonly object[] = []) {
   settings.update(
     settingsDocument('timers', {
       timers: [
-        {id: SERMON, name: '설교', kind: 'countdown', duration: 35 * 60},
+        SERMON_TIMER,
         {id: CLOCK, name: '현재 시각', kind: 'clock'},
         {id: START_TIME, name: '예배 시작', kind: 'countdownTo', time: '11:00'},
         ...extraTimers,
@@ -54,6 +61,7 @@ function setup(extraTimers: readonly object[] = []) {
   store.connectSettings(settings.reader);
   return {
     store,
+    settings,
     advance: (ms: number) => {
       wall += ms;
       timer += ms;
@@ -76,6 +84,7 @@ describe('timer slice', () => {
       since: timer(),
       countedMs: 0,
       day,
+      timer: SERMON_TIMER,
     });
     advance(90 * SECOND);
     store.dispatch(command('timer.pause', SERMON));
@@ -85,6 +94,7 @@ describe('timer slice', () => {
       countedMs: 90 * SECOND,
       day,
       wallAt: wall(),
+      timer: SERMON_TIMER,
     });
     advance(24 * 60 * 60 * SECOND);
     store.dispatch(command('timer.start', SERMON));
@@ -93,6 +103,52 @@ describe('timer slice', () => {
       since: timer(),
       countedMs: 90 * SECOND,
       day,
+      timer: SERMON_TIMER,
+    });
+  });
+
+  it('counts by the definition it started with when the saved 타이머 is edited', () => {
+    const {store, settings, advance, timer, wall} = setup();
+    const edit = (duration: number): void => {
+      settings.update(
+        settingsDocument('timers', {
+          timers: [{...SERMON_TIMER, duration}],
+        }),
+      );
+    };
+    const saved = {...SERMON_TIMER, duration: 10 * 60};
+    const text = (): string =>
+      timerText(saved, runOf(store, SERMON), {timer: timer(), wall: wall()});
+    store.dispatch(command('timer.start', SERMON));
+    advance(60 * SECOND);
+    edit(10 * 60);
+    expect(text()).toBe('34:00');
+    store.dispatch(command('timer.pause', SERMON));
+    store.dispatch(command('timer.start', SERMON));
+    advance(60 * SECOND);
+    expect(text()).toBe('33:00');
+    store.dispatch(command('timer.reset', SERMON));
+    store.dispatch(command('timer.start', SERMON));
+    expect(text()).toBe('10:00');
+  });
+
+  it('takes the saved definition again when a finished countdown starts over', () => {
+    const {store, settings, advance} = setup();
+    const short = {...SERMON_TIMER, duration: 5, overrun: false};
+    settings.update(settingsDocument('timers', {timers: [short]}));
+    store.dispatch(command('timer.start', SERMON));
+    advance(6 * SECOND);
+    store.dispatch(command('timer.pause', SERMON));
+    expect(runOf(store, SERMON)).toMatchObject({
+      completed: true,
+      timer: short,
+    });
+    const longer = {...short, duration: 20};
+    settings.update(settingsDocument('timers', {timers: [longer]}));
+    store.dispatch(command('timer.start', SERMON));
+    expect(runOf(store, SERMON)).toMatchObject({
+      state: 'running',
+      timer: longer,
     });
   });
 

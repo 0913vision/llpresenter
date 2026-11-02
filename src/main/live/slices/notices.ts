@@ -52,11 +52,18 @@ function start(
       pausedAt: null,
     };
   } else {
-    const currentMedia = previous?.media[noticePosition(previous, now)];
+    const shown =
+      previous === undefined ? undefined : noticePosition(previous, now);
+    const currentMedia =
+      shown === undefined ? undefined : previous?.media[shown];
+    // NOTE(0913vision): The showing image keeps its place when the set is
+    // edited. When it left the set, the set continues where it stood.
+    const kept =
+      currentMedia === undefined ? -1 : notice.media.indexOf(currentMedia);
     const retainedPosition =
-      currentMedia === undefined
-        ? 0
-        : Math.max(0, notice.media.indexOf(currentMedia));
+      kept >= 0
+        ? kept
+        : Math.min(shown ?? 0, Math.max(0, notice.media.length - 1));
     playback = {
       media: notice.media,
       position: command.position ?? retainedPosition,

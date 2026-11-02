@@ -8,6 +8,7 @@ import {
   MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
+import type {MediaId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   noticePosition,
@@ -388,6 +389,44 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(noticePosition(resumed, Date.now())).toBe(0);
     settings.update(settingsDocument('notices', {sets: []}, 3));
     expect(store.state.layers.notice).toBeNull();
+  });
+
+  it('continues the 공지 where it stood when the showing image leaves the set', async () => {
+    const {store, settings, send} = await setup();
+    const edit = (media: readonly MediaId[], revision: number): void =>
+      settings.update(
+        settingsDocument(
+          'notices',
+          {
+            sets: [
+              {
+                id: NOTICE,
+                name: 'Edited',
+                media,
+                interval: 5,
+                loop: false,
+                targets: [MAIN],
+              },
+            ],
+          },
+          revision,
+        ),
+      );
+    send({type: 'notice.start', noticeId: NOTICE});
+    vi.advanceTimersByTime(7_000);
+    edit(
+      IMAGES.filter((_, index) => index !== 1),
+      2,
+    );
+    const playback = store.state.layers.notice?.playback;
+    if (playback === undefined) throw new Error('Missing playback');
+    expect(playback.media[noticePosition(playback, Date.now())]).toBe(
+      IMAGES[2],
+    );
+    edit(IMAGES.slice(0, 1), 3);
+    const last = store.state.layers.notice?.playback;
+    if (last === undefined) throw new Error('Missing playback');
+    expect(noticePosition(last, Date.now())).toBe(0);
   });
 
   it('restores props, message time left and notice phase from one batch clear, keeping stage text', async () => {

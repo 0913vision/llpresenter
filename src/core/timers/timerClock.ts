@@ -11,6 +11,15 @@ export type CountdownTimer = Extract<
   {kind: 'countdown' | 'countdownTo'}
 >;
 
+/**
+ * The definition a run counts by: the one it started with, so an edit to the
+ * saved 타이머 never moves a count that is under way. Without a run, the saved
+ * definition.
+ */
+export function heldTimer(timer: Timer, run: TimerRun | undefined): Timer {
+  return run?.timer ?? timer;
+}
+
 export function stopsAtZero(timer: Timer): timer is CountdownTimer {
   return (
     (timer.kind === 'countdown' || timer.kind === 'countdownTo') &&
@@ -58,7 +67,7 @@ export function isTimerTicking(
   timer: Timer,
   run: TimerRun | undefined,
 ): boolean {
-  return timer.kind === 'clock' || run?.state === 'running';
+  return heldTimer(timer, run).kind === 'clock' || run?.state === 'running';
 }
 
 /**
@@ -71,10 +80,11 @@ export function isTimerTicking(
  * legacy undated targets. A pause holds its wall-clock reading.
  */
 export function timerText(
-  timer: Timer,
+  saved: Timer,
   run: TimerRun | undefined,
   now: TimerNow,
 ): string {
+  const timer = heldTimer(saved, run);
   switch (timer.kind) {
     case 'countdown':
     case 'countdownTo': {

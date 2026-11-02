@@ -470,6 +470,10 @@ and per-item controls in the owning tool tab (October 31 B16).
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
   plus button in the tab and a right-click menu on each row (rename, change kind
   and time, delete) (proposal).
+- Editing a 타이머 (duration, target time or date, start value, 0 지나면, kind)
+  while it runs or is paused never moves that count: the run keeps the
+  definition it started with. The edit applies after 처음으로, and when a
+  finished 정지 countdown starts again.
 - Removing a timer definition releases its running or paused state immediately
   and frees its live-timer slot. The stage picker clears a removed selection;
   other timer runs remain unchanged.
@@ -539,6 +543,8 @@ T03, T07 and T09.
   the set starts over if 반복 is on, and otherwise stays on the last image
   (proposal).
 - 일시 정지 stops advancing and keeps the current image.
+- If the image that is showing leaves the set, the set continues at the same
+  place, with the image that followed it (the last one when none did).
 - Changing the target screens while a 공지 runs applies at once (proposal).
 - The interval, 반복, and the target screens are part of the 공지 set
   (`notices.json`, 02). Changing them in the tab saves them to the set and
