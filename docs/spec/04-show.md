@@ -51,8 +51,8 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 | Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Selects the section as the target for 항목 추가; the 슬라이드 panel stays empty.    |
 | Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
 | Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
-| Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel (proposal).          |
-| 공지           | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드 (proposal).                   |
+| Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                     |
+| 공지           | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드.                              |
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
@@ -168,10 +168,12 @@ service needs no confirmation), product log version 63.
   count. 10 defines the mapping, storage, and reasons.
 - Other item kinds:
   - Bible passage: the Bible 슬라이드 (see "Bible passages").
-  - Media: one media tile. Clicking it outputs that media to the media layer
-    (proposal).
+  - Media: one media tile. Clicking it outputs that media to the media layer.
+    Audio and a missing file have no tile; a missing file shows the row's
+    warning "미디어 파일을 찾을 수 없습니다."
   - 공지: the images of the 공지 set, laid out like 슬라이드. Clicking one
-    starts the 공지 from that image (proposal; same behavior as the 공지 tab).
+    starts the 공지 from that image (same behavior as the 공지 tab). A missing
+    set shows the same row warning.
   - Section (구역): no tiles.
 
 ### Keyboard

@@ -1,6 +1,8 @@
 import type {Label} from '@core/schema/labels';
 import type {MediaChoice} from '@core/live/state';
 import {isItemOfKind} from '@core/schema/service';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {NoticeSet} from '@core/schema/notices';
 import type {ShowService} from '@core/schema/showService';
 import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
@@ -16,6 +18,10 @@ export interface OpenServiceSources {
   readonly content: Pick<ContentStore, 'storedService' | 'storedSongs'>;
   readonly backgroundOf: (mediaId: string) => Promise<MediaChoice | null>;
   readonly bible?: Pick<BibleLookupSession, 'lookup'>;
+  /** The media list, for the names of media items and 공지 images. */
+  readonly mediaItems?: () => readonly MediaItem[];
+  /** The 공지 sets. */
+  readonly noticeSets?: () => readonly NoticeSet[];
 }
 
 /**
@@ -97,15 +103,31 @@ export class OpenServiceFeed {
     const songs = content.storedSongs();
     const checked = new Set<string>();
     const backgrounds = new Map<string, MediaChoice>();
-    for (const item of service.data.order) {
-      if (!isItemOfKind(item, 'song')) continue;
-      const song = songs.get(item.song);
-      if (song === undefined) continue;
-      const id = songBackgroundId(item, song.data);
-      if (id === undefined || checked.has(id)) continue;
+    const media = this.sources.mediaItems;
+    const noticeSets = this.sources.noticeSets;
+    const mediaById =
+      media === undefined
+        ? undefined
+        : new Map(media().map(item => [item.id, item]));
+    const noticesById =
+      noticeSets === undefined
+        ? undefined
+        : new Map(noticeSets().map(set => [set.id, set]));
+    const check = async (id: string | undefined): Promise<void> => {
+      if (id === undefined || checked.has(id)) return;
       checked.add(id);
       const background = await this.sources.backgroundOf(id);
       if (background !== null) backgrounds.set(id, background);
+    };
+    for (const item of service.data.order) {
+      if (isItemOfKind(item, 'media')) {
+        await check(item.media);
+        continue;
+      }
+      if (!isItemOfKind(item, 'song')) continue;
+      const song = songs.get(item.song);
+      if (song === undefined) continue;
+      await check(songBackgroundId(item, song.data));
     }
     return buildShowService({
       service,
@@ -113,6 +135,8 @@ export class OpenServiceFeed {
       labels,
       revision: FIRST_REVISION,
       backgrounds,
+      ...(mediaById === undefined ? {} : {media: mediaById}),
+      ...(noticesById === undefined ? {} : {notices: noticesById}),
       ...(this.sources.bible === undefined
         ? {}
         : {

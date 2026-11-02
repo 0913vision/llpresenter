@@ -5,7 +5,12 @@ import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {slotKinds} from './service';
-import {songIdSchema, songGroupIdSchema, translationIdSchema} from './ids';
+import {
+  noticeSetIdSchema,
+  songIdSchema,
+  songGroupIdSchema,
+  translationIdSchema,
+} from './ids';
 import {nonBlankText, nonNegativeInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
 import {liveTextSchema} from './liveLimits';
@@ -97,6 +102,13 @@ export const showTileSchema = v.pipe(
     reference: v.exactOptional(liveTextSchema),
     hotKey: v.exactOptional(slideHotKeySchema),
     sourceSlide: v.exactOptional(songSlideSourceSchema),
+    media: v.exactOptional(mediaChoiceSchema),
+    notice: v.exactOptional(
+      payloadObject({
+        noticeId: noticeSetIdSchema,
+        position: nonNegativeInteger,
+      }),
+    ),
   }),
   v.forward(
     v.check(
@@ -145,6 +157,8 @@ export type ShowRow = ShowService['rows'][number];
 /**
  * One tile of a song item, in the order of the item's 구성. A 장 that repeats
  * has a tile for each time, and a tile's position is its index in the list.
+ * A tile of a media item carries the media to output, and a tile of a 공지
+ * item carries the set and the image to start from.
  */
 export type ShowTile = ShowService['tiles'][string][number];
 

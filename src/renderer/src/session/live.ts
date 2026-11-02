@@ -6,6 +6,10 @@ import type {LiveState} from '@core/live/state';
 interface LiveView {
   /** Null until the first state arrives, and always outside Electron. */
   readonly state: LiveState | null;
+  /**
+   * The item last put on output, of any kind: its slide, or its start when
+   * it has no slide. Kept after a clear.
+   */
   readonly lastSlideItemId: string | null;
   readonly commandVersion: number;
   readonly startedItemIds: ReadonlySet<string>;
@@ -37,7 +41,8 @@ function accept(next: LiveState): void {
   if (current !== null && next.version < current.version) return;
   useLive.setState(view => ({
     state: next,
-    lastSlideItemId: next.layers.slide?.itemId ?? view.lastSlideItemId,
+    lastSlideItemId:
+      next.themeItem?.id ?? next.layers.slide?.itemId ?? view.lastSlideItemId,
     startedItemIds: rememberItem(
       view.startedItemIds,
       next.layers.slide?.itemId,
@@ -72,7 +77,9 @@ export function sendLive(command: LiveCommand): void {
     lastSlideItemId:
       command.type === 'slide.show'
         ? command.slide.itemId
-        : view.lastSlideItemId,
+        : command.type === 'item.start'
+          ? command.itemId
+          : view.lastSlideItemId,
     startedItemIds:
       command.type === 'item.start'
         ? rememberItem(view.startedItemIds, command.itemId)

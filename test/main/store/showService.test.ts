@@ -4,6 +4,8 @@ import type {Result} from '@core/common/result';
 import type {MediaChoice} from '@core/live/state';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
+import {mediaListSchema} from '@core/schema/mediaList';
+import {noticesSchema} from '@core/schema/notices';
 import {parseService, type Service} from '@core/schema/service';
 import {parseSong, type Song} from '@core/schema/song';
 import {playedOrderWithLimit} from '@core/songs/itemOrder';
@@ -620,5 +622,116 @@ describe('projectSongTiles custom order', () => {
 
   it('keeps playing the named 구성 when there is no custom order', () => {
     expect(linesOf({arrangement: 'short'})).toEqual(['verse']);
+  });
+});
+
+describe('buildShowService media and 공지 items', () => {
+  const IMAGE_ID = '7d1c2b3a-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+  const AUDIO_ID = '8e2d3c4b-5f60-4b7c-9d8e-0f1a2b3c4d5e';
+  const OTHER_IMAGE_ID = '9f3e4d5c-6071-4c8d-8e9f-1a2b3c4d5e6f';
+  const items = new Map(
+    v
+      .parse(mediaListSchema, {
+        format: 'llmedia',
+        schemaVersion: 1,
+        items: [
+          {id: IMAGE_ID, name: '광고 배경', kind: 'image'},
+          {id: AUDIO_ID, name: '전주', kind: 'audio'},
+          {id: OTHER_IMAGE_ID, name: '', kind: 'image'},
+        ].map(item => ({...item, file: `${item.id}.bin`, size: 1})),
+        playlists: [],
+        audioPlaylists: [],
+      })
+      .items.map(item => [item.id, item]),
+  );
+  const notices = new Map(
+    v
+      .parse(noticesSchema, {
+        format: 'llsettings.notices',
+        schemaVersion: 1,
+        sets: [
+          {
+            id: NOTICE_ID,
+            name: '주일 광고',
+            media: [IMAGE_ID, MISSING_SONG_ID, OTHER_IMAGE_ID],
+            interval: 5,
+            loop: true,
+            targets: [],
+          },
+        ],
+      })
+      .sets.map(set => [set.id, set]),
+  );
+  const choice: MediaChoice = {mediaId: IMAGE_ID, loop: false};
+
+  function buildOthers(order: readonly object[], withBackground = true) {
+    return buildShowService({
+      service: loadedService(order),
+      songs: new Map(),
+      labels: DEFAULT_LABELS,
+      revision: 1,
+      backgrounds: new Map(withBackground ? [[IMAGE_ID, choice]] : []),
+      media: items,
+      notices,
+    });
+  }
+
+  it('names the rows by the media and the 공지 set, as 준비 does', () => {
+    const show = buildOthers([
+      {id: itemId(1), media: IMAGE_ID},
+      {id: itemId(2), media: OTHER_IMAGE_ID},
+      {id: itemId(3), notice: NOTICE_ID},
+    ]);
+    expect(show.rows.map(row => row.title)).toEqual([
+      '광고 배경',
+      '이름 없는 미디어',
+      '주일 광고',
+    ]);
+  });
+
+  it('gives a media item one tile that outputs the media', () => {
+    const show = buildOthers([{id: itemId(1), media: IMAGE_ID}]);
+    expect(show.rows).toEqual([
+      {kind: 'media', id: itemId(1), title: '광고 배경'},
+    ]);
+    expect(show.tiles[itemId(1)]).toEqual([
+      {label: null, labelColor: 'none', lines: ['광고 배경'], media: choice},
+    ]);
+  });
+
+  it('gives a 공지 item a tile per image that starts the 공지 from it', () => {
+    const show = buildOthers([{id: itemId(1), notice: NOTICE_ID}]);
+    expect(
+      show.tiles[itemId(1)]?.map(tile => [tile.lines, tile.notice]),
+    ).toEqual([
+      [['광고 배경'], {noticeId: NOTICE_ID, position: 0}],
+      [['이름 없는 미디어'], {noticeId: NOTICE_ID, position: 2}],
+    ]);
+  });
+
+  it('warns about a media file or 공지 set that is gone, without a tile', () => {
+    const show = buildOthers(
+      [
+        {id: itemId(1), media: IMAGE_ID},
+        {id: itemId(2), notice: MEDIA_ID},
+        {id: itemId(3), media: AUDIO_ID},
+      ],
+      false,
+    );
+    expect(show.rows).toEqual([
+      {
+        kind: 'media',
+        id: itemId(1),
+        title: '광고 배경',
+        problem: 'missing-media',
+      },
+      {kind: 'notice', id: itemId(2), title: '', problem: 'missing-media'},
+      {kind: 'media', id: itemId(3), title: '전주'},
+    ]);
+    expect(show.tiles).toEqual({
+      [itemId(1)]: [],
+      [itemId(2)]: [],
+      [itemId(3)]: [],
+    });
   });
 });

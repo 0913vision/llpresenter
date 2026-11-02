@@ -101,8 +101,28 @@ function startServiceItem(itemId: ItemId): void {
   if (id.ok) sendLive({type: 'item.start', itemId: id.value});
 }
 
+/**
+ * Outputs a tile of a media item to the media layer, or starts the 공지 of a
+ * 공지 item from the tile's image. Returns false for any other tile.
+ */
+function outputOtherTile(cursor: TileCursor): boolean {
+  const tile = tilesOf(cursor.itemId)[cursor.index];
+  if (tile?.media === undefined && tile?.notice === undefined) return false;
+  beginOutputRequest();
+  useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
+  startServiceItem(cursor.itemId);
+  if (tile.media !== undefined) {
+    sendLive({type: 'media.show', media: tile.media});
+  } else if (tile.notice !== undefined) {
+    const {noticeId, position} = tile.notice;
+    sendLive({type: 'notice.start', noticeId, position});
+  }
+  return true;
+}
+
 /** Outputs a tile and shows it selected in the 장 panel. */
 export function outputTile(cursor: TileCursor): void {
+  if (outputOtherTile(cursor)) return;
   const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
   const request = beginOutputRequest();

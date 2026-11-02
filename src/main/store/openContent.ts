@@ -130,13 +130,22 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
+      mediaItems: () => media?.get().value.items ?? [],
+      noticeSets: () => {
+        const document = settings?.get('notices');
+        return document?.name === 'notices' ? document.value.sets : [];
+      },
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
   const removeSettingsListener =
     settings?.subscribe(document => {
-      if (document.name === 'labels' || document.name === 'bible') {
+      if (
+        document.name === 'labels' ||
+        document.name === 'bible' ||
+        document.name === 'notices'
+      ) {
         feed
           .refresh()
           .catch((error: unknown) =>
