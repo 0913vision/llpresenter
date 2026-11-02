@@ -154,7 +154,6 @@ export function useFontPickerNavigation({
     filter,
     keyDown,
     choose,
-    setPointed,
     setTop,
   };
 }

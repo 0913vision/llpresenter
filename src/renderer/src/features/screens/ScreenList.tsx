@@ -1,4 +1,4 @@
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   useCallback,
   useMemo,
@@ -63,15 +63,7 @@ function RowView({
         });
       }}
       onKeyDown={event => {
-        if (!isContextMenuKey(event)) {
-          return;
-        }
-        event.preventDefault();
-        onMenu(row.id, {
-          kind: 'element',
-          target: contextMenuTarget(event),
-          element: event.currentTarget,
-        });
+        openMenuFromKey(event, anchor => onMenu(row.id, anchor));
       }}
       onDragStart={event => {
         if (!canDrag || rename !== undefined) {

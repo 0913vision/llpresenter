@@ -28,9 +28,25 @@ it('clears pointer highlighting on leave, preserves selection and retains keyboa
   expect(next.getAttribute('data-pointed')).not.toBe('true');
   expect(first.getAttribute('aria-selected')).toBe('true');
   fireEvent.keyDown(search, {key: 'ArrowDown'});
-  fireEvent.pointerLeave(first);
-  expect(first.getAttribute('data-pointed')).toBe('true');
+  fireEvent.pointerLeave(next);
+  expect(next.getAttribute('data-pointed')).toBe('true');
+  expect(search.getAttribute('aria-activedescendant')).toBe(next.id);
+});
+
+it('keeps the keyboard index apart from the pointer: hovering never moves it', () => {
+  renderPicker();
+  fireEvent.click(screen.getByRole('button', {name: '글꼴'}));
+  const search = screen.getByRole('combobox', {name: '글꼴 검색'});
+  const first = screen.getByRole('option', {name: 'Pretendard'});
+  const next = screen.getByRole('option', {name: fontFamilyFixture().label});
   expect(search.getAttribute('aria-activedescendant')).toBe(first.id);
+
+  fireEvent.pointerMove(next);
+
+  expect(next.getAttribute('data-pointed')).toBe('true');
+  expect(search.getAttribute('aria-activedescendant')).toBe(first.id);
+  fireEvent.keyDown(search, {key: 'Enter'});
+  expect(screen.queryByRole('listbox', {name: '글꼴'})).toBeNull();
 });
 
 function renderPicker(

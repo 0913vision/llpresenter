@@ -1,6 +1,6 @@
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {QuickItem} from '@core/schema/quick';
@@ -287,16 +287,7 @@ export function QuickRowEditor({
         });
       }}
       onKeyDown={event => {
-        if (!isContextMenuKey(event)) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        setMenu({
-          kind: 'element',
-          target: contextMenuTarget(event),
-          element: event.currentTarget,
-        });
+        openMenuFromKey(event, setMenu);
       }}
     >
       {insertBefore ? <ListInsertLine /> : null}

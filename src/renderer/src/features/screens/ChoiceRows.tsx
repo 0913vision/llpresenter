@@ -1,4 +1,4 @@
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
   useRef,
@@ -181,15 +181,9 @@ export function ChoiceRows<T extends Choice>({
               });
             }}
             onKeyDown={event => {
-              if (onMenu === undefined || !isContextMenuKey(event)) {
-                return;
+              if (onMenu !== undefined) {
+                openMenuFromKey(event, anchor => onMenu(choice, anchor));
               }
-              event.preventDefault();
-              onMenu(choice, {
-                kind: 'element',
-                target: contextMenuTarget(event),
-                element: event.currentTarget,
-              });
             }}
           >
             <ListRow

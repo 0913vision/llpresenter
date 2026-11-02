@@ -302,6 +302,14 @@ export const lintConfig = defineConfig(
     },
   },
   {
+    files: ['src/renderer/**/*.{ts,tsx}'],
+    rules: {
+      // NOTE(0913vision): A disabled menu row says why in its title, so the
+      // operator never meets a gray row without a reason. See ui/menuModel.ts.
+      'llp/menu-disabled-reason': 'error',
+    },
+  },
+  {
     files: MIRRORED_TEST_FILES,
     rules: {
       // NOTE(0913vision): A test may use any layer of its own process around

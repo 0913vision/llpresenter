@@ -1,11 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import {useState} from 'react';
-import {expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {
   contextMenuAnchor,
   isContextMenuKey,
   markMenuTarget,
+  openMenuFromKey,
 } from '@renderer/ui/contextMenu';
 
 function Harness() {
@@ -169,3 +170,62 @@ it.each(['input', 'textarea', 'editable'])(
     expect(open).not.toHaveBeenCalled();
   },
 );
+
+describe('openMenuFromKey', () => {
+  function Row({
+    onOpen,
+    onOuterKey,
+  }: {
+    readonly onOpen: (anchor: MenuAnchor) => void;
+    readonly onOuterKey: () => void;
+  }) {
+    return (
+      <div role="group" onKeyDown={onOuterKey}>
+        <div
+          role="option"
+          aria-selected="false"
+          tabIndex={0}
+          onKeyDown={event => openMenuFromKey(event, onOpen)}
+        >
+          <input aria-label="이름" />행
+        </div>
+      </div>
+    );
+  }
+
+  it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
+    'opens below the focused row and stops the press: %j',
+    keyEvent => {
+      const open = vi.fn();
+      const outer = vi.fn();
+      render(<Row onOpen={open} onOuterKey={outer} />);
+      const row = screen.getByRole('option');
+      fireEvent.keyDown(row, keyEvent);
+
+      expect(open).toHaveBeenCalledWith(
+        expect.objectContaining({kind: 'element', element: row}),
+      );
+      expect(outer).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ['a key typed in a field', 'input', {key: 'ContextMenu'}],
+    ['an Alt press', 'row', {key: 'ContextMenu', altKey: true}],
+    ['Shift with the Menu key', 'row', {key: 'ContextMenu', shiftKey: true}],
+    ['another key', 'row', {key: 'Enter'}],
+  ])('leaves %s alone', (_name, where, keyEvent) => {
+    const open = vi.fn();
+    const outer = vi.fn();
+    render(<Row onOpen={open} onOuterKey={outer} />);
+    fireEvent.keyDown(
+      where === 'input'
+        ? screen.getByRole('textbox', {name: '이름'})
+        : screen.getByRole('option'),
+      keyEvent,
+    );
+
+    expect(open).not.toHaveBeenCalled();
+    expect(outer).toHaveBeenCalled();
+  });
+});

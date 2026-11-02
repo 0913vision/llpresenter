@@ -1,6 +1,6 @@
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {NoticeSet} from '@core/schema/notices';
 import {AlertDialog, Menu} from '@renderer/ui';
@@ -64,19 +64,7 @@ export function NoticeEditing({
           });
         }}
         onKeyDown={event => {
-          if (!item || !isContextMenuKey(event)) {
-            return;
-          }
-          event.preventDefault();
-          event.stopPropagation();
-          setMenu({
-            item,
-            anchor: {
-              kind: 'element',
-              target: contextMenuTarget(event),
-              element: event.currentTarget,
-            },
-          });
+          if (item) openMenuFromKey(event, anchor => setMenu({item, anchor}));
         }}
       >
         {children}

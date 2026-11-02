@@ -43,7 +43,6 @@ function FontPopup({
     filter,
     keyDown,
     choose,
-    setPointed,
     setTop,
   } = useFontPickerNavigation({anchor, selected, options, onSelect, onClose});
   return createPortal(
@@ -104,7 +103,6 @@ function FontPopup({
                   aria-setsize={choices.length}
                   className={classNames(menu.item, styles.option)}
                   style={{top: index * row}}
-                  onPointerMove={() => setPointed(choice.value)}
                   onMouseDown={event => event.preventDefault()}
                   onClick={() => choose(index)}
                 >
