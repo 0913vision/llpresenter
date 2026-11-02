@@ -14,6 +14,12 @@ import {
   type MediaImportResult,
 } from '@core/schema/mediaEdit';
 import {
+  parseMediaUses,
+  parseMediaUsesRequest,
+  type MediaUses,
+  type MediaUsesRequest,
+} from '@core/schema/mediaUses';
+import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
   parseMissingMedia,
@@ -49,6 +55,10 @@ export const mediaEndpoints = {
     'media:import:changed',
     parseMediaImportProgress,
   ),
+  uses: request<MediaUsesRequest, MediaUses>('media:uses', {
+    request: parseMediaUsesRequest,
+    reply: parseMediaUses,
+  }),
   missing: query<MissingMedia>('media:missing:get', parseMissingMedia),
   missingChanged: push<MissingMedia>('media:missing', parseMissingMedia),
   check: message<MediaFileRequest>('media:check', parseMediaCheckRequest),
@@ -76,6 +86,8 @@ export function mediaApi(port: IpcPort, platform: WindowPlatform) {
      * @returns A function that removes the listener. Always call it.
      */
     subscribeImports: port.subscribe(mediaEndpoints.importChanged),
+    /** Counts the places that use one media item, for the delete question. */
+    uses: port.request(mediaEndpoints.uses),
     /**
      * Reads the media whose file main can't find now. Rejects, after logging,
      * when the call fails or the answer is malformed.

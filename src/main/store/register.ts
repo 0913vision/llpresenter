@@ -21,6 +21,7 @@ import {
 import {registerLibrarySong} from './librarySong';
 import {type LocationContext} from './locations';
 import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
+import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
 import type {MediaStore} from './mediaStore';
@@ -176,6 +177,10 @@ export function registerStore({
       ready?.preferences() ?? (await loading)?.preferences ?? defaultPreferences
     );
   });
+  const removeMediaUses = registerMediaUses(
+    {media, settings, content: opened},
+    log,
+  );
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
   const removeSearch = registerLibrarySearch(
     opened.then(ready => ready?.search ?? null),
@@ -237,6 +242,7 @@ export function registerStore({
       await mediaClosing;
       ipcMain.removeHandler(settingsEndpoints.preferences.channel);
       ipcMain.removeHandler(appEndpoints.savePending.channel);
+      removeMediaUses();
       removeContentChannels();
       removeSearch();
       removeLibrarySong();

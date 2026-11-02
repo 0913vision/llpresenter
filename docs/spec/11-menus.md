@@ -448,7 +448,7 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 | 5     | 잘라내기, 복사, 붙여넣기, 복제 | PP clipboard rows with icons.                                        | Off    |
 | 5     | 이름 바꾸기                    | No icon.                                                             | Off    |
 | 5     | 재생목록에서 빼기              | Only inside a playlist (ours), right before 삭제.                    | Now    |
-| 5     | 삭제                           | Trash icon, as in PP. Deletes.                                       | Now    |
+| 5     | 삭제                           | Trash icon, as in PP. Asks first and names every use (08).           | Now    |
 | 6     | 탐색기에서 보기, 정리 기준 ›   | PP Show in Finder, Clean Up By.                                      | Off    |
 | -     | 복사 멈추기                    | While the file is being copied, the menu holds only this row (ours). | Now    |
 

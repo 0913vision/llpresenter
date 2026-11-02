@@ -62,6 +62,7 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 | Background select in the 슬라이드 panel header             | Amber file icon before the name, and a 다시 연결 button                     | "배경 파일을 찾을 수 없음" (background file not found)                                                   |
 | 예배 순서 row                                              | Amber warning icon after the name                                           | "미디어 파일 없음" (media file missing)                                                                  |
 | 슬라이드 thumbnail with an image (for example 공지 images) | Hatched canvas with an amber file icon                                      | The path, as above                                                                                       |
+| 공지 image or 그래픽 tile whose media left the library     | Hatched frame with an amber file icon                                       | "미디어 파일을 찾을 수 없습니다" (no path to name)                                                       |
 | 표시 중 row and preview of a background that froze         | Pause icon                                                                  | "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중" (background video file not found, showing a still) |
 
 - A missing media file doesn't open a notification card. It shows in place
@@ -86,6 +87,53 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 Source: `Problems`, `MediaTile` README, `SlideThumbnail` README, `ListRow`
 README, `Notification` README.
+
+## Deleting a media item that is in use
+
+Deleting a media item removes it from the media list and from every playlist.
+The file stays on disk. Other places keep the media ID, so they must say that
+the media is gone and must not draw it again (decided with lint-325, from
+rehearsal 4 B1).
+
+### The question
+
+- 삭제 asks first (the Delete rule in 11) and names every place that uses the
+  media, with a count for each kind: 재생목록, 공지 세트, 그래픽, 곡 배경, 예배
+  순서 항목 (an item's own background, or a media item), 항목 오버레이, 테마 (an
+  image element), and 매크로 (a media or audio action). They show as a list
+  under the label `쓰는 곳`, one short line per kind with its count at the right
+  (`재생목록  2곳`), in that order; a kind with no use is left out, and the list
+  is left out when nothing uses the media. The meta line is
+  `파일은 그대로 남음`.
+- If main cannot count the uses, the line reads `쓰는 곳을 확인할 수 없습니다`
+  and 삭제 still works (the same wording as the other where-used questions).
+
+### A use whose media is gone
+
+- It is marked as missing media, the same way everywhere: a 공지 image tile or a
+  그래픽 tile of a deleted image shows the hatched frame with the amber file
+  icon, and its tooltip reads `미디어 파일을 찾을 수 없습니다` (there is no path
+  to name). A 예배 순서 row and a background already do this (the table above).
+- Starting a 공지 skips its missing images: the first image that is left shows
+  first, and a missing image can't be chosen. A 공지 whose images are all gone
+  can't start, and 재생 is off with that tooltip.
+- A 그래픽 whose image is gone can't be shown, and its tile says why. One that
+  is already on screen can still be taken down.
+
+### What is on output
+
+An edit reaches the output at the next natural step; nothing on screen is
+interrupted (decision of 2026-11-03). So deleting a media item changes nothing
+on the screens at that moment:
+
+- The picture on screen stays until its next step: a 공지 image until its
+  interval ends, a 그래픽 until it is taken down, a background until the next
+  슬라이드.
+- At that next step it is no longer drawn. A running 공지 learns which of its
+  images are gone (`gone` in the 공지 playback state, capped like the set) and
+  its clock skips them when it advances; the image on screen at that moment
+  stays for the rest of its interval and is skipped in later rounds. The next
+  슬라이드 clears a background that is no longer in the media list.
 
 ## Output window crash
 

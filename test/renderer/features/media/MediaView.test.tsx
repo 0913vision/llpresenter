@@ -511,6 +511,60 @@ describe('media view', () => {
     });
   });
 
+  it('names every place that uses the media in the delete question', async () => {
+    const fixture = mediaFixture(
+      mediaDocument([mediaItem(1, {name: 'Dawn', size: 1024})]),
+    );
+    vi.spyOn(fixture.api.media, 'uses').mockResolvedValue({
+      playlists: 2,
+      notices: 1,
+      graphics: 1,
+      songBackgrounds: 3,
+      serviceItems: 4,
+      itemOverlays: 0,
+      themes: 1,
+      macros: 2,
+    });
+    setup(fixture);
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    const dialog = await screen.findByRole('alertdialog');
+    const group = within(dialog).getByRole('group', {name: '쓰는 곳'});
+    expect(
+      [...group.querySelectorAll('p')].slice(1).map(row => row.textContent),
+    ).toEqual([
+      '재생목록2곳',
+      '공지 세트1곳',
+      '그래픽1곳',
+      '곡 배경3곳',
+      '예배 순서 항목4곳',
+      '테마1곳',
+      '매크로2곳',
+    ]);
+    expect(dialog.textContent).toContain('파일은 그대로 남음');
+  });
+
+  it('shows no use line for unused media, and says when the uses cannot be checked', async () => {
+    const fixture = mediaFixture(
+      mediaDocument([mediaItem(1, {name: 'Dawn', size: 1024})]),
+    );
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const uses = vi.spyOn(fixture.api.media, 'uses');
+    setup(fixture);
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    let dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).not.toContain('쓰는 곳');
+    fireEvent.click(within(dialog).getByRole('button', {name: '취소'}));
+
+    uses.mockRejectedValue(new Error('Unreachable'));
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+    expect(fixture.edit).not.toHaveBeenCalled();
+  });
+
   it('offers only properties for a list a newer version wrote', async () => {
     const fixture = mediaFixture({
       ...mediaDocument([mediaItem(1, {name: 'Dawn'})]),

@@ -23,8 +23,23 @@ export const contentSlice = defineSlice({
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
-      case 'slide.show':
-        return setLayer(history, 'slide', command.slide);
+      case 'slide.show': {
+        const shown = setLayer(history, 'slide', command.slide);
+        const media = shown.state.layers.media;
+        const library = context.audioMedia?.();
+        // NOTE(0913vision): A background that left the library stays on screen
+        // until the next slide, which no longer draws it (spec 08).
+        if (
+          media === null ||
+          library === undefined ||
+          library.items.some(item => item.id === media.mediaId)
+        ) {
+          return shown;
+        }
+        return context.apply(setLayer(shown, 'media', null), {
+          type: 'media.properties.refresh',
+        });
+      }
       case 'media.show':
         return context.apply(showMedia(history, command.media, context.now), {
           type: 'media.properties.refresh',

@@ -11,6 +11,7 @@ import type {NoticeSet} from '@core/schema/notices';
 import {sendLive, useLive} from '@renderer/session/live';
 import {clearLayer} from '@renderer/session/clear';
 import {Button, MediaTile, TileList, gridMoves} from '@renderer/ui';
+import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import {noticeReason} from './noticeEdits';
 import {toggleNotice} from './toolCommands';
 import styles from './NoticePlayback.module.css';
@@ -41,13 +42,18 @@ export function NoticePlayback({
   media,
 }: {
   readonly item: NoticeSet;
-  readonly media: readonly MediaItem[];
+  /** The media list, or `undefined` while it loads. */
+  readonly media: readonly MediaItem[] | undefined;
 }): JSX.Element {
+  const gone = (id: string): boolean =>
+    media !== undefined && !media.some(entry => entry.id === id);
+  const allGone = item.media.length > 0 && item.media.every(gone);
   const layer = useLive(view => view.state?.layers.notice);
   const playback = layer?.noticeId === item.id ? layer.playback : undefined;
   const position = usePosition(playback);
   const paused = playback?.pausedAt !== null && playback !== undefined;
-  const reason = noticeReason(item);
+  const reason =
+    noticeReason(item) ?? (allGone ? MISSING_MEDIA_TIP : undefined);
   const toggle = (): void => toggleNotice(item.id);
   return (
     <div>
@@ -79,7 +85,8 @@ export function NoticePlayback({
         selected={undefined}
         className={styles.grid}
         onActivate={index => {
-          if (!reason && item.media[index]) {
+          const id = item.media[index];
+          if (!reason && id !== undefined && !gone(id)) {
             sendLive({
               type: 'notice.start',
               noticeId: item.id,
@@ -89,13 +96,14 @@ export function NoticePlayback({
         }}
       >
         {item.media.map((id, index) => {
-          const source = media.find(entry => entry.id === id);
+          const source = media?.find(entry => entry.id === id);
           return (
             <MediaTile
               key={`${id}-${index}`}
               name={source?.name ?? `이미지 ${index + 1}`}
               picture={mediaUrl(id)}
               live={position === index}
+              missingReason={gone(id) ? MISSING_MEDIA_TIP : undefined}
             />
           );
         })}

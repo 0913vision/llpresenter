@@ -117,6 +117,22 @@ describe('MediaTile', () => {
     expect(option().getAttribute('aria-selected')).toBe('true');
   });
 
+  it('marks media that left the library with its own reason instead of a path', async () => {
+    render(
+      <MediaTile
+        name="노을"
+        picture="media://x"
+        missingReason="미디어 파일을 찾을 수 없습니다"
+      />,
+    );
+    const option = screen.getByRole('option');
+    expect(option.getAttribute('data-state')).toBe('warning');
+    expect(option.querySelector('img')).toBeNull();
+    expect((await hoverForTooltip(option))?.textContent).toBe(
+      '미디어 파일을 찾을 수 없습니다',
+    );
+  });
+
   it('shows the warning instead of the picture when the file is missing', async () => {
     const option = one({
       name: '따뜻한 빛',

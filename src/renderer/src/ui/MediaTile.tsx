@@ -44,6 +44,11 @@ export interface MediaTileProps {
   readonly live?: boolean | undefined;
   /** The path of the media file when it can't be found. */
   readonly missingFile?: string | undefined;
+  /**
+   * The media is gone from the library, so there is no path to name: the tile
+   * is marked like a missing file and this text is its tooltip.
+   */
+  readonly missingReason?: string | undefined;
   /** How far copying into the media folder has come, 0 to 100, while it copies. */
   readonly copying?: number | undefined;
   /** Makes the tile draggable; the host puts what it carries on the drag. */
@@ -69,10 +74,14 @@ function tileState({
 }
 
 function tooltipText(
-  missingFile: string | undefined,
+  missing: {
+    readonly file: string | undefined;
+    readonly reason: string | undefined;
+  },
   copying: number | undefined,
 ): string | undefined {
-  if (missingFile !== undefined) return missingFileText(missingFile);
+  if (missing.file !== undefined) return missingFileText(missing.file);
+  if (missing.reason !== undefined) return missing.reason;
   if (copying !== undefined) return copyingText(copying);
   return undefined;
 }
@@ -115,8 +124,16 @@ function Copying({
 }
 
 function Frame(props: MediaTileProps): JSX.Element {
-  const {name, picture, duration, loop = false, missingFile, copying} = props;
-  if (missingFile !== undefined) {
+  const {
+    name,
+    picture,
+    duration,
+    loop = false,
+    missingFile,
+    missingReason,
+    copying,
+  } = props;
+  if (missingFile !== undefined || missingReason !== undefined) {
     return (
       <span className={styles.frame}>
         <MissingFileMark />
@@ -144,9 +161,18 @@ function Frame(props: MediaTileProps): JSX.Element {
  * copying can't be used yet.
  */
 export const MediaTile = memo((props: MediaTileProps): JSX.Element => {
-  const {name, selected = false, live = false, missingFile, copying} = props;
+  const {
+    name,
+    selected = false,
+    live = false,
+    missingFile,
+    missingReason,
+    copying,
+  } = props;
   const {targetProps, tooltip} = useTooltip(
-    titleTooltip(tooltipText(missingFile, copying)),
+    titleTooltip(
+      tooltipText({file: missingFile, reason: missingReason}, copying),
+    ),
   );
   return (
     <button
@@ -160,7 +186,7 @@ export const MediaTile = memo((props: MediaTileProps): JSX.Element => {
       onDragStart={props.onDragStart}
       data-state={tileState({
         live,
-        missing: missingFile !== undefined,
+        missing: missingFile !== undefined || missingReason !== undefined,
         copying: copying !== undefined,
       })}
       className={styles.tile}

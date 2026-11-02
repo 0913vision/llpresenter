@@ -537,7 +537,9 @@ T03, T07 and T09.
 - Top: the 공지 set select (for example 주일 광고), the image count ("슬라이드
   6개"), the interval ("8초"), 반복 (repeat), and 일시 정지 (pause) or 재생
   (play).
-- Middle: the grid of 공지 images. The image that is showing has a red ring.
+- Middle: the grid of 공지 images. The image that is showing has a red ring. An
+  image whose media was deleted shows as missing media and is skipped when the
+  공지 plays (08, "Deleting a media item that is in use").
 - Bottom: 보낼 화면 chips (청중 화면, 무대, 방송 화면).
 - Clicking an image shows it at once on the 공지 layer of the target screens,
   and then advances to the next image at each interval. After the last image,

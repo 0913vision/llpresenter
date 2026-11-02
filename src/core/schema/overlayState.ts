@@ -106,6 +106,10 @@ export const noticePlaybackSchema = v.pipe(
       v.minLength(1),
       v.maxLength(MAX_NOTICE_IMAGES),
     ),
+    /** The ids that left the library; the clock skips them. */
+    gone: v.exactOptional(
+      v.pipe(v.array(mediaIdSchema), v.maxLength(MAX_NOTICE_IMAGES)),
+    ),
     position: nonNegativeInteger,
     interval: positiveSeconds,
     loop: v.boolean(),

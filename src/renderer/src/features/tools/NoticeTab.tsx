@@ -102,7 +102,7 @@ export function NoticeTab({
             locked={locked}
             save={changes => run({kind: 'update', id: current.id, changes})}
           >
-            <NoticePlayback item={current} media={media?.value.items ?? []} />
+            <NoticePlayback item={current} media={media?.value.items} />
           </NoticeSettings>
         </>
       ) : null}

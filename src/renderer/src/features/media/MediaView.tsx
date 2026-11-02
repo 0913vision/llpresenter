@@ -1,9 +1,19 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
-import {useMemo, useState, type DragEvent, type JSX} from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type JSX,
+} from 'react';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaUses} from '@core/schema/mediaUses';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {USAGE_LABEL, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {sendLive, useLive} from '@renderer/session/live';
 import {
@@ -17,7 +27,11 @@ import {
   PanelTabs,
   Slider,
 } from '@renderer/ui';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {
+  AlertDialog,
+  AlertListRow,
+  type AlertDialogProps,
+} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -111,6 +125,28 @@ function EntryTile({
  * click outputs. In 진행, a click outputs without changing selection.
  * A missing file's tile opens 다시 연결.
  */
+const MEDIA_PLACES = [
+  ['재생목록', 'playlists'],
+  ['공지 세트', 'notices'],
+  ['그래픽', 'graphics'],
+  ['곡 배경', 'songBackgrounds'],
+  ['예배 순서 항목', 'serviceItems'],
+  ['항목 오버레이', 'itemOverlays'],
+  ['테마', 'themes'],
+  ['매크로', 'macros'],
+] as const;
+
+function mediaUsesList(uses: MediaUses): AlertDialogProps['list'] {
+  const used = MEDIA_PLACES.filter(([, key]) => uses[key] > 0);
+  if (used.length === 0) return undefined;
+  return {
+    label: USAGE_LABEL,
+    children: used.map(([where, key]) => (
+      <AlertListRow key={key} label={where} value={`${uses[key]}곳`} />
+    )),
+  };
+}
+
 export function MediaView({
   onProblem,
   workspace = 'prep',
@@ -119,7 +155,29 @@ export function MediaView({
   const {library, view, choice, selected, select: setSelected} = useMediaView();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
-  const [deleting, setDeleting] = useState<MediaItem | null>(null);
+  const [deleting, setDeleting] = useState<{
+    readonly item: MediaItem;
+    readonly uses: MediaUses | 'failed';
+  } | null>(null);
+  const lookup = useRef<AbortController | null>(null);
+  useEffect(() => () => lookup.current?.abort(), []);
+  const askToDelete = (item: MediaItem): void => {
+    const api = window.llp;
+    if (api === undefined) return;
+    lookup.current?.abort();
+    const controller = new AbortController();
+    lookup.current = controller;
+    withinLookupTimeout(() => api.media.uses({mediaId: item.id})).then(
+      uses => {
+        if (!controller.signal.aborted) setDeleting({item, uses});
+      },
+      (cause: unknown) => {
+        if (controller.signal.aborted) return;
+        console.error('Could not look up where the media is used', cause);
+        setDeleting({item, uses: 'failed'});
+      },
+    );
+  };
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
   const playlist = chosenPlaylist(view.document, choice);
@@ -195,7 +253,7 @@ export function MediaView({
           console.error('Removing media from a playlist failed:', cause);
         });
     },
-    remove: setDeleting,
+    remove: askToDelete,
   });
   const {
     reason: importReason,
@@ -348,13 +406,17 @@ export function MediaView({
       )}
       {deleting === null ? null : (
         <AlertDialog
-          icon={deleting.kind === 'audio' ? 'audio' : 'film'}
-          title={`‘${deleting.name || UNNAMED_MEDIA}’ 미디어를 삭제할까요?`}
+          icon={deleting.item.kind === 'audio' ? 'audio' : 'film'}
+          title={`‘${deleting.item.name || UNNAMED_MEDIA}’ 미디어를 삭제할까요?`}
           meta={[
-            '모든 재생목록에서도 빠짐',
-            '곡이나 항목이 배경으로 쓰면 그 배경도 사라짐',
+            ...(deleting.uses === 'failed' ? [USAGE_UNAVAILABLE] : []),
             '파일은 그대로 남음',
           ]}
+          list={
+            deleting.uses === 'failed'
+              ? undefined
+              : mediaUsesList(deleting.uses)
+          }
           onCancel={() => setDeleting(null)}
           actions={[
             {
@@ -362,7 +424,10 @@ export function MediaView({
               primary: true,
               onSelect: () => {
                 library
-                  .deleteMedia(deleting.id, deleting.name || UNNAMED_MEDIA)
+                  .deleteMedia(
+                    deleting.item.id,
+                    deleting.item.name || UNNAMED_MEDIA,
+                  )
                   .then(
                     () => setDeleting(null),
                     (cause: unknown) => {

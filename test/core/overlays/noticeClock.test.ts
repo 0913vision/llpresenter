@@ -86,4 +86,46 @@ describe('shared notice clock', () => {
     expect(MAX_OVERLAY_TIMER_MS).toBe(2_147_483_647);
     expect(nextNoticeChange(state, START)).toBe(MAX_OVERLAY_TIMER_MS + 1);
   });
+
+  it('keeps a gone image on screen until its interval ends, then skips it', () => {
+    const second = createMediaId('00000000-0000-4000-8000-000000000002');
+    const state = playback({loop: true, position: 1, gone: [second]});
+    for (const [offset, position] of [
+      [0, 1],
+      [4999, 1],
+      [5000, 2],
+      [10000, 0],
+      [15000, 2],
+      [20000, 0],
+    ] as const) {
+      expect(noticePosition(state, START + offset)).toBe(position);
+    }
+    expect(nextNoticeChange(state, START + 1000)).toBe(4000);
+  });
+
+  it('skips gone images without looping and stops at the last one left', () => {
+    const second = createMediaId('00000000-0000-4000-8000-000000000002');
+    const third = createMediaId('00000000-0000-4000-8000-000000000003');
+    const skipping = playback({gone: [second]});
+    expect(noticePosition(skipping, START + 5000)).toBe(2);
+    expect(nextNoticeChange(skipping, START + 5000)).toBeNull();
+    const trailing = playback({gone: [third]});
+    expect(noticePosition(trailing, START + 5000)).toBe(1);
+    expect(nextNoticeChange(trailing, START + 5000)).toBeNull();
+  });
+
+  it('needs no timer when every other image is gone', () => {
+    const [first, second, third] = [1, 2, 3].map(number =>
+      createMediaId(`00000000-0000-4000-8000-00000000000${number}`),
+    );
+    if (second === undefined || third === undefined || first === undefined) {
+      throw new Error('Missing ids');
+    }
+    const state = playback({loop: true, gone: [second, third]});
+    expect(noticePosition(state, START + 50_000)).toBe(0);
+    expect(nextNoticeChange(state, START)).toBeNull();
+    const all = playback({loop: true, gone: [first, second, third]});
+    expect(noticePosition(all, START + 50_000)).toBe(0);
+    expect(nextNoticeChange(all, START)).toBeNull();
+  });
 });

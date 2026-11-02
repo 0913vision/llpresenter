@@ -1,3 +1,4 @@
+import {emptyLiveState} from '@core/live/state';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -81,7 +82,11 @@ function reader(): Reader {
   return {get: () => value, subscribe: () => () => undefined};
 }
 
-const store: Pick<LiveStore, 'handles' | 'dispatch' | 'connectAudioMedia'> = {
+const store: Pick<
+  LiveStore,
+  'handles' | 'dispatch' | 'connectAudioMedia' | 'state'
+> = {
+  state: emptyLiveState(),
   handles: vi.fn(() => true),
   dispatch: vi.fn(() => true),
   connectAudioMedia: vi.fn(() => () => undefined),

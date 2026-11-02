@@ -93,6 +93,22 @@
   font: var(--type-caption-strong);
 }
 
+.listRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin: 0;
+  padding: var(--space-4) 0;
+  color: var(--text);
+  font: var(--type-body);
+}
+
+.listValue {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
 .actions {
   display: flex;
   flex: none;

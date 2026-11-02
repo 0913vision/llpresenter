@@ -287,6 +287,11 @@ export class ContentStore {
     return this.services.get(id);
   }
 
+  /** Every 예배 순서 as it is now, for the places that use a media item. */
+  storedServices(): ReadonlyArray<StoredDocument<Service>> {
+    return this.services.all();
+  }
+
   /** The current songs, for the open 예배 순서 in 진행. */
   storedSongs(): ReadonlyMap<string, StoredDocument<GroupedSong>> {
     return new Map(this.songs.all().map(song => [song.data.id, song]));

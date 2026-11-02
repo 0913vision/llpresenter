@@ -2,7 +2,9 @@ import {toggleProp} from './toolCommands';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import type {MediaItem} from '@core/schema/mediaList';
 import type {Prop} from '@core/schema/props';
+import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import type {Screen} from '@core/schema/screens';
 import {useLive} from '@renderer/session/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
@@ -12,10 +14,13 @@ import styles from './PropGrid.module.css';
 export function PropGrid({
   props,
   screens,
+  media,
   onMenu,
 }: {
   readonly props: readonly Prop[];
   readonly screens: readonly Screen[];
+  /** The media list; a 그래픽 whose image is not in it cannot be shown. */
+  readonly media?: readonly MediaItem[] | undefined;
   readonly onMenu?: ((prop: Prop, anchor: MenuAnchor) => void) | undefined;
 }): JSX.Element {
   const layer = useLive(view => view.state?.layers.prop);
@@ -23,7 +28,18 @@ export function PropGrid({
     layer?.items
       ? layer.items.some(item => item.propId === prop.id)
       : layer?.propId === prop.id;
-  const toggle = (prop: Prop): void => toggleProp(prop.id);
+  const imageGone = (prop: Prop): boolean => {
+    const {content} = prop;
+    return (
+      media !== undefined &&
+      content.kind === 'image' &&
+      !media.some(item => item.id === content.media)
+    );
+  };
+  const toggle = (prop: Prop): void => {
+    if (imageGone(prop) && !isOn(prop)) return;
+    toggleProp(prop.id);
+  };
   useWindowShortcuts(
     props.map(prop => ({id: `prop.${prop.id}`, run: () => toggle(prop)})),
   );
@@ -65,6 +81,7 @@ export function PropGrid({
               )
             }
             live={isOn(prop)}
+            missingReason={imageGone(prop) ? MISSING_MEDIA_TIP : undefined}
           />
         );
       })}

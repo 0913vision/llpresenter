@@ -1,5 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
+import {createMediaId} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {useLive} from '@renderer/session/live';
 import {NoticePlayback} from '@renderer/features/tools/NoticePlayback';
@@ -40,7 +41,7 @@ afterEach(() => {
 
 it('starts a selected image and lets arrows move focus without output', () => {
   const f = stageFixture();
-  render(<NoticePlayback item={item} media={[]} />);
+  render(<NoticePlayback item={item} media={undefined} />);
   const first = screen.getByRole('option', {name: '이미지 1'});
   const second = screen.getByRole('option', {name: '이미지 2'});
   first.focus();
@@ -76,7 +77,7 @@ it('marks the advancing image and pauses or resumes through live commands', () =
       layers: {...state.layers, notice: {noticeId: item.id, playback}},
     },
   });
-  const view = render(<NoticePlayback item={item} media={[]} />);
+  const view = render(<NoticePlayback item={item} media={undefined} />);
   expect(
     screen.getByRole('option', {name: '이미지 1'}).getAttribute('data-state'),
   ).toBe('live');
@@ -109,4 +110,35 @@ it('marks the advancing image and pauses or resumes through live commands', () =
   });
   view.unmount();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it('marks an image that left the library, and starts from the others only', () => {
+  const f = stageFixture();
+  const present = {
+    id: createMediaId('00000000-0000-4000-8000-000000000003'),
+    name: '남은 이미지',
+    kind: 'image' as const,
+    file: 'left.png',
+    size: 1,
+  };
+  render(<NoticePlayback item={item} media={[present]} />);
+  const gone = screen.getByRole('option', {name: '이미지 1'});
+  const left = screen.getByRole('option', {name: '남은 이미지'});
+  expect(gone.getAttribute('data-state')).toContain('warning');
+  expect(left.getAttribute('data-state')).toBeNull();
+  fireEvent.click(gone);
+  expect(f.send).not.toHaveBeenCalled();
+  fireEvent.click(left);
+  expect(f.send).toHaveBeenCalledWith({
+    type: 'notice.start',
+    noticeId: item.id,
+    position: 1,
+  });
+});
+
+it('cannot start a 공지 whose images are all gone', () => {
+  stageFixture();
+  render(<NoticePlayback item={item} media={[]} />);
+  const play = screen.getByRole('button', {name: '재생'});
+  expect(play.getAttribute('aria-disabled')).toBe('true');
 });

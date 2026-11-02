@@ -160,8 +160,30 @@ describe('additive overlay state contracts', () => {
     ['a pause before start', {...playback(), pausedAt: NOW - 1}],
     ['an invalid target', {...playback(), targets: ['stage']}],
     ['no target screens', {...playback(), targets: []}],
+    ['an invalid gone id', {...playback(), gone: ['bad']}],
+    [
+      'too many gone ids',
+      {
+        ...playback(),
+        gone: Array.from({length: MAX_NOTICE_IMAGES + 1}, () => uuid(3)),
+      },
+    ],
   ])('rejects notice playback with %s', (_name, value) => {
     expect(parseLiveState(noticeState(value)).ok).toBe(false);
+  });
+
+  it('accepts the ids that left the library, up to the image cap', () => {
+    expect(
+      parseLiveState(noticeState({...playback(), gone: [uuid(3)]})).ok,
+    ).toBe(true);
+    expect(
+      parseLiveState(
+        noticeState({
+          ...playback(),
+          gone: Array.from({length: MAX_NOTICE_IMAGES}, () => uuid(3)),
+        }),
+      ).ok,
+    ).toBe(true);
   });
 
   it('accepts each list at its cap and rejects the next item', () => {

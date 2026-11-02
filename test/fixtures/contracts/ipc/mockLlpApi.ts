@@ -163,6 +163,17 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       import: () => Promise.resolve({ok: true, value: []}),
       subscribe: () => () => undefined,
       subscribeImports: () => () => undefined,
+      uses: () =>
+        Promise.resolve({
+          playlists: 0,
+          notices: 0,
+          graphics: 0,
+          songBackgrounds: 0,
+          serviceItems: 0,
+          itemOverlays: 0,
+          themes: 0,
+          macros: 0,
+        }),
       missing: () => Promise.resolve([]),
       subscribeMissing: () => () => undefined,
       check: () => undefined,

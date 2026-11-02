@@ -8,7 +8,7 @@ import {defineSlice} from '../slice';
 export const propsSlice = defineSlice({
   commands: ['prop.set'],
   initial: {},
-  reduce: (history, command, {settings, reject}) => {
+  reduce: (history, command, {settings, audioMedia, reject}) => {
     const previous = history.state.layers.prop?.items ?? [];
     const retained = previous.filter(item => item.propId !== command.propId);
     if (!command.on) {
@@ -24,6 +24,16 @@ export const propsSlice = defineSlice({
       throw new MissingLiveTargetError({kind: 'prop', id: command.propId});
     }
     const current = previous.find(item => item.propId === prop.id);
+    const library = audioMedia?.();
+    const content = prop.content;
+    if (
+      current === undefined &&
+      content.kind === 'image' &&
+      library !== undefined &&
+      !library.items.some(item => item.id === content.media)
+    ) {
+      throw new MissingLiveTargetError({kind: 'media', id: content.media});
+    }
     const targets = [...new Set(prop.targets)];
     if (
       current?.content === prop.content &&

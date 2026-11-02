@@ -59,6 +59,7 @@ export function PropTab({
       <PropGrid
         props={document?.value.props ?? []}
         screens={screens?.value.screens ?? []}
+        media={media?.value.items}
         onMenu={(prop, anchor) => {
           setMenu({prop, anchor});
         }}

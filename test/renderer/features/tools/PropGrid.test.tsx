@@ -86,3 +86,36 @@ it('reflects live state and reads the latest state when toggled', () => {
     on: false,
   });
 });
+
+it('marks a 그래픽 whose image left the library and shows it only to take it down', async () => {
+  const fixture = stageFixture();
+  render(<PropGrid props={props} screens={[]} media={[]} />);
+  const tile = screen.getByRole('option', {name: '로고'});
+  expect(tile.getAttribute('data-state')).toContain('warning');
+  expect(
+    screen.getByRole('option', {name: '안내'}).getAttribute('data-state'),
+  ).toBeNull();
+  fireEvent.click(tile);
+  expect(fixture.send).not.toHaveBeenCalled();
+  const state = useLive.getState().state;
+  if (!state) throw new Error('Missing live state');
+  act(() => {
+    useLive.setState({
+      state: {...state, layers: {...state.layers, prop: {propId: second}}},
+    });
+  });
+  fireEvent.click(tile);
+  expect(fixture.send.mock.calls[0]?.[0]).toEqual({
+    type: 'prop.set',
+    propId: second,
+    on: false,
+  });
+});
+
+it('does not mark an image while the media list loads', () => {
+  stageFixture();
+  render(<PropGrid props={props} screens={[]} media={undefined} />);
+  expect(
+    screen.getByRole('option', {name: '로고'}).getAttribute('data-state'),
+  ).toBeNull();
+});

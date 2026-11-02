@@ -103,6 +103,25 @@ function AlertList({
 }
 
 /**
+ * One line of an `AlertDialog` list that only tells a fact, such as where a
+ * thing is used: the name at the left and its count at the right.
+ */
+export function AlertListRow({
+  label,
+  value,
+}: {
+  readonly label: string;
+  readonly value: string;
+}): JSX.Element {
+  return (
+    <p className={styles.listRow}>
+      <span>{label}</span>
+      <span className={styles.listValue}>{value}</span>
+    </p>
+  );
+}
+
+/**
  * A confirmation dialog that asks one question before going on. Focus starts
  * on the primary button. It has no close button, and a click on the scrim
  * does nothing.
