@@ -9,7 +9,10 @@ import {Button} from '@renderer/ui/Button';
 import type {Label} from '@core/schema/labels';
 import {Dialog} from '@renderer/ui/Dialog';
 import {IconButton} from '@renderer/ui/IconButton';
-import {LabelColorPicker} from '@renderer/ui/LabelColorPicker';
+import {
+  LabelColorPicker,
+  paletteColorScopes,
+} from '@renderer/ui/LabelColorPicker';
 import {LabelDeleteDialog} from './LabelDeleteDialog';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
@@ -139,7 +142,7 @@ export function LabelManagerDialog({
               </div>
               <LabelColorPicker
                 label={`${label.name} 색`}
-                scope="모든 곡에 적용"
+                scope={paletteColorScopes.label}
                 value={label.color}
                 disabled={locked}
                 onChange={color =>

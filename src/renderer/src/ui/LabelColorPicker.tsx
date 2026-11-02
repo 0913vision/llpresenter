@@ -27,9 +27,18 @@ export const labelColorNames: Readonly<Record<LabelColor, string>> = {
   none: '없음',
 };
 
+/**
+ * What a palette color applies to, said in the tooltip of every swatch, so
+ * each place that picks a color from the palette states its reach.
+ */
+export const paletteColorScopes = {
+  macro: '이 매크로에 적용',
+  label: '이 이름표를 쓰는 모든 곡에 적용',
+} as const;
+
 interface SwatchProps {
   readonly color: LabelColor;
-  readonly scope?: string | undefined;
+  readonly scope: string;
   readonly checked: boolean;
   readonly disabled: boolean;
   readonly tabIndex: 0 | -1;
@@ -90,8 +99,8 @@ export interface SwatchRowProps<T extends LabelColor> {
   readonly onChange: (color: T) => void;
   /** The row name for assistive technology, such as 후렴 색. */
   readonly label: string;
-  /** A secondary tooltip fact when a color affects shared references. */
-  readonly scope?: string | undefined;
+  /** What the color applies to, shown under the color name in the tooltip. */
+  readonly scope: string;
   /** A visible name before the row, such as 색 in the macro menu. */
   readonly name?: string | undefined;
   /** Draws the row inside a menu, lined up with the menu items. */
@@ -146,7 +155,7 @@ const labelColors: readonly LabelColor[] = [NO_LABEL_COLOR, ...paletteColors];
 export type LabelColorPickerProps = Omit<SwatchRowProps<LabelColor>, 'colors'>;
 
 /**
- * The color row of the 이름표 menu: 없음 and the eight colors. A click
+ * The color row of the 이름표 list: 없음 first, then the eight colors. A click
  * applies the color at once; Tab enters on the current color and the left and
  * right arrows move and pick.
  */
@@ -159,7 +168,7 @@ export type MacroColorPickerProps = Omit<
   'colors'
 >;
 
-/** The color row of the macro menu: the eight colors, no 없음. */
+/** The color row of the macro: the same eight colors, no 없음 (a 매크로 always has one). */
 export function MacroColorPicker(props: MacroColorPickerProps): JSX.Element {
   return <SwatchRow colors={paletteColors} {...props} />;
 }

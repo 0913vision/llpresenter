@@ -3,6 +3,10 @@ import {act, cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {MacroColorPopover} from '@renderer/features/tools/MacroColorPopover';
+import {
+  hoverForTooltip,
+  resetTooltips,
+} from '@fixtures/renderer/ui/tooltipTesting';
 
 const controls = new Set<HTMLElement>();
 afterEach(() => {
@@ -67,4 +71,17 @@ it('keeps the popover open when focus moves between its swatches', () => {
   act(() => screen.getByRole('radio', {name: '초록'}).focus());
   expect(screen.getByRole('dialog', {name: '매크로 색'})).toBeDefined();
   expect(close).not.toHaveBeenCalled();
+});
+
+it('lists the eight palette colors with no 없음 and says the color applies to this 매크로', async () => {
+  fixture();
+
+  expect(
+    screen.getAllByRole('radio').map(item => item.getAttribute('aria-label')),
+  ).toEqual(['청록', '초록', '노랑', '주황', '분홍', '보라', '남색', '회색']);
+  const tooltip = await hoverForTooltip(
+    screen.getByRole('radio', {name: '초록'}),
+  );
+  expect(tooltip?.textContent).toContain('이 매크로에 적용');
+  resetTooltips();
 });

@@ -132,7 +132,7 @@ it('draws one row per item under the column names, without the plain count', asy
   expect(row.textContent).not.toContain('슬라이드 0개');
 });
 
-it('shows 항목 없음 for a service with no items, 예배 없음 with no service, and nothing otherwise', async () => {
+it('shows 항목 없음 and keeps the adders for a service with no items', async () => {
   setup();
   await screen.findByRole('option', {name: '첫 곡'});
   expect(screen.queryByRole('status')).toBeNull();
@@ -148,12 +148,25 @@ it('shows 항목 없음 for a service with no items, 예배 없음 with no servi
       jumpKeys: {},
     }),
   );
+
   expect((await screen.findByRole('status')).textContent).toBe('항목 없음');
+  expect(screen.getByRole('button', {name: '항목'})).toBeDefined();
+  expect(screen.getByRole('button', {name: '머리글'})).toBeDefined();
+});
+
+it('shows 예배 없음 with 새 예배… and no adders when no service is open', async () => {
+  setup();
+  await screen.findByRole('option', {name: '첫 곡'});
 
   act(() => applyService(null));
+
   await waitFor(() =>
-    expect(screen.getByRole('status').textContent).toBe('예배 없음'),
+    expect(screen.getByRole('status').textContent).toContain('예배 없음'),
   );
+  expect(screen.queryByRole('button', {name: '항목'})).toBeNull();
+  expect(screen.queryByRole('button', {name: '머리글'})).toBeNull();
+  await userEvent.click(screen.getByRole('button', {name: '새 예배…'}));
+  expect(await screen.findByRole('dialog', {name: /새 예배/})).toBeDefined();
 });
 
 it('adds a 머리글 at the end of the table', async () => {

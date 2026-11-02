@@ -245,6 +245,8 @@ export function ShortcutsPage({
         role="listbox"
         aria-label={LIST_LABEL}
         className={styles.list}
+        // NOTE(0913vision): A contextmenu event with the pointer at (0, 0) comes
+        // from the Menu key, since the title bar and the page list sit there.
         onContextMenu={event => {
           const row = commandRowOf(event.target);
           if (row === null) return;

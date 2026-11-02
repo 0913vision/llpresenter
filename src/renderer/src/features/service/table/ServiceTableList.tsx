@@ -44,7 +44,10 @@ export function ServiceTableList({
           readOnly={readOnly}
         />
       ),
-      footer: <ServiceTableFooter onProblem={onProblem} />,
+      footer:
+        serviceId === null ? null : (
+          <ServiceTableFooter onProblem={onProblem} />
+        ),
     }),
     [data, items, serviceId, readOnly, onProblem],
   );

@@ -6,6 +6,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {
   LabelColorPicker,
   MacroColorPicker,
+  paletteColorScopes,
 } from '@renderer/ui/LabelColorPicker';
 import {
   hoverForTooltip,
@@ -23,6 +24,7 @@ function ChorusColor({
   return (
     <LabelColorPicker
       label="후렴 색"
+      scope={paletteColorScopes.label}
       value={color}
       onChange={next => {
         setColor(next);
@@ -71,14 +73,14 @@ describe('LabelColorPicker', () => {
     render(
       <LabelColorPicker
         label="후렴 색"
-        scope="모든 곡에 적용"
+        scope={paletteColorScopes.label}
         value="yellow"
         onChange={onChange}
       />,
     );
     const color = screen.getByRole('radio', {name: '남색'});
     const tooltip = await hoverForTooltip(color);
-    expect(tooltip?.textContent).toBe('남색모든 곡에 적용');
+    expect(tooltip?.textContent).toBe(`남색${paletteColorScopes.label}`);
     expect(color.getAttribute('aria-describedby')).toBe(tooltip?.id);
     expect(onChange).not.toHaveBeenCalled();
     expect(checkedColor()).toBe('노랑');
@@ -90,6 +92,7 @@ describe('MacroColorPicker', () => {
     render(
       <MacroColorPicker
         label="색"
+        scope={paletteColorScopes.macro}
         name="색"
         inMenu
         value="green"
@@ -105,8 +108,73 @@ describe('MacroColorPicker', () => {
 it('does not apply a macro color while disabled', () => {
   const change = vi.fn();
   render(
-    <MacroColorPicker label="Color" value="teal" disabled onChange={change} />,
+    <MacroColorPicker
+      label="Color"
+      scope={paletteColorScopes.macro}
+      value="teal"
+      disabled
+      onChange={change}
+    />,
   );
   fireEvent.click(screen.getByRole('radio', {name: '\ucd08\ub85d'}));
   expect(change).not.toHaveBeenCalled();
+});
+
+describe('the palette color control in every place', () => {
+  const eight = [
+    '청록',
+    '초록',
+    '노랑',
+    '주황',
+    '분홍',
+    '보라',
+    '남색',
+    '회색',
+  ];
+
+  it('lists 없음 first only for 이름표, then the same eight colors in the same order as 매크로', () => {
+    const {unmount} = render(<ChorusColor />);
+    const label = screen
+      .getAllByRole('radio')
+      .map(item => item.getAttribute('aria-label'));
+    unmount();
+    render(
+      <MacroColorPicker
+        label="매크로 색"
+        scope={paletteColorScopes.macro}
+        value="teal"
+        onChange={() => undefined}
+      />,
+    );
+    const macro = screen
+      .getAllByRole('radio')
+      .map(item => item.getAttribute('aria-label'));
+
+    expect(label).toEqual(['없음', ...eight]);
+    expect(macro).toEqual(eight);
+  });
+
+  it.each([
+    ['이름표', paletteColorScopes.label, '이 이름표를 쓰는 모든 곡에 적용'],
+    ['매크로', paletteColorScopes.macro, '이 매크로에 적용'],
+  ])(
+    'says what a %s color applies to in each swatch tooltip',
+    async (_name, scope, text) => {
+      render(
+        <MacroColorPicker
+          label="색"
+          scope={scope}
+          value="teal"
+          onChange={() => undefined}
+        />,
+      );
+
+      const tooltip = await hoverForTooltip(
+        screen.getByRole('radio', {name: '보라'}),
+      );
+
+      expect(tooltip?.textContent).toContain('보라');
+      expect(tooltip?.textContent).toContain(text);
+    },
+  );
 });

@@ -1,4 +1,6 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
+import {NoServiceState} from './NoServiceState';
+import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
@@ -143,6 +145,8 @@ function ItemRows({
   );
 }
 
+const closeNothing = (): void => undefined;
+
 function logProblem(notice: Notice): void {
   console.error('Service order edit failed:', notice.key);
 }
@@ -190,6 +194,10 @@ export function ServiceOrderList({
   }, [rows, currentItemId, started]);
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
+  // NOTE(0913vision): The list owns the 새 예배 dialog, not the empty state,
+  // because opening the new service replaces the empty state before the
+  // dialog has reported a failed copy.
+  const serviceActions = useServiceActions({onProblem, onOpen: closeNothing});
   const editing = useServiceOrderEditing(serviceId, onProblem);
   const durations = useMediaDurations(
     serviceId,
@@ -494,10 +502,17 @@ export function ServiceOrderList({
         )}
       </ListBox>
       {rows.length === 0 ? (
-        <EmptyState text={serviceId === null ? '예배 없음' : '항목 없음'} />
+        serviceId === null ? (
+          <NoServiceState
+            onNewService={() => serviceActions.entries.newService.onSelect?.()}
+          />
+        ) : (
+          <EmptyState text="항목 없음" />
+        )
       ) : null}
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
+      {serviceActions.dialogs}
       {menu?.serviceId === serviceId ? (
         <Menu
           label="예배 순서 항목 메뉴"

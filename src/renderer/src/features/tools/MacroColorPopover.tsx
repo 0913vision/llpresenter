@@ -1,7 +1,10 @@
 import {useEffect, useRef, type JSX} from 'react';
 import {createPortal} from 'react-dom';
 import type {PaletteColor} from '@core/labels/colors';
-import {MacroColorPicker} from '@renderer/ui/LabelColorPicker';
+import {
+  MacroColorPicker,
+  paletteColorScopes,
+} from '@renderer/ui/LabelColorPicker';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import {layerContainer} from '@renderer/ui/layers';
 import menuStyles from '@renderer/ui/Menu.module.css';
@@ -63,6 +66,7 @@ export function MacroColorPopover({
       >
         <MacroColorPicker
           label="매크로 색"
+          scope={paletteColorScopes.macro}
           value={value}
           disabled={locked}
           onChange={onChange}

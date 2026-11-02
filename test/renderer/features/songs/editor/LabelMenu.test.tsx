@@ -1,3 +1,4 @@
+import {paletteColorScopes} from '@renderer/ui/LabelColorPicker';
 import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
@@ -181,7 +182,7 @@ describe('song editor label menu', () => {
     expect(
       (await hoverForTooltip(within(colors).getByRole('radio', {name: '초록'})))
         ?.textContent,
-    ).toBe('초록모든 곡에 적용');
+    ).toBe(`초록${paletteColorScopes.label}`);
     vi.useRealTimers();
     await user.click(within(colors).getByRole('radio', {name: '초록'}));
     await waitFor(() => expect(labels().value.labels[0]?.color).toBe('green'));
