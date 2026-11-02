@@ -46,8 +46,8 @@ library, or upgrade a version, record the reason in this document.
 
 The diagram uses the app's Korean names for the workspaces, the screens, and the
 예배 순서 (service order, the item list of one service). The workspaces are 진행
-(Show), 준비 (Prep), and 화면 설정 (Screen settings). The screens are 본 화면
-(main screen), 무대 화면 (stage screen), and 방송 자막 (broadcast captions).
+(Show), 준비 (Prep), and 화면 설정 (Screen settings). The screens are 청중 화면
+(audience screen), 무대 화면 (stage screen), and 방송 화면 (broadcast screen).
 
 ```text
 Main process
@@ -58,7 +58,7 @@ Main process
     window and restores its state)
   Recovery record (writes the live output state to disk at short intervals)
 Control window (renderer): 진행, 준비, 화면 설정
-Output windows (renderer): 본 화면, 무대 화면, 방송 자막 capture window, each
+Output windows (renderer): 청중 화면, 무대 화면, 방송 화면 capture window, each
   separate
 Media analysis window (hidden renderer, on demand): video and audio duration,
   playability, and video thumbnails, with the same Chromium decoder as output
