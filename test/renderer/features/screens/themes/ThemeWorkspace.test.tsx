@@ -206,6 +206,23 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
   );
 });
 
+it('says the use of a 테마 cannot be checked instead of showing no use', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  setup({
+    services: {list: vi.fn().mockRejectedValue(new Error('Unreachable'))},
+  });
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  fireEvent.contextMenu(within(themes).getByRole('option', {name: '찬양'}), {
+    clientX: 10,
+    clientY: 10,
+  });
+  fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+  const question = await screen.findByRole('alertdialog');
+  expect(question.textContent).toContain('‘찬양’ 테마를 삭제할까요?');
+  expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+  expect(question.textContent).not.toContain('쓰는 곳: 예배');
+});
+
 it('shows clean geometry after selection and preserves explicitly typed precision', async () => {
   const {value} = setup();
   fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));

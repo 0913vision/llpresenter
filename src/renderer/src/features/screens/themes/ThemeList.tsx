@@ -12,7 +12,12 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelHeader, PanelTitle, PanelActions} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {USAGE_LABEL, USAGE_LOADING, usageMeta} from '@renderer/ui/usageText';
+import {
+  USAGE_LABEL,
+  USAGE_LOADING,
+  USAGE_UNAVAILABLE,
+  usageMeta,
+} from '@renderer/ui/usageText';
 import {ChoiceRows} from '../ChoiceRows';
 import {themeKindNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
@@ -21,14 +26,16 @@ import styles from './Themes.module.css';
 /** Where a 테마 is used, for the question before it is deleted. */
 function usedMeta(
   theme: Theme,
-  uses: number,
+  uses: number | 'failed',
   file: ThemesFile | null,
 ): readonly string[] {
   const kinds = themeItemKinds.filter(
     kind => file?.defaults[kind] === theme.id,
   );
   const lines = [
-    ...usageMeta(uses, '예배 순서 항목'),
+    ...(uses === 'failed'
+      ? [USAGE_UNAVAILABLE]
+      : usageMeta(uses, '예배 순서 항목')),
     ...countedMeta(
       kinds.length,
       `${USAGE_LABEL}: ${kinds.map(kind => themeKindNames[kind]).join(', ')} 기본`,
@@ -52,7 +59,7 @@ export function ThemeList({
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{
     readonly theme: Theme;
-    readonly uses: number;
+    readonly uses: number | 'failed';
   } | null>(null);
   const [checking, setChecking] = useState(false);
   const lookup = useRef<AbortController | null>(null);
@@ -122,7 +129,9 @@ export function ThemeList({
         setConfirm({theme, uses});
       })
       .catch((error: unknown) => {
-        if (!controller.signal.aborted) model.reportError(error);
+        if (!alive.current || controller.signal.aborted) return;
+        model.reportError(error);
+        setConfirm({theme, uses: 'failed'});
       })
       .finally(() => {
         if (alive.current) setChecking(false);

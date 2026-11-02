@@ -107,7 +107,7 @@ describe('song editor view', () => {
     expect(
       screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
     ).toHaveLength(3);
-    expect(session.arrangementSlides).toEqual([1, 2, 3, 2, 3]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 3, 2, 3]);
     expect(session.history.snapshot.song.arrangements).toEqual(references);
     expect(document.activeElement).toBe(lyrics(3));
     expect(lyrics(3).selectionStart).toBe(0);
@@ -123,7 +123,7 @@ describe('song editor view', () => {
     expect(document.activeElement).toBe(lyrics(4));
     expect(lyrics(4).value).toBe('');
     await act(() => session.flush());
-    expect(session.arrangementSlides).toEqual([1, 2, 3, 4, 2, 3, 4]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 3, 4, 2, 3, 4]);
     expect(session.history.snapshot.song.arrangements).toEqual(references);
   });
 

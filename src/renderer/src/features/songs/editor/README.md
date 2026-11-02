@@ -81,10 +81,10 @@ narrow widths; the header stays 34px when one row fits.
 ## Arrangement model
 
 `SongSession.arrangement` is the viewed name, with `undefined` for 기본.
-`arrangementSlides` exposes the selected order, retaining repeated references
-and empty orders. `selectArrangement(name)` finishes pending typing without
-moving the lyric cursor or persisting the view selection. Cached sessions keep
-their own selection; a removed/undone selected name falls back to 기본.
+`arrangementOrder` exposes the selected order, retaining repeated references and
+empty orders. `selectArrangement(name)` finishes pending typing without moving
+the lyric cursor or persisting the view selection. Cached sessions keep their
+own selection; a removed/undone selected name falls back to 기본.
 
 `createArrangement()` copies the selected order, chooses the first unused
 `구성 N` name, selects it, and saves through the same one-write queue. Creation

@@ -115,10 +115,6 @@ export class SongSession {
     return arrangementGroupIds(this.history.snapshot.song, this.arrangement);
   }
 
-  get arrangementSlides(): readonly number[] {
-    return this.arrangementOrder.slides;
-  }
-
   get arrangementOrder() {
     return editedOrderWithLimit(this.history.snapshot.song, this.arrangement);
   }

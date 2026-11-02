@@ -170,7 +170,7 @@ describe('arrangement row', () => {
     fireEvent.change(field, {target: {value: '  저녁용  '}});
     await user.click(screen.getByRole('button', {name: '만들기'}));
     expect(session.arrangement).toBe('저녁용');
-    expect(session.arrangementSlides).toEqual([1, 2, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 2]);
     expect(document.activeElement).toBe(
       screen.getByRole('button', {name: '구성'}),
     );

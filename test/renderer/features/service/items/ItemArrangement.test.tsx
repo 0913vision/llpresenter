@@ -1,4 +1,4 @@
-import {render, screen, waitFor, within} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
@@ -288,6 +288,23 @@ describe('ItemArrangement with grouped songs', () => {
     await user.click(within(question).getByRole('button', {name: '취소'}));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(onEditSong).not.toHaveBeenCalledWith('delete-arrangement');
+  });
+
+  it('says the use cannot be checked instead of showing no use, and keeps the name it opened with', async () => {
+    const {user, api, session} = await setupGrouped();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(api.services, 'list').mockRejectedValue(new Error('Unreachable'));
+
+    await user.click(screen.getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+    const question = await screen.findByRole('alertdialog');
+
+    expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+    expect(question.textContent).not.toContain('쓰는 곳: 예배');
+    act(() => session.renamed('주일용', '합창용'));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      '‘주일용’ 구성을 삭제할까요?',
+    );
   });
 
   it.each([false, true])(

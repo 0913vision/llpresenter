@@ -13,6 +13,8 @@ import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@core/schema/textImport';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
+import {limitReason} from '@core/common/limitReason';
 import {convertTextImport} from '@core/songs/textImport';
 import {
   editorFixture,
@@ -147,6 +149,45 @@ describe('text import flow', () => {
 });
 
 describe('imported song actions', () => {
+  it('shows why an imported song over the limits cannot be saved, and writes nothing', async () => {
+    const f = fixture();
+    f.store.openImported({
+      title: 'Invented large import',
+      slides: [{lines: ['Draft']}],
+    });
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No imported session');
+    const group = session.history.snapshot.song.groups[0];
+    if (group === undefined) throw new Error('Missing group');
+    session.install({
+      ...session.document,
+      song: {
+        ...session.document.song,
+        groups: [group],
+        arrangements: [
+          {
+            name: 'Large',
+            groups: Array.from(
+              {length: SONG_IMPORT_LIMITS.picks + 1},
+              () => group.id,
+            ),
+          },
+        ],
+      },
+    });
+    const edit = vi.spyOn(f.api.content, 'edit');
+    render(<SongEditor store={f.store} />);
+    const button = await screen.findByRole('button', {name: '저장'});
+    await waitFor(() =>
+      expect(button.getAttribute('aria-disabled')).toBe('true'),
+    );
+    expect((await hoverForTooltip(button))?.textContent).toBe(
+      limitReason('구성 순서', SONG_IMPORT_LIMITS.picks),
+    );
+    fireEvent.click(button);
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('waits for the catalog before either save entry point checks duplicates', async () => {
     const apiFixture = editorFixture();
     const entries = await apiFixture.api.songs.list();

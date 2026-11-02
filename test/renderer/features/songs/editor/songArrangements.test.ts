@@ -20,9 +20,9 @@ function setup(document: SongDocument = editorSong(1)) {
 describe('song arrangement selection and creation', () => {
   it('selects a stored order without writing and copies its repeated slides on creation', async () => {
     const {session, edits, documents, first} = setup();
-    expect(session.arrangementSlides).toEqual([1, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2]);
     session.selectArrangement('주일용');
-    expect(session.arrangementSlides).toEqual([1, 2, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 2]);
     await session.flush();
     expect(edits).toHaveLength(0);
     expect(session.createArrangement()).toBe('구성 1');
@@ -76,20 +76,20 @@ describe('song arrangement selection and creation', () => {
     session.select({block: 1, start: 1, end: 1});
     session.edit({type: 'split'});
     await session.flush();
-    expect(session.arrangementSlides).toEqual([1, 2, 3, 2, 3]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 3, 2, 3]);
     session.edit('undo');
     await session.flush();
-    expect(session.arrangementSlides).toEqual([1, 2, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 2]);
     session.edit('undo');
     await session.flush();
     expect(session.arrangement).toBeUndefined();
-    expect(session.arrangementSlides).toEqual([1, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2]);
   });
 
   it('allows read-only viewing, refuses creation, and falls back when the selected order disappears', async () => {
     const {session, edits, first} = setup(editorSong(1, 'readOnly'));
     session.selectArrangement('주일용');
-    expect(session.arrangementSlides).toEqual([1, 2, 2]);
+    expect(session.arrangementOrder.slides).toEqual([1, 2, 2]);
     expect(session.createArrangement()).toBeUndefined();
     session.selectArrangement('missing');
     expect(session.arrangement).toBe('주일용');

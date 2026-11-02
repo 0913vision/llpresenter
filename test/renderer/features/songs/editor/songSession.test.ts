@@ -131,7 +131,7 @@ describe('grouped song sessions', () => {
     const updated = session.setArrangementGroups('기본순서', newGroups);
     expect(updated).toBe(true);
     expect(session.arrangementGroups).toEqual(newGroups);
-    expect(session.arrangementSlides).toEqual([3, 1, 2]);
+    expect(session.arrangementOrder.slides).toEqual([3, 1, 2]);
 
     const flushed = await session.flush();
     expect(flushed).toBe(true);
@@ -178,14 +178,14 @@ describe('grouped song sessions', () => {
     const session = store.getSnapshot().session;
     if (session === null) throw new Error('Missing session');
     session.selectArrangement('빈 구성');
-    expect(session.arrangementSlides).toEqual([]);
+    expect(session.arrangementOrder.slides).toEqual([]);
   });
 
   it('retains an empty order for an empty named arrangement on grouped songs', () => {
     const {session} = setupGrouped();
     session.setArrangementGroups('기본순서', []);
     session.selectArrangement('기본순서');
-    expect(session.arrangementSlides).toEqual([]);
+    expect(session.arrangementOrder.slides).toEqual([]);
     const created = session.copyArrangement('기본순서');
     expect(
       session.history.snapshot.song.arrangements?.find(a => a.name === created)

@@ -9,6 +9,7 @@ import {countedMeta} from '@renderer/ui/countedMeta';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {editorTask} from '../editor/editorTask';
 import type {SongEditorStore} from '../editor/songEditorStore';
+import {importLimitReason} from '@core/songs/importLimits';
 import {EMPTY_TITLE_REASON, normalizeSongTitle} from '@core/songs/songTitle';
 
 function unusedTitle(title: string, titles: readonly string[]): string | null {
@@ -36,7 +37,9 @@ export function ImportedSongActions({
       ? EMPTY_TITLE_REASON
       : title.length > SONG_IMPORT_LIMITS.name
         ? '곡 제목이 너무 깁니다'
-        : undefined;
+        : session === null
+          ? undefined
+          : importLimitReason(session.history.snapshot.song);
   const busy = state.busy || reading;
   const libraryReason =
     state.libraryStatus === 'ready'
