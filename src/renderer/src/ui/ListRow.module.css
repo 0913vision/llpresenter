@@ -61,7 +61,9 @@
 }
 
 .modified {
+  display: inline-block;
   flex: none;
+  vertical-align: middle;
   width: var(--size-status-dot);
   height: var(--size-status-dot);
   margin-inline-start: var(--space-6);

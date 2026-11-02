@@ -100,6 +100,7 @@ async function setupGrouped(
     arrangement?: string | undefined;
     danglingFirst?: boolean;
     large?: boolean;
+    ownOrder?: boolean;
   } = {},
 ) {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -144,6 +145,7 @@ async function setupGrouped(
           song: document.song.id,
           arrangement:
             'arrangement' in options ? options.arrangement : '주일용',
+          ...(options.ownOrder === true ? {customOrder: [g2Id, g1Id]} : {}),
         },
       ],
     },
@@ -380,6 +382,29 @@ describe('ItemArrangement with grouped songs', () => {
     if (thirdChip === undefined) throw new Error('Missing chip');
     await user.click(thirdChip);
     expect(onSelect).toHaveBeenCalledWith(3);
+  });
+
+  it('shows the 구성 the order started from with a changed mark, and the chips of the order that plays', async () => {
+    await setupGrouped({ownOrder: true});
+    expect(screen.getByRole('button', {name: '구성'}).textContent).toBe(
+      '주일용',
+    );
+    expect(
+      screen.getByRole('img', {name: '이 예배에서 바꾼 순서'}),
+    ).toBeTruthy();
+    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
+    expect(
+      within(listbox)
+        .getAllByRole('option')
+        .map(chip => chip.textContent),
+    ).toEqual(['후렴', '1절']);
+  });
+
+  it('shows no changed mark while the item follows its 구성', async () => {
+    await setupGrouped();
+    expect(
+      screen.queryByRole('img', {name: '이 예배에서 바꾼 순서'}),
+    ).toBeNull();
   });
 
   it('renders zero chips for an empty named 구성 without errors', async () => {

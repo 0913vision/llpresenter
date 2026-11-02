@@ -100,13 +100,19 @@ describe('ScreenEditor', () => {
     });
     const editor = new ScreenEditor(api, vi.fn());
     const document = screensAt(1);
+    const second = parseScreenId('00000000-0000-4000-8000-0000000000b2');
+    if (!second.ok) throw new Error('Invalid screen ID');
+    const broadcast = document.value.screens.find(
+      screen => screen.id === CAPTIONS_ID,
+    );
+    if (broadcast === undefined) throw new Error('Missing broadcast screen');
     const value = {
       ...document.value,
       future: 'file',
-      screens: document.value.screens.map(screen => ({
-        ...screen,
-        future: 'screen',
-      })),
+      screens: [
+        ...document.value.screens,
+        {...broadcast, id: second.value, name: '보조 방송 화면'},
+      ].map(screen => ({...screen, future: 'screen'})),
     };
     editor.adopt({...document, value});
     const changing = editor.change(MAIN_ID, {offset: {x: 20}});
@@ -132,11 +138,20 @@ describe('ScreenEditor', () => {
     expect(removed.value.screens.map(screen => screen.id)).toEqual([
       MAIN_ID,
       STAGE_ID,
+      second.value,
     ]);
     expect(removed.value.screens[0]).toMatchObject({
       future: 'screen',
       offset: {x: 20},
     });
+  });
+
+  it('keeps the last screen of a kind when the other one went while the question was open', async () => {
+    const {editor, edits} = setup();
+    const document = screensAt(1);
+    editor.adopt(document);
+    expect(await editor.remove(MAIN_ID)).toBe(true);
+    expect(edits).toEqual([]);
   });
 
   it('refuses read-only row operations and treats an already removed target as a no-op', async () => {

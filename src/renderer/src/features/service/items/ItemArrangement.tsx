@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type {Label} from '@core/schema/labels';
 import {isItemOfKind} from '@core/schema/service';
+import {playedGroupIds, playedOrderWithLimit} from '@core/songs/itemOrder';
 import {editedOrderWithLimit} from '@core/songs/songArrangements';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SongEditorAction} from '@renderer/features/songs/editor/songEditorStore';
@@ -60,8 +61,19 @@ export function ItemArrangement({
     return slide?.itemId === itemId ? slide.position : undefined;
   });
   const {song} = session.history.snapshot;
-  const sequence = editedOrderWithLimit(song, arrangement);
-  const groupOrder = sequence.capped ? [] : editedGroupOrder(song, arrangement);
+  const customOrder =
+    item !== null && isItemOfKind(item, 'song') ? item.customOrder : undefined;
+  const own =
+    customOrder === undefined ? undefined : {arrangement, customOrder};
+  const sequence =
+    own === undefined
+      ? editedOrderWithLimit(song, arrangement)
+      : playedOrderWithLimit(song, own);
+  const groupOrder = sequence.capped
+    ? []
+    : own === undefined
+      ? editedGroupOrder(song, arrangement)
+      : playedGroupIds(song, own);
   const ranges = groupRangesFromGroups(song, groupOrder);
   const chips = groupedOrderChips(song, groupOrder, labels);
   const chipAt = (position: number | undefined): number | undefined =>
@@ -118,6 +130,7 @@ export function ItemArrangement({
           disabled={busy || serviceReason !== undefined}
           title={serviceReason ?? missingReason}
           description={missingReason}
+          orderChanged={customOrder !== undefined}
           createReason={sourceReason}
           manageReason={sourceReason}
           choose={name => editorTask(items.chooseArrangement(name))}

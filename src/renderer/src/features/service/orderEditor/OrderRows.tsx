@@ -27,6 +27,8 @@ export interface OrderRowsProps {
   readonly order: readonly SongGroupId[];
   /** The 구성 the order started from; undefined for 기본. */
   readonly arrangement: string | undefined;
+  /** Whether the item plays its own order, which the 구성 only started. */
+  readonly orderChanged: boolean;
   readonly selected: number | undefined;
   readonly onSelect: (chip: number) => void;
   readonly edits: OrderEdits;
@@ -56,6 +58,7 @@ export function OrderRows({
   labels,
   order,
   arrangement,
+  orderChanged,
   selected,
   onSelect,
   edits,
@@ -117,6 +120,7 @@ export function OrderRows({
         <ArrangementPicker
           names={song.arrangements?.map(entry => entry.name) ?? []}
           selected={arrangement}
+          orderChanged={orderChanged}
           disabled={locked}
           title={lockedReason}
           createReason={lockedReason}

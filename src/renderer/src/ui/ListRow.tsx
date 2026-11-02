@@ -90,19 +90,30 @@ function WarningMark({reason}: {readonly reason: string}): JSX.Element {
   );
 }
 
-function ModifiedMark(): JSX.Element {
-  const {targetProps, tooltip} = useTooltip({text: MODIFIED_LABEL});
+/**
+ * The small dot that marks a changed value. `label` is its tooltip, which
+ * defaults to the row's "저장하지 않은 변경"; `spacer` pushes the rest of a
+ * row to the end, which a mark beside a control doesn't want.
+ */
+export function ModifiedMark({
+  label = MODIFIED_LABEL,
+  spacer = true,
+}: {
+  readonly label?: string;
+  readonly spacer?: boolean;
+}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({text: label});
   return (
     <>
       <span
         {...targetProps}
         className={styles.modified}
-        aria-label={MODIFIED_LABEL}
+        aria-label={label}
         role="img"
       >
         {tooltip}
       </span>
-      <span className={styles.spacer} aria-hidden="true" />
+      {spacer ? <span className={styles.spacer} aria-hidden="true" /> : null}
     </>
   );
 }

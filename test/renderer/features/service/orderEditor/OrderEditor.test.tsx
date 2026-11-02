@@ -157,6 +157,18 @@ describe('OrderEditor', () => {
     expect(screen.getByText('슬라이드 3개')).toBeTruthy();
   });
 
+  it('marks the 구성 picker while the item plays its own order', () => {
+    mountEditor({extra: {customOrder: [CHORUS, VERSE]}});
+    expect(
+      screen.getByRole('img', {name: '이 예배에서 바꾼 순서'}),
+    ).toBeTruthy();
+    cleanup();
+    mountEditor();
+    expect(
+      screen.queryByRole('img', {name: '이 예배에서 바꾼 순서'}),
+    ).toBeNull();
+  });
+
   it('adds a group from the 이름표 row to the end of the order', async () => {
     mountEditor({extra: {customOrder: [VERSE]}});
     const palette = screen.getByRole('listbox', {name: '이름표'});

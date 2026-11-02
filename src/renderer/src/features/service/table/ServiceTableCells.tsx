@@ -4,6 +4,7 @@ import type {MediaId, SongId, ThemeId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {isStartItem} from '@core/services/itemFieldChanges';
+import {ORDER_CHANGED_LABEL} from '@core/songs/itemOrder';
 import type {ThemesFile} from '@core/schema/themes';
 import {itemThemeCell} from '@core/themes/itemThemeCell';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -172,6 +173,9 @@ export function ServiceTableCells({
           dim={false}
           width={styles.arrangement}
           reason={reason}
+          mark={
+            song.customOrder === undefined ? undefined : ORDER_CHANGED_LABEL
+          }
           entries={arrangementEntries({
             current: song.arrangement,
             names: songs.get(song.song)?.arrangements ?? [],

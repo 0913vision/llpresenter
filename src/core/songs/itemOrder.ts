@@ -10,6 +10,9 @@ import {
   type ExpandedGroupSlides,
 } from './songOrder';
 
+/** What the mark beside a 구성 says when the item plays its own order. */
+export const ORDER_CHANGED_LABEL = '이 예배에서 바꾼 순서';
+
 /** The two song item fields that decide which groups play, and in what order. */
 export interface SongPlay {
   readonly arrangement?: string | undefined;

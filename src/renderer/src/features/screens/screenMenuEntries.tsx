@@ -97,7 +97,7 @@ export function screenMenuEntries(
       kind: 'item',
       id: 'delete',
       label: '삭제',
-      ...menuAvailability(actions.deleteReason ?? actions.reason),
+      ...menuAvailability(actions.reason ?? actions.deleteReason),
       onSelect: actions.remove,
     },
     {

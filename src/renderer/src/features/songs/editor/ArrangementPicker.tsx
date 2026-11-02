@@ -1,6 +1,8 @@
 import {useState, type JSX} from 'react';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
+import {ModifiedMark} from '@renderer/ui/ListRow';
 import {Menu} from '@renderer/ui/Menu';
+import {ORDER_CHANGED_LABEL} from '@core/songs/itemOrder';
 import {Select} from '@renderer/ui/Select';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
@@ -12,11 +14,14 @@ export function ArrangementPicker({
   disabled,
   title,
   description,
+  orderChanged = false,
   ...choices
 }: ArrangementChoices & {
   readonly disabled: boolean;
   readonly title?: string | undefined;
   readonly description?: string | undefined;
+  /** Whether the item plays its own order, which the 구성 only started. */
+  readonly orderChanged?: boolean;
 }): JSX.Element {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -34,6 +39,9 @@ export function ArrangementPicker({
         expanded={open}
         onExpandedChange={setOpen}
       />
+      {orderChanged ? (
+        <ModifiedMark label={ORDER_CHANGED_LABEL} spacer={false} />
+      ) : null}
       {open && trigger ? (
         <Menu
           label="구성"

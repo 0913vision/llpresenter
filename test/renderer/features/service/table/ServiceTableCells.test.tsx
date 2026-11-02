@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
@@ -106,6 +107,18 @@ it('shows the 구성, 슬라이드 count, 테마, 시작할 때, and 메모 of t
   expect(screen.getByRole('button', {name: /^메모, /}).textContent).toBe(
     '간주 길게',
   );
+});
+
+it('marks the 구성 of an item that plays its own order, and not one that follows its 구성', () => {
+  setup({item: song({arrangement: '짧게', customOrder: []})});
+  const cell = screen.getByRole('button', {name: /^구성, /});
+  expect(cell.textContent).toBe('짧게');
+  expect(
+    within(cell).getByRole('img', {name: '이 예배에서 바꾼 순서'}),
+  ).toBeDefined();
+  cleanup();
+  setup({item: song({arrangement: '짧게'})});
+  expect(screen.queryByRole('img', {name: '이 예배에서 바꾼 순서'})).toBeNull();
 });
 
 it('shows 기본 for the 구성 and 없음 for the start when the item sets none', () => {

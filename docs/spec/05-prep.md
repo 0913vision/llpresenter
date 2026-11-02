@@ -42,12 +42,18 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   stays on the left. The song editor is no longer a column of 준비: choosing a
   라이브러리 song opens the 곡 편집 window.
 - The columns are 이름, 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모.
-  슬라이드 counts the slides of the item's 구성 (the duration for media). 테마
-  shows the name of the item's own 테마, or, dimmed, the default of its kind,
-  with the reason in the tooltip. 배경 shows the picture and name, dimmed when
-  the item follows the song's. 테마 and 시작할 때 change in the cell, which
-  opens its list of choices; the other columns are changed on the right or in
-  the windows. A 구역 row shows only its name.
+  슬라이드 counts the slides of the order the item plays (the duration for
+  media). A song with its own order (`customOrder`, made in 순서 편집) shows the
+  구성 the order started from, followed by the small changed dot with the
+  tooltip "이 예배에서 바꾼 순서"; the right column's 구성 select and the 순서
+  편집 window's 구성 picker show the same name and dot. Anything that lists the
+  order itself (chips, tiles, the 슬라이드 count) shows the order that plays.
+  Picking a 구성 clears the order and the dot goes. 테마 shows the name of the
+  item's own 테마, or, dimmed, the default of its kind, with the reason in the
+  tooltip. 배경 shows the picture and name, dimmed when the item follows the
+  song's. 테마 and 시작할 때 change in the cell, which opens its list of
+  choices; the other columns are changed on the right or in the windows. A 구역
+  row shows only its name.
 - 항목 and 구역 at the end of the table add a row after the last one. 항목 opens
   the list of "Quick add" (below).
 - The right column's 슬라이드 panel has 순서 편집…, which opens the 순서 편집

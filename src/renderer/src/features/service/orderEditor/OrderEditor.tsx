@@ -162,6 +162,7 @@ export function OrderEditor({
             ? item.arrangement
             : undefined
         }
+        orderChanged={item.customOrder !== undefined}
         selected={shown === undefined ? undefined : tiles[shown]?.chip}
         onSelect={chip =>
           setSelectedTile(tiles.findIndex(tile => tile.chip === chip))

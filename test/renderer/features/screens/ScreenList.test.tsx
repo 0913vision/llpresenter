@@ -411,6 +411,18 @@ describe('screen creation and group outputs', () => {
     expect(edit).not.toHaveBeenCalled();
   });
 
+  it('gives the newer-file reason before the last-screen reason on a read-only document', async () => {
+    const base = screensDocument();
+    setup({...base, access: 'readOnly'});
+    fireEvent.contextMenu(
+      await screen.findByRole('option', {name: '방송 화면'}),
+    );
+    await userEvent.hover(await screen.findByRole('menuitem', {name: '삭제'}));
+    expect((await screen.findByRole('tooltip')).textContent).toBe(
+      '새 버전의 파일이라 바꿀 수 없습니다',
+    );
+  });
+
   it('disables creation at the shared screen limit', async () => {
     const screens = Array.from({length: 200}, (_, index) => ({
       id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,

@@ -146,9 +146,10 @@ service needs no confirmation), product log version 63.
 
 ### 슬라이드 grid
 
-- For a song item, the grid shows the 슬라이드 in the order of the chosen 구성.
-  A 슬라이드 that appears several times in the 구성 gets several tiles. In the
-  board, a song with 4 슬라이드 has a 구성 of 9 tiles.
+- For a song item, the grid shows the 슬라이드 in the order of the chosen 구성,
+  or of the item's own order when it has one (05). A 슬라이드 that appears
+  several times in the 구성 gets several tiles. In the board, a song with 4
+  슬라이드 has a 구성 of 9 tiles.
 - A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
   the 슬라이드's lines, not the song's background. The band shows the position
   in the sequence (from 1) and the 이름표 name, painted in the 이름표 color.

@@ -51,6 +51,19 @@ export function defaultScreenName(
   return name;
 }
 
+/**
+ * Why a screen can't be deleted: a kind keeps at least one screen. Undefined
+ * when the kind has another screen.
+ */
+export function lastOfKind(
+  screens: ReadonlyArray<Pick<Screen, 'kind'>>,
+  target: Pick<Screen, 'kind'>,
+): string | undefined {
+  return screens.filter(screen => screen.kind === target.kind).length > 1
+    ? undefined
+    : `마지막 ${KIND_NAMES[target.kind]} 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음`;
+}
+
 function isDefaultName(kind: Screen['kind'], name: string): boolean {
   const base = `새 ${KIND_NAMES[kind]} 화면`;
   const trimmed = name.trim();

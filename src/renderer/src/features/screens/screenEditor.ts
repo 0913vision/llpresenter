@@ -6,6 +6,7 @@ import type {Screen} from '@core/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {
   changeScreen,
+  lastOfKind,
   nameProblem,
   type NameProblem,
   type ScreenChange,
@@ -119,13 +120,24 @@ export class ScreenEditor {
       : {ok: false, error: problem};
   }
 
-  /** Removes only the targeted screen; main reconciles its output after the save. */
+  /**
+   * Removes only the targeted screen; main reconciles its output after the
+   * save. The last screen of a kind stays, whatever the question said when it
+   * was asked.
+   */
   remove(screenId: string): Promise<boolean> {
     return this.documents.change(value => {
-      const screens = value.screens.filter(screen => screen.id !== screenId);
-      return screens.length === value.screens.length
-        ? value
-        : {...value, screens};
+      const target = value.screens.find(screen => screen.id === screenId);
+      if (
+        target === undefined ||
+        lastOfKind(value.screens, target) !== undefined
+      ) {
+        return value;
+      }
+      return {
+        ...value,
+        screens: value.screens.filter(screen => screen.id !== screenId),
+      };
     });
   }
 
