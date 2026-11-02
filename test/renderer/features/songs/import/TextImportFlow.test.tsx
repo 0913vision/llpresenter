@@ -13,7 +13,6 @@ import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@core/schema/textImport';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
-import {parseGroupedSongDraft} from '@core/schema/groupedSong';
 import {convertTextImport} from '@core/songs/textImport';
 import {
   editorFixture,
@@ -425,19 +424,15 @@ describe('imported song actions', () => {
         if (edit.type !== 'song.import') {
           throw new Error('Unexpected keyboard edit');
         }
-        const migrated = parseGroupedSongDraft(
-          JSON.stringify({
+        f.pushSong({
+          ...accepted,
+          song: {
             format: 'llsong',
             schemaVersion: 1,
-            id: accepted.song.id,
             ...edit.draft,
-          }),
-          'imported song',
-        );
-        if (!migrated.ok) {
-          throw new Error(migrated.error.message);
-        }
-        f.pushSong({...accepted, song: migrated.value.data});
+            id: accepted.song.id,
+          },
+        });
         return {
           ok: true,
           value: {id: accepted.song.id, revision: accepted.revision},

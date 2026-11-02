@@ -30,7 +30,13 @@ async function seedSong(
       schemaVersion: 1,
       id: song.id,
       title: song.title,
-      slides: [{label: '1절', lines: [song.text]}],
+      groups: [
+        {
+          id: `0f000000-0000-4000-8000-${song.id.slice(-12)}`,
+          name: '1절',
+          slides: [{lines: [song.text]}],
+        },
+      ],
       arrangements: [],
     }),
     'utf8',
@@ -76,7 +82,7 @@ it(
         },
         {timeout: WAIT},
       )
-      .toMatchObject({title: '점검 알파 수정', schemaVersion: 2});
+      .toMatchObject({title: '점검 알파 수정', schemaVersion: 1});
     await expect
       .poll(
         async () =>

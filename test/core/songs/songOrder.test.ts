@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {parseSong} from '@core/schema/song';
 import {
   expandGroupSlidesWithLimit,
   playbackGroupIds,
@@ -9,28 +8,12 @@ import type {GroupedSong} from '@core/schema/groupedSong';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 
-const payload = {
-  song: {
-    format: 'llsong',
-    schemaVersion: 1,
-    id: '00000000-0000-4000-8000-000000000001',
-    title: 'Order fixture',
-    slides: [{lines: ['First']}, {lines: ['Second']}],
-    arrangements: [
-      {name: 'repeat', slides: [2, 1, 2]},
-      {name: 'empty', slides: []},
-    ],
-  },
-  revision: 1,
-  access: 'editable',
-};
-
 describe('shared playback order', () => {
   it('accepts exactly the tile limit and refuses a valid billion-slide expansion', () => {
     const id = '00000000-0000-4000-8000-000000000002';
     const source = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: '00000000-0000-4000-8000-000000000001',
       title: 'Invented',
       groups: [
@@ -68,16 +51,6 @@ describe('shared playback order', () => {
     ).toEqual({slides: [], capped: true});
     expect(playbackOrder(song, 'Large')).toEqual([]);
   });
-
-  it.each([undefined, 'missing', 'empty'])('uses file order for %s', name => {
-    const parsed = parseSong(
-      JSON.stringify(payload.song),
-      'legacy-order.llsong',
-    );
-    if (!parsed.ok) throw new Error('Invalid fixture');
-    expect(playbackOrder(parsed.value.data, name)).toEqual([1, 2]);
-    expect(playbackOrder(parsed.value.data, 'repeat')).toEqual([2, 1, 2]);
-  });
 });
 
 describe('playbackGroupIds', () => {
@@ -85,7 +58,7 @@ describe('playbackGroupIds', () => {
   const second = createSongGroupId('22222222-2222-4222-a222-222222222222');
   const song: GroupedSong = {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789a2'),
     title: '빈 구성 곡',
     groups: [

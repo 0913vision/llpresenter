@@ -15,22 +15,6 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
-import type {Song} from '@core/schema/song';
-import {importDraftSlides} from '@core/songs/importDraftSlides';
-
-/** Legacy source shape for migration and compatibility helper tests only. */
-export function editorLegacySong(number: number): Song {
-  const {
-    groups: _groups,
-    arrangements: _arrangements,
-    ...header
-  } = editorSong(number).song;
-  return {
-    ...header,
-    schemaVersion: 1,
-    ...importDraftSlides(editorSong(number).song),
-  };
-}
 
 /** Invented source documents for the editor gallery and focused tests. */
 export function editorSong(
@@ -71,7 +55,7 @@ export function editorGroupedSong(
   return {
     song: {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: createSongId(
         `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
       ),

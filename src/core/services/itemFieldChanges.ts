@@ -4,7 +4,6 @@ import {
   type ServiceItemOf,
 } from '../schema/service';
 import type {GroupedSong} from '../schema/groupedSong';
-import type {Song} from '../schema/song';
 /**
  * Returns the changed item, the same item when nothing changes, or `null`
  * when the item can't take the change, such as a header asked for a 구성.
@@ -54,7 +53,7 @@ export function withStartField(
 /** Falls back to 기본 when the item or its named arrangement is unavailable. */
 export function effectiveArrangement(
   item: ServiceItem | null,
-  song: Song | GroupedSong | undefined,
+  song: GroupedSong | undefined,
 ): string | undefined {
   if (item === null || !isItemOfKind(item, 'song') || song === undefined) {
     return undefined;

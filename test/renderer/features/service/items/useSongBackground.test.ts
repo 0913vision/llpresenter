@@ -47,7 +47,7 @@ function setup() {
   const song: SongDocument = {
     song: {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: songId,
       title: 'Invented song',
       background: defaultId,

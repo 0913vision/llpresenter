@@ -1,6 +1,5 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useSyncExternalStore, type JSX} from 'react';
-import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearBlockAddress} from '@core/songs/blockEdits';
 import {GroupedSlideHotKeyDialog} from './GroupedSlideHotKeyDialog';
 import type {SongSession} from './songSession';
@@ -12,7 +11,7 @@ export function SlideHotKeyControl({
   store,
   busy,
 }: {
-  readonly session: SongSession<AnySong>;
+  readonly session: SongSession;
   readonly store: SongEditorStore;
   readonly busy: boolean;
 }): JSX.Element | null {
@@ -21,7 +20,7 @@ export function SlideHotKeyControl({
     store.getSnapshot,
   );
   const {song, selection} = session.history.snapshot;
-  if (actionRequest?.action !== 'hot-key' || !isGroupedSong(song)) return null;
+  if (actionRequest?.action !== 'hot-key') return null;
   const address = linearBlockAddress(song, selection.block);
   if (address === undefined) return null;
   const source = {

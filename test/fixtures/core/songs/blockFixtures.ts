@@ -1,35 +1,54 @@
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
-import {parseSong} from '@core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
-/** Returns an invented legacy song with repeat references; it does not persist it. */
+/** Returns an invented song with three groups; it does not persist it. */
 export function song(
   lines: readonly string[] = ['first'],
   id = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
 ) {
   return expectSuccess(
-    parseSong(
+    parseGroupedSong(
       JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
         id,
         title: '새 아침',
         future: {kept: true},
-        slides: [
-          {label: '1절', lines, futureSlide: 1},
-          {label: '후렴', lines: ['second'], futureSlide: 2},
-          {lines: ['third']},
+        groups: [
+          {id: SONG_GROUPS[0], name: '1절', slides: [{lines, futureSlide: 1}]},
+          {
+            id: SONG_GROUPS[1],
+            name: '후렴',
+            slides: [{lines: ['second'], futureSlide: 2}],
+          },
+          {id: SONG_GROUPS[2], name: '', slides: [{lines: ['third']}]},
         ],
         arrangements: [
-          {name: '주일용', slides: [3, 2, 1, 2], futureArrangement: true},
-          {name: '짧게', slides: [2]},
-          {name: '빈 구성', slides: []},
+          {
+            name: '주일용',
+            groups: [
+              SONG_GROUPS[2],
+              SONG_GROUPS[1],
+              SONG_GROUPS[0],
+              SONG_GROUPS[1],
+            ],
+            futureArrangement: true,
+          },
+          {name: '짧게', groups: [SONG_GROUPS[1]]},
+          {name: '빈 구성', groups: []},
         ],
       }),
       'memory.llsong',
     ),
   ).data;
 }
+
+/** The group ids of `song()`, in file order. */
+export const SONG_GROUPS = [
+  '31111111-1111-4111-a111-111111111111',
+  '32222222-2222-4222-a222-222222222222',
+  '33333333-3333-4333-a333-333333333333',
+] as const;
 
 /** Returns an invented grouped song without writing files or sharing mutable state. */
 export function sampleGroupedSong(
@@ -69,7 +88,7 @@ export function sampleGroupedSong(
     parseGroupedSong(
       JSON.stringify({
         format: 'llsong',
-        schemaVersion: 2,
+        schemaVersion: 1,
         id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
         title: '새 아침',
         groups,

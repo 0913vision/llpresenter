@@ -54,7 +54,7 @@ function fixture() {
   const parsedSong = parseSongDocument({
     song: {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: songId,
       title: 'Invented song',
       groups: [

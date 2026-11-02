@@ -1,14 +1,9 @@
 import type {Result} from '../common/result';
-import {
-  isGroupedSong,
-  SONG_GROUP_LIMITS,
-  type GroupedSong,
-} from '../schema/groupedSong';
+import {SONG_GROUP_LIMITS, type GroupedSong} from '../schema/groupedSong';
 import type {ServiceItemId, SongGroupId, SongId} from '../schema/ids';
-import {isArrangementName, type Song} from '../schema/song';
+import {isArrangementName} from '../schema/song';
 import {isItemOfKind, type Service, type ServiceItem} from '../schema/service';
 import type {ServiceItemChange} from '../services/itemFieldChanges';
-import {editedOrderWithLimit} from './songArrangements';
 import {
   expandGroupSlidesWithLimit,
   playbackGroupIds,
@@ -43,19 +38,6 @@ export function playedOrderWithLimit(
   play: SongPlay,
 ): ExpandedGroupSlides {
   return expandGroupSlidesWithLimit(song, playedGroupIds(song, play));
-}
-
-/**
- * The played slide numbers of an item for either song format: a grouped song
- * follows the item's custom order, then its 구성; an older song its 구성 only.
- */
-export function itemSlideOrder(
-  song: Song | GroupedSong,
-  play: SongPlay,
-): ExpandedGroupSlides {
-  return isGroupedSong(song)
-    ? playedOrderWithLimit(song, play)
-    : editedOrderWithLimit(song, play.arrangement);
 }
 
 /** Item change that sets the order, or clears it when ids is undefined. */

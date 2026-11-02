@@ -10,7 +10,7 @@ const ITEM_ID = '00000000-0000-4000-8000-000000000001';
 function song() {
   return {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: SONG_ID,
     title: '만복의 근원 하나님',
     groups: [

@@ -17,7 +17,7 @@ const codes = [
 function song() {
   return {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: SONG,
     title: 'Invented song',
     groups: [
@@ -151,36 +151,4 @@ describe('grouped slide hot keys', () => {
       );
     },
   );
-
-  it('archives unknown legacy hotKey values rather than inventing assignments or losing fields', () => {
-    const input = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: SONG,
-      title: 'Invented old song',
-      slides: [
-        {
-          label: 'Verse',
-          lines: ['Invented first'],
-          hotKey: 'KeyA',
-          legacyV1: {original: true},
-          extra: 'kept',
-        },
-        {label: 'Verse', lines: ['Invented second'], hotKey: {future: true}},
-      ],
-    };
-    const loaded = expectSuccess(parse(input));
-    const [first, second] = loaded.data.groups[0]?.slides ?? [];
-    expect(first).not.toHaveProperty('hotKey');
-    expect(first).toHaveProperty('legacyV1', {
-      legacyV1: {original: true},
-      hotKey: 'KeyA',
-    });
-    expect(first).toHaveProperty('extra', 'kept');
-    expect(second).toHaveProperty('legacyV1', {hotKey: {future: true}});
-    const text = expectSuccess(serializeGroupedSong(loaded.data, FILE));
-    expect(expectSuccess(parseGroupedSong(text, FILE)).data).toEqual(
-      loaded.data,
-    );
-  });
 });

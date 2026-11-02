@@ -1,8 +1,6 @@
 import type {SongGroupId} from '../schema/ids';
 import type {SongSlideSource} from '../schema/showService';
-import type {Arrangement, Song} from '../schema/song';
-import {sameOrder} from './songArrangements';
-import {isGroupedSong, type AnySong} from '../schema/groupedSong';
+import type {GroupedSong} from '../schema/groupedSong';
 import {assignSlideHotKey} from './slideHotKeyEditing';
 import {
   blockSnapshot,
@@ -17,17 +15,17 @@ const HISTORY_LIMIT = 100;
 export const TYPING_PAUSE_MS = 1000;
 
 /** One song's session history. The owner keeps it when switching songs. */
-export class SongHistory<S extends AnySong = Song> {
-  private value: BlockSnapshot<S>;
-  private readonly past: Array<BlockSnapshot<S>> = [];
-  private readonly future: Array<BlockSnapshot<S>> = [];
+export class SongHistory {
+  private value: BlockSnapshot;
+  private readonly past: BlockSnapshot[] = [];
+  private readonly future: BlockSnapshot[] = [];
   private typing: {readonly block: number; readonly time: number} | undefined;
 
-  constructor(song: S) {
+  constructor(song: GroupedSong) {
     this.value = blockSnapshot(song);
   }
 
-  get snapshot(): BlockSnapshot<S> {
+  get snapshot(): BlockSnapshot {
     return this.value;
   }
   get canUndo(): boolean {
@@ -54,7 +52,6 @@ export class SongHistory<S extends AnySong = Song> {
   /** Assigns one grouped source slide's key as a separate undo step. */
   setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {
     const song = this.value.song;
-    if (!isGroupedSong(song)) return false;
     const result = assignSlideHotKey(song, source, code);
     if (!result.ok || result.value === song) return false;
     this.endTyping();
@@ -66,49 +63,9 @@ export class SongHistory<S extends AnySong = Song> {
     return true;
   }
 
-  addArrangement(arrangement: Arrangement): void {
-    if (isGroupedSong(this.value.song)) return;
-    this.endTyping();
-    this.remember();
-    this.value = {
-      ...this.value,
-      song: {
-        ...this.value.song,
-        arrangements: [...(this.value.song.arrangements ?? []), arrangement],
-      },
-    };
-  }
-
-  /** Replaces a named 구성's order as one undo step; false when nothing changes. */
-  setArrangementSlides(name: string, slides: readonly number[]): boolean {
-    if (isGroupedSong(this.value.song)) return false;
-    const arrangements = this.value.song.arrangements;
-    const current = arrangements?.find(item => item.name === name);
-    if (
-      arrangements === undefined ||
-      current === undefined ||
-      sameOrder(current.slides, slides)
-    ) {
-      return false;
-    }
-    this.endTyping();
-    this.remember();
-    this.value = {
-      ...this.value,
-      song: {
-        ...this.value.song,
-        arrangements: arrangements.map(item =>
-          item === current ? {...item, slides: [...slides]} : item,
-        ),
-      },
-    };
-    return true;
-  }
-
   /** Replaces or adds a named 구성's group order as one undo step; false when nothing changes. */
   setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
     const song = this.value.song;
-    if (!isGroupedSong(song)) return false;
     const arrangements = song.arrangements;
     const current = arrangements?.find(item => item.name === name);
     if (
@@ -136,25 +93,10 @@ export class SongHistory<S extends AnySong = Song> {
   }
 
   changeArrangement(from: string, to: string | undefined): void {
-    const rewrite = (snapshot: BlockSnapshot<S>): BlockSnapshot<S> => {
+    const rewrite = (snapshot: BlockSnapshot): BlockSnapshot => {
       const song = snapshot.song;
       if (song.arrangements === undefined) {
         return snapshot;
-      }
-      if (isGroupedSong(song)) {
-        return {
-          ...snapshot,
-          song: {
-            ...song,
-            arrangements: song.arrangements.flatMap(item =>
-              item.name !== from
-                ? [item]
-                : to === undefined
-                  ? []
-                  : [{...item, name: to}],
-            ),
-          },
-        };
       }
       return {
         ...snapshot,
@@ -181,31 +123,17 @@ export class SongHistory<S extends AnySong = Song> {
 
   /** A global rename also updates undo/redo snapshots without adding a step. */
   renameLabel(from: string, to: string): void {
-    const rename = (snapshot: BlockSnapshot<S>): BlockSnapshot<S> => {
+    const rename = (snapshot: BlockSnapshot): BlockSnapshot => {
       const song = snapshot.song;
-      if (isGroupedSong(song)) {
-        if (!song.groups.some(group => group.name === from)) {
-          return snapshot;
-        }
-        return {
-          ...snapshot,
-          song: {
-            ...song,
-            groups: song.groups.map(group =>
-              group.name === from ? {...group, name: to} : group,
-            ),
-          },
-        };
-      }
-      if (!song.slides.some(slide => slide.label === from)) {
+      if (!song.groups.some(group => group.name === from)) {
         return snapshot;
       }
       return {
         ...snapshot,
         song: {
           ...song,
-          slides: song.slides.map(slide =>
-            slide.label === from ? {...slide, label: to} : slide,
+          groups: song.groups.map(group =>
+            group.name === from ? {...group, name: to} : group,
           ),
         },
       };
@@ -219,7 +147,7 @@ export class SongHistory<S extends AnySong = Song> {
     }
   }
 
-  apply(command: BlockCommand, time = Date.now()): BlockSnapshot<S> {
+  apply(command: BlockCommand, time = Date.now()): BlockSnapshot {
     const next = editBlocks(this.value, command);
     if (next.song === this.value.song) {
       this.value = next;
@@ -242,7 +170,7 @@ export class SongHistory<S extends AnySong = Song> {
     return next;
   }
 
-  undo(): BlockSnapshot<S> {
+  undo(): BlockSnapshot {
     this.endTyping();
     const previous = this.past.pop();
     if (previous !== undefined) {
@@ -252,7 +180,7 @@ export class SongHistory<S extends AnySong = Song> {
     return this.value;
   }
 
-  redo(): BlockSnapshot<S> {
+  redo(): BlockSnapshot {
     this.endTyping();
     const next = this.future.pop();
     if (next !== undefined) {

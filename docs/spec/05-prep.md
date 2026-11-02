@@ -699,6 +699,9 @@ row-menu decision.
   optional spaces: `[ 후렴 ]` gives 후렴. Other brackets, such as "(후렴)", are
   lyrics. An 이름표 line also ends the current 슬라이드, so its 이름표 starts a
   new 슬라이드 (proposal).
+- The imported song has one group for each 이름표 line, named by it. The text
+  before the first 이름표 line is one group with no name. The import writes this
+  song as it is; it never converts an older format.
 - The preview updates at once when an option changes.
 
 ### Import dialog

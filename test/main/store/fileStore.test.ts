@@ -206,10 +206,10 @@ describe('loadStore', () => {
     expect([...store.songs.keys()]).toEqual([HYMN_ONE_ID]);
     expect(store.problems).toEqual([
       expect.objectContaining({
-        kind: 'migration',
+        kind: 'invalid',
+        field: 'title',
       }),
     ]);
-    expect(store.problems[0]?.message).toContain('title:');
   });
 
   it('keeps the folders of a broken app.json and reports nothing more', async () => {

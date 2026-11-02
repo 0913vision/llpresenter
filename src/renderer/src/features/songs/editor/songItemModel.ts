@@ -1,25 +1,9 @@
 import type {Label} from '@core/schema/labels';
-import type {Song} from '@core/schema/song';
-import {
-  arrangementGroupIds,
-  isGroupedSong,
-  type GroupedSong,
-} from '@core/schema/groupedSong';
+import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
 import type {SongGroupId} from '@core/schema/ids';
 import {playbackOrder} from '@core/songs/songOrder';
 import type {SongPicture} from '@renderer/features/songs/editor';
-import {linearSlidesOf} from '@core/songs/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
-
-/** The 이름표 of a 슬라이드, or `undefined` when it has none. */
-export function slideLabel(
-  song: Song | GroupedSong,
-  number: number,
-): string | undefined {
-  const slides = 'slides' in song ? song.slides : linearSlidesOf(song);
-  const label = slides[number - 1]?.label;
-  return label === '' ? undefined : label;
-}
 
 /**
  * The active group order of a grouped song's arrangement, or master order for 기본.
@@ -165,66 +149,6 @@ export function groupedOrderChips(
   return chips;
 }
 
-/** One chip per slide position for a version 1 song. */
-export function legacyOrderChips(
-  song: Song,
-  order: readonly number[],
-  labels: readonly Label[],
-): readonly ArrangementChip[] {
-  const seen = new Map<number, number>();
-  const chips: ArrangementChip[] = [];
-  for (const number of order) {
-    const occurrence = (seen.get(number) ?? 0) + 1;
-    seen.set(number, occurrence);
-    const name = slideLabel(song, number);
-    chips.push({
-      key: `${number}:${occurrence}`,
-      name,
-      color: labels.find(label => label.name === name)?.color ?? 'none',
-      number,
-    });
-  }
-  return chips;
-}
-
-/**
- * One chip per position or group occurrence. A repeating item keeps a key
- * per occurrence, so a moved chip keeps its element and its focus.
- */
-export function orderChips(
-  song: GroupedSong,
-  order: readonly SongGroupId[],
-  labels: readonly Label[],
-): readonly ArrangementChip[];
-export function orderChips(
-  song: Song,
-  order: readonly number[],
-  labels: readonly Label[],
-): readonly ArrangementChip[];
-export function orderChips(
-  song: Song | GroupedSong,
-  order: readonly number[] | readonly SongGroupId[],
-  labels: readonly Label[],
-): readonly ArrangementChip[];
-export function orderChips(
-  song: Song | GroupedSong,
-  order: readonly number[] | readonly SongGroupId[],
-  labels: readonly Label[],
-): readonly ArrangementChip[] {
-  if (isGroupedSong(song)) {
-    const groupOrder: SongGroupId[] = [];
-    for (const item of order) {
-      if (typeof item === 'string') groupOrder.push(item);
-    }
-    return groupedOrderChips(song, groupOrder, labels);
-  }
-  const slideOrder: number[] = [];
-  for (const item of order) {
-    if (typeof item === 'number') slideOrder.push(item);
-  }
-  return legacyOrderChips(song, slideOrder, labels);
-}
-
 /** The selected place clamped to an order, or `undefined` for an empty one. */
 export function shownPosition(
   position: number,
@@ -263,7 +187,7 @@ export function itemPicture({
   position,
   background,
 }: {
-  readonly song: Song | GroupedSong;
+  readonly song: GroupedSong;
   readonly arrangement: string | undefined;
   readonly position: number;
   readonly background: string | undefined;

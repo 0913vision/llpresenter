@@ -19,7 +19,7 @@ function songDocument() {
   return {
     song: {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: SONG_ID,
       title: '만복의 근원 하나님',
       groups: [
@@ -46,7 +46,7 @@ function librarySong() {
 }
 
 describe('parseSongDocument', () => {
-  it('rejects legacy wire documents instead of migrating renderer messages', () => {
+  it('rejects a song that carries slides instead of groups', () => {
     const original = songDocument();
     const {groups: _groups, ...header} = original.song;
     expect(
@@ -55,7 +55,7 @@ describe('parseSongDocument', () => {
         song: {
           ...header,
           schemaVersion: 1,
-          slides: [{lines: ['Invented legacy line']}],
+          slides: [{lines: ['Invented line']}],
         },
       }).ok,
     ).toBe(false);
@@ -66,12 +66,6 @@ describe('parseSongDocument', () => {
           ...original,
           song: {...header, schemaVersion: 1, slides: []},
         },
-      }).ok,
-    ).toBe(false);
-    expect(
-      parseSongDocument({
-        ...original,
-        song: {...original.song, schemaVersion: 1},
       }).ok,
     ).toBe(false);
   });

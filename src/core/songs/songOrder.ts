@@ -1,4 +1,3 @@
-import type {Song} from '../schema/song';
 import type {GroupedSong} from '../schema/groupedSong';
 import type {SongGroupId} from '../schema/ids';
 import {SHOW_SERVICE_LIMITS} from '../schema/showService';
@@ -73,16 +72,8 @@ export function groupedPlaybackOrder(
 
 /** Playback uses file order when the named order is missing or empty (spec 02). */
 export function playbackOrder(
-  song: Song | GroupedSong,
+  song: GroupedSong,
   name: string | undefined,
 ): readonly number[] {
-  if ('groups' in song) {
-    return groupedPlaybackOrder(song, name);
-  }
-  const chosen = song.arrangements?.find(
-    arrangement => arrangement.name === name,
-  );
-  return chosen !== undefined && chosen.slides.length > 0
-    ? chosen.slides
-    : song.slides.map((_, index) => index + 1);
+  return groupedPlaybackOrder(song, name);
 }

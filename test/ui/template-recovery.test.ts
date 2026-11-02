@@ -33,7 +33,13 @@ it(
         schemaVersion: 1,
         id: SONG,
         title: '창작 복구 곡',
-        slides: [{label: '1절', lines: ['새로 만든 점검 문장']}],
+        groups: [
+          {
+            id: '0f000000-0000-4000-8000-000000000001',
+            name: '1절',
+            slides: [{lines: ['새로 만든 점검 문장']}],
+          },
+        ],
       }),
       'utf8',
     );

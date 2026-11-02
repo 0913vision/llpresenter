@@ -183,8 +183,8 @@ export function useSongEditorWindow(
 
   const saveAs = (title: string): Promise<boolean> =>
     guarded(async () => {
-      const draft = session?.draftSong(title);
-      if (session === null || draft === undefined) return false;
+      if (session === null) return false;
+      const draft = session.draftSong(title);
       const result = await api.content.edit({type: 'song.saveAs', song: draft});
       if (!result.ok) {
         report(problem('saveAs'));

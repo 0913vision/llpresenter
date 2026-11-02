@@ -1,5 +1,6 @@
 import {parseGroupedSong} from '@core/schema/groupedSong';
-import {createSongId} from '@core/schema/ids';
+import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {importGroups} from '@core/songs/importGroups';
 import {convertTextImport} from '@core/songs/textImport';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
@@ -28,6 +29,8 @@ import {
   templateFile,
 } from '@fixtures/main/store/contentStoreFixtures';
 
+const OLD_GROUP = '00000000-0000-4000-8000-0000000000b1';
+
 describe('song.import storage', () => {
   it('retains preview section identities through grouped persistence and reload', async () => {
     const {store, files} = importSetup();
@@ -50,7 +53,10 @@ describe('song.import storage', () => {
     const result = await store.apply({
       type: 'song.import',
       target: {kind: 'new'},
-      draft: preview.value,
+      draft: {
+        title: preview.value.title,
+        groups: importGroups(preview.value.slides, () => crypto.randomUUID()),
+      },
     });
     if (!result.ok) {
       throw new Error(result.error.message);
@@ -106,7 +112,16 @@ describe('song.import storage', () => {
     expect(
       await store.apply({
         type: 'song.import',
-        draft: {...importedDraft, slides: [{label: 'Existing 0', lines: []}]},
+        draft: {
+          ...importedDraft,
+          groups: [
+            {
+              id: createSongGroupId('00000000-0000-4000-8000-0000000000a2'),
+              name: 'Existing 0',
+              slides: [{lines: []}],
+            },
+          ],
+        },
         target: {kind: 'new'},
       }),
     ).toMatchObject({ok: true});
@@ -139,7 +154,7 @@ describe('song.import storage', () => {
     expect(result.value.revision).toBe(1);
     expect(store.song(result.value.id)?.song).toMatchObject({
       title: importedDraft.title,
-      schemaVersion: 2,
+      schemaVersion: 1,
       groups: [{name: 'New label', slides: [{lines: ['Invented line']}]}],
     });
     expect(files.written[0]).toBe(join(locations.settings, 'labels.json'));
@@ -161,10 +176,16 @@ describe('song.import storage', () => {
     const original = songFile({
       ...hymnOne(),
       future: 'song',
-      slides: [{lines: ['Old'], future: 'slide'}],
+      groups: [
+        {
+          id: OLD_GROUP,
+          name: '',
+          slides: [{lines: ['Old'], future: 'slide'}],
+        },
+      ],
       arrangements: [
-        {name: 'Keep', slides: [1], future: 'arrangement'},
-        {name: 'Drop', slides: [1]},
+        {name: 'Keep', groups: [OLD_GROUP], future: 'arrangement'},
+        {name: 'Drop', groups: [OLD_GROUP]},
       ],
     });
     const picked = {
@@ -179,7 +200,9 @@ describe('song.import storage', () => {
     });
     const draft = {
       ...importedDraft,
-      arrangements: [{name: 'Keep', slides: [1]}],
+      arrangements: [
+        {name: 'Keep', groups: importedDraft.groups.map(group => group.id)},
+      ],
     };
     expect(
       await store.apply({
@@ -240,7 +263,7 @@ describe('song.import storage', () => {
     expect(files.texts.size).toBe(2);
   });
   it('rejects read-only overwrites before creating labels or writing files', async () => {
-    const original = songFile({...songFile().data, schemaVersion: 3});
+    const original = songFile({...songFile().data, schemaVersion: 2});
     const {store, files, settings} = importSetup([], {
       songs: new Map([[HYMN_ONE_ID, original]]),
     });
@@ -550,7 +573,7 @@ describe('ContentStore song creation and deletion', () => {
     expect(first.ok && second.ok).toBe(true);
     const id = first.ok ? first.value.id : '';
     expect(store.song(id)?.song).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 1,
       groups: [{name: '', slides: [{lines: []}]}],
     });
     expect(files.written).toEqual([

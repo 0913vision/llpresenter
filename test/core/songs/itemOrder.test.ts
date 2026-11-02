@@ -14,7 +14,6 @@ import {
   withCustomOrder,
   withServiceItemSong,
   withSong,
-  itemSlideOrder,
 } from '@core/songs/itemOrder';
 import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -235,15 +234,15 @@ describe('arrangementFromOrder', () => {
   });
 });
 
-describe('itemSlideOrder', () => {
+describe('the played order of an item', () => {
   it('follows the custom order of a grouped song, then its 구성', () => {
     const song = sampleGroupedSong();
     const last = song.groups.at(-1);
     if (last === undefined) throw new Error('Expected a group');
-    const all = itemSlideOrder(song, {});
-    const custom = itemSlideOrder(song, {customOrder: [last.id]});
+    const all = playedOrderWithLimit(song, {});
+    const custom = playedOrderWithLimit(song, {customOrder: [last.id]});
     expect(custom.slides).toHaveLength(last.slides.length);
     expect(custom.slides.length).toBeLessThan(all.slides.length);
-    expect(itemSlideOrder(song, {customOrder: []}).slides).toEqual([]);
+    expect(playedOrderWithLimit(song, {customOrder: []}).slides).toEqual([]);
   });
 });

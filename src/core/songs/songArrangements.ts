@@ -1,17 +1,12 @@
 import {limitReason} from '../common/limitReason';
 import {SHOW_SERVICE_LIMITS} from '../schema/showService';
-import {
-  DEFAULT_ARRANGEMENT_NAME,
-  type Arrangement,
-  type Song,
-} from '../schema/song';
+import {DEFAULT_ARRANGEMENT_NAME} from '../schema/song';
 import {arrangementGroupIds, type GroupedSong} from '../schema/groupedSong';
 import {
   expandGroupSlidesWithLimit,
   type ExpandedGroupSlides,
 } from './songOrder';
 
-const NEW_ARRANGEMENT_PREFIX = '구성';
 export const ARRANGEMENT_LIMIT_REASON = limitReason(
   '슬라이드',
   SHOW_SERVICE_LIMITS.tiles,
@@ -19,7 +14,7 @@ export const ARRANGEMENT_LIMIT_REASON = limitReason(
 );
 
 /** The implicit default order followed by the song's named arrangements. */
-export function arrangementOptions(song: Song | GroupedSong) {
+export function arrangementOptions(song: GroupedSong) {
   return [
     DEFAULT_ARRANGEMENT_NAME,
     ...(song.arrangements?.map(item => item.name) ?? []),
@@ -28,7 +23,7 @@ export function arrangementOptions(song: Song | GroupedSong) {
 
 /** Default order is implicit; named orders retain repeats and empty orders. */
 export function editedOrder(
-  song: Song | GroupedSong,
+  song: GroupedSong,
   name: string | undefined,
 ): readonly number[] {
   return editedOrderWithLimit(song, name).slides;
@@ -36,18 +31,10 @@ export function editedOrder(
 
 /** Returns an empty order with a limit flag when expansion exceeds the tile cap. */
 export function editedOrderWithLimit(
-  song: Song | GroupedSong,
+  song: GroupedSong,
   name: string | undefined,
 ): ExpandedGroupSlides {
-  if ('groups' in song) {
-    return expandGroupSlidesWithLimit(song, arrangementGroupIds(song, name));
-  }
-  return {
-    slides:
-      song.arrangements?.find(arrangement => arrangement.name === name)
-        ?.slides ?? song.slides.map((_, index) => index + 1),
-    capped: false,
-  };
+  return expandGroupSlidesWithLimit(song, arrangementGroupIds(song, name));
 }
 
 /** Whether two orders list the same items in the same places. */
@@ -59,18 +46,4 @@ export function sameOrder(
     left.length === right.length &&
     left.every((value, index) => value === right[index])
   );
-}
-
-/** Copies the selected order under the first unused numbered name. */
-export function newArrangement(
-  song: Song,
-  selected: string | undefined,
-): Arrangement {
-  const names = new Set(song.arrangements?.map(({name}) => name));
-  let number = 1;
-  while (names.has(`${NEW_ARRANGEMENT_PREFIX} ${number}`)) number++;
-  return {
-    name: `${NEW_ARRANGEMENT_PREFIX} ${number}`,
-    slides: [...editedOrder(song, selected)],
-  };
 }

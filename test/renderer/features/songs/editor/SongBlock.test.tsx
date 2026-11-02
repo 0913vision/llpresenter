@@ -23,7 +23,7 @@ function createGroupedSong(unnamed = false): GroupedSong {
     parseGroupedSong(
       JSON.stringify({
         format: 'llsong',
-        schemaVersion: 2,
+        schemaVersion: 1,
         id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
         title: '테스트 찬송',
         groups: [

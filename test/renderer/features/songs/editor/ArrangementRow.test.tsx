@@ -119,7 +119,7 @@ describe('arrangement row', () => {
     const {user, session} = await editorSetup();
     const source = session.history.snapshot.song.groups;
     await choose(user, '주일용');
-    const before = [...(session.arrangementGroups ?? [])];
+    const before = [...session.arrangementGroups];
     await user.click(
       within(await menu(user)).getByRole('menuitem', {name: '구성 편집…'}),
     );

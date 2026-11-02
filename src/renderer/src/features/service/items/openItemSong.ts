@@ -1,4 +1,4 @@
-import {itemSlideOrder} from '@core/songs/itemOrder';
+import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -34,7 +34,7 @@ export function openItemSong({
     }
     return;
   }
-  const order = itemSlideOrder(song.history.snapshot.song, {
+  const order = playedOrderWithLimit(song.history.snapshot.song, {
     arrangement,
     customOrder:
       item !== null && isItemOfKind(item, 'song')

@@ -1,7 +1,7 @@
 import {useMemo, useSyncExternalStore} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {linearSlidesOf} from '@core/songs/blockEdits';
-import {itemSlideOrder} from '@core/songs/itemOrder';
+import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import type {MediaId} from '@core/schema/ids';
 import type {LabelColor} from '@core/labels/colors';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
@@ -47,7 +47,7 @@ export function useItemSlides(
     if (isItemOfKind(item, 'song') && snapshot !== undefined) {
       const value = snapshot.song;
       const slides = linearSlidesOf(value);
-      const played = itemSlideOrder(value, {
+      const played = playedOrderWithLimit(value, {
         arrangement,
         customOrder: item.customOrder,
       });

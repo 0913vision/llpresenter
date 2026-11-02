@@ -15,7 +15,7 @@ import {
   positiveInteger,
 } from './primitives';
 
-/** Section indices belong to import drafts, not stored version 1 slides. */
+/** A section index belongs to an import draft; a saved song has groups instead. */
 export const importSlideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),

@@ -1,44 +1,41 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
-import type {AnySong, GroupedSong} from '@core/schema/groupedSong';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import {editorTask} from './editorTask';
 
-export interface EditorSongDocument<S extends AnySong = GroupedSong> {
-  readonly song: S;
+export interface EditorSongDocument {
+  readonly song: GroupedSong;
   readonly revision: number;
   readonly access: 'editable' | 'readOnly';
 }
 
 /** Captures the submitted draft without replacing edits made during its write. */
-export interface SongDraftCapture<S extends AnySong = GroupedSong> {
+export interface SongDraftCapture {
   readonly song: GroupedSong;
-  readonly draft: S;
+  readonly draft: GroupedSong;
   readonly lyricsDirty: boolean;
   readonly titleDraft: string | undefined;
   readonly background: MediaId | undefined;
 }
 
 /** Borrows the session's only history and drafts for its private writer. */
-export interface SongDraftPort<S extends AnySong = GroupedSong> {
+export interface SongDraftPort {
   hasChanges(): boolean;
   hasTitleDraft(): boolean;
   hasDraft(): boolean;
   nextTitle(): string;
   endTyping(): void;
-  capture(document: EditorSongDocument<S>): SongDraftCapture<S> | undefined;
-  reject(capture: SongDraftCapture<S>): void;
-  acknowledge(
-    document: EditorSongDocument<S>,
-    capture: SongDraftCapture<S>,
-  ): void;
-  install(document: EditorSongDocument<S>): void;
-  discard(document: EditorSongDocument<S>): void;
+  capture(document: EditorSongDocument): SongDraftCapture | undefined;
+  reject(capture: SongDraftCapture): void;
+  acknowledge(document: EditorSongDocument, capture: SongDraftCapture): void;
+  install(document: EditorSongDocument): void;
+  discard(document: EditorSongDocument): void;
 }
 
-interface PersistenceOptions<S extends AnySong> {
-  readonly document: EditorSongDocument<S>;
+interface PersistenceOptions {
+  readonly document: EditorSongDocument;
   readonly api: LlpApi['content'];
   readonly changed: () => void;
   readonly problem: () => void;
@@ -46,18 +43,18 @@ interface PersistenceOptions<S extends AnySong> {
 }
 
 /** Owns one session's typing timer, revision reconciliation and single-flight saves. */
-export class SongSessionPersistence<S extends AnySong = GroupedSong> {
-  document: EditorSongDocument<S>;
+export class SongSessionPersistence {
+  document: EditorSongDocument;
   blocked = false;
   private writing = false;
   private accepting = true;
   private pending: Promise<boolean> | undefined;
-  private incoming: EditorSongDocument<S> | undefined;
+  private incoming: EditorSongDocument | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
-    private readonly options: PersistenceOptions<S>,
-    private readonly draft: SongDraftPort<S>,
+    private readonly options: PersistenceOptions,
+    private readonly draft: SongDraftPort,
   ) {
     this.document = options.document;
   }
@@ -68,7 +65,7 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
   get acceptsEdits(): boolean {
     return this.accepting;
   }
-  get incomingDocument(): EditorSongDocument<S> | undefined {
+  get incomingDocument(): EditorSongDocument | undefined {
     return this.incoming;
   }
   /** Whether edits wait for an explicit {@link commit}. */
@@ -94,7 +91,7 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
     if (!this.writing) editorTask(this.save());
   }
 
-  receive(document: EditorSongDocument<S>): void {
+  receive(document: EditorSongDocument): void {
     if (document.revision <= this.document.revision) return;
     if (this.draft.hasDraft() || this.writing || this.blocked) {
       if (document.revision > (this.incoming?.revision ?? 0)) {
@@ -103,7 +100,7 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
     } else this.install(document);
   }
 
-  install(document: EditorSongDocument<S>): void {
+  install(document: EditorSongDocument): void {
     this.cancelSaveTimer();
     this.document = document;
     this.draft.install(document);

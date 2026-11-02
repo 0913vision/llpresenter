@@ -7,10 +7,10 @@ import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {createSongGroupId, createSongId, type SongId} from '@core/schema/ids';
 import {
   groupedSongSchema,
+  SONG_SCHEMA_VERSION,
   sourceSlideCount,
   type GroupedSong,
 } from '@core/schema/groupedSong';
-import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
 import {parseSettingsEdit} from '@core/schema/settingsDocuments';
 import {
   freeTitle,
@@ -28,7 +28,6 @@ import type {
 } from './contentCommands';
 import type {StoredDocument} from './documents';
 
-const SONG_SCHEMA_VERSION = 2;
 const NEW_SONG_TITLE = '새 곡';
 const SONG_EXTENSION = '.llsong';
 
@@ -76,19 +75,6 @@ class SongContentCommands {
         `Another song is titled ${title}`,
       );
     }
-    const migrated = checkPart(groupedSongSchema, {
-      ...migrateImportedSongGroups({
-        ...draft,
-        format: 'llsong',
-        schemaVersion: 1,
-        id,
-        title,
-      }),
-      schemaVersion: SONG_SCHEMA_VERSION,
-    });
-    if (!migrated.ok) {
-      return this.context.refuse('invalid', migrated.error.message);
-    }
     const checked = checkPart(
       groupedSongSchema,
       preserveUnknownFields(
@@ -96,7 +82,17 @@ class SongContentCommands {
         current?.data,
         withImportGroupIds(
           {
-            ...migrated.value,
+            format: 'llsong',
+            schemaVersion: SONG_SCHEMA_VERSION,
+            id,
+            title,
+            ...(draft.background === undefined
+              ? {}
+              : {background: draft.background}),
+            groups: draft.groups,
+            ...(draft.arrangements === undefined
+              ? {}
+              : {arrangements: draft.arrangements}),
             updatedAt: this.context.now(),
           },
           current?.data,

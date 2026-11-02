@@ -1,23 +1,13 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {
-  arrangementGroupIds,
-  isGroupedSong,
-  type AnySong,
-} from '@core/schema/groupedSong';
+import {arrangementGroupIds} from '@core/schema/groupedSong';
 import type {Label} from '@core/schema/labels';
 import {ArrangementStrip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {
-  groupedOrderChips,
-  legacyOrderChips,
-  movedOrder,
-  withoutPosition,
-} from './songItemModel';
+import {groupedOrderChips, movedOrder, withoutPosition} from './songItemModel';
 import {
   ARRANGEMENT_LIMIT_REASON,
-  editedOrder,
   editedOrderWithLimit,
 } from '@core/songs/songArrangements';
 import type {SongSession} from './songSession';
@@ -25,54 +15,31 @@ import styles from './ArrangementRow.module.css';
 import {useChipDrag} from './useChipDrag';
 
 interface StripProps {
-  readonly session: SongSession<AnySong>;
+  readonly session: SongSession;
   readonly labels: readonly Label[];
   readonly locked: boolean;
 }
 
-function stripModel(session: SongSession<AnySong>, labels: readonly Label[]) {
+function stripModel(session: SongSession, labels: readonly Label[]) {
   const {song} = session.history.snapshot;
   const name = session.arrangement;
-  if (isGroupedSong(song)) {
-    const order = arrangementGroupIds(song, name);
-    return {
-      chips: groupedOrderChips(song, order, labels),
-      move: (from: number, to: number) =>
-        name !== undefined &&
-        session.setArrangementGroups(name, movedOrder(order, from, to)),
-      remove: (index: number) =>
-        name !== undefined &&
-        session.setArrangementGroups(name, withoutPosition(order, index)),
-      entries: song.groups.map((group, index): MenuEntry => ({
-        kind: 'item',
-        id: group.id,
-        label: group.name || `이름표 없음 ${index + 1}`,
-        swatch:
-          labels.find(label => label.name === group.name)?.color ?? 'none',
-        onSelect: () => {
-          if (name !== undefined) {
-            session.setArrangementGroups(name, [...order, group.id]);
-          }
-        },
-      })),
-    };
-  }
-  const order = editedOrder(song, name);
+  const order = arrangementGroupIds(song, name);
   return {
-    chips: legacyOrderChips(song, order, labels),
+    chips: groupedOrderChips(song, order, labels),
     move: (from: number, to: number) =>
       name !== undefined &&
-      session.setArrangementSlides(name, movedOrder(order, from, to)),
+      session.setArrangementGroups(name, movedOrder(order, from, to)),
     remove: (index: number) =>
       name !== undefined &&
-      session.setArrangementSlides(name, withoutPosition(order, index)),
-    entries: song.slides.map((slide, index): MenuEntry => ({
+      session.setArrangementGroups(name, withoutPosition(order, index)),
+    entries: song.groups.map((group, index): MenuEntry => ({
       kind: 'item',
-      id: String(index),
-      label: `${index + 1} ${slide.lines[0] ?? ''}`,
+      id: group.id,
+      label: group.name || `이름표 없음 ${index + 1}`,
+      swatch: labels.find(label => label.name === group.name)?.color ?? 'none',
       onSelect: () => {
         if (name !== undefined) {
-          session.setArrangementSlides(name, [...order, index + 1]);
+          session.setArrangementGroups(name, [...order, group.id]);
         }
       },
     })),

@@ -1,11 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseSongDocument} from '@core/schema/contentDocuments';
-import {parseGroupedSongDraft} from '@core/schema/groupedSong';
 import {createMediaId, createSongId} from '@core/schema/ids';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {migrateImportedSongGroups} from '@core/schema/songGroupMigration';
-import {importDraftSlides} from '@core/songs/importDraftSlides';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 
@@ -32,15 +29,7 @@ function fixture() {
           )
         : edit.target.songId;
     const parsed = parseSongDocument({
-      song: {
-        ...migrateImportedSongGroups({
-          format: 'llsong',
-          schemaVersion: 1,
-          ...edit.draft,
-          id,
-        }),
-        schemaVersion: 2,
-      },
+      song: {format: 'llsong', schemaVersion: 1, ...edit.draft, id},
       revision: 2,
       access: 'editable',
     });
@@ -58,38 +47,6 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
-  it('keeps the newest imported draft when its arrangement exceeds the wire limit', async () => {
-    const f = fixture();
-    const song = f.session.history.snapshot.song;
-    const group = song.groups[0];
-    if (group === undefined) throw new Error('Missing group');
-    f.session.install({
-      ...f.session.document,
-      song: {
-        ...song,
-        groups: [
-          {
-            ...group,
-            slides: Array.from({length: 5_000}, () => ({lines: ['Invented']})),
-          },
-        ],
-        arrangements: [
-          {name: 'Large', groups: Array.from({length: 5}, () => group.id)},
-        ],
-      },
-    });
-    f.session.editTitle('Newest invented title');
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    expect(await f.store.saveImported({kind: 'new'})).toBe(false);
-    expect(f.imports).toHaveLength(0);
-    expect(f.store.getSnapshot().session).toBe(f.session);
-    expect(f.session.title.value).toBe('Newest invented title');
-    expect(f.problem).toHaveBeenCalledWith(
-      expect.objectContaining({title: '슬라이드는 10000개까지 사용할 수 있음'}),
-    );
-    expect(f.session.readOnly).toBe(false);
-  });
-
   it('retains an edited label boundary when migrating an imported section', () => {
     const f = fixture();
     f.store.discardImported();
@@ -104,15 +61,9 @@ describe('imported song editor sessions', () => {
     if (session === null) throw new Error('No imported session');
     session.select({block: 1, start: 0, end: 0});
     session.edit({type: 'label', name: 'Chorus'});
-    const migrated = parseGroupedSongDraft(
-      JSON.stringify(session.history.snapshot.song),
-      'invented.llsong',
-    );
-    if (!migrated.ok) throw new Error(migrated.error.message);
-    expect(migrated.value.data.groups.map(group => group.name)).toEqual([
-      'Verse',
-      'Chorus',
-    ]);
+    expect(
+      session.history.snapshot.song.groups.map(group => group.name),
+    ).toEqual(['Verse', 'Chorus']);
   });
 
   it('evicts clean sessions after repeated imports while retaining the active and item songs', async () => {
@@ -160,14 +111,14 @@ describe('imported song editor sessions', () => {
     const accepted = f.store.getSnapshot().session;
     expect(accepted).toBe(cached);
     expect(
-      accepted === null
-        ? undefined
-        : importDraftSlides(accepted.history.snapshot.song).slides.map(
-            ({section: _section, ...slide}) => slide,
-          ),
-    ).toEqual(
-      draft.slides.map(slide => ({...slide, label: slide.label ?? ''})),
-    );
+      accepted?.history.snapshot.song.groups.map(group => ({
+        name: group.name,
+        lines: group.slides.map(slide => slide.lines),
+      })),
+    ).toEqual([
+      {name: 'Invented', lines: [['First invented line']]},
+      {name: '', lines: [['Second invented line']]},
+    ]);
     expect(accepted?.readOnly).toBe(false);
     expect(accepted?.history.canUndo).toBe(false);
     expect(accepted?.document.revision).toBe(2);
@@ -252,7 +203,13 @@ describe('imported song editor sessions', () => {
     expect(f.imports[0]).toMatchObject({
       type: 'song.import',
       target: {kind: 'new'},
-      draft: {title: 'Imported title', slides: draft.slides},
+      draft: {
+        title: 'Imported title',
+        groups: [
+          {name: 'Invented', slides: [{lines: ['First invented line']}]},
+          {name: '', slides: [{lines: ['Second invented line']}]},
+        ],
+      },
     });
     const saved = f.store.getSnapshot().session;
     if (saved === null) throw new Error('No saved session');

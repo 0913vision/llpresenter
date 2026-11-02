@@ -148,7 +148,6 @@ describe('song editor persistence', () => {
     expect(store.getSnapshot().busy).toBe(true);
     text('during close');
     expect(session.createArrangement()).toBeUndefined();
-    expect(session.setArrangementSlides('주일용', [1])).toBe(false);
     expect(await flushing).toBe(true);
     text('after close');
     expect(store.getSnapshot().busy).toBe(true);

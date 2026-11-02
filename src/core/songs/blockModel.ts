@@ -1,7 +1,5 @@
 import {
-  isGroupedSong,
   sourceSlideCount,
-  type AnySong,
   type GroupedSong,
   type SongGroup,
 } from '../schema/groupedSong';
@@ -9,8 +7,6 @@ import {
 import type {SongGroupId} from '../schema/ids';
 
 import type {SlideHotKey} from '../schema/slideHotKey';
-
-import type {Song} from '../schema/song';
 
 /** A zero-based source block and UTF-16 selection; it does not select output. */
 export interface BlockSelection {
@@ -20,8 +16,8 @@ export interface BlockSelection {
 }
 
 /** A song and bounded editing selection, without persistence or session ownership. */
-export interface BlockSnapshot<S extends AnySong = Song> {
-  readonly song: S;
+export interface BlockSnapshot {
+  readonly song: GroupedSong;
   readonly selection: BlockSelection;
   readonly mergeRefused?: boolean;
 }
@@ -77,9 +73,9 @@ export const linesOf = (text: string): readonly string[] =>
 
 export {sourceSlideCount as groupedSlideCount} from '../schema/groupedSong';
 
-/** Counts source slides in either supported song format, independently of arrangements. */
-export function slideCountOf(song: AnySong): number {
-  return isGroupedSong(song) ? sourceSlideCount(song) : song.slides.length;
+/** Counts source slides independently of arrangements. */
+export function slideCountOf(song: GroupedSong): number {
+  return sourceSlideCount(song);
 }
 
 /** Locates a grouped source slide by flattened index without modifying the song. */
@@ -121,25 +117,16 @@ function groupSlidesOf(group: SongGroup): readonly EditorSlideItem[] {
 }
 
 /** Flattens source slides for editing without expanding arrangements or mutating groups. */
-export function linearSlidesOf(song: AnySong): readonly EditorSlideItem[] {
-  if (isGroupedSong(song)) {
-    return song.groups.flatMap(groupSlidesOf);
-  }
-  return song.slides.map(slide => ({
-    lines: slide.lines,
-    ...(slide.label === undefined || slide.label === ''
-      ? {}
-      : {label: slide.label}),
-    isGroupStart: true,
-  }));
+export function linearSlidesOf(song: GroupedSong): readonly EditorSlideItem[] {
+  return song.groups.flatMap(groupSlidesOf);
 }
 
 /** Bounds a source block and UTF-16 caret range without cloning or modifying the song. */
-export function blockSnapshot<S extends AnySong = Song>(
-  song: S,
+export function blockSnapshot(
+  song: GroupedSong,
   selection: BlockSelection = {block: 0, start: 0, end: 0},
   mergeRefused?: boolean,
-): BlockSnapshot<S> {
+): BlockSnapshot {
   const count = slideCountOf(song);
   const block = Math.max(0, Math.min(Math.max(0, count - 1), selection.block));
   const slides = linearSlidesOf(song);

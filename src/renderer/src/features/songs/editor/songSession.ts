@@ -2,19 +2,11 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId, SongGroupId} from '@core/schema/ids';
 import type {SongSlideSource} from '@core/schema/showService';
 import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
-import {
-  arrangementGroupIds,
-  isGroupedSong,
-  type AnySong,
-  type GroupedSong,
-} from '@core/schema/groupedSong';
+import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 import {SongHistory} from '@core/songs/songHistory';
 import {SongTitleDraft} from '@core/songs/songTitle';
-import {
-  editedOrderWithLimit,
-  newArrangement,
-} from '@core/songs/songArrangements';
+import {editedOrderWithLimit} from '@core/songs/songArrangements';
 
 import {
   SongSessionPersistence,
@@ -23,8 +15,8 @@ import {
 } from './songSessionPersistence';
 export type {EditorSongDocument} from './songSessionPersistence';
 
-interface SessionOptions<S extends AnySong = GroupedSong> {
-  readonly document: EditorSongDocument<S>;
+interface SessionOptions {
+  readonly document: EditorSongDocument;
   readonly api: LlpApi['content'];
   readonly changed: () => void;
   readonly problem: () => void;
@@ -36,12 +28,12 @@ interface SessionOptions<S extends AnySong = GroupedSong> {
 }
 
 /** Owns lyric history and drafts, borrowing its private persistence coordinator. */
-export class SongSession<S extends AnySong = GroupedSong> {
-  history: SongHistory<S>;
+export class SongSession {
+  history: SongHistory;
   title: SongTitleDraft;
   background: MediaId | undefined;
   private dirty = false;
-  private readonly persistence: SongSessionPersistence<S>;
+  private readonly persistence: SongSessionPersistence;
   private backgroundEdited = false;
   private pickedArrangement: string | undefined;
   private pointedSlide: {order: string | undefined; index: number} | null =
@@ -50,7 +42,7 @@ export class SongSession<S extends AnySong = GroupedSong> {
     (block: number) => void
   >();
 
-  constructor(private readonly options: SessionOptions<S>) {
+  constructor(private readonly options: SessionOptions) {
     this.history = new SongHistory(options.document.song);
     this.title = new SongTitleDraft(
       options.document.song.title,
@@ -81,10 +73,10 @@ export class SongSession<S extends AnySong = GroupedSong> {
     });
   }
 
-  get document(): EditorSongDocument<S> {
+  get document(): EditorSongDocument {
     return this.persistence.document;
   }
-  set document(document: EditorSongDocument<S>) {
+  set document(document: EditorSongDocument) {
     this.persistence.document = document;
   }
   get blocked(): boolean {
@@ -119,10 +111,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
     return this.pickedArrangement;
   }
 
-  get arrangementGroups(): readonly SongGroupId[] | undefined {
-    const song = this.history.snapshot.song;
-    if (!isGroupedSong(song)) return undefined;
-    return arrangementGroupIds(song, this.arrangement);
+  get arrangementGroups(): readonly SongGroupId[] {
+    return arrangementGroupIds(this.history.snapshot.song, this.arrangement);
   }
 
   get arrangementSlides(): readonly number[] {
@@ -211,51 +201,16 @@ export class SongSession<S extends AnySong = GroupedSong> {
     ) {
       return undefined;
     }
-    if (isGroupedSong(song)) {
-      // NOTE(0913vision): Grouped song arrangement creation.
-      const names = new Set(song.arrangements?.map(({name}) => name));
-      let number = 1;
-      while (names.has(`구성 ${number}`)) number++;
-      const name = requestedName ?? `구성 ${number}`;
-      const groups = [...arrangementGroupIds(song, base)];
-      this.history.setArrangementGroups(name, groups);
-      this.dirty = true;
-      this.endTyping();
-      this.options.changed();
-      return name;
-    }
-    const value = {
-      ...newArrangement(song, base),
-      ...(requestedName === undefined ? {} : {name: requestedName}),
-    };
-    this.history.addArrangement(value);
+    const names = new Set(song.arrangements?.map(({name}) => name));
+    let number = 1;
+    while (names.has(`구성 ${number}`)) number++;
+    const name = requestedName ?? `구성 ${number}`;
+    const groups = [...arrangementGroupIds(song, base)];
+    this.history.setArrangementGroups(name, groups);
     this.dirty = true;
     this.endTyping();
     this.options.changed();
-    return value.name;
-  }
-
-  /**
-   * Saves a named 구성's new order as one undo step in the song editor.
-   * The source 슬라이드 themselves stay as they are.
-   */
-  setArrangementSlides(name: string, slides: readonly number[]): boolean {
-    if (!this.acceptsEdits) return false;
-    const song = this.history.snapshot.song;
-    if (isGroupedSong(song)) return false;
-    const count = song.slides.length;
-    if (
-      !slides.every(
-        slide => Number.isInteger(slide) && slide >= 1 && slide <= count,
-      )
-    ) {
-      return false;
-    }
-    if (!this.history.setArrangementSlides(name, slides)) return false;
-    this.dirty = true;
-    this.endTyping();
-    this.options.changed();
-    return true;
+    return name;
   }
 
   /**
@@ -264,7 +219,6 @@ export class SongSession<S extends AnySong = GroupedSong> {
   setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
     if (!this.acceptsEdits) return false;
     const song = this.history.snapshot.song;
-    if (!isGroupedSong(song)) return false;
     const ids = new Set(song.groups.map(group => group.id));
     if (!groups.every(id => ids.has(id))) return false;
     if (!this.history.setArrangementGroups(name, groups)) return false;
@@ -373,15 +327,15 @@ export class SongSession<S extends AnySong = GroupedSong> {
     this.persistence.endTyping();
   }
 
-  receive(document: EditorSongDocument<S>): void {
+  receive(document: EditorSongDocument): void {
     this.persistence.receive(document);
   }
 
-  install(document: EditorSongDocument<S>): void {
+  install(document: EditorSongDocument): void {
     this.persistence.install(document);
   }
 
-  renamed(from: string, to: string, document?: EditorSongDocument<S>): void {
+  renamed(from: string, to: string, document?: EditorSongDocument): void {
     this.history.renameLabel(from, to);
     if (document !== undefined) {
       this.acceptGlobalEdit(document);
@@ -393,7 +347,7 @@ export class SongSession<S extends AnySong = GroupedSong> {
   arrangementChanged(
     from: string,
     to: string | undefined,
-    document?: EditorSongDocument<S>,
+    document?: EditorSongDocument,
   ): void {
     this.history.changeArrangement(from, to);
     if (this.pickedArrangement === from) this.pickedArrangement = to;
@@ -401,20 +355,12 @@ export class SongSession<S extends AnySong = GroupedSong> {
     this.options.changed();
   }
 
-  private acceptGlobalEdit(document: EditorSongDocument<S>): void {
+  private acceptGlobalEdit(document: EditorSongDocument): void {
     const current = this.history.snapshot.song;
     const sameStructure =
-      isGroupedSong(current) && isGroupedSong(document.song)
-        ? JSON.stringify(document.song.groups) ===
-            JSON.stringify(current.groups) &&
-          JSON.stringify(document.song.arrangements) ===
-            JSON.stringify(current.arrangements)
-        : !isGroupedSong(current) && !isGroupedSong(document.song)
-          ? JSON.stringify(document.song.slides) ===
-              JSON.stringify(current.slides) &&
-            JSON.stringify(document.song.arrangements) ===
-              JSON.stringify(current.arrangements)
-          : false;
+      JSON.stringify(document.song.groups) === JSON.stringify(current.groups) &&
+      JSON.stringify(document.song.arrangements) ===
+        JSON.stringify(current.arrangements);
 
     if (!sameStructure) {
       this.install(document);
@@ -456,15 +402,13 @@ export class SongSession<S extends AnySong = GroupedSong> {
   }
 
   /**
-   * The whole song as the edits left it, under `title`; undefined for a song
-   * that isn't grouped. It changes nothing.
+   * The whole song as the edits left it, under `title`. It changes nothing.
    */
   draftSong(
     title: string = this.title.nextValue,
-    base: AnySong = this.document.song,
-  ): GroupedSong | undefined {
+    base: GroupedSong = this.document.song,
+  ): GroupedSong {
     const draft = this.history.snapshot.song;
-    if (!isGroupedSong(base) || !isGroupedSong(draft)) return undefined;
     const {
       background: _oldBackground,
       arrangements: _oldArrangements,
@@ -483,10 +427,9 @@ export class SongSession<S extends AnySong = GroupedSong> {
   }
 
   private captureDraft(
-    document: EditorSongDocument<S>,
-  ): SongDraftCapture<S> | undefined {
+    document: EditorSongDocument,
+  ): SongDraftCapture | undefined {
     const song = this.draftSong(this.title.nextValue, document.song);
-    if (song === undefined) return undefined;
     const draft = this.history.snapshot.song;
     const lyricsDirty = this.dirty;
     this.dirty = false;
@@ -498,8 +441,8 @@ export class SongSession<S extends AnySong = GroupedSong> {
   }
 
   private acknowledgeDraft(
-    document: EditorSongDocument<S>,
-    capture: SongDraftCapture<S>,
+    document: EditorSongDocument,
+    capture: SongDraftCapture,
   ): void {
     const {titleDraft, background} = capture;
     this.title.accept(document.song.title, titleDraft);
@@ -509,7 +452,7 @@ export class SongSession<S extends AnySong = GroupedSong> {
     }
   }
 
-  private installDraft(document: EditorSongDocument<S>): void {
+  private installDraft(document: EditorSongDocument): void {
     this.history = new SongHistory(document.song);
     this.reconcileArrangement();
     this.title = new SongTitleDraft(

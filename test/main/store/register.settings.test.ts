@@ -43,7 +43,13 @@ describe('registerStore', () => {
         schemaVersion: 1,
         id,
         title: `Invented song ${index}`,
-        slides: [{label: 'Before', lines: ['Invented line'], future: 'kept'}],
+        groups: [
+          {
+            id: itemId(index + 7),
+            name: 'Before',
+            slides: [{lines: ['Invented line'], future: 'kept'}],
+          },
+        ],
       });
     }
     const first = await register(mockLog(), context, () => true);
@@ -264,7 +270,13 @@ describe('registerStore', () => {
         type: 'song.import',
         draft: {
           title: 'Invented import',
-          slides: [{label: 'Invented label', lines: ['Invented line']}],
+          groups: [
+            {
+              id: itemId(9),
+              name: 'Invented label',
+              slides: [{lines: ['Invented line']}],
+            },
+          ],
         },
         target: {kind: 'overwrite', songId: HYMN_ONE_ID, baseRevision: 1},
       }),

@@ -21,12 +21,11 @@ import {
   timestamp,
 } from './primitives';
 import {uniqueNames} from './uniqueNames';
-import {arrangementNameSchema, type Song} from './song';
-import {
-  migrateImportedSongGroups,
-  migrateSongGroups,
-} from './songGroupMigration';
+import {arrangementNameSchema} from './song';
 import {slideHotKeySchema} from './slideHotKey';
+
+/** The version every written song carries. */
+export const SONG_SCHEMA_VERSION = 1;
 
 /** File bounds keep group expansion and arrangement validation finite. */
 export const SONG_GROUP_LIMITS = {
@@ -51,7 +50,7 @@ export const songGroupSchema = jsonObject({
   ),
 });
 
-const groupArrangementSchema = jsonObject({
+export const groupArrangementSchema = jsonObject({
   name: arrangementNameSchema,
   groups: v.pipe(
     v.array(songGroupIdSchema),
@@ -62,7 +61,7 @@ const groupArrangementSchema = jsonObject({
 export const groupedSongSchema = v.pipe(
   jsonObject({
     format: v.literal('llsong'),
-    schemaVersion: v.pipe(positiveInteger, v.minValue(2)),
+    schemaVersion: positiveInteger,
     id: songIdSchema,
     title: nonBlankText,
     background: v.exactOptional(mediaIdSchema),
@@ -123,10 +122,10 @@ export const groupedSongSchema = v.pipe(
 const groupedSongFormat: FileFormat<typeof groupedSongSchema> = {
   format: 'llsong',
   schema: groupedSongSchema,
-  migrations: [migrateSongGroups],
+  migrations: [],
 };
 
-/** A stored version 2 song, including its named groups and arrangements. */
+/** A stored song, including its named groups and arrangements. */
 export type GroupedSong = ReadonlyKnown<
   v.InferOutput<typeof groupedSongSchema>
 >;
@@ -138,7 +137,7 @@ export function sourceSlideCount(song: GroupedSong): number {
   return song.groups.reduce((sum, group) => sum + group.slides.length, 0);
 }
 
-/** Reads version 2, or migrates a version 1 song in memory without writing it. */
+/** Reads a song file. */
 export function parseGroupedSong(
   text: string,
   file: string,
@@ -146,32 +145,12 @@ export function parseGroupedSong(
   return parseFile(groupedSongFormat, text, file);
 }
 
-/** Reads import wire data whose section indices are validated draft metadata. */
-export function parseGroupedSongDraft(
-  text: string,
-  file: string,
-): Result<LoadedFile<GroupedSong>, FileError> {
-  return parseFile(
-    {...groupedSongFormat, migrations: [migrateImportedSongGroups]},
-    text,
-    file,
-  );
-}
-
-/** Only version 2 is writable; unknown fields survive at every object level. */
+/** Writes a song; unknown fields survive at every object level. */
 export function serializeGroupedSong(
   song: GroupedSong,
   file: string,
 ): Result<string, FileError> {
   return serializeFile(groupedSongFormat, song, file);
-}
-
-/** Either a legacy version 1 song or a modern grouped version 2 song. */
-export type AnySong = Song | GroupedSong;
-
-/** Checks whether a song document is in grouped (version 2+) structure. */
-export function isGroupedSong(song: AnySong): song is GroupedSong {
-  return 'groups' in song;
 }
 
 /**

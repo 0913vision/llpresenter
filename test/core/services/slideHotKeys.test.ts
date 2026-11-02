@@ -13,7 +13,7 @@ function tiles(): readonly ShowTile[] {
     parseGroupedSong(
       JSON.stringify({
         format: 'llsong',
-        schemaVersion: 2,
+        schemaVersion: 1,
         id: SONG,
         title: 'Invented song',
         groups: [

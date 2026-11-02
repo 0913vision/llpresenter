@@ -1,12 +1,7 @@
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
 import type {MediaChoice} from '@core/live/state';
 import type {LoadedFile} from '@core/schema/fileFormat';
-import {
-  isGroupedSong,
-  type AnySong,
-  type GroupedSong,
-  type SongGroup,
-} from '@core/schema/groupedSong';
+import type {GroupedSong, SongGroup} from '@core/schema/groupedSong';
 import type {Label} from '@core/schema/labels';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {NoticeSet} from '@core/schema/notices';
@@ -22,9 +17,7 @@ import {
   type ShowService,
   type ShowTile,
 } from '@core/schema/showService';
-import type {Slide} from '@core/schema/song';
 import {playedGroupIds, type SongPlay} from '@core/songs/itemOrder';
-import {playbackOrder} from '@core/songs/songOrder';
 import type {ServicePassages} from '../bible/servicePassages';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
@@ -32,7 +25,7 @@ export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-type SongLibrary = ReadonlyMap<string, Shown<AnySong>>;
+type SongLibrary = ReadonlyMap<string, Shown<GroupedSong>>;
 
 export interface ShowServiceSources {
   readonly service: Shown<Service>;
@@ -235,14 +228,14 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
 /** The item's override takes precedence even when its media cannot be found. */
 export function songBackgroundId(
   item: ServiceItemOf<'song'>,
-  song: AnySong,
+  song: GroupedSong,
 ): string | undefined {
   return item.background ?? song.background;
 }
 
 function songRow(
   item: ServiceItemOf<'song'>,
-  song: Shown<AnySong> | undefined,
+  song: Shown<GroupedSong> | undefined,
   sources: RowSources,
 ): ShowRow {
   const {id} = item;
@@ -275,30 +268,9 @@ function songRow(
  * expansion cap. An oversized expansion emits an empty tile set and flags capped.
  */
 export function projectSongTiles(
-  song: AnySong,
-  colors: ReadonlyMap<string, LabelColor>,
-  play: SongPlay = {},
-): ProjectedSongTiles {
-  if (isGroupedSong(song)) {
-    return projectGroupedSongTiles(song, colors, play);
-  }
-  const order = playbackOrder(song, play.arrangement);
-  const tiles: ShowTile[] = [];
-  for (const number of order) {
-    const slide = song.slides[number - 1];
-    if (slide === undefined) continue;
-    if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
-      return {tiles: [], capped: true};
-    }
-    tiles.push(tileOf(slide, colors));
-  }
-  return {tiles, capped: false};
-}
-
-function projectGroupedSongTiles(
   song: GroupedSong,
   colors: ReadonlyMap<string, LabelColor>,
-  play: SongPlay,
+  play: SongPlay = {},
 ): ProjectedSongTiles {
   const groupIds = playedGroupIds(song, play);
 
@@ -338,25 +310,11 @@ function projectGroupedSongTiles(
 }
 
 export function songTiles(
-  song: AnySong,
+  song: GroupedSong,
   colors: ReadonlyMap<string, LabelColor>,
   play: SongPlay = {},
 ): ShowTile[] {
   return [...projectSongTiles(song, colors, play).tiles];
-}
-
-function tileOf(
-  slide: Slide,
-  colors: ReadonlyMap<string, LabelColor>,
-): ShowTile {
-  const label =
-    slide.label === undefined || slide.label === '' ? null : slide.label;
-  return {
-    label,
-    labelColor:
-      label === null ? NO_LABEL_COLOR : (colors.get(label) ?? NO_LABEL_COLOR),
-    lines: slide.lines,
-  };
 }
 
 // NOTE(0913vision): When two 이름표 share a jump key, the one listed first in

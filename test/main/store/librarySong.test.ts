@@ -25,7 +25,7 @@ function sources(overrides: object = {}) {
   const parsed = parseSongDocument({
     song: {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: songId,
       title: 'Invented song',
       groups: [
@@ -134,7 +134,7 @@ describe('library song projection', () => {
     const g1Id = createSongGroupId('e0000000-0000-4000-8000-000000000001');
     const groupedSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Grouped Library Song',
       groups: [
@@ -190,7 +190,7 @@ describe('library song projection', () => {
     }));
     const hugeSongDefault: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Huge Song Default',
       groups: groupsOverLimit,

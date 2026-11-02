@@ -8,7 +8,6 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {isGroupedSong} from '@core/schema/groupedSong';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {GroupedSong} from '@core/schema/groupedSong';
@@ -249,7 +248,6 @@ describe('service song item panel', () => {
   it('counts and opens 곡 편집 by the custom order of the item, not its 구성', async () => {
     const {panel, user, openWindow, first, service, pushService} =
       await setup();
-    if (!isGroupedSong(first.song)) throw new Error('Expected a grouped song');
     const last = first.song.groups.at(-1);
     if (last === undefined) throw new Error('Expected a group');
     const before = first.song.groups
@@ -340,7 +338,7 @@ describe('service song item panel', () => {
     const songId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab');
     const groupedSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: songId,
       title: '새 그룹 찬양',
       groups: [

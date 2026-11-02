@@ -36,7 +36,7 @@ describe('content opening through registerStore', () => {
       schemaVersion: 1,
       id: itemId(82),
       title: 'Standalone editable song',
-      slides: [{lines: ['Before']}],
+      groups: [{id: itemId(81), name: '', slides: [{lines: ['Before']}]}],
     };
     await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
     const store = await register(mockLog(), context, () => true);
@@ -48,7 +48,7 @@ describe('content opening through registerStore', () => {
       await ask(contentEndpoints.edit.channel, {
         type: 'song.update',
         baseRevision: 1,
-        song,
+        song: {...current, groups: undefined, slides: [{lines: ['Old']}]},
       }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(
@@ -110,7 +110,7 @@ describe('content opening through registerStore', () => {
     });
     await writeJson(songFile, {
       format: 'llsong',
-      schemaVersion: 3,
+      schemaVersion: 2,
       id: songId,
       title: 'Standalone invented song',
       background: mediaId,
@@ -169,7 +169,9 @@ describe('content opening through registerStore', () => {
     const original = {
       ...hymnOne(),
       title: '새벽의 길',
-      slides: [{lines: ['돌아온 아침빛']}],
+      groups: [
+        {id: itemId(81), name: '', slides: [{lines: ['돌아온 아침빛']}]},
+      ],
       arrangements: [],
     };
     await writeJson(join(root, 'Songs', 'song.llsong'), original);

@@ -30,25 +30,31 @@ vi.mock('node:fs/promises', async importOriginal => {
 });
 
 const SONG_ID = createSongId('00000000-0000-4000-8000-000000000001');
-const legacy = {
+const DAWN = '00000000-0000-4000-8000-000000000201';
+const NOON = '00000000-0000-4000-8000-000000000202';
+const EVENING = '00000000-0000-4000-8000-000000000203';
+const stored = {
   format: 'llsong',
   schemaVersion: 1,
   id: SONG_ID,
-  title: 'Invented migration song',
+  title: 'Invented stored song',
   extension: {keep: true},
-  groups: {extension: 'old root field'},
-  slides: [
+  groups: [
     {
-      label: 'Verse',
-      lines: ['Invented dawn'],
-      hotKey: 'KeyA',
-      section: 'Legacy annotation',
-      note: 'first',
+      id: DAWN,
+      name: 'Verse',
+      slides: [{lines: ['Invented dawn'], note: 'first'}],
     },
-    {label: 'Verse', lines: ['Invented noon']},
-    {label: 'Chorus', lines: ['Invented evening']},
+    {id: NOON, name: 'Verse', slides: [{lines: ['Invented noon']}]},
+    {id: EVENING, name: 'Chorus', slides: [{lines: ['Invented evening']}]},
   ],
-  arrangements: [{name: 'Reverse repeat', slides: [3, 2, 1, 2], note: 'order'}],
+  arrangements: [
+    {
+      name: 'Reverse repeat',
+      groups: [EVENING, NOON, DAWN, NOON],
+      note: 'order',
+    },
+  ],
 };
 
 beforeEach(() => {
@@ -71,7 +77,7 @@ function events(): ContentEvents {
   };
 }
 
-async function scenario(source: unknown = legacy) {
+async function scenario(source: unknown = stored) {
   const folder = await makeTempDir();
   const file = join(folder, DATA_FOLDER_NAME, 'Songs', `${SONG_ID}.llsong`);
   const original = `${JSON.stringify(source, null, 2)}\n`;
@@ -156,10 +162,10 @@ async function recoveryText(
   return readFile(join(folder, file), 'utf8');
 }
 
-it('migrates a legacy file in memory without writing it on read or idle flush', async () => {
+it('reads a file without writing it on read or idle flush', async () => {
   const {file, original, content, write} = await scenario();
   const {song} = documentOf(content);
-  expect(song.schemaVersion).toBe(2);
+  expect(song.schemaVersion).toBe(1);
   expect(linesIn(song)).toEqual([
     'Invented dawn',
     'Invented noon',
@@ -171,34 +177,25 @@ it('migrates a legacy file in memory without writing it on read or idle flush', 
     'Invented dawn',
     'Invented noon',
   ]);
-  expect(song).toMatchObject({
-    extension: {keep: true},
-    legacyV1: {groups: legacy.groups},
-  });
-  expect(song.groups[0]?.slides[0]).toMatchObject({
-    note: 'first',
-    section: 'Legacy annotation',
-    legacyV1: {hotKey: 'KeyA'},
-  });
-  expect(song.groups[0]?.slides[0]?.hotKey).toBeUndefined();
+  expect(song).toMatchObject({extension: {keep: true}});
+  expect(song.groups[0]?.slides[0]).toMatchObject({note: 'first'});
   await content.flush();
   expect(write).not.toHaveBeenCalled();
   expect(await readFile(file, 'utf8')).toBe(original);
 });
 
-it('writes v2 on the first edit and keeps the original v1 recovery bytes', async () => {
+it('writes the edit and keeps the original bytes as the recovery copy', async () => {
   const {file, original, content, loaded} = await scenario();
   const ids = documentOf(content).song.groups.map(group => group.id);
   await revise(content, 'Invented revised dawn');
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
-  expect(saved).toMatchObject({schemaVersion: 2, extension: {keep: true}});
-  expect(saved).not.toHaveProperty('slides');
+  expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
   expect(documentOf(content).song.groups.map(group => group.id)).toEqual(ids);
   expect(await recoveryText(loaded)).toBe(original);
 });
 
-it('preserves v1 on atomic rename failure and retries the newest grouped edit', async () => {
+it('preserves the file on atomic rename failure and retries the newest grouped edit', async () => {
   const {file, original, content, loaded} = await scenario();
   fault.enabled = true;
   await revise(content, 'Invented pending line');
@@ -213,14 +210,14 @@ it('preserves v1 on atomic rename failure and retries the newest grouped edit', 
   fault.enabled = false;
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
-  expect(saved).toMatchObject({schemaVersion: 2, extension: {keep: true}});
+  expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
   expect(saved).toHaveProperty('groups.0.slides.0.lines', [
     'Invented newest line',
   ]);
   expect(await recoveryText(loaded)).toBe(original);
 });
 
-it('reloads v2 group identities, repeated arrangements and source hot keys after saving', async () => {
+it('reloads group identities, repeated arrangements and source hot keys after saving', async () => {
   const {file, content} = await scenario();
   const {song, revision} = documentOf(content);
   const edited = {
@@ -260,7 +257,7 @@ it('reloads v2 group identities, repeated arrangements and source hot keys after
 it('keeps a known newer grouped file read-only without rewriting it', async () => {
   const source = {
     format: 'llsong',
-    schemaVersion: 3,
+    schemaVersion: 2,
     id: SONG_ID,
     title: 'Invented future song',
     future: {keep: true},
@@ -275,7 +272,7 @@ it('keeps a known newer grouped file read-only without rewriting it', async () =
   const {file, original, content, write} = await scenario(source);
   const document = documentOf(content);
   expect(document.access).toBe('readOnly');
-  expect(document.song.schemaVersion).toBe(3);
+  expect(document.song.schemaVersion).toBe(2);
   const result = await content.apply({
     type: 'song.update',
     baseRevision: document.revision,
@@ -290,7 +287,7 @@ it('keeps a known newer grouped file read-only without rewriting it', async () =
 it('skips a malformed grouped file once and leaves its original bytes intact', async () => {
   const {file, original, content, write, loaded} = await scenario({
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: SONG_ID,
     title: 'Invented corrupt song',
     groups: 'not a group array',

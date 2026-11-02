@@ -67,13 +67,12 @@ and service files. The folder names and the rest are proposals.
 
 ## Song file (`.llsong`)
 
-Each song is one file. Version 2 uses named groups (user decision, 2026-10-27).
-This replaces version 1's slide-number arrangements.
+Each song is one file. It uses named groups (user decision, 2026-10-27).
 
 ```json
 {
   "format": "llsong",
-  "schemaVersion": 2,
+  "schemaVersion": 1,
   "id": "00000000-0000-4000-8000-000000000001",
   "title": "Invented song",
   "groups": [
@@ -104,7 +103,7 @@ This replaces version 1's slide-number arrangements.
 | Field                      | Type                        | Required | Meaning                                                                                                                                    |
 | -------------------------- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `format`                   | `"llsong"`                  | Yes      | File type.                                                                                                                                 |
-| `schemaVersion`            | Integer                     | Yes      | 2 for grouped songs.                                                                                                                       |
+| `schemaVersion`            | Integer                     | Yes      | 1.                                                                                                                                         |
 | `id`                       | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                                   |
 | `title`                    | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                                          |
 | `background`               | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                                                 |
@@ -158,66 +157,16 @@ Rules:
   identity and key. Resolve a key to the first matching occurrence in the
   selected arrangement's tile order, with no cycling based on the current/live
   cursor. If that source is omitted, the key has no target in this projection.
-  Legacy tiles without this metadata remain accepted during the format rollout.
 - `SONG_GROUP_LIMITS` caps a song at 10,000 source slides, 10,000 groups, 1,000
   named arrangements and 100,000 total stored group occurrences across all
-  arrangements. Reject an oversized file without truncation. These limits also
-  apply after migration; source slides are counted once, not once per
-  arrangement occurrence. Consumers must iterate repeated groups without
-  allocating an unbounded expanded song.
-
-### Version 1 migration
-
-Validate the complete version 1 file before converting it. A malformed number,
-missing slide or invalid arrangement must fail validation, not disappear.
-
-1. Partition the source slides into maximal adjacent runs with the same `label`.
-   Absent and empty labels both mean unnamed. Nonadjacent runs with the same
-   name remain different groups.
-2. In every stored arrangement, partition its slide numbers into maximal
-   increasing consecutive stretches. For each stretch, mark a cut before its
-   first source slide and after its last. Combine the cuts from all arrangements
-   with the original run boundaries. Empty arrangements add no cuts.
-3. Split each run at those cuts. Give each resulting group a new UUID v4 and the
-   run's name. Keep the source slide order. Consume each slide's known `label`
-   into the group name and retain all its other fields, including unknown nested
-   values.
-4. Replace each arrangement stretch with the IDs of the groups it covers, in
-   order. Keep repeated occurrences and arrangement names. Expanding each
-   migrated arrangement must produce exactly its old slide-number sequence; the
-   default must also remain identical.
-
-For example, source slides 1..3 all named 1절 and arrangement `[3, 1, 2]`
-produce groups A = `[1, 2]` and B = `[3]`, with arrangement `[B, A]`.
-Arrangement `[1, 2, 2, 3]` cuts that run into three groups and becomes
-`[A, B, B, C]`. Cuts required by any arrangement apply to the whole song.
-Migration never duplicates lyric objects or merges nonadjacent groups.
-
-Unknown fields retain their original paths except when a version 1 unknown
-`groups` field occupies a newly defined key on the song or an arrangement. In
-that case preserve its original value under that object's `legacyV1.groups`. If
-`legacyV1` already exists, preserve its entire original value under the new
-`legacyV1.legacyV1` before adding the archived fields. Never overwrite unknown
-data. Known version 1 `slides` fields are consumed by the conversion.
-
-The new `hotKey` field was unknown in version 1. Archive any such old slide
-value under `legacyV1.hotKey`, using the same collision rule for an existing
-`legacyV1`, and leave its assignment absent. Do not interpret an extension's old
-value as a new key assignment or reject an otherwise valid old song because that
-value is not a physical code. Version 2 keys are validated normally.
-
-Convert in memory on read. Keep the original file until the first successful
-edit save, with the normal pre-migration recovery copy. New grouped writes use
-version 2. The data schema/migration API lands first; activating it in the store
-and IPC waits until editor, grid, chip and live consumers accept groups. During
-that transition the existing version 1 entry points stay active and must not
-write a grouped file through an old editor. This is a rollout rule, not a second
-permanent song format.
+  arrangements. Reject an oversized file without truncation. Source slides are
+  counted once, not once per arrangement occurrence. Consumers must iterate
+  repeated groups without allocating an unbounded expanded song.
 
 Source: October 27 user decision and Renewed Vision's
 [Using Groups and Arrangements](https://support.renewedvision.com/hc/en-us/articles/360041809973-Using-Groups-and-Arrangements-for-Presentation-Organization),
 checked October 27. The source establishes group tokens and arrangements; the
-JSON shape, migration and rollout rules are this app's contract.
+JSON shape and rules are this app's contract.
 
 ## Service file (`.llservice`)
 

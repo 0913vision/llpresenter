@@ -44,7 +44,7 @@ function createTestGroupedSong(
 
   const song: GroupedSong = {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: songId,
     title: '그룹 찬송가',
     groups: [

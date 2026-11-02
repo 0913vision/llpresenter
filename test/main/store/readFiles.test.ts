@@ -1,7 +1,7 @@
 import {join} from 'node:path';
 import {readFile, writeFile} from 'node:fs/promises';
 import {describe, expect, it} from 'vitest';
-import {parseSong} from '@core/schema/song';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import {makeTempDir} from '@fixtures/tempDir';
 import {listFolder, loadFile, readTextFile} from '@main/store/readFiles';
 import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
@@ -47,7 +47,7 @@ describe('loadFile', () => {
     const file = join(folder, 'a.llsong');
     await writeJson(file, hymnOne());
 
-    const loaded = await loadFile(file, parseSong);
+    const loaded = await loadFile(file, parseGroupedSong);
 
     expect(loaded.ok && loaded.value?.data.id).toBe(HYMN_ONE_ID);
   });
@@ -57,11 +57,13 @@ describe('loadFile', () => {
     const broken = join(folder, 'broken.llsong');
     await writeJson(broken, {...hymnOne(), title: ''});
 
-    expect(await loadFile(join(folder, 'missing.llsong'), parseSong)).toEqual({
+    expect(
+      await loadFile(join(folder, 'missing.llsong'), parseGroupedSong),
+    ).toEqual({
       ok: true,
       value: null,
     });
-    expect(await loadFile(broken, parseSong)).toMatchObject({
+    expect(await loadFile(broken, parseGroupedSong)).toMatchObject({
       ok: false,
       error: {kind: 'invalid', field: 'title'},
     });
@@ -87,7 +89,7 @@ describe('loadFile', () => {
         Buffer.from(after),
       ]);
       await writeFile(file, bytes);
-      expect(await loadFile(file, parseSong)).toMatchObject({
+      expect(await loadFile(file, parseGroupedSong)).toMatchObject({
         ok: false,
         error: {kind: 'read', file},
       });

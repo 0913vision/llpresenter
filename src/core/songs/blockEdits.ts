@@ -1,15 +1,9 @@
 import {
-  isGroupedSong,
-  type AnySong,
-  type GroupedSong,
-} from '../schema/groupedSong';
-import {
   blockSnapshot,
   type BlockCommand,
   type BlockSnapshot,
 } from './blockModel';
 import {editGroupedBlocks} from './groupedBlockEdits';
-import {editLegacyBlocks} from './legacyBlockEdits';
 
 export {
   blockSnapshot,
@@ -31,26 +25,8 @@ export type {
  * selection bounds and clamps to valid offsets after the modification.
  */
 export function editBlocks(
-  input: BlockSnapshot<GroupedSong>,
-  command: BlockCommand,
-): BlockSnapshot<GroupedSong>;
-export function editBlocks(
   input: BlockSnapshot,
   command: BlockCommand,
-): BlockSnapshot;
-export function editBlocks<S extends AnySong>(
-  input: BlockSnapshot<S>,
-  command: BlockCommand,
-): BlockSnapshot<S>;
-export function editBlocks(
-  input: BlockSnapshot<AnySong>,
-  command: BlockCommand,
-): BlockSnapshot<AnySong> {
-  const song = input.song;
-  if (isGroupedSong(song)) {
-    const snapshot = blockSnapshot(song, input.selection);
-    return editGroupedBlocks(snapshot, command);
-  }
-  const snapshot = blockSnapshot(song, input.selection);
-  return editLegacyBlocks(snapshot, command);
+): BlockSnapshot {
+  return editGroupedBlocks(blockSnapshot(input.song, input.selection), command);
 }

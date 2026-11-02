@@ -3,6 +3,7 @@ import type {ContentEdit} from '@core/schema/contentEdit';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {parseGroupedSong} from '@core/schema/groupedSong';
 import {
+  createSongGroupId,
   serviceIdSchema,
   songIdSchema,
   templateIdSchema,
@@ -277,5 +278,11 @@ export function importSetup(
 /** A neutral fixture value; declaring it does not read or write files. */
 export const importedDraft = {
   title: 'Invented import',
-  slides: [{label: 'New label', lines: ['Invented line']}],
+  groups: [
+    {
+      id: createSongGroupId('00000000-0000-4000-8000-0000000000a1'),
+      name: 'New label',
+      slides: [{lines: ['Invented line']}],
+    },
+  ],
 };

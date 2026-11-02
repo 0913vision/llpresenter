@@ -3,32 +3,34 @@ import {revisionSchema} from './contentDocuments';
 import {mediaIdSchema, songIdSchema} from './ids';
 import {payloadObject, plainObject} from './payload';
 import {nonBlankText} from './primitives';
-import {arrangementsSchema} from './song';
-import {importSlideSchema} from './textImport';
+import {groupArrangementSchema, songGroupSchema} from './groupedSong';
+import {uniqueNames} from './uniqueNames';
 
 export const SONG_IMPORT_LIMITS = {
   slides: 5000,
   lines: 20_000,
-  characters: 1_000_000,
+  characters: 1_500_000,
   arrangements: 1000,
   picks: 20_000,
   name: 512,
   labels: 10_000,
 } as const;
 
+/**
+ * A song to import: the grouped song the editor shows, without the id, the
+ * save time, and the format header, which main adds.
+ */
 export const songImportDraftSchema = v.pipe(
   payloadObject({
     title: v.pipe(nonBlankText, v.maxLength(SONG_IMPORT_LIMITS.name)),
-    slides: v.pipe(
+    groups: v.pipe(
       v.array(
         v.pipe(
-          importSlideSchema,
+          songGroupSchema,
           v.check(
-            slide =>
-              slide.label === undefined ||
-              slide.label === '' ||
-              (slide.label.trim().length > 0 &&
-                slide.label.length <= SONG_IMPORT_LIMITS.name),
+            group =>
+              group.name.length <= SONG_IMPORT_LIMITS.name &&
+              (group.name === '' || group.name.trim().length > 0),
             'Invalid imported label',
           ),
         ),
@@ -38,28 +40,34 @@ export const songImportDraftSchema = v.pipe(
     ),
     background: v.exactOptional(mediaIdSchema),
     arrangements: v.exactOptional(
-      v.pipe(arrangementsSchema, v.maxLength(SONG_IMPORT_LIMITS.arrangements)),
+      v.pipe(
+        v.array(groupArrangementSchema),
+        v.maxLength(SONG_IMPORT_LIMITS.arrangements),
+        uniqueNames<v.InferOutput<typeof groupArrangementSchema>>(
+          'Another arrangement already has this name',
+        ),
+      ),
     ),
   }),
-  v.check(
-    draft =>
-      draft.slides.reduce((total, slide) => total + slide.lines.length, 0) <=
+  v.check(draft => {
+    const slides = draft.groups.flatMap(group => group.slides);
+    return (
+      slides.length <= SONG_IMPORT_LIMITS.slides &&
+      slides.reduce((total, slide) => total + slide.lines.length, 0) <=
         SONG_IMPORT_LIMITS.lines &&
       (draft.arrangements ?? []).reduce(
-        (total, arrangement) => total + arrangement.slides.length,
+        (total, arrangement) => total + arrangement.groups.length,
         0,
       ) <= SONG_IMPORT_LIMITS.picks &&
-      JSON.stringify(draft).length <= SONG_IMPORT_LIMITS.characters,
-    'The imported song exceeds its size limits',
-  ),
+      JSON.stringify(draft).length <= SONG_IMPORT_LIMITS.characters
+    );
+  }, 'The imported song exceeds its size limits'),
   v.check(
     draft =>
       (draft.arrangements ?? []).every(
-        arrangement =>
-          arrangement.name.length <= SONG_IMPORT_LIMITS.name &&
-          arrangement.slides.every(index => index <= draft.slides.length),
+        arrangement => arrangement.name.length <= SONG_IMPORT_LIMITS.name,
       ),
-    'Invalid imported arrangement reference',
+    'Invalid imported arrangement name',
   ),
 );
 

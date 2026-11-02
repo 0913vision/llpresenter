@@ -56,15 +56,28 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
           id: itemId(index),
           title: `Invented song ${index}`,
           future: 'kept',
-          slides: [
+          groups: [
             {
-              label: index === 3 ? 'Other' : 'Before',
-              lines: ['Invented line'],
-              future: 'kept',
+              id: `a000000${index}-0000-4000-8000-000000000001`,
+              name: index === 3 ? 'Other' : 'Before',
+              slides: [{lines: ['Invented line'], future: 'kept'}],
             },
-            {lines: ['Another invented line']},
+            {
+              id: `a000000${index}-0000-4000-8000-000000000002`,
+              name: '',
+              slides: [{lines: ['Another invented line']}],
+            },
           ],
-          arrangements: [{name: 'Sequence', slides: [1, 2, 1]}],
+          arrangements: [
+            {
+              name: 'Sequence',
+              groups: [
+                `a000000${index}-0000-4000-8000-000000000001`,
+                `a000000${index}-0000-4000-8000-000000000002`,
+                `a000000${index}-0000-4000-8000-000000000001`,
+              ],
+            },
+          ],
         }),
         file,
       ),
@@ -73,7 +86,7 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
       readOnlySong && index === 2
         ? expectSuccess(
             parseGroupedSong(
-              JSON.stringify({...current.data, schemaVersion: 3}),
+              JSON.stringify({...current.data, schemaVersion: 2}),
               file,
             ),
           )

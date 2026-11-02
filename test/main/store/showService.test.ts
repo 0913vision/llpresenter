@@ -7,7 +7,6 @@ import type {Label} from '@core/schema/labels';
 import {mediaListSchema} from '@core/schema/mediaList';
 import {noticesSchema} from '@core/schema/notices';
 import {parseService, type Service} from '@core/schema/service';
-import {parseSong, type Song} from '@core/schema/song';
 import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {DEFAULT_LABELS} from '@main/store/defaults';
 import {
@@ -17,6 +16,7 @@ import {
   songTiles,
 } from '@main/store/showService';
 import {
+  HYMN_ONE_GROUPS,
   HYMN_ONE_ID,
   hymnOne,
   itemId,
@@ -24,7 +24,7 @@ import {
   SUNDAY_ID,
 } from '@fixtures/main/store/testFiles';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {translationIdSchema} from '@core/schema/ids';
 
@@ -39,8 +39,8 @@ function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
   return parsed.value;
 }
 
-function loadedSong(json: object): LoadedFile<Song> {
-  return loaded(parseSong(JSON.stringify(json), 'song.llsong'));
+function loadedSong(json: object): LoadedFile<GroupedSong> {
+  return loaded(parseGroupedSong(JSON.stringify(json), 'song.llsong'));
 }
 
 function loadedService(
@@ -230,11 +230,12 @@ describe('buildShowService', () => {
   it('gives a song the tiles of its default order with 이름표 colors', () => {
     const show = build([{id: itemId(1), song: HYMN_ONE_ID}]);
 
-    expect(show.tiles[itemId(1)]).toEqual([
+    expect(show.tiles[itemId(1)]).toMatchObject([
       {
         label: '1절',
         labelColor: 'teal',
         lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
+        sourceSlide: {groupId: HYMN_ONE_GROUPS[0], slideIndex: 0},
       },
       {
         label: '후렴',
@@ -278,7 +279,7 @@ describe('buildShowService', () => {
     const g2Id = createSongGroupId('a0000000-0000-4000-8000-000000000002');
     const groupedSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Grouped Song 1',
       groups: [
@@ -305,7 +306,7 @@ describe('buildShowService', () => {
           gSongId,
           {
             format: 'llsong',
-            schemaVersion: 2,
+            schemaVersion: 1,
             access: 'editable',
             data: groupedSong,
           },
@@ -360,7 +361,7 @@ describe('buildShowService', () => {
     const g2Id = createSongGroupId('b0000000-0000-4000-8000-000000000002');
     const groupedSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Repeated Groups',
       groups: [
@@ -379,7 +380,7 @@ describe('buildShowService', () => {
           gSongId,
           {
             format: 'llsong',
-            schemaVersion: 2,
+            schemaVersion: 1,
             access: 'editable',
             data: groupedSong,
           },
@@ -409,7 +410,7 @@ describe('buildShowService', () => {
     const g1Id = createSongGroupId('c0000000-0000-4000-8000-000000000001');
     const groupedSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Unnamed Group',
       groups: [{id: g1Id, name: '', slides: [{lines: ['가사']}]}],
@@ -422,7 +423,7 @@ describe('buildShowService', () => {
           gSongId,
           {
             format: 'llsong',
-            schemaVersion: 2,
+            schemaVersion: 1,
             access: 'editable',
             data: groupedSong,
           },
@@ -455,7 +456,7 @@ describe('buildShowService', () => {
     const repeatedGroups = Array.from({length: 100}, () => g1Id);
     const maxSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Max Grouped Song',
       groups: [{id: g1Id, name: '반복절', slides}],
@@ -477,7 +478,7 @@ describe('buildShowService', () => {
           gSongId,
           {
             format: 'llsong',
-            schemaVersion: 2,
+            schemaVersion: 1,
             access: 'editable',
             data: maxSong,
           },
@@ -500,7 +501,7 @@ describe('buildShowService', () => {
     const repeatedGroups = Array.from({length: 101}, () => g1Id);
     const hugeSong: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: gSongId,
       title: 'Huge Grouped Song',
       groups: [{id: g1Id, name: '반복절', slides}],
@@ -522,7 +523,7 @@ describe('buildShowService', () => {
           gSongId,
           {
             format: 'llsong',
-            schemaVersion: 2,
+            schemaVersion: 1,
             access: 'editable',
             data: hugeSong,
           },
@@ -544,38 +545,6 @@ describe('buildShowService', () => {
     );
     expect(SHOW_SERVICE_LIMITS.tiles).toBe(10_000);
   });
-
-  it('accepts exactly 10,000 tiles and flags capped at 10,001 tiles for v1 songs', () => {
-    const maxV1Song: Song = {
-      ...loadedSong(hymnOne()).data,
-      arrangements: [
-        {
-          name: '한계구성',
-          slides: Array.from({length: 10_000}, () => 1),
-        },
-      ],
-    };
-    const maxProjected = projectSongTiles(maxV1Song, new Map(), {
-      arrangement: '한계구성',
-    });
-    expect(maxProjected.capped).toBe(false);
-    expect(maxProjected.tiles).toHaveLength(10_000);
-
-    const overV1Song: Song = {
-      ...loadedSong(hymnOne()).data,
-      arrangements: [
-        {
-          name: '초과구성',
-          slides: Array.from({length: 10_001}, () => 1),
-        },
-      ],
-    };
-    const overProjected = projectSongTiles(overV1Song, new Map(), {
-      arrangement: '초과구성',
-    });
-    expect(overProjected.capped).toBe(true);
-    expect(overProjected.tiles).toEqual([]);
-  });
 });
 
 describe('projectSongTiles custom order', () => {
@@ -583,7 +552,7 @@ describe('projectSongTiles custom order', () => {
   const chorus = createSongGroupId('d0000000-0000-4000-8000-0000000000a2');
   const song: GroupedSong = {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 1,
     id: createSongId('20000000-0000-4000-8000-0000000000a1'),
     title: 'Order Song',
     groups: [

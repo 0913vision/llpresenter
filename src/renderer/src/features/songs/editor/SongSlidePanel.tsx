@@ -17,17 +17,15 @@ import {
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
-import type {AnySong} from '@core/schema/groupedSong';
 import {VirtualSlides} from './VirtualSlides';
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {StatusDot} from '@renderer/ui/StatusMarks';
 import styles from './SongPanels.module.css';
-import {isGroupedSong} from '@core/schema/groupedSong';
 
 export interface SongSlideStore {
   readonly subscribe: (listener: () => void) => () => void;
   readonly getSnapshot: () => {
-    readonly session: SongSession<AnySong> | null;
+    readonly session: SongSession | null;
     readonly labels?: EditorLabels | null | undefined;
     readonly busy?: boolean;
   };
@@ -90,7 +88,7 @@ export function SongSlidePanel({
           onSelect={select}
           onEdit={select}
           onHotKey={
-            'requestAction' in store && isGroupedSong(song)
+            'requestAction' in store
               ? index => {
                   const number = numbers[index];
                   if (number === undefined) return;

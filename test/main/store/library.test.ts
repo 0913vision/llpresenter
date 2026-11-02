@@ -1,6 +1,6 @@
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {parseSong} from '@core/schema/song';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import {makeTempDir} from '@fixtures/tempDir';
 import {loadFolder} from '@main/store/library';
 import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
@@ -18,7 +18,7 @@ describe('loadFolder', () => {
     });
     await writeJson(join(folder, 'notes.txt'), 'not a song');
 
-    const loaded = await loadFolder(folder, '.llsong', parseSong);
+    const loaded = await loadFolder(folder, '.llsong', parseGroupedSong);
 
     expect([...loaded.items.keys()].sort()).toEqual(
       [HYMN_ONE_ID, OTHER_SONG_ID].sort(),
@@ -31,7 +31,7 @@ describe('loadFolder', () => {
     await writeJson(join(folder, 'good.llsong'), hymnOne());
     await writeJson(join(folder, 'broken.llsong'), '{"format": ');
 
-    const loaded = await loadFolder(folder, '.llsong', parseSong);
+    const loaded = await loadFolder(folder, '.llsong', parseGroupedSong);
 
     expect([...loaded.items.keys()]).toEqual([HYMN_ONE_ID]);
     expect(loaded.problems).toEqual([
@@ -47,7 +47,7 @@ describe('loadFolder', () => {
     await writeJson(join(folder, 'a.llsong'), hymnOne());
     await writeJson(join(folder, 'b.llsong'), {...hymnOne(), title: '복사본'});
 
-    const loaded = await loadFolder(folder, '.llsong', parseSong);
+    const loaded = await loadFolder(folder, '.llsong', parseGroupedSong);
 
     expect(loaded.items.get(HYMN_ONE_ID)?.data.title).toBe(
       '만복의 근원 하나님',
@@ -66,7 +66,7 @@ describe('loadFolder', () => {
     const notAFolder = join(folder, 'Songs');
     await writeJson(notAFolder, 'a file where the folder should be');
 
-    const loaded = await loadFolder(notAFolder, '.llsong', parseSong);
+    const loaded = await loadFolder(notAFolder, '.llsong', parseGroupedSong);
 
     expect(loaded.problems).toEqual([
       expect.objectContaining({kind: 'read', file: notAFolder}),

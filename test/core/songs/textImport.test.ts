@@ -1,13 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import {
-  parseGroupedSongDraft,
-  serializeGroupedSong,
-} from '@core/schema/groupedSong';
+import {parseGroupedSong, serializeGroupedSong} from '@core/schema/groupedSong';
 import {parseContentEdit} from '@core/schema/contentEdit';
 import type {
   TextImportOptions,
   TextImportPreviewRequest,
 } from '@core/schema/textImport';
+import {importGroups} from '@core/songs/importGroups';
 import {convertTextImport} from '@core/songs/textImport';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 
@@ -39,26 +37,28 @@ describe('text import conversion', () => {
     'keeps an accepted escaped preview savable: %j',
     character => {
       const preview = draft(character.repeat(150_000));
+      const groups = importGroups(preview.slides, () => crypto.randomUUID());
       const edit = parseContentEdit({
         type: 'song.import',
         target: {kind: 'new'},
-        draft: preview,
+        draft: {title: preview.title || 'Invented', groups},
       });
       expect(edit.ok).toBe(true);
-      const migrated = parseGroupedSongDraft(
+      const saved = parseGroupedSong(
         JSON.stringify({
-          ...preview,
           format: 'llsong',
           schemaVersion: 1,
           id: '00000000-0000-4000-8000-000000000001',
+          title: 'Invented',
+          groups,
         }),
         'invented.llsong',
       );
-      if (!migrated.ok) throw new Error(migrated.error.message);
-      expect(
-        serializeGroupedSong(migrated.value.data, 'invented.llsong').ok,
-      ).toBe(true);
-      expect(migrated.value.data.groups[0]?.slides[0]?.lines).toEqual(
+      if (!saved.ok) throw new Error(saved.error.message);
+      expect(serializeGroupedSong(saved.value.data, 'invented.llsong').ok).toBe(
+        true,
+      );
+      expect(saved.value.data.groups[0]?.slides[0]?.lines).toEqual(
         preview.slides[0]?.lines,
       );
     },

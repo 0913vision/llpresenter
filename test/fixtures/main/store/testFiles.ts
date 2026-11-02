@@ -12,17 +12,41 @@ export function hymnOne(): Record<string, unknown> {
     schemaVersion: 1,
     id: HYMN_ONE_ID,
     title: '만복의 근원 하나님',
-    slides: [
-      {label: '1절', lines: ['만복의 근원 하나님', '온 백성 찬송 드리고']},
-      {label: '후렴', lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령']},
-      {lines: ['아멘']},
+    groups: [
+      {
+        id: HYMN_ONE_GROUPS[0],
+        name: '1절',
+        slides: [{lines: ['만복의 근원 하나님', '온 백성 찬송 드리고']}],
+      },
+      {
+        id: HYMN_ONE_GROUPS[1],
+        name: '후렴',
+        slides: [{lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령']}],
+      },
+      {id: HYMN_ONE_GROUPS[2], name: '', slides: [{lines: ['아멘']}]},
     ],
     arrangements: [
-      {name: '주일용', slides: [1, 2, 1, 2, 3]},
-      {name: '비어 있음', slides: []},
+      {
+        name: '주일용',
+        groups: [
+          HYMN_ONE_GROUPS[0],
+          HYMN_ONE_GROUPS[1],
+          HYMN_ONE_GROUPS[0],
+          HYMN_ONE_GROUPS[1],
+          HYMN_ONE_GROUPS[2],
+        ],
+      },
+      {name: '비어 있음', groups: []},
     ],
   };
 }
+
+/** The group ids of `hymnOne()`, in file order. */
+export const HYMN_ONE_GROUPS = [
+  '41111111-1111-4111-a111-111111111111',
+  '42222222-2222-4222-a222-222222222222',
+  '43333333-3333-4333-a333-333333333333',
+] as const;
 
 /** A 예배 순서 file with one of each common item kind. */
 export function service(

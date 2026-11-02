@@ -1,8 +1,8 @@
 import {useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
-import type {AnySong, SongGroup} from '@core/schema/groupedSong';
+import {createSongId} from '@core/schema/ids';
+import {SONG_SCHEMA_VERSION, type GroupedSong} from '@core/schema/groupedSong';
 import type {Label} from '@core/schema/labels';
 import type {Preferences} from '@core/schema/preferences';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
@@ -20,6 +20,7 @@ import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
 } from '@core/songs/songTitle';
+import {importGroups} from '@core/songs/importGroups';
 import {useImportPreview} from './useImportPreview';
 import styles from './TextImportDialog.module.css';
 
@@ -32,46 +33,6 @@ const SPLITS = [
   {value: 'lineBreak', label: '줄 바꿈'},
   {value: 'symbol', label: '기호'},
 ] as const;
-
-function candidateGroups(
-  slides: ReadonlyArray<TextImportDraft['slides'][number]>,
-): readonly SongGroup[] {
-  const groups: SongGroup[] = [];
-  let currentSlides: Array<{readonly lines: readonly string[]}> = [];
-  let currentName = '';
-
-  const flush = (): void => {
-    if (currentSlides.length === 0) return;
-    groups.push({
-      id: createSongGroupId(
-        `00000000-0000-4000-8000-${String(groups.length + 1).padStart(12, '0')}`,
-      ),
-      name: currentName,
-      slides: currentSlides,
-    });
-    currentSlides = [];
-  };
-
-  for (let index = 0; index < slides.length; index++) {
-    const slide = slides[index];
-    if (slide === undefined) continue;
-    const label = slide.label ?? '';
-    const prevSlide = index > 0 ? slides[index - 1] : undefined;
-    const isNewGroup =
-      index > 0 &&
-      (label !== (prevSlide?.label ?? '') ||
-        (slide.section !== undefined &&
-          prevSlide?.section !== undefined &&
-          slide.section !== prevSlide.section));
-    if (isNewGroup) {
-      flush();
-    }
-    currentName = label;
-    currentSlides.push({lines: slide.lines});
-  }
-  flush();
-  return groups;
-}
 
 export function TextImportDialog({
   api,
@@ -112,14 +73,17 @@ export function TextImportDialog({
     () => preview.draft?.slides.map((_, index) => index + 1) ?? [],
     [preview.draft],
   );
-  const candidateSong = useMemo<AnySong | null>(() => {
+  const candidateSong = useMemo<GroupedSong | null>(() => {
     if (preview.draft === null) return null;
+    let count = 0;
+    const candidateId = (): string =>
+      `00000000-0000-4000-8000-${String(++count).padStart(12, '0')}`;
     return {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: SONG_SCHEMA_VERSION,
       id: createSongId('00000000-0000-4000-8000-000000000000'),
       title: shownTitle,
-      groups: candidateGroups(preview.draft.slides),
+      groups: importGroups(preview.draft.slides, candidateId),
     };
   }, [preview.draft, shownTitle]);
   return (

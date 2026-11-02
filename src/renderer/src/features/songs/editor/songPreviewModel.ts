@@ -7,7 +7,7 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {Screen, ScreensFile} from '@core/schema/screens';
 import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
 import {resolveThemeOutput} from '@core/themes/output';
-import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
@@ -85,7 +85,7 @@ export function previewAppearance({
 
 /** A local selected song picture; no service selection or output command. */
 export function selectedPreview(
-  song: AnySong,
+  song: GroupedSong,
   {
     block,
     background,
@@ -96,14 +96,11 @@ export function selectedPreview(
     readonly nextBlock?: number | undefined;
   },
 ): LiveLayers {
-  const slides = isGroupedSong(song) ? linearSlidesOf(song) : song.slides;
+  const slides = linearSlidesOf(song);
   const project = (index: number | undefined) => {
     const slide = index === undefined ? undefined : slides[index];
     if (slide === undefined || index === undefined) return undefined;
-    const addr = isGroupedSong(song)
-      ? linearBlockAddress(song, index)
-      : undefined;
-    const rawLabel = addr === undefined ? slide.label : addr.groupName;
+    const rawLabel = linearBlockAddress(song, index)?.groupName;
     return {
       lines: slide.lines,
       label: rawLabel === undefined || rawLabel === '' ? null : rawLabel,

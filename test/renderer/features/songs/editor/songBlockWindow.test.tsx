@@ -1,8 +1,10 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {CSSProperties} from 'react';
-import type {Slide} from '@core/schema/song';
-import {useSongBlockWindow} from '@renderer/features/songs/editor/useSongBlockWindow';
+import {
+  useSongBlockWindow,
+  type WindowSlideItem,
+} from '@renderer/features/songs/editor/useSongBlockWindow';
 
 const rowStyle: CSSProperties & {'--size-control-xs': string} = {
   '--size-control-xs': '22px',
@@ -14,7 +16,7 @@ function Fixture({
   slides,
   selected,
 }: {
-  readonly slides: readonly Slide[];
+  readonly slides: readonly WindowSlideItem[];
   readonly selected: number;
 }) {
   const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
@@ -70,7 +72,7 @@ function observer() {
 describe('song block window measurements', () => {
   it('uses line counts and token metrics, reveals the final row, and disconnects its one observer', () => {
     const measured = observer();
-    const slides: readonly Slide[] = [
+    const slides: readonly WindowSlideItem[] = [
       {lines: ['Short']},
       {lines: ['Long', 'Second', 'Third']},
       {lines: []},
@@ -99,9 +101,12 @@ describe('song block window measurements', () => {
 
   it('recalculates positions when line counts or viewport height change', () => {
     const measured = observer();
-    const slides: readonly Slide[] = Array.from({length: 100}, () => ({
-      lines: ['Invented'],
-    }));
+    const slides: readonly WindowSlideItem[] = Array.from(
+      {length: 100},
+      () => ({
+        lines: ['Invented'],
+      }),
+    );
     const view = render(<Fixture slides={slides} selected={1} />);
     const viewport = screen.getByTestId('viewport');
     Object.defineProperty(viewport, 'clientHeight', {

@@ -15,10 +15,10 @@ describe('song history', () => {
     type(history, 'a', 0);
     type(history, 'ab', 999);
     type(history, 'abc', 1999);
-    expect(history.undo().song.slides[0]?.lines).toEqual(['ab']);
-    expect(history.undo().song.slides[0]?.lines).toEqual(['first']);
-    expect(history.redo().song.slides[0]?.lines).toEqual(['ab']);
-    expect(history.redo().song.slides[0]?.lines).toEqual(['abc']);
+    expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual(['ab']);
+    expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual(['first']);
+    expect(history.redo().song.groups[0]?.slides[0]?.lines).toEqual(['ab']);
+    expect(history.redo().song.groups[0]?.slides[0]?.lines).toEqual(['abc']);
   });
 
   it('ends grouping on block changes, blur, and a backwards clock', () => {
@@ -31,7 +31,9 @@ describe('song history', () => {
     type(history, 'c', 102);
     type(history, 'd', 99);
     for (const expected of ['c', 'b', 'a', 'first']) {
-      expect(history.undo().song.slides[0]?.lines).toEqual([expected]);
+      expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual([
+        expected,
+      ]);
     }
   });
 
@@ -47,24 +49,6 @@ describe('song history', () => {
     expect(history.canRedo).toBe(false);
   });
 
-  it('preserves repeated references through split, merge, undo, and redo', () => {
-    const original = {
-      ...song(),
-      arrangements: [{name: '반복', slides: [1, 3, 3]}],
-    };
-    const history = new SongHistory(original);
-    history.select({block: 2, start: 0, end: 0});
-    const before = history.snapshot;
-    const split = history.apply({type: 'split'});
-    expect(split.song.arrangements[0]?.slides).toEqual([1, 3, 4, 3, 4]);
-    const merged = history.apply({type: 'merge'});
-    expect(merged.song).toEqual(original);
-    expect(history.undo()).toBe(split);
-    expect(history.undo()).toBe(before);
-    expect(history.redo()).toBe(split);
-    expect(history.redo()).toBe(merged);
-  });
-
   it('retains exactly 100 undo steps and keeps song sessions independent', () => {
     const first = new SongHistory(song());
     const second = new SongHistory(
@@ -75,11 +59,11 @@ describe('song history', () => {
     }
     for (let index = 0; index < 100; index++) first.undo();
     expect(first.canUndo).toBe(false);
-    expect(first.snapshot.song.slides[0]?.lines).toEqual(['1']);
+    expect(first.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['1']);
     for (let index = 0; index < 100; index++) first.redo();
-    expect(first.snapshot.song.slides[0]?.lines).toEqual(['101']);
+    expect(first.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['101']);
     expect(first.canRedo).toBe(false);
-    expect(second.snapshot.song.slides[0]?.lines).toEqual(['other']);
+    expect(second.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['other']);
     expect(second.canUndo).toBe(false);
   });
 });

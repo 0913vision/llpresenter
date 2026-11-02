@@ -14,7 +14,7 @@ function fixture() {
   const parsed = parseGroupedSong(
     JSON.stringify({
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: songId,
       title: 'Invented song',
       groups: [

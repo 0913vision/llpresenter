@@ -1,6 +1,5 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useRef, useSyncExternalStore, type JSX} from 'react';
-import type {AnySong} from '@core/schema/groupedSong';
 import {ArrangementPicker} from './ArrangementPicker';
 import {NewArrangementDialog} from './NewArrangementDialog';
 import {SongArrangementStrip} from './SongArrangementStrip';
@@ -16,7 +15,7 @@ export function ArrangementRow({
   session,
 }: {
   readonly store: SongEditorStore;
-  readonly session: SongSession<AnySong>;
+  readonly session: SongSession;
 }): JSX.Element {
   const {busy, labels, actionRequest} = useSyncExternalStore(
     store.subscribe,

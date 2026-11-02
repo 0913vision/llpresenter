@@ -3,12 +3,23 @@ import {parseContentEdit} from '@core/schema/contentEdit';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 
 const id = '00000000-0000-4000-8000-000000000001';
+const group = '00000000-0000-4000-8000-000000000002';
 const draft = {
   title: 'Invented import',
-  slides: [{label: 'New label', lines: ['Invented line']}],
-  arrangements: [{name: 'Sequence', slides: [1, 1]}],
+  groups: [
+    {id: group, name: 'New label', slides: [{lines: ['Invented line']}]},
+  ],
+  arrangements: [{name: 'Sequence', groups: [group, group]}],
 };
 const request = {type: 'song.import', draft, target: {kind: 'new'}};
+
+function groupOf(count: number, lines: readonly string[] = []) {
+  return Array.from({length: count}, (_, index) => ({
+    id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    name: '',
+    slides: [{lines}],
+  }));
+}
 
 describe('song.import contract', () => {
   it.each([{kind: 'new'}, {kind: 'overwrite', songId: id, baseRevision: 1}])(
@@ -20,36 +31,55 @@ describe('song.import contract', () => {
   );
   it.each([
     {title: ' '},
-    {slides: []},
-    {slides: [{label: ' ', lines: ['Line']}]},
-    {slides: [{lines: [3]}]},
+    {groups: []},
+    {groups: [{id: group, name: ' ', slides: [{lines: ['Line']}]}]},
+    {groups: [{id: group, name: 'x', slides: []}]},
+    {groups: [{id: group, name: 'x', slides: [{lines: [3]}]}]},
+    {groups: [{id: 'bad', name: 'x', slides: [{lines: []}]}]},
     {background: 'not-an-id'},
-    {arrangements: [{name: '기본', slides: [1]}]},
-    {arrangements: [{name: 'Sequence', slides: [2]}]},
+    {arrangements: [{name: '기본', groups: [group]}]},
     {
       arrangements: [
-        {name: 'Same', slides: [1]},
-        {name: 'Same', slides: [1]},
+        {name: 'Same', groups: [group]},
+        {name: 'Same', groups: [group]},
       ],
     },
-    {slides: Array.from({length: 5001}, () => ({lines: []}))},
-    {slides: [{lines: Array.from({length: 20_001}, () => '')}]},
-    {slides: [{lines: ['x'.repeat(1_000_001)]}]},
+    {groups: groupOf(SONG_IMPORT_LIMITS.slides + 1)},
+    {
+      groups: [
+        {
+          id: group,
+          name: 'x',
+          slides: [{lines: Array.from({length: 20_001}, () => '')}],
+        },
+      ],
+    },
+    {
+      groups: [
+        {id: group, name: 'x', slides: [{lines: ['x'.repeat(1_500_001)]}]},
+      ],
+    },
     {title: 'x'.repeat(513)},
-    {slides: [{label: 'x'.repeat(513), lines: []}]},
-    {arrangements: [{name: 'x'.repeat(513), slides: [1]}]},
+    {groups: [{id: group, name: 'x'.repeat(513), slides: [{lines: []}]}]},
+    {arrangements: [{name: 'x'.repeat(513), groups: [group]}]},
     {
       arrangements: Array.from({length: 1001}, (_, index) => ({
         name: `Sequence ${index}`,
-        slides: [],
+        groups: [],
       })),
     },
     {
       arrangements: [
-        {name: 'Sequence', slides: Array.from({length: 20_001}, () => 1)},
+        {
+          name: 'Sequence',
+          groups: Array.from(
+            {length: SONG_IMPORT_LIMITS.picks + 1},
+            () => group,
+          ),
+        },
       ],
     },
-  ])('rejects malformed or excessive draft fields %o', fields => {
+  ])('rejects malformed or excessive draft fields %j', fields => {
     expect(
       parseContentEdit({...request, draft: {...draft, ...fields}}).ok,
     ).toBe(false);
@@ -63,16 +93,31 @@ describe('song.import contract', () => {
     expect(parseContentEdit({...request, target}).ok).toBe(false);
   });
   it('accepts the slide and line limits and preserves safe nested extension fields', () => {
-    for (const slides of [
-      Array.from({length: SONG_IMPORT_LIMITS.slides}, () => ({lines: []})),
-      [{lines: Array.from({length: SONG_IMPORT_LIMITS.lines}, () => '')}],
-      [{label: '', lines: ['Line'], future: {kept: true}}],
+    for (const groups of [
+      groupOf(SONG_IMPORT_LIMITS.slides),
+      [
+        {
+          id: group,
+          name: '',
+          slides: [
+            {lines: Array.from({length: SONG_IMPORT_LIMITS.lines}, () => '')},
+          ],
+        },
+      ],
+      [
+        {
+          id: group,
+          name: '',
+          slides: [{lines: ['Line'], future: {kept: true}}],
+          future: {kept: true},
+        },
+      ],
     ]) {
       expect(
-        parseContentEdit({...request, draft: {title: 'Limit', slides}}),
+        parseContentEdit({...request, draft: {title: 'Limit', groups}}),
       ).toEqual({
         ok: true,
-        value: {...request, draft: {title: 'Limit', slides}},
+        value: {...request, draft: {title: 'Limit', groups}},
       });
     }
   });

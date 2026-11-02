@@ -35,7 +35,7 @@ describe('grouped song sessions', () => {
       parseGroupedSong(
         JSON.stringify({
           format: 'llsong',
-          schemaVersion: 2,
+          schemaVersion: 1,
           id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
           title: '새 아침',
           groups: [
@@ -155,7 +155,7 @@ describe('grouped song sessions', () => {
     expect(edits[0]).toMatchObject({
       type: 'song.update',
       song: {
-        schemaVersion: 2,
+        schemaVersion: 1,
         groups: [{slides: [{}, {lines: ['modified']}]}, {}],
       },
     });
@@ -257,7 +257,7 @@ describe('manual song sessions', () => {
     const song = session.draftSong('다른 제목');
 
     expect(song).toMatchObject({id: first.song.id, title: '다른 제목'});
-    expect(JSON.stringify(song?.groups)).toContain('바꾼 가사');
+    expect(JSON.stringify(song.groups)).toContain('바꾼 가사');
     expect(session.unsaved).toBe(true);
   });
 });

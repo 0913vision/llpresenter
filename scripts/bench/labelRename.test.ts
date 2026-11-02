@@ -43,9 +43,15 @@ it.skipIf(process.env['LLP_BENCH'] !== '1')(
               schemaVersion: 1,
               id: itemId(index + 1),
               title: `Invented song ${index + 1}`,
-              slides: [
-                {label: 'Before', lines: ['Invented line']},
-                {label: 'Before', lines: ['Another invented line']},
+              groups: [
+                {
+                  id: `b0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+                  name: 'Before',
+                  slides: [
+                    {lines: ['Invented line']},
+                    {lines: ['Another invented line']},
+                  ],
+                },
               ],
             }),
             file,

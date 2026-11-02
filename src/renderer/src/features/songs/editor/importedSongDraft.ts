@@ -1,15 +1,11 @@
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit} from '@core/schema/contentEdit';
-import {parseGroupedSongDraft} from '@core/schema/groupedSong';
+import {SONG_SCHEMA_VERSION, type GroupedSong} from '@core/schema/groupedSong';
 import type {SongId} from '@core/schema/ids';
 import {createSongId} from '@core/schema/ids';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {
-  ImportDraftLimitError,
-  importDraftSlides,
-} from '@core/songs/importDraftSlides';
-import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
+import {importGroups} from '@core/songs/importGroups';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import type {EditorApi, EditorOperationHost} from './editorContracts';
 import {SongSession} from './songSession';
@@ -57,22 +53,15 @@ export class ImportedSongDraft {
       this.requestLeave(() => this.openImported(draft));
       return;
     }
-    const migrated = parseGroupedSongDraft(
-      JSON.stringify({
-        format: 'llsong',
-        schemaVersion: 1,
-        id: createSongId(crypto.randomUUID()),
-        title: normalizeSongTitle(draft.title) || '가져온 곡',
-        slides: draft.slides,
-      }),
-      'imported song',
-    );
-    if (!migrated.ok) {
-      this.context.host.problem('가져온 곡 열기 실패');
-      return;
-    }
+    const song: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: SONG_SCHEMA_VERSION,
+      id: createSongId(crypto.randomUUID()),
+      title: normalizeSongTitle(draft.title) || '가져온 곡',
+      groups: importGroups(draft.slides, () => crypto.randomUUID()),
+    };
     const checked = parseSongDocument({
-      song: migrated.value.data,
+      song,
       revision: 1,
       access: 'editable',
     });
@@ -158,7 +147,10 @@ export class ImportedSongDraft {
             target,
             draft: {
               title: normalizeSongTitle(session.title.value),
-              ...importDraftSlides(song),
+              groups: song.groups,
+              ...(song.arrangements === undefined
+                ? {}
+                : {arrangements: song.arrangements}),
               ...(session.background === undefined
                 ? {}
                 : {background: session.background}),
@@ -192,11 +184,7 @@ export class ImportedSongDraft {
         return true;
       } catch (error) {
         console.error('Imported song save failed', error);
-        this.context.host.problem(
-          error instanceof ImportDraftLimitError
-            ? ARRANGEMENT_LIMIT_REASON
-            : '가져온 곡 저장 실패',
-        );
+        this.context.host.problem('가져온 곡 저장 실패');
         return false;
       }
     });

@@ -1,8 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {
-  editorGroupedSong,
-  editorLegacySong,
-} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {song as sampleSong} from '@fixtures/core/songs/blockFixtures';
+import {editorGroupedSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createSongGroupId, createSongId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {
@@ -14,36 +12,13 @@ import {
   groupStartIndicesFromGroups,
   itemPicture,
   movedOrder,
-  orderChips,
+  groupedOrderChips,
   sameSequence,
   shownPosition,
   withoutPosition,
 } from '@renderer/features/songs/editor/songItemModel';
 
-const song = editorLegacySong(1);
-
 describe('song item model', () => {
-  it('keys repeated 슬라이드 by occurrence and colors them by 이름표', () => {
-    expect(
-      orderChips(song, [2, 1, 2], [{name: '후렴', color: 'orange', key: null}]),
-    ).toEqual([
-      {key: '2:1', name: '후렴', color: 'orange', number: 2},
-      {key: '1:1', name: '1절', color: 'none', number: 1},
-      {key: '2:2', name: '후렴', color: 'orange', number: 2},
-    ]);
-  });
-
-  it('names a 슬라이드 without an 이름표 by its number only', () => {
-    const unlabeled = {
-      ...song,
-      slides: [{lines: ['A']}, {label: '', lines: []}],
-    };
-    expect(orderChips(unlabeled, [1, 2], []).map(chip => chip.name)).toEqual([
-      undefined,
-      undefined,
-    ]);
-  });
-
   it('moves and removes positions without changing the input', () => {
     const order = [1, 2, 3];
     expect(movedOrder(order, 0, 2)).toEqual([2, 3, 1]);
@@ -59,15 +34,16 @@ describe('song item model', () => {
   });
 
   it('pictures the selected place of the order the item plays', () => {
+    const song = sampleSong();
     expect(
       itemPicture({song, arrangement: '주일용', position: 2, background: 'bg'}),
     ).toEqual({
       song,
-      block: 1,
-      nextBlock: undefined,
+      block: 0,
+      nextBlock: 1,
       background: 'bg',
       position: 3,
-      total: 3,
+      total: 4,
     });
     expect(
       itemPicture({
@@ -76,24 +52,15 @@ describe('song item model', () => {
         position: 9,
         background: undefined,
       }),
-    ).toMatchObject({block: 1, position: 2, total: 2});
-    const empty = {...song, arrangements: [{name: '빈 구성', slides: []}]};
+    ).toMatchObject({block: 2, position: 3, total: 3});
     expect(
       itemPicture({
-        song: empty,
+        song,
         arrangement: '빈 구성',
         position: 0,
         background: undefined,
       }),
-    ).toMatchObject({block: 0, total: 2});
-    expect(
-      itemPicture({
-        song: {...song, slides: []},
-        arrangement: undefined,
-        position: 0,
-        background: undefined,
-      }),
-    ).toBeNull();
+    ).toMatchObject({block: 0, total: 3});
   });
 
   it('keys repeated groups in grouped songs and colors them by label', () => {
@@ -101,7 +68,7 @@ describe('song item model', () => {
     const g1 = grouped.groups[0]?.id ?? createSongGroupId('1');
     const g2 = grouped.groups[1]?.id ?? createSongGroupId('2');
     expect(
-      orderChips(
+      groupedOrderChips(
         grouped,
         [g1, g2, g1],
         [
@@ -147,7 +114,7 @@ describe('song item model', () => {
     const g3 = createSongGroupId('33333333-3333-4333-a333-333333333333');
     const grouped: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: createSongId('00000000-0000-4000-8000-000000000001'),
       title: '곡',
       groups: [
@@ -172,7 +139,7 @@ describe('song item model', () => {
     const dangling = createSongGroupId('99999999-9999-4999-a999-999999999999');
     const grouped: GroupedSong = {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 1,
       id: createSongId('00000000-0000-4000-8000-000000000001'),
       title: '곡',
       groups: [
@@ -181,7 +148,7 @@ describe('song item model', () => {
       ],
       arrangements: [{name: '정리전', groups: [dangling, g1, g2]}],
     };
-    const chips = orderChips(grouped, [g1, dangling, g2, g1], []);
+    const chips = groupedOrderChips(grouped, [g1, dangling, g2, g1], []);
     expect(chips).toEqual([
       {key: `${g1}:1`, name: '이름표 없음 1', color: 'none', number: 1},
       {key: `${g2}:1`, name: '이름표 없음 2', color: 'none', number: 2},

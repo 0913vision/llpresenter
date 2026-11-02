@@ -1,4 +1,4 @@
-import type {GroupedSong, SongGroup} from '../schema/groupedSong';
+import type {SongGroup} from '../schema/groupedSong';
 
 import {createSongGroupId, type SongGroupId} from '../schema/ids';
 
@@ -14,10 +14,10 @@ import {
 } from './blockModel';
 
 function replaceGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
+  snapshot: BlockSnapshot,
   text: string,
   selection: Pick<BlockSelection, 'start' | 'end'>,
-): BlockSnapshot<GroupedSong> {
+): BlockSnapshot {
   const {song} = snapshot;
   const {block} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -36,10 +36,10 @@ function replaceGrouped(
 }
 
 function splitGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
+  snapshot: BlockSnapshot,
   before: string,
   after: string,
-): BlockSnapshot<GroupedSong> {
+): BlockSnapshot {
   const {song} = snapshot;
   const {block} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -61,9 +61,7 @@ function splitGrouped(
   );
 }
 
-function insertGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
-): BlockSnapshot<GroupedSong> {
+function insertGrouped(snapshot: BlockSnapshot): BlockSnapshot {
   const {song} = snapshot;
   const {block} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -81,9 +79,9 @@ function insertGrouped(
 }
 
 function pasteGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
+  snapshot: BlockSnapshot,
   insertion: string,
-): BlockSnapshot<GroupedSong> {
+): BlockSnapshot {
   const {song} = snapshot;
   const {block, start, end} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -127,10 +125,10 @@ function pasteGrouped(
 }
 
 function labelGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
+  snapshot: BlockSnapshot,
   name: string | undefined,
   ids?: readonly [SongGroupId, SongGroupId],
-): BlockSnapshot<GroupedSong> {
+): BlockSnapshot {
   const {song} = snapshot;
   const {block} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -199,9 +197,7 @@ function labelGrouped(
   );
 }
 
-function mergeGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
-): BlockSnapshot<GroupedSong> {
+function mergeGrouped(snapshot: BlockSnapshot): BlockSnapshot {
   const {song} = snapshot;
   const {block, start, end} = snapshot.selection;
   if (start !== 0 || end !== 0) return snapshot;
@@ -232,9 +228,7 @@ function mergeGrouped(
   );
 }
 
-function enterGrouped(
-  snapshot: BlockSnapshot<GroupedSong>,
-): BlockSnapshot<GroupedSong> {
+function enterGrouped(snapshot: BlockSnapshot): BlockSnapshot {
   const {song} = snapshot;
   const {block, start, end} = snapshot.selection;
   const addr = linearBlockAddress(song, block);
@@ -262,9 +256,9 @@ function enterGrouped(
 
 /** Applies a grouped-song command without mutating its bounded snapshot. It retains group references and refuses cross-group merges; it does not save or publish changes. */
 export function editGroupedBlocks(
-  snapshot: BlockSnapshot<GroupedSong>,
+  snapshot: BlockSnapshot,
   command: BlockCommand,
-): BlockSnapshot<GroupedSong> {
+): BlockSnapshot {
   switch (command.type) {
     case 'text':
       return replaceGrouped(snapshot, normalize(command.text), command);

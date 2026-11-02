@@ -7,7 +7,6 @@ import {
   type JSX,
 } from 'react';
 import type {Label} from '@core/schema/labels';
-import {isGroupedSong} from '@core/schema/groupedSong';
 import {isItemOfKind} from '@core/schema/service';
 import {editedOrderWithLimit} from '@core/songs/songArrangements';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
@@ -27,7 +26,6 @@ import {
   editedGroupOrder,
   groupRangesFromGroups,
   groupedOrderChips,
-  legacyOrderChips,
 } from '../../songs/editor/songItemModel';
 import styles from './SongItemPanel.module.css';
 
@@ -63,17 +61,11 @@ export function ItemArrangement({
   });
   const {song} = session.history.snapshot;
   const sequence = editedOrderWithLimit(song, arrangement);
-  const grouped = isGroupedSong(song);
-  const groupOrder =
-    grouped && !sequence.capped ? editedGroupOrder(song, arrangement) : [];
-  const ranges = grouped ? groupRangesFromGroups(song, groupOrder) : [];
-  const chips = grouped
-    ? groupedOrderChips(song, groupOrder, labels)
-    : legacyOrderChips(song, sequence.slides, labels);
+  const groupOrder = sequence.capped ? [] : editedGroupOrder(song, arrangement);
+  const ranges = groupRangesFromGroups(song, groupOrder);
+  const chips = groupedOrderChips(song, groupOrder, labels);
   const chipAt = (position: number | undefined): number | undefined =>
-    grouped
-      ? chipIndexForSlide(position, ranges, sequence.slides.length)
-      : position;
+    chipIndexForSlide(position, ranges, sequence.slides.length);
   const [deleting, setDeleting] = useState<{
     readonly name: string;
     readonly uses: number;
@@ -176,7 +168,7 @@ export function ItemArrangement({
         selected={chipAt(selected)}
         live={chipAt(live)}
         onSelect={index => {
-          const position = grouped ? ranges[index]?.start : index;
+          const position = ranges[index]?.start;
           if (position !== undefined) onSelect(position);
         }}
       />

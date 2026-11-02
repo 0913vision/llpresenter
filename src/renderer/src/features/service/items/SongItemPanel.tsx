@@ -1,8 +1,6 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
-import {isGroupedSong} from '@core/schema/groupedSong';
-import {playbackOrder} from '@core/songs/songOrder';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
@@ -107,9 +105,10 @@ function SongItemView({
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
       .labels ?? [];
   const {song} = session.history.snapshot;
-  const {slides: sequence, capped} = isGroupedSong(song)
-    ? playedOrderWithLimit(song, {arrangement, customOrder: item.customOrder})
-    : {slides: playbackOrder(song, arrangement), capped: false};
+  const {slides: sequence, capped} = playedOrderWithLimit(song, {
+    arrangement,
+    customOrder: item.customOrder,
+  });
   const shown = shownPosition(position, sequence.length);
   const select = (index: number): void => items.selectPosition(index);
   const editReason = session.readOnly ? NEWER_FILE_REASON : undefined;

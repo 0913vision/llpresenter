@@ -45,7 +45,7 @@ describe('registerStore', () => {
       id: songId,
       title: 'Invented song',
       background: mediaId,
-      slides: [{lines: ['Invented line']}],
+      groups: [{id: itemId(5), name: '', slides: [{lines: ['Invented line']}]}],
     });
     await writeJson(join(root, 'Services', `${itemId(3)}.llservice`), {
       format: 'llservice',

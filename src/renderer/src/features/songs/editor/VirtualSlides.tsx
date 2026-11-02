@@ -6,12 +6,11 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {Song} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
-import type {AnySong} from '@core/schema/groupedSong';
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {linearSlidesOf} from '@core/songs/blockEdits';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -59,6 +58,14 @@ interface WindowStyle extends CSSProperties {
   readonly '--grid-top': string;
 }
 
+/** Slides that belong to no song, such as a Bible passage's. */
+interface SlideSource {
+  readonly slides: ReadonlyArray<{
+    readonly label?: string;
+    readonly lines: readonly string[];
+  }>;
+}
+
 /** Windows by rows; the full logical list remains reachable by keyboard. */
 export function VirtualSlides({
   song,
@@ -72,7 +79,7 @@ export function VirtualSlides({
   onHotKey,
   hotKeyReason,
 }: {
-  readonly song: Pick<Song, 'slides'> | AnySong;
+  readonly song: SlideSource | GroupedSong;
   readonly numbers: readonly number[];
   readonly labels: readonly Label[];
   readonly selected: number | undefined;

@@ -1,3 +1,4 @@
+import type {GroupedSong} from '@core/schema/groupedSong';
 import {
   useEffect,
   useEffectEvent,
@@ -17,12 +18,7 @@ import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
-import {
-  linearBlockAddress,
-  linearSlidesOf,
-  slideCountOf,
-} from '@core/songs/blockEdits';
+import {linearBlockAddress, slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -129,7 +125,7 @@ function Picture({
 
 /** One 슬라이드 of a song and its place in the order the panel shows. */
 export interface SongPicture {
-  readonly song: AnySong;
+  readonly song: GroupedSong;
   /** The 슬라이드's index in the song file. */
   readonly block: number;
   /** The next source block in the selected order; absent after its last place. */
@@ -238,27 +234,13 @@ export function ContentPreviewFrame({
     );
   }
   const {position, total} = picture;
-  const slides =
-    song === undefined
-      ? []
-      : isGroupedSong(song)
-        ? linearSlidesOf(song)
-        : song.slides;
-  const slide = slides[block];
-  const addr =
-    song !== undefined && isGroupedSong(song)
-      ? linearBlockAddress(song, block)
-      : undefined;
+  const addr = song === undefined ? undefined : linearBlockAddress(song, block);
   const labelName =
     tilePicture !== undefined
       ? (tilePicture.tile.label ?? undefined)
-      : addr !== undefined
-        ? addr.groupName === ''
-          ? undefined
-          : addr.groupName
-        : slide?.label === ''
-          ? undefined
-          : slide?.label;
+      : addr?.groupName === ''
+        ? undefined
+        : addr?.groupName;
   const color =
     tilePicture?.tile.labelColor ??
     labels.find(label => label.name === labelName)?.color ??

@@ -18,7 +18,6 @@ import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@core/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
-import {isGroupedSong, type AnySong} from '@core/schema/groupedSong';
 import {linearSlidesOf, slideCountOf} from '@core/songs/blockEdits';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {useSongBlockWindow} from './useSongBlockWindow';
@@ -66,7 +65,7 @@ function SongBlocks({
   session,
 }: {
   readonly store: SongEditorStore;
-  readonly session: SongSession<AnySong>;
+  readonly session: SongSession;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -80,10 +79,7 @@ function SongBlocks({
   const [menu, setMenu] = useState<{anchor: HTMLElement; block: number} | null>(
     null,
   );
-  const slides = useMemo(
-    () => (isGroupedSong(song) ? linearSlidesOf(song) : song.slides),
-    [song],
-  );
+  const slides = useMemo(() => linearSlidesOf(song), [song]);
   const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
     slides,
     selection.block,
