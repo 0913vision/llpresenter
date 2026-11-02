@@ -69,11 +69,11 @@ the scrolling fallback, preserving the saved visibility choice.
 
 | Class | Window width | Toolbar | Left | Right | Media bin default | 진행 도구 tabs | Small previews | 지우기 buttons | Default thumbnail columns |
 |---|---|---|---|---|---|---|---|---|---|
-| Narrow window | 1280–1599 | 40 `size-toolbar-compact` | 220 `col-left-compact` | 360 `col-right-compact` | Starts closed | 표시 중, 무대, 더 보기 | 64px rows | Icon only (모두 has a name) | 3 |
+| Narrow window | 1280–1599 | 40 `size-toolbar-compact` | 220 `col-left-compact` | 360 `col-right-compact` | Starts closed | The tabs that fit, then 더 보기 | 64px rows | Icon only (모두 has a name) | 3 |
 | Regular window | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | Open | All 8 | Two cells | Icon + name | 4 |
 | Wide window | 2400 or more | 56 | 320 | 560 | Open | All 8 | Two cells | Icon + name | 6 |
 
-The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the remaining tabs (오디오, 타이머, 메시지, 공지, 그래픽, 매크로) as a menu.
+The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the tabs that do not fit as a menu.
 
 | Screen | Scaling | CSS pixels | Class |
 |---|---|---|---|
@@ -131,6 +131,6 @@ const mediaStrip = settings.mediaStrip ?? (defaults[c].mediaStrip && heightDip >
 
 ## Changes from the drafts
 
-- Compact (1366×768): toolbar 44 → 40 (`size-toolbar-compact`), status bar 24 → 28, 진행 도구 tabs "표시 중, 무대, 메시지 + 더 보기" → "표시 중, 무대 + 더 보기".
+- Compact (1366×768): toolbar 44 → 40 (`size-toolbar-compact`), status bar 24 → 28, 진행 도구 tabs "the tabs that fit, then 더 보기".
 - The historical ShowH/Problems center strip (220px in the drafts, later 170px)
   is superseded by the full-width shared bin and bounded allocation above.
