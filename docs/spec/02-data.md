@@ -1136,6 +1136,11 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   newest complete backup folder; with none, it shows 없음 (none). It isn't
   stored anywhere, so `app.json` keeps a single writer (lead decision, October
   25, 2026).
+- 환경설정 refuses a backup location that a backup would copy into itself: one
+  inside, or equal to, the song, service, 템플릿, settings, 미디어, or data
+  folder, or one that holds any of them. It likewise refuses a 곡 or 미디어
+  folder inside or equal to the backup location. The row's tooltip gives the
+  reason, and nothing is stored (lead decision, November 2, 2026).
 - 지금 백업 (back up now) runs a backup at once. Keep as many backups as the
   보관 option says (default 30).
 - If the backup location isn't writable (for example, the drive is missing),

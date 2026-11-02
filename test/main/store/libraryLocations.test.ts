@@ -1,5 +1,5 @@
 import {mkdir, readdir, writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {dirname, join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import type {
   LibraryLocationField,
@@ -151,6 +151,84 @@ describe('choosing a folder', () => {
       error: {reason: 'outside-development'},
     });
     expect(config.libraryLocations).toEqual({});
+  });
+
+  it.each([
+    {
+      name: 'a backup folder inside the songs folder',
+      field: 'backupPath',
+      base: 'songs',
+      child: 'Backups',
+    },
+    {
+      name: 'a backup folder that is the data folder',
+      field: 'backupPath',
+      base: 'dataRoot',
+      child: '',
+    },
+    {
+      name: 'a backup folder inside the media folder',
+      field: 'backupPath',
+      base: 'media',
+      child: 'B',
+    },
+    {
+      name: 'a backup folder holding the songs folder',
+      field: 'backupPath',
+      base: 'parent',
+      child: '',
+    },
+    {
+      name: 'a songs folder inside the backup folder',
+      field: 'songsPath',
+      base: 'backups',
+      child: 'S',
+    },
+    {
+      name: 'a media folder that is the backup folder',
+      field: 'mediaPath',
+      base: 'backups',
+      child: '',
+    },
+  ] as const)(
+    'refuses $name and stores nothing',
+    async ({field, base, child}) => {
+      const {inUse, locations, config, onChange, choosing} = await setUp();
+      const parent = dirname(inUse.dataRoot);
+      const folders = {...inUse, parent};
+      const folder = child === '' ? folders[base] : join(folders[base], child);
+
+      const result = await locations.choose(field, choosing(folder));
+
+      expect(result).toEqual({ok: false, error: {reason: 'overlaps-backup'}});
+      expect(config.libraryLocations).toEqual({});
+      expect(onChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it('refuses a folder that differs only in letter case on Windows', async () => {
+    const {inUse, locations, choosing} = await setUp();
+
+    const result = await locations.choose(
+      'backupPath',
+      choosing(inUse.songs.toUpperCase()),
+    );
+
+    expect(result.ok).toBe(process.platform !== 'win32');
+  });
+
+  it('accepts a sibling folder of the data and backup folders', async () => {
+    const {root, locations, config, choosing} = await setUp();
+
+    const result = await locations.choose(
+      'backupPath',
+      choosing(join(root, 'ElsewhereBackups')),
+    );
+
+    expect(result).toEqual({ok: true, value: undefined});
+    expect(config.libraryLocations.backupPath).toBe(
+      join(root, 'ElsewhereBackups'),
+    );
   });
 
   it('stores nothing when the dialog is canceled', async () => {

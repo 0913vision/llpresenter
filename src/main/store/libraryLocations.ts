@@ -81,6 +81,9 @@ export class LibraryLocations {
     ) {
       return {ok: false, error: {reason: 'outside-development'}};
     }
+    if (this.overlapsBackup(field, folder)) {
+      return {ok: false, error: {reason: 'overlaps-backup'}};
+    }
     const problem = await writeProblem(folder);
     if (problem !== null) {
       return {ok: false, error: {reason: 'not-writable', detail: problem}};
@@ -139,6 +142,28 @@ export class LibraryLocations {
       ...config.libraryLocations,
     };
     return resolveLocations(fields, context()).locations;
+  }
+
+  /**
+   * Whether the folder and the 백업 위치 would hold each other, so a backup
+   * copied itself. The 백업 위치 is checked against every data folder; 곡 and
+   * 미디어 against the 백업 위치.
+   */
+  private overlapsBackup(field: LibraryLocationField, folder: string): boolean {
+    const now = this.resolved();
+    const holds = (outer: string, inner: string): boolean =>
+      isInside(inner, outer) || isInside(outer, inner);
+    if (field === 'backupPath') {
+      return [
+        now.dataRoot,
+        now.songs,
+        now.media,
+        now.services,
+        now.templates,
+        now.settings,
+      ].some(data => holds(folder, data));
+    }
+    return holds(now.backups, folder);
   }
 
   private currentFolder(field: LibraryLocationField): string {

@@ -53,6 +53,7 @@ export const chooseLocationFailures = [
   'canceled',
   'not-writable',
   'outside-development',
+  'overlaps-backup',
   'settings-locked',
 ] as const;
 

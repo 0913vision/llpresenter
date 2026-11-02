@@ -215,14 +215,20 @@ export function LibraryPage({
           label="곡"
           path={view?.songs.path ?? ''}
           disabled={unavailable}
-          title={view?.songs.pending ? NEXT_LAUNCH_NOTE : lockedReason}
+          title={
+            locations.refusals.songsPath ??
+            (view?.songs.pending ? NEXT_LAUNCH_NOTE : lockedReason)
+          }
           onChange={() => locations.choose('songsPath')}
         />
         <PathRow
           label="미디어"
           path={view?.media.path ?? ''}
           disabled={unavailable}
-          title={view?.media.pending ? NEXT_LAUNCH_NOTE : lockedReason}
+          title={
+            locations.refusals.mediaPath ??
+            (view?.media.pending ? NEXT_LAUNCH_NOTE : lockedReason)
+          }
           onChange={() => locations.choose('mediaPath')}
         />
       </PropertyGroup>
@@ -240,7 +246,7 @@ export function LibraryPage({
           label="백업 위치"
           path={view?.backup.path ?? ''}
           disabled={unavailable}
-          title={lockedReason ?? BACKUP_NOTE}
+          title={locations.refusals.backupPath ?? lockedReason ?? BACKUP_NOTE}
           onChange={() => locations.choose('backupPath')}
         />
         <CountRow

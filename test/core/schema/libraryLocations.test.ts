@@ -56,6 +56,7 @@ describe('the answers', () => {
       'canceled',
       'not-writable',
       'outside-development',
+      'overlaps-backup',
       'settings-locked',
     ]) {
       expect(parseChooseLocationResult({ok: false, error: {reason}}).ok).toBe(

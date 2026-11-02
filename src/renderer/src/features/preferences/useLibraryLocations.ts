@@ -11,6 +11,7 @@ const FOLDER_REFUSALS: Readonly<
 > = {
   'not-writable': '이 폴더에는 쓸 수 없음',
   'outside-development': '개발용 폴더 밖은 쓸 수 없음',
+  'overlaps-backup': '백업 위치와 겹치는 폴더',
   'settings-locked': '새 버전의 파일이라 바꿀 수 없습니다',
 };
 const BACKUP_FAILED = '백업하지 못함';
@@ -23,6 +24,8 @@ function warning(key: string, title: string): Notice {
 export interface LibraryLocationsState {
   /** The folders and backup state; null until the first read. */
   readonly view: LocationsView | null;
+  /** Why the last folder of a row was refused, for the row's tooltip. */
+  readonly refusals: Readonly<Partial<Record<LibraryLocationField, string>>>;
   readonly choose: (field: LibraryLocationField) => void;
   readonly backUpNow: () => void;
 }
@@ -36,6 +39,9 @@ export function useLibraryLocations(
   onProblem: (notice: Notice) => void,
 ): LibraryLocationsState {
   const [view, setView] = useState<LocationsView | null>(null);
+  const [refusals, setRefusals] = useState<
+    Partial<Record<LibraryLocationField, string>>
+  >({});
   const report = useRef(onProblem);
   useEffect(() => {
     report.current = onProblem;
@@ -60,8 +66,13 @@ export function useLibraryLocations(
     window.llp?.locations
       .choose({field})
       .then(result => {
-        if (result.ok || result.error.reason === 'canceled') return;
+        if (result.ok) {
+          setRefusals(({[field]: _stored, ...others}) => others);
+          return;
+        }
+        if (result.error.reason === 'canceled') return;
         const title = FOLDER_REFUSALS[result.error.reason];
+        setRefusals(current => ({...current, [field]: title}));
         report.current(warning(`preferences:folder:${field}`, title));
       })
       .catch((error: unknown) => {
@@ -90,5 +101,5 @@ export function useLibraryLocations(
         report.current(warning('preferences:backup', BACKUP_FAILED));
       });
   }, []);
-  return {view, choose, backUpNow};
+  return {view, refusals, choose, backUpNow};
 }

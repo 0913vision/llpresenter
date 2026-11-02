@@ -199,6 +199,31 @@ describe('라이브러리 > 위치 and 백업', () => {
     );
   });
 
+  it('shows the reason of an overlapping folder in the tooltip of its row', async () => {
+    const choose = vi.fn<LlpApi['locations']['choose']>(() =>
+      Promise.resolve<ChooseLocationResult>({
+        ok: false,
+        error: {reason: 'overlaps-backup'},
+      }),
+    );
+    install({choose});
+    await mount('라이브러리');
+    const buttons = await changeButtons();
+    const backup = buttons[2];
+    if (backup === undefined) throw new Error('Missing 바꾸기 button');
+
+    await userEvent.click(backup);
+
+    await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
+    expect(
+      (
+        await hoverForTooltip(
+          screen.getByDisplayValue(BACKUPS).parentElement ?? document.body,
+        )
+      )?.textContent,
+    ).toBe('백업 위치와 겹치는 폴더');
+  });
+
   it('shows 없음 when there is no backup', async () => {
     install({});
     await mount('라이브러리');
