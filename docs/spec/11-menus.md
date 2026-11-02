@@ -564,6 +564,97 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 | 2         | 화면 설정…                                      | Opens or focuses the single 화면 설정 window. Last, after a separator. Ctrl Alt 1. | Moved  |
 | -         | Per-screen checks                               | Moved to 화면 설정 (사용 안 함).                                                   | Moved  |
 
+### 편집
+
+- Where: Menu bar
+- Opens: Click 편집.
+- Purpose: Undo and redo, text editing, and duplicating or deleting the
+  selection.
+- PP: PP Edit menu on Windows. The rows and Windows keys are the "Edit Menu"
+  table of S1; Key Mappings is "Edit>Key Mappings on Windows" (S2). Neither
+  source shows separators or the position of Key Mappings, so the groups are
+  ours (Not seen in PP). S1's four rows marked N/A on Windows (Show Spelling and
+  Grammar, Check Spelling, Special Characters and Emojis, Start Dictation) are
+  left out.
+- Every row shows its key (`shortcutText`), so a key the operator changed in
+  환경설정 shows here.
+- The menu acts on what had keyboard focus when it opened (see "Which thing a
+  row acts on").
+
+| Group | Row                      | Does                                                                                               | Command                     | Status |
+| ----- | ------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------- | ------ |
+| 1     | 실행 취소 (Ctrl Z)       | PP Undo.                                                                                           | `edit.undo`                 | New    |
+| 1     | 다시 실행 (Ctrl Y)       | PP Redo. Ctrl Shift Z also works (10).                                                             | `edit.redo`                 | New    |
+| 2     | 잘라내기 (Ctrl X)        | PP Cut. Acts on the text field that had focus.                                                     | (fixed)                     | New    |
+| 2     | 복사 (Ctrl C)            | PP Copy. Acts on the text field that had focus.                                                    | (fixed)                     | New    |
+| 2     | 텍스트 스타일 복사       | PP Copy Text Style, Ctrl Alt C. Lyrics are plain lines, so there is no style (10).                 | None                        | Off    |
+| 2     | 붙여넣기 (Ctrl V)        | PP Paste. Acts on the text field that had focus.                                                   | (fixed)                     | New    |
+| 2     | 텍스트 스타일 붙여넣기   | PP Paste Text Style, Alt Shift V.                                                                  | None                        | Off    |
+| 2     | 스타일 맞춰 붙여넣기     | PP Paste and Match Style, Alt V. Pasting into the song editor is always plain text (10).           | None                        | Off    |
+| 3     | 복제 (Ctrl D)            | PP Duplicate. Only where the selected thing has 복제 (테마, 매크로); otherwise disabled.           | `edit.duplicate`            | New    |
+| 3     | 삭제 (Delete)            | PP Delete. Runs the selected thing's own delete, with its question where the Delete rule asks one. | `edit.delete`               | New    |
+| 3     | 모두 선택 (Ctrl A)       | PP Select All. Acts on the text field that had focus.                                              | (fixed)                     | New    |
+| 3     | 선택 해제 (Ctrl Shift D) | PP Deselect. Esc clears a selection here (10).                                                     | None                        | Off    |
+| 4     | 찾기 (Ctrl F)            | PP Search. Focuses the toolbar 검색.                                                               | `search.focus`              | Now    |
+| 5     | 단축키…                  | PP Key Mappings (S2). Opens 환경설정 at the 단축키 page. Off until 환경설정 can open at a page.    | `app.preferences.shortcuts` | Off    |
+
+Which thing a row acts on:
+
+- 실행 취소 and 다시 실행 act on the same thing as their keys do (10, "Focus
+  precedence"): in a text field, that field's own text history; otherwise the
+  예배 순서 history while the 예배 순서 list had focus. Focus goes back to where
+  it was before the menu opened, so the next key press continues where the
+  operator was. Neither ever restores a clear (03, 10).
+- Disabled with a reason when there is nothing to do: "되돌릴 편집이 없습니다"
+  and "다시 실행할 편집이 없습니다". Where the focused place has no history,
+  both rows are disabled with those same reasons.
+- The 곡 편집 window is its own window with no menu bar; its blocks keep Ctrl Z
+  and Ctrl Y (05).
+- 잘라내기, 복사, 붙여넣기, and 모두 선택 are enabled only when a text field had
+  focus (잘라내기 and 복사 also need a selection). Otherwise they are disabled
+  with "글자 입력란에서 쓸 수 있습니다", or "선택한 글자가 없습니다" for
+  잘라내기 and 복사 with nothing selected.
+- 복제 and 삭제 are enabled when the focused place has a handler for the command
+  (`edit.duplicate`, `edit.delete`), and disabled with "선택한 곳에서는 쓸 수
+  없음" otherwise. 복제 has no handler anywhere yet, so it stays off.
+
+### 창
+
+- Where: Menu bar
+- Opens: Click 창.
+- Purpose: Control the main window and open the 환경설정 window.
+- PP: Not seen in PP. S1 and S2 list no Window menu on Windows, and no other
+  source shows its rows. The rows follow the product decision in 01 (최소화,
+  최대화, 환경설정) and the title bar buttons.
+
+| Group | Row                | Does                                                                              | Command           | Status |
+| ----- | ------------------ | --------------------------------------------------------------------------------- | ----------------- | ------ |
+| 1     | 최소화             | The same as the title bar button.                                                 | `window.minimize` | New    |
+| 1     | 최대화             | Maximizes the window or restores it, the same as the title bar 최대화 button.     | `window.maximize` | New    |
+| 2     | 환경설정… (Ctrl ,) | Opens or focuses the single 환경설정 window (PP Open Settings, S1). Also in 파일. | `app.preferences` | New    |
+
+- 최소화 and 최대화 have no default keys (10).
+- No list of open windows: the app has one main window, and 곡 편집, 화면 설정,
+  and 환경설정 each open from their own command.
+
+### 도움말
+
+- Where: Menu bar
+- Opens: Click 도움말.
+- Purpose: Version information and the log folder.
+- PP: The PP 7 user guide (S4) names "Welcome to ProPresenter" in the Help menu,
+  and a support page says the menu holds links to resources. No source lists its
+  rows on Windows, so the rows and groups are ours (Not seen in PP).
+
+| Group | Row            | Does                                                                                                                             | Command        | Status |
+| ----- | -------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ |
+| 1     | 시작 안내      | PP Welcome to ProPresenter. The app has no walkthrough.                                                                          | None           | Off    |
+| 2     | 로그 폴더 열기 | Opens the log folder in the file manager, as 정보's 폴더 열기 button does (10). Off until the 정보 page and a folder call exist. | `app.openLogs` | Off    |
+| 2     | 버전 정보      | Opens 환경설정 at the 정보 page. Off until that page exists.                                                                     | `app.about`    | Off    |
+
+- PP's links to online resources are left out: the app works without the
+  internet (TECH rule 5).
+
 ### 곡 검색 결과
 
 - Where: Toolbar 검색 (ToolbarSearch)

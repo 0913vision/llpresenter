@@ -29,11 +29,34 @@ export function parseWindowAction(
     : {ok: true, value: action};
 }
 
+export type TextEditAction =
+  'undo' | 'redo' | 'cut' | 'copy' | 'paste' | 'selectAll';
+
+export const textEditActions: readonly TextEditAction[] = [
+  'undo',
+  'redo',
+  'cut',
+  'copy',
+  'paste',
+  'selectAll',
+];
+
+/** Checks a text editing action of the 편집 menu. */
+export function parseTextEditAction(
+  value: unknown,
+): Result<TextEditAction, PayloadError> {
+  const action = textEditActions.find(known => known === value);
+  return action === undefined
+    ? {ok: false, error: {field: '', message: 'Unknown text edit action'}}
+    : {ok: true, value: action};
+}
+
 /** The title bar calls. */
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
   openPreferences: signal('window:open-preferences'),
   control: message<WindowAction>('window:control', parseWindowAction),
+  editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
   openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
     'window:open-order-editor',
     {
@@ -61,6 +84,8 @@ export function windowApi(port: IpcPort) {
     openPreferences: port.signal(windowEndpoints.openPreferences),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
+    /** Runs a text editing action on the focused field of the calling window. */
+    editText: port.message(windowEndpoints.editText),
     /** Opens or retargets the 순서 편집 window on a song item. */
     openOrderEditor: port.request(windowEndpoints.openOrderEditor),
     /** Opens or retargets the 곡 편집 window on a song. */

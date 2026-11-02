@@ -17,6 +17,10 @@ import type {Notice} from '@renderer/ui/notices';
 import {useThemeResources} from './useThemeResources';
 import {useThemeWrites} from './useThemeWrites';
 import {useThemeSelection} from './useThemeSelection';
+import {
+  NOTHING_TO_REDO,
+  NOTHING_TO_UNDO,
+} from '@renderer/platform/problemReasons';
 import {useThemeElements} from './useThemeElements';
 import {useThemeSaveFlow} from './useThemeSaveFlow';
 import type {ThemeLeaveGuard} from './themeLeaveGuard';
@@ -118,8 +122,18 @@ export function useThemeEditor(
   useWindowShortcuts([
     {id: 'theme.save', when: () => active, run: flow.askOverwrite},
     {id: 'theme.saveAs', when: () => active, run: flow.askSaveAs},
-    {id: 'edit.undo', when: () => active, run: writes.undo},
-    {id: 'edit.redo', when: () => active, run: writes.redo},
+    {
+      id: 'edit.undo',
+      when: () => active,
+      unavailable: () => (writes.canUndo() ? undefined : NOTHING_TO_UNDO),
+      run: writes.undo,
+    },
+    {
+      id: 'edit.redo',
+      when: () => active,
+      unavailable: () => (writes.canRedo() ? undefined : NOTHING_TO_REDO),
+      run: writes.redo,
+    },
   ]);
   const choose = (id: ThemeId): void => {
     setThemeId(id);

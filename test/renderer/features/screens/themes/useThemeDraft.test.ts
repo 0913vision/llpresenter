@@ -44,4 +44,40 @@ describe('the working copy history', () => {
       shown === null ? undefined : findTheme(shown, theme.id)?.screens[main.id];
     expect(layout?.background).toBe('#000001');
   });
+
+  it('says when there is an edit to undo or redo', () => {
+    const saved = createDefaultThemes();
+    const theme = saved.themes[0];
+    if (theme === undefined) throw new Error('Missing starter theme');
+    const target = {theme: theme.id, screen: main, screens: [main]};
+    const {result} = renderHook(() =>
+      useThemeDraft({
+        saved,
+        reason: undefined,
+        change: () => Promise.resolve({ok: true, value: true}),
+        report: () => undefined,
+      }),
+    );
+    expect([result.current.canUndo(), result.current.canRedo()]).toEqual([
+      false,
+      false,
+    ]);
+    act(() =>
+      result.current.edit(theme.id, file =>
+        editThemeLayout(file, target, layout => ({
+          ...layout,
+          background: '#000001',
+        })),
+      ),
+    );
+    expect([result.current.canUndo(), result.current.canRedo()]).toEqual([
+      true,
+      false,
+    ]);
+    act(() => result.current.undo());
+    expect([result.current.canUndo(), result.current.canRedo()]).toEqual([
+      false,
+      true,
+    ]);
+  });
 });

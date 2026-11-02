@@ -84,6 +84,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     window: {
       control: () => undefined,
+      editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
       openOrderEditor: () =>

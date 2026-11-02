@@ -56,7 +56,12 @@ import type {
 
 export type {DocumentApi} from './content';
 export type {Unsubscribe} from './endpoint';
-export {windowActions, type WindowAction} from './window';
+export {
+  textEditActions,
+  windowActions,
+  type TextEditAction,
+  type WindowAction,
+} from './window';
 
 /**
  * The API that the preload script exposes to windows as `window.llp`. Each

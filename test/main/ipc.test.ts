@@ -208,6 +208,35 @@ describe('registerIpc live commands', () => {
   });
 });
 
+describe('registerIpc text editing', () => {
+  it('runs a known action on the sender and drops an unknown one', () => {
+    const log = mockLog();
+    const dispose = registerIpc(mockStore(), log, 'normal');
+    const sender = {undo: vi.fn(), copy: vi.fn(), paste: vi.fn()};
+    const send = (value: unknown): void =>
+      electron.listeners.get(windowEndpoints.editText.channel)?.(
+        {sender},
+        value,
+      );
+
+    send('copy');
+    send('undo');
+    send('closeAll');
+
+    expect(sender.copy).toHaveBeenCalledOnce();
+    expect(sender.undo).toHaveBeenCalledOnce();
+    expect(sender.paste).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+      'dropped a malformed text edit action',
+      'closeAll',
+    );
+    dispose();
+    expect(electron.listeners.has(windowEndpoints.editText.channel)).toBe(
+      false,
+    );
+  });
+});
+
 describe('registerIpc window actions', () => {
   it('minimizes, maximizes, and closes the window in normal mode', () => {
     const dispose = registerIpc(mockStore(), mockLog(), 'normal');

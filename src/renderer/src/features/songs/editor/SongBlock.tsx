@@ -26,6 +26,10 @@ import {
 } from '@core/songs/blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
+import {
+  NOTHING_TO_REDO,
+  NOTHING_TO_UNDO,
+} from '@renderer/platform/problemReasons';
 import styles from './SongEditor.module.css';
 
 export const BACKSPACE_REFUSAL_MESSAGE =
@@ -158,6 +162,16 @@ export const SongBlock = memo(
           !focus.current.composing &&
           event.target === focus.current.inputs[block] &&
           (id !== 'editor.labelMenu' || editable),
+        unavailable: () =>
+          id === 'edit.undo'
+            ? session.history.canUndo
+              ? undefined
+              : NOTHING_TO_UNDO
+            : id === 'edit.redo'
+              ? session.history.canRedo
+                ? undefined
+                : NOTHING_TO_REDO
+              : undefined,
         run: () => {
           const input = focus.current.inputs[block];
           if (input === null || input === undefined) return;

@@ -38,23 +38,6 @@ function outputItem(name: string): HTMLElement {
 }
 
 describe('MenuBar', () => {
-  it.each(['편집', '창', '도움말'])(
-    'explains why %s is unavailable and ignores pointer and keyboard activation',
-    async label => {
-      const user = userEvent.setup();
-      render(<MenuBar title="" />);
-      const item = screen.getByRole('menuitem', {name: label});
-      await user.click(item);
-      await user.keyboard('{Enter} {ArrowDown}');
-      expect(document.activeElement).toBe(item);
-      expect(screen.queryByRole('menu')).toBeNull();
-      expect(item.hasAttribute('title')).toBe(false);
-      expect((await hoverForTooltip(item))?.textContent).toBe(
-        `${label} 메뉴를 아직 지원하지 않습니다`,
-      );
-    },
-  );
-
   it('names the window buttons with aria-label and a tooltip, not a title', async () => {
     render(<MenuBar title="" />);
     const minimize = screen.getByRole('button', {name: '최소화'});

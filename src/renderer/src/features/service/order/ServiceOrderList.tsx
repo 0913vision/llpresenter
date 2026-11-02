@@ -1,5 +1,11 @@
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {createServiceId} from '@core/schema/ids';
+import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
+import {
+  NEWER_FILE_REASON,
+  NOTHING_TO_REDO,
+  NOTHING_TO_UNDO,
+} from '@renderer/platform/problemReasons';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NoServiceState} from './NoServiceState';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
@@ -340,11 +346,22 @@ export function ServiceOrderList({
       );
     }
   };
+  const historyReason = (kind: 'undo' | 'redo'): string | undefined => {
+    const api = window.llp;
+    if (!editable || api === undefined || serviceId === null) {
+      return kind === 'undo' ? NOTHING_TO_UNDO : NOTHING_TO_REDO;
+    }
+    const edits = serviceOrderEditsFor(api);
+    const id = createServiceId(serviceId);
+    if (kind === 'undo') return edits.canUndo(id) ? undefined : NOTHING_TO_UNDO;
+    return edits.canRedo(id) ? undefined : NOTHING_TO_REDO;
+  };
   useWindowShortcuts([
     {
       id: 'edit.undo',
       context: 'service',
       when: ownsCommand,
+      unavailable: () => historyReason('undo'),
       run: () => {
         if (editable) editing.run((edits, service) => edits.undo(service));
       },
@@ -353,6 +370,7 @@ export function ServiceOrderList({
       id: 'edit.redo',
       context: 'service',
       when: ownsCommand,
+      unavailable: () => historyReason('redo'),
       run: () => {
         if (editable) editing.run((edits, service) => edits.redo(service));
       },

@@ -10,21 +10,31 @@ import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useButtonPress} from '@renderer/ui/press';
 import type {Notice} from '@renderer/ui/notices';
 import {OutputMenuList} from './OutputMenuList';
+import {editMenuEntries} from './editMenuEntries';
 import {fileMenuEntries} from './fileMenuEntries';
+import {useOutsideFocus} from './outsideFocus';
+import {helpMenuEntries, windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu} from './workspaceCommands';
 import type {Workspace} from './Toolbar';
 
-const inertMenus = ['편집'] as const;
-const trailingMenus = ['창', '도움말'] as const;
+const EDIT_MENU = '편집';
+const WINDOW_MENU = '창';
+const HELP_MENU = '도움말';
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
-type MenuName = typeof FILE_MENU | typeof OUTPUT_MENU | typeof VIEW_MENU;
+type MenuName =
+  | typeof FILE_MENU
+  | typeof EDIT_MENU
+  | typeof VIEW_MENU
+  | typeof OUTPUT_MENU
+  | typeof WINDOW_MENU
+  | typeof HELP_MENU;
 
 interface ActiveMenu {
   readonly name: MenuName;
@@ -88,26 +98,6 @@ function WindowButton({
         aria-label={control.label}
       >
         <Icon name={control.icon} size={14} />
-      </button>
-      {tooltip}
-    </>
-  );
-}
-
-function InertMenu({label}: {readonly label: string}): JSX.Element {
-  const {targetProps, tooltip} = useTooltip({
-    text: `${label} 메뉴를 아직 지원하지 않습니다`,
-  });
-  return (
-    <>
-      <button
-        {...targetProps}
-        type="button"
-        role="menuitem"
-        aria-disabled="true"
-        className={styles.menu}
-      >
-        {label}
       </button>
       {tooltip}
     </>
@@ -186,21 +176,23 @@ function FileMenu({
   );
 }
 
-function ViewMenu({
+function EntryMenu({
+  label,
   control,
   entries,
 }: {
+  readonly label: MenuName;
   readonly control: MenuControl;
-  readonly entries: readonly MenuEntry[];
+  readonly entries: () => readonly MenuEntry[];
 }): JSX.Element {
   return (
     <>
-      <MenuTrigger label={VIEW_MENU} control={control} />
+      <MenuTrigger label={label} control={control} />
       {control.anchor === null ? null : (
         <Menu
-          label={VIEW_MENU}
+          label={label}
           anchor={{kind: 'element', element: control.anchor}}
-          entries={entries}
+          entries={entries()}
           onClose={control.close}
         />
       )}
@@ -269,6 +261,7 @@ export function MenuBar({
   readonly onMedia?: (() => void) | undefined;
 }): JSX.Element {
   const [active, setActive] = useState<ActiveMenu | null>(null);
+  const outsideFocus = useOutsideFocus();
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
   const controlFor = (name: MenuName): MenuControl => ({
@@ -308,12 +301,15 @@ export function MenuBar({
           clipboard={clipboard}
           control={controlFor(FILE_MENU)}
         />
-        {inertMenus.map(menu => (
-          <InertMenu key={menu} label={menu} />
-        ))}
-        <ViewMenu
+        <EntryMenu
+          label={EDIT_MENU}
+          control={controlFor(EDIT_MENU)}
+          entries={() => editMenuEntries(outsideFocus())}
+        />
+        <EntryMenu
+          label={VIEW_MENU}
           control={controlFor(VIEW_MENU)}
-          entries={workspaceMenu({onWorkspace, onMedia})}
+          entries={() => workspaceMenu({onWorkspace, onMedia})}
         />
         <OutputMenu
           warnings={warnings}
@@ -322,9 +318,16 @@ export function MenuBar({
           onProblem={onProblem}
           onWorkspace={onWorkspace}
         />
-        {trailingMenus.map(menu => (
-          <InertMenu key={menu} label={menu} />
-        ))}
+        <EntryMenu
+          label={WINDOW_MENU}
+          control={controlFor(WINDOW_MENU)}
+          entries={windowMenuEntries}
+        />
+        <EntryMenu
+          label={HELP_MENU}
+          control={controlFor(HELP_MENU)}
+          entries={helpMenuEntries}
+        />
       </div>
       <span className={styles.title}>{title}</span>
       <div className={styles.controls}>

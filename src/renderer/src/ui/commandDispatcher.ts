@@ -1,4 +1,4 @@
-import {useEffect, useEffectEvent, useSyncExternalStore} from 'react';
+import {useEffect, useEffectEvent, useRef, useSyncExternalStore} from 'react';
 import {commandBindings, shortcutCommand} from '@core/shortcuts/bindings';
 import {
   matchesBinding,
@@ -21,11 +21,18 @@ export interface WindowShortcut {
   readonly id: string;
   readonly context?: CommandContext;
   readonly when?: (event: KeyboardEvent) => boolean;
+  /**
+   * Why the command cannot do anything right now (nothing to undo), shown as
+   * the reason on its menu row. Keys ignore it.
+   */
+  readonly unavailable?: (event: KeyboardEvent) => string | undefined;
   readonly run: (event: KeyboardEvent) => unknown;
 }
 
 interface ShortcutOwner {
   readonly commands: () => readonly WindowShortcut[];
+  /** Every handler, including those whose key the operator cleared. */
+  readonly all: () => readonly WindowShortcut[];
   readonly blocked: () => boolean;
 }
 
@@ -358,9 +365,14 @@ export function useCommandShortcuts(
       commandBindings(handler.id, bindings).length > 0,
   );
   const commands = useEffectEvent(() => enabled);
+  const latest = useRef(handlers);
+  useEffect(() => {
+    latest.current = handlers;
+  });
+  const all = (): readonly WindowShortcut[] => latest.current;
   const isBlocked = useEffectEvent(blocked);
   useEffect(() => {
-    const owner: ShortcutOwner = {commands, blocked: isBlocked};
+    const owner: ShortcutOwner = {commands, all, blocked: isBlocked};
     owners.add(owner);
     stop ??= listen();
     return () => {
@@ -371,4 +383,72 @@ export function useCommandShortcuts(
       }
     };
   }, []);
+}
+
+/** What a menu row sees of a command at the place that had focus. */
+export type CommandProbe =
+  | {readonly found: false}
+  | {readonly found: true; readonly reason: string | undefined};
+
+function placeEvent(place: Element | null): KeyboardEvent {
+  const event = new KeyboardEvent('keydown', {bubbles: true, cancelable: true});
+  Object.defineProperty(event, 'target', {value: place});
+  return event;
+}
+
+function handlerAt(
+  id: string,
+  place: Element | null,
+  event: KeyboardEvent,
+): WindowShortcut | undefined {
+  const workspace = document
+    .querySelector('[data-workspace-layout]')
+    ?.getAttribute('data-workspace-layout');
+  const spec = shortcutCommand(id);
+  return [...owners]
+    .flatMap(owner => owner.all())
+    .find(
+      handler =>
+        handler.id === id &&
+        place !== null &&
+        (workspace === undefined ||
+          workspace === null ||
+          spec === undefined ||
+          spec.contexts.some(
+            context =>
+              context === 'control' ||
+              context === workspace ||
+              context === handler.context,
+          )) &&
+        handler.when?.(event) !== false,
+    );
+}
+
+/**
+ * Asks the handler that would take the command's key at `place` whether it
+ * can run, using the same contexts and `when` checks as the key. A menu row
+ * calls it for the element that had focus before the menu opened.
+ */
+export function probeCommand(id: string, place: Element | null): CommandProbe {
+  const event = placeEvent(place);
+  const handler = handlerAt(id, place, event);
+  return handler === undefined
+    ? {found: false}
+    : {found: true, reason: handler.unavailable?.(event)};
+}
+
+/**
+ * Runs the command the way its key would at `place`, with that element as the
+ * event target.
+ *
+ * @returns Whether a handler took it.
+ */
+export function runCommandAt(id: string, place: Element | null): boolean {
+  const event = placeEvent(place);
+  const handler = handlerAt(id, place, event);
+  if (handler === undefined) return false;
+  Promise.resolve(handler.run(event)).catch((error: unknown) => {
+    console.error('Menu command failed:', id, error);
+  });
+  return true;
 }

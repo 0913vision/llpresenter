@@ -1,5 +1,10 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
-import {windowActions, type WindowAction} from '@contracts/ipc/api';
+import {
+  textEditActions,
+  windowActions,
+  type TextEditAction,
+  type WindowAction,
+} from '@contracts/ipc/api';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {windowEndpoints} from '@contracts/ipc/window';
@@ -16,6 +21,10 @@ import {startMediaProgress} from './live/mediaProgress';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
+}
+
+function isTextEditAction(value: unknown): value is TextEditAction {
+  return textEditActions.some(action => action === value);
 }
 
 /** Sends a value to every open window on a channel; a window that fails is logged and skipped. */
@@ -137,6 +146,13 @@ export function registerIpc(
     dispatchLogged(store, command.value.command, log);
   });
   ipcMain.on(windowEndpoints.control.channel, controlWindowIn(windowMode, log));
+  ipcMain.on(windowEndpoints.editText.channel, (event, value: unknown) => {
+    if (!isTextEditAction(value)) {
+      log.warn('dropped a malformed text edit action', value);
+      return;
+    }
+    event.sender[value]();
+  });
   const stopLogWrites = listenToWindows(
     outputEndpoints.log.channel,
     handleLogWrite(log, new WindowLogLimiter(log)),
@@ -160,5 +176,6 @@ export function registerIpc(
     ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);
+    ipcMain.removeAllListeners(windowEndpoints.editText.channel);
   };
 }

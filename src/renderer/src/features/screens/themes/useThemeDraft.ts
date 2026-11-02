@@ -146,6 +146,8 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     saveAs,
     undo,
     redo,
+    canUndo: (): boolean => past.current.length > 0,
+    canRedo: (): boolean => future.current.length > 0,
     discard: () => {
       forget();
       keep(null);
