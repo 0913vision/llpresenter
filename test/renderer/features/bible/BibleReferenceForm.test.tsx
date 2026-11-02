@@ -216,6 +216,32 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.chapter);
   });
 
+  it('lets Tab leave an empty 책 field, and keeps completing a partial book', async () => {
+    const view = setup();
+    view.book.focus();
+
+    await view.user.tab();
+
+    expect(document.activeElement).toBe(view.chapter);
+    expect(view.book.value).toBe('');
+    expect(view.book.getAttribute('aria-invalid')).not.toBe('true');
+
+    await view.user.tab({shift: true});
+    await view.user.type(view.book, '베');
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.book);
+  });
+
+  it('lets Tab leave an empty 책 field after an arrow key that points at nothing', async () => {
+    const view = setup();
+    view.book.focus();
+
+    await view.user.keyboard('{ArrowDown}{Tab}');
+
+    expect(view.book.value).toBe('');
+    expect(document.activeElement).toBe(view.chapter);
+  });
+
   it('starts without a highlight and blocks ambiguous Tab until an arrow selects a book', async () => {
     const view = setup();
     await view.user.type(view.book, '베');

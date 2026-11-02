@@ -720,11 +720,13 @@ that ProPresenter's Edit mode has the same behavior.
   component is used in 준비 항목 추가 성경 구절.
 - 책 lists every containment match in canonical order, using Korean full and
   short names by jamo, English names and codes, and IME-off QWERTY input (02).
-  Nothing is highlighted initially. Forward Tab completes an exact match or a
-  sole candidate to the full name and moves to 장. With several candidates and
-  no exact match, Tab stays until an arrow-key selection is made. The selected
-  book wins when the operator explicitly points to one. A click or Enter selects
-  a suggestion before any output.
+  Nothing is highlighted initially. With 책 empty and no suggestion pointed,
+  forward Tab moves on like in any field, because there is nothing to complete
+  (lead decision, November 2). With text in 책, forward Tab completes an exact
+  match or a sole candidate to the full name and moves to 장. With several
+  candidates and no exact match, Tab stays until an arrow-key selection is made.
+  The selected book wins when the operator explicitly points to one. A click or
+  Enter selects a suggestion before any output.
 - Forward Tab moves through valid 장, 시작절, and 끝절. 장 ranges from 1 to the
   book's chapter count, 시작절 from 1 to the chapter's last verse, and 끝절 from
   시작절 to the last verse. An empty 끝절 means one verse. Changing 시작절

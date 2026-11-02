@@ -269,6 +269,12 @@ export function BibleReferenceForm(
         return;
       }
       if (event.key === 'Tab' && !event.shiftKey) {
+        if (
+          fields.book.trim() === '' &&
+          suggestions[keyboardPointed ?? -1] === undefined
+        ) {
+          return;
+        }
         event.preventDefault();
         tabBook();
         return;
