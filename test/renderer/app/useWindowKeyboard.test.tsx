@@ -1,6 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useRef, type JSX} from 'react';
+import {modalStack} from '@renderer/ui/modalStack';
 import {
   useCloseKeys,
   useInitialListFocus,
@@ -45,6 +46,22 @@ function Listed({late = false}: {readonly late?: boolean}): JSX.Element {
 }
 
 describe('secondary window keyboard', () => {
+  it('does not close while a modal without onEscape is open', () => {
+    const close = vi.fn();
+    render(<Closing close={close} />);
+    const modal = document.createElement('div');
+    document.body.append(modal);
+    const release = modalStack.push(modal);
+    const field = screen.getByLabelText('field');
+    fireEvent.keyDown(field, {key: 'Escape'});
+    fireEvent.keyDown(field, {key: 'w', ctrlKey: true});
+    expect(close).not.toHaveBeenCalled();
+    release();
+    modal.remove();
+    fireEvent.keyDown(field, {key: 'Escape'});
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
   it('closes on Esc and Ctrl W from a field', () => {
     const close = vi.fn();
     render(<Closing close={close} />);
@@ -77,6 +94,14 @@ describe('secondary window keyboard', () => {
   it('focuses the selected list entry when the window opens', () => {
     render(<Listed />);
     expect(document.activeElement?.textContent).toBe('second');
+  });
+
+  it('stops waiting for the list after the first key press', async () => {
+    const view = render(<Listed late />);
+    fireEvent.keyDown(document.body, {key: 'a'});
+    view.rerender(<Listed />);
+    await Promise.resolve();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('waits for a late list and leaves focus alone once it moved', async () => {
