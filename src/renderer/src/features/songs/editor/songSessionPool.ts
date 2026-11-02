@@ -13,6 +13,8 @@ export interface SongSessionPoolOptions {
   readonly library: () => readonly LibrarySong[];
   readonly busy: () => boolean;
   readonly editingStopped: () => boolean;
+  /** Whether sessions write on every edit or only when asked. */
+  readonly persistence?: 'automatic' | 'manual';
 }
 
 const MAX_SESSIONS = 20;
@@ -71,6 +73,9 @@ export class SongSessionPool {
     const session = new SongSession({
       document,
       api: this.context.api.content,
+      ...(this.context.persistence === undefined
+        ? {}
+        : {persistence: this.context.persistence}),
       isDuplicateTitle: value =>
         this.context
           .library()

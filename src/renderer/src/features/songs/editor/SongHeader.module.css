@@ -29,3 +29,11 @@
 .used[data-unavailable='true'] {
   color: var(--warning);
 }
+
+.unsaved {
+  flex: none;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}

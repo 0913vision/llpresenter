@@ -1,0 +1,87 @@
+import type {JSX} from 'react';
+import {
+  DUPLICATE_TITLE_REASON,
+  normalizeSongTitle,
+} from '@core/songs/songTitle';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {countedMeta} from '@renderer/ui/countedMeta';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import type {SongEditorWindowModel} from './useSongEditorWindow';
+
+const TITLE_LIMIT = 200;
+
+/** The questions of 저장, 다른 이름으로 저장…, and leaving with unsaved edits. */
+export function SongSaveDialogs({
+  model,
+}: {
+  readonly model: SongEditorWindowModel;
+}): JSX.Element | null {
+  const {dialog, session, saving, state} = model;
+  if (dialog === null || session === null) return null;
+  const title = session.title.nextValue;
+  if (dialog.kind === 'saveAs') {
+    const taken = new Set(
+      state.library
+        .filter(entry => entry.id !== session.document.song.id)
+        .map(entry => normalizeSongTitle(entry.title)),
+    );
+    return (
+      <RenameDialog
+        title="다른 이름으로 저장"
+        label="곡 제목"
+        name={model.suggestedName}
+        maxLength={TITLE_LIMIT}
+        rename={{
+          commitsUnchanged: true,
+          validate: name =>
+            taken.has(normalizeSongTitle(name))
+              ? DUPLICATE_TITLE_REASON
+              : undefined,
+          onCommit: model.commitSaveAs,
+          onClose: model.close,
+        }}
+      />
+    );
+  }
+  if (dialog.kind === 'overwrite') {
+    const used =
+      state.library.find(entry => entry.id === session.document.song.id)?.usedBy
+        .length ?? 0;
+    return (
+      <AlertDialog
+        icon="song"
+        title={`‘${title}’ 곡을 덮어쓸까요?`}
+        meta={countedMeta(used, `예배 순서 ${used}곳에서 씀`)}
+        onCancel={model.close}
+        actions={[
+          {
+            label: '덮어쓰기',
+            primary: true,
+            disabled: saving,
+            onSelect: model.confirmOverwrite,
+          },
+        ]}
+      />
+    );
+  }
+  return (
+    <AlertDialog
+      icon="song"
+      title={`‘${title}’ 곡의 변경을 저장할까요?`}
+      onCancel={model.close}
+      actions={[
+        {
+          label: '저장 안 함',
+          disabled: saving,
+          onSelect: () => model.discardAndLeave(dialog.proceed),
+        },
+        {
+          label: '저장',
+          primary: true,
+          disabled: saving,
+          onSelect: () => model.saveAndLeave(dialog.proceed),
+        },
+      ]}
+    />
+  );
+}

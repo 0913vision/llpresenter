@@ -52,9 +52,13 @@ export class ControlSession {
   }
 
   /** Start from a workspace event, outside React render and its StrictMode probe. */
-  startEditor(): void {
+  startEditor(persistence?: 'automatic' | 'manual'): void {
     if (this.api && !this.editorStore && !this.closing && !this.editorBlocked) {
-      this.editorStore = new SongEditorStore(this.api, this.report);
+      this.editorStore = new SongEditorStore(
+        this.api,
+        this.report,
+        persistence,
+      );
       this.itemStore = new ServiceItemStore(
         this.api,
         this.editorStore,

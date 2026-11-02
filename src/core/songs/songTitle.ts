@@ -6,6 +6,16 @@ export function normalizeSongTitle(value: string): string {
   return value.trim().normalize('NFC');
 }
 
+/** The first title with a number from 2 on after `title` that `taken` lacks. */
+export function copyTitle(title: string, taken: Iterable<string>): string {
+  const used = new Set([...taken].map(normalizeSongTitle));
+  const base = normalizeSongTitle(title);
+  for (let number = 2; ; number++) {
+    const candidate = `${base} ${number}`;
+    if (!used.has(candidate)) return candidate;
+  }
+}
+
 /** A title draft stays outside lyric undo and never sends invalid text. */
 export class SongTitleDraft {
   value: string;

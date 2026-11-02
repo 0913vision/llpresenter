@@ -1,10 +1,8 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {orderEditorEndpoints} from '@contracts/ipc/orderEditor';
-import {songEditorWindowEndpoints} from '@contracts/ipc/songEditorWindow';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerOrderEditorWindow} from '@main/windows/orderEditor';
-import {registerSongEditorWindow} from '@main/windows/songEditor';
 
 const mocks = vi.hoisted(() => {
   const handlers = new Map<string, () => unknown>();
@@ -32,12 +30,6 @@ describe.each([
     register: registerOrderEditorWindow,
     open: windowEndpoints.openOrderEditor.channel,
     target: orderEditorEndpoints.target.channel,
-  },
-  {
-    name: 'song editor',
-    register: registerSongEditorWindow,
-    open: windowEndpoints.openSongEditor.channel,
-    target: songEditorWindowEndpoints.target.channel,
   },
 ])('$name window stub', ({register, open, target}) => {
   it('refuses to open, has no target, and releases its handlers', () => {

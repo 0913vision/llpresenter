@@ -57,6 +57,7 @@ export class SongEditorStore {
   constructor(
     readonly api: EditorApi,
     private readonly onProblem: (notice: Notice) => void,
+    persistence?: 'automatic' | 'manual',
   ) {
     const host: EditorOperationHost = {
       alive: () => this.alive,
@@ -71,6 +72,7 @@ export class SongEditorStore {
       library: () => this.catalog.libraryEntries,
       busy: () => this.busy,
       editingStopped: () => this.editingStopped,
+      ...(persistence === undefined ? {} : {persistence}),
     });
     this.catalog = new EditorCatalog({
       api,
@@ -275,6 +277,11 @@ export class SongEditorStore {
     } finally {
       if (!flushed) this.stopEditing(false);
     }
+  }
+
+  /** Drops a song's unsaved edits and its undo history. */
+  discardEdits(id: SongId): void {
+    this.pool.remove(id);
   }
 
   /** Restarts editing when the window's close was refused elsewhere. */

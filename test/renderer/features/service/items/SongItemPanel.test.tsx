@@ -30,6 +30,7 @@ import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
+  spyOnSongEditorWindow,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
@@ -58,7 +59,15 @@ async function setup(itemId: string = fixtureItems.arranged) {
   await screen.findByRole('listbox', {name: '구성 순서'});
   await waitFor(() => expect(editor.getSnapshot().labels).not.toBeNull());
   const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-  return {...fixture, editor, items, panel, user: userEvent.setup()};
+  const openWindow = spyOnSongEditorWindow(fixture.api);
+  return {
+    ...fixture,
+    editor,
+    items,
+    panel,
+    openWindow,
+    user: userEvent.setup(),
+  };
 }
 
 function strip(panel: HTMLElement): HTMLElement {
@@ -207,15 +216,16 @@ describe('service song item panel', () => {
     expect(states).toEqual([null, null, 'live']);
   });
 
-  it('opens the source song in the editor', async () => {
-    const {panel, user, editor, first} = await setup();
+  it('opens the source song in the 곡 편집 window at the clicked slide', async () => {
+    const {panel, user, openWindow, first} = await setup();
     await user.click(chip(panel, 2));
     await user.click(within(panel).getByRole('button', {name: '곡 편집'}));
-    expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
-    expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
-      1,
-    );
-    expect(editor.getSnapshot().session?.arrangement).toBe('주일용');
+    expect(openWindow).toHaveBeenCalledExactlyOnceWith({
+      songId: first.song.id,
+      block: 1,
+      arrangement: '주일용',
+      from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+    });
   });
 
   it.each([
@@ -225,25 +235,21 @@ describe('service song item panel', () => {
   ])(
     'opens the source editor for %s without changing the service',
     async (label, action) => {
-      const {panel, user, editor, first, service, edits} = await setup();
+      const {panel, user, openWindow, first, service, edits} = await setup();
       const before = service();
       await user.click(chip(panel, 2));
       await user.click(within(panel).getByRole('button', {name: '구성'}));
       await user.click(screen.getByRole('menuitem', {name: label}));
-      expect(editor.getSnapshot().session?.document.song.id).toBe(
-        first.song.id,
+      expect(openWindow).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({songId: first.song.id, block: 1, action}),
       );
-      expect(
-        editor.getSnapshot().session?.history.snapshot.selection.block,
-      ).toBe(1);
-      expect(editor.getSnapshot().actionRequest?.action).toBe(action);
       expect(service()).toBe(before);
       expect(edits).toEqual([]);
     },
   );
 
   it('uses the shared slide menu to hand off the clicked repeated slide and its key', async () => {
-    const {panel, user, editor, service, edits} = await setup();
+    const {panel, user, openWindow, service, edits} = await setup();
     const grid = within(panel).getByRole('table', {
       name: '슬라이드와 오버레이',
     });
@@ -254,20 +260,19 @@ describe('service song item panel', () => {
     fireEvent.contextMenu(third);
     expect(third.hasAttribute('data-menu-target')).toBe(true);
     await user.click(screen.getByRole('menuitem', {name: '단축키…'}));
-    expect(editor.getSnapshot().session?.history.snapshot.selection.block).toBe(
-      1,
+    expect(openWindow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({block: 1, action: 'hot-key'}),
     );
-    expect(editor.getSnapshot().actionRequest?.action).toBe('hot-key');
     expect(service().service.order[1]).toMatchObject({arrangement: '주일용'});
     expect(edits).toEqual([]);
   });
 
-  it('opens the source before deleting its named arrangement', async () => {
-    const {panel, user, editor, first} = await setup();
+  it('deletes the named arrangement from the source song without opening the window', async () => {
+    const {panel, user, editor, openWindow} = await setup();
     const remove = vi.spyOn(editor, 'deleteArrangement');
     await user.click(within(panel).getByRole('button', {name: '구성'}));
     await user.click(screen.getByRole('menuitem', {name: '지우기'}));
-    expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
+    expect(openWindow).not.toHaveBeenCalled();
     expect(remove).toHaveBeenCalledExactlyOnceWith('주일용');
   });
 
@@ -351,8 +356,11 @@ describe('service song item panel', () => {
     });
     expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
     const user = userEvent.setup();
+    const openWindow = spyOnSongEditorWindow(fixture.api);
     await user.click(editBtn);
-    expect(editor.getSnapshot().session?.document.song).toEqual(groupedSong);
+    expect(openWindow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({songId: groupedSong.id}),
+    );
   });
 
   it('shows an empty panel for nothing selected and for other kinds', async () => {

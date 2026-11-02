@@ -220,6 +220,30 @@ export function editorFixture() {
             value: {id: edit.songId, revision: parsed.value.revision},
           };
         }
+        if (edit.type === 'song.saveAs') {
+          const title = edit.song.title.trim().normalize('NFC');
+          if (
+            [...documents.values()].some(
+              document => document.song.title.trim().normalize('NFC') === title,
+            )
+          ) {
+            return refuse('duplicate-title');
+          }
+          const id = createSongId(
+            `00000000-0000-4000-8000-${String(900 + documents.size)}`.padEnd(
+              36,
+              '0',
+            ),
+          );
+          const saved = parseSongDocument({
+            song: {...edit.song, id},
+            revision: 1,
+            access: 'editable',
+          });
+          if (!saved.ok || saved.value === null) return refuse('invalid');
+          pushSong(saved.value);
+          return {ok: true, value: {id, revision: 1}};
+        }
         if (edit.type !== 'song.update') return refuse('invalid');
         const current = documents.get(edit.song.id);
         if (current === undefined) return refuse('not-found');

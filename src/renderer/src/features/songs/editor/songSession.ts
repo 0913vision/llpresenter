@@ -430,6 +430,23 @@ export class SongSession<S extends AnySong = GroupedSong> {
     return this.persistence.flush();
   }
 
+  /** Edits not yet written: lyrics, 구성, title, or 배경 (the dot before the title). */
+  get unsaved(): boolean {
+    return this.persistence.unsaved;
+  }
+
+  /** Writes the edits now; a manual session writes only here. */
+  async commit(): Promise<boolean> {
+    this.endTyping();
+    const written = await this.persistence.commit();
+    if (!written) {
+      this.dirty = true;
+      this.blocked = false;
+      this.options.changed();
+    }
+    return written;
+  }
+
   close(): Promise<boolean> {
     return this.persistence.close();
   }
@@ -438,35 +455,44 @@ export class SongSession<S extends AnySong = GroupedSong> {
     this.persistence.discard();
   }
 
+  /**
+   * The whole song as the edits left it, under `title`; undefined for a song
+   * that isn't grouped. It changes nothing.
+   */
+  draftSong(
+    title: string = this.title.nextValue,
+    base: AnySong = this.document.song,
+  ): GroupedSong | undefined {
+    const draft = this.history.snapshot.song;
+    if (!isGroupedSong(base) || !isGroupedSong(draft)) return undefined;
+    const {
+      background: _oldBackground,
+      arrangements: _oldArrangements,
+      ...baseSong
+    } = base;
+    return {
+      ...baseSong,
+      ...draft,
+      title,
+      groups: draft.groups,
+      ...(draft.arrangements === undefined
+        ? {}
+        : {arrangements: draft.arrangements}),
+      ...(this.background === undefined ? {} : {background: this.background}),
+    };
+  }
+
   private captureDraft(
     document: EditorSongDocument<S>,
   ): SongDraftCapture<S> | undefined {
-    const docSong = document.song;
+    const song = this.draftSong(this.title.nextValue, document.song);
+    if (song === undefined) return undefined;
     const draft = this.history.snapshot.song;
-    if (!isGroupedSong(docSong) || !isGroupedSong(draft)) return undefined;
-
     const lyricsDirty = this.dirty;
     this.dirty = false;
     const titleDraft =
       this.title.reason === undefined ? this.title.value : undefined;
     const background = this.background;
-
-    const {
-      background: _oldBackground,
-      arrangements: _oldArrangements,
-      ...baseSong
-    } = docSong;
-
-    const song: GroupedSong = {
-      ...baseSong,
-      ...draft,
-      title: this.title.nextValue,
-      groups: draft.groups,
-      ...(draft.arrangements === undefined
-        ? {}
-        : {arrangements: draft.arrangements}),
-      ...(background === undefined ? {} : {background}),
-    };
 
     return {song, draft, lyricsDirty, titleDraft, background};
   }

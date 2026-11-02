@@ -135,6 +135,8 @@ describe('song.import storage', () => {
     });
     if (!result.ok) throw new Error('Import failed');
     expect(result.value.id).not.toBe(SONG);
+    expect(result.value.revision).toBe(store.song(result.value.id)?.revision);
+    expect(result.value.revision).toBe(1);
     expect(store.song(result.value.id)?.song).toMatchObject({
       title: importedDraft.title,
       schemaVersion: 2,

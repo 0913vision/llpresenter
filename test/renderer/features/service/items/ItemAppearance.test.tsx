@@ -98,6 +98,9 @@ async function setup(
     return read(request);
   });
   window.llp = fixture.api;
+  const openWindow = vi
+    .spyOn(fixture.api.window, 'openSongEditor')
+    .mockResolvedValue({ok: true, value: undefined});
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const problem = vi.fn();
   const items = new ServiceItemStore(fixture.api, editor, problem);
@@ -122,6 +125,7 @@ async function setup(
   );
   return {
     ...fixture,
+    openWindow,
     items,
     editor,
     problem,
@@ -273,7 +277,7 @@ it('refuses invalid overlay arrays through the service writer and enforces the a
 });
 
 it('keeps table selection local and exposes the shared source slide menu', async () => {
-  const {user, items, editor, edits} = await setup();
+  const {user, items, openWindow, edits} = await setup();
   const second = screen.getByRole('button', {name: '슬라이드 2'});
   second.focus();
   await user.keyboard('{ArrowDown}');
@@ -284,7 +288,7 @@ it('keeps table selection local and exposes the shared source slide menu', async
   expect(edits).toHaveLength(0);
   fireEvent.contextMenu(screen.getByRole('button', {name: '슬라이드 2'}));
   await user.click(screen.getByRole('menuitem', {name: '곡 편집'}));
-  expect(editor.getSnapshot().session).not.toBeNull();
+  expect(openWindow).toHaveBeenCalledOnce();
 });
 
 it.each(['bible', 'notice', 'media'] as const)(

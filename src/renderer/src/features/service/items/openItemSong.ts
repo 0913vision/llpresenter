@@ -1,12 +1,13 @@
 import {editedOrderWithLimit} from '@core/songs/songArrangements';
-import type {
-  SongEditorAction,
-  SongEditorStore,
-} from '@renderer/features/songs/editor/songEditorStore';
-import type {ServiceItemStore} from './serviceItemStore';
+import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {SongEditorWindowAction} from '@core/schema/ipcPayloads';
+import type {ServiceItemStore} from './serviceItemStore';
 
-/** Opens the shared song editor at an occurrence's master slide, without editing the item. */
+/**
+ * Opens the 곡 편집 window at an occurrence's master slide, remembering the
+ * item so 다른 이름으로 저장 can switch it. Deleting a 구성 needs no window.
+ */
 export function openItemSong({
   items,
   editor,
@@ -16,18 +17,40 @@ export function openItemSong({
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly position?: number;
-  readonly action?: SongEditorAction;
+  readonly action?: SongEditorWindowAction | 'delete-arrangement';
 }): void {
-  const {song, arrangement, position: selected} = items.getSnapshot();
+  const {
+    song,
+    arrangement,
+    position: selected,
+    service,
+    item,
+  } = items.getSnapshot();
   if (song === null) return;
+  if (action === 'delete-arrangement') {
+    if (arrangement !== undefined) {
+      editorTask(editor.deleteArrangement(arrangement));
+    }
+    return;
+  }
   const order = editedOrderWithLimit(song.history.snapshot.song, arrangement);
   const number = order.slides[position ?? selected];
-  editor.open(song.document, {
-    block: number === undefined ? 0 : number - 1,
-    arrangement,
-    action: action === 'delete-arrangement' ? undefined : action,
-  });
-  if (action === 'delete-arrangement' && arrangement !== undefined) {
-    editorTask(editor.deleteArrangement(arrangement));
-  }
+  window.llp?.window
+    .openSongEditor({
+      songId: song.document.song.id,
+      block: number === undefined ? 0 : number - 1,
+      ...(arrangement === undefined ? {} : {arrangement}),
+      ...(action === undefined ? {} : {action}),
+      ...(service === null || item === null
+        ? {}
+        : {from: {serviceId: service.service.id, itemId: item.id}}),
+    })
+    .then(result => {
+      if (!result.ok) {
+        console.error('Could not open the song editor', result.error.reason);
+      }
+    })
+    .catch((error: unknown) =>
+      console.error('Could not open the song editor', error),
+    );
 }

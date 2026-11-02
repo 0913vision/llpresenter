@@ -1,3 +1,5 @@
+import {onTestFinished, vi} from 'vitest';
+import type {LlpApi} from '@contracts/ipc/api';
 import {
   parseServiceDocument,
   type ServiceChange,
@@ -167,4 +169,15 @@ export function itemFixture() {
     pushService,
     serviceListeners: () => services.size,
   };
+}
+
+/** Makes `window.llp` the fixture's API and records the 곡 편집 window opens. */
+export function spyOnSongEditorWindow(api: LlpApi) {
+  window.llp = api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  return vi
+    .spyOn(api.window, 'openSongEditor')
+    .mockResolvedValue({ok: true, value: undefined});
 }

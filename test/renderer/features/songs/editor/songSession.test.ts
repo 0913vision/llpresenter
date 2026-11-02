@@ -193,3 +193,71 @@ describe('grouped song sessions', () => {
     ).toEqual([]);
   });
 });
+
+describe('manual song sessions', () => {
+  function manual() {
+    vi.useFakeTimers();
+    const fixture = editorFixture();
+    const session = new SongSession({
+      document: fixture.first,
+      api: fixture.api.content,
+      persistence: 'manual',
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    return {...fixture, session};
+  }
+  const type = (session: SongSession, value: string): void =>
+    session.edit({
+      type: 'text',
+      text: value,
+      start: value.length,
+      end: value.length,
+    });
+
+  it('keeps edits unsaved, however long it waits, until commit writes them once', async () => {
+    const {session, edits, documents, first} = manual();
+    expect(session.unsaved).toBe(false);
+
+    type(session, '바꾼 가사');
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(session.unsaved).toBe(true);
+    expect(edits).toHaveLength(0);
+
+    expect(await session.commit()).toBe(true);
+    expect(edits.map(edit => edit.type)).toEqual(['song.update']);
+    expect(session.unsaved).toBe(false);
+    expect(documents.get(first.song.id)?.revision).toBe(2);
+  });
+
+  it('stays unsaved and writable when the write is refused, so a retry can follow', async () => {
+    const {session, api} = manual();
+    type(session, '바꾼 가사');
+    const write = vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Fixture refusal'},
+    });
+
+    expect(await session.commit()).toBe(false);
+    expect(session.unsaved).toBe(true);
+    expect(session.blocked).toBe(false);
+
+    write.mockRestore();
+    expect(await session.commit()).toBe(true);
+    expect(session.unsaved).toBe(false);
+  });
+
+  it('describes the whole edited song under a title without changing the session', () => {
+    const {session, first} = manual();
+    type(session, '바꾼 가사');
+
+    const song = session.draftSong('다른 제목');
+
+    expect(song).toMatchObject({id: first.song.id, title: '다른 제목'});
+    expect(JSON.stringify(song?.groups)).toContain('바꾼 가사');
+    expect(session.unsaved).toBe(true);
+  });
+});

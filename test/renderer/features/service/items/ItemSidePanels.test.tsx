@@ -10,6 +10,7 @@ import {
   fixtureItems,
   fixtureServiceId,
   itemFixture,
+  spyOnSongEditorWindow,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {
   ItemPreviewPanel,
@@ -64,7 +65,15 @@ async function setup(
     await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
   }
   await waitFor(() => expect(editor.getSnapshot().labels).not.toBeNull());
-  return {...fixture, editor, items, output, user: userEvent.setup()};
+  const openWindow = spyOnSongEditorWindow(fixture.api);
+  return {
+    ...fixture,
+    editor,
+    items,
+    output,
+    openWindow,
+    user: userEvent.setup(),
+  };
 }
 
 async function setupBible() {
@@ -217,8 +226,8 @@ describe('service item preview and 항목 설정', () => {
     expect(lastLayers()?.media?.mediaId).toBe(override);
   });
 
-  it('names the source song and opens it in the editor', async () => {
-    const {user, editor, first} = await setup();
+  it('names the source song and opens it in the 곡 편집 window', async () => {
+    const {user, openWindow, first} = await setup();
     const settings = screen.getByRole('region', {name: '항목 설정'});
     const source = within(settings).getByRole('group', {name: '곡'});
     expect(source.textContent).toContain(first.song.title);
@@ -226,7 +235,9 @@ describe('service item preview and 항목 설정', () => {
     const usage = within(settings).getByRole('group', {name: '쓰는 곳'});
     expect(usage.textContent).toMatch(/예배 순서 \d+곳/);
     await user.click(within(source).getByRole('button', {name: '곡 편집'}));
-    expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
+    expect(openWindow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({songId: first.song.id}),
+    );
   });
 
   it('shows empty panels for a slot item', async () => {

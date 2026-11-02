@@ -27,9 +27,12 @@ import {useSongBlockWindow} from './useSongBlockWindow';
 export function SongEditor({
   store,
   onImportedSave,
+  unsaved = false,
 }: {
   readonly store: SongEditorStore;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
+  /** Shows the dot before the title while edits wait for 저장. */
+  readonly unsaved?: boolean;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   return (
@@ -40,6 +43,7 @@ export function SongEditor({
             store={store}
             session={state.session}
             onImportedSave={onImportedSave}
+            unsaved={unsaved}
           />
           <ArrangementRow store={store} session={state.session} />
           <SlideHotKeyControl

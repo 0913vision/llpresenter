@@ -3,6 +3,7 @@ import {
   DUPLICATE_TITLE_REASON,
   EMPTY_TITLE_REASON,
   SongTitleDraft,
+  copyTitle,
 } from '@core/songs/songTitle';
 
 const RAW = `  ${'가사'.normalize('NFD')}  `;
@@ -41,4 +42,14 @@ describe('SongTitleDraft', () => {
       expect(draft.nextValue).toBe('Original');
     },
   );
+});
+
+describe('copyTitle', () => {
+  it('numbers from 2 and skips the titles taken, comparing them normalized', () => {
+    expect(copyTitle('새 아침', ['새 아침'])).toBe('새 아침 2');
+    expect(copyTitle('  새 아침 ', ['새 아침 2'.normalize('NFD')])).toBe(
+      '새 아침 3',
+    );
+    expect(copyTitle('새 아침', [])).toBe('새 아침 2');
+  });
 });

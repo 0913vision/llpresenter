@@ -7,6 +7,7 @@ export type CommandContext =
   | 'screens'
   | 'import'
   | 'song'
+  | 'songWindow'
   | 'service'
   | 'arrangement'
   | 'canvas'
@@ -287,6 +288,14 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       '테마 다른 이름으로 저장',
       '테마',
       ['screens'],
+      ['ctrl shift KeyS'],
+    ],
+    ['songWindow.save', '곡 저장', '곡 편집 창', ['songWindow'], ['ctrl KeyS']],
+    [
+      'songWindow.saveAs',
+      '곡 다른 이름으로 저장',
+      '곡 편집 창',
+      ['songWindow'],
       ['ctrl shift KeyS'],
     ],
     ['media.import', '미디어 가져오기', '준비 편집', ['control'], []],

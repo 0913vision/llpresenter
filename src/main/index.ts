@@ -187,7 +187,11 @@ function start(): void {
         log,
       };
       const orderEditorWindow = registerOrderEditorWindow(editorWindowContext);
-      const songEditorWindow = registerSongEditorWindow(editorWindowContext);
+      const songEditorWindow = registerSongEditorWindow({
+        ...editorWindowContext,
+        hasSong: async id =>
+          ((await dataStore.content)?.song(id) ?? null) !== null,
+      });
       const stopFonts = registerFonts(win, log);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(

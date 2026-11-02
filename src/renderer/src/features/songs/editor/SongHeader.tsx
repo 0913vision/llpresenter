@@ -17,10 +17,12 @@ export function SongHeader({
   store,
   session,
   onImportedSave,
+  unsaved = false,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
+  readonly unsaved?: boolean;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const titleFrame = useRef<HTMLDivElement>(null);
@@ -43,6 +45,15 @@ export function SongHeader({
   }, [store, state.titleFocus]);
   return (
     <header className={styles.header}>
+      {unsaved ? (
+        <Tooltip text="저장하지 않은 변경">
+          <span
+            className={styles.unsaved}
+            role="img"
+            aria-label="저장하지 않은 변경"
+          />
+        </Tooltip>
+      ) : null}
       <div ref={titleFrame} className={styles.title}>
         <TextField
           aria-label="곡 제목"

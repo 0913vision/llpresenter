@@ -46,6 +46,8 @@ function remapSpan(
     const place = moved[at - 1];
     if (place !== undefined) survivors.push(place);
   }
+  // NOTE(0913vision): A range with no surviving slide is kept as it was, so a
+  // later edit can bring its slides back; readers clamp it to the played length.
   const first = survivors.at(0);
   const last = survivors.at(-1);
   if (first === undefined || last === undefined) return span;

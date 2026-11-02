@@ -1,0 +1,29 @@
+.layout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(var(--size-field-title), 38%);
+  min-height: 0;
+}
+
+.lyrics {
+  min-width: 0;
+  min-height: 0;
+  border-right: var(--radius-hairline) solid var(--line);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-panel);
+}
+
+.saveBar {
+  display: flex;
+  flex: none;
+  gap: var(--space-8);
+  justify-content: flex-end;
+  padding: var(--space-10) var(--space-14);
+  border-top: var(--radius-hairline) solid var(--line);
+}

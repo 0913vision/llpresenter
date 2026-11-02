@@ -71,6 +71,13 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
   get incomingDocument(): EditorSongDocument<S> | undefined {
     return this.incoming;
   }
+  /** Whether edits wait for an explicit {@link commit}. */
+  get manual(): boolean {
+    return this.options.persistence === 'manual';
+  }
+  get unsaved(): boolean {
+    return this.draft.hasChanges() || this.draft.hasTitleDraft();
+  }
   get clean(): boolean {
     return (
       !this.draft.hasChanges() &&
@@ -114,6 +121,12 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
     return true;
   }
 
+  /** Writes the edits now, also in manual mode. */
+  commit(): Promise<boolean> {
+    this.cancelSaveTimer();
+    return this.save(true);
+  }
+
   close(): Promise<boolean> {
     this.accepting = false;
     return this.flush();
@@ -136,8 +149,8 @@ export class SongSessionPersistence<S extends AnySong = GroupedSong> {
     this.saveTimer = undefined;
   }
 
-  private save(): Promise<boolean> {
-    if (this.options.persistence === 'manual') return Promise.resolve(true);
+  private save(explicit = false): Promise<boolean> {
+    if (this.manual && !explicit) return Promise.resolve(true);
     if (this.pending !== undefined) return this.pending;
     if (!this.draft.hasChanges() || this.blocked) {
       return Promise.resolve(!this.blocked);

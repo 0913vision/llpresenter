@@ -14,11 +14,14 @@ import {ControlSession} from './controlSession';
 const root = document.getElementById('root');
 
 interface WindowPageProps {
+  readonly session: ControlSession;
   readonly closeFlush: ControlSession['closeFlush'];
 }
 
 interface WindowPage {
   readonly title: string;
+  /** Starts what the page needs from the session before it renders. */
+  readonly prepare?: (session: ControlSession) => void;
   readonly load: () => Promise<ComponentType<WindowPageProps>>;
 }
 
@@ -33,6 +36,7 @@ const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
   },
   song: {
     title: '곡 편집',
+    prepare: session => session.startEditor('manual'),
     load: async () => (await import('./SongEditorWindow')).SongEditorWindow,
   },
 };
@@ -50,6 +54,7 @@ async function startWindowPage(
   stopLive: () => void,
 ): Promise<void> {
   const pageSession = new ControlSession(window.llp);
+  page.prepare?.(pageSession);
   document.title = page.title;
   const pageRoot = createRoot(container);
   const lifecycle = {stopped: false};
@@ -67,7 +72,7 @@ async function startWindowPage(
   if (lifecycle.stopped) return;
   pageRoot.render(
     <StrictMode>
-      <Page closeFlush={pageSession.closeFlush} />
+      <Page session={pageSession} closeFlush={pageSession.closeFlush} />
     </StrictMode>,
   );
 }
