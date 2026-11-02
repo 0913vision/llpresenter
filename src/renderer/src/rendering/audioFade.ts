@@ -40,7 +40,6 @@ export function fadeAudio({
     }
   };
   const tick = setInterval(() => {
-    if (stopped) return;
     try {
       gain(Math.max(0, 1 - Math.max(0, now() - started) / durationMs));
     } catch (error) {

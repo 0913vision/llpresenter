@@ -9,19 +9,15 @@ export function loadBackgroundImage(
   image: HTMLImageElement,
   options: BackgroundImageOptions,
 ): () => void {
-  let listening = true;
   const stopListening = (): void => {
-    listening = false;
     image.removeEventListener('load', onLoad);
     image.removeEventListener('error', onError);
   };
   const onLoad = (): void => {
-    if (!listening) return;
     stopListening();
     options.onReady();
   };
   const onError = (): void => {
-    if (!listening) return;
     stopListening();
     options.onError();
   };

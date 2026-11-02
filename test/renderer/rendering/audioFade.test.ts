@@ -89,4 +89,25 @@ describe('fadeAudio', () => {
     expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
     expect(end).toHaveBeenCalledOnce();
   });
+
+  it('never ends a fade that a failing gain update cancelled', () => {
+    const end = vi.fn();
+    const onError = vi.fn();
+    const failure = new Error('Failed after cancel');
+    let cancel: () => void = () => undefined;
+    cancel = fadeAudio({
+      durationMs: 400,
+      now: () => 0,
+      gain: () => {
+        cancel();
+        throw failure;
+      },
+      end,
+      onError,
+    });
+    vi.advanceTimersByTime(400);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
+    expect(end).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
