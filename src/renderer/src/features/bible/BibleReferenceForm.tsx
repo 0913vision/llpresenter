@@ -280,6 +280,15 @@ export function BibleReferenceForm(
         return;
       }
     }
+    if (event.key === 'Escape' && part !== 'book') {
+      event.preventDefault();
+      event.stopPropagation();
+      setBlocked(null);
+      root.current
+        ?.querySelector<HTMLInputElement>('[role="combobox"]')
+        ?.focus();
+      return;
+    }
     if (event.key === 'Tab' && !event.shiftKey && state.errors[part]) {
       event.preventDefault();
       setBlocked(part);

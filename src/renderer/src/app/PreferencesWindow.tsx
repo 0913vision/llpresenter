@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState, type JSX} from 'react';
+import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {IconButton} from '@renderer/ui';
@@ -8,6 +8,7 @@ import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import type {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
+import {useCloseKeys, useInitialListFocus} from './useWindowKeyboard';
 import styles from './PreferencesWindow.module.css';
 
 const TITLE = '환경설정';
@@ -21,6 +22,10 @@ export function PreferencesWindow({
   const [notices, setNotices] = useState<readonly Notice[]>([]);
   useShortcutSettings(window.llp);
   useUiZoomKeys();
+  const body = useRef<HTMLElement>(null);
+  const close = useCallback(() => window.llp?.window.control('close'), []);
+  useCloseKeys(close);
+  useInitialListFocus(body);
   useEffect(() => watchInputModality(window), []);
   const report = useCallback(
     (notice: Notice) => setNotices(current => addNotice(current, notice)),
@@ -31,14 +36,10 @@ export function PreferencesWindow({
       <header className={styles.titlebar}>
         <span>{TITLE}</span>
         <div className={styles.controls}>
-          <IconButton
-            icon="x"
-            label="닫기"
-            onClick={() => window.llp?.window.control('close')}
-          />
+          <IconButton icon="x" label="닫기" onClick={close} />
         </div>
       </header>
-      <main className={styles.body} aria-label={TITLE}>
+      <main ref={body} className={styles.body} aria-label={TITLE}>
         <PreferencesView onProblem={report} />
       </main>
       <NotificationStack

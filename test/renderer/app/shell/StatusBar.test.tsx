@@ -76,6 +76,13 @@ describe('StatusBar', () => {
     expect(screen.getByRole('status').textContent).toBe('');
   });
 
+  it('announces a failed save as an alert and keeps the rest polite', () => {
+    const view = render(<StatusBar saveState="saving" />);
+    expect(screen.queryByRole('alert')).toBeNull();
+    view.rerender(<StatusBar saveState="failed" />);
+    expect(screen.getByRole('alert').textContent).toBe('저장하지 못함');
+  });
+
   it('keeps every long message in the scrollable direction', () => {
     fixture.statuses = {
       stage: {

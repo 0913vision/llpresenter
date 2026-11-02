@@ -343,6 +343,7 @@ export function CanvasEditor<T extends CanvasElement>({
           style={{width: size.width, height: size.height}}
           data-canvas
           tabIndex={0}
+          role="group"
           aria-label={`${label} 캔버스`}
           onPointerMove={event => {
             const current = gesture.current;

@@ -338,6 +338,23 @@ describe('shared Bible reference form', () => {
     },
   );
 
+  it('lets Shift Tab leave a blocked field and Esc return to 책 without the reason', async () => {
+    const view = setup();
+    await view.user.click(view.chapter);
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.chapter);
+    expect(view.chapter.getAttribute('aria-invalid')).toBe('true');
+    await view.user.tab({shift: true});
+    expect(document.activeElement).toBe(view.book);
+    await view.user.click(view.start);
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.start);
+    expect(view.start.getAttribute('aria-invalid')).toBe('true');
+    await view.user.keyboard('{Escape}');
+    expect(document.activeElement).toBe(view.book);
+    expect(view.start.getAttribute('aria-invalid')).toBeNull();
+  });
+
   it('blocks Tab on an oversized end, clamps its lookup, and clears it when the start changes', async () => {
     const view = setup();
     enterPassage(view, '99');

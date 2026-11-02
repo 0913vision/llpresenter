@@ -138,6 +138,12 @@ function setup(
   };
 }
 
+it('gives the focusable canvas a role so its name is announced', () => {
+  setup();
+  const canvas = screen.getByRole('group', {name: /캔버스$/});
+  expect(canvas.getAttribute('tabindex')).toBe('0');
+});
+
 it('offers bounded zoom controls with fit reset and externally selected frames', () => {
   setup('editable', Promise.resolve(), {
     footer: 'zoom',

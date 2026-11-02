@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState, type JSX} from 'react';
+import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {DisplayLayout} from '@renderer/features/screens/DisplayLayout';
 import {OutputPreview} from '@renderer/features/screens/OutputPreview';
 import {ScreenList} from '@renderer/features/screens/ScreenList';
@@ -16,6 +16,7 @@ import {SavingDialog} from './SavingDialog';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
+import {useInitialListFocus} from './useWindowKeyboard';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 
 /** The screen and monitor settings, separate from the theme workspace. */
@@ -31,6 +32,8 @@ export function ScreensWindow({
   useClearKeys();
   useLiveStateShortcuts();
   useUiZoomKeys();
+  const body = useRef<HTMLElement>(null);
+  useInitialListFocus(body);
   const report = useCallback(
     (notice: Notice) => {
       setNotices(current => addNotice(current, notice));
@@ -58,6 +61,7 @@ export function ScreensWindow({
           </div>
         </header>
         <main
+          ref={body}
           className={`${styles.columns} ${panelStyles.screenSettings}`}
           aria-label="화면 설정"
         >

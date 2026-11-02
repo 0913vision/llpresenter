@@ -37,7 +37,7 @@ export function StatusBar({
     <footer role="status" className={styles.bar}>
       {standby ? <span>대기</span> : null}
       {saveState === 'saving' ? <span>저장을 시도하는 중...</span> : null}
-      {saveState === 'failed' ? <span>저장하지 못함</span> : null}
+      {saveState === 'failed' ? <span role="alert">저장하지 못함</span> : null}
       {messages.map(message => (
         <span key={message}>{message}</span>
       ))}
