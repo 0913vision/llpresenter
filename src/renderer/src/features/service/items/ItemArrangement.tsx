@@ -155,6 +155,11 @@ export function ItemArrangement({
             {
               label: '삭제',
               primary: true,
+              disabled: arrangement !== deleting.name,
+              title:
+                arrangement !== deleting.name
+                  ? '구성이 바뀌었습니다'
+                  : undefined,
               onSelect: () => {
                 setDeleting(null);
                 onEditSong('delete-arrangement');

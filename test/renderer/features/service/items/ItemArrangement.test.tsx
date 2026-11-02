@@ -291,7 +291,8 @@ describe('ItemArrangement with grouped songs', () => {
   });
 
   it('says the use cannot be checked instead of showing no use, and keeps the name it opened with', async () => {
-    const {user, api, session} = await setupGrouped();
+    const {user, api, session, service, pushService, itemId, onEditSong} =
+      await setupGrouped();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     vi.spyOn(api.services, 'list').mockRejectedValue(new Error('Unreachable'));
 
@@ -302,9 +303,30 @@ describe('ItemArrangement with grouped songs', () => {
     expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
     expect(question.textContent).not.toContain('쓰는 곳: 예배');
     act(() => session.renamed('주일용', '합창용'));
-    expect(screen.getByRole('alertdialog').textContent).toContain(
-      '‘주일용’ 구성을 삭제할까요?',
+    const current = service();
+    act(() =>
+      pushService({
+        ...current,
+        revision: current.revision + 1,
+        service: {
+          ...current.service,
+          order: current.service.order.map(item =>
+            item.id === itemId ? {...item, arrangement: '합창용'} : item,
+          ),
+        },
+      }),
     );
+    const reopened = screen.getByRole('alertdialog');
+    expect(reopened.textContent).toContain('‘주일용’ 구성을 삭제할까요?');
+    await waitFor(() =>
+      expect(
+        within(reopened)
+          .getByRole('button', {name: '삭제'})
+          .getAttribute('aria-disabled'),
+      ).toBe('true'),
+    );
+    await user.click(within(reopened).getByRole('button', {name: '삭제'}));
+    expect(onEditSong).not.toHaveBeenCalledWith('delete-arrangement');
   });
 
   it.each([false, true])(

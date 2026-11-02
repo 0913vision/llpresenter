@@ -207,7 +207,7 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
 });
 
 it('says the use of a 테마 cannot be checked instead of showing no use', async () => {
-  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   setup({
     services: {list: vi.fn().mockRejectedValue(new Error('Unreachable'))},
   });
@@ -221,6 +221,8 @@ it('says the use of a 테마 cannot be checked instead of showing no use', async
   expect(question.textContent).toContain('‘찬양’ 테마를 삭제할까요?');
   expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
   expect(question.textContent).not.toContain('쓰는 곳: 예배');
+  expect(screen.queryAllByRole('alert')).toEqual([]);
+  expect(logged).toHaveBeenCalledTimes(1);
 });
 
 it('shows clean geometry after selection and preserves explicitly typed precision', async () => {

@@ -130,7 +130,7 @@ export function ThemeList({
       })
       .catch((error: unknown) => {
         if (!alive.current || controller.signal.aborted) return;
-        model.reportError(error);
+        console.error('Could not look up where the theme is used', error);
         setConfirm({theme, uses: 'failed'});
       })
       .finally(() => {

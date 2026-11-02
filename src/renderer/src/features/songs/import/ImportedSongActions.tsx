@@ -1,5 +1,5 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
 import {sourceSlideCount} from '@core/schema/groupedSong';
@@ -32,14 +32,18 @@ export function ImportedSongActions({
   const [reading, setReading] = useState(false);
   const session = state.session;
   const title = normalizeSongTitle(session?.title.value ?? '');
+  const snapshotSong = session?.history.snapshot.song;
+  const limitReason = useMemo(
+    () =>
+      snapshotSong === undefined ? undefined : importLimitReason(snapshotSong),
+    [snapshotSong],
+  );
   const invalid =
     title === ''
       ? EMPTY_TITLE_REASON
       : title.length > SONG_IMPORT_LIMITS.name
         ? '곡 제목이 너무 깁니다'
-        : session === null
-          ? undefined
-          : importLimitReason(session.history.snapshot.song);
+        : limitReason;
   const busy = state.busy || reading;
   const libraryReason =
     state.libraryStatus === 'ready'
