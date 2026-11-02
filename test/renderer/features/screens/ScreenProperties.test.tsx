@@ -205,7 +205,7 @@ describe('the screen properties', () => {
     const method = screen.getByRole('radio', {name: '창'});
     expect(method.getAttribute('aria-disabled')).toBe('true');
     await user.click(method);
-    const alwaysOnTop = screen.getByRole('switch');
+    const alwaysOnTop = screen.getByRole('checkbox');
     expect(alwaysOnTop.getAttribute('aria-disabled')).toBe('true');
     await user.click(alwaysOnTop);
     const disconnect = screen.getByRole('button', {name: '연결이 끊기면'});
@@ -280,7 +280,7 @@ describe('the screen properties', () => {
     ).toBe('true');
     expect(await screen.findByText('1920×1080')).toBeTruthy();
     expect(screen.getByText('60Hz')).toBeTruthy();
-    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe(
+    expect(screen.getByRole('checkbox').getAttribute('aria-checked')).toBe(
       'false',
     );
   });
@@ -396,7 +396,7 @@ describe('the screen properties', () => {
     await user.click(screen.getByRole('radio', {name: '무대'}));
     await waitFor(() => expect(savedScreens()[0]?.kind).toBe('stage'));
     expect(await nameField()).toHaveProperty('value', '본 화면');
-    await user.click(screen.getByRole('switch'));
+    await user.click(screen.getByRole('checkbox'));
 
     await waitFor(() => expect(savedScreens()[0]?.alwaysOnTop).toBe(true));
     expect(savedScreens()[0]?.kind).toBe('stage');

@@ -77,7 +77,7 @@ function install(parts: {
 
 async function mount(page?: string) {
   const view = render(<PreferencesView onProblem={onProblem} />);
-  await screen.findByRole('switch', {name: '지우기 되돌리기 단추 보이기'});
+  await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
   if (page !== undefined) {
     await userEvent.click(screen.getByRole('option', {name: page}));
   }

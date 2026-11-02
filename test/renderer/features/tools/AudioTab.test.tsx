@@ -95,7 +95,7 @@ it('selects a playlist, plays the chosen occurrence and saves repeat', async () 
     type: 'audio.play',
     source: {kind: 'playlist', playlistId: first, position: 1},
   });
-  fireEvent.click(screen.getByRole('switch', {name: '반복'}));
+  fireEvent.click(screen.getByRole('checkbox', {name: '반복'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(f.edit).toHaveBeenCalledWith({
     type: 'media.playlist.update',
@@ -109,7 +109,7 @@ it('selects a playlist, plays the chosen occurrence and saves repeat', async () 
   await userEvent.click(screen.getByRole('menuitemradio', {name: 'Second'}));
   expect(select.textContent).toBe('Second');
   expect(
-    screen.getByRole('switch', {name: '반복'}).getAttribute('aria-checked'),
+    screen.getByRole('checkbox', {name: '반복'}).getAttribute('aria-checked'),
   ).toBe('true');
   unmount();
   expect(f.stop).toHaveBeenCalledOnce();

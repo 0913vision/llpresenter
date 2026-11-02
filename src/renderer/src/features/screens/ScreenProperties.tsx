@@ -4,6 +4,7 @@ import type {Screen} from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {ColorProperty} from './ColorProperty';
 import {
+  Checkbox,
   NumberField,
   Properties,
   PropertyGroup,
@@ -11,7 +12,6 @@ import {
   PropertyValue,
   SegmentedControl,
   SelectMenu,
-  Switch,
   TextField,
 } from '@renderer/ui';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -249,7 +249,7 @@ function StabilityRows({
       )}
       <PropertyRow label="항상 위">
         {({controlId}) => (
-          <Switch
+          <Checkbox
             id={controlId}
             disabled={reason !== undefined}
             title={reason}

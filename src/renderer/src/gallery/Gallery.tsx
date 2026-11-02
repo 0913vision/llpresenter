@@ -17,7 +17,6 @@ import {SegmentedSection} from './SegmentedSection';
 import {SelectSection} from './SelectSection';
 import {SliderSection} from './SliderSection';
 import {StatusMarksSection} from './StatusMarksSection';
-import {SwitchSection} from './SwitchSection';
 import {TextFieldSection} from './TextFieldSection';
 import {ThumbnailSection} from './ThumbnailSection';
 import {ToolbarSection} from './ToolbarSection';
@@ -43,7 +42,6 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'Select', Section: SelectSection},
   {name: 'Calendar', Section: CalendarSection},
   {name: 'Checkbox', Section: CheckboxSection},
-  {name: 'Switch', Section: SwitchSection},
   {name: 'Slider', Section: SliderSection},
   {name: 'StatusMarks', Section: StatusMarksSection},
   {name: 'Panel', Section: PanelSection},

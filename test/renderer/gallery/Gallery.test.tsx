@@ -4,10 +4,10 @@ import {Gallery} from '@renderer/gallery/Gallery';
 
 describe('Gallery', () => {
   it('draws only the component that the query names', () => {
-    render(<Gallery only="Switch" />);
+    render(<Gallery only="Checkbox" />);
     expect(screen.getAllByRole('heading', {level: 2})).toHaveLength(1);
     expect(
-      screen.getByRole('heading', {level: 2, name: 'Switch'}),
+      screen.getByRole('heading', {level: 2, name: 'Checkbox'}),
     ).toBeDefined();
   });
 });

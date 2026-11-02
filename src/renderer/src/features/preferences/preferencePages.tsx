@@ -9,7 +9,7 @@ import {
   CountRow,
   PathRow,
   SelectRow,
-  SwitchRow,
+  CheckboxRow,
   ValueActionRow,
 } from './PreferenceRows';
 import {useLibraryLocations} from './useLibraryLocations';
@@ -102,7 +102,7 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
         />
       </PropertyGroup>
       <PropertyGroup title="지우기">
-        <SwitchRow
+        <CheckboxRow
           label="지우기 되돌리기 단추 보이기"
           disabled={disabled}
           title={lockedReason}
@@ -127,7 +127,7 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
   return (
     <>
       <PropertyGroup title="시작">
-        <SwitchRow
+        <CheckboxRow
           label="켤 때 화면 출력"
           disabled={disabled}
           title={lockedReason}
@@ -138,7 +138,7 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
         />
       </PropertyGroup>
       <PropertyGroup title="안정성">
-        <SwitchRow
+        <CheckboxRow
           label="출력 중 절전 막기"
           disabled={disabled}
           title={lockedReason}
@@ -147,7 +147,7 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
             change(stored => ({...stored, preventSleep}))
           }
         />
-        <SwitchRow
+        <CheckboxRow
           label="출력 창 항상 위"
           disabled={disabled}
           title={lockedReason}
@@ -166,7 +166,7 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
         />
       </PropertyGroup>
       <PropertyGroup title="성능">
-        <SwitchRow
+        <CheckboxRow
           label="하드웨어 가속"
           disabled={disabled}
           title={lockedReason ?? HARDWARE_ACCELERATION_NOTE}
@@ -233,7 +233,7 @@ export function LibraryPage({
         />
       </PropertyGroup>
       <PropertyGroup title="백업">
-        <SwitchRow
+        <CheckboxRow
           label="자동 백업"
           disabled={disabled}
           title={lockedReason}

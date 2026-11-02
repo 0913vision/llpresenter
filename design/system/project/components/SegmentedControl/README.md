@@ -12,7 +12,7 @@ A control that lines up two or three segments in a sunken track and picks one. U
 ## Where not to use
 
 - More than five choices, or long names: use Select.
-- A single on/off choice: Switch or IconButton (`aria-pressed`).
+- A single on/off choice: Checkbox or IconButton (`aria-pressed`).
 - Tabs in panel headers (예배 순서 (service order), 표시 중 …): use panel tabs. Use segments only for small switches that change the content inside a panel.
 - Switching workspaces (진행 (Show), 준비 (Prep), 화면 설정): the workspace tabs of ToolbarButton.
 

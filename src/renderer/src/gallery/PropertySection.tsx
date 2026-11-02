@@ -9,7 +9,7 @@ import {
 } from '../ui/PropertyRow';
 import {SegmentedControl} from '../ui/SegmentedControl';
 import {SelectMenu} from '../ui/SelectMenu';
-import {Switch} from '../ui/Switch';
+import {Checkbox} from '../ui/Checkbox';
 import {TextArea} from '../ui/TextArea';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
@@ -65,7 +65,7 @@ function ScreenProperties(): JSX.Element {
           {({controlId}) => (
             <Stateful<boolean> initial>
               {(checked, setChecked) => (
-                <Switch
+                <Checkbox
                   id={controlId}
                   checked={checked}
                   onChange={setChecked}
@@ -78,7 +78,7 @@ function ScreenProperties(): JSX.Element {
           {({controlId}) => (
             <Stateful<boolean> initial={false}>
               {(checked, setChecked) => (
-                <Switch
+                <Checkbox
                   id={controlId}
                   checked={checked}
                   onChange={setChecked}
@@ -144,7 +144,7 @@ export function PropertySection(): JSX.Element {
                     {({controlId}) => (
                       <Stateful<boolean> initial>
                         {(checked, setChecked) => (
-                          <Switch
+                          <Checkbox
                             id={controlId}
                             checked={checked}
                             onChange={setChecked}

@@ -88,7 +88,7 @@ function install(options: {readonly access?: 'editable' | 'readOnly'} = {}) {
 async function mount(options?: Parameters<typeof install>[0]) {
   install(options);
   const view = render(<PreferencesView onProblem={onProblem} />);
-  await screen.findByRole('switch', {name: '지우기 되돌리기 단추 보이기'});
+  await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
   return view;
 }
 
@@ -129,7 +129,7 @@ describe('PreferencesView', () => {
     ]);
     await openPage('단축키');
     expect(screen.getByRole('heading').textContent).toBe('단축키');
-    expect(screen.queryAllByRole('switch')).toHaveLength(0);
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   });
 
   it('shows the stored value or its default in each 일반 row', async () => {
@@ -144,7 +144,7 @@ describe('PreferencesView', () => {
     );
     expect(
       screen
-        .getByRole('switch', {name: '지우기 되돌리기 단추 보이기'})
+        .getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'})
         .getAttribute('aria-checked'),
     ).toBe('false');
   });
@@ -152,7 +152,7 @@ describe('PreferencesView', () => {
   it('saves a switch at once against the file revision and keeps unknown fields', async () => {
     await mount();
     await userEvent.click(
-      screen.getByRole('switch', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
     );
 
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
@@ -172,7 +172,7 @@ describe('PreferencesView', () => {
   ])('writes the 출력 switch %s', async (label, expected) => {
     await mount();
     await openPage('출력');
-    await userEvent.click(screen.getByRole('switch', {name: label}));
+    await userEvent.click(screen.getByRole('checkbox', {name: label}));
 
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
     expect(written()).toMatchObject(expected);
@@ -191,10 +191,10 @@ describe('PreferencesView', () => {
     await mount();
     await openPage('출력');
     await userEvent.click(
-      screen.getByRole('switch', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
     );
     await userEvent.click(
-      screen.getByRole('switch', {name: '출력 창 항상 위'}),
+      screen.getByRole('checkbox', {name: '출력 창 항상 위'}),
     );
 
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
@@ -226,7 +226,7 @@ describe('PreferencesView', () => {
   it('writes the 라이브러리 backup rows', async () => {
     await mount();
     await openPage('라이브러리');
-    await userEvent.click(screen.getByRole('switch', {name: '자동 백업'}));
+    await userEvent.click(screen.getByRole('checkbox', {name: '자동 백업'}));
     await waitFor(() =>
       expect(written()).toMatchObject({backup: {auto: false, keep: 30}}),
     );
@@ -254,7 +254,7 @@ describe('PreferencesView', () => {
     });
     await mount();
     await userEvent.click(
-      screen.getByRole('switch', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
     );
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
@@ -265,7 +265,7 @@ describe('PreferencesView', () => {
     onProblem.mockClear();
     edit.mockRejectedValueOnce(new Error('ipc down'));
     await userEvent.click(
-      screen.getByRole('switch', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
     );
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
   });
@@ -273,7 +273,7 @@ describe('PreferencesView', () => {
   it('writes nothing for a file of a newer version', async () => {
     await mount({access: 'readOnly'});
     await userEvent.click(
-      screen.getByRole('switch', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
     );
 
     expect(edit).not.toHaveBeenCalled();
@@ -347,7 +347,7 @@ describe('PreferencesView', () => {
     );
 
     edit.mockClear();
-    await userEvent.click(screen.getByRole('switch', {name: '절 번호'}));
+    await userEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
     await waitFor(() =>
       expect(written()).toMatchObject({bible: {verseNumbers: false}}),
     );
@@ -398,7 +398,7 @@ describe('PreferencesView', () => {
     await mount();
     await openPage('출력');
     await userEvent.click(
-      screen.getByRole('switch', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
     );
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
     act(() =>
@@ -411,7 +411,7 @@ describe('PreferencesView', () => {
     );
     answer({ok: true, value: {id: 'preferences', revision: 6}});
     await userEvent.click(
-      screen.getByRole('switch', {name: '출력 창 항상 위'}),
+      screen.getByRole('checkbox', {name: '출력 창 항상 위'}),
     );
 
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
@@ -425,7 +425,7 @@ describe('PreferencesView', () => {
     if (api === undefined) throw new Error('Missing api');
     await pendingWritesOf(api).flush();
     await userEvent.click(
-      screen.getByRole('switch', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
     );
 
     expect(edit).not.toHaveBeenCalled();

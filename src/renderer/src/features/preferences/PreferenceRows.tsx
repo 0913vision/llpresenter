@@ -4,7 +4,7 @@ import {Button} from '@renderer/ui/Button';
 import {PropertyRow, PropertyValue} from '@renderer/ui/PropertyRow';
 import {TextField} from '@renderer/ui/TextField';
 import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
-import {Switch} from '@renderer/ui/Switch';
+import {Checkbox} from '@renderer/ui/Checkbox';
 
 interface RowProps {
   readonly label: string;
@@ -13,8 +13,8 @@ interface RowProps {
   readonly disabled?: boolean | undefined;
 }
 
-/** A row with a switch that saves at once. */
-export function SwitchRow({
+/** A row with a checkbox that saves at once. */
+export function CheckboxRow({
   label,
   title,
   disabled,
@@ -27,7 +27,7 @@ export function SwitchRow({
   return (
     <PropertyRow label={label}>
       {({controlId}) => (
-        <Switch
+        <Checkbox
           id={controlId}
           checked={checked}
           disabled={disabled}

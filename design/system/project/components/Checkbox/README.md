@@ -7,10 +7,10 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 - 다른 예배에서 가져오기, and the 예배 순서 (service order) of a new service: picking groups (예배 전, 찬양) and items
 - 출력 상태 복구: the states to restore (화면 출력, 마지막 슬라이드, 표시 중이던 항목)
 - 테마 editor: the on and off properties of an element (그림자, 외곽선)
+- On and off settings that apply the moment you click: the rows in 환경설정 (오류 보고 보내기, 켤 때 화면 출력, 출력 중 절전 막기, 하드웨어 가속, 자동 백업, 절 번호), 화면 설정 (항상 위, 절전 막기, 알파 채널), property panels (미디어 소리 켜기, 오디오 반복), and the settings row of text import (이름표 인식). Put a lone checkbox at the left end of the control cell of a `PropertyRow`; a press on the name toggles it (`label for`).
 
 ## Where not to use
 
-- On/off settings in Preferences, 화면 설정, and media properties (항상 위, 절전 막기, 오류 보고 보내기): use `Switch`.
 - Picking only one: use `SegmentedControl` or `Select`.
 - Marking the currently selected row in a list: use the `selection` background of the list row. Don't add a checkbox.
 

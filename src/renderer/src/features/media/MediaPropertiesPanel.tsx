@@ -10,7 +10,7 @@ import {
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {Slider} from '@renderer/ui/Slider';
-import {Switch} from '@renderer/ui/Switch';
+import {Checkbox} from '@renderer/ui/Checkbox';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
@@ -187,7 +187,7 @@ function SoundGroup({shown, disabled, change}: Editing) {
     <PropertyGroup title="소리">
       <PropertyRow label="소리 켜기">
         {({controlId}) => (
-          <Switch
+          <Checkbox
             id={controlId}
             checked={shown.audio}
             disabled={disabled}

@@ -246,12 +246,6 @@ export {
   type StatusDotProps,
 } from './StatusMarks';
 export {
-  Switch,
-  SwitchRow,
-  type SwitchProps,
-  type SwitchRowProps,
-} from './Switch';
-export {
   TileList,
   gridMoves,
   rowMoves,

@@ -1,7 +1,7 @@
 import {useAudioSelection} from './state/audioSelection';
 import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/session/live';
-import {SelectMenu, Switch} from '@renderer/ui';
+import {Checkbox, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import type {AudioPlaylistId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -80,7 +80,7 @@ export function AudioTab({
         <span>{selected?.items.length ?? 0}곡</span>
         <label className={styles.repeat}>
           반복{' '}
-          <Switch
+          <Checkbox
             aria-label="반복"
             checked={selected?.loop ?? false}
             disabled={

@@ -792,7 +792,7 @@ and 59.
 | 재생            | 구간 (range)         | 시작 (start) and 끝 (end) time fields         |
 | 재생            | 속도 (speed)         | Number field, for example 1.0×                |
 | 화면 (screen)   | 맞춤 (fit)           | 맞추기 (fit), 채우기 (fill), 늘리기 (stretch) |
-| 소리 (sound)    | 소리 켜기 (sound on) | Switch                                        |
+| 소리 (sound)    | 소리 켜기 (sound on) | Checkbox                                      |
 | 소리            | 음량 (volume)        | Slider, unavailable while the sound is off    |
 
 - Changes apply at once and save. If the media is on output, the change applies

@@ -8,7 +8,7 @@ import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import type {BibleEdits} from './useBibleEdits';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import {PREFERENCE_LIMITS} from '@core/schema/preferences';
-import {CountRow, SwitchRow} from './PreferenceRows';
+import {CountRow, CheckboxRow} from './PreferenceRows';
 import styles from './BiblePage.module.css';
 
 const ALREADY_DEFAULT = '이미 기본 역본입니다';
@@ -87,7 +87,7 @@ export function BiblePage({
       </PropertyGroup>
       {preferences === null ? null : (
         <PropertyGroup title="표시">
-          <SwitchRow
+          <CheckboxRow
             label="절 번호"
             disabled={lockedReason !== undefined}
             title={lockedReason}

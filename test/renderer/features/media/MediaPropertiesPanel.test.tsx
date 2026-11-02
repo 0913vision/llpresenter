@@ -153,7 +153,7 @@ describe('media properties panel', () => {
     expect(edit).toHaveBeenLastCalledWith(
       expect.objectContaining({changes: {props: {audio: false, fit: 'fit'}}}),
     );
-    fireEvent.click(within(panel).getByRole('switch'));
+    fireEvent.click(within(panel).getByRole('checkbox'));
     expect(edit).toHaveBeenLastCalledWith(
       expect.objectContaining({changes: {props: {audio: true}}}),
     );

@@ -9,7 +9,7 @@ import {
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {Switch} from '@renderer/ui/Switch';
+import {Checkbox} from '@renderer/ui/Checkbox';
 import {TextField} from '@renderer/ui/TextField';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
@@ -24,7 +24,7 @@ function ScreenSettings(): JSX.Element {
       <PropertyGroup title="안정성">
         <PropertyRow label="항상 위">
           {({controlId}) => (
-            <Switch id={controlId} checked={onTop} onChange={setOnTop} />
+            <Checkbox id={controlId} checked={onTop} onChange={setOnTop} />
           )}
         </PropertyRow>
         <PropertyRow label="이름">
@@ -58,7 +58,7 @@ describe('PropertyRow', () => {
     await userEvent.click(screen.getByText('항상 위'));
     expect(
       screen
-        .getByRole('switch', {name: '항상 위'})
+        .getByRole('checkbox', {name: '항상 위'})
         .getAttribute('aria-checked'),
     ).toBe('true');
   });

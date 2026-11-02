@@ -16,7 +16,7 @@ import {menuButtonProps} from '../ui/menuButton';
 import type {MenuEntry} from '../ui/menuModel';
 import {SelectMenu} from '../ui/SelectMenu';
 import {SegmentedControl} from '../ui/SegmentedControl';
-import {Switch} from '../ui/Switch';
+import {Checkbox} from '../ui/Checkbox';
 import {TextField} from '../ui/TextField';
 import {Tooltip} from '../ui/Tooltip';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
@@ -312,7 +312,7 @@ function ImportTextDialog({
             />
           </DialogField>
           <DialogField label="이름표 인식">
-            <Switch checked onChange={ignore} />
+            <Checkbox checked onChange={ignore} />
           </DialogField>
         </>
       }
