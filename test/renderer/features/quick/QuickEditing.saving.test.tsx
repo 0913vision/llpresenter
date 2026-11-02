@@ -4,6 +4,7 @@ import {
   renderHook,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -227,6 +228,19 @@ describe('quick editing', () => {
     });
     fireEvent.contextMenu(row);
     fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    const question = await screen.findByRole('alertdialog');
+    expect(question.textContent).toContain(
+      '‘새 이름’ 퀵 실행 항목을 삭제할까요?',
+    );
+    fireEvent.click(within(question).getByRole('button', {name: '취소'}));
+    expect(screen.getByRole('button', {name: '새 이름'})).toBeDefined();
+    fireEvent.contextMenu(row);
+    fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    fireEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
     await waitFor(() =>
       expect(screen.queryByRole('button', {name: '새 이름'})).toBeNull(),
     );

@@ -1,3 +1,4 @@
+import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
@@ -267,14 +268,15 @@ export function QuickRowEditor({
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
   useEffect(() => {
-    if (!menu && !renaming) return undefined;
+    if (!menu && !renaming && !deleting) return undefined;
     onPinChange?.(item.id, true);
     return () => onPinChange?.(item.id, false);
-  }, [item.id, menu, renaming, onPinChange]);
+  }, [item.id, menu, renaming, deleting, onPinChange]);
   return (
     <div
       data-quick-id={item.id}
@@ -302,12 +304,28 @@ export function QuickRowEditor({
             rename: () => {
               renameAfterMenu(true);
             },
-            remove: () => {
-              save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
-                console.error('Quick delete callback failed:', cause),
-              );
-            },
+            remove: () => setDeleting(true),
           })}
+        />
+      ) : null}
+      {deleting ? (
+        <AlertDialog
+          icon="bolt"
+          title={`‘${item.name}’ 퀵 실행 항목을 삭제할까요?`}
+          onCancel={() => setDeleting(false)}
+          actions={[
+            {
+              label: '삭제',
+              primary: true,
+              disabled: locked,
+              onSelect: () => {
+                setDeleting(false);
+                save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
+                  console.error('Quick delete callback failed:', cause),
+                );
+              },
+            },
+          ]}
         />
       ) : null}
       {renaming ? (

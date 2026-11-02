@@ -323,6 +323,12 @@ describe('service song item panel', () => {
     const remove = vi.spyOn(editor, 'deleteArrangement');
     await user.click(within(panel).getByRole('button', {name: '구성'}));
     await user.click(screen.getByRole('menuitem', {name: '지우기'}));
+    expect(remove).not.toHaveBeenCalled();
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
     expect(openWindow).not.toHaveBeenCalled();
     expect(remove).toHaveBeenCalledExactlyOnceWith('주일용');
   });

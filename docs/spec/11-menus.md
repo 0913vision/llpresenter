@@ -43,8 +43,19 @@ feature we lack), Moved, Removed.
   group where some rows have icons, rows without one (이름 바꾸기) start their
   text at 55 too. Phosphor Regular, the same set as the app.
 - **Delete:** 삭제 is the last row, in its own group or at the end of the
-  clipboard group as PP has it, in normal text color. Rules for confirmation
-  stay as they are.
+  clipboard group as PP has it, in normal text color.
+- **Delete rule (user decision, November 2):** As editing programs do, a delete
+  that Ctrl Z can undo happens at once with no question. A delete that cannot be
+  undone asks first in the app's AlertDialog with 삭제 as the confirm button,
+  and the question says where the thing is used when other places use it ("이
+  곡은 예배 2곳에서 씁니다"). Undoable today: 예배 순서 항목 and 구역 (the 예배
+  순서 history), and 슬라이드, 그룹, and 구성 순서 in the 곡 편집 window (its
+  history until 저장). Asking: 곡, 테마 (always, with where it is used or the
+  default of a kind), 매크로, 매크로 모음, 그래픽, 타이머, 공지, 메시지 틀,
+  이름표, 오버레이, 미디어, 재생목록, 예배, 템플릿, 화면, 퀵 실행 항목, and 구성
+  (from 준비). Not covered: 단축키 지우기 and 재생목록에서 빼기 (a removal that
+  keeps the thing itself) ask nothing and have no undo; the lead decides whether
+  they get an undo.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). A row that opens a dialog
   or asks for more input ends with "…" as in PP (수정…, 전환 효과…).
 - **Window commands:** A command that opens a window ends with "…" and has one

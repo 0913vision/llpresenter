@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
-import type {Theme} from '@core/schema/themes';
+import type {Theme, ThemesFile} from '@core/schema/themes';
 import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
 import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {countedMeta} from '@renderer/ui/countedMeta';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -14,6 +15,27 @@ import {ChoiceRows} from '../ChoiceRows';
 import {themeKindNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
+
+/** Where a 테마 is used, for the question before it is deleted. */
+function usedMeta(
+  theme: Theme,
+  uses: number,
+  file: ThemesFile | null,
+): readonly string[] {
+  const kinds = themeItemKinds.filter(
+    kind => file?.defaults[kind] === theme.id,
+  );
+  const lines = [
+    ...countedMeta(uses, `예배 순서 항목 ${uses}곳에서 씀`),
+    ...countedMeta(
+      kinds.length,
+      `${kinds.map(kind => themeKindNames[kind]).join(', ')}의 기본으로 씀`,
+    ),
+  ];
+  return lines.length === 0
+    ? lines
+    : [...lines, '사용 항목은 종류별 기본 테마로 표시됩니다.'];
+}
 
 export function ThemeList({
   model,
@@ -26,7 +48,10 @@ export function ThemeList({
     null,
   );
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<Theme | null>(null);
+  const [confirm, setConfirm] = useState<{
+    readonly theme: Theme;
+    readonly uses: number;
+  } | null>(null);
   const [checking, setChecking] = useState(false);
   const lookup = useRef<AbortController | null>(null);
   const alive = useRef(true);
@@ -53,22 +78,15 @@ export function ThemeList({
     model.chooseTheme(theme.id);
     setRenaming(theme.id);
   });
-  const execute = async (
-    edit: ThemeListEdit,
-    usedByItems: ReadonlySet<ThemeId> = new Set(),
-  ): Promise<boolean> => {
+  const execute = async (edit: ThemeListEdit): Promise<boolean> => {
     const unchanged = model.guardInteraction();
     const result = await model.change(
-      file => editThemeList(file, edit, usedByItems),
+      file => editThemeList(file, edit, new Set()),
       edit.kind === 'rename' ? 'saved' : 'applied',
     );
     if (!alive.current) return false;
     if (!result.ok) {
-      if (result.error === 'confirmation-required' && edit.kind === 'delete') {
-        setConfirm(
-          model.file?.themes.find(theme => theme.id === edit.id) ?? null,
-        );
-      } else model.report(themeProblems[result.error]);
+      model.report(themeProblems[result.error]);
       return false;
     }
     if (
@@ -86,10 +104,6 @@ export function ThemeList({
   };
   const requestDelete = (theme: Theme): void => {
     if (checking || model.reason !== undefined || model.file === null) return;
-    if (Object.values(model.file.defaults).includes(theme.id)) {
-      setConfirm(theme);
-      return;
-    }
     const api = window.llp;
     if (api === undefined) return;
     lookup.current?.abort();
@@ -101,12 +115,9 @@ export function ThemeList({
       item => item.theme === theme.id,
       controller.signal,
     )
-      .then(async uses => {
+      .then(uses => {
         if (!alive.current || controller.signal.aborted) return;
-        await execute(
-          {kind: 'delete', id: theme.id},
-          uses > 0 ? new Set([theme.id]) : new Set(),
-        );
+        setConfirm({theme, uses});
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) model.reportError(error);
@@ -268,15 +279,15 @@ export function ThemeList({
       {confirm === null ? null : (
         <AlertDialog
           icon="layers"
-          title={`‘${confirm.name}’ 삭제`}
-          meta={['사용 항목은 종류별 기본 테마로 표시됩니다.']}
+          title={`‘${confirm.theme.name}’ 테마를 삭제할까요?`}
+          meta={usedMeta(confirm.theme, confirm.uses, model.file)}
           onCancel={() => setConfirm(null)}
           actions={[
             {
               label: '삭제',
               primary: true,
               onSelect: () => {
-                run({kind: 'delete', id: confirm.id, confirmed: true});
+                run({kind: 'delete', id: confirm.theme.id, confirmed: true});
                 setConfirm(null);
               },
             },

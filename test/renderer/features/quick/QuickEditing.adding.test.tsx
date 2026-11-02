@@ -97,6 +97,35 @@ describe('quick editing', () => {
       }
     },
   );
+  it('keeps its row pinned while the delete question is open and releases it after', async () => {
+    let pinned: string | null = null;
+    const onPinChange = (id: string, active: boolean): void => {
+      pinned = active ? id : pinned === id ? null : pinned;
+    };
+    render(
+      <QuickRowEditor
+        item={quickItem('black')}
+        locked={false}
+        save={vi.fn(async () => true)}
+        onPinChange={onPinChange}
+      >
+        <button>항목</button>
+      </QuickRowEditor>,
+    );
+    const {id} = quickItem('black');
+
+    fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {
+      key: 'F10',
+      shiftKey: true,
+    });
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await screen.findByRole('alertdialog');
+    expect(pinned).toBe(id);
+
+    fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    expect(pinned).toBeNull();
+  });
+
   it('closes an applied timer addition with its persistence warning and no retry', async () => {
     vi.mocked(crypto.randomUUID)
       .mockReturnValueOnce('00000000-0000-4000-8000-000000000998')

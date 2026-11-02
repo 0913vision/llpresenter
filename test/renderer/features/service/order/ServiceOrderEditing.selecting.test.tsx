@@ -135,6 +135,7 @@ describe('service panel editing', () => {
       fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
       await user.click(await screen.findByRole('menuitem', {name: '삭제'}));
       await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
       fireEvent.keyDown(list(), {key: 'ㅋ', code: 'KeyZ', ctrlKey: true});
       await screen.findByRole('option', {name: '첫 곡'});
       fireEvent.keyDown(list(), {key: 'ㅛ', code: 'KeyY', ctrlKey: true});

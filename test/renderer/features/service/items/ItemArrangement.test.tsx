@@ -2,6 +2,7 @@ import {render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
+  createServiceId,
   createServiceItemId,
   createSongGroupId,
   createSongId,
@@ -165,6 +166,7 @@ async function setupGrouped(
     subscribe: (listener: () => void) => editor.subscribe(listener),
   };
 
+  window.llp = fixture.api;
   const items = new ServiceItemStore(fixture.api, testEditor, vi.fn());
   useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
 
@@ -194,6 +196,7 @@ async function setupGrouped(
     view.unmount();
     items.dispose();
     await editor.dispose();
+    delete window.llp;
   });
 
   await screen.findByRole('listbox', {name: '구성 순서'});
@@ -225,9 +228,66 @@ describe('ItemArrangement with grouped songs', () => {
     ] as const) {
       await user.click(screen.getByRole('button', {name: '구성'}));
       await user.click(screen.getByRole('menuitem', {name: label}));
+      if (action === 'delete-arrangement') {
+        expect(onEditSong).not.toHaveBeenCalledWith(action);
+        await user.click(
+          within(await screen.findByRole('alertdialog')).getByRole('button', {
+            name: '삭제',
+          }),
+        );
+      }
       expect(onEditSong).toHaveBeenLastCalledWith(action);
     }
     expect(edits).toEqual([]);
+  });
+
+  it('asks before deleting a 구성, says where it is used in every service, and keeps it on cancel', async () => {
+    const {user, onEditSong, api, session} = await setupGrouped();
+    const used = (id: string): ServiceDocument => ({
+      revision: 1,
+      access: 'editable',
+      service: {
+        format: 'llservice',
+        schemaVersion: 1,
+        id: createServiceId(id),
+        name: 'Invented service',
+        date: '2026-11-02T11:00',
+        order: [
+          {
+            id: createServiceItemId('50000000-0000-4000-8000-000000000001'),
+            song: session.document.song.id,
+            arrangement: '주일용',
+          },
+          {
+            id: createServiceItemId('50000000-0000-4000-8000-000000000002'),
+            song: session.document.song.id,
+          },
+        ],
+      },
+    });
+    const first = used('00000000-0000-4000-8000-0000000000a1');
+    const second = used('00000000-0000-4000-8000-0000000000a2');
+    vi.spyOn(api.services, 'list').mockResolvedValue(
+      [first, second].map(document => ({
+        id: document.service.id,
+        name: document.service.name,
+        date: document.service.date,
+        access: 'editable' as const,
+      })),
+    );
+    vi.spyOn(api.services, 'get').mockImplementation(async id =>
+      id === first.service.id ? first : second,
+    );
+
+    await user.click(screen.getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '지우기'}));
+    const question = await screen.findByRole('alertdialog');
+
+    expect(question.textContent).toContain('‘주일용’ 구성을 삭제할까요?');
+    expect(question.textContent).toContain('이 곡의 예배 순서 항목 2곳에서 씀');
+    await user.click(within(question).getByRole('button', {name: '취소'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(onEditSong).not.toHaveBeenCalledWith('delete-arrangement');
   });
 
   it.each([false, true])(

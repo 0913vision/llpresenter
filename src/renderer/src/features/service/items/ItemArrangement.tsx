@@ -1,4 +1,10 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import type {Label} from '@core/schema/labels';
 import {isGroupedSong} from '@core/schema/groupedSong';
 import {isItemOfKind} from '@core/schema/service';
@@ -7,6 +13,9 @@ import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SongEditorAction} from '@renderer/features/songs/editor/songEditorStore';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useLive} from '@renderer/session/live';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {countedMeta} from '@renderer/ui/countedMeta';
+import {countServiceItemUses} from '../serviceItemUsage';
 import {ArrangementStrip} from '@renderer/ui/LabelChip';
 import {ArrangementPicker} from '../../songs/editor/ArrangementPicker';
 import {Icon} from '@renderer/ui/Icon';
@@ -64,6 +73,39 @@ export function ItemArrangement({
     grouped
       ? chipIndexForSlide(position, ranges, sequence.slides.length)
       : position;
+  const [deleting, setDeleting] = useState<{
+    readonly name: string;
+    readonly uses: number;
+  } | null>(null);
+  const lookup = useRef<AbortController | null>(null);
+  useEffect(() => () => lookup.current?.abort(), []);
+  const askToDelete = (name: string): void => {
+    const api = window.llp;
+    if (api === undefined) return;
+    lookup.current?.abort();
+    const controller = new AbortController();
+    lookup.current = controller;
+    countServiceItemUses(
+      api,
+      other =>
+        isItemOfKind(other, 'song') &&
+        other.song === session.document.song.id &&
+        other.arrangement === name,
+      controller.signal,
+    )
+      .then(uses => {
+        if (!controller.signal.aborted) setDeleting({name, uses});
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          console.error(
+            'Could not look up where the arrangement is used',
+            error,
+          );
+          setDeleting({name, uses: 0});
+        }
+      });
+  };
   const serviceReason =
     service?.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
   const sourceReason = session.readOnly ? NEWER_FILE_REASON : undefined;
@@ -88,7 +130,9 @@ export function ItemArrangement({
           choose={name => editorTask(items.chooseArrangement(name))}
           create={() => onEditSong('create-arrangement')}
           rename={() => onEditSong('rename-arrangement')}
-          remove={() => onEditSong('delete-arrangement')}
+          remove={() => {
+            if (arrangement !== undefined) askToDelete(arrangement);
+          }}
           edit={() => onEditSong('edit-arrangement')}
         />
         {missingReason === undefined ? null : (
@@ -103,6 +147,30 @@ export function ItemArrangement({
           </Tooltip>
         )}
       </div>
+      {deleting !== null ? (
+        <AlertDialog
+          icon="trash"
+          title={`‘${deleting.name}’ 구성을 삭제할까요?`}
+          meta={[
+            ...countedMeta(
+              deleting.uses,
+              `이 곡의 예배 순서 항목 ${deleting.uses}곳에서 씀`,
+            ),
+            '곡의 구성만 지우며, 쓰던 항목은 기본 구성으로 바뀝니다',
+          ]}
+          onCancel={() => setDeleting(null)}
+          actions={[
+            {
+              label: '삭제',
+              primary: true,
+              onSelect: () => {
+                setDeleting(null);
+                onEditSong('delete-arrangement');
+              },
+            },
+          ]}
+        />
+      ) : null}
       <ArrangementStrip
         label="구성 순서"
         mode="select"

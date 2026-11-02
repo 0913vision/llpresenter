@@ -175,6 +175,37 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   expect(listeners.size).toBe(0);
 });
 
+it('asks before every 테마 delete, says where a 테마 is the default, and keeps it on cancel', async () => {
+  const {value} = setup();
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  fireEvent.contextMenu(within(themes).getByRole('option', {name: '찬양'}), {
+    clientX: 10,
+    clientY: 10,
+  });
+  fireEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+  const copied = await screen.findByRole('option', {name: '찬양 복사본'});
+
+  fireEvent.contextMenu(copied, {clientX: 10, clientY: 10});
+  fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+  const unused = await screen.findByRole('alertdialog');
+  expect(unused.textContent).toContain('‘찬양 복사본’ 테마를 삭제할까요?');
+  expect(unused.textContent).not.toContain('에서 씀');
+  fireEvent.click(within(unused).getByRole('button', {name: '취소'}));
+  expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(true);
+
+  fireEvent.contextMenu(within(themes).getByRole('option', {name: '말씀'}), {
+    clientX: 10,
+    clientY: 10,
+  });
+  fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+  const used = await screen.findByRole('alertdialog');
+  expect(used.textContent).toContain('성경의 기본으로 씀');
+  fireEvent.click(within(used).getByRole('button', {name: '삭제'}));
+  await waitFor(() =>
+    expect(value().themes.some(theme => theme.name === '말씀')).toBe(false),
+  );
+});
+
 it('shows clean geometry after selection and preserves explicitly typed precision', async () => {
   const {value} = setup();
   fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
