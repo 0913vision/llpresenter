@@ -59,7 +59,7 @@ export function findTheme(file: ThemesFile, id: ThemeId): Theme | undefined {
     : file.themes.find(theme => theme.id === id);
 }
 
-function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
+export function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
   return file.standby.id === theme.id
     ? {...file, standby: theme}
     : {
@@ -70,7 +70,11 @@ function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
       };
 }
 
-function unusedName(base: string, file: ThemesFile, ending: string): string {
+export function unusedName(
+  base: string,
+  file: ThemesFile,
+  ending: string,
+): string {
   const names = new Set(
     [file.standby, ...file.themes].map(theme => theme.name),
   );

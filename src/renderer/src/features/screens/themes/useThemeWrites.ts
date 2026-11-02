@@ -5,11 +5,12 @@ import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {ThemeEditor} from './themeEditor';
 import {THEME_READ_ONLY, themeProblems} from './themeNames';
+import {useThemeDraft} from './useThemeDraft';
 export function useThemeWrites(
   document: NamedDocument<'themes'> | null,
   onProblem: ((notice: Notice) => void) | undefined,
 ) {
-  const [file, setFile] = useState<ThemesFile | null>(null);
+  const [saved, setFile] = useState<ThemesFile | null>(null);
 
   const reportRef = useRef(onProblem);
 
@@ -101,6 +102,15 @@ export function useThemeWrites(
         completed?.(false);
       });
   };
-  return {file, reason, change, apply, report, reportError};
+  const drafts = useThemeDraft({saved, reason, change, report});
+  return {
+    ...drafts,
+    saved,
+    reason,
+    change,
+    apply,
+    report,
+    reportError,
+  };
 }
 export type ThemeWrites = ReturnType<typeof useThemeWrites>;

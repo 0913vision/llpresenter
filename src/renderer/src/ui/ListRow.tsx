@@ -25,6 +25,7 @@ const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
 const SLOT_MARK = '빈 자리';
+const MODIFIED_LABEL = '저장하지 않은 변경';
 export type GroupRename = RenameContract;
 
 export interface ListRowProps {
@@ -45,6 +46,8 @@ export interface ListRowProps {
   readonly done?: boolean | undefined;
   /** The reason for a problem, such as 미디어 파일 없음; draws a warning icon. */
   readonly warning?: string | undefined;
+  /** The item has edits that aren't saved yet; a dot follows its name. */
+  readonly modified?: boolean | undefined;
   readonly disabled?: boolean | undefined;
   /** Tooltip text for the row, such as the reason it is disabled. */
   readonly reason?: string | undefined;
@@ -83,6 +86,23 @@ function WarningMark({reason}: {readonly reason: string}): JSX.Element {
   );
 }
 
+function ModifiedMark(): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({text: MODIFIED_LABEL});
+  return (
+    <>
+      <span
+        {...targetProps}
+        className={styles.modified}
+        aria-label={MODIFIED_LABEL}
+        role="img"
+      >
+        {tooltip}
+      </span>
+      <span className={styles.spacer} aria-hidden="true" />
+    </>
+  );
+}
+
 function RowEnd({children}: {readonly children: ReactNode}): JSX.Element {
   return (
     <span
@@ -105,9 +125,13 @@ function RowContent({
   readonly titleId: string;
 }): JSX.Element {
   const {icon, title, meta, sub, live = false, warning, end, rename} = props;
+  const titleClass = classNames(
+    styles.title,
+    props.modified === true && styles.beforeMark,
+  );
   const titleText =
     rename === undefined ? (
-      <TruncatedText id={titleId} text={title} className={styles.title} />
+      <TruncatedText id={titleId} text={title} className={titleClass} />
     ) : (
       <NameField id={titleId} label={title} rename={rename} />
     );
@@ -128,6 +152,9 @@ function RowContent({
           </span>
         </span>
       )}
+      {props.modified === true && rename === undefined ? (
+        <ModifiedMark />
+      ) : null}
       {warning === undefined ? null : <WarningMark reason={warning} />}
       {live ? <LiveBadge /> : null}
       {live || meta === undefined ? null : (

@@ -19,7 +19,7 @@ describe('useScreensPanels', () => {
       useScreensPanels({active: true, onProblem}),
     );
 
-    expect(useThemePanels).toHaveBeenCalledWith(true, onProblem);
+    expect(useThemePanels).toHaveBeenCalledWith(true, onProblem, undefined);
     expect(result.current.columns).toEqual([
       ['테마'],
       ['테마 편집'],

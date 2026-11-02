@@ -78,7 +78,12 @@ it(
       ),
     ).toBe(true);
     const stopStarted = performance.now();
-    const forced = await app.stop();
+    const stopping = app.stop();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', {name: '저장', exact: true})
+      .click();
+    const forced = await stopping;
     const quitMs = Math.round(performance.now() - stopStarted);
     console.info('Focused editor quit', {quitMs, forced});
     expect(forced, `Focused editor quit took ${quitMs} ms`).toBe(false);

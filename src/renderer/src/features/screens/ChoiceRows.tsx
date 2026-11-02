@@ -22,6 +22,7 @@ export function ChoiceRows<T extends Choice>({
   warnings,
   selected,
   inUse,
+  modified,
   label,
   renaming,
   onSelect,
@@ -32,6 +33,7 @@ export function ChoiceRows<T extends Choice>({
   readonly warnings?: ReadonlyMap<string, string>;
   readonly selected: string | undefined;
   readonly inUse: ReadonlySet<string>;
+  readonly modified?: ReadonlySet<string> | undefined;
   readonly label: string;
   readonly renaming: {
     readonly id: string;
@@ -195,6 +197,7 @@ export function ChoiceRows<T extends Choice>({
               title={choice.name}
               warning={warnings?.get(choice.id)}
               live={inUse.has(choice.id)}
+              modified={modified?.has(choice.id)}
               end={rowEnd?.(choice)}
               rename={
                 renaming?.id === choice.id ? renaming.handlers : undefined

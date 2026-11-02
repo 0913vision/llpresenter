@@ -24,6 +24,20 @@ import {ServiceOrder, selectedTitle} from '@fixtures/renderer/ui/listTesting';
 afterEach(resetTooltips);
 
 describe('ListRow', () => {
+  it('marks a row with unsaved edits by a dot after its name', () => {
+    render(
+      <ListBox label="Themes" selected="a" onSelect={vi.fn()}>
+        <ListRow value="a" title="Edited" modified />
+        <ListRow value="b" title="Clean" />
+      </ListBox>,
+    );
+    const marks = screen.getAllByRole('img', {name: '저장하지 않은 변경'});
+    expect(marks).toHaveLength(1);
+    expect(marks[0]?.closest('[role="option"]')?.textContent).toContain(
+      'Edited',
+    );
+  });
+
   it('keeps group actions outside the accessible group name', async () => {
     const action = vi.fn();
     render(

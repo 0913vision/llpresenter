@@ -4,6 +4,7 @@ import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from '@renderer/app/closeFlush';
+import type {DraftOutcome} from '@renderer/platform/pendingWrites';
 
 const requestId = createAppFlushRequestId(
   'b52f1d63-8f20-4b3c-9d4e-5f6071829304',
@@ -20,7 +21,10 @@ function deferred(): {
   return {promise, resolve};
 }
 
-function setup(flush: () => Promise<boolean>) {
+function setup(
+  flush: () => Promise<boolean>,
+  decide?: () => Promise<DraftOutcome> | undefined,
+) {
   const listeners = new Set<(request: AppFlushRequest) => void>();
   const flushDone = vi.fn();
   const flushProgress = vi.fn();
@@ -42,7 +46,7 @@ function setup(flush: () => Promise<boolean>) {
     window: {control},
     log: {write},
   });
-  const model = new CloseFlush({api, flush});
+  const model = new CloseFlush({api, flush, decide});
   onTestFinished(() => {
     model.dispose();
   });
@@ -64,6 +68,63 @@ function setup(flush: () => Promise<boolean>) {
 }
 
 describe('close flush', () => {
+  it('asks about drafts before it flushes and shows 저장 중 only after the answer', async () => {
+    const clock = installMockClock();
+    const answer = deferred();
+    const flush = vi.fn().mockResolvedValue(true);
+    const {model, flushDone, request} = setup(flush, async () => {
+      await answer.promise;
+      return 'settled' as const;
+    });
+    request();
+    await clock.advance(SAVING_DIALOG_DELAY_MS * 2);
+    expect(model.getSnapshot()).toBe('hidden');
+    expect(flush).not.toHaveBeenCalled();
+    answer.resolve(true);
+    await clock.runAll();
+    expect(flush).toHaveBeenCalledOnce();
+    expect(flushDone).toHaveBeenCalledExactlyOnceWith({
+      requestId,
+      result: true,
+    });
+  });
+
+  it('keeps the window open without a failure dialog when the operator cancels', async () => {
+    const clock = installMockClock();
+    const flush = vi.fn().mockResolvedValue(true);
+    const {model, flushDone, request} = setup(flush, () =>
+      Promise.resolve('canceled'),
+    );
+    request();
+    await clock.runAll();
+    expect(flush).not.toHaveBeenCalled();
+    expect(flushDone).toHaveBeenCalledExactlyOnceWith({
+      requestId,
+      result: false,
+    });
+    expect(model.getSnapshot()).toBe('hidden');
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('logs a failing decision and shows the failure dialog', async () => {
+    const clock = installMockClock();
+    const flush = vi.fn().mockResolvedValue(true);
+    const {model, flushDone, write, request} = setup(flush, () =>
+      Promise.reject(new Error('Invented decision failure')),
+    );
+    request();
+    await clock.runAll();
+    expect(flush).not.toHaveBeenCalled();
+    expect(flushDone).toHaveBeenCalledExactlyOnceWith({
+      requestId,
+      result: false,
+    });
+    expect(model.getSnapshot()).toBe('failed');
+    expect(write).toHaveBeenCalledWith(
+      expect.objectContaining({level: 'error'}),
+    );
+  });
+
   it('reports progress while waiting for disk beyond the renderer timeout and stops after a refusal', async () => {
     const clock = installMockClock();
     const pending = deferred();

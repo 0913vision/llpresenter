@@ -1,6 +1,7 @@
 import {closeStepAfter} from '@core/app/closePolicy';
 import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
 import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
+import type {DraftOutcome} from '@renderer/platform/pendingWrites';
 
 /**
  * How long a close flush may run before the 저장 중 dialog shows, so a normal
@@ -16,6 +17,13 @@ export interface CloseFlushOptions {
   readonly api: Pick<LlpApi, 'app' | 'log' | 'window'>;
   /** Submits pending edits; true when nothing is left unsaved. */
   readonly flush: () => Promise<boolean>;
+  /**
+   * Asks what to do with edits that only the operator can settle, such as a
+   * 테마 draft, before the flush; undefined when there is nothing to ask. A
+   * cancel keeps the window open without the
+   * failure dialog.
+   */
+  readonly decide?: (() => Promise<DraftOutcome> | undefined) | undefined;
 }
 
 /**
@@ -67,11 +75,20 @@ export class CloseFlush {
   }
 
   private async answer({requestId}: AppFlushRequest): Promise<void> {
-    this.showSavingSoon();
     this.options.api.app.flushProgress({requestId});
     this.progress = setInterval(() => {
       this.options.api.app.flushProgress({requestId});
     }, APP_FLUSH_LIMITS.progressIntervalMs);
+    const question = this.options.decide?.();
+    const decision =
+      question === undefined ? 'settled' : await this.decided(question);
+    if (decision !== 'settled') {
+      clearInterval(this.progress);
+      this.options.api.app.flushDone({requestId, result: false});
+      this.show(decision === 'canceled' ? 'hidden' : 'failed');
+      return;
+    }
+    this.showSavingSoon();
     const result = await this.flushed();
     clearInterval(this.progress);
     clearTimeout(this.timer);
@@ -90,6 +107,17 @@ export class CloseFlush {
     this.timer = setTimeout(() => {
       this.show('saving');
     }, SAVING_DIALOG_DELAY_MS);
+  }
+
+  private async decided(
+    question: Promise<DraftOutcome>,
+  ): Promise<DraftOutcome> {
+    try {
+      return await question;
+    } catch (error) {
+      this.logError('could not settle the drafts before closing', error);
+      return 'failed';
+    }
   }
 
   private async flushed(): Promise<boolean> {

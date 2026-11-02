@@ -30,7 +30,7 @@ export function useThemeElements(
   selection: ThemeSelection,
 ) {
   const {target, elementReason} = context;
-  const {apply, report} = writes;
+  const {edit, report} = writes;
   const {
     keepRatio,
     selectedIds,
@@ -52,7 +52,11 @@ export function useThemeElements(
     completed?: (saved: boolean) => void,
   ): void => {
     if (target === undefined) return;
-    apply(value => editThemeElements(value, target, transform), completed);
+    edit(
+      target.theme,
+      value => editThemeElements(value, target, transform),
+      completed,
+    );
   };
 
   const property = (

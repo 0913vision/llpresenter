@@ -12,6 +12,8 @@ export interface RenameContract {
   readonly validate?: ((value: string) => string | undefined) | undefined;
   readonly onCommit: (name: string) => boolean | Promise<boolean>;
   readonly onClose: () => void;
+  /** Commits a name equal to the one shown, such as a copy's suggestion. */
+  readonly commitsUnchanged?: boolean | undefined;
 }
 
 const FIELD_COMMANDS = new Set([
@@ -54,7 +56,10 @@ export function useRenameDraft(
     };
   }, []);
   const name = value.trim();
-  const unchanged = name === initialName && !needsPersistence;
+  const unchanged =
+    name === initialName &&
+    !needsPersistence &&
+    contract.commitsUnchanged !== true;
   const validation =
     contract.validate?.(name) ??
     (name === '' ? '이름을 입력하세요' : undefined);

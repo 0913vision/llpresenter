@@ -176,13 +176,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['message.send', '메시지 보내기', '진행 도구', ['show'], []],
     ['audio.toggleRepeat', '오디오 반복', '진행 도구', ['control'], []],
     ['macro.new', '새 매크로', '진행 도구', ['show'], []],
-    [
-      'workspace.show',
-      '진행',
-      '작업 공간',
-      ['show', 'prep', 'screens'],
-      ['ctrl KeyS'],
-    ],
+    ['workspace.show', '진행', '작업 공간', ['show', 'prep'], ['ctrl KeyS']],
     [
       'workspace.prep',
       '준비',
@@ -287,6 +281,14 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['Delete'],
     ],
     ['import.save', '가져온 곡 저장', '준비 편집', ['import'], ['ctrl KeyS']],
+    ['theme.save', '테마 저장', '테마', ['screens'], ['ctrl KeyS']],
+    [
+      'theme.saveAs',
+      '테마 다른 이름으로 저장',
+      '테마',
+      ['screens'],
+      ['ctrl shift KeyS'],
+    ],
     ['media.import', '미디어 가져오기', '준비 편집', ['control'], []],
     ['media.newPlaylist', '새 재생목록', '준비 편집', ['control'], []],
     [

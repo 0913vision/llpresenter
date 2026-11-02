@@ -70,6 +70,13 @@
   object-fit: contain;
   margin-top: var(--space-12);
 }
+.saveBar {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  gap: var(--space-8);
+  padding-bottom: var(--panel-gap);
+}
 .canvas > section {
   flex: 1;
   min-height: 0;

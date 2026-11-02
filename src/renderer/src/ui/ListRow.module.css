@@ -47,6 +47,23 @@
   text-overflow: ellipsis;
 }
 
+.beforeMark {
+  flex: 0 1 auto;
+}
+
+.modified {
+  flex: none;
+  width: var(--size-status-dot);
+  height: var(--size-status-dot);
+  margin-inline-start: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--text-2);
+}
+
+.spacer {
+  flex: 1 1 0;
+}
+
 .meta {
   flex: none;
   color: var(--text-3);

@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ScreenId, ThemeId} from '@core/schema/ids';
 import {
   editThemeLayout,
@@ -7,20 +7,28 @@ import {
   type ThemeTarget,
 } from '@core/themes/themeEdits';
 import {resolveThemeScreen} from '@core/themes/resolve';
+import {
+  pendingWritesOf,
+  type DraftOutcome,
+} from '@renderer/platform/pendingWrites';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {Notice} from '@renderer/ui/notices';
 import {useThemeResources} from './useThemeResources';
 import {useThemeWrites} from './useThemeWrites';
 import {useThemeSelection} from './useThemeSelection';
 import {useThemeElements} from './useThemeElements';
+import {useThemeSaveFlow} from './useThemeSaveFlow';
+import type {ThemeLeaveGuard} from './themeLeaveGuard';
 export {themeCanvasBounds, type ThemeAddPlacement} from './useThemeElements';
 /** One workspace session owns selection and all three panels' queued theme changes. */
 export function useThemeEditor(
   active: boolean,
   onProblem: ((notice: Notice) => void) | undefined,
+  leaveGuard?: ThemeLeaveGuard,
 ) {
   const resources = useThemeResources(active, onProblem);
   const writes = useThemeWrites(resources.document, onProblem);
-  const {file, reason, apply} = writes;
+  const {file, reason, edit} = writes;
   const {screens} = resources;
 
   const [themeId, setThemeId] = useState<ThemeId | null>(null);
@@ -64,6 +72,50 @@ export function useThemeEditor(
   const selection = useThemeSelection(scope, visibleElements);
   const actions = useThemeElements({target, elementReason}, writes, selection);
   const {select} = selection;
+  const flow = useThemeSaveFlow({
+    dirtyThemeId: writes.dirtyThemeId,
+    hasDraft: writes.hasDraft,
+    save: writes.save,
+    discard: writes.discard,
+    reportError: writes.reportError,
+  });
+  const askLeave = useRef(flow.askLeave);
+  useLayoutEffect(() => {
+    askLeave.current = flow.askLeave;
+  });
+  useEffect(
+    () => leaveGuard?.attach(proceed => askLeave.current(proceed)),
+    [leaveGuard],
+  );
+  const reportError = useRef(writes.reportError);
+  useLayoutEffect(() => {
+    reportError.current = writes.reportError;
+  });
+  const api = window.llp;
+  useEffect(
+    () =>
+      api === undefined
+        ? undefined
+        : pendingWritesOf(api).addDraft(
+            () =>
+              new Promise<DraftOutcome>(resolve => {
+                askLeave.current(
+                  () => resolve('settled'),
+                  () => resolve('canceled'),
+                );
+              }),
+            error => reportError.current(error),
+          ),
+    [api],
+  );
+  useWindowShortcuts([
+    {id: 'theme.save', when: () => active, run: flow.askOverwrite},
+    {id: 'theme.saveAs', when: () => active, run: flow.askSaveAs},
+  ]);
+  const choose = (id: ThemeId): void => {
+    setThemeId(id);
+    select(null);
+  };
   return {
     ...resources,
     ...writes,
@@ -75,9 +127,19 @@ export function useThemeEditor(
     layout,
     visibleElements,
     elementReason,
+    dialog: flow.dialog,
+    saving: flow.saving,
+    askOverwrite: flow.askOverwrite,
+    askSaveAs: flow.askSaveAs,
+    closeDialog: flow.close,
+    confirmOverwrite: flow.overwrite,
+    saveAndLeave: flow.saveAndLeave,
+    discardAndLeave: flow.discardAndLeave,
+    chooseSaved: choose,
     chooseTheme: (id: ThemeId) => {
-      setThemeId(id);
-      select(null);
+      if (writes.dirtyThemeId === null || writes.dirtyThemeId === id) {
+        choose(id);
+      } else flow.askLeave(() => choose(id));
     },
     chooseScreen: (id: ScreenId) => {
       setScreenId(id);
@@ -85,7 +147,7 @@ export function useThemeEditor(
     },
     layoutChange: (transform: Parameters<typeof editThemeLayout>[2]) => {
       if (target !== undefined) {
-        apply(value => editThemeLayout(value, target, transform));
+        edit(target.theme, value => editThemeLayout(value, target, transform));
       }
     },
   };

@@ -7,6 +7,9 @@ export interface GatedWrite<T> {
   readonly sent: (result: T) => boolean;
 }
 
+/** How the operator settled a draft: decided, backed out of the close, or it failed. */
+export type DraftOutcome = 'settled' | 'canceled' | 'failed';
+
 /**
  * The control window's edits that read before they send, such as 예배 순서
  * and item edits: until they send, their change exists only here. The close
@@ -16,6 +19,10 @@ export interface GatedWrite<T> {
 export class PendingWrites {
   private stopped = false;
   private readonly running = new Set<Promise<boolean>>();
+  private readonly drafts = new Set<{
+    readonly settle: () => Promise<DraftOutcome>;
+    readonly onError: (error: unknown) => void;
+  }>();
   private readonly listeners = new Set<() => void>();
 
   get isStopped(): boolean {
@@ -32,6 +39,46 @@ export class PendingWrites {
     };
     reached.then(settled, settled);
     return result;
+  }
+
+  /**
+   * Registers edits that exist only in the window until the operator decides,
+   * such as a 테마 draft. `settle` asks what to do with them and answers the
+   * outcome; `onError` receives what a failing `settle` threw.
+   */
+  addDraft(
+    settle: () => Promise<DraftOutcome>,
+    onError: (error: unknown) => void,
+  ): () => void {
+    const draft = {settle, onError};
+    this.drafts.add(draft);
+    return () => {
+      this.drafts.delete(draft);
+    };
+  }
+
+  get hasDrafts(): boolean {
+    return this.drafts.size > 0;
+  }
+
+  /**
+   * Close preflight, before writing stops: lets each draft ask its question
+   * in turn. A cancel ends it at once; a failing draft counts as failed and its
+   * error goes to its `onError`.
+   */
+  async settleDrafts(): Promise<DraftOutcome> {
+    let outcome: DraftOutcome = 'settled';
+    for (const {settle, onError} of [...this.drafts]) {
+      try {
+        const answer = await settle();
+        if (answer === 'canceled') return answer;
+        if (answer === 'failed') outcome = answer;
+      } catch (error) {
+        onError(error);
+        outcome = 'failed';
+      }
+    }
+    return outcome;
   }
 
   /**

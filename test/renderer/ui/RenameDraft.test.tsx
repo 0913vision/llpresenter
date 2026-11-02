@@ -146,3 +146,18 @@ it.each(['Enter', 'Escape', 'valid blur', 'invalid blur', 'unchanged'])(
     );
   },
 );
+
+it('commits a suggested name that the user left unchanged when the contract asks', async () => {
+  const save = vi.fn().mockResolvedValue(true);
+  const close = vi.fn();
+  render(
+    <RenameDialog
+      name="찬양 복사본"
+      title="다른 이름으로 저장"
+      rename={{onCommit: save, onClose: close, commitsUnchanged: true}}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  await waitFor(() => expect(close).toHaveBeenCalledOnce());
+  expect(save).toHaveBeenCalledExactlyOnceWith('찬양 복사본');
+});

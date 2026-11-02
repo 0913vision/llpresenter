@@ -1,5 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
-import {PendingWrites, pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {
+  PendingWrites,
+  pendingWritesOf,
+  type DraftOutcome,
+} from '@renderer/platform/pendingWrites';
 
 function deferred<T>() {
   let resolve: (value: T) => void = () => undefined;
@@ -18,6 +22,39 @@ const write = (promise: Promise<boolean>) => ({
 });
 
 describe('pending writes', () => {
+  it('lets each draft ask in turn before writing stops and ends at a cancel', async () => {
+    const writes = new PendingWrites();
+    const asked: string[] = [];
+    const draft = (name: string, outcome: DraftOutcome) => () => {
+      asked.push(`${name}:${writes.isStopped ? 'stopped' : 'open'}`);
+      return Promise.resolve(outcome);
+    };
+    writes.addDraft(draft('first', 'settled'), vi.fn());
+    const remove = writes.addDraft(draft('second', 'canceled'), vi.fn());
+    writes.addDraft(draft('third', 'settled'), vi.fn());
+    await expect(writes.settleDrafts()).resolves.toBe('canceled');
+    expect(asked).toEqual(['first:open', 'second:open']);
+    remove();
+    await expect(writes.settleDrafts()).resolves.toBe('settled');
+  });
+
+  it('reports a draft that throws to its handler and answers failed', async () => {
+    const writes = new PendingWrites();
+    const onError = vi.fn();
+    const failure = new Error('Invented draft failure');
+    writes.addDraft(() => Promise.reject(failure), onError);
+    await expect(writes.settleDrafts()).resolves.toBe('failed');
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
+  });
+
+  it('forgets a draft that was unregistered', async () => {
+    const writes = new PendingWrites();
+    const settle = vi.fn().mockResolvedValue('settled');
+    writes.addDraft(settle, vi.fn())();
+    await expect(writes.settleDrafts()).resolves.toBe('settled');
+    expect(settle).not.toHaveBeenCalled();
+  });
+
   it('waits for running writes at the flush and answers whether all were sent', async () => {
     const writes = new PendingWrites();
     const first = deferred<boolean>();

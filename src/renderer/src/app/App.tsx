@@ -1,3 +1,4 @@
+import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
@@ -83,9 +84,14 @@ function ControlApp({
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
+  const [themeLeave] = useState(() => new ThemeLeaveGuard());
   const onWorkspace = (next: WorkspaceId): void => {
-    if (next === 'prep') session.startEditor();
-    setWorkspace(next);
+    const go = (): void => {
+      if (next === 'prep') session.startEditor();
+      setWorkspace(next);
+    };
+    if (workspace === 'screens' && next !== 'screens') themeLeave.leave(go);
+    else go();
   };
   const onMedia = (): void => {
     if (workspace === 'screens') onWorkspace('show');
@@ -175,6 +181,7 @@ function ControlApp({
           onMediaOpenChange={mediaStrip.setVisible}
           mediaApi={session.api}
           sidebar={sidebar}
+          themeLeave={themeLeave}
         />
       </WorkspaceNavigation>
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />

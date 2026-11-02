@@ -217,6 +217,9 @@ export function ThemeList({
           choices={choices}
           selected={model.theme?.id}
           inUse={new Set(liveId === undefined ? [] : [liveId])}
+          modified={
+            new Set(model.dirtyThemeId === null ? [] : [model.dirtyThemeId])
+          }
           label="테마"
           onSelect={id => {
             const theme = choices.find(value => value.id === id);

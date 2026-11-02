@@ -14,6 +14,8 @@ import {
 } from './ThemeElements';
 import {ThemeList} from './ThemeList';
 import {ThemeImageDialog} from './ThemeImageDialog';
+import {ThemeSaveBar} from './ThemeSaveBar';
+import {ThemeSaveDialogs} from './ThemeSaveDialogs';
 import {themeElementNames} from './themeNames';
 import {useThemeClipboard} from './useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
@@ -103,6 +105,7 @@ export function useThemeSurfaces(
         {model.imageRequest === null ? null : (
           <ThemeImageDialog model={model} />
         )}
+        <ThemeSaveDialogs model={model} />
         {menu === null ? null : (
           <Menu
             label="요소"
@@ -226,6 +229,7 @@ function ThemeCanvas({
         }
       }}
     >
+      <ThemeSaveBar model={model} />
       <CanvasEditor
         key={`${model.theme.id}:${model.screen.id}`}
         value={{...themeCanvasBounds, contained: true, elements}}

@@ -1,7 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {
+  pendingWritesOf,
+  type DraftOutcome,
+} from '@renderer/platform/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {CloseFlush} from './closeFlush';
 
@@ -10,6 +13,13 @@ declare global {
     __llpSongEditorStore?: SongEditorStore;
     __llpServiceItemStore?: ServiceItemStore;
   }
+}
+
+// NOTE(0913vision): Commit-mode fields save on blur, so a close blurs the
+// focused field before it asks about drafts or stops the write gate.
+function commitFocusedField(): void {
+  const focused = document.activeElement;
+  if (focused instanceof HTMLElement) focused.blur();
 }
 
 /** Window-owned editor sessions and their shared notification destination. */
@@ -25,7 +35,12 @@ export class ControlSession {
 
   constructor(readonly api: LlpApi | undefined) {
     this.closeFlush =
-      api && new CloseFlush({api, flush: () => this.flushBeforeClose()});
+      api &&
+      new CloseFlush({
+        api,
+        flush: () => this.flushBeforeClose(),
+        decide: () => this.settleDrafts(api),
+      });
   }
 
   get editor(): SongEditorStore | undefined {
@@ -96,15 +111,18 @@ export class ControlSession {
     return this.closing;
   }
 
+  private settleDrafts(api: LlpApi): Promise<DraftOutcome> | undefined {
+    commitFocusedField();
+    const writes = pendingWritesOf(api);
+    return writes.hasDrafts ? writes.settleDrafts() : undefined;
+  }
+
   // NOTE(0913vision): Unsent work lives in the editor's sessions and
   // operations, in the window's pending writes (item, 예배 순서, and
   // background edits), and in memo drafts that a refused save left waiting.
   // The close goes on only after main writes all accepted edits to disk.
   private async flushBeforeClose(): Promise<boolean> {
-    // NOTE(0913vision): Commit-mode fields save on blur, before the write
-    // gate stops.
-    const focused = document.activeElement;
-    if (focused instanceof HTMLElement) focused.blur();
+    commitFocusedField();
     this.editorBlocked = true;
     const writes =
       this.api === undefined ? undefined : pendingWritesOf(this.api);

@@ -226,18 +226,25 @@ Editing:
 
 Saving (user decision, November 1):
 
-- Edits stay in the editor until 저장 (Ctrl S). A 테마 is shared by every item
-  that uses it, so a stray drag must not change them, and a LIVE 테마 must not
-  change the output while someone edits it.
-- 저장 asks "<이름> 테마를 덮어쓸까요?" with 취소 and 덮어쓰기. Under it, the
-  usage line of the other confirmations ("예배 순서 항목 4곳에서 씀") counts the
-  items that use the 테마 directly or as their kind's default, and is hidden
-  at 0.
-- 다른 이름으로 저장… (Ctrl Shift S) sits beside 저장. It makes a new 테마 from
-  the edits and leaves the original unchanged.
-- A 테마 with unsaved edits shows a dot after its name. Leaving it (another row,
-  another workspace, closing the window) with unsaved edits asks 저장, 저장 안
-  함, 취소. The output of a LIVE 테마 changes only on save.
+- Edits change a working copy of the open 테마 (canvas, element and screen
+  properties, element order) and nothing else, so a stray drag never changes the
+  items that share the 테마. The 테마 list row shows a small dot after the name
+  while its working copy has unsaved edits.
+- **Saving.** 저장 (Ctrl S), top right of the canvas, asks "<이름> 테마를
+  덮어쓸까요?" with 취소 and 덮어쓰기. Under the question it counts the 예배
+  순서 항목 that use the 테마 directly or as their kind's default ("예배 순서
+  항목 4곳에서 씀"), and shows nothing at 0. 덮어쓰기 writes the 테마. 저장 is
+  disabled while there are no edits; its tooltip says so. 다른 이름으로 저장…
+  (Ctrl Shift S) sits beside it: it asks for a name in the shared rename dialog,
+  prefilled `<이름> 복사본`, and makes a new 테마 from the working copy while
+  the original keeps its saved state. 새 테마로 저장 does not exist.
+- **Leaving.** Choosing another 테마 row, another workspace, or closing the
+  window or quitting while the working copy has edits asks 저장, 저장 안 함, or
+  취소. 취소 keeps the window open on the 테마. The 저장 중 dialog of the close
+  flush shows only after the answer.
+- The output of the live 테마 changes only after 덮어쓰기. Other 테마 list
+  changes (새 테마, 복제, 이름 바꾸기, 삭제, 기본으로 쓰기) write at once, as
+  other settings do (06).
 
 The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › (곡, 성경,
 공지, 미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제.

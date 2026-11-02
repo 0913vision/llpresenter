@@ -6,6 +6,7 @@ import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {usePrepPanels, type PrepBinding} from '../workspaces/prepPanels';
+import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useScreensPanels} from '../workspaces/screensPanels';
 import {ShowShortcuts, useShowPanels} from '../workspaces/showPanels';
 import {ColumnGap} from './ColumnGap';
@@ -62,6 +63,7 @@ export function Workspace({
   onMediaOpenChange,
   mediaApi,
   sidebar,
+  themeLeave,
 }: {
   readonly id: WorkspaceId;
   readonly sizeClass: SizeClass;
@@ -76,6 +78,7 @@ export function Workspace({
   readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
   readonly mediaApi?: MediaApi | undefined;
   readonly sidebar?: SidebarCollapse | undefined;
+  readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
   const toggle = useSidebarToggle(id === 'show' ? sidebar : undefined);
@@ -99,7 +102,11 @@ export function Workspace({
     onOpenPrep,
     onShowInLibrary,
   });
-  const screens = useScreensPanels({active: id === 'screens', onProblem});
+  const screens = useScreensPanels({
+    active: id === 'screens',
+    onProblem,
+    leaveGuard: themeLeave,
+  });
   const panels = id === 'show' ? show : id === 'prep' ? prepPanels : screens;
   const {columns} = panels;
   const api = mediaApi ?? prep?.api ?? window.llp;
