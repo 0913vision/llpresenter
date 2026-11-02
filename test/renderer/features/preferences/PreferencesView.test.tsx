@@ -116,7 +116,7 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
-  it('lists the six pages and leaves 단축키 without rows', async () => {
+  it('lists the six pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([

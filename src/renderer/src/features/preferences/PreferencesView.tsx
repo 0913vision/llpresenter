@@ -11,6 +11,7 @@ import {
 } from './preferencePages';
 import {BiblePage} from './BiblePage';
 import {ImportPage} from './ImportPage';
+import {ShortcutsPage} from './shortcuts/ShortcutsPage';
 import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
 import styles from './PreferencesView.module.css';
@@ -49,7 +50,11 @@ export function PreferencesView({
         </ListBox>
       </nav>
       <section className={styles.page} aria-label={current?.label}>
-        <h1 className={styles.title}>{current?.label}</h1>
+        {page === 'shortcuts' ? (
+          <ShortcutsPage onProblem={onProblem} />
+        ) : (
+          <h1 className={styles.title}>{current?.label}</h1>
+        )}
         <Properties placement="window">
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
