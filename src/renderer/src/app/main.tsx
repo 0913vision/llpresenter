@@ -34,6 +34,10 @@ const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
     title: '순서 편집',
     load: async () => (await import('./OrderEditorWindow')).OrderEditorWindow,
   },
+  preferences: {
+    title: '환경설정',
+    load: async () => (await import('./PreferencesWindow')).PreferencesWindow,
+  },
   song: {
     title: '곡 편집',
     prepare: session => session.startEditor('manual'),

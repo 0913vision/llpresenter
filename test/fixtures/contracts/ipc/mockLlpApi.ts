@@ -85,6 +85,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     window: {
       control: () => undefined,
       openScreens: () => undefined,
+      openPreferences: () => undefined,
       openOrderEditor: () =>
         Promise.resolve({ok: false, error: {reason: 'not-implemented'}}),
       openSongEditor: () =>

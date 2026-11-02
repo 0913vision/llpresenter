@@ -83,5 +83,14 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
     },
     menuSeparator('print'),
     laterRow('print', '인쇄…'),
+    menuSeparator('preferences'),
+    {
+      kind: 'item',
+      id: 'preferences',
+      label: '환경설정',
+      command: 'app.preferences',
+      meta: shortcutText('app.preferences'),
+      onSelect: () => window.llp?.window.openPreferences(),
+    },
   ];
 }

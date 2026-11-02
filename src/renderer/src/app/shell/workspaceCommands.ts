@@ -38,6 +38,7 @@ export function workspaceShortcuts({
     },
     {id: 'workspace.prep', run: () => onWorkspace('prep')},
     {id: 'workspace.screens', run: () => window.llp?.window.openScreens()},
+    {id: 'app.preferences', run: () => window.llp?.window.openPreferences()},
     ...SHOW_TOOLS.map(tool => ({
       id: toolCommands[tool.value],
       run: () => openTool(tool.value, onWorkspace),

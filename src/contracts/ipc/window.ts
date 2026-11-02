@@ -32,6 +32,7 @@ export function parseWindowAction(
 /** The title bar calls. */
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
+  openPreferences: signal('window:open-preferences'),
   control: message<WindowAction>('window:control', parseWindowAction),
   openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
     'window:open-order-editor',
@@ -56,6 +57,8 @@ export function windowApi(port: IpcPort) {
   return {
     /** Opens or focuses the screen configuration window. */
     openScreens: port.signal(windowEndpoints.openScreens),
+    /** Opens or focuses the 환경설정 window. */
+    openPreferences: port.signal(windowEndpoints.openPreferences),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
     /** Opens or retargets the 순서 편집 window on a song item. */

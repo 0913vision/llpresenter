@@ -43,6 +43,7 @@ import {
 } from './userData';
 import {createControlWindow} from './windows/control';
 import {registerOrderEditorWindow} from './windows/orderEditor';
+import {registerPreferencesWindow} from './windows/preferences';
 import {registerScreensWindow} from './windows/screens';
 import {registerSongEditorWindow} from './windows/songEditor';
 import {registerAudioOutput} from './windows/audio';
@@ -179,6 +180,12 @@ function start(): void {
         mode: windowMode,
         log,
       });
+      const preferencesWindow = registerPreferencesWindow({
+        control: win,
+        zoom,
+        mode: windowMode,
+        log,
+      });
       const editorWindowContext = {
         control: win,
         config: appConfig,
@@ -196,7 +203,9 @@ function start(): void {
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
         async () =>
-          (await screensWindow.close()) && (await closing.confirmClose()),
+          (await screensWindow.close()) &&
+          (await preferencesWindow.close()) &&
+          (await closing.confirmClose()),
       );
       const stopMediaBackend = registerMediaBackend({
         settings: dataStore.settings,
@@ -285,6 +294,10 @@ function start(): void {
       shutdown.add({
         name: 'stop screen configuration',
         run: screensWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the preferences window',
+        run: preferencesWindow.dispose,
       });
       shutdown.add({
         name: 'stop the order editor window',

@@ -133,6 +133,12 @@ vi.mock('@main/windows/screens', () => ({
     return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
   },
 }));
+vi.mock('@main/windows/preferences', () => ({
+  registerPreferencesWindow: () => ({
+    close: () => Promise.resolve(true),
+    dispose: () => Promise.resolve(),
+  }),
+}));
 vi.mock('@main/windows/orderEditor', () => ({
   registerOrderEditorWindow: (context: unknown) => {
     mocks.editorWindowContexts.push({name: 'order', context});

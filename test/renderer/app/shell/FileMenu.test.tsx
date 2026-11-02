@@ -198,4 +198,16 @@ describe('the 파일 menu', () => {
       ),
     );
   });
+
+  it('opens the 환경설정 window from the last row of the menu', async () => {
+    const openPreferences = vi.fn();
+    setup();
+    window.llp = mockLlpApi({window: {openPreferences}});
+    render(<MenuBar title="" />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '환경설정'}));
+
+    expect(openPreferences).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
+  });
 });

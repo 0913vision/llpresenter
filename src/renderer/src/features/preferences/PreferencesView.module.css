@@ -1,0 +1,28 @@
+.view {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.nav {
+  flex: none;
+  width: var(--size-dialog-aside);
+  padding: var(--space-8) 0;
+  background: var(--bg-app);
+  border-right: var(--radius-hairline) solid var(--line);
+}
+
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-16) var(--space-24);
+  overflow-y: auto;
+  background: var(--bg-panel);
+}
+
+.title {
+  margin: 0 0 var(--space-4);
+  font: var(--type-title);
+}
