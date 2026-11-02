@@ -130,7 +130,7 @@ export function ModalScrim({
 }): JSX.Element {
   return createPortal(
     <div className={styles.scrim} onMouseDown={keepFocusInModal}>
-      {children}
+      <div className={styles.frame}>{children}</div>
     </div>,
     layerContainer('dialog'),
   );

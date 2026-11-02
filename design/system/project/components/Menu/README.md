@@ -17,8 +17,8 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 
 ## Anatomy
 
-- Surface `ll-menu`: background `bg-raised`, corner radius `radius-menu` (12px), shadow `shadow-menu` (a light 1px inner edge, a dark 1px outer edge, and a soft drop shadow), padding `space-6` top and bottom and none at the sides. The width fits the content, with a minimum of 180 and a maximum of 320 (service picker 300). Stacking `z-popover`.
-- Item `ll-menu__item`: height `size-row-menu` (28px), `space-menu-inset` (5px) from each side of the menu, corner radius `radius-menu-item` (9px), padding `space-menu-text` (23px) before the text and `space-14` after it, text `menu-text` (16/22/460) `text`. So text starts 28px from the menu edge. Gap between parts `space-menu-icon-gap` (9px).
+- Surface `ll-menu`: background `bg-raised`, corner radius `radius-menu` (12px), shadow `shadow-menu` (a light 1px inner edge, a dark 1px outer edge, and a soft drop shadow), padding `space-6` top and bottom and none at the sides. The item area `ll-menu__scroll` is 2px in from each side and has `bg-raised` as its own background, so Windows draws the item text with ClearType (see "Corners, borders, and shadows" in the design system README); the item insets below are measured from the menu edge. The width fits the content, with a minimum of 180 and a maximum of 320 (service picker 300). Stacking `z-popover`.
+- Item `ll-menu__item`: height `size-row-menu` (32px), `space-menu-inset` (5px) from each side of the menu, corner radius `radius-menu-item` (9px), padding `space-menu-text` (23px) before the text and `space-14` after it, text `menu-text` (16/22/400) `text`. The weight and the height follow Windows menus: Windows 11 menus, the system menu font, and VS Code all use the regular weight, and their rows are 1.85 to 2.3 times the text size (Windows 11 32/14, VS Code 24/13); 32 is 2 times our 16px text. So text starts 28px from the menu edge. Gap between parts `space-menu-icon-gap` (9px).
   - Check mark `ll-menu__lead`: `check` 16px in the left padding, `space-menu-check` (4px) from the item edge, about 10px from the menu edge. It never takes room, so text never moves, and no row keeps an empty slot for it.
   - Icon `ll-menu__icon`: 18px, in the text color, at the text start; its name starts 27px later (55px from the menu edge). Only rows that ProPresenter gives an icon have one (see the spec). Between two dividers, if any row has an icon, every row of that group lines its name up behind an empty icon column.
   - Name `ll-menu__label`: takes the remaining width, truncates with an ellipsis.
@@ -43,11 +43,11 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Menu bar menu | Item 28 | `menu-text` 16/22/460 | 파일, 편집, 보기, 출력, 창, 도움말 |
-| Submenu | Item 28 | `menu-text`, icon 18 where ProPresenter has one | 동작 추가 › 지우기, 테마, … |
-| Right-click menu | Item 28 | `menu-text` | 매크로 (모음에 추가 ›, 이름 바꾸기, 동작 추가 ›, 삭제) |
-| Popover list | Search 30 + item 28 | `menu-text` + `caption` date | Service picker |
-| 이름표 menu | Item 28 | `menu-text` + swatch 18×12 | 이름표 picker in library song editing |
+| Menu bar menu | Item 32 | `menu-text` 16/22/400 | 파일, 편집, 보기, 출력, 창, 도움말 |
+| Submenu | Item 32 | `menu-text`, icon 18 where ProPresenter has one | 동작 추가 › 지우기, 테마, … |
+| Right-click menu | Item 32 | `menu-text` | 매크로 (모음에 추가 ›, 이름 바꾸기, 동작 추가 ›, 삭제) |
+| Popover list | Search 30 + item 32 | `menu-text` + `caption` date | Service picker |
+| 이름표 menu | Item 32 | `menu-text` + swatch 18×12 | 이름표 picker in library song editing |
 
 ## States
 

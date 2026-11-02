@@ -161,6 +161,18 @@
   padding: var(--space-12);
   border-radius: var(--radius-menu);
   background: var(--bg-raised);
-  box-shadow: var(--shadow-popover);
   color: var(--text);
+}
+
+/* NOTE(0913vision): The outer shadow is drawn by a layer behind the surface,
+   not by the surface itself: a floating surface with its own outer shadow gets
+   grayscale text on Windows instead of ClearType, which looks blurred. */
+.popover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: var(--shadow-popover);
+  pointer-events: none;
 }

@@ -9,9 +9,7 @@
   padding: var(--space-20) var(--space-20) var(--space-16);
   border-radius: var(--radius-2xl);
   background: var(--bg-dialog);
-  box-shadow: var(--shadow-dialog);
   color: var(--text);
-  animation: appear var(--motion-dialog);
 }
 
 .withList {
@@ -106,10 +104,4 @@
 
 .cancel {
   margin-right: auto;
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-  }
 }

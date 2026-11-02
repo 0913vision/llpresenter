@@ -130,7 +130,7 @@
   --size-control-sm: 26px;
   --size-control-md: 30px;
   --size-row: 30px;
-  --size-row-menu: 28px;
+  --size-row-menu: 32px;
   --size-row-double: 52px;
   --size-table-header: 40px;
   --size-table-number: 24px;
@@ -257,7 +257,7 @@
   --type-caption-strong: 600 16px/22px var(--font-ui);
   --type-toolbar-label: 400 14px/20px var(--font-ui);
   --type-micro: 400 14px/20px var(--font-ui);
-  --type-menu-text: 460 16px/22px var(--font-ui);
+  --type-menu-text: 400 16px/22px var(--font-ui);
   --type-thumb-lyrics: 700 4.4cqw/1.45 var(--font-ui);
 }
 .heading {
@@ -330,7 +330,7 @@
   font-family: var(--font-ui);
   font-size: 16px;
   line-height: 22px;
-  font-weight: 460;
+  font-weight: 400;
 }
 .thumb-lyrics {
   font-family: var(--font-ui);

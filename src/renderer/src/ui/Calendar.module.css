@@ -6,9 +6,21 @@
   padding: var(--space-8);
   border-radius: var(--radius-xl);
   background: var(--bg-raised);
-  box-shadow: var(--shadow-popover);
   color: var(--text);
   animation: appear var(--motion-popover);
+}
+
+/* NOTE(0913vision): The outer shadow is drawn by a layer behind the surface,
+   not by the surface itself: a floating surface with its own outer shadow gets
+   grayscale text on Windows instead of ClearType, which looks blurred. */
+.calendar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: var(--shadow-popover);
+  pointer-events: none;
 }
 .head {
   display: grid;

@@ -278,6 +278,7 @@ export function ToolbarSearch({
             <div
               role="listbox"
               id={listId}
+              className={styles.list}
               aria-label="곡 검색 결과"
               aria-busy={search.loading}
             >

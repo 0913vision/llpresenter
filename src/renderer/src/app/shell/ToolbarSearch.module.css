@@ -15,14 +15,35 @@
   position: absolute;
   inset: calc(100% + var(--space-4)) 0 auto;
   z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
   max-height: calc(
     100dvh - var(--size-toolbar) - var(--size-menubar) - var(--space-12)
   );
-  overflow-y: auto;
   padding: var(--space-6);
   border-radius: var(--radius-xl);
   background: var(--bg-raised);
+}
+
+/* NOTE(0913vision): The shadow is drawn behind the popup and only the result
+   list scrolls, on its own opaque background: a floating surface with its own
+   outer shadow, or a transparent scroller on it, gets grayscale text on
+   Windows instead of ClearType, which looks blurred. */
+.popup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   box-shadow: var(--shadow-popover);
+  pointer-events: none;
+}
+
+.list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg-raised);
 }
 
 .row {
@@ -76,6 +97,7 @@
 
 .footer {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   gap: var(--space-16);
   padding: var(--space-8) var(--space-10);

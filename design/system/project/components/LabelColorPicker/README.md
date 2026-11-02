@@ -17,7 +17,7 @@ A row of color swatches for picking the color of an 이름표 (label) or a macro
 ## Anatomy
 
 - Row `ll-swatches`: lay the swatches side by side with no gap. The padding inside each swatch becomes the gap between colors (8px).
-- Row inside a menu `ll-swatches--menu`: height `size-row-menu` (28), padding `space-2` `space-4`. The left edge of the first color lines up with the leading cell of the menu items (14px from the left).
+- Row inside a menu `ll-swatches--menu`: height `size-row-menu` (32), padding `space-2` `space-4`. The left edge of the first color lines up with the leading cell of the menu items (14px from the left).
 - Name in front of the row `ll-swatches__label`: "색" in the macro menu. `body` (16/22) `text`, starting on the same line as the menu item text.
 - Swatch `ll-swatch`: hit area 24×24, radius `radius-md`. Center color `ll-swatch__chip` 16×16, radius `radius-sm`.
 - Colors: `label-teal` (청록), `label-green` (초록), `label-yellow` (노랑), `label-orange` (주황), `label-rose` (분홍), `label-violet` (보라), `label-slate` (남색), `label-gray` (회색). Place them in this order.

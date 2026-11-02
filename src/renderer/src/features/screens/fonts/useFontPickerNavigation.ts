@@ -13,7 +13,7 @@ import {filterFamilies, type FontChoice} from './fontChoices';
 
 export const FONT_PICKER_VISIBLE_ROWS = 8;
 const OVERSCAN = 2;
-const DEFAULT_ROW_PX = 28;
+const DEFAULT_ROW_PX = 32;
 
 interface NavigationOptions {
   readonly anchor: HTMLElement;

@@ -175,7 +175,7 @@ replaced by a system font.
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------- |
 | 22     | `size-control-xs`                                            | Segments, chips                                               |
 | 26     | `size-control-sm`                                            | Buttons, dropdowns, and icon buttons in panels                |
-| 28     | `size-row-menu`                                              | Menu items                                                    |
+| 32     | `size-row-menu`                                              | Menu items                                                    |
 | 30     | `size-control-md`, `size-row`                                | Buttons and text fields in dialogs and Preferences, list rows |
 | 34     | `size-panel-header`                                          | Panel headers                                                 |
 | 44     | `size-dialog-header`                                         | Dialog headers                                                |
@@ -202,6 +202,13 @@ replaced by a system font.
 
 - An inner element's corner radius is never larger than its outer element's.
 - Panels have no shadow. Only floating surfaces do.
+- A floating surface (menu, popover, tooltip, dialog, notification) never
+  carries its outer shadow itself: a layer behind it draws the shadow, and a
+  list that scrolls inside it has the surface color as its own background.
+  Otherwise Windows draws the surface's text in grayscale instead of
+  ClearType, and it looks blurred next to the rest of the app. The layer behind
+  is a `::before` with `z-index: -1`, so the surface forms its own stacking
+  context: a positioned surface with a `z-index`, or `isolation: isolate`.
 - Selected and live items have an outer ring (`ring-selected` 2px, `ring-live`
   3px), not a border, so that their size doesn't change.
 

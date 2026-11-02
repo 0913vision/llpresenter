@@ -41,10 +41,15 @@
   outline: none;
 }
 
+/* NOTE(0913vision): The item area is an opaque rectangle 2px in from the sides
+   so Windows draws its text with ClearType; on the rounded, shadowed surface
+   alone the text is drawn in grayscale and looks blurred. */
 .scroll {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  margin: 0 var(--space-2);
+  background: var(--bg-raised);
   overflow-y: auto;
   scrollbar-color: var(--line-strong) transparent;
   scrollbar-width: thin;
@@ -56,9 +61,9 @@
   flex: none;
   align-items: center;
   gap: var(--space-menu-icon-gap);
-  width: calc(100% - 2 * var(--space-menu-inset));
+  width: calc(100% - 2 * (var(--space-menu-inset) - var(--space-2)));
   height: var(--size-row-menu);
-  margin: 0 var(--space-menu-inset);
+  margin: 0 calc(var(--space-menu-inset) - var(--space-2));
   padding: 0 var(--space-14) 0 var(--space-menu-text);
   border-radius: var(--radius-menu-item);
   color: var(--text);
@@ -147,14 +152,14 @@
 .separator {
   flex: none;
   height: var(--size-hairline);
-  margin: var(--space-6) var(--space-18);
+  margin: var(--space-6) calc(var(--space-18) - var(--space-2));
   background: var(--line-menu);
 }
 
 .group {
   flex: none;
   padding: var(--space-6) var(--space-8) var(--space-4)
-    calc(var(--space-menu-inset) + var(--space-8));
+    calc(var(--space-menu-inset) + var(--space-8) - var(--space-2));
   color: var(--text-3);
   font: var(--type-caption-strong);
   white-space: nowrap;

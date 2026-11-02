@@ -25,10 +25,29 @@
   overflow: hidden;
   border-radius: var(--radius-2xl);
   background: var(--bg-dialog);
-  box-shadow: var(--shadow-dialog);
   color: var(--text);
   color-scheme: dark;
+}
+
+/* NOTE(0913vision): The frame draws the modal's shadow behind the surface,
+   because a floating surface with its own outer shadow gets grayscale text on
+   Windows instead of ClearType, which looks blurred. */
+.frame {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  max-width: 100%;
   animation: appear var(--motion-dialog);
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-dialog);
+  pointer-events: none;
 }
 
 .dialog * {

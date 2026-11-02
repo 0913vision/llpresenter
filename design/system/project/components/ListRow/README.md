@@ -27,7 +27,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 ## Where not to use
 
 - Rows with a checkbox: use the check row of `Checkbox` (`ll-check-row--list`). Its height, padding, and hover are the same as in this document. Put the empty slot box (`ll-row__slot`) inside check rows too.
-- Menu items (28px): use `Menu`.
+- Menu items (32px): use `Menu`.
 - Rows with a property name and value side by side: use `PropertyRow`.
 - Don't mark the currently selected row with a check mark. Mark it with a `selection` background.
 

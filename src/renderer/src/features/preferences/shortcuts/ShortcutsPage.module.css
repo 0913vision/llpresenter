@@ -34,7 +34,7 @@
   display: flex;
   flex: none;
   align-items: center;
-  height: var(--size-row-menu);
+  height: var(--size-row);
   padding: 0 var(--space-12);
   border-bottom: var(--radius-hairline) solid var(--line);
   font: var(--type-caption-strong);
