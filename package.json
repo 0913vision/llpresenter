@@ -1,7 +1,7 @@
 {
   "name": "llpresenter",
   "productName": "LoveLight Presenter",
-  "version": "0.35.3",
+  "version": "0.36.0",
   "description": "Multi-screen lyrics presentation for worship services",
   "author": "0913vision <0913vision@gmail.com>",
   "private": true,
