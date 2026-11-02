@@ -22,10 +22,6 @@ const KINDS = [
   {value: 'elapsed', label: '경과'},
   {value: 'clock', label: '시계'},
 ] as const;
-const LEGACY_KINDS = [
-  ...KINDS,
-  {value: 'elapsedFrom', label: '시각 경과'},
-] as const;
 const SECONDS_PER_MINUTE = 60;
 
 function initialDuration(initial: TimerEditDraft | undefined): number {
@@ -68,9 +64,7 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
     initial?.kind === 'countdownTo' ? initial.date : localDateText(new Date()),
   );
   const [time, setTime] = useState(
-    initial?.kind === 'countdownTo' || initial?.kind === 'elapsedFrom'
-      ? initial.time
-      : '12:00',
+    initial?.kind === 'countdownTo' ? initial.time : '12:00',
   );
   const duration = parseTimerDuration(
     minutes,
@@ -87,8 +81,6 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
         return dateReason || timeReason
           ? undefined
           : {kind, date, time, overrun};
-      case 'elapsedFrom':
-        return timeReason ? undefined : {kind, time};
       case 'countdown':
         return duration.duration === undefined
           ? undefined
@@ -103,21 +95,13 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
   const reason =
     kind === 'countdownTo'
       ? (dateReason ?? timeReason)
-      : kind === 'elapsedFrom'
-        ? timeReason
-        : kind === 'clock'
-          ? undefined
-          : (duration.minutesReason ?? duration.secondsReason);
+      : kind === 'clock'
+        ? undefined
+        : (duration.minutesReason ?? duration.secondsReason);
   const save = (): void => {
     if (locked || !fields) return;
-    let saving: Promise<boolean>;
-    if (props.initial === undefined) {
-      if (fields.kind === 'elapsedFrom') return;
-      saving = props.onSave(fields);
-    } else {
-      saving = props.onSave(fields);
-    }
-    saving
+    props
+      .onSave(fields)
       .then(saved => {
         if (saved) onClose();
       })
@@ -147,7 +131,7 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
               disabled={locked}
               value={kind}
               onChange={setKind}
-              options={initial?.kind === 'elapsedFrom' ? LEGACY_KINDS : KINDS}
+              options={KINDS}
             />
           )}
         </PropertyRow>
@@ -179,7 +163,7 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
             )}
           </PropertyRow>
         ) : null}
-        {kind === 'countdownTo' || kind === 'elapsedFrom' ? (
+        {kind === 'countdownTo' ? (
           <PropertyRow label="시각">
             {({controlId}) => (
               <TextField

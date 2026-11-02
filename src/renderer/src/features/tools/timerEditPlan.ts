@@ -5,10 +5,7 @@ import {
   type SettingsDocument,
   type SettingsEdit,
 } from '@core/schema/settingsDocuments';
-import {
-  timerTimeReason,
-  validTimerConfiguration,
-} from '@core/timers/timerConfiguration';
+import {validTimerConfiguration} from '@core/timers/timerConfiguration';
 import type {TimerEditDraft} from '@core/timers/timerEditDraft';
 
 type TimerDocument = Extract<SettingsDocument, {name: 'timers'}>;
@@ -42,8 +39,6 @@ function matches(timer: Timer, draft: TimerEditDraft): boolean {
       );
     case 'elapsed':
       return timer.kind === draft.kind && timer.start === draft.start;
-    case 'elapsedFrom':
-      return timer.kind === draft.kind && timer.time === draft.time;
     case 'clock':
       return timer.kind === draft.kind;
   }
@@ -66,8 +61,6 @@ function configurationFields(draft: TimerEditDraft): TimerEditDraft {
       };
     case 'elapsed':
       return {kind: draft.kind, start: draft.start};
-    case 'elapsedFrom':
-      return {kind: draft.kind, time: draft.time};
     case 'clock':
       return {kind: draft.kind};
   }
@@ -83,14 +76,9 @@ export function prepareTimerEdit(
   }
   const timer = document.value.timers.find(item => item.id === timerId);
   if (!timer) return {kind: 'refused', reason: 'not-found'};
-  if (draft.kind === 'elapsedFrom' && timer.kind !== 'elapsedFrom') {
+  if (!validTimerConfiguration(draft)) {
     return {kind: 'refused', reason: 'invalid'};
   }
-  const valid =
-    draft.kind === 'elapsedFrom'
-      ? timerTimeReason(draft.time) === undefined
-      : validTimerConfiguration(draft);
-  if (!valid) return {kind: 'refused', reason: 'invalid'};
   if (matches(timer, draft)) {
     return {kind: 'unchanged', revision: document.revision};
   }

@@ -60,7 +60,7 @@ describe('parseLayoutChange with thumbnail scale', () => {
     ['nothing to change', {sizeClass: 'wide'}, ''],
     ['a left width without a right one', {sizeClass: 'wide', left: 300}, ''],
     ['a right width without a left one', {sizeClass: 'wide', right: 500}, ''],
-    ['legacy columns alone', {sizeClass: 'wide', columns: 3}, ''],
+    ['an unknown field alone', {sizeClass: 'wide', columns: 3}, ''],
   ])('rejects %s', (_name, change, field) => {
     const result = parseLayoutChange(change);
 
@@ -104,7 +104,7 @@ describe('parseLayoutChange with thumbnail scale', () => {
     }
   });
 
-  it('drops legacy columns alongside a valid scale, widths, or both', () => {
+  it('drops an unknown field alongside a valid scale, widths, or both', () => {
     for (const fields of [
       {thumbnailScalePercent: 123},
       {left: 280, right: 480},

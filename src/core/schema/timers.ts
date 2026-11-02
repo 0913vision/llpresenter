@@ -44,11 +44,6 @@ const timerSchema = v.variant('kind', [
     kind: v.literal('elapsed'),
     start: v.pipe(seconds, v.maxValue(MAX_TIMER_SECONDS)),
   }),
-  v.looseObject({
-    ...timerFields,
-    kind: v.literal('elapsedFrom'),
-    time: timeOfDay,
-  }),
   v.looseObject({...timerFields, kind: v.literal('clock')}),
 ]);
 
@@ -71,8 +66,8 @@ export type TimersFile = ReadonlyKnown<v.InferOutput<typeof timersSchema>>;
 
 /**
  * One 타이머: time left until `time` (`countdownTo`), a fixed `duration` in
- * seconds (`countdown`), counted duration from `start` (`elapsed`), time since
- * `time` (`elapsedFrom`), or a `clock`. A countdown-to may include a date.
+ * seconds (`countdown`), counted duration from `start` (`elapsed`), or a
+ * `clock`. A countdown-to may include a date.
  */
 export type Timer = TimersFile['timers'][number];
 

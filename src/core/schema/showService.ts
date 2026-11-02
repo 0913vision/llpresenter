@@ -4,7 +4,6 @@ import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
-import {slotKinds} from './service';
 import {
   noticeSetIdSchema,
   songIdSchema,
@@ -59,13 +58,6 @@ const showRowSchema = v.pipe(
       title: v.string(),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       background: v.exactOptional(mediaChoiceSchema),
-    }),
-    v.object({
-      kind: v.literal('slot'),
-      id,
-      title: v.string(),
-      problem: v.exactOptional(v.picklist(showRowProblems)),
-      accepts: v.exactOptional(v.picklist(slotKinds)),
     }),
     v.object({
       kind: v.literal('bible'),

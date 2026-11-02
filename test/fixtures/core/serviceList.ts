@@ -15,7 +15,7 @@ import {
   translationIdSchema,
 } from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import {parseTemplate, type ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/service';
 import type {Result} from '@core/common/result';
 
 function sample<T>(result: Result<T, unknown>): T {
@@ -102,28 +102,6 @@ export const templateDocument: TemplateDocument = {
 };
 
 /** A legacy file read through the real template parser, before renderer IPC. */
-export function legacyTemplateDocument(): TemplateDocument {
-  const legacy = {
-    ...templateDocument.template,
-    order: templateOrder.map(item => {
-      if (item.id === ids.offering) {
-        return {
-          id: item.id,
-          slot: 'song',
-          title: '헌금 찬양',
-          future: {keep: true},
-        };
-      }
-      if (item.id === ids.closing) {
-        return {id: item.id, slot: 'bible', title: '광고'};
-      }
-      return item;
-    }),
-  };
-  const parsed = parseTemplate(JSON.stringify(legacy), 'legacy.llservice');
-  if (!parsed.ok) throw new Error('The legacy template could not be read');
-  return {...templateDocument, template: parsed.value.data};
-}
 
 export const pastDocument: ServiceDocument = {
   service: {

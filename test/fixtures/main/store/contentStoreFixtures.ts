@@ -89,7 +89,7 @@ export function serviceFile(id: string, items: readonly object[]) {
 export function templateFile(
   items: readonly object[] = [
     {id: itemId(21), header: '찬양'},
-    {id: itemId(22), slot: 'song', title: '찬양'},
+    {id: itemId(22), header: '찬양'},
   ],
   id = TEMPLATE_ID,
 ) {

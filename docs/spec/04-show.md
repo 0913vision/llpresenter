@@ -435,28 +435,23 @@ and per-item controls in the owning tool tab (October 31 B16).
     held value. 처음으로 returns to the configured start value. Changing the
     wall clock does not change the counted duration (user decision, October 27,
     following ProPresenter's Elapsed Time).
-  - Older time-of-day elapsed records (`elapsedFrom`) keep their meaning and
-    show as 시각 경과, distinct from 경과. They count from the recorded time of
-    day, with a leading "-" before it. New 경과 timers use a start duration.
-  - Before they start, `countdownTo` and `elapsedFrom` show their value as of
-    the moment they are drawn, without counting, so a row is never blank; a
-    paused one keeps the value it had when it paused (lead decision, October 26;
-    the article doesn't say what these timers show before they start).
+  - Before it starts, `countdownTo` shows its value as of the moment it is
+    drawn, without counting, so a row is never blank; a paused one keeps the
+    value it had when it paused (lead decision, October 26; the article doesn't
+    say what these timers show before they start).
   - Clock (`clock`): the current time as 24-hour "HH:mm:ss". It has no buttons
     (lead decision, October 26; a format choice is later work).
 - Fixed-duration countdown and elapsed duration count on main's monotonic clock:
   the time it has counted never goes down, even when the computer's clock is
   corrected (lead decision, October 26).
-- `countdownTo` and `elapsedFrom` show the time to or since the set time by the
-  wall clock, including after a correction of the computer's clock, so a
-  "10:30까지" countdown reaches 0 when the clock in the room reads 10:30 (lead
-  decision, October 26).
-- Dated `countdownTo` timers retain their configured date across midnight.
-  Earlier `countdownTo` records with no date and legacy `elapsedFrom` records
-  retain the start-day anchor, including while paused. The editor adds an
-  explicit date when the operator edits an undated countdown-to. Pausing holds
-  the shown value; resuming a date/time target reads the current wall clock
-  against that target.
+- `countdownTo` shows the time to the set time by the wall clock, including
+  after a correction of the computer's clock, so a "10:30까지" countdown reaches
+  0 when the clock in the room reads 10:30 (lead decision, October 26).
+- Dated `countdownTo` timers retain their configured date across midnight. A
+  `countdownTo` record with no date retains the start-day anchor, including
+  while paused. The editor adds an explicit date when the operator edits an
+  undated countdown-to. Pausing holds the shown value; resuming a date/time
+  target reads the current wall clock against that target.
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 그래픽 text and in the
@@ -595,10 +590,6 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
     value once; clicking starts it and clicking while running resets it. Reset
     keeps an explicit date and returns an undated target to today's reference.
     Its 0 지나면 choice applies while running.
-  - `elapsedFrom` shows signed time since its configured local `HH:mm`, using
-    the run's start day, or today before starting. A stopped row draws once;
-    clicking starts it, and clicking while running resets to today's reference.
-    This remains 시각 경과, distinct from duration-based 경과.
   - `elapsed` shows its configured start value while stopped, counts up when
     started and returns to that value on another click while running.
   - `clock` always shows the current `HH:mm:ss`. Clicking has no effect and

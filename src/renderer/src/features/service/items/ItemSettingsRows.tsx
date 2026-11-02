@@ -41,16 +41,13 @@ const MACROS_FAILED_REASON = '매크로를 불러오지 못했습니다';
 type MacrosDocument = Extract<SettingsDocument, {name: 'macros'}>;
 type Macro = MacrosDocument['value']['macros'][number];
 
-/** A reference names a 매크로 by ID, or by name in older files (spec 02). */
+/** A reference names a 매크로 by its ID. */
 export function resolveMacro(
   macros: readonly Macro[],
   reference: string | undefined,
 ): Macro | undefined {
   if (reference === undefined) return undefined;
-  return (
-    macros.find(macro => macro.id === reference) ??
-    macros.find(macro => macro.name === reference)
-  );
+  return macros.find(macro => macro.id === reference);
 }
 
 function useMediaDocument(api: LlpApi['media']) {

@@ -33,22 +33,16 @@ import {
 
 const SERVICE_FORMAT = 'llservice';
 
-/** Accepted kind keys, including legacy slot input normalized to a header. */
+/** Accepted kind keys of a 예배 순서 item. */
 export const serviceItemKinds = [
   'header',
   'song',
-  'slot',
   'bible',
   'media',
   'notice',
 ] as const;
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
-
-/** Recognized legacy slot values in older service and template files. */
-export const slotKinds = ['song', 'bible', 'slides'] as const;
-
-export type SlotKind = (typeof slotKinds)[number];
 
 const itemFields = {
   id: serviceItemIdSchema,
@@ -76,11 +70,6 @@ const itemSchemas = {
     background: v.exactOptional(mediaIdSchema),
     ...startFields,
   }),
-  slot: jsonObject({
-    ...itemFields,
-    slot: v.picklist(slotKinds),
-    title: v.string(),
-  }),
   bible: jsonObject({
     ...itemFields,
     bible: biblePassageSchema,
@@ -100,22 +89,7 @@ const mixedItemSchema = v.never('An item has more than one kind key');
 
 const serviceItemSchema = v.lazy(itemSchemaFor);
 
-const orderSchema = v.pipe(
-  listWithUniqueIds(serviceItemSchema),
-  v.transform(normalizeLegacySlots),
-);
-
-function normalizeLegacySlots(
-  order: Array<v.InferOutput<typeof serviceItemSchema>>,
-): Array<v.InferOutput<typeof serviceItemSchema>> {
-  return order.map(item => {
-    if (!Object.hasOwn(item, 'slot') || typeof item.title !== 'string') {
-      return item;
-    }
-    const {slot: _slot, title, ...fields} = item;
-    return {...fields, header: title};
-  });
-}
+const orderSchema = listWithUniqueIds(serviceItemSchema);
 
 /**
  * A 예배 순서 as its file holds it. A value from another process goes through

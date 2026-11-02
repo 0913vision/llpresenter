@@ -87,13 +87,11 @@ export function setup(
       rows: document.service.order.map(item =>
         'header' in item
           ? {kind: 'header', id: item.id, title: item.header}
-          : 'slot' in item
-            ? {kind: 'header', id: item.id, title: item.title}
-            : {
-                kind: 'song',
-                id: item.id,
-                title: item.id === firstId ? '첫 곡' : '다음 곡',
-              },
+          : {
+              kind: 'song',
+              id: item.id,
+              title: item.id === firstId ? '첫 곡' : '다음 곡',
+            },
       ),
       tiles: {},
       jumpKeys: {},

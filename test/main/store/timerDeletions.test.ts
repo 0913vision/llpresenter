@@ -79,7 +79,6 @@ it.each([
   {kind: 'countdown', duration: 90, overrun: false},
   {kind: 'countdownTo', date: '2028-02-29', time: '12:00'},
   {kind: 'elapsed', start: 0},
-  {kind: 'elapsedFrom', time: '09:00'},
 ])(
   'deletes $kind and every linked known row, keeping unrelated content',
   kind => {

@@ -63,7 +63,7 @@ describe('thumbnail scale', () => {
       layout: {
         narrow: {thumbnailScalePercent: 80},
         normal: {thumbnailScalePercent: 999},
-        wide: {columns: 3},
+        wide: {},
       },
     });
     expect([scaleOf('narrow'), scaleOf('normal'), scaleOf('wide')]).toEqual([

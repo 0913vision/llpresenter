@@ -189,9 +189,6 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
   if (isItemOfKind(item, 'song')) {
     return songRow(item, sources.songs.get(item.song), sources);
   }
-  if (isItemOfKind(item, 'slot')) {
-    return {kind: 'slot', id, title: item.title, accepts: item.slot};
-  }
   if (isItemOfKind(item, 'bible')) {
     const bible = sources.passages?.references.get(id);
     return {

@@ -40,28 +40,6 @@ afterEach(() => {
 });
 
 describe('applyService', () => {
-  it('adopts legacy view slots as selectable sections with their original IDs and titles', () => {
-    const legacy = serviceOf({
-      rows: [
-        {kind: 'header', id: 'praise', title: '찬양'},
-        {kind: 'song', id: 'a', title: 'A'},
-        {kind: 'slot', id: 'empty-song', title: '헌금 찬양', accepts: 'song'},
-        {kind: 'slot', id: 'empty-bible', title: '성경 봉독', accepts: 'bible'},
-      ],
-    });
-    applyService(legacy);
-    expect(useShow.getState().rows).toEqual([
-      {kind: 'header', id: 'praise', title: '찬양'},
-      {kind: 'song', id: 'a', title: 'A'},
-      {kind: 'header', id: 'empty-song', title: '헌금 찬양'},
-      {kind: 'header', id: 'empty-bible', title: '성경 봉독'},
-    ]);
-    openItem('empty-song');
-    applyService({...legacy, revision: 2});
-    expect(useShow.getState().openItemId).toBe('empty-song');
-    expect(legacy.rows[2]?.kind).toBe('slot');
-  });
-
   it('shows the rows, tiles, jump keys, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({

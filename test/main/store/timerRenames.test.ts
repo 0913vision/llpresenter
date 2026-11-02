@@ -86,7 +86,6 @@ it.each([
   {kind: 'countdown', duration: 90, overrun: false},
   {kind: 'countdownTo', time: '12:00', date: '2028-02-29', overrun: true},
   {kind: 'elapsed', start: 15},
-  {kind: 'elapsedFrom', time: '09:00'},
 ])('renames $kind and every linked quick row in new revisions', kind => {
   const documents = documentsOf({
     kind,

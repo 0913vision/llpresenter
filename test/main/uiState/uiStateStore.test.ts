@@ -31,7 +31,7 @@ function createHarness(initial: UiFields = {}): Harness {
 }
 
 const layout: AppLayout = {
-  normal: {left: 300, right: 500, columns: 5},
+  normal: {left: 300, right: 500},
   wide: {left: 320, right: 560},
 };
 
@@ -122,7 +122,7 @@ describe('UiStateStore setLayout', () => {
   it('hands the merged layout to the fields', () => {
     const {store, changes} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', left: 260, right: 480});
-    const merged = {...layout, normal: {left: 260, right: 480, columns: 5}};
+    const merged = {...layout, normal: {left: 260, right: 480}};
     expect(changes).toEqual([{layout: merged}]);
     expect(store.state).toEqual({layout: merged});
   });
@@ -144,15 +144,7 @@ describe('UiStateStore setLayout', () => {
     expect(warnings).toHaveLength(5);
   });
 
-  it('drops and logs legacy column changes without changing the saved layout', () => {
-    const {store, changes, warnings} = createHarness({layout});
-    store.setLayout({sizeClass: 'normal', columns: 3});
-    expect(changes).toEqual([]);
-    expect(store.state).toEqual({layout});
-    expect(warnings).toEqual(['dropped a malformed layout change']);
-  });
-
-  it('keeps saved legacy columns when a scale command also carries obsolete columns', () => {
+  it('ignores an unknown field of a scale command', () => {
     const {store, changes} = createHarness({layout});
     store.setLayout({
       sizeClass: 'normal',

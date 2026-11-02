@@ -87,12 +87,6 @@ export function timerText(
       return durationText(
         Math.floor(timer.start + countedMs(run, now.timer) / MS_PER_SECOND),
       );
-    case 'elapsedFrom': {
-      const at = wallReading(run, now);
-      return durationText(
-        Math.floor((at - timerTargetTime(timer, run, now)) / MS_PER_SECOND),
-      );
-    }
     case 'clock':
       return clockText(now.wall);
     default: {
@@ -107,13 +101,13 @@ function wallReading(run: TimerRun | undefined, now: TimerNow): number {
 }
 
 export function timerTargetTime(
-  timer: Extract<Timer, {kind: 'countdownTo' | 'elapsedFrom'}>,
+  timer: Extract<Timer, {kind: 'countdownTo'}>,
   run: TimerRun | undefined,
   now: TimerNow,
 ): number {
   const [hours = 0, minutes = 0] = timer.time.split(':').map(Number);
   const date = new Date(run?.day ?? localDay(now.wall));
-  if (timer.kind === 'countdownTo' && timer.date !== undefined) {
+  if (timer.date !== undefined) {
     const [year = 0, month = 1, day = 1] = timer.date.split('-').map(Number);
     date.setFullYear(year, month - 1, day);
   }

@@ -1,8 +1,7 @@
 import type {Timer} from '../schema/timers';
 import type {TimerConfiguration} from './timerConfiguration';
 
-export type TimerEditDraft =
-  TimerConfiguration | {readonly kind: 'elapsedFrom'; readonly time: string};
+export type TimerEditDraft = TimerConfiguration;
 
 export function timerEditDraft(
   timer: Timer,
@@ -24,8 +23,6 @@ export function timerEditDraft(
       };
     case 'elapsed':
       return {kind: timer.kind, start: timer.start};
-    case 'elapsedFrom':
-      return {kind: timer.kind, time: timer.time};
     case 'clock':
       return {kind: timer.kind};
   }

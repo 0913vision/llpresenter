@@ -22,8 +22,6 @@ function kindText(timer: Timer): string {
       return `${timer.date ? `${timer.date} ` : ''}${timer.time}까지`;
     case 'elapsed':
       return '경과';
-    case 'elapsedFrom':
-      return `시각 경과 ${timer.time}`;
     case 'clock':
       return '시계';
   }

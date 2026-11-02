@@ -10,7 +10,6 @@ it('preserves each saved timer kind and its settings in an edit draft', () => {
     {kind: 'countdownTo', time: '23:59'},
     {kind: 'countdownTo', time: '08:30', date: '2028-02-29', overrun: false},
     {kind: 'elapsed', start: 0},
-    {kind: 'elapsedFrom', time: '09:15'},
     {kind: 'clock'},
   ].map((item, n) => ({
     ...item,
@@ -37,7 +36,6 @@ it('preserves each saved timer kind and its settings in an edit draft', () => {
     {kind: 'countdownTo', time: '23:59', date: '2026-10-28', overrun: true},
     {kind: 'countdownTo', time: '08:30', date: '2028-02-29', overrun: false},
     {kind: 'elapsed', start: 0},
-    {kind: 'elapsedFrom', time: '09:15'},
     {kind: 'clock'},
   ]);
   expect(file.data).toEqual(before);

@@ -280,7 +280,7 @@ icon, and don't let the operator output it (proposal).
 | `arrangement` | String             | No       | The chosen 구성 name. If absent, or if the song has no 구성 with that name, the item uses the default 구성.                                                                                                                                                                                                                                                |
 | `customOrder` | Array of group IDs | No       | This item's slide order for this 예배 only. When present it replaces the chosen 구성 for playing; `arrangement` stays as the 구성 the order started from. Repeated IDs repeat the whole group. An ID the song no longer has is skipped when played and kept in the file. An empty list plays no groups, like an empty named 구성. At most 100,000 entries. |
 | `background`  | String (media ID)  | No       | Background override for this service. If absent, the item uses the song's default background.                                                                                                                                                                                                                                                              |
-| `macro`       | String             | No       | The 매크로 to run when the item starts. The source sample shows a 매크로 name ("찬양"). Version 1 stores the 매크로 ID (proposal, open question). When you read a value that matches no ID, look it up by name.                                                                                                                                            |
+| `macro`       | String             | No       | The 매크로 to run when the item starts. Version 1 stores the 매크로 ID.                                                                                                                                                                                                                                                                                    |
 | `memo`        | String             | No       | Memo. Can have several lines.                                                                                                                                                                                                                                                                                                                              |
 
 ### Bible passage object (proposal)
@@ -294,7 +294,7 @@ icon, and don't let the operator output it (proposal).
 | `verseNumbers`    | Boolean                            | 절 번호 (verse numbers).                                                                                                          |
 | `translationName` | Boolean                            | 역본 이름 (translation name).                                                                                                     |
 
-### Sections and legacy slot items
+### Sections
 
 - The user-facing row is a 구역 (section). Its stored kind key remains `header`,
   with the section's name as the value.
@@ -304,16 +304,7 @@ icon, and don't let the operator output it (proposal).
 - The operator can add and remove sections freely. 구역 추가 creates a row named
   새 구역 in rename mode. 항목 추가 inserts content into the selected section,
   including an empty section. See 04 and 05.
-- Slot is no longer an item kind. On reading an existing service or template,
-  normalize each legacy slot item into a section row with its `title` as
-  `header`. Keep its id, order position, and unknown fields; remove the consumed
-  `slot` and `title` fields. The conversion adds no song, passage, or other
-  content item. New writes contain section rows rather than slot items.
-- For example, a legacy item
-  `{"id":"...","slot":"song","title":"헌금","future":{"keep":true}}` reads as
-  `{"id":"...","header":"헌금","future":{"keep":true}}`. Legacy `bible` and
-  `slides` slots follow the same rule. The stored `header` key is unchanged by
-  the UI terminology change.
+- Slot is not an item kind. A section row replaces it.
 
 Source: the user's decision from the m3-check3 check, October 26. It replaces
 the slot behavior in the earlier service samples and draft boards.
@@ -470,10 +461,10 @@ ID, name and position. Stage picks and other references to the original timer
 keep that ID. Each resulting timer starts stopped on launch, as before.
 
 Separation copies each definition's original kind and settings, including a
-legacy `countdownTo` time/date, `elapsedFrom` reference time, or `clock`. It
-does not invent a duration or convert those records. Their quick display and
-click behavior is defined by kind in 04. The original definition and references
-from stage selections and prop tokens keep their IDs and meaning.
+`countdownTo` time/date, or `clock`. It does not invent a duration or convert
+those records. Their quick display and click behavior is defined by kind in 04.
+The original definition and references from stage selections and prop tokens
+keep their IDs and meaning.
 
 ### 메시지 templates, styles, and stage message presets (`messages.json`)
 
@@ -531,16 +522,16 @@ black).
 
 ### 타이머 (`timers.json`)
 
-| Field          | Type                                                                            | Meaning                                                                                                                                                               | Source                                               |
-| -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `timers[]`     | Array                                                                           | The 타이머.                                                                                                                                                           | `Overlays` 타이머 tab                                |
-| `.id`, `.name` | String                                                                          | ID and name, for example 예배 시작 (service start), 설교 (sermon), 예배 경과 (service elapsed), 현재 시각 (current time).                                             | `Overlays`                                           |
-| `.kind`        | `"countdownTo"` \| `"countdown"` \| `"elapsed"` \| `"elapsedFrom"` \| `"clock"` | Date/time countdown, fixed duration, stopwatch elapsed duration, legacy time-of-day elapsed, or clock.                                                                | `Overlays`; October 27 user decision adds `elapsed`. |
-| `.time`        | `HH:mm`                                                                         | Reference time for `countdownTo` and `elapsedFrom`.                                                                                                                   | `Overlays`                                           |
-| `.duration`    | Seconds                                                                         | Duration of a `countdown`.                                                                                                                                            | `Overlays`                                           |
-| `.date`        | `YYYY-MM-DD`, or absent                                                         | Calendar date for `countdownTo`, in the computer's local time zone with `.time`. Required by the new date/time editor. Absence preserves the legacy start-day anchor. | October 27 user decision                             |
-| `.overrun`     | Boolean, or absent                                                              | `countdown` and `countdownTo`: true keeps counting with "-" after zero; false stops and holds zero. Absence means true.                                               | October 27 user decision; 10                         |
-| `.start`       | Nonnegative seconds                                                             | Initial counted duration of `elapsed`, including zero. It is a duration rather than a time of day.                                                                    | October 27 user decision                             |
+| Field          | Type                                                         | Meaning                                                                                                                                                               | Source                                               |
+| -------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `timers[]`     | Array                                                        | The 타이머.                                                                                                                                                           | `Overlays` 타이머 tab                                |
+| `.id`, `.name` | String                                                       | ID and name, for example 예배 시작 (service start), 설교 (sermon), 예배 경과 (service elapsed), 현재 시각 (current time).                                             | `Overlays`                                           |
+| `.kind`        | `"countdownTo"` \| `"countdown"` \| `"elapsed"` \| `"clock"` | Date/time countdown, fixed duration, stopwatch elapsed duration, or clock.                                                                                            | `Overlays`; October 27 user decision adds `elapsed`. |
+| `.time`        | `HH:mm`                                                      | Reference time for `countdownTo`.                                                                                                                                     | `Overlays`                                           |
+| `.duration`    | Seconds                                                      | Duration of a `countdown`.                                                                                                                                            | `Overlays`                                           |
+| `.date`        | `YYYY-MM-DD`, or absent                                      | Calendar date for `countdownTo`, in the computer's local time zone with `.time`. Required by the new date/time editor. Absence preserves the legacy start-day anchor. | October 27 user decision                             |
+| `.overrun`     | Boolean, or absent                                           | `countdown` and `countdownTo`: true keeps counting with "-" after zero; false stops and holds zero. Absence means true.                                               | October 27 user decision; 10                         |
+| `.start`       | Nonnegative seconds                                          | Initial counted duration of `elapsed`, including zero. It is a duration rather than a time of day.                                                                    | October 27 user decision                             |
 
 Don't save whether a 타이머 is running or how much time is left. That is output
 state (see the recovery record).
@@ -568,11 +559,10 @@ or continues with "-". A finished run holds zero and is not running; a fresh
 start of a finished duration timer starts from its configured duration.
 Completion and pause remain live state, never fields in this settings file.
 
-Existing `elapsedFrom` records retain their `HH:mm` reference and remain
-distinct from `elapsed`. New elapsed records use `.start`, keep counting on
-main's monotonic clock, hold their value while paused and return to `.start`
-when reset. Existing IDs and unknown fields are preserved; stage and prop
-references continue resolving by ID (October 27 user decision, see 04).
+Elapsed records use `.start`, keep counting on main's monotonic clock, hold
+their value while paused and return to `.start` when reset. Existing IDs and
+unknown fields are preserved; stage and prop references continue resolving by ID
+(October 27 user decision, see 04).
 
 ### 이름표 list (`labels.json`)
 

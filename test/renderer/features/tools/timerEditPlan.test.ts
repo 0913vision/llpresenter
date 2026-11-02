@@ -33,8 +33,7 @@ function fixture(access: 'editable' | 'readOnly' = 'editable') {
           {
             id: legacy,
             name: 'Legacy',
-            kind: 'elapsedFrom',
-            time: '09:15',
+            kind: 'clock',
             future: 1,
           },
           {id: dated, name: 'Target', kind: 'countdownTo', time: '12:00'},
@@ -76,8 +75,7 @@ it('prepares a targeted edit that preserves identity and unknown fields through 
       {
         id: legacy,
         name: 'Legacy',
-        kind: 'elapsedFrom',
-        time: '09:15',
+        kind: 'clock',
         future: 1,
       },
       {id: dated, name: 'Target', kind: 'countdownTo', time: '12:00'},
@@ -110,20 +108,6 @@ it('skips an unchanged countdown with implicit overrun and adds a date only when
     date: '2028-02-29',
     overrun: true,
   });
-});
-
-it('allows editing legacy elapsed time without allowing that kind to be newly created', () => {
-  const document = fixture();
-  expect(
-    prepareTimerEdit(document, legacy, {kind: 'elapsedFrom', time: '10:30'})
-      .kind,
-  ).toBe('update');
-  expect(
-    prepareTimerEdit(document, first, {kind: 'elapsedFrom', time: '10:30'}),
-  ).toEqual({kind: 'refused', reason: 'invalid'});
-  expect(
-    prepareTimerEdit(document, legacy, {kind: 'elapsedFrom', time: '24:00'}),
-  ).toEqual({kind: 'refused', reason: 'invalid'});
 });
 
 it('refuses read-only, missing and invalid edits without changing the document', () => {

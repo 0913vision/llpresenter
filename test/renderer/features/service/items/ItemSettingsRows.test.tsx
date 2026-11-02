@@ -291,31 +291,6 @@ describe('항목 설정 이번 예배 and 메모', () => {
     ).toBeDefined();
   });
 
-  it('finds a 매크로 named by an older file and checks it', async () => {
-    const {settings, user, service, pushService} = await setup();
-    act(() =>
-      pushService({
-        ...service(),
-        revision: 9,
-        service: {
-          ...service().service,
-          order: service().service.order.map(row =>
-            row.id === fixtureItems.arranged ? {...row, macro: '찬양'} : row,
-          ),
-        },
-      }),
-    );
-    const start = within(settings).getByRole('button', {name: '시작할 때'});
-    await waitFor(() => expect(start.textContent).toContain('찬양'));
-    expect(start.textContent).toContain('매크로');
-    await user.click(start);
-    expect(
-      screen
-        .getByRole('menuitemradio', {name: '찬양'})
-        .getAttribute('aria-checked'),
-    ).toBe('true');
-  });
-
   it('makes the memo read-only at the draft limit, so nothing typed can be lost', async () => {
     const {api, items, settings, user} = await setup();
     vi.spyOn(api.content, 'edit').mockResolvedValue({

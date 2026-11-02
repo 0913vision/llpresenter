@@ -93,7 +93,7 @@ export function itemFixture() {
           future: {keep: true},
         },
         {id: fixtureItems.plain, song: editor.second.song.id},
-        {id: fixtureItems.slot, slot: 'song', title: '헌금 찬양'},
+        {id: fixtureItems.slot, header: '헌금 찬양'},
         {
           id: fixtureItems.lost,
           song: editor.first.song.id,

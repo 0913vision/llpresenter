@@ -27,7 +27,6 @@ function sampleTimers() {
   return [
     {id: timerId(1), name: '예배 시작', kind: 'countdownTo', time: '10:30'},
     {id: timerId(2), name: '설교', kind: 'countdown', duration: 2100},
-    {id: timerId(3), name: '예배 경과', kind: 'elapsedFrom', time: '10:30'},
     {id: timerId(4), name: '현재 시각', kind: 'clock'},
     {
       id: timerId(5),
@@ -67,9 +66,9 @@ describe('parseTimers', () => {
       'timers.0.time',
     ],
     [
-      'an elapsed timer without a time',
-      {id: timerId(1), name: 't', kind: 'elapsedFrom'},
-      'timers.0.time',
+      'a retired time-of-day elapsed timer',
+      {id: timerId(1), name: 't', kind: 'elapsedFrom', time: '10:30'},
+      'timers.0.kind',
     ],
   ])('rejects %s', (_name, timer, field) => {
     expectInvalidField(codec, timersFile([timer]), field);

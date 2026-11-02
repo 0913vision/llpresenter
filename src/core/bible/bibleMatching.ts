@@ -129,7 +129,7 @@ export function findBibleBooks(input: string): readonly BibleBook[] {
     .map(({book}) => book);
 }
 
-/** Preserves exact-name priority and the legacy lookup suggestion cap. */
+/** Preserves exact-name priority and the lookup suggestion cap. */
 export function matchBooks(input: string): readonly BibleBook[] {
   const exact = exactBibleBook(input);
   return exact

@@ -168,7 +168,7 @@ describe('buildShowService', () => {
     const show = build([
       {id: itemId(1), header: '찬양'},
       {id: itemId(2), song: HYMN_ONE_ID},
-      {id: itemId(3), slot: 'song', title: '찬양'},
+      {id: itemId(3), header: '찬양'},
       {
         id: itemId(4),
         bible: {

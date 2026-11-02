@@ -80,8 +80,8 @@ it.each(configurations)(
     const old = {
       id: '00000000-0000-4000-8000-000000000002',
       name: 'Legacy',
-      kind: 'elapsedFrom',
-      time: '09:00',
+      kind: 'countdown',
+      duration: 90,
       future: true,
     };
     const get = vi.fn().mockResolvedValue(document([old]));

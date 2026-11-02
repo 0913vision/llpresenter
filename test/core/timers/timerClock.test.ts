@@ -95,13 +95,11 @@ describe('timerText', () => {
 
   it('follows the wall clock for a time of day, corrections included', () => {
     const service = timer({kind: 'countdownTo', time: '11:00'});
-    const since = timer({kind: 'elapsedFrom', time: '10:00'});
     const halfPast = WALL + 30 * MINUTE;
     const read = (subject: Timer, wall: number) =>
       timerText(subject, running(), {timer: TIMER + 30 * MINUTE, wall});
     expect(read(service, halfPast)).toBe('30:00');
     expect(read(service, halfPast - 10 * SECOND)).toBe('30:10');
-    expect(read(since, halfPast - 10 * SECOND)).toBe('29:50');
   });
 
   it('keeps counting a countdown past 0 with a leading minus', () => {
@@ -149,25 +147,14 @@ describe('timerText', () => {
     );
   });
 
-  it('counts the time since a time of day', () => {
-    const elapsed = timer({kind: 'elapsedFrom', time: '09:15'});
-    expect(timerText(elapsed, running(), after(0))).toBe('45:00');
-    expect(timerText(elapsed, undefined, after(HOUR))).toBe('1:45:00');
-    const later = timer({kind: 'elapsedFrom', time: '10:01'});
-    expect(timerText(later, undefined, after(0))).toBe('-1:00');
-  });
-
   it('keeps the day a run started when it runs past midnight', () => {
     const lastMinute = timer({kind: 'countdownTo', time: '23:59'});
-    const lateStart = timer({kind: 'elapsedFrom', time: '23:00'});
     const beforeMidnight = new Date(2026, 9, 26, 23, 59, 59).getTime();
     const afterMidnight = new Date(2026, 9, 27, 0, 0, 30).getTime();
     const read = (subject: Timer, wall: number) =>
       timerText(subject, running(), {timer: TIMER, wall});
     expect(read(lastMinute, beforeMidnight)).toBe('-0:59');
     expect(read(lastMinute, afterMidnight)).toBe('-1:30');
-    expect(read(lateStart, beforeMidnight)).toBe('59:59');
-    expect(read(lateStart, afterMidnight)).toBe('1:00:30');
     expect(
       timerText(lastMinute, paused(beforeMidnight, 0), {
         timer: TIMER,

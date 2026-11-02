@@ -155,12 +155,6 @@ describe('parseService', () => {
     ],
     ['an item without an id', {header: '찬양'}, 'order.0.id'],
     [
-      'a slot of an unknown kind',
-      {id: itemId(1), slot: 'video', title: '영상'},
-      'order.0.slot',
-    ],
-    ['a slot without a title', {id: itemId(1), slot: 'song'}, 'order.0.title'],
-    [
       'a song item with a song path',
       {id: itemId(1), song: 'Songs/a.llsong'},
       'order.0.song',

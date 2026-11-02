@@ -90,12 +90,6 @@ it('shows each configured kind and gives a clock no start or reset controls', as
       start: 15,
     },
     {
-      id: '00000000-0000-4000-8000-000000000004',
-      name: '기존 경과',
-      kind: 'elapsedFrom',
-      time: '10:00',
-    },
-    {
       id: '00000000-0000-4000-8000-000000000005',
       name: '현재 시각',
       kind: 'clock',
@@ -110,9 +104,6 @@ it('shows each configured kind and gives a clock no start or reset controls', as
   expect(
     screen.getByRole('group', {name: '경과 타이머'}).textContent,
   ).toContain('0:15');
-  expect(screen.getByRole('group', {name: '기존 경과'}).textContent).toContain(
-    '시각 경과',
-  );
 });
 
 it('adds a standalone timer from an empty list, without adding a quick row', async () => {

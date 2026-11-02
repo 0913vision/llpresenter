@@ -17,9 +17,9 @@ function fullConfig() {
     backupPath: '',
     lastServiceId: SERVICE_ID,
     layout: {
-      narrow: {left: 220, right: 360, columns: 3, thumbnailScalePercent: 123},
+      narrow: {left: 220, right: 360, thumbnailScalePercent: 123},
       normal: {left: 312.5, right: 480, leftCollapsed: true},
-      wide: {columns: 6},
+      wide: {},
     },
     previewBig: SCREEN_ID,
     macroView: 'grid',
@@ -122,11 +122,11 @@ describe('parseAppConfig', () => {
     expect(expectSuccess(parse(config)).data).toEqual(config);
   });
 
-  it('round-trips an old layout without adding a scale or converting its columns', () => {
+  it('round-trips a layout without adding a scale', () => {
     const config = {
       format: 'llapp',
       schemaVersion: 1,
-      layout: {narrow: {columns: 3}, normal: {left: 300, right: 500}, wide: {}},
+      layout: {narrow: {}, normal: {left: 300, right: 500}, wide: {}},
     };
     const loaded = expectSuccess(parse(config));
 
@@ -144,7 +144,7 @@ describe('parseAppConfig', () => {
         layout: Object.fromEntries(
           ['narrow', 'normal', 'wide'].map(sizeClass => [
             sizeClass,
-            {columns: 4, thumbnailScalePercent, future: {enabled: true}},
+            {thumbnailScalePercent, future: {enabled: true}},
           ]),
         ),
       };
@@ -196,11 +196,6 @@ describe('parseAppConfig', () => {
       'a width that is text',
       {layout: {wide: {right: '480'}}},
       'layout.wide.right',
-    ],
-    [
-      'zero thumbnail columns',
-      {layout: {narrow: {columns: 0}}},
-      'layout.narrow.columns',
     ],
     [
       'a screen name for the large preview',

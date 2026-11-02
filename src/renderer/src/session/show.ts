@@ -3,7 +3,6 @@ import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {
   type ItemId,
-  type ServiceRow,
   type SlideTile,
   type TileCursor,
 } from '@core/presentation/model';
@@ -349,11 +348,7 @@ export function applyService(service: ShowService | null): void {
     serviceId: service.id,
     serviceName: service.name,
     readOnly: service.readOnly,
-    rows: service.rows.map<ServiceRow>(row =>
-      row.kind === 'slot'
-        ? {kind: 'header', id: row.id, title: row.title}
-        : row,
-    ),
+    rows: service.rows,
     tiles: service.tiles,
     jumpKeys: service.jumpKeys,
     ...keptSelection(service),

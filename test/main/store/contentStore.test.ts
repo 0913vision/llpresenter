@@ -433,9 +433,9 @@ describe('ContentStore lists', () => {
       serviceFile(SUNDAY, [
         {id: itemId(1), header: '찬양'},
         {id: itemId(2), song: HYMN_ONE_ID},
-        {id: itemId(3), slot: 'song', title: '찬양'},
+        {id: itemId(3), header: '찬양'},
         {id: itemId(4), header: '말씀'},
-        {id: itemId(5), slot: 'bible', title: '말씀'},
+        {id: itemId(5), header: '말씀'},
       ]),
     ]);
     expect(store.serviceList()).toMatchObject([{id: SUNDAY, itemCount: 1}]);
