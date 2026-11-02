@@ -87,6 +87,11 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
+      openPreferencesAt: () => undefined,
+      preferencesPage: () => Promise.resolve(null),
+      onPreferencesPage: () => () => undefined,
+      openLogFolder: () => undefined,
+      appInfo: () => Promise.resolve({name: 'LoveLight', version: '0.0.0'}),
       openOrderEditor: () =>
         Promise.resolve({ok: false, error: {reason: 'not-implemented'}}),
       openSongEditor: () =>

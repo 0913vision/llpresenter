@@ -33,14 +33,28 @@ export function windowMenuEntries(): readonly MenuEntry[] {
 }
 
 /**
- * The 도움말 menu (spec 11). Its rows wait for the 정보 page, the log folder
- * call, and the welcome walkthrough, so each shows as unavailable.
+ * The 도움말 menu (spec 11). 시작 안내 waits for the welcome walkthrough, so
+ * it shows as unavailable.
  */
-export function helpMenuEntries(): readonly MenuEntry[] {
+export function helpMenuEntries(actions: {
+  readonly showAbout: () => void;
+}): readonly MenuEntry[] {
   return [
     laterRow('welcome', '시작 안내'),
     menuSeparator('about'),
-    laterRow('logs', '로그 폴더 열기', {command: 'app.openLogs'}),
-    laterRow('version', '버전 정보', {command: 'app.about'}),
+    {
+      kind: 'item',
+      id: 'logs',
+      label: '로그 폴더 열기',
+      command: 'app.openLogs',
+      onSelect: () => window.llp?.window.openLogFolder(),
+    },
+    {
+      kind: 'item',
+      id: 'version',
+      label: '버전 정보',
+      command: 'app.about',
+      onSelect: actions.showAbout,
+    },
   ];
 }

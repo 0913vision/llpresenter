@@ -11,6 +11,7 @@ import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelHeader, PanelTitle, PanelActions} from '@renderer/ui/Panel';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   USAGE_LABEL,
@@ -137,6 +138,32 @@ export function ThemeList({
         if (alive.current) setChecking(false);
       });
   };
+  const duplicateReason =
+    model.reason ??
+    (model.file?.themes.length === THEME_LIMITS.themes
+      ? limitReason('테마', THEME_LIMITS.themes)
+      : undefined);
+  const duplicateSelected = (): void => {
+    if (model.theme === undefined) return;
+    run({
+      kind: 'duplicate',
+      source: model.theme.id,
+      id: createThemeId(crypto.randomUUID()),
+    });
+  };
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event =>
+        event.target instanceof Element &&
+        event.target.closest('[role="listbox"][aria-label="테마"]') !== null &&
+        model.theme !== undefined,
+      unavailable: () => duplicateReason,
+      run: () => {
+        if (duplicateReason === undefined) duplicateSelected();
+      },
+    },
+  ]);
   const target = menu?.theme;
   const regular = target !== undefined && target.id !== model.file?.standby.id;
   const available = menuAvailability(model.reason);
@@ -173,12 +200,7 @@ export function ThemeList({
             kind: 'item',
             id: 'duplicate',
             label: '복제',
-            ...menuAvailability(
-              model.reason ??
-                (model.file?.themes.length === THEME_LIMITS.themes
-                  ? limitReason('테마', THEME_LIMITS.themes)
-                  : undefined),
-            ),
+            ...menuAvailability(duplicateReason),
             onSelect: () =>
               run({
                 kind: 'duplicate',

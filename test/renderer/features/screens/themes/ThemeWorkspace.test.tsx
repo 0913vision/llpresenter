@@ -175,6 +175,19 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   expect(listeners.size).toBe(0);
 });
 
+it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', async () => {
+  setup();
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  await waitFor(() =>
+    expect(within(themes).getAllByRole('option')).toHaveLength(5),
+  );
+  const song = within(themes).getByRole('option', {name: '찬양'});
+  fireEvent.click(song);
+  song.focus();
+  fireEvent.keyDown(song, {key: 'd', code: 'KeyD', ctrlKey: true});
+  expect(await screen.findByRole('option', {name: '찬양 복사본'})).toBeTruthy();
+});
+
 it('asks before every 테마 delete, says where a 테마 is the default, and keeps it on cancel', async () => {
   const {value} = setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});

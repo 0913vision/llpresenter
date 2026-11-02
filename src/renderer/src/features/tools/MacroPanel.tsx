@@ -5,6 +5,7 @@ import {MacroView} from './MacroView';
 import {MacroPalette} from './MacroPalette';
 import {MacroMenu} from './MacroMenu';
 import {MacroEditors} from './MacroEditors';
+import {macroDuplicateReason} from './macroMenuEntries';
 import {useMacroPanel} from './useMacroPanel';
 import styles from './MacroPanel.module.css';
 
@@ -60,6 +61,11 @@ export function MacroPanel({
           onDropAction={dropAction}
           onNew={create}
           newDisabledReason={newDisabledReason}
+          onDuplicate={item => menuHandlers(item).duplicate()}
+          duplicateReason={macroDuplicateReason({
+            locked,
+            macroCount: macros.length,
+          })}
         />
         {palette.open ? (
           <div

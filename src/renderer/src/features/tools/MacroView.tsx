@@ -1,4 +1,5 @@
 import {useRef, type DragEvent, type JSX} from 'react';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {MacroActionKind} from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
 import type {Macro, MacroCollection} from '@core/schema/macros';
@@ -24,6 +25,8 @@ export function MacroView({
   onMenu,
   onNew,
   newDisabledReason,
+  onDuplicate,
+  duplicateReason,
   onNewCollection,
   onDropAction,
   collectionLocked = false,
@@ -45,6 +48,9 @@ export function MacroView({
     trigger: HTMLElement | undefined,
   ) => void;
   readonly onNew?: (() => void) | undefined;
+  /** Duplicates a 매크로, the way its right-click 복제 row does. */
+  readonly onDuplicate?: ((item: Macro) => void) | undefined;
+  readonly duplicateReason?: string | undefined;
   readonly newDisabledReason?: string | undefined;
   readonly onNewCollection?: (() => void) | undefined;
   readonly collectionLocked?: boolean | undefined;
@@ -67,6 +73,33 @@ export function MacroView({
   const members = collection ? new Set(collection.macroIds) : undefined;
   const shown = members ? macros.filter(item => members.has(item.id)) : macros;
   const selected = shown.findIndex(item => item.id === selectedId);
+  const focused = (event: KeyboardEvent): Macro | undefined => {
+    const option =
+      event.target instanceof Element
+        ? event.target.closest('[role="option"]')
+        : null;
+    if (option === null || root.current?.contains(option) !== true) {
+      return undefined;
+    }
+    return shown[
+      Array.from(root.current.querySelectorAll('[role="option"]')).indexOf(
+        option,
+      )
+    ];
+  };
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event => onDuplicate !== undefined && focused(event) !== undefined,
+      unavailable: () => duplicateReason,
+      run: event => {
+        const item = focused(event);
+        if (item !== undefined && duplicateReason === undefined) {
+          onDuplicate?.(item);
+        }
+      },
+    },
+  ]);
   const props = {
     label: '매크로',
     selected: selected < 0 ? undefined : selected,

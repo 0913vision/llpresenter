@@ -146,6 +146,11 @@ export function editMenuEntries(place: Element | null): readonly MenuEntry[] {
     menuSeparator('search'),
     commandRow({id: 'search', label: '찾기', command: 'search.focus'}, place),
     menuSeparator('keys'),
-    laterRow('shortcuts', '단축키…'),
+    {
+      kind: 'item',
+      id: 'shortcuts',
+      label: '단축키…',
+      onSelect: () => window.llp?.window.openPreferencesAt('shortcuts'),
+    },
   ];
 }

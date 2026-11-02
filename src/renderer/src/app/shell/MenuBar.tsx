@@ -2,6 +2,8 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
 import {useState, type JSX} from 'react';
 import type {WindowAction} from '@contracts/ipc/api';
+import type {AppInfo} from '@contracts/ipc/window';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
@@ -200,6 +202,44 @@ function EntryMenu({
   );
 }
 
+/** The 도움말 menu and the dialog its 버전 정보 row opens. */
+function HelpMenu({control}: {readonly control: MenuControl}): JSX.Element {
+  const [about, setAbout] = useState<AppInfo | null>(null);
+  const showAbout = (): void => {
+    window.llp?.window.appInfo().then(setAbout, (error: unknown) =>
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Could not read the app version',
+        detail: error instanceof Error ? error.message : String(error),
+      }),
+    );
+  };
+  return (
+    <>
+      <EntryMenu
+        label={HELP_MENU}
+        control={control}
+        entries={() => helpMenuEntries({showAbout})}
+      />
+      {about === null ? null : (
+        <AlertDialog
+          icon="info"
+          title="버전 정보"
+          meta={[`${about.name} ${about.version}`]}
+          actions={[
+            {
+              label: '확인',
+              primary: true,
+              escape: true,
+              onSelect: () => setAbout(null),
+            },
+          ]}
+        />
+      )}
+    </>
+  );
+}
+
 function OutputMenu({
   warnings,
   onShowWarning,
@@ -323,11 +363,7 @@ export function MenuBar({
           control={controlFor(WINDOW_MENU)}
           entries={windowMenuEntries}
         />
-        <EntryMenu
-          label={HELP_MENU}
-          control={controlFor(HELP_MENU)}
-          entries={helpMenuEntries}
-        />
+        <HelpMenu control={controlFor(HELP_MENU)} />
       </div>
       <span className={styles.title}>{title}</span>
       <div className={styles.controls}>

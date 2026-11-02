@@ -150,11 +150,20 @@ function appearanceEntries(
   ];
 }
 
+/** Why 복제 can't run on a 매크로 now, for its menu row and its key. */
+export function macroDuplicateReason(
+  input: Pick<MacroMenuInput, 'locked' | 'macroCount'>,
+): string | undefined {
+  if (input.locked) return '매크로 목록 잠김';
+  return input.macroCount >= MACRO_FILE_LIMITS.macros
+    ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
+    : undefined;
+}
+
 function clipboardEntries(
   input: MacroMenuInput,
   handlers: MacroMenuHandlers,
 ): readonly MenuEntry[] {
-  const full = input.macroCount >= MACRO_FILE_LIMITS.macros;
   return [
     laterRow('inspector', '속성…'),
     menuSeparator('clipboard-separator'),
@@ -164,13 +173,7 @@ function clipboardEntries(
       id: 'duplicate',
       label: '복제',
       icon: 'duplicate',
-      ...menuAvailability(
-        input.locked
-          ? '매크로 목록 잠김'
-          : full
-            ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
-            : undefined,
-      ),
+      ...menuAvailability(macroDuplicateReason(input)),
       onSelect: handlers.duplicate,
     },
     menuSeparator('delete-separator'),

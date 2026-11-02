@@ -1,4 +1,4 @@
-import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
+import {BrowserWindow, ipcMain, shell, type IpcMainEvent} from 'electron';
 import {
   textEditActions,
   windowActions,
@@ -108,12 +108,25 @@ export function listenToWindows(
   };
 }
 
+/** What the IPC channels depend on besides the live store. */
+export interface IpcOptions {
+  readonly windowMode: WindowMode;
+  readonly app: AppFacts;
+}
+
+/** What the 도움말 menu needs from the app. */
+export interface AppFacts {
+  readonly name: string;
+  readonly version: string;
+  readonly logDirectory: string;
+}
+
 /**
  * Registers the IPC channels. Every incoming value is validated; invalid
  * values are logged and dropped.
  *
- * @param windowMode - In `offscreen` mode the title bar can only close the
- * control window, so it never shows.
+ * @param options - In `offscreen` window mode the title bar can only close
+ * the control window, so it never shows; `app` is what 도움말 reports.
  * @returns A function that removes everything this registered.
  */
 export function registerIpc(
@@ -127,7 +140,7 @@ export function registerIpc(
     | 'subscribe'
   >,
   log: Logger,
-  windowMode: WindowMode,
+  {windowMode, app}: IpcOptions,
 ): () => void {
   ipcMain.handle(liveEndpoints.get.channel, () => store.state);
   ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
@@ -144,6 +157,20 @@ export function registerIpc(
       log.warn('dropped a malformed command', error);
     }
     dispatchLogged(store, command.value.command, log);
+  });
+  ipcMain.handle(windowEndpoints.appInfo.channel, () => ({
+    name: app.name,
+    version: app.version,
+  }));
+  ipcMain.on(windowEndpoints.openLogFolder.channel, () => {
+    // NOTE(0913vision): An offscreen check must never open the file manager.
+    if (windowMode === 'offscreen') return;
+    shell.openPath(app.logDirectory).then(
+      problem => {
+        if (problem !== '') log.warn('could not open the log folder', problem);
+      },
+      (error: unknown) => log.warn('could not open the log folder', error),
+    );
   });
   ipcMain.on(windowEndpoints.control.channel, controlWindowIn(windowMode, log));
   ipcMain.on(windowEndpoints.editText.channel, (event, value: unknown) => {
@@ -175,6 +202,8 @@ export function registerIpc(
     ipcMain.removeHandler(liveEndpoints.clock.channel);
     ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
+    ipcMain.removeHandler(windowEndpoints.appInfo.channel);
+    ipcMain.removeAllListeners(windowEndpoints.openLogFolder.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);
     ipcMain.removeAllListeners(windowEndpoints.editText.channel);
   };

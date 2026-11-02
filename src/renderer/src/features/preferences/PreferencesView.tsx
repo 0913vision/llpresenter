@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useEffect, useState, type JSX} from 'react';
 import {ListBox, ListRow} from '@renderer/ui';
 import {Properties} from '@renderer/ui/PropertyRow';
 import type {Notice} from '@renderer/ui/notices';
@@ -25,6 +25,28 @@ export function PreferencesView({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const [page, setPage] = useState<PreferencePageId>('general');
+  useEffect(() => {
+    const api = window.llp?.window;
+    if (api === undefined) return undefined;
+    let stopped = false;
+    api
+      .preferencesPage()
+      .then(first => {
+        if (!stopped && first !== null) setPage(first);
+      })
+      .catch((error: unknown) =>
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Could not read the requested preferences page',
+          detail: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    const stop = api.onPreferencesPage(setPage);
+    return () => {
+      stopped = true;
+      stop();
+    };
+  }, []);
   const edits = usePreferenceEdits(onProblem);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);

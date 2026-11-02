@@ -6,6 +6,12 @@ import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {LiveStore} from '@main/live/store';
 import type {Logger} from '@main/log';
 
+const FACTS = {
+  name: 'LoveLight',
+  version: '1.2.3',
+  logDirectory: 'C:/data/logs',
+};
+
 type Listener = (event: unknown, value: unknown) => void;
 
 const electron = vi.hoisted(() => ({
@@ -18,6 +24,7 @@ const electron = vi.hoisted(() => ({
   }>(),
   listeners: new Map<string, (event: unknown, value: unknown) => void>(),
   handlers: new Map<string, () => unknown>(),
+  openPath: vi.fn<(path: string) => Promise<string>>(() => Promise.resolve('')),
   window: {
     minimize: vi.fn(),
     maximize: vi.fn(),
@@ -45,6 +52,7 @@ vi.mock('electron', () => ({
       electron.listeners.delete(channel);
     },
   },
+  shell: {openPath: (path: string) => electron.openPath(path)},
   BrowserWindow: {
     getAllWindows: () => [...electron.windows],
     fromWebContents: () => electron.window,
@@ -103,7 +111,10 @@ beforeEach(() => {
 
 describe('registerIpc live clock', () => {
   it("answers with the store's 타이머 clock and removes the handler", () => {
-    const dispose = registerIpc(mockStore(), mockLog(), 'offscreen');
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
     expect(electron.handlers.get(liveEndpoints.clock.channel)?.()).toBe(4321);
     dispose();
     expect(electron.handlers.has(liveEndpoints.clock.channel)).toBe(false);
@@ -114,7 +125,10 @@ describe('registerIpc live commands', () => {
   it('logs each malformed batch child, dispatches the rest, and stops on dispose', () => {
     const store = mockStore();
     const log = mockLog();
-    const dispose = registerIpc(store, log, 'offscreen');
+    const dispose = registerIpc(store, log, {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
     sendCommand({
       type: 'live.batch',
       commands: [
@@ -149,7 +163,10 @@ describe('registerIpc live commands', () => {
         webContents: {isDestroyed: () => false, send},
       });
     }
-    const dispose = registerIpc(store, mockLog(), 'offscreen');
+    const dispose = registerIpc(store, mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
     const state = {...emptyLiveState(), version: 1};
     store.publish(state);
     for (const send of sends) {
@@ -164,7 +181,10 @@ describe('registerIpc live commands', () => {
   it('rejects an invalid batch envelope without applying any command', () => {
     const store = mockStore();
     const log = mockLog();
-    const dispose = registerIpc(store, log, 'offscreen');
+    const dispose = registerIpc(store, log, {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
     sendCommand({type: 'live.batch', commands: 'invalid'});
     expect(store.dispatch).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
@@ -176,7 +196,10 @@ describe('registerIpc live commands', () => {
 
   it('dispatches the parsed command, without fields it does not declare', () => {
     const store = mockStore();
-    const dispose = registerIpc(store, mockLog(), 'normal');
+    const dispose = registerIpc(store, mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
 
     sendCommand({
       type: 'media.show',
@@ -195,7 +218,7 @@ describe('registerIpc live commands', () => {
   it('logs the failing field of a malformed command and drops it', () => {
     const store = mockStore();
     const log = mockLog();
-    const dispose = registerIpc(store, log, 'normal');
+    const dispose = registerIpc(store, log, {windowMode: 'normal', app: FACTS});
 
     sendCommand({type: 'layer.clear', target: 'slides'});
 
@@ -211,7 +234,10 @@ describe('registerIpc live commands', () => {
 describe('registerIpc text editing', () => {
   it('runs a known action on the sender and drops an unknown one', () => {
     const log = mockLog();
-    const dispose = registerIpc(mockStore(), log, 'normal');
+    const dispose = registerIpc(mockStore(), log, {
+      windowMode: 'normal',
+      app: FACTS,
+    });
     const sender = {undo: vi.fn(), copy: vi.fn(), paste: vi.fn()};
     const send = (value: unknown): void =>
       electron.listeners.get(windowEndpoints.editText.channel)?.(
@@ -239,7 +265,10 @@ describe('registerIpc text editing', () => {
 
 describe('registerIpc window actions', () => {
   it('minimizes, maximizes, and closes the window in normal mode', () => {
-    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
 
     sendWindowAction('minimize');
     sendWindowAction('toggle-maximize');
@@ -253,7 +282,10 @@ describe('registerIpc window actions', () => {
 
   it('restores a maximized window on toggle-maximize', () => {
     electron.window.isMaximized.mockReturnValue(true);
-    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
 
     sendWindowAction('toggle-maximize');
 
@@ -264,7 +296,10 @@ describe('registerIpc window actions', () => {
 
   it('never minimizes or maximizes an offscreen window, which would show it', () => {
     const log = mockLog();
-    const dispose = registerIpc(mockStore(), log, 'offscreen');
+    const dispose = registerIpc(mockStore(), log, {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
 
     sendWindowAction('minimize');
     sendWindowAction('toggle-maximize');
@@ -280,7 +315,10 @@ describe('registerIpc window actions', () => {
   });
 
   it('still closes an offscreen window', () => {
-    const dispose = registerIpc(mockStore(), mockLog(), 'offscreen');
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
 
     sendWindowAction('close');
 
@@ -289,13 +327,66 @@ describe('registerIpc window actions', () => {
   });
 
   it('ignores a value that is not a window action', () => {
-    const dispose = registerIpc(mockStore(), mockLog(), 'normal');
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
 
     sendWindowAction('fullscreen');
 
     expect(electron.window.minimize).not.toHaveBeenCalled();
     expect(electron.window.maximize).not.toHaveBeenCalled();
     expect(electron.window.close).not.toHaveBeenCalled();
+    dispose();
+  });
+
+  it('answers the app name and version for 버전 정보', async () => {
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
+    const answer = electron.handlers.get(windowEndpoints.appInfo.channel);
+    expect(await answer?.()).toEqual({name: 'LoveLight', version: '1.2.3'});
+    dispose();
+    expect(electron.handlers.has(windowEndpoints.appInfo.channel)).toBe(false);
+  });
+
+  it('opens the log folder, but never in an offscreen check', () => {
+    const channel = windowEndpoints.openLogFolder.channel;
+    const normal = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
+    electron.listeners.get(channel)?.({}, undefined);
+    expect(electron.openPath).toHaveBeenCalledExactlyOnceWith('C:/data/logs');
+    normal();
+    electron.openPath.mockClear();
+    const offscreen = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
+    electron.listeners.get(channel)?.({}, undefined);
+    expect(electron.openPath).not.toHaveBeenCalled();
+    offscreen();
+  });
+
+  it('logs a log folder the file manager could not open', async () => {
+    const log = mockLog();
+    electron.openPath.mockResolvedValueOnce('not found');
+    const dispose = registerIpc(mockStore(), log, {
+      windowMode: 'normal',
+      app: FACTS,
+    });
+    electron.listeners.get(windowEndpoints.openLogFolder.channel)?.(
+      {},
+      undefined,
+    );
+    await vi.waitFor(() =>
+      expect(log.warn).toHaveBeenCalledWith(
+        'could not open the log folder',
+        'not found',
+      ),
+    );
     dispose();
   });
 });

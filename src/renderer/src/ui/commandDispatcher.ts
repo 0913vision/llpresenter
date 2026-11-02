@@ -405,6 +405,9 @@ function handlerAt(
     .querySelector('[data-workspace-layout]')
     ?.getAttribute('data-workspace-layout');
   const spec = shortcutCommand(id);
+  // NOTE(0913vision): The menu ignores `owner.blocked()`: it is an effect
+  // event, which React forbids calling while a menu renders, and a drag that
+  // blocks keys has ended before a menu row can be opened.
   return [...owners]
     .flatMap(owner => owner.all())
     .find(

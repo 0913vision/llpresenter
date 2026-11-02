@@ -10,6 +10,7 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {NOT_HERE} from '@renderer/app/shell/editMenuEntries';
 import {NOT_YET} from '@renderer/ui/menuRows';
 import {
   hoverForTooltip,
@@ -67,6 +68,29 @@ function History({
   );
 }
 
+function Duplicates({
+  reason,
+  run,
+}: {
+  readonly reason: string | undefined;
+  readonly run: () => void;
+}): JSX.Element {
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event => event.target === target,
+      unavailable: () => reason,
+      run,
+    },
+  ]);
+  return (
+    <button type="button" ref={setTarget}>
+      list
+    </button>
+  );
+}
+
 async function openMenu(
   user: ReturnType<typeof userEvent.setup>,
   name: string,
@@ -106,7 +130,7 @@ describe('the 편집 menu', () => {
       '붙여넣기Ctrl V',
       '텍스트 스타일 붙여넣기Alt Shift V',
       '스타일 맞춰 붙여넣기Alt V',
-      '복제',
+      '복제Ctrl D',
       '삭제Delete',
       '모두 선택Ctrl A',
       '선택 해제Ctrl Shift D',
@@ -119,7 +143,47 @@ describe('the 편집 menu', () => {
       '글자 입력란에서 쓸 수 있습니다',
     );
     expect(await reasonOf(rowOf(menu, '텍스트 스타일 복사'))).toBe(NOT_YET);
-    expect(await reasonOf(rowOf(menu, '단축키…'))).toBe(NOT_YET);
+    expect(isOff(rowOf(menu, '단축키…'))).toBe(false);
+    expect(await reasonOf(rowOf(menu, '복제'))).toBe(NOT_HERE);
+  });
+
+  it('opens 환경설정 at its 단축키 page', async () => {
+    const openPreferencesAt = vi.fn();
+    window.llp = mockLlpApi({window: {openPreferencesAt}});
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    const menu = await openMenu(user, '편집');
+    await user.click(rowOf(menu, '단축키…'));
+    expect(openPreferencesAt).toHaveBeenCalledExactlyOnceWith('shortcuts');
+  });
+
+  it('runs 복제 through the handler of the focused list, shows its key while off, and gives the list its own reason', async () => {
+    const run = vi.fn();
+    const user = userEvent.setup();
+    const {rerender} = render(
+      <>
+        <MenuBar title="" />
+        <Duplicates reason={undefined} run={run} />
+      </>,
+    );
+    screen.getByRole('button', {name: 'list'}).focus();
+    let menu = await openMenu(user, '편집');
+    expect(rowOf(menu, '복제').textContent).toBe('복제Ctrl D');
+    expect(isOff(rowOf(menu, '복제'))).toBe(false);
+    await user.click(rowOf(menu, '복제'));
+    await waitFor(() => expect(run).toHaveBeenCalledOnce());
+    rerender(
+      <>
+        <MenuBar title="" />
+        <Duplicates reason="테마는 200개까지 추가할 수 있음" run={run} />
+      </>,
+    );
+    screen.getByRole('button', {name: 'list'}).focus();
+    menu = await openMenu(user, '편집');
+    expect(rowOf(menu, '복제').textContent).toBe('복제Ctrl D');
+    expect(await reasonOf(rowOf(menu, '복제'))).toBe(
+      '테마는 200개까지 추가할 수 있음',
+    );
   });
 
   it('runs 실행 취소 through the handler of the place that had focus', async () => {
@@ -217,7 +281,7 @@ describe('the 창 menu', () => {
 });
 
 describe('the 도움말 menu', () => {
-  it('shows its rows as unavailable until the pages they open exist', async () => {
+  it('keeps 시작 안내 unavailable and opens the other two rows', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     const menu = await openMenu(user, '도움말');
@@ -227,6 +291,36 @@ describe('the 도움말 menu', () => {
       '로그 폴더 열기',
       '버전 정보',
     ]);
-    for (const row of rows) expect(await reasonOf(row)).toBe(NOT_YET);
+    expect(await reasonOf(rowOf(menu, '시작 안내'))).toBe(NOT_YET);
+    expect(isOff(rowOf(menu, '로그 폴더 열기'))).toBe(false);
+    expect(isOff(rowOf(menu, '버전 정보'))).toBe(false);
+  });
+
+  it('opens the log folder', async () => {
+    const openLogFolder = vi.fn();
+    window.llp = mockLlpApi({window: {openLogFolder}});
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    const menu = await openMenu(user, '도움말');
+    await user.click(rowOf(menu, '로그 폴더 열기'));
+    expect(openLogFolder).toHaveBeenCalledOnce();
+  });
+
+  it('shows the app name and version in a dialog with one 확인 button', async () => {
+    window.llp = mockLlpApi({
+      window: {
+        appInfo: () => Promise.resolve({name: 'LoveLight', version: '1.2.3'}),
+      },
+    });
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    const menu = await openMenu(user, '도움말');
+    await user.click(rowOf(menu, '버전 정보'));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('버전 정보')).toBeTruthy();
+    expect(within(dialog).getByText('LoveLight 1.2.3')).toBeTruthy();
+    expect(within(dialog).getAllByRole('button')).toHaveLength(1);
+    await user.click(within(dialog).getByRole('button', {name: '확인'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 });

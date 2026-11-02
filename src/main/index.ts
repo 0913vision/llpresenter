@@ -149,7 +149,14 @@ function start(): void {
         serviceId: openServiceIdOf(dataStore.content, log),
         log,
       });
-      const disposeIpc = registerIpc(store, log, windowMode);
+      const disposeIpc = registerIpc(store, log, {
+        windowMode,
+        app: {
+          name: app.getName(),
+          version: app.getVersion(),
+          logDirectory: join(app.getPath('userData'), 'logs'),
+        },
+      });
       const stopBible = registerBible({
         session: dataStore.bible,
         log,

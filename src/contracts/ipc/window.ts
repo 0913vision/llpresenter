@@ -9,7 +9,11 @@ import {
   type SongEditorTarget,
 } from '@core/schema/ipcPayloads';
 import type {PayloadError} from '@core/schema/payload';
-import {message, request, signal, type IpcPort} from './endpoint';
+import {
+  PREFERENCE_PAGE_IDS,
+  type PreferencePageId,
+} from '@core/schema/preferencePages';
+import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
 
@@ -51,10 +55,56 @@ export function parseTextEditAction(
     : {ok: true, value: action};
 }
 
+/** Checks the page a 환경설정 window should show. */
+export function parsePreferencePage(
+  value: unknown,
+): Result<PreferencePageId, PayloadError> {
+  const page = PREFERENCE_PAGE_IDS.find(known => known === value);
+  return page === undefined
+    ? {ok: false, error: {field: '', message: 'Unknown preferences page'}}
+    : {ok: true, value: page};
+}
+
+/** What 버전 정보 shows. */
+export interface AppInfo {
+  readonly name: string;
+  readonly version: string;
+}
+
+/** Checks the app name and version main reports. */
+export function parseAppInfo(value: unknown): Result<AppInfo, PayloadError> {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'name' in value &&
+    typeof value.name === 'string' &&
+    'version' in value &&
+    typeof value.version === 'string'
+  ) {
+    return {ok: true, value: {name: value.name, version: value.version}};
+  }
+  return {ok: false, error: {field: '', message: 'Expected the app info'}};
+}
+
 /** The title bar calls. */
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
   openPreferences: signal('window:open-preferences'),
+  openPreferencesAt: message<PreferencePageId>(
+    'window:open-preferences-at',
+    parsePreferencePage,
+  ),
+  preferencesPage: query<PreferencePageId | null>(
+    'window:preferences-page',
+    value =>
+      value === null ? {ok: true, value: null} : parsePreferencePage(value),
+  ),
+  openLogFolder: signal('window:open-log-folder'),
+  appInfo: query<AppInfo>('window:app-info', parseAppInfo),
+  showPreferencesPage: push<PreferencePageId>(
+    'window:show-preferences-page',
+    parsePreferencePage,
+  ),
   control: message<WindowAction>('window:control', parseWindowAction),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
   openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
@@ -82,6 +132,16 @@ export function windowApi(port: IpcPort) {
     openScreens: port.signal(windowEndpoints.openScreens),
     /** Opens or focuses the 환경설정 window. */
     openPreferences: port.signal(windowEndpoints.openPreferences),
+    /** Opens the app's log folder in the file manager. */
+    openLogFolder: port.signal(windowEndpoints.openLogFolder),
+    /** The app name and version. */
+    appInfo: port.query(windowEndpoints.appInfo),
+    /** Opens or focuses the 환경설정 window on one of its pages. */
+    openPreferencesAt: port.message(windowEndpoints.openPreferencesAt),
+    /** The page the 환경설정 window was opened on, or null for the first. */
+    preferencesPage: port.query(windowEndpoints.preferencesPage),
+    /** Follows the page requests of a 환경설정 window that stays open. */
+    onPreferencesPage: port.subscribe(windowEndpoints.showPreferencesPage),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
     /** Runs a text editing action on the focused field of the calling window. */

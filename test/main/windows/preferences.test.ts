@@ -15,6 +15,7 @@ const mocks = await vi.hoisted(async () => {
     destroyed = false;
     readonly webContents = Object.assign(new EventEmitter(), {
       setAudioMuted: vi.fn(),
+      send: vi.fn(),
       isDestroyed: () => this.destroyed,
     });
     readonly show = vi.fn();
@@ -46,7 +47,15 @@ const mocks = await vi.hoisted(async () => {
   return {
     MockWindow,
     created,
-    ipc: new EventEmitter(),
+    handlers: new Map<string, () => unknown>(),
+    ipc: Object.assign(new EventEmitter(), {
+      handle: (channel: string, handler: () => unknown) => {
+        mocks.handlers.set(channel, handler);
+      },
+      removeHandler: (channel: string) => {
+        mocks.handlers.delete(channel);
+      },
+    }),
     quit: vi.fn(),
     handshakes: new Array<ReturnType<typeof createHandshake>>(),
     createHandshake,
@@ -83,6 +92,7 @@ beforeEach(() => {
   mocks.handshakes.length = 0;
   mocks.created.length = 0;
   mocks.ipc.removeAllListeners();
+  mocks.handlers.clear();
   vi.mocked(loadPage).mockClear();
 });
 
@@ -135,6 +145,31 @@ describe('환경설정 window', () => {
     expect(mocks.created).toHaveLength(2);
     expect(first.restore).toHaveBeenCalledOnce();
     expect(first.focus).toHaveBeenCalledOnce();
+  });
+
+  it('opens at the requested page, and tells an open window to show it', () => {
+    const {last} = setup();
+    const at = windowEndpoints.openPreferencesAt;
+    const page = windowEndpoints.preferencesPage.channel;
+    mocks.ipc.emit(at.channel, {}, 'shortcuts');
+    const win = last();
+    expect(mocks.handlers.get(page)?.()).toBe('shortcuts');
+    expect(win.webContents.send).not.toHaveBeenCalled();
+    mocks.ipc.emit(at.channel, {}, 'bible');
+    expect(mocks.created).toHaveLength(2);
+    expect(mocks.handlers.get(page)?.()).toBe('bible');
+    expect(win.webContents.send).toHaveBeenCalledExactlyOnceWith(
+      windowEndpoints.showPreferencesPage.channel,
+      'bible',
+    );
+    win.emit('closed');
+    expect(mocks.handlers.get(page)?.()).toBeNull();
+  });
+
+  it('ignores a request for an unknown page', () => {
+    setup();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'nowhere');
+    expect(mocks.created).toHaveLength(1);
   });
 
   it('never takes focus or shows in an offscreen run', () => {

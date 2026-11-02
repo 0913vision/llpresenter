@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import type {PreferencePageId} from '@core/schema/preferencePages';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
 import type {Notice} from '@renderer/ui/notices';
@@ -23,9 +24,13 @@ export const preferencePages = [
   {id: 'bible', label: '성경', icon: 'book'},
   {id: 'import', label: '가져오기', icon: 'download'},
   {id: 'shortcuts', label: '단축키', icon: 'keyboard'},
-] as const;
+] as const satisfies ReadonlyArray<{
+  id: PreferencePageId;
+  label: string;
+  icon: string;
+}>;
 
-export type PreferencePageId = (typeof preferencePages)[number]['id'];
+export type {PreferencePageId};
 
 const HARDWARE_ACCELERATION_NOTE = '다음에 켤 때 적용됩니다';
 const LANGUAGE_OPTIONS = [{value: 'ko', label: '한국어'}] as const;

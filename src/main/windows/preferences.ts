@@ -1,5 +1,6 @@
 import {app, BrowserWindow, ipcMain, screen} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
+import type {PreferencePageId} from '@core/schema/preferencePages';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {registerControlClose, type ControlClose} from './controlClose';
@@ -85,6 +86,7 @@ export function registerPreferencesWindow(
   let win: BrowserWindow | null = null;
   let closing: ControlClose | undefined;
   let disposed = false;
+  let requested: PreferencePageId | null = null;
   const open = (): void => {
     if (disposed) return;
     if (win !== null && !win.isDestroyed()) {
@@ -102,10 +104,24 @@ export function registerPreferencesWindow(
       handshake.dispose();
       win = null;
       closing = undefined;
+      requested = null;
       if (control.isDestroyed()) app.quit();
     });
   };
+  const openAt = (_event: unknown, value: unknown): void => {
+    const page = windowEndpoints.openPreferencesAt.message(value);
+    if (!page.ok || disposed) return;
+    requested = page.value;
+    const existing = win !== null && !win.isDestroyed() ? win : null;
+    open();
+    existing?.webContents.send(
+      windowEndpoints.showPreferencesPage.channel,
+      page.value,
+    );
+  };
   ipcMain.on(channel, open);
+  ipcMain.on(windowEndpoints.openPreferencesAt.channel, openAt);
+  ipcMain.handle(windowEndpoints.preferencesPage.channel, () => requested);
   const close = async (): Promise<boolean> => {
     const current = win;
     if (current === null || current.isDestroyed()) return true;
@@ -125,6 +141,8 @@ export function registerPreferencesWindow(
       if (disposed || !(await close())) return;
       disposed = true;
       ipcMain.removeListener(channel, open);
+      ipcMain.removeListener(windowEndpoints.openPreferencesAt.channel, openAt);
+      ipcMain.removeHandler(windowEndpoints.preferencesPage.channel);
       control.removeListener('closed', closeAfterControl);
     },
   };

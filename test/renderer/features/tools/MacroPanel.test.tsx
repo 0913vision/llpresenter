@@ -101,6 +101,20 @@ it('runs a macro tile', async () => {
   expect(tile.hasAttribute('data-menu-target')).toBe(true);
 });
 
+it('duplicates the focused macro with Ctrl D, the way its 복제 row does', async () => {
+  const f = fixture();
+  render(<MacroPanel />);
+  const tile = await screen.findByRole('option', {name: '찬양'});
+  tile.focus();
+  fireEvent.keyDown(tile, {key: 'd', code: 'KeyD', ctrlKey: true});
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing edit');
+  expect(edit.value.macros.map(item => item.name)).toEqual(
+    expect.arrayContaining(['찬양', '찬양 복사본']),
+  );
+});
+
 async function openMenu() {
   const tile = await screen.findByRole('option', {name: '찬양'});
   fireEvent.contextMenu(tile);

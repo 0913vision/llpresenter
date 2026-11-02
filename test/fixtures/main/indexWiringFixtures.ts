@@ -93,6 +93,7 @@ const mocks = vi.hoisted(() => {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),
         getVersion: () => '0.0.0',
+        getName: () => 'LoveLight',
         isPackaged: true,
         requestSingleInstanceLock: () => true,
         releaseSingleInstanceLock: vi.fn(),
