@@ -1,6 +1,6 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
-import {useState, type JSX} from 'react';
+import {useEffect, useState, type JSX} from 'react';
 import type {WindowAction} from '@contracts/ipc/api';
 import type {AppInfo} from '@contracts/ipc/window';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -9,11 +9,17 @@ import {useServiceActions} from '@renderer/features/service/list/useServiceActio
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useButtonPress} from '@renderer/ui/press';
 import type {Notice} from '@renderer/ui/notices';
 import {OutputMenuList} from './OutputMenuList';
 import {editMenuEntries} from './editMenuEntries';
 import {fileMenuEntries} from './fileMenuEntries';
+import {
+  useMenuBarEntryKeys,
+  useMenuBarNavigation,
+  type MenuBarNavigation,
+} from './menuBarNavigation';
 import {useOutsideFocus} from './outsideFocus';
 import {helpMenuEntries, windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
@@ -45,6 +51,7 @@ interface ActiveMenu {
 }
 
 interface MenuControl {
+  readonly keys: MenuBarKeys;
   readonly anchor: HTMLButtonElement | null;
   readonly open: (anchor: HTMLButtonElement) => void;
   readonly toggle: (anchor: HTMLButtonElement) => void;
@@ -106,29 +113,53 @@ function WindowButton({
   );
 }
 
+const MENU_NAMES = [
+  FILE_MENU,
+  EDIT_MENU,
+  VIEW_MENU,
+  OUTPUT_MENU,
+  WINDOW_MENU,
+  HELP_MENU,
+] as const;
+
+interface MenuBarKeys {
+  readonly bar: MenuBarNavigation<MenuName>;
+  /** Gives focus back to where it was before the bar took it. */
+  readonly leave: () => void;
+}
+
 function MenuTrigger({
   label,
   control,
 }: {
-  readonly label: string;
+  readonly label: MenuName;
   readonly control: MenuControl;
 }): JSX.Element {
+  const {keys} = control;
   const expanded = control.anchor !== null;
   const press = useButtonPress<HTMLButtonElement>({
     disabled: false,
     onPress: event => control.toggle(event.currentTarget),
-    onKeyDown: event =>
+    onKeyDown: event => {
+      if (keys.bar.onBarKey(label, event)) return;
+      if (event.key === 'Escape' && !expanded && !hasModifier(event)) {
+        event.preventDefault();
+        keys.leave();
+        return;
+      }
       openOnArrowDown(event, {
         expanded,
         onExpandedChange: next => {
           if (next) control.open(event.currentTarget);
           else control.close();
         },
-      }),
+      });
+    },
   });
   return (
     <button
       {...press}
+      {...keys.bar.stopProps(label)}
       type="button"
       role="menuitem"
       aria-haspopup="menu"
@@ -304,7 +335,40 @@ export function MenuBar({
   const outsideFocus = useOutsideFocus();
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
+  const bar = useMenuBarNavigation<MenuName>(MENU_NAMES);
+  const keys: MenuBarKeys = {
+    bar,
+    leave: () => {
+      const place = outsideFocus();
+      if (place instanceof HTMLElement) place.focus();
+    },
+  };
+  useMenuBarEntryKeys(bar.focusBar);
+  const openName = active?.name;
+  useEffect(() => {
+    if (openName === undefined) return undefined;
+    // NOTE(0913vision): A menu leaves ← and → alone when they open or close
+    // no submenu, so the bar moves to the neighbor menu and opens it.
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (
+        event.defaultPrevented ||
+        hasModifier(event) ||
+        (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft')
+      ) {
+        return;
+      }
+      const next = bar.neighbor(openName, event.key === 'ArrowRight' ? 1 : -1);
+      const anchor = bar.elementOf(next);
+      if (anchor === null) return;
+      event.preventDefault();
+      if (next === FILE_MENU) checkClipboard();
+      setActive({name: next, anchor, openedByHover: false});
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [openName, bar, checkClipboard]);
   const controlFor = (name: MenuName): MenuControl => ({
+    keys,
     anchor: active?.name === name ? active.anchor : null,
     open: anchor => {
       if (name === FILE_MENU) checkClipboard();
