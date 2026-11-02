@@ -8,9 +8,9 @@ import {
   type RefObject,
 } from 'react';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
+import {REORDER_THRESHOLD_PX} from '@renderer/ui/reorder';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
-const DRAG_THRESHOLD_PX = 4;
 const ROW = '[data-quick-id]';
 
 interface Drag {
@@ -95,7 +95,7 @@ export function useQuickDrag({
     if (
       !drag.started &&
       Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <=
-        DRAG_THRESHOLD_PX
+        REORDER_THRESHOLD_PX
     ) {
       return;
     }
@@ -114,7 +114,7 @@ export function useQuickDrag({
       !drag.started &&
       !click.wasDragged() &&
       Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <=
-        DRAG_THRESHOLD_PX
+        REORDER_THRESHOLD_PX
     ) {
       return;
     }

@@ -1,8 +1,8 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {
@@ -10,10 +10,18 @@ import {
   firstId,
   lastId,
   emptySectionId,
+  secondHeaderId,
+  serviceId,
   songId,
   setup,
   transfer,
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
+
+const cleanups: Array<() => void> = [];
+
+afterEach(() => {
+  for (const cleanup of cleanups.splice(0)) cleanup();
+});
 
 describe('service panel editing', () => {
   it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
@@ -192,6 +200,145 @@ describe('service panel editing', () => {
     await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
     expect(api.content.edit).toHaveBeenCalledTimes(1);
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('moves the focused item one place with Alt arrows and leaves sections and ends alone', async () => {
+    const {api, ids} = setup();
+    const next = screen.getByRole('option', {name: '다음 곡'});
+    next.focus();
+    fireEvent.keyDown(next, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+    await waitFor(() => expect(ids()).toEqual([headerId, lastId, firstId]));
+    expect(api.content.edit).toHaveBeenCalledTimes(1);
+
+    const header = screen.getByRole('option', {name: '제목'});
+    header.focus();
+    fireEvent.keyDown(header, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    const bottom = screen.getByRole('option', {name: '첫 곡'});
+    bottom.focus();
+    fireEvent.keyDown(bottom, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    fireEvent.keyDown(bottom, {key: 'ArrowDown', code: 'ArrowDown'});
+
+    expect(ids()).toEqual([headerId, lastId, firstId]);
+    expect(api.content.edit).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps focus on a moved item that crosses a section, so it can move again', async () => {
+    const {ids} = setup('show', false, {secondSection: true});
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    last.focus();
+    fireEvent.keyDown(last, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    await waitFor(() =>
+      expect(ids()).toEqual([headerId, firstId, secondHeaderId, lastId]),
+    );
+
+    const moved = screen.getByRole('option', {name: '다음 곡'});
+    await waitFor(() => expect(document.activeElement).toBe(moved));
+    fireEvent.keyDown(moved, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+    await waitFor(() =>
+      expect(ids()).toEqual([headerId, firstId, lastId, secondHeaderId]),
+    );
+  });
+
+  it('keeps focus on the first item of a list without a section when it moves', async () => {
+    const {ids} = setup('show', false, {unheaded: true});
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    first.focus();
+    fireEvent.keyDown(first, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    await waitFor(() => expect(ids()).toEqual([lastId, firstId]));
+
+    const moved = screen.getByRole('option', {name: '첫 곡'});
+    await waitFor(() => expect(document.activeElement).toBe(moved));
+  });
+
+  it('leaves focus alone when the operator went to another field before a delayed move landed', async () => {
+    const {api, ids} = setup('show', false, {secondSection: true});
+    const original = vi.mocked(api.content.edit).getMockImplementation();
+    if (original === undefined) throw new Error('Missing edit');
+    let land: () => void = () => undefined;
+    vi.mocked(api.content.edit).mockImplementationOnce(
+      command =>
+        new Promise(resolve => {
+          land = () => resolve(original(command));
+        }),
+    );
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    last.focus();
+    fireEvent.keyDown(last, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    const field = document.createElement('input');
+    document.body.append(field);
+    cleanups.push(() => field.remove());
+    field.focus();
+    await waitFor(() => expect(api.content.edit).toHaveBeenCalledOnce());
+
+    act(() => land());
+
+    await waitFor(() =>
+      expect(ids()).toEqual([headerId, firstId, secondHeaderId, lastId]),
+    );
+    expect(document.activeElement).toBe(field);
+  });
+
+  it('forgets the focus of a refused move, so a later change does not take it', async () => {
+    const {api, ids} = setup('show', false, {secondSection: true});
+    vi.mocked(api.content.edit).mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'changed'},
+    });
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    last.focus();
+    fireEvent.keyDown(last, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    await waitFor(() => expect(api.content.edit).toHaveBeenCalledOnce());
+    expect(ids()).toEqual([headerId, firstId, lastId, secondHeaderId]);
+    document.body.focus();
+    last.blur();
+
+    const header = screen.getByRole('option', {name: '마무리'});
+    fireEvent.click(header);
+    fireEvent.keyDown(header, {key: 'F2'});
+    await act(async () => {
+      applyService({
+        id: serviceId,
+        revision: 9,
+        name: 'Invented service',
+        readOnly: false,
+        rows: [
+          {kind: 'header', id: headerId, title: '제목'},
+          {kind: 'song', id: lastId, title: '다음 곡'},
+          {kind: 'song', id: firstId, title: '첫 곡'},
+        ],
+        tiles: {},
+        jumpKeys: {},
+      });
+      await Promise.resolve();
+    });
+
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('option', {name: '다음 곡'}),
+    );
   });
 
   it('drops above the first row from the list top padding', async () => {

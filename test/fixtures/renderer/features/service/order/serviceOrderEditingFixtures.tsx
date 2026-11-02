@@ -45,6 +45,7 @@ export function setup(
     namedArrangement?: boolean;
     arrangement?: string;
     missingSong?: boolean;
+    unheaded?: boolean;
   } = {},
 ) {
   let document: ServiceDocument = {
@@ -55,7 +56,7 @@ export function setup(
       name: 'Invented service',
       date: '2026-10-26T09:00',
       order: [
-        {id: headerId, header: '제목'},
+        ...(extra.unheaded ? [] : [{id: headerId, header: '제목'}]),
         {
           id: firstId,
           song: songId,

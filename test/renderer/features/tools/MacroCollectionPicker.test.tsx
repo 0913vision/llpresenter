@@ -203,6 +203,40 @@ it.each([
   },
 );
 
+it('draws the insertion line while dragging and clears it when the drag ends', async () => {
+  setup();
+  const popup = await open();
+  const list = within(popup).getByRole('listbox');
+  const source = within(list).getByRole('option', {name: '평일'});
+  const target = within(list).getByRole('option', {name: '주일'});
+  const dataTransfer = {setData: vi.fn(), effectAllowed: '', dropEffect: ''};
+  const line = (): Element | null => list.querySelector('[class*="_insert_"]');
+  expect(line()).toBeNull();
+  fireEvent.dragStart(source, {dataTransfer});
+  fireEvent.dragOver(target, {dataTransfer});
+  expect(line()).not.toBeNull();
+  expect(target.previousElementSibling).toBe(line());
+  fireEvent.dragEnd(source, {dataTransfer});
+  expect(line()).toBeNull();
+});
+
+it('moves a row one place with Alt arrows and leaves 모든 매크로 alone', async () => {
+  const f = setup();
+  const popup = await open();
+  const list = within(popup).getByRole('listbox');
+  const all = within(list).getByRole('option', {name: '모든 매크로'});
+  fireEvent.keyDown(all, {key: 'ArrowDown', code: 'ArrowDown', altKey: true});
+  const row = within(list).getByRole('option', {name: '평일'});
+  fireEvent.keyDown(row, {key: 'ArrowDown', code: 'ArrowDown', altKey: true});
+  expect(f.edit).not.toHaveBeenCalled();
+  fireEvent.keyDown(row, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.name !== 'macros') throw new Error('Missing reorder');
+  expect(edit.value).toMatchObject({collections: [second, first]});
+});
+
 it('saves row order and rejects a foreign drag without moving all macros', async () => {
   const f = setup();
   const popup = await open();

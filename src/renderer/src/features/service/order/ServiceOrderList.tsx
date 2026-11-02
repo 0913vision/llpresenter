@@ -13,6 +13,8 @@ import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {parseOrderEditorTarget} from '@core/schema/ipcPayloads';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
+import {useRowMoveKeys} from '@renderer/ui/reorder';
+import {useMovedRowFocus} from './useMovedRowFocus';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {
   openOrderEditorWindow,
@@ -205,17 +207,29 @@ export function ServiceOrderList({
     onProblem,
   );
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
+  const moveRow = (source: string, before: string | null): void =>
+    editing.run((edits, id) =>
+      edits.move(
+        id,
+        createServiceItemId(source),
+        before === null ? null : createServiceItemId(before),
+      ),
+    );
+  const moveRowSaved = (
+    source: string,
+    before: string | null,
+  ): Promise<boolean> =>
+    editing.save((edits, id) =>
+      edits.move(
+        id,
+        createServiceItemId(source),
+        before === null ? null : createServiceItemId(before),
+      ),
+    );
   const {insertBefore, dragProps} = useServiceOrderDrag({
     enabled: editable,
     rows,
-    onMove: (source, before) =>
-      editing.run((edits, id) =>
-        edits.move(
-          id,
-          createServiceItemId(source),
-          before === null ? null : createServiceItemId(before),
-        ),
-      ),
+    onMove: moveRow,
     onCopy: (songId, before) =>
       editing.run((edits, id) =>
         edits.insertSong(
@@ -274,6 +288,29 @@ export function ServiceOrderList({
     event.target instanceof Node &&
     !isInTextEntry(event.target) &&
     listRef.current?.contains(event.target) === true;
+  const movedFocus = useMovedRowFocus(listRef, rows, serviceId);
+  useRowMoveKeys({
+    owns: ownsCommand,
+    rowId: target => {
+      const id = target === null ? null : serviceOrderRowId(target);
+      const row = rows.find(value => value.id === id);
+      return row !== undefined && row.kind !== 'header' ? id : null;
+    },
+    ids: rows.map(row => row.id),
+    enabled: editable,
+    onMove: (id, before) => {
+      const disarm = movedFocus.arm(id);
+      moveRowSaved(id, before).then(
+        saved => {
+          if (!saved) disarm();
+        },
+        (error: unknown) => {
+          disarm();
+          console.error('Could not move a 예배 순서 item:', error);
+        },
+      );
+    },
+  });
   const deleteFromKey = (): void => {
     if (editable && openItemId !== null) {
       listRef.current?.focus();

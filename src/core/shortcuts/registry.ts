@@ -273,6 +273,8 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['arrangement'],
       ['alt ArrowRight'],
     ],
+    ['list.moveUp', '위로 옮기기', '목록', ['control'], ['alt ArrowUp']],
+    ['list.moveDown', '아래로 옮기기', '목록', ['control'], ['alt ArrowDown']],
     ['edit.duplicate', '복제', '준비 편집', ['control'], []],
     [
       'edit.delete',

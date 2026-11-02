@@ -1,8 +1,7 @@
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {useState, type JSX} from 'react';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {menuSeparator} from '@renderer/ui/menuRows';
 import {OverlayClips} from '@renderer/features/service/items/OverlayClip';
 import type {OverlayControl} from '@renderer/features/service/items/useOverlayControl';
@@ -21,23 +20,6 @@ export interface OrderSlidesProps {
   readonly overlays: OverlayControl;
   /** Opens 곡 편집 at a slide of the song, by its place in the song. */
   readonly onEditSong: (block: number) => void;
-}
-
-function slideMenuEntries(
-  tile: OrderTile,
-  onEditSong: (block: number) => void,
-  overlays: OverlayControl,
-): readonly MenuEntry[] {
-  return [
-    {
-      kind: 'item',
-      id: 'edit-song',
-      label: windowCommandLabels.editSong,
-      onSelect: () => onEditSong(tile.block),
-    },
-    menuSeparator('overlay-separator'),
-    ...overlays.entries(tile.number),
-  ];
 }
 
 /** The slides of the order, filling rows to the window width. */
@@ -81,7 +63,11 @@ export function OrderSlides({
         <Menu
           label={GRID_LABEL}
           anchor={menu.anchor}
-          entries={slideMenuEntries(menuTile, onEditSong, overlays)}
+          entries={[
+            ...slideMenuEntries(() => onEditSong(menuTile.block)),
+            menuSeparator('overlay-separator'),
+            ...overlays.entries(menuTile.number),
+          ]}
           onClose={() => setMenu(null)}
         />
       ) : null}

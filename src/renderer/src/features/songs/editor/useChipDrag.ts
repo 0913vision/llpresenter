@@ -6,9 +6,8 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from 'react';
+import {REORDER_THRESHOLD_PX} from '@renderer/ui/reorder';
 
-// NOTE(0913vision): The same threshold as dragging a 라이브러리 row (spec 05).
-const DRAG_THRESHOLD_PX = 4;
 const CHIP_SELECTOR = '[role="option"]';
 
 interface Box {
@@ -91,7 +90,7 @@ export function useChipDrag({
     const started =
       drag.started ||
       Math.hypot(event.clientX - drag.x, event.clientY - drag.y) >
-        DRAG_THRESHOLD_PX;
+        REORDER_THRESHOLD_PX;
     if (!started) return;
     const boxes = [
       ...(strip.current?.querySelectorAll(CHIP_SELECTOR) ?? []),

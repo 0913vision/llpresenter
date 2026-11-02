@@ -24,6 +24,7 @@ import styles from './QuickPanel.module.css';
 import {QuickAdd, QuickRowEditor} from './QuickEditing';
 import {MAX_QUICK_ITEMS} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
+import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useQuickDrag} from './useQuickDrag';
 import {useQuickTimers} from './useQuickTimers';
 import {useQuickWindow} from './useQuickWindow';
@@ -55,21 +56,35 @@ export function QuickPanel({
   const items = document?.value.items ?? EMPTY_ITEMS;
   const ids = useMemo(() => items.map(item => item.id), [items]);
   const windowed = useQuickWindow(items);
+  const moveItem = (id: string, before: string | null): void => {
+    const source = document?.value.items.find(item => item.id === id);
+    const target = document?.value.items.find(item => item.id === before);
+    if (!source || (before !== null && !target)) return;
+    editing
+      .run({kind: 'move', id: source.id, before: target?.id ?? null})
+      .catch((cause: unknown) =>
+        console.error('Quick reorder callback failed:', cause),
+      );
+  };
   const drag = useQuickDrag({
     enabled: !locked,
     revision: document?.revision ?? null,
     ids,
     listRef: windowed.list,
-    onMove: (id, before) => {
-      const source = document?.value.items.find(item => item.id === id);
-      const target = document?.value.items.find(item => item.id === before);
-      if (!source || (before !== null && !target)) return;
-      editing
-        .run({kind: 'move', id: source.id, before: target?.id ?? null})
-        .catch((cause: unknown) =>
-          console.error('Quick reorder callback failed:', cause),
-        );
-    },
+    onMove: moveItem,
+  });
+  useRowMoveKeys({
+    owns: event =>
+      event.target instanceof Node &&
+      windowed.list.current?.contains(event.target) === true,
+    rowId: target =>
+      target instanceof Element
+        ? (target.closest<HTMLElement>('[data-quick-id]')?.dataset['quickId'] ??
+          null)
+        : null,
+    ids,
+    enabled: !locked,
+    onMove: moveItem,
   });
   const live = useLive(view => view.state);
   const [activationVersion, setActivationVersion] = useState(0);

@@ -1,6 +1,7 @@
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
+  Fragment,
   useLayoutEffect,
   useRef,
   useState,
@@ -17,6 +18,8 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {isComposing} from '@renderer/ui/ime';
+import {ListInsertLine} from '@renderer/ui/ListRow';
+import {rowMoveDirection, stepMove} from '@renderer/ui/reorder';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import {useToolEditing} from './useToolEditing';
@@ -66,6 +69,9 @@ function CollectionPopover({
   } | null>(null);
   const [renaming, setRenaming] = useState<MacroCollection['id'] | null>(null);
   const dragging = useRef<MacroCollection['id'] | null>(null);
+  const [insertBefore, setInsertBefore] = useState<
+    MacroCollection['id'] | null | undefined
+  >();
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
     onClose,
@@ -114,6 +120,7 @@ function CollectionPopover({
     event.preventDefault();
     event.stopPropagation();
     dragging.current = null;
+    setInsertBefore(undefined);
     save({kind: 'move', id, before});
   };
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
@@ -162,6 +169,15 @@ function CollectionPopover({
                 if (!locked && dragging.current !== null) {
                   event.preventDefault();
                   event.dataTransfer.dropEffect = 'move';
+                  setInsertBefore(null);
+                }
+              }}
+              onDragLeave={event => {
+                if (
+                  !(event.relatedTarget instanceof Node) ||
+                  !event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  setInsertBefore(undefined);
                 }
               }}
               onDrop={event => {
@@ -174,83 +190,115 @@ function CollectionPopover({
                 const showContext = (anchor: MenuAnchor): void =>
                   setContext({id: row.id, anchor});
                 return (
-                  <div
-                    key={row.id}
-                    role="option"
-                    data-choice=""
-                    tabIndex={row.id === (value ?? ALL) ? 0 : -1}
-                    aria-selected={row.id === (value ?? ALL)}
-                    className={classNames(menuStyles.item, styles.row)}
-                    draggable={
-                      item !== undefined && !locked && renaming !== row.id
-                    }
-                    onDragStart={event => {
-                      if (item === undefined || locked) return;
-                      dragging.current = item.id;
-                      event.dataTransfer.effectAllowed = 'move';
-                      event.dataTransfer.setData(DRAG_MIME, item.id);
-                    }}
-                    onDragEnd={() => {
-                      dragging.current = null;
-                    }}
-                    onDrop={event =>
-                      move(event, item?.id ?? collections[0]?.id)
-                    }
-                    onClick={() => choose(item?.id)}
-                    onContextMenu={event => {
-                      event.preventDefault();
-                      event.currentTarget.focus();
-                      showContext({
-                        kind: 'point',
-                        target: contextMenuTarget(event),
-                        point: {x: event.clientX, y: event.clientY},
-                      });
-                    }}
-                    onKeyDown={event => {
-                      if (
-                        event.target !== event.currentTarget ||
-                        isComposing(event)
-                      ) {
-                        return;
+                  <Fragment key={row.id}>
+                    {insertBefore !== undefined && insertBefore === item?.id ? (
+                      <ListInsertLine />
+                    ) : null}
+                    <div
+                      data-collection-id={item?.id}
+                      role="option"
+                      data-choice=""
+                      tabIndex={row.id === (value ?? ALL) ? 0 : -1}
+                      aria-selected={row.id === (value ?? ALL)}
+                      className={classNames(menuStyles.item, styles.row)}
+                      draggable={
+                        item !== undefined && !locked && renaming !== row.id
                       }
-                      if (isContextMenuKey(event)) {
+                      onDragStart={event => {
+                        if (item === undefined || locked) return;
+                        dragging.current = item.id;
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData(DRAG_MIME, item.id);
+                      }}
+                      onDragEnd={() => {
+                        dragging.current = null;
+                        setInsertBefore(undefined);
+                      }}
+                      onDragOver={event => {
+                        if (locked || dragging.current === null) return;
                         event.preventDefault();
+                        event.stopPropagation();
+                        event.dataTransfer.dropEffect = 'move';
+                        setInsertBefore(item?.id ?? collections[0]?.id ?? null);
+                      }}
+                      onDrop={event =>
+                        move(event, item?.id ?? collections[0]?.id)
+                      }
+                      onClick={() => choose(item?.id)}
+                      onContextMenu={event => {
+                        event.preventDefault();
+                        event.currentTarget.focus();
                         showContext({
-                          kind: 'element',
+                          kind: 'point',
                           target: contextMenuTarget(event),
-                          element: event.currentTarget,
+                          point: {x: event.clientX, y: event.clientY},
                         });
-                      } else if (
-                        !hasModifier(event) &&
-                        (event.key === 'Enter' || event.key === ' ')
-                      ) {
-                        event.preventDefault();
-                        choose(item?.id);
-                      }
-                    }}
-                  >
-                    {renaming === item?.id ? (
-                      <RenameField
-                        label="모음 이름"
-                        maxLength={256}
-                        name={item.name}
-                        locked={locked}
-                        rename={{
-                          validate: name =>
-                            name.length > 256
-                              ? '이름이 너무 깁니다'
-                              : undefined,
-                          onCommit: name =>
-                            run({kind: 'rename', id: item.id, name}, 'saved'),
-                          onClose: () => setRenaming(null),
-                        }}
-                      />
-                    ) : (
-                      <span className={menuStyles.label}>{row.name}</span>
-                    )}
-                  </div>
+                      }}
+                      onKeyDown={event => {
+                        if (
+                          event.target !== event.currentTarget ||
+                          isComposing(event)
+                        ) {
+                          return;
+                        }
+                        const direction = rowMoveDirection(event.nativeEvent);
+                        if (direction !== undefined) {
+                          event.preventDefault();
+                          const step =
+                            item === undefined || locked
+                              ? undefined
+                              : stepMove(
+                                  collections.map(entry => entry.id),
+                                  item.id,
+                                  direction,
+                                );
+                          if (item !== undefined && step !== undefined) {
+                            save({
+                              kind: 'move',
+                              id: item.id,
+                              before: step.before ?? undefined,
+                            });
+                          }
+                        } else if (isContextMenuKey(event)) {
+                          event.preventDefault();
+                          showContext({
+                            kind: 'element',
+                            target: contextMenuTarget(event),
+                            element: event.currentTarget,
+                          });
+                        } else if (
+                          !hasModifier(event) &&
+                          (event.key === 'Enter' || event.key === ' ')
+                        ) {
+                          event.preventDefault();
+                          choose(item?.id);
+                        }
+                      }}
+                    >
+                      {renaming === item?.id ? (
+                        <RenameField
+                          label="모음 이름"
+                          maxLength={256}
+                          name={item.name}
+                          locked={locked}
+                          rename={{
+                            validate: name =>
+                              name.length > 256
+                                ? '이름이 너무 깁니다'
+                                : undefined,
+                            onCommit: name =>
+                              run({kind: 'rename', id: item.id, name}, 'saved'),
+                            onClose: () => setRenaming(null),
+                          }}
+                        />
+                      ) : (
+                        <span className={menuStyles.label}>{row.name}</span>
+                      )}
+                    </div>
+                  </Fragment>
                 );
               })}
+              {insertBefore === null ? <ListInsertLine /> : null}
             </div>
           </div>
         </div>,

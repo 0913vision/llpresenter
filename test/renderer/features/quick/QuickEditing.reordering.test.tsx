@@ -48,6 +48,28 @@ describe('quick editing', () => {
     expect(fixture.send).not.toHaveBeenCalled();
     expect(useLive.getState().state).toBe(live);
   });
+  it('moves the focused quick item one place with Alt arrows', async () => {
+    const fixture = setup();
+    fixture.mount();
+    const first = await screen.findByRole('button', {name: '저장된 곡'});
+    const before = fixture.current().value.items.map(item => item.id);
+    fireEvent.keyDown(first, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+    expect(fixture.edit).not.toHaveBeenCalled();
+    fireEvent.keyDown(first, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+
+    await waitFor(() =>
+      expect(fixture.current().value.items.map(item => item.id)).toEqual([
+        before[1],
+        before[0],
+        ...before.slice(2),
+      ]),
+    );
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
   it('moves an unknown item on the latest list and retains unrelated additions', async () => {
     const fixture = setup();
     const current = fixture.current();
