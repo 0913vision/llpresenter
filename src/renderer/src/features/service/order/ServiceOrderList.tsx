@@ -17,6 +17,7 @@ import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
 import {serviceOrderMenuEntries} from './serviceOrderMenu';
+import type {ServiceTableParts} from './serviceTableParts';
 import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
@@ -81,6 +82,7 @@ function ItemRows({
   workspace,
   durations,
   done,
+  table,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
@@ -89,6 +91,7 @@ function ItemRows({
   readonly workspace: Workspace;
   readonly durations: Readonly<Record<string, string>>;
   readonly done: ReadonlySet<string>;
+  readonly table: ServiceTableParts | undefined;
 }): JSX.Element {
   const tiles = useShow(view => view.tiles);
   return (
@@ -104,12 +107,18 @@ function ItemRows({
               live={row.id === liveItemId}
               done={done.has(row.id)}
               meta={
-                workspace !== 'prep'
+                workspace !== 'prep' || table !== undefined
                   ? undefined
                   : ['song', 'bible', 'notice'].includes(row.kind)
                     ? `슬라이드 ${tiles[row.id]?.length ?? 0}개`
                     : durations[row.id]
               }
+              cells={table?.cellsOf(
+                row,
+                ['song', 'bible', 'notice'].includes(row.kind)
+                  ? String(tiles[row.id]?.length ?? 0)
+                  : durations[row.id],
+              )}
               warning={
                 row.problem === undefined ? undefined : problemTips[row.problem]
               }
@@ -132,8 +141,10 @@ export function ServiceOrderList({
   onOpenPrep,
   onOpenItem,
   onShowInLibrary,
+  table,
 }: {
   readonly workspace?: Workspace | undefined;
+  readonly table?: ServiceTableParts | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
   readonly onOpenItem?: (() => void) | undefined;
@@ -341,6 +352,7 @@ export function ServiceOrderList({
         }
       }}
     >
+      {table?.header}
       <ListBox
         workspace={workspace}
         label="예배 순서"
@@ -361,6 +373,7 @@ export function ServiceOrderList({
               workspace={workspace}
               durations={durations}
               done={done}
+              table={table}
             />
           ) : (
             <div
@@ -405,6 +418,7 @@ export function ServiceOrderList({
                   workspace={workspace}
                   durations={durations}
                   done={done}
+                  table={table}
                 />
               </ListGroup>
             </div>
@@ -412,6 +426,7 @@ export function ServiceOrderList({
         )}
       </ListBox>
       {insertBefore === null ? <ListInsertLine /> : null}
+      {table?.footer}
       {menu?.serviceId === serviceId ? (
         <Menu
           label="예배 순서 항목 메뉴"

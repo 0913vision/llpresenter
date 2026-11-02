@@ -216,6 +216,20 @@ describe('service song item panel', () => {
     expect(states).toEqual([null, null, 'live']);
   });
 
+  it('opens the 순서 편집 window on the shown item', async () => {
+    const {panel, user, api} = await setup();
+    const openOrder = vi
+      .spyOn(api.window, 'openOrderEditor')
+      .mockResolvedValue({ok: true, value: undefined});
+
+    await user.click(within(panel).getByRole('button', {name: '순서 편집…'}));
+
+    expect(openOrder).toHaveBeenCalledExactlyOnceWith({
+      serviceId: fixtureServiceId,
+      itemId: fixtureItems.arranged,
+    });
+  });
+
   it('opens the source song in the 곡 편집 window at the clicked slide', async () => {
     const {panel, user, openWindow, first} = await setup();
     await user.click(chip(panel, 2));

@@ -12,11 +12,11 @@ captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 
-| Column | Panels                                                                                             | Source                           |
-| ------ | -------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Left   | 예배 순서 (remaining height), 라이브러리                                                           | `Reflow`, `PrepService`          |
-| Center | Song editor (when a 라이브러리 song is selected) or 예배 순서 item (when a song item is selected). | `Reflow`, `PrepService`, `Media` |
-| Right  | Preview and 슬라이드 list (song editor), or preview and 항목 설정 (item settings)                  | `Reflow`, `PrepService`          |
+| Column | Panels                                                                   | Source                  |
+| ------ | ------------------------------------------------------------------------ | ----------------------- |
+| Left   | 라이브러리                                                               | `Reflow`, `PrepService` |
+| Center | The 예배 순서 table ("The 예배 순서 table and the editor windows (B20)") | `Reflow`, `PrepService` |
+| Right  | The selected item's 미리보기, 슬라이드, and 항목 설정                    | `Reflow`, `PrepService` |
 
 - The same bottom 미디어 bin as 진행 sits below these columns. Opening it keeps
   the editor, selected service item and unsaved drafts in place. Its visibility
@@ -32,14 +32,27 @@ system README (window sizes and layout).
 ## The 예배 순서 table and the editor windows (B20)
 
 The user decided this on November 2 (drafts o1 to o6 and g5, outside the
-repository). It is being built. When it lands, it replaces the center column in
-"Layout", "Item panel (center)", and the item's 오버레이 table (12, draft K).
+repository). The table has landed. The windows land with their own requests, and
+until they do, "Song editor" below and the item's 오버레이 table (12, draft K)
+describe what the right column still holds.
 
 ### 준비
 
 - The center of 준비 is the 예배 순서 table, one row per item. Clicking a row
   shows that item's preview, 슬라이드, and settings on the right. The 라이브러리
-  stays on the left.
+  stays on the left. The song editor is no longer a column of 준비: choosing a
+  라이브러리 song opens the 곡 편집 window.
+- The columns are 이름, 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모.
+  슬라이드 counts the slides of the item's 구성 (the duration for media). 테마
+  shows the name of the item's own 테마, or, dimmed, the default of its kind,
+  with the reason in the tooltip. 배경 shows the picture and name, dimmed when
+  the item follows the song's. 테마 and 시작할 때 change in the cell, which
+  opens its list of choices; the other columns are changed on the right or in
+  the windows. A 머리글 row shows only its name.
+- 항목 and 머리글 at the end of the table add a row after the last one. 항목
+  opens the list of "Quick add" (below).
+- The right column's 슬라이드 panel has 순서 편집…, which opens the 순서 편집
+  window on the song item.
 - A song row's right-click has 순서 편집… and 곡 편집… after 구성 › (11). A
   double-click or Enter on a song row opens 순서 편집.
 

@@ -3,6 +3,9 @@ import type {SongId} from '@core/schema/ids';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
+import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
+import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
+import type {LlpApi} from '@contracts/ipc/api';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import type {Notice} from '@renderer/ui/notices';
 import {logPanelProblem, type PanelParts} from '../shell/WorkspacePanel';
@@ -18,6 +21,7 @@ export function serviceOrderParts({
   onShowInLibrary,
   onOpenItem,
   actions,
+  table,
 }: {
   readonly workspace: 'show' | 'prep';
   readonly onProblem: ((notice: Notice) => void) | undefined;
@@ -25,18 +29,31 @@ export function serviceOrderParts({
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
   readonly onOpenItem: () => void;
   readonly actions: ReactNode;
+  /** With it, the list is the 예배 순서 table of 준비. */
+  readonly table?:
+    {readonly api: LlpApi; readonly items: ServiceItemStore} | undefined;
 }): PanelParts {
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
-    body: (
-      <ServiceOrderList
-        workspace={workspace}
-        onProblem={onProblem}
-        onOpenPrep={onOpenPrep}
-        onShowInLibrary={onShowInLibrary}
-        onOpenItem={onOpenItem}
-      />
-    ),
+    body:
+      table === undefined ? (
+        <ServiceOrderList
+          workspace={workspace}
+          onProblem={onProblem}
+          onOpenPrep={onOpenPrep}
+          onShowInLibrary={onShowInLibrary}
+          onOpenItem={onOpenItem}
+        />
+      ) : (
+        <ServiceTableList
+          api={table.api}
+          items={table.items}
+          onProblem={onProblem}
+          onOpenPrep={onOpenPrep}
+          onShowInLibrary={onShowInLibrary}
+          onOpenItem={onOpenItem}
+        />
+      ),
     meta: <ReadOnlyMark />,
     actions: (
       <>

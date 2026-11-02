@@ -22,6 +22,7 @@ import {
   PanelTitle,
 } from '@renderer/ui/Panel';
 import {ItemOverlayTable} from './ItemOverlayTable';
+import {openItemOrder, ORDER_EDIT_LABEL} from './openItemOrder';
 import {openItemSong} from './openItemSong';
 import {SONG_EDIT_LABEL} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
@@ -132,6 +133,14 @@ function SongItemView({
                 <StatusDot tone="warning" />
               </span>
             ) : null}
+            <Button
+              icon="order"
+              disabled={editReason !== undefined}
+              title={editReason}
+              onClick={() => openItemOrder({items})}
+            >
+              {ORDER_EDIT_LABEL}
+            </Button>
             <Button
               icon="edit"
               disabled={editReason !== undefined}

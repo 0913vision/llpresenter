@@ -59,16 +59,33 @@ describe('usePrepPanels', () => {
     );
   });
 
-  it('swaps the item columns for the song editor while the editor holds a song', async () => {
+  it('lays out the library, the 예배 순서 table, and the selected item', () => {
+    const {result} = setup();
+
+    expect(result.current.columns).toEqual([
+      ['라이브러리'],
+      [SERVICE_ORDER],
+      ['미리보기', '슬라이드', '항목 설정'],
+    ]);
+  });
+
+  it('swaps the table for the editor while the editor holds a draft', async () => {
     const {fixture, editor, result} = setup();
-    const itemColumns = result.current.columns;
+    const columns = result.current.columns;
 
     act(() => editor.open(fixture.first));
 
-    await waitFor(() =>
-      expect(result.current.columns).not.toEqual(itemColumns),
-    );
+    await waitFor(() => expect(result.current.columns).not.toEqual(columns));
     act(() => editor.open(null));
-    await waitFor(() => expect(result.current.columns).toEqual(itemColumns));
+    await waitFor(() => expect(result.current.columns).toEqual(columns));
+  });
+
+  it('draws the 예배 순서 as the table, not the plain list', () => {
+    const {fixture, result} = setup();
+    result.current.partsOf(SERVICE_ORDER);
+
+    expect(vi.mocked(serviceOrderParts).mock.lastCall?.[0].table?.api).toBe(
+      fixture.api,
+    );
   });
 });

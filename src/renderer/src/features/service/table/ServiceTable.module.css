@@ -1,0 +1,104 @@
+.table {
+  /* NOTE(0913vision): The design system has no table tokens yet; these
+     widths follow draft g5 of the 예배 순서 table. */
+  --table-arrangement: 96px;
+  --table-slides: 72px;
+  --table-theme: 140px;
+  --table-background: 168px;
+  --table-start: 112px;
+  --table-memo: 160px;
+  --table-thumb: 20px;
+  --table-name-inset: 32px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  height: var(--size-row);
+  padding: 0 var(--panel-inset);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.headerName {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline-start: var(--table-name-inset);
+}
+
+.headerCells {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.header .cell {
+  color: inherit;
+  font: var(--type-caption);
+}
+
+.cell {
+  flex: none;
+  min-width: 0;
+  overflow: hidden;
+  margin-inline-start: var(--space-10);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: var(--type-body);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.cell {
+  cursor: default;
+}
+
+.dim {
+  color: var(--text-3);
+}
+
+.arrangement {
+  width: var(--table-arrangement);
+}
+
+.slides {
+  width: var(--table-slides);
+  font-variant-numeric: tabular-nums;
+}
+
+.theme {
+  width: var(--table-theme);
+}
+
+.background {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: var(--table-background);
+}
+
+.thumb {
+  flex: none;
+  width: var(--table-thumb);
+  height: var(--table-thumb);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.start {
+  width: var(--table-start);
+}
+
+.memo {
+  width: var(--table-memo);
+}
+
+.footer {
+  display: flex;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--panel-inset);
+}

@@ -51,6 +51,8 @@ export interface ListRowProps {
   readonly disabled?: boolean | undefined;
   /** Tooltip text for the row, such as the reason it is disabled. */
   readonly reason?: string | undefined;
+  /** The columns of a table row, between the name and the end. */
+  readonly cells?: ReactNode;
   /** A control at the end of the row; its clicks don't select the row. */
   readonly end?: ReactNode;
   /**
@@ -124,7 +126,17 @@ function RowContent({
   readonly props: ListRowProps;
   readonly titleId: string;
 }): JSX.Element {
-  const {icon, title, meta, sub, live = false, warning, end, rename} = props;
+  const {
+    icon,
+    title,
+    meta,
+    sub,
+    live = false,
+    warning,
+    cells,
+    end,
+    rename,
+  } = props;
   const titleClass = classNames(
     styles.title,
     props.modified === true && styles.beforeMark,
@@ -157,6 +169,9 @@ function RowContent({
       ) : null}
       {warning === undefined ? null : <WarningMark reason={warning} />}
       {live ? <LiveBadge /> : null}
+      {cells === undefined ? null : (
+        <span className={styles.cells}>{cells}</span>
+      )}
       {live || meta === undefined ? null : (
         <span className={styles.meta}>{meta}</span>
       )}

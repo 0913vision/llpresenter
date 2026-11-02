@@ -1,10 +1,21 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import type {ElectronApplication} from 'playwright-core';
 import {expect, it} from 'vitest';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';
 const WAIT = 30_000;
+
+async function songWindow(app: ElectronApplication) {
+  const find = () =>
+    app.windows().find(page => page.url().includes('window=song'));
+  await expect.poll(() => find() !== undefined, {timeout: WAIT}).toBe(true);
+  const page = find();
+  if (page === undefined) throw new Error('Song window not found');
+  await page.getByRole('textbox', {name: '곡 제목'}).waitFor({timeout: WAIT});
+  return page;
+}
 
 async function seedSong(
   data: string,
@@ -44,12 +55,18 @@ it(
       .toBe(1);
     await library.getByRole('option').first().dblclick();
 
-    const title = page.getByRole('textbox', {name: '곡 제목'});
-    const lyrics = page.getByRole('textbox', {name: '슬라이드 1 가사'});
+    const editor = await songWindow(app.electron());
+    const title = editor.getByRole('textbox', {name: '곡 제목'});
+    const lyrics = editor.getByRole('textbox', {name: '슬라이드 1 가사'});
     await title.fill('점검 알파 수정');
     await title.press('Enter');
     await lyrics.fill('새로 만든 점검 문장');
     await lyrics.press('Tab');
+    await editor.getByRole('button', {name: '저장', exact: true}).click();
+    await editor
+      .getByRole('alertdialog')
+      .getByRole('button', {name: '덮어쓰기'})
+      .click();
     const file = join(app.data, 'LoveLight', 'Songs', `${FIRST}.llsong`);
     await expect
       .poll(
@@ -78,11 +95,14 @@ it(
       .getByRole('option');
     await expect.poll(() => reopened.count(), {timeout: WAIT}).toBe(1);
     await reopened.first().dblclick();
+    const reopenedEditor = await songWindow(app.electron());
     expect(
-      await page.getByRole('textbox', {name: '곡 제목'}).inputValue(),
+      await reopenedEditor.getByRole('textbox', {name: '곡 제목'}).inputValue(),
     ).toBe('점검 알파 수정');
     expect(
-      await page.getByRole('textbox', {name: '슬라이드 1 가사'}).inputValue(),
+      await reopenedEditor
+        .getByRole('textbox', {name: '슬라이드 1 가사'})
+        .inputValue(),
     ).toBe('새로 만든 점검 문장');
   },
 );

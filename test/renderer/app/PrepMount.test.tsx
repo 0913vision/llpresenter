@@ -1,6 +1,5 @@
 import {StrictMode} from 'react';
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -10,7 +9,6 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {AppFlushRequest} from '@core/schema/appFlush';
-import {createAppFlushRequestId} from '@core/schema/ids';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
@@ -70,12 +68,6 @@ function mountPrep() {
   return {...fixture, session, send, list, flushListeners, requestFlush};
 }
 
-async function openSong(title: string): Promise<void> {
-  const library = screen.getByRole('region', {name: '라이브러리'});
-  fireEvent.click(await within(library).findByRole('option', {name: title}));
-  await screen.findByRole('textbox', {name: '슬라이드 1 가사'});
-}
-
 beforeEach(() => {
   seedSampleService();
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -90,73 +82,27 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-it('opens the real library editor and preserves typing and undo across workspace changes', async () => {
+it('opens the 곡 편집 window from the library and releases every listener', async () => {
   const fixture = mountPrep();
-  await openSong(fixture.first.song.title);
-  const editor = fixture.session.editor;
-  expect(fixture.listenerCount()).toBe(9);
-  const input = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
-  fireEvent.focus(input);
-  fireEvent.change(input, {target: {value: 'Invented changed line'}});
-  fireEvent.blur(input);
-  await waitFor(() => expect(fixture.edits).toHaveLength(1));
+  const openWindow = vi
+    .spyOn(fixture.api.window, 'openSongEditor')
+    .mockResolvedValue({ok: true, value: undefined});
+  const library = screen.getByRole('region', {name: '라이브러리'});
+  fireEvent.click(
+    await within(library).findByRole('option', {
+      name: fixture.first.song.title,
+    }),
+  );
+  await waitFor(() =>
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({songId: fixture.first.song.id}),
+    ),
+  );
+  expect(screen.queryByRole('textbox', {name: '슬라이드 1 가사'})).toBeNull();
+  expect(screen.getByRole('listbox', {name: '예배 순서'})).toBeDefined();
   fireEvent.click(screen.getByRole('tab', {name: '진행'}));
   fireEvent.click(screen.getByRole('tab', {name: '준비'}));
-  expect(fixture.listenerCount()).toBe(9);
-  expect(fixture.session.editor).toBe(editor);
-  expect(screen.getByRole('textbox', {name: '슬라이드 1 가사'})).toHaveProperty(
-    'value',
-    'Invented changed line',
-  );
-  fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 1 가사'}), {
-    code: 'KeyZ',
-    ctrlKey: true,
-  });
-  await waitFor(() => expect(fixture.edits).toHaveLength(2));
-  expect(screen.getByRole('textbox', {name: '슬라이드 1 가사'})).toHaveProperty(
-    'value',
-    fixture.first.song.groups
-      .flatMap(group => group.slides)[0]
-      ?.lines.join('\n'),
-  );
-  expect(fixture.send).not.toHaveBeenCalled();
   cleanup();
   await fixture.session.dispose();
   expect(fixture.listenerCount()).toBe(0);
-});
-
-it('submits a typed but unsent lyric edit when main asks to flush before quitting', async () => {
-  const fixture = mountPrep();
-  await openSong(fixture.first.song.title);
-  const edit = vi.spyOn(fixture.api.content, 'edit');
-  const flushDone = vi.spyOn(fixture.api.app, 'flushDone');
-  const input = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
-  fireEvent.focus(input);
-  fireEvent.change(input, {target: {value: 'Invented unsent line'}});
-  expect(edit).not.toHaveBeenCalled();
-  const requestId = createAppFlushRequestId(
-    'c63a2e74-9a31-4c4d-8e5f-607182930415',
-  );
-  act(() => {
-    fixture.requestFlush({requestId});
-  });
-  await waitFor(() => expect(flushDone).toHaveBeenCalledOnce());
-  expect(flushDone).toHaveBeenCalledWith({requestId, result: true});
-  expect(edit).toHaveBeenCalledOnce();
-  expect(JSON.stringify(fixture.edits)).toContain('Invented unsent line');
-  expect(edit.mock.invocationCallOrder[0]).toBeLessThan(
-    flushDone.mock.invocationCallOrder[0] ?? -Infinity,
-  );
-  expect(screen.queryByRole('alertdialog')).toBeNull();
-  const locked = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
-  expect(locked).toHaveProperty('readOnly', true);
-  fireEvent.change(locked, {target: {value: 'Invented late line'}});
-  fireEvent.blur(locked);
-  await act(async () => {
-    await Promise.resolve();
-  });
-  expect(edit).toHaveBeenCalledOnce();
-  expect(JSON.stringify(fixture.edits)).not.toContain('Invented late line');
-  await act(async () => fixture.session.dispose());
-  expect(fixture.flushListeners.size).toBe(0);
 });
