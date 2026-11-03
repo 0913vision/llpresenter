@@ -2,6 +2,8 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
+import {useMenuBarNavigation} from '@renderer/app/shell/menuBarNavigation';
+import type {JSX} from 'react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {Dialog} from '@renderer/ui/Dialog';
 
@@ -203,5 +205,67 @@ describe('the keys that focus the menu bar', () => {
     fireEvent.keyDown(window, {key: 'Alt', altKey: true});
     fireEvent.keyUp(window, {key: 'Alt'});
     expect(document.activeElement).toBe(inside);
+  });
+});
+
+describe('the menu bar stops', () => {
+  function Bar({
+    disabled,
+  }: {
+    readonly disabled: readonly string[];
+  }): JSX.Element {
+    const bar = useMenuBarNavigation(
+      ['a', 'b', 'c'] as const,
+      name => !disabled.includes(name),
+    );
+    return (
+      <div>
+        {(['a', 'b', 'c'] as const).map(name => (
+          <button
+            key={name}
+            type="button"
+            {...bar.stopProps(name)}
+            onKeyDown={event => bar.onBarKey(name, event)}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  it('skips a disabled menu with the arrows and never leaves Tab without a stop', async () => {
+    const user = userEvent.setup();
+    const view = render(<Bar disabled={['a']} />);
+    expect(screen.getByRole('button', {name: 'b'}).tabIndex).toBe(0);
+    expect(screen.getByRole('button', {name: 'a'}).tabIndex).toBe(-1);
+    view.rerender(<Bar disabled={['b']} />);
+    expect(screen.getByRole('button', {name: 'a'}).tabIndex).toBe(0);
+    screen.getByRole('button', {name: 'a'}).focus();
+    await user.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: 'c'}),
+    );
+    view.rerender(<Bar disabled={['b', 'c']} />);
+    screen.getByRole('button', {name: 'c'}).focus();
+    view.rerender(<Bar disabled={['a', 'b', 'c']} />);
+    expect(
+      ['a', 'b', 'c'].every(
+        name => screen.getByRole('button', {name}).tabIndex === -1,
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps the same ref function for a menu between renders', () => {
+    const refs: Array<(element: HTMLButtonElement | null) => void> = [];
+    function Probe(): JSX.Element {
+      const bar = useMenuBarNavigation(['a', 'b'] as const);
+      refs.push(bar.stopProps('a').ref);
+      return <span />;
+    }
+    const view = render(<Probe />);
+    view.rerender(<Probe />);
+    expect(refs).toHaveLength(2);
+    expect(refs[1]).toBe(refs[0]);
   });
 });

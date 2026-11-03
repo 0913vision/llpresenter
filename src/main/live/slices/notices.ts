@@ -40,13 +40,19 @@ function start(
       ? []
       : [...new Set(notice.media.filter(id => !present.has(id)))];
   const firstShown = notice.media.findIndex(id => !gone.includes(id));
-  if (firstShown < 0) return history;
+  const old = history.state.layers.notice;
+  if (firstShown < 0) {
+    // NOTE(0913vision): With every image gone, a running 공지 of this set stops
+    // and starting one does nothing (spec 08).
+    return old?.noticeId === notice.id
+      ? setLayer(history, 'notice', null)
+      : history;
+  }
   const requested = command.position;
   if (requested !== undefined) {
     const id = notice.media[requested];
     if (id !== undefined && gone.includes(id)) return history;
   }
-  const old = history.state.layers.notice;
   const previous = old?.noticeId === notice.id ? old.playback : undefined;
   const unchangedSequence =
     previous?.interval === notice.interval &&

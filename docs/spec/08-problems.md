@@ -116,7 +116,8 @@ rehearsal 4 B1).
   to name). A 예배 순서 row and a background already do this (the table above).
 - Starting a 공지 skips its missing images: the first image that is left shows
   first, and a missing image can't be chosen. A 공지 whose images are all gone
-  can't start, and 재생 is off with that tooltip.
+  can't start, and 재생 is off with that tooltip. A running 공지 whose last
+  image leaves the library stops.
 - A 그래픽 whose image is gone can't be shown, and its tile says why. One that
   is already on screen can still be taken down.
 

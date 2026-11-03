@@ -32,12 +32,16 @@ function library(present: readonly number[]): MediaList {
 }
 
 function started(present: number[]) {
-  const store = new LiveStore(undefined, () => 1_000);
+  let now = 1_000;
+  const store = new LiveStore(undefined, () => now);
   store.connectSettings(overlaySettings().reader);
   let current = present;
   store.connectAudioMedia(() => library(current));
   return {
     store,
+    setNow: (value: number) => {
+      now = value;
+    },
     leave: (index: number) => {
       current = current.filter(value => value !== index);
     },
@@ -79,6 +83,49 @@ describe('a 공지 whose images left the library', () => {
       position: 1,
       startedAt: before?.startedAt,
     });
+  });
+});
+
+describe('a running 공지 and a media change', () => {
+  it('stops when its last image leaves the library', () => {
+    const {store, leave} = started([0, 1, 2]);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    expect(store.state.layers.notice).not.toBeNull();
+    leave(0);
+    leave(1);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    expect(store.state.layers.notice?.playback?.gone).toEqual([
+      IMAGES[0],
+      IMAGES[1],
+    ]);
+    leave(2);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    expect(store.state.layers.notice).toBeNull();
+  });
+
+  it('keeps the held image and its elapsed time of a paused 공지 through a media change', () => {
+    const {store, setNow, leave} = started([0, 1, 2]);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE, position: 1});
+    setNow(3_000);
+    store.dispatch({type: 'notice.pause'});
+    const held = store.state.layers.notice?.playback;
+    expect(held?.pausedAt).toBe(3_000);
+    const elapsed = (held?.pausedAt ?? 0) - (held?.startedAt ?? 0);
+
+    for (const [at, gone] of [
+      [9_000, undefined],
+      [20_000, 2],
+    ] as const) {
+      setNow(at);
+      if (gone !== undefined) leave(gone);
+      store.dispatch({type: 'notice.start', noticeId: NOTICE});
+      store.dispatch({type: 'notice.pause'});
+      const after = store.state.layers.notice?.playback;
+      expect(after?.position).toBe(1);
+      expect((after?.pausedAt ?? 0) - (after?.startedAt ?? 0)).toBe(elapsed);
+      expect(after?.pausedAt).not.toBeNull();
+    }
+    expect(store.state.layers.notice?.playback?.gone).toEqual([IMAGES[2]]);
   });
 });
 

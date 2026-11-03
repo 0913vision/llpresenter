@@ -8,25 +8,16 @@ import {
 } from 'react';
 import {isComposingKey} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
+import {rovingTarget, type RovingMove} from '@renderer/ui/roving';
 import {modalStack} from '@renderer/ui/modalStack';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
 
-const MOVES = {
-  ArrowRight: 1,
-  ArrowLeft: -1,
-} as const;
-
-/** The index that a move lands on, wrapping around the ends. */
-export function menuBarTarget(
-  count: number,
-  from: number,
-  key: string,
-): number | undefined {
-  if (key === 'Home') return 0;
-  if (key === 'End') return count - 1;
-  if (key !== 'ArrowRight' && key !== 'ArrowLeft') return undefined;
-  return (from + MOVES[key] + count) % count;
-}
+const KEY_MOVES: Readonly<Record<string, RovingMove>> = {
+  ArrowRight: 'next',
+  ArrowLeft: 'previous',
+  Home: 'first',
+  End: 'last',
+};
 
 export interface MenuBarNavigation<Name extends string> {
   /** Props that make a menu button one stop of the bar. */
@@ -51,10 +42,31 @@ export interface MenuBarNavigation<Name extends string> {
  */
 export function useMenuBarNavigation<Name extends string>(
   names: readonly Name[],
+  isEnabled: (name: Name) => boolean = () => true,
 ): MenuBarNavigation<Name> {
   const [stop, setStop] = useState<Name | undefined>(undefined);
   const elements = useRef(new Map<Name, HTMLButtonElement>());
-  const current = stop ?? names[0];
+  const refs = useRef(
+    new Map<Name, (element: HTMLButtonElement | null) => void>(),
+  );
+  const enabled = names.map(isEnabled);
+  // NOTE(0913vision): The Tab stop falls back to the first menu that can take
+  // focus, so a disabled menu never leaves the bar out of reach of Tab.
+  const stopIndex = stop === undefined ? -1 : names.indexOf(stop);
+  const current =
+    stopIndex >= 0 && enabled[stopIndex] === true
+      ? stop
+      : names[enabled.findIndex(Boolean)];
+  const refOf = (name: Name): ((element: HTMLButtonElement | null) => void) => {
+    const known = refs.current.get(name);
+    if (known !== undefined) return known;
+    const created = (element: HTMLButtonElement | null): void => {
+      if (element === null) elements.current.delete(name);
+      else elements.current.set(name, element);
+    };
+    refs.current.set(name, created);
+    return created;
+  };
   const elementOf = useCallback(
     (name: Name) => elements.current.get(name) ?? null,
     [],
@@ -66,19 +78,14 @@ export function useMenuBarNavigation<Name extends string>(
   return {
     stopProps: name => ({
       tabIndex: name === current ? 0 : -1,
-      ref: element => {
-        if (element === null) elements.current.delete(name);
-        else elements.current.set(name, element);
-      },
+      ref: refOf(name),
       onFocus: () => setStop(name),
     }),
     onBarKey: (name, event) => {
       if (hasModifier(event) || isComposingKey(event.nativeEvent)) return false;
-      const target = menuBarTarget(
-        names.length,
-        names.indexOf(name),
-        event.key,
-      );
+      const move = KEY_MOVES[event.key];
+      if (move === undefined) return false;
+      const target = rovingTarget(enabled, names.indexOf(name), move);
       if (target === undefined) return false;
       const next = names[target];
       if (next === undefined) return false;
@@ -89,7 +96,7 @@ export function useMenuBarNavigation<Name extends string>(
     neighbor,
     elementOf,
     focusBar: () => {
-      const first = names[0];
+      const first = names[enabled.findIndex(Boolean)];
       if (first !== undefined) elements.current.get(first)?.focus();
     },
   };

@@ -118,13 +118,6 @@ function EntryTile({
   );
 }
 
-/**
- * The center of the media view in 준비 (spec 05, "Media view"): the list the
- * playlist panels chose, as a grid of tiles, 가져오기 into it with each file's
- * copy progress, and the size slider. In 준비, a click selects and a double
- * click outputs. In 진행, a click outputs without changing selection.
- * A missing file's tile opens 다시 연결.
- */
 const MEDIA_PLACES = [
   ['재생목록', 'playlists'],
   ['공지 세트', 'notices'],
@@ -147,6 +140,13 @@ function mediaUsesList(uses: MediaUses): AlertDialogProps['list'] {
   };
 }
 
+/**
+ * The center of the media view in 준비 (spec 05, "Media view"): the list the
+ * playlist panels chose, as a grid of tiles, 가져오기 into it with each file's
+ * copy progress, and the size slider. In 준비, a click selects and a double
+ * click outputs. In 진행, a click outputs without changing selection.
+ * A missing file's tile opens 다시 연결.
+ */
 export function MediaView({
   onProblem,
   workspace = 'prep',
