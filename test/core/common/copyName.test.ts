@@ -52,4 +52,10 @@ describe('copyName', () => {
     expect(copy).toHaveLength(8);
     expect(copyName(name, [copy], {maxLength: 8})).toBe('가가 복사본 2');
   });
+
+  it('joins separate jamo into syllables before cutting, so a cut never splits one', () => {
+    const decomposed = '한'.repeat(4);
+    const copy = copyName(decomposed, [], {maxLength: 6});
+    expect(copy).toBe('한한 복사본');
+  });
 });

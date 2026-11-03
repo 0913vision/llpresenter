@@ -174,6 +174,8 @@ describe('media import', () => {
     const long = `${'a'.repeat(MEDIA_LIMITS.name - 1)}😀${'b'.repeat(10)}.png`;
     expect(nameOf(long)).toBe('a'.repeat(MEDIA_LIMITS.name - 1));
     expect(nameOf('Morning light.mp4')).toBe('Morning light');
+    // NOTE(0913vision): ㅎ ㅏ ㄴ as separate jamo; NFC joins them to one syllable.
+    expect(nameOf('한.png')).toBe('한');
   });
 
   it('refers to the file in place when imports do not copy', async () => {

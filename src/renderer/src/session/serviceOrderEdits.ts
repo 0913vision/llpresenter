@@ -61,7 +61,8 @@ export function serviceOrderEditsFor(api: EditApi): ServiceOrderEdits {
   return editor;
 }
 interface LocalFailure {
-  readonly reason: 'busy' | 'request-failed';
+  /** `full` is a refused growth past the item limit; its message is the limit's sentence. */
+  readonly reason: 'busy' | 'request-failed' | 'full';
   readonly message: string;
 }
 export type ServiceOrderEditResult = Result<
@@ -89,10 +90,10 @@ export const ORDER_FULL_REASON = limitReason(
  * the edit would pass the item limit, else `fallback`.
  */
 export function orderFailureTitle(
-  error: {readonly message: string},
+  error: {readonly reason: string; readonly message: string},
   fallback: string,
 ): string {
-  return error.message === ORDER_FULL_REASON ? ORDER_FULL_REASON : fallback;
+  return error.reason === 'full' ? error.message : fallback;
 }
 
 function refuse(
@@ -448,7 +449,10 @@ export class ServiceOrderEdits {
       const after = result.value;
       if (sameOrder(before, after)) return {ok: true, value: false};
       if (after.length > before.length && after.length > SERVICE_LIMITS.items) {
-        return refuse('invalid', ORDER_FULL_REASON);
+        return {
+          ok: false,
+          error: {reason: 'full', message: ORDER_FULL_REASON},
+        };
       }
       const saved = await this.api.content.edit({
         type: 'service.update',

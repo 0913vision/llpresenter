@@ -21,6 +21,7 @@ function actions(overrides: Partial<MediaTileActions> = {}): MediaTileActions {
     remove: vi.fn(),
     reveal: vi.fn(),
     rename: vi.fn(),
+    setProps: vi.fn(),
     ...overrides,
   };
 }
@@ -66,9 +67,15 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
   for (const row of entries) {
     if (
       row.kind === 'item' &&
-      !['delete', 'properties', 'duplicate', 'rename', 'reveal'].includes(
-        row.id,
-      )
+      ![
+        'delete',
+        'properties',
+        'duplicate',
+        'rename',
+        'reveal',
+        'scaling',
+        'end',
+      ].includes(row.id)
     ) {
       expect(row).toMatchObject({
         disabled: true,
@@ -185,4 +192,86 @@ it('protects a list a newer version wrote from a rename', () => {
     disabled: true,
     title: '새 버전의 파일이라 바꿀 수 없습니다',
   });
+});
+
+function choices(entries: readonly MenuEntry[], id: string) {
+  const row = entries.find(entry => entry.id === id);
+  if (row?.kind !== 'item') throw new Error(`Missing row ${id}`);
+  return row;
+}
+
+it('shows the current 맞춤 and 끝나면 with a check and writes the property 미디어 속성 writes', () => {
+  const setProps = vi.fn();
+  const video = mediaItem(1, {
+    name: 'Invented video',
+    kind: 'video',
+    props: {fit: 'stretch', end: 'stop'},
+  });
+  const entries = mediaTileMenuEntries(
+    {kind: 'media', id: video.id, item: video, copying: undefined},
+    actions({setProps}),
+  );
+  const fit = choices(entries, 'scaling');
+  expect(
+    fit.submenu?.map(row => row.kind === 'item' && [row.label, row.checked]),
+  ).toEqual([
+    ['맞추기', false],
+    ['채우기', false],
+    ['늘리기', true],
+  ]);
+  const end = choices(entries, 'end');
+  expect(
+    end.submenu?.map(row => row.kind === 'item' && [row.label, row.checked]),
+  ).toEqual([
+    ['반복', false],
+    ['정지', true],
+  ]);
+  const pick = (row: ReturnType<typeof choices>, label: string) => {
+    const choice = row.submenu?.find(
+      entry => entry.kind === 'item' && entry.label === label,
+    );
+    if (choice?.kind !== 'item') throw new Error(`Missing ${label}`);
+    choice.onSelect?.();
+  };
+  pick(fit, '맞추기');
+  pick(end, '반복');
+  expect(setProps).toHaveBeenNthCalledWith(1, video.id, {fit: 'fit'});
+  expect(setProps).toHaveBeenNthCalledWith(2, video.id, {end: 'loop'});
+  expect(choices(entries, 'loop').disabled).toBe(true);
+});
+
+it('checks the defaults 채우기 and 반복 for a media with no properties', () => {
+  const entries = mediaTileMenuEntries(entry, actions());
+  const checked = (id: string) =>
+    choices(entries, id).submenu?.flatMap(row =>
+      row.kind === 'item' && row.checked === true ? [row.label] : [],
+    );
+  expect(checked('scaling')).toEqual(['채우기']);
+  expect(checked('end')).toEqual(['반복']);
+});
+
+it('turns off 맞춤 and 끝나면 for a list a newer version wrote, and 끝나면 for an image', () => {
+  const newer = mediaTileMenuEntries(entry, actions({editable: false}));
+  expect(choices(newer, 'scaling').disabled).toBe(true);
+  expect(choices(newer, 'end').disabled).toBe(true);
+  const image = mediaItem(2, {name: 'Invented image', kind: 'image'});
+  const entries = mediaTileMenuEntries(
+    {kind: 'media', id: image.id, item: image, copying: undefined},
+    actions(),
+  );
+  expect(choices(entries, 'scaling').disabled).toBe(false);
+  expect(choices(entries, 'end')).toMatchObject({
+    disabled: true,
+    title: '이미지에는 재생이 없음',
+  });
+});
+
+it('offers neither row for an audio tile', () => {
+  const audio = mediaItem(3, {name: 'Invented audio', kind: 'audio'});
+  const ids = mediaTileMenuEntries(
+    {kind: 'media', id: audio.id, item: audio, copying: undefined},
+    actions({audioPlaylist: true}),
+  ).map(row => row.id);
+  expect(ids).not.toContain('scaling');
+  expect(ids).not.toContain('end');
 });

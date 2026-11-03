@@ -469,22 +469,24 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
   Behavior › | Next Cue › | Cut, Copy, Paste, Duplicate, Rename, Delete | Show
   in Finder, Clean Up By ›.
 
-| Group | Row                      | Does                                                                                                                                    | Status |
-| ----- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 0     | 다시 연결…               | Only when the file is missing; first row (ours).                                                                                        | Now    |
-| 1     | 속성…                    | Opens the media properties editor (PP Inspector).                                                                                       | Now    |
-| 1     | 전환 효과…               | PP Transitions.                                                                                                                         | Off    |
-| 2     | 동작 ›, 맞춤 ›, 알파 ›   | PP Behavior, Scaling, Alpha Type.                                                                                                       | Off    |
-| 3     | 재생 ›, 반복 ›, 끝나면 › | PP Playback, Loop, End Behavior.                                                                                                        | Off    |
-| 4     | 다음 항목 ›              | PP Next Cue.                                                                                                                            | Off    |
-| 5     | 잘라내기, 복사, 붙여넣기 | PP clipboard rows with icons.                                                                                                           | Off    |
-| 5     | 복제                     | Copies the media entry (see "복제 by kind"); Ctrl D with the tile selected.                                                             | Now    |
-| 5     | 이름 바꾸기              | No icon. Opens a 미디어 이름 바꾸기 dialog (the name must not be empty); the file keeps its name. Off for a list a newer version wrote. | Now    |
-| 5     | 재생목록에서 빼기        | Only inside a playlist (ours), right before 삭제.                                                                                       | Now    |
-| 5     | 삭제                     | Trash icon, as in PP. Asks first and names every use (08).                                                                              | Now    |
-| 6     | 탐색기에서 보기          | PP Show in Finder. Shows the file in the file manager when it is inside the media folders.                                              | Now    |
-| 6     | 정리 기준 ›              | PP Clean Up By.                                                                                                                         | Off    |
-| -     | 복사 멈추기              | While the file is being copied, the menu holds only this row (ours).                                                                    | Now    |
+| Group | Row                      | Does                                                                                                                                                                                                                                 | Status |
+| ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 0     | 다시 연결…               | Only when the file is missing; first row (ours).                                                                                                                                                                                     | Now    |
+| 1     | 속성…                    | Opens the media properties editor (PP Inspector).                                                                                                                                                                                    | Now    |
+| 1     | 전환 효과…               | PP Transitions.                                                                                                                                                                                                                      | Off    |
+| 2     | 동작 ›, 알파 ›           | PP Behavior, Alpha Type.                                                                                                                                                                                                             | Off    |
+| 2     | 맞춤 ›                   | PP Scaling. Choices 맞추기, 채우기, 늘리기 with a check on the current one (default 채우기); writes `props.fit` like 미디어 속성 (one write). Off for a list a newer version wrote; not on audio.                                    | Now    |
+| 3     | 재생 ›, 반복 ›           | PP Playback, Loop. 반복 waits for a separate loop property; 끝나면 › 반복 covers looping until then.                                                                                                                                 | Off    |
+| 3     | 끝나면 ›                 | PP End Behavior. Choices 반복, 정지 with a check on the current one (default 반복); writes `props.end` like 미디어 속성 (one write). Off for a list a newer version wrote and for an image ("이미지에는 재생이 없음"); not on audio. | Now    |
+| 4     | 다음 항목 ›              | PP Next Cue.                                                                                                                                                                                                                         | Off    |
+| 5     | 잘라내기, 복사, 붙여넣기 | PP clipboard rows with icons.                                                                                                                                                                                                        | Off    |
+| 5     | 복제                     | Copies the media entry (see "복제 by kind"); Ctrl D with the tile selected.                                                                                                                                                          | Now    |
+| 5     | 이름 바꾸기              | No icon. Opens a 미디어 이름 바꾸기 dialog (the name must not be empty); the file keeps its name. Off for a list a newer version wrote.                                                                                              | Now    |
+| 5     | 재생목록에서 빼기        | Only inside a playlist (ours), right before 삭제.                                                                                                                                                                                    | Now    |
+| 5     | 삭제                     | Trash icon, as in PP. Asks first and names every use (08).                                                                                                                                                                           | Now    |
+| 6     | 탐색기에서 보기          | PP Show in Finder. Shows the file in the file manager when it is inside the media folders.                                                                                                                                           | Now    |
+| 6     | 정리 기준 ›              | PP Clean Up By.                                                                                                                                                                                                                      | Off    |
+| -     | 복사 멈추기              | While the file is being copied, the menu holds only this row (ours).                                                                                                                                                                 | Now    |
 
 - Audio files in a 오디오 playlist follow the PP audio item menu (same video
   0:26): 탐색기에서 보기 (now), 재생 › (off), 효과음으로 지정 (off) | 속성…

@@ -31,7 +31,7 @@ export function copyName(
   const base = stem === '' ? original : stem;
   for (let number = 1; ; number++) {
     const ending = ` ${COPY_WORD}${number === 1 ? '' : ` ${number}`}`;
-    const letters = Array.from(base);
+    const letters = Array.from(base.normalize('NFC'));
     const room =
       maxLength === undefined ? letters.length : maxLength - ending.length;
     const candidate = normalize(

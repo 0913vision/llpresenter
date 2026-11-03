@@ -142,7 +142,9 @@ function failed(
 
 /** The list name of an imported file: its name without the extension, cut to the name limit. */
 export function nameOf(fileName: string): string {
-  const name = fileName.slice(0, fileName.length - extname(fileName).length);
+  const name = fileName
+    .slice(0, fileName.length - extname(fileName).length)
+    .normalize('NFC');
   let kept = '';
   for (const letter of name) {
     if (kept.length + letter.length > MEDIA_LIMITS.name) break;

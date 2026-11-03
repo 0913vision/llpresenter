@@ -414,6 +414,8 @@ describe('media list panels', () => {
         .map(item => item.textContent),
     ).toEqual([
       '속성…',
+      '맞춤',
+      '끝나면',
       '복제',
       '이름 바꾸기',
       '재생목록에서 빼기',

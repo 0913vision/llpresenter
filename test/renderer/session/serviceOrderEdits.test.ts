@@ -702,7 +702,7 @@ describe('service order edits', () => {
     ]) {
       expect(result).toEqual({
         ok: false,
-        error: {reason: 'invalid', message: ORDER_FULL_REASON},
+        error: {reason: 'full', message: ORDER_FULL_REASON},
       });
     }
     expect(edit).not.toHaveBeenCalled();

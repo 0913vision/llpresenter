@@ -270,6 +270,11 @@ export function MediaView({
         });
     },
     duplicate: duplicateMedia,
+    setProps: (id, change) => {
+      library.updateProps(id, change).catch((cause: unknown) => {
+        console.error('Changing media properties failed:', cause);
+      });
+    },
     remove: askToDelete,
     reveal: mediaId => library.reveal(mediaId),
     rename: renameAfterMenu,

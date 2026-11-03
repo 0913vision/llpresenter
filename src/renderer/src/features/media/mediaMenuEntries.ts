@@ -8,6 +8,7 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 import type {MediaEntry} from './mediaEntries';
+import {shownProps, type MediaProps} from './mediaProps';
 
 export interface MediaTileActions {
   readonly missing: boolean;
@@ -22,6 +23,8 @@ export interface MediaTileActions {
   readonly remove: (item: MediaItem) => void;
   readonly reveal: (id: MediaId) => void;
   readonly rename: (item: MediaItem) => void;
+  /** Changes playback properties, the edit 미디어 속성 makes. */
+  readonly setProps: (id: MediaId, change: MediaProps) => void;
 }
 
 function propertiesRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
@@ -75,6 +78,71 @@ function renameRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   };
 }
 
+const NO_PLAYBACK_REASON = '이미지에는 재생이 없음';
+
+/** A submenu of one choice out of several, checked on the current one. */
+function choiceRow<T extends string>(
+  item: MediaItem,
+  actions: MediaTileActions,
+  row: {
+    readonly id: string;
+    readonly label: string;
+    readonly current: T;
+    readonly choices: ReadonlyArray<readonly [T, string]>;
+    readonly change: (value: T) => MediaProps;
+    readonly reason?: string | undefined;
+  },
+): MenuEntry {
+  return {
+    kind: 'item',
+    id: row.id,
+    label: row.label,
+    ...menuAvailability(
+      row.reason ?? (actions.editable ? undefined : NEWER_FILE_REASON),
+    ),
+    submenu: row.choices.map(([value, label]) => ({
+      kind: 'item',
+      id: `${row.id}-${value}`,
+      label,
+      check: 'radio',
+      checked: row.current === value,
+      onSelect: () => actions.setProps(item.id, row.change(value)),
+    })),
+  };
+}
+
+function fitRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return choiceRow(item, actions, {
+    id: 'scaling',
+    label: '맞춤',
+    current: shownProps(item).fit,
+    choices: [
+      ['fit', '맞추기'],
+      ['fill', '채우기'],
+      ['stretch', '늘리기'],
+    ],
+    change: fit => ({fit}),
+  });
+}
+
+/**
+ * 끝나면 picks 반복 or 정지, the stored `end`. It covers looping too, until a
+ * separate loop property exists; the 반복 row stays a later row.
+ */
+function endRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return choiceRow(item, actions, {
+    id: 'end',
+    label: '끝나면',
+    current: shownProps(item).end,
+    choices: [
+      ['loop', '반복'],
+      ['stop', '정지'],
+    ],
+    change: end => ({end}),
+    reason: item.kind === 'image' ? NO_PLAYBACK_REASON : undefined,
+  });
+}
+
 function audioRows(
   item: MediaItem,
   actions: MediaTileActions,
@@ -101,12 +169,12 @@ function mediaRows(
     laterRow('transition', '전환 효과…'),
     menuSeparator('behavior-separator'),
     laterRow('behavior', '동작', {submenu: true}),
-    laterRow('scaling', '맞춤', {submenu: true}),
+    fitRow(item, actions),
     laterRow('alpha', '알파', {submenu: true}),
     menuSeparator('playback-separator'),
     laterRow('playback', '재생', {submenu: true}),
     laterRow('loop', '반복', {submenu: true}),
-    laterRow('end', '끝나면', {submenu: true}),
+    endRow(item, actions),
     menuSeparator('next-separator'),
     laterRow('next', '다음 항목', {submenu: true}),
     menuSeparator('clipboard-separator'),

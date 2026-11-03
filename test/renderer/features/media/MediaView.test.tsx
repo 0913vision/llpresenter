@@ -510,7 +510,15 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성…', '복제', '이름 바꾸기', '삭제', '탐색기에서 보기']);
+    ).toEqual([
+      '속성…',
+      '맞춤',
+      '끝나면',
+      '복제',
+      '이름 바꾸기',
+      '삭제',
+      '탐색기에서 보기',
+    ]);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain('Dawn');
