@@ -91,6 +91,11 @@ export function TimerTab({
           api={api}
           timers={document?.value.timers ?? []}
           editable={!locked}
+          copyReason={
+            (document?.value.timers.length ?? 0) >= MAX_TIMER_DEFINITIONS
+              ? limitReason('타이머', MAX_TIMER_DEFINITIONS)
+              : undefined
+          }
           onProblem={onProblem}
           onRemove={timer => {
             targetId.current = timer.id;

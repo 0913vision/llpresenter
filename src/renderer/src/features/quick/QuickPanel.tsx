@@ -171,6 +171,7 @@ export function QuickPanel({
                 <QuickRowEditor
                   item={item}
                   locked={locked}
+                  full={full}
                   save={editing.run}
                   onPinChange={windowed.pin}
                   insertBefore={drag.before === item.id}

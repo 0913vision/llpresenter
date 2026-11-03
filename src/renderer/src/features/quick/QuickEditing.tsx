@@ -2,9 +2,11 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
-import {useEffect, useState, type JSX, type ReactNode} from 'react';
+import {useEffect, useRef, useState, type JSX, type ReactNode} from 'react';
+import {limitReason} from '@core/common/limitReason';
+import {createQuickItemId, createTimerId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {QuickItem} from '@core/schema/quick';
+import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/quick';
 import {isItemOfKind} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/session/show';
@@ -24,6 +26,7 @@ import {
 } from './quickEdits';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
+import {useDuplicateShortcut} from '../tools/useDuplicateShortcut';
 
 type Save = (
   edit: QuickEdit,
@@ -254,6 +257,7 @@ export function QuickAdd({
 export function QuickRowEditor({
   item,
   locked,
+  full,
   save,
   children,
   insertBefore = false,
@@ -261,6 +265,8 @@ export function QuickRowEditor({
 }: {
   readonly item: QuickItem;
   readonly locked: boolean;
+  /** Whether the list holds as many 퀵 실행 항목 as it may. */
+  readonly full: boolean;
   readonly save: Save;
   readonly children: ReactNode;
   readonly insertBefore?: boolean;
@@ -272,6 +278,32 @@ export function QuickRowEditor({
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
+  const duplicateReason = locked
+    ? toolMenuReason(locked)
+    : full
+      ? limitReason('퀵 실행 항목', MAX_QUICK_ITEMS)
+      : undefined;
+  const duplicate = (): void => {
+    save({
+      kind: 'duplicate',
+      id: item.id,
+      copyId: createQuickItemId(crypto.randomUUID()),
+      ...(item.kind === 'timer'
+        ? {timerCopyId: createTimerId(crypto.randomUUID())}
+        : {}),
+    }).catch((cause: unknown) =>
+      console.error('Quick copy callback failed:', cause),
+    );
+  };
+  const row = useRef<HTMLDivElement>(null);
+  useDuplicateShortcut({
+    itemAt: event =>
+      event.target instanceof Node && row.current?.contains(event.target)
+        ? item
+        : undefined,
+    reason: duplicateReason,
+    run: duplicate,
+  });
   useEffect(() => {
     if (!menu && !renaming && !deleting) return undefined;
     onPinChange?.(item.id, true);
@@ -279,6 +311,7 @@ export function QuickRowEditor({
   }, [item.id, menu, renaming, deleting, onPinChange]);
   return (
     <div
+      ref={row}
       data-quick-id={item.id}
       onContextMenu={event => {
         event.preventDefault();
@@ -304,6 +337,8 @@ export function QuickRowEditor({
             rename: () => {
               renameAfterMenu(true);
             },
+            duplicate,
+            duplicateReason,
             remove: () => setDeleting(true),
           })}
         />

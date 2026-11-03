@@ -33,12 +33,14 @@ export const TimerRow = memo(
     api,
     timer,
     editable = false,
+    copyReason,
     onProblem,
     onRemove,
   }: {
     readonly api: LlpApi;
     readonly timer: Timer;
     readonly editable?: boolean;
+    readonly copyReason?: string | undefined;
     readonly onProblem?: ((notice: Notice) => void) | undefined;
     readonly onRemove?: ((timer: Timer) => void) | undefined;
   }): JSX.Element => {
@@ -64,6 +66,7 @@ export const TimerRow = memo(
         api={api}
         timer={timer}
         editable={editable}
+        copyReason={copyReason}
         onProblem={onProblem}
         onRemove={onRemove}
       >

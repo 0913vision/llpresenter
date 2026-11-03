@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
 import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -12,6 +13,11 @@ const ATTEMPTS = 2;
 export type PropEdit =
   | {readonly kind: 'add'; readonly prop: Prop}
   | {readonly kind: 'update'; readonly prop: Prop}
+  | {
+      readonly kind: 'duplicate';
+      readonly id: Prop['id'];
+      readonly copyId: Prop['id'];
+    }
   | {readonly kind: 'delete'; readonly id: Prop['id']};
 
 export function propReason(prop: Prop): string | undefined {
@@ -26,6 +32,17 @@ export function propReason(prop: Prop): string | undefined {
 }
 
 function apply(file: PropsFile, edit: PropEdit): PropsFile {
+  if (edit.kind === 'duplicate') {
+    const next = {
+      ...file,
+      props: duplicateAfter(file.props, edit, {
+        limit: MAX_PROPS,
+        maxName: MAX_NAME,
+      }),
+    };
+    if (!serializeProps(next, 'props').ok) throw new Error('Invalid prop');
+    return next;
+  }
   if (edit.kind === 'delete') {
     return {...file, props: file.props.filter(prop => prop.id !== edit.id)};
   }

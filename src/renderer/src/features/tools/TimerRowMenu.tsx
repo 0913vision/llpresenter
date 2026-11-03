@@ -1,14 +1,16 @@
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
-import {useState, type JSX, type ReactNode} from 'react';
+import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
 import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
-import {renameTimer} from './timerEdits';
+import {createTimerId} from '@core/schema/ids';
+import {duplicateTimer, renameTimer} from './timerEdits';
+import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
@@ -44,6 +46,7 @@ export function TimerRowMenu({
   api,
   timer,
   editable,
+  copyReason,
   onProblem,
   onRemove,
   children,
@@ -51,6 +54,8 @@ export function TimerRowMenu({
   readonly api: LlpApi;
   readonly timer: Timer;
   readonly editable: boolean;
+  /** Why 복제 can't run apart from a lock, such as a full list. */
+  readonly copyReason?: string | undefined;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onRemove: ((timer: Timer) => void) | undefined;
   readonly children: ReactNode;
@@ -70,9 +75,41 @@ export function TimerRowMenu({
       log: 'Could not rename timer',
     },
   });
+  const copying = useToolEditing({
+    api,
+    onProblem,
+    write: duplicateTimer,
+    area: {
+      key: 'timer-copy',
+      label: '타이머 복제',
+      log: 'Could not copy timer',
+    },
+  });
   const locked = !editable || editing.busy;
+  const duplicateReason = !editable
+    ? toolMenuReason(true)
+    : editing.busy || copying.busy
+      ? toolMenuReason(true, true)
+      : copyReason;
+  const duplicate = (): void => {
+    copying
+      .run({id: timer.id, copyId: createTimerId(crypto.randomUUID())})
+      .catch((cause: unknown) =>
+        console.error('Timer copy callback failed:', cause),
+      );
+  };
+  const row = useRef<HTMLElement>(null);
+  useDuplicateShortcut({
+    itemAt: event =>
+      event.target instanceof Node && row.current?.contains(event.target)
+        ? timer
+        : undefined,
+    reason: duplicateReason,
+    run: duplicate,
+  });
   return (
     <section
+      ref={row}
       className={styles.row}
       role="group"
       aria-label={timer.name || '이름 없음'}
@@ -99,6 +136,8 @@ export function TimerRowMenu({
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked, editing.busy),
             rename: () => renameAfterMenu(true),
+            duplicate,
+            duplicateReason,
             remove: onRemove ? () => onRemove(timer) : undefined,
           })}
         />

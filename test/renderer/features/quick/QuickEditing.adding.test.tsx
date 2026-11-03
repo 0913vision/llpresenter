@@ -76,7 +76,12 @@ describe('quick editing', () => {
     async locked => {
       const save = vi.fn(async () => true);
       render(
-        <QuickRowEditor item={quickItem('black')} locked={locked} save={save}>
+        <QuickRowEditor
+          full={false}
+          item={quickItem('black')}
+          locked={locked}
+          save={save}
+        >
           <button>항목</button>
         </QuickRowEditor>,
       );
@@ -86,7 +91,7 @@ describe('quick editing', () => {
       });
       expect(
         renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
-      ).toEqual(['이름 바꾸기', '삭제']);
+      ).toEqual(['복제', '이름 바꾸기', '삭제']);
       if (locked) {
         for (const row of screen.getAllByRole('menuitem')) {
           expect(row.getAttribute('aria-disabled')).toBe('true');
@@ -97,6 +102,50 @@ describe('quick editing', () => {
       }
     },
   );
+  it('copies the row from its menu and with Ctrl D, and says why a full list cannot', async () => {
+    const save = vi.fn(async () => true);
+    const view = render(
+      <QuickRowEditor
+        full={false}
+        item={quickItem('black')}
+        locked={false}
+        save={save}
+      >
+        <button>항목</button>
+      </QuickRowEditor>,
+    );
+    const row = screen.getByRole('button', {name: '항목'});
+    fireEvent.keyDown(row, {key: 'F10', shiftKey: true});
+    fireEvent.click(screen.getByRole('menuitem', {name: '복제'}));
+    expect(save).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({kind: 'duplicate', id: quickItem('black').id}),
+    );
+    row.focus();
+    fireEvent.keyDown(row, {key: 'd', code: 'KeyD', ctrlKey: true});
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    view.unmount();
+    render(
+      <QuickRowEditor full item={quickItem('black')} locked={false} save={save}>
+        <button>항목</button>
+      </QuickRowEditor>,
+    );
+    fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {
+      key: 'F10',
+      shiftKey: true,
+    });
+    expect(
+      screen
+        .getByRole('menuitem', {name: '복제'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(
+      await hoverForTooltip(screen.getByRole('menuitem', {name: '복제'})),
+    ).toBeTruthy();
+    save.mockClear();
+    fireEvent.click(screen.getByRole('menuitem', {name: '복제'}));
+    expect(save).not.toHaveBeenCalled();
+  });
+
   it('keeps its row pinned while the delete question is open and releases it after', async () => {
     let pinned: string | null = null;
     const onPinChange = (id: string, active: boolean): void => {
@@ -104,6 +153,7 @@ describe('quick editing', () => {
     };
     render(
       <QuickRowEditor
+        full={false}
         item={quickItem('black')}
         locked={false}
         save={vi.fn(async () => true)}

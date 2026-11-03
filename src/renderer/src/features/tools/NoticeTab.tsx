@@ -64,7 +64,16 @@ export function NoticeTab({
     <div className={styles.root}>
       <div className={styles.header}>
         <div className={styles.selector}>
-          <NoticeEditing item={current} locked={locked} save={run}>
+          <NoticeEditing
+            item={current}
+            locked={locked}
+            full={(document?.value.sets.length ?? 0) >= MAX_NOTICE_SETS}
+            save={run}
+            onCopied={id => {
+              selectionRevision.current++;
+              setSelectedId(id);
+            }}
+          >
             <SelectMenu
               aria-label="공지 세트"
               block

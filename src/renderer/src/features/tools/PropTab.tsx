@@ -1,4 +1,6 @@
-import {useState, type JSX} from 'react';
+import {useRef, useState, type JSX} from 'react';
+import {limitReason} from '@core/common/limitReason';
+import {createPropId} from '@core/schema/ids';
 import type {Prop} from '@core/schema/props';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {AlertDialog, IconButton, Menu} from '@renderer/ui';
@@ -8,6 +10,7 @@ import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
 import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useAudioMedia} from './useAudioMedia';
+import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import styles from './PropGrid.module.css';
 import {propMenuEntries, toolMenuReason} from './toolMenuEntries';
@@ -33,6 +36,27 @@ export function PropTab({
     area: {key: 'props', label: '그래픽', log: 'Could not edit props'},
   });
   const locked = busy || document?.access !== 'editable' || !screens || !media;
+  const full = (document?.value.props.length ?? 0) >= MAX_PROPS;
+  const duplicateReason = locked
+    ? toolMenuReason(locked, busy)
+    : full
+      ? limitReason('그래픽', MAX_PROPS)
+      : undefined;
+  const duplicate = (prop: Prop): void =>
+    save({
+      kind: 'duplicate',
+      id: prop.id,
+      copyId: createPropId(crypto.randomUUID()),
+    });
+  const root = useRef<HTMLDivElement>(null);
+  useDuplicateShortcut({
+    itemAt: event => {
+      const at = focusedOptionIndex(root.current, event.target);
+      return at === undefined ? undefined : document?.value.props[at];
+    },
+    reason: duplicateReason,
+    run: duplicate,
+  });
   const save = (edit: PropEdit): void => {
     run(edit).then(
       saved => {
@@ -47,7 +71,7 @@ export function PropTab({
     );
   };
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={root}>
       <div className={styles.tools}>
         <IconButton
           icon="plus"
@@ -72,6 +96,8 @@ export function PropTab({
           entries={propMenuEntries({
             reason: toolMenuReason(locked, busy),
             edit: () => setEditor({kind: 'edit', prop: menu.prop}),
+            duplicate: () => duplicate(menu.prop),
+            duplicateReason,
             remove: () => setEditor({kind: 'delete', prop: menu.prop}),
           })}
         />

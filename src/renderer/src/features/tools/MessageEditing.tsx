@@ -1,6 +1,7 @@
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
+import {createMessageTemplateId} from '@core/schema/ids';
 import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
@@ -16,6 +17,7 @@ import {
 } from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
+import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import {
   MAX_MESSAGE_TEMPLATES,
@@ -143,6 +145,7 @@ export function MessageEditing({
         if (!saved) return;
         setEditor(null);
         if (edit.kind === 'add') onSelect(edit.item.id);
+        if (edit.kind === 'duplicate') onSelect(edit.copyId);
       },
       (cause: unknown) =>
         window.llp?.log.write({
@@ -152,6 +155,30 @@ export function MessageEditing({
         }),
     );
   };
+  const duplicate = (item: MessageTemplate): void =>
+    save({
+      kind: 'duplicate',
+      id: item.id,
+      copyId: createMessageTemplateId(crypto.randomUUID()),
+    });
+  const duplicateReason = locked
+    ? toolMenuReason(locked, busy)
+    : full
+      ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES)
+      : undefined;
+  useDuplicateShortcut({
+    itemAt: event => {
+      const id =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>('[role="option"]')?.dataset[
+              'value'
+            ]
+          : undefined;
+      return document?.value.templates.find(item => item.id === id);
+    },
+    reason: duplicateReason,
+    run: duplicate,
+  });
   return (
     <>
       <div className={styles.editingTools}>
@@ -204,6 +231,10 @@ export function MessageEditing({
           entries={messageMenuEntries({
             reason: toolMenuReason(locked, busy),
             edit: () => setEditor({kind: 'edit', item: menu.item}),
+            duplicate: () => duplicate(menu.item),
+            duplicateReason: full
+              ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES)
+              : undefined,
             remove: () => setEditor({kind: 'delete', item: menu.item}),
           })}
         />

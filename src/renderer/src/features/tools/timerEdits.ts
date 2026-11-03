@@ -1,8 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {TimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {TimerDelete} from '@core/schema/timerDeletion';
 import type {TimerRename} from '@core/schema/timerEdit';
+import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -42,6 +44,50 @@ export function renameTimer(
   edit: TimerRename,
 ): Promise<EditResult> {
   return writeTimerEdit(api, () => api.settings.edit(edit));
+}
+
+/** A copy of one 타이머: its own id, the copy name, right after the original. */
+export interface TimerCopy {
+  readonly id: TimerId;
+  readonly copyId: TimerId;
+}
+
+export function duplicateTimer(
+  api: LlpApi,
+  copy: TimerCopy,
+): Promise<EditResult> {
+  return writeTimerEdit(api, () => sendCopy(api, copy));
+}
+
+async function sendCopy(
+  api: LlpApi,
+  copy: TimerCopy,
+  attempt = 0,
+): Promise<EditResult> {
+  const document = await withinLookupTimeout(() =>
+    api.settings.get({name: 'timers'}),
+  );
+  if (document.name !== 'timers' || document.access !== 'editable') {
+    throw new Error('Timer settings cannot be edited');
+  }
+  const timers = duplicateAfter(document.value.timers, copy, {
+    limit: MAX_TIMER_DEFINITIONS,
+    maxName: TIMER_NAME_LIMIT,
+  });
+  if (timers === document.value.timers) {
+    return {ok: true, value: {id: 'timers', revision: document.revision}};
+  }
+  const result = await api.settings.edit({
+    type: 'settings.update',
+    name: 'timers',
+    baseRevision: document.revision,
+    value: {...document.value, timers},
+  });
+  if (result.ok || result.error.reason === 'write-failed') return result;
+  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
+    return sendCopy(api, copy, attempt + 1);
+  }
+  throw new Error(result.error.message);
 }
 
 export function saveNewTimer(

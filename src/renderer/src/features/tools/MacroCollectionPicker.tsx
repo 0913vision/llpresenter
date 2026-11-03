@@ -9,6 +9,8 @@ import {
   type JSX,
 } from 'react';
 import {createPortal} from 'react-dom';
+import {limitReason} from '@core/common/limitReason';
+import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {Button, Icon, IconButton} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
@@ -68,6 +70,23 @@ function CollectionPopover({
     anchor: MenuAnchor;
   } | null>(null);
   const [renaming, setRenaming] = useState<MacroCollection['id'] | null>(null);
+  const duplicateReason =
+    collections.length >= MACRO_FILE_LIMITS.collections
+      ? limitReason('모음', MACRO_FILE_LIMITS.collections)
+      : undefined;
+  const duplicate = (source: MacroCollection): void => {
+    if (locked || duplicateReason !== undefined) return;
+    const parsed = parseMacroCollectionId(crypto.randomUUID());
+    if (!parsed.ok) return;
+    const copyId = parsed.value;
+    run({kind: 'duplicate', id: source.id, copyId}).then(
+      saved => {
+        if (saved) onChange(copyId);
+      },
+      (cause: unknown) =>
+        console.error('Collection copy callback failed:', cause),
+    );
+  };
   const dragging = useRef<MacroCollection['id'] | null>(null);
   const [insertBefore, setInsertBefore] = useState<
     MacroCollection['id'] | null | undefined
@@ -242,7 +261,16 @@ function CollectionPopover({
                           return;
                         }
                         const direction = rowMoveDirection(event.nativeEvent);
-                        if (direction !== undefined) {
+                        if (
+                          item !== undefined &&
+                          event.ctrlKey &&
+                          !event.shiftKey &&
+                          !event.altKey &&
+                          event.code === 'KeyD'
+                        ) {
+                          event.preventDefault();
+                          duplicate(item);
+                        } else if (direction !== undefined) {
                           event.preventDefault();
                           const step =
                             item === undefined || locked
@@ -316,6 +344,10 @@ function CollectionPopover({
                 : locked
                   ? '지금은 모음을 변경할 수 없음'
                   : undefined,
+            duplicate: () => {
+              if (target) duplicate(target);
+            },
+            duplicateReason,
             rename: () => {
               if (target) handoff({kind: 'rename', item: target});
             },

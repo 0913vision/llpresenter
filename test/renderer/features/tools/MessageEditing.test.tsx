@@ -116,6 +116,40 @@ it.each([false, true])(
   },
 );
 
+it('copies a template from its menu and with Ctrl D, selects the copy, and keeps what the copy has no part in', async () => {
+  const fixture = setup();
+  render(<MessageTab />);
+  await openRow('복제');
+  await waitFor(() =>
+    expect(fixture.current().value.templates).toHaveLength(2),
+  );
+  expect(fixture.current().value.templates[1]).toEqual({
+    ...stored,
+    id: newId,
+    name: '차량 이동 복사본',
+  });
+  expect(fixture.current().value.stagePresets).toEqual(['마무리']);
+  expect(
+    screen
+      .getByRole('option', {name: '차량 이동 복사본'})
+      .getAttribute('aria-selected'),
+  ).toBe('true');
+  vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+    '00000000-0000-4000-8000-000000000023',
+  );
+  const original = screen.getByRole('option', {name: '차량 이동'});
+  original.focus();
+  fireEvent.keyDown(original, {key: 'd', code: 'KeyD', ctrlKey: true});
+  await waitFor(() =>
+    expect(fixture.current().value.templates).toHaveLength(3),
+  );
+  expect(fixture.current().value.templates.map(item => item.name)).toEqual([
+    '차량 이동',
+    '차량 이동 복사본 2',
+    '차량 이동 복사본',
+  ]);
+});
+
 it('adds a validated template, selects it, and leaves sends and presets alone', async () => {
   const fixture = setup();
   render(<MessageTab />);

@@ -19,12 +19,14 @@ export function WindowedTimers({
   api,
   timers,
   editable = false,
+  copyReason,
   onProblem,
   onRemove,
 }: {
   readonly api: LlpApi;
   readonly timers: readonly Timer[];
   readonly editable?: boolean;
+  readonly copyReason?: string | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onRemove?: ((timer: Timer) => void) | undefined;
 }): JSX.Element {
@@ -152,6 +154,7 @@ export function WindowedTimers({
               api={api}
               timer={timer}
               editable={editable}
+              copyReason={copyReason}
               onProblem={onProblem}
               onRemove={onRemove}
             />

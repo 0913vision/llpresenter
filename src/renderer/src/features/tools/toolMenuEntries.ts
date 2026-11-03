@@ -28,15 +28,23 @@ function command(
 /** The shared timer/notice list-row shape, including disabled editing commands. */
 export function namedToolMenuEntries({
   rename,
+  duplicate,
+  duplicateReason,
   remove,
   reason,
 }: {
   readonly rename: () => void;
+  readonly duplicate: () => void;
+  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
+  readonly duplicateReason: string | undefined;
   readonly remove: (() => void) | undefined;
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
-    laterRow('duplicate', '복제'),
+    command(
+      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      reason ?? duplicateReason,
+    ),
     command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
     ...(remove
       ? [
@@ -53,17 +61,25 @@ export function namedToolMenuEntries({
 /** Message templates retain their edit, clipboard and delete groups. */
 export function messageMenuEntries({
   edit,
+  duplicate,
+  duplicateReason,
   remove,
   reason,
 }: {
   readonly edit: () => void;
+  readonly duplicate: () => void;
+  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
+  readonly duplicateReason: string | undefined;
   readonly remove: () => void;
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
     command({id: 'edit', label: '수정…', onSelect: edit}, reason),
     menuSeparator('copy-separator'),
-    laterRow('duplicate', '복제'),
+    command(
+      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      reason ?? duplicateReason,
+    ),
     laterRow('rename', '이름 바꾸기'),
     menuSeparator('delete-separator'),
     {
@@ -76,10 +92,15 @@ export function messageMenuEntries({
 /** Props keep their future rows while the existing commands expose lock reasons. */
 export function propMenuEntries({
   edit,
+  duplicate,
+  duplicateReason,
   remove,
   reason,
 }: {
   readonly edit: () => void;
+  readonly duplicate: () => void;
+  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
+  readonly duplicateReason: string | undefined;
   readonly remove: () => void;
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
@@ -92,7 +113,13 @@ export function propMenuEntries({
     laterRow('auto-clear', '자동 지우기', {submenu: true}),
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
-    laterRow('duplicate', '복제', {icon: 'duplicate'}),
+    {
+      ...command(
+        {id: 'duplicate', label: '복제', onSelect: duplicate},
+        reason ?? duplicateReason,
+      ),
+      icon: 'duplicate',
+    },
     laterRow('rename', '이름 바꾸기'),
     menuSeparator('delete-separator'),
     {
@@ -103,17 +130,26 @@ export function propMenuEntries({
   ];
 }
 
-/** The quick item's two commands need neither icons nor a separator. */
+/** The quick item's three commands need neither icons nor a separator. */
 export function quickItemMenuEntries({
   rename,
+  duplicate,
+  duplicateReason,
   remove,
   reason,
 }: {
   readonly rename: () => void;
+  readonly duplicate: () => void;
+  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
+  readonly duplicateReason: string | undefined;
   readonly remove: () => void;
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
+    command(
+      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      reason ?? duplicateReason,
+    ),
     command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
     {
       ...command({id: 'delete', label: '삭제', onSelect: remove}, reason),

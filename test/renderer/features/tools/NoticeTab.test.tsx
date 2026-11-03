@@ -132,6 +132,32 @@ it.each([false, true])(
     }
   },
 );
+it('copies the shown 공지 세트 from its menu and selects the copy', async () => {
+  const f = fixture();
+  render(<NoticeTab />);
+  const target = await screen.findByRole('button', {name: '공지 세트'});
+  await waitFor(() => expect(target.textContent).toContain('주일 공지'));
+  fireEvent.contextMenu(target);
+  fireEvent.click(screen.getByRole('menuitem', {name: '복제'}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  const edit = f.edit.mock.calls[0]?.[0];
+  if (edit?.type !== 'settings.update' || edit.name !== 'notices') {
+    throw new Error('Missing notice edit');
+  }
+  expect(edit.value.sets.map(set => set.name)).toEqual([
+    '주일 공지',
+    '주일 공지 복사본',
+  ]);
+  const copy = edit.value.sets[1];
+  act(() => f.push(settingsDocument('notices', {sets: edit.value.sets}, 2)));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', {name: '공지 세트'}).textContent,
+    ).toContain('주일 공지 복사본'),
+  );
+  expect(copy?.media).toEqual(edit.value.sets[0]?.media);
+});
+
 afterEach(() => {
   cleanup();
   delete window.llp;

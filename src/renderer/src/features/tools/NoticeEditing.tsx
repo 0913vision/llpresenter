@@ -2,10 +2,13 @@ import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
+import {limitReason} from '@core/common/limitReason';
+import {createNoticeSetId} from '@core/schema/ids';
 import type {NoticeSet} from '@core/schema/notices';
 import {AlertDialog, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
-import type {NoticeEdit} from './noticeEdits';
+import {MAX_NOTICE_SETS, type NoticeEdit} from './noticeEdits';
+import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 interface Editor {
@@ -16,11 +19,17 @@ interface Editor {
 export function NoticeEditing({
   item,
   locked,
+  full,
   save,
+  onCopied,
   children,
 }: {
   readonly item: NoticeSet | undefined;
   readonly locked: boolean;
+  /** Whether the list holds as many 공지 세트 as it may. */
+  readonly full: boolean;
+  /** Selects the copy once it is saved. */
+  readonly onCopied: (id: NoticeSet['id']) => void;
   readonly save: (
     edit: NoticeEdit,
     completion?: 'applied' | 'saved',
@@ -38,6 +47,29 @@ export function NoticeEditing({
     revision.current++;
     setEditor(null);
   };
+  const duplicateReason = locked
+    ? toolMenuReason(locked)
+    : full
+      ? limitReason('공지 세트', MAX_NOTICE_SETS)
+      : undefined;
+  const duplicate = (source: NoticeSet): void => {
+    const copyId = createNoticeSetId(crypto.randomUUID());
+    save({kind: 'duplicate', id: source.id, copyId}).then(
+      saved => {
+        if (saved) onCopied(copyId);
+      },
+      (cause: unknown) => console.error('Notice copy callback failed', cause),
+    );
+  };
+  const area = useRef<HTMLDivElement>(null);
+  useDuplicateShortcut({
+    itemAt: event =>
+      event.target instanceof Node && area.current?.contains(event.target)
+        ? item
+        : undefined,
+    reason: duplicateReason,
+    run: duplicate,
+  });
   const commit = (edit: NoticeEdit): void => {
     const started = revision.current;
     save(edit).then(
@@ -50,6 +82,7 @@ export function NoticeEditing({
   return (
     <>
       <div
+        ref={area}
         onContextMenu={event => {
           if (!item) return;
           event.preventDefault();
@@ -77,6 +110,8 @@ export function NoticeEditing({
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked),
             rename: () => handoff({kind: 'rename', item: menu.item}),
+            duplicate: () => duplicate(menu.item),
+            duplicateReason,
             remove: () => setEditor({kind: 'delete', item: menu.item}),
           })}
         />

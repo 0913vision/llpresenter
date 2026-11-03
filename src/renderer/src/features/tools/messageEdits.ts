@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -16,6 +17,11 @@ export type MessageEdit =
       readonly kind: 'update';
       readonly id: MessageTemplate['id'];
       readonly fields: MessageFields;
+    }
+  | {
+      readonly kind: 'duplicate';
+      readonly id: MessageTemplate['id'];
+      readonly copyId: MessageTemplate['id'];
     }
   | {readonly kind: 'delete'; readonly id: MessageTemplate['id']};
 
@@ -42,6 +48,15 @@ function applyEdit(file: MessagesFile, edit: MessageEdit): MessagesFile {
     return {
       ...file,
       templates: file.templates.filter(item => item.id !== edit.id),
+    };
+  }
+  if (edit.kind === 'duplicate') {
+    return {
+      ...file,
+      templates: duplicateAfter(file.templates, edit, {
+        limit: MAX_MESSAGE_TEMPLATES,
+        maxName: MESSAGE_NAME_LIMIT,
+      }),
     };
   }
   const fields = edit.kind === 'add' ? edit.item : edit.fields;

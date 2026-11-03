@@ -91,6 +91,34 @@ feature we lack), Moved, Removed.
   대상, 무대 화면, 표시 시간; PropDialog 내용 and 이미지; NoticeCreateDialog
   이미지 재생목록; 출처 위치; the two 굵기 lists.
 
+## 복제 by kind
+
+Every list whose right-click menu has 복제 copies the one thing that was
+clicked. The copy gets a new id and the copy name (`copyName`, above), lands
+right after the original, and is selected where the list has a selection. 편집 >
+복제 and Ctrl D (`edit.duplicate`) run the same handler as the row where that
+list has the focus, and the row and the key give the same reason when they can't
+run. A copy that would pass the list's cap is refused with the cap's reason, as
+adding one is (the row is disabled with that reason); a locked list gives its
+lock reason first. A copy never holds live state: no running timer, no 공지 in
+progress, nothing on output.
+
+| Kind            | The copy holds                                                                               | Not copied       | Notes                                                                                                                                         |
+| --------------- | -------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 메시지 문구     | name, text, icon, targets, duration                                                          |                  |                                                                                                                                               |
+| 공지 세트       | the images in order, interval, 반복, target screens                                          | the running 공지 | The copy lists the same media ids.                                                                                                            |
+| 그래픽          | content (image or text and its style), target screens                                        | whether it is on |                                                                                                                                               |
+| 타이머          | kind and its time fields (duration, time and date, start value, 0 지나면)                    | the run          | A new timer has its own run and its own live-timer slot.                                                                                      |
+| 퀵 실행 항목    | name and what it opens (song, Bible passage, 그래픽, 매크로, 검은 화면) with the same ref    |                  | A row of a 타이머 gets its own new 타이머 definition (the copy name on both), so the two rows never share one; the 타이머 is copied first.    |
+| 매크로 모음     | name and the same 매크로 (a 매크로 may be in several collections)                            |                  | The 매크로 are not copied.                                                                                                                    |
+| 매크로          | name, icon, color, actions, 시작할 때 실행                                                   |                  | Built earlier.                                                                                                                                |
+| 테마            | all screens' layouts                                                                         |                  | Built earlier.                                                                                                                                |
+| 라이브러리 곡   | title, groups and their slides, 이름표, 구성, default background                             |                  | A new song file; the title takes the copy name against the library's titles.                                                                  |
+| 예배 순서 항목  | its own settings: 테마, 배경, 메모, 시작할 때, 구성, its own order (`customOrder`), 오버레이 | what is live     | One undo step (10, "Focus precedence"). A 구역 copies the whole section with its items, as one step, since moving a header moves its section. |
+| 미디어          | the entry: name, kind, properties (fit, end, sound)                                          | the file         | A second entry on the same file; deleting one keeps the file and the other (08).                                                              |
+| 미디어 재생목록 | name and the same media ids                                                                  | the media        |                                                                                                                                               |
+| 예배 (list row) | the whole 예배 순서 with its items and settings                                              |                  | A new service file named with the copy name; the list keeps the open service open.                                                            |
+
 ## Menus
 
 ### 매크로 오른쪽 클릭
@@ -141,7 +169,7 @@ feature we lack), Moved, Removed.
 | list     | 모든 매크로                           | Always first. Shows every 매크로. Cannot be renamed or deleted.                                                                                       | Now                                                                                                                                                                                                                                                                                                |
 | list     | <모음 이름>                           | Shows that collection. The current row is filled blue; no check, no count.                                                                            | Now                                                                                                                                                                                                                                                                                                |
 | list     | Reorder                               | Drag a collection row to reorder (PP 7.16 video 7:00, a collection dragged to the top).                                                               | New                                                                                                                                                                                                                                                                                                |
-| row menu | 복제 (off), 이름 바꾸기               | 삭제                                                                                                                                                  | Right-click on a collection row, by the list-row rule. Deleting keeps the 매크로. 모든 매크로 shows the rows disabled. PP renames a new collection inline right after + (7.16 video 5:18) and the support article says "right-click the collection and select Rename"; the full menu was not seen. | Moved |
+| row menu | 복제, 이름 바꾸기                     | 삭제                                                                                                                                                  | Right-click on a collection row, by the list-row rule. Deleting keeps the 매크로. 모든 매크로 shows the rows disabled. PP renames a new collection inline right after + (7.16 video 5:18) and the support article says "right-click the collection and select Rename"; the full menu was not seen. | Moved |
 
 - Replaces the Select with 이름 바꾸기 and 삭제 at the bottom.
 
@@ -180,14 +208,15 @@ feature we lack), Moved, Removed.
 - PP: PP prop right-click (https://www.youtube.com/watch?v=L3dR7Evm-hA at 1:58;
   https://support.renewedvision.com/hc/en-us/articles/55744290679315).
 
-| Group | Row                                         | Does                                                                            | Status |
-| ----- | ------------------------------------------- | ------------------------------------------------------------------------------- | ------ |
-| 1     | 모음에 추가 ›, 모음으로 옮기기 ›            | PP prop collections (submenus as on a 매크로). We have no prop collections yet. | Off    |
-| 2     | 수정…                                       | Opens the 그래픽 dialog.                                                        | Now    |
-| 2     | 전환 효과…                                  | PP Transitions.                                                                 | Off    |
-| 2     | 자동 지우기 ›                               | PP Auto-Clear: 안 함 ✓, 5, 10, 15, 20, 30, 45, 60초 후, 직접 입력….             | Off    |
-| 3     | 잘라내기, 복사, 붙여넣기, 복제, 이름 바꾸기 | PP clipboard rows and Rename.                                                   | Off    |
-| 4     | 삭제                                        | Deletes the 그래픽.                                                             | Now    |
+| Group | Row                                   | Does                                                                                     | Status |
+| ----- | ------------------------------------- | ---------------------------------------------------------------------------------------- | ------ |
+| 1     | 모음에 추가 ›, 모음으로 옮기기 ›      | PP prop collections (submenus as on a 매크로). We have no prop collections yet.          | Off    |
+| 2     | 수정…                                 | Opens the 그래픽 dialog.                                                                 | Now    |
+| 2     | 전환 효과…                            | PP Transitions.                                                                          | Off    |
+| 2     | 자동 지우기 ›                         | PP Auto-Clear: 안 함 ✓, 5, 10, 15, 20, 30, 45, 60초 후, 직접 입력….                      | Off    |
+| 3     | 잘라내기, 복사, 붙여넣기, 이름 바꾸기 | PP clipboard rows and Rename.                                                            | Off    |
+| 3     | 복제                                  | Copies the 그래픽 (see "복제 by kind"). Ctrl D does the same with the focus on the tile. | Now    |
+| 4     | 삭제                                  | Deletes the 그래픽.                                                                      | Now    |
 
 - PP also has a Prop Collections popover in the panel header (title, +,
   collections; 1:22). It comes with prop collections; until then the header has
@@ -201,11 +230,11 @@ feature we lack), Moved, Removed.
 - PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
   taken from the PP Look preset, playlist, and prop menus.
 
-| Group | Row         | Does               | Status |
-| ----- | ----------- | ------------------ | ------ |
-| 1     | 복제        | List-row rule.     | Off    |
-| 1     | 이름 바꾸기 | Rename mode.       | Now    |
-| 2     | 삭제        | Deletes the timer. | Now    |
+| Group | Row         | Does                               | Status |
+| ----- | ----------- | ---------------------------------- | ------ |
+| 1     | 복제        | List-row rule; see "복제 by kind". | Now    |
+| 1     | 이름 바꾸기 | Rename mode.                       | Now    |
+| 2     | 삭제        | Deletes the timer.                 | Now    |
 
 - Start, pause, and reset stay on the row buttons, as PP keeps them on the timer
   row. The reset command is named 처음으로 on the row, in macro action choices,
@@ -222,7 +251,7 @@ feature we lack), Moved, Removed.
 | Group | Row         | Does                                    | Status |
 | ----- | ----------- | --------------------------------------- | ------ |
 | 1     | 수정…       | Opens the 메시지 문구 editor.           | Now    |
-| 2     | 복제        | List-row rule.                          | Off    |
+| 2     | 복제        | List-row rule; see "복제 by kind".      | Now    |
 | 2     | 이름 바꾸기 | Today the name is changed inside 수정…. | Off    |
 | 3     | 삭제        | Deletes the template.                   | Now    |
 
@@ -234,11 +263,11 @@ feature we lack), Moved, Removed.
 - PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
   taken from the PP Look preset, playlist, and prop menus.
 
-| Group | Row         | Does             | Status |
-| ----- | ----------- | ---------------- | ------ |
-| 1     | 복제        | List-row rule.   | Off    |
-| 1     | 이름 바꾸기 | Rename mode.     | Now    |
-| 2     | 삭제        | Deletes the set. | Now    |
+| Group | Row         | Does                               | Status |
+| ----- | ----------- | ---------------------------------- | ------ |
+| 1     | 복제        | List-row rule; see "복제 by kind". | Now    |
+| 1     | 이름 바꾸기 | Rename mode.                       | Now    |
+| 2     | 삭제        | Deletes the set.                   | Now    |
 
 ### 퀵 실행 추가
 
@@ -261,10 +290,11 @@ feature we lack), Moved, Removed.
 - Purpose: Act on this one row.
 - PP: Our own feature.
 
-| Group | Row         | Does             | Status |
-| ----- | ----------- | ---------------- | ------ |
-| 1     | 이름 바꾸기 | Rename mode.     | Now    |
-| 1     | 삭제        | Removes the row. | Now    |
+| Group | Row         | Does                                 | Status |
+| ----- | ----------- | ------------------------------------ | ------ |
+| 1     | 복제        | Copies the row (see "복제 by kind"). | Now    |
+| 1     | 이름 바꾸기 | Rename mode.                         | Now    |
+| 1     | 삭제        | Removes the row.                     | Now    |
 
 ### 항목 추가 (+)
 
@@ -616,7 +646,9 @@ Which thing a row acts on:
   잘라내기 and 복사 with nothing selected.
 - 복제 and 삭제 are enabled when the focused place has a handler for the command
   (`edit.duplicate`, `edit.delete`), and disabled with "선택한 곳에서는 쓸 수
-  없음" otherwise. 복제 has no handler anywhere yet, so it stays off.
+  없음" otherwise. 복제 has a handler in the lists of "복제 by kind" that are
+  built (테마, 매크로, and the 진행 tool lists), so it is on there with the
+  focus on a row.
 
 ### 창
 

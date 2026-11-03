@@ -244,6 +244,8 @@ function outputIfPresent(cursor: TileCursor | null): void {
 
 let atLastSlide: AtLastSlide = 'stop';
 
+// NOTE(0913vision): The value follows the 진행 workspace: `useAtLastSlide`
+// keeps it while that workspace is mounted, and nothing resets it on unmount.
 /** Tells the next-장 key what to do on the last 장 (환경설정, applied at once). */
 export function setAtLastSlide(value: AtLastSlide): void {
   atLastSlide = value;

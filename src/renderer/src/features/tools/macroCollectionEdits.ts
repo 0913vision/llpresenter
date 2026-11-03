@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,
@@ -23,12 +24,30 @@ export type MacroCollectionEdit =
     }
   | {readonly kind: 'delete'; readonly id: MacroCollection['id']}
   | {
+      readonly kind: 'duplicate';
+      readonly id: MacroCollection['id'];
+      readonly copyId: MacroCollection['id'];
+    }
+  | {
       readonly kind: 'move';
       readonly id: MacroCollection['id'];
       readonly before: MacroCollection['id'] | undefined;
     };
 
 function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
+  if (edit.kind === 'duplicate') {
+    const next = {
+      ...file,
+      collections: duplicateAfter(file.collections, edit, {
+        limit: MACRO_FILE_LIMITS.collections,
+        maxName: 256,
+      }),
+    };
+    if (!serializeMacros(next, 'macros').ok) {
+      throw new Error('Invalid collection');
+    }
+    return next;
+  }
   const id = edit.kind === 'add' ? edit.collection.id : edit.id;
   const existing = file.collections.find(item => item.id === id);
   if (edit.kind === 'move') {

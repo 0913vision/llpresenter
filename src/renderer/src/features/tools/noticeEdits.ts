@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   serializeNotices,
@@ -22,6 +23,11 @@ export type NoticeEdit =
       readonly id: NoticeSet['id'];
       readonly changes: NoticeChanges;
     }
+  | {
+      readonly kind: 'duplicate';
+      readonly id: NoticeSet['id'];
+      readonly copyId: NoticeSet['id'];
+    }
   | {readonly kind: 'delete'; readonly id: NoticeSet['id']};
 
 export function noticeReason(item: NoticeSet): string | undefined {
@@ -43,6 +49,17 @@ export function noticeReason(item: NoticeSet): string | undefined {
 }
 
 function apply(file: NoticesFile, edit: NoticeEdit): NoticesFile {
+  if (edit.kind === 'duplicate') {
+    const sets = duplicateAfter(file.sets, edit, {
+      limit: MAX_NOTICE_SETS,
+      maxName: MAX_NAME,
+    });
+    const next = {...file, sets};
+    if (!serializeNotices(next, 'notices').ok) {
+      throw new Error('Invalid notice');
+    }
+    return next;
+  }
   if (edit.kind === 'delete') {
     return {...file, sets: file.sets.filter(item => item.id !== edit.id)};
   }

@@ -1,5 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {createQuickItemId} from '@core/schema/ids';
+import {duplicateAfter} from '@core/common/duplicateAfter';
+import {createQuickItemId, type TimerId} from '@core/schema/ids';
 import type {
   KnownQuickItem,
   QuickItem,
@@ -9,7 +10,11 @@ import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {EditResult} from '@core/schema/contentEdit';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
-import type {QuickTimerEdit} from '@core/schema/quickTimerEdit';
+import {
+  TIMER_NAME_LIMIT,
+  type QuickTimerEdit,
+} from '@core/schema/quickTimerEdit';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 
 export {MAX_QUICK_ITEMS} from '@core/schema/quick';
 export const QUICK_NAME_LIMIT = 256;
@@ -31,6 +36,13 @@ export type QuickEdit =
       readonly name: string;
     }
   | {readonly kind: 'delete'; readonly id: QuickItem['id']}
+  | {
+      readonly kind: 'duplicate';
+      readonly id: QuickItem['id'];
+      readonly copyId: QuickItem['id'];
+      /** For a 타이머 row: the id its copy's own 타이머 takes. */
+      readonly timerCopyId?: TimerId | undefined;
+    }
   | {
       readonly kind: 'move';
       readonly id: QuickItem['id'];
@@ -70,6 +82,11 @@ function applyEdit(
       );
     case 'delete':
       return items.filter(item => item.id !== edit.id);
+    case 'duplicate':
+      return duplicateAfter(items, edit, {
+        limit: MAX_QUICK_ITEMS,
+        maxName: QUICK_NAME_LIMIT,
+      });
     case 'move': {
       const source = items.find(item => item.id === edit.id);
       if (!source || edit.before === edit.id) return items;
@@ -105,6 +122,82 @@ export async function saveQuickEdit(
   return result;
 }
 
+/**
+ * A copy of a 퀵 실행 row of a 타이머 owns a new 타이머 (every timer is its
+ * own): the 타이머 is copied first, then the row is added after the original
+ * with the copy's name and its id. A refused second write leaves the 타이머
+ * copy, which shows in the 타이머 tab like any other.
+ */
+async function duplicateQuickTimer({
+  api,
+  items,
+  source,
+  edit,
+}: {
+  readonly api: LlpApi;
+  readonly items: readonly QuickItem[];
+  readonly source: Extract<KnownQuickItem, {kind: 'timer'}>;
+  readonly edit: Extract<QuickEdit, {kind: 'duplicate'}>;
+}): Promise<EditResult> {
+  const {timerCopyId} = edit;
+  if (timerCopyId === undefined) throw new Error('The copy needs a timer ID');
+  if (items.some(item => item.id === edit.copyId)) {
+    return {ok: true, value: {id: 'quick', revision: 0}};
+  }
+  if (items.length >= MAX_QUICK_ITEMS) {
+    throw new Error('The quick list is full');
+  }
+  const timers = await withinLookupTimeout(() =>
+    api.settings.get({name: 'timers'}),
+  );
+  if (timers.name !== 'timers' || timers.access !== 'editable') {
+    throw new Error('Timer settings cannot be edited');
+  }
+  const copied = duplicateAfter(
+    timers.value.timers,
+    {id: source.ref, copyId: timerCopyId},
+    {limit: MAX_TIMER_DEFINITIONS, maxName: TIMER_NAME_LIMIT},
+  );
+  const timerName = copied.find(timer => timer.id === timerCopyId)?.name;
+  if (timerName === undefined) throw new Error('The timer copy is missing');
+  const timerResult = await api.settings.edit({
+    type: 'settings.update',
+    name: 'timers',
+    baseRevision: timers.revision,
+    value: {...timers.value, timers: copied},
+  });
+  if (!timerResult.ok && timerResult.error.reason !== 'write-failed') {
+    throw new Error(timerResult.error.message);
+  }
+  const quick = await withinLookupTimeout(() =>
+    api.settings.get({name: 'quick'}),
+  );
+  if (quick.name !== 'quick' || quick.access !== 'editable') {
+    throw new Error('Quick settings cannot be edited');
+  }
+  const at = quick.value.items.findIndex(item => item.id === source.id);
+  if (at < 0) throw new Error('The original no longer exists');
+  const row = {
+    ...source,
+    id: edit.copyId,
+    ref: timerCopyId,
+    name: timerName,
+  };
+  return api.settings.edit({
+    type: 'settings.update',
+    name: 'quick',
+    baseRevision: quick.revision,
+    value: {
+      ...quick.value,
+      items: [
+        ...quick.value.items.slice(0, at + 1),
+        row,
+        ...quick.value.items.slice(at + 1),
+      ],
+    },
+  });
+}
+
 async function sendQuickEdit(
   api: LlpApi,
   edit: QuickEdit,
@@ -137,6 +230,21 @@ async function sendQuickEdit(
         name: 'quick',
         quickItemId: item.id,
         timerName: edit.name.trim(),
+      });
+    }
+  }
+  if (edit.kind === 'duplicate') {
+    const source = document.value.items.find(item => item.id === edit.id);
+    if (
+      source !== undefined &&
+      isKnownQuickItem(source) &&
+      source.kind === 'timer'
+    ) {
+      return duplicateQuickTimer({
+        api,
+        items: document.value.items,
+        source,
+        edit,
       });
     }
   }
