@@ -13,6 +13,8 @@ import {
   CheckboxRow,
   ValueActionRow,
 } from './PreferenceRows';
+import {DeviceRow} from './DeviceRow';
+import {useAudioOutputs} from './useAudioOutputs';
 import {useLibraryLocations} from './useLibraryLocations';
 import {useUiZoom} from './useUiZoom';
 
@@ -21,6 +23,7 @@ export const preferencePages = [
   {id: 'general', label: '일반', icon: 'gear'},
   {id: 'output', label: '출력', icon: 'mplay'},
   {id: 'library', label: '라이브러리', icon: 'folder'},
+  {id: 'media', label: '미디어', icon: 'audio'},
   {id: 'bible', label: '성경', icon: 'book'},
   {id: 'import', label: '가져오기', icon: 'download'},
   {id: 'shortcuts', label: '단축키', icon: 'keyboard'},
@@ -294,5 +297,43 @@ export function LibraryPage({
         />
       </PropertyGroup>
     </>
+  );
+}
+
+/** 미디어: 소리. */
+export function MediaPage({edits}: PageProps): JSX.Element | null {
+  const {preferences, lockedReason, change} = edits;
+  const devices = useAudioOutputs();
+  if (preferences === null) return null;
+  const disabled = lockedReason !== undefined;
+  return (
+    <PropertyGroup title="소리">
+      <DeviceRow
+        label="출력 장치"
+        disabled={disabled}
+        title={lockedReason}
+        choice={preferences.media.audioOutput}
+        devices={devices}
+        onChange={audioOutput =>
+          change(stored => ({
+            ...stored,
+            media: {...stored.media, audioOutput},
+          }))
+        }
+      />
+      <DeviceRow
+        label="미리 듣기 장치"
+        disabled={disabled}
+        title={lockedReason}
+        choice={preferences.media.previewOutput}
+        devices={devices}
+        onChange={previewOutput =>
+          change(stored => ({
+            ...stored,
+            media: {...stored.media, previewOutput},
+          }))
+        }
+      />
+    </PropertyGroup>
   );
 }

@@ -26,6 +26,19 @@ export const PREFERENCE_LIMITS = {
   bibleMaxLines: {min: 1, max: 12},
 } as const;
 
+/** The most characters of an audio device id or label that is kept. */
+export const AUDIO_DEVICE_LIMIT = 200;
+
+/**
+ * The audio output device a choice names: the browser's device id and the
+ * label it had when chosen, so a device that comes back under another id is
+ * found by its label. An empty id is the Windows default device.
+ */
+export const audioDeviceSchema = jsonObject({
+  id: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
+  label: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
+});
+
 /** The frame rates the previews may run at. */
 export const previewFpsChoices = [15, 30, 60] as const;
 
@@ -97,7 +110,13 @@ export const preferencesSchema = jsonObject({
       keep: v.exactOptional(backupKeepSchema),
     }),
   ),
-  media: v.exactOptional(jsonObject({copyOnImport: optionalBoolean})),
+  media: v.exactOptional(
+    jsonObject({
+      copyOnImport: optionalBoolean,
+      audioOutput: v.exactOptional(audioDeviceSchema),
+      previewOutput: v.exactOptional(audioDeviceSchema),
+    }),
+  ),
   bible: v.exactOptional(
     jsonObject({
       verseNumbers: optionalBoolean,
@@ -147,6 +166,12 @@ export type Preferences = Omit<Complete<PreferencesFile>, 'clearKeys'> & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
 };
 
+/** The Windows default output device, which every audio choice starts as. */
+export const DEFAULT_AUDIO_DEVICE = {
+  id: '',
+  label: 'Windows 기본 장치',
+} as const;
+
 /** Every 환경설정 default of `docs/spec/02-data.md`, as a complete file. */
 export const defaultPreferences: Preferences = {
   clearKeys: {},
@@ -163,7 +188,11 @@ export const defaultPreferences: Preferences = {
   previewFps: 30,
   show: {showClearUndoButton: false, atLastSlide: 'stop'},
   backup: {auto: true, keep: 30},
-  media: {copyOnImport: false},
+  media: {
+    copyOnImport: false,
+    audioOutput: DEFAULT_AUDIO_DEVICE,
+    previewOutput: DEFAULT_AUDIO_DEVICE,
+  },
   bible: {verseNumbers: true, maxLines: 4, sourcePosition: 'bottomRight'},
   import: {
     txt: {

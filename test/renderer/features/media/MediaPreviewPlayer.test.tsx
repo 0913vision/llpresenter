@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
@@ -7,6 +7,7 @@ import {
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MediaPreviewPlayer} from '@renderer/features/media/MediaPreviewPlayer';
 import {
   mediaId,
@@ -258,5 +259,64 @@ describe('media preview player', () => {
     unmount();
     expect(media?.hasAttribute('src')).toBe(false);
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
+  });
+
+  describe('the 미리 듣기 장치', () => {
+    const PHONES = {id: 'phones-1', label: 'Headphones'};
+
+    function connect(preview: {id: string; label: string}) {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: Object.assign(new EventTarget(), {
+          enumerateDevices: () =>
+            Promise.resolve([
+              {kind: 'audiooutput', deviceId: PHONES.id, label: PHONES.label},
+            ]),
+        }),
+      });
+      window.llp = mockLlpApi({
+        settings: {
+          get: () =>
+            Promise.resolve({
+              name: 'preferences',
+              value: {
+                format: 'llsettings.preferences',
+                schemaVersion: 1,
+                media: {previewOutput: preview},
+              },
+              revision: 1,
+              access: 'editable',
+            }),
+          subscribe: () => () => undefined,
+        },
+      });
+    }
+    afterEach(() => {
+      Reflect.deleteProperty(navigator, 'mediaDevices');
+      delete window.llp;
+    });
+
+    function sinkSpy(view: ReturnType<typeof player>) {
+      const setSinkId = vi.fn(() => Promise.resolve());
+      if (view.media === null) throw new Error('Missing media element');
+      Object.defineProperty(view.media, 'setSinkId', {value: setSinkId});
+      return setSinkId;
+    }
+
+    it('plays the preview to the chosen device', async () => {
+      connect(PHONES);
+      const view = player(mediaItem(1, {kind: 'audio'}));
+      const setSinkId = sinkSpy(view);
+      await waitFor(() => expect(setSinkId).toHaveBeenCalledWith(PHONES.id));
+    });
+
+    it('falls back to the default for a device that is not connected, without a call', async () => {
+      connect({id: 'gone', label: 'Unplugged'});
+      const view = player(mediaItem(1, {kind: 'audio'}));
+      const setSinkId = sinkSpy(view);
+      await Promise.resolve();
+      await new Promise(resolve => setTimeout(resolve, 20));
+      expect(setSinkId).not.toHaveBeenCalled();
+    });
   });
 });

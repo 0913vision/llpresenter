@@ -5,6 +5,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/IconButton';
 import {MissingFileMark} from '@renderer/ui/MissingFile';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
+import {applySink, followAudioOutput} from '@renderer/rendering/audioSink';
 import {durationText} from './mediaEntries';
 import {DEFAULT_SPEED, MIN_SPEED, MAX_SPEED, shownProps} from './mediaProps';
 import styles from './MediaPreviewPlayer.module.css';
@@ -44,6 +45,41 @@ function applyPlaybackRate(element: HTMLMediaElement, speed: number): void {
   }
 }
 
+function reportSinkError(message: string, error: unknown): void {
+  console.warn(message, error);
+}
+
+/**
+ * Plays the preview to the 미리 듣기 장치 of 환경설정, now and whenever the
+ * choice or the connected devices change; a device that is not connected
+ * plays to the Windows default.
+ */
+function usePreviewSink(
+  media: {readonly current: HTMLMediaElement | null},
+  key: string,
+): void {
+  const sink = useRef('');
+  useEffect(() => {
+    if (window.llp === undefined) return undefined;
+    return followAudioOutput({
+      settings: window.llp.settings,
+      pick: 'previewOutput',
+      apply: ({sinkId}) => {
+        sink.current = sinkId;
+        if (media.current !== null) {
+          applySink(media.current, sinkId, reportSinkError);
+        }
+      },
+      onError: reportSinkError,
+    });
+  }, [media]);
+  useEffect(() => {
+    if (media.current !== null) {
+      applySink(media.current, sink.current, reportSinkError);
+    }
+  }, [media, key]);
+}
+
 /**
  * The preview player above the media properties (spec 05, "Media view"):
  * the picture, a play button with the position and the time left, the name,
@@ -62,6 +98,7 @@ export function MediaPreviewPlayer({
   const [position, setPosition] = useState(shown.start);
   const stop = shown.stop;
   const source = mediaUrl(item.id);
+  usePreviewSink(media, `${item.kind}:${source}`);
   useEffect(() => {
     const element = media.current;
     if (element !== null && element.getAttribute('src') !== source) {

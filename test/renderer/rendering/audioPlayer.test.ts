@@ -467,4 +467,27 @@ describe('AudioPlayer', () => {
     expect(onError).toHaveBeenCalledTimes(32);
     expect(root.querySelectorAll('audio')).toHaveLength(2);
   });
+
+  it('plays to the chosen device on both tracks, and keeps it for a track that starts later', async () => {
+    const {player, first, second} = setup();
+    const sinks = [first, second].map(element => {
+      const setSinkId = vi.fn(() => Promise.resolve());
+      Object.defineProperty(element, 'setSinkId', {value: setSinkId});
+      return setSinkId;
+    });
+    player.setSink('hall');
+    expect(sinks.map(sink => sink.mock.calls)).toEqual([
+      [['hall']],
+      [['hall']],
+    ]);
+    player.setSink('hall');
+    expect(sinks.map(sink => sink.mock.calls.length)).toEqual([1, 1]);
+    player.setSink('phones');
+    player.show(state());
+    await ready(first);
+    expect(sinks.map(sink => sink.mock.calls.at(-1))).toEqual([
+      ['phones'],
+      ['phones'],
+    ]);
+  });
 });

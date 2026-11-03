@@ -199,7 +199,7 @@ describe('media backend registration', () => {
         settings: Promise.resolve({
           preferences: () => ({
             ...defaultPreferences,
-            media: {copyOnImport: copying},
+            media: {...defaultPreferences.media, copyOnImport: copying},
           }),
         }),
       },

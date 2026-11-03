@@ -522,8 +522,15 @@ the design system spells 브리지. This spec follows the design system.
 decision). Off imports reference the original file in place. On imports copy
 into the configured media folder. Read the choice once when an import request is
 admitted; changing it affects the next request, not jobs already queued.
-Changing the choice does not move, recopy or relink existing media. Preserve an
-explicit saved value; an absent value uses off.
+
+`media.audioOutput` and `media.previewOutput` are optional objects
+`{ id, label }` (at most 200 characters each), the audio output device of the
+hall and of the preview player. Absent, or an empty `id`, is the Windows default
+device. `label` is the name the device had when it was chosen, so a device that
+comes back under another `id` is found by its name. A device that is not
+connected plays to the default and the saved choice stays. Changing the choice
+does not move, recopy or relink existing media. Preserve an explicit saved
+value; an absent value uses off.
 
 Store paths relative to the media folder when inside it, absolute otherwise.
 Cancelling or failing an import may remove only copies created by that job,

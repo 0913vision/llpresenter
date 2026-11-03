@@ -13,9 +13,10 @@ export function isChromaKeyColor(color: string | undefined): boolean {
 }
 
 /** The saved empty color, or the output method's default for older settings. */
-export function emptyScreenColor(
-  screen: Pick<Screen, 'method' | 'emptyColor'>,
-): string {
+export function emptyScreenColor(screen: {
+  readonly method?: Screen['method'];
+  readonly emptyColor?: string;
+}): string {
   return (
     screen.emptyColor ??
     (screen.method === 'capture' ? CHROMA_KEY_COLOR : '#000000')
@@ -35,7 +36,6 @@ export function isKeyBackground(
   if (isChromaKeyColor(background)) return true;
   return (
     screen.method === 'capture' &&
-    background.toUpperCase() ===
-      (screen.emptyColor ?? CHROMA_KEY_COLOR).toUpperCase()
+    background.toUpperCase() === emptyScreenColor(screen).toUpperCase()
   );
 }

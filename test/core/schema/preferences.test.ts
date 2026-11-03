@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
+  AUDIO_DEVICE_LIMIT,
+  DEFAULT_AUDIO_DEVICE,
   defaultPreferences,
   parsePreferences,
   parsePreferencesValue,
@@ -228,14 +230,16 @@ describe('preferences read boundary', () => {
     for (const copyOnImport of [true, false]) {
       const value = {...HEADER, media: {copyOnImport, future: {enabled: true}}};
       expectRoundTrip(codec, value);
-      expect(expectSuccess(parsePreferencesValue(value))).toHaveProperty(
-        'media',
+      expect(expectSuccess(parsePreferencesValue(value)).media).toMatchObject(
         value.media,
       );
     }
     expect(
       withPreferenceDefaults(parse({...HEADER, media: {future: 'invented'}})),
-    ).toHaveProperty('media', {copyOnImport: false, future: 'invented'});
+    ).toHaveProperty(
+      'media',
+      expect.objectContaining({copyOnImport: false, future: 'invented'}),
+    );
     expect(
       parsePreferencesValue({...HEADER, media: {copyOnImport: 'false'}}).ok,
     ).toBe(false);
@@ -263,5 +267,69 @@ describe('preferences read boundary', () => {
     {...HEADER, show: {atLastSlide: null}},
   ])('rejects malformed preferences %j', value => {
     expect(parsePreferencesValue(value).ok).toBe(false);
+  });
+});
+
+describe('audio output choices', () => {
+  const DEVICE = {id: 'hall-1', label: 'Mixer (USB)'};
+
+  it('starts both choices on the Windows default device', () => {
+    const preferences = expectSuccess(parsePreferencesValue(HEADER));
+    expect(preferences.media.audioOutput).toEqual(DEFAULT_AUDIO_DEVICE);
+    expect(preferences.media.previewOutput).toEqual(DEFAULT_AUDIO_DEVICE);
+    expect(DEFAULT_AUDIO_DEVICE.id).toBe('');
+  });
+
+  it('keeps both stored choices next to the copy setting and unknown fields', () => {
+    const value = {
+      ...HEADER,
+      media: {
+        copyOnImport: true,
+        audioOutput: DEVICE,
+        previewOutput: {id: '', label: 'Windows 기본 장치'},
+        future: 1,
+      },
+    };
+    expectRoundTrip(codec, value);
+    expect(expectSuccess(parsePreferencesValue(value)).media).toMatchObject(
+      value.media,
+    );
+  });
+
+  it('fills the other choice with its default when only one is stored', () => {
+    const media = expectSuccess(
+      parsePreferencesValue({...HEADER, media: {audioOutput: DEVICE}}),
+    ).media;
+    expect(media.audioOutput).toEqual(DEVICE);
+    expect(media.previewOutput).toEqual(DEFAULT_AUDIO_DEVICE);
+  });
+
+  it('accepts an id and a label up to the cap', () => {
+    const long = 'x'.repeat(AUDIO_DEVICE_LIMIT);
+    expectRoundTrip(codec, {
+      ...HEADER,
+      media: {audioOutput: {id: long, label: long}},
+    });
+  });
+
+  it.each([
+    [
+      'an id over the cap',
+      {id: 'x'.repeat(AUDIO_DEVICE_LIMIT + 1), label: 'a'},
+      'id',
+    ],
+    [
+      'a label over the cap',
+      {id: 'a', label: 'x'.repeat(AUDIO_DEVICE_LIMIT + 1)},
+      'label',
+    ],
+    ['a choice without a label', {id: 'a'}, 'label'],
+    ['an id that is not text', {id: 3, label: 'a'}, 'id'],
+  ])('rejects %s', (_name, audioOutput, field) => {
+    expectInvalidField(
+      codec,
+      {...HEADER, media: {audioOutput}},
+      `media.audioOutput.${field}`,
+    );
   });
 });

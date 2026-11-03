@@ -19,6 +19,26 @@ import {
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
 
 describe('BackgroundLayerView', () => {
+  it('plays video sound to the chosen device, also for media that starts later', () => {
+    const {view, videos} = setUp();
+    const sinks = videos.map(video => {
+      const setSinkId = vi.fn(() => Promise.resolve());
+      Object.defineProperty(video, 'setSinkId', {value: setSinkId});
+      return setSinkId;
+    });
+    view.setSink('hall');
+    expect(sinks.map(sink => sink.mock.calls)).toEqual([
+      [['hall']],
+      [['hall']],
+    ]);
+    view.setSink('phones');
+    view.show(WARM_LIGHT, false);
+    expect(sinks.map(sink => sink.mock.calls.at(-1))).toEqual([
+      ['phones'],
+      ['phones'],
+    ]);
+    view.dispose();
+  });
   it('holds a cleared video and reloads the same media at its restored clock position', () => {
     const {view, videos} = setUp();
     view.show(WARM_LIGHT, false);

@@ -23,6 +23,7 @@ import {translationIdSchema} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {PreferencePageId} from '@core/schema/preferencePages';
+import {MISSING_DEVICE_REASON} from '@renderer/features/preferences/DeviceRow';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 
 const UNKNOWN_FIELDS = {unknownField: 'kept'};
@@ -68,6 +69,7 @@ function pushed(document: SettingsDocument): void {
 function install(
   options: {
     readonly access?: 'editable' | 'readOnly';
+    readonly stored?: PreferencesFile;
     readonly window?: Parameters<typeof mockLlpApi>[0] extends infer T
       ? T extends {window?: infer W}
         ? W
@@ -77,7 +79,12 @@ function install(
 ) {
   const access = options.access ?? 'editable';
   const documents: Record<'preferences' | 'bible', SettingsDocument> = {
-    preferences: {name: 'preferences', value: STORED, revision: 5, access},
+    preferences: {
+      name: 'preferences',
+      value: options.stored ?? STORED,
+      revision: 5,
+      access,
+    },
     bible: {name: 'bible', value: BIBLE_FILE, revision: 3, access},
   };
   window.llp = mockLlpApi({
@@ -164,13 +171,14 @@ describe('PreferencesView', () => {
     );
   });
 
-  it('lists the six pages and opens the 단축키 page', async () => {
+  it('lists the seven pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
       '출력',
       '라이브러리',
+      '미디어',
       '성경',
       '가져오기',
       '단축키',
@@ -506,5 +514,70 @@ describe('PreferencesView', () => {
 
     expect(edit).not.toHaveBeenCalled();
     pendingWritesOf(api).resume();
+  });
+
+  describe('the 미디어 page, 소리 rows', () => {
+    const MIXER = {id: 'hall-1', label: 'Mixer (USB)'};
+
+    function connect(...labels: Array<{id: string; label: string}>) {
+      const list = labels.map(device => ({
+        kind: 'audiooutput',
+        deviceId: device.id,
+        label: device.label,
+      }));
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: Object.assign(new EventTarget(), {
+          enumerateDevices: () => Promise.resolve(list),
+        }),
+      });
+    }
+    afterEach(() => Reflect.deleteProperty(navigator, 'mediaDevices'));
+
+    it('shows Windows 기본 장치 for both rows by default and lists each connected device', async () => {
+      connect(MIXER);
+      await mount();
+      await openPage('미디어');
+      expect(screen.getByRole('heading').textContent).toBe('미디어');
+      const output = screen.getByRole('button', {name: /출력 장치/});
+      expect(output.textContent).toContain('Windows 기본 장치');
+      expect(
+        screen.getByRole('button', {name: /미리 듣기 장치/}).textContent,
+      ).toContain('Windows 기본 장치');
+      await userEvent.click(output);
+      expect(
+        screen.getAllByRole('menuitemradio').map(row => row.textContent),
+      ).toContain('Mixer (USB)');
+    });
+
+    it('saves a chosen device with its label at once and keeps the other media settings', async () => {
+      connect(MIXER);
+      await mount();
+      await openPage('미디어');
+      await userEvent.click(screen.getByRole('button', {name: /출력 장치/}));
+      await userEvent.click(
+        await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'}),
+      );
+      expect(written().media).toMatchObject({audioOutput: MIXER});
+      expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+
+    it('marks a saved device that is not connected with the warning and keeps the choice', async () => {
+      connect(MIXER);
+      await mount({
+        stored: {
+          ...STORED,
+          media: {previewOutput: {id: 'gone', label: 'Unplugged phones'}},
+        },
+      });
+      await openPage('미디어');
+      expect(
+        screen.getByRole('button', {name: /미리 듣기 장치/}).textContent,
+      ).toContain('Unplugged phones');
+      expect(
+        screen.getByRole('img', {name: MISSING_DEVICE_REASON}),
+      ).toBeDefined();
+      expect(edit).not.toHaveBeenCalled();
+    });
   });
 });

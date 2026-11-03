@@ -5,6 +5,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {
   GeneralPage,
   LibraryPage,
+  MediaPage,
   OutputPage,
   preferencePages,
   type PreferencePageId,
@@ -87,6 +88,7 @@ export function PreferencesView({
           {page === 'library' ? (
             <LibraryPage edits={edits} onProblem={onProblem} />
           ) : null}
+          {page === 'media' ? <MediaPage edits={edits} /> : null}
           {page === 'bible' ? <BiblePage edits={edits} bible={bible} /> : null}
           {page === 'import' ? <ImportPage edits={edits} /> : null}
         </Properties>

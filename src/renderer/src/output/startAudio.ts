@@ -4,6 +4,7 @@ import {AudioPlayer} from '../rendering/audioPlayer';
 import {MainTimerClock} from '../rendering/mainTimerClock';
 import {followLiveState} from './liveFeed';
 import {BackgroundAudio} from './backgroundAudio';
+import {followAudioOutput} from '../rendering/audioSink';
 
 /** Runs audio only in main's dedicated hidden window, muted unless explicitly allowed. */
 export function startAudio({
@@ -40,6 +41,15 @@ export function startAudio({
     now: () => clock.now().timer,
   });
   let stopped = false;
+  const stopOutput = followAudioOutput({
+    settings: api.settings,
+    pick: 'audioOutput',
+    apply: ({sinkId}) => {
+      player.setSink(sinkId);
+      background.setSink(sinkId);
+    },
+    onError: report,
+  });
   let stopFollowing: (() => void) | undefined;
   const begin = (): void => {
     if (!stopped) {
@@ -60,6 +70,7 @@ export function startAudio({
     if (stopped) return;
     stopped = true;
     window.removeEventListener('pagehide', stop);
+    stopOutput();
     try {
       stopFollowing?.();
     } catch (error) {

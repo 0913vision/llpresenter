@@ -1,0 +1,12 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.warning {
+  display: inline-flex;
+  flex: none;
+  color: var(--warning);
+}

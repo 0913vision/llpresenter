@@ -13,6 +13,7 @@ export class BackgroundAudio {
   private readonly createOverlay: () => BackgroundLayerView;
   private state: LiveState | null = null;
   private disposed = false;
+  private sinkId = '';
   private previous: MediaLayer | null = null;
   private fade: {since: number; durationMs: number; cancel: () => void} | null =
     null;
@@ -39,12 +40,22 @@ export class BackgroundAudio {
       muted,
       onError: report,
     });
-    this.createOverlay = () =>
-      new BackgroundLayerView(root, {
+    this.createOverlay = () => {
+      const overlay = new BackgroundLayerView(root, {
         mediaUrl,
         muted,
         onError: report,
       });
+      overlay.setSink(this.sinkId);
+      return overlay;
+    };
+  }
+
+  /** Plays the video sound to a device; an empty id is the Windows default. */
+  setSink(sinkId: string): void {
+    this.sinkId = sinkId;
+    this.view.setSink(sinkId);
+    this.overlay?.setSink(sinkId);
   }
 
   show(state: LiveState): void {

@@ -21,7 +21,10 @@ import {WindowPlacement} from './windowPlacement';
 import {forwardOutputKeys, type OutputKeyControl} from './outputKeys';
 
 export const OUTPUT_BACKGROUND = '#000000';
-// NOTE(0913vision): The design token `chroma` spells the same green in lower case.
+// NOTE(0913vision): The design token `chroma` spells the same green in lower
+// case, and a test pins the window color to the token. If the token is ever
+// written in upper case, drop this `toLowerCase()` and that test's token lookup
+// together.
 const CAPTURE_BACKGROUND = CHROMA_KEY_COLOR.toLowerCase();
 const PING_SCRIPT = '0';
 

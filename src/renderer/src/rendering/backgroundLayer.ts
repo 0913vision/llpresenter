@@ -2,6 +2,7 @@ import type {MediaLayer} from '@core/live/state';
 import type {OutputMediaProperties} from '@core/schema/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
+import {applySink} from './audioSink';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
 import {mediaObjectFit} from '@core/media/objectFit';
@@ -124,6 +125,7 @@ export class BackgroundLayerView {
   private failed = false;
   private held = false;
   private audioGain = 1;
+  private sinkId = '';
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
   private readonly frameDeadlines: [
@@ -151,6 +153,17 @@ export class BackgroundLayerView {
    * Starts the background, or clears the layer at once for null. The same
    * media again keeps playing without a restart (docs/spec/03-output.md).
    */
+  /**
+   * Plays the sound of both videos to a device (an empty id is the Windows
+   * default); a video that starts later keeps the device.
+   */
+  setSink(sinkId: string): void {
+    this.sinkId = sinkId;
+    for (const video of this.videos) {
+      applySink(video, sinkId, this.options.onError);
+    }
+  }
+
   show(media: MediaLayer | null, transitions = true): void {
     if (this.held) {
       this.held = false;
@@ -281,6 +294,7 @@ export class BackgroundLayerView {
     this.cancelFrame(index);
     this.clearImage(index);
     this.applyProperties(index, this.current?.properties);
+    applySink(this.videos[index], this.sinkId, this.options.onError);
     this.videos[index].src = this.options.mediaUrl(mediaId);
     this.holding[index] = mediaId;
   }

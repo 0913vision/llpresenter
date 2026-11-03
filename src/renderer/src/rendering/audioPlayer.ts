@@ -5,6 +5,7 @@ import {
   audioPositionSeconds,
 } from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';
+import {applySink} from './audioSink';
 import type {ClearEffect} from '@core/schema/clearFade';
 
 interface AudioPlayerOptions {
@@ -45,6 +46,7 @@ export class AudioPlayer {
   private manualFade: ManualFade | null = null;
   private gain = 1;
   private volume = 1;
+  private sinkId = '';
 
   constructor(
     parent: HTMLElement,
@@ -87,6 +89,17 @@ export class AudioPlayer {
         if (this.manualFade !== null) this.finishManualFade(this.manualFade);
         else this.options.onNext(playback.trackVersion);
       });
+    }
+  }
+
+  /**
+   * Plays the sound to a device (an empty id is the Windows default), now and
+   * for every track that starts later.
+   */
+  setSink(sinkId: string): void {
+    this.sinkId = sinkId;
+    for (const track of this.tracks) {
+      applySink(track.element, sinkId, this.options.onError);
     }
   }
 
@@ -149,6 +162,7 @@ export class AudioPlayer {
       this.unload(spare);
       spare.layer = layer;
       this.applyProperties(spare);
+      applySink(spare.element, this.sinkId, this.options.onError);
       spare.element.src = mediaUrl(layer.mediaId);
       spare.element.load();
     });

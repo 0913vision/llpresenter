@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {startAudio} from '@renderer/output/startAudio';
 
 beforeEach(() => {
@@ -125,6 +126,15 @@ describe('startAudio', () => {
     const api = mockLlpApi({
       live: {get, clock: () => Promise.reject(new Error('Clock unavailable'))},
       log: {write},
+      settings: {
+        get: () =>
+          Promise.resolve(
+            settingsDocument('preferences', {
+              format: 'llsettings.preferences',
+              schemaVersion: 1,
+            }),
+          ),
+      },
     });
     const stop = startAudio({root: document.createElement('div'), api});
     await vi.waitFor(() => expect(get).toHaveBeenCalledOnce());
