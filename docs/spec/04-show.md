@@ -473,8 +473,13 @@ and per-item controls in the owning tool tab (October 31 B16).
   The quick row does not pause. The separate timer-tab pause and 처음으로
   controls above remain available (user decision from the October 26 check).
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
-  plus button in the tab and a right-click menu on each row (rename, change kind
-  and time, delete) (proposal).
+  plus button in the tab and a right-click menu on each row (수정…, 복제,
+  rename, delete). 수정… opens 타이머 수정 with the saved kind and values; 저장
+  keeps the timer's id and name, so every use (퀵 실행, 매크로, 무대 화면, 테마
+  elements) stays linked, and a kind change is allowed. A 퀵 실행 row of a
+  타이머 has the same 수정… for the timer it refers to (decided November 3). A
+  new timer opens at 5분 (our own default; ProPresenter's timer article names
+  none) and a new 경과 timer at 0.
 - Editing a 타이머 (duration, target time or date, start value, 0 지나면, kind)
   while it runs or is paused never moves that count: the run keeps the
   definition it started with. The edit applies after 처음으로, and when a

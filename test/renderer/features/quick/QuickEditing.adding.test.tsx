@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {
   hoverForTooltip,
@@ -77,6 +78,8 @@ describe('quick editing', () => {
       const save = vi.fn(async () => true);
       render(
         <QuickRowEditor
+          api={mockLlpApi()}
+          onProblem={vi.fn()}
           full={false}
           timersFull={false}
           item={quickItem('black')}
@@ -107,6 +110,8 @@ describe('quick editing', () => {
     const save = vi.fn(async () => true);
     const view = render(
       <QuickRowEditor
+        api={mockLlpApi()}
+        onProblem={vi.fn()}
         full={false}
         timersFull={false}
         item={quickItem('black')}
@@ -125,6 +130,8 @@ describe('quick editing', () => {
     view.unmount();
     render(
       <QuickRowEditor
+        api={mockLlpApi()}
+        onProblem={vi.fn()}
         full
         timersFull={false}
         item={quickItem('black')}
@@ -158,6 +165,8 @@ describe('quick editing', () => {
     };
     render(
       <QuickRowEditor
+        api={mockLlpApi()}
+        onProblem={vi.fn()}
         full={false}
         timersFull={false}
         item={quickItem('black')}
@@ -256,7 +265,7 @@ describe('quick editing', () => {
       name: 'quick',
       quickItemId: quickId(998),
       timerId: quickId(997),
-      duration: 30,
+      duration: 330,
       overrun: true,
     });
     expect(fixture.current().value.items.at(-1)).toMatchObject({

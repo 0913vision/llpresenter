@@ -15,7 +15,7 @@ export function CountdownDialog({
   }) => Promise<boolean>;
   readonly onClose: () => void;
 }): JSX.Element {
-  const [minutes, setMinutes] = useState('0');
+  const [minutes, setMinutes] = useState('5');
   const [seconds, setSeconds] = useState('0');
   const [overrun, setOverrun] = useState(true);
   const draft = parseTimerDuration(minutes, seconds);

@@ -8,6 +8,7 @@ import {createQuickItemId, createTimerId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/quick';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
+import type {Timer} from '@core/schema/timers';
 import {isItemOfKind} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/session/show';
@@ -25,6 +26,7 @@ import {
   type QuickChoice,
   type QuickEdit,
 } from './quickEdits';
+import {TimerEditDialog} from '../tools/TimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 
@@ -285,7 +287,10 @@ export function duplicateQuickItem(item: QuickItem, save: Save): void {
 }
 
 export function QuickRowEditor({
+  api,
   item,
+  timer,
+  onProblem,
   locked,
   full,
   timersFull,
@@ -294,7 +299,11 @@ export function QuickRowEditor({
   insertBefore = false,
   onPinChange,
 }: {
+  readonly api: LlpApi;
   readonly item: QuickItem;
+  /** The 타이머 a timer row refers to, once it is known. */
+  readonly timer?: Timer | undefined;
+  readonly onProblem: (notice: Notice) => void;
   readonly locked: boolean;
   /** Whether the list holds as many 퀵 실행 항목 as it may. */
   readonly full: boolean;
@@ -308,6 +317,10 @@ export function QuickRowEditor({
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [changing, setChanging] = useState(false);
+  const changeAfterMenu = useMenuHandoff(menu !== null, () =>
+    setChanging(true),
+  );
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
@@ -342,6 +355,17 @@ export function QuickRowEditor({
           onClose={() => setMenu(null)}
           entries={quickItemMenuEntries({
             reason: toolMenuReason(locked),
+            ...(item.kind === 'timer'
+              ? {
+                  edit: {
+                    onSelect: () => changeAfterMenu(true),
+                    reason:
+                      timer === undefined
+                        ? '타이머를 찾을 수 없습니다'
+                        : undefined,
+                  },
+                }
+              : {}),
             rename: () => {
               renameAfterMenu(true);
             },
@@ -369,6 +393,15 @@ export function QuickRowEditor({
               },
             },
           ]}
+        />
+      ) : null}
+      {changing && timer ? (
+        <TimerEditDialog
+          api={api}
+          timer={timer}
+          locked={locked}
+          onProblem={onProblem}
+          onClose={() => setChanging(false)}
         />
       ) : null}
       {renaming ? (

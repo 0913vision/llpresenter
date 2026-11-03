@@ -27,12 +27,15 @@ function command(
 
 /** The shared timer/notice list-row shape, including disabled editing commands. */
 export function namedToolMenuEntries({
+  edit,
   rename,
   duplicate,
   duplicateReason,
   remove,
   reason,
 }: {
+  /** Opens the row's own editor; a row without one leaves it out. */
+  readonly edit?: (() => void) | undefined;
   readonly rename: () => void;
   readonly duplicate: () => void;
   /** Why 복제 can't run, such as a full list; the lock reason comes first. */
@@ -41,6 +44,9 @@ export function namedToolMenuEntries({
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
+    ...(edit
+      ? [command({id: 'edit', label: '수정…', onSelect: edit}, reason)]
+      : []),
     command(
       {id: 'duplicate', label: '복제', onSelect: duplicate},
       reason ?? duplicateReason,
@@ -132,12 +138,18 @@ export function propMenuEntries({
 
 /** The quick item's three commands need neither icons nor a separator. */
 export function quickItemMenuEntries({
+  edit,
   rename,
   duplicate,
   duplicateReason,
   remove,
   reason,
 }: {
+  /** A 타이머 row opens its 타이머 here, with the reason it can't. */
+  readonly edit?: {
+    readonly onSelect: () => void;
+    readonly reason: string | undefined;
+  };
   readonly rename: () => void;
   readonly duplicate: () => void;
   /** Why 복제 can't run, such as a full list; the lock reason comes first. */
@@ -146,6 +158,14 @@ export function quickItemMenuEntries({
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
+    ...(edit
+      ? [
+          command(
+            {id: 'edit', label: '수정…', onSelect: edit.onSelect},
+            reason ?? edit.reason,
+          ),
+        ]
+      : []),
     command(
       {id: 'duplicate', label: '복제', onSelect: duplicate},
       reason ?? duplicateReason,

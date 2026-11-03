@@ -230,11 +230,12 @@ progress, nothing on output.
 - PP: Not seen in PP (27 videos, 156 articles). Rows follow the list-row rule,
   taken from the PP Look preset, playlist, and prop menus.
 
-| Group | Row         | Does                               | Status |
-| ----- | ----------- | ---------------------------------- | ------ |
-| 1     | 복제        | List-row rule; see "복제 by kind". | Now    |
-| 1     | 이름 바꾸기 | Rename mode.                       | Now    |
-| 2     | 삭제        | Deletes the timer.                 | Now    |
+| Group | Row         | Does                                                                                       | Status |
+| ----- | ----------- | ------------------------------------------------------------------------------------------ | ------ |
+| 1     | 수정…       | Opens 타이머 수정 with the kind and values; 저장 keeps the id. A run keeps its count (04). | Now    |
+| 1     | 복제        | List-row rule; see "복제 by kind".                                                         | Now    |
+| 1     | 이름 바꾸기 | Rename mode.                                                                               | Now    |
+| 2     | 삭제        | Deletes the timer.                                                                         | Now    |
 
 - Start, pause, and reset stay on the row buttons, as PP keeps them on the timer
   row. The reset command is named 처음으로 on the row, in macro action choices,
@@ -290,11 +291,12 @@ progress, nothing on output.
 - Purpose: Act on this one row.
 - PP: Our own feature.
 
-| Group | Row         | Does                                 | Status |
-| ----- | ----------- | ------------------------------------ | ------ |
-| 1     | 복제        | Copies the row (see "복제 by kind"). | Now    |
-| 1     | 이름 바꾸기 | Rename mode.                         | Now    |
-| 1     | 삭제        | Removes the row.                     | Now    |
+| Group | Row         | Does                                                                                            | Status |
+| ----- | ----------- | ----------------------------------------------------------------------------------------------- | ------ |
+| 1     | 수정…       | A 타이머 row only: opens 타이머 수정 for the timer the row refers to; a kind change is allowed. | Now    |
+| 1     | 복제        | Copies the row (see "복제 by kind").                                                            | Now    |
+| 1     | 이름 바꾸기 | Rename mode.                                                                                    | Now    |
+| 1     | 삭제        | Removes the row.                                                                                | Now    |
 
 ### 항목 추가 (+)
 

@@ -11,6 +11,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {createTimerId} from '@core/schema/ids';
 import {duplicateTimer, renameTimer} from './timerEdits';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
+import {TimerEditDialog} from './TimerEditDialog';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
@@ -62,6 +63,10 @@ export function TimerRowMenu({
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
+  const [changing, setChanging] = useState(false);
+  const changeAfterMenu = useMenuHandoff(menu !== null, () =>
+    setChanging(true),
+  );
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
@@ -135,11 +140,21 @@ export function TimerRowMenu({
           onClose={() => setMenu(null)}
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked, editing.busy),
+            edit: () => changeAfterMenu(true),
             rename: () => renameAfterMenu(true),
             duplicate,
             duplicateReason,
             remove: onRemove ? () => onRemove(timer) : undefined,
           })}
+        />
+      ) : null}
+      {changing ? (
+        <TimerEditDialog
+          api={api}
+          timer={timer}
+          locked={locked}
+          onProblem={onProblem}
+          onClose={() => setChanging(false)}
         />
       ) : null}
       {renaming ? (

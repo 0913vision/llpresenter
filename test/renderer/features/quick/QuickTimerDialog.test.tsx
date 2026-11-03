@@ -28,6 +28,11 @@ it('requires a positive whole duration and focuses minutes with inline errors', 
   expect(document.activeElement).toBe(
     screen.getByRole('textbox', {name: '분'}),
   );
+  expect(screen.getByRole('textbox', {name: '분'})).toHaveProperty(
+    'value',
+    '5',
+  );
+  fill('분', '0');
   expect(
     screen.getByRole('textbox', {name: '분'}).getAttribute('aria-invalid'),
   ).toBe('true');

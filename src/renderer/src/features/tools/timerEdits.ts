@@ -7,6 +7,8 @@ import type {TimerRename} from '@core/schema/timerEdit';
 import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {nextTimerName} from '@core/timers/timerNames';
+import {prepareTimerEdit} from './timerEditPlan';
+import type {TimerEditDraft} from '@core/timers/timerEditDraft';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {
@@ -156,6 +158,43 @@ async function sendTimer(
   if (result.ok || result.error.reason === 'write-failed') return result;
   if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
     return sendTimer(api, timer, attempt + 1);
+  }
+  throw new Error(result.error.message);
+}
+
+/** One 타이머's new configuration; its id and name stay. */
+export interface TimerReconfiguration {
+  readonly id: TimerId;
+  readonly draft: TimerEditDraft;
+}
+
+export function saveTimerEdit(
+  api: LlpApi,
+  edit: TimerReconfiguration,
+): Promise<EditResult> {
+  return writeTimerEdit(api, () => sendReconfiguration(api, edit));
+}
+
+async function sendReconfiguration(
+  api: LlpApi,
+  edit: TimerReconfiguration,
+  attempt = 0,
+): Promise<EditResult> {
+  const document = await withinLookupTimeout(() =>
+    api.settings.get({name: 'timers'}),
+  );
+  if (document.name !== 'timers') throw new Error('Not the timer settings');
+  const plan = prepareTimerEdit(document, edit.id, edit.draft);
+  if (plan.kind === 'unchanged') {
+    return {ok: true, value: {id: 'timers', revision: plan.revision}};
+  }
+  if (plan.kind === 'refused') {
+    throw new Error(`The timer edit was refused: ${plan.reason}`);
+  }
+  const result = await api.settings.edit(plan.edit);
+  if (result.ok || result.error.reason === 'write-failed') return result;
+  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
+    return sendReconfiguration(api, edit, attempt + 1);
   }
   throw new Error(result.error.message);
 }

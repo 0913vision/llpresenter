@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useRef, useState, type JSX} from 'react';
 import {
   Dialog,
   Properties,
@@ -23,11 +23,16 @@ const KINDS = [
   {value: 'clock', label: '시계'},
 ] as const;
 const SECONDS_PER_MINUTE = 60;
+/**
+ * A new countdown starts at 5분. ProPresenter's timer article names no default
+ * duration, so this is our own; an elapsed timer starts from 0.
+ */
+const NEW_COUNTDOWN_SECONDS = 300;
 
 function initialDuration(initial: TimerEditDraft | undefined): number {
   if (initial?.kind === 'countdown') return initial.duration;
   if (initial?.kind === 'elapsed') return initial.start;
-  return 0;
+  return initial === undefined ? NEW_COUNTDOWN_SECONDS : 0;
 }
 
 type TimerDialogProps = {
@@ -49,6 +54,7 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
   const [kind, setKind] = useState<TimerEditDraft['kind']>(
     initial?.kind ?? 'countdown',
   );
+  const typed = useRef(false);
   const [minutes, setMinutes] = useState(() =>
     String(Math.floor(initialDuration(initial) / SECONDS_PER_MINUTE)),
   );
@@ -130,7 +136,13 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
               block
               disabled={locked}
               value={kind}
-              onChange={setKind}
+              onChange={next => {
+                setKind(next);
+                if (initial || typed.current) return;
+                const start = next === 'elapsed' ? 0 : NEW_COUNTDOWN_SECONDS;
+                setMinutes(String(Math.floor(start / SECONDS_PER_MINUTE)));
+                setSeconds(String(start % SECONDS_PER_MINUTE));
+              }}
               options={KINDS}
             />
           )}
@@ -139,8 +151,14 @@ export function TimerDialog(props: TimerDialogProps): JSX.Element {
           <TimerDurationFields
             minutes={minutes}
             seconds={seconds}
-            onMinutesChange={setMinutes}
-            onSecondsChange={setSeconds}
+            onMinutesChange={value => {
+              typed.current = true;
+              setMinutes(value);
+            }}
+            onSecondsChange={value => {
+              typed.current = true;
+              setSeconds(value);
+            }}
             disabled={locked}
             minimum={kind === 'elapsed' ? 0 : 1}
           />

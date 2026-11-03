@@ -30,6 +30,7 @@ const setup = (locked = false) => {
 
 it('requires a positive countdown and saves its overrun choice', async () => {
   const f = setup();
+  change('분', '0');
   fireEvent.click(screen.getByRole('button', {name: '추가'}));
   expect(f.save).not.toHaveBeenCalled();
   change('초', '60');

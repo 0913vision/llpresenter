@@ -191,7 +191,10 @@ export function QuickPanel({
                 style={{top: index * windowed.rowHeight}}
               >
                 <QuickRowEditor
+                  api={api}
                   item={item}
+                  timer={timer}
+                  onProblem={onProblem}
                   locked={locked}
                   full={full}
                   timersFull={timersFull}
