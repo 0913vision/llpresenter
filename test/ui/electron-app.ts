@@ -77,6 +77,7 @@ export async function offscreenApp(): Promise<{
     if (app !== undefined) throw new Error('The test app is already running');
     const binary: unknown = require('electron');
     if (typeof binary !== 'string') throw new Error('Expected Electron binary');
+    const began = performance.now();
     const current = await electron.launch({
       executablePath: binary,
       args: electronTestArgs([main], cleanEnv),
@@ -84,6 +85,7 @@ export async function offscreenApp(): Promise<{
       timeout: START_TIMEOUT,
     });
     app = current;
+    const launched = performance.now();
     await expect
       .poll(
         () =>
@@ -97,6 +99,16 @@ export async function offscreenApp(): Promise<{
       .windows()
       .find(window => window.url().includes('/index.html'));
     if (page === undefined) throw new Error('Control window not found');
+    const windowed = performance.now();
+    // NOTE(0913vision): The window exists before React has mounted, so wait for
+    // the menu bar, the first thing every control window draws.
+    await page
+      .locator('[role="menubar"]')
+      .waitFor({state: 'attached', timeout: POLL_TIMEOUT});
+    const mounted = performance.now();
+    console.info(
+      `ui start: launch ${Math.round(launched - began)} ms, window ${Math.round(windowed - launched)} ms, menu bar ${Math.round(mounted - windowed)} ms`,
+    );
     expect(
       await current.evaluate(({BrowserWindow}) =>
         BrowserWindow.getAllWindows().every(window => !window.isVisible()),
