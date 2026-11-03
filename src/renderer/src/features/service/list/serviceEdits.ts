@@ -1,6 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/contentEdit';
-import {serviceIdSchema, type ServiceId} from '@core/schema/ids';
+import {copyName} from '@core/common/copyName';
+import {
+  createServiceItemId,
+  serviceIdSchema,
+  type ServiceId,
+} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {logFailure} from './useServiceSources';
@@ -67,4 +72,66 @@ export async function renameService(
     }),
   );
   return result?.ok === true;
+}
+
+/**
+ * A copy of a 예배: a new service file with the copy name, the same date, and
+ * the same items and settings (each item with a new id).
+ *
+ * When the copy cannot be filled, the empty new service is deleted again, as
+ * far as that works.
+ *
+ * @returns Whether the copy was made.
+ */
+export async function duplicateService(
+  api: Pick<LlpApi, 'services' | 'content' | 'log'>,
+  serviceId: ServiceId,
+): Promise<boolean> {
+  const source = await settle(api, 'Could not read a service', () =>
+    api.services.get(serviceId),
+  );
+  const entries = await settle(api, 'Could not list the services', () =>
+    api.services.list(),
+  );
+  if (!source || !entries) return false;
+  const name = copyName(
+    source.service.name,
+    entries.map(entry => entry.name),
+  );
+  const created = await settle(api, 'Could not copy a service', () =>
+    api.content.edit({
+      type: 'service.create',
+      name,
+      date: source.service.date,
+      templateId: null,
+    }),
+  );
+  const copyId = created === undefined ? null : appliedId(created);
+  const id = asServiceId(copyId);
+  if (id === null) return false;
+  const fresh = await settle(api, 'Could not read the copy of a service', () =>
+    api.services.get(id),
+  );
+  const result = fresh
+    ? await settle(api, 'Could not fill the copy of a service', () =>
+        api.content.edit({
+          type: 'service.update',
+          service: {
+            ...source.service,
+            id: fresh.service.id,
+            name,
+            order: source.service.order.map(item => ({
+              ...item,
+              id: createServiceItemId(crypto.randomUUID()),
+            })),
+          },
+          baseRevision: fresh.revision,
+        }),
+      )
+    : undefined;
+  if (result !== undefined && editApplied(result)) return true;
+  await settle(api, 'Could not remove the empty copy of a service', () =>
+    api.content.edit({type: 'service.delete', serviceId: id}),
+  );
+  return false;
 }

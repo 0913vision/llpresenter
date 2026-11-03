@@ -15,6 +15,7 @@ export interface ServiceOrderMenuInput {
   /** Opens the item in 준비; undefined outside 진행. */
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
+  readonly duplicate: () => void;
   readonly remove: () => void;
   /** 순서 편집 and 곡 편집 of the 준비 menu; undefined outside 준비. */
   readonly editSong?:
@@ -173,7 +174,14 @@ export function serviceOrderMenuEntries(
     menuSeparator('clipboard-separator'),
     laterRow('copy', '복사', {meta: 'Ctrl C'}),
     laterRow('paste', '붙여넣기', {meta: 'Ctrl V'}),
-    laterRow('duplicate', '복제', {command: 'edit.duplicate'}),
+    {
+      kind: 'item',
+      id: 'duplicate',
+      label: '복제',
+      command: 'edit.duplicate',
+      ...menuAvailability(input.editable ? undefined : '예배 순서 편집 불가'),
+      onSelect: input.duplicate,
+    },
     ...renameRow(input),
     {
       kind: 'item',

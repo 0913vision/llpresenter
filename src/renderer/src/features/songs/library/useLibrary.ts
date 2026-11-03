@@ -7,7 +7,7 @@ import {
   type LibrarySearchResult,
 } from '@core/schema/librarySearch';
 import type {SongId} from '@core/schema/ids';
-import {normalizeSongTitle} from '@core/songs/songTitle';
+import {copyTitle, normalizeSongTitle} from '@core/songs/songTitle';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
@@ -276,6 +276,44 @@ export function useLibrary(
     }
   };
 
+  /**
+   * Copies a song: its groups, 이름표, 구성, and background under a new id and
+   * the copy title, then selects the copy.
+   */
+  const duplicate = async (id: SongId): Promise<void> => {
+    if (editing.current) return;
+    if (rows.current.find(song => song.id === id)?.access !== 'editable') {
+      return;
+    }
+    editing.current = true;
+    setBusy(true);
+    try {
+      const source = await api.songs.get(id);
+      if (source === null) {
+        report('missing');
+        return;
+      }
+      const title = copyTitle(
+        source.song.title,
+        rows.current.map(song => song.title),
+      );
+      const result = await api.content.edit({
+        type: 'song.saveAs',
+        song: {...source.song, title},
+      });
+      const copyId = appliedId(result);
+      if (copyId === null || !isActive()) return;
+      if (!(await readList())) report('load', loadAction(reload));
+      const created = await api.songs.get(copyId);
+      if (created !== null && isActive()) setSelected(created.song.id);
+    } catch {
+      report('create');
+    } finally {
+      editing.current = false;
+      if (isActive()) setBusy(false);
+    }
+  };
+
   const remove = async (id: SongId): Promise<boolean> => {
     if (
       editing.current ||
@@ -361,6 +399,7 @@ export function useLibrary(
     report,
     open,
     create,
+    duplicate,
     remove,
     rename,
   };

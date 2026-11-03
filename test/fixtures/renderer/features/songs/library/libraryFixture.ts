@@ -177,6 +177,18 @@ export function libraryFixture(
             value: {id: edit.song.id, revision},
           });
         }
+        if (edit.type === 'song.saveAs') {
+          const created = fixtureSong(sequence++, edit.song.title);
+          documents.set(created.song.id, {
+            ...created,
+            song: {...edit.song, id: created.song.id},
+          });
+          pushList();
+          return Promise.resolve({
+            ok: true,
+            value: {id: created.song.id, revision: created.revision},
+          });
+        }
         if (edit.type === 'song.delete') {
           documents.delete(edit.songId);
           pushSong({songId: edit.songId, document: null});

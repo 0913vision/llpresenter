@@ -78,6 +78,7 @@ describe('quick editing', () => {
       render(
         <QuickRowEditor
           full={false}
+          timersFull={false}
           item={quickItem('black')}
           locked={locked}
           save={save}
@@ -102,11 +103,12 @@ describe('quick editing', () => {
       }
     },
   );
-  it('copies the row from its menu and with Ctrl D, and says why a full list cannot', async () => {
+  it('copies the row from its menu, and says why a full list cannot', async () => {
     const save = vi.fn(async () => true);
     const view = render(
       <QuickRowEditor
         full={false}
+        timersFull={false}
         item={quickItem('black')}
         locked={false}
         save={save}
@@ -120,12 +122,15 @@ describe('quick editing', () => {
     expect(save).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({kind: 'duplicate', id: quickItem('black').id}),
     );
-    row.focus();
-    fireEvent.keyDown(row, {key: 'd', code: 'KeyD', ctrlKey: true});
-    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
     view.unmount();
     render(
-      <QuickRowEditor full item={quickItem('black')} locked={false} save={save}>
+      <QuickRowEditor
+        full
+        timersFull={false}
+        item={quickItem('black')}
+        locked={false}
+        save={save}
+      >
         <button>항목</button>
       </QuickRowEditor>,
     );
@@ -154,6 +159,7 @@ describe('quick editing', () => {
     render(
       <QuickRowEditor
         full={false}
+        timersFull={false}
         item={quickItem('black')}
         locked={false}
         save={vi.fn(async () => true)}

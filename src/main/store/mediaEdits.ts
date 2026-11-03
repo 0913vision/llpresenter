@@ -1,9 +1,18 @@
 import {randomUUID} from 'node:crypto';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditRefusalReason} from '@core/schema/contentEdit';
-import {createAudioPlaylistId, createMediaPlaylistId} from '@core/schema/ids';
+import {copyName} from '@core/common/copyName';
+import {
+  createAudioPlaylistId,
+  createMediaId,
+  createMediaPlaylistId,
+} from '@core/schema/ids';
 import type {MediaEdit} from '@core/schema/mediaEdit';
-import type {MediaList, MediaItem} from '@core/schema/mediaList';
+import {
+  MEDIA_LIMITS,
+  type MediaList,
+  type MediaItem,
+} from '@core/schema/mediaList';
 
 export type MediaListEdit = Exclude<
   MediaEdit,
@@ -155,6 +164,99 @@ export function editMediaList(
                     item => item.id !== id,
                   ),
                 },
+        },
+      };
+    }
+    case 'media.duplicate': {
+      const at = value.items.findIndex(item => item.id === edit.mediaId);
+      const source = value.items[at];
+      if (source === undefined) {
+        return mediaRefusal('not-found', 'This media no longer exists');
+      }
+      if (value.items.length >= MEDIA_LIMITS.items) {
+        return mediaRefusal('invalid', 'The media list is full');
+      }
+      const id = createMediaId(randomUUID());
+      const name = copyName(
+        source.name,
+        value.items.map(item => item.name),
+      );
+      return {
+        ok: true,
+        value: {
+          id,
+          value: {
+            ...value,
+            items: [
+              ...value.items.slice(0, at + 1),
+              {...source, id, name},
+              ...value.items.slice(at + 1),
+            ],
+          },
+        },
+      };
+    }
+    case 'media.playlist.duplicate': {
+      const {playlist} = edit;
+      if (!hasPlaylist(value, playlist)) {
+        return mediaRefusal('not-found', 'This playlist no longer exists');
+      }
+      if (
+        value.playlists.length + value.audioPlaylists.length >=
+        MEDIA_LIMITS.playlists
+      ) {
+        return mediaRefusal('invalid', 'The playlist list is full');
+      }
+      if (playlist.kind === 'media') {
+        const id = createMediaPlaylistId(randomUUID());
+        const at = value.playlists.findIndex(item => item.id === playlist.id);
+        const source = value.playlists[at];
+        if (source === undefined) {
+          return mediaRefusal('not-found', 'This playlist no longer exists');
+        }
+        const name = copyName(
+          source.name,
+          value.playlists.map(item => item.name),
+        );
+        return {
+          ok: true,
+          value: {
+            id,
+            value: {
+              ...value,
+              playlists: [
+                ...value.playlists.slice(0, at + 1),
+                {...source, id, name},
+                ...value.playlists.slice(at + 1),
+              ],
+            },
+          },
+        };
+      }
+      const id = createAudioPlaylistId(randomUUID());
+      const at = value.audioPlaylists.findIndex(
+        item => item.id === playlist.id,
+      );
+      const source = value.audioPlaylists[at];
+      if (source === undefined) {
+        return mediaRefusal('not-found', 'This playlist no longer exists');
+      }
+      const name = copyName(
+        source.name,
+        value.audioPlaylists.map(item => item.name),
+      );
+      return {
+        ok: true,
+        value: {
+          id,
+          value: {
+            ...value,
+            audioPlaylists: [
+              ...value.audioPlaylists.slice(0, at + 1),
+              {...source, id, name},
+              ...value.audioPlaylists.slice(at + 1),
+            ],
+          },
         },
       };
     }

@@ -137,6 +137,22 @@ describe('quick panel integration', () => {
     fireEvent.click(within(list).getByRole('button', {name: '새 버전 항목'}));
     expect(fixture.send).not.toHaveBeenCalled();
   });
+  it('copies the focused row with Ctrl D through one handler for the whole list', async () => {
+    const fixture = quickFixture();
+    window.llp = fixture.api;
+    render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+    const panel = screen.getByRole('region', {name: '퀵 실행'});
+    const list = within(panel).getByRole('group', {name: '퀵 실행 항목'});
+    const row = await within(list).findByRole('button', {name: '검은 화면'});
+    row.focus();
+    fireEvent.keyDown(row, {key: 'd', code: 'KeyD', ctrlKey: true});
+    await waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
+    expect(fixture.edit.mock.calls[0]?.[0]).toMatchObject({
+      type: 'settings.update',
+      name: 'quick',
+    });
+  });
+
   it('updates pressed states from main and turns only the chosen item off', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;

@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {copyName} from '@core/common/copyName';
 import {isRecord} from '@core/common/guards';
 import type {Result} from '@core/common/result';
 import type {EditFailure} from '@core/schema/contentEdit';
@@ -232,6 +233,51 @@ export class ServiceOrderEdits {
         song: songId,
       });
       return {ok: true, value: order};
+    });
+  }
+
+  /**
+   * Copies an item right after itself with a new id, as one undo step. A 구역
+   * copies the whole section (the header and its items up to the next header)
+   * and the copy goes after the section. The copy of the clicked row takes
+   * `copyId`; the other rows of a section get fresh ids.
+   */
+  duplicate(
+    serviceId: ServiceId,
+    itemId: ServiceItemId,
+    copyId: ServiceItemId,
+  ) {
+    return this.update(serviceId, service => {
+      const start = service.order.findIndex(row => row.id === itemId);
+      const item = service.order[start];
+      if (item === undefined) {
+        return refuse('not-found', 'The item no longer exists');
+      }
+      const header = isItemOfKind(item, 'header');
+      const next = header
+        ? service.order.findIndex(
+            (row, index) => index > start && isItemOfKind(row, 'header'),
+          )
+        : -1;
+      const end = header ? (next < 0 ? service.order.length : next) : start + 1;
+      const headers = service.order.flatMap(row =>
+        isItemOfKind(row, 'header') ? [row.header] : [],
+      );
+      const copies = service.order.slice(start, end).map((row, index) => {
+        const id =
+          index === 0 ? copyId : createServiceItemId(crypto.randomUUID());
+        return isItemOfKind(row, 'header')
+          ? {...row, id, header: copyName(row.header, headers)}
+          : {...row, id};
+      });
+      return {
+        ok: true,
+        value: [
+          ...service.order.slice(0, end),
+          ...copies,
+          ...service.order.slice(end),
+        ],
+      };
     });
   }
 

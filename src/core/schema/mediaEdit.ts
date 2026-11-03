@@ -74,6 +74,11 @@ const mediaEditSchema = v.pipe(
       changes: propertiesChangeSchema,
       baseRevision: revisionSchema,
     }),
+    v.object({type: v.literal('media.duplicate'), mediaId: mediaIdSchema}),
+    v.object({
+      type: v.literal('media.playlist.duplicate'),
+      playlist: playlistRefSchema,
+    }),
     v.object({type: v.literal('media.relink'), mediaId: mediaIdSchema}),
     v.object({type: v.literal('media.delete'), mediaId: mediaIdSchema}),
     v.object({type: v.literal('media.import.cancel'), mediaId: mediaIdSchema}),

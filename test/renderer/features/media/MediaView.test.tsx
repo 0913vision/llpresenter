@@ -115,6 +115,7 @@ describe('media view', () => {
       '효과음으로 지정',
       '|',
       '속성…',
+      '복제',
       '이름 바꾸기',
       '|',
       '삭제',
@@ -486,6 +487,18 @@ describe('media view', () => {
     );
   });
 
+  it('copies a media tile from its menu', async () => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '복제'}));
+    await vi.waitFor(() =>
+      expect(edit).toHaveBeenCalledExactlyOnceWith({
+        type: 'media.duplicate',
+        mediaId: mediaId(1),
+      }),
+    );
+  });
+
   it('deletes media from 모든 미디어 after asking', async () => {
     const {edit} = setup();
     const mediaTarget = await tile('Dawn');
@@ -496,7 +509,7 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성…', '이름 바꾸기', '삭제', '탐색기에서 보기']);
+    ).toEqual(['속성…', '복제', '이름 바꾸기', '삭제', '탐색기에서 보기']);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain('Dawn');

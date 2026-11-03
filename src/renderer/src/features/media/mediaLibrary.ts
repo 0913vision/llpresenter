@@ -218,6 +218,47 @@ export class MediaLibrary {
   }
 
   /**
+   * 복제 of a media entry: main adds a second entry on the same file with the
+   * copy name, right after the original.
+   *
+   * @returns The copy's id, or null when it was refused.
+   */
+  async duplicateMedia(mediaId: MediaId): Promise<string | null> {
+    const result = await this.api.media
+      .edit({type: 'media.duplicate', mediaId})
+      .catch(rejected);
+    if (result.ok) return result.value?.id ?? null;
+    if (result.error.reason === 'write-failed') return result.error.applied.id;
+    this.refused('Copying the media was refused', result.error.message);
+    this.onProblem(warning('media-view:duplicate', '미디어를 복제할 수 없음'));
+    return null;
+  }
+
+  /**
+   * 복제 of a playlist: the same media ids under the copy name.
+   *
+   * @returns The copy's id, or null when it was refused.
+   */
+  async duplicatePlaylist(playlist: ChosenPlaylist): Promise<string | null> {
+    const result = await this.api.media
+      .edit({
+        type: 'media.playlist.duplicate',
+        playlist:
+          playlist.kind === 'media'
+            ? {kind: 'media', id: playlist.id}
+            : {kind: 'audio', id: playlist.id},
+      })
+      .catch(rejected);
+    if (result.ok) return result.value?.id ?? null;
+    if (result.error.reason === 'write-failed') return result.error.applied.id;
+    this.refused('Copying the playlist was refused', result.error.message);
+    this.onProblem(
+      warning('media-view:playlist-duplicate', '재생목록을 복제할 수 없음'),
+    );
+    return null;
+  }
+
+  /**
    * 이름 바꾸기 of a playlist, at the list's current revision. A blank or
    * unchanged name changes nothing.
    */

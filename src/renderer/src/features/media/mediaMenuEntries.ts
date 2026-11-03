@@ -18,6 +18,7 @@ export interface MediaTileActions {
   readonly cancel: (id: MediaId) => void;
   readonly relink: (id: MediaId) => void;
   readonly leave: (id: MediaId) => void;
+  readonly duplicate: (id: MediaId) => void;
   readonly remove: (item: MediaItem) => void;
   readonly reveal: (id: MediaId) => void;
   readonly rename: (item: MediaItem) => void;
@@ -29,6 +30,17 @@ function propertiesRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
     id: 'properties',
     label: '속성…',
     onSelect: () => actions.properties(item.id),
+  };
+}
+
+function duplicateRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return {
+    kind: 'item',
+    id: 'duplicate',
+    label: '복제',
+    icon: actions.audioPlaylist ? undefined : 'duplicate',
+    ...menuAvailability(actions.editable ? undefined : NEWER_FILE_REASON),
+    onSelect: () => actions.duplicate(item.id),
   };
 }
 
@@ -73,6 +85,7 @@ function audioRows(
     laterRow('sound-effect', '효과음으로 지정'),
     menuSeparator('properties-separator'),
     propertiesRow(item, actions),
+    duplicateRow(item, actions),
     renameRow(item, actions),
     menuSeparator('delete-separator'),
     deleteRow(item, actions),
@@ -98,7 +111,7 @@ function mediaRows(
     laterRow('next', '다음 항목', {submenu: true}),
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
-    laterRow('duplicate', '복제', {icon: 'duplicate'}),
+    duplicateRow(item, actions),
     renameRow(item, actions),
     ...(actions.inPlaylist
       ? [
@@ -160,7 +173,10 @@ export function mediaTileMenuEntries(
   ];
 }
 
-export function playlistMenuEntries(editable: boolean): readonly MenuEntry[] {
+export function playlistMenuEntries(
+  editable: boolean,
+  duplicate?: () => void,
+): readonly MenuEntry[] {
   const title = editable ? undefined : NEWER_FILE_REASON;
   return [
     laterRow('communications', '통신에 사용'),
@@ -171,7 +187,13 @@ export function playlistMenuEntries(editable: boolean): readonly MenuEntry[] {
       label: '이름 바꾸기',
       ...menuAvailability(title),
     },
-    laterRow('duplicate', '복제'),
+    {
+      kind: 'item',
+      id: 'duplicate',
+      label: '복제',
+      ...menuAvailability(title),
+      onSelect: duplicate,
+    },
     {
       kind: 'item',
       id: 'delete',

@@ -11,6 +11,7 @@ it('omits the unavailable editor group without an empty separator in prep', () =
     editable: true,
     openInPrep: undefined,
     rename: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
   });
   expect(
@@ -38,6 +39,7 @@ it('explains protected edits and unavailable arrangement and library actions', (
     editable: false,
     openInPrep: undefined,
     rename: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
   };
   const header = menuItems(serviceOrderMenuEntries(input));
@@ -83,6 +85,7 @@ it('puts 순서 편집 and 곡 편집 after 구성 in the prep menu and runs the
     editable: true,
     openInPrep: undefined,
     rename: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     editSong: {editOrder, editSong},
   });
@@ -112,6 +115,7 @@ it('disables 곡 편집 without a song and both while the song loads', () => {
     editable: true,
     openInPrep: undefined,
     rename: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     editSong: {editOrder: vi.fn(), editSong: undefined},
   };
@@ -142,6 +146,7 @@ it('does not add the editor rows in 진행', () => {
     editable: true,
     openInPrep: undefined,
     rename: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
   });
   expect(menuItems(entries).some(row => row.id === 'edit-order')).toBe(false);

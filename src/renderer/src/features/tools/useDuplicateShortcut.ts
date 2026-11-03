@@ -8,20 +8,25 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 export function useDuplicateShortcut<T>({
   itemAt,
   reason,
+  reasonOf,
   run,
 }: {
   readonly itemAt: (event: KeyboardEvent) => T | undefined;
-  readonly reason: string | undefined;
+  readonly reason?: string | undefined;
+  /** A reason that depends on the entry, such as a cap of its own kind. */
+  readonly reasonOf?: ((item: T) => string | undefined) | undefined;
   readonly run: (item: T) => void;
 }): void {
+  const why = (item: T | undefined): string | undefined =>
+    item === undefined ? reason : (reasonOf?.(item) ?? reason);
   useWindowShortcuts([
     {
       id: 'edit.duplicate',
       when: event => itemAt(event) !== undefined,
-      unavailable: () => reason,
+      unavailable: event => why(itemAt(event)),
       run: event => {
         const item = itemAt(event);
-        if (item !== undefined && reason === undefined) run(item);
+        if (item !== undefined && why(item) === undefined) run(item);
       },
     },
   ]);

@@ -1,3 +1,4 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState, type JSX} from 'react';
@@ -46,8 +47,21 @@ function choiceOf(key: string): MediaListChoice {
   return {kind: 'all'};
 }
 
+/** The id of the playlist row that holds the focus, if the key came from one. */
+function focusedPlaylist(
+  event: KeyboardEvent,
+  kind: 'media' | 'audio',
+): string | undefined {
+  const row =
+    event.target instanceof Element
+      ? event.target.closest('[data-value]')
+      : null;
+  const key = row?.getAttribute('data-value') ?? '';
+  return key.startsWith(`${kind}:`) ? key.slice(kind.length + 1) : undefined;
+}
+
 function usePlaylistEditing(kind: 'media' | 'audio') {
-  const {library, view} = useMediaView();
+  const {library, view, choose} = useMediaView();
   const [renaming, setRenaming] = useState<string | null>(null);
   const [menu, setMenu] = useState<{
     readonly id: string;
@@ -82,6 +96,29 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     event.stopPropagation();
     setMenu({id: key.slice(kind.length + 1), anchor: contextMenuAnchor(event)});
   };
+  const duplicate = (id: string): void => {
+    const playlist = playlistOf(id);
+    if (playlist === null || !editable) return;
+    library
+      .duplicatePlaylist(playlist)
+      .then(copyId => {
+        if (copyId !== null) choose({kind, id: copyId});
+      })
+      .catch((cause: unknown) => {
+        console.error('Copying a playlist failed:', cause);
+      });
+  };
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event => focusedPlaylist(event, kind) !== undefined,
+      unavailable: () => (editable ? undefined : NEWER_FILE_REASON),
+      run: event => {
+        const id = focusedPlaylist(event, kind);
+        if (id !== undefined) duplicate(id);
+      },
+    },
+  ]);
   const menuPlaylist = playlistOf(menu?.id ?? null);
   const doomed = playlistOf(deleting);
   const overlays = (
@@ -91,28 +128,30 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
           label="재생목록 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={playlistMenuEntries(editable).map(entry => {
-            if (entry.kind !== 'item') return entry;
-            if (entry.id === 'rename') {
-              return {
-                ...entry,
-                onSelect: () => {
-                  renameAfterMenu(menu.id);
-                  setMenu(null);
-                },
-              };
-            }
-            if (entry.id === 'delete') {
-              return {
-                ...entry,
-                onSelect: () => {
-                  setDeleting(menu.id);
-                  setMenu(null);
-                },
-              };
-            }
-            return entry;
-          })}
+          entries={playlistMenuEntries(editable, () => duplicate(menu.id)).map(
+            entry => {
+              if (entry.kind !== 'item') return entry;
+              if (entry.id === 'rename') {
+                return {
+                  ...entry,
+                  onSelect: () => {
+                    renameAfterMenu(menu.id);
+                    setMenu(null);
+                  },
+                };
+              }
+              if (entry.id === 'delete') {
+                return {
+                  ...entry,
+                  onSelect: () => {
+                    setDeleting(menu.id);
+                    setMenu(null);
+                  },
+                };
+              }
+              return entry;
+            },
+          )}
         />
       ) : null}
       {doomed === null ? null : (

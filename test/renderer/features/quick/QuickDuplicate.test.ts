@@ -9,6 +9,8 @@ import {
 import {MAX_QUICK_ITEMS} from '@core/schema/quick';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {saveQuickEdit} from '@renderer/features/quick/quickEdits';
+import {quickCopyReason} from '@renderer/features/quick/QuickEditing';
+import {quickItem} from '@fixtures/renderer/features/tools/quickTesting';
 
 const uuid = (kind: number, n: number): string =>
   `${String(kind).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -161,5 +163,97 @@ describe('복제 of a 퀵 실행 항목', () => {
     ).rejects.toThrow('no longer exists');
     expect(edit).not.toHaveBeenCalled();
     expect(few.edit).not.toHaveBeenCalled();
+  });
+
+  const timerFiles = () => {
+    const timer = {
+      id: uuid(4, 1),
+      name: '설교',
+      kind: 'countdown',
+      duration: 600,
+      overrun: true,
+    };
+    const row = {id: uuid(7, 3), name: '설교', kind: 'timer', ref: uuid(4, 1)};
+    return apiFor(quickFile([row]), {
+      format: 'llsettings.timers',
+      schemaVersion: 1,
+      timers: [timer],
+    });
+  };
+  const copy = {
+    kind: 'duplicate' as const,
+    id: createQuickItemId(uuid(7, 3)),
+    copyId: createQuickItemId(uuid(7, 50)),
+    timerCopyId: createTimerId(uuid(4, 50)),
+  };
+
+  it('deletes the new 타이머 again when the row cannot be written', async () => {
+    const {api, edit} = timerFiles();
+    edit.mockImplementationOnce(request =>
+      Promise.resolve({ok: true, value: {id: request.name, revision: 9}}),
+    );
+    edit.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        error: {reason: 'stale', message: 'The quick list changed'},
+      }),
+    );
+    await expect(saveQuickEdit(api, copy)).rejects.toThrow('changed');
+    expect(edit).toHaveBeenCalledTimes(3);
+    expect(edit.mock.calls[2]?.[0]).toEqual({
+      type: 'timer.delete',
+      name: 'timers',
+      timerId: createTimerId(uuid(4, 50)),
+    });
+  });
+
+  it('logs a 타이머 copy it could not delete and still reports the refused row', async () => {
+    const {api, edit} = timerFiles();
+    const write = vi.spyOn(api.log, 'write');
+    edit.mockImplementationOnce(request =>
+      Promise.resolve({ok: true, value: {id: request.name, revision: 9}}),
+    );
+    edit.mockImplementationOnce(() => Promise.reject(new Error('Disk gone')));
+    edit.mockImplementationOnce(() => Promise.reject(new Error('Still gone')));
+    await expect(saveQuickEdit(api, copy)).rejects.toThrow('Disk gone');
+    expect(write).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: 'warn',
+        detail: 'Still gone',
+      }),
+    );
+  });
+
+  it('answers the quick list revision for a copy that is already there', async () => {
+    const {api, edit} = apiFor(
+      quickFile([
+        {id: uuid(7, 3), name: '설교', kind: 'timer', ref: uuid(4, 1)},
+        {id: uuid(7, 50), name: '설교 복사본', kind: 'timer', ref: uuid(4, 50)},
+      ]),
+    );
+    expect(await saveQuickEdit(api, copy)).toEqual({
+      ok: true,
+      value: {id: 'quick', revision: 5},
+    });
+    expect(edit).not.toHaveBeenCalled();
+  });
+});
+
+describe('the reason a 퀵 실행 row cannot be copied', () => {
+  const timer = quickItem('timer');
+  const song = quickItem('song');
+  it('puts the lock first, then the full 퀵 실행 list, then the full 타이머 list for a 타이머 row only', () => {
+    const open = {locked: false, full: false, timersFull: false};
+    expect(quickCopyReason(timer, open)).toBeUndefined();
+    expect(quickCopyReason(timer, {...open, locked: true, full: true})).toBe(
+      '목록이 잠겨 있습니다',
+    );
+    expect(
+      quickCopyReason(timer, {...open, full: true, timersFull: true}),
+    ).toBe('퀵 실행 항목은 500개까지 추가할 수 있음');
+    expect(quickCopyReason(timer, {...open, timersFull: true})).toBe(
+      '타이머는 500개까지 추가할 수 있음',
+    );
+    expect(quickCopyReason(song, {...open, timersFull: true})).toBeUndefined();
   });
 });

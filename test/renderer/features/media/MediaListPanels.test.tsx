@@ -332,6 +332,18 @@ describe('media list panels', () => {
     );
   });
 
+  it('copies a media playlist and an audio playlist from their menus', async () => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await row('오디오 재생목록', /Hymns/));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    await vi.waitFor(() =>
+      expect(edit).toHaveBeenCalledWith({
+        type: 'media.playlist.duplicate',
+        playlist: {kind: 'audio', id: audioPlaylistId(1)},
+      }),
+    );
+  });
+
   it('deletes an audio playlist after asking', async () => {
     const {edit} = setup();
     fireEvent.contextMenu(await row('오디오 재생목록', /Hymns/));
@@ -402,6 +414,7 @@ describe('media list panels', () => {
         .map(item => item.textContent),
     ).toEqual([
       '속성…',
+      '복제',
       '이름 바꾸기',
       '재생목록에서 빼기',
       '삭제',

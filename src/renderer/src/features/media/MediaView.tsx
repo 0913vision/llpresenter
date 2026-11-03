@@ -1,4 +1,6 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   useEffect,
   useMemo,
@@ -237,6 +239,16 @@ export function MediaView({
       });
     }
   };
+  const duplicateMedia = (mediaId: MediaId): void => {
+    library
+      .duplicateMedia(mediaId)
+      .then(copyId => {
+        if (copyId !== null) setSelected(copyId);
+      })
+      .catch((cause: unknown) => {
+        console.error('Copying media failed:', cause);
+      });
+  };
   const actions = (entry: MediaEntry): MediaTileActions => ({
     missing: missing(entry),
     editable: view.document?.access === 'editable',
@@ -257,10 +269,30 @@ export function MediaView({
           console.error('Removing media from a playlist failed:', cause);
         });
     },
+    duplicate: duplicateMedia,
     remove: askToDelete,
     reveal: mediaId => library.reveal(mediaId),
     rename: renameAfterMenu,
   });
+  const selectedItem =
+    entries[index]?.kind === 'media' ? entries[index].item : undefined;
+  const copyReason =
+    view.document?.access === 'editable' ? undefined : NEWER_FILE_REASON;
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event =>
+        selectedItem !== undefined &&
+        event.target instanceof Element &&
+        event.target.closest(`[aria-label="${CSS.escape(title)}"]`) !== null,
+      unavailable: () => copyReason,
+      run: () => {
+        if (selectedItem !== undefined && copyReason === undefined) {
+          duplicateMedia(selectedItem.id);
+        }
+      },
+    },
+  ]);
   const {
     reason: importReason,
     startImport,

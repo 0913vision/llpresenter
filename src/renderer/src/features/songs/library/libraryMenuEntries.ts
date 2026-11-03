@@ -4,12 +4,22 @@ import type {LibrarySong} from '@core/schema/contentDocuments';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
+/** Why a song can't be copied now, for its menu row and for Ctrl D. */
+export function songCopyReason(
+  song: Pick<LibrarySong, 'access'>,
+  busy: boolean,
+): string | undefined {
+  if (song.access === 'readOnly') return NEWER_FILE_REASON;
+  return busy ? '곡 작업 중' : undefined;
+}
+
 export function libraryMenuEntries({
   song,
   appendDisabledReason,
   busy,
   open,
   append,
+  duplicate,
   remove,
   rename,
   reveal,
@@ -19,6 +29,7 @@ export function libraryMenuEntries({
   readonly busy: boolean;
   readonly open: () => void;
   readonly append: () => void;
+  readonly duplicate: () => void;
   readonly remove: () => void;
   readonly rename: () => void;
   readonly reveal: () => void;
@@ -47,7 +58,14 @@ export function libraryMenuEntries({
     menuSeparator('clipboard-separator'),
     laterRow('copy', '복사', {icon: 'copy'}),
     laterRow('paste', '붙여넣기', {icon: 'paste'}),
-    laterRow('duplicate', '복제', {icon: 'duplicate'}),
+    {
+      kind: 'item',
+      id: 'duplicate',
+      label: '복제',
+      icon: 'duplicate',
+      ...menuAvailability(songCopyReason(song, busy)),
+      onSelect: duplicate,
+    },
     {
       kind: 'item',
       id: 'rename',

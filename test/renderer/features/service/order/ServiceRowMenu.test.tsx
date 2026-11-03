@@ -35,10 +35,11 @@ it('explains busy commands without hiding read-only and open-service protections
     busy: true,
     rename: vi.fn(),
     save: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
   };
   const busy = menuItems(serviceRowMenuEntries(input));
-  for (const id of ['rename', 'save-template', 'delete']) {
+  for (const id of ['rename', 'save-template', 'duplicate', 'delete']) {
     expect(busy.find(row => row.id === id)).toMatchObject({
       disabled: true,
       title: '예배 저장 중',
@@ -99,6 +100,9 @@ function setup() {
       );
       push(entries);
       return {ok: true, value: {id: change.service.id, revision: 8}};
+    }
+    if (change.type === 'service.create') {
+      return {ok: true, value: {id: ids.template, revision: 1}};
     }
     if (change.type === 'service.saveAsTemplate') {
       return {ok: true, value: {id: ids.template, revision: 1}};
@@ -167,13 +171,39 @@ it('lists the service menu rows and groups in spec order without opening the ser
     '복제',
     '삭제',
   ]);
-  for (const name of ['내보내기', '인쇄', '복제']) {
+  for (const name of ['내보내기', '인쇄']) {
     expect(
       within(menu).getByRole('menuitem', {name}).getAttribute('aria-disabled'),
     ).toBe('true');
   }
   expect(open).not.toHaveBeenCalled();
   expect(edit).not.toHaveBeenCalled();
+});
+
+it('copies the clicked service as a new service file with the copy name and new item ids', async () => {
+  const {edit, document: source} = setup();
+  fireEvent.click(
+    within(await context()).getByRole('menuitem', {name: '복제'}),
+  );
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  expect(edit.mock.calls[0]?.[0]).toEqual({
+    type: 'service.create',
+    name: `${pastName} 복사본`,
+    date: source.service.date,
+    templateId: null,
+  });
+  const fill = edit.mock.calls[1]?.[0];
+  if (fill?.type !== 'service.update') throw new Error('Expected the fill');
+  expect(fill.service).toMatchObject({
+    id: ids.template,
+    name: `${pastName} 복사본`,
+    future: {keep: true},
+  });
+  expect(fill.service.order).toHaveLength(source.service.order.length);
+  expect(fill.service.order.map(item => item.id)).not.toEqual(
+    source.service.order.map(item => item.id),
+  );
+  expect(useShow.getState().serviceId).toBe(ids.created);
 });
 
 it('renames inline through the existing service revision/save path and preserves unknown fields', async () => {

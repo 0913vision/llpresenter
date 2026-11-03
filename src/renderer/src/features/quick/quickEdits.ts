@@ -125,24 +125,27 @@ export async function saveQuickEdit(
 /**
  * A copy of a 퀵 실행 row of a 타이머 owns a new 타이머 (every timer is its
  * own): the 타이머 is copied first, then the row is added after the original
- * with the copy's name and its id. A refused second write leaves the 타이머
- * copy, which shows in the 타이머 tab like any other.
+ * with the copy's name and its id. When the second write fails, the 타이머
+ * copy is deleted again, as far as that works.
  */
 async function duplicateQuickTimer({
   api,
   items,
+  revision,
   source,
   edit,
 }: {
   readonly api: LlpApi;
   readonly items: readonly QuickItem[];
+  /** The revision of the quick list that `items` was read at. */
+  readonly revision: number;
   readonly source: Extract<KnownQuickItem, {kind: 'timer'}>;
   readonly edit: Extract<QuickEdit, {kind: 'duplicate'}>;
 }): Promise<EditResult> {
   const {timerCopyId} = edit;
   if (timerCopyId === undefined) throw new Error('The copy needs a timer ID');
   if (items.some(item => item.id === edit.copyId)) {
-    return {ok: true, value: {id: 'quick', revision: 0}};
+    return {ok: true, value: {id: 'quick', revision}};
   }
   if (items.length >= MAX_QUICK_ITEMS) {
     throw new Error('The quick list is full');
@@ -169,33 +172,65 @@ async function duplicateQuickTimer({
   if (!timerResult.ok && timerResult.error.reason !== 'write-failed') {
     throw new Error(timerResult.error.message);
   }
-  const quick = await withinLookupTimeout(() =>
-    api.settings.get({name: 'quick'}),
-  );
-  if (quick.name !== 'quick' || quick.access !== 'editable') {
-    throw new Error('Quick settings cannot be edited');
+  try {
+    const quick = await withinLookupTimeout(() =>
+      api.settings.get({name: 'quick'}),
+    );
+    if (quick.name !== 'quick' || quick.access !== 'editable') {
+      throw new Error('Quick settings cannot be edited');
+    }
+    const at = quick.value.items.findIndex(item => item.id === source.id);
+    if (at < 0) throw new Error('The original no longer exists');
+    const row = {
+      ...source,
+      id: edit.copyId,
+      ref: timerCopyId,
+      name: timerName,
+    };
+    const result = await api.settings.edit({
+      type: 'settings.update',
+      name: 'quick',
+      baseRevision: quick.revision,
+      value: {
+        ...quick.value,
+        items: [
+          ...quick.value.items.slice(0, at + 1),
+          row,
+          ...quick.value.items.slice(at + 1),
+        ],
+      },
+    });
+    if (!result.ok && result.error.reason !== 'write-failed') {
+      throw new Error(result.error.message);
+    }
+    return result;
+  } catch (cause) {
+    await removeOrphanTimer(api, timerCopyId);
+    throw cause;
   }
-  const at = quick.value.items.findIndex(item => item.id === source.id);
-  if (at < 0) throw new Error('The original no longer exists');
-  const row = {
-    ...source,
-    id: edit.copyId,
-    ref: timerCopyId,
-    name: timerName,
-  };
-  return api.settings.edit({
-    type: 'settings.update',
-    name: 'quick',
-    baseRevision: quick.revision,
-    value: {
-      ...quick.value,
-      items: [
-        ...quick.value.items.slice(0, at + 1),
-        row,
-        ...quick.value.items.slice(at + 1),
-      ],
-    },
-  });
+}
+
+/**
+ * Best effort after a refused second write: the 타이머 copy has no row, so it
+ * goes again, and a failure to remove it is logged, not hidden.
+ */
+async function removeOrphanTimer(api: LlpApi, timerId: TimerId): Promise<void> {
+  try {
+    const result = await api.settings.edit({
+      type: 'timer.delete',
+      name: 'timers',
+      timerId,
+    });
+    if (!result.ok && result.error.reason !== 'write-failed') {
+      throw new Error(result.error.message);
+    }
+  } catch (cause) {
+    api.log.write({
+      level: 'warn',
+      message: 'Could not remove a timer copy that has no quick row',
+      detail: cause instanceof Error ? cause.message : String(cause),
+    });
+  }
 }
 
 async function sendQuickEdit(
@@ -243,6 +278,7 @@ async function sendQuickEdit(
       return duplicateQuickTimer({
         api,
         items: document.value.items,
+        revision: document.revision,
         source,
         edit,
       });

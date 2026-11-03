@@ -9,6 +9,7 @@ export function serviceRowMenuEntries({
   busy,
   rename,
   save,
+  duplicate,
   remove,
 }: {
   readonly entry: ServiceEntry;
@@ -16,6 +17,7 @@ export function serviceRowMenuEntries({
   readonly busy: boolean;
   readonly rename: () => void;
   readonly save: () => void;
+  readonly duplicate: () => void;
   readonly remove: () => void;
 }): readonly MenuEntry[] {
   const open = entry.id === currentId;
@@ -44,7 +46,19 @@ export function serviceRowMenuEntries({
     laterRow('export', '내보내기'),
     laterRow('print', '인쇄'),
     menuSeparator('delete'),
-    laterRow('duplicate', '복제'),
+    {
+      kind: 'item',
+      id: 'duplicate',
+      label: '복제',
+      ...menuAvailability(
+        entry.access === 'readOnly'
+          ? NEWER_FILE_REASON
+          : busy
+            ? '예배 저장 중'
+            : undefined,
+      ),
+      onSelect: duplicate,
+    },
     {
       kind: 'item',
       id: 'delete',

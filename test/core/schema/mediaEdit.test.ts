@@ -33,6 +33,9 @@ describe('media list edits', () => {
       baseRevision: 1,
     },
     {type: 'media.playlist.delete', playlist: {kind: 'media', id: ID}},
+    {type: 'media.duplicate', mediaId: ID},
+    {type: 'media.playlist.duplicate', playlist: {kind: 'media', id: ID}},
+    {type: 'media.playlist.duplicate', playlist: {kind: 'audio', id: ID}},
     {type: 'media.playlist.delete', playlist: {kind: 'audio', id: ID}},
     {
       type: 'media.properties.update',
@@ -74,6 +77,10 @@ describe('media list edits', () => {
     },
     {type: 'media.playlist.update', playlist: {kind: 'media', value: playlist}},
     {type: 'media.playlist.delete', playlist: {kind: 'other', id: ID}},
+    {type: 'media.duplicate'},
+    {type: 'media.duplicate', mediaId: 'not an id'},
+    {type: 'media.playlist.duplicate', playlist: {kind: 'other', id: ID}},
+    {type: 'media.playlist.duplicate'},
     {
       type: 'media.properties.update',
       mediaId: ID,

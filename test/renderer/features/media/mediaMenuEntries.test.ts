@@ -17,6 +17,7 @@ function actions(overrides: Partial<MediaTileActions> = {}): MediaTileActions {
     cancel: vi.fn(),
     relink: vi.fn(),
     leave: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     reveal: vi.fn(),
     rename: vi.fn(),
@@ -65,7 +66,9 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
   for (const row of entries) {
     if (
       row.kind === 'item' &&
-      !['delete', 'properties', 'rename', 'reveal'].includes(row.id)
+      !['delete', 'properties', 'duplicate', 'rename', 'reveal'].includes(
+        row.id,
+      )
     ) {
       expect(row).toMatchObject({
         disabled: true,
@@ -86,6 +89,7 @@ it('lists the audio playlist item rows without icons', () => {
     '효과음으로 지정',
     '|',
     '속성…',
+    '복제',
     '이름 바꾸기',
     '|',
     '삭제',

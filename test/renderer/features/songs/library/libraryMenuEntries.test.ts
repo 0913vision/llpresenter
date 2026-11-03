@@ -12,12 +12,13 @@ it('retains specific reasons ahead of busy state and explains busy commands', ()
     busy: true,
     append: vi.fn(),
     open: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     rename: vi.fn(),
     reveal: vi.fn(),
   };
   const busy = menuItems(libraryMenuEntries(input));
-  for (const id of ['add-to', 'lyrics', 'rename', 'delete']) {
+  for (const id of ['add-to', 'lyrics', 'duplicate', 'rename', 'delete']) {
     expect(busy.find(row => row.id === id)).toMatchObject({
       disabled: true,
       title: '곡 작업 중',
@@ -36,6 +37,32 @@ it('retains specific reasons ahead of busy state and explains busy commands', ()
   expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
     '새 버전의 파일이라 바꿀 수 없습니다',
   );
+  expect(protectedRows.find(row => row.id === 'duplicate')).toMatchObject({
+    disabled: true,
+    title: '새 버전의 파일이라 바꿀 수 없습니다',
+  });
+});
+
+it('turns 복제 on for an editable song and runs the copy', () => {
+  const song = libraryFixture().list()[0];
+  if (!song) throw new Error('Missing fixture');
+  const duplicate = vi.fn();
+  const row = menuItems(
+    libraryMenuEntries({
+      song,
+      appendDisabledReason: undefined,
+      busy: false,
+      append: vi.fn(),
+      open: vi.fn(),
+      duplicate,
+      remove: vi.fn(),
+      rename: vi.fn(),
+      reveal: vi.fn(),
+    }),
+  ).find(entry => entry.id === 'duplicate');
+  expect(row).toMatchObject({disabled: false});
+  row?.onSelect?.();
+  expect(duplicate).toHaveBeenCalledOnce();
 });
 
 it('adds to the open service with one command and no submenu', () => {
@@ -48,6 +75,7 @@ it('adds to the open service with one command and no submenu', () => {
     busy: false,
     append,
     open: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     rename: vi.fn(),
     reveal: vi.fn(),
@@ -76,6 +104,7 @@ it('runs 이름 바꾸기 and 탐색기에서 보기 as commands, and protects a
     busy: false,
     append: vi.fn(),
     open: vi.fn(),
+    duplicate: vi.fn(),
     remove: vi.fn(),
     rename,
     reveal,

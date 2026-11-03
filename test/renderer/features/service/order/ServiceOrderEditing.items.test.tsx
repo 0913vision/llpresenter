@@ -28,6 +28,36 @@ describe('service panel editing', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it('copies an item from its menu and with Ctrl D, opens the copy, and undoes each as one step', async () => {
+    const {ids} = setup('prep');
+    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
+    await userEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    await waitFor(() => expect(ids()).toHaveLength(4));
+    expect(ids()[2]).not.toBe(firstId);
+    expect(ids().slice(0, 2)).toEqual([headerId, firstId]);
+    expect(useShow.getState().openItemId).toBe(ids()[2]);
+    const copy = screen.getAllByRole('option', {name: '첫 곡'})[0];
+    if (copy === undefined) throw new Error('Missing row');
+    await userEvent.click(copy);
+    fireEvent.keyDown(copy, {key: 'd', code: 'KeyD', ctrlKey: true});
+    await waitFor(() => expect(ids()).toHaveLength(5));
+    await userEvent.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(ids()).toHaveLength(4));
+    await userEvent.click(
+      screen.getAllByRole('option', {name: '첫 곡'})[0] ?? copy,
+    );
+    await userEvent.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
+  });
+
+  it('copies a whole 구역 with its items from its menu', async () => {
+    const {ids} = setup('prep');
+    fireEvent.contextMenu(screen.getByRole('option', {name: '제목'}));
+    await userEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    await waitFor(() => expect(ids()).toHaveLength(6));
+    expect(ids().slice(0, 3)).toEqual([headerId, firstId, lastId]);
+  });
+
   it('disables read-only deletion and drops', async () => {
     const {api} = setup('show', true);
     const target = screen.getByRole('option', {name: '첫 곡'});

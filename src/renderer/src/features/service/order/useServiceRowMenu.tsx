@@ -4,6 +4,7 @@ import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {useShow} from '@renderer/session/show';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
+  duplicateService,
   renameService,
   warningNotice,
 } from '@renderer/features/service/list/serviceEdits';
@@ -65,6 +66,30 @@ export function useServiceRowMenu(
         if (alive.current) setBusy(false);
       });
   };
+  const copy = (entry: ServiceEntry): void => {
+    const api = window.llp;
+    if (!api || busy) return;
+    setBusy(true);
+    pendingWritesOf(api)
+      .run({
+        write: () => duplicateService(api, entry.id),
+        refused: false,
+        sent: done => done,
+      })
+      .then(done => {
+        if (!done) {
+          onProblem(
+            warningNotice('service-row:duplicate', '예배를 복제할 수 없음'),
+          );
+        }
+      })
+      .catch((cause: unknown) => {
+        console.error('Could not copy a service:', cause);
+      })
+      .finally(() => {
+        setBusy(false);
+      });
+  };
   const renameFor = (entry: ServiceEntry): GroupRename | undefined =>
     renaming?.id !== entry.id
       ? undefined
@@ -88,6 +113,9 @@ export function useServiceRowMenu(
             save: () => {
               closePicker();
               saver.saveService(menu.entry);
+            },
+            duplicate: () => {
+              copy(menu.entry);
             },
             remove: () => {
               closePicker();

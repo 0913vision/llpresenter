@@ -21,7 +21,14 @@ import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickField} from './BibleQuickField';
 import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import styles from './QuickPanel.module.css';
-import {QuickAdd, QuickRowEditor} from './QuickEditing';
+import {
+  duplicateQuickItem,
+  QuickAdd,
+  quickCopyReason,
+  QuickRowEditor,
+} from './QuickEditing';
+import {useDuplicateShortcut} from '../tools/useDuplicateShortcut';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {MAX_QUICK_ITEMS} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {useRowMoveKeys} from '@renderer/ui/reorder';
@@ -54,6 +61,21 @@ export function QuickPanel({
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
   const items = document?.value.items ?? EMPTY_ITEMS;
+  const timersFull = timers.definitions.size >= MAX_TIMER_DEFINITIONS;
+  const rowAt = (event: KeyboardEvent): QuickItem | undefined => {
+    const id =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-quick-id]')?.dataset[
+            'quickId'
+          ]
+        : undefined;
+    return items.find(item => item.id === id);
+  };
+  useDuplicateShortcut({
+    itemAt: rowAt,
+    reasonOf: item => quickCopyReason(item, {locked, full, timersFull}),
+    run: item => duplicateQuickItem(item, editing.run),
+  });
   const ids = useMemo(() => items.map(item => item.id), [items]);
   const windowed = useQuickWindow(items);
   const moveItem = (id: string, before: string | null): void => {
@@ -172,6 +194,7 @@ export function QuickPanel({
                   item={item}
                   locked={locked}
                   full={full}
+                  timersFull={timersFull}
                   save={editing.run}
                   onPinChange={windowed.pin}
                   insertBefore={drag.before === item.id}

@@ -637,6 +637,56 @@ describe('service order edits', () => {
     expect(undone).toBe(100);
   });
 
+  it('copies an item right after itself with a new id and every field, as one undo step', async () => {
+    const {edits, state} = fixture();
+    const copyId = createServiceItemId('20000000-0000-4000-8000-000000000099');
+    expect(await edits.duplicate(serviceId, second, copyId)).toEqual({
+      ok: true,
+      value: true,
+    });
+    const order = state.document?.service.order ?? [];
+    expect(order.map(item => item.id)).toEqual([first, second, copyId, third]);
+    expect(order[2]).toEqual({...order[1], id: copyId});
+    await edits.undo(serviceId);
+    expect(state.document?.service.order.map(item => item.id)).toEqual([
+      first,
+      second,
+      third,
+    ]);
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('copies a whole 구역 with its items after the section and names the copy header', async () => {
+    const {edits, state} = fixture();
+    const copyId = createServiceItemId('20000000-0000-4000-8000-000000000098');
+    await edits.duplicate(serviceId, first, copyId);
+    const order = state.document?.service.order ?? [];
+    expect(order).toHaveLength(6);
+    expect(order[3]).toMatchObject({
+      id: copyId,
+      header: 'Invented header 복사본',
+    });
+    expect(order[4]).toMatchObject({song: songId, memo: 'Keep this'});
+    expect(order[4]?.id).not.toBe(second);
+    expect(order[5]).toMatchObject({futureKind: {keep: true}});
+    await edits.undo(serviceId);
+    expect(state.document?.service.order).toHaveLength(3);
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('refuses a copy of an item that is gone', async () => {
+    const {edits, edit} = fixture();
+    const gone = createServiceItemId('20000000-0000-4000-8000-000000000077');
+    expect(
+      await edits.duplicate(
+        serviceId,
+        gone,
+        createServiceItemId('20000000-0000-4000-8000-000000000078'),
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('does not undo another service and can release its bounded history', async () => {
     const {edits, edit} = fixture();
     await edits.remove(serviceId, second);

@@ -136,6 +136,27 @@ describe('library panel', () => {
     );
   });
 
+  it('copies the clicked song under the copy title, selects the copy, and keeps the original', async () => {
+    const {user} = await setup();
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '복제'}));
+    const copy = await screen.findByRole('option', {name: '찬송 10 복사본'});
+    await waitFor(() =>
+      expect(copy.getAttribute('aria-selected')).toBe('true'),
+    );
+    expect(screen.getByRole('option', {name: '찬송 10'})).toBeTruthy();
+  });
+
+  it('copies the focused song with Ctrl D', async () => {
+    await setup();
+    const song = screen.getByRole('option', {name: '찬송 10'});
+    act(() => song.focus());
+    fireEvent.keyDown(song, {key: 'd', code: 'KeyD', ctrlKey: true});
+    expect(
+      await screen.findByRole('option', {name: '찬송 10 복사본'}),
+    ).toBeTruthy();
+  });
+
   it('hands deletion failures to the host without a reload action', async () => {
     const {fixture, user, onProblem} = await setup();
     vi.spyOn(fixture.api.content, 'edit').mockRejectedValue(

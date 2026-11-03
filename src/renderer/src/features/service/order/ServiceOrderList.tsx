@@ -346,6 +346,20 @@ export function ServiceOrderList({
       );
     }
   };
+  const duplicateItem = (id: string): void => {
+    if (!editable) return;
+    const copyId = createServiceItemId(crypto.randomUUID());
+    editing
+      .save((edits, service) =>
+        edits.duplicate(service, createServiceItemId(id), copyId),
+      )
+      .then(saved => {
+        if (saved) openItem(copyId);
+      })
+      .catch((cause: unknown) => {
+        console.error('Could not copy a 예배 순서 item:', cause);
+      });
+  };
   const historyReason = (kind: 'undo' | 'redo'): string | undefined => {
     const api = window.llp;
     if (!editable || api === undefined || serviceId === null) {
@@ -373,6 +387,22 @@ export function ServiceOrderList({
       unavailable: () => historyReason('redo'),
       run: () => {
         if (editable) editing.run((edits, service) => edits.redo(service));
+      },
+    },
+    {
+      id: 'edit.duplicate',
+      context: 'service',
+      when: event =>
+        ownsCommand(event) &&
+        workspace === 'prep' &&
+        openItemId !== null &&
+        event.target instanceof Node &&
+        listRef.current
+          ?.querySelector('[role="listbox"]')
+          ?.contains(event.target) === true,
+      unavailable: () => (editable ? undefined : '예배 순서 편집 불가'),
+      run: () => {
+        if (openItemId !== null) duplicateItem(openItemId);
       },
     },
     {
@@ -452,6 +482,10 @@ export function ServiceOrderList({
           : undefined,
       rename: () => {
         renameAfterMenu({id: target.id, serviceId: target.serviceId});
+        setMenu(null);
+      },
+      duplicate: () => {
+        duplicateItem(target.id);
         setMenu(null);
       },
       remove: () => {

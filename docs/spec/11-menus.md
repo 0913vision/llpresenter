@@ -326,20 +326,21 @@ progress, nothing on output.
   (https://support.renewedvision.com/hc/en-us/articles/55789101197587). All
   start Hide Item | Add to ›; this app omits the unavailable Add to row.
 
-| Group  | Row                                             | Does                                                                                                                                                                             | Status |
-| ------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1      | 항목 숨기기                                     | PP Hide Item.                                                                                                                                                                    | Off    |
-| song   | 구성 ›                                          | Song items: the song's 구성 with ✓ on the one this item uses; picking one sets it for this item (PP Arrangement, 3:37 and 4:00). The same choice as the item's 구성 setting row. | New    |
-| song   | 출력 대상 ›                                     | PP Destination.                                                                                                                                                                  | Off    |
-| song   | 순서 편집…                                      | 준비 only: opens the 순서 편집 window for this item (05).                                                                                                                        |
-| song   | 곡 편집…                                        | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                                      | Moved  |
-| other  | 준비에서 열기                                   | Items that are not songs, 진행 only (ours).                                                                                                                                      | Now    |
-| header | 색 바꾸기                                       | 구역 rows only (PP Change Color on a header).                                                                                                                                    | Off    |
-| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V), 복제 (Ctrl D) | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                                | Off    |
-| 3      | 이름 바꾸기                                     | 구역 rows (PP Rename on headers). A song, 성경, 미디어, or 공지 item has no name of its own (it shows its source's name), so its row stays disabled as Later.                    | Now    |
-| 3      | 삭제                                            | Removes the item from the service. No icon, as in PP.                                                                                                                            | Now    |
-| song   | 라이브러리에서 보기                             | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                                         | New    |
-| song   | 묶음으로 내보내기…, 이미지로 내보내기…          | PP Export as Bundle, Export as Images.                                                                                                                                           | Off    |
+| Group  | Row                                    | Does                                                                                                                                                                             | Status |
+| ------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1      | 항목 숨기기                            | PP Hide Item.                                                                                                                                                                    | Off    |
+| song   | 구성 ›                                 | Song items: the song's 구성 with ✓ on the one this item uses; picking one sets it for this item (PP Arrangement, 3:37 and 4:00). The same choice as the item's 구성 setting row. | New    |
+| song   | 출력 대상 ›                            | PP Destination.                                                                                                                                                                  | Off    |
+| song   | 순서 편집…                             | 준비 only: opens the 순서 편집 window for this item (05).                                                                                                                        |
+| song   | 곡 편집…                               | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                                      | Moved  |
+| other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                                      | Now    |
+| header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                                    | Off    |
+| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                                | Off    |
+| 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list.                | Now    |
+| 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, 미디어, or 공지 item has no name of its own (it shows its source's name), so its row stays disabled as Later.                    | Now    |
+| 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                                            | Now    |
+| song   | 라이브러리에서 보기                    | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                                         | New    |
+| song   | 묶음으로 내보내기…, 이미지로 내보내기… | PP Export as Bundle, Export as Images.                                                                                                                                           | Off    |
 
 - Groups: 숨기기 | 구성 and 출력 대상 | 곡 편집… | clipboard and 삭제 |
   라이브러리와 내보내기. In 준비, 순서 편집… and 곡 편집… follow 구성 › in its
@@ -368,13 +369,13 @@ progress, nothing on output.
 - PP: PP playlist right-click
   (https://support.renewedvision.com/hc/en-us/articles/40377194830995).
 
-| Group | Row              | Does                                    | Status |
-| ----- | ---------------- | --------------------------------------- | ------ |
-| 1     | 이름 바꾸기      | Rename mode.                            | New    |
-| 1     | 템플릿으로 저장… | Saves it as a 템플릿.                   | Moved  |
-| 2     | 내보내기, 인쇄   | PP Export, Print.                       | Off    |
-| 3     | 복제             | PP Duplicate.                           | Off    |
-| 3     | 삭제             | Deletes the service (not the open one). | Now    |
+| Group | Row              | Does                                                   | Status |
+| ----- | ---------------- | ------------------------------------------------------ | ------ |
+| 1     | 이름 바꾸기      | Rename mode.                                           | New    |
+| 1     | 템플릿으로 저장… | Saves it as a 템플릿.                                  | Moved  |
+| 2     | 내보내기, 인쇄   | PP Export, Print.                                      | Off    |
+| 3     | 복제             | PP Duplicate. A new service file (see "복제 by kind"). | Now    |
+| 3     | 삭제             | Deletes the service (not the open one).                | Now    |
 
 ### 라이브러리 곡 오른쪽 클릭
 
@@ -390,7 +391,8 @@ progress, nothing on output.
 | 2     | 구성 ›                                                                    | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits.                                                                         | Off    |
 | 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
 | 3     | 곡 편집…                                                                  | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                                                                                                   | New    |
-| 4     | 복사, 붙여넣기, 복제                                                      | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
+| 4     | 복사, 붙여넣기                                                            | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
+| 4     | 복제                                                                      | Copies the song (see "복제 by kind"); Ctrl D with the focus on the list.                                                                                                                                                | Now    |
 | 4     | 이름 바꾸기                                                               | No icon, text aligned with the icon rows. Opens a 곡 이름 바꾸기 dialog with the title rule of the 곡 편집 title field (not empty, at most 200 characters, no other song has it); off for a song a newer version wrote. | Now    |
 | 4     | 삭제                                                                      | No icon, as in PP. Confirms, then deletes.                                                                                                                                                                              | Now    |
 | 5     | 탐색기에서 보기 (now), 묶음으로 내보내기… (off), 이미지로 내보내기… (off) | PP Show in Finder, Export as Bundle, Export as Images. 탐색기에서 보기 names only the song id; main finds the file.                                                                                                     |        | Off |
@@ -467,21 +469,22 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
   Behavior › | Next Cue › | Cut, Copy, Paste, Duplicate, Rename, Delete | Show
   in Finder, Clean Up By ›.
 
-| Group | Row                            | Does                                                                                                                                    | Status |
-| ----- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 0     | 다시 연결…                     | Only when the file is missing; first row (ours).                                                                                        | Now    |
-| 1     | 속성…                          | Opens the media properties editor (PP Inspector).                                                                                       | Now    |
-| 1     | 전환 효과…                     | PP Transitions.                                                                                                                         | Off    |
-| 2     | 동작 ›, 맞춤 ›, 알파 ›         | PP Behavior, Scaling, Alpha Type.                                                                                                       | Off    |
-| 3     | 재생 ›, 반복 ›, 끝나면 ›       | PP Playback, Loop, End Behavior.                                                                                                        | Off    |
-| 4     | 다음 항목 ›                    | PP Next Cue.                                                                                                                            | Off    |
-| 5     | 잘라내기, 복사, 붙여넣기, 복제 | PP clipboard rows with icons.                                                                                                           | Off    |
-| 5     | 이름 바꾸기                    | No icon. Opens a 미디어 이름 바꾸기 dialog (the name must not be empty); the file keeps its name. Off for a list a newer version wrote. | Now    |
-| 5     | 재생목록에서 빼기              | Only inside a playlist (ours), right before 삭제.                                                                                       | Now    |
-| 5     | 삭제                           | Trash icon, as in PP. Asks first and names every use (08).                                                                              | Now    |
-| 6     | 탐색기에서 보기                | PP Show in Finder. Shows the file in the file manager when it is inside the media folders.                                              | Now    |
-| 6     | 정리 기준 ›                    | PP Clean Up By.                                                                                                                         | Off    |
-| -     | 복사 멈추기                    | While the file is being copied, the menu holds only this row (ours).                                                                    | Now    |
+| Group | Row                      | Does                                                                                                                                    | Status |
+| ----- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 0     | 다시 연결…               | Only when the file is missing; first row (ours).                                                                                        | Now    |
+| 1     | 속성…                    | Opens the media properties editor (PP Inspector).                                                                                       | Now    |
+| 1     | 전환 효과…               | PP Transitions.                                                                                                                         | Off    |
+| 2     | 동작 ›, 맞춤 ›, 알파 ›   | PP Behavior, Scaling, Alpha Type.                                                                                                       | Off    |
+| 3     | 재생 ›, 반복 ›, 끝나면 › | PP Playback, Loop, End Behavior.                                                                                                        | Off    |
+| 4     | 다음 항목 ›              | PP Next Cue.                                                                                                                            | Off    |
+| 5     | 잘라내기, 복사, 붙여넣기 | PP clipboard rows with icons.                                                                                                           | Off    |
+| 5     | 복제                     | Copies the media entry (see "복제 by kind"); Ctrl D with the tile selected.                                                             | Now    |
+| 5     | 이름 바꾸기              | No icon. Opens a 미디어 이름 바꾸기 dialog (the name must not be empty); the file keeps its name. Off for a list a newer version wrote. | Now    |
+| 5     | 재생목록에서 빼기        | Only inside a playlist (ours), right before 삭제.                                                                                       | Now    |
+| 5     | 삭제                     | Trash icon, as in PP. Asks first and names every use (08).                                                                              | Now    |
+| 6     | 탐색기에서 보기          | PP Show in Finder. Shows the file in the file manager when it is inside the media folders.                                              | Now    |
+| 6     | 정리 기준 ›              | PP Clean Up By.                                                                                                                         | Off    |
+| -     | 복사 멈추기              | While the file is being copied, the menu holds only this row (ours).                                                                    | Now    |
 
 - Audio files in a 오디오 playlist follow the PP audio item menu (same video
   0:26): 탐색기에서 보기 (now), 재생 › (off), 효과음으로 지정 (off) | 속성…
@@ -494,12 +497,12 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - Purpose: Act on this one playlist.
 - PP: PP media playlist right-click (support article screenshot, 2026).
 
-| Group | Row         | Does                          | Status |
-| ----- | ----------- | ----------------------------- | ------ |
-| 1     | 통신에 사용 | PP Select for Communications. | Off    |
-| 2     | 이름 바꾸기 | Rename.                       | Now    |
-| 2     | 복제        | PP Duplicate.                 | Off    |
-| 2     | 삭제        | Delete.                       | Now    |
+| Group | Row         | Does                                                                                      | Status |
+| ----- | ----------- | ----------------------------------------------------------------------------------------- | ------ |
+| 1     | 통신에 사용 | PP Select for Communications.                                                             | Off    |
+| 2     | 이름 바꾸기 | Rename.                                                                                   | Now    |
+| 2     | 복제        | PP Duplicate. Copies the playlist (see "복제 by kind"); Ctrl D with the focus on its row. | Now    |
+| 2     | 삭제        | Delete.                                                                                   | Now    |
 
 ### 테마 바꾸기 메뉴
 
@@ -612,22 +615,22 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - The menu acts on what had keyboard focus when it opened (see "Which thing a
   row acts on").
 
-| Group | Row                      | Does                                                                                                                                                                                                                                                          | Command                     | Status |
-| ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------ |
-| 1     | 실행 취소 (Ctrl Z)       | PP Undo.                                                                                                                                                                                                                                                      | `edit.undo`                 | New    |
-| 1     | 다시 실행 (Ctrl Y)       | PP Redo. Ctrl Shift Z also works (10).                                                                                                                                                                                                                        | `edit.redo`                 | New    |
-| 2     | 잘라내기 (Ctrl X)        | PP Cut. Acts on the text field that had focus.                                                                                                                                                                                                                | (fixed)                     | New    |
-| 2     | 복사 (Ctrl C)            | PP Copy. Acts on the text field that had focus.                                                                                                                                                                                                               | (fixed)                     | New    |
-| 2     | 텍스트 스타일 복사       | PP Copy Text Style, Ctrl Alt C. Lyrics are plain lines, so there is no style (10).                                                                                                                                                                            | None                        | Off    |
-| 2     | 붙여넣기 (Ctrl V)        | PP Paste. Acts on the text field that had focus.                                                                                                                                                                                                              | (fixed)                     | New    |
-| 2     | 텍스트 스타일 붙여넣기   | PP Paste Text Style, Alt Shift V.                                                                                                                                                                                                                             | None                        | Off    |
-| 2     | 스타일 맞춰 붙여넣기     | PP Paste and Match Style, Alt V. Pasting into the song editor is always plain text (10).                                                                                                                                                                      | None                        | Off    |
-| 3     | 복제 (Ctrl D)            | PP Duplicate. Runs the same handler as the 복제 row of the focused list (테마, 매크로); otherwise disabled with "선택한 곳에서는 쓸 수 없음". The key shows on the row while it is disabled. Where the list's own row is disabled, this row shows its reason. | `edit.duplicate`            | Now    |
-| 3     | 삭제 (Delete)            | PP Delete. Runs the selected thing's own delete, with its question where the Delete rule asks one.                                                                                                                                                            | `edit.delete`               | New    |
-| 3     | 모두 선택 (Ctrl A)       | PP Select All. Acts on the text field that had focus.                                                                                                                                                                                                         | (fixed)                     | New    |
-| 3     | 선택 해제 (Ctrl Shift D) | PP Deselect. Esc clears a selection here (10).                                                                                                                                                                                                                | None                        | Off    |
-| 4     | 찾기 (Ctrl F)            | PP Search. Focuses the toolbar 검색.                                                                                                                                                                                                                          | `search.focus`              | Now    |
-| 5     | 단축키…                  | PP Key Mappings (S2). Opens 환경설정 at the 단축키 page, or shows that page in the window that is already open.                                                                                                                                               | `app.preferences.shortcuts` | Now    |
+| Group | Row                      | Does                                                                                                                                                                                                                                                                | Command                     | Status |
+| ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------ |
+| 1     | 실행 취소 (Ctrl Z)       | PP Undo.                                                                                                                                                                                                                                                            | `edit.undo`                 | New    |
+| 1     | 다시 실행 (Ctrl Y)       | PP Redo. Ctrl Shift Z also works (10).                                                                                                                                                                                                                              | `edit.redo`                 | New    |
+| 2     | 잘라내기 (Ctrl X)        | PP Cut. Acts on the text field that had focus.                                                                                                                                                                                                                      | (fixed)                     | New    |
+| 2     | 복사 (Ctrl C)            | PP Copy. Acts on the text field that had focus.                                                                                                                                                                                                                     | (fixed)                     | New    |
+| 2     | 텍스트 스타일 복사       | PP Copy Text Style, Ctrl Alt C. Lyrics are plain lines, so there is no style (10).                                                                                                                                                                                  | None                        | Off    |
+| 2     | 붙여넣기 (Ctrl V)        | PP Paste. Acts on the text field that had focus.                                                                                                                                                                                                                    | (fixed)                     | New    |
+| 2     | 텍스트 스타일 붙여넣기   | PP Paste Text Style, Alt Shift V.                                                                                                                                                                                                                                   | None                        | Off    |
+| 2     | 스타일 맞춰 붙여넣기     | PP Paste and Match Style, Alt V. Pasting into the song editor is always plain text (10).                                                                                                                                                                            | None                        | Off    |
+| 3     | 복제 (Ctrl D)            | PP Duplicate. Runs the same handler as the 복제 row of the focused list (see "복제 by kind"); otherwise disabled with "선택한 곳에서는 쓸 수 없음". The key shows on the row while it is disabled. Where the list's own row is disabled, this row shows its reason. | `edit.duplicate`            | Now    |
+| 3     | 삭제 (Delete)            | PP Delete. Runs the selected thing's own delete, with its question where the Delete rule asks one.                                                                                                                                                                  | `edit.delete`               | New    |
+| 3     | 모두 선택 (Ctrl A)       | PP Select All. Acts on the text field that had focus.                                                                                                                                                                                                               | (fixed)                     | New    |
+| 3     | 선택 해제 (Ctrl Shift D) | PP Deselect. Esc clears a selection here (10).                                                                                                                                                                                                                      | None                        | Off    |
+| 4     | 찾기 (Ctrl F)            | PP Search. Focuses the toolbar 검색.                                                                                                                                                                                                                                | `search.focus`              | Now    |
+| 5     | 단축키…                  | PP Key Mappings (S2). Opens 환경설정 at the 단축키 page, or shows that page in the window that is already open.                                                                                                                                                     | `app.preferences.shortcuts` | Now    |
 
 Which thing a row acts on:
 
@@ -648,8 +651,9 @@ Which thing a row acts on:
 - 복제 and 삭제 are enabled when the focused place has a handler for the command
   (`edit.duplicate`, `edit.delete`), and disabled with "선택한 곳에서는 쓸 수
   없음" otherwise. 복제 has a handler in the lists of "복제 by kind" that are
-  built (테마, 매크로, and the 진행 tool lists), so it is on there with the
-  focus on a row.
+  built (테마, 매크로, the 진행 tool lists, 라이브러리 곡, 미디어, 미디어
+  재생목록, and the 예배 순서 in 준비), so it is on there with the focus on a
+  row.
 
 ### 창
 

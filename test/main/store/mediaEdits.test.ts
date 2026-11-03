@@ -5,6 +5,7 @@ import {
   createMediaPlaylistId,
 } from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {editMediaList, type MediaListEdit} from '@main/store/mediaEdits';
 
@@ -190,4 +191,115 @@ describe('editMediaList playlists and media', () => {
       result.ok && result.value.value.items.map(item => item.name),
     ).toEqual(['Video', 'Renamed']);
   });
+});
+
+describe('editMediaList copies', () => {
+  it('copies a media entry after the original on the same file, keeping its properties', () => {
+    const result = editMediaList(list, {
+      type: 'media.duplicate',
+      mediaId: VIDEO,
+    });
+    if (!result.ok) throw new Error('refused');
+    const items = result.value.value.items;
+    expect(items.map(item => item.name)).toEqual([
+      'Video',
+      'Video 복사본',
+      'Audio',
+    ]);
+    expect(items[1]).toMatchObject({file: 'a.mp4', kind: 'video', size: 1});
+    expect(items[1]?.id).not.toBe(VIDEO);
+    expect(result.value.id).toBe(items[1]?.id);
+    expect(result.value.value.playlists).toEqual(list.playlists);
+  });
+
+  it('copies a media playlist with the same media ids, and an audio playlist with its loop', () => {
+    const media = editMediaList(list, {
+      type: 'media.playlist.duplicate',
+      playlist: {kind: 'media', id: LIST},
+    });
+    if (!media.ok) throw new Error('refused');
+    expect(media.value.value.playlists).toMatchObject([
+      {id: LIST, name: 'Videos'},
+      {id: media.value.id, name: 'Videos 복사본', items: [VIDEO]},
+    ]);
+    const audio = editMediaList(list, {
+      type: 'media.playlist.duplicate',
+      playlist: {kind: 'audio', id: AUDIO_LIST},
+    });
+    if (!audio.ok) throw new Error('refused');
+    expect(audio.value.value.audioPlaylists).toMatchObject([
+      {id: AUDIO_LIST, name: 'Sounds'},
+      {id: audio.value.id, name: 'Sounds 복사본', items: [AUDIO], loop: false},
+    ]);
+  });
+
+  it('refuses a copy of media or a playlist that is gone', () => {
+    expect(refusal({type: 'media.duplicate', mediaId: GONE}).reason).toBe(
+      'not-found',
+    );
+    expect(
+      refusal({
+        type: 'media.playlist.duplicate',
+        playlist: {kind: 'media', id: GONE_LIST},
+      }).reason,
+    ).toBe('not-found');
+    expect(
+      refusal({
+        type: 'media.playlist.duplicate',
+        playlist: {kind: 'audio', id: GONE_AUDIO_LIST},
+      }).reason,
+    ).toBe('not-found');
+  });
+});
+
+describe('editMediaList copy caps', () => {
+  it('refuses a media copy at the media limit and leaves the list unchanged', () => {
+    const full = {
+      ...list,
+      items: Array.from({length: MEDIA_LIMITS.items}, (_, index) => ({
+        id: createMediaId(uuid(1000 + index)),
+        name: `Media ${String(index)}`,
+        kind: 'video' as const,
+        file: 'a.mp4',
+        size: 1,
+      })),
+    };
+    const first = full.items[0];
+    if (first === undefined) throw new Error('no media');
+    const result = editMediaList(full, {
+      type: 'media.duplicate',
+      mediaId: first.id,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.reason).toBe('invalid');
+    expect(full.items).toHaveLength(MEDIA_LIMITS.items);
+  });
+
+  it.each(['media', 'audio'] as const)(
+    'refuses a %s playlist copy when media and audio playlists together are at the playlist limit',
+    kind => {
+      const filler = Array.from(
+        {length: MEDIA_LIMITS.playlists - 2},
+        (_, index) => ({
+          id: createMediaPlaylistId(uuid(5000 + index)),
+          name: `Playlist ${String(index)}`,
+          items: [],
+        }),
+      );
+      const full = {...list, playlists: [...list.playlists, ...filler]};
+      expect(full.playlists.length + full.audioPlaylists.length).toBe(
+        MEDIA_LIMITS.playlists,
+      );
+      const result = editMediaList(full, {
+        type: 'media.playlist.duplicate',
+        playlist:
+          kind === 'media'
+            ? {kind: 'media', id: LIST}
+            : {kind: 'audio', id: AUDIO_LIST},
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error.reason).toBe('invalid');
+      expect(full.playlists).toHaveLength(MEDIA_LIMITS.playlists - 1);
+    },
+  );
 });

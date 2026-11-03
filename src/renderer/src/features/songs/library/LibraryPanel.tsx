@@ -1,4 +1,6 @@
-import {useEffect, useEffectEvent, useState, type JSX} from 'react';
+import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
+import type {LibrarySong} from '@core/schema/contentDocuments';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {SongId} from '@core/schema/ids';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {usageMeta} from '@renderer/ui/usageText';
@@ -23,7 +25,7 @@ import {EmptyState} from '@renderer/ui/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
-import {libraryMenuEntries} from './libraryMenuEntries';
+import {libraryMenuEntries, songCopyReason} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
 import {contextMenuAnchor} from '../../../ui/contextMenu';
 
@@ -85,8 +87,45 @@ export function LibraryPanel({
   const [renaming, setRenaming] = useState<SongId | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const renamed = library.songs.find(song => song.id === renaming);
+  const listArea = useRef<HTMLDivElement>(null);
+  useWindowShortcuts([
+    {
+      id: 'edit.duplicate',
+      when: event => copyTarget(event) !== undefined,
+      unavailable: () => {
+        const song = copyTarget();
+        return song === undefined
+          ? undefined
+          : songCopyReason(song, library.busy || serviceMenu.busy);
+      },
+      run: event => {
+        const song = copyTarget(event);
+        if (
+          song !== undefined &&
+          songCopyReason(song, library.busy || serviceMenu.busy) === undefined
+        ) {
+          library.duplicate(song.id).catch(() => library.report('create'));
+        }
+      },
+    },
+  ]);
   const candidate = library.songs.find(song => song.id === deleting);
   const menuSong = library.songs.find(song => song.id === menu?.id);
+  /** The song under the focus, or the selected song for a key-less ask. */
+  const copyTarget = (event?: KeyboardEvent): LibrarySong | undefined => {
+    const place =
+      event?.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-value]')
+        : null;
+    if (place !== null) {
+      return listArea.current?.contains(place) === true
+        ? library.songs.find(song => song.id === place.dataset['value'])
+        : undefined;
+    }
+    return event === undefined
+      ? library.songs.find(song => song.id === library.selected)
+      : undefined;
+  };
   return (
     <>
       <Panel label="라이브러리" className={styles.panel}>
@@ -119,7 +158,11 @@ export function LibraryPanel({
           />
         </PanelTools>
         <PanelBody tab="library" variant="flush" className={styles.body}>
-          <div className={styles.list} aria-busy={library.loading}>
+          <div
+            className={styles.list}
+            aria-busy={library.loading}
+            ref={listArea}
+          >
             {library.visible.length === 0 &&
             (library.query === '' ? library.listed : library.searched) ? (
               <EmptyState
@@ -162,6 +205,11 @@ export function LibraryPanel({
                 .catch((cause: unknown) =>
                   console.error('Could not append the library song:', cause),
                 );
+            },
+            duplicate: () => {
+              library
+                .duplicate(menuSong.id)
+                .catch(() => library.report('create'));
             },
             remove: () => setDeleting(menuSong.id),
             rename: () => renameAfterMenu(menuSong.id),
