@@ -536,6 +536,12 @@ optional `seconds`: 0.1 to 2.0, default 0.2, for `slide`; 0.1 to 3.0, default
 0.5, for `media`. A `seconds` outside its range is dropped when the file is read
 and falls back to its default. `none` is a cut and ignores `seconds`.
 
+`show.audio.transitionSeconds` (0 to 5, default 0.5) and
+`show.audio.fadeOutSeconds` (0.5 to 10, default 3) are optional numbers in
+seconds, the crossfade between tracks and the 페이드 아웃 time. A value out of
+range is dropped when the file is read and falls back to its default; 0 for the
+transition is a cut.
+
 `media.audioOutput` and `media.previewOutput` are optional objects
 `{ id, label }` (at most 200 characters each), the audio output device of the
 hall and of the preview player. Absent, or an empty `id`, is the Windows default

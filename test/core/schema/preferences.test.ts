@@ -406,3 +406,49 @@ describe('전환 settings', () => {
     expect(text.ok).toBe(false);
   });
 });
+
+describe('오디오 times', () => {
+  it('starts at 0.5 s and 3 s', () => {
+    expect(expectSuccess(parsePreferencesValue(HEADER)).show.audio).toEqual({
+      transitionSeconds: 0.5,
+      fadeOutSeconds: 3,
+    });
+  });
+
+  it.each([
+    ['transitionSeconds', 0],
+    ['transitionSeconds', 5],
+    ['fadeOutSeconds', 0.5],
+    ['fadeOutSeconds', 10],
+  ])('accepts %s %s and keeps unknown fields', (key, seconds) => {
+    expectRoundTrip(codec, {
+      ...HEADER,
+      show: {audio: {[key]: seconds, future: 1}},
+    });
+  });
+
+  it.each([
+    ['transitionSeconds', -0.1, 0.5],
+    ['transitionSeconds', 5.1, 0.5],
+    ['fadeOutSeconds', 0.4, 3],
+    ['fadeOutSeconds', 10.5, 3],
+  ])('drops %s %s on read and falls back to %s', (key, seconds, fallback) => {
+    const loaded = parse({...HEADER, show: {audio: {[key]: seconds}}});
+    expect(
+      withPreferenceDefaults(loaded).show.audio[
+        key === 'transitionSeconds' ? 'transitionSeconds' : 'fadeOutSeconds'
+      ],
+    ).toBe(fallback);
+  });
+
+  it('refuses to write a time out of range', () => {
+    const written = serializePreferences(
+      {
+        ...defaultPreferences,
+        show: {audio: {fadeOutSeconds: 11}},
+      },
+      'preferences.json',
+    );
+    expect(written.ok).toBe(false);
+  });
+});

@@ -58,6 +58,7 @@ function setup() {
   const onFadeEnd = vi.fn();
   const onError = vi.fn();
   const player = new AudioPlayer(root, {now, onNext, onFadeEnd, onError});
+  player.setTimes({transitionMs: 0, fadeOutMs: 3000});
   onTestFinished(() => player.dispose());
   const [first, second] = root.querySelectorAll('audio');
   if (first === undefined || second === undefined) {
@@ -490,5 +491,87 @@ describe('AudioPlayer', () => {
       ['phones'],
       ['phones'],
     ]);
+  });
+
+  it('fades out for the time of the setting', async () => {
+    vi.useFakeTimers();
+    const {root, player, first, now, onFadeEnd} = setup();
+    player.setTimes({transitionMs: 0, fadeOutMs: 1000});
+    player.show(state());
+    await ready(first);
+    player.show(state(1, {fadeOutSince: 5000}));
+    now.mockReturnValue(5500);
+    vi.advanceTimersByTime(500);
+    expect(first.volume).toBeCloseTo(0.5);
+    now.mockReturnValue(6000);
+    vi.advanceTimersByTime(500);
+    expect(root.querySelector('audio[src]')).toBeNull();
+    expect(onFadeEnd).toHaveBeenCalledExactlyOnceWith(1, 5000);
+  });
+
+  describe('the 오디오 전환', () => {
+    async function crossfading() {
+      vi.useFakeTimers();
+      const made = setup();
+      made.now.mockImplementation(() => Date.now());
+      made.player.setTimes({transitionMs: 1000, fadeOutMs: 3000});
+      return made;
+    }
+
+    it('fades a starting track in over the transition time', async () => {
+      const {player, first} = await crossfading();
+      player.show(state());
+      await ready(first);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(first.volume).toBeCloseTo(0, 1);
+      await vi.advanceTimersByTimeAsync(500);
+      expect(first.volume).toBeCloseTo(0.5, 1);
+      await vi.advanceTimersByTimeAsync(600);
+      expect(first.volume).toBe(1);
+    });
+
+    it('fades the next track in while the one it replaces fades out and is let go', async () => {
+      const {player, first, second} = await crossfading();
+      player.show(state());
+      await ready(first);
+      await vi.advanceTimersByTimeAsync(1100);
+      player.show(state(2));
+      await ready(second);
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(500);
+      expect(first.volume).toBeCloseTo(0.5, 1);
+      expect(second.volume).toBeCloseTo(0.5, 1);
+      expect(first.hasAttribute('src')).toBe(true);
+      await vi.advanceTimersByTimeAsync(600);
+      expect(first.hasAttribute('src')).toBe(false);
+      expect(second.volume).toBe(1);
+    });
+
+    it('keeps the track that is fading out through other state changes', async () => {
+      const {player, first, second} = await crossfading();
+      player.show(state());
+      await ready(first);
+      await vi.advanceTimersByTimeAsync(1100);
+      player.show(state(2));
+      await ready(second);
+      await vi.advanceTimersByTimeAsync(300);
+      player.show(state(2, {}, 80));
+      expect(first.hasAttribute('src')).toBe(true);
+    });
+
+    it('cuts when the time is 0', async () => {
+      vi.useFakeTimers();
+      const {player, first, second} = setup();
+      player.setTimes({transitionMs: 0, fadeOutMs: 3000});
+      player.show(state());
+      await ready(first);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(first.volume).toBe(1);
+      player.show(state(2));
+      await ready(second);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(second.volume).toBe(1);
+      expect(first.hasAttribute('src')).toBe(false);
+    });
   });
 });

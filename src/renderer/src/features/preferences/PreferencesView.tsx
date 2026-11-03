@@ -3,6 +3,7 @@ import {ListBox, ListRow} from '@renderer/ui';
 import {Properties} from '@renderer/ui/PropertyRow';
 import type {Notice} from '@renderer/ui/notices';
 import {
+  AboutPage,
   GeneralPage,
   LibraryPage,
   MediaPage,
@@ -88,6 +89,7 @@ export function PreferencesView({
           {page === 'library' ? (
             <LibraryPage edits={edits} onProblem={onProblem} />
           ) : null}
+          {page === 'about' ? <AboutPage /> : null}
           {page === 'media' ? <MediaPage edits={edits} /> : null}
           {page === 'bible' ? <BiblePage edits={edits} bible={bible} /> : null}
           {page === 'import' ? <ImportPage edits={edits} /> : null}

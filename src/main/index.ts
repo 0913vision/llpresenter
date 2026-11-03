@@ -23,6 +23,7 @@ import {
 import {registerThemeOutput} from './live/themes';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
+import {diagnosticsText} from './diagnostics';
 import {showOutputsOnLaunch} from './outputs/launch';
 import {registerProblemFeed} from './problemFeed';
 import {startOutputs} from './outputs/start';
@@ -156,6 +157,14 @@ function start(): void {
           name: app.getName(),
           version: app.getVersion(),
           logDirectory: join(app.getPath('userData'), 'logs'),
+          diagnostics: diagnosticsText({
+            logDirectory: join(app.getPath('userData'), 'logs'),
+            dataFolder: app.getPath('userData'),
+            screens: async () => (await dataStore.settings)?.get('screens'),
+            log,
+          }),
+          setVerbose: on => log.setVerbose(on),
+          isVerbose: () => log.verbose,
         },
       });
       const stopBible = registerBible({

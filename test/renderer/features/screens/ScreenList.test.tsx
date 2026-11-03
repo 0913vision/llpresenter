@@ -38,8 +38,12 @@ const CREATED_ID = '00000000-0000-4000-8000-000000000201';
 function setup(
   initial: SettingsDocument = screensDocument(),
   held?: Promise<void>,
-  monitors: MonitorList = [],
+  extras: {
+    readonly monitors?: MonitorList;
+    readonly preferences?: SettingsDocument;
+  } = {},
 ) {
+  const {monitors = [], preferences} = extras;
   let document = initial;
   const listeners = new Set<(next: SettingsDocument) => void>();
   const send = vi.fn();
@@ -62,7 +66,12 @@ function setup(
     live: {send},
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {
-      get: () => Promise.resolve(document),
+      get: ({name}) =>
+        Promise.resolve(
+          name === 'preferences' && preferences !== undefined
+            ? preferences
+            : document,
+        ),
       edit,
       subscribe: listener => {
         listeners.add(listener);
@@ -224,11 +233,9 @@ describe('screen creation and group outputs', () => {
   });
 
   it('adds and assigns a monitor in one revision and releases its previous screen', async () => {
-    const {send, edit} = setup(
-      screensDocument(),
-      undefined,
-      wideMonitorArrangement,
-    );
+    const {send, edit} = setup(screensDocument(), undefined, {
+      monitors: wideMonitorArrangement,
+    });
     await add('청중', '모니터 2(1920×1080)');
     await screen.findByRole('option', {name: '새 청중 화면'});
     expect(edit).toHaveBeenCalledOnce();
@@ -581,6 +588,27 @@ describe('screen creation and group outputs', () => {
     });
     expect(request.value.screens.at(-1)?.display).toBeUndefined();
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('gives a new screen the 환경설정 values for 절전 막기, 항상 위, and 연결이 끊기면', async () => {
+    const {edit} = setup(screensDocument(), undefined, {
+      preferences: settingsDocument('preferences', {
+        format: 'llsettings.preferences',
+        schemaVersion: 1,
+        preventSleep: false,
+        alwaysOnTop: true,
+        onDisconnect: 'off',
+      }),
+    });
+    await add('청중', '새 창');
+    await screen.findByRole('option', {name: '새 청중 화면'});
+    const request = edit.mock.calls[0]?.[0];
+    if (request?.name !== 'screens') throw new Error('Missing screen creation');
+    expect(request.value.screens.at(-1)).toMatchObject({
+      preventSleep: false,
+      alwaysOnTop: true,
+      onDisconnect: 'off',
+    });
   });
 
   it('switches a new screen on when its group is on', async () => {

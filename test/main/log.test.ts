@@ -39,6 +39,22 @@ describe('createLogger', () => {
     await rm(dir, {recursive: true, force: true});
   });
 
+  it('writes debug lines only while 자세한 기록 is on, and starts off', async () => {
+    const logger = createLogger(dir);
+    logger.debug?.('before', {step: 1});
+    logger.setVerbose(true);
+    logger.debug?.('during', {step: 2});
+    logger.setVerbose(false);
+    logger.debug?.('after', {step: 3});
+    logger.info('end');
+    await logger.flush();
+    const text = (await linesOf(join(dir, 'main.log'))).join(' ');
+    expect(text).toContain('[verbose] during {"step":2}');
+    expect(text).not.toContain('before');
+    expect(text).not.toContain('after');
+    expect(text).toContain('end');
+  });
+
   it('writes the time, level, and message, and appends error stacks', async () => {
     const log = createLogger(join(dir, 'logs'));
     log.info('started', {version: '0.2.0'});

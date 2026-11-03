@@ -7,6 +7,7 @@ export const PREFERENCE_PAGE_IDS = [
   'bible',
   'import',
   'shortcuts',
+  'about',
 ] as const;
 
 export type PreferencePageId = (typeof PREFERENCE_PAGE_IDS)[number];

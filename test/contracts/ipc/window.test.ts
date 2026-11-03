@@ -1,7 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseAppInfo,
+  DIAGNOSTICS_TEXT_LIMIT,
+  parseDiagnosticsText,
   parseFullScreen,
+  parseOnOff,
   parsePreferencePage,
   parseWindowAction,
   parseTextEditAction,
@@ -64,5 +67,37 @@ describe('window full screen', () => {
 
   it.each(['true', 1, null, undefined, {}])('rejects the state %j', value => {
     expect(parseFullScreen(value)).toMatchObject({ok: false});
+  });
+});
+
+describe('the 자세한 기록 and 진단 정보 calls', () => {
+  it('reads on and off, and refuses anything else, for the switch and its state', () => {
+    expect(parseOnOff(true)).toEqual({ok: true, value: true});
+    expect(windowEndpoints.verboseLogging.message(false)).toEqual({
+      ok: true,
+      value: false,
+    });
+    expect(windowEndpoints.verboseLoggingState.reply(true)).toEqual({
+      ok: true,
+      value: true,
+    });
+    for (const value of ['true', 1, null, undefined, {}]) {
+      expect(parseOnOff(value)).toMatchObject({ok: false});
+      expect(windowEndpoints.verboseLogging.message(value)).toMatchObject({
+        ok: false,
+      });
+    }
+  });
+
+  it('accepts the diagnostics text up to its limit and refuses a longer or other value', () => {
+    expect(
+      parseDiagnosticsText('x'.repeat(DIAGNOSTICS_TEXT_LIMIT)),
+    ).toMatchObject({
+      ok: true,
+    });
+    expect(
+      parseDiagnosticsText('x'.repeat(DIAGNOSTICS_TEXT_LIMIT + 1)),
+    ).toMatchObject({ok: false});
+    expect(parseDiagnosticsText(3)).toMatchObject({ok: false});
   });
 });

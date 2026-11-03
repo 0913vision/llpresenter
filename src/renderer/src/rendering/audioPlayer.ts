@@ -1,11 +1,9 @@
 import type {AudioLayer, LiveState} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {
-  AUDIO_MANUAL_FADE_MS,
-  audioPositionSeconds,
-} from '@core/schema/audioState';
+import {audioPositionSeconds} from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';
 import {applySink} from './audioSink';
+import {DEFAULT_AUDIO_TIMES, type AudioTimes} from '@core/media/audioTimes';
 import type {ClearEffect} from '@core/schema/clearFade';
 
 interface AudioPlayerOptions {
@@ -22,6 +20,8 @@ interface Track {
   ready: boolean;
   attempted: boolean;
   generation: number;
+  /** The crossfade gain of this track: 0 to 1 while it fades in or out. */
+  fade: number;
 }
 
 interface ManualFade {
@@ -47,6 +47,13 @@ export class AudioPlayer {
   private gain = 1;
   private volume = 1;
   private sinkId = '';
+  private times: AudioTimes = DEFAULT_AUDIO_TIMES;
+  private cancelCrossfade: (() => void) | null = null;
+  private crossfading: {
+    readonly entering: Track;
+    readonly leaving: Track | null;
+    readonly done: () => void;
+  } | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -64,6 +71,7 @@ export class AudioPlayer {
         ready: false,
         attempted: false,
         generation: 0,
+        fade: 1,
       };
     });
     for (const track of this.tracks) {
@@ -103,6 +111,15 @@ export class AudioPlayer {
     }
   }
 
+  /**
+   * Sets how long the next track takes to fade in over the one it replaces,
+   * and how long a 페이드 아웃 takes; 0 is a cut. A change already running
+   * keeps the time it started with.
+   */
+  setTimes(times: AudioTimes): void {
+    this.times = times;
+  }
+
   show(state: LiveState): void {
     if (this.disposed) return;
     this.attempt(() => {
@@ -123,6 +140,7 @@ export class AudioPlayer {
         if (
           track.layer !== null &&
           track !== this.active &&
+          track !== this.crossfading?.leaving &&
           track.layer.playback?.trackVersion !== layer?.playback?.trackVersion
         ) {
           this.attempt(() => this.unload(track));
@@ -157,6 +175,7 @@ export class AudioPlayer {
         }
         return;
       }
+      this.finishCrossfade();
       const spare = this.tracks.find(track => track !== this.active);
       if (spare === undefined) return;
       this.unload(spare);
@@ -171,6 +190,8 @@ export class AudioPlayer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.cancelCrossfade?.();
+    this.crossfading = null;
     this.cancelFade?.();
     this.cancelFade = null;
     for (const release of this.releases) release();
@@ -248,13 +269,13 @@ export class AudioPlayer {
     try {
       const remaining = Math.max(
         0,
-        AUDIO_MANUAL_FADE_MS - Math.max(0, this.options.now() - since),
+        this.times.fadeOutMs - Math.max(0, this.options.now() - since),
       );
       if (remaining === 0) {
         this.finishManualFade(manual);
         return manual;
       }
-      const startGain = remaining / AUDIO_MANUAL_FADE_MS;
+      const startGain = remaining / this.times.fadeOutMs;
       this.setGain(startGain);
       this.cancelFade = fadeAudio({
         durationMs: remaining,
@@ -292,12 +313,53 @@ export class AudioPlayer {
     const volume =
       this.volume *
       this.gain *
+      track.fade *
       (properties?.audio === false ? 0 : (properties?.volume ?? 100) / 100);
     if (track.element.volume !== volume) track.element.volume = volume;
     const speed = properties?.speed ?? 1;
     if (track.element.playbackRate !== speed) {
       track.element.playbackRate = speed;
     }
+  }
+
+  /** The new track fades in while the one it replaces fades out and is let go. */
+  private crossfade(entering: Track, leaving: Track | null): void {
+    entering.fade = 0;
+    this.applyProperties(entering);
+    const generation = leaving?.generation;
+    const done = (): void => {
+      this.cancelCrossfade = null;
+      this.crossfading = null;
+      entering.fade = 1;
+      this.applyProperties(entering);
+      if (leaving !== null && leaving.generation === generation) {
+        this.attempt(() => this.unload(leaving));
+      }
+    };
+    this.crossfading = {entering, leaving, done};
+    this.cancelCrossfade = fadeAudio({
+      durationMs: this.times.transitionMs,
+      now: this.options.now,
+      gain: fraction => {
+        entering.fade = 1 - fraction;
+        this.applyProperties(entering);
+        if (leaving !== null && leaving.generation === generation) {
+          leaving.fade = fraction;
+          this.applyProperties(leaving);
+        }
+      },
+      end: done,
+      onError: error => this.report(error),
+    });
+  }
+
+  /** Ends a crossfade at once, so a newer change starts from settled tracks. */
+  private finishCrossfade(): void {
+    const running = this.crossfading;
+    if (running === null) return;
+    this.cancelCrossfade?.();
+    running.done();
+    this.crossfading = null;
   }
 
   private stopTracks(): void {
@@ -344,8 +406,19 @@ export class AudioPlayer {
       }
       const previous = this.active;
       this.active = track;
+      this.finishCrossfade();
       if (previous !== null && previous !== track) {
-        this.attempt(() => this.unload(previous));
+        if (playback.since !== null && this.times.transitionMs > 0) {
+          this.crossfade(track, previous);
+        } else {
+          this.attempt(() => this.unload(previous));
+        }
+      } else if (
+        previous === null &&
+        playback.since !== null &&
+        this.times.transitionMs > 0
+      ) {
+        this.crossfade(track, null);
       }
     };
     this.seek(track);
@@ -379,6 +452,7 @@ export class AudioPlayer {
   }
 
   private unload(track: Track): void {
+    track.fade = 1;
     track.layer = null;
     track.generation += 1;
     track.ready = false;

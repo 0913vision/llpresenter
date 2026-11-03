@@ -1,10 +1,11 @@
-import type {JSX} from 'react';
+import {useEffect, useState, type JSX} from 'react';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
 import type {Notice} from '@renderer/ui/notices';
-import {PropertyGroup} from '@renderer/ui/PropertyRow';
+import {PropertyGroup, PropertyValue} from '@renderer/ui/PropertyRow';
 import {
+  AUDIO_LIMITS,
   PREFERENCE_LIMITS,
   previewFpsChoices,
   TRANSITION_LIMITS,
@@ -33,6 +34,7 @@ export const preferencePages = [
   {id: 'bible', label: '성경', icon: 'book'},
   {id: 'import', label: '가져오기', icon: 'download'},
   {id: 'shortcuts', label: '단축키', icon: 'keyboard'},
+  {id: 'about', label: '정보', icon: 'info'},
 ] as const satisfies ReadonlyArray<{
   id: PreferencePageId;
   label: string;
@@ -71,6 +73,7 @@ const ZOOM_OPTIONS = Array.from(
   },
 );
 const TRANSITION_NOTE = '다음 슬라이드나 다음 배경부터 적용됩니다';
+const NEXT_TRACK_NOTE = '다음 곡부터 적용됩니다';
 const NEXT_LAUNCH_NOTE = '다음에 켤 때 적용됩니다';
 const BACKUP_NOTE = '다음 백업부터 적용됩니다';
 
@@ -156,6 +159,42 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
             change(stored => ({
               ...stored,
               show: {...stored.show, atLastSlide},
+            }))
+          }
+        />
+      </PropertyGroup>
+      <PropertyGroup title="오디오">
+        <CountRow
+          label="오디오 전환"
+          unit="초"
+          disabled={disabled}
+          title={lockedReason ?? NEXT_TRACK_NOTE}
+          value={preferences.show.audio.transitionSeconds}
+          {...AUDIO_LIMITS.transition}
+          onChange={transitionSeconds =>
+            change(stored => ({
+              ...stored,
+              show: {
+                ...stored.show,
+                audio: {...stored.show?.audio, transitionSeconds},
+              },
+            }))
+          }
+        />
+        <CountRow
+          label="페이드 아웃 시간"
+          unit="초"
+          disabled={disabled}
+          title={lockedReason}
+          value={preferences.show.audio.fadeOutSeconds}
+          {...AUDIO_LIMITS.fadeOut}
+          onChange={fadeOutSeconds =>
+            change(stored => ({
+              ...stored,
+              show: {
+                ...stored.show,
+                audio: {...stored.show?.audio, fadeOutSeconds},
+              },
             }))
           }
         />
@@ -415,5 +454,68 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
         }
       />
     </PropertyGroup>
+  );
+}
+
+const VERSION_LOADING = '확인 중';
+
+/** 정보: 현재 버전, 문제 해결. */
+export function AboutPage(): JSX.Element {
+  const [version, setVersion] = useState(VERSION_LOADING);
+  const [copied, setCopied] = useState<'idle' | 'done' | 'failed'>('idle');
+  const [verbose, setVerbose] = useState(false);
+  useEffect(() => {
+    window.llp?.window.verboseLogging().then(setVerbose, () => undefined);
+    window.llp?.window.appInfo().then(
+      info => setVersion(info.version),
+      () => setVersion(''),
+    );
+  }, []);
+  const copy = (): void => {
+    const api = window.llp;
+    if (api === undefined) return;
+    api.window
+      .diagnostics()
+      .then(text => navigator.clipboard.writeText(text))
+      .then(
+        () => setCopied('done'),
+        () => setCopied('failed'),
+      );
+  };
+  return (
+    <>
+      <PropertyGroup title="버전">
+        <PropertyValue label="현재 버전" value={version} />
+      </PropertyGroup>
+      <PropertyGroup title="문제 해결">
+        <ValueActionRow
+          label="기록 폴더"
+          value=""
+          action="폴더 열기"
+          onAction={() => window.llp?.window.openLogFolder()}
+        />
+        <ValueActionRow
+          label="진단 정보"
+          value={
+            copied === 'done'
+              ? '복사했습니다'
+              : copied === 'failed'
+                ? '복사하지 못했습니다'
+                : ''
+          }
+          action="복사"
+          onAction={copy}
+        />
+        <CheckboxRow
+          label="자세한 기록"
+          title="다음에 켤 때는 꺼집니다"
+          checked={verbose}
+          onChange={on => {
+            setVerbose(on);
+            window.llp?.window.setVerboseLogging(on);
+          }}
+        />
+      </PropertyGroup>
+    </>
   );
 }

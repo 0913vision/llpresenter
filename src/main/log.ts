@@ -10,6 +10,8 @@ export interface Logger {
   info(message: string, detail?: unknown): void;
   warn(message: string, detail?: unknown): void;
   error(message: string, detail?: unknown): void;
+  /** More detail, written only while 자세한 기록 is on; absent on a logger that has no such switch. */
+  debug?(message: string, detail?: unknown): void;
   /** Resolves once every line logged so far is written (before quitting, in tests). */
   flush(): Promise<void>;
 }
@@ -67,6 +69,10 @@ function droppedEntry(dropped: number): Entry {
 
 /** A logger that writes to a file, with what it hasn't written yet. */
 export interface FileLogger extends Logger {
+  /** Turns 자세한 기록 on or off; it is off at every launch. */
+  setVerbose(on: boolean): void;
+  /** Whether 자세한 기록 is on. */
+  readonly verbose: boolean;
   /** Lines waiting for the disk, at most `maxPendingLines`. */
   readonly pendingLines: number;
 }
@@ -79,6 +85,7 @@ class RotatingFileLogger implements FileLogger {
   private pending: Entry[] = [];
   private dropped = 0;
   private writing: Promise<void> | null = null;
+  verbose = false;
 
   constructor(
     private readonly dir: string,
@@ -101,6 +108,14 @@ class RotatingFileLogger implements FileLogger {
 
   error(message: string, detail?: unknown): void {
     this.log('error', message, detail);
+  }
+
+  debug(message: string, detail?: unknown): void {
+    if (this.verbose) this.log('info', `[verbose] ${message}`, detail);
+  }
+
+  setVerbose(on: boolean): void {
+    this.verbose = on;
   }
 
   async flush(): Promise<void> {

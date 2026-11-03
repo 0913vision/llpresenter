@@ -61,6 +61,16 @@ const mediaTransitionSchema = jsonObject({
   seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.media)),
 });
 
+/** The seconds the 오디오 rows allow (spec 10, 진행 page). */
+export const AUDIO_LIMITS = {
+  transition: {min: 0, max: 5, step: 0.1},
+  fadeOut: {min: 0.5, max: 10, step: 0.5},
+} as const;
+
+function secondsWithin({min, max}: {min: number; max: number}) {
+  return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
+}
+
 /** The frame rates the previews may run at. */
 export const previewFpsChoices = [15, 30, 60] as const;
 
@@ -124,6 +134,14 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       showClearUndoButton: optionalBoolean,
       atLastSlide: v.exactOptional(atLastSlideSchema),
+      audio: v.exactOptional(
+        jsonObject({
+          transitionSeconds: v.exactOptional(
+            secondsWithin(AUDIO_LIMITS.transition),
+          ),
+          fadeOutSeconds: v.exactOptional(secondsWithin(AUDIO_LIMITS.fadeOut)),
+        }),
+      ),
     }),
   ),
   backup: v.exactOptional(
@@ -225,7 +243,11 @@ export const defaultPreferences: Preferences = {
       media: {kind: 'dissolve', seconds: 0.5},
     },
   },
-  show: {showClearUndoButton: false, atLastSlide: 'stop'},
+  show: {
+    showClearUndoButton: false,
+    atLastSlide: 'stop',
+    audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},
+  },
   backup: {auto: true, keep: 30},
   media: {
     copyOnImport: false,
@@ -260,7 +282,11 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
         },
       },
     },
-    show: {...defaultPreferences.show, ...stored.show},
+    show: {
+      ...defaultPreferences.show,
+      ...stored.show,
+      audio: {...defaultPreferences.show.audio, ...stored.show?.audio},
+    },
     backup: {...defaultPreferences.backup, ...stored.backup},
     media: {...defaultPreferences.media, ...stored.media},
     bible: {...defaultPreferences.bible, ...stored.bible},
@@ -335,6 +361,20 @@ function dropValuesOutOfRange(
       dropped.push(...inner.dropped);
     }
     kept = {...kept, output: {...output, transition: changed}};
+  }
+  const show = kept['show'];
+  const audio = isRecord(show) ? show['audio'] : undefined;
+  if (isRecord(show) && isRecord(audio)) {
+    const inner = withoutInvalid(
+      audio,
+      {
+        transitionSeconds: secondsWithin(AUDIO_LIMITS.transition),
+        fadeOutSeconds: secondsWithin(AUDIO_LIMITS.fadeOut),
+      },
+      'show.audio.',
+    );
+    kept = {...kept, show: {...show, audio: inner.content}};
+    dropped.push(...inner.dropped);
   }
   return {content: kept, dropped};
 }

@@ -388,6 +388,37 @@ describe('registerIpc window actions', () => {
     expect(electron.handlers.has(windowEndpoints.appInfo.channel)).toBe(false);
   });
 
+  it('answers whether 자세한 기록 is on from the state main keeps, and takes the switch', async () => {
+    let verbose = false;
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: {
+        ...FACTS,
+        setVerbose: on => {
+          verbose = on;
+        },
+        isVerbose: () => verbose,
+      },
+    });
+    const ask = () =>
+      electron.handlers.get(windowEndpoints.verboseLoggingState.channel)?.();
+    expect(await ask()).toBe(false);
+    electron.listeners.get(windowEndpoints.verboseLogging.channel)?.(
+      {sender: {id: 1}},
+      true,
+    );
+    expect(await ask()).toBe(true);
+    electron.listeners.get(windowEndpoints.verboseLogging.channel)?.(
+      {sender: {id: 1}},
+      'not a switch',
+    );
+    expect(await ask()).toBe(true);
+    dispose();
+    expect(
+      electron.handlers.has(windowEndpoints.verboseLoggingState.channel),
+    ).toBe(false);
+  });
+
   it('opens the log folder, but never in an offscreen check', () => {
     const channel = windowEndpoints.openLogFolder.channel;
     const normal = registerIpc(mockStore(), mockLog(), {

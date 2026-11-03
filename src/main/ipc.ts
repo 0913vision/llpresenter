@@ -128,6 +128,12 @@ export interface AppFacts {
   readonly name: string;
   readonly version: string;
   readonly logDirectory: string;
+  /** The text of 진단 정보. */
+  readonly diagnostics?: () => Promise<string>;
+  /** Turns 자세한 기록 on or off. */
+  readonly setVerbose?: (on: boolean) => void;
+  /** Whether 자세한 기록 is on. */
+  readonly isVerbose?: () => boolean;
 }
 
 /**
@@ -165,6 +171,7 @@ export function registerIpc(
     for (const error of command.value.rejected) {
       log.warn('dropped a malformed command', error);
     }
+    log.debug?.('live command', command.value.command.type);
     dispatchLogged(store, command.value.command, log);
   });
   ipcMain.handle(
@@ -176,6 +183,22 @@ export function registerIpc(
     name: app.name,
     version: app.version,
   }));
+  ipcMain.handle(windowEndpoints.diagnostics.channel, () =>
+    app.diagnostics === undefined
+      ? Promise.reject(new Error('Diagnostics are not available'))
+      : app.diagnostics(),
+  );
+  ipcMain.on(
+    windowEndpoints.verboseLogging.channel,
+    (_event, value: unknown) => {
+      const parsed = windowEndpoints.verboseLogging.message(value);
+      if (parsed.ok) app.setVerbose?.(parsed.value);
+    },
+  );
+  ipcMain.handle(
+    windowEndpoints.verboseLoggingState.channel,
+    () => app.isVerbose?.() ?? false,
+  );
   ipcMain.on(windowEndpoints.openLogFolder.channel, () => {
     // NOTE(0913vision): An offscreen check must never open the file manager.
     if (windowMode === 'offscreen') return;
@@ -217,6 +240,9 @@ export function registerIpc(
     ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
     ipcMain.removeHandler(windowEndpoints.appInfo.channel);
+    ipcMain.removeHandler(windowEndpoints.diagnostics.channel);
+    ipcMain.removeAllListeners(windowEndpoints.verboseLogging.channel);
+    ipcMain.removeHandler(windowEndpoints.verboseLoggingState.channel);
     ipcMain.removeHandler(windowEndpoints.fullScreen.channel);
     ipcMain.removeAllListeners(windowEndpoints.openLogFolder.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);

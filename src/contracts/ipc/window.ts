@@ -88,12 +88,27 @@ export function parseAppInfo(value: unknown): Result<AppInfo, PayloadError> {
   return {ok: false, error: {field: '', message: 'Expected the app info'}};
 }
 
-/** Checks a full screen state. */
-export function parseFullScreen(value: unknown): Result<boolean, PayloadError> {
+/** Checks the diagnostics text main collects. */
+/** The most characters of the diagnostics text; the text main builds is far smaller. */
+export const DIAGNOSTICS_TEXT_LIMIT = 20_000;
+
+export function parseDiagnosticsText(
+  value: unknown,
+): Result<string, PayloadError> {
+  return typeof value === 'string' && value.length <= DIAGNOSTICS_TEXT_LIMIT
+    ? {ok: true, value}
+    : {ok: false, error: {field: '', message: 'Expected the diagnostics text'}};
+}
+
+/** Checks a state that is on or off. */
+export function parseOnOff(value: unknown): Result<boolean, PayloadError> {
   return typeof value === 'boolean'
     ? {ok: true, value}
-    : {ok: false, error: {field: '', message: 'Expected a full screen state'}};
+    : {ok: false, error: {field: '', message: 'Expected on or off'}};
 }
+
+/** Checks a full screen state. */
+export const parseFullScreen = parseOnOff;
 
 /** The title bar calls. */
 export const windowEndpoints = {
@@ -110,6 +125,9 @@ export const windowEndpoints = {
   ),
   openLogFolder: signal('window:open-log-folder'),
   appInfo: query<AppInfo>('window:app-info', parseAppInfo),
+  diagnostics: query<string>('window:diagnostics', parseDiagnosticsText),
+  verboseLogging: message<boolean>('window:verbose-logging', parseOnOff),
+  verboseLoggingState: query<boolean>('window:verbose-logging:get', parseOnOff),
   showPreferencesPage: push<PreferencePageId>(
     'window:show-preferences-page',
     parsePreferencePage,
@@ -148,6 +166,12 @@ export function windowApi(port: IpcPort) {
     openPreferences: port.signal(windowEndpoints.openPreferences),
     /** Opens the app's log folder in the file manager. */
     openLogFolder: port.signal(windowEndpoints.openLogFolder),
+    /** The text 진단 정보 copies: versions, devices, and recent errors. */
+    diagnostics: port.query(windowEndpoints.diagnostics),
+    /** Turns 자세한 기록 on or off until the next launch. */
+    setVerboseLogging: port.message(windowEndpoints.verboseLogging),
+    /** Whether 자세한 기록 is on now; main keeps the state for the launch. */
+    verboseLogging: port.query(windowEndpoints.verboseLoggingState),
     /** The app name and version. */
     appInfo: port.query(windowEndpoints.appInfo),
     /** Opens or focuses the 환경설정 window on one of its pages. */

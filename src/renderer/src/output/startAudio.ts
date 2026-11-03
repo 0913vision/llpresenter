@@ -5,6 +5,9 @@ import {MainTimerClock} from '../rendering/mainTimerClock';
 import {followLiveState} from './liveFeed';
 import {BackgroundAudio} from './backgroundAudio';
 import {followAudioOutput} from '../rendering/audioSink';
+import {followSettingsDocument} from '../rendering/settingsFeed';
+import {audioTimes} from '@core/media/audioTimes';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 
 /** Runs audio only in main's dedicated hidden window, muted unless explicitly allowed. */
 export function startAudio({
@@ -41,6 +44,16 @@ export function startAudio({
     now: () => clock.now().timer,
   });
   let stopped = false;
+  const stopTimes = followSettingsDocument({
+    settings: api.settings,
+    name: 'preferences',
+    select: document =>
+      document.name === 'preferences'
+        ? audioTimes(withPreferenceDefaults(document.value))
+        : undefined,
+    receive: times => player.setTimes(times),
+    onError: error => report('could not read the audio times', error),
+  });
   const stopOutput = followAudioOutput({
     settings: api.settings,
     pick: 'audioOutput',
@@ -71,6 +84,7 @@ export function startAudio({
     stopped = true;
     window.removeEventListener('pagehide', stop);
     stopOutput();
+    stopTimes();
     try {
       stopFollowing?.();
     } catch (error) {

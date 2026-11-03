@@ -172,7 +172,7 @@ describe('PreferencesView', () => {
     );
   });
 
-  it('lists the seven pages and opens the 단축키 page', async () => {
+  it('lists the eight pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
@@ -183,6 +183,7 @@ describe('PreferencesView', () => {
       '성경',
       '가져오기',
       '단축키',
+      '정보',
     ]);
     await openPage('단축키');
     expect(screen.getByRole('heading').textContent).toBe('단축키');
@@ -259,6 +260,88 @@ describe('PreferencesView', () => {
     expect(edit.mock.calls[1]?.[0]).toMatchObject({baseRevision: 6});
     expect(written()).toMatchObject({showOnLaunch: true, alwaysOnTop: true});
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  describe('the 오디오 rows of the 일반 page', () => {
+    it('shows 0.5 s and 3 s by default', async () => {
+      await mount();
+      expect(
+        screen.getByRole('spinbutton', {name: '오디오 전환'}),
+      ).toHaveProperty('value', '0.5');
+      expect(
+        screen.getByRole('spinbutton', {name: '페이드 아웃 시간'}),
+      ).toHaveProperty('value', '3.0');
+    });
+
+    it('writes a committed time, kept within its range, and the other fields', async () => {
+      await mount();
+      const fade = screen.getByRole('spinbutton', {name: '페이드 아웃 시간'});
+      fireEvent.change(fade, {target: {value: '99'}});
+      fireEvent.keyDown(fade, {key: 'Enter'});
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(written().show?.audio).toEqual({fadeOutSeconds: 10});
+      expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+  });
+
+  describe('the 정보 page', () => {
+    const clipboard = vi.fn(() => Promise.resolve());
+    beforeEach(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {writeText: clipboard},
+      });
+      clipboard.mockClear();
+    });
+    afterEach(() => Reflect.deleteProperty(navigator, 'clipboard'));
+
+    it('shows the version, opens the log folder, copies the diagnostics, and turns 자세한 기록 on', async () => {
+      const openLogFolder = vi.fn();
+      const setVerboseLogging = vi.fn();
+      await mount({
+        window: {
+          openLogFolder,
+          setVerboseLogging,
+          appInfo: () => Promise.resolve({name: 'LoveLight', version: '9.8.7'}),
+          diagnostics: () => Promise.resolve('LoveLight 9.8.7'),
+        },
+      });
+      await openPage('정보');
+      expect(await screen.findByText('9.8.7')).toBeDefined();
+      await userEvent.click(screen.getByRole('button', {name: '폴더 열기'}));
+      expect(openLogFolder).toHaveBeenCalledOnce();
+      await userEvent.click(screen.getByRole('button', {name: '복사'}));
+      await waitFor(() =>
+        expect(clipboard).toHaveBeenCalledExactlyOnceWith('LoveLight 9.8.7'),
+      );
+      expect(await screen.findByText('복사했습니다')).toBeDefined();
+      const verbose = screen.getByRole('checkbox', {name: '자세한 기록'});
+      expect(verbose.getAttribute('aria-checked')).toBe('false');
+      await userEvent.click(verbose);
+      expect(setVerboseLogging).toHaveBeenCalledExactlyOnceWith(true);
+      expect(edit).not.toHaveBeenCalled();
+    });
+
+    it('shows 자세한 기록 on when main says it is on, so a reopened page matches the logger', async () => {
+      await mount({window: {verboseLogging: () => Promise.resolve(true)}});
+      await openPage('정보');
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('checkbox', {name: '자세한 기록'})
+            .getAttribute('aria-checked'),
+        ).toBe('true'),
+      );
+    });
+
+    it('says when the diagnostics could not be copied', async () => {
+      await mount({
+        window: {diagnostics: () => Promise.reject(new Error('no'))},
+      });
+      await openPage('정보');
+      await userEvent.click(screen.getByRole('button', {name: '복사'}));
+      expect(await screen.findByText('복사하지 못했습니다')).toBeDefined();
+    });
   });
 
   describe('the 전환 rows of the 출력 page', () => {

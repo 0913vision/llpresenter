@@ -1,12 +1,24 @@
 import {useLayoutEffect, useRef} from 'react';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 import {parseScreenId, type ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {NewScreen} from './addScreen';
+import type {NewScreen, OutputDefaults} from './addScreen';
 import {useScreensSelection} from './selection';
-import type {NamedDocument} from '../../platform/useSettingsDocument';
+import {
+  useSettingsDocument,
+  type NamedDocument,
+} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
+
+function outputDefaults(
+  stored: Parameters<typeof withPreferenceDefaults>[0],
+): OutputDefaults {
+  const {preventSleep, alwaysOnTop, onDisconnect} =
+    withPreferenceDefaults(stored);
+  return {preventSleep, alwaysOnTop, onDisconnect};
+}
 
 /**
  * Creates screens without overriding a newer selection or an unmounted
@@ -19,6 +31,7 @@ export function useScreenCreation(
   switchOn: (screenId: ScreenId) => void,
 ) {
   const editor = useScreenEditor(document, onProblem);
+  const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
   const mounted = useRef(false);
   const latest = useRef<string | null>(null);
   useLayoutEffect(() => {
@@ -64,6 +77,9 @@ export function useScreenCreation(
         kind,
         method,
         ...(monitor === undefined ? {} : {monitor}),
+        ...(preferences === null
+          ? {}
+          : {defaults: outputDefaults(preferences.value)}),
       })
       .then(saved => {
         if (saved && groupOn) switchOn(id.value);
