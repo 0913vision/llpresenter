@@ -21,7 +21,8 @@ import {
   type TextImportReadRequest,
   type TextImportReadResult,
 } from '@core/schema/textImport';
-import {query, request, type IpcPort} from './endpoint';
+import type {SongId} from '@core/schema/ids';
+import {message, query, request, type IpcPort} from './endpoint';
 
 /** The calls that search the 라이브러리 and import songs from text. */
 export const libraryEndpoints = {
@@ -35,6 +36,10 @@ export const libraryEndpoints = {
       request: parseShowLibrarySongRequest,
       reply: (value, sent) => parseShowLibrarySongReply(sent.songId, value),
     },
+  ),
+  revealSong: message<ShowLibrarySongRequest>(
+    'library:reveal-song',
+    parseShowLibrarySongRequest,
   ),
   clipboardAvailable: query<boolean>(
     'import:text:clipboard-available',
@@ -55,11 +60,14 @@ export const libraryEndpoints = {
 
 /** The 라이브러리 part of `window.llp`. */
 export function libraryApi(port: IpcPort) {
+  const revealSong = port.message(libraryEndpoints.revealSong);
   return {
     /** Searches main's index; rejects and logs malformed requests or replies. */
     search: port.request(libraryEndpoints.search),
     /** Reads a 라이브러리 song as 진행 shows it, or `null` when it is gone. */
     showSong: port.request(libraryEndpoints.showSong),
+    /** Shows a song's file in the file manager; main finds it by id. */
+    revealSong: (songId: SongId): void => revealSong({songId}),
   };
 }
 

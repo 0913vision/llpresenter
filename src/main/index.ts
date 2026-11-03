@@ -6,6 +6,7 @@ import {registerFonts} from './fonts/register';
 import {registerTextImport} from './import/register';
 import {startMediaAnalysis} from './media/analysis';
 import {registerMediaBackend} from './media/register';
+import {registerSongReveal} from './store/revealSong';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
@@ -236,6 +237,12 @@ function start(): void {
         analysis,
         log,
       });
+      const stopSongReveal = registerSongReveal({
+        fileOf: async songId =>
+          (await dataStore.content)?.storedSongs().get(songId)?.file,
+        windowMode,
+        log,
+      });
       const stopTextImport = registerTextImport({
         control: win,
         windowMode,
@@ -333,6 +340,7 @@ function start(): void {
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop font enumeration', run: stopFonts});
       shutdown.add({name: 'stop the media backend', run: stopMediaBackend});
+      shutdown.add({name: 'stop song reveal', run: stopSongReveal});
       shutdown.add({name: 'stop media analysis', run: analysis.dispose});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop audio', run: stopAudio});

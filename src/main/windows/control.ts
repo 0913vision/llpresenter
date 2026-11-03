@@ -1,4 +1,5 @@
 import {app, BrowserWindow, screen} from 'electron';
+import {windowEndpoints} from '@contracts/ipc/window';
 import type {Logger} from '../log';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from './audioPolicy';
@@ -54,6 +55,12 @@ export function createControlWindow(
     mode === 'offscreen' || audioMutedByDefault(process.env, app.isPackaged),
   );
   win.removeMenu();
+  const sendFullScreen = (on: boolean): void => {
+    if (win.isDestroyed() || win.webContents.isDestroyed()) return;
+    win.webContents.send(windowEndpoints.fullScreenChanged.channel, on);
+  };
+  win.on('enter-full-screen', () => sendFullScreen(true));
+  win.on('leave-full-screen', () => sendFullScreen(false));
   discardTestFrames(win.webContents, mode);
   zoom.attachControl(win.webContents);
   blockNavigation(win);

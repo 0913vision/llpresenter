@@ -23,13 +23,15 @@ const electron = vi.hoisted(() => ({
     };
   }>(),
   listeners: new Map<string, (event: unknown, value: unknown) => void>(),
-  handlers: new Map<string, () => unknown>(),
+  handlers: new Map<string, (event?: unknown) => unknown>(),
   openPath: vi.fn<(path: string) => Promise<string>>(() => Promise.resolve('')),
   window: {
     minimize: vi.fn(),
     maximize: vi.fn(),
     unmaximize: vi.fn(),
     isMaximized: vi.fn(() => false),
+    isFullScreen: vi.fn(() => false),
+    setFullScreen: vi.fn(),
     close: vi.fn(),
   },
 }));
@@ -260,6 +262,41 @@ describe('registerIpc text editing', () => {
     expect(electron.listeners.has(windowEndpoints.editText.channel)).toBe(
       false,
     );
+  });
+});
+
+describe('registerIpc full screen', () => {
+  it('toggles the calling window into and out of full screen, and answers its state', () => {
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+    });
+
+    sendWindowAction('toggle-full-screen');
+    expect(electron.window.setFullScreen).toHaveBeenLastCalledWith(true);
+    electron.window.isFullScreen.mockReturnValue(true);
+    sendWindowAction('toggle-full-screen');
+    expect(electron.window.setFullScreen).toHaveBeenLastCalledWith(false);
+
+    const ask = electron.handlers.get(windowEndpoints.fullScreen.channel);
+    expect(ask?.({sender: {}})).toBe(true);
+    electron.window.isFullScreen.mockReturnValue(false);
+    expect(ask?.({sender: {}})).toBe(false);
+    dispose();
+    expect(electron.handlers.has(windowEndpoints.fullScreen.channel)).toBe(
+      false,
+    );
+  });
+
+  it('never changes full screen on an offscreen window', () => {
+    electron.window.setFullScreen.mockClear();
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+    });
+    sendWindowAction('toggle-full-screen');
+    expect(electron.window.setFullScreen).not.toHaveBeenCalled();
+    dispose();
   });
 });
 

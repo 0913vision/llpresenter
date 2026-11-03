@@ -74,6 +74,8 @@ export interface PrepActions {
   readonly imported: boolean;
   readonly canImport: boolean;
   readonly importText: (source: 'file' | 'clipboard') => void;
+  /** 새 곡: opens 준비 and makes a song, as the library's plus does. */
+  readonly newSong: () => void;
   readonly openSong: (songId: SongId, position?: number) => void;
   readonly onShowInLibrary: (songId: SongId) => void;
   readonly onOpenPrep: (itemId: string, position?: number) => void;
@@ -118,6 +120,12 @@ export function usePrepActions({
     songOpen.current++;
     onWorkspace('prep');
     session.editor?.requestLeave(() => setImportSource(source));
+  };
+  const newSong = (): void => {
+    if (session.api === undefined) return;
+    songOpen.current++;
+    onWorkspace('prep');
+    session.editor?.requestLeave(() => prepSelection.create());
   };
   const imported = useSyncExternalStore(
     session.editor?.subscribe ?? noEditorSubscription,
@@ -200,6 +208,7 @@ export function usePrepActions({
     imported: workspace === 'prep' && imported,
     canImport: session.api !== undefined && importSource === null,
     importText,
+    newSong,
     openSong,
     onShowInLibrary,
     onOpenPrep,

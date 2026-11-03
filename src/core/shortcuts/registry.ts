@@ -201,7 +201,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['ctrl shift KeyV'],
     ],
     ['search.focus', '찾기', '찾기', ['control'], ['ctrl KeyF']],
-    ['library.newSong', '새 곡', '준비 편집', ['control'], []],
+    ['library.newSong', '새 곡', '준비 편집', ['control'], ['ctrl KeyN']],
     [
       'import.textFile',
       '텍스트 파일 가져오기',

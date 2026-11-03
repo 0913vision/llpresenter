@@ -15,6 +15,7 @@ type ImportText = (source: TextImportReadRequest['source']) => void;
 interface FileMenuInput {
   readonly service: ServiceActionEntries;
   readonly onImportText: ImportText | undefined;
+  readonly onNewSong: (() => void) | undefined;
   readonly clipboard: 'checking' | 'empty' | 'ready';
   readonly media: MenuItem;
 }
@@ -48,7 +49,14 @@ function textImportRow(
 export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
   const {service, media} = input;
   return [
-    laterRow('new-song', '새 곡', {command: 'library.newSong'}),
+    {
+      kind: 'item',
+      id: 'new-song',
+      label: '새 곡',
+      command: 'library.newSong',
+      ...menuAvailability(input.onNewSong === undefined ? NOT_YET : undefined),
+      onSelect: () => input.onNewSong?.(),
+    },
     {...service.newService, command: 'service.new', icon: undefined},
     laterRow('new-library', '새 라이브러리'),
     {

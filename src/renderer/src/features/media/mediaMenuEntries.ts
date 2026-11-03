@@ -19,6 +19,8 @@ export interface MediaTileActions {
   readonly relink: (id: MediaId) => void;
   readonly leave: (id: MediaId) => void;
   readonly remove: (item: MediaItem) => void;
+  readonly reveal: (id: MediaId) => void;
+  readonly rename: (item: MediaItem) => void;
 }
 
 function propertiesRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
@@ -42,17 +44,36 @@ function deleteRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   };
 }
 
+function revealRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return {
+    kind: 'item',
+    id: 'reveal',
+    label: '탐색기에서 보기',
+    onSelect: () => actions.reveal(item.id),
+  };
+}
+
+function renameRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
+  return {
+    kind: 'item',
+    id: 'rename',
+    label: '이름 바꾸기',
+    ...menuAvailability(actions.editable ? undefined : NEWER_FILE_REASON),
+    onSelect: () => actions.rename(item),
+  };
+}
+
 function audioRows(
   item: MediaItem,
   actions: MediaTileActions,
 ): readonly MenuEntry[] {
   return [
-    laterRow('reveal', '탐색기에서 보기'),
+    revealRow(item, actions),
     laterRow('playback', '재생', {submenu: true}),
     laterRow('sound-effect', '효과음으로 지정'),
     menuSeparator('properties-separator'),
     propertiesRow(item, actions),
-    laterRow('rename', '이름 바꾸기'),
+    renameRow(item, actions),
     menuSeparator('delete-separator'),
     deleteRow(item, actions),
   ];
@@ -78,7 +99,7 @@ function mediaRows(
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
     laterRow('duplicate', '복제', {icon: 'duplicate'}),
-    laterRow('rename', '이름 바꾸기'),
+    renameRow(item, actions),
     ...(actions.inPlaylist
       ? [
           {
@@ -94,7 +115,7 @@ function mediaRows(
       : []),
     deleteRow(item, actions),
     menuSeparator('export-separator'),
-    laterRow('reveal', '탐색기에서 보기'),
+    revealRow(item, actions),
     laterRow('cleanup', '정리 기준', {submenu: true}),
   ];
 }

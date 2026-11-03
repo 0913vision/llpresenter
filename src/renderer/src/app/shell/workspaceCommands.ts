@@ -141,10 +141,14 @@ export function workspaceMenu({
   onWorkspace,
   onMedia,
   continuous,
+  testPattern,
+  fullScreen,
 }: {
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onMedia: (() => void) | undefined;
   readonly continuous: ContinuousRow;
+  readonly testPattern: MenuItem;
+  readonly fullScreen: MenuItem;
 }): readonly MenuEntry[] {
   return [
     workspaceRow({id: 'show', label: '진행'}, onWorkspace),
@@ -191,10 +195,10 @@ export function workspaceMenu({
         openPalette(onWorkspace);
       },
     },
-    laterRow('test-patterns', '테스트 화면'),
+    testPattern,
     menuSeparator('preview'),
     laterRow('preview', '미리보기', {submenu: true}),
     menuSeparator('full-screen'),
-    laterRow('full-screen', '전체 화면'),
+    fullScreen,
   ];
 }

@@ -149,6 +149,7 @@ function ControlApp({
         onImportText={
           prepActions.canImport ? prepActions.importText : undefined
         }
+        onNewSong={session.api === undefined ? undefined : prepActions.newSong}
         title={serviceName}
         onProblem={session.report}
         warnings={warnings}

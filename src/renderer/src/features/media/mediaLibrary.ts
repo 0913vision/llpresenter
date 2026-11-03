@@ -385,6 +385,38 @@ export class MediaLibrary {
     );
   }
 
+  /**
+   * 이름 바꾸기 of a media item: its list name changes, its file does not. An
+   * empty name, or one that did not change, changes nothing.
+   *
+   * @returns Whether the name is saved.
+   */
+  async rename(mediaId: MediaId, name: string): Promise<boolean> {
+    const document = this.view.document;
+    const item = document?.value.items.find(({id}) => id === mediaId);
+    const trimmed = name.trim();
+    if (document === null || item === undefined || trimmed === '') {
+      return false;
+    }
+    if (trimmed === item.name) return true;
+    const result = await this.api.media
+      .edit({
+        type: 'media.properties.update',
+        mediaId,
+        changes: {name: trimmed},
+        baseRevision: document.revision,
+      })
+      .catch(rejected);
+    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.refused('Renaming media was refused', result.error.message);
+    this.onProblem(
+      warning(`media-view:rename:${mediaId}`, '미디어 이름을 바꿀 수 없음', [
+        item.name,
+      ]),
+    );
+    return false;
+  }
+
   /** 파일 위치 열기: main shows the file in Explorer, if it is in a media folder. */
   reveal(mediaId: MediaId): void {
     this.api.media.reveal(mediaId);

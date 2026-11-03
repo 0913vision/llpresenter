@@ -18,6 +18,8 @@ function actions(overrides: Partial<MediaTileActions> = {}): MediaTileActions {
     relink: vi.fn(),
     leave: vi.fn(),
     remove: vi.fn(),
+    reveal: vi.fn(),
+    rename: vi.fn(),
     ...overrides,
   };
 }
@@ -61,7 +63,10 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
       .map(row => row.id),
   ).toEqual(['cut', 'copy', 'paste', 'duplicate', 'delete']);
   for (const row of entries) {
-    if (row.kind === 'item' && !['delete', 'properties'].includes(row.id)) {
+    if (
+      row.kind === 'item' &&
+      !['delete', 'properties', 'rename', 'reveal'].includes(row.id)
+    ) {
       expect(row).toMatchObject({
         disabled: true,
         title: '이번 버전에서는 쓸 수 없음',
@@ -133,7 +138,47 @@ it('lists playlist commands in ProPresenter order and protects read-only lists',
   ).toBe(true);
   expect(
     mediaTileMenuEntries(entry, actions({editable: false})).every(
-      row => row.kind !== 'item' || row.id === 'properties' || row.disabled,
+      row =>
+        row.kind !== 'item' ||
+        row.id === 'properties' ||
+        row.id === 'reveal' ||
+        row.disabled,
     ),
   ).toBe(true);
+});
+
+it.each([false, true])(
+  'runs 탐색기에서 보기 and 이름 바꾸기 as commands (audio list %s)',
+  audioPlaylist => {
+    const reveal = vi.fn();
+    const rename = vi.fn();
+    const list = mediaTileMenuEntries(
+      entry,
+      actions({audioPlaylist, reveal, rename}),
+    );
+    const find = (id: string) =>
+      list.find(row => row.kind === 'item' && row.id === id);
+    const revealRow = find('reveal');
+    const renameRow = find('rename');
+    if (revealRow?.kind !== 'item' || renameRow?.kind !== 'item') {
+      throw new Error('Missing rows');
+    }
+    expect(revealRow.disabled).not.toBe(true);
+    expect(renameRow.disabled).not.toBe(true);
+    revealRow.onSelect?.();
+    renameRow.onSelect?.();
+    expect(reveal).toHaveBeenCalledExactlyOnceWith(item.id);
+    expect(rename).toHaveBeenCalledExactlyOnceWith(item);
+  },
+);
+
+it('protects a list a newer version wrote from a rename', () => {
+  const list = mediaTileMenuEntries(entry, actions({editable: false}));
+  const renameRow = list.find(
+    row => row.kind === 'item' && row.id === 'rename',
+  );
+  expect(renameRow).toMatchObject({
+    disabled: true,
+    title: '새 버전의 파일이라 바꿀 수 없습니다',
+  });
 });

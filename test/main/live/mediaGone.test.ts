@@ -1,5 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {noticePosition, noticeStopDelay} from '@core/overlays/noticeClock';
+import {
+  nextNoticeChange,
+  noticePosition,
+  noticeStopDelay,
+} from '@core/overlays/noticeClock';
 import type {NoticePlayback} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
 import type {MediaList} from '@core/schema/mediaList';
@@ -159,6 +163,27 @@ describe('a 공지 that is on its last image when they all leave', () => {
     expect(playback().gone).toHaveLength(3);
     expect(playback().position).toBe(2);
     expect(noticeStopDelay(playback(), 13_000)).toBe(3_000);
+  });
+});
+
+describe('a plain edit of a running 공지', () => {
+  it('leaves the shown image and the time of the next change as they were', () => {
+    const {store, setNow} = started([0, 1, 2]);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    setNow(1_000 + 6_500);
+    const before = store.state.layers.notice?.playback;
+    if (before === undefined) throw new Error('No 공지 is running');
+    const now = 1_000 + 6_500;
+    expect(noticePosition(before, now)).toBe(1);
+
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    const after = store.state.layers.notice?.playback;
+    if (after === undefined) throw new Error('No 공지 is running');
+    expect(noticePosition(after, now)).toBe(noticePosition(before, now));
+    expect(nextNoticeChange(after, now)).toBe(nextNoticeChange(before, now));
+    expect(noticePosition(after, now + 20_000)).toBe(
+      noticePosition(before, now + 20_000),
+    );
   });
 });
 

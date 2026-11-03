@@ -8,6 +8,7 @@ import {
   workspaceShortcuts,
 } from '@renderer/app/shell/workspaceCommands';
 import {menuItems} from '@renderer/ui/menuModel';
+import {fullScreenRow, testPatternRow} from '@renderer/app/shell/viewToggles';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 afterEach(() => {
@@ -110,6 +111,12 @@ describe('workspace defaults from S1', () => {
 });
 
 const CONTINUOUS_OFF = {on: false, reason: undefined, toggle: () => undefined};
+const idleTestPattern = testPatternRow({
+  screens: [],
+  outputs: {},
+  patterns: undefined,
+});
+const idleFullScreen = fullScreenRow(false);
 
 describe('workspaceMenu', () => {
   it('shows 이어서 진행 as a check that follows the choice and flips it', () => {
@@ -122,6 +129,8 @@ describe('workspaceMenu', () => {
           onWorkspace: undefined,
           onMedia: undefined,
           continuous,
+          testPattern: idleTestPattern,
+          fullScreen: idleFullScreen,
         }),
       ).find(row => row.id === 'continuous');
     expect(find({on: false, reason: undefined, toggle})).toMatchObject({
@@ -147,6 +156,8 @@ describe('workspaceMenu', () => {
         onWorkspace: undefined,
         onMedia: undefined,
         continuous: CONTINUOUS_OFF,
+        testPattern: idleTestPattern,
+        fullScreen: idleFullScreen,
       }),
     );
     for (const id of [
@@ -172,6 +183,8 @@ describe('workspaceMenu', () => {
       onWorkspace,
       onMedia: () => undefined,
       continuous: CONTINUOUS_OFF,
+      testPattern: idleTestPattern,
+      fullScreen: idleFullScreen,
     });
     const timer = entries.find(entry => entry.id === 'tool.timer');
     if (timer?.kind !== 'item') throw new Error('Missing timer row');
@@ -186,6 +199,8 @@ describe('workspaceMenu', () => {
       onWorkspace,
       onMedia: undefined,
       continuous: CONTINUOUS_OFF,
+      testPattern: idleTestPattern,
+      fullScreen: idleFullScreen,
     }).find(entry => entry.id === 'palette');
     if (item?.kind !== 'item') throw new Error('Missing palette row');
     item.onSelect?.();

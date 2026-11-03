@@ -1,7 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseAppInfo,
+  parseFullScreen,
   parsePreferencePage,
+  parseWindowAction,
   parseTextEditAction,
   textEditActions,
   windowEndpoints,
@@ -48,4 +50,19 @@ describe('the app info', () => {
       expect(parseAppInfo(value)).toMatchObject({ok: false});
     },
   );
+});
+
+describe('window full screen', () => {
+  it('accepts the toggle action and a boolean state', () => {
+    expect(parseWindowAction('toggle-full-screen')).toEqual({
+      ok: true,
+      value: 'toggle-full-screen',
+    });
+    expect(parseFullScreen(true)).toEqual({ok: true, value: true});
+    expect(parseFullScreen(false)).toEqual({ok: true, value: false});
+  });
+
+  it.each(['true', 1, null, undefined, {}])('rejects the state %j', value => {
+    expect(parseFullScreen(value)).toMatchObject({ok: false});
+  });
 });

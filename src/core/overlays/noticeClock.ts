@@ -61,6 +61,25 @@ export function nextNoticeChange(
 }
 
 /**
+ * The run of a 공지 as of its reference time (the pause, or `now` while it
+ * runs), started again at the image on screen: `position` is that image and
+ * `startedAt` keeps the time left in its interval, so the next change falls on
+ * the same boundary as before. A refresh of a running 공지 applies it first, so
+ * a longer `gone` list can never move the clock to another image (spec 08).
+ */
+export function rebaseNotice(
+  playback: NoticePlayback,
+  now: number,
+): {readonly position: number; readonly startedAt: number} {
+  const reference = playback.pausedAt ?? now;
+  const elapsed = Math.max(0, reference - playback.startedAt);
+  return {
+    position: noticePosition(playback, reference),
+    startedAt: reference - (elapsed % noticeIntervalMs(playback)),
+  };
+}
+
+/**
  * Milliseconds until a running 공지 whose every image left the library ends:
  * the image on screen keeps the rest of its interval, then the 공지 stops
  * (spec 08, "Deleting a media item that is in use"). `null` while paused, and

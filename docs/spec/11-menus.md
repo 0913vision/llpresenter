@@ -384,16 +384,16 @@ progress, nothing on output.
 - PP: PP presentation right-click
   (https://support.renewedvision.com/hc/en-us/articles/360041344234).
 
-| Group | Row                                                     | Does                                                                                                                                                                          | Status |
-| ----- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 예배 순서에 추가                                        | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu. | Now    |
-| 2     | 구성 ›                                                  | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits.                               | Off    |
-| 2     | 출력 대상 ›                                             | PP Destination.                                                                                                                                                               | Off    |
-| 3     | 곡 편집…                                                | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                                                         | New    |
-| 4     | 복사, 붙여넣기, 복제                                    | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                      | Off    |
-| 4     | 이름 바꾸기                                             | No icon, text aligned with the icon rows.                                                                                                                                     | Off    |
-| 4     | 삭제                                                    | No icon, as in PP. Confirms, then deletes.                                                                                                                                    | Now    |
-| 5     | 탐색기에서 보기, 묶음으로 내보내기…, 이미지로 내보내기… | PP Show in Finder, Export as Bundle, Export as Images.                                                                                                                        | Off    |
+| Group | Row                                                                       | Does                                                                                                                                                                                                                    | Status |
+| ----- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 예배 순서에 추가                                                          | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu.                                           | Now    |
+| 2     | 구성 ›                                                                    | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits.                                                                         | Off    |
+| 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
+| 3     | 곡 편집…                                                                  | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                                                                                                   | New    |
+| 4     | 복사, 붙여넣기, 복제                                                      | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
+| 4     | 이름 바꾸기                                                               | No icon, text aligned with the icon rows. Opens a 곡 이름 바꾸기 dialog with the title rule of the 곡 편집 title field (not empty, at most 200 characters, no other song has it); off for a song a newer version wrote. | Now    |
+| 4     | 삭제                                                                      | No icon, as in PP. Confirms, then deletes.                                                                                                                                                                              | Now    |
+| 5     | 탐색기에서 보기 (now), 묶음으로 내보내기… (off), 이미지로 내보내기… (off) | PP Show in Finder, Export as Bundle, Export as Images. 탐색기에서 보기 names only the song id; main finds the file.                                                                                                     |        | Off |
 
 ### 이름표 팝오버
 
@@ -467,24 +467,25 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
   Behavior › | Next Cue › | Cut, Copy, Paste, Duplicate, Rename, Delete | Show
   in Finder, Clean Up By ›.
 
-| Group | Row                            | Does                                                                 | Status |
-| ----- | ------------------------------ | -------------------------------------------------------------------- | ------ |
-| 0     | 다시 연결…                     | Only when the file is missing; first row (ours).                     | Now    |
-| 1     | 속성…                          | Opens the media properties editor (PP Inspector).                    | Now    |
-| 1     | 전환 효과…                     | PP Transitions.                                                      | Off    |
-| 2     | 동작 ›, 맞춤 ›, 알파 ›         | PP Behavior, Scaling, Alpha Type.                                    | Off    |
-| 3     | 재생 ›, 반복 ›, 끝나면 ›       | PP Playback, Loop, End Behavior.                                     | Off    |
-| 4     | 다음 항목 ›                    | PP Next Cue.                                                         | Off    |
-| 5     | 잘라내기, 복사, 붙여넣기, 복제 | PP clipboard rows with icons.                                        | Off    |
-| 5     | 이름 바꾸기                    | No icon.                                                             | Off    |
-| 5     | 재생목록에서 빼기              | Only inside a playlist (ours), right before 삭제.                    | Now    |
-| 5     | 삭제                           | Trash icon, as in PP. Asks first and names every use (08).           | Now    |
-| 6     | 탐색기에서 보기, 정리 기준 ›   | PP Show in Finder, Clean Up By.                                      | Off    |
-| -     | 복사 멈추기                    | While the file is being copied, the menu holds only this row (ours). | Now    |
+| Group | Row                            | Does                                                                                                                                    | Status |
+| ----- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 0     | 다시 연결…                     | Only when the file is missing; first row (ours).                                                                                        | Now    |
+| 1     | 속성…                          | Opens the media properties editor (PP Inspector).                                                                                       | Now    |
+| 1     | 전환 효과…                     | PP Transitions.                                                                                                                         | Off    |
+| 2     | 동작 ›, 맞춤 ›, 알파 ›         | PP Behavior, Scaling, Alpha Type.                                                                                                       | Off    |
+| 3     | 재생 ›, 반복 ›, 끝나면 ›       | PP Playback, Loop, End Behavior.                                                                                                        | Off    |
+| 4     | 다음 항목 ›                    | PP Next Cue.                                                                                                                            | Off    |
+| 5     | 잘라내기, 복사, 붙여넣기, 복제 | PP clipboard rows with icons.                                                                                                           | Off    |
+| 5     | 이름 바꾸기                    | No icon. Opens a 미디어 이름 바꾸기 dialog (the name must not be empty); the file keeps its name. Off for a list a newer version wrote. | Now    |
+| 5     | 재생목록에서 빼기              | Only inside a playlist (ours), right before 삭제.                                                                                       | Now    |
+| 5     | 삭제                           | Trash icon, as in PP. Asks first and names every use (08).                                                                              | Now    |
+| 6     | 탐색기에서 보기                | PP Show in Finder. Shows the file in the file manager when it is inside the media folders.                                              | Now    |
+| 6     | 정리 기준 ›                    | PP Clean Up By.                                                                                                                         | Off    |
+| -     | 복사 멈추기                    | While the file is being copied, the menu holds only this row (ours).                                                                    | Now    |
 
 - Audio files in a 오디오 playlist follow the PP audio item menu (same video
-  0:26): 탐색기에서 보기 (off), 재생 › (off), 효과음으로 지정 (off) | 속성…
-  (now, opens media properties), 이름 바꾸기 (off) | 삭제.
+  0:26): 탐색기에서 보기 (now), 재생 › (off), 효과음으로 지정 (off) | 속성…
+  (now, opens media properties), 이름 바꾸기 (now) | 삭제.
 
 ### 재생목록 오른쪽 클릭
 
@@ -547,15 +548,15 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - Purpose: Make, bring in, and save out files.
 - PP: PP File menu (support article, 2026).
 
-| Group | Row                     | Does                                                                                  | Status                                |
-| ----- | ----------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- |
-| 1     | 새 곡                   | PP New Presentation.                                                                  | Off                                   |
-| 1     | 새 예배                 |                                                                                       | Now                                   |
-| 1     | 새 라이브러리           |                                                                                       | Off                                   |
-| 1     | 가져오기 ›              | 텍스트 파일… (Ctrl Shift I), 라이브러리… (off), 미디어…, 클립보드 텍스트…, 다른 예배… | MultiTracks… (off), SongSelect… (off) | PowerPoint를 슬라이드로…, 그림으로…, 개체와 글자로… (off). | Now |
-| 2     | 내보내기 ›              |                                                                                       | Off                                   |
-| 2     | 예배를 템플릿으로 저장… | Was 지금 예배를 템플릿으로 저장.                                                      | Moved                                 |
-| 3     | 인쇄…                   |                                                                                       | Off                                   |
+| Group | Row                     | Does                                                                                                                                         | Status                                |
+| ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1     | 새 곡 (Ctrl N)          | PP New Presentation. Opens 준비 and makes a song, the same as the 라이브러리 header's plus (05). Off while the window has no app connection. | Now                                   |
+| 1     | 새 예배                 |                                                                                                                                              | Now                                   |
+| 1     | 새 라이브러리           |                                                                                                                                              | Off                                   |
+| 1     | 가져오기 ›              | 텍스트 파일… (Ctrl Shift I), 라이브러리… (off), 미디어…, 클립보드 텍스트…, 다른 예배…                                                        | MultiTracks… (off), SongSelect… (off) | PowerPoint를 슬라이드로…, 그림으로…, 개체와 글자로… (off). | Now |
+| 2     | 내보내기 ›              |                                                                                                                                              | Off                                   |
+| 2     | 예배를 템플릿으로 저장… | Was 지금 예배를 템플릿으로 저장.                                                                                                             | Moved                                 |
+| 3     | 인쇄…                   |                                                                                                                                              | Off                                   |
 
 - No icons in menu bar menus (PP has none).
 
@@ -566,16 +567,16 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - Purpose: Switch workspace and open tools.
 - PP: PP View menu (support article, 2026).
 
-| Group | Row                                                                                 | Does                                                                                                                                  | Status |
-| ----- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)                     | Ctrl E keeps opening 준비 until a slide editor exists.                                                                                | Now    |
-| 2     | 이어서 진행                                                                         | PP Continuous Playlist. A check row that shows and flips 환경설정 > 마지막 슬라이드에서 다음 슬라이드 (on is 다음 항목, off is 정지). | Now    |
-| 3     | 슬라이드 보기 ›                                                                     |                                                                                                                                       | Off    |
-| 4     | 오디오, 무대, 타이머, 메시지, 공지, 그래픽, 매크로                                  | Opens its owning tool tab, including the per-item 메시지, 공지 and 그래픽 controls (04).                                              | New    |
-| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04).                    | Now    |
-| 6     | 미리보기 ›                                                                          |                                                                                                                                       | Off    |
-| 7     | 전체 화면                                                                           |                                                                                                                                       | Off    |
-| -     | 화면 설정                                                                           | The workspace is now 테마 (layers icon). Screen settings move to a separate window under 출력.                                        | Moved  |
+| Group | Row                                                                           | Does                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Status |
+| ----- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)               | Ctrl E keeps opening 준비 until a slide editor exists.                                                                                                                                                                                                                                                                                                                                                                                                           | Now    |
+| 2     | 이어서 진행                                                                   | PP Continuous Playlist. A check row that shows and flips 환경설정 > 마지막 슬라이드에서 다음 슬라이드 (on is 다음 항목, off is 정지).                                                                                                                                                                                                                                                                                                                            | Now    |
+| 3     | 슬라이드 보기 ›                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Off    |
+| 4     | 오디오, 무대, 타이머, 메시지, 공지, 그래픽, 매크로                            | Opens its owning tool tab, including the per-item 메시지, 공지 and 그래픽 controls (04).                                                                                                                                                                                                                                                                                                                                                                         | New    |
+| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04). 테스트 화면 is a check row: it shows the 테스트 패턴 (06) on every screen whose output is on, or takes it off them all, and is checked while all of those show it. A screen whose output is off is left alone (it has no window, and its pattern goes off with its output); the row is off with "출력이 꺼져 있습니다" while no screen is on. | Now    |
+| 6     | 미리보기 ›                                                                    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Off    |
+| 7     | 전체 화면                                                                     | A check row for the control window (PP View > Full Screen): puts it in or out of full screen and shows the state. No key, since spec 10 names none.                                                                                                                                                                                                                                                                                                              | Now    |
+| -     | 화면 설정                                                                     | The workspace is now 테마 (layers icon). Screen settings move to a separate window under 출력.                                                                                                                                                                                                                                                                                                                                                                   | Moved  |
 
 ### 출력
 

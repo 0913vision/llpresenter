@@ -2,7 +2,7 @@ import {parseNoticePlayback} from '@core/schema/overlayState';
 import type {NoticePlayback} from '@core/live/state';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer, type LiveHistory} from '../history';
-import {noticePosition} from '@core/overlays/noticeClock';
+import {noticePosition, rebaseNotice} from '@core/overlays/noticeClock';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
 
 function firstFrom(
@@ -87,21 +87,17 @@ function start(
     command.position === undefined &&
     unchangedSequence
   ) {
-    // NOTE(0913vision): The run is rebased to the image on screen first, so a
-    // longer `gone` list can never move the clock to another image: the shown
-    // image becomes the start position, with the same time left in its
-    // interval (spec 08).
-    const reference = previous.pausedAt ?? now;
-    const intervalMs = Math.max(1, previous.interval * 1000);
-    const rebasedStart =
-      reference - (Math.max(0, reference - previous.startedAt) % intervalMs);
+    // NOTE(0913vision): On every refresh of a running 공지 the run is rebased
+    // to the image on screen first (`rebaseNotice`), so a longer `gone` list
+    // never moves the clock to another image (spec 08).
+    const rebased = rebaseNotice(previous, now);
     playback = {
       ...previous,
       ...(gone.length === 0 ? {} : {gone}),
-      position: noticePosition(previous, reference),
+      position: rebased.position,
       targets,
       startedAt:
-        rebasedStart +
+        rebased.startedAt +
         (previous.pausedAt === null ? 0 : Math.max(0, now - previous.pausedAt)),
       pausedAt: null,
     };

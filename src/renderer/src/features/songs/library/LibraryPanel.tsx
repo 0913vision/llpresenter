@@ -15,6 +15,10 @@ import {
   PanelTools,
 } from '@renderer/ui/Panel';
 import {TextField} from '@renderer/ui/TextField';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {SONG_TITLE_LIMIT} from '@core/songs/songTitle';
+import {songTitleReason} from './songTitleReason';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
@@ -30,7 +34,8 @@ export type LibrarySelectionRequest =
       readonly songId: SongId;
       readonly position?: number | undefined;
     }
-  | {readonly kind: 'clear'};
+  | {readonly kind: 'clear'}
+  | {readonly kind: 'create'};
 
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
@@ -57,6 +62,8 @@ export function LibraryPanel({
     (request: LibrarySelectionRequest): void => {
       if (request.kind === 'clear') {
         library.clearSelection();
+      } else if (request.kind === 'create') {
+        library.create().catch(() => library.report('create'));
       } else {
         library.setQuery('');
         library
@@ -75,6 +82,9 @@ export function LibraryPanel({
     null,
   );
   const [deleting, setDeleting] = useState<SongId | null>(null);
+  const [renaming, setRenaming] = useState<SongId | null>(null);
+  const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
+  const renamed = library.songs.find(song => song.id === renaming);
   const candidate = library.songs.find(song => song.id === deleting);
   const menuSong = library.songs.find(song => song.id === menu?.id);
   return (
@@ -154,7 +164,23 @@ export function LibraryPanel({
                 );
             },
             remove: () => setDeleting(menuSong.id),
+            rename: () => renameAfterMenu(menuSong.id),
+            reveal: () => api.library.revealSong(menuSong.id),
           })}
+        />
+      ) : null}
+      {renamed ? (
+        <RenameDialog
+          title="곡 이름 바꾸기"
+          label="곡 제목"
+          name={renamed.title}
+          maxLength={SONG_TITLE_LIMIT}
+          rename={{
+            validate: value =>
+              songTitleReason(value, renamed.id, library.songs),
+            onClose: () => setRenaming(null),
+            onCommit: title => library.rename(renamed.id, title),
+          }}
         />
       ) : null}
       {candidate ? (

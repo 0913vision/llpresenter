@@ -84,6 +84,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     window: {
       control: () => undefined,
+      fullScreen: () => Promise.resolve(false),
+      onFullScreen: () => () => undefined,
       editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
@@ -182,6 +184,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     library: {
       showSong: () => Promise.resolve(null),
+      revealSong: () => undefined,
       search: ({query}) => Promise.resolve({query, matches: []}),
       ...overrides.library,
     },

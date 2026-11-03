@@ -240,6 +240,9 @@ vi.mock('@main/media/register', () => ({
     return mocks.mediaBackendStop;
   },
 }));
+vi.mock('@main/store/revealSong', () => ({
+  registerSongReveal: () => () => undefined,
+}));
 vi.mock('@main/import/register', () => ({
   registerTextImport: (context: unknown) => {
     mocks.textImportContexts.push(context);

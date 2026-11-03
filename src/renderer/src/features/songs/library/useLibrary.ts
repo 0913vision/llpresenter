@@ -7,10 +7,11 @@ import {
   type LibrarySearchResult,
 } from '@core/schema/librarySearch';
 import type {SongId} from '@core/schema/ids';
+import {normalizeSongTitle} from '@core/songs/songTitle';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
-  readonly library: Pick<LlpApi['library'], 'search'>;
+  readonly library: Pick<LlpApi['library'], 'search' | 'revealSong'>;
 };
 
 export interface LibrarySelection {
@@ -298,6 +299,44 @@ export function useLibrary(
     }
   };
 
+  /**
+   * Gives a song a new title by the 곡 편집 title rule. A title another song
+   * has is refused with `false`, as main refuses it.
+   */
+  const rename = async (id: SongId, title: string): Promise<boolean> => {
+    if (
+      editing.current ||
+      rows.current.find(song => song.id === id)?.access !== 'editable'
+    ) {
+      return false;
+    }
+    editing.current = true;
+    setBusy(true);
+    try {
+      const document = await api.songs.get(id);
+      if (!isActive()) return false;
+      if (document === null) {
+        report('missing');
+        return false;
+      }
+      const result = await api.content.edit({
+        type: 'song.update',
+        baseRevision: document.revision,
+        song: {...document.song, title: normalizeSongTitle(title)},
+      });
+      if (!result.ok && result.error.reason === 'duplicate-title') return false;
+      if (!isActive() || appliedId(result) === null) return false;
+      if (!(await readList())) report('load', loadAction(reload));
+      return isActive();
+    } catch {
+      report('change');
+      return false;
+    } finally {
+      editing.current = false;
+      if (isActive()) setBusy(false);
+    }
+  };
+
   return {
     songs,
     visible,
@@ -323,5 +362,6 @@ export function useLibrary(
     open,
     create,
     remove,
+    rename,
   };
 }

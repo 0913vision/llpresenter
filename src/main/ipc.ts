@@ -1,4 +1,10 @@
-import {BrowserWindow, ipcMain, shell, type IpcMainEvent} from 'electron';
+import {
+  BrowserWindow,
+  ipcMain,
+  shell,
+  type IpcMainEvent,
+  type IpcMainInvokeEvent,
+} from 'electron';
 import {
   textEditActions,
   windowActions,
@@ -66,6 +72,9 @@ function runWindowAction(win: BrowserWindow, action: WindowAction): void {
     case 'toggle-maximize':
       if (win.isMaximized()) win.unmaximize();
       else win.maximize();
+      return;
+    case 'toggle-full-screen':
+      win.setFullScreen(!win.isFullScreen());
       return;
     case 'close':
       win.close();
@@ -158,6 +167,11 @@ export function registerIpc(
     }
     dispatchLogged(store, command.value.command, log);
   });
+  ipcMain.handle(
+    windowEndpoints.fullScreen.channel,
+    (event: IpcMainInvokeEvent) =>
+      BrowserWindow.fromWebContents(event.sender)?.isFullScreen() ?? false,
+  );
   ipcMain.handle(windowEndpoints.appInfo.channel, () => ({
     name: app.name,
     version: app.version,
@@ -203,6 +217,7 @@ export function registerIpc(
     ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
     ipcMain.removeHandler(windowEndpoints.appInfo.channel);
+    ipcMain.removeHandler(windowEndpoints.fullScreen.channel);
     ipcMain.removeAllListeners(windowEndpoints.openLogFolder.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);
     ipcMain.removeAllListeners(windowEndpoints.editText.channel);

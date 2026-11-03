@@ -106,6 +106,7 @@ export function libraryFixture(
       },
     },
     library: {
+      revealSong: () => undefined,
       search: ({query, offset = 0, limit = LIBRARY_SEARCH_LIMITS.default}) =>
         Promise.resolve({
           query,
@@ -147,6 +148,33 @@ export function libraryFixture(
           return Promise.resolve({
             ok: true,
             value: {id: document.song.id, revision: document.revision},
+          });
+        }
+        if (edit.type === 'song.update') {
+          const current = documents.get(edit.song.id);
+          if (current === undefined) {
+            return Promise.resolve({
+              ok: false,
+              error: {reason: 'not-found', message: 'Missing gallery song'},
+            });
+          }
+          if (
+            list().some(
+              song =>
+                song.id !== edit.song.id && song.title === edit.song.title,
+            )
+          ) {
+            return Promise.resolve({
+              ok: false,
+              error: {reason: 'duplicate-title', message: 'Duplicate title'},
+            });
+          }
+          const revision = current.revision + 1;
+          documents.set(edit.song.id, {...current, song: edit.song, revision});
+          pushList();
+          return Promise.resolve({
+            ok: true,
+            value: {id: edit.song.id, revision},
           });
         }
         if (edit.type === 'song.delete') {

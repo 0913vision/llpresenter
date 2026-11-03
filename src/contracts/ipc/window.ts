@@ -15,11 +15,13 @@ import {
 } from '@core/schema/preferencePages';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
-export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
+export type WindowAction =
+  'minimize' | 'toggle-maximize' | 'toggle-full-screen' | 'close';
 
 export const windowActions: readonly WindowAction[] = [
   'minimize',
   'toggle-maximize',
+  'toggle-full-screen',
   'close',
 ];
 
@@ -86,6 +88,13 @@ export function parseAppInfo(value: unknown): Result<AppInfo, PayloadError> {
   return {ok: false, error: {field: '', message: 'Expected the app info'}};
 }
 
+/** Checks a full screen state. */
+export function parseFullScreen(value: unknown): Result<boolean, PayloadError> {
+  return typeof value === 'boolean'
+    ? {ok: true, value}
+    : {ok: false, error: {field: '', message: 'Expected a full screen state'}};
+}
+
 /** The title bar calls. */
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
@@ -106,6 +115,11 @@ export const windowEndpoints = {
     parsePreferencePage,
   ),
   control: message<WindowAction>('window:control', parseWindowAction),
+  fullScreen: query<boolean>('window:full-screen', parseFullScreen),
+  fullScreenChanged: push<boolean>(
+    'window:full-screen:changed',
+    parseFullScreen,
+  ),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
   openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
     'window:open-order-editor',
@@ -144,6 +158,13 @@ export function windowApi(port: IpcPort) {
     onPreferencesPage: port.subscribe(windowEndpoints.showPreferencesPage),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
+    /** Whether the calling window is full screen. */
+    fullScreen: port.query(windowEndpoints.fullScreen),
+    /**
+     * Follows the calling window as it enters or leaves full screen.
+     * @returns A function that removes the listener. Always call it.
+     */
+    onFullScreen: port.subscribe(windowEndpoints.fullScreenChanged),
     /** Runs a text editing action on the focused field of the calling window. */
     editText: port.message(windowEndpoints.editText),
     /** Opens or retargets the 순서 편집 window on a song item. */

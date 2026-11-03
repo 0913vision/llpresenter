@@ -496,7 +496,7 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성…', '삭제']);
+    ).toEqual(['속성…', '이름 바꾸기', '삭제', '탐색기에서 보기']);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain('Dawn');
@@ -565,7 +565,41 @@ describe('media view', () => {
     expect(fixture.edit).not.toHaveBeenCalled();
   });
 
-  it('offers only properties for a list a newer version wrote', async () => {
+  it('renames a media tile in a dialog and reveals its file', async () => {
+    const reveal = vi.fn();
+    const fixture = mediaFixture(
+      mediaDocument([mediaItem(1, {name: 'Dawn', size: 1024})]),
+    );
+    fixture.api.media.reveal = reveal;
+    const {edit} = setup(fixture);
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '탐색기에서 보기'}));
+    expect(reveal).toHaveBeenCalledExactlyOnceWith(mediaId(1));
+
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
+    const dialog = await screen.findByRole('dialog', {
+      name: '미디어 이름 바꾸기',
+    });
+    const field = within(dialog).getByRole('textbox', {name: '미디어 이름'});
+    fireEvent.change(field, {target: {value: ''}});
+    expect(
+      within(dialog)
+        .getByRole('button', {name: '저장'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.change(field, {target: {value: '  새벽  '}});
+    fireEvent.click(within(dialog).getByRole('button', {name: '저장'}));
+    await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    const [sent] = edit.mock.calls[0] ?? [];
+    expect(sent).toMatchObject({
+      type: 'media.properties.update',
+      mediaId: mediaId(1),
+      changes: {name: '새벽'},
+    });
+  });
+
+  it('offers only properties and the file location for a list a newer version wrote', async () => {
     const fixture = mediaFixture({
       ...mediaDocument([mediaItem(1, {name: 'Dawn'})]),
       access: 'readOnly',
@@ -585,6 +619,6 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성…']);
+    ).toEqual(['속성…', '탐색기에서 보기']);
   });
 });

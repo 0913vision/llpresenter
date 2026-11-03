@@ -11,6 +11,8 @@ export function libraryMenuEntries({
   open,
   append,
   remove,
+  rename,
+  reveal,
 }: {
   readonly song: LibrarySong;
   readonly appendDisabledReason: string | undefined;
@@ -18,6 +20,8 @@ export function libraryMenuEntries({
   readonly open: () => void;
   readonly append: () => void;
   readonly remove: () => void;
+  readonly rename: () => void;
+  readonly reveal: () => void;
 }): readonly MenuEntry[] {
   return [
     {
@@ -44,7 +48,19 @@ export function libraryMenuEntries({
     laterRow('copy', '복사', {icon: 'copy'}),
     laterRow('paste', '붙여넣기', {icon: 'paste'}),
     laterRow('duplicate', '복제', {icon: 'duplicate'}),
-    laterRow('rename', '이름 바꾸기'),
+    {
+      kind: 'item',
+      id: 'rename',
+      label: '이름 바꾸기',
+      ...menuAvailability(
+        song.access === 'readOnly'
+          ? NEWER_FILE_REASON
+          : busy
+            ? '곡 작업 중'
+            : undefined,
+      ),
+      onSelect: rename,
+    },
     {
       kind: 'item',
       id: 'delete',
@@ -60,7 +76,12 @@ export function libraryMenuEntries({
       onSelect: remove,
     },
     menuSeparator('export-separator'),
-    laterRow('reveal', '탐색기에서 보기'),
+    {
+      kind: 'item',
+      id: 'reveal',
+      label: '탐색기에서 보기',
+      onSelect: reveal,
+    },
     laterRow('export-bundle', '묶음으로 내보내기…'),
     laterRow('export-images', '이미지로 내보내기…'),
   ];

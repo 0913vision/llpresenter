@@ -12,6 +12,8 @@ import {mediaLoops} from '@core/media/mediaEndRule';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaUses} from '@core/schema/mediaUses';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {USAGE_LABEL, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
@@ -159,6 +161,8 @@ export function MediaView({
     readonly item: MediaItem;
     readonly uses: MediaUses | 'failed';
   } | null>(null);
+  const [renaming, setRenaming] = useState<MediaItem | null>(null);
+  const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const lookup = useRef<AbortController | null>(null);
   useEffect(() => () => lookup.current?.abort(), []);
   const askToDelete = (item: MediaItem): void => {
@@ -254,6 +258,8 @@ export function MediaView({
         });
     },
     remove: askToDelete,
+    reveal: mediaId => library.reveal(mediaId),
+    rename: renameAfterMenu,
   });
   const {
     reason: importReason,
@@ -402,6 +408,19 @@ export function MediaView({
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={menu.entries}
+        />
+      )}
+      {renaming === null ? null : (
+        <RenameDialog
+          title="미디어 이름 바꾸기"
+          label="미디어 이름"
+          name={renaming.name}
+          rename={{
+            validate: name =>
+              name.trim() === '' ? '이름을 입력하세요' : undefined,
+            onClose: () => setRenaming(null),
+            onCommit: name => library.rename(renaming.id, name),
+          }}
         />
       )}
       {deleting === null ? null : (

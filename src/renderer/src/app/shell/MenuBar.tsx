@@ -27,6 +27,9 @@ import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
+import {fullScreenRow, testPatternRow, useFullScreen} from './viewToggles';
+import {useLive, useOutputs} from '@renderer/session/live';
+import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import type {Workspace} from './Toolbar';
 
 const EDIT_MENU = '편집';
@@ -177,11 +180,13 @@ function MenuTrigger({
 function FileMenu({
   onProblem,
   onImportText,
+  onNewSong,
   control,
   clipboard,
 }: {
   readonly onProblem: (notice: Notice) => void;
   readonly onImportText: ImportText | undefined;
+  readonly onNewSong: (() => void) | undefined;
   readonly control: MenuControl;
   readonly clipboard: ReturnType<typeof useClipboardAvailability>['status'];
 }): JSX.Element {
@@ -191,6 +196,7 @@ function FileMenu({
   const entries = fileMenuEntries({
     service: actions.entries,
     onImportText,
+    onNewSong,
     clipboard,
     media,
   });
@@ -318,6 +324,7 @@ export function MenuBar({
   onShowWarning = ignoreWarning,
   onProblem = logProblem,
   onImportText,
+  onNewSong,
   clipboardAvailable,
   onWorkspace,
   onMedia,
@@ -329,6 +336,7 @@ export function MenuBar({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   /** Mounts P5's file and clipboard entry flow when its host is available. */
   readonly onImportText?: ImportText | undefined;
+  readonly onNewSong?: (() => void) | undefined;
   readonly clipboardAvailable?: (() => Promise<boolean>) | undefined;
   readonly onWorkspace?: ((workspace: Workspace) => void) | undefined;
   readonly onMedia?: (() => void) | undefined;
@@ -352,6 +360,10 @@ export function MenuBar({
         },
       })),
   };
+  const fullScreen = useFullScreen();
+  const screens = useScreenSummaries();
+  const outputs = useOutputs();
+  const patterns = useLive(view => view.state?.testPatterns);
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
   const bar = useMenuBarNavigation<MenuName>(MENU_NAMES);
@@ -421,6 +433,7 @@ export function MenuBar({
         <FileMenu
           onProblem={onProblem}
           onImportText={onImportText}
+          onNewSong={onNewSong}
           clipboard={clipboard}
           control={controlFor(FILE_MENU)}
         />
@@ -433,7 +446,13 @@ export function MenuBar({
           label={VIEW_MENU}
           control={controlFor(VIEW_MENU)}
           entries={() =>
-            workspaceMenu({onWorkspace, onMedia, continuous: continuousRow})
+            workspaceMenu({
+              onWorkspace,
+              onMedia,
+              continuous: continuousRow,
+              testPattern: testPatternRow({screens, outputs, patterns}),
+              fullScreen: fullScreenRow(fullScreen),
+            })
           }
         />
         <OutputMenu

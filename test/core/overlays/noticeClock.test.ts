@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
+  rebaseNotice,
   noticeStopDelay,
   noticePosition,
   nextNoticeChange,
@@ -153,5 +154,31 @@ describe('shared notice clock', () => {
       noticeStopDelay(playback({gone: [first, second]}), START),
     ).toBeNull();
     expect(noticeStopDelay(playback(), START)).toBeNull();
+  });
+
+  it('rebases a run to the image on screen without moving the next change', () => {
+    const state = playback({loop: true, position: 1});
+    for (const offset of [0, 3000, 5000, 12_300, 29_999]) {
+      const now = START + offset;
+      const rebased = rebaseNotice(state, now);
+      const after = {...state, ...rebased};
+      expect(noticePosition(after, now)).toBe(noticePosition(state, now));
+      expect(after.position).toBe(noticePosition(state, now));
+      expect(nextNoticeChange(after, now)).toBe(nextNoticeChange(state, now));
+      expect(noticePosition(after, now + 7000)).toBe(
+        noticePosition(state, now + 7000),
+      );
+    }
+  });
+
+  it('rebases a paused run at its pause, and a non-loop run at its last image', () => {
+    const paused = playback({pausedAt: START + 7000});
+    const rebased = rebaseNotice(paused, START + 60_000);
+    expect(rebased.position).toBe(1);
+    expect(START + 7000 - rebased.startedAt).toBe(2000);
+    const last = playback();
+    const atEnd = rebaseNotice(last, START + 100_000);
+    expect(atEnd.position).toBe(2);
+    expect(nextNoticeChange({...last, ...atEnd}, START + 100_000)).toBeNull();
   });
 });
