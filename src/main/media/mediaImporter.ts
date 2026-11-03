@@ -9,7 +9,9 @@ import type {
   MediaImportResult,
 } from '@core/schema/mediaEdit';
 import type {AnalysisFailureReason} from '@core/schema/mediaAnalysis';
+import {importedProps, type MediaDefaults} from '@core/media/importedProps';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
+import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '../log';
 import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
@@ -21,8 +23,10 @@ import {storedPath} from './storedPath';
 /** Refer to originals unless copying is enabled (October 27 user decision). */
 export const COPY_IMPORTED_MEDIA = false;
 
-/** Imported videos start with their sound off (the plan's open question 15). */
-export const IMPORTED_VIDEO_SOUND = false;
+/** A `props` entry for the item, or nothing when there is none. */
+function propsOf(props: MediaItem['props']): Pick<MediaItem, 'props'> {
+  return props === undefined ? {} : {props};
+}
 
 /** The most import jobs that wait or run at once. */
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
@@ -67,6 +71,8 @@ export interface MediaImporterOptions {
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
   /** Resolved once per admitted request; {@link COPY_IMPORTED_MEDIA} by default. */
   readonly copyIntoFolder?: boolean | (() => Promise<boolean>);
+  /** The 새 미디어 defaults, read once per admitted request like the copy choice. */
+  readonly defaults?: () => Promise<MediaDefaults>;
 }
 
 interface ImportJob {
@@ -76,6 +82,7 @@ interface ImportJob {
   readonly fileName: string;
   readonly playlist: PlaylistRef | null;
   readonly copyIntoFolder: boolean;
+  readonly defaults: MediaDefaults;
   readonly abort: AbortController;
   /** Stops following the backend's signal once the job ends. */
   readonly release: () => void;
@@ -184,6 +191,7 @@ export class MediaImporter {
     }
     if (paths.length === 0) return {ok: true, value: []};
     const copyIntoFolder = await this.copyPolicy();
+    const defaults = await this.defaultsPolicy();
     if (this.isClosing(signal)) {
       return mediaRefusal('not-found', 'Media import is closing');
     }
@@ -198,6 +206,7 @@ export class MediaImporter {
           playlist: request.playlist,
           signal,
           copyIntoFolder,
+          defaults,
         }),
       ),
     };
@@ -221,6 +230,20 @@ export class MediaImporter {
 
   private isClosing(signal: AbortSignal): boolean {
     return this.disposed || signal.aborted;
+  }
+
+  private async defaultsPolicy(): Promise<MediaDefaults> {
+    try {
+      return (
+        (await this.options.defaults?.()) ?? defaultPreferences.media.defaults
+      );
+    } catch (error: unknown) {
+      this.options.log.warn(
+        'could not read the new media defaults; using the defaults',
+        error,
+      );
+      return defaultPreferences.media.defaults;
+    }
   }
 
   private async copyPolicy(): Promise<boolean> {
@@ -250,11 +273,13 @@ export class MediaImporter {
     playlist,
     signal,
     copyIntoFolder,
+    defaults,
   }: {
     readonly source: string;
     readonly playlist: PlaylistRef | null;
     readonly signal: AbortSignal;
     readonly copyIntoFolder: boolean;
+    readonly defaults: MediaDefaults;
   }): MediaImportProgress {
     const fileName = basename(source);
     const mediaId = this.options.createId();
@@ -272,6 +297,7 @@ export class MediaImporter {
       fileName,
       playlist,
       copyIntoFolder,
+      defaults,
       abort,
       release: () => {
         signal.removeEventListener('abort', stop);
@@ -454,7 +480,7 @@ export class MediaImporter {
       kind: job.kind,
       file,
       size,
-      ...(job.kind === 'video' ? {props: {audio: IMPORTED_VIDEO_SOUND}} : {}),
+      ...propsOf(importedProps(job.kind, job.defaults)),
     };
   }
 }

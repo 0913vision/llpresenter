@@ -11,6 +11,7 @@ import {
 } from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId} from '@core/schema/ids';
+import {defaultPreferences} from '@core/schema/preferences';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {
   parseMediaCheckRequest,
@@ -217,6 +218,9 @@ export function registerMediaBackend(
     log: options.log,
     copyIntoFolder: async () =>
       (await options.settings)?.preferences().media.copyOnImport ?? false,
+    defaults: async () =>
+      (await options.settings)?.preferences().media.defaults ??
+      defaultPreferences.media.defaults,
   });
   const missing = watchMissingFiles(options);
   const stopReveals = listenForReveals(options);

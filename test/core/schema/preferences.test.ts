@@ -244,6 +244,28 @@ describe('preferences read boundary', () => {
       parsePreferencesValue({...HEADER, media: {copyOnImport: 'false'}}).ok,
     ).toBe(false);
   });
+  it('defaults the new media choices to 반복, 채우기, and sound off and fills the missing ones', () => {
+    expect(expectSuccess(parsePreferencesValue(HEADER)).media.defaults).toEqual(
+      {end: 'loop', fit: 'fill', audio: false},
+    );
+    const value = {...HEADER, media: {defaults: {fit: 'stretch', audio: true}}};
+    expectRoundTrip(codec, value);
+    expect(expectSuccess(parsePreferencesValue(value)).media.defaults).toEqual({
+      end: 'loop',
+      fit: 'stretch',
+      audio: true,
+    });
+  });
+
+  it.each([{end: 'pause'}, {fit: 'crop'}, {audio: 'on'}])(
+    'rejects a new media choice that is not one of its choices: %j',
+    defaults => {
+      expect(parsePreferencesValue({...HEADER, media: {defaults}}).ok).toBe(
+        false,
+      );
+    },
+  );
+
   it('returns a normalized value for a valid sparse file-shaped reply', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER))).toEqual(
       defaultPreferences,

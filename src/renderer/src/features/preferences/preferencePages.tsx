@@ -419,41 +419,88 @@ export function LibraryPage({
   );
 }
 
-/** 미디어: 소리. */
+const NEW_MEDIA_NOTE = '다음에 가져오는 미디어부터 적용됩니다';
+const END_OPTIONS = [
+  {value: 'loop', label: '반복'},
+  {value: 'stop', label: '정지'},
+] as const;
+const FIT_OPTIONS = [
+  {value: 'fit', label: '맞추기'},
+  {value: 'fill', label: '채우기'},
+  {value: 'stretch', label: '늘리기'},
+] as const;
+
+/** 미디어: 새 미디어, 소리. */
 export function MediaPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   const devices = useAudioOutputs();
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
+  const {defaults} = preferences.media;
+  const setDefaults = (changed: Partial<typeof defaults>): void =>
+    change(stored => ({
+      ...stored,
+      media: {
+        ...stored.media,
+        defaults: {...stored.media?.defaults, ...changed},
+      },
+    }));
   return (
-    <PropertyGroup title="소리">
-      <DeviceRow
-        label="출력 장치"
-        disabled={disabled}
-        title={lockedReason}
-        choice={preferences.media.audioOutput}
-        devices={devices}
-        onChange={audioOutput =>
-          change(stored => ({
-            ...stored,
-            media: {...stored.media, audioOutput},
-          }))
-        }
-      />
-      <DeviceRow
-        label="미리 듣기 장치"
-        disabled={disabled}
-        title={lockedReason}
-        choice={preferences.media.previewOutput}
-        devices={devices}
-        onChange={previewOutput =>
-          change(stored => ({
-            ...stored,
-            media: {...stored.media, previewOutput},
-          }))
-        }
-      />
-    </PropertyGroup>
+    <>
+      <PropertyGroup title="새 미디어">
+        <SegmentedRow
+          label="영상 끝나면"
+          disabled={disabled}
+          title={lockedReason ?? NEW_MEDIA_NOTE}
+          options={END_OPTIONS}
+          value={defaults.end}
+          onChange={end => setDefaults({end})}
+        />
+        <SegmentedRow
+          label="맞춤"
+          disabled={disabled}
+          title={lockedReason ?? NEW_MEDIA_NOTE}
+          options={FIT_OPTIONS}
+          value={defaults.fit}
+          onChange={fit => setDefaults({fit})}
+        />
+        <CheckboxRow
+          label="영상 소리"
+          disabled={disabled}
+          title={lockedReason ?? NEW_MEDIA_NOTE}
+          checked={defaults.audio}
+          onChange={audio => setDefaults({audio})}
+        />
+      </PropertyGroup>
+      <PropertyGroup title="소리">
+        <DeviceRow
+          label="출력 장치"
+          disabled={disabled}
+          title={lockedReason}
+          choice={preferences.media.audioOutput}
+          devices={devices}
+          onChange={audioOutput =>
+            change(stored => ({
+              ...stored,
+              media: {...stored.media, audioOutput},
+            }))
+          }
+        />
+        <DeviceRow
+          label="미리 듣기 장치"
+          disabled={disabled}
+          title={lockedReason}
+          choice={preferences.media.previewOutput}
+          devices={devices}
+          onChange={previewOutput =>
+            change(stored => ({
+              ...stored,
+              media: {...stored.media, previewOutput},
+            }))
+          }
+        />
+      </PropertyGroup>
+    </>
   );
 }
 

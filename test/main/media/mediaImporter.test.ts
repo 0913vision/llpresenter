@@ -16,13 +16,13 @@ import {
 } from '@core/schema/mediaEdit';
 import type {MediaItem} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import type {MediaDefaults} from '@core/media/importedProps';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import type {MediaItemsCommit} from '@main/store/mediaStore';
 import type {CopyOptions} from '@main/media/copyFile';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import {
-  IMPORTED_VIDEO_SOUND,
   MAX_IMPORT_JOBS,
   MediaImporter,
   nameOf,
@@ -153,7 +153,7 @@ describe('media import', () => {
         kind: 'video',
         file: 'Morning light.mp4',
         size: 14,
-        props: {audio: IMPORTED_VIDEO_SOUND},
+        props: {audio: false},
       },
       {
         id: uuid(2),
@@ -176,6 +176,39 @@ describe('media import', () => {
     expect(nameOf('Morning light.mp4')).toBe('Morning light');
     // NOTE(0913vision): ㅎ ㅏ ㄴ as separate jamo; NFC joins them to one syllable.
     expect(nameOf('한.png')).toBe('한');
+  });
+
+  it('gives each new import the defaults read once for the request, and leaves the media already in the list as they are', async () => {
+    let chosen: MediaDefaults = {end: 'stop', fit: 'stretch', audio: true};
+    const defaults = vi.fn(() => Promise.resolve(chosen));
+    const {importer, reports, items, source} = await setup({defaults});
+    const video = await source('Clip.mp4');
+    const image = await source('Picture.png');
+    const sound = await source('Song.mp3');
+    await importer.import(filesOf([video, image, sound]), signal());
+    chosen = {end: 'loop', fit: 'fit', audio: false};
+    await ended(reports, 3);
+    expect(defaults).toHaveBeenCalledOnce();
+    expect(items.map(item => item.props)).toEqual([
+      {audio: true, end: 'stop', fit: 'stretch'},
+      {fit: 'stretch'},
+      undefined,
+    ]);
+    const later = await source('Later.mp4');
+    await importer.import(filesOf([later]), signal());
+    await ended(reports, 4);
+    expect(items[3]?.props).toEqual({audio: false, fit: 'fit'});
+    expect(items[0]?.props).toEqual({audio: true, end: 'stop', fit: 'stretch'});
+  });
+
+  it('uses the built-in defaults when the new media defaults cannot be read', async () => {
+    const {importer, reports, items, source, log} = await setup({
+      defaults: () => Promise.reject(new Error('unreadable')),
+    });
+    await importer.import(filesOf([await source('Clip.mp4')]), signal());
+    await ended(reports, 1);
+    expect(items[0]?.props).toEqual({audio: false});
+    expect(log.messages('warn')).toHaveLength(1);
   });
 
   it('refers to the file in place when imports do not copy', async () => {

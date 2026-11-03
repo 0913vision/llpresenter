@@ -530,6 +530,17 @@ decision). Off imports reference the original file in place. On imports copy
 into the configured media folder. Read the choice once when an import request is
 admitted; changing it affects the next request, not jobs already queued.
 
+`media.defaults` is an optional object of the 새 미디어 choices,
+`{ end, fit, audio }`: `end` is `loop` or `stop` (default `loop`), `fit` is
+`fit`, `fill`, or `stretch` (default `fill`), `audio` is a Boolean (default
+`false`). They set the properties of media imported after the change: a video
+takes all three, an image takes `fit`, and an audio file takes none. `end` and
+`fit` are written to the media item only when they differ from what a media
+without them already does (`loop`, `fill`), and a video always carries `audio`,
+so with the defaults an import is stored as before. Read the choices once when
+an import request is admitted, like `copyOnImport`; media already in the list
+keep their own values.
+
 `output.transition.slide` and `output.transition.media` are optional objects
 with an optional `kind` (`none` or `dissolve`, default `dissolve`) and an
 optional `seconds`: 0.1 to 2.0, default 0.2, for `slide`; 0.1 to 3.0, default

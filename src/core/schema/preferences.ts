@@ -80,6 +80,15 @@ interface CountLimits {
 }
 
 const optionalBoolean = v.exactOptional(v.boolean());
+
+/** The `fit` choices of a media item (how it fills the screen), as stored. */
+export const mediaFitChoices = ['fit', 'fill', 'stretch'] as const;
+
+const mediaDefaultsSchema = jsonObject({
+  end: v.exactOptional(v.picklist(['loop', 'stop'])),
+  fit: v.exactOptional(v.picklist(mediaFitChoices)),
+  audio: optionalBoolean,
+});
 const backupCopiesSchema = countWithin(PREFERENCE_LIMITS.backupCopies);
 const previewFpsSchema = v.picklist(previewFpsChoices);
 const backupKeepSchema = countWithin(PREFERENCE_LIMITS.backupKeep);
@@ -163,6 +172,7 @@ export const preferencesSchema = jsonObject({
   media: v.exactOptional(
     jsonObject({
       copyOnImport: optionalBoolean,
+      defaults: v.exactOptional(mediaDefaultsSchema),
       audioOutput: v.exactOptional(audioDeviceSchema),
       previewOutput: v.exactOptional(audioDeviceSchema),
     }),
@@ -251,6 +261,7 @@ export const defaultPreferences: Preferences = {
   backup: {auto: true, keep: 30},
   media: {
     copyOnImport: false,
+    defaults: {end: 'loop', fit: 'fill', audio: false},
     audioOutput: DEFAULT_AUDIO_DEVICE,
     previewOutput: DEFAULT_AUDIO_DEVICE,
   },
@@ -288,7 +299,14 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
       audio: {...defaultPreferences.show.audio, ...stored.show?.audio},
     },
     backup: {...defaultPreferences.backup, ...stored.backup},
-    media: {...defaultPreferences.media, ...stored.media},
+    media: {
+      ...defaultPreferences.media,
+      ...stored.media,
+      defaults: {
+        ...defaultPreferences.media.defaults,
+        ...stored.media?.defaults,
+      },
+    },
     bible: {...defaultPreferences.bible, ...stored.bible},
     import: {
       ...stored.import,

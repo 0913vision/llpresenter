@@ -743,4 +743,38 @@ describe('PreferencesView', () => {
       expect(edit).not.toHaveBeenCalled();
     });
   });
+
+  describe('the 미디어 page, 새 미디어 rows', () => {
+    it('shows 반복, 채우기, and the sound off by default', async () => {
+      await mount();
+      await openPage('미디어');
+      expect(
+        screen.getByRole('radio', {name: '반복'}).getAttribute('aria-checked'),
+      ).toBe('true');
+      expect(
+        screen
+          .getByRole('radio', {name: '채우기'})
+          .getAttribute('aria-checked'),
+      ).toBe('true');
+      expect(
+        screen
+          .getByRole('checkbox', {name: '영상 소리'})
+          .getAttribute('aria-checked'),
+      ).toBe('false');
+    });
+
+    it('saves each default at once under media.defaults and keeps the other media fields', async () => {
+      await mount({
+        stored: {...STORED, media: {copyOnImport: true}},
+      });
+      await openPage('미디어');
+      await userEvent.click(screen.getByRole('radio', {name: '정지'}));
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(written().media).toEqual({
+        copyOnImport: true,
+        defaults: {end: 'stop'},
+      });
+      expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+  });
 });

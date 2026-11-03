@@ -185,6 +185,38 @@ function register(
 }
 
 describe('media backend registration', () => {
+  it('gives a new import the 새 미디어 defaults from the preferences', async () => {
+    const {port, handlers, reported} = mockPort();
+    const store = await mediaStore();
+    const add = vi.fn(store.add);
+    const file = join(await makeTempDir(), 'Invented.png');
+    await writeFile(file, 'invented');
+    const stop = register(
+      port,
+      {...store, add},
+      {
+        settings: Promise.resolve({
+          preferences: () => ({
+            ...defaultPreferences,
+            media: {
+              ...defaultPreferences.media,
+              defaults: {end: 'stop', fit: 'stretch', audio: true},
+            },
+          }),
+        }),
+      },
+    );
+    await handlers().import(
+      {source: {kind: 'files', paths: [file]}, playlist: null},
+      new AbortController().signal,
+    );
+    await vi.waitFor(() =>
+      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
+    );
+    expect(add.mock.calls[0]?.[0].items[0]?.props).toEqual({fit: 'stretch'});
+    await stop();
+  });
+
   it('reads the current preference for each request, defaults off, and preserves explicit on', async () => {
     const {port, handlers, reported} = mockPort();
     const store = await mediaStore();
