@@ -6,6 +6,7 @@ import {parseMediaList} from '@core/schema/mediaList';
 import {parseLiveState} from '@core/schema/liveState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const FIRST = '00000000-0000-4000-8000-000000000001';
 const SECOND = '00000000-0000-4000-8000-000000000002';
@@ -238,10 +239,10 @@ describe('audio transport', () => {
     expect(log.entries.some(entry => entry.level === 'error')).toBe(true);
     dispatchLogged(
       store,
-      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
       log,
     );
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
     expect(store.state.layers.audio).toBe(state.layers.audio);
   });
 

@@ -64,7 +64,7 @@ describe('recovery plan', () => {
     ).toEqual([]);
   });
 
-  it('turns on the saved screens that were on, through their compatible keys', () => {
+  it('turns on the saved screens that were on', () => {
     const fixture = sources();
     fixture.update(
       settingsDocument('screens', {
@@ -77,7 +77,7 @@ describe('recovery plan', () => {
     );
     const record = recoveryRecordOf({
       outputs: {
-        main: true,
+        [MAIN]: true,
         [CAPTIONS]: false,
         [STAGE]: true,
         [REMOVED_SCREEN]: true,

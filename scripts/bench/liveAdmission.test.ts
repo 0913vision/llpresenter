@@ -12,6 +12,7 @@ import {
 import {batchSlice} from '../../src/main/live/slices/batch';
 import {outputsSlice} from '../../src/main/live/slices/outputs';
 import {heavyState, typicalState, uuid} from './liveFixtures';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const SAMPLES = 7;
 function measure(name: string, iterations: number, run: () => void) {
@@ -42,7 +43,7 @@ describe('manual live admission cost', () => {
         type: 'live.batch',
         commands: Array.from({length: 256}, (_, i) => ({
           type: 'output.set',
-          screenId: 'main',
+          screenId: MAIN_SCREEN,
           on: i % 2 === 1,
         })),
       };
@@ -51,7 +52,7 @@ describe('manual live admission cost', () => {
         commands: [
           ...Array.from({length: 255}, (_, i) => ({
             type: 'output.set' as const,
-            screenId: 'main',
+            screenId: MAIN_SCREEN,
             on: i % 2 === 1,
           })),
           {type: 'output.set', screenId: uuid(999), on: true},
@@ -69,7 +70,7 @@ describe('manual live admission cost', () => {
         results.push(
           measure(`${name}:dispatch`, dispatchIterations, () => {
             on = !on;
-            store.dispatch({type: 'output.set', screenId: 'main', on});
+            store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on});
           }),
         );
         results.push(

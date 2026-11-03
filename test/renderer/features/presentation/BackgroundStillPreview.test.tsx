@@ -1,3 +1,4 @@
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {resolveThemeOutput} from '@core/themes/output';
@@ -149,7 +150,7 @@ it('puts the pause tooltip only on theme frames that show the media content', as
     marks.map(mark =>
       mark.closest('[data-screen]')?.getAttribute('data-screen'),
     ),
-  ).toEqual(['main']);
+  ).toEqual([MAIN_SCREEN]);
   const main = marks[0];
   if (!main) throw new Error('Missing main preview indicator');
   expect((await hoverForTooltip(main))?.textContent).toBe(

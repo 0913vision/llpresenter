@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
-import {LIVE_STATE_LIMITS, LIVE_OUTPUT_ALIASES} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
@@ -24,6 +24,7 @@ import * as budget from '@main/live/stateBudget';
 import * as liveSchema from '@core/schema/liveState';
 import type {MacroCommandPort, ScreenSettingsPort} from '@main/live/slice';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -100,7 +101,7 @@ describe('live admission limits', () => {
         });
         return context.apply(history, {
           type: 'output.set',
-          screenId: 'main',
+          screenId: MAIN_SCREEN,
           on: true,
         });
       },
@@ -111,7 +112,7 @@ describe('live admission limits', () => {
       expectSuccess(parseLiveCommand({type: 'macro.run', macroId: uuid(9)})),
       log,
     );
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
     expect(log.messages('error')).toEqual(['live command failed']);
     release();
   });
@@ -127,7 +128,7 @@ describe('live admission limits', () => {
           type: 'live.batch',
           commands: Array.from({length: 256}, (_, index) => ({
             type: 'output.set',
-            screenId: 'main',
+            screenId: MAIN_SCREEN,
             on: index % 2 === 0,
           })),
         }),
@@ -168,7 +169,7 @@ describe('live admission limits', () => {
       context.defer(observed);
       return context.apply(history, {
         type: 'output.set',
-        screenId: 'main',
+        screenId: MAIN_SCREEN,
         on: true,
       });
     });
@@ -187,7 +188,7 @@ describe('live admission limits', () => {
         parseLiveCommand({
           type: 'live.batch',
           commands: [
-            {type: 'output.set', screenId: 'stage', on: true},
+            {type: 'output.set', screenId: STAGE_SCREEN, on: true},
             {type: 'screen.settings.apply', screenId: uuid(1)},
             {type: 'macro.run', macroId: uuid(9)},
             {type: 'output.set', screenId: uuid(999), on: true},
@@ -240,7 +241,7 @@ describe('live admission limits', () => {
           commands: [
             ...Array.from({length: 255}, (_, index) => ({
               type: 'output.set' as const,
-              screenId: 'main',
+              screenId: MAIN_SCREEN,
               on: index % 2 === 0,
             })),
             {type: 'output.set', screenId: uuid(999), on: true},
@@ -297,10 +298,9 @@ describe('live admission limits', () => {
       preferences: () => defaultPreferences,
       subscribe: () => () => undefined,
     });
-    const keys = [
-      ...screens.slice(0, LIVE_STATE_LIMITS.outputs).map(screen => screen.id),
-      ...LIVE_OUTPUT_ALIASES,
-    ];
+    const keys = screens
+      .slice(0, LIVE_STATE_LIMITS.outputs)
+      .map(screen => screen.id);
     const command = expectSuccess(
       parseLiveCommand({
         type: 'live.batch',
@@ -313,7 +313,7 @@ describe('live admission limits', () => {
     );
     store.dispatch(command);
     expect(Object.keys(store.state.outputs)).toHaveLength(
-      LIVE_STATE_LIMITS.outputs + LIVE_OUTPUT_ALIASES.length,
+      LIVE_STATE_LIMITS.outputs,
     );
     expect(canSave(store.state)).toBe(true);
     const before = store.state;
@@ -334,8 +334,10 @@ describe('live admission limits', () => {
     expect(log.entries[0]).toMatchObject({
       detail: {error: {field: 'outputs'}, macroIds: []},
     });
-    store.dispatch({type: 'output.set', screenId: 'main', on: false});
-    expect(store.state.outputs['main']).toBe(false);
+    const firstId = screens[0]?.id;
+    if (firstId === undefined) throw new Error('Missing screen');
+    store.dispatch({type: 'output.set', screenId: firstId, on: false});
+    expect(store.state.outputs[firstId]).toBe(false);
     expect(canSave(store.state)).toBe(true);
     release();
     releaseSettings();
@@ -374,7 +376,7 @@ describe('live admission limits', () => {
         type: 'live.batch',
         commands: [
           {type: 'message.show', message},
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
         ],
       }),
     );

@@ -15,7 +15,6 @@ import {
 import type {ServiceId} from '@core/schema/ids';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {songTiles} from '../../store/showService';
-import {outputStateKeys} from '@core/screens/screens';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;
@@ -65,9 +64,7 @@ function outputsStep(
   {outputs}: LiveState,
   screens: readonly Screen[],
 ): RecoveryStep | null {
-  const restored = screens.filter(({id}) =>
-    outputStateKeys(id).some(key => outputs[key] === true),
-  );
+  const restored = screens.filter(({id}) => outputs[id] === true);
   if (restored.length === 0) return null;
   return {
     row: {

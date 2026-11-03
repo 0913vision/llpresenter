@@ -1,3 +1,8 @@
+import {
+  BROADCAST_SCREEN,
+  MAIN_SCREEN,
+  STAGE_SCREEN,
+} from '@fixtures/core/screenIds';
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
@@ -95,7 +100,7 @@ const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 
 beforeEach(() => {
   instances.list.length = 0;
-  usePreview.setState({largeScreenId: 'main'});
+  usePreview.setState({largeScreenId: MAIN_SCREEN});
   seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
@@ -162,7 +167,7 @@ describe('PreviewPanel layout', () => {
     setLayers({}, allOn);
     showLarge('gone');
     const {container} = render(<PreviewPanel compact={false} />);
-    expect(screensWithRole(container, 'large')).toEqual(['main']);
+    expect(screensWithRole(container, 'large')).toEqual([MAIN_SCREEN]);
   });
 
   it.each([false, true])(
@@ -172,7 +177,12 @@ describe('PreviewPanel layout', () => {
       window.llp = mockLlpApi({live: {send}});
       setLayers({}, allOn);
       const {container} = render(<PreviewPanel compact={compact} />);
-      for (const id of ['main', 'stage', 'broadcast', 'main']) {
+      for (const id of [
+        MAIN_SCREEN,
+        STAGE_SCREEN,
+        BROADCAST_SCREEN,
+        MAIN_SCREEN,
+      ]) {
         const button = container.querySelector(`[data-preview-slot="${id}"]`);
         if (!button) throw new Error(`Missing fixed slot: ${id}`);
         fireEvent.click(button);
@@ -180,7 +190,7 @@ describe('PreviewPanel layout', () => {
           screen
             .getAllByRole('button')
             .map(slot => slot.dataset['previewSlot']),
-        ).toEqual(['main', 'stage', 'broadcast']);
+        ).toEqual([MAIN_SCREEN, STAGE_SCREEN, BROADCAST_SCREEN]);
         expect(screensWithRole(container, 'large')).toEqual([id]);
         expect(
           container.querySelectorAll('[data-selected-marker]'),
@@ -216,7 +226,7 @@ describe('PreviewPanel states', () => {
   it('dims the name of a screen whose output is off and keeps drawing it', () => {
     setLayers({slide}, {main: false, stage: true, broadcast: true});
     const {container} = render(<PreviewPanel compact={false} />);
-    const large = itemOf(container, 'main');
+    const large = itemOf(container, MAIN_SCREEN);
     expect(large.getAttribute('data-state')).toBe('off');
     expect(
       screen.getByRole('button', {pressed: true}).getAttribute('aria-label'),
@@ -230,7 +240,9 @@ describe('PreviewPanel states', () => {
   it('treats a screen the live state does not know as off', () => {
     setLayers({}, {});
     const {container} = render(<PreviewPanel compact={false} />);
-    expect(itemOf(container, 'main').getAttribute('data-state')).toBe('off');
+    expect(itemOf(container, MAIN_SCREEN).getAttribute('data-state')).toBe(
+      'off',
+    );
   });
 });
 
@@ -376,7 +388,7 @@ describe('PreviewPanel screen list changes', () => {
     const view = render(
       <ScreenSummariesContext
         value={[
-          summary('main', '사용자 화면'),
+          summary(MAIN_SCREEN, '사용자 화면'),
           summary('captions', '사용자 캡처'),
         ]}
       >
@@ -388,7 +400,7 @@ describe('PreviewPanel screen list changes', () => {
     );
 
     view.rerender(
-      <ScreenSummariesContext value={[summary('main', '남은 화면')]}>
+      <ScreenSummariesContext value={[summary(MAIN_SCREEN, '남은 화면')]}>
         <PreviewPanel compact={false} />
       </ScreenSummariesContext>,
     );

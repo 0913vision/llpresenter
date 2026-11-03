@@ -1,5 +1,10 @@
 import {emptyLiveState, type LiveState} from '../../src/core/live/state';
 import {parseLiveState} from '../../src/core/schema/liveState';
+import {
+  BROADCAST_SCREEN,
+  MAIN_SCREEN,
+  STAGE_SCREEN,
+} from '@fixtures/core/screenIds';
 
 /** An invented UUID v4 for fixture ids. */
 export const uuid = (index: number) =>
@@ -10,7 +15,11 @@ export function typicalState(): LiveState {
   return {
     ...emptyLiveState(),
     version: 10,
-    outputs: {main: true, stage: true, broadcast: false},
+    outputs: {
+      [MAIN_SCREEN]: true,
+      [STAGE_SCREEN]: true,
+      [BROADCAST_SCREEN]: false,
+    },
     layers: {
       ...emptyLiveState().layers,
       media: {mediaId: 'invented-background', loop: true, startedAt: 100},

@@ -9,6 +9,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {LiveStore} from '@main/live/store';
 import {MAIN} from '@fixtures/core/overlays';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('saved output backend', () => {
   it('continues past a throwing stop callback and disposes outputs after on then off', async () => {
@@ -43,10 +44,10 @@ describe('saved output backend', () => {
           ? Promise.resolve(null)
           : Promise.reject(new Error('cannot open settings'));
       const {store, windows, running, log} = setup(loading);
-      store.dispatch({type: 'output.set', screenId: 'main', on: true});
+      store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
       await loaded();
-      expect(store.state.outputs.main).toBe(true);
-      const output = windows.only('main');
+      expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
+      const output = windows.only(MAIN);
       expect(output.mode).toEqual({
         kind: 'fullscreen',
         bounds: projector.bounds,
@@ -56,13 +57,13 @@ describe('saved output backend', () => {
         'using built-in output screens because settings are unavailable',
       );
       mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
-        {screenId: 'main', fps: 60},
+        {screenId: MAIN_SCREEN, fps: 60},
         1,
       );
-      expect(running.frameRates()).toEqual([{screen: 'main', fps: 60}]);
-      store.dispatch({type: 'output.set', screenId: 'main', on: false});
+      expect(running.frameRates()).toEqual([{screen: MAIN, fps: 60}]);
+      store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: false});
       expect(output.mode.kind).toBe('hidden');
-      store.dispatch({type: 'output.set', screenId: 'main', on: true});
+      store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
       expect(output.mode.kind).toBe('fullscreen');
       expect(windows.created).toHaveLength(1);
     },
@@ -74,8 +75,8 @@ describe('saved output backend', () => {
     await loaded();
     expect(connect).toHaveBeenCalledTimes(1);
     running.stop();
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
-    expect(store.state.outputs).toEqual({[MAIN]: true, main: true});
+    store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
+    expect(store.state.outputs).toEqual({[MAIN]: true});
     stopOverlays();
     expect(settings.listeners.size).toBe(0);
     expect(store.listenerCount).toBe(0);
@@ -99,11 +100,11 @@ describe('saved output backend', () => {
       resolve = done;
     });
     const {settings, store, windows, running} = setup(loading);
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
     expect(windows.created).toHaveLength(0);
     resolve(settings.reader);
     await loaded();
-    expect(store.state.outputs).toEqual({[MAIN]: true, main: true});
+    expect(store.state.outputs).toEqual({[MAIN]: true});
     expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
     running.stop();
     expect(mocks.stop).toHaveBeenCalledExactlyOnceWith(7);

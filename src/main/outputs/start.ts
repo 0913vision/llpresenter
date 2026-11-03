@@ -18,7 +18,6 @@ import {
 } from '../rendererMessages';
 import {createSettingsScreenSource} from './settingsScreens';
 import {createDefaultScreenSource} from './defaultScreens';
-import type {OutputScreen, ScreenSource} from './screens';
 import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
@@ -44,36 +43,6 @@ interface StatusPublishing {
   readonly outputs: OutputManager;
   readonly displays: DisplayRegistry;
   readonly log: Logger;
-  readonly screenIdFor: (id: string) => string;
-}
-
-function resolveScreenId(id: string, screens: ScreenSource): string {
-  return (
-    screens
-      .list()
-      .find(screen => screen.id === id || screen.aliases?.includes(id))?.id ??
-    id
-  );
-}
-
-function normalizeOutputFlags(
-  screens: readonly OutputScreen[],
-  store: LiveStore,
-  log: Logger,
-): void {
-  const values = store.state.outputs;
-  const commands = screens.flatMap(({id, aliases = []}) => {
-    const keys = [id, ...aliases];
-    const on = values[id] ?? keys.some(key => values[key] === true);
-    return keys.some(key => (values[key] ?? false) !== on)
-      ? [{type: 'output.set' as const, screenId: id, on}]
-      : [];
-  });
-  if (commands.length > 0) {
-    store.dispatch({type: 'live.batch', commands}, error =>
-      log.error('live state listener failed', error),
-    );
-  }
 }
 
 function publishStatus({
@@ -81,23 +50,19 @@ function publishStatus({
   outputs,
   displays,
   log,
-  screenIdFor,
 }: StatusPublishing): Array<() => void> {
   return [
     answerWindows(outputEndpoints.status.channel, () => board.snapshot()),
     listenToWindows(
       outputEndpoints.retry.channel,
-      handleRetryRequest(screenId => outputs.retry(screenIdFor(screenId)), log),
+      handleRetryRequest(screenId => outputs.retry(screenId), log),
     ),
     listenToWindows(outputEndpoints.findMonitors.channel, () =>
       displays.refresh(),
     ),
     listenToWindows(
       outputEndpoints.showWindow.channel,
-      handleShowWindowRequest(
-        screenId => outputs.showWindow(screenIdFor(screenId)),
-        log,
-      ),
+      handleShowWindowRequest(screenId => outputs.showWindow(screenId), log),
     ),
     board.subscribe(statuses =>
       sendToWindows(outputEndpoints.statusChanged.channel, statuses, log),
@@ -170,14 +135,13 @@ export function startOutputs({
     log,
     createDefaultScreenSource(displays),
   );
-  const screenIdFor = (id: string): string => resolveScreenId(id, screens);
   const frameRates = new FrameRateTracker(
     screenId => screens.list().some(({id}) => id === screenId),
     log,
   );
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
-    frameRate: screenId => frameRates.current(screenIdFor(screenId)),
+    frameRate: screenId => frameRates.current(screenId),
   });
   const controlBounds = () =>
     control.isDestroyed() ? null : control.getBounds();
@@ -204,9 +168,8 @@ export function startOutputs({
     log,
   });
   const releaseNumbers = store.connectMonitorNumbers(numbers);
-  const stopNormalizing = screens.subscribe(() => {
+  const stopRetaining = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
-    normalizeOutputFlags(screens.list(), store, log);
   });
   outputs.start();
   const stops = [
@@ -214,7 +177,7 @@ export function startOutputs({
     releaseNumbers,
     guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
-    stopNormalizing,
+    stopRetaining,
     answerWindows(outputEndpoints.frameReady.channel, (_event, value) => {
       const report = parseFrameReadyReport(value);
       if (!report.ok) {
@@ -222,7 +185,7 @@ export function startOutputs({
         return false;
       }
       return outputs.frameReady(
-        screenIdFor(report.value.screenId),
+        report.value.screenId,
         report.value.version,
         report.value,
       );
@@ -231,7 +194,7 @@ export function startOutputs({
     listenToWindows(
       outputEndpoints.frameRate.channel,
       handleFrameRate(report => {
-        const screenId = screenIdFor(report.screenId);
+        const {screenId} = report;
         // NOTE(0913vision): An off output is a hidden window, which draws
         // about once a second, so only outputs that are on are judged.
         if (store.state.outputs[screenId] === true) {
@@ -243,7 +206,7 @@ export function startOutputs({
         board.refresh();
       }, log),
     ),
-    ...publishStatus({board, outputs, displays, log, screenIdFor}),
+    ...publishStatus({board, outputs, displays, log}),
     ...publishMonitors({displays, outputs, controlBounds, log}),
     keepAwakeWhileOutputsOn(
       store,

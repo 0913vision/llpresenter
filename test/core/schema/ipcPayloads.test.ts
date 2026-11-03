@@ -12,11 +12,12 @@ import {
   parseSongEditorTarget,
   refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('frame readiness', () => {
   it('accepts a current version and boolean acknowledgment', () => {
     const value = {
-      screenId: 'main',
+      screenId: MAIN_SCREEN,
       version: 7,
       width: 1920,
       height: 1080,
@@ -26,15 +27,27 @@ describe('frame readiness', () => {
     expect(parseFrameReadyReply(false)).toEqual({ok: true, value: false});
   });
   it.each([
-    {screenId: 'main', version: 1, width: 0, height: 1080, ready: true},
-    {screenId: 'main', version: 1, width: 1920, height: Infinity, ready: true},
-    {screenId: 'main', version: 1, width: 1920, height: 1080, ready: 'yes'},
+    {screenId: MAIN_SCREEN, version: 1, width: 0, height: 1080, ready: true},
+    {
+      screenId: MAIN_SCREEN,
+      version: 1,
+      width: 1920,
+      height: Infinity,
+      ready: true,
+    },
+    {
+      screenId: MAIN_SCREEN,
+      version: 1,
+      width: 1920,
+      height: 1080,
+      ready: 'yes',
+    },
     {screenId: '', version: 1},
     {screenId: 'x'.repeat(201), version: 0},
-    {screenId: 'main', version: -1},
-    {screenId: 'main', version: 0.5},
-    {screenId: 'main', version: Infinity},
-    {screenId: 'main', version: Number.MAX_SAFE_INTEGER + 1},
+    {screenId: MAIN_SCREEN, version: -1},
+    {screenId: MAIN_SCREEN, version: 0.5},
+    {screenId: MAIN_SCREEN, version: Infinity},
+    {screenId: MAIN_SCREEN, version: Number.MAX_SAFE_INTEGER + 1},
   ])('rejects malformed ready reports %j', value => {
     expect(parseFrameReadyReport(value).ok).toBe(false);
   });
@@ -78,9 +91,9 @@ describe('parseRendererLogEntry', () => {
 describe('parseFrameRateReport', () => {
   it('accepts frame rates from 0 to 240, fractions included', () => {
     for (const fps of [0, 59.94, 240]) {
-      expect(parseFrameRateReport({screenId: 'main', fps})).toEqual({
+      expect(parseFrameRateReport({screenId: MAIN_SCREEN, fps})).toEqual({
         ok: true,
-        value: {screenId: 'main', fps},
+        value: {screenId: MAIN_SCREEN, fps},
       });
     }
   });
@@ -92,7 +105,11 @@ describe('parseFrameRateReport', () => {
     ['a rate that is not a number', {fps: NaN}, 'fps'],
     ['an empty screen id', {screenId: ''}, 'screenId'],
   ])('rejects %s', (_name, change, field) => {
-    const result = parseFrameRateReport({screenId: 'main', fps: 60, ...change});
+    const result = parseFrameRateReport({
+      screenId: MAIN_SCREEN,
+      fps: 60,
+      ...change,
+    });
 
     expect(result.ok ? undefined : result.error.field).toBe(field);
   });

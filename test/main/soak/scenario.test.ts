@@ -12,6 +12,7 @@ import {
   SLIDE_INTERVAL_MS,
   startSoakScenario,
 } from '@main/soak/scenario';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const MEDIA_ID = '3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b';
 const SOAK_ENV = {LLP_SOAK_RECORD: 'C:/data/record.jsonl'};
@@ -74,7 +75,7 @@ describe('startSoakScenario', () => {
     });
     expect(commands).toEqual([
       {type: 'media.show', media: {mediaId: MEDIA_ID, loop: true}},
-      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
       {type: 'slide.show', slide: scenarioSlide(0)},
       {
         type: 'message.send',

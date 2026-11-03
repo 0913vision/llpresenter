@@ -4,11 +4,11 @@ import {parseShowLibrarySongRequest} from '@core/schema/showLibrarySong';
 import type {WindowMode} from '../windows/testWindows';
 import type {Logger} from '../log';
 
-// NOTE(0913vision): A window names only a song id. Main finds the song's file
-// among the songs it loaded, so 탐색기에서 보기 can't open any other path.
 /**
  * Shows a 라이브러리 song's file in the file manager when a window asks by id.
- * An offscreen check never opens it.
+ * A window names only a song id. Main finds the song's file among the songs it
+ * loaded, so 탐색기에서 보기 can't open any other path. An offscreen check
+ * never opens it.
  *
  * @returns A function that stops listening.
  */

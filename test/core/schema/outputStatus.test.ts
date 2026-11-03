@@ -5,6 +5,7 @@ import {
   parseOutputShowWindowRequest,
   parseOutputStatuses,
 } from '@core/schema/outputStatus';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 function statuses() {
   return {
@@ -72,9 +73,9 @@ describe('parseOutputStatuses', () => {
 
 describe('parseOutputRetryRequest', () => {
   it('accepts a screen id and drops other fields', () => {
-    expect(parseOutputRetryRequest({screenId: 'main', extra: 1})).toEqual({
+    expect(parseOutputRetryRequest({screenId: MAIN_SCREEN, extra: 1})).toEqual({
       ok: true,
-      value: {screenId: 'main'},
+      value: {screenId: MAIN_SCREEN},
     });
   });
 
@@ -87,9 +88,11 @@ describe('parseOutputRetryRequest', () => {
 
 describe('parseOutputShowWindowRequest', () => {
   it('accepts a screen id and drops other fields', () => {
-    expect(parseOutputShowWindowRequest({screenId: 'stage', x: 1})).toEqual({
+    expect(
+      parseOutputShowWindowRequest({screenId: STAGE_SCREEN, x: 1}),
+    ).toEqual({
       ok: true,
-      value: {screenId: 'stage'},
+      value: {screenId: STAGE_SCREEN},
     });
   });
 

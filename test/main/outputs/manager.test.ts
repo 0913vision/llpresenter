@@ -528,17 +528,15 @@ describe('OutputManager status', () => {
     expect(onStatusChange).toHaveBeenCalledTimes(2);
   });
 
-  it('reports the renderer state under each alias of a screen, and announces renderer changes', () => {
-    const {manager, onStatusChange} = setUp([
-      screenOn(PROJECTOR, {aliases: ['old-main']}),
-    ]);
+  it('reports the renderer state of a screen, and announces renderer changes', () => {
+    const {manager, onStatusChange} = setUp([screenOn(PROJECTOR)]);
     const output = outputOf('main');
 
     output.rendererState = 'limited';
     output.options.onRendererState?.('limited');
 
     expect(onStatusChange).toHaveBeenCalledOnce();
-    expect(manager.screenStates().get('old-main')).toEqual({
+    expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'limited',
     });

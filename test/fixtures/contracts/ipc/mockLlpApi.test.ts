@@ -4,6 +4,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createAppFlushRequestId} from '@core/schema/ids';
 import {createServiceId} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('mockLlpApi', () => {
   it('supplies valid empty documents for the initially mounted show panels', async () => {
@@ -117,7 +118,7 @@ describe('mockLlpApi', () => {
       api.output.subscribeStatus(() => undefined)();
       api.output.retry('main');
       api.log.write({level: 'info', message: 'ok'});
-      api.output.reportFrameRate({screenId: 'main', fps: 60});
+      api.output.reportFrameRate({screenId: MAIN_SCREEN, fps: 60});
     }).not.toThrow();
   });
 
@@ -133,7 +134,7 @@ describe('mockLlpApi', () => {
     const reportFrameRate = vi.fn();
 
     const api = mockLlpApi({output: {reportFrameRate}});
-    api.output.reportFrameRate({screenId: 'main', fps: 60});
+    api.output.reportFrameRate({screenId: MAIN_SCREEN, fps: 60});
 
     expect(reportFrameRate).toHaveBeenCalledTimes(1);
     await expect(api.output.getStatus()).resolves.toEqual({});

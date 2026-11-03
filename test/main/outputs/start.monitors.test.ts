@@ -14,6 +14,7 @@ import {displayInfo} from '@fixtures/main/displays/testing';
 import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {openNumberWindow} from '@main/outputs/numberWindow';
 import {sendToWindows} from '@main/ipc';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('saved output backend', () => {
   it('releases the wake lock, its listeners, and its channels once when outputs stop', async () => {
@@ -86,7 +87,7 @@ describe('saved output backend', () => {
   it('reads the monitors at once for 모니터 다시 찾기 and raises the output for 창 보기', async () => {
     const {store, windows} = setup();
     await loaded();
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
     const output = windows.only(MAIN);
     const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
@@ -94,7 +95,7 @@ describe('saved output backend', () => {
 
     mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
     mocks.handlers.get(outputEndpoints.showWindow.channel)?.(
-      {screenId: 'main'},
+      {screenId: MAIN_SCREEN},
       1,
     );
 
@@ -102,28 +103,20 @@ describe('saved output backend', () => {
     expect(output.raises).toBe(1);
   });
 
-  it('routes capture aliases and frame statuses by UUID and forgets removed reports', async () => {
+  it('routes frame statuses by screen id and forgets removed reports', async () => {
     const {save, store, running, windows} = setup();
     await loaded();
     save([{...main, id: CAPTIONS, method: 'window'}]);
-    store.dispatch({type: 'output.set', screenId: 'captions', on: true});
-    expect(store.state.outputs).toEqual({
-      [CAPTIONS]: true,
-      broadcast: true,
-      captions: true,
-    });
+    store.dispatch({type: 'output.set', screenId: CAPTIONS, on: true});
+    expect(store.state.outputs).toEqual({[CAPTIONS]: true});
     mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
       {screenId: CAPTIONS, fps: 60},
       1,
     );
     expect(running.frameRates()).toEqual([{screen: CAPTIONS, fps: 60}]);
-    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
-      {
-        broadcast: {fps: 60},
-        captions: {fps: 60},
-        [CAPTIONS]: {fps: 60},
-      },
-    );
+    const statuses = mocks.answers.get(outputEndpoints.status.channel)?.();
+    expect(statuses).toMatchObject({[CAPTIONS]: {fps: 60}});
+    expect(Object.keys(statuses ?? {})).toEqual([CAPTIONS]);
     expect(windows.only(CAPTIONS).mode.kind).toBe('window');
     save([]);
     save([{...main, id: CAPTIONS, method: 'window'}]);

@@ -1,5 +1,4 @@
 import {defineSlice} from '../slice';
-import {outputStateKeys, resolveOutputScreen} from '@core/screens/screens';
 import {MissingLiveTargetError} from '../commandErrors';
 
 /**
@@ -14,7 +13,7 @@ export const outputsSlice = defineSlice({
     const document = settings?.get('screens');
     const saved =
       document?.name === 'screens'
-        ? resolveOutputScreen(screenId, document.value.screens)
+        ? document.value.screens.find(screen => screen.id === screenId)
         : undefined;
     if (
       document !== undefined &&
@@ -23,29 +22,23 @@ export const outputsSlice = defineSlice({
     ) {
       throw new MissingLiveTargetError({kind: 'screen', id: screenId});
     }
-    const keys =
-      document === undefined
-        ? [screenId]
-        : outputStateKeys(saved?.id ?? screenId);
     const remove = document !== undefined && saved === undefined;
     if (
-      keys.every(key =>
-        remove
-          ? !Object.hasOwn(state.outputs, key)
-          : (state.outputs[key] ?? false) === on,
-      )
+      remove
+        ? !Object.hasOwn(state.outputs, screenId)
+        : (state.outputs[screenId] ?? false) === on
     ) {
       return history;
     }
     const outputs = remove
       ? Object.fromEntries(
-          Object.entries(state.outputs).filter(([key]) => !keys.includes(key)),
+          Object.entries(state.outputs).filter(([key]) => key !== screenId),
         )
-      : {...state.outputs, ...Object.fromEntries(keys.map(key => [key, on]))};
+      : {...state.outputs, [screenId]: on};
     const {testPatterns, ...rest} = state;
     const patterns = on
       ? testPatterns
-      : testPatterns?.filter(id => !keys.includes(id));
+      : testPatterns?.filter(id => id !== screenId);
     return {
       ...history,
       state: {

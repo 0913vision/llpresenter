@@ -1,4 +1,3 @@
-import {resolveOutputScreen} from '@core/screens/screens';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {MissingLiveTargetError} from '../commandErrors';
 import {defineSlice} from '../slice';
@@ -15,7 +14,7 @@ export const testPatternSlice = defineSlice({
     const document = settings?.get('screens');
     const saved =
       document?.name === 'screens'
-        ? resolveOutputScreen(screenId, document.value.screens)
+        ? document.value.screens.find(screen => screen.id === screenId)
         : undefined;
     if (on && saved === undefined) {
       throw new MissingLiveTargetError({kind: 'screen', id: screenId});

@@ -64,7 +64,11 @@ export function answerWindows(
   };
 }
 
-function runWindowAction(win: BrowserWindow, action: WindowAction): void {
+function runWindowAction(
+  win: BrowserWindow,
+  action: WindowAction,
+  isControlWindow: (win: BrowserWindow) => boolean,
+): void {
   switch (action) {
     case 'minimize':
       win.minimize();
@@ -74,6 +78,7 @@ function runWindowAction(win: BrowserWindow, action: WindowAction): void {
       else win.maximize();
       return;
     case 'toggle-full-screen':
+      if (!isControlWindow(win)) return;
       win.setFullScreen(!win.isFullScreen());
       return;
     case 'close':
@@ -84,6 +89,7 @@ function runWindowAction(win: BrowserWindow, action: WindowAction): void {
 
 function controlWindowIn(
   mode: WindowMode,
+  isControlWindow: (win: BrowserWindow) => boolean,
   log: Logger,
 ): (event: IpcMainEvent, value: unknown) => void {
   return (event, value) => {
@@ -95,7 +101,7 @@ function controlWindowIn(
       });
       return;
     }
-    runWindowAction(win, value);
+    runWindowAction(win, value, isControlWindow);
   };
 }
 
@@ -120,6 +126,8 @@ export function listenToWindows(
 /** What the IPC channels depend on besides the live store. */
 export interface IpcOptions {
   readonly windowMode: WindowMode;
+  /** Whether a window is the control window; only it may go full screen. */
+  readonly isControlWindow: (win: BrowserWindow) => boolean;
   readonly app: AppFacts;
 }
 
@@ -155,7 +163,7 @@ export function registerIpc(
     | 'subscribe'
   >,
   log: Logger,
-  {windowMode, app}: IpcOptions,
+  {windowMode, app, isControlWindow}: IpcOptions,
 ): () => void {
   ipcMain.handle(liveEndpoints.get.channel, () => store.state);
   ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
@@ -209,7 +217,10 @@ export function registerIpc(
       (error: unknown) => log.warn('could not open the log folder', error),
     );
   });
-  ipcMain.on(windowEndpoints.control.channel, controlWindowIn(windowMode, log));
+  ipcMain.on(
+    windowEndpoints.control.channel,
+    controlWindowIn(windowMode, isControlWindow, log),
+  );
   ipcMain.on(windowEndpoints.editText.channel, (event, value: unknown) => {
     if (!isTextEditAction(value)) {
       log.warn('dropped a malformed text edit action', value);

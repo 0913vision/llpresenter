@@ -5,7 +5,7 @@ import {
   parseLiveCommandRequest,
 } from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
-import {LIVE_STATE_LIMITS, LIVE_OUTPUT_ALIASES} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -114,16 +114,12 @@ describe('shared live and recovery limits', () => {
     }
   });
 
-  it('accepts 200 canonical outputs plus all four aliases and rejects one extra canonical output', () => {
-    const outputs = Object.fromEntries([
-      ...Array.from(
+  it('accepts 200 outputs by screen id and rejects one more', () => {
+    const outputs = Object.fromEntries(
+      Array.from(
         {length: LIVE_STATE_LIMITS.outputs},
         (_, i) => [uuid(i), true] as const,
       ),
-      ...LIVE_OUTPUT_ALIASES.map(alias => [alias, false] as const),
-    ]);
-    expect(Object.keys(outputs)).toHaveLength(
-      LIVE_STATE_LIMITS.outputs + LIVE_OUTPUT_ALIASES.length,
     );
     for (const [key, on] of Object.entries(outputs)) {
       expect(parseLiveCommand({type: 'output.set', screenId: key, on}).ok).toBe(
@@ -135,13 +131,18 @@ describe('shared live and recovery limits', () => {
     const extra = {...outputs, [uuid(999)]: true};
     expect(parseLiveState(state({}, {outputs: extra})).ok).toBe(false);
     expect(record(state({}, {outputs: extra})).ok).toBe(false);
-    const withoutAliases = Object.fromEntries(
-      Array.from({length: LIVE_STATE_LIMITS.outputs + 1}, (_, i) => [
-        uuid(i),
-        true,
-      ]),
-    );
-    expect(parseLiveState(state({}, {outputs: withoutAliases})).ok).toBe(false);
-    expect(record(state({}, {outputs: withoutAliases})).ok).toBe(false);
   });
+
+  it.each(['main', 'stage', 'broadcast', 'captions', '', 'not-an-id'])(
+    'accepts only screen ids as output keys, not %j',
+    key => {
+      expect(
+        parseLiveCommand({type: 'output.set', screenId: key, on: true}).ok,
+      ).toBe(false);
+      expect(parseLiveState(state({}, {outputs: {[key]: true}})).ok).toBe(
+        false,
+      );
+      expect(record(state({}, {outputs: {[key]: true}})).ok).toBe(false);
+    },
+  );
 });

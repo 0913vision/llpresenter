@@ -11,6 +11,7 @@ import {
   outputTile,
   useShow,
 } from '@renderer/session/show';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const START = 1000;
 const background = {mediaId: 'video', loop: true};
@@ -240,10 +241,10 @@ describe('song backgrounds on output', () => {
         }),
     );
     click('one');
-    sendLive({type: 'output.set', screenId: 'main', on: true});
+    sendLive({type: 'output.set', screenId: MAIN_SCREEN, on: true});
     finish(service);
     await expectSlide('one');
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
     expect(store.state.layers.media?.mediaId).toBe('video');
   });
 

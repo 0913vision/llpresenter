@@ -5,6 +5,7 @@ import {
 } from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('interruptsSongOutput', () => {
   it('interrupts pending song navigation when any batch child interrupts it', () => {
@@ -25,7 +26,7 @@ describe('interruptsSongOutput', () => {
         interruptsSongOutput({
           type: 'live.batch',
           commands: [
-            {type: 'output.set', screenId: 'main', on: true},
+            {type: 'output.set', screenId: MAIN_SCREEN, on: true},
             child,
             {type: 'message.show', message: {messageId: 'a', text: ''}},
           ],
@@ -42,7 +43,7 @@ describe('interruptsSongOutput', () => {
       interruptsSongOutput({
         type: 'live.batch',
         commands: [
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
           {type: 'message.show', message: {messageId: 'a', text: ''}},
           {type: 'layer.clear', target: 'message'},
         ],
@@ -71,7 +72,11 @@ describe('interruptsSongOutput', () => {
       expect(interruptsSongOutput({type: 'layer.clear', target})).toBe(false);
     }
     expect(
-      interruptsSongOutput({type: 'output.set', screenId: 'main', on: true}),
+      interruptsSongOutput({
+        type: 'output.set',
+        screenId: MAIN_SCREEN,
+        on: true,
+      }),
     ).toBe(false);
     expect(
       interruptsSongOutput({

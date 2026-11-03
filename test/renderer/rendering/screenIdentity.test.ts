@@ -13,7 +13,7 @@ function screens() {
 }
 
 describe('output screen identity', () => {
-  it('resolves exact configured ids and the legacy output aliases without guessing unknown ids', () => {
+  it('resolves exact configured ids only, without guessing unknown ids or old aliases', () => {
     const {value} = screens();
     expect(resolveRenderScreen(MAIN, value.screens)).toEqual({
       id: MAIN,
@@ -22,10 +22,11 @@ describe('output screen identity', () => {
       method: 'fullscreen',
       emptyColor: '#000000',
     });
-    expect(resolveRenderScreen('main', value.screens)?.id).toBe(MAIN);
-    expect(resolveRenderScreen('captions', value.screens)?.id).toBe(CAPTIONS);
-    expect(resolveRenderScreen('broadcast', value.screens)?.id).toBe(CAPTIONS);
-    expect(resolveRenderScreen('stage', value.screens)).toEqual({
+    for (const alias of ['main', 'captions', 'broadcast', 'stage']) {
+      expect(resolveRenderScreen(alias, value.screens)).toBeUndefined();
+    }
+    expect(resolveRenderScreen(CAPTIONS, value.screens)?.id).toBe(CAPTIONS);
+    expect(resolveRenderScreen(STAGE, value.screens)).toEqual({
       id: STAGE,
       name: 'Stage',
       kind: 'stage',

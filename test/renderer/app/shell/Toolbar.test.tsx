@@ -13,6 +13,7 @@ import {Toolbar} from '@renderer/app/shell/Toolbar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import type {ScreenSummary} from '@renderer/platform/screens';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 function installApi(send: (command: LiveCommand) => void): void {
   window.llp = mockLlpApi({
@@ -146,14 +147,14 @@ describe('Toolbar', () => {
     await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
     expect(send).toHaveBeenCalledWith({
       type: 'output.set',
-      screenId: 'stage',
+      screenId: STAGE_SCREEN,
       on: true,
     });
   });
 
   it('shows an output as on when the live state says so', () => {
     useLive.setState({
-      state: {...emptyLiveState(), outputs: {main: true}},
+      state: {...emptyLiveState(), outputs: {[MAIN_SCREEN]: true}},
     });
     render(
       <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,

@@ -1,8 +1,10 @@
+import {createScreenId} from '@core/schema/ids';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import type {Monitor} from '../displays/monitor';
 import type {OutputScreen, ScreenSource} from './screens';
 
-/** The id the toolbar sends in `output.set` for the 청중 화면. */
-export const MAIN_SCREEN_ID = 'main';
+/** The id of the starter 청중 화면, which the toolbar sends in `output.set`. */
+export const MAIN_SCREEN_ID = createScreenId(STARTER_SCREEN_IDS.main);
 
 const MAIN_SCREEN_NAME = '청중 화면';
 

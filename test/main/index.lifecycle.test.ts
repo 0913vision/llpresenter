@@ -8,6 +8,7 @@ import {
 } from '@fixtures/main/indexWiringFixtures';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
@@ -163,11 +164,11 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
 
     mocks.scenarioDispatch.current?.({
       type: 'output.set',
-      screenId: 'main',
+      screenId: MAIN_SCREEN,
       on: true,
     });
 
-    expect(store?.state.outputs).toEqual({main: true});
+    expect(store?.state.outputs).toEqual({[MAIN_SCREEN]: true});
   });
 
   it('stops the soak scenario before the outputs when quitting', async () => {

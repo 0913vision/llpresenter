@@ -196,14 +196,14 @@ export class OutputManager {
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(
-      this.options.screens.list().flatMap(({id, aliases = []}) => {
+      this.options.screens.list().map(({id}) => {
         const monitor = this.monitorNumbers.get(id);
         const state: ScreenOutputState = {
           placement: this.statuses.get(id) ?? 'off',
           renderer: this.windows.get(id)?.rendererState ?? 'running',
           ...(monitor === undefined ? {} : {monitor}),
         };
-        return [id, ...aliases].map(key => [key, state] as const);
+        return [id, state] as const;
       }),
     );
   }
@@ -352,9 +352,7 @@ export class OutputManager {
 
   private pruneOutputs(screens: readonly OutputScreen[]): void {
     if (this.options.screens.ready === false) return;
-    const known = new Set(
-      screens.flatMap(({id, aliases = []}) => [id, ...aliases]),
-    );
+    const known = new Set<string>(screens.map(({id}) => id));
     const unknown = Object.keys(this.options.store.state.outputs).filter(
       id => !known.has(id),
     );
@@ -363,7 +361,7 @@ export class OutputManager {
       {
         type: 'live.batch',
         commands: unknown.map(screenId => ({
-          type: 'output.set',
+          type: 'output.set' as const,
           screenId,
           on: false,
         })),

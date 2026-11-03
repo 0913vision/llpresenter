@@ -1,8 +1,9 @@
 import {create} from 'zustand';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 
 // NOTE(0913vision): The screen whose preview is large at the start. The other
 // two are small.
-const DEFAULT_LARGE_SCREEN_ID = 'main';
+const DEFAULT_LARGE_SCREEN_ID: string = STARTER_SCREEN_IDS.main;
 
 interface PreviewView {
   readonly largeScreenId: string;

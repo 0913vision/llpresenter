@@ -6,6 +6,7 @@ import {
   initialHistory,
   type LiveHistory,
 } from '@main/live/reducer';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const NOW = Date.parse('2026-10-25T10:00:00Z');
 const LATER = NOW + 30_000;
@@ -157,13 +158,13 @@ describe('applyCommand', () => {
 
   it.each([true, false])('keeps the undo when an output turns %s', on => {
     const cleared = run([
-      {type: 'output.set', screenId: 'main', on: !on},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: !on},
       {type: 'slide.show', slide: slide(2)},
       {type: 'layer.clear', target: 'all'},
     ]);
     const switched = applyCommand(cleared, {
       type: 'output.set',
-      screenId: 'main',
+      screenId: MAIN_SCREEN,
       on,
     });
     expect(switched).not.toBe(cleared);
@@ -224,18 +225,18 @@ describe('applyCommand', () => {
   });
 
   it('tracks output per screen and ignores repeated values', () => {
-    const on = run([{type: 'output.set', screenId: 'main', on: true}]);
-    expect(on.state.outputs['main']).toBe(true);
-    expect(on.state.outputs['stage']).toBeUndefined();
+    const on = run([{type: 'output.set', screenId: MAIN_SCREEN, on: true}]);
+    expect(on.state.outputs[MAIN_SCREEN]).toBe(true);
+    expect(on.state.outputs[STAGE_SCREEN]).toBeUndefined();
     expect(
-      applyCommand(on, {type: 'output.set', screenId: 'main', on: true}),
+      applyCommand(on, {type: 'output.set', screenId: MAIN_SCREEN, on: true}),
     ).toBe(on);
     const off = applyCommand(on, {
       type: 'output.set',
-      screenId: 'main',
+      screenId: MAIN_SCREEN,
       on: false,
     });
-    expect(off.state.outputs['main']).toBe(false);
+    expect(off.state.outputs[MAIN_SCREEN]).toBe(false);
   });
 
   it('never lowers the version or keeps an undo past new content for random commands', () => {

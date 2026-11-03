@@ -1144,7 +1144,7 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `serviceId`             | Current service ID, or `null` when no service is open or its content hasn't been read yet      | 마지막 슬라이드 (last 슬라이드)            |
 | `state`                 | The complete live output state; its fields provide the three restore rows                      | See the rows below                         |
 | `state.version`         | The state's change count                                                                       | Not displayed; restore starts a new count  |
-| `state.outputs`         | Screen ID to output on or off                                                                  | 화면 출력 (screen output)                  |
+| `state.outputs`         | Screen ID (the only key) to output on or off                                                   | 화면 출력 (screen output)                  |
 | `state.layers.slide`    | Complete live 슬라이드: source item ID, position, label, and displayed lines                   | 마지막 슬라이드                            |
 | `state.layers.media`    | Background media choice, loop setting, and playback start time                                 | 마지막 슬라이드 (proposal)                 |
 | `state.layers.prop`     | Complete active 그래픽 layer, including captured item payloads when present                    | 표시 중이던 항목 (items that were showing) |

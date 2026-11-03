@@ -19,6 +19,7 @@ import {
   expectRoundTrip,
   expectSuccess,
 } from '@fixtures/core/schema/testHelpers';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const FILE = 'recovery/live.json';
 const uuid = (number: number) =>
@@ -115,7 +116,7 @@ describe('recovery record files', () => {
           message: {messageId: 'legacy-message', text: 'Invented legacy cue'},
           notice: {noticeId: 'legacy-notice'},
         },
-        {outputs: {main: true, stage: false}},
+        {outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false}},
       ),
     };
     expectRoundTrip(codec, legacy);
@@ -221,9 +222,9 @@ describe('recovery record files', () => {
     [{state: null}, 'invalid', 'state'],
     [{state: stateWith({}, {version: -1})}, 'invalid', 'state.version'],
     [
-      {state: stateWith({}, {outputs: {main: 'on'}})},
+      {state: stateWith({}, {outputs: {[MAIN_SCREEN]: 'on'}})},
       'invalid',
-      'state.outputs.main',
+      `state.outputs.${MAIN_SCREEN}`,
     ],
     [
       {
@@ -315,14 +316,24 @@ describe('recovery record files', () => {
     const slide = {itemId: 'item', position: 0, label: null, lines};
     const outputs = Object.fromEntries(
       Array.from({length: RECOVERY_RECORD_LIMITS.outputs}, (_, i) => [
-        `screen-${i}`,
+        `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
         true,
       ]),
     );
     expect(readState(stateWith({slide}, {outputs})).ok).toBe(true);
     expect(
       expectFailure(
-        readState(stateWith({}, {outputs: {...outputs, extra: true}})),
+        readState(
+          stateWith(
+            {},
+            {
+              outputs: {
+                ...outputs,
+                '00000000-0000-4000-8000-000000000999': true,
+              },
+            },
+          ),
+        ),
       ).field,
     ).toBe('state.outputs');
     expect(

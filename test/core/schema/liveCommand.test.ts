@@ -6,6 +6,7 @@ import {
   MAX_LIVE_BATCH_COMMANDS,
 } from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
   it('preserves an explicit Bible reference on a slide command', () => {
@@ -44,7 +45,7 @@ describe('parseLiveCommand', () => {
         type: 'layer.clear.toggle',
         target,
       })),
-      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
       {
         type: 'slide.show',
         slide: {itemId: 'a', position: 2, label: '후렴', lines: ['아멘']},
@@ -103,7 +104,7 @@ describe('parseLiveCommand', () => {
     ],
     [
       'an output switch that is text',
-      {type: 'output.set', screenId: 'main', on: 'yes'},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: 'yes'},
       'on',
     ],
     [

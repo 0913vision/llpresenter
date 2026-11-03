@@ -1,3 +1,4 @@
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {cleanup, fireEvent, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/platform/drag';
@@ -339,7 +340,9 @@ describe('Workspace column gaps', () => {
         store={createMemoryColumnWidthStore()}
       />,
     );
-    expect(show.container.querySelector('[data-screen="main"]')).not.toBeNull();
+    expect(
+      show.container.querySelector(`[data-screen="${MAIN_SCREEN}"]`),
+    ).not.toBeNull();
     show.unmount();
     const prep = render(
       <Workspace
@@ -348,7 +351,9 @@ describe('Workspace column gaps', () => {
         store={createMemoryColumnWidthStore()}
       />,
     );
-    expect(prep.container.querySelector('[data-screen="main"]')).toBeNull();
+    expect(
+      prep.container.querySelector(`[data-screen="${MAIN_SCREEN}"]`),
+    ).toBeNull();
   });
 
   it('removes the resize listener when it unmounts', () => {

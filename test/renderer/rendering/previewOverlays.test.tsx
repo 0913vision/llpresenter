@@ -2,7 +2,7 @@ import {resolveThemeOutput} from '@core/themes/output';
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {CAPTIONS, MAIN, overlaySettings} from '@fixtures/core/overlays';
+import {CAPTIONS, MAIN, overlaySettings, STAGE} from '@fixtures/core/overlays';
 import {LiveStore} from '@main/live/store';
 import {useLive} from '@renderer/session/live';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
@@ -132,13 +132,13 @@ describe('preview overlay wiring', () => {
 
   it('switches identities without retaining the prior renderer or listener', async () => {
     const {removals, stopSettings} = setup();
-    const view = render(<ScreenPreview screenId="main" chroma={false} />);
+    const view = render(<ScreenPreview screenId={MAIN} chroma={false} />);
     await act(async () => {});
     expect(
       view.container.querySelector(`[data-layer="message"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Main message');
-    view.rerender(<ScreenPreview screenId="stage" chroma={false} />);
+    view.rerender(<ScreenPreview screenId={STAGE} chroma={false} />);
     await act(async () => {});
     expect(view.container.querySelectorAll(`.${classes.root}`)).toHaveLength(1);
     expect(

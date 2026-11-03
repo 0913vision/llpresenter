@@ -153,6 +153,7 @@ function start(): void {
       });
       const disposeIpc = registerIpc(store, log, {
         windowMode,
+        isControlWindow: candidate => candidate === control,
         app: {
           name: app.getName(),
           version: app.getVersion(),

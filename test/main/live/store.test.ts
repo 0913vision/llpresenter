@@ -19,6 +19,7 @@ import {batchSlice} from '@main/live/slices/batch';
 import {clearSlice} from '@main/live/slices/clear';
 import {contentSlice} from '@main/live/slices/content';
 import {LiveStore, dispatchBatched, dispatchLogged} from '@main/live/store';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -66,7 +67,7 @@ describe('LiveStore', () => {
     expect(store.dispatch({type: 'layer.clear', target: 'all'})).toBe(false);
     expect(listener).not.toHaveBeenCalled();
     expect(
-      store.dispatch({type: 'output.set', screenId: 'main', on: true}),
+      store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true}),
     ).toBe(true);
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenLastCalledWith(store.state);
@@ -79,7 +80,7 @@ describe('LiveStore', () => {
     expect(store.listenerCount).toBe(1);
     unsubscribe();
     expect(store.listenerCount).toBe(0);
-    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
     expect(listener).not.toHaveBeenCalled();
   });
 
@@ -92,13 +93,13 @@ describe('LiveStore', () => {
     });
     store.subscribe(after);
     const changed = store.dispatch(
-      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
       error => errors.push(error),
     );
     expect(changed).toBe(true);
     expect(after).toHaveBeenCalledTimes(1);
     expect(errors).toHaveLength(1);
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
   });
 });
 
@@ -112,11 +113,11 @@ describe('dispatchLogged', () => {
 
     dispatchLogged(
       store,
-      {type: 'output.set', screenId: 'main', on: true},
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
       log,
     );
 
-    expect(store.state.outputs).toEqual({main: true});
+    expect(store.state.outputs).toEqual({[MAIN_SCREEN]: true});
     expect(log.messages('error')).toEqual(['live state listener failed']);
   });
 });
@@ -130,7 +131,11 @@ describe('dispatchBatched', () => {
     const commands = Array.from(
       {length: MAX_LIVE_BATCH_COMMANDS + 1},
       (_, index) =>
-        ({type: 'output.set', screenId: 'main', on: index % 2 === 0}) as const,
+        ({
+          type: 'output.set',
+          screenId: MAIN_SCREEN,
+          on: index % 2 === 0,
+        }) as const,
     );
     expect(dispatchBatched(store, commands, recordingLogger())).toBe(true);
     expect(dispatch.mock.calls.map(([command]) => command)).toEqual([
@@ -138,7 +143,7 @@ describe('dispatchBatched', () => {
       {type: 'live.batch', commands: commands.slice(-1)},
     ]);
     expect(listener).toHaveBeenCalledTimes(2);
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
   });
 
   it('reports no change for no commands or commands that change nothing', () => {
@@ -213,7 +218,7 @@ describe('dropped dispatch problems', () => {
     );
     const problems = vi.fn();
     live.subscribeProblems(problems);
-    live.dispatch({type: 'output.set', screenId: 'main', on: true});
+    live.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
     expect(problems).not.toHaveBeenCalled();
   });
 });

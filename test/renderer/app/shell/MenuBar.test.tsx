@@ -10,11 +10,19 @@ import {
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
+import {
+  BROADCAST_SCREEN,
+  MAIN_SCREEN,
+  STAGE_SCREEN,
+} from '@fixtures/core/screenIds';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   useLive.setState({
-    state: {...emptyLiveState(), outputs: {main: true, stage: false}},
+    state: {
+      ...emptyLiveState(),
+      outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false},
+    },
   });
 });
 
@@ -65,9 +73,9 @@ describe('MenuBar', () => {
   });
 
   it.each([
-    {name: '청중 화면', screenId: 'main', on: false},
-    {name: '무대 화면', screenId: 'stage', on: true},
-    {name: '방송 화면', screenId: 'broadcast', on: true},
+    {name: '청중 화면', screenId: MAIN_SCREEN, on: false},
+    {name: '무대 화면', screenId: STAGE_SCREEN, on: true},
+    {name: '방송 화면', screenId: BROADCAST_SCREEN, on: true},
   ])(
     'turns $name output on=$on with a click and closes the menu',
     async ({name, screenId, on}) => {
@@ -92,7 +100,7 @@ describe('MenuBar', () => {
     await userEvent.keyboard('{Enter}');
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'live.batch',
-      commands: [{type: 'output.set', screenId: 'main', on: false}],
+      commands: [{type: 'output.set', screenId: MAIN_SCREEN, on: false}],
     });
   });
 });

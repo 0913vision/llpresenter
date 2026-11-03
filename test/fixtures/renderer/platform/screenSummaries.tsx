@@ -6,10 +6,15 @@ import {
 } from '@testing-library/react';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import type {ScreenSummary} from '@renderer/platform/screens';
+import {
+  BROADCAST_SCREEN,
+  MAIN_SCREEN,
+  STAGE_SCREEN,
+} from '@fixtures/core/screenIds';
 
 const screens: readonly ScreenSummary[] = [
   {
-    id: 'main',
+    id: MAIN_SCREEN,
     icon: 'mplay',
     toolbarLabel: '청중 화면',
     statusLabel: '청중 화면',
@@ -19,7 +24,7 @@ const screens: readonly ScreenSummary[] = [
     kind: 'audience',
   },
   {
-    id: 'stage',
+    id: STAGE_SCREEN,
     icon: 'mplay',
     toolbarLabel: '무대 화면',
     statusLabel: '무대 화면',
@@ -29,7 +34,7 @@ const screens: readonly ScreenSummary[] = [
     kind: 'stage',
   },
   {
-    id: 'broadcast',
+    id: BROADCAST_SCREEN,
     icon: 'capture',
     toolbarLabel: '방송 화면',
     statusLabel: '방송 화면',

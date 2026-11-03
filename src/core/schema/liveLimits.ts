@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {screenIdSchema} from './ids';
 import {nonBlankText} from './primitives';
 
 export const LIVE_STATE_LIMITS = {
@@ -12,13 +13,6 @@ const RECOVERY_HEADER_BYTES = 1024;
 export const LIVE_STATE_BYTE_BUDGET =
   LIVE_STATE_LIMITS.bytes - RECOVERY_HEADER_BYTES;
 
-export const LIVE_OUTPUT_ALIASES = [
-  'main',
-  'stage',
-  'broadcast',
-  'captions',
-] as const;
-
 export const liveTextSchema = v.pipe(
   v.string(),
   v.maxLength(LIVE_STATE_LIMITS.textCharacters),
@@ -27,14 +21,12 @@ export const liveNonBlankTextSchema = v.pipe(
   nonBlankText,
   v.maxLength(LIVE_STATE_LIMITS.textCharacters),
 );
+/** The output on or off of each screen, by screen id and nothing else. */
 export const liveOutputsSchema = v.pipe(
   v.record(v.string(), v.boolean()),
-  v.maxEntries(LIVE_STATE_LIMITS.outputs + LIVE_OUTPUT_ALIASES.length),
+  v.maxEntries(LIVE_STATE_LIMITS.outputs),
   v.check(
-    outputs =>
-      Object.keys(outputs).filter(
-        key => !LIVE_OUTPUT_ALIASES.some(alias => alias === key),
-      ).length <= LIVE_STATE_LIMITS.outputs,
-    'Too many live outputs',
+    outputs => Object.keys(outputs).every(key => v.is(screenIdSchema, key)),
+    'Expected screen ids as output keys',
   ),
 );

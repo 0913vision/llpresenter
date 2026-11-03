@@ -4,6 +4,7 @@ import {initialHistory, type LiveHistory} from '@main/live/reducer';
 import {defineSlice} from '@main/live/slice';
 import {registryOf, SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const fixtureSlice = defineSlice({
   commands: ['clear.undo'],
@@ -84,7 +85,7 @@ describe('SliceRegistry', () => {
       {
         type: 'live.batch',
         commands: [
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
           {type: 'clear.undo'},
           {type: 'layer.clear', target: 'all'},
         ],
@@ -161,7 +162,7 @@ describe('SliceRegistry', () => {
     expect(
       slice.apply(
         history,
-        {type: 'output.set', screenId: 'main', on: true},
+        {type: 'output.set', screenId: MAIN_SCREEN, on: true},
         {
           now: 42,
           apply: current => current,

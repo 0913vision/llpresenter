@@ -20,7 +20,6 @@ export interface OutputScreen {
   /** Defaults off for every method; fallback is always off. */
   readonly alwaysOnTop?: boolean;
   readonly resolution?: Size;
-  readonly aliases?: readonly string[];
 }
 
 /** Gives the screens in 화면 설정 order. */

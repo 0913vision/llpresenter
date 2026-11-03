@@ -163,7 +163,7 @@ describe('restoring the output state after a crash', () => {
     });
     expect(broadcasts).toHaveLength(1);
     expect(store.state).toMatchObject({
-      outputs: {[MAIN]: true, main: true},
+      outputs: {[MAIN]: true},
       stageMessage: 'Fixture stage note',
       layers: {slide: null},
     });

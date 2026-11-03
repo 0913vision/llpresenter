@@ -13,6 +13,7 @@ import {
 } from '@renderer/app/notifications/useOutputNotices';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
 import type {Notice} from '@renderer/ui/notices';
+import {STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 vi.mock('@renderer/app/notifications/outputNotices', async importOriginal => ({
   ...(await importOriginal<
@@ -91,11 +92,11 @@ describe('useOutputNotices', () => {
     const {target, push} = setup();
     const card = lostCard();
 
-    push(STAGE_LOST, [{kind: 'show', screenId: 'stage', notice: card}]);
+    push(STAGE_LOST, [{kind: 'show', screenId: STAGE_SCREEN, notice: card}]);
 
     expect(target.report).toHaveBeenCalledOnce();
     expect(useOutputWarnings.getState().warnings.get(card.key)).toMatchObject({
-      screenId: 'stage',
+      screenId: STAGE_SCREEN,
       screenName: '무대 화면',
     });
   });
@@ -104,7 +105,7 @@ describe('useOutputNotices', () => {
     const {target, push} = setup();
     const onSelect = vi.fn();
     push(STAGE_LOST, [
-      {kind: 'show', screenId: 'stage', notice: lostCard(onSelect)},
+      {kind: 'show', screenId: STAGE_SCREEN, notice: lostCard(onSelect)},
     ]);
     const shown = vi.mocked(target.report).mock.lastCall?.[0];
 
@@ -119,7 +120,9 @@ describe('useOutputNotices', () => {
 
   it('drops the warning and closes its card when it resolves', () => {
     const {target, push} = setup();
-    push(STAGE_LOST, [{kind: 'show', screenId: 'stage', notice: lostCard()}]);
+    push(STAGE_LOST, [
+      {kind: 'show', screenId: STAGE_SCREEN, notice: lostCard()},
+    ]);
 
     push({}, [{kind: 'dismiss', key: 'screen:stage'}]);
 
@@ -129,13 +132,15 @@ describe('useOutputNotices', () => {
 
   it('updates a warning card only while it shows, and keeps the update for the 출력 menu', () => {
     const {target, showing, push} = setup();
-    push(STAGE_LOST, [{kind: 'show', screenId: 'stage', notice: lostCard()}]);
+    push(STAGE_LOST, [
+      {kind: 'show', screenId: STAGE_SCREEN, notice: lostCard()},
+    ]);
     const off = {...lostCard(), meta: ['모니터 3', '출력 꺼짐']};
 
-    push({}, [{kind: 'update', screenId: 'stage', notice: off}]);
+    push({}, [{kind: 'update', screenId: STAGE_SCREEN, notice: off}]);
     expect(target.report).toHaveBeenCalledTimes(2);
     showing.length = 0;
-    push({}, [{kind: 'update', screenId: 'stage', notice: off}]);
+    push({}, [{kind: 'update', screenId: STAGE_SCREEN, notice: off}]);
 
     expect(target.report).toHaveBeenCalledTimes(2);
     expect(

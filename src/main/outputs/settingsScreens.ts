@@ -5,7 +5,6 @@ import type {ScreenId} from '@core/schema/ids';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import type {ScreenSettingsPort} from '../live/slice';
-import {outputStateKeys} from '@core/screens/screens';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {
@@ -36,7 +35,6 @@ function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
         kind: screen.kind,
         method: screen.method,
         display: screen.display ?? null,
-        aliases: outputStateKeys(screen.id).slice(1),
         onDisconnect: screen.onDisconnect ?? onDisconnect,
         alwaysOnTop: screen.alwaysOnTop ?? false,
         ...(screen.resolution === undefined

@@ -1,5 +1,5 @@
 import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {STARTER_SCREEN_IDS, resolveOutputScreen} from '@core/screens/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {screenIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import type {ThemesFile} from '@core/schema/themes';
@@ -29,7 +29,9 @@ export function previewAppearance({
   readonly screens: ScreensFile | undefined;
   readonly item?: LiveThemeItem | undefined;
 }) {
-  const configured = resolveOutputScreen(role, screens?.screens ?? []);
+  const configured = screens?.screens.find(
+    screen => screen.id === STARTER_SCREEN_IDS[role],
+  );
   const starter = parsePayload(screenIdSchema, STARTER_SCREEN_IDS[role]);
   if (!starter.ok) throw new Error('Invalid starter screen');
   const target: Screen = configured ?? {

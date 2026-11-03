@@ -5,6 +5,7 @@ import {registerIpc} from '@main/ipc';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {LiveStore} from '@main/live/store';
 import type {Logger} from '@main/log';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const FACTS = {
   name: 'LoveLight',
@@ -116,6 +117,7 @@ describe('registerIpc live clock', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     expect(electron.handlers.get(liveEndpoints.clock.channel)?.()).toBe(4321);
     dispose();
@@ -130,13 +132,14 @@ describe('registerIpc live commands', () => {
     const dispose = registerIpc(store, log, {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     sendCommand({
       type: 'live.batch',
       commands: [
-        {type: 'output.set', screenId: 'main', on: true},
+        {type: 'output.set', screenId: MAIN_SCREEN, on: true},
         {type: 'layer.clear', target: 'missing'},
-        {type: 'output.set', screenId: 'stage', on: true},
+        {type: 'output.set', screenId: STAGE_SCREEN, on: true},
       ],
     });
     expect(log.warn).toHaveBeenCalledExactlyOnceWith(
@@ -147,8 +150,8 @@ describe('registerIpc live commands', () => {
     expect(store.dispatch.mock.calls[0]?.[0]).toEqual({
       type: 'live.batch',
       commands: [
-        {type: 'output.set', screenId: 'main', on: true},
-        {type: 'output.set', screenId: 'stage', on: true},
+        {type: 'output.set', screenId: MAIN_SCREEN, on: true},
+        {type: 'output.set', screenId: STAGE_SCREEN, on: true},
       ],
     });
     dispose();
@@ -168,6 +171,7 @@ describe('registerIpc live commands', () => {
     const dispose = registerIpc(store, mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     const state = {...emptyLiveState(), version: 1};
     store.publish(state);
@@ -186,6 +190,7 @@ describe('registerIpc live commands', () => {
     const dispose = registerIpc(store, log, {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     sendCommand({type: 'live.batch', commands: 'invalid'});
     expect(store.dispatch).not.toHaveBeenCalled();
@@ -201,6 +206,7 @@ describe('registerIpc live commands', () => {
     const dispose = registerIpc(store, mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendCommand({
@@ -220,7 +226,11 @@ describe('registerIpc live commands', () => {
   it('logs the failing field of a malformed command and drops it', () => {
     const store = mockStore();
     const log = mockLog();
-    const dispose = registerIpc(store, log, {windowMode: 'normal', app: FACTS});
+    const dispose = registerIpc(store, log, {
+      windowMode: 'normal',
+      app: FACTS,
+      isControlWindow: () => true,
+    });
 
     sendCommand({type: 'layer.clear', target: 'slides'});
 
@@ -239,6 +249,7 @@ describe('registerIpc text editing', () => {
     const dispose = registerIpc(mockStore(), log, {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
     const sender = {undo: vi.fn(), copy: vi.fn(), paste: vi.fn()};
     const send = (value: unknown): void =>
@@ -270,6 +281,7 @@ describe('registerIpc full screen', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('toggle-full-screen');
@@ -288,11 +300,24 @@ describe('registerIpc full screen', () => {
     );
   });
 
+  it('never changes full screen on a window that is not the control window', () => {
+    electron.window.setFullScreen.mockClear();
+    const dispose = registerIpc(mockStore(), mockLog(), {
+      windowMode: 'normal',
+      app: FACTS,
+      isControlWindow: () => false,
+    });
+    sendWindowAction('toggle-full-screen');
+    expect(electron.window.setFullScreen).not.toHaveBeenCalled();
+    dispose();
+  });
+
   it('never changes full screen on an offscreen window', () => {
     electron.window.setFullScreen.mockClear();
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     sendWindowAction('toggle-full-screen');
     expect(electron.window.setFullScreen).not.toHaveBeenCalled();
@@ -305,6 +330,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('minimize');
@@ -322,6 +348,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('toggle-maximize');
@@ -336,6 +363,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), log, {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('minimize');
@@ -355,6 +383,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('close');
@@ -367,6 +396,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
 
     sendWindowAction('fullscreen');
@@ -381,6 +411,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
     const answer = electron.handlers.get(windowEndpoints.appInfo.channel);
     expect(await answer?.()).toEqual({name: 'LoveLight', version: '1.2.3'});
@@ -392,6 +423,7 @@ describe('registerIpc window actions', () => {
     let verbose = false;
     const dispose = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
+      isControlWindow: () => true,
       app: {
         ...FACTS,
         setVerbose: on => {
@@ -424,6 +456,7 @@ describe('registerIpc window actions', () => {
     const normal = registerIpc(mockStore(), mockLog(), {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
     electron.listeners.get(channel)?.({}, undefined);
     expect(electron.openPath).toHaveBeenCalledExactlyOnceWith('C:/data/logs');
@@ -432,6 +465,7 @@ describe('registerIpc window actions', () => {
     const offscreen = registerIpc(mockStore(), mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
+      isControlWindow: () => true,
     });
     electron.listeners.get(channel)?.({}, undefined);
     expect(electron.openPath).not.toHaveBeenCalled();
@@ -444,6 +478,7 @@ describe('registerIpc window actions', () => {
     const dispose = registerIpc(mockStore(), log, {
       windowMode: 'normal',
       app: FACTS,
+      isControlWindow: () => true,
     });
     electron.listeners.get(windowEndpoints.openLogFolder.channel)?.(
       {},

@@ -8,6 +8,7 @@ import {SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {outputsSlice} from '@main/live/slices/outputs';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const missingTheme = parseLiveCommand({
   type: 'theme.set',
@@ -77,14 +78,17 @@ describe('live batches', () => {
       {
         type: 'live.batch',
         commands: [
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
           {type: 'theme.set', themeId: MISSING_THEME_ID},
-          {type: 'output.set', screenId: 'stage', on: true},
+          {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
       log,
     );
-    expect(store.state.outputs).toEqual({main: true, stage: true});
+    expect(store.state.outputs).toEqual({
+      [MAIN_SCREEN]: true,
+      [STAGE_SCREEN]: true,
+    });
     expect(store.state.version).toBe(1);
     expect(log.messages('warn')).toEqual(['skipped live command']);
     expect(log.entries[0]?.detail).toEqual({
@@ -115,9 +119,9 @@ describe('live batches', () => {
       {
         type: 'live.batch',
         commands: [
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
           {type: 'theme.set', themeId: MISSING_THEME_ID},
-          {type: 'output.set', screenId: 'stage', on: true},
+          {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
       log,
@@ -125,14 +129,17 @@ describe('live batches', () => {
     expect(log.messages('warn')).toEqual([]);
     expect(log.messages('error')).toEqual(['live command failed']);
     expect(log.entries[0]?.detail).toEqual({type: 'theme.set', error: failure});
-    expect(store.state.outputs).toEqual({main: true, stage: true});
+    expect(store.state.outputs).toEqual({
+      [MAIN_SCREEN]: true,
+      [STAGE_SCREEN]: true,
+    });
     expect(listener).toHaveBeenCalledExactlyOnceWith(store.state);
   });
 
   it.each([
     {commands: []},
     {commands: [{type: 'layer.clear', target: 'all'}]},
-    {commands: [{type: 'output.set', screenId: 'main', on: false}]},
+    {commands: [{type: 'output.set', screenId: MAIN_SCREEN, on: false}]},
   ] satisfies ReadonlyArray<{readonly commands: LiveBatch['commands']}>)(
     'keeps a no-op batch silent: %j',
     ({commands}) => {
@@ -213,13 +220,13 @@ describe('live batches', () => {
     store.dispatch({
       type: 'live.batch',
       commands: [
-        {type: 'output.set', screenId: 'main', on: true},
+        {type: 'output.set', screenId: MAIN_SCREEN, on: true},
         {type: 'message.show', message: {messageId: 'one', text: 'First'}},
         {type: 'layer.clear', target: 'message'},
         {type: 'message.show', message: {messageId: 'two', text: 'Last'}},
       ],
     });
-    expect(store.state.outputs['main']).toBe(true);
+    expect(store.state.outputs[MAIN_SCREEN]).toBe(true);
     expect(store.state.layers.message?.text).toBe('Last');
     expect(store.state.version).toBe(1);
     expect(listener).toHaveBeenCalledExactlyOnceWith(store.state);
@@ -239,14 +246,17 @@ describe('live batches', () => {
       {
         type: 'live.batch',
         commands: [
-          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
           {type: 'theme.set', themeId: MISSING_THEME_ID},
-          {type: 'output.set', screenId: 'stage', on: true},
+          {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
       log,
     );
-    expect(store.state.outputs).toEqual({main: true, stage: true});
+    expect(store.state.outputs).toEqual({
+      [MAIN_SCREEN]: true,
+      [STAGE_SCREEN]: true,
+    });
     expect(log.messages('warn')).toEqual(['unhandled live command']);
     expect(log.entries[0]?.detail).toEqual({type: 'theme.set'});
   });

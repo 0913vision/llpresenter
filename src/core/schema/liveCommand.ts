@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {LiveCommand} from '../live/commands';
 import {layerKinds} from '../live/state';
 import type {Result} from '../common/result';
+import {screenIdSchema} from './ids';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
 import {liveActionOptions} from './liveActions';
 import {screenCommandOptions} from './screenCommands';
@@ -40,7 +41,7 @@ const singleCommandOptions = [
   v.object({type: v.literal('item.restore')}),
   v.object({
     type: v.literal('output.set'),
-    screenId: v.pipe(v.string(), v.nonEmpty()),
+    screenId: screenIdSchema,
     on: v.boolean(),
   }),
 ] as const;

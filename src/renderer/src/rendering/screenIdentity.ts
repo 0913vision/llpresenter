@@ -1,7 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Screen} from '@core/schema/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
-import {resolveOutputScreen} from '@core/screens/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {followSettingsDocument} from './settingsFeed';
 
@@ -12,12 +11,12 @@ function pictureCorrection(screen: Screen): PictureCorrection | undefined {
   return {edgeMargin, offset};
 }
 
-/** Uses the same configured and starter identities as the main output backend. */
+/** Finds the saved screen with this id, as the main output backend does. */
 export function resolveRenderScreen(
   id: string,
   screens: readonly Screen[],
 ): RenderScreen | undefined {
-  const screen = resolveOutputScreen(id, screens);
+  const screen = screens.find(candidate => candidate.id === id);
   if (screen === undefined) return undefined;
   const correction = pictureCorrection(screen);
   return {

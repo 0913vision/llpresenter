@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseLiveState} from '@core/schema/liveState';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const screenUuid = (id: number): string =>
   `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
@@ -22,7 +23,7 @@ function busyState(): LiveState {
       message: {messageId: 'car', text: '12가 3456 차량 이동 부탁드립니다'},
       notice: {noticeId: 'sunday'},
     },
-    outputs: {main: true, stage: false},
+    outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false},
     canUndo: true,
   };
 }
@@ -104,7 +105,11 @@ describe('parseLiveState', () => {
   it.each([
     ['a negative version', {version: -1}, 'version'],
     ['a missing layer', {layers: {media: null}}, 'layers.slide'],
-    ['outputs that are not booleans', {outputs: {main: 'on'}}, 'outputs.main'],
+    [
+      'outputs that are not booleans',
+      {outputs: {[MAIN_SCREEN]: 'on'}},
+      `outputs.${MAIN_SCREEN}`,
+    ],
     ['no undo flag', {canUndo: undefined}, 'canUndo'],
     ['an undo flag that is text', {canUndo: 'yes'}, 'canUndo'],
   ])('rejects %s', (_name, change, field) => {

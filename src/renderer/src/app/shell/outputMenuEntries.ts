@@ -1,6 +1,5 @@
 import type {ThemeId} from '@core/schema/ids';
 import type {ThemesFile} from '@core/schema/themes';
-import {resolveOutputScreen} from '@core/screens/screens';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
@@ -36,7 +35,7 @@ export function outputMenuEntries(
       return {
         kind: 'item',
         id: `warning:${screenId}`,
-        label: `${resolveOutputScreen(screenId, screens)?.statusLabel ?? screenName} 경고 보기`,
+        label: `${screens.find(screen => screen.id === screenId)?.statusLabel ?? screenName} 경고 보기`,
         onSelect: () => input.onShowWarning(screenId),
       };
     },

@@ -18,6 +18,7 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 
 import {resolveThemeOutput} from '@core/themes/output';
 import {screensDocument} from '@fixtures/core/screenDocuments';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 const screenDocument = screensDocument();
 if (screenDocument.name !== 'screens') throw new Error('Missing screens');
 const themeItem = {id: 'hymn-1', kind: 'song', source: 'external'} as const;
@@ -93,7 +94,7 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
     log: {write: entry => logs.push(entry)},
     output: {reportFrameRate: report => rates.push(report)},
   });
-  const stop = startOutput({root, api, screenId: 'main'});
+  const stop = startOutput({root, api, screenId: MAIN_SCREEN});
   return {root, logs, rates, stop};
 }
 
@@ -367,7 +368,7 @@ describe('startOutput', () => {
         subscribe: () => stopSettings,
       },
     });
-    const stop = startOutput({root, api, screenId: 'main'});
+    const stop = startOutput({root, api, screenId: MAIN_SCREEN});
     await Promise.resolve();
     const message = () =>
       root
@@ -442,7 +443,7 @@ describe('startOutput', () => {
       );
     });
     runFramesFor(SECOND_AND_A_BIT_MS);
-    expect(rates).toEqual([{screenId: 'main', fps: 60}]);
+    expect(rates).toEqual([{screenId: MAIN_SCREEN, fps: 60}]);
   });
 
   it('reports no frame rate when the live state never arrives', async () => {

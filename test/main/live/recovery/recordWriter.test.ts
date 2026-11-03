@@ -14,6 +14,7 @@ import {
   RECORD_INTERVAL_MS,
   RecoveryRecordWriter,
 } from '@main/live/recovery/recordWriter';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 const SAVED_AT = Date.parse('2026-10-26T06:00:00+09:00');
 const SERVICE = createServiceId('a41e0c52-7e1f-4a2b-8c3d-4e5f60718293');
@@ -100,7 +101,7 @@ describe('recovery record writer', () => {
       version: 7,
       lastMacroId: '00000000-0000-4000-8000-000000000001',
       canUndo: true,
-      outputs: {main: true},
+      outputs: {[MAIN_SCREEN]: true},
       layers: {
         ...emptyLiveState().layers,
         media: MEDIA,
@@ -136,7 +137,7 @@ describe('recovery record writer', () => {
       state: {
         version: 7,
         canUndo: false,
-        outputs: {main: true},
+        outputs: {[MAIN_SCREEN]: true},
         layers: {media: MEDIA, audio: null},
       },
     });
@@ -151,7 +152,7 @@ describe('recovery record writer', () => {
     writer.start();
     await vi.advanceTimersByTimeAsync(0);
     expect(texts).toHaveLength(1);
-    store.change({outputs: {main: true}});
+    store.change({outputs: {[MAIN_SCREEN]: true}});
     store.change({stageMessage: 'Fixture note'});
     expect(vi.getTimerCount()).toBe(1);
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS - 1);
@@ -160,7 +161,7 @@ describe('recovery record writer', () => {
     expect(texts).toHaveLength(2);
     expect(recordOf(texts[1]).state).toMatchObject({
       version: 2,
-      outputs: {main: true},
+      outputs: {[MAIN_SCREEN]: true},
       stageMessage: 'Fixture note',
     });
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS * 5);
@@ -178,7 +179,7 @@ describe('recovery record writer', () => {
     });
     writer.start();
     for (let index = 0; index < 3; index++) {
-      store.change({outputs: {main: index % 2 === 0}});
+      store.change({outputs: {[MAIN_SCREEN]: index % 2 === 0}});
       await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS);
     }
     expect(write).toHaveBeenCalledOnce();
@@ -198,12 +199,12 @@ describe('recovery record writer', () => {
     };
     write.mockResolvedValueOnce(failed).mockResolvedValueOnce(failed);
     writer.start();
-    store.change({outputs: {main: true}});
+    store.change({outputs: {[MAIN_SCREEN]: true}});
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS);
     expect(log.messages('warn')).toEqual([
       'could not write the recovery record',
     ]);
-    store.change({outputs: {main: false}});
+    store.change({outputs: {[MAIN_SCREEN]: false}});
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS);
     expect(write).toHaveBeenCalledTimes(3);
     expect(log.messages('warn')).toHaveLength(1);
@@ -238,7 +239,7 @@ describe('recovery record writer', () => {
     const first = deferredWrite();
     write.mockReturnValueOnce(first.promise);
     writer.start();
-    store.change({outputs: {main: true}});
+    store.change({outputs: {[MAIN_SCREEN]: true}});
     writer.stop();
     expect(store.listenerCount).toBe(0);
     expect(vi.getTimerCount()).toBe(0);
@@ -250,7 +251,7 @@ describe('recovery record writer', () => {
     expect(settled).toBe(false);
     first.finish(OK);
     await settling;
-    store.change({outputs: {main: false}});
+    store.change({outputs: {[MAIN_SCREEN]: false}});
     writer.start();
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS * 2);
     expect(write).toHaveBeenCalledOnce();

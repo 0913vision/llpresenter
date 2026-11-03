@@ -1,3 +1,4 @@
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeScreens} from '@fixtures/core/themeOutput';
@@ -61,7 +62,7 @@ it('keeps the last good preview after a frame error and draws a later good snaps
     window.llp?.log ?? {write: () => undefined},
     'write',
   );
-  const view = render(<ScreenPreview screenId="main" chroma={false} />);
+  const view = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() =>
     expect(view.container.textContent).toContain('Current frame'),
   );

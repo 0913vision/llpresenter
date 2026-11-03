@@ -11,6 +11,11 @@ import {useLive} from '@renderer/session/live';
 import {usePreview} from '@renderer/session/preview';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
+import {
+  BROADCAST_SCREEN,
+  MAIN_SCREEN,
+  STAGE_SCREEN,
+} from '@fixtures/core/screenIds';
 
 class MockResizeObserver {
   observe(): void {}
@@ -23,7 +28,7 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
-  usePreview.setState({largeScreenId: 'main'});
+  usePreview.setState({largeScreenId: MAIN_SCREEN});
   const themeItem = {
     id: 'preview-loop',
     kind: 'song',
@@ -47,7 +52,11 @@ beforeEach(() => {
           themeScreens.map(screen => [screen.id, main]),
         ),
       },
-      outputs: {main: true, stage: false, broadcast: false},
+      outputs: {
+        [MAIN_SCREEN]: true,
+        [STAGE_SCREEN]: false,
+        [BROADCAST_SCREEN]: false,
+      },
       layers: {
         ...emptyLiveState().layers,
         media: {mediaId: 'preview-loop', loop: true, startedAt: Date.now()},

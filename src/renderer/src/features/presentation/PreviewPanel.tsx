@@ -1,4 +1,3 @@
-import {resolveOutputScreen} from '@core/screens/screens';
 import type {JSX} from 'react';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {
@@ -40,7 +39,7 @@ function MediaPreviewPanel({
       ([id, composition]) => ({id, composition}),
     );
     for (const summary of summaries) {
-      const match = resolveOutputScreen(summary.id, compositions);
+      const match = compositions.find(screen => screen.id === summary.id);
       if (match === undefined || testPatterns?.some(id => id === match.id)) {
         continue;
       }
