@@ -8,6 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {
@@ -21,6 +22,7 @@ import {
 import {translationIdSchema} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import type {PreferencePageId} from '@core/schema/preferencePages';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 
 const UNKNOWN_FIELDS = {unknownField: 'kept'};
@@ -63,7 +65,16 @@ function pushed(document: SettingsDocument): void {
   for (const listener of listeners) listener(document);
 }
 
-function install(options: {readonly access?: 'editable' | 'readOnly'} = {}) {
+function install(
+  options: {
+    readonly access?: 'editable' | 'readOnly';
+    readonly window?: Parameters<typeof mockLlpApi>[0] extends infer T
+      ? T extends {window?: infer W}
+        ? W
+        : never
+      : never;
+  } = {},
+) {
   const access = options.access ?? 'editable';
   const documents: Record<'preferences' | 'bible', SettingsDocument> = {
     preferences: {name: 'preferences', value: STORED, revision: 5, access},
@@ -82,6 +93,7 @@ function install(options: {readonly access?: 'editable' | 'readOnly'} = {}) {
       },
       edit: request => edit(request),
     },
+    ...(options.window === undefined ? {} : {window: options.window}),
   });
 }
 
@@ -116,6 +128,42 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
+  it('opens on the page main hands over once, also when StrictMode runs its effects twice', async () => {
+    let answers: Array<PreferencePageId | null> = ['shortcuts', null];
+    const preferencesPage = vi.fn(() =>
+      Promise.resolve(answers.shift() ?? null),
+    );
+    install({window: {preferencesPage}});
+    render(
+      <StrictMode>
+        <PreferencesView onProblem={onProblem} />
+      </StrictMode>,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('heading').textContent).toBe('단축키'),
+    );
+    expect(preferencesPage).toHaveBeenCalledOnce();
+    answers = [];
+  });
+
+  it('moves to a page main pushes while the window is open', async () => {
+    let show: (page: PreferencePageId) => void = () => undefined;
+    install({
+      window: {
+        onPreferencesPage: listener => {
+          show = listener;
+          return () => undefined;
+        },
+      },
+    });
+    render(<PreferencesView onProblem={onProblem} />);
+    await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
+    act(() => show('bible'));
+    await waitFor(() =>
+      expect(screen.getByRole('heading').textContent).toBe('성경'),
+    );
+  });
+
   it('lists the six pages and opens the 단축키 page', async () => {
     await mount();
 

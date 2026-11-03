@@ -1,7 +1,10 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
-import {killProcessTree} from '../../scripts/process-tree.mts';
+import {
+  isProcessRunning,
+  killProcessTree,
+} from '../../scripts/process-tree.mts';
 import {offscreenApp} from './electron-app';
 
 const SERVICE = '55000000-0000-4000-8000-000000000001';
@@ -94,8 +97,11 @@ it(
     const exited = new Promise<void>(resolve =>
       child.once('exit', () => resolve()),
     );
-    expect((await killProcessTree(child.pid)).ok).toBe(true);
+    // NOTE(0913vision): The kill call may report a process that was already
+    // closing; what counts is that the process is gone.
+    await killProcessTree(child.pid);
     await exited;
+    expect(isProcessRunning(child.pid)).toBe(false);
     await app.stop();
     page = await app.start();
     const recovery = page.getByRole('alertdialog', {name: '출력 상태 복구'});

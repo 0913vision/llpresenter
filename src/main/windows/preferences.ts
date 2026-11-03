@@ -110,7 +110,11 @@ export function registerPreferencesWindow(
   };
   const openAt = (_event: unknown, value: unknown): void => {
     const page = windowEndpoints.openPreferencesAt.message(value);
-    if (!page.ok || disposed) return;
+    if (!page.ok) {
+      log.warn('dropped a malformed preferences page request', page.error);
+      return;
+    }
+    if (disposed) return;
     requested = page.value;
     const existing = win !== null && !win.isDestroyed() ? win : null;
     open();
@@ -121,7 +125,13 @@ export function registerPreferencesWindow(
   };
   ipcMain.on(channel, open);
   ipcMain.on(windowEndpoints.openPreferencesAt.channel, openAt);
-  ipcMain.handle(windowEndpoints.preferencesPage.channel, () => requested);
+  // NOTE(0913vision): The page is a start page: the window takes it once, and
+  // later moves arrive as pushes, so a reload opens on the first page.
+  ipcMain.handle(windowEndpoints.preferencesPage.channel, () => {
+    const page = requested;
+    requested = null;
+    return page;
+  });
   const close = async (): Promise<boolean> => {
     const current = win;
     if (current === null || current.isDestroyed()) return true;

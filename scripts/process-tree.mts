@@ -45,17 +45,56 @@ export function runHelper(
   });
 }
 
+/** Whether a process with this id still exists. */
+export function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'ESRCH') {
+      return false;
+    }
+    // NOTE(0913vision): Any other error, such as EPERM, means the process
+    // exists but is not ours to signal.
+    return true;
+  }
+}
+
+/**
+ * What a finished taskkill means for the process it was asked to end. The
+ * goal is that the process is gone, so a failed or non-zero taskkill still
+ * counts when the process no longer exists: taskkill /t exits non-zero when a
+ * process of the tree ends between its listing and its kill, or while it is
+ * already closing. Only a process that still runs is a failure, and the
+ * result keeps taskkill's own reason.
+ */
+export function taskkillOutcome(
+  pid: number,
+  result: HelperResult,
+  running: (pid: number) => boolean = isProcessRunning,
+): KillResult {
+  if (
+    result.kind === 'exited' &&
+    (result.exitCode === 0 || result.exitCode === TASKKILL_NO_SUCH_PROCESS)
+  ) {
+    return {ok: true};
+  }
+  const reason =
+    result.kind === 'failed'
+      ? result.reason
+      : `taskkill exited with code ${result.exitCode}`;
+  return running(pid)
+    ? {ok: false, reason: `${reason}, and process ${pid} still runs`}
+    : {ok: true};
+}
+
 async function killOnWindows(pid: number): Promise<KillResult> {
   const result = await runHelper(
     'taskkill',
     ['/pid', String(pid), '/t', '/f'],
     KILL_TIMEOUT_MS,
   );
-  if (result.kind === 'failed') return {ok: false, reason: result.reason};
-  if (result.exitCode === 0 || result.exitCode === TASKKILL_NO_SUCH_PROCESS) {
-    return {ok: true};
-  }
-  return {ok: false, reason: `taskkill exited with code ${result.exitCode}`};
+  return taskkillOutcome(pid, result);
 }
 
 function killAlone(pid: number): KillResult {

@@ -147,29 +147,40 @@ describe('환경설정 window', () => {
     expect(first.focus).toHaveBeenCalledOnce();
   });
 
-  it('opens at the requested page, and tells an open window to show it', () => {
+  it('opens at the requested page once, and tells an open window to show a later one', () => {
     const {last} = setup();
     const at = windowEndpoints.openPreferencesAt;
     const page = windowEndpoints.preferencesPage.channel;
     mocks.ipc.emit(at.channel, {}, 'shortcuts');
     const win = last();
     expect(mocks.handlers.get(page)?.()).toBe('shortcuts');
+    expect(mocks.handlers.get(page)?.()).toBeNull();
     expect(win.webContents.send).not.toHaveBeenCalled();
     mocks.ipc.emit(at.channel, {}, 'bible');
     expect(mocks.created).toHaveLength(2);
-    expect(mocks.handlers.get(page)?.()).toBe('bible');
     expect(win.webContents.send).toHaveBeenCalledExactlyOnceWith(
       windowEndpoints.showPreferencesPage.channel,
       'bible',
     );
+    expect(mocks.handlers.get(page)?.()).toBe('bible');
     win.emit('closed');
     expect(mocks.handlers.get(page)?.()).toBeNull();
   });
 
-  it('ignores a request for an unknown page', () => {
-    setup();
+  it('logs a request for an unknown page and opens nothing', () => {
+    const log = recordingLogger();
+    const control = new BrowserWindow();
+    registerPreferencesWindow({
+      control,
+      zoom: {attachControl: vi.fn()},
+      mode: 'normal',
+      log,
+    });
     mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'nowhere');
     expect(mocks.created).toHaveLength(1);
+    expect(log.messages('warn')).toEqual([
+      'dropped a malformed preferences page request',
+    ]);
   });
 
   it('never takes focus or shows in an offscreen run', () => {

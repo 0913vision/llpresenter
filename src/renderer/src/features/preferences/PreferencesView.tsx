@@ -1,4 +1,4 @@
-import {useEffect, useState, type JSX} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
 import {ListBox, ListRow} from '@renderer/ui';
 import {Properties} from '@renderer/ui/PropertyRow';
 import type {Notice} from '@renderer/ui/notices';
@@ -25,12 +25,16 @@ export function PreferencesView({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const [page, setPage] = useState<PreferencePageId>('general');
+  // NOTE(0913vision): Main hands the start page over once, and StrictMode runs
+  // the effect twice in a dev build, so the first answer is kept for the second
+  // run instead of asking again.
+  const start = useRef<Promise<PreferencePageId | null> | null>(null);
   useEffect(() => {
     const api = window.llp?.window;
     if (api === undefined) return undefined;
     let stopped = false;
-    api
-      .preferencesPage()
+    start.current ??= api.preferencesPage();
+    start.current
       .then(first => {
         if (!stopped && first !== null) setPage(first);
       })

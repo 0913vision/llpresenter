@@ -8,7 +8,12 @@ import {
   writeHungTree,
 } from '../test/fixtures/processTrees';
 import {makeTempDir} from '../test/fixtures/tempDir';
-import {killProcessTree, runHelper} from './process-tree.mts';
+import {
+  isProcessRunning,
+  killProcessTree,
+  runHelper,
+  taskkillOutcome,
+} from './process-tree.mts';
 
 describe('killProcessTree', () => {
   it('ends a process and the child it started', async () => {
@@ -61,5 +66,64 @@ describe('runHelper', () => {
       kind: 'failed',
       reason: `spawn ${missing} ENOENT`,
     });
+  });
+});
+
+describe('taskkillOutcome', () => {
+  const PID = 4242;
+  const gone = () => false;
+  const alive = () => true;
+
+  it('counts exit codes 0 and 128 as ended without looking at the process', () => {
+    const neverAsked = () => {
+      throw new Error('The process must not be asked');
+    };
+    expect(
+      taskkillOutcome(PID, {kind: 'exited', exitCode: 0}, neverAsked),
+    ).toEqual({ok: true});
+    expect(
+      taskkillOutcome(PID, {kind: 'exited', exitCode: 128}, neverAsked),
+    ).toEqual({ok: true});
+  });
+
+  it('counts a non-zero exit as ended when the process is gone', () => {
+    expect(taskkillOutcome(PID, {kind: 'exited', exitCode: 1}, gone)).toEqual({
+      ok: true,
+    });
+  });
+
+  it('counts a taskkill that failed or hung as ended when the process is gone', () => {
+    expect(
+      taskkillOutcome(PID, {kind: 'failed', reason: 'timed out'}, gone),
+    ).toEqual({ok: true});
+  });
+
+  it('keeps the reason and names the process that still runs', () => {
+    expect(taskkillOutcome(PID, {kind: 'exited', exitCode: 1}, alive)).toEqual({
+      ok: false,
+      reason: 'taskkill exited with code 1, and process 4242 still runs',
+    });
+    expect(
+      taskkillOutcome(
+        PID,
+        {kind: 'failed', reason: 'spawn taskkill ENOENT'},
+        alive,
+      ),
+    ).toEqual({
+      ok: false,
+      reason: 'spawn taskkill ENOENT, and process 4242 still runs',
+    });
+  });
+});
+
+describe('isProcessRunning', () => {
+  it('sees this process and not one that ended', async () => {
+    expect(isProcessRunning(process.pid)).toBe(true);
+    const done = spawn(process.execPath, ['-e', ''], {
+      stdio: 'ignore',
+      windowsHide: true,
+    });
+    await once(done, 'close');
+    expect(isProcessRunning(done.pid ?? 0)).toBe(false);
   });
 });
