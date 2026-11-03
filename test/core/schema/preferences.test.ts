@@ -244,6 +244,20 @@ describe('preferences read boundary', () => {
       parsePreferencesValue({...HEADER, media: {copyOnImport: 'false'}}).ok,
     ).toBe(false);
   });
+  it('defaults launching with Windows off and keeps an explicit choice and unknown general fields', () => {
+    expect(
+      expectSuccess(parsePreferencesValue(HEADER)).general.launchAtLogin,
+    ).toBe(false);
+    const value = {...HEADER, general: {launchAtLogin: true, future: 1}};
+    expectRoundTrip(codec, value);
+    expect(expectSuccess(parsePreferencesValue(value)).general).toMatchObject(
+      value.general,
+    );
+    expect(
+      parsePreferencesValue({...HEADER, general: {launchAtLogin: 'yes'}}).ok,
+    ).toBe(false);
+  });
+
   it('defaults the new media choices to 반복, 채우기, and sound off and fills the missing ones', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER)).media.defaults).toEqual(
       {end: 'loop', fit: 'fill', audio: false},

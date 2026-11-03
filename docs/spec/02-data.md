@@ -530,6 +530,14 @@ decision). Off imports reference the original file in place. On imports copy
 into the configured media folder. Read the choice once when an import request is
 admitted; changing it affects the next request, not jobs already queued.
 
+`general.launchAtLogin` is an optional Boolean, default `false`: the app starts
+when the user signs in to Windows. A change is applied at once to the Windows
+sign-in item (`app.setLoginItemSettings`, main only). At launch Windows is the
+truth: when it reports another value than the file (the item was changed in
+Windows), the file takes Windows' value, so the checkbox shows what Windows
+reports. Only a packaged build on Windows reads or sets the item; a run from
+source and a check with the offscreen windows never touch it.
+
 `media.defaults` is an optional object of the 새 미디어 choices,
 `{ end, fit, audio }`: `end` is `loop` or `stop` (default `loop`), `fit` is
 `fit`, `fill`, or `stretch` (default `fill`), `audio` is a Boolean (default

@@ -120,6 +120,15 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           onChange={language => change(stored => ({...stored, language}))}
         />
         <SelectRow
+          label="화면 확대"
+          disabled={zoom.percent === null}
+          options={ZOOM_OPTIONS}
+          value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
+          onChange={percent => zoom.setPercent(Number(percent))}
+        />
+      </PropertyGroup>
+      <PropertyGroup title="시작">
+        <SelectRow
           label="시작할 때"
           disabled={disabled}
           title={lockedReason}
@@ -127,12 +136,17 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           value={preferences.onLaunch}
           onChange={onLaunch => change(stored => ({...stored, onLaunch}))}
         />
-        <SelectRow
-          label="화면 확대"
-          disabled={zoom.percent === null}
-          options={ZOOM_OPTIONS}
-          value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
-          onChange={percent => zoom.setPercent(Number(percent))}
+        <CheckboxRow
+          label="Windows 시작할 때 실행"
+          disabled={disabled}
+          title={lockedReason}
+          checked={preferences.general.launchAtLogin}
+          onChange={launchAtLogin =>
+            change(stored => ({
+              ...stored,
+              general: {...stored.general, launchAtLogin},
+            }))
+          }
         />
       </PropertyGroup>
       <PropertyGroup title="저장">

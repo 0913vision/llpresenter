@@ -2,6 +2,8 @@ import {appEndpoints} from '@contracts/ipc/app';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
 import {defaultPreferences} from '@core/schema/preferences';
+import type {EditResult} from '@core/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {app, ipcMain} from 'electron';
 import {join} from 'node:path';
@@ -53,6 +55,8 @@ export interface DataStore extends SettingsAccess {
   readonly bible: Pick<BibleLookupSession, 'lookup'>;
   readonly content: Promise<ContentStore | null>;
   readonly settings: Promise<SettingsReader | null>;
+  /** Applies a whole-file settings edit, for the few modules that write a setting. */
+  readonly applySettingsEdit: (edit: SettingsEdit) => Promise<EditResult>;
   readonly media: Promise<MediaStore | null>;
   readonly mediaBackend: MediaBackendPort;
   readonly subscribeSettingsProblems: (
@@ -228,6 +232,15 @@ export function registerStore({
     },
     content: contentOf(opened),
     settings,
+    applySettingsEdit: async edit => {
+      const store = await settings;
+      return store === null
+        ? {
+            ok: false,
+            error: {reason: 'not-found', message: 'Settings are unavailable'},
+          }
+        : store.apply(edit);
+    },
     media,
     mediaBackend: mediaChannels.port,
     readSettings: settingsAccess.readSettings,

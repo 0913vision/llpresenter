@@ -36,6 +36,7 @@ import {
 } from './soak';
 import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
+import {loginItemsAllowed, registerLaunchAtLogin} from './launchAtLogin';
 import {registerLibraryLocations} from './store/locationsChannels';
 import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
@@ -138,6 +139,13 @@ function start(): void {
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         appConfig,
         problems: problems.feed,
+      });
+      const stopLaunchAtLogin = registerLaunchAtLogin({
+        settings: dataStore.settings,
+        applyEdit: dataStore.applySettingsEdit,
+        loginItems: app,
+        enabled: loginItemsAllowed(app.isPackaged, process.platform),
+        log,
       });
       const stopLocations = registerLibraryLocations({
         config: appConfig,
@@ -330,6 +338,10 @@ function start(): void {
       shutdown.add({
         name: 'stop screen configuration',
         run: screensWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the Windows sign-in item',
+        run: stopLaunchAtLogin,
       });
       shutdown.add({
         name: 'stop the location channels',

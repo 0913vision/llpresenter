@@ -207,6 +207,16 @@ describe('PreferencesView', () => {
     ).toBe('false');
   });
 
+  it('shows Windows 시작할 때 실행 off by default and saves it under general at once', async () => {
+    await mount();
+    const row = screen.getByRole('checkbox', {name: 'Windows 시작할 때 실행'});
+    expect(row.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(row);
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(written().general).toEqual({launchAtLogin: true});
+    expect(written()).toMatchObject(UNKNOWN_FIELDS);
+  });
+
   it('saves a switch at once against the file revision and keeps unknown fields', async () => {
     await mount();
     await userEvent.click(

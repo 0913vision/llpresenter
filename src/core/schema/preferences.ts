@@ -121,6 +121,7 @@ export const preferencesSchema = jsonObject({
   schemaVersion: positiveInteger,
   language: v.exactOptional(v.picklist(['ko'])),
   onLaunch: v.exactOptional(v.picklist(['lastService'])),
+  general: v.exactOptional(jsonObject({launchAtLogin: optionalBoolean})),
   backupCopies: v.exactOptional(backupCopiesSchema),
   showOnLaunch: optionalBoolean,
   preventSleep: optionalBoolean,
@@ -240,6 +241,7 @@ export const defaultPreferences: Preferences = {
   schemaVersion: 1,
   language: 'ko',
   onLaunch: 'lastService',
+  general: {launchAtLogin: false},
   backupCopies: 10,
   showOnLaunch: false,
   preventSleep: true,
@@ -293,6 +295,7 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
         },
       },
     },
+    general: {...defaultPreferences.general, ...stored.general},
     show: {
       ...defaultPreferences.show,
       ...stored.show,
