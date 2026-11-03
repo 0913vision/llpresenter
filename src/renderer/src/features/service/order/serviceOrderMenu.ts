@@ -1,4 +1,5 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   menuAvailability,
@@ -16,6 +17,8 @@ export interface ServiceOrderMenuInput {
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
   readonly duplicate: () => void;
+  /** Whether the 예배 순서 is at its item limit, which stops a copy. */
+  readonly full?: boolean;
   readonly remove: () => void;
   /** 순서 편집 and 곡 편집 of the 준비 menu; undefined outside 준비. */
   readonly editSong?:
@@ -179,7 +182,13 @@ export function serviceOrderMenuEntries(
       id: 'duplicate',
       label: '복제',
       command: 'edit.duplicate',
-      ...menuAvailability(input.editable ? undefined : '예배 순서 편집 불가'),
+      ...menuAvailability(
+        input.editable
+          ? input.full
+            ? ORDER_FULL_REASON
+            : undefined
+          : '예배 순서 편집 불가',
+      ),
       onSelect: input.duplicate,
     },
     ...renameRow(input),

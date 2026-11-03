@@ -6,7 +6,12 @@ import {
   type ServiceId,
   type TemplateId,
 } from '@core/schema/ids';
-import type {Service, Template} from '@core/schema/service';
+import {
+  SERVICE_LIMITS,
+  type Service,
+  type Template,
+} from '@core/schema/service';
+import {limitReason} from '@core/common/limitReason';
 import {copiedItems, pickedItems} from './contentEdits';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
@@ -152,6 +157,12 @@ class ServiceContentCommands {
     }
     const picked = pickedItems(source.data.order, wanted);
     const target = checked.value;
+    if (target.data.order.length + picked.length > SERVICE_LIMITS.items) {
+      return this.context.refuse(
+        'invalid',
+        limitReason('예배 순서 항목', SERVICE_LIMITS.items),
+      );
+    }
     const full = this.context.savesFull([target.file]);
     if (full !== null) return full;
     const stored = this.context.services.replace(target, {

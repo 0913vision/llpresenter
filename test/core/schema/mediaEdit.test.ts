@@ -7,6 +7,7 @@ import {
   parseMediaImportResult,
   parseMediaImportProgress,
 } from '@core/schema/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
@@ -85,6 +86,12 @@ describe('media list edits', () => {
       type: 'media.properties.update',
       mediaId: ID,
       changes: {},
+      baseRevision: 1,
+    },
+    {
+      type: 'media.properties.update',
+      mediaId: ID,
+      changes: {name: 'ㄱ'.repeat(MEDIA_LIMITS.name + 1)},
       baseRevision: 1,
     },
     {

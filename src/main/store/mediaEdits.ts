@@ -180,6 +180,7 @@ export function editMediaList(
       const name = copyName(
         source.name,
         value.items.map(item => item.name),
+        {maxLength: MEDIA_LIMITS.name},
       );
       return {
         ok: true,
@@ -217,6 +218,7 @@ export function editMediaList(
         const name = copyName(
           source.name,
           value.playlists.map(item => item.name),
+          {maxLength: MEDIA_LIMITS.name},
         );
         return {
           ok: true,
@@ -244,6 +246,7 @@ export function editMediaList(
       const name = copyName(
         source.name,
         value.audioPlaylists.map(item => item.name),
+        {maxLength: MEDIA_LIMITS.name},
       );
       return {
         ok: true,

@@ -1,4 +1,5 @@
 import {expect, it, vi} from 'vitest';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {menuItems} from '@renderer/ui/menuModel';
 import {
   serviceOrderMenuEntries,
@@ -150,4 +151,22 @@ it('does not add the editor rows in 진행', () => {
     remove: vi.fn(),
   });
   expect(menuItems(entries).some(row => row.id === 'edit-order')).toBe(false);
+});
+
+it('disables 복제 with the limit sentence when the 예배 순서 is full', () => {
+  const entries = menuItems(
+    serviceOrderMenuEntries({
+      row: {kind: 'song', id: 'row', title: '곡'},
+      editable: true,
+      full: true,
+      openInPrep: undefined,
+      rename: vi.fn(),
+      duplicate: vi.fn(),
+      remove: vi.fn(),
+    }),
+  );
+  expect(entries.find(row => row.id === 'duplicate')).toMatchObject({
+    disabled: true,
+    title: ORDER_FULL_REASON,
+  });
 });

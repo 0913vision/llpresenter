@@ -3,6 +3,7 @@ import {
   serviceItemIdSchema,
   templateIdSchema,
 } from '@core/schema/ids';
+import {SERVICE_LIMITS} from '@core/schema/service';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {describe, expect, it} from 'vitest';
 import {
@@ -77,6 +78,36 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
       order.map(item => Object.keys(item).find(key => key !== 'id')),
     ).toEqual(['header', 'header', 'song', 'header']);
     expect(new Set(order.map(({id}) => id)).size).toBe(4);
+  });
+
+  it('refuses an import that would pass the item limit and leaves the target unchanged', async () => {
+    const full = Array.from({length: SERVICE_LIMITS.items - 1}, (_, index) => ({
+      id: itemId(1000 + index),
+      header: '구역',
+    }));
+    const {store} = setUp([
+      serviceFile(SUNDAY_ID, full),
+      serviceFile(EVENING_ID, [
+        {id: itemId(2), header: '찬양'},
+        {id: itemId(3), song: HYMN_ONE_ID},
+      ]),
+    ]);
+    const edit = (ids: readonly string[]) =>
+      store.apply({
+        type: 'service.importItems',
+        serviceId: SUNDAY,
+        from: {kind: 'service', id: EVENING},
+        itemIds: ids.map(id => testId(serviceItemIdSchema, id)),
+      });
+
+    const refused = await edit([itemId(2), itemId(3)]);
+    expect(refused).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(store.service(SUNDAY)?.service.order).toHaveLength(full.length);
+
+    expect((await edit([itemId(2)])).ok).toBe(true);
+    expect(store.service(SUNDAY)?.service.order).toHaveLength(
+      SERVICE_LIMITS.items,
+    );
   });
 
   it('refuses an import of an item the source lacks', async () => {

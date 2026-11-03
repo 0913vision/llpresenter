@@ -16,6 +16,7 @@ import {
 import {
   audioPlaylistSchema,
   mediaListSchema,
+  mediaName,
   mediaPropsSchema,
   playlistSchema,
   MEDIA_LIMITS,
@@ -43,7 +44,7 @@ const playlistValueSchema = v.pipe(
 
 const propertiesChangeSchema = v.pipe(
   payloadObject({
-    name: v.exactOptional(v.string()),
+    name: v.exactOptional(mediaName),
     props: v.exactOptional(mediaPropsSchema),
   }),
   v.check(

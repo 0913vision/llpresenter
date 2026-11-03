@@ -6,6 +6,7 @@ import {
   serializeTemplate,
   serviceItemKind,
   isItemOfKind,
+  SERVICE_LIMITS,
 } from '@core/schema/service';
 import {
   expectFailure,
@@ -338,5 +339,31 @@ describe('customOrder', () => {
       parseTemplate(JSON.stringify({...sundayTemplate(), order: [item]}), FILE),
     ).data;
     expect(template.order).toEqual([item]);
+  });
+});
+
+describe('service item limit', () => {
+  const many = (count: number) => ({
+    ...sundayService(),
+    order: Array.from({length: count}, (_, index) => ({
+      id: itemId(index + 1),
+      header: '구역',
+    })),
+  });
+
+  it('accepts a 예배 순서 and a 템플릿 at the item limit and refuses one past it', () => {
+    const atLimit = many(SERVICE_LIMITS.items);
+    expect(parseService(JSON.stringify(atLimit), FILE).ok).toBe(true);
+    expect(
+      parseService(JSON.stringify(many(SERVICE_LIMITS.items + 1)), FILE).ok,
+    ).toBe(false);
+    const template = {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: SERVICE_ID,
+      name: '템플릿',
+      order: many(SERVICE_LIMITS.items + 1).order,
+    };
+    expect(parseTemplate(JSON.stringify(template), FILE).ok).toBe(false);
   });
 });

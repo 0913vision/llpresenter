@@ -1,3 +1,4 @@
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -610,6 +611,27 @@ describe('media view', () => {
       mediaId: mediaId(1),
       changes: {name: '새벽'},
     });
+  });
+
+  it('stops a media name longer than the name limit in the rename dialog', async () => {
+    const {edit} = setup(
+      mediaFixture(mediaDocument([mediaItem(1, {name: 'Dawn'})])),
+    );
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
+    const dialog = await screen.findByRole('dialog', {
+      name: '미디어 이름 바꾸기',
+    });
+    const field = within(dialog).getByRole('textbox', {name: '미디어 이름'});
+    fireEvent.change(field, {
+      target: {value: 'ㄱ'.repeat(MEDIA_LIMITS.name + 1)},
+    });
+    expect(
+      within(dialog)
+        .getByRole('button', {name: '저장'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(edit).not.toHaveBeenCalled();
   });
 
   it('offers only properties and the file location for a list a newer version wrote', async () => {

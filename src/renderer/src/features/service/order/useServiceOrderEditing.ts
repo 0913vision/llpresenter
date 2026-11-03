@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {createServiceId, type ServiceId} from '@core/schema/ids';
 import {
+  orderFailureTitle,
   serviceOrderEditsFor,
   type ServiceOrderEdits,
   type ServiceOrderEditResult,
@@ -51,7 +52,7 @@ export function useServiceOrderEditing(
           title:
             result.error.reason === 'write-failed'
               ? '예배 저장 실패'
-              : '예배 변경 실패',
+              : orderFailureTitle(result.error, '예배 변경 실패'),
           time: noticeTime(),
         });
       }

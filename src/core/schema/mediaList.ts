@@ -37,7 +37,11 @@ export const MEDIA_LIMITS = {
   playlists: 1_000,
   playlistItems: 10_000,
   importBatch: 200,
+  /** A name in the list; as long as the timer names, and a file name fits. */
+  name: 256,
 } as const;
+
+export const mediaName = v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name));
 
 export const mediaPropsSchema = v.pipe(
   jsonObject({
@@ -61,7 +65,7 @@ export const mediaPropsSchema = v.pipe(
 const mediaItemSchema = v.pipe(
   jsonObject({
     id: mediaIdSchema,
-    name: v.string(),
+    name: mediaName,
     kind: v.picklist(['video', 'image', 'audio']),
     file: nonBlankText,
     size: nonNegativeInteger,
@@ -90,7 +94,7 @@ const mediaItemSchema = v.pipe(
 
 export const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
-  name: v.string(),
+  name: mediaName,
   items: v.pipe(
     v.array(mediaIdSchema),
     v.maxLength(MEDIA_LIMITS.playlistItems),
@@ -99,7 +103,7 @@ export const playlistSchema = jsonObject({
 
 export const audioPlaylistSchema = jsonObject({
   id: audioPlaylistIdSchema,
-  name: v.string(),
+  name: mediaName,
   items: v.pipe(
     v.array(mediaIdSchema),
     v.maxLength(MEDIA_LIMITS.playlistItems),

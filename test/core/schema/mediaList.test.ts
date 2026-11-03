@@ -1,5 +1,9 @@
 import {describe, it} from 'vitest';
-import {parseMediaList, serializeMediaList} from '@core/schema/mediaList';
+import {
+  MEDIA_LIMITS,
+  parseMediaList,
+  serializeMediaList,
+} from '@core/schema/mediaList';
 import {
   expectInvalidField,
   expectRoundTrip,
@@ -152,6 +156,27 @@ describe('parseMediaList', () => {
       codec,
       {...list, playlists: [{...playlist, items: ['배경/따뜻한 빛.mp4']}]},
       'playlists.0.items.0',
+    );
+  });
+});
+
+describe('media name limit', () => {
+  it('accepts a name at the limit and rejects one past it, for an item and a playlist', () => {
+    const atLimit = 'ㄱ'.repeat(MEDIA_LIMITS.name);
+    expectRoundTrip(codec, withItem({...warmLight(), name: atLimit}));
+    expectInvalidField(
+      codec,
+      withItem({...warmLight(), name: `${atLimit}ㄱ`}),
+      'items.0.name',
+    );
+    const list = mediaList();
+    expectInvalidField(
+      codec,
+      {
+        ...list,
+        playlists: [{id: LOGO, name: `${atLimit}ㄱ`, items: []}],
+      },
+      'playlists.0.name',
     );
   });
 });

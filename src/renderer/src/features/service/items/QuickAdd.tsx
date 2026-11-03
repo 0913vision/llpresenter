@@ -3,6 +3,8 @@ import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {useShow} from '@renderer/session/show';
+import {useOrderFull} from '@renderer/session/orderFull';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu} from '@renderer/ui/Menu';
 import {menuButtonProps} from '@renderer/ui/menuButton';
@@ -27,6 +29,7 @@ export function ServiceQuickAdd({
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
+  const full = useOrderFull();
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [typingPassage, setTypingPassage] = useState(false);
@@ -36,7 +39,9 @@ export function ServiceQuickAdd({
       ? NO_SERVICE_REASON
       : readOnly
         ? NEWER_FILE_REASON
-        : undefined;
+        : full
+          ? ORDER_FULL_REASON
+          : undefined;
   const disabled = reason !== undefined || editing.busy;
   const insertPassage = (ref: string, defaults: PassageDefaults): void => {
     const passage = passageItem(ref, defaults);

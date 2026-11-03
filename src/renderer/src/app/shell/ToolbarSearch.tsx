@@ -22,6 +22,8 @@ import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
 import {useShow} from '@renderer/session/show';
+import {useOrderFull} from '@renderer/session/orderFull';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {createServiceItemId} from '@core/schema/ids';
@@ -145,14 +147,17 @@ export function ToolbarSearch({
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
+  const full = useOrderFull();
   const addReason =
     serviceId === null
       ? '열린 예배가 없습니다'
       : readOnly
         ? NEWER_FILE_REASON
-        : editing.busy
-          ? '예배를 변경하는 중'
-          : undefined;
+        : full
+          ? ORDER_FULL_REASON
+          : editing.busy
+            ? '예배를 변경하는 중'
+            : undefined;
   const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();

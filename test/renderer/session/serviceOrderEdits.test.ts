@@ -21,7 +21,9 @@ import {themeRequest} from '@renderer/features/service/items/itemAppearanceComma
 import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {SERVICE_LIMITS} from '@core/schema/service';
 import {
+  ORDER_FULL_REASON,
   ServiceOrderEdits,
   serviceOrderEditsFor,
 } from '@renderer/session/serviceOrderEdits';
@@ -672,6 +674,43 @@ describe('service order edits', () => {
     await edits.undo(serviceId);
     expect(state.document?.service.order).toHaveLength(3);
     expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
+  it('refuses an add, a copy, and a 구역 copy past the item limit with the limit sentence, and allows the last free place', async () => {
+    const {edits, state, edit} = fixture();
+    const fill = (count: number): void => {
+      if (state.document === null) throw new Error('No document');
+      const filler = Array.from({length: count}, (_, index) => ({
+        id: createServiceItemId(
+          `30000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+        ),
+        header: '구역',
+      }));
+      state.document = {
+        ...state.document,
+        service: {...state.document.service, order: filler},
+      };
+    };
+    fill(SERVICE_LIMITS.items);
+    const header = state.document?.service.order[0];
+    if (header === undefined) throw new Error('No item');
+    const fresh = createServiceItemId('20000000-0000-4000-8000-000000000090');
+    for (const result of [
+      await edits.insertItem(serviceId, {id: fresh, header: 'New'}, null),
+      await edits.insertSong(serviceId, songId, null),
+      await edits.duplicate(serviceId, header.id, fresh),
+    ]) {
+      expect(result).toEqual({
+        ok: false,
+        error: {reason: 'invalid', message: ORDER_FULL_REASON},
+      });
+    }
+    expect(edit).not.toHaveBeenCalled();
+    fill(SERVICE_LIMITS.items - 1);
+    expect(
+      await edits.insertItem(serviceId, {id: fresh, header: 'New'}, null),
+    ).toEqual({ok: true, value: true});
+    expect(state.document?.service.order).toHaveLength(SERVICE_LIMITS.items);
   });
 
   it('refuses a copy of an item that is gone', async () => {

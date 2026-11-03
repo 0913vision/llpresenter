@@ -195,16 +195,23 @@ Each 예배 순서 is one file. It holds only items. It doesn't hold screens, �
 }
 ```
 
-| Field           | Type                      | Required       | Meaning                                                             |
-| --------------- | ------------------------- | -------------- | ------------------------------------------------------------------- |
-| `format`        | `"llservice"`             | Yes            | File type.                                                          |
-| `schemaVersion` | Integer                   | Yes            | 1 in version 1.                                                     |
-| `id`            | String (UUID)             | Yes (proposal) | Service ID. "Open the last service" and the recovery record use it. |
-| `name`          | String                    | Yes            | Service name.                                                       |
-| `date`          | String `YYYY-MM-DDTHH:mm` | Yes            | Service date and time.                                              |
-| `order`         | Array                     | Yes            | The items, in the order they show.                                  |
+| Field           | Type                      | Required       | Meaning                                                                    |
+| --------------- | ------------------------- | -------------- | -------------------------------------------------------------------------- |
+| `format`        | `"llservice"`             | Yes            | File type.                                                                 |
+| `schemaVersion` | Integer                   | Yes            | 1 in version 1.                                                            |
+| `id`            | String (UUID)             | Yes (proposal) | Service ID. "Open the last service" and the recovery record use it.        |
+| `name`          | String                    | Yes            | Service name.                                                              |
+| `date`          | String `YYYY-MM-DDTHH:mm` | Yes            | Service date and time.                                                     |
+| `order`         | Array                     | Yes            | The items, in the order they show. At most 1,000 (`SERVICE_LIMITS.items`). |
 
 ### Items
+
+A 예배 순서 holds at most 1,000 items (`SERVICE_LIMITS.items`). A long service
+is about 60 items, so the limit leaves room for a very long one and still bounds
+a file and the whole-list replies. The schema and main both refuse a list past
+it. An add, a 복제, a 구역 copy, and an import past it are refused with "예배
+순서 항목은 1000개까지 추가할 수 있음"; the add controls and 복제 are disabled
+with that reason when the list is full. A 템플릿 has the same limit.
 
 Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them
@@ -656,7 +663,7 @@ change this picker preference.
 | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | `items[]`                 | Array                               | All media ("모든 미디어", all media, in the 보관함 group).                                                                                                                                        | `Media`                         |
 | `.id`                     | String                              | Media ID.                                                                                                                                                                                         | `Main` samples                  |
-| `.name`                   | String                              | Name: the file name without the extension.                                                                                                                                                        | `MediaTile` README              |
+| `.name`                   | String                              | Name: the file name without the extension, at most 256 characters (`MEDIA_LIMITS.name`; an imported name is cut to fit).                                                                          | `MediaTile` README              |
 | `.kind`                   | `"video"` \| `"image"` \| `"audio"` | Kind. Leave room for more values later, such as `"input"` for a camera (see 09).                                                                                                                  | `Media`, product log version 63 |
 | `.file`                   | String                              | File path. Relative to the media folder if inside it, absolute otherwise.                                                                                                                         | `Media` (file location)         |
 | `.size`                   | Integer (bytes)                     | File size.                                                                                                                                                                                        | `Media` footer "2.1GB"          |

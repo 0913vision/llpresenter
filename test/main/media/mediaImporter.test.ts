@@ -1,3 +1,4 @@
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {getEventListeners} from 'node:events';
 import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
@@ -24,6 +25,7 @@ import {
   IMPORTED_VIDEO_SOUND,
   MAX_IMPORT_JOBS,
   MediaImporter,
+  nameOf,
   type ImportStore,
   type MediaImporterOptions,
 } from '@main/media/mediaImporter';
@@ -166,6 +168,12 @@ describe('media import', () => {
       'Morning light.mp4',
       'Notice.png',
     ]);
+  });
+
+  it('cuts the list name of a file whose name is longer than the name limit, never inside a letter', () => {
+    const long = `${'a'.repeat(MEDIA_LIMITS.name - 1)}😀${'b'.repeat(10)}.png`;
+    expect(nameOf(long)).toBe('a'.repeat(MEDIA_LIMITS.name - 1));
+    expect(nameOf('Morning light.mp4')).toBe('Morning light');
   });
 
   it('refers to the file in place when imports do not copy', async () => {

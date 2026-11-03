@@ -303,3 +303,38 @@ describe('editMediaList copy caps', () => {
     },
   );
 });
+
+describe('editMediaList copy names', () => {
+  it('cuts a long original so the copy name stays within the name limit', () => {
+    const long = 'ㄱ'.repeat(MEDIA_LIMITS.name);
+    const source = {
+      ...list,
+      items: list.items.map(item =>
+        item.id === VIDEO ? {...item, name: long} : item,
+      ),
+      playlists: list.playlists.map(item => ({...item, name: long})),
+      audioPlaylists: list.audioPlaylists.map(item => ({...item, name: long})),
+    };
+    const media = editMediaList(source, {
+      type: 'media.duplicate',
+      mediaId: VIDEO,
+    });
+    const playlist = editMediaList(source, {
+      type: 'media.playlist.duplicate',
+      playlist: {kind: 'media', id: LIST},
+    });
+    const audio = editMediaList(source, {
+      type: 'media.playlist.duplicate',
+      playlist: {kind: 'audio', id: AUDIO_LIST},
+    });
+    if (!media.ok || !playlist.ok || !audio.ok) throw new Error('refused');
+    for (const name of [
+      media.value.value.items[1]?.name,
+      playlist.value.value.playlists[1]?.name,
+      audio.value.value.audioPlaylists[1]?.name,
+    ]) {
+      expect(name?.length).toBeLessThanOrEqual(MEDIA_LIMITS.name);
+      expect(name?.endsWith(' 복사본')).toBe(true);
+    }
+  });
+});

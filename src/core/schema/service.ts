@@ -89,7 +89,16 @@ const mixedItemSchema = v.never('An item has more than one kind key');
 
 const serviceItemSchema = v.lazy(itemSchemaFor);
 
-const orderSchema = listWithUniqueIds(serviceItemSchema);
+/** Bounds for one 예배 순서 or 템플릿. */
+export const SERVICE_LIMITS = {
+  /** A long service is about 60 items; this leaves room for a very long one. */
+  items: 1000,
+} as const;
+
+const orderSchema = v.pipe(
+  listWithUniqueIds(serviceItemSchema),
+  v.maxLength(SERVICE_LIMITS.items),
+);
 
 /**
  * A 예배 순서 as its file holds it. A value from another process goes through

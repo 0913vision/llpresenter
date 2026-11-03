@@ -1,6 +1,10 @@
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {createServiceId} from '@core/schema/ids';
-import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
+import {useOrderFull} from '@renderer/session/orderFull';
+import {
+  ORDER_FULL_REASON,
+  serviceOrderEditsFor,
+} from '@renderer/session/serviceOrderEdits';
 import {
   NEWER_FILE_REASON,
   NOTHING_TO_REDO,
@@ -234,6 +238,7 @@ export function ServiceOrderList({
     onProblem,
   );
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
+  const full = useOrderFull();
   const moveRow = (source: string, before: string | null): void =>
     editing.run((edits, id) =>
       edits.move(
@@ -400,9 +405,14 @@ export function ServiceOrderList({
         listRef.current
           ?.querySelector('[role="listbox"]')
           ?.contains(event.target) === true,
-      unavailable: () => (editable ? undefined : '예배 순서 편집 불가'),
+      unavailable: () =>
+        editable
+          ? full
+            ? ORDER_FULL_REASON
+            : undefined
+          : '예배 순서 편집 불가',
       run: () => {
-        if (openItemId !== null) duplicateItem(openItemId);
+        if (openItemId !== null && !full) duplicateItem(openItemId);
       },
     },
     {
@@ -484,6 +494,7 @@ export function ServiceOrderList({
         renameAfterMenu({id: target.id, serviceId: target.serviceId});
         setMenu(null);
       },
+      full,
       duplicate: () => {
         duplicateItem(target.id);
         setMenu(null);

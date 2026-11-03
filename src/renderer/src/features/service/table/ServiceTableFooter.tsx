@@ -3,6 +3,8 @@ import {createServiceItemId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useShow} from '@renderer/session/show';
+import {useOrderFull} from '@renderer/session/orderFull';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {Button} from '@renderer/ui/Button';
 import {Menu} from '@renderer/ui/Menu';
@@ -27,6 +29,7 @@ export function ServiceTableFooter({
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
+  const full = useOrderFull();
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [typingPassage, setTypingPassage] = useState(false);
@@ -36,7 +39,9 @@ export function ServiceTableFooter({
       ? NO_SERVICE_REASON
       : readOnly
         ? NEWER_FILE_REASON
-        : undefined;
+        : full
+          ? ORDER_FULL_REASON
+          : undefined;
   const disabled = reason !== undefined || editing.busy;
   const append = (item: ServiceItem): void => {
     if ('header' in item) useHeaderRename.getState().request(item.id);

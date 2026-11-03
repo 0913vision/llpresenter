@@ -140,8 +140,15 @@ function failed(
   };
 }
 
-function nameOf(fileName: string): string {
-  return fileName.slice(0, fileName.length - extname(fileName).length);
+/** The list name of an imported file: its name without the extension, cut to the name limit. */
+export function nameOf(fileName: string): string {
+  const name = fileName.slice(0, fileName.length - extname(fileName).length);
+  let kept = '';
+  for (const letter of name) {
+    if (kept.length + letter.length > MEDIA_LIMITS.name) break;
+    kept += letter;
+  }
+  return kept;
 }
 
 function cancelled(job: ImportJob): boolean {

@@ -449,7 +449,11 @@ export function MediaView({
           name={renaming.name}
           rename={{
             validate: name =>
-              name.trim() === '' ? '이름을 입력하세요' : undefined,
+              name.trim() === ''
+                ? '이름을 입력하세요'
+                : name.trim().length > MEDIA_LIMITS.name
+                  ? `이름은 ${String(MEDIA_LIMITS.name)}자까지 쓸 수 있음`
+                  : undefined,
             onClose: () => setRenaming(null),
             onCommit: name => library.rename(renaming.id, name),
           }}

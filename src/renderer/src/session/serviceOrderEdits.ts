@@ -1,6 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import {isRecord} from '@core/common/guards';
+import {limitReason} from '@core/common/limitReason';
 import type {Result} from '@core/common/result';
 import type {EditFailure} from '@core/schema/contentEdit';
 import {
@@ -11,6 +12,7 @@ import {
 } from '@core/schema/ids';
 import {
   isItemOfKind,
+  SERVICE_LIMITS,
   type Service,
   type ServiceItem,
 } from '@core/schema/service';
@@ -74,6 +76,23 @@ interface HistoryEntry {
   readonly serviceId: ServiceId;
   readonly before: Order;
   readonly after: Order;
+}
+
+/** What a refused add says when the 예배 순서 has reached its item limit. */
+export const ORDER_FULL_REASON = limitReason(
+  '예배 순서 항목',
+  SERVICE_LIMITS.items,
+);
+
+/**
+ * The title of a notice for a refused 예배 순서 edit: the limit's sentence when
+ * the edit would pass the item limit, else `fallback`.
+ */
+export function orderFailureTitle(
+  error: {readonly message: string},
+  fallback: string,
+): string {
+  return error.message === ORDER_FULL_REASON ? ORDER_FULL_REASON : fallback;
 }
 
 function refuse(
@@ -428,6 +447,9 @@ export class ServiceOrderEdits {
       const before = document.service.order;
       const after = result.value;
       if (sameOrder(before, after)) return {ok: true, value: false};
+      if (after.length > before.length && after.length > SERVICE_LIMITS.items) {
+        return refuse('invalid', ORDER_FULL_REASON);
+      }
       const saved = await this.api.content.edit({
         type: 'service.update',
         service: {...document.service, order: after},

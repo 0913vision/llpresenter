@@ -269,7 +269,12 @@ export class MediaLibrary {
     const document = this.view.document;
     const current = chosenPlaylist(document, playlist);
     const trimmed = name.trim();
-    if (document === null || current === null || trimmed === '') {
+    if (
+      document === null ||
+      current === null ||
+      trimmed === '' ||
+      trimmed.length > MEDIA_LIMITS.name
+    ) {
       return false;
     }
     if (trimmed === current.name && this.unsavedRenameRevision === null) {
@@ -436,7 +441,12 @@ export class MediaLibrary {
     const document = this.view.document;
     const item = document?.value.items.find(({id}) => id === mediaId);
     const trimmed = name.trim();
-    if (document === null || item === undefined || trimmed === '') {
+    if (
+      document === null ||
+      item === undefined ||
+      trimmed === '' ||
+      trimmed.length > MEDIA_LIMITS.name
+    ) {
       return false;
     }
     if (trimmed === item.name) return true;
