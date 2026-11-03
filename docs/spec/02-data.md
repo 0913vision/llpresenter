@@ -541,6 +541,7 @@ source file.
 | Output     | `onDisconnect`         | `"window"`                                   | 화면 연결이 끊기면: 창으로 바꾸기                                       | `Prefs`               |
 | Output     | `hardwareAcceleration` | Boolean, true                                | 하드웨어 가속 (hardware acceleration). Takes effect on the next launch. | `Prefs`               |
 | Output     | `previewFps`           | Integer, 30                                  | 미리보기 30fps (preview frame rate)                                     | `Prefs`               |
+| Show       | `show.atLastSlide`     | `"stop"` \| `"nextItem"`, `"stop"`           | 마지막 슬라이드에서 다음 슬라이드: 정지 or 다음 항목 (see 04)           | `Prefs`               |
 | 라이브러리 | `backup.auto`          | Boolean, true                                | 자동 백업 (automatic backup)                                            | `Prefs`               |
 | 라이브러리 | `backup.keep`          | Integer, 30                                  | 보관 30개 (keep 30)                                                     | `Prefs`               |
 | Bible      | `bible.verseNumbers`   | Boolean, true                                | 절 번호 (verse numbers)                                                 | `Prefs`               |

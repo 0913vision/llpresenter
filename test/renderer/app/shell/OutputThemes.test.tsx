@@ -175,6 +175,8 @@ it('does not invent a live choice before the snapshot or after its target is del
 
 it('keeps a newer push over a slow read and releases subscriptions on close', async () => {
   const {api, push, listeners} = setup();
+  // NOTE(0913vision): The menu bar itself follows 환경설정 for the 이어서 진행 row.
+  const barListeners = listeners.size;
   let finish: (doc: SettingsDocument) => void = () => undefined;
   const get = api.settings.get;
   vi.spyOn(api.settings, 'get').mockImplementation(request =>
@@ -200,7 +202,7 @@ it('keeps a newer push over a slow read and releases subscriptions on close', as
   expect(screen.getByRole('menuitemradio', {name: 'New name'})).toBeTruthy();
   expect(screen.queryByRole('menuitemradio', {name: '평상시'})).toBeNull();
   await userEvent.keyboard('{Escape}{Escape}');
-  await waitFor(() => expect(listeners.size).toBe(0));
+  await waitFor(() => expect(listeners.size).toBe(barListeners));
 });
 
 it('reports a failed theme load and retries after closing Output', async () => {

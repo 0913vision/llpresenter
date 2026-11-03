@@ -205,12 +205,16 @@ source was found.
   current item's sequence. If there is no live 슬라이드, or the item open in the
   슬라이드 panel isn't the current item, next outputs the first tile of the item
   in the 슬라이드 panel (decided, no ProPresenter source found; 10).
-- On the last tile, next does nothing (decided, no ProPresenter source found;
-  10). Moving into the next item would start it and run its start 매크로. To
-  move on, the operator picks the next item (다음 항목, Ctrl ↓) and presses →. A
-  환경설정 > 진행 setting that lets next move into the next item is part of 10's
-  settings proposal, which is still open. On the first tile, previous does
-  nothing (proposal).
+- On the last tile, next does nothing with 마지막 슬라이드에서 다음 슬라이드:
+  정지, the default (decided, no ProPresenter source found; 10). To move on, the
+  operator picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
+  (환경설정, or the check row 보기 > 이어서 진행; `show.atLastSlide`, applied at
+  once), next on the last tile starts the next item that can output on its first
+  tile, with that item's start 매크로 and 테마, and opens it in the 슬라이드
+  panel, as 다음 항목 and then → do. 구역 rows and items without a 슬라이드 are
+  skipped, and on the last item next does nothing. Every command that means next
+  슬라이드 follows this (the → key, Space, Page Down). On the first tile,
+  previous does nothing (proposal).
 - A slide hot key outputs its particular source slide in the song open in the
   슬라이드 panel, even when another item is live. It identifies
   `{songId, groupId, slideIndex}` (02), independently of 이름표 names. If the

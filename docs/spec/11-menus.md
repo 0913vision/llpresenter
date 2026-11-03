@@ -536,16 +536,16 @@ rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 - Purpose: Switch workspace and open tools.
 - PP: PP View menu (support article, 2026).
 
-| Group | Row                                                                                 | Does                                                                                                               | Status |
-| ----- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------ |
-| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)                     | Ctrl E keeps opening 준비 until a slide editor exists.                                                             | Now    |
-| 2     | 이어서 진행                                                                         | PP Continuous Playlist.                                                                                            | Off    |
-| 3     | 슬라이드 보기 ›                                                                     |                                                                                                                    | Off    |
-| 4     | 오디오, 무대, 타이머, 메시지, 공지, 그래픽, 매크로                                  | Opens its owning tool tab, including the per-item 메시지, 공지 and 그래픽 controls (04).                           | New    |
-| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04). | Now    |
-| 6     | 미리보기 ›                                                                          |                                                                                                                    | Off    |
-| 7     | 전체 화면                                                                           |                                                                                                                    | Off    |
-| -     | 화면 설정                                                                           | The workspace is now 테마 (layers icon). Screen settings move to a separate window under 출력.                     | Moved  |
+| Group | Row                                                                                 | Does                                                                                                                                  | Status |
+| ----- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)                     | Ctrl E keeps opening 준비 until a slide editor exists.                                                                                | Now    |
+| 2     | 이어서 진행                                                                         | PP Continuous Playlist. A check row that shows and flips 환경설정 > 마지막 슬라이드에서 다음 슬라이드 (on is 다음 항목, off is 정지). | Now    |
+| 3     | 슬라이드 보기 ›                                                                     |                                                                                                                                       | Off    |
+| 4     | 오디오, 무대, 타이머, 메시지, 공지, 그래픽, 매크로                                  | Opens its owning tool tab, including the per-item 메시지, 공지 and 그래픽 controls (04).                                              | New    |
+| 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 (off) | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04).                    | Now    |
+| 6     | 미리보기 ›                                                                          |                                                                                                                                       | Off    |
+| 7     | 전체 화면                                                                           |                                                                                                                                       | Off    |
+| -     | 화면 설정                                                                           | The workspace is now 테마 (layers icon). Screen settings move to a separate window under 출력.                                        | Moved  |
 
 ### 출력
 

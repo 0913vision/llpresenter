@@ -13,6 +13,7 @@ import {
   outputPrevious,
   revealLiveItem,
 } from '@renderer/session/show';
+import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
 
@@ -154,6 +155,7 @@ function clearPendingClick(event: Event): void {
 /** Listens for the live keys while the 진행 workspace is shown. */
 export function useShowKeys(): void {
   useSlideHotKeys();
+  useAtLastSlide();
   useWindowShortcuts(commands);
   useEffect(() => {
     window.addEventListener('keydown', clearPendingClick, {capture: true});

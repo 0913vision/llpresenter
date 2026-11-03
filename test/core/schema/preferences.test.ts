@@ -151,6 +151,34 @@ describe('withPreferenceDefaults', () => {
     },
   );
 
+  it.each([
+    [{}, 'stop'],
+    [{show: {}}, 'stop'],
+    [{show: {atLastSlide: 'stop'}}, 'stop'],
+    [{show: {atLastSlide: 'nextItem'}}, 'nextItem'],
+  ] as const)(
+    'defaults what next does on the last slide to stop: %j',
+    (fields, expected) => {
+      const stored = parse({...HEADER, ...fields});
+      expect(withPreferenceDefaults(stored).show.atLastSlide).toBe(expected);
+    },
+  );
+
+  it('keeps the last-slide choice beside the clear undo choice', () => {
+    const stored = parse({
+      ...HEADER,
+      show: {showClearUndoButton: true, atLastSlide: 'nextItem'},
+    });
+    expectRoundTrip(codec, {
+      ...HEADER,
+      show: {showClearUndoButton: true, atLastSlide: 'nextItem'},
+    });
+    expect(withPreferenceDefaults(stored).show).toMatchObject({
+      showClearUndoButton: true,
+      atLastSlide: 'nextItem',
+    });
+  });
+
   it('preserves unknown show fields in storage and after normalization', () => {
     const config = {...HEADER, show: {future: {enabled: true}}};
     expectRoundTrip(codec, config);
@@ -230,6 +258,9 @@ describe('preferences read boundary', () => {
     {...HEADER, show: []},
     {...HEADER, show: {showClearUndoButton: 'yes'}},
     {...HEADER, show: {showClearUndoButton: null}},
+    {...HEADER, show: {atLastSlide: 'next'}},
+    {...HEADER, show: {atLastSlide: true}},
+    {...HEADER, show: {atLastSlide: null}},
   ])('rejects malformed preferences %j', value => {
     expect(parsePreferencesValue(value).ok).toBe(false);
   });

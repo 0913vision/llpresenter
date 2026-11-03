@@ -4,6 +4,7 @@ import {
   adjacentItem,
   liveItem,
   nextTile,
+  nextTileAtLast,
   previousTile,
   type SequenceState,
 } from '@core/presentation/navigation';
@@ -76,6 +77,63 @@ describe('nextTile', () => {
       itemId: 'b',
       index: 1,
     });
+  });
+});
+
+describe('nextTileAtLast', () => {
+  const next = (
+    atLast: 'stop' | 'nextItem',
+    overrides: Partial<SequenceState>,
+  ) => nextTileAtLast(stateOf(overrides), rows, atLast);
+
+  it('moves inside an item the same way with either choice', () => {
+    const live = {itemId: 'a', index: 1};
+    expect(next('stop', {live})).toEqual({itemId: 'a', index: 2});
+    expect(next('nextItem', {live})).toEqual({itemId: 'a', index: 2});
+  });
+
+  it('stops on the last tile with stop', () => {
+    expect(next('stop', {live: {itemId: 'a', index: 3}})).toBeNull();
+  });
+
+  it('starts the next item on its first tile with nextItem, skipping the sections between', () => {
+    expect(next('nextItem', {live: {itemId: 'a', index: 3}})).toEqual({
+      itemId: 'b',
+      index: 0,
+    });
+    expect(
+      next('nextItem', {live: {itemId: 'a', index: 3}, openItemId: 'a'}),
+    ).toEqual({itemId: 'b', index: 0});
+  });
+
+  it('skips an item without a 장', () => {
+    const withEmpty: readonly ServiceRow[] = [
+      {kind: 'song', id: 'a', title: 'A'},
+      {kind: 'song', id: 'empty', title: 'Missing song'},
+      {kind: 'song', id: 'b', title: 'B'},
+    ];
+    expect(
+      nextTileAtLast(
+        stateOf({live: {itemId: 'a', index: 3}}),
+        withEmpty,
+        'nextItem',
+      ),
+    ).toEqual({itemId: 'b', index: 0});
+  });
+
+  it('does nothing on the last tile of the last item', () => {
+    expect(next('nextItem', {live: {itemId: 'c', index: 0}})).toBeNull();
+  });
+
+  it('keeps the open item rule when another item is open or nothing is live', () => {
+    expect(
+      next('nextItem', {live: {itemId: 'a', index: 3}, openItemId: 'c'}),
+    ).toEqual({itemId: 'c', index: 0});
+    expect(next('nextItem', {openItemId: 'b'})).toEqual({
+      itemId: 'b',
+      index: 0,
+    });
+    expect(next('nextItem', {})).toBeNull();
   });
 });
 

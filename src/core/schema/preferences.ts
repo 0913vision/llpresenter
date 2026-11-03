@@ -50,6 +50,9 @@ const groupRanges = {
   bible: {maxLines: bibleMaxLinesSchema},
 };
 
+/** What the next-슬라이드 key does on the last 슬라이드 of an item. */
+export const atLastSlideSchema = v.picklist(['stop', 'nextItem']);
+
 export const textImportSplitSchema = v.picklist([
   'blankLine',
   'lineBreak',
@@ -82,7 +85,12 @@ export const preferencesSchema = jsonObject({
       notice: v.exactOptional(clearFadeSchema),
     }),
   ),
-  show: v.exactOptional(jsonObject({showClearUndoButton: optionalBoolean})),
+  show: v.exactOptional(
+    jsonObject({
+      showClearUndoButton: optionalBoolean,
+      atLastSlide: v.exactOptional(atLastSlideSchema),
+    }),
+  ),
   backup: v.exactOptional(
     jsonObject({
       auto: optionalBoolean,
@@ -153,7 +161,7 @@ export const defaultPreferences: Preferences = {
   onDisconnect: 'window',
   hardwareAcceleration: true,
   previewFps: 30,
-  show: {showClearUndoButton: false},
+  show: {showClearUndoButton: false, atLastSlide: 'stop'},
   backup: {auto: true, keep: 30},
   media: {copyOnImport: false},
   bible: {verseNumbers: true, maxLines: 4, sourcePosition: 'bottomRight'},

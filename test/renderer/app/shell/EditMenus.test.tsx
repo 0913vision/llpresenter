@@ -2,6 +2,8 @@ import {cleanup, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useState, type JSX} from 'react';
+import type {EditResult} from '@core/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
@@ -322,5 +324,79 @@ describe('the 도움말 menu', () => {
     expect(within(dialog).getAllByRole('button')).toHaveLength(1);
     await user.click(within(dialog).getByRole('button', {name: '확인'}));
     expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+});
+
+describe('the 보기 menu 이어서 진행 row', () => {
+  const stored = (atLastSlide?: 'stop' | 'nextItem') => ({
+    name: 'preferences' as const,
+    value: {
+      format: 'llsettings.preferences' as const,
+      schemaVersion: 1,
+      ...(atLastSlide === undefined ? {} : {show: {atLastSlide}}),
+    },
+    revision: 5,
+    access: 'editable' as const,
+  });
+
+  it('shows the choice as a check and flips it in 환경설정', async () => {
+    const edit = vi.fn<(request: SettingsEdit) => Promise<EditResult>>(() =>
+      Promise.resolve({
+        ok: true as const,
+        value: {id: 'preferences', revision: 6},
+      }),
+    );
+    window.llp = mockLlpApi({
+      settings: {get: () => Promise.resolve(stored('stop')), edit},
+    });
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    await waitFor(() => expect(window.llp?.settings.get).toBeDefined());
+    let menu = await openMenu(user, '보기');
+    const row = () =>
+      within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'});
+    await waitFor(() => expect(isOff(row())).toBe(false));
+    expect(row().getAttribute('aria-checked')).toBe('false');
+    await user.click(row());
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(edit.mock.calls[0]?.[0]).toMatchObject({
+      type: 'settings.update',
+      name: 'preferences',
+      value: {show: {atLastSlide: 'nextItem'}},
+    });
+    menu = await openMenu(user, '보기');
+    expect(row()).toBeTruthy();
+  });
+
+  it('is on when the choice is 다음 항목 and off for a file of a newer version', async () => {
+    window.llp = mockLlpApi({
+      settings: {get: () => Promise.resolve(stored('nextItem'))},
+    });
+    const user = userEvent.setup();
+    const view = render(<MenuBar title="" />);
+    let menu = await openMenu(user, '보기');
+    await waitFor(() =>
+      expect(
+        within(menu)
+          .getByRole('menuitemcheckbox', {name: '이어서 진행'})
+          .getAttribute('aria-checked'),
+      ).toBe('true'),
+    );
+    view.unmount();
+    window.llp = mockLlpApi({
+      settings: {
+        get: () =>
+          Promise.resolve({...stored('stop'), access: 'readOnly' as const}),
+      },
+    });
+    render(<MenuBar title="" />);
+    menu = await openMenu(user, '보기');
+    await waitFor(() =>
+      expect(
+        isOff(
+          within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'}),
+        ),
+      ).toBe(true),
+    );
   });
 });

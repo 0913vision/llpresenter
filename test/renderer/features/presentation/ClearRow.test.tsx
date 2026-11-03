@@ -48,7 +48,7 @@ function installApi(showClearUndoButton?: boolean): LlpApi {
         : {
             get: async () => ({
               ...defaultPreferences,
-              show: {showClearUndoButton},
+              show: {...defaultPreferences.show, showClearUndoButton},
             }),
           },
   });
@@ -210,7 +210,10 @@ describe('ClearRow', () => {
     expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
     iconRenders.names.length = 0;
     await act(async () =>
-      finish({...defaultPreferences, show: {showClearUndoButton: true}}),
+      finish({
+        ...defaultPreferences,
+        show: {...defaultPreferences.show, showClearUndoButton: true},
+      }),
     );
     const group = screen.getByRole('group', {name: '지우기'});
     expect(

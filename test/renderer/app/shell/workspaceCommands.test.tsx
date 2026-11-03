@@ -109,10 +109,45 @@ describe('workspace defaults from S1', () => {
   });
 });
 
+const CONTINUOUS_OFF = {on: false, reason: undefined, toggle: () => undefined};
+
 describe('workspaceMenu', () => {
+  it('shows 이어서 진행 as a check that follows the choice and flips it', () => {
+    const toggle = vi.fn();
+    const find = (
+      continuous: Parameters<typeof workspaceMenu>[0]['continuous'],
+    ) =>
+      menuItems(
+        workspaceMenu({
+          onWorkspace: undefined,
+          onMedia: undefined,
+          continuous,
+        }),
+      ).find(row => row.id === 'continuous');
+    expect(find({on: false, reason: undefined, toggle})).toMatchObject({
+      check: 'checkbox',
+      checked: false,
+      disabled: false,
+    });
+    const on = find({on: true, reason: undefined, toggle});
+    expect(on).toMatchObject({check: 'checkbox', checked: true});
+    on?.onSelect?.();
+    expect(toggle).toHaveBeenCalledOnce();
+    expect(
+      find({on: false, reason: '새 버전의 파일이라 바꿀 수 없습니다', toggle}),
+    ).toMatchObject({
+      disabled: true,
+      title: '새 버전의 파일이라 바꿀 수 없습니다',
+    });
+  });
+
   it('explains unavailable workspace and media handlers', () => {
     const rows = menuItems(
-      workspaceMenu({onWorkspace: undefined, onMedia: undefined}),
+      workspaceMenu({
+        onWorkspace: undefined,
+        onMedia: undefined,
+        continuous: CONTINUOUS_OFF,
+      }),
     );
     for (const id of [
       'workspace.show',
@@ -133,7 +168,11 @@ describe('workspaceMenu', () => {
 
   it('opens a 진행 도구 tab in 진행', () => {
     const onWorkspace = vi.fn();
-    const entries = workspaceMenu({onWorkspace, onMedia: () => undefined});
+    const entries = workspaceMenu({
+      onWorkspace,
+      onMedia: () => undefined,
+      continuous: CONTINUOUS_OFF,
+    });
     const timer = entries.find(entry => entry.id === 'tool.timer');
     if (timer?.kind !== 'item') throw new Error('Missing timer row');
     timer.onSelect?.();
@@ -143,9 +182,11 @@ describe('workspaceMenu', () => {
 
   it('opens the existing palette in the macro tool', () => {
     const onWorkspace = vi.fn();
-    const item = workspaceMenu({onWorkspace, onMedia: undefined}).find(
-      entry => entry.id === 'palette',
-    );
+    const item = workspaceMenu({
+      onWorkspace,
+      onMedia: undefined,
+      continuous: CONTINUOUS_OFF,
+    }).find(entry => entry.id === 'palette');
     if (item?.kind !== 'item') throw new Error('Missing palette row');
     item.onSelect?.();
     expect(useMacroPalette.getState().open).toBe(true);

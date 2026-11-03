@@ -37,6 +37,10 @@ const LANGUAGE_OPTIONS = [{value: 'ko', label: '한국어'}] as const;
 const LAUNCH_OPTIONS = [
   {value: 'lastService', label: '마지막 예배 열기'},
 ] as const;
+const AT_LAST_SLIDE_OPTIONS = [
+  {value: 'stop', label: '정지'},
+  {value: 'nextItem', label: '다음 항목'},
+] as const;
 const DISCONNECT_OPTIONS = [
   {value: 'window', label: '창으로 바꾸기'},
   {value: 'off', label: '출력 끄기'},
@@ -103,6 +107,21 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           {...PREFERENCE_LIMITS.backupCopies}
           onChange={backupCopies =>
             change(stored => ({...stored, backupCopies}))
+          }
+        />
+      </PropertyGroup>
+      <PropertyGroup title="슬라이드 넘기기">
+        <SelectRow
+          label="마지막 슬라이드에서 다음 슬라이드"
+          disabled={disabled}
+          title={lockedReason}
+          options={AT_LAST_SLIDE_OPTIONS}
+          value={preferences.show.atLastSlide}
+          onChange={atLastSlide =>
+            change(stored => ({
+              ...stored,
+              show: {...stored.show, atLastSlide},
+            }))
           }
         />
       </PropertyGroup>

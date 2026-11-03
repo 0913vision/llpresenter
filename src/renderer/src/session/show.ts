@@ -1,3 +1,4 @@
+import type {Preferences} from '@core/schema/preferences';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
@@ -9,7 +10,7 @@ import {
 import {
   adjacentItem,
   liveItem,
-  nextTile,
+  nextTileAtLast,
   previousTile,
   type SequenceState,
 } from '@core/presentation/navigation';
@@ -32,6 +33,8 @@ import {
 import {noService, useShow, type ShowView} from './showStore';
 
 export {useShow} from './showStore';
+
+type AtLastSlide = Preferences['show']['atLastSlide'];
 
 declare global {
   interface Window {
@@ -239,8 +242,28 @@ function outputIfPresent(cursor: TileCursor | null): void {
   if (cursor) outputTile(cursor);
 }
 
+let atLastSlide: AtLastSlide = 'stop';
+
+/** Tells the next-장 key what to do on the last 장 (환경설정, applied at once). */
+export function setAtLastSlide(value: AtLastSlide): void {
+  atLastSlide = value;
+}
+
+/**
+ * Outputs the next 장. On the last 장 of an item it stops, or with 다음 항목
+ * starts the next item on its first 장 and opens it in the 장 panel, the way
+ * 다음 항목 and then → do.
+ */
 export function outputNext(): void {
-  outputIfPresent(nextTile(sequenceState()));
+  const cursor = nextTileAtLast(
+    sequenceState(),
+    useShow.getState().rows,
+    atLastSlide,
+  );
+  if (cursor !== null && cursor.itemId !== liveCursor()?.itemId) {
+    openItem(cursor.itemId);
+  }
+  outputIfPresent(cursor);
 }
 
 export function outputPrevious(): void {

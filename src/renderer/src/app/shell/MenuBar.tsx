@@ -25,7 +25,8 @@ import {helpMenuEntries, windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
-import {workspaceMenu} from './workspaceCommands';
+import {workspaceMenu, type ContinuousRow} from './workspaceCommands';
+import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import type {Workspace} from './Toolbar';
 
 const EDIT_MENU = '편집';
@@ -34,6 +35,7 @@ const HELP_MENU = '도움말';
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';
+const NOT_YET_READ = '환경설정을 불러오고 있습니다';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
 type MenuName =
@@ -333,6 +335,23 @@ export function MenuBar({
 }): JSX.Element {
   const [active, setActive] = useState<ActiveMenu | null>(null);
   const outsideFocus = useOutsideFocus();
+  const preferences = usePreferenceEdits(onProblem);
+  const continuousRow: ContinuousRow = {
+    on: preferences.preferences?.show.atLastSlide === 'nextItem',
+    reason:
+      preferences.preferences === null
+        ? NOT_YET_READ
+        : preferences.lockedReason,
+    toggle: () =>
+      preferences.change(stored => ({
+        ...stored,
+        show: {
+          ...stored.show,
+          atLastSlide:
+            stored.show?.atLastSlide === 'nextItem' ? 'stop' : 'nextItem',
+        },
+      })),
+  };
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
   const bar = useMenuBarNavigation<MenuName>(MENU_NAMES);
@@ -413,7 +432,9 @@ export function MenuBar({
         <EntryMenu
           label={VIEW_MENU}
           control={controlFor(VIEW_MENU)}
-          entries={() => workspaceMenu({onWorkspace, onMedia})}
+          entries={() =>
+            workspaceMenu({onWorkspace, onMedia, continuous: continuousRow})
+          }
         />
         <OutputMenu
           warnings={warnings}

@@ -19,6 +19,7 @@ import {
   outputNext,
   outputPrevious,
   outputTile,
+  setAtLastSlide,
   useShow,
 } from '@renderer/session/show';
 import {
@@ -58,6 +59,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  setAtLastSlide('stop');
   delete window.llp;
   vi.restoreAllMocks();
 });
@@ -127,6 +129,53 @@ describe('show state', () => {
       openItemId: 'song-morning',
       selectedTile: 3,
     });
+  });
+
+  it('starts the next item on its first tile after the last tile with 다음 항목, and opens it', () => {
+    setAtLastSlide('nextItem');
+    openItem('song-morning');
+    setLive('song-morning', 3);
+    outputNext();
+    expect(sent.at(-1)).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'song-river', position: 0},
+    });
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'song-river',
+      selectedTile: 0,
+    });
+  });
+
+  it('skips a 구역 row between two items with 다음 항목', () => {
+    setAtLastSlide('nextItem');
+    const rows = useShow.getState().rows.map(row => row.id);
+    expect(rows.indexOf('word')).toBeGreaterThan(rows.indexOf('song-river'));
+    openItem('song-river');
+    setLive('song-river', 2);
+    outputNext();
+    expect(sent.at(-1)).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'psalm-23'},
+    });
+  });
+
+  it('does nothing on the last tile of the last item with 다음 항목', () => {
+    setAtLastSlide('nextItem');
+    openItem('notice-sunday');
+    const last = useShow.getState().rows.at(-1);
+    expect(last?.id).toBe('notice-sunday');
+    setLive('notice-sunday', 99);
+    outputNext();
+    expect(sent).toHaveLength(0);
+  });
+
+  it('still stops after the last tile when 정지 is chosen again', () => {
+    setAtLastSlide('nextItem');
+    setAtLastSlide('stop');
+    openItem('song-morning');
+    setLive('song-morning', 3);
+    outputNext();
+    expect(sent).toHaveLength(0);
   });
 
   it('outputs the first tile of another open item with next', () => {

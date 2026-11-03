@@ -271,6 +271,34 @@ describe('PreferencesView', () => {
     await waitFor(() => expect(written()).toMatchObject({onDisconnect: 'off'}));
   });
 
+  it('shows 정지 for what next does on the last slide and saves 다음 항목 beside the other show choices', async () => {
+    await mount();
+    const row = screen.getByRole('button', {
+      name: /마지막 슬라이드에서 다음 슬라이드/,
+    });
+    expect(row.textContent).toContain('정지');
+    edit.mockClear();
+    await userEvent.click(row);
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {name: '다음 항목'}),
+    );
+    await waitFor(() =>
+      expect(written()).toMatchObject({
+        show: {atLastSlide: 'nextItem'},
+        ...UNKNOWN_FIELDS,
+      }),
+    );
+  });
+
+  it('locks the last-slide row for a file of a newer version', async () => {
+    await mount({access: 'readOnly'});
+    expect(
+      screen
+        .getByRole('button', {name: /마지막 슬라이드에서 다음 슬라이드/})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
   it('writes the 라이브러리 backup rows', async () => {
     await mount();
     await openPage('라이브러리');

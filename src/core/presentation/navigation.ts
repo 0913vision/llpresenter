@@ -39,6 +39,31 @@ export function nextTile(state: SequenceState): TileCursor | null {
   return {itemId: live.itemId, index: live.index + 1};
 }
 
+/**
+ * The tile the next-장 key outputs when 환경설정 says what next does on the
+ * last 장 (`stop` or `nextItem`). It is {@link nextTile} while that gives a
+ * tile, and with `nextItem`, on the last tile of the live item, the first tile
+ * of the next item that can output (sections and items without a 장 are
+ * skipped). After the last item, and with `stop`, it is null.
+ */
+export function nextTileAtLast(
+  state: SequenceState,
+  rows: readonly ServiceRow[],
+  atLast: 'stop' | 'nextItem',
+): TileCursor | null {
+  const tile = nextTile(state);
+  if (tile !== null || atLast === 'stop') return tile;
+  const {live, tilesOf} = state;
+  if (live === null) return null;
+  const item = adjacentItem({
+    rows,
+    tilesOf,
+    current: live.itemId,
+    direction: 'next',
+  });
+  return item === null ? null : firstTileOf(item, tilesOf);
+}
+
 /** The tile that the previous-장 key outputs. Null on the first tile. */
 export function previousTile(state: SequenceState): TileCursor | null {
   const {live} = state;

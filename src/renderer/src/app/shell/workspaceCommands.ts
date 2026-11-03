@@ -123,15 +123,28 @@ function toolRows(
 }
 
 /**
+ * The 이어서 진행 row: a check that shows and flips 환경설정's choice of what
+ * next does on the last 장 (on is 다음 항목).
+ */
+export interface ContinuousRow {
+  readonly on: boolean;
+  /** Why the row can't change, such as a file of a newer version. */
+  readonly reason: string | undefined;
+  readonly toggle: () => void;
+}
+
+/**
  * The 보기 menu, row for row as ProPresenter's View menu (spec 11): the
  * workspaces, playback, the 진행 도구 tabs, then the other views.
  */
 export function workspaceMenu({
   onWorkspace,
   onMedia,
+  continuous,
 }: {
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onMedia: (() => void) | undefined;
+  readonly continuous: ContinuousRow;
 }): readonly MenuEntry[] {
   return [
     workspaceRow({id: 'show', label: '진행'}, onWorkspace),
@@ -139,7 +152,15 @@ export function workspaceMenu({
     workspaceRow({id: 'prep', label: '준비'}, onWorkspace),
     laterRow('workspace.bible', '성경'),
     menuSeparator('playback'),
-    laterRow('continuous', '이어서 진행'),
+    {
+      kind: 'item',
+      id: 'continuous',
+      label: '이어서 진행',
+      check: 'checkbox',
+      checked: continuous.on,
+      ...menuAvailability(continuous.reason),
+      onSelect: continuous.toggle,
+    },
     menuSeparator('slide-view'),
     laterRow('slide-view', '슬라이드 보기', {submenu: true}),
     menuSeparator('tools'),
