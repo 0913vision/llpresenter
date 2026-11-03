@@ -18,6 +18,8 @@ export async function resolveServicePassages(
   options: {
     readonly reportError: (error: unknown) => void;
     readonly isCurrent?: () => boolean;
+    /** The most lines a slide of a `fit` passage holds; 4 when absent. */
+    readonly maxLines?: number;
   },
 ): Promise<ServicePassages> {
   const tiles = new Map<string, readonly ShowTile[]>();
@@ -57,11 +59,12 @@ export async function resolveServicePassages(
     }
     tiles.set(
       item.id,
-      bibleVerseTiles(
-        reply.result.value,
-        item.bible.verseNumbers,
-        item.bible.reference,
-      ),
+      bibleVerseTiles(reply.result.value, {
+        verseNumbers: item.bible.verseNumbers,
+        reference: item.bible.reference,
+        split: item.bible.split,
+        maxLines: options.maxLines,
+      }),
     );
     const {ref, translation} = reply.result.value;
     references.set(item.id, {ref, translation});

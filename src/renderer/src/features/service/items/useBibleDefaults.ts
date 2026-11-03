@@ -20,7 +20,7 @@ export function useBibleDefaults(): PassageDefaults | null {
         if (translation !== undefined) {
           setDefaults({
             translation,
-            verseNumbers: preferences.bible.verseNumbers,
+            ...preferences.bible.defaults,
           });
         }
       },

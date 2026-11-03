@@ -21,6 +21,7 @@ import {createServiceItemId} from '@core/schema/ids';
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
   bible?: OpenServiceSources['bible'],
+  bibleMaxLines?: OpenServiceSources['bibleMaxLines'],
 ) {
   const parsed = parseService(
     JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
@@ -49,6 +50,7 @@ async function setUp(
       content,
       backgroundOf,
       ...(bible === undefined ? {} : {bible}),
+      ...(bibleMaxLines === undefined ? {} : {bibleMaxLines}),
     },
     push,
     report,
@@ -59,6 +61,57 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
+  it('packs a saved 길이에 맞춤 passage by the 최대 줄 수 of 환경설정', async () => {
+    const request = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '요한복음 3:16-18',
+    });
+    if (!request.ok) throw new Error('Invalid lookup fixture');
+    const lookup = vi
+      .fn<NonNullable<OpenServiceSources['bible']>['lookup']>()
+      .mockResolvedValue({
+        ...request.value,
+        suggestions: [],
+        result: {
+          ok: true,
+          value: {
+            translation: request.value.translation,
+            ref: request.value.input,
+            displayRef: request.value.input,
+            verses: [16, 17, 18].map(verse => ({chapter: 3, verse, text: 'a'})),
+          },
+        },
+      });
+    const item = {
+      id: createServiceItemId(itemId(61)),
+      bible: {
+        translation: request.value.translation,
+        ref: request.value.input,
+        split: 'fit' as const,
+        reference: 'every' as const,
+        verseNumbers: true,
+        translationName: false,
+      },
+    };
+    const labelsOf = async (maxLines: number) => {
+      const {feed, content, current} = await setUp(
+        undefined,
+        {lookup},
+        () => maxLines,
+      );
+      content.storedService.mockReturnValue({
+        ...current,
+        data: {...current.data, order: [item]},
+      });
+      await feed.refresh();
+      const labels = feed.current()?.tiles[item.id]?.map(tile => tile.label);
+      await feed.dispose();
+      return labels;
+    };
+    expect(await labelsOf(2)).toEqual(['3:16-17', '3:18']);
+    expect(await labelsOf(3)).toEqual(['3:16-18']);
+  });
+
   it('discards a superseded saved-passage read and publishes only the latest service content', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',

@@ -592,8 +592,35 @@ describe('PreferencesView', () => {
     edit.mockClear();
     await userEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
     await waitFor(() =>
-      expect(written()).toMatchObject({bible: {verseNumbers: false}}),
+      expect(written()).toMatchObject({
+        bible: {defaults: {verseNumbers: false}},
+      }),
     );
+  });
+
+  it('shows the 새 구절 defaults, and writes each choice beside the other fields', async () => {
+    await mount();
+    await openPage('성경');
+    const split = screen.getByRole('button', {name: /나누기/});
+    expect(split.textContent).toContain('한 슬라이드에 한 절');
+    expect(screen.getByRole('button', {name: /참조/}).textContent).toContain(
+      '슬라이드마다',
+    );
+    expect(screen.queryByRole('checkbox', {name: '역본 이름'})).toBeNull();
+    await userEvent.click(screen.getByRole('button', {name: /참조/}));
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {name: '마지막 슬라이드만'}),
+    );
+    await waitFor(() =>
+      expect(written().bible?.defaults?.reference).toBe('last'),
+    );
+    edit.mockClear();
+    await userEvent.click(split);
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {name: '두 절씩'}),
+    );
+    await waitFor(() => expect(written().bible?.defaults?.split).toBe('two'));
+    expect(written()).toMatchObject(UNKNOWN_FIELDS);
   });
 
   it('writes 한 슬라이드 최대 줄 수 within its range', async () => {

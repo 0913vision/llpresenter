@@ -58,6 +58,7 @@ export function showBiblePassage(
     (prepared !== null && samePassage(prepared.passage, passage)
       ? {
           verseNumbers: prepared.verseNumbers,
+          reference: prepared.reference,
           enteredRef: prepared.enteredRef,
           enteredTranslation: prepared.enteredTranslation,
         }

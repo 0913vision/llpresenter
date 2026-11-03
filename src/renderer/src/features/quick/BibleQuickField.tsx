@@ -8,7 +8,7 @@ import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
-import {useBibleVerseNumbers} from '../bible/useBibleVerseNumbers';
+import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -27,7 +27,7 @@ export function BibleQuickField({
       run: () => root.current?.querySelector('input')?.focus(),
     },
   ]);
-  const verseNumbers = useBibleVerseNumbers(api.preferences);
+  const display = useBibleDisplayDefaults(api.preferences);
   const [document, setDocument] = useState<Extract<
     SettingsDocument,
     {name: 'bible'}
@@ -67,7 +67,7 @@ export function BibleQuickField({
         key={`${selectionVersion}:${session}`}
         api={api.bible}
         translation={
-          verseNumbers === null
+          display === null
             ? undefined
             : (translations.find(item => item.default) ?? translations[0])?.id
         }
@@ -87,9 +87,9 @@ export function BibleQuickField({
               equivalent?.ref === source.enteredRef &&
               (source.enteredTranslation ?? source.passage.translation) ===
                 equivalent.translation &&
-              verseNumbers !== null
+              display !== null
             ) {
-              openBiblePassage(equivalent, {verseNumbers});
+              openBiblePassage(equivalent, display);
             } else {
               useShow.setState({
                 bibleSource: {...source, enteredRef: undefined},
@@ -98,8 +98,8 @@ export function BibleQuickField({
           }
         }}
         onPreview={passage => {
-          if (verseNumbers !== null) {
-            openBiblePassage(passage, {verseNumbers});
+          if (display !== null) {
+            openBiblePassage(passage, display);
           }
         }}
         onShow={passage => {

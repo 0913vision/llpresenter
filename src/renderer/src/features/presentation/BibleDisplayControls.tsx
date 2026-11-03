@@ -79,6 +79,7 @@ export function BibleDisplayControls({
             );
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
+        reference: source.reference,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
@@ -140,6 +141,7 @@ export function BibleDisplayControls({
         onChange={verseNumbers => {
           openBiblePassage(source.passage, {
             verseNumbers,
+            reference: source.reference,
             enteredRef: source.enteredRef,
             enteredTranslation: source.enteredTranslation,
           });

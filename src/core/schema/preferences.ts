@@ -16,6 +16,7 @@ import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
 import {clearFadeSchema} from './clearFade';
+import {bibleReferenceSchema, bibleSplitSchema} from './biblePassage';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
@@ -180,7 +181,14 @@ export const preferencesSchema = jsonObject({
   ),
   bible: v.exactOptional(
     jsonObject({
-      verseNumbers: optionalBoolean,
+      defaults: v.exactOptional(
+        jsonObject({
+          split: v.exactOptional(bibleSplitSchema),
+          reference: v.exactOptional(bibleReferenceSchema),
+          verseNumbers: optionalBoolean,
+          translationName: optionalBoolean,
+        }),
+      ),
       maxLines: v.exactOptional(bibleMaxLinesSchema),
       sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
@@ -267,7 +275,16 @@ export const defaultPreferences: Preferences = {
     audioOutput: DEFAULT_AUDIO_DEVICE,
     previewOutput: DEFAULT_AUDIO_DEVICE,
   },
-  bible: {verseNumbers: true, maxLines: 4, sourcePosition: 'bottomRight'},
+  bible: {
+    defaults: {
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: true,
+      translationName: false,
+    },
+    maxLines: 4,
+    sourcePosition: 'bottomRight',
+  },
   import: {
     txt: {
       split: 'blankLine',
@@ -310,7 +327,14 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
         ...stored.media?.defaults,
       },
     },
-    bible: {...defaultPreferences.bible, ...stored.bible},
+    bible: {
+      ...defaultPreferences.bible,
+      ...stored.bible,
+      defaults: {
+        ...defaultPreferences.bible.defaults,
+        ...stored.bible?.defaults,
+      },
+    },
     import: {
       ...stored.import,
       txt: {...defaultPreferences.import.txt, ...stored.import?.txt},

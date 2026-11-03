@@ -62,7 +62,11 @@ async function setup(
   return {...fixture, passage};
 }
 
-async function setupSaved(verseNumbers = true, live: LivePlace = 'last') {
+async function setupSaved(
+  verseNumbers = true,
+  live: LivePlace = 'last',
+  split: 'verse' | 'two' = 'verse',
+) {
   const fixture = await setup(undefined, verseNumbers);
   const position = live === 'first' ? 0 : live === 'last' ? 2 : live;
   const id = 'saved-bible';
@@ -75,6 +79,7 @@ async function setupSaved(verseNumbers = true, live: LivePlace = 'last') {
         ref: fixture.passage.ref,
         translation: fixture.passage.translation,
         verseNumbers,
+        split,
       },
     },
   ] as const;
@@ -82,7 +87,7 @@ async function setupSaved(verseNumbers = true, live: LivePlace = 'last') {
     bibleSource: null,
     openItemId: id,
     rows,
-    tiles: {[id]: bibleVerseTiles(fixture.passage, verseNumbers)},
+    tiles: {[id]: bibleVerseTiles(fixture.passage, {verseNumbers, split})},
   });
   const state = emptyLiveState();
   useLive.setState({
@@ -211,6 +216,17 @@ describe('Bible verse shortcuts', () => {
       slide: {label: '3:19'},
     });
     expect(edit).not.toHaveBeenCalled();
+  });
+
+  it('adds the next verse past the last slide of a saved two-verse split', async () => {
+    const fixture = await setupSaved(true, 1, 'two');
+    expect(useShow.getState().tiles['saved-bible']).toHaveLength(2);
+    await outputAdjacentBibleVerse('next');
+    expect(useShow.getState().rows).toBe(fixture.rows);
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {label: '3:19'},
+    });
   });
 
   it.each(['previous', 'next'] as const)(

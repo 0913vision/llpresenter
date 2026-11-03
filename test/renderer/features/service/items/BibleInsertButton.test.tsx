@@ -57,7 +57,10 @@ function setup() {
   window.llp = api;
   const preferences = vi.spyOn(api.preferences, 'get').mockResolvedValue({
     ...defaultPreferences,
-    bible: {...defaultPreferences.bible, verseNumbers: false},
+    bible: {
+      ...defaultPreferences.bible,
+      defaults: {...defaultPreferences.bible.defaults, verseNumbers: false},
+    },
   });
   const output = vi.spyOn(api.live, 'send');
   const serviceRead = vi.spyOn(api.services, 'get');
@@ -129,7 +132,13 @@ it.each([true, false])(
     const view = setup();
     view.preferences.mockResolvedValue({
       ...defaultPreferences,
-      bible: {...defaultPreferences.bible, verseNumbers: !verseNumbers},
+      bible: {
+        ...defaultPreferences.bible,
+        defaults: {
+          ...defaultPreferences.bible.defaults,
+          verseNumbers: !verseNumbers,
+        },
+      },
     });
     act(() => openBiblePassage(panelPassage(), {verseNumbers}));
     await view.user.click(view.button);

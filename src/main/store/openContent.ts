@@ -12,6 +12,7 @@ import {OpenServiceFeed} from './openServiceFeed';
 import {RecoveryCopies} from './recoveryCopies';
 import {type SaveFailureSink} from './saveFailures';
 import {Saver} from './saver';
+import {defaultPreferences} from '@core/schema/preferences';
 import {type SettingsStore} from './settingsStore';
 
 /**
@@ -130,6 +131,9 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
+      bibleMaxLines: () =>
+        settings?.preferences().bible.maxLines ??
+        defaultPreferences.bible.maxLines,
       mediaItems: () => media?.get().value.items ?? [],
       noticeSets: () => {
         const document = settings?.get('notices');
@@ -144,6 +148,7 @@ async function createContent(
       if (
         document.name === 'labels' ||
         document.name === 'bible' ||
+        document.name === 'preferences' ||
         document.name === 'notices'
       ) {
         feed

@@ -1,12 +1,15 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {useBibleVerseNumbers} from '@renderer/features/bible/useBibleVerseNumbers';
+import {useBibleDisplayDefaults} from '@renderer/features/bible/useBibleDisplayDefaults';
 
 function preferences(verseNumbers: boolean): Preferences {
   return {
     ...defaultPreferences,
-    bible: {...defaultPreferences.bible, verseNumbers},
+    bible: {
+      ...defaultPreferences.bible,
+      defaults: {...defaultPreferences.bible.defaults, verseNumbers},
+    },
   };
 }
 
@@ -45,14 +48,14 @@ afterEach(() => vi.restoreAllMocks());
 describe('Bible verse-number defaults', () => {
   it('waits for the default and does not replace a newer push with its stale startup read', async () => {
     const fixture = reader();
-    const view = renderHook(() => useBibleVerseNumbers(fixture.api));
+    const view = renderHook(() => useBibleDisplayDefaults(fixture.api));
     expect(view.result.current).toBeNull();
     act(() => fixture.emit(false));
-    expect(view.result.current).toBe(false);
+    expect(view.result.current?.verseNumbers).toBe(false);
     await act(async () => fixture.finish(true));
-    expect(view.result.current).toBe(false);
+    expect(view.result.current?.verseNumbers).toBe(false);
     act(() => fixture.emit(true));
-    expect(view.result.current).toBe(true);
+    expect(view.result.current?.verseNumbers).toBe(true);
     view.unmount();
     expect(fixture.stop).toHaveBeenCalledOnce();
   });
@@ -60,18 +63,18 @@ describe('Bible verse-number defaults', () => {
   it('drops the old owner while a replacement reader is still pending', async () => {
     const first = reader();
     const second = reader();
-    const view = renderHook(({api}) => useBibleVerseNumbers(api), {
+    const view = renderHook(({api}) => useBibleDisplayDefaults(api), {
       initialProps: {api: first.api},
     });
     await act(async () => first.finish(false));
-    expect(view.result.current).toBe(false);
+    expect(view.result.current?.verseNumbers).toBe(false);
     const latePush = first.api.subscribe.mock.calls[0]?.[0];
     view.rerender({api: second.api});
     expect(view.result.current).toBeNull();
     act(() => latePush?.(preferences(true)));
     expect(view.result.current).toBeNull();
     await act(async () => second.finish(true));
-    expect(view.result.current).toBe(true);
+    expect(view.result.current?.verseNumbers).toBe(true);
     expect(first.stop).toHaveBeenCalledOnce();
     view.unmount();
     expect(second.stop).toHaveBeenCalledOnce();
@@ -82,7 +85,7 @@ describe('Bible verse-number defaults', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     const fixture = reader();
-    const view = renderHook(() => useBibleVerseNumbers(fixture.api));
+    const view = renderHook(() => useBibleDisplayDefaults(fixture.api));
     view.unmount();
     await act(async () => fixture.fail(new Error('Invented late failure')));
     expect(fixture.stop).toHaveBeenCalledOnce();
@@ -94,7 +97,7 @@ describe('Bible verse-number defaults', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     const fixture = reader();
-    const view = renderHook(() => useBibleVerseNumbers(fixture.api));
+    const view = renderHook(() => useBibleDisplayDefaults(fixture.api));
     const failure = new Error('Invented preference failure');
     await act(async () => fixture.fail(failure));
     await waitFor(() =>

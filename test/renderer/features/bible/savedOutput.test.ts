@@ -39,8 +39,8 @@ function service(): ShowService {
       {kind: 'bible', id: missing, title: '시편 1:1', problem: 'missing-bible'},
     ],
     tiles: {
-      [saved]: bibleVerseTiles(passage, false),
-      [other]: bibleVerseTiles(otherPassage, false),
+      [saved]: bibleVerseTiles(passage, {verseNumbers: false}),
+      [other]: bibleVerseTiles(otherPassage, {verseNumbers: false}),
     },
     jumpKeys: {},
   };

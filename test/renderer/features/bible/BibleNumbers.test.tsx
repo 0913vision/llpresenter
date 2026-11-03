@@ -20,7 +20,10 @@ function fixture(verseNumbers: boolean) {
   const stop = vi.fn();
   let value = {
     ...defaultPreferences,
-    bible: {...defaultPreferences.bible, verseNumbers},
+    bible: {
+      ...defaultPreferences.bible,
+      defaults: {...defaultPreferences.bible.defaults, verseNumbers},
+    },
   };
   const api = {
     ...panel.api,
@@ -40,7 +43,13 @@ function fixture(verseNumbers: boolean) {
     api,
     stop,
     push: (numbers: boolean) => {
-      const next = {...value, bible: {...value.bible, verseNumbers: numbers}};
+      const next = {
+        ...value,
+        bible: {
+          ...value.bible,
+          defaults: {...value.bible.defaults, verseNumbers: numbers},
+        },
+      };
       value = next;
       for (const listener of listeners) listener(next);
     },

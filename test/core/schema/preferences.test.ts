@@ -488,3 +488,49 @@ describe('오디오 times', () => {
     expect(written.ok).toBe(false);
   });
 });
+
+describe('성경 새 구절 defaults', () => {
+  it('start as a verse each, the reference on every slide, verse numbers on, no translation name', () => {
+    expect(expectSuccess(parsePreferencesValue(HEADER)).bible.defaults).toEqual(
+      {
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    );
+  });
+
+  it('keeps stored defaults next to the line limit, fills the rest, and keeps unknown fields', () => {
+    const value = {
+      ...HEADER,
+      bible: {
+        defaults: {split: 'fit', reference: 'last', future: 1},
+        maxLines: 6,
+      },
+    };
+    expectRoundTrip(codec, value);
+    const bible = expectSuccess(parsePreferencesValue(value)).bible;
+    expect(bible.defaults).toEqual({
+      split: 'fit',
+      reference: 'last',
+      verseNumbers: true,
+      translationName: false,
+      future: 1,
+    });
+    expect(bible.maxLines).toBe(6);
+  });
+
+  it.each([
+    ['split', 'three'],
+    ['reference', 'middle'],
+    ['verseNumbers', 'yes'],
+    ['translationName', 1],
+  ])('refuses %s %j', (key, value) => {
+    expectInvalidField(
+      codec,
+      {...HEADER, bible: {defaults: {[key]: value}}},
+      `bible.defaults.${key}`,
+    );
+  });
+});

@@ -47,7 +47,7 @@ describe('saved Bible passage resolution', () => {
     if (original === undefined || !isItemOfKind(original, 'bible')) {
       throw new Error('Missing Bible fixture');
     }
-    for (const frequency of ['every', 'first', 'none'] as const) {
+    for (const frequency of ['every', 'first', 'last', 'none'] as const) {
       const row = {
         ...original,
         bible: {...original.bible, reference: frequency},
@@ -60,9 +60,29 @@ describe('saved Bible passage resolution', () => {
           ? ['3:16', '3:17', '3:18']
           : frequency === 'first'
             ? ['3:16', undefined, undefined]
-            : [undefined, undefined, undefined],
+            : frequency === 'last'
+              ? [undefined, undefined, '3:18']
+              : [undefined, undefined, undefined],
       );
     }
+  });
+
+  it('splits a saved passage as it asks, and leaves a verse-each passage as it was', async () => {
+    const original = items('요한복음 3:16-18')[0];
+    if (original === undefined || !isItemOfKind(original, 'bible')) {
+      throw new Error('Missing Bible fixture');
+    }
+    const built = async (split: 'verse' | 'two' | 'fit') => {
+      const row = {...original, bible: {...original.bible, split}};
+      const result = await resolveServicePassages([row], fixture(), {
+        reportError: vi.fn(),
+        maxLines: 2,
+      });
+      return result.tiles.get(row.id)?.map(tile => tile.label);
+    };
+    expect(await built('verse')).toEqual(['3:16', '3:17', '3:18']);
+    expect(await built('two')).toEqual(['3:16-17', '3:18']);
+    expect(await built('fit')).toEqual(['3:16-17', '3:18']);
   });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();

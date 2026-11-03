@@ -69,6 +69,7 @@ export function BibleAdjacentButtons({
           : 0;
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
+        reference: source.reference,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,

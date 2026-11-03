@@ -1,25 +1,31 @@
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
+import type {BibleDisplayOptions} from '@core/bible/source';
 import type {Preferences} from '@core/schema/preferences';
 
-/** Follows the Bible default without replacing a push with a stale startup read. */
-export function useBibleVerseNumbers(
+/**
+ * Follows the Bible defaults for a new passage (절 번호 and 참조) without
+ * replacing a push with a stale startup read.
+ */
+export function useBibleDisplayDefaults(
   api: LlpApi['preferences'],
-): boolean | null {
+): BibleDisplayOptions | null {
   const [value, setValue] = useState<{
     readonly owner: LlpApi['preferences'];
-    readonly numbers: boolean;
+    readonly display: BibleDisplayOptions;
   } | null>(null);
   useEffect(() => {
     let active = true;
     let pushed = false;
     const receive = (preferences: Preferences): void => {
       if (!active) return;
-      const numbers = preferences.bible.verseNumbers;
+      const {verseNumbers, reference} = preferences.bible.defaults;
       setValue(previous =>
-        previous?.owner === api && previous.numbers === numbers
+        previous?.owner === api &&
+        previous.display.verseNumbers === verseNumbers &&
+        previous.display.reference === reference
           ? previous
-          : {owner: api, numbers},
+          : {owner: api, display: {verseNumbers, reference}},
       );
     };
     const stop = api.subscribe(preferences => {
@@ -41,5 +47,5 @@ export function useBibleVerseNumbers(
       stop();
     };
   }, [api]);
-  return value?.owner === api ? value.numbers : null;
+  return value?.owner === api ? value.display : null;
 }

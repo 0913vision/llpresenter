@@ -14,6 +14,19 @@ import type {VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 
 /**
+ * The chapter and verse at the start or end of a slide label, which names one
+ * verse (`3:34`) or a span of them (`3:34-36`, `3:36-4:1`).
+ */
+function edgeOfLabel(
+  label: string | null | undefined,
+  direction: VerseDirection,
+): string | undefined {
+  const [from, to] = label?.split('-') ?? [];
+  if (direction === 'previous' || to === undefined) return from;
+  return to.includes(':') ? to : `${from?.split(':')[0]}:${to}`;
+}
+
+/**
  * Outputs the verse beside the live one in the open passage. On the passage's
  * first or last verse, it adds the adjacent verse to the passage first, so no
  * verse is skipped (user decision, October 30).
@@ -67,10 +80,22 @@ export async function outputAdjacentBibleVerse(
         source?.verseNumbers ??
         (row?.kind === 'bible' ? row.bible?.verseNumbers : undefined) ??
         true,
+      reference: source?.reference,
       enteredRef: source?.enteredRef ?? passage.ref,
       enteredTranslation: source?.enteredTranslation ?? passage.translation,
     });
-    if (expanded.verses.length <= count) return;
+    const tiles = tilesForView(initial, itemId);
+    const edge = expanded.verses.at(direction === 'previous' ? 0 : -1);
+    if (
+      edge === undefined ||
+      `${edge.chapter}:${edge.verse}` ===
+        edgeOfLabel(
+          tiles.at(direction === 'previous' ? 0 : -1)?.label,
+          direction,
+        )
+    ) {
+      return;
+    }
     const id = useShow.getState().openItemId;
     if (id !== null) {
       outputTile({

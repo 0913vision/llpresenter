@@ -45,6 +45,7 @@ export function BibleInsertButton({
           passageItem(source.passage.ref, {
             translation: source.passage.translation,
             verseNumbers: source.verseNumbers,
+            reference: source.reference,
           }),
         ),
       );

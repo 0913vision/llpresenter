@@ -28,4 +28,18 @@ describe('quick add Bible passages', () => {
     expect(second).toMatchObject({bible: {verseNumbers: false}});
     expect(first.id).not.toBe(second.id);
   });
+
+  it('takes the split, the reference, and the translation name of 환경설정 for a new passage', () => {
+    expect(
+      passageItem('요한복음 3:16', {
+        translation,
+        verseNumbers: true,
+        split: 'two',
+        reference: 'last',
+        translationName: true,
+      }),
+    ).toMatchObject({
+      bible: {split: 'two', reference: 'last', translationName: true},
+    });
+  });
 });

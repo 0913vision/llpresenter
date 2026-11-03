@@ -181,6 +181,13 @@ describe('parseService', () => {
     expect(error).toMatchObject({kind: 'invalid', file: FILE, field});
   });
 
+  it('accepts a Bible passage that shows its reference on the last slide only', () => {
+    expect(
+      parse(withItem({id: itemId(1), bible: {...PASSAGE, reference: 'last'}}))
+        .ok,
+    ).toBe(true);
+  });
+
   it('rejects an item that is not an object', () => {
     const error = expectFailure(parse({...sundayService(), order: ['찬양']}));
 
