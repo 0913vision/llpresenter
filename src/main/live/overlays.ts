@@ -2,6 +2,7 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import type {Logger} from '../log';
 import {dispatchBatched, dispatchLogged, type LiveStore} from './store';
 import {followMessageExpiry} from './messageExpiry';
+import {followNoticeEnd} from './noticeEnd';
 import {overlayRefreshCommands, timerRefreshCommands} from './overlayRefresh';
 import {followTimerCompletion} from './timerCompletion';
 
@@ -32,6 +33,11 @@ export function startOverlays({
   let releaseSettings: (() => void) | null = null;
   let completion: ReturnType<typeof followTimerCompletion> | null = null;
   const stopExpiry = followMessageExpiry({
+    store,
+    now,
+    send: command => dispatchLogged(store, command, log),
+  });
+  const stopNoticeEnd = followNoticeEnd({
     store,
     now,
     send: command => dispatchLogged(store, command, log),
@@ -69,6 +75,7 @@ export function startOverlays({
     if (disposed) return;
     disposed = true;
     stopExpiry();
+    stopNoticeEnd();
     completion?.dispose();
     stopSettings?.();
     releaseSettings?.();

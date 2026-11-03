@@ -41,13 +41,6 @@ function start(
       : [...new Set(notice.media.filter(id => !present.has(id)))];
   const firstShown = notice.media.findIndex(id => !gone.includes(id));
   const old = history.state.layers.notice;
-  if (firstShown < 0) {
-    // NOTE(0913vision): With every image gone, a running 공지 of this set stops
-    // and starting one does nothing (spec 08).
-    return old?.noticeId === notice.id
-      ? setLayer(history, 'notice', null)
-      : history;
-  }
   const requested = command.position;
   if (requested !== undefined) {
     const id = notice.media[requested];
@@ -59,6 +52,19 @@ function start(
     previous.loop === notice.loop &&
     previous.media.length === notice.media.length &&
     previous.media.every((id, index) => id === notice.media[index]);
+  // NOTE(0913vision): With every image gone, starting one does nothing, and a
+  // running 공지 of the same images keeps the image on screen; it stops at the
+  // end of its interval (spec 08, `followNoticeEnd`).
+  if (
+    firstShown < 0 &&
+    !(
+      previous !== undefined &&
+      unchangedSequence &&
+      command.position === undefined
+    )
+  ) {
+    return history;
+  }
   const sameGone =
     (previous?.gone ?? []).length === gone.length &&
     gone.every(id => previous?.gone?.includes(id));
@@ -81,12 +87,21 @@ function start(
     command.position === undefined &&
     unchangedSequence
   ) {
+    // NOTE(0913vision): The run is rebased to the image on screen first, so a
+    // longer `gone` list can never move the clock to another image: the shown
+    // image becomes the start position, with the same time left in its
+    // interval (spec 08).
+    const reference = previous.pausedAt ?? now;
+    const intervalMs = Math.max(1, previous.interval * 1000);
+    const rebasedStart =
+      reference - (Math.max(0, reference - previous.startedAt) % intervalMs);
     playback = {
       ...previous,
       ...(gone.length === 0 ? {} : {gone}),
+      position: noticePosition(previous, reference),
       targets,
       startedAt:
-        previous.startedAt +
+        rebasedStart +
         (previous.pausedAt === null ? 0 : Math.max(0, now - previous.pausedAt)),
       pausedAt: null,
     };

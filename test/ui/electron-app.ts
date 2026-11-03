@@ -101,7 +101,9 @@ export async function offscreenApp(): Promise<{
     if (page === undefined) throw new Error('Control window not found');
     const windowed = performance.now();
     // NOTE(0913vision): The window exists before React has mounted, so wait for
-    // the menu bar, the first thing every control window draws.
+    // the menu bar, the first thing every control window draws. A test that
+    // starts the control window in another state, such as a recovery or error
+    // screen, must not use this `start()` unchanged.
     await page
       .locator('[role="menubar"]')
       .waitFor({state: 'attached', timeout: POLL_TIMEOUT});

@@ -117,7 +117,9 @@ rehearsal 4 B1).
 - Starting a 공지 skips its missing images: the first image that is left shows
   first, and a missing image can't be chosen. A 공지 whose images are all gone
   can't start, and 재생 is off with that tooltip. A running 공지 whose last
-  image leaves the library stops.
+  image leaves the library keeps the image on screen until the end of its
+  interval, then stops (the same take-down as 정지). A paused one stays held;
+  after 재생 it ends at the end of the rest of its interval.
 - A 그래픽 whose image is gone can't be shown, and its tile says why. One that
   is already on screen can still be taken down.
 

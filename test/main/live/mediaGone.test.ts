@@ -1,4 +1,6 @@
 import {describe, expect, it} from 'vitest';
+import {noticePosition, noticeStopDelay} from '@core/overlays/noticeClock';
+import type {NoticePlayback} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
 import type {MediaList} from '@core/schema/mediaList';
 import {
@@ -87,19 +89,22 @@ describe('a 공지 whose images left the library', () => {
 });
 
 describe('a running 공지 and a media change', () => {
-  it('stops when its last image leaves the library', () => {
+  it('keeps the image on screen when its last image leaves, and a start does nothing', () => {
     const {store, leave} = started([0, 1, 2]);
-    store.dispatch({type: 'notice.start', noticeId: NOTICE});
-    expect(store.state.layers.notice).not.toBeNull();
+    store.dispatch({type: 'notice.start', noticeId: NOTICE, position: 1});
     leave(0);
     leave(1);
-    store.dispatch({type: 'notice.start', noticeId: NOTICE});
-    expect(store.state.layers.notice?.playback?.gone).toEqual([
-      IMAGES[0],
-      IMAGES[1],
-    ]);
     leave(2);
     store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    expect(store.state.layers.notice?.playback).toMatchObject({
+      gone: [IMAGES[0], IMAGES[1], IMAGES[2]],
+      position: 1,
+      startedAt: 1_000,
+    });
+    store.dispatch({type: 'notice.stop'});
+    expect(store.dispatch({type: 'notice.start', noticeId: NOTICE})).toBe(
+      false,
+    );
     expect(store.state.layers.notice).toBeNull();
   });
 
@@ -126,6 +131,34 @@ describe('a running 공지 and a media change', () => {
       expect(after?.pausedAt).not.toBeNull();
     }
     expect(store.state.layers.notice?.playback?.gone).toEqual([IMAGES[2]]);
+  });
+});
+
+describe('a 공지 that is on its last image when they all leave', () => {
+  it('keeps the third image on screen through the deletions and the rest of its interval', () => {
+    const {store, setNow, leave} = started([0, 1, 2]);
+    store.dispatch({type: 'notice.start', noticeId: NOTICE});
+    const playback = (): NoticePlayback => {
+      const value = store.state.layers.notice?.playback;
+      if (value === undefined) throw new Error('No 공지 is running');
+      return value;
+    };
+    expect(noticePosition(playback(), 1_000 + 11_500)).toBe(2);
+
+    for (const [index, at] of [
+      [0, 12_600],
+      [1, 12_800],
+      [2, 13_000],
+    ] as const) {
+      setNow(at);
+      leave(index);
+      store.dispatch({type: 'notice.start', noticeId: NOTICE});
+      expect(noticePosition(playback(), at)).toBe(2);
+      expect(noticePosition(playback(), 15_900)).toBe(2);
+    }
+    expect(playback().gone).toHaveLength(3);
+    expect(playback().position).toBe(2);
+    expect(noticeStopDelay(playback(), 13_000)).toBe(3_000);
   });
 });
 

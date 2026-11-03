@@ -53,7 +53,8 @@ export function NoticePlayback({
   const position = usePosition(playback);
   const paused = playback?.pausedAt !== null && playback !== undefined;
   const reason =
-    noticeReason(item) ?? (allGone ? MISSING_MEDIA_TIP : undefined);
+    noticeReason(item) ??
+    (allGone && playback === undefined ? MISSING_MEDIA_TIP : undefined);
   const toggle = (): void => toggleNotice(item.id);
   return (
     <div>

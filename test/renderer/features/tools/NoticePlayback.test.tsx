@@ -142,3 +142,33 @@ it('cannot start a 공지 whose images are all gone', () => {
   const play = screen.getByRole('button', {name: '재생'});
   expect(play.getAttribute('aria-disabled')).toBe('true');
 });
+
+it('lets a paused 공지 whose images are all gone be resumed', () => {
+  stageFixture();
+  const state = useLive.getState().state;
+  if (!state) throw new Error('Missing live state');
+  useLive.setState({
+    state: {
+      ...state,
+      layers: {
+        ...state.layers,
+        notice: {
+          noticeId: item.id,
+          playback: {
+            media: [...item.media],
+            position: 0,
+            interval: 8,
+            loop: true,
+            targets: [...item.targets],
+            startedAt: Date.now(),
+            pausedAt: Date.now(),
+          },
+        },
+      },
+    },
+  });
+  render(<NoticePlayback item={item} media={[]} />);
+  expect(
+    screen.getByRole('button', {name: '재생'}).getAttribute('aria-disabled'),
+  ).toBeNull();
+});

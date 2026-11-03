@@ -60,6 +60,24 @@ export function nextNoticeChange(
   return Math.max(MIN_INTERVAL_MS, intervalMs - (elapsed % intervalMs));
 }
 
+/**
+ * Milliseconds until a running 공지 whose every image left the library ends:
+ * the image on screen keeps the rest of its interval, then the 공지 stops
+ * (spec 08, "Deleting a media item that is in use"). `null` while paused, and
+ * for a 공지 that still has an image to show.
+ */
+export function noticeStopDelay(
+  playback: NoticePlayback,
+  now: number,
+): number | null {
+  if (playback.pausedAt !== null) return null;
+  const gone = new Set(playback.gone);
+  if (!playback.media.every(id => gone.has(id))) return null;
+  const intervalMs = noticeIntervalMs(playback);
+  const elapsed = Math.max(0, now - playback.startedAt);
+  return Math.max(MIN_INTERVAL_MS, intervalMs - (elapsed % intervalMs));
+}
+
 function noticeIntervalMs(playback: NoticePlayback): number {
   return Math.max(MIN_INTERVAL_MS, playback.interval * MILLISECONDS_PER_SECOND);
 }

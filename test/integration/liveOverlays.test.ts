@@ -585,7 +585,7 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(store.state.layers.message).not.toBeNull();
     expect(vi.getTimerCount()).toBe(1);
     expect(settings.listeners.size).toBe(1);
-    expect(store.listenerCount).toBe(2);
+    expect(store.listenerCount).toBe(3);
     stop();
     stop();
     expect(vi.getTimerCount()).toBe(0);

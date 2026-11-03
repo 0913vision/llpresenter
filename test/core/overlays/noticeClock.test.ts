@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
+  noticeStopDelay,
   noticePosition,
   nextNoticeChange,
   MAX_OVERLAY_TIMER_MS,
@@ -127,5 +128,30 @@ describe('shared notice clock', () => {
     const all = playback({loop: true, gone: [first, second, third]});
     expect(noticePosition(all, START + 50_000)).toBe(0);
     expect(nextNoticeChange(all, START)).toBeNull();
+  });
+
+  it('ends a 공지 whose every image is gone at the end of the interval on screen', () => {
+    const [first, second, third] = [1, 2, 3].map(number =>
+      createMediaId(`00000000-0000-4000-8000-00000000000${number}`),
+    );
+    if (first === undefined || second === undefined || third === undefined) {
+      throw new Error('Missing ids');
+    }
+    const ended = playback({
+      loop: true,
+      position: 1,
+      gone: [first, second, third],
+    });
+    expect(noticePosition(ended, START + 50_000)).toBe(1);
+    expect(noticeStopDelay(ended, START)).toBe(5000);
+    expect(noticeStopDelay(ended, START + 1200)).toBe(3800);
+    expect(noticeStopDelay(ended, START + 7000)).toBe(3000);
+    expect(
+      noticeStopDelay({...ended, pausedAt: START + 2000}, START + 9000),
+    ).toBe(null);
+    expect(
+      noticeStopDelay(playback({gone: [first, second]}), START),
+    ).toBeNull();
+    expect(noticeStopDelay(playback(), START)).toBeNull();
   });
 });
