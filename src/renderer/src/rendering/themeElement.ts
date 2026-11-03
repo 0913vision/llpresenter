@@ -28,6 +28,15 @@ function remainingText(seconds: number | undefined): string | undefined {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+/** The elements that show the lyrics: they follow the 슬라이드 전환. */
+const SLIDE_ELEMENT_KINDS: readonly string[] = [
+  'currentText',
+  'reference',
+  'nextText',
+  'label',
+  'nextLabel',
+];
+
 /** One persistent element with owned text pages, images, and video decoders. */
 export class ThemeElementView {
   private readonly box = document.createElement('div');
@@ -186,13 +195,7 @@ export class ThemeElementView {
         frame,
       );
     }
-    const target = [
-      'currentText',
-      'reference',
-      'nextText',
-      'label',
-      'nextLabel',
-    ].includes(element.kind)
+    const target = SLIDE_ELEMENT_KINDS.includes(element.kind)
       ? 'slide'
       : element.kind === 'media' || element.kind === 'background'
         ? 'media'
@@ -215,6 +218,13 @@ export class ThemeElementView {
           if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
         },
       });
+    }
+    if (
+      this.media !== null &&
+      frame.transitionTimes !== undefined &&
+      this.element.kind !== 'overlay'
+    ) {
+      this.media.setDissolveMs(frame.transitionTimes.backgroundMs);
     }
     this.mediaId = media?.mediaId ?? null;
     if (
@@ -281,6 +291,12 @@ export class ThemeElementView {
       };
     }
     this.text.setStyle(style);
+    if (
+      frame.transitionTimes !== undefined &&
+      SLIDE_ELEMENT_KINDS.includes(this.element.kind)
+    ) {
+      this.text.setDissolveMs(frame.transitionTimes.slideMs);
+    }
     if (text === this.shownText) return;
     const ticking = ['clock', 'timer', 'videoTimeLeft'].includes(
       this.element.kind,

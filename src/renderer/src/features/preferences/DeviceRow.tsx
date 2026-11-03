@@ -9,6 +9,7 @@ import styles from './DeviceRow.module.css';
 
 const WARNING_ICON_SIZE = 14;
 const NO_NAME = '이름 없는 장치';
+const DEFAULT_DEVICE_TEXT = 'Windows 기본 장치';
 /** Why a saved device is not used: the choice stays and plays to the default. */
 export const MISSING_DEVICE_REASON =
   '이 장치가 연결되어 있지 않아 Windows 기본 장치로 재생합니다. 장치를 다시 연결하면 이 장치로 돌아갑니다.';
@@ -36,7 +37,7 @@ export function DeviceRow({
   const {missing, sinkId} = resolveAudioSink(choice, devices);
   const value = missing ? choice.id : sinkId;
   const options: Array<SelectOption<string>> = [
-    {value: '', label: DEFAULT_AUDIO_DEVICE.label},
+    {value: '', label: DEFAULT_DEVICE_TEXT},
     ...devices.map(device => ({
       value: device.id,
       label: device.label === '' ? NO_NAME : device.label,

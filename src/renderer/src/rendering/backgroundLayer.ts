@@ -126,6 +126,7 @@ export class BackgroundLayerView {
   private held = false;
   private audioGain = 1;
   private sinkId = '';
+  private dissolveMs: number = BACKGROUND_DISSOLVE_MS;
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
   private readonly frameDeadlines: [
@@ -164,12 +165,21 @@ export class BackgroundLayerView {
     }
   }
 
+  /**
+   * Sets how long the next background takes to dissolve in; 0 is a cut. A
+   * dissolve that is running keeps the time it started with.
+   */
+  setDissolveMs(ms: number): void {
+    this.dissolveMs = ms;
+  }
+
   show(media: MediaLayer | null, transitions = true): void {
     if (this.held) {
       this.held = false;
       this.current = null;
       this.clearAtOnce();
     }
+    transitions = transitions && this.dissolveMs > 0;
     this.transitions = transitions;
     if (this.handover?.contentChange === true) {
       this.handover = {...this.handover, dissolve: transitions};
@@ -391,13 +401,17 @@ export class BackgroundLayerView {
     const next = this.pictureAt(index);
     next.style.zIndex = FRONT_LAYER;
     previous.style.zIndex = BACK_LAYER;
+    this.element.style.setProperty(
+      '--background-dissolve',
+      `${this.dissolveMs}ms`,
+    );
     next.classList.toggle(classes.dissolving, dissolve);
     next.classList.add(classes.shown);
     this.front = index;
     if (dissolve) {
       this.spareTimer = setTimeout(
         () => this.finishDissolve(),
-        BACKGROUND_DISSOLVE_MS,
+        this.dissolveMs,
       );
     } else {
       hide(previous);

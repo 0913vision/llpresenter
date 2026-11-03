@@ -32,6 +32,8 @@ function sinkable() {
   return {element, setSinkId};
 }
 
+const settle = () => new Promise<void>(resolve => setTimeout(resolve, 0));
+
 describe('applySink', () => {
   it('leaves a new element on the Windows default without a call', () => {
     const {element, setSinkId} = sinkable();
@@ -39,13 +41,53 @@ describe('applySink', () => {
     expect(setSinkId).not.toHaveBeenCalled();
   });
 
-  it('sets a device once, again when it changes, and back to the default', () => {
+  it('sets a device once, again when it changes, and back to the default', async () => {
     const {element, setSinkId} = sinkable();
     applySink(element, 'hall', vi.fn());
+    await settle();
     applySink(element, 'hall', vi.fn());
     applySink(element, 'phones', vi.fn());
+    await settle();
     applySink(element, '', vi.fn());
+    await settle();
     expect(setSinkId.mock.calls).toEqual([['hall'], ['phones'], ['']]);
+  });
+
+  it('keeps the device the element really is on when a switch is refused', async () => {
+    const {element, setSinkId} = sinkable();
+    const onError = vi.fn();
+    applySink(element, 'hall', onError);
+    await settle();
+    setSinkId.mockRejectedValueOnce(new Error('NotFoundError'));
+    applySink(element, 'gone', onError);
+    await settle();
+    expect(onError).toHaveBeenCalledOnce();
+    applySink(element, '', onError);
+    await settle();
+    expect(setSinkId.mock.calls).toEqual([['hall'], ['gone'], ['']]);
+    applySink(element, '', onError);
+    await settle();
+    expect(setSinkId).toHaveBeenCalledTimes(3);
+  });
+
+  it('plays the last request when an earlier call is still in flight', async () => {
+    const {element, setSinkId} = sinkable();
+    let finish: () => void = () => undefined;
+    setSinkId.mockImplementationOnce(
+      () =>
+        new Promise<void>(resolve => {
+          finish = resolve;
+        }),
+    );
+    applySink(element, 'hall', vi.fn());
+    applySink(element, '', vi.fn());
+    expect(setSinkId.mock.calls).toEqual([['hall']]);
+    finish();
+    await settle();
+    expect(setSinkId.mock.calls).toEqual([['hall'], ['']]);
+    applySink(element, '', vi.fn());
+    await settle();
+    expect(setSinkId).toHaveBeenCalledTimes(2);
   });
 
   it('reports a device the element refuses and tries it again next time', async () => {
@@ -55,6 +97,7 @@ describe('applySink', () => {
     applySink(element, 'gone', onError);
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce());
     applySink(element, 'gone', onError);
+    await settle();
     expect(setSinkId).toHaveBeenCalledTimes(2);
   });
 

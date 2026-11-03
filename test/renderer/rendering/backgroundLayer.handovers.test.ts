@@ -120,6 +120,38 @@ describe('BackgroundLayerView in a preview', () => {
     expect(first.hasAttribute('src')).toBe(false);
   });
 
+  it('dissolves for the time of the setting from the next background on', async () => {
+    const clock = installMockClock();
+    const {view, videos, parent} = setUp('preview');
+    const [older, first] = videos;
+    const layer = parent.firstElementChild;
+    view.show(WARM_LIGHT);
+    first.dispatchEvent(new Event('playing'));
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+    view.setDissolveMs(1200);
+    view.show(STILL_WATER);
+    older.dispatchEvent(new Event('playing'));
+    expect(older.classList.contains(classes.dissolving)).toBe(true);
+    expect(
+      layer instanceof HTMLElement &&
+        layer.style.getPropertyValue('--background-dissolve'),
+    ).toBe('1200ms');
+  });
+
+  it('cuts to the next background when the time is 0', async () => {
+    const clock = installMockClock();
+    const {view, videos} = setUp('preview');
+    const [older, first] = videos;
+    view.show(WARM_LIGHT);
+    first.dispatchEvent(new Event('playing'));
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+    view.setDissolveMs(0);
+    view.show(STILL_WATER);
+    older.dispatchEvent(new Event('playing'));
+    expect(older.classList.contains(classes.dissolving)).toBe(false);
+    expect(older.classList.contains(classes.shown)).toBe(true);
+  });
+
   it('follows a change of the loop setting on the same background', () => {
     const {view, videos} = setUp('preview');
     view.show(WARM_LIGHT);

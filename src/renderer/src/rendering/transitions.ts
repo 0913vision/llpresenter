@@ -1,5 +1,4 @@
-/** Spec 03's fixed defaults until transition settings are defined. */
-export const OUTPUT_TRANSITIONS = {
-  slideMs: 200,
-  backgroundMs: 500,
-} as const;
+import {DEFAULT_TRANSITION_TIMES} from '@core/output/transitions';
+
+/** The times a transition takes until 환경설정 says otherwise (spec 03). */
+export const OUTPUT_TRANSITIONS = DEFAULT_TRANSITION_TIMES;

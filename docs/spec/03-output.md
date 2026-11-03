@@ -215,12 +215,21 @@ colors), 12.
 
 ### Transitions
 
-- The design system says that settings decide the transitions when a 슬라이드 or
-  background changes. No board shows where to set them, and the media properties
-  전환 (transition) tab has no content (open question).
-- Version 1 defaults (proposal): 슬라이드 dissolve in 0.2 seconds, backgrounds
-  dissolve in 0.5 seconds, and clears happen at once. A 테마 change between
-  items uses the slide transition on the whole screen (12, "Transitions").
+- 환경설정 > 출력 > 전환 sets two transitions (06, `output.transition`):
+  슬라이드 전환 and 배경 전환, each 없음 (a cut) or 디졸브 with a time. The
+  defaults are a 슬라이드 dissolve of 0.2 seconds (0.1 to 2.0) and a background
+  dissolve of 0.5 seconds (0.1 to 3.0). A change applies from the next 슬라이드
+  or the next background; one that is dissolving finishes with the time it
+  started with. Every output and every preview reads the same values. A 테마
+  change between items uses the slide transition on the whole screen (12,
+  "Transitions").
+- The 슬라이드 전환 draws the lyric elements (현재 가사, 성경 출처, 다음 가사,
+  이름표, 다음 이름표). The 배경 전환 draws the 배경 and 미디어 elements. These
+  stay fixed and are not settings: clears happen at once or fade as in "Clear
+  buttons and shortcuts", a 메시지 fades in as a 슬라이드 does at the default
+  time, a 공지 changes image at its own interval, and the other text elements of
+  a 테마 (the clock, the 타이머, the 항목 이름) dissolve at the default 0.2
+  seconds.
 
 Source: `ShowH` (clicking a 슬라이드 changes all three previews), `Main`
 decisions "출력은 누르면 바로" and "구성대로 진행", 12 (text element

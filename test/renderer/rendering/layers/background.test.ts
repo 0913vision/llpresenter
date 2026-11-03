@@ -7,6 +7,7 @@ import {backgroundLayer} from '@renderer/rendering/layers/background';
 const mocks = vi.hoisted(() => {
   const views: Array<{
     show: ReturnType<typeof vi.fn>;
+    setDissolveMs: ReturnType<typeof vi.fn>;
     hold: ReturnType<typeof vi.fn>;
     ready: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
@@ -17,6 +18,7 @@ const mocks = vi.hoisted(() => {
 vi.mock('@renderer/rendering/backgroundLayer', () => ({
   BackgroundLayerView: class MockBackgroundLayerView {
     readonly show = vi.fn();
+    readonly setDissolveMs = vi.fn();
     readonly hold = vi.fn();
     readonly ready = vi.fn(() => true);
     readonly dispose = vi.fn();
@@ -51,6 +53,24 @@ describe('background layer', () => {
     layer.render({...emptyLayers(), media: MEDIA}, {transitions: false});
     expect(view.show).toHaveBeenCalledExactlyOnceWith(MEDIA, false);
     expect(view.hold).not.toHaveBeenCalled();
+  });
+
+  it('gives the view the 배경 전환 time of the frame, and a cut for 0', () => {
+    const {layer, view} = create();
+    const times = {slideMs: 200, backgroundMs: 1000};
+    layer.render({...emptyLayers(), media: MEDIA}, {transitionTimes: times});
+    expect(view.setDissolveMs).toHaveBeenLastCalledWith(1000);
+    layer.render(
+      {...emptyLayers(), media: MEDIA},
+      {transitionTimes: {...times, backgroundMs: 0}},
+    );
+    expect(view.setDissolveMs).toHaveBeenLastCalledWith(0);
+  });
+
+  it('leaves the default time when the frame has no times', () => {
+    const {layer, view} = create();
+    layer.render({...emptyLayers(), media: MEDIA}, {});
+    expect(view.setDissolveMs).not.toHaveBeenCalled();
   });
 
   it('holds the last picture instead of changing it while the frame clears the media', () => {

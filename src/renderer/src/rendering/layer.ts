@@ -12,6 +12,7 @@ import type {
 } from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {MessageBand} from '@core/screens/messageStyle';
+import type {TransitionTimes} from '@core/output/transitions';
 
 export interface ThemeFrame extends ThemeComposition {
   readonly themeId: LiveThemeOutput['themeId'];
@@ -53,6 +54,8 @@ export interface RenderFrame {
   readonly messageStyle?: TextStyle;
   /** Set when the screen's style is the built-in 기본 band; absent draws `messageStyle` as text. */
   readonly messageBand?: MessageBand;
+  /** The 전환 times of 환경설정; absent keeps the default times. */
+  readonly transitionTimes?: TransitionTimes;
   readonly stageMessage?: string | null;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;

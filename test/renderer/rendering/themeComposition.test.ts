@@ -222,6 +222,60 @@ describe('theme composition drawing', () => {
     expect(root.children).toHaveLength(0);
   });
 
+  it('gives the lyric elements the 슬라이드 전환 time and leaves the other texts at the default', () => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'clock', clockFormat: '24h'},
+    ];
+    view.render(song, {
+      ...frame(elements),
+      transitionTimes: {slideMs: 900, backgroundMs: 500},
+    });
+    const times = [...root.querySelectorAll<HTMLElement>('[data-kind]')].map(
+      box => [
+        box.getAttribute('data-kind'),
+        box
+          .querySelector<HTMLElement>(`.${classes.layer}`)
+          ?.style.getPropertyValue('--slide-dissolve'),
+      ],
+    );
+    expect(times).toEqual([
+      ['currentText', '900ms'],
+      ['clock', '200ms'],
+    ]);
+    view.dispose();
+  });
+
+  it('fades a changed 테마 for the 슬라이드 전환 time, and cuts for 0', () => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'clock', clockFormat: '24h'},
+    ];
+    const next = (themeNumber: number, slideMs: number) =>
+      ({
+        ...frame(elements, {
+          themeId: createThemeId(
+            `00000000-0000-4000-8000-${String(themeNumber).padStart(12, '0')}`,
+          ),
+        }),
+        transitionTimes: {slideMs, backgroundMs: 500},
+      }) satisfies RenderFrame;
+    view.render(song, next(1, 1000));
+    view.render(song, next(2, 1000));
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    expect(
+      [...root.querySelectorAll<HTMLElement>('[data-theme-page]')].some(page =>
+        page.style.transition.includes('1000ms'),
+      ),
+    ).toBe(true);
+    vi.advanceTimersByTime(1100);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.render(song, next(3, 0));
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
+  });
+
   it('caps whole-screen transitions at two pages and releases decoders and timers after many changes', () => {
     const {root, view} = setup();
     const elements: ThemeElement[] = [

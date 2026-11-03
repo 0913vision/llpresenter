@@ -4,12 +4,18 @@ import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
 import type {Notice} from '@renderer/ui/notices';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
-import {PREFERENCE_LIMITS, previewFpsChoices} from '@core/schema/preferences';
+import {
+  PREFERENCE_LIMITS,
+  previewFpsChoices,
+  TRANSITION_LIMITS,
+} from '@core/schema/preferences';
+import type {PreferencesFile} from '@core/schema/preferences';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import {
   CountRow,
   PathRow,
   SelectRow,
+  SegmentedRow,
   CheckboxRow,
   ValueActionRow,
 } from './PreferenceRows';
@@ -48,6 +54,10 @@ const DISCONNECT_OPTIONS = [
   {value: 'window', label: '창으로 바꾸기'},
   {value: 'off', label: '출력 끄기'},
 ] as const;
+const TRANSITION_OPTIONS = [
+  {value: 'none', label: '없음'},
+  {value: 'dissolve', label: '디졸브'},
+] as const;
 const FPS_OPTIONS = previewFpsChoices.map(fps => ({
   value: String(fps),
   label: `${fps}fps`,
@@ -60,8 +70,30 @@ const ZOOM_OPTIONS = Array.from(
     return {value: String(percent), label: `${percent}%`};
   },
 );
+const TRANSITION_NOTE = '다음 슬라이드나 다음 배경부터 적용됩니다';
 const NEXT_LAUNCH_NOTE = '다음에 켤 때 적용됩니다';
 const BACKUP_NOTE = '다음 백업부터 적용됩니다';
+
+type TransitionPart = 'slide' | 'media';
+
+/** The stored file with one part of a 전환 changed, the rest kept as stored. */
+function changedTransition(
+  stored: PreferencesFile,
+  part: TransitionPart,
+  change: {readonly kind?: 'none' | 'dissolve'; readonly seconds?: number},
+): PreferencesFile {
+  const transition = stored.output?.transition;
+  return {
+    ...stored,
+    output: {
+      ...stored.output,
+      transition: {
+        ...transition,
+        [part]: {...transition?.[part], ...change},
+      },
+    },
+  };
+}
 
 interface PageProps {
   readonly edits: PreferenceEdits;
@@ -163,6 +195,54 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
             change(stored => ({...stored, showOnLaunch}))
           }
         />
+      </PropertyGroup>
+      <PropertyGroup title="전환">
+        <SegmentedRow
+          label="슬라이드 전환"
+          disabled={disabled}
+          title={lockedReason ?? TRANSITION_NOTE}
+          options={TRANSITION_OPTIONS}
+          value={preferences.output.transition.slide.kind}
+          onChange={kind =>
+            change(stored => changedTransition(stored, 'slide', {kind}))
+          }
+        />
+        {preferences.output.transition.slide.kind === 'none' ? null : (
+          <CountRow
+            label="슬라이드 전환 시간"
+            unit="초"
+            disabled={disabled}
+            title={lockedReason ?? TRANSITION_NOTE}
+            value={preferences.output.transition.slide.seconds}
+            {...TRANSITION_LIMITS.slide}
+            onChange={seconds =>
+              change(stored => changedTransition(stored, 'slide', {seconds}))
+            }
+          />
+        )}
+        <SegmentedRow
+          label="배경 전환"
+          disabled={disabled}
+          title={lockedReason ?? TRANSITION_NOTE}
+          options={TRANSITION_OPTIONS}
+          value={preferences.output.transition.media.kind}
+          onChange={kind =>
+            change(stored => changedTransition(stored, 'media', {kind}))
+          }
+        />
+        {preferences.output.transition.media.kind === 'none' ? null : (
+          <CountRow
+            label="배경 전환 시간"
+            unit="초"
+            disabled={disabled}
+            title={lockedReason ?? TRANSITION_NOTE}
+            value={preferences.output.transition.media.seconds}
+            {...TRANSITION_LIMITS.media}
+            onChange={seconds =>
+              change(stored => changedTransition(stored, 'media', {seconds}))
+            }
+          />
+        )}
       </PropertyGroup>
       <PropertyGroup title="안정성">
         <CheckboxRow

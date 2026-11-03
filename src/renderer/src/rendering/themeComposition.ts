@@ -119,10 +119,12 @@ export class ThemeCompositionView {
     if (
       old !== null &&
       old.themeId !== theme.themeId &&
-      frame.transitions !== false
+      frame.transitions !== false &&
+      (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs) > 0
     ) {
       this.leaving = old;
-      const duration = OUTPUT_TRANSITIONS.slideMs;
+      const duration =
+        frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs;
       page.style.opacity = '0';
       page.style.transition = `opacity ${duration}ms linear`;
       old.root.style.transition = `opacity ${duration}ms linear`;

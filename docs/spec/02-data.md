@@ -523,6 +523,12 @@ decision). Off imports reference the original file in place. On imports copy
 into the configured media folder. Read the choice once when an import request is
 admitted; changing it affects the next request, not jobs already queued.
 
+`output.transition.slide` and `output.transition.media` are optional objects
+with an optional `kind` (`none` or `dissolve`, default `dissolve`) and an
+optional `seconds`: 0.1 to 2.0, default 0.2, for `slide`; 0.1 to 3.0, default
+0.5, for `media`. A `seconds` outside its range is dropped when the file is read
+and falls back to its default. `none` is a cut and ignores `seconds`.
+
 `media.audioOutput` and `media.previewOutput` are optional objects
 `{ id, label }` (at most 200 characters each), the audio output device of the
 hall and of the preview player. Absent, or an empty `id`, is the Windows default

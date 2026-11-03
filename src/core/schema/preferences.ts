@@ -39,6 +39,28 @@ export const audioDeviceSchema = jsonObject({
   label: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
 });
 
+/** The seconds a 전환 may last, as 환경설정 allows them. */
+export const TRANSITION_LIMITS = {
+  slide: {min: 0.1, max: 2, step: 0.1},
+  media: {min: 0.1, max: 3, step: 0.1},
+} as const;
+
+/** How a slide or a background changes: not at all, or by a dissolve. */
+export const transitionKindSchema = v.picklist(['none', 'dissolve']);
+
+function transitionSeconds({min, max}: {min: number; max: number}) {
+  return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
+}
+
+const slideTransitionSchema = jsonObject({
+  kind: v.exactOptional(transitionKindSchema),
+  seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.slide)),
+});
+const mediaTransitionSchema = jsonObject({
+  kind: v.exactOptional(transitionKindSchema),
+  seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.media)),
+});
+
 /** The frame rates the previews may run at. */
 export const previewFpsChoices = [15, 30, 60] as const;
 
@@ -110,6 +132,16 @@ export const preferencesSchema = jsonObject({
       keep: v.exactOptional(backupKeepSchema),
     }),
   ),
+  output: v.exactOptional(
+    jsonObject({
+      transition: v.exactOptional(
+        jsonObject({
+          slide: v.exactOptional(slideTransitionSchema),
+          media: v.exactOptional(mediaTransitionSchema),
+        }),
+      ),
+    }),
+  ),
   media: v.exactOptional(
     jsonObject({
       copyOnImport: optionalBoolean,
@@ -166,11 +198,12 @@ export type Preferences = Omit<Complete<PreferencesFile>, 'clearKeys'> & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
 };
 
-/** The Windows default output device, which every audio choice starts as. */
-export const DEFAULT_AUDIO_DEVICE = {
-  id: '',
-  label: 'Windows 기본 장치',
-} as const;
+/**
+ * The Windows default output device, which every audio choice starts as. The
+ * label stays empty: the page shows its own text for an empty id, so the file
+ * holds no wording.
+ */
+export const DEFAULT_AUDIO_DEVICE = {id: '', label: ''} as const;
 
 /** Every 환경설정 default of `docs/spec/02-data.md`, as a complete file. */
 export const defaultPreferences: Preferences = {
@@ -186,6 +219,12 @@ export const defaultPreferences: Preferences = {
   onDisconnect: 'window',
   hardwareAcceleration: true,
   previewFps: 30,
+  output: {
+    transition: {
+      slide: {kind: 'dissolve', seconds: 0.2},
+      media: {kind: 'dissolve', seconds: 0.5},
+    },
+  },
   show: {showClearUndoButton: false, atLastSlide: 'stop'},
   backup: {auto: true, keep: 30},
   media: {
@@ -209,6 +248,18 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
   return {
     ...defaultPreferences,
     ...stored,
+    output: {
+      transition: {
+        slide: {
+          ...defaultPreferences.output.transition.slide,
+          ...stored.output?.transition?.slide,
+        },
+        media: {
+          ...defaultPreferences.output.transition.media,
+          ...stored.output?.transition?.media,
+        },
+      },
+    },
     show: {...defaultPreferences.show, ...stored.show},
     backup: {...defaultPreferences.backup, ...stored.backup},
     media: {...defaultPreferences.media, ...stored.media},
@@ -264,6 +315,26 @@ function dropValuesOutOfRange(
       kept = {...kept, [group]: inner.content};
       dropped.push(...inner.dropped);
     }
+  }
+  const output = kept['output'];
+  const transition = isRecord(output) ? output['transition'] : undefined;
+  if (isRecord(output) && isRecord(transition)) {
+    let changed = transition;
+    for (const [name, seconds] of [
+      ['slide', transitionSeconds(TRANSITION_LIMITS.slide)],
+      ['media', transitionSeconds(TRANSITION_LIMITS.media)],
+    ] as const) {
+      const part = changed[name];
+      if (!isRecord(part)) continue;
+      const inner = withoutInvalid(
+        part,
+        {seconds},
+        `output.transition.${name}.`,
+      );
+      changed = {...changed, [name]: inner.content};
+      dropped.push(...inner.dropped);
+    }
+    kept = {...kept, output: {...output, transition: changed}};
   }
   return {content: kept, dropped};
 }

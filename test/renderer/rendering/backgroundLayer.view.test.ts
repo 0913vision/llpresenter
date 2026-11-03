@@ -19,7 +19,7 @@ import {
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
 
 describe('BackgroundLayerView', () => {
-  it('plays video sound to the chosen device, also for media that starts later', () => {
+  it('plays video sound to the chosen device, also for media that starts later', async () => {
     const {view, videos} = setUp();
     const sinks = videos.map(video => {
       const setSinkId = vi.fn(() => Promise.resolve());
@@ -31,7 +31,9 @@ describe('BackgroundLayerView', () => {
       [['hall']],
       [['hall']],
     ]);
+    await new Promise(resolve => setTimeout(resolve, 0));
     view.setSink('phones');
+    await new Promise(resolve => setTimeout(resolve, 0));
     view.show(WARM_LIGHT, false);
     expect(sinks.map(sink => sink.mock.calls.at(-1))).toEqual([
       ['phones'],

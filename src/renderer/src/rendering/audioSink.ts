@@ -6,27 +6,65 @@ import {
   type ResolvedSink,
 } from '@core/media/audioOutput';
 
-const applied = new WeakMap<HTMLMediaElement, string>();
+interface SinkState {
+  /** The device the element has taken; the Windows default at the start. */
+  confirmed: string;
+  /** The device the last request asked for. */
+  wanted: string;
+  /** A `setSinkId` call has not settled yet. */
+  pending: boolean;
+}
+
+const states = new WeakMap<HTMLMediaElement, SinkState>();
 
 /**
  * Plays an element's sound to a device (`setSinkId`). An empty id is the
- * Windows default. An element already on that device is left alone; a device
- * the element refuses falls back to the default and reports the error.
+ * Windows default. An element already on that device is left alone. The
+ * device is recorded only once the element has taken it, so a refused device
+ * leaves the element, and what is known of it, on the device it was on.
  */
 export function applySink(
   element: HTMLMediaElement,
   sinkId: string,
   onError: (message: string, error: unknown) => void,
 ): void {
+  const state = states.get(element) ?? {
+    confirmed: '',
+    wanted: '',
+    pending: false,
+  };
+  states.set(element, state);
+  state.wanted = sinkId;
+  // NOTE(0913vision): While a call is out, the call that settles looks at
+  // `wanted` again, so the last request always wins.
+  if (!state.pending) change(element, state, onError);
+}
+
+function change(
+  element: HTMLMediaElement,
+  state: SinkState,
+  onError: (message: string, error: unknown) => void,
+): void {
   // NOTE(0913vision): An element starts on the Windows default, which needs
   // no call.
-  if ((applied.get(element) ?? '') === sinkId) return;
+  if (state.wanted === state.confirmed) return;
   if (typeof element.setSinkId !== 'function') return;
-  applied.set(element, sinkId);
-  element.setSinkId(sinkId).catch((error: unknown) => {
-    applied.delete(element);
-    onError('could not choose the audio output device', error);
-  });
+  const target = state.wanted;
+  state.pending = true;
+  const settled = (): void => {
+    state.pending = false;
+    if (state.wanted !== target) change(element, state, onError);
+  };
+  element.setSinkId(target).then(
+    () => {
+      state.confirmed = target;
+      settled();
+    },
+    (error: unknown) => {
+      onError('could not choose the audio output device', error);
+      settled();
+    },
+  );
 }
 
 /** The browser's device list, or null where a page has none (a test page). */

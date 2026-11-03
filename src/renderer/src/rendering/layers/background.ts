@@ -9,6 +9,9 @@ export const backgroundLayer = defineLayer({
     const view = new BackgroundLayerView(parent, options);
     return {
       render: (layers, frame) => {
+        if (frame?.transitionTimes !== undefined) {
+          view.setDissolveMs(frame.transitionTimes.backgroundMs);
+        }
         if (frame?.clearOpacity?.media !== undefined) view.hold();
         else view.show(layers.media, frame?.transitions);
       },

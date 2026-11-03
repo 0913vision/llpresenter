@@ -277,7 +277,7 @@ describe('audio output choices', () => {
     const preferences = expectSuccess(parsePreferencesValue(HEADER));
     expect(preferences.media.audioOutput).toEqual(DEFAULT_AUDIO_DEVICE);
     expect(preferences.media.previewOutput).toEqual(DEFAULT_AUDIO_DEVICE);
-    expect(DEFAULT_AUDIO_DEVICE.id).toBe('');
+    expect(DEFAULT_AUDIO_DEVICE).toEqual({id: '', label: ''});
   });
 
   it('keeps both stored choices next to the copy setting and unknown fields', () => {
@@ -331,5 +331,78 @@ describe('audio output choices', () => {
       {...HEADER, media: {audioOutput}},
       `media.audioOutput.${field}`,
     );
+  });
+});
+
+describe('전환 settings', () => {
+  it('starts as a 0.2 s slide dissolve and a 0.5 s background dissolve', () => {
+    const {transition} = expectSuccess(parsePreferencesValue(HEADER)).output;
+    expect(transition.slide).toEqual({kind: 'dissolve', seconds: 0.2});
+    expect(transition.media).toEqual({kind: 'dissolve', seconds: 0.5});
+  });
+
+  it('keeps stored choices, fills the rest, and keeps unknown fields', () => {
+    const value = {
+      ...HEADER,
+      output: {
+        transition: {
+          slide: {kind: 'none', future: 1},
+          media: {seconds: 3},
+        },
+      },
+    };
+    expectRoundTrip(codec, value);
+    const {transition} = expectSuccess(parsePreferencesValue(value)).output;
+    expect(transition.slide).toMatchObject({kind: 'none', seconds: 0.2});
+    expect(transition.media).toEqual({kind: 'dissolve', seconds: 3});
+  });
+
+  it.each([
+    ['slide', 0.1],
+    ['slide', 2],
+    ['media', 0.1],
+    ['media', 3],
+  ])('accepts the %s limit %s', (part, seconds) => {
+    expectRoundTrip(codec, {
+      ...HEADER,
+      output: {transition: {[part]: {kind: 'dissolve', seconds}}},
+    });
+  });
+
+  it.each([
+    ['slide', 0.05],
+    ['slide', 2.1],
+    ['media', 0],
+    ['media', 3.1],
+  ])(
+    'drops the %s time %s on read and falls back to its default',
+    (part, seconds) => {
+      const value = {
+        ...HEADER,
+        output: {transition: {[part]: {kind: 'none', seconds}}},
+      };
+      const loaded = parse(value);
+      const transition = withPreferenceDefaults(loaded).output.transition;
+      expect(transition[part === 'slide' ? 'slide' : 'media']).toMatchObject({
+        kind: 'none',
+        seconds: part === 'slide' ? 0.2 : 0.5,
+      });
+    },
+  );
+
+  it('refuses to write a time out of range and an unknown kind', () => {
+    expectInvalidField(
+      codec,
+      {...HEADER, output: {transition: {slide: {kind: 'wipe'}}}},
+      'output.transition.slide.kind',
+    );
+    const text = serializePreferences(
+      {
+        ...defaultPreferences,
+        output: {transition: {slide: {seconds: 5}}},
+      },
+      'preferences.json',
+    );
+    expect(text.ok).toBe(false);
   });
 });

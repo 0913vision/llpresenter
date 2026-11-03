@@ -23,7 +23,12 @@ function setup(screenId = THEME_MAIN) {
       ? settingsDocument('screens', {screens: themeScreens})
       : name === 'messages'
         ? settingsDocument('messages', {templates: [], stagePresets: []})
-        : settingsDocument('timers', {timers: []}),
+        : name === 'preferences'
+          ? settingsDocument('preferences', {
+              format: 'llsettings.preferences',
+              schemaVersion: 1,
+            })
+          : settingsDocument('timers', {timers: []}),
   );
   const api = mockLlpApi({
     settings: {
@@ -71,12 +76,13 @@ function setup(screenId = THEME_MAIN) {
   };
 }
 
-it('uses the main composition and subscribes only to screens, messages, and timers', async () => {
+it('uses the main composition and subscribes only to screens, messages, 환경설정, and timers', async () => {
   const {frames, state, get, onChange} = setup(THEME_STAGE);
   expect(frames.frame(state)).toBeUndefined();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   expect(get.mock.calls.map(call => call[0].name).sort()).toEqual([
     'messages',
+    'preferences',
     'screens',
     'timers',
   ]);
@@ -90,7 +96,7 @@ it('uses the main composition and subscribes only to screens, messages, and time
 
 it('draws the 기본 band opaque where the screen background is the chroma green', async () => {
   const {frames, state, onChange} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   const output = state.themeOutput;
   const composition = output?.screens[THEME_MAIN];
   if (output === undefined || composition === undefined) {
@@ -122,7 +128,7 @@ it('draws the 기본 band opaque where the screen background is the chroma green
 
 it('draws the band opaque over the own key color of a 캡처용 창 screen', async () => {
   const {frames, state, onChange, push} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   push(
     settingsDocument(
       'screens',
@@ -162,9 +168,39 @@ it('draws the band opaque over the own key color of a 캡처용 창 screen', asy
   );
 });
 
+it('carries the 전환 times of 환경설정 and follows a change', async () => {
+  const {frames, state, push, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+  expect(frames.frame(state)?.transitionTimes).toEqual({
+    slideMs: 200,
+    backgroundMs: 500,
+  });
+  push(
+    settingsDocument(
+      'preferences',
+      {
+        format: 'llsettings.preferences',
+        schemaVersion: 1,
+        output: {
+          transition: {
+            slide: {kind: 'none'},
+            media: {kind: 'dissolve', seconds: 1.2},
+          },
+        },
+      },
+      2,
+    ),
+  );
+  expect(onChange).toHaveBeenCalledTimes(5);
+  expect(frames.frame(state)?.transitionTimes).toEqual({
+    slideMs: 0,
+    backgroundMs: 1200,
+  });
+});
+
 it('waits for a complete theme snapshot without changing screen identity', async () => {
   const {frames, state, onChange} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   const frame = frames.frame(state);
   expect(frame).toBeDefined();
   expect(frames.frame(null)).toBeUndefined();
@@ -180,7 +216,7 @@ it('waits for a complete theme snapshot without changing screen identity', async
 
 it('preserves test patterns, stage messages, clears, timers, and screen correction', async () => {
   const {frames, state, push, onChange, unsubscribe} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   push(
     settingsDocument(
       'screens',
@@ -206,14 +242,14 @@ it('preserves test patterns, stage messages, clears, timers, and screen correcti
     timers: {list: []},
   });
   frames.dispose();
-  expect(unsubscribe).toHaveBeenCalledTimes(3);
+  expect(unsubscribe).toHaveBeenCalledTimes(4);
   push(settingsDocument('timers', {timers: []}, 2));
-  expect(onChange).toHaveBeenCalledTimes(4);
+  expect(onChange).toHaveBeenCalledTimes(5);
 });
 
 it('draws a message in the style its screen picked and falls back to 기본', async () => {
   const {frames, state, push, onChange} = setup();
-  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   expect(frames.frame(state)?.messageStyle).toEqual(DEFAULT_MESSAGE_STYLE);
   expect(frames.frame(state)?.messageBand).toBeDefined();
 
@@ -246,5 +282,5 @@ it('draws a message in the style its screen picked and falls back to 기본', as
   );
   expect(frames.frame(state)?.messageStyle).toMatchObject({size: 120});
   expect(frames.frame(state)?.messageBand).toBeUndefined();
-  expect(onChange).toHaveBeenCalledTimes(5);
+  expect(onChange).toHaveBeenCalledTimes(6);
 });

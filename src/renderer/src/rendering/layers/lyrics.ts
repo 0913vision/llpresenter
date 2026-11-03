@@ -8,7 +8,10 @@ export const lyricsLayer = defineLayer({
   create: (parent, options) => {
     const view = new SlideLayerView(parent, options.textStyle);
     return {
-      render: layers => {
+      render: (layers, frame) => {
+        if (frame?.transitionTimes !== undefined) {
+          view.setDissolveMs(frame.transitionTimes.slideMs);
+        }
         view.setStyle(options.textStyle);
         view.show(layers.slide);
       },

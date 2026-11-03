@@ -476,6 +476,7 @@ describe('AudioPlayer', () => {
       return setSinkId;
     });
     player.setSink('hall');
+    await new Promise(resolve => setTimeout(resolve, 0));
     expect(sinks.map(sink => sink.mock.calls)).toEqual([
       [['hall']],
       [['hall']],

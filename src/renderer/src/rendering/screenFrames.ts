@@ -1,6 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
 import type {MessageStyle} from '@core/schema/messages';
+import {transitionTimes, type TransitionTimes} from '@core/output/transitions';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 import {isKeyBackground} from '@core/screens/emptyColor';
 import {messageBandFor, resolveMessageStyle} from '@core/screens/messageStyle';
 import type {Timer} from '@core/schema/timers';
@@ -27,6 +29,7 @@ export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
+  private times: TransitionTimes | undefined;
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
@@ -65,6 +68,19 @@ export class ScreenFrames {
           options.onChange();
         },
         onError: error => onError('could not read the 타이머', error),
+      }),
+      followSettingsDocument({
+        settings,
+        name: 'preferences',
+        select: document =>
+          document.name === 'preferences'
+            ? transitionTimes(withPreferenceDefaults(document.value))
+            : undefined,
+        receive: times => {
+          this.times = times;
+          options.onChange();
+        },
+        onError: error => onError('could not read the 전환 times', error),
       }),
       followSettingsDocument({
         settings,
@@ -114,6 +130,7 @@ export class ScreenFrames {
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
+      ...(this.times === undefined ? {} : {transitionTimes: this.times}),
       messageStyle,
       ...(band === undefined ? {} : {messageBand: band}),
       ...(state?.clearEffects === undefined

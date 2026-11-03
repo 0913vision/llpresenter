@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {StrictMode} from 'react';
@@ -258,6 +259,71 @@ describe('PreferencesView', () => {
     expect(edit.mock.calls[1]?.[0]).toMatchObject({baseRevision: 6});
     expect(written()).toMatchObject({showOnLaunch: true, alwaysOnTop: true});
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  describe('the 전환 rows of the 출력 page', () => {
+    const times = (label: string) =>
+      screen.queryByRole('spinbutton', {name: label});
+
+    it('shows a dissolve of 0.2 s and 0.5 s by default, with both time rows', async () => {
+      await mount();
+      await openPage('출력');
+      for (const label of ['슬라이드 전환', '배경 전환']) {
+        const group = screen.getByRole('radiogroup', {name: label});
+        expect(
+          within(group)
+            .getByRole('radio', {name: '디졸브'})
+            .getAttribute('aria-checked'),
+        ).toBe('true');
+      }
+      expect(times('슬라이드 전환 시간')).toHaveProperty('value', '0.2');
+      expect(times('배경 전환 시간')).toHaveProperty('value', '0.5');
+    });
+
+    it('hides the time row of a transition that is 없음 and keeps the other', async () => {
+      await mount({
+        stored: {
+          ...STORED,
+          output: {transition: {slide: {kind: 'none', seconds: 1}}},
+        },
+      });
+      await openPage('출력');
+      const group = screen.getByRole('radiogroup', {name: '슬라이드 전환'});
+      expect(
+        within(group)
+          .getByRole('radio', {name: '없음'})
+          .getAttribute('aria-checked'),
+      ).toBe('true');
+      expect(times('슬라이드 전환 시간')).toBeNull();
+      expect(times('배경 전환 시간')).not.toBeNull();
+    });
+
+    it('saves 없음 at once and keeps the seconds and the other fields', async () => {
+      await mount({
+        stored: {
+          ...STORED,
+          output: {transition: {slide: {seconds: 1.5}}},
+        },
+      });
+      await openPage('출력');
+      const group = screen.getByRole('radiogroup', {name: '슬라이드 전환'});
+      await userEvent.click(within(group).getByRole('radio', {name: '없음'}));
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(written().output).toEqual({
+        transition: {slide: {seconds: 1.5, kind: 'none'}},
+      });
+      expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+
+    it('saves a time within its range when it is committed', async () => {
+      await mount();
+      await openPage('출력');
+      const field = screen.getByRole('spinbutton', {name: '배경 전환 시간'});
+      fireEvent.change(field, {target: {value: '2.5'}});
+      fireEvent.keyDown(field, {key: 'Enter'});
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(written().output?.transition?.media?.seconds).toBe(2.5);
+    });
   });
 
   it('writes the 출력 selects', async () => {
@@ -560,6 +626,20 @@ describe('PreferencesView', () => {
       );
       expect(written().media).toMatchObject({audioOutput: MIXER});
       expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+
+    it('saves the Windows default with an empty id and an empty label, no wording', async () => {
+      connect(MIXER);
+      await mount({
+        stored: {...STORED, media: {audioOutput: MIXER}},
+      });
+      await openPage('미디어');
+      await userEvent.click(screen.getByRole('button', {name: /출력 장치/}));
+      await userEvent.click(
+        await screen.findByRole('menuitemradio', {name: 'Windows 기본 장치'}),
+      );
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(written().media?.audioOutput).toEqual({id: '', label: ''});
     });
 
     it('marks a saved device that is not connected with the warning and keeps the choice', async () => {

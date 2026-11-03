@@ -5,6 +5,10 @@ import {PropertyRow, PropertyValue} from '@renderer/ui/PropertyRow';
 import {TextField} from '@renderer/ui/TextField';
 import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
 import {Checkbox} from '@renderer/ui/Checkbox';
+import {
+  SegmentedControl,
+  type SegmentOption,
+} from '@renderer/ui/SegmentedControl';
 
 interface RowProps {
   readonly label: string;
@@ -32,6 +36,36 @@ export function CheckboxRow({
           checked={checked}
           disabled={disabled}
           title={title}
+          onChange={onChange}
+        />
+      )}
+    </PropertyRow>
+  );
+}
+
+/** A row with a segmented choice that saves at once. */
+export function SegmentedRow<T extends string>({
+  label,
+  title,
+  disabled,
+  options,
+  value,
+  onChange,
+}: RowProps & {
+  readonly options: ReadonlyArray<SegmentOption<T>>;
+  readonly value: T;
+  readonly onChange: (value: T) => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {({controlId, labelId}) => (
+        <SegmentedControl
+          id={controlId}
+          labelledBy={labelId}
+          disabled={disabled}
+          title={title}
+          options={options}
+          value={value}
           onChange={onChange}
         />
       )}
@@ -78,12 +112,14 @@ export function CountRow({
   value,
   min,
   max,
+  step,
   unit,
   onChange,
 }: RowProps & {
   readonly value: number;
   readonly min: number;
   readonly max: number;
+  readonly step?: number | undefined;
   readonly unit: string;
   readonly onChange: (value: number) => void;
 }): JSX.Element {
@@ -95,6 +131,7 @@ export function CountRow({
           value={value}
           min={min}
           max={max}
+          step={step}
           unit={unit}
           updateOn="commit"
           readOnly={disabled}

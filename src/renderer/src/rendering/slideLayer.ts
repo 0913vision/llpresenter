@@ -122,6 +122,7 @@ export class SlideLayerView {
   private front: PageIndex = 0;
   private current: SlideLayer | null = null;
   private scale = 1;
+  private dissolveMs: number = SLIDE_DISSOLVE_MS;
 
   constructor(
     parent: HTMLElement,
@@ -165,6 +166,16 @@ export class SlideLayerView {
     const front = this.pages[this.front];
     writeLines(front.block, lines);
     this.fit(front);
+  }
+
+  /**
+   * Sets how long the next 장 takes to dissolve in; 0 is a cut. A dissolve
+   * that is running keeps the time it started with.
+   */
+  setDissolveMs(ms: number): void {
+    if (ms === this.dissolveMs) return;
+    this.dissolveMs = ms;
+    this.element.style.setProperty('--slide-dissolve', `${ms}ms`);
   }
 
   /** Applies a changed text style in place, without replacing pages or dissolving. */

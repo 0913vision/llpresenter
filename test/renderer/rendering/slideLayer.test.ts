@@ -176,6 +176,18 @@ describe('SlideLayerView', () => {
     expect(shownLines()).toEqual(['첫 줄', ' ', '셋째 줄']);
   });
 
+  it('takes the dissolve time of the next 장 from the setting, 0 being a cut', () => {
+    const {parent, view} = setUp();
+    const layer = () => parent.querySelector<HTMLElement>(`.${classes.layer}`);
+    expect(layer()?.style.getPropertyValue('--slide-dissolve')).toBe(
+      `${OUTPUT_TRANSITIONS.slideMs}ms`,
+    );
+    view.setDissolveMs(1000);
+    expect(layer()?.style.getPropertyValue('--slide-dissolve')).toBe('1000ms');
+    view.setDissolveMs(0);
+    expect(layer()?.style.getPropertyValue('--slide-dissolve')).toBe('0ms');
+  });
+
   it('dissolves to the next 장 on the other page and reuses its rows', () => {
     const {view, pages, shownPage, shownLines} = setUp();
     view.show(VERSE);
