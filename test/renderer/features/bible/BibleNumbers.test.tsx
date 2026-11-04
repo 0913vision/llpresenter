@@ -17,7 +17,7 @@ import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 function fixture(verseNumbers: boolean) {
   const panel = panelApi();
   const listeners = new Set<(value: Preferences) => void>();
-  const stop = vi.fn();
+  const stops = new Set<() => void>();
   let value = {
     ...defaultPreferences,
     bible: {
@@ -31,17 +31,19 @@ function fixture(verseNumbers: boolean) {
       get: async () => value,
       subscribe: (listener: (value: Preferences) => void) => {
         listeners.add(listener);
-        return () => {
+        const stop = vi.fn(() => {
           listeners.delete(listener);
-          stop();
-        };
+        });
+        stops.add(stop);
+        return stop;
       },
     },
   };
   return {
     ...panel,
     api,
-    stop,
+    stops,
+    listenerCount: () => listeners.size,
     push: (numbers: boolean) => {
       const next = {
         ...value,
@@ -121,8 +123,10 @@ describe('quick Bible verse-number defaults', () => {
           ],
         },
       });
+      expect(test.listenerCount()).toBeGreaterThan(0);
       view.unmount();
-      expect(test.stop).toHaveBeenCalledOnce();
+      expect(test.listenerCount()).toBe(0);
+      for (const stop of test.stops) expect(stop).toHaveBeenCalledOnce();
     },
   );
 

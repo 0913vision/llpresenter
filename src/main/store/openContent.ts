@@ -146,10 +146,10 @@ async function createContent(
   let bibleMaxLines = readBibleMaxLines();
   const removeSettingsListener =
     settings?.subscribe(document => {
+      const nextBibleMaxLines = readBibleMaxLines();
       const maxLinesChanged =
-        document.name === 'preferences' &&
-        bibleMaxLines !== readBibleMaxLines();
-      bibleMaxLines = readBibleMaxLines();
+        document.name === 'preferences' && bibleMaxLines !== nextBibleMaxLines;
+      bibleMaxLines = nextBibleMaxLines;
       if (
         document.name === 'labels' ||
         document.name === 'bible' ||

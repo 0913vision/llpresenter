@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {createServiceItemId} from '@core/schema/ids';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {
@@ -31,7 +31,15 @@ afterEach(() => {
   });
 });
 
-function setup() {
+function setup(
+  defaults: Promise<Preferences> = Promise.resolve({
+    ...defaultPreferences,
+    bible: {
+      ...defaultPreferences.bible,
+      defaults: {...defaultPreferences.bible.defaults, verseNumbers: false},
+    },
+  }),
+) {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   const fixture = itemFixture();
   const history = panelApi();
@@ -55,12 +63,13 @@ function setup() {
   fixture.pushService(changed.value);
   const api = {...fixture.api, settings: history.api.settings};
   window.llp = api;
-  const preferences = vi.spyOn(api.preferences, 'get').mockResolvedValue({
-    ...defaultPreferences,
-    bible: {
-      ...defaultPreferences.bible,
-      defaults: {...defaultPreferences.bible.defaults, verseNumbers: false},
-    },
+  const preferences = vi
+    .spyOn(api.preferences, 'get')
+    .mockReturnValue(defaults);
+  const preferenceListeners = new Set<(value: Preferences) => void>();
+  vi.spyOn(api.preferences, 'subscribe').mockImplementation(listener => {
+    preferenceListeners.add(listener);
+    return () => preferenceListeners.delete(listener);
   });
   const output = vi.spyOn(api.live, 'send');
   const serviceRead = vi.spyOn(api.services, 'get');
@@ -79,12 +88,17 @@ function setup() {
   });
   useLive.setState({state: emptyLiveState()});
   openBiblePassage(panelPassage());
-  render(<BiblePanel sizeClass="normal" onProblem={problem} />);
+  const mounted = render(<BiblePanel sizeClass="normal" onProblem={problem} />);
   return {
     ...fixture,
     api,
     history,
     preferences,
+    pushPreferences: (value: Preferences) => {
+      for (const listener of preferenceListeners) listener(value);
+    },
+    preferenceListenerCount: () => preferenceListeners.size,
+    unmount: mounted.unmount,
     serviceRead,
     output,
     problem,
@@ -129,17 +143,18 @@ it('retains the selected empty section through successive previews and remembers
 it.each([true, false])(
   'saves the preview numbering %s instead of a different default',
   async verseNumbers => {
-    const view = setup();
-    view.preferences.mockResolvedValue({
-      ...defaultPreferences,
-      bible: {
-        ...defaultPreferences.bible,
-        defaults: {
-          ...defaultPreferences.bible.defaults,
-          verseNumbers: !verseNumbers,
+    const view = setup(
+      Promise.resolve({
+        ...defaultPreferences,
+        bible: {
+          ...defaultPreferences.bible,
+          defaults: {
+            ...defaultPreferences.bible.defaults,
+            verseNumbers: !verseNumbers,
+          },
         },
-      },
-    });
+      }),
+    );
     act(() => openBiblePassage(panelPassage(), {verseNumbers}));
     await view.user.click(view.button);
     await waitFor(() => expect(view.service().service.order).toHaveLength(6));
@@ -157,35 +172,113 @@ it.each([true, false])(
 it.each(['verse', 'two', 'fit'] as const)(
   'saves the 나누기 default %s and the 역본 이름 default of 환경설정',
   async split => {
-    const view = setup();
-    view.preferences.mockResolvedValue({
-      ...defaultPreferences,
-      bible: {
-        ...defaultPreferences.bible,
-        defaults: {
-          ...defaultPreferences.bible.defaults,
-          split,
-          translationName: true,
+    const view = setup(
+      Promise.resolve({
+        ...defaultPreferences,
+        bible: {
+          ...defaultPreferences.bible,
+          defaults: {
+            ...defaultPreferences.bible.defaults,
+            split,
+            translationName: true,
+          },
         },
-      },
-    });
+      }),
+    );
+    await act(async () => undefined);
+    expect(view.preferences).toHaveBeenCalledOnce();
+    view.preferences.mockClear();
     await view.user.click(view.button);
     await waitFor(() => expect(view.service().service.order).toHaveLength(6));
     expect(view.service().service.order[3]).toMatchObject({
       bible: {split, translationName: true},
     });
+    expect(view.preferences).not.toHaveBeenCalled();
   },
 );
 
 it('saves the built-in split when the defaults cannot be read', async () => {
-  const view = setup();
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
-  view.preferences.mockRejectedValue(new Error('Invented preferences failure'));
+  const view = setup(Promise.reject(new Error('Invented preferences failure')));
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(6));
   expect(view.service().service.order[3]).toMatchObject({
     bible: {split: 'verse', translationName: false},
   });
+});
+
+it('uses changed defaults for subsequent insertions while the Bible panel stays mounted and releases the subscription on unmount', async () => {
+  const view = setup();
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+  expect(view.service().service.order[3]).toMatchObject({
+    bible: {split: 'verse', translationName: false},
+  });
+  act(() =>
+    view.pushPreferences({
+      ...defaultPreferences,
+      bible: {
+        ...defaultPreferences.bible,
+        defaults: {
+          ...defaultPreferences.bible.defaults,
+          split: 'two',
+          translationName: true,
+        },
+      },
+    }),
+  );
+  view.preferences.mockClear();
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(7));
+  expect(view.service().service.order[4]).toMatchObject({
+    bible: {split: 'two', translationName: true},
+  });
+  expect(view.preferences).not.toHaveBeenCalled();
+  expect(view.preferenceListenerCount()).toBe(1);
+  view.unmount();
+  expect(view.preferenceListenerCount()).toBe(0);
+});
+
+it('uses preference changes before the initial read resolves and ignores its stale reply', async () => {
+  let finish: (value: Preferences) => void = () => undefined;
+  const view = setup(new Promise(resolve => (finish = resolve)));
+  await act(async () => undefined);
+  act(() =>
+    view.pushPreferences({
+      ...defaultPreferences,
+      bible: {
+        ...defaultPreferences.bible,
+        defaults: {...defaultPreferences.bible.defaults, split: 'fit'},
+      },
+    }),
+  );
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+  expect(view.service().service.order[3]).toMatchObject({
+    bible: {split: 'fit'},
+  });
+  await act(async () => finish(defaultPreferences));
+  view.preferences.mockClear();
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(7));
+  expect(view.service().service.order[4]).toMatchObject({
+    bible: {split: 'fit'},
+  });
+  expect(view.preferences).not.toHaveBeenCalled();
+});
+
+it('inserts with built-in defaults while the preferences read never answers and releases the close gate', async () => {
+  const view = setup(new Promise<Preferences>(() => undefined));
+  await act(async () => undefined);
+  view.preferences.mockClear();
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+  expect(view.service().service.order[3]).toMatchObject({
+    bible: {split: 'verse', translationName: false},
+  });
+  expect(view.button.getAttribute('aria-disabled')).toBeNull();
+  expect(await pendingWritesOf(view.api).flush()).toBe(true);
+  expect(view.preferences).not.toHaveBeenCalled();
 });
 
 it('waits for a held service read during close and uses the latest section boundary', async () => {
@@ -336,6 +429,7 @@ it.each(['closed', 'readOnly'])(
       ),
     );
     expect(view.button.getAttribute('aria-disabled')).toBe('true');
+    view.preferences.mockClear();
     await view.user.click(view.button);
     expect(view.preferences).not.toHaveBeenCalled();
     expect(view.edits).toHaveLength(0);

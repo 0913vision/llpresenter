@@ -2,6 +2,7 @@ import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {ElectronApplication, Page} from 'playwright-core';
 import {expect, it} from 'vitest';
+import {parseGroupedSong} from '@core/schema/groupedSong';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';
@@ -38,8 +39,8 @@ async function saveEvidence(
     (await editor.locator('body').innerText({timeout: 2_000})).slice(0, 800),
   );
   const title = await read(async () => {
-    const value: unknown = JSON.parse(await readFile(file, 'utf8'));
-    return JSON.stringify(value);
+    const parsed = parseGroupedSong(await readFile(file, 'utf8'), file);
+    return parsed.ok ? parsed.value.data.title : parsed.error.message;
   });
   const log = await read(async () => {
     const folder = join(data, 'logs');
