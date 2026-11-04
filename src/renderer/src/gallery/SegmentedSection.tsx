@@ -25,7 +25,7 @@ type Filter = 'all' | 'changed' | 'conflict';
 type Mode = 'full' | 'window' | 'capture' | 'ndi';
 type Audience = 'audience' | 'stage';
 type Fit = 'fit' | 'fill' | 'stretch';
-type Screen = 'main' | 'stage' | 'captions';
+type Screen = 'audience' | 'stage' | 'broadcast';
 
 const arrangements: ReadonlyArray<SegmentOption<Arrangement>> = [
   {value: 'base', label: '기본'},
@@ -69,9 +69,9 @@ const fits: ReadonlyArray<SegmentOption<Fit>> = [
 ];
 
 const screens: ReadonlyArray<SegmentOption<Screen>> = [
-  {value: 'main', label: '청중 화면'},
+  {value: 'audience', label: '청중 화면'},
   {value: 'stage', label: '무대'},
-  {value: 'captions', label: '방송 화면'},
+  {value: 'broadcast', label: '방송 화면'},
 ];
 
 function FillRow<T extends string>({
@@ -229,7 +229,7 @@ export function SegmentedSection(): JSX.Element {
                 onChange={ignore}
               />
               <PanelActions>
-                <Stateful<Screen> initial="main">
+                <Stateful<Screen> initial="audience">
                   {(value, setValue) => (
                     <SegmentedControl
                       label="미리 볼 화면"

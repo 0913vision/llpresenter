@@ -11,11 +11,17 @@ import type {GroupedSong} from '@core/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
-  {value: 'main', label: '청중 화면'},
+  {value: 'audience', label: '청중 화면'},
   {value: 'stage', label: '무대 화면'},
   {value: 'broadcast', label: '방송 화면'},
 ] as const;
 export type PreviewRole = (typeof PREVIEW_ROLES)[number]['value'];
+
+const STARTER_ID_OF_ROLE: Readonly<Record<PreviewRole, string>> = {
+  audience: STARTER_SCREEN_IDS.main,
+  stage: STARTER_SCREEN_IDS.stage,
+  broadcast: STARTER_SCREEN_IDS.broadcast,
+};
 
 /** Resolves a local item with the same theme rules as the main output. */
 export function previewAppearance({
@@ -30,14 +36,14 @@ export function previewAppearance({
   readonly item?: LiveThemeItem | undefined;
 }) {
   const configured = screens?.screens.find(
-    screen => screen.id === STARTER_SCREEN_IDS[role],
+    screen => screen.id === STARTER_ID_OF_ROLE[role],
   );
-  const starter = parsePayload(screenIdSchema, STARTER_SCREEN_IDS[role]);
+  const starter = parsePayload(screenIdSchema, STARTER_ID_OF_ROLE[role]);
   if (!starter.ok) throw new Error('Invalid starter screen');
   const target: Screen = configured ?? {
     id: starter.value,
     name: role,
-    kind: role === 'main' ? 'audience' : role,
+    kind: role,
     method: role === 'broadcast' ? 'capture' : 'fullscreen',
   };
   const all =

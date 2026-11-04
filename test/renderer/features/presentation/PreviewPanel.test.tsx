@@ -389,7 +389,7 @@ describe('PreviewPanel screen list changes', () => {
       <ScreenSummariesContext
         value={[
           summary(MAIN_SCREEN, '사용자 화면'),
-          summary('captions', '사용자 캡처'),
+          summary(BROADCAST_SCREEN, '사용자 캡처'),
         ]}
       >
         <PreviewPanel compact={false} />

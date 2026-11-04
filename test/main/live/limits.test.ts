@@ -262,7 +262,7 @@ describe('live admission limits', () => {
     release();
   });
 
-  it('keeps 200 canonical outputs and all aliases saveable, then rejects the next output without notifying', () => {
+  it('keeps 200 outputs saveable, then rejects the next output without notifying', () => {
     const store = new LiveStore(undefined, () => 0, registry());
     const defaults = expectSuccess(
       parseSettingsDocument({

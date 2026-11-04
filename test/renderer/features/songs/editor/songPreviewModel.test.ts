@@ -33,7 +33,7 @@ describe('local song preview model', () => {
   it('maps each preview role to its screen, theme name, and configured empty color', () => {
     const {themes, screens} = editorPreviewFixture();
     const main = previewAppearance({
-      role: 'main',
+      role: 'audience',
       themes: themes.value,
       screens: screens.value,
     });
@@ -65,7 +65,7 @@ describe('local song preview model', () => {
       theme: theme.id,
     } as const;
     const appearance = previewAppearance({
-      role: 'main',
+      role: 'audience',
       themes: themes.value,
       screens: screens.value,
       item: item,

@@ -274,6 +274,32 @@ describe('registerIpc text editing', () => {
       false,
     );
   });
+
+  it('logs a text edit action that the window refuses to run', () => {
+    const log = mockLog();
+    const dispose = registerIpc(mockStore(), log, {
+      windowMode: 'normal',
+      app: FACTS,
+      isControlWindow: () => true,
+    });
+    const failure = new Error('Invented destroyed contents');
+    const sender = {
+      copy: vi.fn(() => {
+        throw failure;
+      }),
+    };
+    expect(() =>
+      electron.listeners.get(windowEndpoints.editText.channel)?.(
+        {sender},
+        'copy',
+      ),
+    ).not.toThrow();
+    expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+      'could not run a text edit action',
+      failure,
+    );
+    dispose();
+  });
 });
 
 describe('registerIpc full screen', () => {

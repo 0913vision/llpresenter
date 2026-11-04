@@ -256,6 +256,21 @@ describe('the menu bar stops', () => {
     ).toBe(true);
   });
 
+  it('finds the neighbor among the enabled menus only', () => {
+    const found: string[] = [];
+    function Probe(): JSX.Element {
+      const bar = useMenuBarNavigation(
+        ['a', 'b', 'c'] as const,
+        name => name !== 'b',
+      );
+      found.push(bar.neighbor('a', 1), bar.neighbor('a', -1));
+      found.push(bar.neighbor('c', 1), bar.neighbor('c', -1));
+      return <span />;
+    }
+    render(<Probe />);
+    expect(found).toEqual(['c', 'c', 'a', 'a']);
+  });
+
   it('keeps the same ref function for a menu between renders', () => {
     const refs: Array<(element: HTMLButtonElement | null) => void> = [];
     function Probe(): JSX.Element {

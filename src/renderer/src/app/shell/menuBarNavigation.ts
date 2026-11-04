@@ -28,7 +28,7 @@ export interface MenuBarNavigation<Name extends string> {
   };
   /** Moves focus along the bar; `false` when the key is not a move. */
   readonly onBarKey: (name: Name, event: KeyboardEvent) => boolean;
-  /** The trigger of the menu next to `name`, going `step` places. */
+  /** The trigger of the enabled menu next to `name`, going `step` places. */
   readonly neighbor: (name: Name, step: 1 | -1) => Name;
   readonly elementOf: (name: Name) => HTMLButtonElement | null;
   /** Puts focus on the first menu, as Alt and F10 do. */
@@ -72,8 +72,12 @@ export function useMenuBarNavigation<Name extends string>(
     [],
   );
   const neighbor = (name: Name, step: 1 | -1): Name => {
-    const index = names.indexOf(name);
-    return names[(index + step + names.length) % names.length] ?? name;
+    const target = rovingTarget(
+      enabled,
+      names.indexOf(name),
+      step === 1 ? 'next' : 'previous',
+    );
+    return (target === undefined ? undefined : names[target]) ?? name;
   };
   return {
     stopProps: name => ({

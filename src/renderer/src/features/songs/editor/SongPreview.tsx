@@ -160,7 +160,7 @@ export function ContentPreviewFrame({
   readonly picture: SongPicture | TilePicture | null;
   readonly item?: LiveThemeItem | undefined;
 }): JSX.Element {
-  const [role, setRole] = useState<PreviewRole>('main');
+  const [role, setRole] = useState<PreviewRole>('audience');
   const documents = usePreviewSettings(settings);
   const appearance = useMemo(() => {
     const localItem =

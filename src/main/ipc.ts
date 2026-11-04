@@ -5,15 +5,10 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
 } from 'electron';
-import {
-  textEditActions,
-  windowActions,
-  type TextEditAction,
-  type WindowAction,
-} from '@contracts/ipc/api';
+import {windowActions, type WindowAction} from '@contracts/ipc/api';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {windowEndpoints} from '@contracts/ipc/window';
+import {parseTextEditAction, windowEndpoints} from '@contracts/ipc/window';
 import {parseLiveCommandRequest} from '@core/schema/liveCommand';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
@@ -27,10 +22,6 @@ import {startMediaProgress} from './live/mediaProgress';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
-}
-
-function isTextEditAction(value: unknown): value is TextEditAction {
-  return textEditActions.some(action => action === value);
 }
 
 /** Sends a value to every open window on a channel; a window that fails is logged and skipped. */
@@ -222,11 +213,16 @@ export function registerIpc(
     controlWindowIn(windowMode, isControlWindow, log),
   );
   ipcMain.on(windowEndpoints.editText.channel, (event, value: unknown) => {
-    if (!isTextEditAction(value)) {
+    const action = parseTextEditAction(value);
+    if (!action.ok) {
       log.warn('dropped a malformed text edit action', value);
       return;
     }
-    event.sender[value]();
+    try {
+      event.sender[action.value]();
+    } catch (error: unknown) {
+      log.warn('could not run a text edit action', error);
+    }
   });
   const stopLogWrites = listenToWindows(
     outputEndpoints.log.channel,
