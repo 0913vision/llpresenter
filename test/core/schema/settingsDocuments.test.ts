@@ -32,7 +32,6 @@ const fixtures = {
     format: 'llsettings.messages',
     schemaVersion: 1,
     templates: [],
-    stagePresets: [],
   },
   notices: {format: 'llsettings.notices', schemaVersion: 1, sets: []},
   props: {format: 'llsettings.props', schemaVersion: 1, props: []},

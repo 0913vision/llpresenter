@@ -37,7 +37,7 @@ function messageDocument(
 ) {
   const document = settingsDocument(
     'messages',
-    {templates, stagePresets: ['마무리'], future: {root: true}},
+    {templates, future: {root: true}},
     revision,
   );
   if (document.name !== 'messages') throw new Error('Invalid message fixture');
@@ -128,7 +128,6 @@ it('copies a template from its menu and with Ctrl D, selects the copy, and keeps
     id: newId,
     name: '차량 이동 복사본',
   });
-  expect(fixture.current().value.stagePresets).toEqual(['마무리']);
   expect(
     screen
       .getByRole('option', {name: '차량 이동 복사본'})
@@ -150,7 +149,7 @@ it('copies a template from its menu and with Ctrl D, selects the copy, and keeps
   ]);
 });
 
-it('adds a validated template, selects it, and leaves sends and presets alone', async () => {
+it('adds a validated template and selects it without sending', async () => {
   const fixture = setup();
   render(<MessageTab />);
   await screen.findByRole('option', {name: '차량 이동'});
@@ -173,7 +172,6 @@ it('adds a validated template, selects it, and leaves sends and presets alone', 
     text: '{이름} 안내석으로 와 주세요',
     icon: 'msg',
   });
-  expect(fixture.current().value.stagePresets).toEqual(['마무리']);
   expect(fixture.send).not.toHaveBeenCalled();
 });
 
@@ -186,7 +184,7 @@ it('edits only name and sentence, preserving defaults and unknown fields', async
   fireEvent.click(button('저장'));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(fixture.current().value).toEqual(
-    expect.objectContaining({future: {root: true}, stagePresets: ['마무리']}),
+    expect.objectContaining({future: {root: true}}),
   );
   expect(fixture.current().value.templates[0]).toEqual({
     ...stored,

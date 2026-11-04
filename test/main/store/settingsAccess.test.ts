@@ -18,7 +18,6 @@ const document = expectSuccess(
       format: 'llsettings.messages',
       schemaVersion: 1,
       templates: [],
-      stagePresets: [],
     },
     access: 'editable',
     revision: 1,

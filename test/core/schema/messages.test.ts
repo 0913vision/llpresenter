@@ -36,12 +36,11 @@ function messagesFile() {
         duration: 30,
       },
     ],
-    stagePresets: ['후렴 한 번 더', '마지막 후렴'],
   };
 }
 
 describe('parseMessages', () => {
-  it('reads the templates and the stage presets', () => {
+  it('reads the templates', () => {
     expectRoundTrip(codec, messagesFile());
   });
 
@@ -64,14 +63,6 @@ describe('parseMessages', () => {
       codec,
       {...messagesFile(), templates: [{...carTemplate(), ...change}]},
       field,
-    );
-  });
-
-  it('rejects a stage preset that is not text', () => {
-    expectInvalidField(
-      codec,
-      {...messagesFile(), stagePresets: ['후렴', 3]},
-      'stagePresets.1',
     );
   });
 });

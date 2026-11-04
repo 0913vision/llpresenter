@@ -6,7 +6,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
@@ -138,24 +137,14 @@ describe('stage tool', () => {
     });
   });
 
-  it('follows live messages and preset edits while keeping the draft', async () => {
+  it('follows and clears live messages while keeping the draft', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
     await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '아직 준비 중'}});
-    fireEvent.click(await screen.findByRole('button', {name: '후렴 한 번 더'}));
-    expect(fixture.send).toHaveBeenLastCalledWith({
-      type: 'stage.message.set',
-      text: '후렴 한 번 더',
-    });
     act(() => fixture.live({stageMessage: '후렴 한 번 더'}));
     expect(screen.getByText('LIVE')).toBeTruthy();
-    expect(
-      screen
-        .getByRole('button', {name: '후렴 한 번 더'})
-        .getAttribute('aria-pressed'),
-    ).toBe('true');
     expect(input.getAttribute('value')).toBe('아직 준비 중');
     fireEvent.click(screen.getByRole('button', {name: '지우기'}));
     expect(fixture.send).toHaveBeenLastCalledWith({
@@ -169,24 +158,10 @@ describe('stage tool', () => {
         .getByRole('button', {name: '지우기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
-    act(() =>
-      fixture.push(
-        settingsDocument(
-          'messages',
-          {templates: [], stagePresets: ['처음부터']},
-          2,
-        ),
-      ),
-    );
-    expect(screen.queryByRole('button', {name: '후렴 한 번 더'})).toBeNull();
-    fireEvent.click(screen.getByRole('button', {name: '처음부터'}));
-    expect(fixture.send).toHaveBeenLastCalledWith({
-      type: 'stage.message.set',
-      text: '처음부터',
-    });
+    expect(input.getAttribute('value')).toBe('아직 준비 중');
   });
 
-  it('disables sends and presets when the stage screen disappears', async () => {
+  it('disables sends when the stage screen disappears', async () => {
     const fixture = stageFixture();
     render(<StageTab />);
     await screen.findByRole('button', {name: '무대 타이머'});
@@ -195,40 +170,12 @@ describe('stage tool', () => {
     fireEvent.change(input, {target: {value: '마지막 후렴'}});
     fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
     fireEvent.click(screen.getByRole('button', {name: '보내기'}));
-    fireEvent.click(screen.getByRole('button', {name: '마무리'}));
     expect(fixture.send).not.toHaveBeenCalled();
     expect(
       screen
         .getByRole('button', {name: '무대 타이머'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
-  });
-
-  it('bounds preset buttons and disables malformed saved presets', async () => {
-    const fixture = stageFixture();
-    fixture.documents.set(
-      'messages',
-      settingsDocument('messages', {
-        templates: [],
-        stagePresets: [
-          '',
-          'x'.repeat(4001),
-          ...Array.from({length: 60}, (_, i) => `프리셋 ${i}`),
-        ],
-      }),
-    );
-    render(<StageTab />);
-    const group = await screen.findByRole('group', {
-      name: '무대 메시지 문구',
-    });
-    await waitFor(() =>
-      expect(within(group).getAllByRole('button')).toHaveLength(50),
-    );
-    for (const button of within(group).getAllByRole('button').slice(0, 2)) {
-      expect(button.getAttribute('aria-disabled')).toBe('true');
-      fireEvent.click(button);
-    }
-    expect(fixture.send).not.toHaveBeenCalled();
   });
 
   it('reports failed settings reads and releases subscriptions on unmount', async () => {

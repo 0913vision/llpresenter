@@ -15,7 +15,6 @@ export function StageTab({
 }): JSX.Element {
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const timers = useSettingsDocument('timers', '타이머', onProblem);
-  const messages = useSettingsDocument('messages', '메시지', onProblem);
   const stageTimerId = useLive(view => view.state?.stageTimerId);
   const stageScreens =
     screens?.value.screens.filter(s => s.kind === 'stage') ?? [];
@@ -59,10 +58,7 @@ export function StageTab({
           </PropertyRow>
         </PropertyGroup>
       </Properties>
-      <StageMessage
-        available={unavailable === undefined}
-        presets={messages?.value.stagePresets ?? []}
-      />
+      <StageMessage available={unavailable === undefined} />
     </div>
   );
 }

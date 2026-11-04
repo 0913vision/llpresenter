@@ -73,7 +73,6 @@ function setup({
           name === 'messages'
             ? settingsDocument('messages', {
                 templates: [],
-                stagePresets: [],
                 messageStyles,
               })
             : {...screensDocument(), access},

@@ -125,7 +125,6 @@ it('opens the message dialog with the picked template before saving', async () =
     'messages',
     settingsDocument('messages', {
       templates: [{id, name: '안내', icon: 'msg', text: '안녕하세요'}],
-      stagePresets: [],
     }),
   );
   const host = await mount();

@@ -294,7 +294,7 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind |
 | `macros.json`                         | `llsettings.macros`      | 매크로 and collections                             |
 | `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                      |
-| `messages.json`                       | `llsettings.messages`    | 메시지 문구, styles, and stage message presets     |
+| `messages.json`                       | `llsettings.messages`    | 메시지 문구 and styles                             |
 | `notices.json`                        | `llsettings.notices`     | 공지 sets                                          |
 | `props.json`                          | `llsettings.props`       | 그래픽                                             |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                             |
@@ -307,21 +307,21 @@ breaks, the other areas still work. File names and `format` values (proposal):
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
 
-| File               | Defaults                                                                                                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `screens.json`     | See "Screens" below.                                                                                                                                                           |
-| `themes.json`      | See "테마 (`themes.json`)" below.                                                                                                                                              |
-| `macros.json`      | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                                                                     |
-| `quick.json`       | One item, 검은 화면 (`"black"`).                                                                                                                                               |
-| `messages.json`    | No templates and no `messageStyles`. `stagePresets` holds the seven presets of the 무대 tab: 후렴 한 번 더, 마지막 후렴, 처음부터, 천천히, 조금 빠르게, 5분 남음, 마무리 (04). |
-| `notices.json`     | No sets.                                                                                                                                                                       |
-| `props.json`       | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                                                               |
-| `timers.json`      | No 타이머.                                                                                                                                                                     |
-| `labels.json`      | See "이름표 list" below.                                                                                                                                                       |
-| `preferences.json` | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show.                                          |
-| `shortcuts.json`   | No bindings: every command uses its default key (10).                                                                                                                          |
-| `bible.json`       | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                                                                      |
-| `media.json`       | No media and no playlists.                                                                                                                                                     |
+| File               | Defaults                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `screens.json`     | See "Screens" below.                                                                                                                  |
+| `themes.json`      | See "테마 (`themes.json`)" below.                                                                                                     |
+| `macros.json`      | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                            |
+| `quick.json`       | One item, 검은 화면 (`"black"`).                                                                                                      |
+| `messages.json`    | No templates and no `messageStyles`.                                                                                                  |
+| `notices.json`     | No sets.                                                                                                                              |
+| `props.json`       | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                      |
+| `timers.json`      | No 타이머.                                                                                                                            |
+| `labels.json`      | See "이름표 list" below.                                                                                                              |
+| `preferences.json` | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show. |
+| `shortcuts.json`   | No bindings: every command uses its default key (10).                                                                                 |
+| `bible.json`       | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                             |
+| `media.json`       | No media and no playlists.                                                                                                            |
 
 `app.json` starts with `dataRoot` set to the default data folder, empty
 locations (the defaults), and no other fields.
@@ -413,17 +413,16 @@ keeps the applied pair in memory and uses the existing save retry mechanism.
 Renaming a timer row updates its `.name` and the referenced timer's `.name`
 together. Other quick item names remain independent (user decision, October 26).
 
-### 메시지 문구, styles, and stage message presets (`messages.json`)
+### 메시지 문구 and styles (`messages.json`)
 
-| Field            | Type                                        | Meaning                                                                                              | Source                                                 |
-| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `templates[]`    | Array                                       | 메시지 문구, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
-| `.id`, `.name`   | String                                      | ID and name.                                                                                         | `Overlays`                                             |
-| `.icon`          | `"msg"` \| `"user"`                         | List icon.                                                                                           | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
-| `.text`          | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".        | `Overlays`                                             |
-| `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                              | `Overlays` 보낼 화면 (send to)                         |
-| `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                 | `Overlays` 표시 시간 (display time)                    |
-| `stagePresets[]` | Array of strings                            | Preset stage messages, for example 후렴 한 번 더 (chorus once more) or 마지막 후렴 (last chorus).    | `Overlays` 무대 tab. Location is a proposal.           |
+| Field          | Type                                        | Meaning                                                                                              | Source                                                 |
+| -------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `templates[]`  | Array                                       | 메시지 문구, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
+| `.id`, `.name` | String                                      | ID and name.                                                                                         | `Overlays`                                             |
+| `.icon`        | `"msg"` \| `"user"`                         | List icon.                                                                                           | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
+| `.text`        | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".        | `Overlays`                                             |
+| `.targets`     | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                              | `Overlays` 보낼 화면 (send to)                         |
+| `.duration`    | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                 | `Overlays` 표시 시간 (display time)                    |
 
 | Field             | Type                                            | Meaning                                                                                          |
 | ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |

@@ -12,7 +12,6 @@ const document = settingsDocument('messages', {
       text: '{value}',
     },
   ],
-  stagePresets: [],
 });
 if (document.name !== 'messages' || document.value.templates[0] === undefined) {
   throw new Error('Invalid message fixture');

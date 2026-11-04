@@ -398,12 +398,6 @@ and per-item controls in the owning tool tab (October 31 B16).
 - Stage message: a text field, a LIVE badge while the message is on, 지우기
   (take down), and 보내기 (send). 보내기 or Enter sends the text to the 무대
   화면 (Enter is a proposal). A new message replaces the previous one.
-- Preset chips: 후렴 한 번 더 (chorus once more), 마지막 후렴 (last chorus),
-  처음부터 (from the top), 천천히 (slowly), 조금 빠르게 (a bit faster), 5분 남음
-  (5 minutes left), 마무리 (wrap up). Clicking a chip sends its text at once
-  (proposal). The chip that is on shows in the on-output color.
-- Store the presets in the app-wide settings (`stagePresets` in `messages.json`,
-  see 02). No board shows where to add or edit them (open question).
 
 ### 타이머
 

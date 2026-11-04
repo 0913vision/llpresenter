@@ -7,8 +7,6 @@ import {isComposing} from '@renderer/ui/ime';
 import {hideStageMessage} from './toolCommands';
 import styles from './StageTab.module.css';
 
-const MAX_PRESETS = 50;
-
 function messageReason(text: string, available: boolean): string | undefined {
   if (!available) return '무대 화면이 없습니다';
   if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다';
@@ -20,10 +18,8 @@ function messageReason(text: string, available: boolean): string | undefined {
 
 export function StageMessage({
   available,
-  presets,
 }: {
   readonly available: boolean;
-  readonly presets: readonly string[];
 }): JSX.Element {
   const [text, setText] = useState('');
   const live = useLive(view => view.state?.stageMessage);
@@ -81,29 +77,6 @@ export function StageMessage({
           보내기
         </Button>
       </div>
-      {presets.length > 0 ? (
-        <div
-          className={styles.presets}
-          role="group"
-          aria-label="무대 메시지 문구"
-        >
-          {presets.slice(0, MAX_PRESETS).map((preset, index) => {
-            const reason = messageReason(preset, available);
-            return (
-              <Button
-                key={index}
-                className={styles.preset}
-                aria-pressed={live != null && live === preset.trim()}
-                disabled={reason !== undefined}
-                title={reason}
-                onClick={() => send(preset)}
-              >
-                {preset.trim() || '이름 없음'}
-              </Button>
-            );
-          })}
-        </div>
-      ) : null}
     </section>
   );
 }

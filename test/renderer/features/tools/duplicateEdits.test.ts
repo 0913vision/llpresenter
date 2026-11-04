@@ -82,7 +82,6 @@ describe('복제 of a 메시지 문구', () => {
     format: 'llsettings.messages',
     schemaVersion: 1,
     templates,
-    stagePresets: [],
     messageStyles: [],
     future: 'kept',
   });

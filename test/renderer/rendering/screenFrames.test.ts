@@ -22,7 +22,7 @@ function setup(screenId = THEME_MAIN) {
     name === 'screens'
       ? settingsDocument('screens', {screens: themeScreens})
       : name === 'messages'
-        ? settingsDocument('messages', {templates: [], stagePresets: []})
+        ? settingsDocument('messages', {templates: []})
         : name === 'preferences'
           ? settingsDocument('preferences', {
               format: 'llsettings.preferences',
@@ -274,11 +274,7 @@ it('draws a message in the style its screen picked and falls back to 기본', as
   );
   expect(frames.frame(state)?.messageStyle).toEqual(DEFAULT_MESSAGE_STYLE);
   push(
-    settingsDocument(
-      'messages',
-      {templates: [], stagePresets: [], messageStyles: [picked]},
-      2,
-    ),
+    settingsDocument('messages', {templates: [], messageStyles: [picked]}, 2),
   );
   expect(frames.frame(state)?.messageStyle).toMatchObject({size: 120});
   expect(frames.frame(state)?.messageBand).toBeUndefined();

@@ -38,7 +38,7 @@ const tabNames = (): readonly string[] =>
   within(screen.getByRole('tablist'))
     .getAllByRole('tab')
     .map(tab => tab.textContent);
-const stageReady = () => waitFor(() => expect(fixture.count()).toBe(3));
+const stageReady = () => waitFor(() => expect(fixture.count()).toBe(2));
 
 it.each([
   [

@@ -12,7 +12,6 @@ const file = {
   format: 'llsettings.messages',
   schemaVersion: 1,
   templates: [],
-  stagePresets: [],
 };
 
 const parse = (value: unknown) =>

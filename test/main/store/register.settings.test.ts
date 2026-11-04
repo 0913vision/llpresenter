@@ -126,7 +126,6 @@ describe('registerStore', () => {
     const base = {
       format: 'llsettings.messages',
       schemaVersion: 1,
-      stagePresets: [],
     };
     await writeJson(file, {
       ...base,
@@ -215,9 +214,6 @@ describe('registerStore', () => {
           '무대 화면',
         ]);
       }
-      if (reply.value.name === 'messages') {
-        expect(reply.value.value.stagePresets).toHaveLength(7);
-      }
     }
     expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
       show: {showClearUndoButton: false},
@@ -236,7 +232,6 @@ describe('registerStore', () => {
       format: 'llsettings.messages',
       schemaVersion: 2,
       templates: [],
-      stagePresets: ['사용자 문구'],
       future: {enabled: true},
     };
     await writeJson(file, value);

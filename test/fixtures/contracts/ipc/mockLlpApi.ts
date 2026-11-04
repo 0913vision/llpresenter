@@ -21,7 +21,6 @@ for (const [name, value] of [
       format: 'llsettings.messages',
       schemaVersion: 1,
       templates: [],
-      stagePresets: [],
     },
   ],
 ] as const) {

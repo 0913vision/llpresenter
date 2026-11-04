@@ -44,15 +44,6 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   quick: {items: [{id: uuid(9), name: '검은 화면', kind: 'black'}]},
   messages: {
     templates: [],
-    stagePresets: [
-      '후렴 한 번 더',
-      '마지막 후렴',
-      '처음부터',
-      '천천히',
-      '조금 빠르게',
-      '5분 남음',
-      '마무리',
-    ],
   },
   notices: {sets: []},
   props: {props: []},

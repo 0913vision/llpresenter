@@ -38,21 +38,12 @@ const second = {
 
 function messageFixture(templates: readonly object[] = [first, second]) {
   const fixture = stageFixture();
-  fixture.documents.set(
-    'messages',
-    settingsDocument('messages', {templates, stagePresets: []}),
-  );
+  fixture.documents.set('messages', settingsDocument('messages', {templates}));
   return {
     ...fixture,
-    pushMessages(
-      templates: readonly object[],
-      revision: number,
-      stagePresets: readonly string[] = [],
-    ): void {
+    pushMessages(templates: readonly object[], revision: number): void {
       act(() =>
-        fixture.push(
-          settingsDocument('messages', {templates, stagePresets}, revision),
-        ),
+        fixture.push(settingsDocument('messages', {templates}, revision)),
       );
     },
   };
@@ -222,7 +213,7 @@ it('keeps a draft on unrelated pushes, resets changed defaults, and follows temp
   await ready();
   fill('차량 번호', 'kept');
   fireEvent.click(screen.getByRole('button', {name: '청중 화면'}));
-  fixture.pushMessages([first, second], 2, ['마무리']);
+  fixture.pushMessages([first, second], 2);
   expect(preview().textContent).toBe('kept 차량 이동 부탁드립니다');
   expect(
     screen

@@ -56,7 +56,6 @@ export function environment(
       templates: [
         {id: IDS.message, name: 'Notice', icon: 'msg', text: 'Invented {name}'},
       ],
-      stagePresets: [],
     },
     notices: {
       sets: [

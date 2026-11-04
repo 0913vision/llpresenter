@@ -61,7 +61,6 @@ export const messagesSchema = jsonObject({
   format: v.literal('llsettings.messages'),
   schemaVersion: positiveInteger,
   templates: listWithUniqueIds(templateSchema),
-  stagePresets: v.array(v.string()),
   messageStyles: v.exactOptional(
     v.pipe(
       v.array(messageStyleSchema),
@@ -82,7 +81,7 @@ const messagesFormat: FileFormat<typeof messagesSchema> = {
   migrations: messagesMigrations,
 };
 
-/** `messages.json`: the 메시지 문구, styles, and preset stage messages. */
+/** `messages.json`: the 메시지 문구 and styles. */
 export type MessagesFile = ReadonlyKnown<v.InferOutput<typeof messagesSchema>>;
 
 /**

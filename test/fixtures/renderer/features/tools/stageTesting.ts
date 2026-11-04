@@ -23,7 +23,6 @@ export function stageFixture(overrides: readonly SettingsDocument[] = []) {
       }),
       settingsDocument('messages', {
         templates: [],
-        stagePresets: ['후렴 한 번 더', '마무리'],
       }),
       ...overrides,
     ].map(document => [document.name, document]),
