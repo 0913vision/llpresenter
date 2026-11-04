@@ -150,10 +150,43 @@ it.each([true, false])(
         verseNumbers,
       },
     });
-    expect(view.preferences).not.toHaveBeenCalled();
     expect(view.output).not.toHaveBeenCalled();
   },
 );
+
+it.each(['verse', 'two', 'fit'] as const)(
+  'saves the 나누기 default %s and the 역본 이름 default of 환경설정',
+  async split => {
+    const view = setup();
+    view.preferences.mockResolvedValue({
+      ...defaultPreferences,
+      bible: {
+        ...defaultPreferences.bible,
+        defaults: {
+          ...defaultPreferences.bible.defaults,
+          split,
+          translationName: true,
+        },
+      },
+    });
+    await view.user.click(view.button);
+    await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+    expect(view.service().service.order[3]).toMatchObject({
+      bible: {split, translationName: true},
+    });
+  },
+);
+
+it('saves the built-in split when the defaults cannot be read', async () => {
+  const view = setup();
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  view.preferences.mockRejectedValue(new Error('Invented preferences failure'));
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+  expect(view.service().service.order[3]).toMatchObject({
+    bible: {split: 'verse', translationName: false},
+  });
+});
 
 it('waits for a held service read during close and uses the latest section boundary', async () => {
   const view = setup();
