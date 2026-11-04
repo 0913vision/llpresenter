@@ -58,4 +58,9 @@ describe('copyName', () => {
     const copy = copyName(decomposed, [], {maxLength: 6});
     expect(copy).toBe('한한 복사본');
   });
+
+  it('compares names in NFC, so a decomposed name taken counts as the same', () => {
+    const taken = ['한 복사본'.normalize('NFD')];
+    expect(copyName('한', taken)).toBe('한 복사본 2');
+  });
 });

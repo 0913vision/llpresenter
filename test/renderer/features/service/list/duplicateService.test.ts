@@ -5,10 +5,12 @@ import {createServiceId} from '@core/schema/ids';
 import {ids, pastDocument} from '@fixtures/core/serviceList';
 import {duplicateService} from '@renderer/features/service/list/serviceEdits';
 
+const created = createServiceId('00000000-0000-4000-8000-0000000000c1');
+
 function setup(fill: 'refused' | 'applied') {
   const edit = vi.fn(async (change: ContentEdit): Promise<EditResult> => {
     if (change.type === 'service.create') {
-      return {ok: true, value: {id: ids.template, revision: 1}};
+      return {ok: true, value: {id: created, revision: 1}};
     }
     if (change.type === 'service.update' && fill === 'refused') {
       return {
@@ -48,7 +50,7 @@ it('deletes the empty new service again when filling the copy is refused', async
   ]);
   expect(edit.mock.calls[2]?.[0]).toEqual({
     type: 'service.delete',
-    serviceId: ids.template,
+    serviceId: created,
   });
 });
 

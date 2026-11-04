@@ -11,7 +11,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {createTimerId} from '@core/schema/ids';
 import {duplicateTimer, renameTimer} from './timerEdits';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
-import {TimerEditDialog} from './TimerEditDialog';
+import {useTimerEditDialog} from './useTimerEditDialog';
 import {useToolEditing} from './useToolEditing';
 import styles from './TimerTab.module.css';
 import {namedToolMenuEntries, toolMenuReason} from './toolMenuEntries';
@@ -63,10 +63,6 @@ export function TimerRowMenu({
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
-  const [changing, setChanging] = useState(false);
-  const changeAfterMenu = useMenuHandoff(menu !== null, () =>
-    setChanging(true),
-  );
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
@@ -91,6 +87,13 @@ export function TimerRowMenu({
     },
   });
   const locked = !editable || editing.busy;
+  const change = useTimerEditDialog({
+    api,
+    timer,
+    menuOpen: menu !== null,
+    locked,
+    onProblem,
+  });
   const duplicateReason = !editable
     ? toolMenuReason(true)
     : editing.busy || copying.busy
@@ -140,7 +143,7 @@ export function TimerRowMenu({
           onClose={() => setMenu(null)}
           entries={namedToolMenuEntries({
             reason: toolMenuReason(locked, editing.busy),
-            edit: () => changeAfterMenu(true),
+            edit: change.open,
             rename: () => renameAfterMenu(true),
             duplicate,
             duplicateReason,
@@ -148,15 +151,7 @@ export function TimerRowMenu({
           })}
         />
       ) : null}
-      {changing ? (
-        <TimerEditDialog
-          api={api}
-          timer={timer}
-          locked={locked}
-          onProblem={onProblem}
-          onClose={() => setChanging(false)}
-        />
-      ) : null}
+      {change.dialog}
       {renaming ? (
         <TimerNameDialog
           timer={timer}

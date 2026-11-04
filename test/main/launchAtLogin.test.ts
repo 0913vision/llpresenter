@@ -154,7 +154,7 @@ describe('launch with Windows', () => {
     stop();
   });
 
-  it('logs a refused write of what Windows reports and keeps following', async () => {
+  it('logs a refused write of what Windows reports, does not undo Windows on a later unrelated change, and follows the checkbox', async () => {
     const {start, applyEdit, log, store, change, set} = setup({
       stored: false,
       windows: true,
@@ -167,7 +167,11 @@ describe('launch with Windows', () => {
     await vi.waitFor(() => expect(store.changeListenerCount).toBe(1));
     expect(log.messages('warn')).toHaveLength(1);
     await change(false);
-    expect(set).toHaveBeenCalledExactlyOnceWith({openAtLogin: false});
+    expect(set).not.toHaveBeenCalled();
+    await change(true);
+    expect(set).toHaveBeenCalledExactlyOnceWith({openAtLogin: true});
+    await change(false);
+    expect(set).toHaveBeenLastCalledWith({openAtLogin: false});
     stop();
   });
 

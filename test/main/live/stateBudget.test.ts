@@ -3,6 +3,9 @@ import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
+import {createTimerId, type TimerId} from '@core/schema/ids';
+import {MAX_LIVE_TIMERS, type TimerRuns} from '@core/schema/timerState';
+import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {liveStateBytes, fitsLiveStateByteBudget} from '@main/live/stateBudget';
 
 describe('live state byte counting', () => {
@@ -112,6 +115,36 @@ describe('live state byte counting', () => {
     for (let depth = 0; depth < 66; depth++) deep = {next: deep};
     expect(fitsLiveStateByteBudget({...emptyLiveState(), future: deep})).toBe(
       false,
+    );
+  });
+
+  it('keeps 200 runs that each hold a maximal 타이머 definition within the budget', () => {
+    const runs: Record<TimerId, TimerRuns[TimerId]> = {};
+    for (let index = 0; index < MAX_LIVE_TIMERS; index++) {
+      const id = createTimerId(
+        `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+      );
+      runs[id] = {
+        state: 'paused',
+        at: Number.MAX_SAFE_INTEGER,
+        countedMs: Number.MAX_SAFE_INTEGER,
+        day: Number.MAX_SAFE_INTEGER,
+        wallAt: Number.MAX_SAFE_INTEGER,
+        completed: true,
+        timer: {
+          id,
+          name: '가'.repeat(TIMER_NAME_LIMIT),
+          kind: 'countdownTo',
+          time: '23:59',
+          date: '2999-12-31',
+          overrun: false,
+        },
+      };
+    }
+    const state = {...emptyLiveState(), timers: runs};
+    expect(fitsLiveStateByteBudget(state)).toBe(true);
+    expect(liveStateBytes(state, 'upperBound')).toBeLessThan(
+      LIVE_STATE_BYTE_BUDGET,
     );
   });
 });

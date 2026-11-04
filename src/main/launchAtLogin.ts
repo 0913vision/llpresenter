@@ -39,7 +39,10 @@ export interface LaunchAtLoginOptions {
  * `general.launchAtLogin` is applied to the Windows sign-in item at once. At
  * launch Windows is the truth: when it reports another value than the file (the
  * item was changed outside the app), the file takes Windows' value, so the
- * checkbox shows what Windows reports. Never throws.
+ * checkbox shows what Windows reports. A write of that value that is refused
+ * leaves the file behind Windows; the file's value stays the last one seen, so a
+ * later change of another setting is not taken for a change of the checkbox and
+ * never undoes Windows. Never throws.
  *
  * @returns A function that stops following the settings.
  */
@@ -57,20 +60,23 @@ export function registerLaunchAtLogin({
   settings
     .then(async store => {
       if (store === null || isStopped()) return;
-      let applied = store.preferences().general.launchAtLogin;
+      let seen = store.preferences().general.launchAtLogin;
       const windows = readWindows(loginItems, log);
-      if (windows !== undefined && windows !== applied) {
-        await followWindows({store, applyEdit, openAtLogin: windows, log});
-        applied = windows;
+      if (windows !== undefined && windows !== seen) {
+        if (
+          await followWindows({store, applyEdit, openAtLogin: windows, log})
+        ) {
+          seen = windows;
+        }
       }
       if (isStopped()) return;
       stop = store.subscribe(document => {
         if (document.name !== 'preferences') return;
         const wanted = store.preferences().general.launchAtLogin;
-        if (wanted === applied) return;
+        if (wanted === seen) return;
         try {
           loginItems.setLoginItemSettings({openAtLogin: wanted});
-          applied = wanted;
+          seen = wanted;
         } catch (error: unknown) {
           log.error('could not set the Windows sign-in item', error);
         }
@@ -105,9 +111,11 @@ async function followWindows({
   readonly applyEdit: (edit: SettingsEdit) => Promise<EditResult>;
   readonly openAtLogin: boolean;
   readonly log: Logger;
-}): Promise<void> {
+}): Promise<boolean> {
   const document = store.get('preferences');
-  if (document.name !== 'preferences' || document.access !== 'editable') return;
+  if (document.name !== 'preferences' || document.access !== 'editable') {
+    return false;
+  }
   const edit = parseSettingsEdit({
     type: 'settings.update',
     name: 'preferences',
@@ -119,10 +127,11 @@ async function followWindows({
   });
   if (!edit.ok) {
     log.warn('could not store the Windows sign-in item', edit.error);
-    return;
+    return false;
   }
   const result = await applyEdit(edit.value);
   if (!result.ok) {
     log.warn('could not store the Windows sign-in item', result.error);
   }
+  return result.ok;
 }

@@ -53,6 +53,12 @@ export const timerRunsSchema = v.pipe(
  * at zero until reset or restarted, separately from an operator pause. `timer`
  * is the definition the run started with: an edit to the saved 타이머 reaches
  * it only after a reset or a finish, never mid-count (docs/spec/04-show.md).
+ *
+ * NOTE: the held `timer` keeps its name as it was when the run started, so a
+ * rename shows in the 타이머 list at once but not in the run until the next
+ * reset. Nothing reads the held name; it is there because the held definition
+ * is the saved 타이머 as it was. Its size is bounded by the 타이머 name limit and
+ * the 200 runs (checked in test/main/live/stateBudget.test.ts).
  */
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 

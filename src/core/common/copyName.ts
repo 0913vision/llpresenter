@@ -5,12 +5,12 @@ const COPY_ENDING = /\s+복사본(?:\s+\d+)?$/;
 export interface CopyNameOptions {
   /** The longest name the owner allows; the original is cut to make room. */
   readonly maxLength?: number | undefined;
-  /** Brings a name to the form the owner compares; trimming by default. */
+  /** Brings a name to the form the owner compares; trimming and NFC by default. */
   readonly normalize?: ((name: string) => string) | undefined;
 }
 
 function trimmed(name: string): string {
-  return name.trim();
+  return name.trim().normalize('NFC');
 }
 
 /**

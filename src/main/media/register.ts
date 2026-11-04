@@ -218,6 +218,7 @@ export function registerMediaBackend(
     log: options.log,
     copyIntoFolder: async () =>
       (await options.settings)?.preferences().media.copyOnImport ?? false,
+    // NOTE(0913vision): without a settings store a new import takes the built-in defaults.
     defaults: async () =>
       (await options.settings)?.preferences().media.defaults ??
       defaultPreferences.media.defaults,

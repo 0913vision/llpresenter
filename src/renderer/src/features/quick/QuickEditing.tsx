@@ -26,7 +26,7 @@ import {
   type QuickChoice,
   type QuickEdit,
 } from './quickEdits';
-import {TimerEditDialog} from '../tools/TimerEditDialog';
+import {useTimerEditDialog} from '../tools/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 
@@ -317,10 +317,13 @@ export function QuickRowEditor({
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [changing, setChanging] = useState(false);
-  const changeAfterMenu = useMenuHandoff(menu !== null, () =>
-    setChanging(true),
-  );
+  const change = useTimerEditDialog({
+    api,
+    timer,
+    menuOpen: menu !== null,
+    locked,
+    onProblem,
+  });
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
@@ -357,13 +360,7 @@ export function QuickRowEditor({
             reason: toolMenuReason(locked),
             ...(item.kind === 'timer'
               ? {
-                  edit: {
-                    onSelect: () => changeAfterMenu(true),
-                    reason:
-                      timer === undefined
-                        ? '타이머를 찾을 수 없습니다'
-                        : undefined,
-                  },
+                  edit: {onSelect: change.open, reason: change.reason},
                 }
               : {}),
             rename: () => {
@@ -395,15 +392,7 @@ export function QuickRowEditor({
           ]}
         />
       ) : null}
-      {changing && timer ? (
-        <TimerEditDialog
-          api={api}
-          timer={timer}
-          locked={locked}
-          onProblem={onProblem}
-          onClose={() => setChanging(false)}
-        />
-      ) : null}
+      {change.dialog}
       {renaming ? (
         <RenameDialog
           title="퀵 실행 이름 바꾸기"

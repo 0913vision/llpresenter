@@ -10,6 +10,10 @@ export type MediaDefaults = Preferences['media']['defaults'];
  * media without them already does (반복, 채우기), so a file stays as small as
  * before when the defaults are not changed. An image takes only 맞춤, and an
  * audio file takes none.
+ *
+ * NOTE: leaving `end` and `fit` out means 반복 and 채우기 only because
+ * `mediaLoops` (mediaEndRule.ts) and the output media (schema/outputMedia.ts,
+ * objectFit.ts) read a missing value that way. Change them together.
  */
 export function importedProps(
   kind: MediaItem['kind'],

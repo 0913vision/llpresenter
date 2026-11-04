@@ -211,7 +211,9 @@ is about 60 items, so the limit leaves room for a very long one and still bounds
 a file and the whole-list replies. The schema and main both refuse a list past
 it. An add, a 복제, a 구역 copy, and an import past it are refused with "예배
 순서 항목은 1000개까지 추가할 수 있음"; the add controls and 복제 are disabled
-with that reason when the list is full. A 템플릿 has the same limit.
+with that reason when the list is full. A 템플릿 has the same limit. No files
+exist before the first release, so this limit and the media name limit need no
+migration.
 
 Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them

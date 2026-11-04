@@ -23,11 +23,6 @@ import {storedPath} from './storedPath';
 /** Refer to originals unless copying is enabled (October 27 user decision). */
 export const COPY_IMPORTED_MEDIA = false;
 
-/** A `props` entry for the item, or nothing when there is none. */
-function propsOf(props: MediaItem['props']): Pick<MediaItem, 'props'> {
-  return props === undefined ? {} : {props};
-}
-
 /** The most import jobs that wait or run at once. */
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
 
@@ -474,13 +469,14 @@ export class MediaImporter {
     job: ImportJob,
     {file, size}: {readonly file: string; readonly size: number},
   ): MediaItem {
+    const props = importedProps(job.kind, job.defaults);
     return {
       id: job.mediaId,
       name: nameOf(job.fileName),
       kind: job.kind,
       file,
       size,
-      ...propsOf(importedProps(job.kind, job.defaults)),
+      ...(props === undefined ? {} : {props}),
     };
   }
 }
