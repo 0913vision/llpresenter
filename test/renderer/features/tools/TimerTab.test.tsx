@@ -106,6 +106,17 @@ it('shows each configured kind and gives a clock no start or reset controls', as
   ).toContain('0:15');
 });
 
+it.each([
+  [30, '30초'],
+  [60, '1분'],
+  [150, '2분 30초'],
+])('names a %i second countdown %s', async (duration, text) => {
+  fixture([{...countdown, duration}]);
+  render(<TimerTab />);
+  const group = await screen.findByRole('group', {name: '설교'});
+  expect(group.textContent).toContain(text);
+});
+
 it('adds a standalone timer from an empty list, without adding a quick row', async () => {
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(id);
   const f = fixture([]);

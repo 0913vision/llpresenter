@@ -13,12 +13,18 @@ import {TimerRowMenu} from './TimerRowMenu';
 import type {Notice} from '@renderer/ui/notices';
 import styles from './TimerTab.module.css';
 
+/** A countdown's length as the 분 and 초 fields of its dialog: 30초, 1분, 2분 30초. */
+function durationText(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes === 0) return `${rest}초`;
+  return rest === 0 ? `${minutes}분` : `${minutes}분 ${rest}초`;
+}
+
 function kindText(timer: Timer): string {
   switch (timer.kind) {
     case 'countdown':
-      return timer.duration % 60 === 0
-        ? `${timer.duration / 60}분`
-        : `${timer.duration}초`;
+      return durationText(timer.duration);
     case 'countdownTo':
       return `${timer.date ? `${timer.date} ` : ''}${timer.time}까지`;
     case 'elapsed':
