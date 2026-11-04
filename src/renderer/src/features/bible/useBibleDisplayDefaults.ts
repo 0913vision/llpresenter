@@ -4,7 +4,7 @@ import type {BibleDisplayOptions} from '@core/bible/source';
 import type {Preferences} from '@core/schema/preferences';
 
 /**
- * Follows the Bible defaults for a new passage (절 번호 and 참조) without
+ * Follows the Bible defaults for a new passage without
  * replacing a push with a stale startup read.
  */
 export function useBibleDisplayDefaults(
@@ -19,13 +19,15 @@ export function useBibleDisplayDefaults(
     let pushed = false;
     const receive = (preferences: Preferences): void => {
       if (!active) return;
-      const {verseNumbers, reference} = preferences.bible.defaults;
+      const {verseNumbers, reference, translationName} =
+        preferences.bible.defaults;
       setValue(previous =>
         previous?.owner === api &&
         previous.display.verseNumbers === verseNumbers &&
-        previous.display.reference === reference
+        previous.display.reference === reference &&
+        previous.display.translationName === translationName
           ? previous
-          : {owner: api, display: {verseNumbers, reference}},
+          : {owner: api, display: {verseNumbers, reference, translationName}},
       );
     };
     const stop = api.subscribe(preferences => {

@@ -47,6 +47,7 @@ const bibleReferenceSchema = payloadObject({
   ),
   ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
   verseNumbers: v.exactOptional(v.boolean()),
+  translationName: v.exactOptional(v.boolean()),
 });
 
 const showRowSchema = v.pipe(

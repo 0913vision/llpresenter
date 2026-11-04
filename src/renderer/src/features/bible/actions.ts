@@ -59,6 +59,7 @@ export function showBiblePassage(
       ? {
           verseNumbers: prepared.verseNumbers,
           reference: prepared.reference,
+          translationName: prepared.translationName,
           enteredRef: prepared.enteredRef,
           enteredTranslation: prepared.enteredTranslation,
         }

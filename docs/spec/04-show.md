@@ -772,24 +772,31 @@ that ProPresenter's Edit mode has the same behavior.
   슬라이드에 한 절 one verse per 슬라이드, 두 절씩 two verses, 길이에 맞춤 fit
   to length), 참조 (reference: 슬라이드마다 every 슬라이드), 절 번호 (verse
   numbers), and 역본 이름 (translation name).
-  - The installed translation and 절 번호 controls change this preview only;
-    they do not change the defaults, saved items, or live output. A translation
-    lookup retains the range and selected verse when available. If the selected
-    verse is omitted, choose the next available verse, or the last one when no
-    later verse remains. A failed or superseded lookup keeps the old preview.
+  - The installed translation, 절 번호, and 역본 이름 controls change this
+    preview only; they do not change the defaults, saved items, or live output.
+    A translation lookup retains the range and selected verse when available. If
+    the selected verse is omitted, choose the next available verse, or the last
+    one when no later verse remains. A failed or superseded lookup keeps the old
+    preview.
   - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
     슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
   - Later: a verse too long for one 슬라이드 splits into several 슬라이드 marked
     [계속], following copible's slide module. It is discussed with the user
     before it is built (user decision, 2026-10-26).
-  - 참조 decides where the reference (3:16) appears. The board shows only
-    "슬라이드마다". The reference text draws at the 환경설정 option 출처 위치
-    (reference position, bottom right) (proposal).
-  - Turning on 역본 이름 appends the translation name after the reference
-    (proposal).
+  - 참조 chooses 슬라이드마다, 첫 슬라이드만, 마지막 슬라이드만, or 없음. Each
+    selected slide shows its own verses with the full book name:
+    `요한복음 3:16`, `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~`
+    without spaces, following copible, including book names such as 요한일서.
+    Book names follow the translation's language (02), including `John` and
+    `1 John` for KJV. The theme's 출처 element draws this text wherever it is
+    placed.
+  - Turning on 역본 이름 appends the translation's `shortName` in parentheses:
+    `요한복음 3:16~18 (개역한글)`. It draws wherever the reference draws, on the
+    same slides. The default is off, set in 환경설정 > 성경 > 새 구절.
 - Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
-  band shows the number and the reference ("3:16"). Clicking a tile outputs that
-  슬라이드 at once. The next and previous keys work within the passage.
+  band keeps the short reference (`3:16`, `3:16-18`, or `3:34-4:2`) in 진행 and
+  준비. Clicking a tile outputs that 슬라이드 at once. The next and previous
+  keys work within the passage.
 - 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
   on the 청중 화면 and the 방송 화면, with the screen name, target, and style
   name.

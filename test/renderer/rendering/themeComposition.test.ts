@@ -12,6 +12,8 @@ import type {RenderFrame, ThemeFrame} from '@renderer/rendering/layer';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {classes} from '@renderer/rendering/classes';
 import {MAX_THEME_GAPS} from '@renderer/rendering/themeGaps';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 
 const song: LiveLayers = {
@@ -75,6 +77,23 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('theme composition drawing', () => {
+  it('draws the full Bible reference and translation on the screen reference element', () => {
+    const {view, text} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'reference'},
+    ];
+    const [tile] = bibleVerseTiles(
+      {...panelPassage(), translationLabel: '개역한글'},
+      {reference: 'every', split: 'two', translationName: true},
+    );
+    if (!tile) throw Error('Missing Bible tile');
+    view.render(
+      {...emptyLayers(), slide: {...tile, itemId: 'bible:sample', position: 0}},
+      frame(elements),
+    );
+    expect(text('reference')).toBe('요한복음 3:16~17 (개역한글)');
+    view.dispose();
+  });
   it.each(['output', 'preview'] as const)(
     'keeps a background video below later current text in %s',
     mode => {

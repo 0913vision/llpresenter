@@ -62,6 +62,7 @@ export async function resolveServicePassages(
       bibleVerseTiles(reply.result.value, {
         verseNumbers: item.bible.verseNumbers,
         reference: item.bible.reference,
+        translationName: item.bible.translationName,
         split: item.bible.split,
         maxLines: options.maxLines,
       }),

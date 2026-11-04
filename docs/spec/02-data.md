@@ -903,6 +903,9 @@ whole chapters and ranges across chapters.
   verses. A book-only request returns this from the installed header without
   reading chapter text. Bounds are capped at 150 chapters and 40,000 slots per
   chapter. The form ignores bounds for another book or translation.
+- A successful lookup carries optional `translationLabel` for screen references,
+  taken from the installed translation's `shortName`, capped at 256 characters.
+  The passage's `translationName` option controls whether it is drawn (04).
 
 ### Reference grammar (proposal)
 
@@ -973,7 +976,8 @@ those verses and never renumber the rest:
   lines.
 - **References on 슬라이드.** With 참조 set to 슬라이드마다, each 슬라이드 shows
   the verses it holds by their original numbers: the 슬라이드 with verses 4 and
-  5 shows the range 4-5.
+  5 shows `요한복음 3:4~5` when the passage is in John 3. The tile band keeps
+  `3:4-5`. The full book name and `~` apply to screen reference text (04).
 - **Endpoints.** An endpoint that names an omitted verse still counts as an
   existing verse for the endpoint rules above, because the verse exists in the
   numbering.

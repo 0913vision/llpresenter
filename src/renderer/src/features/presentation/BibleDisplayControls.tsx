@@ -80,6 +80,7 @@ export function BibleDisplayControls({
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
         reference: source.reference,
+        translationName: source.translationName,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
@@ -142,9 +143,18 @@ export function BibleDisplayControls({
           openBiblePassage(source.passage, {
             verseNumbers,
             reference: source.reference,
+            translationName: source.translationName,
             enteredRef: source.enteredRef,
             enteredTranslation: source.enteredTranslation,
           });
+        }}
+      />
+      <CheckRow
+        label="역본 이름"
+        checked={source.translationName ?? false}
+        disabled={!api || busy}
+        onChange={translationName => {
+          openBiblePassage(source.passage, {...source, translationName});
         }}
       />
     </div>

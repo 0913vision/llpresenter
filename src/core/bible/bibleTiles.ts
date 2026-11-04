@@ -21,15 +21,15 @@ function outputLines(text: string): readonly string[] {
 type Verse = BibleLookupPassage['verses'][number];
 
 /** The verses a slide shows, as `3:34` or as a span, `3:36-4:1`. */
-function spanOf(verses: readonly Verse[]): string {
+function spanOf(verses: readonly Verse[], separator = '-'): string {
   const first = verses[0];
   const last = verses.at(-1);
   if (first === undefined || last === undefined) return '';
   const start = `${first.chapter}:${first.verse}`;
   if (verses.length === 1) return start;
   return first.chapter === last.chapter
-    ? `${start}-${last.verse}`
-    : `${start}-${last.chapter}:${last.verse}`;
+    ? `${start}${separator}${last.verse}`
+    : `${start}${separator}${last.chapter}:${last.verse}`;
 }
 
 /**
@@ -49,6 +49,7 @@ export function labelEdge(
 export interface TileOptions {
   /** Whether each verse starts with its number; true when absent. */
   readonly verseNumbers?: boolean;
+  readonly translationName?: boolean;
   /** Which slides show the reference; none when absent. */
   readonly reference?: BiblePassage['reference'];
   /** A verse each when absent, as the builder always made. */
@@ -105,6 +106,7 @@ export function bibleVerseTiles(
 ): readonly ShowTile[] {
   const {
     verseNumbers = true,
+    translationName = false,
     reference = 'none',
     split = 'verse',
     maxLines = 4,
@@ -116,13 +118,18 @@ export function bibleVerseTiles(
     maxLines,
     linesOf: verse => outputLines(text(verse)).length,
   });
+  const book = passage.displayRef.replace(/\s+\d.*$/u, '');
+  const translation =
+    translationName && passage.translationLabel
+      ? ` (${passage.translationLabel})`
+      : '';
   return groups.map((group, index) => ({
     label: spanOf(group),
     labelColor: NO_LABEL_COLOR,
     ...(reference === 'every' ||
     (reference === 'first' && index === 0) ||
     (reference === 'last' && index === groups.length - 1)
-      ? {reference: spanOf(group)}
+      ? {reference: `${book} ${spanOf(group, '~')}${translation}`}
       : {}),
     lines: group.flatMap(verse => outputLines(text(verse))),
   }));

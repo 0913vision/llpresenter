@@ -1,3 +1,4 @@
+import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
 import type {Result} from '@core/common/result';
 import {exactBibleBook, matchBooks} from '@core/bible/bibleMatching';
 import {
@@ -38,7 +39,12 @@ export class BibleLibrary {
   async resolve(
     translation: string,
     input: string,
-  ): Promise<Result<ResolvedPassage, ReferenceProblem>> {
+  ): Promise<
+    Result<
+      ResolvedPassage & {readonly translationLabel: string},
+      ReferenceProblem
+    >
+  > {
     const header = this.catalog.header(translation);
     if (!header) {
       return {
@@ -46,7 +52,7 @@ export class BibleLibrary {
         error: {code: 'translation', message: '사용할 수 없는 역본입니다'},
       };
     }
-    return resolvePassage(
+    const result = await resolvePassage(
       {
         ...header,
         readChapter: (book, chapter) =>
@@ -54,6 +60,18 @@ export class BibleLibrary {
       },
       input,
     );
+    return result.ok
+      ? {
+          ok: true,
+          value: {
+            ...result.value,
+            translationLabel: header.shortName.slice(
+              0,
+              BIBLE_LOOKUP_LIMITS.input,
+            ),
+          },
+        }
+      : result;
   }
 
   clear(): void {

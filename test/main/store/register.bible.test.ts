@@ -87,6 +87,7 @@ describe('registerStore', () => {
           ref: '요한복음 3:16-18',
           translation: 'sample',
           verseNumbers: false,
+          translationName: false,
         },
       },
       {

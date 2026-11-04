@@ -26,6 +26,45 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it.each([true, false, undefined])(
+    'retains optional saved translation visibility %s',
+    translationName => {
+      const bible = {
+        ref: '요한복음 3:16',
+        translation: 'sample',
+        ...(translationName === undefined ? {} : {translationName}),
+      };
+      expect(
+        parseShowService({
+          ...showService(),
+          rows: [{kind: 'bible', id: 'saved', title: '', bible}],
+        }),
+      ).toMatchObject({ok: true, value: {rows: [{bible}]}});
+    },
+  );
+
+  it.each([null, 'false', 0])(
+    'rejects invalid saved translation visibility %j',
+    translationName => {
+      expect(
+        parseShowService({
+          ...showService(),
+          rows: [
+            {
+              kind: 'bible',
+              id: 'saved',
+              title: '',
+              bible: {
+                ref: '요한복음 3:16',
+                translation: 'sample',
+                translationName,
+              },
+            },
+          ],
+        }).ok,
+      ).toBe(false);
+    },
+  );
   it.each([true, false])('retains saved Bible numbering %s', verseNumbers => {
     const bible = {
       ref: '요한복음 3:16-18',

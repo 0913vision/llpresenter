@@ -151,6 +151,7 @@ describe('Bible lookup session', () => {
         ok: true,
         value: {
           ref: '요한복음 3:16-18',
+          translationLabel: 'Sample',
           verses: [{verse: 16}, {verse: 17}, {verse: 18}],
         },
       },

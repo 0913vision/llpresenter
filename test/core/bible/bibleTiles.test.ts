@@ -26,13 +26,109 @@ const references = (reference: 'every' | 'first' | 'last' | 'none') =>
   bibleVerseTiles(JOHN, {reference}).map(tile => tile.reference);
 
 describe('bibleVerseTiles reference', () => {
+  it.each([
+    ['요한복음', 'John'],
+    ['요한일서', '1 John'],
+    ['아가', 'Song of Solomon'],
+  ])(
+    'keeps the localized full book name %s as %s on each slide',
+    (canonical, localized) => {
+      const value = {
+        ...JOHN,
+        ref: `${canonical} 3:16-4:2`,
+        displayRef: `${localized} 3:16-4:2`,
+        translationLabel: 'KJV',
+        verses: passage([
+          [3, 16, 'a'],
+          [3, 17, 'b'],
+          [3, 18, 'c'],
+          [4, 1, 'd'],
+          [4, 2, 'e'],
+        ]).verses,
+      };
+      const tiles = bibleVerseTiles(value, {
+        reference: 'every',
+        split: 'two',
+        translationName: true,
+      });
+      expect(tiles.map(tile => tile.reference)).toEqual([
+        `${localized} 3:16~17 (KJV)`,
+        `${localized} 3:18~4:1 (KJV)`,
+        `${localized} 4:2 (KJV)`,
+      ]);
+      expect(tiles.map(tile => tile.label)).toEqual([
+        '3:16-17',
+        '3:18-4:1',
+        '4:2',
+      ]);
+      expect(bibleVerseTiles(value, {reference: 'first'})[0]?.reference).toBe(
+        `${localized} 3:16`,
+      );
+    },
+  );
+
+  it.each(['every', 'first', 'last', 'none'] as const)(
+    'uses each slide range and appends the enabled translation with %s',
+    reference => {
+      const value = {...JOHN, translationLabel: '개역한글'};
+      for (const translationName of [false, true]) {
+        const tiles = bibleVerseTiles(value, {
+          split: 'two',
+          reference,
+          translationName,
+        });
+        const suffix = translationName ? ' (개역한글)' : '';
+        const expected = [
+          '요한복음 3:34~35',
+          '요한복음 3:36~4:1',
+          '요한복음 4:2',
+        ];
+        expect(tiles.map(tile => tile.reference)).toEqual(
+          expected.map((text, index) =>
+            reference === 'every' ||
+            (reference === 'first' && index === 0) ||
+            (reference === 'last' && index === 2)
+              ? text + suffix
+              : undefined,
+          ),
+        );
+        expect(tiles.map(tile => tile.label)).toEqual([
+          '3:34-35',
+          '3:36-4:1',
+          '4:2',
+        ]);
+      }
+    },
+  );
+
+  it('uses the full numbered book name and tolerates missing translation metadata', () => {
+    const value = {
+      ...JOHN,
+      ref: '요한일서 3:34-4:2',
+      displayRef: '요한일서 3:34-4:2',
+    };
+    expect(
+      bibleVerseTiles(value, {reference: 'every', translationName: true})[0]
+        ?.reference,
+    ).toBe('요한일서 3:34');
+    expect(
+      bibleVerseTiles(JOHN, {reference: 'every', split: 'fit', maxLines: 5})[0]
+        ?.reference,
+    ).toBe('요한복음 3:34~4:2');
+  });
   it('shows the reference on every slide, as every passage did before', () => {
-    expect(references('every')).toEqual(['3:34', '3:35', '3:36', '4:1', '4:2']);
+    expect(references('every')).toEqual([
+      '요한복음 3:34',
+      '요한복음 3:35',
+      '요한복음 3:36',
+      '요한복음 4:1',
+      '요한복음 4:2',
+    ]);
   });
 
   it('shows it on the first slide only', () => {
     expect(references('first')).toEqual([
-      '3:34',
+      '요한복음 3:34',
       undefined,
       undefined,
       undefined,
@@ -46,7 +142,7 @@ describe('bibleVerseTiles reference', () => {
       undefined,
       undefined,
       undefined,
-      '4:2',
+      '요한복음 4:2',
     ]);
   });
 
@@ -85,7 +181,7 @@ describe('bibleVerseTiles split', () => {
     expect(tiles.map(tile => tile.reference)).toEqual([
       undefined,
       undefined,
-      '4:2',
+      '요한복음 4:2',
     ]);
   });
 
@@ -96,7 +192,10 @@ describe('bibleVerseTiles split', () => {
       maxLines: 3,
     });
     expect(tiles.map(tile => tile.label)).toEqual(['3:34-36', '4:1-2']);
-    expect(tiles.map(tile => tile.reference)).toEqual(['3:34-36', undefined]);
+    expect(tiles.map(tile => tile.reference)).toEqual([
+      '요한복음 3:34~36',
+      undefined,
+    ]);
   });
 
   it('keeps a verse that alone passes the line limit on its own slide', () => {
@@ -114,16 +213,27 @@ describe('bibleVerseTiles split', () => {
 });
 
 describe('bibleSource reference', () => {
+  it('keeps translation visibility in the source identity and leaves it off by default', () => {
+    const value = {...JOHN, translationLabel: '개역한글'};
+    const plain = bibleSource(value);
+    const named = bibleSource(value, {
+      verseNumbers: true,
+      translationName: true,
+    });
+    expect(plain.translationName).toBe(false);
+    expect(named.id).not.toBe(plain.id);
+    expect(named.tiles[0]?.reference).toBe('요한복음 3:34 (개역한글)');
+  });
   it('draws the reference on every slide unless told otherwise, with the old id', () => {
     const source = bibleSource(JOHN);
     expect(source.reference).toBe('every');
     expect(source.id).toBe('bible:sample:요한복음 3:34-4:2');
     expect(source.tiles.map(tile => tile.reference)).toEqual([
-      '3:34',
-      '3:35',
-      '3:36',
-      '4:1',
-      '4:2',
+      '요한복음 3:34',
+      '요한복음 3:35',
+      '요한복음 3:36',
+      '요한복음 4:1',
+      '요한복음 4:2',
     ]);
   });
 
@@ -134,7 +244,7 @@ describe('bibleSource reference', () => {
       undefined,
       undefined,
       undefined,
-      '4:2',
+      '요한복음 4:2',
     ]);
     expect(source.id).not.toBe(bibleSource(JOHN).id);
   });

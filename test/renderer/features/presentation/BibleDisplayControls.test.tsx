@@ -51,7 +51,7 @@ async function setup() {
   const fixture = panelApi();
   fixture.push(translations());
   window.llp = fixture.api;
-  openBiblePassage(panelPassage());
+  openBiblePassage({...panelPassage(), translationLabel: '개역한글'});
   selectTile(1);
   const view = render(<BiblePanel sizeClass="normal" />);
   await waitFor(() =>
@@ -85,6 +85,35 @@ afterEach(() => {
 });
 
 describe('Bible preview display controls', () => {
+  it('toggles the translation label in the preview and preserves it through numbering and output', async () => {
+    const fixture = await setup();
+    const original = currentSource();
+    expect(
+      screen
+        .getByRole('checkbox', {name: '역본 이름'})
+        .getAttribute('aria-checked'),
+    ).toBe('false');
+    fireEvent.click(screen.getByRole('checkbox', {name: '역본 이름'}));
+    expect(currentSource().tiles[1]?.reference).toBe(
+      '요한복음 3:17 (개역한글)',
+    );
+    expect(currentSource().id).not.toBe(original.id);
+    expect(useShow.getState().selectedTile).toBe(1);
+    fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
+    expect(currentSource().tiles[1]?.reference).toBe(
+      '요한복음 3:17 (개역한글)',
+    );
+    expect(fixture.send).not.toHaveBeenCalled();
+    expect(fixture.edit).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: '바로 띄우기'}));
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {reference: '요한복음 3:17 (개역한글)'},
+    });
+    fireEvent.click(screen.getByRole('checkbox', {name: '역본 이름'}));
+    expect(currentSource().tiles[1]?.reference).toBe('요한복음 3:17');
+  });
+
   it('toggles numbering without output, settings writes or losing selection and live text', async () => {
     const fixture = await setup();
     const original = currentSource();

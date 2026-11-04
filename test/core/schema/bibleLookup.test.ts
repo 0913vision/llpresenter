@@ -27,6 +27,31 @@ function parsedRequest() {
 }
 
 describe('Bible lookup payloads', () => {
+  it('accepts bounded translation labels for screen references', () => {
+    const value = {...reply.result.value, translationLabel: '개역한글'};
+    expect(
+      parseBibleLookupReply(parsedRequest(), {
+        ...reply,
+        result: {ok: true, value},
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {result: {value: {translationLabel: '개역한글'}}},
+    });
+  });
+
+  it.each(['', ' ', null, 1, 'x'.repeat(BIBLE_LOOKUP_LIMITS.input + 1)])(
+    'rejects invalid translation labels %#',
+    translationLabel => {
+      const value = {...reply.result.value, translationLabel};
+      expect(
+        parseBibleLookupReply(parsedRequest(), {
+          ...reply,
+          result: {ok: true, value},
+        }).ok,
+      ).toBe(false);
+    },
+  );
   it('accepts optional header bounds without passage text and strips unknown fields', () => {
     expect(
       parseBibleLookupReply(parsedRequest(), {

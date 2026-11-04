@@ -6,6 +6,7 @@ import type {SlideTile} from '../presentation/model';
 
 export interface BibleDisplayOptions {
   readonly verseNumbers: boolean;
+  readonly translationName?: boolean | undefined;
   /** Which slides show the reference; every slide when absent, as before. */
   readonly reference?: BiblePassage['reference'] | undefined;
 }
@@ -31,25 +32,27 @@ export function bibleSource(
   options: BiblePreviewOptions = {verseNumbers: true},
 ): BibleSource {
   const id = `bible:${passage.translation}:${passage.ref}`;
-  const {verseNumbers} = options;
+  const {verseNumbers, translationName = false} = options;
   const reference = options.reference ?? 'every';
   return {
     id: [
       id,
       verseNumbers ? '' : 'plain',
       reference === 'every' ? '' : reference,
+      translationName ? 'translation' : '',
     ]
       .filter(part => part !== '')
       .join(':'),
     passage,
     verseNumbers,
     reference,
+    translationName,
     ...(options.enteredRef === undefined
       ? {}
       : {enteredRef: options.enteredRef}),
     ...(options.enteredTranslation === undefined
       ? {}
       : {enteredTranslation: options.enteredTranslation}),
-    tiles: bibleVerseTiles(passage, {verseNumbers, reference}),
+    tiles: bibleVerseTiles(passage, {verseNumbers, reference, translationName}),
   };
 }

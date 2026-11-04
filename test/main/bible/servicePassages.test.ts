@@ -42,6 +42,39 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('draws the saved translation option with the lookup translation label', async () => {
+    const original = items('요한복음 3:16-18')[0];
+    if (!original || !isItemOfKind(original, 'bible')) {
+      throw Error('Missing Bible fixture');
+    }
+    const bible = fixture();
+    const lookup = bible.lookup.getMockImplementation();
+    if (!lookup) throw Error('Missing lookup fixture');
+    bible.lookup.mockImplementation(async request => {
+      const reply = await lookup(request);
+      return {
+        ...reply,
+        result: reply.result.ok
+          ? {
+              ok: true,
+              value: {...reply.result.value, translationLabel: '개역한글'},
+            }
+          : reply.result,
+      };
+    });
+    for (const translationName of [true, false]) {
+      const row = {
+        ...original,
+        bible: {...original.bible, split: 'two' as const, translationName},
+      };
+      const result = await resolveServicePassages([row], bible, {
+        reportError: vi.fn(),
+      });
+      expect(result.tiles.get(row.id)?.[0]?.reference).toBe(
+        `요한복음 3:16~17${translationName ? ' (개역한글)' : ''}`,
+      );
+    }
+  });
   it('keeps each saved passage reference frequency on its projected tiles', async () => {
     const original = items('요한복음 3:16-18')[0];
     if (original === undefined || !isItemOfKind(original, 'bible')) {
@@ -57,11 +90,11 @@ describe('saved Bible passage resolution', () => {
       });
       expect(result.tiles.get(row.id)?.map(tile => tile.reference)).toEqual(
         frequency === 'every'
-          ? ['3:16', '3:17', '3:18']
+          ? ['요한복음 3:16', '요한복음 3:17', '요한복음 3:18']
           : frequency === 'first'
-            ? ['3:16', undefined, undefined]
+            ? ['요한복음 3:16', undefined, undefined]
             : frequency === 'last'
-              ? [undefined, undefined, '3:18']
+              ? [undefined, undefined, '요한복음 3:18']
               : [undefined, undefined, undefined],
       );
     }

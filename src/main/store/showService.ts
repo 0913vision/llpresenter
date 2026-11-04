@@ -190,7 +190,13 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       title: item.bible.ref,
       ...(bible === undefined
         ? {}
-        : {bible: {...bible, verseNumbers: item.bible.verseNumbers}}),
+        : {
+            bible: {
+              ...bible,
+              verseNumbers: item.bible.verseNumbers,
+              translationName: item.bible.translationName,
+            },
+          }),
       ...(sources.passages?.unavailable.has(id)
         ? {problem: 'missing-bible' as const}
         : {}),

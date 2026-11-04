@@ -123,6 +123,33 @@ afterEach(() => {
 });
 
 describe('Bible verse shortcuts', () => {
+  it('keeps saved translation visibility when extending beyond the live endpoint', async () => {
+    const fixture = await setupSaved();
+    useShow.setState({
+      rows: fixture.rows.map(row => ({
+        ...row,
+        bible: {...row.bible, translationName: true},
+      })),
+    });
+    fixture.lookup.mockImplementation(async request => {
+      const reply = await formLookupReply(request);
+      return {
+        ...reply,
+        result: reply.result.ok
+          ? {
+              ok: true,
+              value: {...reply.result.value, translationLabel: '개역한글'},
+            }
+          : reply.result,
+      };
+    });
+    await outputAdjacentBibleVerse('next');
+    expect(useShow.getState().bibleSource?.translationName).toBe(true);
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {reference: '요한복음 3:19 (개역한글)'},
+    });
+  });
   it('advances past an omitted verse without outputting an existing verse again', async () => {
     const fixture = await setup();
     fixture.lookup.mockImplementation(async request => {

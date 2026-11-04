@@ -137,6 +137,13 @@ export function BiblePage({
             checked={preferences.bible.defaults.verseNumbers}
             onChange={verseNumbers => changeDefaults({verseNumbers})}
           />
+          <CheckboxRow
+            label="역본 이름"
+            disabled={lockedReason !== undefined}
+            title={lockedReason}
+            checked={preferences.bible.defaults.translationName}
+            onChange={translationName => changeDefaults({translationName})}
+          />
           <CountRow
             label="한 슬라이드 최대 줄 수"
             unit="줄"

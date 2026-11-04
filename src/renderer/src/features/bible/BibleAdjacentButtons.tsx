@@ -70,6 +70,7 @@ export function BibleAdjacentButtons({
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
         reference: source.reference,
+        translationName: source.translationName,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,

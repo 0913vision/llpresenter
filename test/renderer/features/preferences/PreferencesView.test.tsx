@@ -606,7 +606,13 @@ describe('PreferencesView', () => {
     expect(screen.getByRole('button', {name: /참조/}).textContent).toContain(
       '슬라이드마다',
     );
-    expect(screen.queryByRole('checkbox', {name: '역본 이름'})).toBeNull();
+    const translationName = screen.getByRole('checkbox', {name: '역본 이름'});
+    expect(translationName.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(translationName);
+    await waitFor(() =>
+      expect(written().bible?.defaults?.translationName).toBe(true),
+    );
+    edit.mockClear();
     await userEvent.click(screen.getByRole('button', {name: /참조/}));
     await userEvent.click(
       await screen.findByRole('menuitemradio', {name: '마지막 슬라이드만'}),

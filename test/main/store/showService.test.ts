@@ -79,7 +79,7 @@ describe('buildShowService', () => {
             split: 'verse',
             reference: 'every',
             verseNumbers,
-            translationName: false,
+            translationName: !verseNumbers,
           },
         })),
       );
@@ -111,7 +111,12 @@ describe('buildShowService', () => {
       expect(show.rows[0]).toMatchObject({
         id: itemId(1),
         title: 'John 3 : 16 - 18',
-        bible: {ref: '요한복음 3:16-18', translation: 'sample', verseNumbers},
+        bible: {
+          ref: '요한복음 3:16-18',
+          translation: 'sample',
+          verseNumbers,
+          translationName: !verseNumbers,
+        },
       });
       expect(show.tiles[itemId(1)]).toBe(tiles);
       expect(show.rows[1]).toMatchObject({problem: 'missing-bible'});

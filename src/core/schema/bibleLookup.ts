@@ -31,6 +31,9 @@ const passageSchema = payloadObject({
   translation: translationId,
   ref: referenceText,
   displayRef: referenceText,
+  translationLabel: v.exactOptional(
+    v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
+  ),
   verses: v.pipe(
     v.array(
       payloadObject({

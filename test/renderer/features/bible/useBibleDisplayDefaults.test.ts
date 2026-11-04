@@ -8,7 +8,11 @@ function preferences(verseNumbers: boolean): Preferences {
     ...defaultPreferences,
     bible: {
       ...defaultPreferences.bible,
-      defaults: {...defaultPreferences.bible.defaults, verseNumbers},
+      defaults: {
+        ...defaultPreferences.bible.defaults,
+        verseNumbers,
+        translationName: !verseNumbers,
+      },
     },
   };
 }
@@ -52,10 +56,12 @@ describe('Bible verse-number defaults', () => {
     expect(view.result.current).toBeNull();
     act(() => fixture.emit(false));
     expect(view.result.current?.verseNumbers).toBe(false);
+    expect(view.result.current?.translationName).toBe(true);
     await act(async () => fixture.finish(true));
     expect(view.result.current?.verseNumbers).toBe(false);
     act(() => fixture.emit(true));
     expect(view.result.current?.verseNumbers).toBe(true);
+    expect(view.result.current?.translationName).toBe(false);
     view.unmount();
     expect(fixture.stop).toHaveBeenCalledOnce();
   });
