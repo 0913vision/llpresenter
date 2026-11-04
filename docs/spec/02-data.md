@@ -403,7 +403,8 @@ created with the defaults in 12, "Defaults".
 | `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` \| `"black"` | Kind (see 04).                                                                                                            | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
 | `.ref`         | String or object                                                         | What the item points to: a song ID, a Bible passage object, a 그래픽 ID, a 타이머 ID, or a 매크로 ID. `"black"` has none. | Proposal                                                                                                      |
 
-Version 1 has no 퀵 실행 shortcuts (see 09).
+A 퀵 실행 item has a shortcut command, `quick.<item ID>`, with no default key;
+the operator sets it in 환경설정 > 단축키 (10).
 
 A newly added `timer` item creates its own timer in `timers.json` and saves that
 timer's ID in `.ref`. Two quick rows never share that ID. Adding the timer and
@@ -606,7 +607,7 @@ source file.
   overlap the per-screen values. In version 1 they are the defaults for a new
   screen (proposal, open question).
 - The board's "자동 저장: 1분마다" (autosave: every minute) isn't used. The app
-  saves on every change (open question).
+  saves on every change (decided).
 - For the board's 오류 보고 보내기 (send error reports), 사용 통계 보내기 (send
   usage statistics), and update area, see 06 and the open questions.
 
@@ -1079,7 +1080,7 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 - Save asynchronously in the main process. Saving must never stall output or
   input (implementation requirement).
 - The board's 환경설정 option "자동 저장: 1분마다" conflicts with the decision
-  to save on every change, so the app doesn't have it (open question).
+  to save on every change, so the app doesn't have it (decided).
 
 ### Atomic writes (implementation requirement)
 

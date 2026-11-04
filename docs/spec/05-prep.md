@@ -811,10 +811,9 @@ and 59.
 
 - Changes apply at once and save. If the media is on output, the change applies
   live (proposal).
-- No board shows the content of the 정보, 전환, and 소리 tabs (open question).
-  Version 1 shows read-only file information (kind, resolution, duration, size)
-  in 정보, and leaves out the 전환 and 소리 tabs until they're defined
-  (proposal).
+- No board shows the content of the 정보, 전환, and 소리 tabs. The app shows
+  read-only file information (kind, resolution, duration, size) in 정보, and
+  leaves out the 전환 and 소리 tabs until they're defined (open question).
 
 ### Behavior
 

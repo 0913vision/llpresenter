@@ -47,8 +47,8 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
 - Three groups, 청중 (audience), 방송 (broadcast), and 무대 (stage). Each row
   shows an icon (청중 화면 and 무대 화면 use monitor icons, 방송 화면 uses the
   capture icon), the name, the target (모니터 2, 캡처용 창), and a health dot.
-- 화면 추가 (add screen, plus icon) is in the board. Version 1 keeps exactly
-  three screens (see 01, open question).
+- 화면 추가 (add screen, plus icon) is in the board. It adds a screen to its
+  group; a new install starts with the three screens (see 01).
 - Selecting a screen shows its display layout, output preview, and properties.
 
 ### Display layout
@@ -322,8 +322,8 @@ default keys.
   examples of changed shortcuts, and the Ctrl 1 example shows a conflict with
   출력 켜기.
 - The board also shows a 퀵 실행 group (검은 화면 Ctrl B, 로고 화면 with no
-  shortcut). The product log defers 퀵 실행 shortcuts, so version 1 leaves out
-  this group (see 09, open question).
+  shortcut). The app lists each 퀵 실행 item under a 퀵 실행 group, with no
+  default key, so the board's Ctrl B is not a default (10).
 
 Source: `Shortcuts`, `Prefs`, `KeyCap` README, `SegmentedControl` README (filter
 counts), `ClearButton` README, `Main` decision "단축키", product log (퀵 실행

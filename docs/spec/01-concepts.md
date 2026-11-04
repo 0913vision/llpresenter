@@ -277,10 +277,10 @@ READMEs, `Prefs`.
   (Export, submenu), and 환경설정 (Preferences).
   - In version 1, the PowerPoint file item shows as unavailable, with the reason
     in a tooltip (proposal).
-  - No source lists the items of the Export submenu. Version 1 leaves out the
-    Export item (proposal, open question).
-- No source lists the items of the other menus. Version 1 has only these items
-  (proposal, open question):
+  - No source lists the items of the Export submenu. The app shows 내보내기 as a
+    disabled row until an export exists (11).
+- No source lists the items of the other menus. The app has these items (the
+  rows of each menu are in 11):
 
   | Menu          | Items                                                                                                                       |
   | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -363,9 +363,8 @@ workspaces).
 | 방송 화면 | Broadcast | Capture window with green background. NDI comes later (see 09). | 방송 화면    | Capture window        |
 
 - The app doesn't use a lobby screen.
-- Make the screen list data that can grow, but version 1 has exactly these three
-  screens (proposal, open question: the 화면 설정 board has an "add screen"
-  button).
+- The screen list is data that can grow: 화면 설정 adds a screen to any of the
+  three groups, and these three are the ones a new install starts with.
 - Each screen draws the same output state differently, using the screen's layout
   in the live 테마. See 12.
 

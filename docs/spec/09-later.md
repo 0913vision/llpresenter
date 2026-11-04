@@ -140,18 +140,6 @@ No source describes this feature. This section only lists properties of version
   could send the same commands later.
 - The song, media, and backup locations are configurable.
 
-## 퀵 실행 shortcuts
-
-- The user deferred shortcut keys for 퀵 실행 items. The 퀵 실행 list shows no
-  shortcuts.
-- The shortcuts board shows a 퀵 실행 group (검은 화면 Ctrl B, 로고 화면 with no
-  shortcut). Version 1 leaves it out (open question).
-- Hook: store shortcuts by command ID (see 02 and 10), so that per-item commands
-  such as `quick.<item ID>` can be added later.
-
-Source: product log (진행 screen direction), `Main` decision "단축키",
-`Shortcuts`.
-
 ## Lobby screen
 
 - The app doesn't use a lobby screen for now. It has three screens.
