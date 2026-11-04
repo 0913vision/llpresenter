@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {useMenuBarNavigation} from '@renderer/app/shell/menuBarNavigation';
-import type {JSX} from 'react';
+import {useEffect, type JSX} from 'react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {Dialog} from '@renderer/ui/Dialog';
 
@@ -263,8 +263,10 @@ describe('the menu bar stops', () => {
         ['a', 'b', 'c'] as const,
         name => name !== 'b',
       );
-      found.push(bar.neighbor('a', 1), bar.neighbor('a', -1));
-      found.push(bar.neighbor('c', 1), bar.neighbor('c', -1));
+      useEffect(() => {
+        found.push(bar.neighbor('a', 1), bar.neighbor('a', -1));
+        found.push(bar.neighbor('c', 1), bar.neighbor('c', -1));
+      }, [bar]);
       return <span />;
     }
     render(<Probe />);
