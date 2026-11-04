@@ -11,20 +11,8 @@ import {
 } from '@renderer/session/showOutput';
 import {openBiblePassage} from './actions';
 import type {VerseDirection} from '@core/bible/adjacentVerses';
+import {labelEdge} from '@core/bible/bibleTiles';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
-
-/**
- * The chapter and verse at the start or end of a slide label, which names one
- * verse (`3:34`) or a span of them (`3:34-36`, `3:36-4:1`).
- */
-function edgeOfLabel(
-  label: string | null | undefined,
-  direction: VerseDirection,
-): string | undefined {
-  const [from, to] = label?.split('-') ?? [];
-  if (direction === 'previous' || to === undefined) return from;
-  return to.includes(':') ? to : `${from?.split(':')[0]}:${to}`;
-}
 
 /**
  * Outputs the verse beside the live one in the open passage. On the passage's
@@ -89,9 +77,9 @@ export async function outputAdjacentBibleVerse(
     if (
       edge === undefined ||
       `${edge.chapter}:${edge.verse}` ===
-        edgeOfLabel(
+        labelEdge(
           tiles.at(direction === 'previous' ? 0 : -1)?.label,
-          direction,
+          direction === 'previous' ? 'first' : 'last',
         )
     ) {
       return;

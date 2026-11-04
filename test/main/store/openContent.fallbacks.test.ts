@@ -5,7 +5,9 @@ import type {BibleLookupSession} from '@main/bible/lookup';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
+import {defaultPreferences} from '@core/schema/preferences';
 import {openContent} from '@main/store/openContent';
+import {SettingsStore} from '@main/store/settingsStore';
 
 async function setup() {
   const folder = await makeTempDir();
@@ -54,4 +56,56 @@ it('falls back to the loaded store labels and media backgrounds while the settin
   expect(opened.library.labels).toBe(store.labels);
   expect(await opened.library.backgroundOf('invented-media')).toBeNull();
   expect(background).toHaveBeenCalledWith('invented-media');
+});
+
+it('refreshes the open service for 환경설정 only when the 최대 줄 수 changed', async () => {
+  const {store, log, readers} = await setup();
+  const settings = new SettingsStore({
+    documents: new Map([
+      [
+        'preferences',
+        {
+          name: 'preferences',
+          access: 'editable',
+          revision: 1,
+          value: {format: defaultPreferences.format, schemaVersion: 1},
+        },
+      ],
+    ]),
+    problems: [],
+    log,
+    saving: {
+      folder: '/settings',
+      files: {
+        write: () => Promise.resolve({ok: true, value: undefined}),
+        remove: () => Promise.resolve({ok: true, value: undefined}),
+      },
+    },
+  });
+  onTestFinished(() => settings.dispose());
+  const opened = await openContent(Promise.resolve(store), log, {
+    ...readers,
+    settings: Promise.resolve(settings),
+  });
+  if (opened === null) throw new Error('the content did not open');
+  onTestFinished(async () => {
+    opened.removeSettings();
+    await opened.content.flush();
+    opened.content.dispose();
+  });
+  const refresh = vi.spyOn(opened.feed, 'refresh');
+  const change = async (bible: {maxLines: number}, general: object) => {
+    const document = settings.get('preferences');
+    if (document.name !== 'preferences') throw new Error('Not preferences');
+    await settings.apply({
+      type: 'settings.update',
+      name: 'preferences',
+      baseRevision: document.revision,
+      value: {...document.value, bible, general},
+    });
+  };
+  await change({maxLines: 4}, {launchAtLogin: true});
+  expect(refresh).not.toHaveBeenCalled();
+  await change({maxLines: 6}, {launchAtLogin: true});
+  expect(refresh).toHaveBeenCalledOnce();
 });

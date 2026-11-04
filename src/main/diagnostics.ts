@@ -88,6 +88,8 @@ export function diagnosticsText({
       }),
       logTail(join(logDirectory, 'main.log')).then(
         text =>
+          // NOTE(0913vision): The app data folder lies inside the home folder,
+          // so it is masked first; the other order would leave `~` for it.
           errorLinesOf(text, [
             {path: dataFolder, mask: '<app data>'},
             {path: home, mask: '~'},

@@ -21,7 +21,8 @@ const states = new WeakMap<HTMLMediaElement, SinkState>();
  * Plays an element's sound to a device (`setSinkId`). An empty id is the
  * Windows default. An element already on that device is left alone. The
  * device is recorded only once the element has taken it, so a refused device
- * leaves the element, and what is known of it, on the device it was on.
+ * leaves the element, and what is known of it, on the device it was on. While
+ * a call is out, the last request wins.
  */
 export function applySink(
   element: HTMLMediaElement,

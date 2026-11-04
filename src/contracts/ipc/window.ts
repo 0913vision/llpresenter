@@ -107,9 +107,6 @@ export function parseOnOff(value: unknown): Result<boolean, PayloadError> {
     : {ok: false, error: {field: '', message: 'Expected on or off'}};
 }
 
-/** Checks a full screen state. */
-export const parseFullScreen = parseOnOff;
-
 /** The title bar calls. */
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
@@ -133,11 +130,8 @@ export const windowEndpoints = {
     parsePreferencePage,
   ),
   control: message<WindowAction>('window:control', parseWindowAction),
-  fullScreen: query<boolean>('window:full-screen', parseFullScreen),
-  fullScreenChanged: push<boolean>(
-    'window:full-screen:changed',
-    parseFullScreen,
-  ),
+  fullScreen: query<boolean>('window:full-screen', parseOnOff),
+  fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
   openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
     'window:open-order-editor',

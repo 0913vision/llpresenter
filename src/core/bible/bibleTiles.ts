@@ -32,6 +32,19 @@ function spanOf(verses: readonly Verse[]): string {
     : `${start}-${last.chapter}:${last.verse}`;
 }
 
+/**
+ * The chapter and verse at the start or the end of a slide label that
+ * `spanOf` wrote, such as `3:34`, `3:34-36`, or `3:36-4:1`.
+ */
+export function labelEdge(
+  label: string | null | undefined,
+  edge: 'first' | 'last',
+): string | undefined {
+  const [from, to] = label?.split('-') ?? [];
+  if (edge === 'first' || to === undefined) return from;
+  return to.includes(':') ? to : `${from?.split(':')[0]}:${to}`;
+}
+
 /** How a passage becomes slides. */
 export interface TileOptions {
   /** Whether each verse starts with its number; true when absent. */

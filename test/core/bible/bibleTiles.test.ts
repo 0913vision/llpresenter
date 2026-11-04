@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
-import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {bibleVerseTiles, labelEdge} from '@core/bible/bibleTiles';
 import {bibleSource} from '@core/bible/source';
 import {translationIdSchema} from '@core/schema/ids';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -137,5 +137,30 @@ describe('bibleSource reference', () => {
       '4:2',
     ]);
     expect(source.id).not.toBe(bibleSource(JOHN).id);
+  });
+});
+
+describe('labelEdge', () => {
+  it('reads the first and the last verse of every label the builder writes', () => {
+    const labels = bibleVerseTiles(JOHN, {split: 'two'}).map(
+      tile => tile.label,
+    );
+    expect(labels).toEqual(['3:34-35', '3:36-4:1', '4:2']);
+    expect(labels.map(label => labelEdge(label, 'first'))).toEqual([
+      '3:34',
+      '3:36',
+      '4:2',
+    ]);
+    expect(labels.map(label => labelEdge(label, 'last'))).toEqual([
+      '3:35',
+      '4:1',
+      '4:2',
+    ]);
+    expect(labelEdge('3:34-36', 'last')).toBe('3:36');
+  });
+
+  it('has no edge for no label', () => {
+    expect(labelEdge(undefined, 'first')).toBeUndefined();
+    expect(labelEdge(null, 'last')).toBeUndefined();
   });
 });

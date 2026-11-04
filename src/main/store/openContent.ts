@@ -120,6 +120,8 @@ async function createContent(
     },
     backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
   };
+  const readBibleMaxLines = (): number =>
+    settings?.preferences().bible.maxLines ?? defaultPreferences.bible.maxLines;
   feed = new OpenServiceFeed(
     {
       get serviceId() {
@@ -131,9 +133,7 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
-      bibleMaxLines: () =>
-        settings?.preferences().bible.maxLines ??
-        defaultPreferences.bible.maxLines,
+      bibleMaxLines: readBibleMaxLines,
       mediaItems: () => media?.get().value.items ?? [],
       noticeSets: () => {
         const document = settings?.get('notices');
@@ -143,12 +143,17 @@ async function createContent(
     service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
+  let bibleMaxLines = readBibleMaxLines();
   const removeSettingsListener =
     settings?.subscribe(document => {
+      const maxLinesChanged =
+        document.name === 'preferences' &&
+        bibleMaxLines !== readBibleMaxLines();
+      bibleMaxLines = readBibleMaxLines();
       if (
         document.name === 'labels' ||
         document.name === 'bible' ||
-        document.name === 'preferences' ||
+        maxLinesChanged ||
         document.name === 'notices'
       ) {
         feed

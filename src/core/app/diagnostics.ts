@@ -40,6 +40,31 @@ function escapedForPattern(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/** What finds a folder in a log line, whatever the case or the slashes. */
+type Maskers = ReadonlyArray<{readonly pattern: RegExp; readonly mask: string}>;
+
+function maskersOf(folders: readonly MaskedFolder[]): Maskers {
+  return folders
+    .filter(({path}) => path !== '')
+    .flatMap(({path, mask}) =>
+      [
+        path,
+        path.replaceAll(BACKSLASH, '/'),
+        path.replaceAll(BACKSLASH, BACKSLASH + BACKSLASH),
+      ].map(form => ({
+        pattern: new RegExp(escapedForPattern(form), 'gi'),
+        mask,
+      })),
+    );
+}
+
+function masked(line: string, maskers: Maskers): string {
+  return maskers.reduce(
+    (text, {pattern, mask}) => text.replace(pattern, mask),
+    line,
+  );
+}
+
 /**
  * Replaces each folder in a log line, whatever the case, written with
  * backslashes, with slashes, or escaped for JSON.
@@ -48,19 +73,7 @@ export function withoutFolders(
   line: string,
   folders: readonly MaskedFolder[],
 ): string {
-  return folders.reduce((text, {path, mask}) => {
-    if (path === '') return text;
-    const forms = [
-      path,
-      path.replaceAll(BACKSLASH, '/'),
-      path.replaceAll(BACKSLASH, BACKSLASH + BACKSLASH),
-    ];
-    return forms.reduce(
-      (current, form) =>
-        current.replace(new RegExp(escapedForPattern(form), 'gi'), mask),
-      text,
-    );
-  }, line);
+  return masked(line, maskersOf(folders));
 }
 
 /** The text 진단 정보 copies. */
@@ -96,9 +109,10 @@ export function errorLinesOf(
   logText: string,
   folders: readonly MaskedFolder[],
 ): string[] {
+  const maskers = maskersOf(folders);
   return logText
     .split('\n')
     .filter(line => line.includes(' ERROR '))
     .slice(-DIAGNOSTICS_ERROR_LINES)
-    .map(line => withoutFolders(line, folders));
+    .map(line => masked(line, maskers));
 }

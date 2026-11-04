@@ -3,7 +3,6 @@ import {
   parseAppInfo,
   DIAGNOSTICS_TEXT_LIMIT,
   parseDiagnosticsText,
-  parseFullScreen,
   parseOnOff,
   parsePreferencePage,
   parseWindowAction,
@@ -61,12 +60,12 @@ describe('window full screen', () => {
       ok: true,
       value: 'toggle-full-screen',
     });
-    expect(parseFullScreen(true)).toEqual({ok: true, value: true});
-    expect(parseFullScreen(false)).toEqual({ok: true, value: false});
+    expect(parseOnOff(true)).toEqual({ok: true, value: true});
+    expect(parseOnOff(false)).toEqual({ok: true, value: false});
   });
 
   it.each(['true', 1, null, undefined, {}])('rejects the state %j', value => {
-    expect(parseFullScreen(value)).toMatchObject({ok: false});
+    expect(parseOnOff(value)).toMatchObject({ok: false});
   });
 });
 
