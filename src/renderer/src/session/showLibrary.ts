@@ -2,6 +2,7 @@ import type {SlideLayer} from '@core/live/state';
 import type {RecentPassage} from '@core/schema/bible';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {passageBook} from '@core/bible/adjacentVerses';
+import {biblePartIndex, retainedBibleSelection} from '@core/bible/selection';
 import type {BibleSource} from '@core/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
@@ -14,6 +15,80 @@ import {
 import {useShow, type ShowView} from './showStore';
 
 const noTiles: readonly SlideTile[] = [];
+type BibleTileResolver = (
+  view: ShowView,
+  itemId: ItemId,
+) => readonly SlideTile[] | null;
+let bibleTileResolver: BibleTileResolver | null = null;
+let detachedSelection: {
+  readonly itemId: ItemId;
+  readonly label: SlideTile['label'];
+  readonly part: number;
+} | null = null;
+let stopDetachedSelection: (() => void) | null = null;
+
+function forgetDetachedSelection(): void {
+  detachedSelection = null;
+  stopDetachedSelection?.();
+  stopDetachedSelection = null;
+}
+
+/** Replaces the Bible projection atomically, retaining the selected verse and part. */
+export function setBibleTileResolver(resolver: BibleTileResolver | null): void {
+  if (resolver === null && bibleTileResolver === null) return;
+  const view = useShow.getState();
+  const id = view.openItemId;
+  const previous = id === null ? null : (bibleTileResolver?.(view, id) ?? null);
+  const before = id === null ? noTiles : tilesForView(view, id);
+  const detached = detachedSelection;
+  forgetDetachedSelection();
+  bibleTileResolver = resolver;
+  const next = id === null ? null : (resolver?.(view, id) ?? null);
+  const restored =
+    detached?.itemId === id && next !== null
+      ? biblePartIndex(next, detached.label, detached.part)
+      : null;
+  const selectedTile =
+    restored ??
+    (previous !== null || next !== null
+      ? retainedBibleSelection(
+          before,
+          view.selectedTile,
+          id === null ? noTiles : tilesForView(view, id),
+        )
+      : view.selectedTile);
+  useShow.setState({selectedTile});
+  const tile = previous?.[view.selectedTile];
+  if (resolver === null && id !== null && tile !== undefined) {
+    detachedSelection = {
+      itemId: id,
+      label: tile.label,
+      part: tile.biblePart ?? 1,
+    };
+    stopDetachedSelection = useShow.subscribe(current => {
+      if (current.openItemId !== id || current.selectedTile !== selectedTile) {
+        forgetDetachedSelection();
+      }
+    });
+  }
+}
+
+/** Resolves a live Bible part against today's projection without changing output. */
+export function projectedLiveCursor(
+  view: ShowView,
+  slide: SlideLayer | null,
+): TileCursor | null {
+  if (slide === null) return null;
+  const index =
+    slide.biblePart === undefined
+      ? slide.position
+      : biblePartIndex(
+          tilesForView(view, slide.itemId),
+          slide.label,
+          slide.biblePart,
+        );
+  return index === null ? null : {itemId: slide.itemId, index};
+}
 
 export function isBibleSource(view: ShowView, itemId: ItemId | null): boolean {
   return bibleSourceFor(view, itemId) !== null;
@@ -53,14 +128,20 @@ export function liveTileIndex(
   slide: SlideLayer | null,
 ): number | null {
   if (slide === null || view.openItemId === null) return null;
-  if (slide.itemId === view.openItemId) return slide.position;
+  if (slide.itemId === view.openItemId) {
+    return projectedLiveCursor(view, slide)?.index ?? null;
+  }
   const open = bibleSourceFor(view, view.openItemId);
   const live = bibleSourceFor(view, slide.itemId);
   const row = view.rows.find(candidate => candidate.id === slide.itemId);
   const saved = row?.kind === 'bible' ? row.bible : undefined;
   const passage = live?.passage ?? saved;
   const verseNumbers = live?.verseNumbers ?? saved?.verseNumbers ?? true;
-  const tile = (live?.tiles ?? view.tiles[slide.itemId])?.[slide.position];
+  const cursor = projectedLiveCursor(view, slide);
+  const tile =
+    cursor === null
+      ? undefined
+      : tilesForView(view, slide.itemId)[cursor.index];
   if (
     !open ||
     !passage ||
@@ -69,9 +150,19 @@ export function liveTileIndex(
   ) {
     return null;
   }
-  const index = open.tiles.findIndex(
-    candidate => candidate.label === tile.label,
+  const tiles = tilesForView(view, open.id);
+  if (slide.biblePart !== undefined) {
+    return biblePartIndex(tiles, slide.label, slide.biblePart);
+  }
+  const matching = tiles.findIndex(
+    candidate =>
+      candidate.label === tile.label &&
+      candidate.lines.join('\n') === tile.lines.join('\n'),
   );
+  const index =
+    matching >= 0
+      ? matching
+      : tiles.findIndex(candidate => candidate.label === tile.label);
   return index === -1 ? null : index;
 }
 
@@ -101,6 +192,8 @@ export function tilesForView(
   view: ShowView,
   itemId: ItemId,
 ): readonly SlideTile[] {
+  const projected = bibleTileResolver?.(view, itemId);
+  if (projected !== null && projected !== undefined) return projected;
   return isLibrarySource(view, itemId)
     ? view.librarySong.tiles
     : isBibleSource(view, itemId)
@@ -111,10 +204,8 @@ export function tilesForView(
 /** Selects the open source's tiles without copying either projection. */
 export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
   if (view.openItemId === null) return undefined;
-  return isLibrarySource(view, view.openItemId) ||
-    isBibleSource(view, view.openItemId)
-    ? tilesForView(view, view.openItemId)
-    : view.tiles[view.openItemId];
+  const tiles = tilesForView(view, view.openItemId);
+  return tiles === noTiles ? undefined : tiles;
 }
 
 /** Opens a checked library projection without writing a service or output. */

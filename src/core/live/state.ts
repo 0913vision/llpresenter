@@ -58,6 +58,7 @@ export interface MediaLayer extends MediaChoice {
 export interface NextSlide {
   readonly label: string | null;
   readonly lines: readonly string[];
+  readonly continued?: boolean;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
@@ -65,8 +66,11 @@ export interface SlideLayer {
   readonly picture?: MediaId;
   readonly itemId: string;
   readonly position: number;
+  /** One-based part within the Bible verse named by label, independent of position. */
+  readonly biblePart?: number;
   readonly label: string | null;
   readonly lines: readonly string[];
+  readonly continued?: boolean;
   /** A Bible reference, separate from the operator's slide label. */
   readonly reference?: string;
   readonly name?: string;

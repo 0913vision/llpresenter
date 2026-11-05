@@ -1,0 +1,76 @@
+.words {
+  font: var(--type-body);
+  color: var(--text);
+  margin-bottom: var(--space-20);
+}
+.word {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.word:disabled {
+  cursor: default;
+}
+.word:hover:not(:disabled) {
+  background: var(--bg-raised);
+}
+.hint {
+  border: 0;
+  background: var(--bg-raised);
+  color: var(--text-2);
+  font: var(--type-caption);
+  padding: var(--space-2);
+  margin-inline: var(--space-2);
+  cursor: pointer;
+}
+.hint[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--text-on-fill);
+}
+.hint[data-match='false'] {
+  color: var(--text-off);
+}
+.previews {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+  align-items: start;
+}
+.preview {
+  margin: 0;
+  color: var(--text-2);
+  font: var(--type-caption);
+}
+.preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg-inset);
+  overflow: visible;
+}
+.box {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: var(--space-2);
+  stroke-dasharray: var(--space-6);
+}
+.line {
+  white-space: pre;
+  color: var(--text);
+}
+.line[data-overflow='true'],
+.preview[data-overflow='true'] figcaption,
+.problem {
+  color: var(--live);
+}
+.preview[data-overflow='true'] .box {
+  stroke: var(--live);
+}
+.state {
+  font: var(--type-caption);
+  color: var(--text-3);
+}

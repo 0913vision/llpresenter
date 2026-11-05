@@ -102,6 +102,7 @@ describe('buildShowService', () => {
       const document = loadedService(
         ['John 3 : 16 - 18', '시편 1:1'].map((ref, index) => ({
           id: itemId(index + 1),
+          theme: itemId(50),
           bible: {
             translation: 'sample',
             ref,
@@ -123,6 +124,12 @@ describe('buildShowService', () => {
             {
               ref: '요한복음 3:16-18',
               translation: v.parse(translationIdSchema, 'sample'),
+              passage: {
+                translation: v.parse(translationIdSchema, 'sample'),
+                ref: '요한복음 3:16-18',
+                displayRef: '요한복음 3:16~18',
+                verses: [{chapter: 3, verse: 16, text: '가나 다라'}],
+              },
             },
           ],
         ]),
@@ -145,6 +152,9 @@ describe('buildShowService', () => {
           translation: 'sample',
           verseNumbers,
           translationName: !verseNumbers,
+          reference: 'every',
+          theme: itemId(50),
+          passage: {verses: [{chapter: 3, verse: 16, text: '가나 다라'}]},
         },
       });
       expect(show.tiles[itemId(1)]).toBe(tiles);

@@ -23,6 +23,7 @@ import {
   isBibleSource,
   isLibrarySource,
   liveTileIndex,
+  projectedLiveCursor,
   outputLibraryTile,
   tilesForView,
 } from './showLibrary';
@@ -54,8 +55,10 @@ export function tilesOf(itemId: ItemId): readonly SlideTile[] {
 
 /** The tile on output, taken from the live slide layer. */
 export function liveCursor(): TileCursor | null {
-  const slide = useLive.getState().state?.layers.slide;
-  return slide ? {itemId: slide.itemId, index: slide.position} : null;
+  return projectedLiveCursor(
+    useShow.getState(),
+    useLive.getState().state?.layers.slide ?? null,
+  );
 }
 
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new

@@ -1,0 +1,224 @@
+import type {BibleSource} from '@core/bible/source';
+import {bibleOutputLines} from '@core/bible/bibleTiles';
+import {passageBook} from '@core/bible/adjacentVerses';
+import {
+  splitVerseParts,
+  type VerseInput,
+  type VersePart,
+} from '@core/bible/split/splitVerses';
+import type {BibleCutsFile} from '@core/schema/bibleCuts';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BiblePassage} from '@core/schema/biblePassage';
+import {createScreenId, type ThemeId} from '@core/schema/ids';
+import type {ThemeScreen} from '@core/themes/defaults';
+import type {ThemesFile} from '@core/schema/themes';
+import type {SlideTile} from '@core/presentation/model';
+import {NO_LABEL_COLOR} from '@core/labels/colors';
+import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
+import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {
+  bibleMeasure,
+  type BibleTextElement,
+  type BibleFontMeasure,
+} from '@renderer/rendering/bibleMeasure';
+import type {SplitLayout} from '@core/bible/split/layout';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
+import type {ShowView} from '@renderer/session/showStore';
+
+export interface SplitSource {
+  readonly id: string;
+  readonly passage: BibleLookupPassage;
+  readonly verseNumbers: boolean;
+  readonly reference: BiblePassage['reference'];
+  readonly translationName: boolean;
+  readonly source: 'service' | 'external';
+  readonly review?: boolean;
+  readonly theme?: ThemeId;
+}
+
+export interface BibleProjection {
+  readonly source: SplitSource;
+  readonly element: BibleTextElement;
+  readonly layout: SplitLayout;
+  readonly verses: readonly VerseInput[];
+  readonly parts: readonly VersePart[];
+  readonly tiles: readonly SlideTile[];
+  readonly problem?: 'tile-limit';
+}
+
+const defaultScreens: readonly ThemeScreen[] = [
+  {
+    id: createScreenId(STARTER_SCREEN_IDS.main),
+    kind: 'audience',
+    method: 'fullscreen',
+  },
+  {
+    id: createScreenId(STARTER_SCREEN_IDS.broadcast),
+    kind: 'broadcast',
+    method: 'capture',
+  },
+  {
+    id: createScreenId(STARTER_SCREEN_IDS.stage),
+    kind: 'stage',
+    method: 'fullscreen',
+  },
+];
+const CACHE_LIMIT = 32;
+
+export function splitSourceFor(
+  view: ShowView,
+  itemId: string,
+): SplitSource | null {
+  const external: BibleSource | null = bibleSourceFor(view, itemId);
+  if (external !== null) {
+    return {
+      id: itemId,
+      passage: external.passage,
+      verseNumbers: external.verseNumbers,
+      reference: external.reference,
+      translationName: external.translationName ?? false,
+      source: 'external',
+      review: external.review !== false,
+    };
+  }
+  const row = view.rows.find(row => row.id === itemId);
+  if (row?.kind !== 'bible' || row.bible?.passage === undefined) return null;
+  return {
+    id: itemId,
+    passage: row.bible.passage,
+    verseNumbers: row.bible.verseNumbers ?? true,
+    reference: row.bible.reference ?? 'every',
+    translationName: row.bible.translationName ?? false,
+    source: 'service',
+    ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
+  };
+}
+
+export function projectBible(
+  source: SplitSource,
+  {
+    element,
+    layout,
+    saved,
+  }: {
+    readonly element: BibleTextElement;
+    readonly layout: SplitLayout;
+    readonly saved?: BibleCutsFile | undefined;
+  },
+): BibleProjection | null {
+  const book = passageBook(source.passage);
+  if (book === undefined) return null;
+  const capped: BibleProjection = {
+    source,
+    element,
+    layout,
+    verses: [],
+    parts: [],
+    tiles: [],
+    problem: 'tile-limit',
+  };
+  if (source.passage.verses.length > SHOW_SERVICE_LIMITS.tiles) return capped;
+  const verses = source.passage.verses.map(verse => ({
+    reference: {
+      translation: source.passage.translation,
+      book: book.id,
+      chapter: verse.chapter,
+      verse: verse.verse,
+    },
+    text: verse.text,
+  }));
+  const parts: VersePart[] = [];
+  for (const verse of verses) {
+    const prefix =
+      source.verseNumbers && verses.length > 1
+        ? `${verse.reference.verse} `
+        : '';
+    const next = splitVerseParts(verse, layout, {saved, prefix});
+    if (parts.length + next.length > SHOW_SERVICE_LIMITS.tiles) return capped;
+    parts.push(...next);
+  }
+  const name = source.passage.displayRef.replace(/\s+\d.*$/u, '');
+  const translation =
+    source.translationName && source.passage.translationLabel
+      ? ` (${source.passage.translationLabel})`
+      : '';
+  const tiles = parts.map((part, index): SlideTile => {
+    const prefix =
+      source.verseNumbers && verses.length > 1 && part.part === 1
+        ? `${part.reference.verse} `
+        : '';
+    const reference = `${name} ${part.reference.chapter}:${part.reference.verse}${translation}`;
+    return {
+      label: `${part.reference.chapter}:${part.reference.verse}`,
+      labelColor: NO_LABEL_COLOR,
+      lines: part.lines ?? bibleOutputLines(prefix + part.display),
+      continued: part.continued,
+      biblePart: part.part,
+      ...(source.reference === 'every' ||
+      (source.reference === 'first' && index === 0) ||
+      (source.reference === 'last' && index === parts.length - 1)
+        ? {reference}
+        : {}),
+    };
+  });
+  return {source, element, layout, verses, parts, tiles};
+}
+
+/** Owns only a bounded cache of derived projections; changing settings replaces it. */
+export class BibleProjections {
+  private readonly cache = new Map<string, BibleProjection>();
+  constructor(
+    private readonly context: {
+      readonly themes: ThemesFile | null;
+      readonly screens: readonly ThemeScreen[] | undefined;
+      readonly saved: BibleCutsFile | undefined;
+      readonly canvas: BibleFontMeasure;
+    },
+  ) {}
+
+  get(source: SplitSource): BibleProjection | null {
+    const cached = this.cache.get(source.id);
+    if (
+      cached?.source.passage === source.passage &&
+      cached.source.theme === source.theme &&
+      cached.source.verseNumbers === source.verseNumbers &&
+      cached.source.reference === source.reference &&
+      cached.source.translationName === source.translationName &&
+      cached.source.review === source.review
+    ) {
+      return cached;
+    }
+    const screens = this.context.screens ?? defaultScreens;
+    const screen =
+      screens.find(screen => screen.kind === 'audience') ?? screens[0];
+    if (screen === undefined) return null;
+    const theme = resolveItemTheme({
+      file: this.context.themes,
+      kind: 'bible',
+      source: source.source,
+      screens,
+      ...(source.theme === undefined ? {} : {theme: source.theme}),
+    });
+    const element = resolveThemeScreen(
+      theme,
+      screen.id,
+      screens,
+    ).layout.elements.find(
+      (element): element is BibleTextElement => element.kind === 'currentText',
+    );
+    if (element === undefined) return null;
+    const projection = projectBible(source, {
+      element,
+      layout: bibleMeasure(element, this.context.canvas),
+      saved: this.context.saved,
+    });
+    if (projection === null) return null;
+    if (this.cache.size >= CACHE_LIMIT) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) this.cache.delete(oldest);
+    }
+    this.cache.set(source.id, projection);
+    return projection;
+  }
+}

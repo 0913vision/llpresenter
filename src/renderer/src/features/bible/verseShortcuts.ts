@@ -64,6 +64,7 @@ export async function outputAdjacentBibleVerse(
     });
     if (!current() || expanded === null) return;
     openBiblePassage(expanded, {
+      review: false,
       verseNumbers:
         source?.verseNumbers ??
         (row?.kind === 'bible' ? row.bible?.verseNumbers : undefined) ??
@@ -89,9 +90,14 @@ export async function outputAdjacentBibleVerse(
     }
     const id = useShow.getState().openItemId;
     if (id !== null) {
+      const nextTiles = tilesForView(useShow.getState(), id);
+      const firstPart = nextTiles.findIndex(
+        tile =>
+          labelEdge(tile.label, 'first') === `${edge.chapter}:${edge.verse}`,
+      );
       outputTile({
         itemId: id,
-        index: direction === 'previous' ? 0 : expanded.verses.length - 1,
+        index: firstPart < 0 ? 0 : firstPart,
       });
     }
   } catch (cause) {

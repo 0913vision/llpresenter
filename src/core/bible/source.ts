@@ -12,6 +12,7 @@ export interface BibleDisplayOptions {
 }
 
 export interface BiblePreviewOptions extends BibleDisplayOptions {
+  readonly review?: boolean | undefined;
   readonly enteredRef?: string | undefined;
   readonly enteredTranslation?: TranslationId | undefined;
 }
@@ -47,6 +48,7 @@ export function bibleSource(
     verseNumbers,
     reference,
     translationName,
+    review: options.review ?? true,
     ...(options.enteredRef === undefined
       ? {}
       : {enteredRef: options.enteredRef}),

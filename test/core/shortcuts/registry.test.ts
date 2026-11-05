@@ -46,6 +46,14 @@ function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
 }
 
 describe('shortcut registry', () => {
+  it('reserves Ctrl E for Bible splitting while Ctrl R opens preparation', () => {
+    expect(commandBindings('bible.splitEdit', {})).toEqual([
+      {code: 'KeyE', mods: ['ctrl']},
+    ]);
+    expect(commandBindings('workspace.prep', {})).toEqual([
+      {code: 'KeyR', mods: ['ctrl']},
+    ]);
+  });
   it('keeps unique IDs and schema-valid current defaults without conflicts', () => {
     expect(new Set(shortcutCommands.map(command => command.id)).size).toBe(
       shortcutCommands.length,

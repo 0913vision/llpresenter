@@ -88,6 +88,18 @@ describe('registerStore', () => {
           translation: 'sample',
           verseNumbers: false,
           translationName: false,
+          reference: 'every',
+          passage: {
+            translation: 'sample',
+            translationLabel: 'Sample',
+            ref: '요한복음 3:16-18',
+            displayRef: '요한복음 3:16-18',
+            verses: [16, 17, 18].map(verse => ({
+              chapter: 3,
+              verse,
+              text: `Invented book 43, chapter 3, verse ${verse}`,
+            })),
+          },
         },
       },
       {

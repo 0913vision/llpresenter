@@ -42,7 +42,6 @@ describe('workspace defaults from S1', () => {
   });
   it.each([
     {code: 'KeyS', workspace: 'show'},
-    {code: 'KeyE', workspace: 'prep'},
     {code: 'KeyR', workspace: 'prep'},
   ])('routes $code to $workspace', ({code, workspace}) => {
     const onWorkspace = vi.fn();
@@ -61,6 +60,25 @@ describe('workspace defaults from S1', () => {
       );
     });
     expect(onWorkspace).toHaveBeenCalledExactlyOnceWith(workspace);
+  });
+
+  it('leaves Ctrl E for the selected Bible verse editor', () => {
+    const onWorkspace = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      ),
+    );
+    const edit = new KeyboardEvent('keydown', {
+      code: 'KeyE',
+      ctrlKey: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(edit);
+    });
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(edit.defaultPrevented).toBe(false);
   });
 
   it('leaves Ctrl S to an imported editor and plain paste to text fields', () => {

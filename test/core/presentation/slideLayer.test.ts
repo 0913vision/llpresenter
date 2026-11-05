@@ -29,6 +29,22 @@ describe('slideLayerOf', () => {
     expect(slideLayerOf({itemId: 'other', index: 0}, tilesOf)).toBeNull();
   });
 
+  it('carries explicit continuation markers for the live and next parts', () => {
+    const parts: readonly SlideTile[] = [
+      {
+        label: '3:16',
+        labelColor: 'none',
+        lines: ['가나 (계속)'],
+        continued: true,
+        biblePart: 1,
+      },
+      {label: '3:16', labelColor: 'none', lines: ['다라'], continued: false},
+    ];
+    expect(
+      slideLayerOf({itemId: 'bible', index: 0}, () => parts),
+    ).toMatchObject({continued: true, biblePart: 1, next: {continued: false}});
+  });
+
   it('carries an explicit Bible reference without treating song labels as references', () => {
     const bible: readonly SlideTile[] = [
       {

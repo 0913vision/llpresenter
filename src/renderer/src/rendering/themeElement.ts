@@ -48,6 +48,7 @@ export class ThemeElementView {
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
   private shownText: string | null = null;
+  private shownContinued = false;
   private mediaId: string | null = null;
   private mediaStartedAt: number | null = null;
 
@@ -188,6 +189,11 @@ export class ThemeElementView {
           videoTimeLeft: remainingText(videoRemaining),
         }),
         frame,
+        (element.kind === 'currentText'
+          ? layers.slide?.continued
+          : element.kind === 'nextText'
+            ? layers.slide?.next?.continued
+            : false) === true,
       );
     }
     const target = SLIDE_ELEMENT_KINDS.includes(element.kind)
@@ -257,7 +263,11 @@ export class ThemeElementView {
     }
   }
 
-  private showText(text: string | null, frame: RenderFrame): void {
+  private showText(
+    text: string | null,
+    frame: RenderFrame,
+    continued = false,
+  ): void {
     if (this.text === null) return;
     if (this.element.kind !== 'overlay') this.box.hidden = text === null;
     let style: TextStyle = DEFAULT_TEXT_STYLE;
@@ -292,7 +302,7 @@ export class ThemeElementView {
     ) {
       this.text.setDissolveMs(frame.transitionTimes.slideMs);
     }
-    if (text === this.shownText) return;
+    if (text === this.shownText && continued === this.shownContinued) return;
     const ticking = ['clock', 'timer', 'videoTimeLeft'].includes(
       this.element.kind,
     );
@@ -307,10 +317,12 @@ export class ThemeElementView {
               position: 0,
               label: null,
               lines: text.split('\n'),
+              continued,
             },
       );
     }
     this.shownText = text;
+    this.shownContinued = continued;
   }
 
   remaining(): number | undefined {

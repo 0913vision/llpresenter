@@ -3,6 +3,8 @@ import {fitTextInFrame} from './fitText';
 import {classes} from './classes';
 import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
+import {continuationText} from '@core/bible/split/continuation';
+import {contSizeOf} from '@core/bible/split/layout';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
@@ -62,6 +64,7 @@ function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
   return (
     a.itemId === b.itemId &&
     a.position === b.position &&
+    a.continued === b.continued &&
     a.lines.length === b.lines.length &&
     a.lines.every((line, index) => line === b.lines[index])
   );
@@ -102,12 +105,24 @@ const STYLE_FIELDS = [
   'outline',
 ] as const satisfies ReadonlyArray<keyof TextStyle>;
 
-function writeLines(block: HTMLElement, lines: readonly string[]): void {
+function writeLines(
+  block: HTMLElement,
+  lines: readonly string[],
+  continued = false,
+): void {
   lines.forEach((line, index) => {
     const row =
       block.children.item(index) ??
       block.appendChild(document.createElement('div'));
-    row.textContent = line.length > 0 ? line : NO_BREAK_SPACE;
+    const run = continuationText(line, continued && index === lines.length - 1);
+    row.textContent =
+      run.body.length > 0 ? run.body : run.marker === '' ? NO_BREAK_SPACE : '';
+    if (run.marker !== '') {
+      const marker = document.createElement('span');
+      marker.dataset['bibleContinuation'] = '';
+      marker.textContent = run.marker;
+      row.append(marker);
+    }
   });
   while (block.children.length > lines.length) block.lastElementChild?.remove();
 }
@@ -151,7 +166,7 @@ export class SlideLayerView {
     }
     const back: PageIndex = this.front === 0 ? 1 : 0;
     const next = this.pages[back];
-    writeLines(next.block, slide.lines);
+    writeLines(next.block, slide.lines, slide.continued);
     this.fit(next);
     this.element.classList.remove(classes.instant);
     next.element.classList.add(classes.shown);
@@ -164,7 +179,7 @@ export class SlideLayerView {
     if (this.current === null) return;
     this.current = {...this.current, lines};
     const front = this.pages[this.front];
-    writeLines(front.block, lines);
+    writeLines(front.block, lines, this.current.continued);
     this.fit(front);
   }
 
@@ -230,6 +245,15 @@ export class SlideLayerView {
 
   private fit({element, block}: Page): void {
     const size = this.style.size * this.scale;
+    const markers = block.querySelectorAll<HTMLElement>(
+      '[data-bible-continuation]',
+    );
+    const setSize = (px: number): void => {
+      block.style.fontSize = `${px}px`;
+      for (const marker of markers) {
+        marker.style.fontSize = `${contSizeOf({size: px / this.scale}) * this.scale}px`;
+      }
+    };
     const fontSize = fitTextInFrame(
       {
         size,
@@ -239,10 +263,10 @@ export class SlideLayerView {
         lineHeight: this.style.lineHeight,
       },
       px => {
-        block.style.fontSize = `${px}px`;
+        setSize(px);
         return {width: block.scrollWidth, height: block.scrollHeight};
       },
     );
-    block.style.fontSize = `${fontSize}px`;
+    setSize(fontSize);
   }
 }

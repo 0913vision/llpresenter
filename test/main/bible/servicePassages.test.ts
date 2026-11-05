@@ -123,9 +123,13 @@ describe('saved Bible passage resolution', () => {
     const result = await resolveServicePassages(rows, bible, {
       reportError: bible.report,
     });
-    expect([...result.references]).toEqual([
-      [rows[0]?.id, {ref: '요한복음 3:16-18', translation: 'sample'}],
-    ]);
+    expect([...result.references.keys()]).toEqual([rows[0]?.id]);
+    const resolved = result.references.get(rows[0]?.id ?? '');
+    expect(resolved).toMatchObject({
+      ref: '요한복음 3:16-18',
+      translation: 'sample',
+    });
+    expect(resolved?.passage?.verses).toHaveLength(3);
     expect(result.unavailable.has(rows[1]?.id ?? '')).toBe(true);
   });
 

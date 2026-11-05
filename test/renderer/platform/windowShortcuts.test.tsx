@@ -10,8 +10,8 @@ function press(
   target: Element = document.body,
 ): KeyboardEvent {
   const event = new KeyboardEvent('keydown', {
-    code: 'KeyE',
-    key: 'ㄷ',
+    code: 'KeyR',
+    key: 'ㄱ',
     ctrlKey: true,
     bubbles: true,
     cancelable: true,

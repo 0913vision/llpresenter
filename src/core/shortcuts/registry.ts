@@ -179,13 +179,8 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['audio.toggleRepeat', '오디오 반복', '진행 도구', ['control'], []],
     ['macro.new', '새 매크로', '진행 도구', ['show'], []],
     ['workspace.show', '진행', '작업 공간', ['show', 'prep'], ['ctrl KeyS']],
-    [
-      'workspace.prep',
-      '준비',
-      '작업 공간',
-      ['control'],
-      ['ctrl KeyR', 'ctrl KeyE'],
-    ],
+    ['workspace.prep', '준비', '작업 공간', ['control'], ['ctrl KeyR']],
+    ['bible.splitEdit', '절 나누기', '성경', ['show'], ['ctrl KeyE']],
     [
       'workspace.screens',
       '화면 설정',

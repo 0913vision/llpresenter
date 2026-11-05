@@ -55,6 +55,35 @@ function liveSlide(source: BibleSource, position: number): SlideLayer {
 const live = bibleSource(passage({book: '요한복음', first: 16, last: 18}));
 
 describe('liveTileIndex', () => {
+  it('uses verse and part identity after cuts move identical live text, clamping a removed part', () => {
+    const tile = (label: string, biblePart: number) => ({
+      label,
+      biblePart,
+      labelColor: 'none' as const,
+      lines: ['가 나'],
+    });
+    const projected = {
+      ...live,
+      tiles: [
+        tile('3:16', 1),
+        tile('3:16', 2),
+        tile('3:16', 3),
+        tile('3:17', 1),
+        tile('3:17', 2),
+      ],
+    };
+    const slide: SlideLayer = {
+      itemId: live.id,
+      position: 2,
+      label: '3:17',
+      biblePart: 2,
+      lines: ['가 나'],
+    };
+    expect(liveTileIndex(view(projected, projected), slide)).toBe(4);
+    const reduced = {...projected, tiles: projected.tiles.slice(0, -1)};
+    expect(liveTileIndex(view(reduced, reduced), slide)).toBe(3);
+  });
+
   it('returns the live position of the open item', () => {
     expect(liveTileIndex(view(live, live), liveSlide(live, 2))).toBe(2);
   });

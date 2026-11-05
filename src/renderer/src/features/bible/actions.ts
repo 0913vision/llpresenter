@@ -1,13 +1,27 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {outputTile, useShow} from '@renderer/session/show';
-import {beginOutputRequest} from '@renderer/session/showOutput';
+import {
+  beginOutputRequest,
+  isOutputRequestCurrent,
+} from '@renderer/session/showOutput';
 import {useLive} from '@renderer/session/live';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
 import {
   bibleSource,
   type BibleDisplayOptions,
   type BiblePreviewOptions,
 } from '@core/bible/source';
+import {retainedBibleSelection} from '@core/bible/selection';
+
+type ReviewHandler = (sourceId: string, output: () => void) => boolean;
+let reviewHandler: ReviewHandler | null = null;
+
+export function installBibleReviewHandler(handler: ReviewHandler): () => void {
+  reviewHandler = handler;
+  return () => {
+    if (reviewHandler === handler) reviewHandler = null;
+  };
+}
 
 function samePassage(
   first: BibleLookupPassage,
@@ -31,7 +45,7 @@ export function openBiblePassage(
       ? previous.insertion
       : {serviceId: view.serviceId, itemId: view.openItemId};
   beginOutputRequest();
-  useShow.setState({
+  const next = {
     bibleSource: {...source, insertion},
     liveBibleSource,
     requestedBibleSource:
@@ -39,9 +53,17 @@ export function openBiblePassage(
         ? null
         : view.requestedBibleSource,
     openItemId: source.id,
+  };
+  const nextTiles = tilesForView({...view, ...next}, source.id);
+  useShow.setState({
+    ...next,
     selectedTile:
       previous !== null && samePassage(previous.passage, passage)
-        ? Math.min(view.selectedTile, source.tiles.length - 1)
+        ? retainedBibleSelection(
+            tilesForView(view, previous.id),
+            view.selectedTile,
+            nextTiles,
+          )
         : 0,
   });
 }
@@ -64,9 +86,25 @@ export function showBiblePassage(
           enteredTranslation: prepared.enteredTranslation,
         }
       : undefined);
-  openBiblePassage(passage, display);
+  openBiblePassage(passage, {
+    ...display,
+    verseNumbers: display?.verseNumbers ?? true,
+    review: true,
+  });
   const view = useShow.getState();
   if (view.openItemId !== null) {
-    outputTile({itemId: view.openItemId, index: view.selectedTile});
+    const id = view.openItemId;
+    const request = beginOutputRequest();
+    const version = useLive.getState().commandVersion;
+    const output = (): void => {
+      const current = useShow.getState();
+      if (
+        current.openItemId === id &&
+        isOutputRequestCurrent(request, version)
+      ) {
+        outputTile({itemId: id, index: current.selectedTile});
+      }
+    };
+    if (reviewHandler?.(id, output) !== true) output();
   }
 }

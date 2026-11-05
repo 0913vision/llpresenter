@@ -3,7 +3,8 @@ import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {selectTile, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
+import {labelEdge} from '@core/bible/bibleTiles';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -67,7 +68,13 @@ export function BibleDisplayControls({
       if (!current()) return;
       if (!reply.result.ok) throw Error(reply.result.error.message);
       const passage = reply.result.value;
-      const selected = source.passage.verses[initial.selectedTile];
+      const selectedLabel = labelEdge(
+        tilesForView(initial, source.id)[initial.selectedTile]?.label,
+        'first',
+      );
+      const selected = source.passage.verses.find(
+        verse => `${verse.chapter}:${verse.verse}` === selectedLabel,
+      );
       const next =
         selected === undefined
           ? 0
@@ -85,7 +92,18 @@ export function BibleDisplayControls({
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
       });
-      selectTile(next < 0 ? passage.verses.length - 1 : next);
+      const view = useShow.getState();
+      const target =
+        passage.verses[next < 0 ? passage.verses.length - 1 : next];
+      const index =
+        view.openItemId === null
+          ? 0
+          : tilesForView(view, view.openItemId).findIndex(
+              tile =>
+                labelEdge(tile.label, 'first') ===
+                `${target?.chapter}:${target?.verse}`,
+            );
+      selectTile(Math.max(0, index));
     } catch (cause) {
       if (current()) {
         api.log.write({

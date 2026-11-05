@@ -51,46 +51,51 @@ export function splitVersesForSlides(
   layout: SplitLayout,
   saved?: BibleCutsFile,
 ): readonly VersePart[] {
-  return verses.flatMap((verse): readonly VersePart[] => {
-    const prefix = firstSlidePrefix(verse, {singleVerse: verses.length === 1});
-    try {
-      const cuts =
-        saved === undefined
-          ? undefined
-          : knownCutsFor(saved, verse.reference, verse.text);
-      const plan =
-        cuts === undefined
-          ? undefined
-          : planSlides(verse.text, cuts, {...layout, prefix});
-      if (plan?.ok && plan.cuts.length === cuts?.length) {
-        return itemsFromCuts(verse, plan.cuts, {...layout, prefix});
-      }
-      const result = splitVerse(verse.text, layout, {prefix});
-      if (result.chunks.length > 0) {
-        return result.chunks.map((chunk, index) => ({
-          reference: verse.reference,
-          text: chunk.text,
-          display: chunk.display,
-          continued: chunk.continued,
-          lines: chunk.lines,
-          part: index + 1,
-          partCount: result.nSlides,
-          manual: false,
-        }));
-      }
-    } catch {
-      return [
-        {
-          ...verse,
-          display: verse.text,
-          continued: false,
-          part: 1,
-          partCount: 1,
-          manual: false,
-          problem: 'measurement' as const,
-        },
-      ];
+  return verses.flatMap(verse =>
+    splitVerseParts(verse, layout, {
+      saved,
+      prefix: firstSlidePrefix(verse, {singleVerse: verses.length === 1}),
+    }),
+  );
+}
+
+export function splitVerseParts(
+  verse: VerseInput,
+  layout: SplitLayout,
+  {
+    saved,
+    prefix = '',
+  }: {
+    readonly saved?: BibleCutsFile | undefined;
+    readonly prefix?: string;
+  } = {},
+): readonly VersePart[] {
+  try {
+    const cuts =
+      saved === undefined
+        ? undefined
+        : knownCutsFor(saved, verse.reference, verse.text);
+    const plan =
+      cuts === undefined
+        ? undefined
+        : planSlides(verse.text, cuts, {...layout, prefix});
+    if (plan?.ok && plan.cuts.length === cuts?.length) {
+      return itemsFromCuts(verse, plan.cuts, {...layout, prefix});
     }
+    const result = splitVerse(verse.text, layout, {prefix});
+    if (result.chunks.length > 0) {
+      return result.chunks.map((chunk, index) => ({
+        reference: verse.reference,
+        text: chunk.text,
+        display: chunk.display,
+        continued: chunk.continued,
+        lines: chunk.lines,
+        part: index + 1,
+        partCount: result.nSlides,
+        manual: false,
+      }));
+    }
+  } catch {
     return [
       {
         ...verse,
@@ -99,9 +104,20 @@ export function splitVersesForSlides(
         part: 1,
         partCount: 1,
         manual: false,
+        problem: 'measurement' as const,
       },
     ];
-  });
+  }
+  return [
+    {
+      ...verse,
+      display: verse.text,
+      continued: false,
+      part: 1,
+      partCount: 1,
+      manual: false,
+    },
+  ];
 }
 
 export function cutsOfVerse(

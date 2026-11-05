@@ -1,7 +1,8 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {useShow, selectTile} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
+import {retainedBibleSelection} from '@core/bible/selection';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -63,10 +64,7 @@ export function BibleAdjacentButtons({
         setEdge(direction);
         return;
       }
-      const shift =
-        direction === 'previous'
-          ? passage.verses.length - source.passage.verses.length
-          : 0;
+      const previousTiles = tilesForView(initial, source.id);
       openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
         reference: source.reference,
@@ -75,7 +73,16 @@ export function BibleAdjacentButtons({
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
       });
-      selectTile(initial.selectedTile + shift);
+      const view = useShow.getState();
+      if (view.openItemId !== null) {
+        selectTile(
+          retainedBibleSelection(
+            previousTiles,
+            initial.selectedTile,
+            tilesForView(view, view.openItemId),
+          ),
+        );
+      }
     } catch (cause) {
       if (current()) {
         api.log.write({

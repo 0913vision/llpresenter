@@ -4,7 +4,7 @@ import type {BiblePassage} from '../schema/biblePassage';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
 
-function outputLines(text: string): readonly string[] {
+export function bibleOutputLines(text: string): readonly string[] {
   const lines: string[] = [];
   let line = '';
   for (const character of text) {
@@ -116,7 +116,7 @@ export function bibleVerseTiles(
   const groups = groupsOf(passage.verses, {
     split,
     maxLines,
-    linesOf: verse => outputLines(text(verse)).length,
+    linesOf: verse => bibleOutputLines(text(verse)).length,
   });
   const book = passage.displayRef.replace(/\s+\d.*$/u, '');
   const translation =
@@ -131,6 +131,6 @@ export function bibleVerseTiles(
     (reference === 'last' && index === groups.length - 1)
       ? {reference: `${book} ${spanOf(group, '~')}${translation}`}
       : {}),
-    lines: group.flatMap(verse => outputLines(text(verse))),
+    lines: group.flatMap(verse => bibleOutputLines(text(verse))),
   }));
 }

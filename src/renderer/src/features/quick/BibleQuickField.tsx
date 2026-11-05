@@ -47,7 +47,12 @@ export function BibleQuickField({
       if (active) console.error('Could not read Bible settings', error);
     });
     const stopSelection = useShow.subscribe((next, previous) => {
+      const cancelledPreview =
+        next.openItemId === null &&
+        next.bibleSource === null &&
+        previous.bibleSource?.id === previous.openItemId;
       if (
+        !cancelledPreview &&
         next.openItemId !== previous.openItemId &&
         !isBibleSource(next, next.openItemId)
       ) {
@@ -89,7 +94,7 @@ export function BibleQuickField({
                 equivalent.translation &&
               display !== null
             ) {
-              openBiblePassage(equivalent, display);
+              openBiblePassage(equivalent, {...display, review: false});
             } else {
               useShow.setState({
                 bibleSource: {...source, enteredRef: undefined},
@@ -99,7 +104,7 @@ export function BibleQuickField({
         }}
         onPreview={passage => {
           if (display !== null) {
-            openBiblePassage(passage, display);
+            openBiblePassage(passage, {...display, review: false});
           }
         }}
         onShow={passage => {

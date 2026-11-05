@@ -27,7 +27,7 @@ const requestSchema = payloadObject({
   translation: translationId,
   input: referenceText,
 });
-const passageSchema = payloadObject({
+export const bibleLookupPassageSchema = payloadObject({
   translation: translationId,
   ref: referenceText,
   displayRef: referenceText,
@@ -97,7 +97,7 @@ const replySchema = payloadObject({
   result: v.pipe(
     plainObject,
     v.variant('ok', [
-      v.object({ok: v.literal(true), value: passageSchema}),
+      v.object({ok: v.literal(true), value: bibleLookupPassageSchema}),
       v.object({ok: v.literal(false), error: problemSchema}),
     ]),
   ),
@@ -106,7 +106,7 @@ const replySchema = payloadObject({
 export type BibleLookupRequest = Readonly<v.InferOutput<typeof requestSchema>>;
 export type BibleLookupReply = ReadonlyKnown<v.InferOutput<typeof replySchema>>;
 export type BibleLookupPassage = ReadonlyKnown<
-  v.InferOutput<typeof passageSchema>
+  v.InferOutput<typeof bibleLookupPassageSchema>
 >;
 
 export function parseBibleLookupRequest(value: unknown) {

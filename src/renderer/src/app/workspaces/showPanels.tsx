@@ -10,6 +10,7 @@ import {
 } from '@renderer/features/presentation/SlidePanel';
 import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
+import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {SongBackgroundControl} from '@renderer/features/service/items/SongBackgroundControl';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
@@ -35,10 +36,10 @@ export function ShowShortcuts({
   onProblem,
 }: {
   readonly onProblem: (notice: Notice) => void;
-}): null {
+}): ReactNode {
   useShowKeys();
   useLibrarySongSync(onProblem);
-  return null;
+  return <BibleSplitTools onProblem={onProblem} />;
 }
 
 function showPanelParts({

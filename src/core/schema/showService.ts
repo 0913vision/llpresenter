@@ -2,8 +2,9 @@ import * as v from 'valibot';
 import {NO_LABEL_COLOR, paletteColors} from '../labels/colors';
 import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
-import {mediaChoiceSchema} from './liveState';
-import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
+import {biblePartSchema, mediaChoiceSchema} from './liveState';
+import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
+import {bibleReferenceSchema as bibleReferenceFrequencySchema} from './biblePassage';
 import {
   mediaIdSchema,
   noticeSetIdSchema,
@@ -41,15 +42,35 @@ export const SHOW_SERVICE_LIMITS = {
 } as const;
 
 const id = v.pipe(v.string(), v.nonEmpty());
-const bibleReferenceSchema = payloadObject({
-  translation: v.pipe(
-    translationIdSchema,
-    v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+const bibleReferenceSchema = v.pipe(
+  payloadObject({
+    translation: v.pipe(
+      translationIdSchema,
+      v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+    ),
+    ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
+    verseNumbers: v.exactOptional(v.boolean()),
+    translationName: v.exactOptional(v.boolean()),
+    reference: v.exactOptional(bibleReferenceFrequencySchema),
+    theme: v.exactOptional(themeIdSchema),
+    passage: v.exactOptional(
+      v.pipe(
+        bibleLookupPassageSchema,
+        v.check(
+          passage => passage.verses.length <= SHOW_SERVICE_LIMITS.tiles,
+          'Too many source Bible verses',
+        ),
+      ),
+    ),
+  }),
+  v.check(
+    bible =>
+      bible.passage === undefined ||
+      (bible.passage.translation === bible.translation &&
+        bible.passage.ref === bible.ref),
+    'Bible source must match its reference',
   ),
-  ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
-  verseNumbers: v.exactOptional(v.boolean()),
-  translationName: v.exactOptional(v.boolean()),
-});
+);
 
 const showRowSchema = v.pipe(
   plainObject,
@@ -107,6 +128,8 @@ export const showTileSchema = v.pipe(
     name: v.exactOptional(liveTextSchema),
     picture: v.exactOptional(mediaIdSchema),
     kind: v.exactOptional(v.picklist(['blank', 'ad'])),
+    continued: v.exactOptional(v.boolean()),
+    biblePart: v.exactOptional(biblePartSchema),
     hotKey: v.exactOptional(slideHotKeySchema),
     sourceSlide: v.exactOptional(songSlideSourceSchema),
     media: v.exactOptional(mediaChoiceSchema),

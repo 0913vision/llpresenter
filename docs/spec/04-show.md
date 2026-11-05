@@ -769,13 +769,40 @@ that ProPresenter's Edit mode has the same behavior.
   without a current valid lookup. 취소 forgets the opening and its pending
   replies. No passage is output from this dialog.
 
+### 절 나누기
+
+After opening a passage with unconfirmed split verses, 절 나누기 opens for each
+of them in order. Its subtitle shows the verse reference and `1/2`, `2/2` when
+several need review. Ctrl E on a Bible slide reopens that verse from its current
+cuts, including a saved 성경 구절 item. This replaces Ctrl E's old 준비 alias;
+Ctrl R still opens 준비.
+
+The text has labels between words, in Copible's order
+`asdfghjkl qwertyuiop zxcvbnm 1234567890`. Above 36 gaps, all labels have two
+letters. Physical key codes work with either keyboard language and Caps Lock;
+Shift does not change the selected label. A label cuts before its word; clicking
+a word cuts after it. Pressing the same gap removes it. An automatic gap is
+dismissed only when that gap itself is removed; removing an alternative user cut
+returns to the automatic cuts unless they were dismissed.
+
+Ctrl Z or Backspace undoes, Ctrl Y or Ctrl Shift Z redoes. Enter or Space
+confirms only when every part fits; holding either key confirms once. Esc
+cancels, first clearing a partial two-letter label. Cancelling an automatic
+panel review clears that lookup's preview and returns to 끝절; cancelling a Ctrl
+E reopening leaves its previous cuts unchanged. The output clear keys remain
+available while the dialog owns the editing keys.
+
+Thumbnails show the measured line breaks, the current text box boundary, and the
+smaller continuation marker. An overflowing part has a red boundary and red
+overflow lines with `4/3줄`; 확정 stays disabled. Confirming saves only the
+verse hash, word indices and time through the settings store. A failed save
+keeps the dialog open and reports the failure. There is no editable verse text.
+
 ### Bible panel
 
 - Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드
   3개").
-- Settings row: the installed translation select (개역한글), 나누기 (split: 한
-  슬라이드에 한 절 one verse per 슬라이드, 두 절씩 two verses, 길이에 맞춤 fit
-  to length), 참조 (reference: 슬라이드마다 every 슬라이드), 절 번호 (verse
+- Settings row: the installed translation select (개역한글), 절 번호 (verse
   numbers), and 역본 이름 (translation name).
   - The installed translation, 절 번호, and 역본 이름 controls change this
     preview only; they do not change the defaults, saved items, or live output.
@@ -783,11 +810,24 @@ that ProPresenter's Edit mode has the same behavior.
     the selected verse is omitted, choose the next available verse, or the last
     one when no later verse remains. A failed or superseded lookup keeps the old
     preview.
-  - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
-    슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
-  - Later: a verse too long for one 슬라이드 splits into several 슬라이드 marked
-    [계속], following copible's slide module. It is discussed with the user
-    before it is built (user decision, 2026-10-26).
+  - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
+    scores and global minimum-slide DP, using the theme's 현재 가사 font, size,
+    box width and height, and 최대 줄 수. The font is measured at its configured
+    size rather than shrunk to avoid splitting. This applies to saved 성경 구절
+    items and the 진행 Bible panel, including next/previous navigation.
+  - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
+    size list. Numbering, when enabled for a multi-verse passage, appears only
+    on the first part of each verse and is included in measurement. A single
+    verse has no number prefix, as in Copible. The source text stays exact.
+  - Confirmed word cuts in `bibleCuts.json` are reused only when the text hash
+    matches and the current theme still fits. An overflowing saved entry stays
+    in the file while automatic splitting is used. Measurement failure retains
+    the whole verse; exceeding the projection cap refuses the projection with a
+    visible reason, without dropping source data.
+    - Changing cuts or the theme retains the selected verse and its part, even
+      when earlier verses gain or lose parts. Live output stays unchanged; next
+      and previous continue from that verse and part in the new projection. If
+      that part no longer exists, navigation starts from the verse's last part.
   - 참조 chooses 슬라이드마다, 첫 슬라이드만, 마지막 슬라이드만, or 없음. Each
     selected slide shows its own verses with the full book name:
     `요한복음 3:16`, `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~`

@@ -1,13 +1,19 @@
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import type {RecentPassage} from '@core/schema/bible';
-import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
+import {
+  parseBibleLookupRequest,
+  type BibleLookupPassage,
+} from '@core/schema/bibleLookup';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {SHOW_SERVICE_LIMITS, type ShowTile} from '@core/schema/showService';
 import type {BibleLookupSession} from './lookup';
 
 export interface ServicePassages {
   readonly tiles: ReadonlyMap<string, readonly ShowTile[]>;
-  readonly references: ReadonlyMap<string, RecentPassage>;
+  readonly references: ReadonlyMap<
+    string,
+    RecentPassage & {readonly passage?: BibleLookupPassage}
+  >;
   readonly unavailable: ReadonlySet<string>;
 }
 
@@ -23,7 +29,10 @@ export async function resolveServicePassages(
   },
 ): Promise<ServicePassages> {
   const tiles = new Map<string, readonly ShowTile[]>();
-  const references = new Map<string, RecentPassage>();
+  const references = new Map<
+    string,
+    RecentPassage & {readonly passage?: BibleLookupPassage}
+  >();
   const unavailable = new Set<string>();
   const resolved = new Map<
     string,
@@ -68,7 +77,7 @@ export async function resolveServicePassages(
       }),
     );
     const {ref, translation} = reply.result.value;
-    references.set(item.id, {ref, translation});
+    references.set(item.id, {ref, translation, passage: reply.result.value});
   }
   return {tiles, references, unavailable};
 }

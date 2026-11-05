@@ -26,6 +26,70 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('accepts checked source passages and rejects invalid split metadata', () => {
+    const passage = {
+      translation: 'sample',
+      ref: '요한복음 3:16',
+      displayRef: '요한복음 3:16',
+      verses: [{chapter: 3, verse: 16, text: '가나 다라'}],
+    };
+    const bible = {
+      translation: passage.translation,
+      ref: passage.ref,
+      passage,
+      reference: 'every',
+    };
+    const value = {
+      ...showService(),
+      rows: [{kind: 'bible', id: 'bible', title: passage.ref, bible}],
+      tiles: {
+        bible: [
+          {
+            label: '3:16',
+            labelColor: 'none',
+            lines: ['가나 (계속)'],
+            continued: true,
+            biblePart: 1,
+          },
+        ],
+      },
+    };
+    expect(parseShowService(value)).toMatchObject({
+      ok: true,
+      value: {
+        rows: [{bible}],
+        tiles: {bible: [{continued: true, biblePart: 1}]},
+      },
+    });
+    for (const patch of [
+      {theme: 'bad-id'},
+      {reference: 'sometimes'},
+      {passage: {...passage, translation: 'other'}},
+      {passage: {...passage, ref: '요한복음 3:17'}},
+      {passage: {...passage, verses: [{chapter: 0, verse: 16, text: '가나'}]}},
+    ]) {
+      expect(
+        parseShowService({
+          ...value,
+          rows: [{...value.rows[0], bible: {...bible, ...patch}}],
+        }).ok,
+      ).toBe(false);
+    }
+    expect(
+      parseShowService({
+        ...value,
+        tiles: {bible: [{...value.tiles.bible[0], continued: 'true'}]},
+      }).ok,
+    ).toBe(false);
+    for (const biblePart of [0, -1, 1.5, 10_001, '1', null]) {
+      expect(
+        parseShowService({
+          ...value,
+          tiles: {bible: [{...value.tiles.bible[0], biblePart}]},
+        }).ok,
+      ).toBe(false);
+    }
+  });
   it('accepts slide rows, names, and picture tiles and rejects malformed fields', () => {
     const picture = '00000000-0000-4000-8000-000000000901';
     const row = {kind: 'slides', id: 'slides', title: 'Invented', form: 'ad'};

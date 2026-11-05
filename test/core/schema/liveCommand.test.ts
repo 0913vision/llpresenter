@@ -9,6 +9,37 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
+  it('checks explicit continuation metadata on the current and next Bible parts', () => {
+    const slide = {
+      itemId: 'bible',
+      position: 0,
+      biblePart: 1,
+      label: '3:16',
+      lines: ['가나 (계속)'],
+      continued: true,
+      next: {label: '3:16', lines: ['다라'], continued: false},
+    };
+    expect(parseLiveCommand({type: 'slide.show', slide})).toEqual({
+      ok: true,
+      value: {type: 'slide.show', slide},
+    });
+    for (const biblePart of [0, -1, 1.5, 10_001, '1', null]) {
+      expect(
+        parseLiveCommand({type: 'slide.show', slide: {...slide, biblePart}}).ok,
+      ).toBe(false);
+    }
+    for (const continued of ['true', null, 1]) {
+      expect(
+        parseLiveCommand({type: 'slide.show', slide: {...slide, continued}}).ok,
+      ).toBe(false);
+      expect(
+        parseLiveCommand({
+          type: 'slide.show',
+          slide: {...slide, next: {...slide.next, continued}},
+        }).ok,
+      ).toBe(false);
+    }
+  });
   it('preserves slide picture provenance in a media command', () => {
     const command = {
       type: 'media.show',

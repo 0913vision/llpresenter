@@ -34,6 +34,8 @@ import {themeItemKinds} from '../themes/elementRules';
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 
+export const biblePartSchema = v.pipe(count, v.minValue(1), v.maxValue(10_000));
+
 const mediaChoiceEntries = {
   mediaId: id,
   loop: v.boolean(),
@@ -62,8 +64,10 @@ export const layerSchemas = {
     picture: v.exactOptional(mediaIdSchema),
     itemId: id,
     position: count,
+    biblePart: v.exactOptional(biblePartSchema),
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
+    continued: v.exactOptional(v.boolean()),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),
     kind: v.exactOptional(v.picklist(themeItemKinds)),
@@ -73,6 +77,7 @@ export const layerSchemas = {
       payloadObject({
         label: v.nullable(liveTextSchema),
         lines: slideLinesSchema,
+        continued: v.exactOptional(v.boolean()),
       }),
     ),
   }),

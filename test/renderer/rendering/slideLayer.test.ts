@@ -176,6 +176,26 @@ describe('SlideLayerView', () => {
     expect(shownLines()).toEqual(['첫 줄', ' ', '셋째 줄']);
   });
 
+  it('draws only explicitly continued Bible markers at the smaller size and clears them on the last part', () => {
+    const {view, parent, shownLines, shownPage} = setUp();
+    view.setStyle({...DEFAULT_TEXT_STYLE, size: 36});
+    view.show({...VERSE, continued: true, lines: ['가나 다라 (계속)']});
+    const marker = shownPage()?.querySelector<HTMLElement>(
+      '[data-bible-continuation]',
+    );
+    expect(marker?.textContent).toBe(' (계속)');
+    expect(marker?.style.fontSize).toBe('28px');
+    view.rescale(0.5);
+    expect(marker?.style.fontSize).toBe('14px');
+    view.show({...VERSE, position: 1, lines: ['마바 사아']});
+    expect(shownPage()?.querySelector('[data-bible-continuation]')).toBeNull();
+    expect(shownLines()).toEqual(['마바 사아']);
+    view.show({...VERSE, position: 2, lines: ['Literal (계속)']});
+    expect(shownPage()?.querySelector('[data-bible-continuation]')).toBeNull();
+    view.dispose();
+    expect(parent.childElementCount).toBe(0);
+  });
+
   it('takes the dissolve time of the next 장 from the setting, 0 being a cut', () => {
     const {parent, view} = setUp();
     const layer = () => parent.querySelector<HTMLElement>(`.${classes.layer}`);
