@@ -21,6 +21,7 @@ function objectCommands(document: SettingsDocument): readonly string[] {
         `preview.focus.${item.id}`,
       ]);
     case 'bible':
+    case 'bibleCuts':
     case 'labels':
     case 'messages':
     case 'notices':

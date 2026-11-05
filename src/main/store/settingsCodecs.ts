@@ -1,6 +1,7 @@
 import type {Result} from '@core/common/result';
 import type {FileError} from '@core/schema/fileFormat';
 import * as bible from '@core/schema/bible';
+import * as bibleCuts from '@core/schema/bibleCuts';
 import * as labels from '@core/schema/labels';
 import * as themes from '@core/schema/themes';
 import * as macros from '@core/schema/macros';
@@ -74,6 +75,11 @@ export const settingsCodecs = {
     labels.serializeLabels,
   ),
   bible: codec('llsettings.bible', bible.parseBible, bible.serializeBible),
+  bibleCuts: codec(
+    'llsettings.bibleCuts',
+    bibleCuts.parseBibleCuts,
+    bibleCuts.serializeBibleCuts,
+  ),
   preferences: codec(
     'llsettings.preferences',
     preferences.parsePreferences,

@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
+import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {
   parseFile,
   serializeFile,
@@ -20,6 +21,7 @@ import {
   songIdSchema,
   templateIdSchema,
   themeIdSchema,
+  translationIdSchema,
 } from './ids';
 import {SONG_GROUP_LIMITS} from './groupedSong';
 import {itemOverlaysSchema} from './itemOverlays';
@@ -56,21 +58,45 @@ export const SLIDES_LIMITS = {
 } as const;
 
 const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
+const slideTextSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text));
+
+export const verseSlideSchema = jsonObject({
+  id: slideIdSchema,
+  verse: jsonObject({
+    translation: v.pipe(
+      translationIdSchema,
+      v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+    ),
+    book: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
+    chapter: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.chapters)),
+    verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
+  }),
+});
+
+export type VerseSlide = ReadonlyKnown<v.InferOutput<typeof verseSlideSchema>>;
 
 export const slideSchema = v.pipe(
-  v.union([
-    jsonObject({
-      id: slideIdSchema,
-      text: v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text)),
-      name: v.exactOptional(slideNameSchema),
-    }),
-    jsonObject({id: slideIdSchema, media: mediaIdSchema}),
-  ]),
+  v.lazy(input =>
+    isRecord(input) && Object.hasOwn(input, 'verse')
+      ? verseSlideSchema
+      : v.union([
+          jsonObject({
+            id: slideIdSchema,
+            text: slideTextSchema,
+            name: v.exactOptional(slideNameSchema),
+          }),
+          jsonObject({id: slideIdSchema, media: mediaIdSchema}),
+        ]),
+  ),
   v.check(
     slide =>
-      !Object.hasOwn(slide, 'media') ||
-      (!Object.hasOwn(slide, 'text') && !Object.hasOwn(slide, 'name')),
-    'A slide contains either text with an optional name or media',
+      Object.hasOwn(slide, 'verse')
+        ? !['media', 'name', 'text', 'continued'].some(key =>
+            Object.hasOwn(slide, key),
+          )
+        : !Object.hasOwn(slide, 'media') ||
+          (!Object.hasOwn(slide, 'text') && !Object.hasOwn(slide, 'name')),
+    'A slide contains text, media, or a verse without mixed fields',
   ),
 );
 
@@ -90,6 +116,12 @@ const slidesSchema = v.pipe(
       item.form !== 'blank' ||
       item.slides.every(slide => !Object.hasOwn(slide, 'name')),
     'Blank slides do not have names',
+  ),
+  v.check(
+    item =>
+      item.form === 'blank' ||
+      item.slides.every(slide => !Object.hasOwn(slide, 'verse')),
+    'Only blank items can contain verse slides',
   ),
 );
 

@@ -20,6 +20,10 @@ const uuid = (n: number) =>
 const FILE = 'service.llservice';
 const textSlide = {id: uuid(3), text: 'First line\nSecond line'};
 const mediaSlide = {id: uuid(4), media: uuid(5)};
+const verseSlide = {
+  id: uuid(10),
+  verse: {translation: 'krv', book: 43, chapter: 3, verse: 16},
+};
 const slides = {form: 'ad', name: 'Announcements', slides: [textSlide]};
 const item = {id: uuid(2), slides};
 const service = {
@@ -34,6 +38,62 @@ const accepts = (value: object) =>
   v.safeParse(serviceSchema, {...service, order: [value]}).success;
 
 describe('slides items', () => {
+  it('round-trips reference-only verses alongside text and pictures in blank items', () => {
+    const raw = {
+      ...service,
+      order: [
+        {
+          ...item,
+          slides: {
+            ...slides,
+            form: 'blank',
+            slides: [
+              textSlide,
+              mediaSlide,
+              {
+                ...verseSlide,
+                future: true,
+                verse: {...verseSlide.verse, future: 1},
+              },
+            ],
+          },
+        },
+      ],
+    };
+    const loaded = expectSuccess(parseService(JSON.stringify(raw), FILE));
+    expect(
+      JSON.parse(expectSuccess(serializeService(loaded.data, FILE))),
+    ).toEqual(raw);
+    expect(accepts({...item, slides: {...slides, slides: [verseSlide]}})).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    {verse: null},
+    {verse: {}},
+    {verse: undefined},
+    ...[
+      {translation: ''},
+      {translation: 'x'.repeat(257)},
+      {book: 0},
+      {book: 67},
+      {chapter: 0},
+      {chapter: 151},
+      {verse: 0},
+      {verse: 40_001},
+      {verse: 1.5},
+    ].map(patch => ({verse: {...verseSlide.verse, ...patch}})),
+    {text: ''},
+    {media: uuid(5)},
+    {name: ''},
+    {continued: false},
+  ])('rejects malformed or mixed verse slides %j', patch => {
+    expect(v.safeParse(slideSchema, {...verseSlide, ...patch}).success).toBe(
+      false,
+    );
+  });
+
   it.each(['blank', 'ad'])('round-trips %s text and picture slides', form => {
     const raw = {
       ...service,

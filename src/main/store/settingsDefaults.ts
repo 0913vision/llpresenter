@@ -49,6 +49,7 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   props: {props: []},
   timers: {timers: []},
   labels: {labels: DEFAULT_LABELS},
+  bibleCuts: {entries: {}},
   preferences: defaultPreferences,
   shortcuts: {bindings: {}},
   bible: {

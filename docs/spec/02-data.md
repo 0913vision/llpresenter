@@ -254,13 +254,21 @@ icon, and don't let the operator output it (proposal).
 | `advance` | Positive finite seconds        | No       | Automatic advance interval. Absent: manual.         |
 | `loop`    | Boolean                        | No       | Repeat after the last slide. Absent: off.           |
 
-Each slide is either `{id, text, name?}` or `{id, media}`, never both. `id` is a
-lowercase UUID v4, unique within this item, with the separate `SlideId` type.
-Text is a string of at most 4,000 characters, following the live song text cap.
-An optional slide `name` is at most 512 characters, following the song title
-cap, and is allowed only for `ad` text slides. Even an empty name is invalid on
-a `blank` slide. `media` is a media ID, never a file path. Empty text and names
-are allowed. Unknown fields survive at every level.
+Each slide is `{id, text, name?}`, `{id, media}`, or `{id, verse}`, never mixed.
+`id` is a lowercase UUID v4, unique within this item, with the separate
+`SlideId` type. Text is a string of at most 4,000 characters, following the live
+song text cap. An optional slide `name` is at most 512 characters, following the
+song title cap, and is allowed only for `ad` text slides. Even an empty name is
+invalid on a `blank` slide. `media` is a media ID, never a file path. Empty text
+and names are allowed. Unknown fields survive at every level.
+
+Only `blank` items may hold a verse slide. Its `verse` is
+`{translation, book, chapter, verse}`: an installed translation ID (at most 256
+characters), a book number from 1 to 66, a chapter from 1 to 150, and a verse
+from 1 to 40,000, using the Bible lookup caps. It stores neither the verse text
+nor rendered parts. A verse slide cannot have `text`, `name`, `media`, or
+`continued`. Its parts are calculated from the installed text, the current theme
+measurement, and the saved Bible cuts below.
 
 At item level, `theme`, `overlays`, `background`, `macro`, and `memo` are
 optional, as on song items. `background` is a media ID. The live slide carries
@@ -314,21 +322,22 @@ items).
 Split the app-wide settings into one JSON file per area (proposal). If one file
 breaks, the other areas still work. File names and `format` values (proposal):
 
-| File (in the data folder `Settings\`) | `format`                 | Content                                            |
-| ------------------------------------- | ------------------------ | -------------------------------------------------- |
-| `screens.json`                        | `llsettings.screens`     | Screens                                            |
-| `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind |
-| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                             |
-| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                      |
-| `messages.json`                       | `llsettings.messages`    | 메시지 문구 and styles                             |
-| `notices.json`                        | `llsettings.notices`     | 공지 sets                                          |
-| `props.json`                          | `llsettings.props`       | 그래픽                                             |
-| `timers.json`                         | `llsettings.timers`      | 타이머                                             |
-| `labels.json`                         | `llsettings.labels`      | 이름표 list                                        |
-| `preferences.json`                    | `llsettings.preferences` | 환경설정                                           |
-| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                                  |
-| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages            |
-| `media.json`                          | `llmedia`                | Media list                                         |
+| File (in the data folder `Settings\`) | `format`                 | Content                                             |
+| ------------------------------------- | ------------------------ | --------------------------------------------------- |
+| `screens.json`                        | `llsettings.screens`     | Screens                                             |
+| `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
+| `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
+| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
+| `messages.json`                       | `llsettings.messages`    | 메시지 문구 and styles                              |
+| `notices.json`                        | `llsettings.notices`     | 공지 sets                                           |
+| `props.json`                          | `llsettings.props`       | 그래픽                                              |
+| `timers.json`                         | `llsettings.timers`      | 타이머                                              |
+| `labels.json`                         | `llsettings.labels`      | 이름표 list                                         |
+| `preferences.json`                    | `llsettings.preferences` | 환경설정                                            |
+| `shortcuts.json`                      | `llsettings.shortcuts`   | Changed shortcuts                                   |
+| `bible.json`                          | `llsettings.bible`       | Installed translations, recent passages             |
+| `bibleCuts.json`                      | `llsettings.bibleCuts`   | Confirmed word boundaries for Bible verse splitting |
+| `media.json`                          | `llmedia`                | Media list                                          |
 
 On first launch, create any missing file with its defaults (proposal where the
 sections below don't say otherwise):
@@ -347,6 +356,7 @@ sections below don't say otherwise):
 | `preferences.json` | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show. |
 | `shortcuts.json`   | No bindings: every command uses its default key (10).                                                                                 |
 | `bible.json`       | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                             |
+| `bibleCuts.json`   | No confirmed cuts (`entries: {}`).                                                                                                    |
 | `media.json`       | No media and no playlists.                                                                                                            |
 
 `app.json` starts with `dataRoot` set to the default data folder, empty
@@ -674,6 +684,28 @@ Source: `Shortcuts`, `KeyCap` README, 10.
 | ---------------- | ----- | ---------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | `translations[]` | Array | Installed translations: `id`, `name` (개역한글), `lang` (한국어), `file` (translation file name), `default` (Boolean). | `Prefs` 성경 (Bible)  |
 | `recents[]`      | Array | Recent passages: `ref` and `translation` from the Bible passage object. Up to 10 (proposal).                           | `Bible` 최근 (recent) |
+
+### Confirmed Bible cuts (`bibleCuts.json`)
+
+`Settings/bibleCuts.json` uses `format: "llsettings.bibleCuts"` and
+`schemaVersion: 1`. `entries` is keyed first by installed translation ID, then
+by `book:chapter:verse` (for example `krv` and `43:3:16`). Each value is
+`{hash, cuts, confirmedAt}`. `hash` is Copible 1.6's eight-character lowercase
+FNV-1a hash of the whitespace-normalized verse text. `cuts` is a sorted, unique
+list of positive word indices: cut `j` means before word `j`. `confirmedAt` is a
+UTC timestamp. The file contains no Bible text.
+
+There are at most 200 translations and 40,000 entries in total. An entry has at
+most 1,295 cuts, each no greater than 20,000 (the Bible text cap). Refuse
+additional entries when full, retaining all existing confirmations. Reads and
+writes use the settings store's validation, recovery copies, and atomic writes.
+
+A saved entry is used only when its text hash still matches, its indices are
+inside that verse, and every part fits the current measurement, including the
+first-slide verse number and the smaller ` (계속)` marker on non-last parts.
+Otherwise use automatic splitting without deleting the entry. Restoring the
+previous theme can make the saved entry usable again. Confirming replaces the
+entry; cancelling does not save anything.
 
 ### `app.json` in the app data folder (proposal)
 

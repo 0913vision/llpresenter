@@ -37,6 +37,7 @@ const fixtures = {
   props: {format: 'llsettings.props', schemaVersion: 1, props: []},
   timers: {format: 'llsettings.timers', schemaVersion: 1, timers: []},
   labels: {format: 'llsettings.labels', schemaVersion: 1, labels: []},
+  bibleCuts: {format: 'llsettings.bibleCuts', schemaVersion: 1, entries: {}},
   bible: {
     format: 'llsettings.bible',
     schemaVersion: 1,

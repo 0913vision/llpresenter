@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {bibleSchema} from './bible';
+import {bibleCutsSchema} from './bibleCuts';
 import {accessSchema, revisionSchema} from './contentDocuments';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {labelsSchema} from './labels';
@@ -45,6 +46,7 @@ const schemas = {
   timers: timersSchema,
   labels: labelsSchema,
   bible: bibleSchema,
+  bibleCuts: bibleCutsSchema,
   preferences: preferencesSchema,
   shortcuts: shortcutsSchema,
 };
@@ -60,6 +62,7 @@ export const settingsNames = [
   'timers',
   'labels',
   'bible',
+  'bibleCuts',
   'preferences',
   'shortcuts',
 ] as const satisfies ReadonlyArray<keyof typeof schemas>;
@@ -81,6 +84,7 @@ const settingsDocument = v.pipe(
     settingsDocumentSchema('timers', schemas.timers),
     settingsDocumentSchema('labels', schemas.labels),
     settingsDocumentSchema('bible', schemas.bible),
+    settingsDocumentSchema('bibleCuts', schemas.bibleCuts),
     settingsDocumentSchema('preferences', schemas.preferences),
     settingsDocumentSchema('shortcuts', schemas.shortcuts),
   ]),
@@ -109,6 +113,7 @@ const settingsUpdateSchema = v.variant('name', [
   updateSchema('timers', schemas.timers),
   updateSchema('labels', schemas.labels),
   updateSchema('bible', schemas.bible),
+  updateSchema('bibleCuts', schemas.bibleCuts),
   updateSchema('preferences', schemas.preferences),
   updateSchema('shortcuts', schemas.shortcuts),
 ]);
