@@ -418,9 +418,10 @@ progress, nothing on output.
 
 ### 이름표 관리
 
-- Where: 이름표 picker
-- Opens: 이름표 관리….
-- Purpose: Manage the shared catalog in one dialog.
+- Where: 이름표 picker and 환경설정 > 이름표
+- Opens: 이름표 관리…, or the 이름표 page after 라이브러리.
+- Purpose: Manage the shared catalog through the same editor in a dialog or
+  page.
 - PP: Not seen in PP as a menu. PP edits groups in Settings > Groups (name,
   color list, delete; Arrangements video 1:02). Rows follow the list-row rule
   plus the color that PP keeps per group.
@@ -433,7 +434,9 @@ repeating it visibly beside the name field.
 
 새 이름표 at the footer's left adds a uniquely named row and selects its name
 for editing. It does not assign the label to a group. 닫기 is the only footer
-completion action (October 31 B22 user decision).
+completion action in the dialog (October 31 B22 user decision). The preferences
+page shares the row controls, save and rename behavior, deletion question and 새
+이름표 action. Its changes appear in open dialogs and song editors at once.
 
 - No 복제: PP groups have no duplicate.
 

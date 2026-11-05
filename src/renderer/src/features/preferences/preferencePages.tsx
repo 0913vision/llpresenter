@@ -30,6 +30,7 @@ export const preferencePages = [
   {id: 'general', label: '일반', icon: 'gear'},
   {id: 'output', label: '출력', icon: 'mplay'},
   {id: 'library', label: '라이브러리', icon: 'folder'},
+  {id: 'labels', label: '이름표', icon: 'bookmark'},
   {id: 'media', label: '미디어', icon: 'audio'},
   {id: 'bible', label: '성경', icon: 'book'},
   {id: 'import', label: '가져오기', icon: 'download'},

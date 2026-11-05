@@ -36,6 +36,7 @@ const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
   },
   preferences: {
     title: '환경설정',
+    prepare: session => session.startEditor(),
     load: async () => (await import('./PreferencesWindow')).PreferencesWindow,
   },
   song: {

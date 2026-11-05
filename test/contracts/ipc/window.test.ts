@@ -29,7 +29,7 @@ describe('window text edit action', () => {
 });
 
 describe('the 환경설정 page request', () => {
-  it.each(['general', 'shortcuts'])('accepts %s', page => {
+  it.each(['general', 'labels', 'shortcuts'])('accepts %s', page => {
     expect(parsePreferencePage(page)).toEqual({ok: true, value: page});
   });
 

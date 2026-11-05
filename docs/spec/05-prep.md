@@ -300,15 +300,23 @@ the editor until 저장 ("곡 편집" under B20 above).
 ### Managing the 이름표 list
 
 이름표 관리… opens one dialog for the shared catalog (October 31 B22 user
-decision). Each row contains an editable name, the shared color palette with an
-accessible name, and 삭제. Do not repeat the palette name as visible text. Name
-changes use the shared rename contract: Enter or blur accepts a valid draft, Esc
-cancels it, and a failed save keeps its applied identity for retry or
-correction. Color and rename tooltips explain their library-wide scope.
+decision). The same editor is also available at 환경설정 > 이름표, after
+라이브러리 in the page list (November 5 user decision). Both surfaces share
+their controls, validation, rename contract and immediate catalog updates; edits
+appear in open dialogs and song editors at once. Each row contains an editable
+name, the shared color palette with an accessible name, and 삭제. Do not repeat
+the palette name as visible text. Name changes use the shared rename contract:
+Enter or blur accepts a valid draft, Esc cancels it, and a failed save keeps its
+applied identity for retry or correction. Color and rename tooltips explain
+their library-wide scope.
 
 새 이름표 at the bottom left appends a uniquely named row with no color and
 focuses and selects its name. Creation does not assign it to the current group.
-Changes save immediately, so 닫기 is the only footer completion action. Hot keys
+Changes save immediately, so 닫기 is the dialog's only footer completion action.
+The preferences page has the same 새 이름표 action without a completion footer.
+Leaving the page, through either navigation or a requested preferences page,
+settles name drafts first. A refused save keeps the page and typed name open for
+correction; an in-flight save must finish before navigation proceeds. Hot keys
 belong to particular source slides, not this shared name/color registry (October
 27 S26 user decision).
 

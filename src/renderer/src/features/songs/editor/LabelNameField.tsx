@@ -46,6 +46,7 @@ function NameDraft({
   readonly autoFocus: boolean;
 }): JSX.Element {
   const [applied, setApplied] = useState<AppliedRename | null>(null);
+  const pendingSave = useRef<Promise<boolean> | null>(null);
   const currentName = applied?.name ?? label.name;
   const draft = useRenameDraft(
     label.name,
@@ -56,21 +57,26 @@ function NameDraft({
           labels.filter(item => item.name !== currentName),
         ),
       onCommit: name => {
-        if (applied !== null && name === applied.name) {
-          return store.retryRename(applied);
-        }
-        onRename(currentName, name);
-        return store.renameLabel(currentName, name, setApplied);
+        const retry = applied !== null && name === applied.name;
+        if (!retry) onRename(currentName, name);
+        const saved = retry
+          ? store.retryRename(applied)
+          : store.renameLabel(currentName, name, setApplied);
+        pendingSave.current = saved;
+        return saved.finally(() => {
+          pendingSave.current = null;
+        });
       },
       onClose,
     },
     locked,
   );
-  const save = draft.changed ? draft.save : null;
+  const {changed, save: saveDraft} = draft;
   useEffect(() => {
+    const save = changed ? () => pendingSave.current ?? saveDraft() : null;
     onDraft(save);
     return () => onDraft(null);
-  }, [onDraft, save]);
+  }, [onDraft, changed, saveDraft]);
   return (
     <TextField
       aria-label={`${label.name} 이름`}
@@ -93,6 +99,24 @@ function NameDraft({
       }}
       autoFocus={autoFocus}
       block
+      onBlur={event => {
+        if (
+          !draft.valid &&
+          event.currentTarget.closest('[data-label-manager]')
+        ) {
+          return;
+        }
+        if (
+          event.relatedTarget instanceof Element &&
+          event.relatedTarget.closest('button') &&
+          event.currentTarget
+            .closest('[data-label-manager]')
+            ?.contains(event.relatedTarget)
+        ) {
+          return;
+        }
+        draft.field.onBlur(event);
+      }}
     />
   );
 }

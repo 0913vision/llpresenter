@@ -3,6 +3,7 @@ export const PREFERENCE_PAGE_IDS = [
   'general',
   'output',
   'library',
+  'labels',
   'media',
   'bible',
   'import',

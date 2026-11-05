@@ -172,13 +172,14 @@ describe('PreferencesView', () => {
     );
   });
 
-  it('lists the eight pages and opens the 단축키 page', async () => {
+  it('lists the nine pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
       '출력',
       '라이브러리',
+      '이름표',
       '미디어',
       '성경',
       '가져오기',

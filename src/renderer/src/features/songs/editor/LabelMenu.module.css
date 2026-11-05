@@ -32,6 +32,13 @@
   gap: var(--space-12);
 }
 
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
 .settingsRow {
   display: flex;
   align-items: center;

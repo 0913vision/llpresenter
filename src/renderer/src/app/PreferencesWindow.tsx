@@ -1,4 +1,11 @@
-import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {IconButton} from '@renderer/ui';
@@ -6,20 +13,29 @@ import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import type {CloseFlush} from './closeFlush';
+import type {ControlSession} from './controlSession';
 import {SavingDialog} from './SavingDialog';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
 import {useCloseKeys, useInitialListFocus} from './useWindowKeyboard';
 import styles from './PreferencesWindow.module.css';
 
 const TITLE = '환경설정';
+const noSubscription = () => () => undefined;
 
 /** The 환경설정 window: its own title bar and a close button. */
 export function PreferencesWindow({
   closeFlush,
+  session,
 }: {
   readonly closeFlush?: CloseFlush | undefined;
+  readonly session?: ControlSession | undefined;
 }): JSX.Element {
-  const [notices, setNotices] = useState<readonly Notice[]>([]);
+  const [localNotices, setNotices] = useState<readonly Notice[]>([]);
+  const getLocalNotices = useCallback(() => localNotices, [localNotices]);
+  const notices = useSyncExternalStore(
+    session?.subscribe ?? noSubscription,
+    session?.getNotices ?? getLocalNotices,
+  );
   useShortcutSettings(window.llp);
   useUiZoomKeys();
   const body = useRef<HTMLElement>(null);
@@ -28,8 +44,12 @@ export function PreferencesWindow({
   useInitialListFocus(body);
   useEffect(() => watchInputModality(window), []);
   const report = useCallback(
-    (notice: Notice) => setNotices(current => addNotice(current, notice)),
-    [],
+    (notice: Notice) => {
+      if (session === undefined) {
+        setNotices(current => addNotice(current, notice));
+      } else session.report(notice);
+    },
+    [session],
   );
   return (
     <div className={styles.window} data-workspace-layout="preferences">
@@ -40,11 +60,15 @@ export function PreferencesWindow({
         </div>
       </header>
       <main ref={body} className={styles.body} aria-label={TITLE}>
-        <PreferencesView onProblem={report} />
+        <PreferencesView onProblem={report} labelStore={session?.editor} />
       </main>
       <NotificationStack
         notices={notices}
-        onClose={key => setNotices(current => removeNotice(current, key))}
+        onClose={key => {
+          if (session === undefined) {
+            setNotices(current => removeNotice(current, key));
+          } else session.dismiss(key);
+        }}
       />
       {closeFlush === undefined ? null : (
         <SavingDialog closeFlush={closeFlush} />
