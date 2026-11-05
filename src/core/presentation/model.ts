@@ -1,4 +1,3 @@
-import type {MediaChoice} from '../live/state';
 import type {ShowRow, ShowTile, showRowProblems} from '../schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
@@ -7,7 +6,7 @@ export type ItemId = string;
 /** Why a row shows a warning; the data layer decides it. */
 export type RowProblem = (typeof showRowProblems)[number];
 
-export type ItemKind = 'song' | 'bible' | 'media' | 'notice' | 'unknown';
+export type ItemKind = Exclude<ShowRow['kind'], 'header'>;
 
 export interface HeaderRow {
   readonly kind: 'header';
@@ -15,14 +14,7 @@ export interface HeaderRow {
   readonly title: string;
 }
 
-export interface ItemRow {
-  readonly kind: ItemKind;
-  readonly id: ItemId;
-  readonly title: string;
-  readonly problem?: RowProblem;
-  readonly background?: MediaChoice;
-  readonly bible?: NonNullable<Extract<ShowRow, {kind: 'bible'}>['bible']>;
-}
+export type ItemRow = Exclude<ShowRow, {kind: 'header'}>;
 
 export type ServiceRow = HeaderRow | ItemRow;
 

@@ -24,8 +24,17 @@ const themeIds = {
   bible: createThemeId(uuid(102)),
   notice: createThemeId(uuid(103)),
   media: createThemeId(uuid(104)),
+  blank: createThemeId(uuid(102)),
+  ad: createThemeId(uuid(105)),
 };
-const names = {song: '찬양', bible: '말씀', notice: '광고', media: '영상'};
+const names = {
+  song: '찬양',
+  bible: '말씀',
+  notice: '공지',
+  media: '영상',
+  blank: '말씀',
+  ad: '광고',
+};
 const starterScreens: readonly ThemeScreen[] = [
   {
     id: createScreenId(STARTER_SCREEN_IDS.main),
@@ -153,6 +162,7 @@ function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
 ): ThemeScreenLayout {
+  if (kind === 'ad') return advertisementLayout();
   const lowerThird = screen.kind === 'broadcast';
   const elements =
     screen.kind === 'stage'
@@ -172,18 +182,78 @@ function layoutFor(
   };
 }
 
+function advertisementLayout(): ThemeScreenLayout {
+  const text: ThemeText = {
+    ...basicText,
+    align: 'left',
+    vAlign: 'top',
+    weight: 400,
+    outline: {...basicText.outline, on: false},
+    shadow: {...basicText.shadow, on: false},
+  };
+  const gold = '#e6b54a';
+  return {
+    mode: {kind: 'own'},
+    elements: [
+      {
+        id: createThemeElementId(uuid(1)),
+        kind: 'box',
+        frame: {...fullFrame},
+        box: {on: true, fill: '#141c2e', opacity: 100, radius: 0},
+      },
+      {
+        id: createThemeElementId(uuid(2)),
+        kind: 'box',
+        frame: {...fullFrame, w: 24},
+        box: {on: true, fill: gold, opacity: 100, radius: 0},
+      },
+      {
+        id: createThemeElementId(uuid(3)),
+        kind: 'text',
+        frame: {x: 150, y: 190, w: 1600, h: 60},
+        text: {...text, size: 42, weight: 600, color: gold},
+        content: '교회 소식',
+      },
+      {
+        id: createThemeElementId(uuid(4)),
+        kind: 'media',
+        frame: {...fullFrame},
+        fit: 'fill',
+        radius: 0,
+      },
+      {
+        id: createThemeElementId(uuid(5)),
+        kind: 'slideName',
+        frame: {x: 150, y: 280.3, w: 1600, h: 151.8},
+        text: {...text, size: 132, weight: 800, lineHeight: 1.15},
+      },
+      {
+        id: createThemeElementId(uuid(6)),
+        kind: 'currentText',
+        frame: {x: 150, y: 504.1, w: 1600, h: 500},
+        text: {
+          ...text,
+          size: 60,
+          lineHeight: 1.55,
+          color: '#c9d1e0',
+          maxLines: 6,
+        },
+      },
+    ],
+  };
+}
+
 /** Builds a fallback for the configured screens, including newly added screen IDs. */
 export function builtInTheme(
   kind: ThemeItemKind,
   screens: readonly ThemeScreen[] = starterScreens,
 ): Theme {
-  const fallbackKind =
-    kind === 'blank' ? 'bible' : kind === 'ad' ? 'notice' : kind;
+  const fallbackKind = kind === 'blank' ? 'bible' : kind;
   return {
     id: themeIds[fallbackKind],
     name: names[fallbackKind],
     screens: Object.fromEntries(
-      screens.map(screen => [screen.id, layoutFor(screen, kind)]),
+      screens.map(screen => [screen.id, layoutFor(screen, fallbackKind)]),
     ),
   };
 }
@@ -203,9 +273,12 @@ export function createDefaultThemes(
           .map(screen => [screen.id, standbyStageLayout()]),
       ),
     },
-    themes: themeItemKinds
-      .filter(kind => kind !== 'blank' && kind !== 'ad')
-      .map(kind => builtInTheme(kind, screens)),
+    themes: [
+      ...themeItemKinds
+        .filter(kind => kind !== 'blank' && kind !== 'ad')
+        .map(kind => builtInTheme(kind, screens)),
+      builtInTheme('ad', screens),
+    ],
     defaults: {...themeIds},
   };
 }

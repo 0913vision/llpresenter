@@ -67,7 +67,7 @@ export function themeElementText(
     case 'itemName':
       return item?.contentCleared ? null : (item?.title ?? null);
     case 'slideName':
-      return null;
+      return slide?.name ?? null;
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':

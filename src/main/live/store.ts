@@ -20,6 +20,9 @@ import type {
 } from './slice';
 
 export type LiveListener = (state: LiveState) => void;
+export type LiveCommandListener = (
+  commands: readonly SingleLiveCommand[],
+) => void;
 
 export type ProblemListener = (problem: AppProblem) => void;
 
@@ -31,6 +34,7 @@ export class LiveStore {
   private history: LiveHistory;
   private themes: SliceInputs['themes'];
   private readonly listeners = new Set<LiveListener>();
+  private readonly commandListeners = new Set<LiveCommandListener>();
   private readonly problemListeners = new Set<ProblemListener>();
   private settings: SettingsReader | undefined;
   private screenSettings: ScreenSettingsPort | undefined;
@@ -151,7 +155,9 @@ export class LiveStore {
     onListenerError?: (error: unknown) => void,
     onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean {
+    const commands: SingleLiveCommand[] = [];
     const {history: next, skipped} = this.slices.run(this.history, command, {
+      onCommand: executed => commands.push(executed),
       ...(this.themes === undefined ? {} : {themes: this.themes}),
       ...this.readClock(),
       ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
@@ -175,15 +181,29 @@ export class LiveStore {
       }
     }
     this.reportDroppedMacros(skipped, onListenerError);
-    if (!changed) return false;
-    this.notify(next.state, onListenerError);
-    return true;
+    if (changed) this.notify(next.state, onListenerError);
+    for (const listener of this.commandListeners) {
+      try {
+        listener(commands);
+      } catch (error) {
+        onListenerError?.(error);
+      }
+    }
+    return changed;
   }
 
   subscribe(listener: LiveListener): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
+    };
+  }
+
+  /** Observes admitted commands and macro children after their dispatch completes. */
+  subscribeCommands(listener: LiveCommandListener): () => void {
+    this.commandListeners.add(listener);
+    return () => {
+      this.commandListeners.delete(listener);
     };
   }
 

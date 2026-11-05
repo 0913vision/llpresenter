@@ -146,6 +146,17 @@ service needs no confirmation), product log version 63.
 
 ### 슬라이드 grid
 
+- 빈 슬라이드 and 광고 items use the same click and slide navigation commands as
+  songs. Their bands show the sequence number and the 광고 text slide's name,
+  the picture's file name, or a 빈 슬라이드 text slide's first line.
+- With 넘기기 set to an interval, the main process advances the live item's
+  slides every N seconds, even if the control window reloads. With 반복 on, the
+  last slide returns to the first; otherwise it stays on the last. Clicking a
+  slide again or moving manually starts a full new interval. Starting another
+  item, 지우기, or 항목 끄기 stops the timer. Selecting a different row alone
+  leaves the live sequence running. Shutdown releases the timer. An item with
+  손으로 never schedules a timer.
+
 - For a song item, the grid shows the 슬라이드 in the order of the chosen 구성,
   or of the item's own order when it has one (05). A 슬라이드 that appears
   several times in the 구성 gets several tiles. In the board, a song with 4

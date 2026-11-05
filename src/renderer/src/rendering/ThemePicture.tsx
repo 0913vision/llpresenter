@@ -93,9 +93,25 @@ function contents(
   context: {
     samples: Partial<Record<ThemeElementKind, string>>;
     timers: RenderTimers | undefined;
+    media: Partial<Record<'media' | 'background', string>> | undefined;
   },
 ): JSX.Element | null {
   const {samples, timers} = context;
+  if (element.kind === 'media' || element.kind === 'background') {
+    const source = context.media?.[element.kind];
+    return source === undefined ? null : (
+      <img
+        className={styles.image}
+        src={source}
+        alt=""
+        draggable={false}
+        style={{
+          objectFit: mediaObjectFit(element.fit),
+          borderRadius: element.radius,
+        }}
+      />
+    );
+  }
   if (element.kind === 'clock' || element.kind === 'timer') {
     return (
       <ThemeTime
@@ -171,11 +187,13 @@ export function ThemePicture({
   background,
   samples,
   timers,
+  media,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: string;
   readonly samples: Partial<Record<ThemeElementKind, string>>;
   readonly timers?: RenderTimers | undefined;
+  readonly media?: Partial<Record<'media' | 'background', string>> | undefined;
 }): JSX.Element {
   return (
     <svg
@@ -215,7 +233,7 @@ export function ThemePicture({
                     }}
                   />
                 ) : null}
-                {contents(element, {samples, timers})}
+                {contents(element, {samples, timers, media})}
               </div>
             );
           })}

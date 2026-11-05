@@ -1,5 +1,9 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {LiveCommand, LiveCommandType} from '@core/live/commands';
+import type {
+  LiveCommand,
+  LiveCommandType,
+  SingleLiveCommand,
+} from '@core/live/commands';
 import type {LiveLayers, LiveState} from '@core/live/state';
 import type {LiveHistory} from './history';
 import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
@@ -47,6 +51,8 @@ export interface ThemeReduction {
 }
 
 export interface SliceInputs {
+  /** Receives admitted commands and macro children before state publication. */
+  readonly onCommand?: (command: SingleLiveCommand) => void;
   readonly themes?: {
     reduce(request: ThemeReduction): LiveHistory;
   };

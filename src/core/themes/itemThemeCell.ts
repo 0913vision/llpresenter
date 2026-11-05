@@ -1,6 +1,6 @@
 import type {ServiceItem} from '../schema/service';
-import {serviceItemKind} from '../schema/service';
 import type {ThemesFile} from '../schema/themes';
+import {itemThemeKind} from './itemKind';
 import {resolveItemTheme} from './resolve';
 
 /** What the 테마 column of the 예배 순서 table shows for an item. */
@@ -19,10 +19,8 @@ export function itemThemeCell(
   item: ServiceItem,
   file: ThemesFile | null,
 ): ItemThemeCell | undefined {
-  const kind = serviceItemKind(item);
-  if (kind === 'header' || kind === 'slides' || kind === 'unknown') {
-    return undefined;
-  }
+  const kind = itemThemeKind(item);
+  if (kind === undefined) return undefined;
   const chosen = file?.themes.find(theme => theme.id === item.theme);
   const theme = resolveItemTheme({
     file,

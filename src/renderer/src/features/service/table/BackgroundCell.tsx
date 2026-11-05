@@ -56,10 +56,9 @@ export function BackgroundCell({
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const background = 'background' in row ? row.background : undefined;
   const parsed =
-    row.background === undefined
-      ? undefined
-      : parseMediaId(row.background.mediaId);
+    background === undefined ? undefined : parseMediaId(background.mediaId);
   const playing = parsed?.ok === true ? parsed.value : undefined;
   const own = item !== undefined && 'background' in item;
   const shown =
@@ -67,7 +66,7 @@ export function BackgroundCell({
       ? {media: undefined, name: NONE}
       : {
           media: playing,
-          name: row.background?.title ?? backgroundName(media, playing),
+          name: background?.title ?? backgroundName(media, playing),
         };
   const hint = !own && playing !== undefined ? FOLLOWS_SONG : undefined;
   const {targetProps, tooltip} = useTooltip(titleTooltip(hint));

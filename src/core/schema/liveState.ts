@@ -2,7 +2,12 @@ import * as v from 'valibot';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {macroIdSchema, screenIdSchema, timerIdSchema} from './ids';
+import {
+  macroIdSchema,
+  mediaIdSchema,
+  screenIdSchema,
+  timerIdSchema,
+} from './ids';
 import {
   LIVE_STATE_LIMITS,
   liveTextSchema,
@@ -34,6 +39,7 @@ const mediaChoiceEntries = {
   loop: v.boolean(),
   itemId: v.exactOptional(liveNonBlankTextSchema),
   title: v.exactOptional(liveTextSchema),
+  slidePicture: v.exactOptional(v.literal(true)),
 };
 
 const slideLinesSchema = v.pipe(
@@ -53,6 +59,7 @@ export const layerSchemas = {
     properties: v.exactOptional(outputMediaPropertiesSchema),
   }),
   slide: payloadObject({
+    picture: v.exactOptional(mediaIdSchema),
     itemId: id,
     position: count,
     label: v.nullable(liveTextSchema),

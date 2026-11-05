@@ -126,6 +126,23 @@ Ctrl 1, 무대 출력 켜기 Ctrl 2), `Recovery`.
 
 ## Layers and stacking order
 
+### Slides items
+
+A 빈 슬라이드 or 광고 item sends its selected slide through the same live slide
+path as a song. Text fills 현재 가사 and the following text slide fills 다음
+가사. An 광고 text slide's name fills 슬라이드 이름 on every screen. Picture
+slides have no text or name: their photo fills the 미디어 element, using its
+frame and 맞춤. Returning to text restores the item's 배경, or clears the
+previous slide picture when the item has no 배경. The picture and slide content
+change together in one live transaction.
+
+가사 지우기 (F2) leaves a slide picture in 미디어. Sending a text slide later
+removes that picture even while the lyrics layer is empty. A background chosen
+after the picture stays, including when it uses the same image file.
+
+Thumbnails share the theme text sources and theme picture renderer used by
+previews, including the picture's fit and the saved element order.
+
 The live 테마 lays out every screen (12). A screen draws, from the bottom up:
 
 1. The elements of its 테마, from the bottom of the element list to the top (12,

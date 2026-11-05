@@ -5,6 +5,7 @@ import {defineSlice} from '@main/live/slice';
 import {registryOf, SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+import type {SingleLiveCommand} from '@core/live/commands';
 
 const fixtureSlice = defineSlice({
   commands: ['clear.undo'],
@@ -13,6 +14,27 @@ const fixtureSlice = defineSlice({
 });
 
 describe('SliceRegistry', () => {
+  it('does not observe commands from a dispatch whose final state is rejected', () => {
+    const registry = new SliceRegistry([
+      defineSlice({
+        commands: ['output.set'],
+        initial: {},
+        reduce: history => ({
+          ...history,
+          state: {...history.state, outputs: {invalid: true}},
+        }),
+      }),
+    ]);
+    const history = initialHistory(emptyLiveState());
+    const onCommand = vi.fn<(command: SingleLiveCommand) => void>();
+    const result = registry.run(
+      history,
+      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
+      {now: 42, onCommand},
+    );
+    expect(result.history).toBe(history);
+    expect(onCommand).not.toHaveBeenCalled();
+  });
   it('returns a classified validation skip without throwing or changing the history', () => {
     const error = {field: 'items', message: 'Too many items'};
     const registry = new SliceRegistry([
@@ -53,6 +75,7 @@ describe('SliceRegistry', () => {
 
   it('drops the effects a skipped child deferred and runs its siblings effects', () => {
     const ran: string[] = [];
+    const onCommand = vi.fn<(command: SingleLiveCommand) => void>();
     const registry = new SliceRegistry([
       batchSlice,
       defineSlice({
@@ -90,9 +113,12 @@ describe('SliceRegistry', () => {
           {type: 'layer.clear', target: 'all'},
         ],
       },
-      {now: 42},
+      {now: 42, onCommand},
     );
     expect(ran).toEqual(['applied']);
+    expect(onCommand.mock.calls.map(([command]) => command.type)).toEqual([
+      'output.set',
+    ]);
     expect(result.skipped.map(problem => problem.reason)).toEqual([
       'failed',
       'invalid-overlay',

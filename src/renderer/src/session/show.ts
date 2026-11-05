@@ -15,6 +15,7 @@ import {
   type SequenceState,
 } from '@core/presentation/navigation';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {slidesOutput} from '@core/presentation/slides';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {sendLive, useLive} from './live';
 import {
@@ -176,7 +177,11 @@ export function outputTile(cursor: TileCursor): void {
     requestedBibleSource: source?.id === liveItemId ? null : source,
   });
   startServiceItem(cursor.itemId);
-  sendLive({type: 'slide.show', slide});
+  sendLive(
+    row?.kind === 'slides'
+      ? slidesOutput(slide, row.background)
+      : {type: 'slide.show', slide},
+  );
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
   if (passage !== undefined) {

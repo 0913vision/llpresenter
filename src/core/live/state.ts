@@ -3,7 +3,7 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from '../schema/overlayState';
-import type {MacroId, ScreenId, TimerId} from '../schema/ids';
+import type {MacroId, MediaId, ScreenId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
 import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
@@ -38,6 +38,8 @@ export interface MediaChoice {
   readonly loop: boolean;
   readonly itemId?: string;
   readonly title?: string;
+  /** Identifies a slide picture independently of cleared lyrics. */
+  readonly slidePicture?: true;
 }
 
 /** The background media on output. */
@@ -60,6 +62,7 @@ export interface NextSlide {
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
 export interface SlideLayer {
+  readonly picture?: MediaId;
   readonly itemId: string;
   readonly position: number;
   readonly label: string | null;

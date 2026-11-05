@@ -27,6 +27,7 @@ import {createSongGroupId, createSongId} from '@core/schema/ids';
 import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {translationIdSchema} from '@core/schema/ids';
+import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
@@ -67,6 +68,20 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('projects slides items into named rows and navigable text and picture tiles', () => {
+    const shown = build([slidesItem()]);
+    expect(shown.rows[0]).toMatchObject({
+      kind: 'slides',
+      form: 'ad',
+      title: 'Invented slides',
+    });
+    expect(shown.tiles[SLIDES_ITEM]).toHaveLength(3);
+    expect(shown.tiles[SLIDES_ITEM]?.[0]).toMatchObject({
+      name: 'Meeting',
+      lines: ['First line\nSecond line'],
+    });
+    expect(shown.rows[0]).toHaveProperty('problem', 'missing-media');
+  });
   it.each([true, false])(
     'shows the resolved Bible passage with the numbering %s of its item',
     verseNumbers => {

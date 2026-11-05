@@ -9,6 +9,18 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('connects slide advance to live state and disposes its timer before data', async () => {
+    await startMain();
+    expect(mocks.slideAdvanceContexts).toHaveLength(1);
+    expect(mocks.slideAdvanceContexts[0]).toHaveProperty('store');
+    expect(mocks.slideAdvanceContexts[0]).toHaveProperty('data');
+    beforeQuit();
+    await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
+    expect(mocks.slideAdvanceStop).toHaveBeenCalledOnce();
+    expect(mocks.slideAdvanceStop.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
   it('registers fonts for the control window and stops enumeration before closing data', async () => {
     const control = await startMain();
     expect(mocks.fontContexts).toHaveLength(1);

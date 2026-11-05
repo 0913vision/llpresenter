@@ -115,6 +115,7 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
 }
 
 export interface SlideThumbnailProps {
+  readonly canvas?: ReactNode;
   /** The 슬라이드 number in the band, from 1. */
   readonly number: number;
   /** The 이름표 name; leave it out for a 슬라이드 without an 이름표. */
@@ -167,13 +168,14 @@ function thumbnailState(live: boolean, missing: boolean): string | undefined {
 }
 
 function Canvas({
+  canvas,
   text,
   media,
   missingFile,
   hotKey,
 }: Pick<
   SlideThumbnailProps,
-  'text' | 'media' | 'missingFile' | 'hotKey'
+  'canvas' | 'text' | 'media' | 'missingFile' | 'hotKey'
 >): JSX.Element {
   if (missingFile !== undefined) {
     return (
@@ -189,10 +191,13 @@ function Canvas({
   }
   return (
     <span className={styles.canvas}>
-      {media === undefined ? null : (
+      {canvas}
+      {canvas !== undefined || media === undefined ? null : (
         <img className={styles.media} src={media} alt="" decoding="async" />
       )}
-      {text === undefined ? null : <span className={styles.text}>{text}</span>}
+      {canvas !== undefined || text === undefined ? null : (
+        <span className={styles.text}>{text}</span>
+      )}
       {hotKey !== undefined && (
         <span className={styles.hotKey} aria-hidden="true">
           {formatSlideHotKey(hotKey)}
@@ -209,6 +214,7 @@ function Canvas({
 export const SlideThumbnail = memo(
   ({
     number,
+    canvas,
     label,
     labelColor = NO_LABEL_COLOR,
     text,
@@ -235,6 +241,7 @@ export const SlideThumbnail = memo(
         className={styles.thumb}
       >
         <Canvas
+          canvas={canvas}
           text={text}
           media={media}
           missingFile={missingFile}

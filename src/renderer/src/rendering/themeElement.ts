@@ -32,6 +32,7 @@ function remainingText(seconds: number | undefined): string | undefined {
 const SLIDE_ELEMENT_KINDS: readonly string[] = [
   'currentText',
   'reference',
+  'slideName',
   'nextText',
   'label',
   'nextLabel',
@@ -123,13 +124,15 @@ export class ThemeElementView {
   ): void {
     const {element} = this;
     const item = frame.theme?.item ?? null;
+    const foreground =
+      item?.kind === 'media' || layers.media?.slidePicture === true;
     if (element.kind === 'media' || element.kind === 'background') {
       const media =
         element.kind === 'media'
-          ? item?.kind === 'media'
+          ? foreground
             ? layers.media
             : null
-          : item?.kind === 'media'
+          : foreground
             ? null
             : layers.media;
       this.showMedia(media, frame, element.fit);

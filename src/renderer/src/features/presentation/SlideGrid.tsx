@@ -7,6 +7,10 @@ import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
+import {isItemRow} from '@core/presentation/model';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useSlideTheme} from './useSlideTheme';
 import styles from './SlideGrid.module.css';
 
 const GRID_SELECTOR = '[role="listbox"]';
@@ -29,6 +33,10 @@ export function SlideGrid({
   const openItemId = useShow(view => view.openItemId);
   const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(shownTiles);
+  const row = useShow(view => view.rows.find(value => value.id === openItemId));
+  const theme = useSlideTheme(
+    row !== undefined && isItemRow(row) ? row : undefined,
+  );
   const liveIndex = useLiveTileIndex();
   const [menu, setMenu] = useState<{
     itemId: string;
@@ -79,10 +87,19 @@ export function SlideGrid({
       >
         {tiles?.map((tile, index) => {
           const picture = tile.media?.mediaId ?? tile.notice?.media;
+          const slide =
+            openItemId === null
+              ? null
+              : slideLayerOf({itemId: openItemId, index}, () => tiles);
           return (
             <SlideThumbnail
               key={index}
               number={index + 1}
+              canvas={
+                theme === undefined || slide === null ? undefined : (
+                  <SlidePicture {...theme} slide={slide} />
+                )
+              }
               label={
                 tile.label ??
                 (picture === undefined ? undefined : tile.lines.join(' '))

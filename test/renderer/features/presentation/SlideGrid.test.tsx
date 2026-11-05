@@ -7,6 +7,9 @@ import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {applyService, openItem} from '@renderer/session/show';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
+import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
+import {projectSlides} from '@core/presentation/slides';
+import type {LiveCommand} from '@core/live/commands';
 
 beforeEach(() => {
   seedSampleService();
@@ -17,6 +20,35 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   delete window.llp;
+});
+
+it('shows themed slides with ad names in their bands and sends picture slides on click', () => {
+  const send = vi.fn<(command: LiveCommand) => void>();
+  window.llp = mockLlpApi({live: {send}});
+  const item = slidesItem();
+  applyService({
+    revision: 100,
+    id: 'slides-service',
+    name: 'Slides',
+    readOnly: false,
+    rows: [
+      {id: SLIDES_ITEM, kind: 'slides', form: 'ad', title: item.slides.name},
+    ],
+    tiles: {[SLIDES_ITEM]: projectSlides(item)},
+    jumpKeys: {},
+  });
+  openItem(SLIDES_ITEM);
+  render(<SlideGrid columns={4} scalePercent={100} />);
+  expect(screen.getAllByRole('option')).toHaveLength(3);
+  expect(screen.getAllByRole('option')[0]?.textContent).toContain('Meeting');
+  fireEvent.click(slide(1));
+  const command = send.mock.calls.at(-1)?.[0];
+  expect(command?.type).toBe('live.batch');
+  if (command?.type !== 'live.batch') throw Error('Missing output batch');
+  expect(command.commands.at(-1)).toMatchObject({
+    type: 'slide.show',
+    slide: {position: 1},
+  });
 });
 
 function slide(index: number): HTMLElement {

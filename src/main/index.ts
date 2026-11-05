@@ -21,6 +21,7 @@ import {
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
+import {registerSlideAdvance} from './live/slideAdvance';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {diagnosticsText} from './diagnostics';
@@ -188,6 +189,11 @@ function start(): void {
         log,
       });
       const stopThemeOutput = registerThemeOutput({
+        store,
+        data: dataStore,
+        log,
+      });
+      const stopSlideAdvance = registerSlideAdvance({
         store,
         data: dataStore,
         log,
@@ -368,6 +374,7 @@ function start(): void {
       shutdown.add({name: 'stop audio', run: stopAudio});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop theme output', run: stopThemeOutput});
+      shutdown.add({name: 'stop slide advance', run: stopSlideAdvance});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

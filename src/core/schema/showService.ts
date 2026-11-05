@@ -10,6 +10,7 @@ import {
   songIdSchema,
   songGroupIdSchema,
   translationIdSchema,
+  themeIdSchema,
 } from './ids';
 import {nonBlankText, nonNegativeInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
@@ -62,6 +63,15 @@ const showRowSchema = v.pipe(
       background: v.exactOptional(mediaChoiceSchema),
     }),
     v.object({
+      kind: v.literal('slides'),
+      id,
+      title: v.string(),
+      form: v.picklist(['blank', 'ad']),
+      theme: v.exactOptional(themeIdSchema),
+      background: v.exactOptional(mediaChoiceSchema),
+      problem: v.exactOptional(v.picklist(showRowProblems)),
+    }),
+    v.object({
       kind: v.literal('bible'),
       id,
       title: v.string(),
@@ -94,6 +104,9 @@ export const showTileSchema = v.pipe(
     labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
     lines: v.array(v.string()),
     reference: v.exactOptional(liveTextSchema),
+    name: v.exactOptional(liveTextSchema),
+    picture: v.exactOptional(mediaIdSchema),
+    kind: v.exactOptional(v.picklist(['blank', 'ad'])),
     hotKey: v.exactOptional(slideHotKeySchema),
     sourceSlide: v.exactOptional(songSlideSourceSchema),
     media: v.exactOptional(mediaChoiceSchema),

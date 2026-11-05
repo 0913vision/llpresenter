@@ -226,14 +226,19 @@ export class SliceRegistry {
       };
       try {
         const reduced = slice.apply(before, next, context);
-        return outcome.rejected
-          ? reduced
-          : (inputs.themes?.reduce({
-              before,
-              after: reduced,
-              command: next,
-              context,
-            }) ?? reduced);
+        if (outcome.rejected) return reduced;
+        const after =
+          inputs.themes?.reduce({
+            before,
+            after: reduced,
+            command: next,
+            context,
+          }) ?? reduced;
+        const observe = inputs.onCommand;
+        if (observe !== undefined && next.type !== 'live.batch') {
+          record.defer(next.type, () => observe(next));
+        }
+        return after;
       } catch (error) {
         record.skip(
           mark,

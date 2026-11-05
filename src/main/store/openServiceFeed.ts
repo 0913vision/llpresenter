@@ -122,6 +122,10 @@ export class OpenServiceFeed {
       if (background !== null) backgrounds.set(id, background);
     };
     for (const item of service.data.order) {
+      if (isItemOfKind(item, 'slides')) {
+        await check(item.background);
+        continue;
+      }
       if (isItemOfKind(item, 'media')) {
         await check(item.media);
         continue;

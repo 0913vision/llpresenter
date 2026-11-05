@@ -9,6 +9,24 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
+  it('preserves slide picture provenance in a media command', () => {
+    const command = {
+      type: 'media.show',
+      media: {
+        mediaId: 'picture',
+        loop: false,
+        itemId: 'item',
+        slidePicture: true,
+      },
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+    expect(
+      parseLiveCommand({
+        ...command,
+        media: {...command.media, slidePicture: false},
+      }).ok,
+    ).toBe(false);
+  });
   it('preserves an explicit Bible reference on a slide command', () => {
     const command = {
       type: 'slide.show',

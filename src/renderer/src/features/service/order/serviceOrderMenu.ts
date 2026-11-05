@@ -101,6 +101,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
             ]),
       ];
     case 'bible':
+    case 'slides':
     case 'media':
     case 'notice':
     case 'unknown':
@@ -134,6 +135,7 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
     case 'song':
       return [];
     case 'bible':
+    case 'slides':
     case 'media':
     case 'notice':
     case 'unknown':

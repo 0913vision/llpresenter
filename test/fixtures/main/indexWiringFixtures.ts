@@ -29,6 +29,8 @@ const mocks = vi.hoisted(() => {
     audioStop: vi.fn<() => void>(),
     themeOutputContexts: new Array<unknown>(),
     themeOutputStop: vi.fn<() => void>(),
+    slideAdvanceContexts: new Array<unknown>(),
+    slideAdvanceStop: vi.fn<() => void>(),
     recovery: {
       crashed: false,
       markQuitting: vi.fn<() => Promise<void>>(),
@@ -226,6 +228,12 @@ vi.mock('@main/live/themes', () => ({
   registerThemeOutput: (context: unknown) => {
     mocks.themeOutputContexts.push(context);
     return mocks.themeOutputStop;
+  },
+}));
+vi.mock('@main/live/slideAdvance', () => ({
+  registerSlideAdvance: (context: unknown) => {
+    mocks.slideAdvanceContexts.push(context);
+    return mocks.slideAdvanceStop;
   },
 }));
 vi.mock('@main/media/analysis', () => ({

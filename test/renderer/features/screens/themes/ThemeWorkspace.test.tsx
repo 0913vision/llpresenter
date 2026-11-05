@@ -149,11 +149,35 @@ async function saveEdits() {
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
 }
 
+it.each(['청중 화면 편집', '무대 화면 편집', '방송 화면 편집'])(
+  'adds the slide name text element once on %s',
+  async screenName => {
+    const {value} = setup();
+    fireEvent.click(await screen.findByRole('button', {name: screenName}));
+    const palette = screen.getByRole('region', {name: '요소 추가'});
+    fireEvent.click(
+      within(palette).getByRole('button', {name: '슬라이드 이름'}),
+    );
+    expect(screen.getByRole('listbox', {name: '요소'}).textContent).toContain(
+      '슬라이드 이름',
+    );
+    expect(
+      within(palette).queryByRole('button', {name: '슬라이드 이름'}),
+    ).toBeNull();
+    await saveEdits();
+    expect(
+      Object.values(value().themes[0]?.screens ?? {})
+        .flatMap(layout => layout.elements)
+        .filter(element => element.kind === 'slideName'),
+    ).toHaveLength(1);
+  },
+);
+
 it('keeps standby first and LIVE before kind tags, and saves theme duplication and inline rename', async () => {
   const {value, listeners} = setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});
   await waitFor(() =>
-    expect(within(themes).getAllByRole('option')).toHaveLength(5),
+    expect(within(themes).getAllByRole('option')).toHaveLength(6),
   );
   expect(within(themes).getAllByRole('option')[0]?.textContent).toBe(
     '대기 화면',
@@ -179,7 +203,7 @@ it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', asy
   setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});
   await waitFor(() =>
-    expect(within(themes).getAllByRole('option')).toHaveLength(5),
+    expect(within(themes).getAllByRole('option')).toHaveLength(6),
   );
   const song = within(themes).getByRole('option', {name: '찬양'});
   fireEvent.click(song);
@@ -212,7 +236,7 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
   });
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
   const used = await screen.findByRole('alertdialog');
-  expect(used.textContent).toContain('쓰는 곳: 성경 기본');
+  expect(used.textContent).toContain('쓰는 곳: 성경, 빈 슬라이드 기본');
   fireEvent.click(within(used).getByRole('button', {name: '삭제'}));
   await waitFor(() =>
     expect(value().themes.some(theme => theme.name === '말씀')).toBe(false),
@@ -640,7 +664,7 @@ it('saves the working copy under a new name and leaves the original as it was', 
     '찬양 복사본',
   );
   fireEvent.click(within(dialog).getByRole('button', {name: '저장'}));
-  await waitFor(() => expect(value().themes).toHaveLength(5));
+  await waitFor(() => expect(value().themes).toHaveLength(6));
   const copy = value().themes.at(-1);
   expect(copy?.name).toBe('찬양 복사본');
   expect(currentTextX(copy)).toBe(EDITED_X);
@@ -713,7 +737,7 @@ it('saves a copy from a theme with no edits', async () => {
   );
   const dialog = await screen.findByRole('dialog');
   fireEvent.click(within(dialog).getByRole('button', {name: '저장'}));
-  await waitFor(() => expect(value().themes).toHaveLength(5));
+  await waitFor(() => expect(value().themes).toHaveLength(6));
   expect(currentTextX(value().themes.at(-1))).toBe(original);
   expect(value().themes.at(-1)?.name).toBe('찬양 복사본');
 });

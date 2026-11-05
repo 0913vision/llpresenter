@@ -17,11 +17,19 @@ export function slideLayerOf(
   return {
     itemId: cursor.itemId,
     position: cursor.index,
-    label: tile.label,
+    label: tile.kind === undefined ? tile.label : null,
     lines: tile.lines,
+    ...(tile.name === undefined ? {} : {name: tile.name}),
+    ...(tile.picture === undefined ? {} : {picture: tile.picture}),
+    ...(tile.kind === undefined ? {} : {kind: tile.kind}),
     ...(tile.reference === undefined ? {} : {reference: tile.reference}),
     ...(next === undefined
       ? {}
-      : {next: {label: next.label, lines: next.lines}}),
+      : {
+          next: {
+            label: next.kind === undefined ? next.label : null,
+            lines: next.lines,
+          },
+        }),
   };
 }

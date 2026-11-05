@@ -2,7 +2,9 @@ import {useContext, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
-import {themeItemKinds} from '@core/themes/elementRules';
+import {itemThemeKind} from '@core/themes/itemKind';
+import {missingSlideElements} from '@core/themes/slideElements';
+import {themeElementNames} from '@renderer/rendering/themeNames';
 import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
@@ -25,12 +27,7 @@ export function useItemTheme(
     themes.document?.name === 'themes' ? themes.document.value : null;
   const targets =
     screens.document?.name === 'screens' ? screens.document.value.screens : [];
-  const kind =
-    item === null
-      ? undefined
-      : themeItemKinds.find(
-          kind => kind !== 'blank' && kind !== 'ad' && isItemOfKind(item, kind),
-        );
+  const kind = item === null ? undefined : itemThemeKind(item);
   const theme =
     kind === undefined
       ? undefined
@@ -66,6 +63,10 @@ export function useItemTheme(
     defaultTheme,
     targets,
     missing,
+    missingContent:
+      theme === undefined || item === null || !isItemOfKind(item, 'slides')
+        ? []
+        : missingSlideElements(item, theme, targets),
     loaded: themes.document !== null,
     failed: themes.failed,
   };
@@ -121,10 +122,8 @@ export function ItemThemeRow({
   readonly item: ServiceItem;
   readonly reason: string | undefined;
 }): JSX.Element {
-  const {file, kind, theme, defaultTheme, loaded, failed} = useItemTheme(
-    api,
-    item,
-  );
+  const {file, kind, theme, defaultTheme, loaded, failed, missingContent} =
+    useItemTheme(api, item);
   const defaultId = kind === undefined ? undefined : file?.defaults[kind];
   const hasDefault =
     file?.themes.some(entry => entry.id === defaultId) === true;
@@ -176,6 +175,25 @@ export function ItemThemeRow({
             }}
           />
           <EditItemTheme />
+          {missingContent.length === 0 ? null : (
+            <Tooltip
+              text={missingContent
+                .map(
+                  ({screen, kinds}) =>
+                    `${screen.name}: ${kinds.map(kind => themeElementNames[kind]).join(', ')} 요소 없음`,
+                )
+                .join('\n')}
+            >
+              <span
+                role="img"
+                aria-label="테마에 필요한 요소 없음"
+                tabIndex={0}
+                className={styles.warning}
+              >
+                <Icon name="warning" size={14} />
+              </span>
+            </Tooltip>
+          )}
         </div>
       )}
     </PropertyRow>

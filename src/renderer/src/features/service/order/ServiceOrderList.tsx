@@ -50,6 +50,7 @@ import type {ItemKind, RowProblem, ServiceRow} from '@core/presentation/model';
 import styles from './ServiceOrderList.module.css';
 
 const iconByKind: Readonly<Record<ItemKind, string>> = {
+  slides: 'image',
   song: 'song',
   bible: 'book',
   media: 'film',

@@ -49,7 +49,7 @@ it('converts the starter audience styles and stage geometry into theme elements'
   ]);
 });
 
-it.each(themeItemKinds)(
+it.each(themeItemKinds.filter(kind => kind !== 'ad'))(
   'keeps the default %s capture layout free of item backgrounds and inherits the empty color',
   kind => {
     const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
@@ -73,7 +73,9 @@ it.each(themeItemKinds)(
     expect(
       output.screens[id]?.layout.elements.map(element => element.kind),
     ).toEqual(
-      kind === 'bible' ? ['currentText', 'reference'] : ['currentText'],
+      kind === 'bible' || kind === 'blank'
+        ? ['currentText', 'reference']
+        : ['currentText'],
     );
   },
 );
@@ -124,17 +126,57 @@ it('gives the 무대 화면 of the Bible 테마 no reference and the same elemen
   expect(kinds('bible')).toEqual(kinds('song'));
 });
 
-it('makes a valid file with the four built-in 테마 and a 대기 화면 with a clock and a timer on the 무대 화면', () => {
+it('makes a valid file with built-in themes and a standby clock and timer on stage', () => {
   const defaults = createDefaultThemes();
   expect(v.safeParse(themesSchema, defaults).success).toBe(true);
   expect(defaults.themes.map(entry => entry.name)).toEqual([
     '찬양',
     '말씀',
-    '광고',
+    '공지',
     '영상',
+    '광고',
   ]);
   const stage = createDefaultThemes().standby.screens;
   expect(
     Object.values(stage).map(layout => layout.elements.map(e => e.kind)),
   ).toEqual([['clock', 'timer']]);
+});
+
+it('defaults blank slides to 말씀 and builds the ad frame on every configured screen', () => {
+  const file = createDefaultThemes();
+  expect(file.defaults.blank).toBe(file.defaults.bible);
+  const ad = file.themes.find(theme => theme.id === file.defaults.ad);
+  expect(ad?.name).toBe('광고');
+  for (const layout of Object.values(ad?.screens ?? {})) {
+    expect(layout.elements.map(element => element.kind)).toEqual([
+      'box',
+      'box',
+      'text',
+      'media',
+      'slideName',
+      'currentText',
+    ]);
+    expect(layout.elements[0]).toMatchObject({
+      frame: {x: 0, y: 0, w: 1920, h: 1080},
+      box: {fill: '#141c2e'},
+    });
+    expect(layout.elements[1]).toMatchObject({
+      frame: {w: 24},
+      box: {fill: '#e6b54a'},
+    });
+    expect(layout.elements[2]).toMatchObject({
+      content: '교회 소식',
+      frame: {x: 150, y: 190},
+    });
+    expect(layout.elements[3]).toMatchObject({
+      fit: 'fill',
+      frame: {w: 1920, h: 1080},
+    });
+    expect(layout.elements[4]).toMatchObject({text: {size: 132, weight: 800}});
+    expect(layout.elements[5]).toMatchObject({
+      text: {size: 60, weight: 400, color: '#c9d1e0'},
+    });
+  }
+  expect(builtInTheme('ad')).toEqual(ad);
+  expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
 });

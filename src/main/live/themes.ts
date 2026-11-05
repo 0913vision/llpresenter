@@ -3,6 +3,7 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {songIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
+import {itemThemeKind} from '@core/themes/itemKind';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../log';
 import {ThemeRuntime} from './themeRuntime';
@@ -52,30 +53,24 @@ export function registerThemeOutput({
                   .service(serviceId)
                   ?.service.order.find(item => item.id === id);
           if (entry === undefined) return undefined;
-          const kind = isItemOfKind(entry, 'song')
-            ? 'song'
-            : isItemOfKind(entry, 'bible')
-              ? 'bible'
-              : isItemOfKind(entry, 'media')
-                ? 'media'
-                : isItemOfKind(entry, 'notice')
-                  ? 'notice'
-                  : null;
-          if (kind === null) return undefined;
+          const kind = itemThemeKind(entry);
+          if (kind === undefined) return undefined;
           const notices = isItemOfKind(entry, 'notice')
             ? settings.get('notices')
             : undefined;
-          const title = isItemOfKind(entry, 'song')
-            ? content.song(entry.song)?.song.title
-            : isItemOfKind(entry, 'media')
-              ? media?.get().value.items.find(item => item.id === entry.media)
-                  ?.name
-              : isItemOfKind(entry, 'bible')
-                ? entry.bible.ref
-                : isItemOfKind(entry, 'notice') && notices?.name === 'notices'
-                  ? notices.value.sets.find(set => set.id === entry.notice)
-                      ?.name
-                  : undefined;
+          const title = isItemOfKind(entry, 'slides')
+            ? entry.slides.name
+            : isItemOfKind(entry, 'song')
+              ? content.song(entry.song)?.song.title
+              : isItemOfKind(entry, 'media')
+                ? media?.get().value.items.find(item => item.id === entry.media)
+                    ?.name
+                : isItemOfKind(entry, 'bible')
+                  ? entry.bible.ref
+                  : isItemOfKind(entry, 'notice') && notices?.name === 'notices'
+                    ? notices.value.sets.find(set => set.id === entry.notice)
+                        ?.name
+                    : undefined;
           return {
             id,
             kind,

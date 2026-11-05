@@ -18,6 +18,7 @@ import {
   type ShowTile,
 } from '@core/schema/showService';
 import {playedGroupIds, type SongPlay} from '@core/songs/itemOrder';
+import {projectSlides} from '@core/presentation/slides';
 import type {ServicePassages} from '../bible/servicePassages';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
@@ -138,6 +139,7 @@ function otherTiles(
   item: ServiceItem,
   {backgrounds, media, notices}: OtherSources,
 ): readonly ShowTile[] | undefined {
+  if (isItemOfKind(item, 'slides')) return projectSlides(item, media);
   if (isItemOfKind(item, 'media')) {
     if (media === undefined) return undefined;
     const choice = backgrounds.get(item.media);
@@ -181,6 +183,29 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
   }
   if (isItemOfKind(item, 'song')) {
     return songRow(item, sources.songs.get(item.song), sources);
+  }
+  if (isItemOfKind(item, 'slides')) {
+    const background =
+      item.background === undefined
+        ? undefined
+        : sources.backgrounds.get(item.background);
+    return {
+      kind: 'slides',
+      id,
+      title: item.slides.name,
+      form: item.slides.form,
+      ...(item.theme === undefined ? {} : {theme: item.theme}),
+      ...(background === undefined ? {} : {background}),
+      ...(item.background !== undefined && background === undefined
+        ? {problem: 'missing-background' as const}
+        : item.slides.slides.some(
+              slide =>
+                'media' in slide &&
+                sources.media?.get(slide.media)?.kind !== 'image',
+            )
+          ? {problem: 'missing-media' as const}
+          : {}),
+    };
   }
   if (isItemOfKind(item, 'bible')) {
     const bible = sources.passages?.references.get(id);

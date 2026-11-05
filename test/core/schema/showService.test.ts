@@ -26,6 +26,36 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('accepts slide rows, names, and picture tiles and rejects malformed fields', () => {
+    const picture = '00000000-0000-4000-8000-000000000901';
+    const row = {kind: 'slides', id: 'slides', title: 'Invented', form: 'ad'};
+    const tile = {
+      label: 'Meeting',
+      labelColor: 'none',
+      lines: [],
+      name: 'Meeting',
+      picture,
+      kind: 'ad',
+    };
+    const value = {...showService(), rows: [row], tiles: {slides: [tile]}};
+    expect(parseShowService(value)).toMatchObject({
+      ok: true,
+      value: {rows: [row], tiles: {slides: [tile]}},
+    });
+    for (const changes of [
+      {picture: 'bad-id'},
+      {name: 'x'.repeat(4001)},
+      {kind: 'other'},
+    ]) {
+      expect(
+        parseShowService({...value, tiles: {slides: [{...tile, ...changes}]}})
+          .ok,
+      ).toBe(false);
+    }
+    expect(
+      parseShowService({...value, rows: [{...row, form: 'other'}]}).ok,
+    ).toBe(false);
+  });
   it.each([true, false, undefined])(
     'retains optional saved translation visibility %s',
     translationName => {

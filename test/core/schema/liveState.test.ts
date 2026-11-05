@@ -29,6 +29,57 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('preserves picture provenance on media after lyrics are cleared', () => {
+    const state = {
+      ...emptyLiveState(),
+      layers: {
+        ...emptyLiveState().layers,
+        media: {
+          mediaId: 'picture',
+          loop: false,
+          startedAt: 0,
+          slidePicture: true,
+        },
+      },
+    };
+    expect(parseLiveState(state)).toEqual({ok: true, value: state});
+  });
+  it.each([false, 'true', 1, null])(
+    'rejects malformed media picture provenance %j',
+    slidePicture => {
+      const state = {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          media: {mediaId: 'picture', loop: false, startedAt: 0, slidePicture},
+        },
+      };
+      expect(parseLiveState(state).ok).toBe(false);
+    },
+  );
+  it('accepts a slide picture ID and rejects malformed IDs', () => {
+    const base = busyState();
+    const state = {
+      ...base,
+      layers: {
+        ...base.layers,
+        slide: {
+          ...base.layers.slide,
+          picture: '00000000-0000-4000-8000-000000000901',
+        },
+      },
+    };
+    expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    expect(
+      parseLiveState({
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {...state.layers.slide, picture: 'bad-id'},
+        },
+      }).ok,
+    ).toBe(false);
+  });
   it('carries a bounded optional slide name separately from label, title, and reference', () => {
     const slide = {
       itemId: 'item-1',

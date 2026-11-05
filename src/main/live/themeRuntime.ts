@@ -144,7 +144,11 @@ export class ThemeRuntime {
         }
         break;
       case 'media.show':
-        if (command.media.itemId !== undefined || item === null) {
+        if (
+          item === null ||
+          (command.media.itemId !== undefined &&
+            command.media.itemId !== item.id)
+        ) {
           item = {
             id: command.media.itemId ?? command.media.mediaId,
             kind: 'media',

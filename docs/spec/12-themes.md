@@ -348,13 +348,19 @@ does (02).
 
 ### Defaults
 
-- `defaults.blank` and `defaults.ad` optionally select the 테마 for 빈 슬라이드
-  and 광고 items respectively. The intended defaults are 말씀 for 빈 슬라이드
-  and 광고 for 광고.
-
-- A new `themes.json` holds 찬양, 말씀, 광고, and 영상 as the defaults of 곡,
-  성경, 공지, and 미디어 (draft E's names), and a 대기 화면 with nothing on any
-  screen.
+- `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
+  `themes.json`. Both can be changed like the other kind defaults.
+- The 광고 theme draws these elements bottom to top on every screen: a
+  full-screen #141c2e 사각형, a 24 px #e6b54a bar at the left, fixed text "교회
+  소식", full-screen 미디어 with 채우기, 슬라이드 이름, and 현재 가사. The
+  heading starts at (150, 190); the slide name uses 132 px, weight 800; body
+  text uses 60 px, line height 1.55, and #c9d1e0. A picture slide has no current
+  text or name, so its media covers the fixed frame below it.
+- Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
+  슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
+  the source screen's elements when checking.
+- The other built-in defaults are 찬양 for 곡, 말씀 for 성경, 공지 for 공지, and
+  영상 for 미디어. The 대기 화면 starts with a clock and timer on stage.
 
 ## Where the rest of the spec uses 테마
 
