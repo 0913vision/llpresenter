@@ -1,5 +1,8 @@
 import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {createServiceId} from '@core/schema/ids';
+import {isItemOfKind, SLIDES_LIMITS} from '@core/schema/service';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
   ORDER_FULL_REASON,
@@ -50,11 +53,11 @@ import type {ItemKind, RowProblem, ServiceRow} from '@core/presentation/model';
 import styles from './ServiceOrderList.module.css';
 
 const iconByKind: Readonly<Record<ItemKind, string>> = {
-  slides: 'image',
   song: 'song',
   bible: 'book',
   media: 'film',
   notice: 'notice',
+  slides: 'monitor',
   unknown: 'filex',
 };
 
@@ -128,6 +131,8 @@ function ItemRows({
   done,
   table,
   numbers,
+  renaming,
+  rename,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
@@ -139,6 +144,10 @@ function ItemRows({
   readonly table: ServiceTableParts | undefined;
   /** The place of each item among all items, shown in the table. */
   readonly numbers: ReadonlyMap<string, number>;
+  readonly renaming: string | null;
+  readonly rename: (
+    row: ServiceRow,
+  ) => import('@renderer/ui/ListRow').GroupRename | undefined;
 }): JSX.Element {
   const tiles = useShow(view => view.tiles);
   return (
@@ -150,6 +159,7 @@ function ItemRows({
             <ListRow
               value={row.id}
               title={row.title}
+              rename={renaming === row.id ? rename(row) : undefined}
               lead={table === undefined ? undefined : numbers.get(row.id)}
               className={table?.rowClass}
               icon={iconByKind[row.kind]}
@@ -302,7 +312,11 @@ export function ServiceOrderList({
     if (
       target.serviceId === serviceId &&
       editable &&
-      rows.some(row => row.id === target.id && row.kind === 'header')
+      rows.some(
+        row =>
+          row.id === target.id &&
+          (row.kind === 'header' || row.kind === 'slides'),
+      )
     ) {
       setRenaming(target.id);
     }
@@ -321,6 +335,36 @@ export function ServiceOrderList({
     event.target instanceof Node &&
     !isInTextEntry(event.target) &&
     listRef.current?.contains(event.target) === true;
+  const renameItem = (
+    row: ServiceRow,
+  ): import('@renderer/ui/ListRow').GroupRename | undefined => {
+    const api = window.llp;
+    if (row.kind !== 'slides' || api === undefined) return undefined;
+    return {
+      validate: value =>
+        value.trim().length > SLIDES_LIMITS.name
+          ? '이름이 너무 깁니다'
+          : undefined,
+      onCommit: name =>
+        pendingWritesOf(api).run({
+          write: async () => {
+            if (serviceId === null || name.trim() === '') return false;
+            const result = await updateServiceItem(api, {
+              serviceId,
+              itemId: row.id,
+              change: item =>
+                isItemOfKind(item, 'slides')
+                  ? {...item, slides: {...item.slides, name: name.trim()}}
+                  : null,
+            });
+            return result.ok;
+          },
+          refused: false,
+          sent: result => result,
+        }),
+      onClose: stopRenaming,
+    };
+  };
   const movedFocus = useMovedRowFocus(listRef, rows, serviceId);
   useRowMoveKeys({
     owns: ownsCommand,
@@ -571,6 +615,8 @@ export function ServiceOrderList({
               done={done}
               table={table}
               numbers={numbers}
+              renaming={renaming}
+              rename={renameItem}
             />
           ) : (
             <div
@@ -617,6 +663,8 @@ export function ServiceOrderList({
                   done={done}
                   table={table}
                   numbers={numbers}
+                  renaming={renaming}
+                  rename={renameItem}
                 />
               </ListGroup>
             </div>

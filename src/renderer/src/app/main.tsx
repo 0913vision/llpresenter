@@ -10,6 +10,7 @@ import {
 } from '@renderer/app/shell/loadColumnWidthStore';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {recordItemEdit} from '@renderer/session/serviceOrderEdits';
 
 const root = document.getElementById('root');
 
@@ -43,6 +44,10 @@ const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
     title: '곡 편집',
     prepare: session => session.startEditor('manual'),
     load: async () => (await import('./SongEditorWindow')).SongEditorWindow,
+  },
+  slides: {
+    title: '슬라이드 편집',
+    load: async () => (await import('./SlidesEditorWindow')).SlidesEditorWindow,
   },
 };
 
@@ -90,6 +95,17 @@ async function start(container: HTMLElement): Promise<void> {
     return;
   }
   const stopService = startServiceSync();
+  const historyApi = window.llp;
+  const stopSlidesHistory =
+    historyApi === undefined
+      ? () => undefined
+      : historyApi.slidesEditor.onSaved(({before, after}) => {
+          recordItemEdit(historyApi, {
+            serviceId: before.id,
+            before: before.order,
+            after: after.order,
+          });
+        });
   const session = new ControlSession(window.llp);
   const lifecycle: {stopped: boolean; root?: Root} = {stopped: false};
   window.addEventListener(
@@ -99,6 +115,7 @@ async function start(container: HTMLElement): Promise<void> {
       lifecycle.root?.unmount();
       stopLive();
       stopService();
+      stopSlidesHistory();
       session.dispose().catch((error: unknown) => console.error(error));
     },
     {once: true},

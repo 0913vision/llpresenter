@@ -3,6 +3,7 @@ import type {ItemRow} from '@core/presentation/model';
 import type {MediaId, SongId, ThemeId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
 import {isStartItem} from '@core/services/itemFieldChanges';
 import {ORDER_CHANGED_LABEL} from '@core/songs/itemOrder';
 import type {ThemesFile} from '@core/schema/themes';
@@ -187,7 +188,9 @@ export function ServiceTableCells({
         />
       )}
       <span className={classNames(styles.cell, styles.slides)}>
-        {detail ?? ''}
+        {item !== undefined && isItemOfKind(item, 'slides')
+          ? item.slides.slides.length
+          : (detail ?? '')}
       </span>
       {item === undefined || themeCell === undefined ? (
         <span className={classNames(styles.cell, styles.theme)} />
@@ -217,7 +220,8 @@ export function ServiceTableCells({
         }
         reason={reason}
         choose={
-          song === undefined
+          song === undefined &&
+          !(item !== undefined && isItemOfKind(item, 'slides'))
             ? undefined
             : (mediaId: MediaId | null) =>
                 editorTask(

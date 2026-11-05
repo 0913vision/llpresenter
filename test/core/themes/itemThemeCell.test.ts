@@ -3,12 +3,28 @@ import {createServiceItemId, createSongId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {itemThemeCell} from '@core/themes/itemThemeCell';
+import {newSlidesItem} from '@core/services/slidesEdits';
 
 const ITEM_ID = createServiceItemId('00000000-0000-4000-8000-000000000101');
 const SONG_ID = createSongId('00000000-0000-4000-8000-000000000201');
 const file = createDefaultThemes();
 const songTheme = file.themes[0];
 if (songTheme === undefined) throw new Error('Expected a song theme');
+
+it.each(['blank', 'ad'] as const)(
+  'resolves the %s form default and an item override',
+  form => {
+    const item = newSlidesItem(form, ITEM_ID);
+    expect(itemThemeCell(item, null)).toEqual({
+      name: form === 'ad' ? '광고' : '말씀',
+      followsDefault: true,
+    });
+    expect(itemThemeCell({...item, theme: songTheme.id}, file)).toEqual({
+      name: songTheme.name,
+      followsDefault: false,
+    });
+  },
+);
 
 function songItem(extra: object = {}): ServiceItem {
   return {id: ITEM_ID, song: SONG_ID, ...extra};

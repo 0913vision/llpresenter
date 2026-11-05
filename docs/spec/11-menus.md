@@ -311,6 +311,7 @@ progress, nothing on output.
 | ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
 | 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                    | Now     |
 | 1     | 자리 표시 추가, 빈 항목 추가              | PP New Placeholder, New Cue.                                                                                           | Off     |
+| 2     | 빈 슬라이드, 광고                         | Add a slides item after the selection and open 슬라이드 편집 (05).                                                     | Now     |
 | 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                            | Now     |
 | 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                            | Now     |
 | 2     | 공지 ›                                    | Submenu of 공지 sets.                                                                                                  | Now     |

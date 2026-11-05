@@ -13,6 +13,7 @@ import type {ItemRow} from '@core/presentation/model';
 import {createServiceItemId, createSongId} from '@core/schema/ids';
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import type {ServiceItem} from '@core/schema/service';
+import {newSlidesItem} from '@core/services/slidesEdits';
 import {createDefaultThemes} from '@core/themes/defaults';
 import type {ItemEditRequest} from '@renderer/features/service/items/itemEditQueue';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -88,6 +89,23 @@ function setup({
 }
 
 afterEach(cleanup);
+
+it.each(['blank', 'ad'] as const)(
+  'shows %s slide count and editable theme, background, start and memo cells',
+  form => {
+    setup({
+      item: newSlidesItem(form, ITEM_ID),
+      row: {kind: 'slides', form, id: ITEM_ID, title: '슬라이드'},
+    });
+    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.queryByRole('button', {name: /^구성,/})).toBeNull();
+    expect(screen.getByRole('button', {name: '테마, 슬라이드'})).toBeTruthy();
+    expect(screen.getByRole('button', {name: '배경, 슬라이드'})).toBeTruthy();
+    expect(
+      screen.getByRole('button', {name: '시작할 때, 슬라이드'}),
+    ).toBeTruthy();
+  },
+);
 
 it('shows the 구성, 슬라이드 count, 테마, 시작할 때, and 메모 of the item', () => {
   setup({

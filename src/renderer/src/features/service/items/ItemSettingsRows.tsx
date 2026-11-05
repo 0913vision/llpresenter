@@ -92,15 +92,15 @@ export function ItemBackgroundRow({
   item,
   session,
 }: RowState & {
-  readonly item: ServiceItemOf<'song'>;
-  readonly session: SongSession;
+  readonly item: ServiceItemOf<'song' | 'slides'>;
+  readonly session?: SongSession;
 }): JSX.Element {
   const media = useMediaDocument(api.media);
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const mediaId = item.background ?? session.background;
-  const inherited = item.background === undefined;
+  const mediaId = item.background ?? session?.background;
+  const inherited = session !== undefined && item.background === undefined;
   const list = media.document?.value.items ?? [];
   const selected = backgroundMedia(list).find(entry => entry.id === mediaId);
   const reason =
@@ -153,10 +153,14 @@ export function ItemBackgroundRow({
               anchor={button}
               items={list}
               selected={item.background}
-              defaultChoice={{
-                label: SONG_DEFAULT_LABEL,
-                detail: backgroundName(list, session.background),
-              }}
+              {...(session === undefined
+                ? {}
+                : {
+                    defaultChoice: {
+                      label: SONG_DEFAULT_LABEL,
+                      detail: backgroundName(list, session.background),
+                    },
+                  })}
               query={query}
               onQueryChange={setQuery}
               onSelect={choice =>

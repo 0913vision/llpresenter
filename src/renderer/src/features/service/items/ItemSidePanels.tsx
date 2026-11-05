@@ -27,6 +27,8 @@ import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {ItemThemeRow} from './ItemThemeRow';
+import {SlidesPreview} from '../slides/SlidesVisuals';
+import {useItemMedia} from './useItemSources';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;
 const SAVING_REASON = '저장 중';
@@ -86,6 +88,23 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     item !== null && isItemOfKind(item, 'bible')
       ? item.bible.ref
       : song?.history.snapshot.song.title;
+  const media = useItemMedia(
+    editor.api.media,
+    item !== null && isItemOfKind(item, 'slides'),
+  );
+  if (item !== null && isItemOfKind(item, 'slides')) {
+    return (
+      <SlidesPreview
+        api={editor.api}
+        item={item}
+        selected={Math.max(
+          0,
+          Math.min(position, item.slides.slides.length - 1),
+        )}
+        media={media.document?.value.items ?? []}
+      />
+    );
+  }
   return (
     <SongPreviewFrame
       settings={editor.api.settings}
@@ -221,6 +240,14 @@ function ThisService({
           lockReason={reason}
           item={item}
           session={song}
+        />
+      ) : null}
+      {isItemOfKind(item, 'slides') ? (
+        <ItemBackgroundRow
+          items={items}
+          api={api}
+          lockReason={reason}
+          item={item}
         />
       ) : null}
       <ItemStartRow

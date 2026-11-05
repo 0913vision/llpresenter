@@ -75,12 +75,14 @@ function usePreviewSettings(api: LlpApi['settings']) {
 interface ScreenStyle extends CSSProperties {
   readonly '--output-background': string;
 }
-function Picture({
+export function Picture({
   layers,
   appearance,
+  animate = true,
 }: {
   readonly layers: ReturnType<typeof selectedPreview>;
   readonly appearance: ReturnType<typeof previewAppearance>;
+  readonly animate?: boolean;
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
   const renderer = useRef<OutputRenderer | null>(null);
@@ -89,6 +91,7 @@ function Picture({
       renderer.current?.render(layers, {
         screen: appearance.screen,
         theme: appearance.theme,
+        transitions: animate,
       });
     } catch (error) {
       console.error('Could not update song preview', error);
@@ -111,7 +114,7 @@ function Picture({
   }, []);
   useLayoutEffect(() => {
     draw();
-  }, [layers, appearance.screen, appearance.theme]);
+  }, [layers, appearance.screen, appearance.theme, animate]);
   const style: ScreenStyle = {'--output-background': appearance.background};
   return (
     <div

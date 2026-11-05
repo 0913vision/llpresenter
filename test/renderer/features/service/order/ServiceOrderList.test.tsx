@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -23,6 +24,13 @@ import {
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
+import userEvent from '@testing-library/user-event';
+import {
+  itemFixture,
+  fixtureItems,
+  fixtureServiceId,
+} from '@fixtures/renderer/features/service/items/itemFixture';
+import {newSlidesItem} from '@core/services/slidesEdits';
 
 const sent: LiveCommand[] = [];
 
@@ -72,6 +80,33 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it('renames a slides item in place through its row menu', async () => {
+    const fixture = itemFixture();
+    const item = newSlidesItem('ad', fixtureItems.plain);
+    fixture.pushService({
+      ...fixture.service(),
+      service: {...fixture.service().service, order: [item]},
+    });
+    window.llp = fixture.api;
+    useShow.setState({
+      serviceId: fixtureServiceId,
+      readOnly: false,
+      rows: [{kind: 'slides', form: 'ad', id: item.id, title: '광고'}],
+      tiles: {},
+    });
+    render(<ServiceOrderList workspace="prep" />);
+    fireEvent.contextMenu(screen.getByRole('option', {name: '광고'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
+    const field = await screen.findByRole('textbox', {name: '광고 이름'});
+    fireEvent.change(field, {target: {value: '이번 주 광고'}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+    await waitFor(() =>
+      expect(fixture.service().service.order[0]).toMatchObject({
+        slides: {name: '이번 주 광고'},
+      }),
+    );
+    expect(sent).toHaveLength(0);
+  });
   it('shows a missing Bible warning without sending output when selected', () => {
     useShow.setState({
       rows: [

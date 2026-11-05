@@ -78,9 +78,9 @@ export function previewAppearance({
     theme,
     themeName:
       themeName === undefined
-        ? item.kind === 'bible'
+        ? item.kind === 'bible' || item.kind === 'blank'
           ? '말씀'
-          : item.kind === 'notice'
+          : item.kind === 'notice' || item.kind === 'ad'
             ? '광고'
             : item.kind === 'media'
               ? '영상'

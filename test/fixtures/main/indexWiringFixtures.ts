@@ -65,6 +65,7 @@ const mocks = vi.hoisted(() => {
     editorWindowStops: {
       order: vi.fn<() => void>(),
       song: vi.fn<() => void>(),
+      slides: vi.fn<() => void>(),
     },
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
@@ -158,6 +159,15 @@ vi.mock('@main/windows/songEditor', () => ({
   registerSongEditorWindow: (context: unknown) => {
     mocks.editorWindowContexts.push({name: 'song', context});
     return {dispose: mocks.editorWindowStops.song};
+  },
+}));
+vi.mock('@main/windows/slidesEditor', () => ({
+  registerSlidesEditorWindow: (context: unknown) => {
+    mocks.editorWindowContexts.push({name: 'slides', context});
+    return {
+      close: () => Promise.resolve(true),
+      dispose: mocks.editorWindowStops.slides,
+    };
   },
 }));
 vi.mock('@main/bible/register', () => ({
@@ -384,6 +394,7 @@ beforeEach(async () => {
   mocks.editorWindowContexts.length = 0;
   mocks.editorWindowStops.order.mockClear();
   mocks.editorWindowStops.song.mockClear();
+  mocks.editorWindowStops.slides.mockClear();
   mocks.screensWindowStop.mockClear();
   mocks.screensWindowClose.mockReset().mockResolvedValue(true);
   mocks.orderEditorWindowClose.mockReset().mockResolvedValue(true);

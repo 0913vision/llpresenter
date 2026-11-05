@@ -6,6 +6,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {
   isThemeTextElement,
   themeElementText,
+  themeElementMedia,
   themeOverlay,
 } from '@core/themes/content';
 import {BackgroundLayerView} from './backgroundLayer';
@@ -124,17 +125,8 @@ export class ThemeElementView {
   ): void {
     const {element} = this;
     const item = frame.theme?.item ?? null;
-    const foreground =
-      item?.kind === 'media' || layers.media?.slidePicture === true;
     if (element.kind === 'media' || element.kind === 'background') {
-      const media =
-        element.kind === 'media'
-          ? foreground
-            ? layers.media
-            : null
-          : foreground
-            ? null
-            : layers.media;
+      const media = themeElementMedia(element.kind, {layers, item});
       this.showMedia(media, frame, element.fit);
     } else if (element.kind === 'overlay') {
       const overlay =

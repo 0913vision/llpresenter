@@ -239,6 +239,14 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       onRetarget: () => () => undefined,
       ...overrides.songEditorWindow,
     },
+    slidesEditor: {
+      open: () => Promise.resolve({ok: true, value: undefined}),
+      target: () => Promise.resolve(null),
+      onRetarget: () => () => undefined,
+      saved: () => undefined,
+      onSaved: () => () => undefined,
+      ...overrides.slidesEditor,
+    },
   };
 }
 

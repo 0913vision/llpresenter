@@ -82,6 +82,20 @@ describe('buildShowService', () => {
     });
     expect(shown.rows[0]).toHaveProperty('problem', 'missing-media');
   });
+  it('projects both slides forms with their editable item names', () => {
+    const projected = build(
+      ['blank', 'ad'].map((form, index) => ({
+        id: itemId(index + 1),
+        slides: {form, name: `Slides ${index}`, slides: []},
+      })),
+    );
+    expect(
+      projected.rows.map(row => ({kind: row.kind, title: row.title})),
+    ).toEqual([
+      {kind: 'slides', title: 'Slides 0'},
+      {kind: 'slides', title: 'Slides 1'},
+    ]);
+  });
   it.each([true, false])(
     'shows the resolved Bible passage with the numbering %s of its item',
     verseNumbers => {

@@ -10,7 +10,7 @@ import type {GroupedSong} from '../schema/groupedSong';
  */
 export type ServiceItemChange = (item: ServiceItem) => ServiceItem | null;
 
-const startKinds = ['song', 'bible', 'media', 'notice'] as const;
+const startKinds = ['song', 'bible', 'media', 'notice', 'slides'] as const;
 /** Item kinds that carry start actions, memos and appearance overrides. */
 export type StartItem = ServiceItemOf<(typeof startKinds)[number]>;
 type StartField = 'macro' | 'memo';

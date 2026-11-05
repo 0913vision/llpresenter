@@ -7,6 +7,7 @@ import {
 } from '@renderer/features/media/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {newSlidesItem} from '@core/services/slidesEdits';
 
 const SECTION_NAME = '새 구역';
 
@@ -62,6 +63,13 @@ export function otherItemEntries({
     laterRow('other:placeholder', '자리 표시 추가'),
     laterRow('other:cue', '빈 항목 추가'),
     menuSeparator('other:items'),
+    ...(['blank', 'ad'] as const).map(form => ({
+      kind: 'item' as const,
+      id: `other:${form}`,
+      label: form === 'ad' ? '광고' : '빈 슬라이드',
+      icon: 'monitor',
+      onSelect: () => onInsert(newSlidesItem(form, newId())),
+    })),
     {
       kind: 'item',
       id: 'other:media',

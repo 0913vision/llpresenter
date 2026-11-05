@@ -3,7 +3,7 @@ import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {ItemRow} from '@core/presentation/model';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {
   backgroundName,
   SONG_DEFAULT_LABEL,
@@ -61,12 +61,18 @@ export function BackgroundCell({
     background === undefined ? undefined : parseMediaId(background.mediaId);
   const playing = parsed?.ok === true ? parsed.value : undefined;
   const own = item !== undefined && 'background' in item;
+  const slidesItem =
+    item !== undefined && isItemOfKind(item, 'slides') ? item : undefined;
+  const selectedBackground = slidesItem?.background ?? playing;
   const shown =
-    playing === undefined
+    selectedBackground === undefined
       ? {media: undefined, name: NONE}
       : {
-          media: playing,
-          name: background?.title ?? backgroundName(media, playing),
+          media: selectedBackground,
+          name:
+            slidesItem === undefined
+              ? (background?.title ?? backgroundName(media, selectedBackground))
+              : backgroundName(media, selectedBackground),
         };
   const hint = !own && playing !== undefined ? FOLLOWS_SONG : undefined;
   const {targetProps, tooltip} = useTooltip(titleTooltip(hint));
@@ -112,7 +118,7 @@ export function BackgroundCell({
           items={media}
           selected={own ? playing : undefined}
           defaultChoice={{
-            label: SONG_DEFAULT_LABEL,
+            label: slidesItem === undefined ? SONG_DEFAULT_LABEL : NONE,
             detail: backgroundName(media, songBackground),
           }}
           query={query}

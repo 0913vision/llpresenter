@@ -121,6 +121,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
 function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
   switch (input.row.kind) {
     case 'header':
+    case 'slides':
       return [
         {
           kind: 'item',
@@ -135,7 +136,6 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
     case 'song':
       return [];
     case 'bible':
-    case 'slides':
     case 'media':
     case 'notice':
     case 'unknown':

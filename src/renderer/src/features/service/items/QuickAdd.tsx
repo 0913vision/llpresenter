@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {createServiceItemId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {useShow} from '@renderer/session/show';
+import {openItem, useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -48,8 +48,15 @@ export function ServiceQuickAdd({
     insertItem(passage);
   };
   const insertItem = (item: ServiceItem): void => {
+    const api = window.llp;
+    if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
-    const before = quickAddBefore(rows, openItemId);
+    const selected = rows.findIndex(row => row.id === openItemId);
+    const before = isItemOfKind(item, 'slides')
+      ? selected < 0
+        ? null
+        : (rows[selected + 1]?.id ?? null)
+      : quickAddBefore(rows, openItemId);
     if ('header' in item) useHeaderRename.getState().request(item.id);
     editing.run(async (edits, id) => {
       const result = await edits.insertItem(
@@ -57,6 +64,18 @@ export function ServiceQuickAdd({
         item,
         before === null ? null : createServiceItemId(before),
       );
+      if (
+        ((result.ok && result.value) ||
+          (!result.ok && result.error.reason === 'write-failed')) &&
+        isItemOfKind(item, 'slides')
+      ) {
+        if (useShow.getState().serviceId === id) openItem(item.id);
+        const opened = await api.slidesEditor.open({
+          serviceId: id,
+          itemId: item.id,
+        });
+        if (!opened.ok) throw new Error('Could not open the added slides item');
+      }
       if (
         (result.ok ? result.value : result.error.reason === 'write-failed') &&
         isItemOfKind(item, 'bible')

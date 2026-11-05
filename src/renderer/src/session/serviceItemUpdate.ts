@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
 import {isItemOfKind} from '@core/schema/service';
+import type {Service} from '@core/schema/service';
 import {recordItemEdit} from './serviceOrderEdits';
 
 interface RequestFailure {
@@ -36,6 +37,10 @@ export interface ServiceItemUpdate {
   readonly serviceId: string;
   readonly itemId: string;
   readonly change: ServiceItemChange;
+  readonly onApplied?: (entry: {
+    readonly before: Service;
+    readonly after: Service;
+  }) => void;
 }
 
 function refuse(
@@ -51,7 +56,7 @@ function refuse(
  */
 export async function updateServiceItem(
   api: ServiceItemApi,
-  {serviceId, itemId, change}: ServiceItemUpdate,
+  {serviceId, itemId, change, onApplied}: ServiceItemUpdate,
 ): Promise<ServiceItemEditResult> {
   try {
     const document = await api.services.get(serviceId);
@@ -85,6 +90,10 @@ export async function updateServiceItem(
         serviceId: document.service.id,
         before: document.service.order,
         after: order,
+      });
+      onApplied?.({
+        before: document.service,
+        after: {...document.service, order},
       });
     }
     return saved;

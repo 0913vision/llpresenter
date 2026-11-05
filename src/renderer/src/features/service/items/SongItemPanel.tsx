@@ -27,6 +27,7 @@ import type {ServiceItemStore} from './serviceItemStore';
 import {shownPosition} from '../../songs/editor/songItemModel';
 import styles from './SongItemPanel.module.css';
 import {BibleItemPanel} from './BibleItemPanel';
+import {SlidesItemPanel} from '../slides/SlidesItemPanel';
 
 /**
  * The center panel of 준비 for the item selected in the 예배 순서. It shows
@@ -52,6 +53,16 @@ export function ServiceItemPanel({
     items.subscribe,
     items.getSnapshot,
   );
+  if (item !== null && isItemOfKind(item, 'slides')) {
+    return (
+      <SlidesItemPanel
+        api={editor.api}
+        items={items}
+        item={item}
+        openEditor={window.llp?.slidesEditor.open}
+      />
+    );
+  }
   if (item !== null && isItemOfKind(item, 'bible') && service !== null) {
     return (
       <BibleItemPanel

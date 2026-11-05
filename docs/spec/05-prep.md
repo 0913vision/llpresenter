@@ -61,6 +61,43 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
 - A song row's right-click has 순서 편집… and 곡 편집… after 구성 › (11). A
   double-click or Enter on a song row opens 순서 편집.
 
+### Slides items and 슬라이드 편집
+
+- 항목 추가 offers 빈 슬라이드 and 광고 before 미디어. Each inserts after the
+  selected row, selects the item, and opens 슬라이드 편집. Without a selection
+  it appends. 빈 슬라이드 starts with one empty text slide and manual advance.
+  광고 starts with one empty named text slide, 8-second advance, and 반복
+  enabled.
+- Both forms use the same slides icon. The table shows the editable item name,
+  slide count, item theme or form default, background, start macro, and memo.
+  The right column shows the item name, 슬라이드 편집…, themed thumbnails, and
+  항목 설정. It has no 순서 편집… action. Thumbnail bands show the number and ad
+  name, picture filename, or first line of blank text.
+- 슬라이드 편집 is one reusable window. The header edits 이름, 테마, 넘기기
+  (손으로 or every 3, 5, 8, 10, 15, 20, or 30 seconds), and 반복. Each row has a
+  thumbnail in the item's theme. Ad text rows have 이름 and 내용; blank text
+  rows have 글. A picture row has its filename and 바꾸기…. 글 추가 adds a text
+  row; 그림 추가… and 바꾸기… choose pictures from the media list. A structured
+  verse slide shows its read-only Bible reference and stays intact when other
+  item fields are saved.
+- Drag rows to reorder. Delete outside a text field or 삭제 on a row's context
+  menu removes it. Ctrl Z and Ctrl Y undo and redo local changes. The preview
+  has 청중 화면, 무대 화면, and 방송 화면 tabs and a position caption. Removing
+  a focused row focuses the next remaining row, or 글 추가 when empty, so
+  keyboard undo remains available. Undo or redo that removes the focused row
+  restores focus the same way, including focus inside its input. Keyboard 저장
+  preserves the focused control and its selection while editing is disabled,
+  restoring both when the same draft is editable again. Saving ends the current
+  typing group, so continued typing can be undone to the saved text.
+- 저장 writes the draft into its service item through the service edit path. All
+  changes make one undo step in the main window. Closing or opening a different
+  item with unsaved edits asks 저장, 저장 안 함, or 취소, as in the song editor.
+  A refused save keeps the draft open. Saving merges fields changed in the
+  editor into the fresh item, preserving concurrent changes to other fields.
+  Conflicting changes to the same field refuse the save. 취소 invalidates a
+  pending item switch or close even while its save is still running; completing
+  that save does not resume the canceled action or replace a newer confirmation.
+
 ### 순서 편집
 
 - A window for this service's order of the song and its 오버레이. The order

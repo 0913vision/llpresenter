@@ -52,6 +52,8 @@ import {registerOrderEditorWindow} from './windows/orderEditor';
 import {registerPreferencesWindow} from './windows/preferences';
 import {registerScreensWindow} from './windows/screens';
 import {registerSongEditorWindow} from './windows/songEditor';
+import {registerSlidesEditorWindow} from './windows/slidesEditor';
+import {isItemOfKind} from '@core/schema/service';
 import {registerAudioOutput} from './windows/audio';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
@@ -242,6 +244,20 @@ function start(): void {
         hasSong: async id =>
           ((await dataStore.content)?.song(id) ?? null) !== null,
       });
+      const slidesEditorWindow = registerSlidesEditorWindow({
+        ...editorWindowContext,
+        hasItem: async target => {
+          const document = (await dataStore.content)?.service(target.serviceId);
+          const item = document?.service.order.find(
+            row => row.id === target.itemId,
+          );
+          return (
+            document?.access !== 'readOnly' &&
+            item !== undefined &&
+            isItemOfKind(item, 'slides')
+          );
+        },
+      });
       const stopFonts = registerFonts(win, log);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
@@ -249,6 +265,7 @@ function start(): void {
           (await screensWindow.close()) &&
           (await preferencesWindow.close()) &&
           (await orderEditorWindow.close()) &&
+          (await slidesEditorWindow.close()) &&
           (await closing.confirmClose()),
       );
       const stopMediaBackend = registerMediaBackend({
@@ -364,6 +381,10 @@ function start(): void {
       shutdown.add({
         name: 'stop the song editor window',
         run: songEditorWindow.dispose,
+      });
+      shutdown.add({
+        name: 'stop the slides editor window',
+        run: slidesEditorWindow.dispose,
       });
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop font enumeration', run: stopFonts});

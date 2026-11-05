@@ -46,6 +46,8 @@ describe('quick add other items', () => {
       '자리 표시 추가',
       '빈 항목 추가',
       '|',
+      '빈 슬라이드',
+      '광고',
       '미디어',
       '성경 구절…',
       '공지',
@@ -58,13 +60,19 @@ describe('quick add other items', () => {
       ['구역 추가', false],
       ['자리 표시 추가', true],
       ['빈 항목 추가', true],
+      ['빈 슬라이드', false],
+      ['광고', false],
       ['미디어', false],
       ['성경 구절…', false],
       ['공지', false],
       ['영상 스트림 항목…', true],
       ['오디오 스트림 항목…', true],
     ]);
-    expect(items(entries).every(item => item.icon === undefined)).toBe(true);
+    expect(
+      items(entries)
+        .filter(item => item.icon !== undefined)
+        .map(item => item.label),
+    ).toEqual(['빈 슬라이드', '광고']);
   });
 
   it('inserts a new section with a unique id and the unchanged header field', () => {
@@ -75,6 +83,21 @@ describe('quick add other items', () => {
     expect(first).toMatchObject({header: '새 구역'});
     expect(first?.id).not.toBe(second?.id);
   });
+  it.each(['blank', 'ad'])(
+    'adds a %s item with one empty slide and its playback defaults',
+    form => {
+      const onInsert = vi.fn<(item: ServiceItem) => void>();
+      entry(build(onInsert), `other:${form}`).onSelect?.();
+      expect(onInsert.mock.calls[0]?.[0]).toMatchObject({
+        slides: {
+          form,
+          name: form === 'ad' ? '광고' : '빈 슬라이드',
+          slides: [{text: '', ...(form === 'ad' ? {name: ''} : {})}],
+          ...(form === 'ad' ? {advance: 8, loop: true} : {}),
+        },
+      });
+    },
+  );
 
   it('offers media without audio and the 공지 sets', () => {
     const onInsert = vi.fn<(item: ServiceItem) => void>();

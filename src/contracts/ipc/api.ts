@@ -42,6 +42,7 @@ import {
 } from './songEditorWindow';
 import {uiApi, type UiApi} from './ui';
 import {windowApi, type WindowApi} from './window';
+import {slidesEditorApi, type SlidesEditorApi} from './slidesEditor';
 import type {
   LibrarySong,
   ServiceChange,
@@ -101,10 +102,15 @@ export interface LlpApi {
   readonly locations: LocationsApi;
   readonly orderEditor: OrderEditorApi;
   readonly songEditorWindow: SongEditorWindowApi;
+  readonly slidesEditor: SlidesEditorApi;
 }
 
 /** Builds `window.llp` on the preload script's port. */
-export function llpApi(port: IpcPort, platform: WindowPlatform): LlpApi {
+export function llpApi(
+  port: IpcPort,
+  platform: WindowPlatform,
+  slidesEditor: SlidesEditorApi = slidesEditorApi(port),
+): LlpApi {
   return {
     bible: bibleApi(port),
     app: appApi(port),
@@ -130,5 +136,6 @@ export function llpApi(port: IpcPort, platform: WindowPlatform): LlpApi {
     locations: locationsApi(port),
     orderEditor: orderEditorApi(port),
     songEditorWindow: songEditorWindowApi(port),
+    slidesEditor,
   };
 }

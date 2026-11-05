@@ -43,6 +43,15 @@ export interface ThemeContent {
   readonly videoTimeLeft?: string | undefined;
 }
 
+/** Routes a slide picture to 미디어 and an item background to 배경. */
+export function themeElementMedia(
+  kind: 'media' | 'background',
+  {layers, item}: ThemeContent,
+) {
+  const content = item?.kind === 'media' || layers.media?.slidePicture === true;
+  return (kind === 'media') === content ? layers.media : null;
+}
+
 /**
  * Resolves text sources once for output, previews, and editor thumbnails. A
  * clear leaves the stage timer and the stage message alone (03).

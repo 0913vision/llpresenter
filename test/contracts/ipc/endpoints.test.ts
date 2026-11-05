@@ -11,6 +11,7 @@ import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {songEditorWindowEndpoints} from '@contracts/ipc/songEditorWindow';
+import {slidesEditorEndpoints} from '@contracts/ipc/slidesEditor';
 import {uiEndpoints} from '@contracts/ipc/ui';
 import {windowEndpoints} from '@contracts/ipc/window';
 
@@ -35,6 +36,7 @@ const DECLARED = [
   serviceEndpoints,
   settingsEndpoints,
   songEditorWindowEndpoints,
+  slidesEditorEndpoints,
   uiEndpoints,
   windowEndpoints,
 ].flatMap(channelsOf);

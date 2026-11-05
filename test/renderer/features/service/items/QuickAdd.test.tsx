@@ -180,6 +180,38 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
+  it.each(['빈 슬라이드', '광고'])(
+    'inserts %s immediately after the selection, selects it and opens its editor',
+    async label => {
+      const {api, user, service} = setup();
+      const open = vi
+        .spyOn(api.slidesEditor, 'open')
+        .mockResolvedValue({ok: true, value: undefined});
+      useShow.setState({
+        openItemId: fixtureItems.arranged,
+        rows: [
+          {kind: 'header', id: fixtureItems.header, title: '찬양'},
+          {kind: 'song', id: fixtureItems.arranged, title: '첫 곡'},
+          {kind: 'song', id: fixtureItems.plain, title: '다음 곡'},
+        ],
+      });
+      await user.click(screen.getByRole('button', {name: '항목 추가'}));
+      await user.click(screen.getByRole('menuitem', {name: label}));
+      await waitFor(() => expect(open).toHaveBeenCalledOnce());
+      const order = service().service.order;
+      const index = order.findIndex(item => item.id === fixtureItems.arranged);
+      const added = order[index + 1];
+      expect(added).toMatchObject({
+        slides: {form: label === '광고' ? 'ad' : 'blank'},
+      });
+      expect(order[index + 2]?.id).toBe(fixtureItems.plain);
+      expect(useShow.getState().openItemId).toBe(added?.id);
+      expect(open).toHaveBeenCalledWith({
+        serviceId: fixtureServiceId,
+        itemId: added?.id,
+      });
+    },
+  );
   it('inserts a Bible item where the position rule puts it for the selected row', async () => {
     const {api, user, service, pushService} = setup();
     mockBible(api);

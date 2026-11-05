@@ -17,7 +17,9 @@ interface BackgroundChange {
 /** Sets a song item's override, or removes it with null for the song default. */
 export function backgroundChange(mediaId: MediaId | null): ServiceItemChange {
   return item => {
-    if (!isItemOfKind(item, 'song')) return null;
+    if (!isItemOfKind(item, 'song') && !isItemOfKind(item, 'slides')) {
+      return null;
+    }
     if ((item.background ?? null) === mediaId) return item;
     const updated = {...item};
     if (mediaId === null) delete updated.background;
