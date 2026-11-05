@@ -17,6 +17,28 @@ function songWith(
 }
 
 describe('importLimitReason', () => {
+  it('accepts the exact serialized import character limit and refuses one character more', () => {
+    const base = songWith([{lines: ['']}]);
+    const padding =
+      SONG_IMPORT_LIMITS.characters -
+      JSON.stringify({
+        title: base.title,
+        groups: base.groups,
+        arrangements: base.arrangements,
+      }).length;
+    const withCharacters = (extra: number) => ({
+      ...base,
+      groups: base.groups.map(group => ({
+        ...group,
+        slides: [{lines: ['x'.repeat(padding + extra)]}],
+      })),
+    });
+    expect(importLimitReason(withCharacters(0))).toBeUndefined();
+    expect(importLimitReason(withCharacters(1))).toBe(
+      limitReason('글자', SONG_IMPORT_LIMITS.characters),
+    );
+  });
+
   it('accepts a song at the limits', () => {
     const slides = Array.from({length: SONG_IMPORT_LIMITS.slides}, () => ({
       lines: [],

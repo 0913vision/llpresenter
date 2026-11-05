@@ -33,11 +33,13 @@ export interface MenuProps {
   readonly anchor: MenuAnchor;
   readonly onClose: (reason: MenuCloseReason) => void;
   readonly search?: MenuSearch | undefined;
-  /** A fixed width, such as 300 for the service picker. */
-  readonly width?: number | undefined;
+  /** A fixed width in pixels or a design token, such as `var(--size-menu-max)`. */
+  readonly width?: number | string | undefined;
   /** The narrowest the menu may be, such as the width of a Select. */
   readonly minWidth?: number | undefined;
   readonly footer?: ReactNode | undefined;
+  /** Keep focus in an editable trigger until the pointer enters the list. */
+  readonly autoFocus?: boolean | undefined;
 }
 
 function anchorPlace(anchor: MenuAnchor): MenuSurfaceProps['place'] {
@@ -69,6 +71,7 @@ export function Menu({
   width,
   minWidth,
   footer,
+  autoFocus = true,
 }: MenuProps): JSX.Element {
   const catcher = useRef<HTMLDivElement>(null);
   const outsideRename = useRef(false);
@@ -143,7 +146,7 @@ export function Menu({
         width={width}
         minWidth={minWidth}
         footer={footer}
-        autoFocus
+        autoFocus={autoFocus}
       />
     </div>,
     layerContainer('popover'),

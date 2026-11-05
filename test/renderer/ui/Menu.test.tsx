@@ -12,6 +12,26 @@ import {
 installMenuTestHooks();
 
 describe('Menu', () => {
+  it('leaves focus in an editable trigger when requested and releases it on pointer entry', () => {
+    const input = document.createElement('input');
+    document.body.append(input);
+    input.focus();
+    const view = render(
+      <Menu
+        label="이름표"
+        entries={[]}
+        anchor={{kind: 'element', element: input}}
+        onClose={vi.fn()}
+        autoFocus={false}
+      />,
+    );
+    expect(document.activeElement).toBe(input);
+    fireEvent.pointerEnter(screen.getByRole('menu'));
+    expect(document.activeElement).toBe(screen.getByRole('menu'));
+    view.unmount();
+    input.remove();
+  });
+
   it('retains an outside-blurred rename through a refused save and closes only after success', async () => {
     let finish: (saved: boolean) => void = () => undefined;
     const commit = vi

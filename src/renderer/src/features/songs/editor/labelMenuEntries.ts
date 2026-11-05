@@ -11,7 +11,7 @@ export function labelMenuEntries({
   readonly labels: readonly Label[];
   readonly selected: string | undefined;
   readonly choose: (name: string | undefined) => void;
-  readonly manage: () => void;
+  readonly manage?: () => void;
 }): readonly MenuEntry[] {
   return [
     {
@@ -32,7 +32,16 @@ export function labelMenuEntries({
       checked: selected === label.name,
       onSelect: () => choose(label.name),
     })),
-    menuSeparator('actions'),
-    {kind: 'item', id: 'manage', label: '이름표 관리…', onSelect: manage},
+    ...(manage === undefined
+      ? []
+      : [
+          menuSeparator('actions'),
+          {
+            kind: 'item' as const,
+            id: 'manage',
+            label: '이름표 관리…',
+            onSelect: manage,
+          },
+        ]),
   ];
 }

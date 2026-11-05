@@ -684,13 +684,26 @@ row-menu decision.
   default is 1 for 빈 줄 and 2 for 줄 바꿈 (proposal).
 - 이름표 인식 (detect 이름표): with the 환경설정 option 이름표: 대괄호 줄
   (bracket lines), a line that holds only a bracketed name, such as "[후렴]", is
-  an 이름표 line. The first 슬라이드 after it gets that 이름표, and the
-  following 슬라이드 get none until the next 이름표 line (proposal). An 이름표
-  line never becomes a lyric line.
-  - If the bracketed name matches an 이름표 in the list, use it. Otherwise, use
-    the bracketed text as the name, and add it to the 이름표 list with no color
-    when the song is saved (proposal). Whether to map English names such as
-    "[Chorus]" to Korean ones is an open question.
+  an 이름표 line. Its slides share that 이름표 until the next 이름표 line; the
+  preview band appears on the group's first slide. An 이름표 line never becomes
+  a lyric line.
+  - Compare names after trimming, without case sensitivity. An exact match in
+    the list suggests that 이름표, before any English-name rule.
+  - Suggest `Verse N` and `V N` as `N절`; `Intro` as 전주; `Chorus` and
+    `Refrain` as 후렴; `Pre-Chorus`, `PreChorus`, and `Pre Chorus` as
+    프리코러스; `Bridge` as 브리지; `Post-Chorus` and `PostChorus` as
+    포스트코러스; `Interlude` and `Instrumental` as 간주; and `Ending`, `Outro`,
+    and `End` as 후주. Ignore spaces, hyphens, and case in these English names.
+    Also suggest 엔딩 as 후주 and 브릿지 as 브리지, after checking for an exact
+    user-list match.
+  - A typo suggests an English name only when exactly one name is within one
+    edit, or two edits for names of seven letters or more. Insertion, deletion,
+    substitution, and adjacent transposition count as edits (`Chrous` suggests
+    후렴). Keep the header text if no unique suggestion exists.
+  - Suggest a mapped 이름표 only if it exists in the user's list; otherwise keep
+    the original header. Suggest `N절` even when the list lacks it (`Verse 4`
+    suggests `4절`). A chosen or typed name outside the list is added with no
+    color only when the song is saved.
 - Trim blank lines at the start and end, and trailing spaces on each line
   (proposal).
 - Before splitting (proposal): CRLF and CR line endings become LF, and tabs
@@ -720,6 +733,27 @@ row-menu decision.
 - Option bar at the top: 슬라이드 나누기, 한 슬라이드에, 이름표 인식.
 - Body: the 제목 (title) field, the 슬라이드 count ("슬라이드 4"), and a
   슬라이드 preview grid with 이름표 bands.
+- With 이름표 인식 on, open 이름표 맞추기 above the import dialog if any
+  distinct header lacks an exact match in the 이름표 list. Don't open it if all
+  headers match or there are no headers. Turning recognition off and on opens it
+  again with the last choices.
+- 이름표 맞추기 uses Dialog size m. Its introduction is "머리줄마다 이름표를
+  고르거나 적으세요. 비슷한 이름표를 먼저 넣어 두었습니다." Its scrolling list
+  has one row per distinct header in file order, including exact matches.
+  Columns are 머리줄 (the name in brackets), 이름표, and 첫 줄 (the first lyric
+  line under that header's first use, truncated to one line).
+- Each 이름표 field starts with its suggestion and color swatch. Click the field
+  or its chevron for the song editor's 이름표 menu: 이름표 없음, then the list
+  with swatches and a check on the current choice, without 이름표 관리…. Picking
+  fills the field; typing replaces its text. An unknown name shows "새 이름표"
+  inside the field. 이름표 없음 clears the group's name.
+- Footer: 머리줄 그대로 쓰기 and 적용 (primary). Esc and the close button keep
+  the original header names, as 머리줄 그대로 쓰기 does. 적용 assigns each
+  header's chosen name to all its slides, preview bands, and saved groups,
+  preserving section boundaries. Neither action saves anything.
+- If the mapped groups exceed the song import limits, 적용 is unavailable and
+  its tooltip gives the reason. The previous draft stays unchanged; shortening a
+  name or choosing another 이름표 can make 적용 available again.
 - If the 라이브러리 already has the title, the title field shows the error ring,
   with the tooltip "라이브러리에 같은 제목의 곡이 있습니다". Don't add labels,
   chips, or status text.

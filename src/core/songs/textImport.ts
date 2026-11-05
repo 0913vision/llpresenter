@@ -6,6 +6,7 @@ import type {
 } from '../schema/textImport';
 import {fileStem} from '../common/fileName';
 import {TEXT_IMPORT_LIMITS} from './textImportLimits';
+import {importHeaderKey} from './importLabelMapping';
 
 type DraftSlide = TextImportDraft['slides'][number];
 type Unit = readonly string[] | null;
@@ -47,6 +48,35 @@ function normalizeLines(text: string): string[] | null {
     .map(line => line.trimEnd());
   if (lines.length > TEXT_IMPORT_LIMITS.lines) return null;
   return lines;
+}
+
+export interface ImportHeader {
+  readonly name: string;
+  readonly firstLine: string;
+}
+
+/** Lists distinct headers in file order, with the first use's first lyric line. */
+export function textImportHeaders(text: string): readonly ImportHeader[] {
+  const headers = new Map<string, ImportHeader>();
+  let pending: string | null = null;
+  for (const line of normalizeLines(text) ?? []) {
+    const match = parseBracketLabel(line, 'bracketLine');
+    if (match.kind !== 'none') {
+      pending = null;
+      if (match.kind === 'oversized') continue;
+      const key = importHeaderKey(match.name);
+      if (headers.has(key)) continue;
+      headers.set(key, {name: match.name, firstLine: ''});
+      pending = key;
+    } else if (pending !== null && line.trim() !== '') {
+      const header = headers.get(pending);
+      if (header !== undefined) {
+        headers.set(pending, {...header, firstLine: line.trim()});
+      }
+      pending = null;
+    }
+  }
+  return [...headers.values()];
 }
 
 function* sections(

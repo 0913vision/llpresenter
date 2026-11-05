@@ -6,7 +6,7 @@ import type {
   TextImportPreviewRequest,
 } from '@core/schema/textImport';
 import {importGroups} from '@core/songs/importGroups';
-import {convertTextImport} from '@core/songs/textImport';
+import {convertTextImport, textImportHeaders} from '@core/songs/textImport';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 
 const defaults: TextImportOptions = {
@@ -33,6 +33,17 @@ function draft(text: string, options: Partial<TextImportOptions> = {}) {
 }
 
 describe('text import conversion', () => {
+  it('lists distinct headers in file order with the first lyric of their first use', () => {
+    expect(
+      textImportHeaders(
+        '\uFEFFIntro\r\n[ Chorus ]\r\n\r\n First lyric\r\nSecond lyric\r\n[chorus]\r\nLater\r\n[Tag]\r\n[Bridge]\r\nFinal\r\n[tag]\r\nNot the first use\r\n(not a header)',
+      ),
+    ).toEqual([
+      {name: 'Chorus', firstLine: 'First lyric'},
+      {name: 'Tag', firstLine: ''},
+      {name: 'Bridge', firstLine: 'Final'},
+    ]);
+  });
   it.each(['\u0000', '"', '\\'])(
     'keeps an accepted escaped preview savable: %j',
     character => {

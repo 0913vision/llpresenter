@@ -1,5 +1,11 @@
 import {useState} from 'react';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {parseGroupedSong} from '@core/schema/groupedSong';
@@ -30,7 +36,7 @@ it('imports invented text, edits it, and saves a real song document without open
         value: {
           source: 'file',
           fileName: 'New song.txt',
-          text: '[1절]\nAn invented line',
+          text: '[Verse 4]\nAn invented line\n[Chorus]\nA second invented line\n[Tag]\nA final invented line',
         },
       }),
       preview: async request => convertTextImport(request),
@@ -58,7 +64,13 @@ it('imports invented text, edits it, and saves a real song document without open
     );
   }
   render(<Harness />);
-  await screen.findByText('슬라이드 1');
+  const mapping = await screen.findByRole('dialog', {name: '이름표 맞추기'});
+  fireEvent.change(
+    within(mapping).getByRole('textbox', {name: '[Tag] 이름표'}),
+    {target: {value: '직접 입력'}},
+  );
+  fireEvent.click(within(mapping).getByRole('button', {name: '적용'}));
+  expect(backend.store.songList()).toHaveLength(0);
   fireEvent.click(screen.getByRole('button', {name: '편집'}));
   const title = await screen.findByRole('textbox', {name: '곡 제목'});
   fireEvent.change(title, {target: {value: 'An invented title'}});
@@ -86,6 +98,11 @@ it('imports invented text, edits it, and saves a real song document without open
   const parsed = parseGroupedSong(text, 'song');
   expect(parsed.ok).toBe(true);
   if (parsed.ok) {
+    expect(parsed.value.data.groups.map(group => group.name)).toEqual([
+      '4절',
+      '후렴',
+      '직접 입력',
+    ]);
     expect(
       parsed.value.data.groups.flatMap(group =>
         group.slides.flatMap(slide => slide.lines),

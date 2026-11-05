@@ -1,0 +1,122 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(
+    100vh - var(--space-dialog-window-gap) - var(--size-dialog-header) -
+      var(--size-dialog-footer) - var(--dialog-inset) - var(--dialog-inset)
+  );
+}
+
+.intro {
+  flex: none;
+  margin: 0 0 var(--space-16);
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.heading,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.heading {
+  flex: none;
+  margin-bottom: var(--space-8);
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rows {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.spacer {
+  position: relative;
+}
+
+.row {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: var(--size-control-md);
+}
+
+.header,
+.firstLine {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.header {
+  font: var(--type-body);
+}
+
+.firstLine {
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: var(--size-control-md);
+  padding-left: var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  box-shadow: var(--ring-field);
+  font: var(--type-body);
+}
+
+.field:focus-within,
+.field:has(input[aria-expanded='true']) {
+  box-shadow: var(--ring-field-focus);
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-overflow: ellipsis;
+}
+
+.field input::placeholder {
+  color: var(--text-3);
+}
+
+.caption {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.field button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+}

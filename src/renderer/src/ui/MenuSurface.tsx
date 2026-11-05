@@ -50,7 +50,7 @@ export interface MenuSurfaceProps {
   readonly onBack?: (() => void) | undefined;
   readonly onPointerEnter?: (() => void) | undefined;
   readonly search?: MenuSearch | undefined;
-  readonly width?: number | undefined;
+  readonly width?: number | string | undefined;
   readonly minWidth?: number | undefined;
   readonly autoFocus: boolean;
   readonly footer?: ReactNode | undefined;

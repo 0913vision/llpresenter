@@ -25,5 +25,12 @@ export function importLimitReason(song: GroupedSong): string | undefined {
   if ((song.arrangements?.length ?? 0) > SONG_IMPORT_LIMITS.arrangements) {
     return limitReason('구성', SONG_IMPORT_LIMITS.arrangements);
   }
+  const {title, groups, background, arrangements} = song;
+  if (
+    JSON.stringify({title, groups, background, arrangements}).length >
+    SONG_IMPORT_LIMITS.characters
+  ) {
+    return limitReason('글자', SONG_IMPORT_LIMITS.characters);
+  }
   return undefined;
 }
