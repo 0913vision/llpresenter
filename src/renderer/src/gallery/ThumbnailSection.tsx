@@ -111,7 +111,7 @@ const colorSamples: readonly ColorSample[] = [
   {color: 'orange', label: '태그', text: '만복의 근원 하나님'},
   {color: 'rose', label: '인트로', text: '내 주를 가까이 하게 함은'},
   {color: 'violet', label: '브리지', text: '아멘'},
-  {color: 'slate', label: '엔딩', text: '찬송 성부 성자 성령'},
+  {color: 'slate', label: '후주', text: '찬송 성부 성자 성령'},
   {color: 'gray', label: '간주', text: '주 하나님 지으신 모든 세계'},
 ];
 

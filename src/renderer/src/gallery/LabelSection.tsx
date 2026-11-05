@@ -35,7 +35,7 @@ const songChips: readonly ArrangementChip[] = [
   {key: '4', name: '2절', color: 'teal', number: 4},
   {key: '5', name: undefined, color: 'none', number: 5},
   {key: '6', name: '후렴', color: 'yellow', number: 6},
-  {key: '7', name: '엔딩', color: 'slate', number: 7},
+  {key: '7', name: '후주', color: 'slate', number: 7},
 ];
 
 function TryStrip(): JSX.Element {
@@ -95,7 +95,7 @@ const namedChipStates: readonly ChipState[] = [
   },
   {
     label: 'Focus',
-    chip: {key: 'e', name: '엔딩', color: 'slate', number: 7},
+    chip: {key: 'e', name: '후주', color: 'slate', number: 7},
     pin: 'focus',
   },
   {

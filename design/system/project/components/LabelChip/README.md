@@ -72,7 +72,7 @@ Hover on a color chip doesn't change the background color. The 이름표 color i
 
 - The chip text is a single 이름표 name. Don't add a count or a repeat mark such as "(2)". If the same group appears twice, there are two chips.
 - With no 이름표, write only the group number ("4"). In a picker 이름표, write "이름표".
-- Example 이름표 names: "1절", "2절", "프리코러스", "후렴", "브리지", "간주", "엔딩".
+- Example 이름표 names: "전주", "1절", "2절", "3절", "4절", "프리코러스", "후렴", "포스트코러스", "브리지", "간주", "후주".
 
 ## Implementation notes
 

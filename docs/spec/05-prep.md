@@ -288,9 +288,8 @@ the editor until 저장 ("곡 편집" under B20 above).
 ### 이름표 menu
 
 - Clicking a block's 이름표 chip opens the menu:
-  - "이름표 없음" (no 이름표), then the 이름표 list (1절, 2절, 3절, 프리코러스,
-    후렴, 브리지, 간주, 엔딩), each with its color swatch. The current one has a
-    check mark.
+  - "이름표 없음" (no 이름표), then the 이름표 list (defaults in 02), each with
+    its color swatch. The current one has a check mark.
   - A separator, then 이름표 관리….
 - Choosing a name sets the group's `name`. Starting a new group at a slide
   splits the current group there, retaining every arrangement's slide order

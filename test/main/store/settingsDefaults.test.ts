@@ -2,6 +2,24 @@ import {describe, expect, it} from 'vitest';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {settingsDefaults} from '@main/store/settingsDefaults';
+import {DEFAULT_LABELS} from '@main/store/defaults';
+
+it('starts the label menu with the ordered import labels and colors', () => {
+  expect(DEFAULT_LABELS.map(({name, color}) => [name, color])).toEqual([
+    ['전주', 'slate'],
+    ['1절', 'teal'],
+    ['2절', 'teal'],
+    ['3절', 'teal'],
+    ['4절', 'teal'],
+    ['프리코러스', 'green'],
+    ['후렴', 'yellow'],
+    ['포스트코러스', 'orange'],
+    ['브리지', 'violet'],
+    ['간주', 'gray'],
+    ['후주', 'slate'],
+  ]);
+  expect(DEFAULT_LABELS.every(label => label.key === null)).toBe(true);
+});
 
 describe('starter screen defaults', () => {
   it('names translation files with the extension accepted by the Bible loader', () => {

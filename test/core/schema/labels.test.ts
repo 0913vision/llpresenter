@@ -13,14 +13,17 @@ function defaultLabels() {
     format: 'llsettings.labels',
     schemaVersion: 1,
     labels: [
+      {name: '전주', color: 'slate', key: null},
       {name: '1절', color: 'teal', key: null},
       {name: '2절', color: 'teal', key: null},
       {name: '3절', color: 'teal', key: null},
+      {name: '4절', color: 'teal', key: null},
       {name: '프리코러스', color: 'green', key: null},
-      {name: '후렴', color: 'yellow', key: 'KeyC'},
+      {name: '후렴', color: 'yellow', key: null},
+      {name: '포스트코러스', color: 'orange', key: null},
       {name: '브리지', color: 'violet', key: null},
       {name: '간주', color: 'gray', key: null},
-      {name: '엔딩', color: 'none', key: null},
+      {name: '후주', color: 'slate', key: null},
     ],
   };
 }
