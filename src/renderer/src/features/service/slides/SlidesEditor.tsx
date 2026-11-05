@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -8,7 +9,9 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import {createSlideId, themeIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import {SLIDES_LIMITS} from '@core/schema/service';
+import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
+import {BibleSlidesDialog} from '@renderer/features/bible/BibleSlidesDialog';
+import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {
   newTextSlide,
   SLIDES_LIMIT,
@@ -226,6 +229,10 @@ function SlidesEditorBody({
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
   const {appearance, themes} = useSlidesAppearance(api, item);
+  const {projection} = useSlidesVerseProjection(api, item);
+  const [bibleDialog, setBibleDialog] = useState<{
+    reference?: VerseSlide['verse'];
+  } | null>(null);
   const [picker, setPicker] = useState<{
     anchor: HTMLElement;
     slideId?: string;
@@ -240,6 +247,18 @@ function SlidesEditorBody({
   const update = (): void => model.update();
   const rows = item.slides.slides;
   const at = Math.max(0, Math.min(selected, rows.length - 1));
+  const restoreBibleFocus = useRef(false);
+  useEffect(() => {
+    if (bibleDialog !== null) {
+      restoreBibleFocus.current = true;
+      return;
+    }
+    if (!restoreBibleFocus.current) return;
+    restoreBibleFocus.current = false;
+    const row =
+      rowList.current?.querySelectorAll<HTMLElement>('[data-slide-id]')[at];
+    row?.focus();
+  }, [bibleDialog, at]);
   useLayoutEffect(() => {
     if (!focusAfterRemove.current) return;
     focusAfterRemove.current = false;
@@ -278,8 +297,22 @@ function SlidesEditorBody({
       isComposing(event) ||
       model.saving ||
       model.stopped ||
-      model.leave !== null
+      model.leave !== null ||
+      bibleDialog !== null
     ) {
+      return;
+    }
+    const verse = rows[at];
+    if (
+      event.ctrlKey &&
+      !event.altKey &&
+      event.code === 'KeyE' &&
+      verse !== undefined &&
+      'verse' in verse
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      setBibleDialog({reference: verse.verse});
       return;
     }
     if (
@@ -396,6 +429,7 @@ function SlidesEditorBody({
                     item={item}
                     index={index}
                     appearance={appearance}
+                    projection={projection}
                   />
                 </div>
                 <SlideFields
@@ -428,13 +462,29 @@ function SlidesEditorBody({
               >
                 그림 추가…
               </Button>
+              {item.slides.form !== 'blank' ? null : (
+                <Button
+                  variant="ghost"
+                  icon="plus"
+                  disabled={rows.length >= SLIDES_LIMIT}
+                  onClick={() => setBibleDialog({})}
+                >
+                  성경 구절 추가…
+                </Button>
+              )}
             </div>
           </div>
         </fieldset>
         <PanelFooter count={rows.length} />
       </div>
       <div className={styles.side}>
-        <SlidesPreview api={api} item={item} selected={at} media={media} />
+        <SlidesPreview
+          api={api}
+          item={item}
+          selected={at}
+          media={media}
+          projection={projection}
+        />
         <div className={styles.save}>
           <Button
             disabled={!draft.dirty || model.saving || model.stopped}
@@ -446,6 +496,22 @@ function SlidesEditorBody({
           </Button>
         </div>
       </div>
+      {bibleDialog === null ? null : (
+        <BibleSlidesDialog
+          api={api}
+          item={item}
+          selected={at}
+          {...(bibleDialog.reference === undefined
+            ? {}
+            : {reference: bibleDialog.reference})}
+          onInsert={slides => {
+            if (draft.insert(slides)) {
+              update();
+            }
+          }}
+          onClose={() => setBibleDialog(null)}
+        />
+      )}
       {picker === null ? null : (
         <MediaPicker
           label="그림 선택"

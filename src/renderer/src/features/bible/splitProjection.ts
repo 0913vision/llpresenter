@@ -25,10 +25,10 @@ import {
 import type {SplitLayout} from '@core/bible/split/layout';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
+import {projectSlidesBible} from './projectSlidesBible';
 
-export interface SplitSource {
+interface SplitOptions {
   readonly id: string;
-  readonly passage: BibleLookupPassage;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
   readonly translationName: boolean;
@@ -37,12 +37,30 @@ export interface SplitSource {
   readonly theme?: ThemeId;
 }
 
+export type SplitSource = SplitOptions &
+  (
+    | {readonly kind: 'bible'; readonly passage: BibleLookupPassage}
+    | {readonly kind: 'slides'; readonly input: readonly SlideTile[]}
+  );
+
+export function sourceContent(source: SplitSource): object {
+  return source.kind === 'bible' ? source.passage : source.input;
+}
+
+export interface ProjectionLayout {
+  readonly element: BibleTextElement;
+  readonly layout: SplitLayout;
+  readonly saved?: BibleCutsFile | undefined;
+}
+
 export interface BibleProjection {
   readonly source: SplitSource;
   readonly element: BibleTextElement;
   readonly layout: SplitLayout;
   readonly verses: readonly VerseInput[];
   readonly parts: readonly VersePart[];
+  readonly partsByTile: ReadonlyArray<VersePart | null>;
+  readonly numbered: boolean;
   readonly tiles: readonly SlideTile[];
   readonly problem?: 'tile-limit';
 }
@@ -74,6 +92,7 @@ export function splitSourceFor(
   if (external !== null) {
     return {
       id: itemId,
+      kind: 'bible',
       passage: external.passage,
       verseNumbers: external.verseNumbers,
       reference: external.reference,
@@ -83,9 +102,26 @@ export function splitSourceFor(
     };
   }
   const row = view.rows.find(row => row.id === itemId);
+  if (row?.kind === 'slides' && row.form === 'blank') {
+    const input = view.tiles[itemId];
+    if (!input?.some(tile => tile.verse !== undefined)) {
+      return null;
+    }
+    return {
+      id: itemId,
+      kind: 'slides',
+      input,
+      source: 'service',
+      verseNumbers: true,
+      reference: 'every',
+      translationName: false,
+      ...(row.theme === undefined ? {} : {theme: row.theme}),
+    };
+  }
   if (row?.kind !== 'bible' || row.bible?.passage === undefined) return null;
   return {
     id: itemId,
+    kind: 'bible',
     passage: row.bible.passage,
     verseNumbers: row.bible.verseNumbers ?? true,
     reference: row.bible.reference ?? 'every',
@@ -97,16 +133,11 @@ export function splitSourceFor(
 
 export function projectBible(
   source: SplitSource,
-  {
-    element,
-    layout,
-    saved,
-  }: {
-    readonly element: BibleTextElement;
-    readonly layout: SplitLayout;
-    readonly saved?: BibleCutsFile | undefined;
-  },
+  {element, layout, saved}: ProjectionLayout,
 ): BibleProjection | null {
+  if (source.kind === 'slides') {
+    return projectSlidesBible(source, {element, layout, saved});
+  }
   const book = passageBook(source.passage);
   if (book === undefined) return null;
   const capped: BibleProjection = {
@@ -115,6 +146,8 @@ export function projectBible(
     layout,
     verses: [],
     parts: [],
+    partsByTile: [],
+    numbered: source.verseNumbers && source.passage.verses.length > 1,
     tiles: [],
     problem: 'tile-limit',
   };
@@ -162,7 +195,16 @@ export function projectBible(
         : {}),
     };
   });
-  return {source, element, layout, verses, parts, tiles};
+  return {
+    source,
+    element,
+    layout,
+    verses,
+    parts,
+    partsByTile: parts,
+    tiles,
+    numbered: source.verseNumbers && verses.length > 1,
+  };
 }
 
 /** Owns only a bounded cache of derived projections; changing settings replaces it. */
@@ -180,7 +222,8 @@ export class BibleProjections {
   get(source: SplitSource): BibleProjection | null {
     const cached = this.cache.get(source.id);
     if (
-      cached?.source.passage === source.passage &&
+      cached !== undefined &&
+      sourceContent(cached.source) === sourceContent(source) &&
       cached.source.theme === source.theme &&
       cached.source.verseNumbers === source.verseNumbers &&
       cached.source.reference === source.reference &&
@@ -195,7 +238,7 @@ export class BibleProjections {
     if (screen === undefined) return null;
     const theme = resolveItemTheme({
       file: this.context.themes,
-      kind: 'bible',
+      kind: source.kind === 'slides' ? 'blank' : 'bible',
       source: source.source,
       screens,
       ...(source.theme === undefined ? {} : {theme: source.theme}),

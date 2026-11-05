@@ -4,24 +4,41 @@ import {NO_LABEL_COLOR} from '../labels/colors';
 import type {MediaItem} from '../schema/mediaList';
 import type {ServiceItemOf} from '../schema/service';
 import type {ShowTile} from '../schema/showService';
+import type {BibleLookupPassage} from '../schema/bibleLookup';
+import {BIBLE_BOOKS} from '../bible/bibleBooks';
+import {bibleOutputLines} from '../bible/bibleTiles';
 
 /** Projects both slide forms without putting thumbnail bands into live text. */
 export function projectSlides(
   item: ServiceItemOf<'slides'>,
   media: ReadonlyMap<string, MediaItem> = new Map(),
+  passages: ReadonlyMap<string, BibleLookupPassage> = new Map(),
 ): readonly ShowTile[] {
   return item.slides.slides.map(slide => {
     if ('verse' in slide) {
+      const reference = slide.verse;
+      const verse = passages
+        .get(slide.id)
+        ?.verses.find(
+          verse =>
+            verse.chapter === reference.chapter &&
+            verse.verse === reference.verse,
+        );
+      const book = BIBLE_BOOKS.find(book => book.id === reference.book);
       return {
+        sourceSlideId: slide.id,
         label: `${slide.verse.chapter}:${slide.verse.verse}`,
         labelColor: NO_LABEL_COLOR,
-        lines: [],
+        lines: verse === undefined ? [] : bibleOutputLines(verse.text),
+        reference: `${book?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`,
+        verse: {reference, ...(verse === undefined ? {} : {text: verse.text})},
         kind: item.slides.form,
       };
     }
     if ('media' in slide) {
       const picture = media.get(slide.media);
       return {
+        sourceSlideId: slide.id,
         label: picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림',
         labelColor: NO_LABEL_COLOR,
         lines: [],
@@ -35,6 +52,7 @@ export function projectSlides(
         ? slide.name
         : undefined;
     return {
+      sourceSlideId: slide.id,
       label:
         item.slides.form === 'ad' ? (name ?? '') : (text.split('\n')[0] ?? ''),
       labelColor: NO_LABEL_COLOR,

@@ -1,4 +1,5 @@
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   parseBibleLookupRequest,
@@ -15,6 +16,10 @@ export interface ServicePassages {
     RecentPassage & {readonly passage?: BibleLookupPassage}
   >;
   readonly unavailable: ReadonlySet<string>;
+  readonly slides?: ReadonlyMap<
+    string,
+    ReadonlyMap<string, BibleLookupPassage>
+  >;
 }
 
 /** Resolves saved passages sequentially without retaining a second chapter cache. */
@@ -34,21 +39,20 @@ export async function resolveServicePassages(
     RecentPassage & {readonly passage?: BibleLookupPassage}
   >();
   const unavailable = new Set<string>();
+  const slides = new Map<string, ReadonlyMap<string, BibleLookupPassage>>();
   const resolved = new Map<
     string,
     Awaited<ReturnType<typeof bible.lookup>> | null
   >();
-  for (const item of items) {
-    if (options.isCurrent?.() === false) break;
-    if (!isItemOfKind(item, 'bible')) continue;
+  const load = async (
+    translation: string,
+    input: string,
+  ): Promise<BibleLookupPassage | null> => {
     const request = parseBibleLookupRequest({
-      translation: item.bible.translation,
-      input: item.bible.ref,
+      translation,
+      input,
     });
-    if (!request.ok) {
-      unavailable.add(item.id);
-      continue;
-    }
+    if (!request.ok) return null;
     const key = JSON.stringify(request.value);
     if (!resolved.has(key)) {
       try {
@@ -59,16 +63,51 @@ export async function resolveServicePassages(
       }
     }
     const reply = resolved.get(key);
-    if (
-      !reply?.result.ok ||
-      reply.result.value.verses.length > SHOW_SERVICE_LIMITS.tiles
-    ) {
+    return reply?.result.ok ? reply.result.value : null;
+  };
+  const resolveSlides = async (
+    item: Extract<ServiceItem, {slides: unknown}>,
+  ): Promise<ReadonlyMap<string, BibleLookupPassage>> => {
+    const found = new Map<string, BibleLookupPassage>();
+    for (const slide of item.slides.slides) {
+      if (options.isCurrent?.() === false) break;
+      if (!('verse' in slide)) continue;
+      const reference = slide.verse;
+      const book = BIBLE_BOOKS.find(book => book.id === reference.book);
+      const passage =
+        book === undefined
+          ? null
+          : await load(
+              reference.translation,
+              `${book.korean} ${reference.chapter}:${reference.verse}`,
+            );
+      const verse = passage?.verses.find(
+        verse =>
+          verse.chapter === reference.chapter &&
+          verse.verse === reference.verse,
+      );
+      if (passage === null || verse === undefined) {
+        unavailable.add(item.id);
+      } else found.set(slide.id, {...passage, verses: [verse]});
+    }
+    return found;
+  };
+  for (const item of items) {
+    if (options.isCurrent?.() === false) break;
+    if (isItemOfKind(item, 'slides')) {
+      const found = await resolveSlides(item);
+      slides.set(item.id, found);
+      continue;
+    }
+    if (!isItemOfKind(item, 'bible')) continue;
+    const passage = await load(item.bible.translation, item.bible.ref);
+    if (passage === null || passage.verses.length > SHOW_SERVICE_LIMITS.tiles) {
       unavailable.add(item.id);
       continue;
     }
     tiles.set(
       item.id,
-      bibleVerseTiles(reply.result.value, {
+      bibleVerseTiles(passage, {
         verseNumbers: item.bible.verseNumbers,
         reference: item.bible.reference,
         translationName: item.bible.translationName,
@@ -76,8 +115,8 @@ export async function resolveServicePassages(
         maxLines: options.maxLines,
       }),
     );
-    const {ref, translation} = reply.result.value;
-    references.set(item.id, {ref, translation, passage: reply.result.value});
+    const {ref, translation} = passage;
+    references.set(item.id, {ref, translation, passage});
   }
-  return {tiles, references, unavailable};
+  return {tiles, references, unavailable, slides};
 }

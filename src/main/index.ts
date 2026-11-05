@@ -22,6 +22,7 @@ import {
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
 import {registerSlideAdvance} from './live/slideAdvance';
+import {registerSlidesProjection} from './live/slidesProjection';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {diagnosticsText} from './diagnostics';
@@ -195,10 +196,16 @@ function start(): void {
         data: dataStore,
         log,
       });
+      const slidesProjection = registerSlidesProjection({
+        content: dataStore.content,
+        settings: dataStore.settings,
+        log,
+      });
       const stopSlideAdvance = registerSlideAdvance({
         store,
         data: dataStore,
         log,
+        projection: slidesProjection,
       });
       const analysis = startMediaAnalysis({
         media: dataStore.media,
@@ -396,6 +403,10 @@ function start(): void {
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop theme output', run: stopThemeOutput});
       shutdown.add({name: 'stop slide advance', run: stopSlideAdvance});
+      shutdown.add({
+        name: 'stop slides projection',
+        run: slidesProjection.dispose,
+      });
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

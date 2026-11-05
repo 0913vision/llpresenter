@@ -9,7 +9,7 @@ import type {SongSession} from './songSession';
  */
 export type EditorApi = Pick<
   LlpApi,
-  'songs' | 'content' | 'settings' | 'media'
+  'songs' | 'content' | 'settings' | 'media' | 'bible'
 >;
 
 /** The revisioned labels document, retaining its current access contract. */

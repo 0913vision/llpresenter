@@ -135,6 +135,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.output,
     },
     service: {
+      slidesProjection: () => undefined,
       get: () => Promise.resolve(null),
       open: () => Promise.resolve(null),
       subscribe: () => () => undefined,

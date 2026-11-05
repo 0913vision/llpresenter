@@ -269,6 +269,19 @@ nor rendered parts. A verse slide cannot have `text`, `name`, `media`, or
 `continued`. Its parts are calculated from the installed text, the current theme
 measurement, and the saved Bible cuts below.
 
+The open-service feed may carry temporary resolved verse text with each source
+slide ID and the service revision. These values are not written to the service
+file. A renderer-produced sequence sent back to main contains only output-ready
+parts, source slide IDs and part numbers, with at most 10,000 tiles. It is bound
+to that service, item and revision; main checks source order, part continuity,
+slide kind and picture IDs before retaining one sequence for timed advance.
+Individual lines obey live text limits. The total text budget is 200 source
+verses of at most 20,000 characters plus 256 characters per projected tile for
+markers and references. The sequence carries the positive revisions of themes,
+screens and Bible cuts used for measurement. Main rejects stale input revisions
+and invalidates its retained sequence whenever any of those settings changes,
+independently of the service revision or the renderer's workspace.
+
 At item level, `theme`, `overlays`, `background`, `macro`, and `memo` are
 optional, as on song items. `background` is a media ID. The live slide carries
 an optional `name` for the theme's `slideName` element, separately from the item

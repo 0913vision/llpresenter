@@ -4,15 +4,17 @@ import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePartSchema, mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
+import {bibleVerseReferenceSchema, SLIDES_LIMITS} from './service';
 import {bibleReferenceSchema as bibleReferenceFrequencySchema} from './biblePassage';
 import {
   mediaIdSchema,
+  slideIdSchema,
   songIdSchema,
   songGroupIdSchema,
   translationIdSchema,
   themeIdSchema,
 } from './ids';
-import {nonBlankText, nonNegativeInteger} from './primitives';
+import {nonBlankText, nonNegativeInteger, positiveInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
 import {liveTextSchema} from './liveLimits';
 import {
@@ -87,6 +89,7 @@ const showRowSchema = v.pipe(
       id,
       title: v.string(),
       form: v.picklist(['blank', 'ad']),
+      sourceRevision: v.exactOptional(positiveInteger),
       theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
@@ -129,6 +132,15 @@ export const showTileSchema = v.pipe(
     kind: v.exactOptional(v.picklist(['blank', 'ad'])),
     continued: v.exactOptional(v.boolean()),
     biblePart: v.exactOptional(biblePartSchema),
+    sourceSlideId: v.exactOptional(slideIdSchema),
+    verse: v.exactOptional(
+      payloadObject({
+        reference: bibleVerseReferenceSchema,
+        text: v.exactOptional(
+          v.pipe(v.string(), v.maxLength(BIBLE_LOOKUP_LIMITS.verseText)),
+        ),
+      }),
+    ),
     hotKey: v.exactOptional(slideHotKeySchema),
     sourceSlide: v.exactOptional(songSlideSourceSchema),
     media: v.exactOptional(mediaChoiceSchema),
@@ -152,7 +164,16 @@ const showServiceSchema = payloadObject({
     plainObject,
     v.record(
       v.string(),
-      v.pipe(v.array(showTileSchema), v.maxLength(SHOW_SERVICE_LIMITS.tiles)),
+      v.pipe(
+        v.array(showTileSchema),
+        v.maxLength(SHOW_SERVICE_LIMITS.tiles),
+        v.check(
+          tiles =>
+            tiles.filter(tile => tile.verse !== undefined).length <=
+            SLIDES_LIMITS.slides,
+          'Too many source verse slides',
+        ),
+      ),
     ),
   ),
   jumpKeys: v.pipe(plainObject, v.record(v.string(), v.string())),

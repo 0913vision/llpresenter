@@ -1,4 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsName,
@@ -32,8 +33,23 @@ export function useSettingsDocument<TName extends SettingsName>(
   title: string,
   onProblem: ((notice: Notice) => void) | undefined,
 ): NamedDocument<TName> | null {
-  const [request, setRequest] = useState({name});
-  if (request.name !== name) setRequest({name});
+  return useApiSettingsDocument({api: window.llp, name, title, onProblem});
+}
+
+export function useApiSettingsDocument<TName extends SettingsName>({
+  api,
+  name,
+  title,
+  onProblem,
+}: {
+  readonly api:
+    (Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>) | undefined;
+  readonly name: TName | null;
+  readonly title: string;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+}): NamedDocument<TName> | null {
+  const [request, setRequest] = useState({name, api});
+  if (request.name !== name || request.api !== api) setRequest({name, api});
   const [loaded, setLoaded] = useState<{
     request: typeof request;
     document: NamedDocument<TName>;
@@ -43,7 +59,6 @@ export function useSettingsDocument<TName extends SettingsName>(
     report.current = onProblem;
   });
   useEffect(() => {
-    const api = window.llp;
     if (api === undefined || name === null) return undefined;
     let active = true;
     let revision = -1;
@@ -54,7 +69,7 @@ export function useSettingsDocument<TName extends SettingsName>(
     };
     const stop = api.settings.subscribe(accept);
     api.settings.get({name}).then(accept, (cause: unknown) => {
-      api.log.write({
+      api.log?.write({
         level: 'error',
         message: `Could not load ${name} settings`,
         detail: cause instanceof Error ? cause.message : String(cause),
@@ -72,6 +87,6 @@ export function useSettingsDocument<TName extends SettingsName>(
       active = false;
       stop();
     };
-  }, [name, title, request]);
+  }, [name, title, request, api]);
   return loaded?.request === request ? loaded.document : null;
 }

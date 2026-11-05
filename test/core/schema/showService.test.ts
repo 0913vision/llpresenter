@@ -26,6 +26,58 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('checks resolved verse slots and caps source text and reference counts', () => {
+    const tile = {
+      label: '3:16',
+      labelColor: 'none',
+      lines: [],
+      kind: 'blank',
+      sourceSlideId: '00000000-0000-4000-8000-000000000911',
+      verse: {
+        reference: {translation: 'sample', book: 43, chapter: 3, verse: 16},
+        text: '가'.repeat(20_000),
+      },
+    };
+    const value = {...showService(), tiles: {slides: [tile]}};
+    expect(parseShowService(value)).toMatchObject({
+      ok: true,
+      value: {
+        tiles: {
+          slides: [{sourceSlideId: tile.sourceSlideId, verse: tile.verse}],
+        },
+      },
+    });
+    for (const patch of [
+      {sourceSlideId: 'bad-id'},
+      {verse: {...tile.verse, text: '가'.repeat(20_001)}},
+      {verse: {...tile.verse, reference: {...tile.verse.reference, book: 67}}},
+      {
+        verse: {
+          ...tile.verse,
+          reference: {...tile.verse.reference, chapter: 151},
+        },
+      },
+      {verse: {...tile.verse, reference: {...tile.verse.reference, verse: 0}}},
+    ]) {
+      expect(
+        parseShowService({...value, tiles: {slides: [{...tile, ...patch}]}}).ok,
+      ).toBe(false);
+    }
+    const small = {...tile, verse: {...tile.verse, text: '가'}};
+    expect(
+      parseShowService({
+        ...value,
+        tiles: {slides: Array.from({length: 200}, () => small)},
+      }).ok,
+    ).toBe(true);
+    expect(
+      parseShowService({
+        ...value,
+        tiles: {slides: Array.from({length: 201}, () => small)},
+      }).ok,
+    ).toBe(false);
+  });
+
   it('accepts checked source passages and rejects invalid split metadata', () => {
     const passage = {
       translation: 'sample',

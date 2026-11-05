@@ -14,9 +14,95 @@ import {projectSlides} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';
+import {
+  renderedVerseSlides,
+  slidesBibleItem,
+  VERSE_NEXT,
+} from '@fixtures/core/slidesBible';
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
+
+it('advances a retained measured sequence after the control leaves, remapping cuts before the live verse', () => {
+  const previous = setup();
+  previous.stop();
+  const item = slidesBibleItem();
+  let tiles = renderedVerseSlides(2);
+  let refresh: (() => void) | undefined;
+  const unsubscribe = vi.fn();
+  const stop = followSlideAdvance({
+    store: previous.store,
+    sequence: id => (id === item.id ? {item, tiles} : undefined),
+    send: previous.send,
+    subscribeSequence: listener => {
+      refresh = listener;
+      return unsubscribe;
+    },
+  });
+  const at = tiles.findIndex(tile => tile.sourceSlideId === VERSE_NEXT);
+  const slide = slideLayerOf({itemId: item.id, index: at}, () => tiles);
+  if (slide === null) throw Error('Missing live verse');
+  previous.store.dispatch({type: 'slide.show', slide});
+  const before = previous.store.state.layers.slide;
+  tiles = renderedVerseSlides(3);
+  refresh?.();
+  expect(previous.store.state.layers.slide).toBe(before);
+  expect(previous.send).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(3000);
+  expect(previous.store.state.layers.slide).toMatchObject({
+    picture: SLIDE_PICTURE,
+    position: 5,
+  });
+  stop();
+  expect(unsubscribe).toHaveBeenCalledOnce();
+  const sent = previous.send.mock.calls.length;
+  vi.advanceTimersByTime(3000);
+  expect(previous.send).toHaveBeenCalledTimes(sent);
+});
+
+it.each<LiveCommand>([
+  {type: 'layer.clear', target: 'media'},
+  {type: 'layer.clear.toggle', target: 'media'},
+  {type: 'layer.clear', target: 'slide'},
+  {type: 'layer.clear.toggle', target: 'slide'},
+  {type: 'item.stop'},
+])(
+  'keeps advance stopped after $type followed by projection refresh until explicit output',
+  command => {
+    const previous = setup();
+    previous.stop();
+    const item = slidesBibleItem();
+    const tiles = renderedVerseSlides();
+    let refresh: (() => void) | undefined;
+    const stop = followSlideAdvance({
+      store: previous.store,
+      sequence: () => ({item, tiles}),
+      send: previous.send,
+      subscribeSequence: listener => {
+        refresh = listener;
+        return () => undefined;
+      },
+    });
+    const slide = slideLayerOf({itemId: item.id, index: 1}, () => tiles);
+    if (slide === null) throw Error('Missing live part');
+    previous.store.dispatch({type: 'slide.show', slide});
+    previous.store.dispatch(command);
+    const stopped = previous.store.state.layers.slide;
+    refresh?.();
+    refresh?.();
+    vi.advanceTimersByTime(10000);
+    expect(previous.store.state.layers.slide).toBe(stopped);
+    expect(previous.send).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    previous.store.dispatch({type: 'slide.show', slide});
+    vi.advanceTimersByTime(3000);
+    expect(previous.store.state.layers.slide).toMatchObject({
+      position: 2,
+      biblePart: 2,
+    });
+    stop();
+  },
+);
 
 function setup(loop = false, advance: number | null = 3) {
   const source = slidesItem();

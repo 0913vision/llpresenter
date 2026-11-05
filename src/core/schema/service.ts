@@ -58,17 +58,19 @@ export const SLIDES_LIMITS = {
 const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
 const slideTextSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text));
 
+export const bibleVerseReferenceSchema = jsonObject({
+  translation: v.pipe(
+    translationIdSchema,
+    v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+  ),
+  book: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
+  chapter: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.chapters)),
+  verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
+});
+
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
-  verse: jsonObject({
-    translation: v.pipe(
-      translationIdSchema,
-      v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
-    ),
-    book: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
-    chapter: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.chapters)),
-    verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
-  }),
+  verse: bibleVerseReferenceSchema,
 });
 
 export type VerseSlide = ReadonlyKnown<v.InferOutput<typeof verseSlideSchema>>;

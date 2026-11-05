@@ -14,9 +14,19 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.slideAdvanceContexts).toHaveLength(1);
     expect(mocks.slideAdvanceContexts[0]).toHaveProperty('store');
     expect(mocks.slideAdvanceContexts[0]).toHaveProperty('data');
+    expect(mocks.slidesProjectionContexts).toHaveLength(1);
+    expect(mocks.slidesProjectionContexts[0]).toHaveProperty(
+      'settings',
+      mocks.settings,
+    );
+    expect(mocks.slideAdvanceContexts[0]).toHaveProperty(
+      'projection',
+      mocks.slidesProjection,
+    );
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
     expect(mocks.slideAdvanceStop).toHaveBeenCalledOnce();
+    expect(mocks.slidesProjection.dispose).toHaveBeenCalledOnce();
     expect(mocks.slideAdvanceStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );

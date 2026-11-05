@@ -18,7 +18,13 @@ export function slideLayerOf(
     itemId: cursor.itemId,
     position: cursor.index,
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
-    label: tile.kind === undefined ? tile.label : null,
+    ...(tile.sourceSlideId === undefined
+      ? {}
+      : {sourceSlideId: tile.sourceSlideId}),
+    label:
+      tile.kind === undefined || tile.biblePart !== undefined
+        ? tile.label
+        : null,
     lines: tile.lines,
     ...(tile.name === undefined ? {} : {name: tile.name}),
     ...(tile.picture === undefined ? {} : {picture: tile.picture}),
@@ -29,7 +35,10 @@ export function slideLayerOf(
       ? {}
       : {
           next: {
-            label: next.kind === undefined ? next.label : null,
+            label:
+              next.kind === undefined || next.biblePart !== undefined
+                ? next.label
+                : null,
             lines: next.lines,
             ...(next.continued === undefined
               ? {}

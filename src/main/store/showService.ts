@@ -33,6 +33,7 @@ export interface ShowServiceSources {
   readonly songs: SongLibrary;
   readonly labels: readonly Label[];
   readonly revision: number;
+  readonly serviceRevision?: number;
   readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
   readonly passages?: ServicePassages;
   /** The media list by id, for the names and kinds of media items. */
@@ -55,6 +56,7 @@ export function buildShowService({
   songs,
   labels,
   revision,
+  serviceRevision,
   backgrounds = new Map(),
   passages,
   media,
@@ -83,7 +85,7 @@ export function buildShowService({
     itemTiles[itemId] = tiles;
   }
   for (const item of order) {
-    const tiles = otherTiles(item, {backgrounds, media});
+    const tiles = otherTiles(item, {backgrounds, media, passages});
     if (tiles !== undefined) itemTiles[item.id] = tiles;
   }
   const rowSources: RowSources = {
@@ -92,6 +94,7 @@ export function buildShowService({
     cappedItems,
     passages,
     media,
+    serviceRevision,
   };
   return {
     revision,
@@ -105,6 +108,7 @@ export function buildShowService({
 }
 
 interface RowSources {
+  readonly serviceRevision: number | undefined;
   readonly songs: SongLibrary;
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly cappedItems: ReadonlySet<string>;
@@ -121,6 +125,7 @@ function mediaTitle(media: MediaItem): string {
 interface OtherSources {
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
+  readonly passages: ServicePassages | undefined;
 }
 
 /**
@@ -128,9 +133,11 @@ interface OtherSources {
  */
 function otherTiles(
   item: ServiceItem,
-  {backgrounds, media}: OtherSources,
+  {backgrounds, media, passages}: OtherSources,
 ): readonly ShowTile[] | undefined {
-  if (isItemOfKind(item, 'slides')) return projectSlides(item, media);
+  if (isItemOfKind(item, 'slides')) {
+    return projectSlides(item, media, passages?.slides?.get(item.id));
+  }
   if (isItemOfKind(item, 'media')) {
     if (media === undefined) return undefined;
     const choice = backgrounds.get(item.media);
@@ -166,6 +173,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       id,
       title: item.slides.name,
       form: item.slides.form,
+      ...(sources.serviceRevision === undefined
+        ? {}
+        : {sourceRevision: sources.serviceRevision}),
       ...(item.theme === undefined ? {} : {theme: item.theme}),
       ...(background === undefined ? {} : {background}),
       ...(item.background !== undefined && background === undefined
@@ -176,7 +186,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
                 sources.media?.get(slide.media)?.kind !== 'image',
             )
           ? {problem: 'missing-media' as const}
-          : {}),
+          : sources.passages?.unavailable.has(id)
+            ? {problem: 'missing-bible' as const}
+            : {}),
     };
   }
   if (isItemOfKind(item, 'bible')) {

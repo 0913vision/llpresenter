@@ -27,6 +27,12 @@ import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {translationIdSchema} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
+import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {
+  slidesBibleItem,
+  slidesBiblePassages,
+  VERSE_SLIDE,
+} from '@fixtures/core/slidesBible';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
@@ -66,6 +72,48 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('carries checked verse text and a source revision without losing a missing-verse warning', () => {
+    const item = slidesBibleItem();
+    const shown = buildShowService({
+      service: loadedService([item]),
+      serviceRevision: 7,
+      songs: new Map(),
+      labels: [],
+      revision: 3,
+      passages: {
+        tiles: new Map(),
+        references: new Map(),
+        unavailable: new Set([item.id]),
+        slides: new Map([[item.id, slidesBiblePassages(item)]]),
+      },
+      media: new Map(),
+    });
+    expect(shown.rows[0]).toMatchObject({kind: 'slides', sourceRevision: 7});
+    expect(
+      shown.tiles[item.id]?.find(tile => tile.sourceSlideId === VERSE_SLIDE),
+    ).toMatchObject({
+      verse: {reference: {book: 43, verse: 16}, text: MOCK_LONG_VERSE},
+    });
+    const withoutPicture = {
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: item.slides.slides.filter(slide => !('media' in slide)),
+      },
+    };
+    const unavailable = buildShowService({
+      service: loadedService([withoutPicture]),
+      songs: new Map(),
+      labels: [],
+      revision: 1,
+      passages: {
+        tiles: new Map(),
+        references: new Map(),
+        unavailable: new Set([item.id]),
+      },
+    });
+    expect(unavailable.rows[0]).toHaveProperty('problem', 'missing-bible');
+  });
   it('projects slides items into named rows and navigable text and picture tiles', () => {
     const shown = build([slidesItem()]);
     expect(shown.rows[0]).toMatchObject({

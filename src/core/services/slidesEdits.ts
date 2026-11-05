@@ -159,6 +159,31 @@ export class SlidesDraft {
       item.slides.slides.length,
     );
   }
+  insert(slides: readonly Slide[]): boolean {
+    const {item, selected} = this.current;
+    if (
+      slides.length === 0 ||
+      item.slides.slides.length + slides.length > SLIDES_LIMIT
+    ) {
+      return false;
+    }
+    const at = Math.min(selected + 1, item.slides.slides.length);
+    this.change(
+      {
+        ...item,
+        slides: {
+          ...item.slides,
+          slides: [
+            ...item.slides.slides.slice(0, at),
+            ...slides,
+            ...item.slides.slides.slice(at),
+          ],
+        },
+      },
+      at,
+    );
+    return true;
+  }
   remove(index: number): void {
     const {item} = this.current;
     if (item.slides.slides[index] === undefined) return;

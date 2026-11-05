@@ -15,6 +15,7 @@ import {
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemMedia} from '../items/useItemSources';
 import {SlidesCanvas, slideBand, useSlidesAppearance} from './SlidesVisuals';
+import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import styles from './SlidesEditor.module.css';
 
 export function SlidesItemPanel({
@@ -23,7 +24,7 @@ export function SlidesItemPanel({
   item,
   openEditor,
 }: {
-  readonly api: Pick<LlpApi, 'settings' | 'media'>;
+  readonly api: Pick<LlpApi, 'settings' | 'media' | 'bible'>;
   readonly items: ServiceItemStore;
   readonly item: SlidesItem;
   readonly openEditor: LlpApi['slidesEditor']['open'] | undefined;
@@ -33,6 +34,7 @@ export function SlidesItemPanel({
     items.getSnapshot,
   );
   const {appearance} = useSlidesAppearance(api, item);
+  const {projection} = useSlidesVerseProjection(api, item);
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
   const selected = Math.max(
@@ -87,6 +89,7 @@ export function SlidesItemPanel({
                     item={item}
                     index={index}
                     appearance={appearance}
+                    projection={projection}
                   />
                 }
               />

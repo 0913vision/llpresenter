@@ -1,14 +1,25 @@
 import type {SlideTile} from '../presentation/model';
 
+export interface BiblePartIdentity {
+  readonly label: SlideTile['label'];
+  readonly part: number;
+  readonly sourceSlideId?: SlideTile['sourceSlideId'];
+}
+
 /** Finds a verse's part after a projection change, clamping a removed part. */
 export function biblePartIndex(
   tiles: readonly SlideTile[],
-  label: SlideTile['label'],
-  part: number,
+  {label, part, sourceSlideId}: BiblePartIdentity,
 ): number | null {
   const indices: number[] = [];
   tiles.forEach((tile, index) => {
-    if (tile.label === label) indices.push(index);
+    if (
+      sourceSlideId === undefined
+        ? tile.label === label
+        : tile.sourceSlideId === sourceSlideId
+    ) {
+      indices.push(index);
+    }
   });
   return indices[Math.min(part - 1, indices.length - 1)] ?? null;
 }
@@ -19,12 +30,19 @@ export function retainedBibleSelection(
   selected: number,
   next: readonly SlideTile[],
 ): number {
-  const label = previous[selected]?.label;
-  const first = previous.findIndex(tile => tile.label === label);
+  const current = previous[selected];
+  const first = previous.findIndex(tile =>
+    current?.sourceSlideId === undefined
+      ? tile.label === current?.label
+      : tile.sourceSlideId === current.sourceSlideId,
+  );
   return (
-    (first < 0 || label === undefined
+    (first < 0 || current === undefined
       ? null
-      : biblePartIndex(next, label, selected - first + 1)) ??
-    Math.max(0, Math.min(selected, next.length - 1))
+      : biblePartIndex(next, {
+          label: current.label,
+          part: current.biblePart ?? selected - first + 1,
+          sourceSlideId: current.sourceSlideId,
+        })) ?? Math.max(0, Math.min(selected, next.length - 1))
   );
 }

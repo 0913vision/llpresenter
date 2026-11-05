@@ -1,5 +1,5 @@
 import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
-import type {MacroId, MediaId, ScreenId, TimerId} from '../schema/ids';
+import type {MacroId, MediaId, ScreenId, SlideId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
 import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
@@ -59,6 +59,7 @@ export interface SlideLayer {
   readonly position: number;
   /** One-based part within the Bible verse named by label, independent of position. */
   readonly biblePart?: number;
+  readonly sourceSlideId?: SlideId;
   readonly label: string | null;
   readonly lines: readonly string[];
   readonly continued?: boolean;

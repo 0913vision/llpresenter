@@ -80,6 +80,20 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   row; 그림 추가… and 바꾸기… choose pictures from the media list. A structured
   verse slide shows its read-only Bible reference and stays intact when other
   item fields are saved.
+- In a blank item, 성경 구절 추가 opens the shared passage dialog. It inserts
+  one reference-only row per verse after the selected row. The entire range is
+  one local undo step, and a range exceeding the remaining 200-row capacity is
+  refused before insertion. Ad items do not offer this action.
+- Verses needing review open 절 나누기 in order, with `1/2`, `2/2`, before the
+  rows are inserted. The window follows 04, using this item's current text
+  element and saved cuts. Esc cancels the pending insertion, including a lookup
+  still loading; cuts already confirmed remain saved. Ctrl E on a verse row
+  reopens its current cuts without changing the draft's references.
+- Verse thumbnails and previews resolve the installed translation and use the
+  same measured parts as 진행. The preview offers previous and next parts of the
+  selected verse; editing a reference never creates copied verse text in the
+  service file. Missing source text or a failed measurement refuses the
+  insertion with a reason, retaining the draft.
 - Drag rows to reorder. Delete outside a text field or 삭제 on a row's context
   menu removes it. Ctrl Z and Ctrl Y undo and redo local changes. The preview
   has 청중 화면, 무대 화면, and 방송 화면 tabs and a position caption. Removing

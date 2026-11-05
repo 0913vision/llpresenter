@@ -7,15 +7,21 @@ import {
   type JSX,
 } from 'react';
 import {cutsOfVerse, versesToReview} from '@core/bible/split/splitVerses';
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {VerseSlide} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {setBibleTileResolver} from '@renderer/session/showLibrary';
+import {
+  publishSlidesProjection,
+  setBibleTileResolver,
+} from '@renderer/session/showLibrary';
+import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
   BibleProjections,
   splitSourceFor,
+  sourceContent,
   type BibleProjection,
 } from './splitProjection';
 import {SplitEditor} from './SplitEditor';
@@ -86,8 +92,15 @@ export function BibleSplitTools({
               ? null
               : (projections.get(source)?.tiles ?? null);
           },
+      themes === null || screens === null || saved === null
+        ? null
+        : {
+            themes: themes.revision,
+            screens: screens.revision,
+            bibleCuts: saved.revision,
+          },
     );
-  }, [projections]);
+  }, [projections, themes, screens, saved]);
   useLayoutEffect(
     () =>
       installBibleReviewHandler((id, output) => {
@@ -113,18 +126,29 @@ export function BibleSplitTools({
     return source === null ? null : projections.get(source);
   });
   const selected = useShow(view => view.selectedTile);
-  const reported = useRef<BibleProjection['source']['passage'] | null>(null);
+  const liveId = useLive(view => view.state?.layers.slide?.itemId ?? null);
+  const liveProjection = useShow(view => {
+    if (liveId === null || projections === null) return null;
+    const source = splitSourceFor(view, liveId);
+    return source === null ? null : projections.get(source);
+  });
+  useLayoutEffect(() => {
+    if (liveId !== null && liveProjection !== null) {
+      publishSlidesProjection(useShow.getState(), liveId, liveProjection.tiles);
+    }
+  }, [liveId, liveProjection]);
+  const reported = useRef<object | null>(null);
   useEffect(() => {
     const failedMeasure =
       projection?.parts.some(part => part.problem !== undefined) === true;
     if (
       projection === null ||
       (projection.problem !== 'tile-limit' && !failedMeasure) ||
-      reported.current === projection.source.passage
+      reported.current === sourceContent(projection.source)
     ) {
       return;
     }
-    reported.current = projection.source.passage;
+    reported.current = sourceContent(projection.source);
     onProblem({
       key: 'bible-split:limit',
       kind: 'warning',
@@ -141,7 +165,7 @@ export function BibleSplitTools({
     themes !== null &&
     screens !== null &&
     (seen?.id !== projection.source.id ||
-      seen.passage !== projection.source.passage)
+      sourceContent(seen) !== sourceContent(projection.source))
   ) {
     setSeen(projection.source);
     const references = versesToReview(projection.parts);
@@ -156,10 +180,10 @@ export function BibleSplitTools({
   useWindowShortcuts([
     {
       id: 'bible.splitEdit',
-      when: () => projection !== null && session === null,
+      when: () => projection?.partsByTile[selected] != null && session === null,
       run: () => {
-        const part = projection?.parts[selected];
-        if (projection !== null && part !== undefined) {
+        const part = projection?.partsByTile[selected];
+        if (projection !== null && part != null) {
           setSession({
             source: projection,
             references: [part.reference],
@@ -180,6 +204,8 @@ export function BibleSplitTools({
       ? undefined
       : current?.verses.find(
           verse =>
+            verse.reference.translation === reference.translation &&
+            verse.reference.book === reference.book &&
             verse.reference.chapter === reference.chapter &&
             verse.reference.verse === reference.verse,
         );
@@ -191,10 +217,7 @@ export function BibleSplitTools({
   ) {
     return null;
   }
-  const prefix =
-    current.source.verseNumbers && current.verses.length > 1
-      ? `${reference.verse} `
-      : '';
+  const prefix = current.numbered ? `${reference.verse} ` : '';
   const cancel = (): void => {
     setSession(null);
     if (session.automatic && current.source.source === 'external') {
@@ -212,7 +235,7 @@ export function BibleSplitTools({
     <SplitEditor
       key={`${current.source.id}:${reference.chapter}:${reference.verse}:${session.index}`}
       verse={verse}
-      label={`${current.source.passage.displayRef.replace(/\s+\d.*$/u, '')} ${reference.chapter}:${reference.verse}`}
+      label={`${BIBLE_BOOKS.find(book => book.id === reference.book)?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`}
       cuts={cutsOfVerse(current.parts, reference)}
       layout={current.layout}
       element={current.element}

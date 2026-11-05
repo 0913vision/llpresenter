@@ -14,6 +14,7 @@ describe('parseLiveCommand', () => {
       itemId: 'bible',
       position: 0,
       biblePart: 1,
+      sourceSlideId: '00000000-0000-4000-8000-000000000911',
       label: '3:16',
       lines: ['가나 (계속)'],
       continued: true,
@@ -23,6 +24,12 @@ describe('parseLiveCommand', () => {
       ok: true,
       value: {type: 'slide.show', slide},
     });
+    for (const sourceSlideId of ['bad-id', null, 1]) {
+      expect(
+        parseLiveCommand({type: 'slide.show', slide: {...slide, sourceSlideId}})
+          .ok,
+      ).toBe(false);
+    }
     for (const biblePart of [0, -1, 1.5, 10_001, '1', null]) {
       expect(
         parseLiveCommand({type: 'slide.show', slide: {...slide, biblePart}}).ok,

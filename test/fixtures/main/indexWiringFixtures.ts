@@ -31,6 +31,12 @@ const mocks = vi.hoisted(() => {
     themeOutputStop: vi.fn<() => void>(),
     slideAdvanceContexts: new Array<unknown>(),
     slideAdvanceStop: vi.fn<() => void>(),
+    slidesProjectionContexts: new Array<unknown>(),
+    slidesProjection: {
+      get: vi.fn(),
+      subscribe: vi.fn(() => () => undefined),
+      dispose: vi.fn<() => void>(),
+    },
     recovery: {
       crashed: false,
       markQuitting: vi.fn<() => Promise<void>>(),
@@ -244,6 +250,12 @@ vi.mock('@main/live/slideAdvance', () => ({
   registerSlideAdvance: (context: unknown) => {
     mocks.slideAdvanceContexts.push(context);
     return mocks.slideAdvanceStop;
+  },
+}));
+vi.mock('@main/live/slidesProjection', () => ({
+  registerSlidesProjection: (context: unknown) => {
+    mocks.slidesProjectionContexts.push(context);
+    return mocks.slidesProjection;
   },
 }));
 vi.mock('@main/media/analysis', () => ({

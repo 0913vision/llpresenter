@@ -13,6 +13,10 @@ import {
   withinLookupTimeout,
 } from './showOutput';
 import {useShow, type ShowView} from './showStore';
+import {
+  parseSlidesProjection,
+  type SlidesProjection,
+} from '@core/schema/slidesProjection';
 
 const noTiles: readonly SlideTile[] = [];
 type BibleTileResolver = (
@@ -20,12 +24,77 @@ type BibleTileResolver = (
   itemId: ItemId,
 ) => readonly SlideTile[] | null;
 let bibleTileResolver: BibleTileResolver | null = null;
+let bibleMeasurement: SlidesProjection['measurement'] | null = null;
 let detachedSelection: {
   readonly itemId: ItemId;
   readonly label: SlideTile['label'];
   readonly part: number;
+  readonly sourceSlideId?: SlideTile['sourceSlideId'];
 } | null = null;
 let stopDetachedSelection: (() => void) | null = null;
+let publishedSlides: {
+  readonly api: NonNullable<Window['llp']>['service'];
+  readonly id: string;
+  readonly serviceId: string;
+  readonly revision: number;
+  readonly tiles: readonly SlideTile[];
+  readonly measurement: SlidesProjection['measurement'];
+} | null = null;
+
+/** Sends only a changed, fully measured verse sequence before its live command. */
+export function publishSlidesProjection(
+  view: ShowView,
+  itemId: ItemId,
+  tiles: readonly SlideTile[],
+): void {
+  const row = view.rows.find(row => row.id === itemId);
+  const api = window.llp;
+  if (
+    api === undefined ||
+    view.serviceId === null ||
+    row?.kind !== 'slides' ||
+    row.sourceRevision === undefined ||
+    bibleMeasurement === null ||
+    !view.tiles[itemId]?.some(tile => tile.verse !== undefined) ||
+    tiles.some(tile => tile.verse !== undefined)
+  ) {
+    return;
+  }
+  if (
+    publishedSlides?.api === api.service &&
+    publishedSlides.serviceId === view.serviceId &&
+    publishedSlides.id === itemId &&
+    publishedSlides.revision === row.sourceRevision &&
+    publishedSlides.measurement === bibleMeasurement &&
+    publishedSlides.tiles === tiles
+  ) {
+    return;
+  }
+  const parsed = parseSlidesProjection({
+    serviceId: view.serviceId,
+    itemId,
+    revision: row.sourceRevision,
+    measurement: bibleMeasurement,
+    tiles,
+  });
+  if (!parsed.ok) {
+    api.log.write({
+      level: 'warn',
+      message: 'Could not publish the verse slide sequence',
+      detail: parsed.error.message,
+    });
+    return;
+  }
+  api.service.slidesProjection(parsed.value);
+  publishedSlides = {
+    api: api.service,
+    serviceId: view.serviceId,
+    id: itemId,
+    revision: row.sourceRevision,
+    tiles,
+    measurement: bibleMeasurement,
+  };
+}
 
 function forgetDetachedSelection(): void {
   detachedSelection = null;
@@ -34,7 +103,10 @@ function forgetDetachedSelection(): void {
 }
 
 /** Replaces the Bible projection atomically, retaining the selected verse and part. */
-export function setBibleTileResolver(resolver: BibleTileResolver | null): void {
+export function setBibleTileResolver(
+  resolver: BibleTileResolver | null,
+  measurement: SlidesProjection['measurement'] | null = null,
+): void {
   if (resolver === null && bibleTileResolver === null) return;
   const view = useShow.getState();
   const id = view.openItemId;
@@ -43,10 +115,11 @@ export function setBibleTileResolver(resolver: BibleTileResolver | null): void {
   const detached = detachedSelection;
   forgetDetachedSelection();
   bibleTileResolver = resolver;
+  bibleMeasurement = resolver === null ? null : measurement;
   const next = id === null ? null : (resolver?.(view, id) ?? null);
   const restored =
     detached?.itemId === id && next !== null
-      ? biblePartIndex(next, detached.label, detached.part)
+      ? biblePartIndex(next, detached)
       : null;
   const selectedTile =
     restored ??
@@ -64,6 +137,9 @@ export function setBibleTileResolver(resolver: BibleTileResolver | null): void {
       itemId: id,
       label: tile.label,
       part: tile.biblePart ?? 1,
+      ...(tile.sourceSlideId === undefined
+        ? {}
+        : {sourceSlideId: tile.sourceSlideId}),
     };
     stopDetachedSelection = useShow.subscribe(current => {
       if (current.openItemId !== id || current.selectedTile !== selectedTile) {
@@ -80,13 +156,13 @@ export function projectedLiveCursor(
 ): TileCursor | null {
   if (slide === null) return null;
   const index =
-    slide.biblePart === undefined
+    slide.biblePart === undefined && slide.sourceSlideId === undefined
       ? slide.position
-      : biblePartIndex(
-          tilesForView(view, slide.itemId),
-          slide.label,
-          slide.biblePart,
-        );
+      : biblePartIndex(tilesForView(view, slide.itemId), {
+          label: slide.label,
+          part: slide.biblePart ?? 1,
+          sourceSlideId: slide.sourceSlideId,
+        });
   return index === null ? null : {itemId: slide.itemId, index};
 }
 
@@ -152,7 +228,7 @@ export function liveTileIndex(
   }
   const tiles = tilesForView(view, open.id);
   if (slide.biblePart !== undefined) {
-    return biblePartIndex(tiles, slide.label, slide.biblePart);
+    return biblePartIndex(tiles, {label: slide.label, part: slide.biblePart});
   }
   const matching = tiles.findIndex(
     candidate =>

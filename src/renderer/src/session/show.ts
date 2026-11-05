@@ -24,6 +24,7 @@ import {
   isLibrarySource,
   liveTileIndex,
   projectedLiveCursor,
+  publishSlidesProjection,
   outputLibraryTile,
   tilesForView,
 } from './showLibrary';
@@ -122,6 +123,7 @@ function outputOtherTile(cursor: TileCursor): boolean {
 
 /** Outputs a tile and shows it selected in the 장 panel. */
 export function outputTile(cursor: TileCursor): void {
+  if (tilesOf(cursor.itemId)[cursor.index]?.verse !== undefined) return;
   if (outputOtherTile(cursor)) return;
   const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
@@ -174,6 +176,13 @@ export function outputTile(cursor: TileCursor): void {
     requestedBibleSource: source?.id === liveItemId ? null : source,
   });
   startServiceItem(cursor.itemId);
+  if (row?.kind === 'slides') {
+    publishSlidesProjection(
+      useShow.getState(),
+      cursor.itemId,
+      tilesOf(cursor.itemId),
+    );
+  }
   sendLive(
     row?.kind === 'slides'
       ? slidesOutput(slide, row.background)

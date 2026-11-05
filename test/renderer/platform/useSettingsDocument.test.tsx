@@ -4,7 +4,10 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {Notice} from '@renderer/ui/notices';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {
+  useSettingsDocument,
+  useApiSettingsDocument,
+} from '@renderer/platform/useSettingsDocument';
 
 function deferred<T>() {
   let resolve: (value: T) => void = () => undefined;
@@ -19,6 +22,21 @@ afterEach(() => {
 });
 
 describe('useSettingsDocument', () => {
+  it('reads an explicitly supplied editor API without a global API and releases its feed', async () => {
+    const stop = vi.fn();
+    const document = settingsDocument('timers', {timers: []}, 3);
+    const api = mockLlpApi({
+      settings: {get: async () => document, subscribe: () => stop},
+    });
+    delete window.llp;
+    const view = renderHook(() =>
+      useApiSettingsDocument({api, name: 'timers', title: '타이머'}),
+    );
+    await act(async () => Promise.resolve());
+    expect(view.result.current).toEqual(document);
+    view.unmount();
+    expect(stop).toHaveBeenCalledOnce();
+  });
   it('clears a disabled read and ignores a previous activation when enabled again', async () => {
     const listeners = new Set<(document: SettingsDocument) => void>();
     const first = deferred<SettingsDocument>();

@@ -129,6 +129,7 @@ export class OpenServiceFeed {
     }
     return buildShowService({
       service,
+      serviceRevision: service.revision,
       songs,
       labels,
       revision: FIRST_REVISION,

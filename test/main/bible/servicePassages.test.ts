@@ -11,6 +11,11 @@ import {resolvePassage} from '@core/bible/reference';
 import {passageSource} from '@fixtures/core/bible/testFiles';
 import {resolveServicePassages} from '@main/bible/servicePassages';
 import type {BibleLookupSession} from '@main/bible/lookup';
+import {
+  slidesBibleItem,
+  VERSE_SLIDE,
+  VERSE_REPEAT,
+} from '@fixtures/core/slidesBible';
 
 function items(...refs: readonly string[]): readonly ServiceItem[] {
   const request = parseBibleLookupRequest({translation: 'sample', input: ''});
@@ -42,6 +47,37 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('resolves reference-only verse slots, deduplicates repeated verses and retains them beside an unavailable verse', async () => {
+    const item = slidesBibleItem();
+    const bible = fixture();
+    const original = item.slides.slides[2];
+    if (original === undefined || !('verse' in original)) {
+      throw Error('Missing verse fixture');
+    }
+    const invalid = {
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: item.slides.slides.map(slide =>
+          slide === original
+            ? {...original, verse: {...original.verse, chapter: 150}}
+            : slide,
+        ),
+      },
+    };
+    const result = await resolveServicePassages([invalid], bible, {
+      reportError: bible.report,
+    });
+    expect(bible.lookup).toHaveBeenCalledTimes(2);
+    expect(result.slides?.get(item.id)?.get(VERSE_SLIDE)?.verses).toHaveLength(
+      1,
+    );
+    expect(result.slides?.get(item.id)?.get(VERSE_REPEAT)).toEqual(
+      result.slides?.get(item.id)?.get(VERSE_SLIDE),
+    );
+    expect(result.unavailable.has(item.id)).toBe(true);
+    expect(result.tiles.has(item.id)).toBe(false);
+  });
   it('draws the saved translation option with the lookup translation label', async () => {
     const original = items('요한복음 3:16-18')[0];
     if (!original || !isItemOfKind(original, 'bible')) {

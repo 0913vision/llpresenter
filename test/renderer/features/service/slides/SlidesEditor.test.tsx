@@ -173,6 +173,15 @@ function setup(
 }
 
 describe('slides editor', () => {
+  it('keeps Bible insertion exclusive to blank items', async () => {
+    const f = setup('ad');
+    onTestFinished(async () => {
+      f.view.unmount();
+      await f.session.dispose();
+    });
+    await screen.findByRole('textbox', {name: '슬라이드 이름'});
+    expect(screen.queryByRole('button', {name: '성경 구절 추가…'})).toBeNull();
+  });
   it.each([
     {field: 'item-name', outcome: 'saved'},
     {field: 'slide-name', outcome: 'saved'},

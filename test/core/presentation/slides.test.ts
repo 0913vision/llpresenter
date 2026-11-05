@@ -3,6 +3,27 @@ import {projectSlides, slidesOutput} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';
+import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {
+  slidesBibleItem,
+  slidesBiblePassages,
+  VERSE_SLIDE,
+  VERSE_REPEAT,
+} from '@fixtures/core/slidesBible';
+
+it('resolves verse slots without changing their source identities or storing text in the service item', () => {
+  const item = slidesBibleItem();
+  const tiles = projectSlides(item, undefined, slidesBiblePassages(item));
+  expect(tiles[1]).toMatchObject({
+    sourceSlideId: VERSE_SLIDE,
+    reference: '요한복음 3:16',
+    verse: {reference: {book: 43, verse: 16}, text: MOCK_LONG_VERSE},
+  });
+  expect(tiles[4]).toMatchObject({sourceSlideId: VERSE_REPEAT, label: '3:16'});
+  expect(tiles[1]?.lines.join('')).toBe(tiles[1]?.verse?.text);
+  expect(projectSlides(item)[1]?.verse).not.toHaveProperty('text');
+  expect(item.slides.slides[1]).not.toHaveProperty('text');
+});
 
 it.each(['blank', 'ad'] as const)(
   'projects %s slide bands and keeps pictures out of text',

@@ -6,6 +6,7 @@ import {
   macroIdSchema,
   mediaIdSchema,
   screenIdSchema,
+  slideIdSchema,
   timerIdSchema,
 } from './ids';
 import {
@@ -61,6 +62,7 @@ export const layerSchemas = {
     itemId: id,
     position: count,
     biblePart: v.exactOptional(biblePartSchema),
+    sourceSlideId: v.exactOptional(slideIdSchema),
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     continued: v.exactOptional(v.boolean()),

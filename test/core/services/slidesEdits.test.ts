@@ -48,6 +48,34 @@ describe('merge slides changes', () => {
 });
 
 describe('slides draft', () => {
+  it('inserts a range after selection as one history step and refuses an over-cap range atomically', () => {
+    const item = newSlidesItem('blank', id);
+    const draft = new SlidesDraft(item);
+    draft.add(newTextSlide('blank'));
+    draft.select(0);
+    const before = draft.snapshot.item;
+    const added = [newTextSlide('blank'), newTextSlide('blank')];
+    expect(draft.insert(added)).toBe(true);
+    expect(draft.snapshot.item.slides.slides.slice(1, 3)).toEqual(added);
+    expect(draft.snapshot.selected).toBe(1);
+    draft.undo();
+    expect(draft.snapshot.item).toBe(before);
+    draft.redo();
+    expect(draft.snapshot.item.slides.slides.slice(1, 3)).toEqual(added);
+    const full = new SlidesDraft({
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: Array.from({length: SLIDES_LIMIT - 1}, () =>
+          newTextSlide('blank'),
+        ),
+      },
+    });
+    const snapshot = full.snapshot;
+    expect(full.insert(added)).toBe(false);
+    expect(full.snapshot).toBe(snapshot);
+    expect(full.dirty).toBe(false);
+  });
   it('reorders and removes slides, and restores their selection with undo and redo', () => {
     const first = newSlidesItem('ad', id);
     const draft = new SlidesDraft(first);

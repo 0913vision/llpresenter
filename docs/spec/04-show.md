@@ -737,6 +737,24 @@ that ProPresenter's Edit mode has the same behavior.
 
 ### 절 나누기
 
+Blank slides items also resolve each stored verse reference into these parts,
+interleaved with their text and picture slides in source order. Each part is a
+separate navigation position, uses the item's theme, and shows its own Bible
+reference. Non-last parts end with the smaller ` (계속)` marker. Repeated
+references remain separate source slides; selection and live navigation track
+the source slide ID and part when cuts or themes change.
+
+The renderer sends the current measured sequence, bound to the service revision,
+to main before outputting a verse slide. Main retains one validated sequence for
+timed advance, so changing workspace does not stop advance or collapse a verse
+to its first part. An outdated or unavailable sequence pauses timed advance;
+refreshing it never changes the current output by itself. The sequence also
+carries the themes, screens and Bible cuts revisions used in measurement.
+Changes to those settings invalidate it in main even while 진행 is closed. Timed
+advance pauses until a projection using the current revisions arrives. A clear
+or item stop stays stopped through projection updates and workspace changes;
+only explicitly outputting a slide starts advance again.
+
 After opening a passage with unconfirmed split verses, 절 나누기 opens for each
 of them in order. Its subtitle shows the verse reference and `1/2`, `2/2` when
 several need review. Ctrl E on a Bible slide reopens that verse from its current
