@@ -11,9 +11,7 @@ import {SliceRegistry} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
-  IMAGES,
   MAIN,
-  NOTICE,
   overlaySettings,
   overlayUuid,
   PROP,
@@ -139,7 +137,6 @@ describe('restoring the output state after a crash', () => {
             messages: 0,
             props: 0,
             stageMessages: 1,
-            notices: 0,
           },
         },
       ],
@@ -175,7 +172,7 @@ describe('restoring the output state after a crash', () => {
     expect(await controller.startFresh()).toMatchObject(UNAVAILABLE);
   });
 
-  it('resumes messages with the time they had left and a paused 공지 at its image', async () => {
+  it('resumes messages with the time they had left', async () => {
     const {controller, store} = await setup({
       text: recoveryText({
         ...emptyLiveState(),
@@ -205,23 +202,11 @@ describe('restoring the output state after a crash', () => {
               },
             ],
           },
-          notice: {
-            noticeId: NOTICE,
-            playback: {
-              media: IMAGES,
-              position: 0,
-              interval: 5,
-              loop: false,
-              targets: [MAIN],
-              startedAt: SAVED_AT_MS - 6000,
-              pausedAt: SAVED_AT_MS - 1000,
-            },
-          },
         },
       }),
     });
     await controller.apply({savedAt: SAVED_AT, rows: ['showing']});
-    const {prop, message, notice} = store.state.layers;
+    const {prop, message} = store.state.layers;
     expect(prop?.items?.map(({propId, content}) => [propId, content])).toEqual([
       [PROP, {kind: 'text', text: 'Fixture prop', style: TEXT_STYLE}],
     ]);
@@ -233,11 +218,6 @@ describe('restoring the output state after a crash', () => {
         expiresAt: NOW + 2500,
       },
     ]);
-    expect(notice?.playback).toMatchObject({
-      position: 1,
-      startedAt: NOW,
-      pausedAt: NOW,
-    });
   });
 
   it('reports a restore that changed nothing and still ends the wait', async () => {

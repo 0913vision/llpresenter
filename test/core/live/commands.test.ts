@@ -68,7 +68,7 @@ describe('interruptsSongOutput', () => {
     for (const target of ['all', 'slide', 'media'] as const) {
       expect(interruptsSongOutput({type: 'layer.clear', target})).toBe(true);
     }
-    for (const target of ['prop', 'message', 'notice', 'audio'] as const) {
+    for (const target of ['prop', 'message', 'audio'] as const) {
       expect(interruptsSongOutput({type: 'layer.clear', target})).toBe(false);
     }
     expect(
@@ -101,7 +101,6 @@ describe('interruptsSongOutput for overlay, stage, audio, and 매크로 actions'
     {type: 'stage.message.set', text: 'Start again'},
     {type: 'stage.timer.set', timerId: ID},
     {type: 'prop.set', propId: ID, on: true},
-    {type: 'notice.start', noticeId: ID},
     {
       type: 'message.send',
       text: 'Come forward',

@@ -124,7 +124,6 @@ function EntryTile({
 
 const MEDIA_PLACES = [
   ['재생목록', 'playlists'],
-  ['공지 세트', 'notices'],
   ['그래픽', 'graphics'],
   ['곡 배경', 'songBackgrounds'],
   ['예배 순서 항목', 'serviceItems'],

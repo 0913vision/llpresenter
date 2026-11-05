@@ -56,7 +56,6 @@ const iconByKind: Readonly<Record<ItemKind, string>> = {
   song: 'song',
   bible: 'book',
   media: 'film',
-  notice: 'notice',
   slides: 'monitor',
   unknown: 'filex',
 };
@@ -99,13 +98,12 @@ function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
 }
 
 /**
- * The item on output: the one with a slide, or else the last started media or
- * 공지 item while its own media or 공지 is still out.
+ * The item on output: the one with a slide, or the last started media item
+ * while its media is still out.
  */
 function useLiveItemId(): string | null {
   const slideItem = useLive(view => view.state?.layers.slide?.itemId ?? null);
   const mediaId = useLive(view => view.state?.layers.media?.mediaId);
-  const noticeId = useLive(view => view.state?.layers.notice?.noticeId);
   const started = useLive(view => view.lastStartedItemId);
   const row = useShow(view => view.rows.find(item => item.id === started));
   const tile = useShow(view =>
@@ -114,9 +112,6 @@ function useLiveItemId(): string | null {
   if (slideItem !== null) return slideItem;
   if (row?.kind === 'media' && tile?.media?.mediaId === mediaId) {
     return mediaId === undefined ? null : row.id;
-  }
-  if (row?.kind === 'notice' && tile?.notice?.noticeId === noticeId) {
-    return noticeId === undefined ? null : row.id;
   }
   return null;
 }
@@ -168,13 +163,13 @@ function ItemRows({
               meta={
                 workspace !== 'prep' || table !== undefined
                   ? undefined
-                  : ['song', 'bible', 'notice'].includes(row.kind)
+                  : ['song', 'bible'].includes(row.kind)
                     ? `슬라이드 ${tiles[row.id]?.length ?? 0}개`
                     : durations[row.id]
               }
               cells={table?.cellsOf(
                 row,
-                ['song', 'bible', 'notice'].includes(row.kind)
+                ['song', 'bible'].includes(row.kind)
                   ? String(tiles[row.id]?.length ?? 0)
                   : durations[row.id],
               )}

@@ -77,12 +77,6 @@ const prepService: readonly CountedGroup[] = [
     label: '예배 전',
     rows: [
       {value: 'count', icon: 'film', title: '예배 전 카운트다운', meta: '5:00'},
-      {
-        value: 'notice',
-        icon: 'notice',
-        title: '주일 광고',
-        meta: '슬라이드 6개',
-      },
     ],
   },
   {
@@ -132,7 +126,6 @@ const mediaLists: readonly CountedGroup[] = [
     rows: [
       {value: 'backgrounds', icon: 'film', title: '배경 영상', meta: '7'},
       {value: 'loops', icon: 'film', title: '예배 전 반복', meta: '4'},
-      {value: 'notices', icon: 'image', title: '광고 이미지', meta: '6'},
       {value: 'sermons', icon: 'image', title: '설교 이미지', meta: '8'},
     ],
   },
@@ -374,12 +367,7 @@ export function ListRowSection(): JSX.Element {
                       title="예배 전 카운트다운"
                       done
                     />
-                    <ListRow
-                      value="notice"
-                      icon="notice"
-                      title="주일 광고"
-                      done
-                    />
+                    <ListRow value="video" icon="film" title="예배 영상" done />
                   </ListGroup>
                   <ListGroup label="찬양">
                     <ListRow

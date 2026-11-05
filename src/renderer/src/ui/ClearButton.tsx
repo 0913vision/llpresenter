@@ -27,7 +27,6 @@ const clearFaces: Readonly<Record<ClearTarget, ClearFace>> = {
   prop: {name: '그래픽', icon: 'prop'},
   audio: {name: '오디오', icon: 'audio'},
   message: {name: '메시지', icon: 'msg'},
-  notice: {name: '공지', icon: 'notice'},
 };
 
 /** The one-word name of a layer on its 지우기 button. */
@@ -40,7 +39,7 @@ export function clearLabel(layer: ClearTarget): string {
   return `${clearName(layer)} 지우기`;
 }
 
-/** The default key of a 지우기 button, F1 to F7. */
+/** The default key of a 지우기 button, F1 to F6. */
 export function defaultClearShortcut(layer: ClearTarget): string {
   const binding = commandBindings(`clear.${layer}`, {})[0];
   return binding === undefined ? '' : shortcutNames(binding).join(' ');
@@ -113,7 +112,7 @@ export interface ClearButtonProps {
   /** Whether that layer, or for `all` any layer, is on the screens now. */
   readonly active: boolean;
   readonly onClear: () => void;
-  /** The current key, as the shortcut table writes it; F1 to F7 by default. */
+  /** The current key, as the shortcut table writes it; F1 to F6 by default. */
   readonly shortcut?: string | undefined;
 }
 

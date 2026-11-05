@@ -11,7 +11,6 @@ import {
   createServiceItemId,
   createSongId,
   createTemplateId,
-  noticeSetIdSchema,
   translationIdSchema,
 } from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
@@ -68,17 +67,11 @@ export const templateOrder: readonly ServiceItem[] = [
   {id: ids.closing, header: '광고'},
 ];
 
-/** Sample media and notice items for the tree labels. */
+/** Sample media items for the tree labels. */
 export const otherItems: readonly ServiceItem[] = [
   {
     id: createServiceItemId('80000000-0000-4000-8000-000000000001'),
     media: createMediaId('90000000-0000-4000-8000-000000000001'),
-  },
-  {
-    id: createServiceItemId('80000000-0000-4000-8000-000000000002'),
-    notice: sample(
-      parsePayload(noticeSetIdSchema, '90000000-0000-4000-8000-000000000002'),
-    ),
   },
   {id: createServiceItemId('80000000-0000-4000-8000-000000000003')},
 ];

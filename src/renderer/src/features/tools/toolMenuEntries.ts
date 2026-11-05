@@ -25,7 +25,7 @@ function command(
   };
 }
 
-/** The shared timer/notice list-row shape, including disabled editing commands. */
+/** The shared timer list-row shape, including disabled editing commands. */
 export function namedToolMenuEntries({
   edit,
   rename,

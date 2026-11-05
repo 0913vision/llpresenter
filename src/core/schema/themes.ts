@@ -186,7 +186,6 @@ export const themesSchema = v.pipe(
       bible: v.exactOptional(themeIdSchema),
       blank: v.exactOptional(themeIdSchema),
       ad: v.exactOptional(themeIdSchema),
-      notice: v.exactOptional(themeIdSchema),
       media: v.exactOptional(themeIdSchema),
     }),
   }),

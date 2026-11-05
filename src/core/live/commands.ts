@@ -64,9 +64,6 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'stage.timer.set':
     case 'stage.message.set':
     case 'prop.set':
-    case 'notice.start':
-    case 'notice.pause':
-    case 'notice.stop':
     case 'message.send':
     case 'message.expire':
     case 'overlay.clear':

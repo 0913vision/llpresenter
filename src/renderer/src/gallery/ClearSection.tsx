@@ -18,7 +18,6 @@ const layers: readonly ClearTarget[] = [
   'prop',
   'audio',
   'message',
-  'notice',
 ];
 
 function Row({
@@ -45,7 +44,7 @@ function Row({
   );
 }
 
-const quietLayers: ReadonlySet<ClearTarget> = new Set(['audio', 'notice']);
+const quietLayers: ReadonlySet<ClearTarget> = new Set(['audio']);
 
 interface SingleState {
   readonly label: string;
@@ -85,10 +84,7 @@ export function ClearSection(): JSX.Element {
         title="지우기 row, regular window (column 480), padding 8, gap 4, 모두 at 1.4×"
         alignTop
       >
-        <SpecItem
-          label="Live, nothing to clear in 오디오 and 공지"
-          width={ROW_WIDTH}
-        >
+        <SpecItem label="Live, nothing to clear in 오디오" width={ROW_WIDTH}>
           <Row isActive={layer => !quietLayers.has(layer)} undoAvailable />
         </SpecItem>
         <SpecItem

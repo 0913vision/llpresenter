@@ -63,7 +63,7 @@ afterEach(async () => {
 
 // NOTE(0913vision): Spec 08, "What must never happen during a service": a
 // workspace switch and the 환경설정 window never change the output, and F1 to
-// F7 work with a dialog open and a text field focused.
+// F6 work with a dialog open and a text field focused.
 it('sends no output command for any workspace switch', () => {
   const {send} = mountApp();
 
@@ -84,7 +84,7 @@ it('opens 환경설정 from the 파일 menu without an output command', async ()
   expect(send).not.toHaveBeenCalled();
 });
 
-it.each(['F1', 'F4', 'F7'])(
+it.each(['F1', 'F4', 'F6'])(
   '%s still clears with a dialog open and its text field focused',
   key => {
     const clear = vi

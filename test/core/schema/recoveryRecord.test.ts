@@ -5,7 +5,6 @@ import {parseLiveState} from '@core/schema/liveState';
 import {
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
-  MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
 import {
@@ -57,18 +56,6 @@ function prop(index = 1) {
   };
 }
 
-function playback() {
-  return {
-    media: [uuid(2)],
-    position: 0,
-    interval: 5,
-    loop: true,
-    targets: [uuid(3)],
-    startedAt: now,
-    pausedAt: null,
-  };
-}
-
 function stateWith(layers: object = {}, fields: object = {}) {
   const empty = emptyLiveState();
   return {...empty, ...fields, layers: {...empty.layers, ...layers}};
@@ -114,7 +101,6 @@ describe('recovery record files', () => {
           },
           prop: {propId: 'legacy-prop'},
           message: {messageId: 'legacy-message', text: 'Invented legacy cue'},
-          notice: {noticeId: 'legacy-notice'},
         },
         {outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false}},
       ),
@@ -162,11 +148,6 @@ describe('recovery record files', () => {
                 ...future,
               },
             ],
-            ...future,
-          },
-          notice: {
-            noticeId: 'legacy',
-            playback: {...playback(), ...future},
             ...future,
           },
           ...future,
@@ -247,15 +228,6 @@ describe('recovery record files', () => {
       },
       'invalid',
       'state.layers.message.items.0.expiresAt',
-    ],
-    [
-      {
-        state: stateWith({
-          notice: {noticeId: 'legacy', playback: {...playback(), position: 1}},
-        }),
-      },
-      'invalid',
-      'state.layers.notice.playback.position',
     ],
   ])(
     'rejects invalid file content %# with a path and file name',
@@ -413,15 +385,6 @@ describe('recovery record files', () => {
         prop: {
           propId: 'legacy',
           items: Array.from({length: MAX_ACTIVE_PROPS + 1}, (_, i) => prop(i)),
-        },
-      }),
-      stateWith({
-        notice: {
-          noticeId: 'legacy',
-          playback: {
-            ...playback(),
-            media: Array.from({length: MAX_NOTICE_IMAGES + 1}, () => uuid(2)),
-          },
         },
       }),
       stateWith({

@@ -6,7 +6,6 @@ import {
   type LiveLayers,
   type MediaLayer,
   type MessageLayer,
-  type NoticeLayer,
   type AudioLayer,
 } from '@core/live/state';
 import {audioPositionSeconds} from '@core/schema/audioState';
@@ -74,7 +73,6 @@ function toggleClear(
           prop: restore('prop'),
           audio: restore('audio'),
           message: restore('message'),
-          notice: restore('notice'),
         },
       },
     },
@@ -123,8 +121,6 @@ function undoClear(
     undo.clearedMessageIds !== undefined
       ? resumedMessages(undo.layers.message, elapsed, undo.clearedMessageIds)
       : undo.layers.message;
-  const notice =
-    history.state.layers.notice ?? resumedNotice(undo.layers.notice, elapsed);
   const audio =
     history.state.layers.audio ??
     (undo.audioClearedAt !== undefined
@@ -136,7 +132,7 @@ function undoClear(
       : undo.layers.audio);
   const restored = withLayers(
     history,
-    {...undo.layers, media, message, notice, audio},
+    {...undo.layers, media, message, audio},
     null,
   );
   const withStage =
@@ -202,24 +198,6 @@ function resumedMessages(
               item.expiresAt === null ? null : item.expiresAt + elapsed,
           },
     ),
-  };
-}
-
-function resumedNotice(
-  layer: NoticeLayer | null,
-  elapsed: number,
-): NoticeLayer | null {
-  if (layer?.playback === undefined) return layer;
-  return {
-    ...layer,
-    playback: {
-      ...layer.playback,
-      startedAt: layer.playback.startedAt + elapsed,
-      pausedAt:
-        layer.playback.pausedAt === null
-          ? null
-          : layer.playback.pausedAt + elapsed,
-    },
   };
 }
 

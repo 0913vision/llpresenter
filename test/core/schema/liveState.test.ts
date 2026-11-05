@@ -21,7 +21,6 @@ function busyState(): LiveState {
       prop: {propId: 'logo'},
       audio: {mediaId: 'prelude'},
       message: {messageId: 'car', text: '12가 3456 차량 이동 부탁드립니다'},
-      notice: {noticeId: 'sunday'},
     },
     outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false},
     canUndo: true,

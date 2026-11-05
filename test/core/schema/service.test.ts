@@ -19,7 +19,6 @@ const RANDOM_SERVICES = 200;
 const SERVICE_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-const NOTICE_ID = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
 const MACRO_ID = '7d3f1b20-2c3d-4e4f-a051-6b7c8d9e0f1a';
 const PASSAGE = {
   translation: 'krv',
@@ -54,7 +53,6 @@ function sundayService() {
       {id: itemId(3), header: 'Offering'},
       {id: itemId(4), bible: PASSAGE, memo: ''},
       {id: itemId(5), media: MEDIA_ID},
-      {id: itemId(6), notice: NOTICE_ID, macro: '광고'},
     ],
   };
 }
@@ -83,7 +81,6 @@ describe('parseService', () => {
       'header',
       'bible',
       'media',
-      'notice',
     ]);
   });
 
@@ -306,7 +303,6 @@ function randomItem(random: TestRandom): object {
     {id, song: random.uuid(), ...memo},
     {id, header: 'Empty section'},
     {id, media: random.uuid(), macro: random.uuid()},
-    {id, notice: random.uuid(), ...memo},
     {id, future: {kind: random.integer(0, 9)}},
   ]);
 }

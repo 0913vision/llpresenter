@@ -26,7 +26,6 @@ const SUMMARY: RecoverySummary = {
         messages: 0,
         props: 0,
         stageMessages: 1,
-        notices: 0,
       },
     },
   ],

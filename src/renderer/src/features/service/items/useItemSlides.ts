@@ -8,7 +8,7 @@ import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import type {ServiceItemStore} from './serviceItemStore';
 import {savedPassageTiles} from './bibleItemModel';
-import {useItemMedia, useItemSettings} from './useItemSources';
+import {useItemMedia} from './useItemSources';
 
 export interface ItemSlide {
   readonly text: string;
@@ -26,11 +26,8 @@ export function useItemSlides(
     editor.subscribe,
     editor.getSnapshot,
   );
-  const notice = state.item !== null && isItemOfKind(state.item, 'notice');
-  const needsMedia =
-    notice || (state.item !== null && isItemOfKind(state.item, 'media'));
+  const needsMedia = state.item !== null && isItemOfKind(state.item, 'media');
   const media = useItemMedia(editor.api.media, needsMedia);
-  const notices = useItemSettings(editor.api.settings, 'notices', notice);
   const bible = useShow(view =>
     savedPassageTiles(
       view,
@@ -74,25 +71,12 @@ export function useItemSlides(
     }
     const list = media.document?.value.items ?? [];
     const byId = new Map(list.map(file => [file.id, file]));
-    const ids = isItemOfKind(item, 'media')
-      ? [item.media]
-      : isItemOfKind(item, 'notice') && notices.document?.name === 'notices'
-        ? (notices.document.value.sets.find(set => set.id === item.notice)
-            ?.media ?? [])
-        : [];
+    const ids = isItemOfKind(item, 'media') ? [item.media] : [];
     return ids.map(id => ({
       text: byId.get(id)?.name ?? '미디어 없음',
       label: undefined,
       color: 'none',
       media: id,
     }));
-  }, [
-    item,
-    snapshot,
-    arrangement,
-    editorState.labels,
-    media.document,
-    notices.document,
-    bible,
-  ]);
+  }, [item, snapshot, arrangement, editorState.labels, media.document, bible]);
 }

@@ -53,7 +53,6 @@ describe('media:uses through registerStore', () => {
 
     expect(await ask(mediaEndpoints.uses.channel, {mediaId})).toEqual({
       playlists: 1,
-      notices: 0,
       graphics: 0,
       songBackgrounds: 1,
       serviceItems: 2,

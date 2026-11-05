@@ -23,7 +23,7 @@ function ChangingRows({change}: {readonly change: RowChange}): JSX.Element {
         <ListRow value="hymn" title="찬양" disabled={disableFirst} />
       ) : null}
       <ListRow
-        value="notice"
+        value="video"
         title="광고"
         end={
           <IconButton
@@ -119,8 +119,8 @@ describe('ListBox', () => {
   });
 
   it.each([
-    {change: 'remove', first: 'notice'},
-    {change: 'disable', first: 'notice'},
+    {change: 'remove', first: 'video'},
+    {change: 'disable', first: 'video'},
     {change: 'enable', first: 'hymn'},
     {change: 'insert', first: 'hymn'},
   ] as const)(

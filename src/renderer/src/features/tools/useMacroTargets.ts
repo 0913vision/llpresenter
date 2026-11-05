@@ -44,7 +44,6 @@ export function useMacroTargets(
     '\uba54\uc2dc\uc9c0',
     onProblem,
   );
-  const notices = useSettingsDocument('notices', '\uacf5\uc9c0', onProblem);
   const timers = useSettingsDocument('timers', '\ud0c0\uc774\uba38', onProblem);
   const macros = useSettingsDocument('macros', '\ub9e4\ud06c\ub85c', onProblem);
   const screens = useSettingsDocument('screens', '\ud654\uba74', onProblem);
@@ -54,7 +53,6 @@ export function useMacroTargets(
       !themes ||
       !props ||
       !messages ||
-      !notices ||
       !timers ||
       !macros ||
       !screens ||
@@ -66,11 +64,10 @@ export function useMacroTargets(
       themes: themes.value,
       props: props.value,
       messages: messages.value,
-      notices: notices.value,
       timers: timers.value,
       macros: macros.value,
       screens: screens.value.screens,
       media: media.value,
     });
-  }, [themes, props, messages, notices, timers, macros, screens, media]);
+  }, [themes, props, messages, timers, macros, screens, media]);
 }

@@ -24,7 +24,6 @@ function objectCommands(document: SettingsDocument): readonly string[] {
     case 'bibleCuts':
     case 'labels':
     case 'messages':
-    case 'notices':
     case 'preferences':
     case 'shortcuts':
       return [];

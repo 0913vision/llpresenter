@@ -5,9 +5,7 @@ import {parseLiveState} from '@core/schema/liveState';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {
-  IMAGES,
   MAIN,
-  NOTICE,
   overlayUuid,
   PROP,
   IMAGE_PROP,
@@ -32,28 +30,6 @@ const textProp = (propId: string) => ({
   content: {kind: 'text', text: 'Fixture prop', style: TEXT_STYLE},
   targets: [MAIN],
 });
-const playback = (pausedAt: number | null) => ({
-  media: IMAGES,
-  position: 0,
-  interval: 5,
-  loop: false,
-  targets: [MAIN],
-  startedAt: 0,
-  pausedAt,
-});
-const notices = (media: readonly string[]) =>
-  settingsDocument('notices', {
-    sets: [
-      {
-        id: NOTICE,
-        name: 'Fixture notices',
-        media,
-        interval: 5,
-        loop: false,
-        targets: [MAIN],
-      },
-    ],
-  });
 
 describe('overlayRefreshCommands', () => {
   it('sets each active 그래픽 on while it is still saved and off once it is gone', () => {
@@ -75,49 +51,6 @@ describe('overlayRefreshCommands', () => {
       {type: 'prop.set', propId: PROP, on: true},
       {type: 'prop.set', propId: IMAGE_PROP, on: false},
     ]);
-  });
-
-  it('restarts the live 공지 from its saved set, and keeps it paused', () => {
-    expect(
-      overlayRefreshCommands(
-        layers({notice: {noticeId: NOTICE, playback: playback(null)}}),
-        notices(IMAGES),
-      ),
-    ).toEqual([{type: 'notice.start', noticeId: NOTICE}]);
-    expect(
-      overlayRefreshCommands(
-        layers({notice: {noticeId: NOTICE, playback: playback(1000)}}),
-        notices(IMAGES),
-      ),
-    ).toEqual([
-      {type: 'notice.start', noticeId: NOTICE},
-      {type: 'notice.pause'},
-    ]);
-  });
-
-  it('stops the live 공지 when its set is gone or has no images', () => {
-    const state = layers({
-      notice: {noticeId: NOTICE, playback: playback(null)},
-    });
-
-    expect(overlayRefreshCommands(state, notices([]))).toEqual([
-      {type: 'notice.stop'},
-    ]);
-    expect(
-      overlayRefreshCommands(state, settingsDocument('notices', {sets: []})),
-    ).toEqual([{type: 'notice.stop'}]);
-  });
-
-  it('changes nothing for other settings or without a live 공지', () => {
-    expect(overlayRefreshCommands(emptyLiveState(), notices(IMAGES))).toEqual(
-      [],
-    );
-    expect(
-      overlayRefreshCommands(
-        emptyLiveState(),
-        settingsDocument('labels', {labels: []}),
-      ),
-    ).toEqual([]);
   });
 });
 

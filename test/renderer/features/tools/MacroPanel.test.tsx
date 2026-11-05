@@ -145,7 +145,6 @@ it('appends clear all directly from the menu without a dialog', async () => {
     '|',
     '가사',
     '미디어',
-    '공지',
     '그래픽',
     '메시지',
     '오디오',
@@ -165,7 +164,7 @@ it('adds a layer clear directly from the flat clear submenu', async () => {
   await openSubmenu('지우기');
   fireEvent.click(
     within(screen.getByRole('menu', {name: '지우기'})).getByRole('menuitem', {
-      name: '공지',
+      name: '그래픽',
     }),
   );
   expect(screen.queryByRole('dialog')).toBeNull();
@@ -173,7 +172,7 @@ it('adds a layer clear directly from the flat clear submenu', async () => {
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.actions).toEqual([
-    {kind: 'clearLayer', layer: 'notice'},
+    {kind: 'clearLayer', layer: 'prop'},
   ]);
 });
 
@@ -468,7 +467,6 @@ it('lists action kinds in order and opens the theme workspace', async () => {
     '타이머',
     '그래픽',
     '메시지',
-    '공지',
     '배경 미디어',
     '오디오',
     '오디오 재생 목록',

@@ -276,8 +276,8 @@ function NewServiceDialog({
         />
         <CheckRow
           variant="list"
-          icon="notice"
-          label="주일 광고"
+          icon="film"
+          label="예배 영상"
           checked={checks[2] ?? false}
           onChange={checked => setRow(2, checked)}
         />

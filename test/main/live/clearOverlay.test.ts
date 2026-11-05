@@ -15,7 +15,6 @@ import {
   PROP,
   STAGE,
   IMAGE_PROP,
-  NOTICE,
   TEXT_STYLE,
   overlayUuid,
   overlaySettings,
@@ -40,7 +39,6 @@ function setup(changes: Partial<LiveState> = {}) {
     layers: {
       ...initial.layers,
       media: {mediaId: overlayUuid(30), loop: true, startedAt: BASE},
-      notice: {noticeId: NOTICE},
       message: messageLayer([
         {
           messageId: A,

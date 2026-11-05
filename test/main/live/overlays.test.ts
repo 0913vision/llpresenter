@@ -1,3 +1,4 @@
+import {createPropId} from '@core/schema/ids';
 import {describe, expect, it, vi} from 'vitest';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
@@ -85,7 +86,13 @@ describe('startOverlays', () => {
 
   it('refreshes the live overlays and 타이머 after a settings change', async () => {
     const {store, settings, log} = await started();
-    const refresh: readonly SingleLiveCommand[] = [{type: 'notice.stop'}];
+    const refresh: readonly SingleLiveCommand[] = [
+      {
+        type: 'prop.set',
+        propId: createPropId('00000000-0000-4000-8000-000000000010'),
+        on: false,
+      },
+    ];
     vi.mocked(overlayRefreshCommands).mockReturnValueOnce(refresh);
     const timers = settingsDocument('timers', {timers: []});
 

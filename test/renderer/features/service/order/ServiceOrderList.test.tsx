@@ -10,7 +10,6 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
-import {createNoticeSetId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {
@@ -175,9 +174,7 @@ describe('ServiceOrderList', () => {
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
   });
 
-  describe('the LIVE badge of a media or 공지 item', () => {
-    const NOTICE_SET = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
-
+  describe('the LIVE badge of a media item', () => {
     function setOther(
       layers: Partial<ReturnType<typeof emptyLiveState>['layers']>,
       started: string | null,
@@ -192,14 +189,6 @@ describe('ServiceOrderList', () => {
               labelColor: 'none',
               lines: ['x'],
               media: {mediaId: 'countdown-video', loop: true},
-            },
-          ],
-          'notice-sunday': [
-            {
-              label: null,
-              labelColor: 'none',
-              lines: ['x'],
-              notice: {noticeId: createNoticeSetId(NOTICE_SET), position: 0},
             },
           ],
         },
@@ -220,15 +209,6 @@ describe('ServiceOrderList', () => {
       render(<ServiceOrderList />);
       expect(
         screen.getByRole('option', {name: /예배 전 카운트다운/}).textContent,
-      ).toContain('LIVE');
-      expect(screen.getAllByText('LIVE')).toHaveLength(1);
-    });
-
-    it('marks a 공지 item while its 공지 plays', () => {
-      setOther({notice: {noticeId: NOTICE_SET}}, 'notice-sunday');
-      render(<ServiceOrderList />);
-      expect(
-        screen.getByRole('option', {name: /주일 광고/}).textContent,
       ).toContain('LIVE');
       expect(screen.getAllByText('LIVE')).toHaveLength(1);
     });
@@ -294,7 +274,7 @@ describe('ServiceOrderList', () => {
       ['ArrowDown', 'song-morning', '아침이 밝아 오네'],
       ['ArrowUp', 'praise', '찬양'],
       ['Home', 'before', '예배 전'],
-      ['End', 'notice-sunday', '주일 광고'],
+      ['End', 'closing', '마무리'],
     ] as const) {
       press(key);
       expect(useShow.getState().openItemId).toBe(id);

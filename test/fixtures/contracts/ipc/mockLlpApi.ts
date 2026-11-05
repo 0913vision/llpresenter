@@ -170,7 +170,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       uses: () =>
         Promise.resolve({
           playlists: 0,
-          notices: 0,
           graphics: 0,
           songBackgrounds: 0,
           serviceItems: 0,

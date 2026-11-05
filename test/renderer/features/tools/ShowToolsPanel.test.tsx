@@ -14,7 +14,6 @@ beforeEach(() => {
   useShowToolTab.setState({tool: 'stage'});
   fixture = stageFixture([
     settingsDocument('props', {props: []}),
-    settingsDocument('notices', {sets: []}),
     settingsDocument('macros', {
       macros: [
         {
@@ -49,7 +48,7 @@ it.each([
       '\ud0c0\uc774\uba38',
       '\uba54\uc2dc\uc9c0',
     ],
-    ['\uacf5\uc9c0', '그래픽', '\ub9e4\ud06c\ub85c'],
+    ['그래픽', '\ub9e4\ud06c\ub85c'],
   ],
   [
     'wide',
@@ -58,7 +57,6 @@ it.each([
       '\ubb34\ub300',
       '\ud0c0\uc774\uba38',
       '\uba54\uc2dc\uc9c0',
-      '\uacf5\uc9c0',
       '그래픽',
       '\ub9e4\ud06c\ub85c',
     ],
@@ -70,7 +68,6 @@ it.each([
     [
       '\ud0c0\uc774\uba38',
       '\uba54\uc2dc\uc9c0',
-      '\uacf5\uc9c0',
       '그래픽',
       '\ub9e4\ud06c\ub85c',
     ],
@@ -152,7 +149,6 @@ it('switches compact tabs and overflow panels and releases subscriptions', async
   for (const [name, count] of [
     ['\ud0c0\uc774\uba38', 1],
     ['\uba54\uc2dc\uc9c0', 2],
-    ['\uacf5\uc9c0', 2],
     ['그래픽', 2],
     ['\ub9e4\ud06c\ub85c', 1],
     ['\uc624\ub514\uc624', 0],

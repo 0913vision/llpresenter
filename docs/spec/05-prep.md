@@ -6,9 +6,9 @@ adding items, creating and importing services, saving a 템플릿, text import, 
 the shared bottom 미디어 bin.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
-(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지
-(notice), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면
-(broadcast captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
+(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 청중 화면
+(main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행
+(Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 
@@ -157,15 +157,14 @@ Source: drafts o1 to o6 and g5, user decision, November 2.
 - The header, service switcher, and 항목 추가 (add item) work as in 진행 (see
   04).
 - Each row shows a detail at the right: the 슬라이드 count for songs, Bible
-  passages, and 공지 ("슬라이드 9개"; for a song, the length of the chosen
-  구성), and the duration for media ("5:00").
+  passages ("슬라이드 9개"; for a song, the length of the chosen 구성), and the
+  duration for media ("5:00").
 - Selecting a song item opens its item settings (see "예배 순서 item settings").
 - No board shows the center panel for other item kinds. Version 1 shows these
   (proposal):
   - Bible passage: the Bible panel of 04 without the output buttons, so the
     operator can change the translation and split.
   - Media: the media properties of that media.
-  - 공지: the images of the 공지 set.
   - Section (구역): an empty center panel.
 - The operator drags rows to reorder them. Dragging a 구역 moves it with its
   items, up to the next 구역, as one section (user decision, October 26). Delete
@@ -501,7 +500,7 @@ Source: `AddSongs`, `ListRow` README.
 - The 라이브러리 group lists matching songs, with the matching part highlighted
   and the 슬라이드 count. The first result is highlighted.
 - The 다른 항목 (other items) group lists 구역 추가 (add section), 성경 구절
-  (Bible passage), 미디어 (media), and 공지.
+  (Bible passage), 미디어 (media).
 - Enter or a click inserts the song. A selected section is the insertion target,
   including when it is empty. If an item is selected, use its section. Insert at
   that section's end, before the next section, or at the service's end when
@@ -512,7 +511,6 @@ Source: `AddSongs`, `ListRow` README.
   - 성경 구절: shows a reference field in the popover. Enter inserts a Bible
     passage item with the default settings.
   - 미디어: a submenu with the media list.
-  - 공지: a submenu with the 공지 sets.
 
 Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).
 

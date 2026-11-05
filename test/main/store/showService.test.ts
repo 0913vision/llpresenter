@@ -5,7 +5,6 @@ import type {MediaChoice} from '@core/live/state';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
 import {mediaListSchema} from '@core/schema/mediaList';
-import {noticesSchema} from '@core/schema/notices';
 import {parseService, type Service} from '@core/schema/service';
 import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {DEFAULT_LABELS} from '@main/store/defaults';
@@ -31,7 +30,6 @@ import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-const NOTICE_ID = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
 
 function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
   if (!parsed.ok) {
@@ -225,7 +223,6 @@ describe('buildShowService', () => {
         },
       },
       {id: itemId(5), media: MEDIA_ID},
-      {id: itemId(6), notice: NOTICE_ID},
       {id: itemId(7), scripture: {page: 3}},
       {id: itemId(8), song: MISSING_SONG_ID},
     ]);
@@ -242,7 +239,6 @@ describe('buildShowService', () => {
       {kind: 'header', id: itemId(3), title: '찬양'},
       {kind: 'bible', id: itemId(4), title: '요한복음 3:16-18'},
       {kind: 'media', id: itemId(5), title: ''},
-      {kind: 'notice', id: itemId(6), title: ''},
       {kind: 'unknown', id: itemId(7), title: '', problem: 'unknown-kind'},
       {kind: 'song', id: itemId(8), title: '', problem: 'missing-song'},
     ]);
@@ -638,7 +634,7 @@ describe('projectSongTiles custom order', () => {
   });
 });
 
-describe('buildShowService media and 공지 items', () => {
+describe('buildShowService media items', () => {
   const IMAGE_ID = '7d1c2b3a-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
   const AUDIO_ID = '8e2d3c4b-5f60-4b7c-9d8e-0f1a2b3c4d5e';
   const OTHER_IMAGE_ID = '9f3e4d5c-6071-4c8d-8e9f-1a2b3c4d5e6f';
@@ -657,24 +653,6 @@ describe('buildShowService media and 공지 items', () => {
       })
       .items.map(item => [item.id, item]),
   );
-  const notices = new Map(
-    v
-      .parse(noticesSchema, {
-        format: 'llsettings.notices',
-        schemaVersion: 1,
-        sets: [
-          {
-            id: NOTICE_ID,
-            name: '주일 광고',
-            media: [IMAGE_ID, MISSING_SONG_ID, OTHER_IMAGE_ID],
-            interval: 5,
-            loop: true,
-            targets: [],
-          },
-        ],
-      })
-      .sets.map(set => [set.id, set]),
-  );
   const choice: MediaChoice = {mediaId: IMAGE_ID, loop: false};
 
   function buildOthers(order: readonly object[], withBackground = true) {
@@ -685,20 +663,17 @@ describe('buildShowService media and 공지 items', () => {
       revision: 1,
       backgrounds: new Map(withBackground ? [[IMAGE_ID, choice]] : []),
       media: items,
-      notices,
     });
   }
 
-  it('names the rows by the media and the 공지 set, as 준비 does', () => {
+  it('names the rows by the media, as 준비 does', () => {
     const show = buildOthers([
       {id: itemId(1), media: IMAGE_ID},
       {id: itemId(2), media: OTHER_IMAGE_ID},
-      {id: itemId(3), notice: NOTICE_ID},
     ]);
     expect(show.rows.map(row => row.title)).toEqual([
       '광고 배경',
       '이름 없는 미디어',
-      '주일 광고',
     ]);
   });
 
@@ -712,24 +687,10 @@ describe('buildShowService media and 공지 items', () => {
     ]);
   });
 
-  it('gives a 공지 item a tile per image that starts the 공지 from it', () => {
-    const show = buildOthers([{id: itemId(1), notice: NOTICE_ID}]);
-    expect(
-      show.tiles[itemId(1)]?.map(tile => [tile.lines, tile.notice]),
-    ).toEqual([
-      [['광고 배경'], {noticeId: NOTICE_ID, position: 0, media: IMAGE_ID}],
-      [
-        ['이름 없는 미디어'],
-        {noticeId: NOTICE_ID, position: 2, media: OTHER_IMAGE_ID},
-      ],
-    ]);
-  });
-
-  it('warns about a media file or 공지 set that is gone, without a tile', () => {
+  it('warns about a media file that is gone, without a tile', () => {
     const show = buildOthers(
       [
         {id: itemId(1), media: IMAGE_ID},
-        {id: itemId(2), notice: MEDIA_ID},
         {id: itemId(3), media: AUDIO_ID},
       ],
       false,
@@ -741,12 +702,10 @@ describe('buildShowService media and 공지 items', () => {
         title: '광고 배경',
         problem: 'missing-media',
       },
-      {kind: 'notice', id: itemId(2), title: '', problem: 'missing-media'},
       {kind: 'media', id: itemId(3), title: '전주'},
     ]);
     expect(show.tiles).toEqual({
       [itemId(1)]: [],
-      [itemId(2)]: [],
       [itemId(3)]: [],
     });
   });

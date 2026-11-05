@@ -25,7 +25,6 @@ function media(revision: number, name: string): MediaDocument {
 function fixture() {
   const f = stageFixture([
     settingsDocument('props', {props: []}),
-    settingsDocument('notices', {sets: []}),
     settingsDocument('macros', {macros: [], collections: []}),
   ]);
   const api = window.llp;
@@ -61,7 +60,7 @@ afterEach(() => {
 it('uses the latest settings and media while ignoring an older initial reply and releases subscriptions', async () => {
   const {f, pending, stop, push} = fixture();
   const {result, unmount} = renderHook(() => useMacroTargets(undefined));
-  await waitFor(() => expect(f.count()).toBe(7));
+  await waitFor(() => expect(f.count()).toBe(6));
   act(() => push(media(2, 'New audio')));
   await waitFor(() =>
     expect(result.current?.choices.audio).toEqual([{id, name: 'New audio'}]),

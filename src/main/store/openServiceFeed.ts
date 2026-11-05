@@ -2,7 +2,6 @@ import type {Label} from '@core/schema/labels';
 import type {MediaChoice} from '@core/live/state';
 import {isItemOfKind} from '@core/schema/service';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {NoticeSet} from '@core/schema/notices';
 import type {ShowService} from '@core/schema/showService';
 import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
@@ -20,10 +19,8 @@ export interface OpenServiceSources {
   readonly bible?: Pick<BibleLookupSession, 'lookup'>;
   /** The most lines a slide of a saved `fit` passage holds (환경설정 › 성경). */
   readonly bibleMaxLines?: () => number;
-  /** The media list, for the names of media items and 공지 images. */
+  /** The media list, for the names of media items. */
   readonly mediaItems?: () => readonly MediaItem[];
-  /** The 공지 sets. */
-  readonly noticeSets?: () => readonly NoticeSet[];
 }
 
 /**
@@ -106,15 +103,10 @@ export class OpenServiceFeed {
     const checked = new Set<string>();
     const backgrounds = new Map<string, MediaChoice>();
     const media = this.sources.mediaItems;
-    const noticeSets = this.sources.noticeSets;
     const mediaById =
       media === undefined
         ? undefined
         : new Map(media().map(item => [item.id, item]));
-    const noticesById =
-      noticeSets === undefined
-        ? undefined
-        : new Map(noticeSets().map(set => [set.id, set]));
     const check = async (id: string | undefined): Promise<void> => {
       if (id === undefined || checked.has(id)) return;
       checked.add(id);
@@ -142,7 +134,6 @@ export class OpenServiceFeed {
       revision: FIRST_REVISION,
       backgrounds,
       ...(mediaById === undefined ? {} : {media: mediaById}),
-      ...(noticesById === undefined ? {} : {notices: noticesById}),
       ...(this.sources.bible === undefined
         ? {}
         : {

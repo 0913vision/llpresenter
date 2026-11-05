@@ -8,7 +8,6 @@ export const themeKindNames: Readonly<Record<ThemeItemKind, string>> = {
   bible: '성경',
   blank: '빈 슬라이드',
   ad: '광고',
-  notice: '공지',
   media: '미디어',
 };
 export const themeProblems: Readonly<Record<ThemeEditProblem, string>> = {

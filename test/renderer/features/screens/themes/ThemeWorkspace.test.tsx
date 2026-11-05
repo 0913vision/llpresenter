@@ -177,7 +177,9 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   const {value, listeners} = setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});
   await waitFor(() =>
-    expect(within(themes).getAllByRole('option')).toHaveLength(6),
+    expect(within(themes).getAllByRole('option')).toHaveLength(
+      createDefaultThemes().themes.length + 1,
+    ),
   );
   expect(within(themes).getAllByRole('option')[0]?.textContent).toBe(
     '대기 화면',
@@ -203,7 +205,9 @@ it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', asy
   setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});
   await waitFor(() =>
-    expect(within(themes).getAllByRole('option')).toHaveLength(6),
+    expect(within(themes).getAllByRole('option')).toHaveLength(
+      createDefaultThemes().themes.length + 1,
+    ),
   );
   const song = within(themes).getByRole('option', {name: '찬양'});
   fireEvent.click(song);
@@ -664,7 +668,11 @@ it('saves the working copy under a new name and leaves the original as it was', 
     '찬양 복사본',
   );
   fireEvent.click(within(dialog).getByRole('button', {name: '저장'}));
-  await waitFor(() => expect(value().themes).toHaveLength(6));
+  await waitFor(() =>
+    expect(value().themes).toHaveLength(
+      createDefaultThemes().themes.length + 1,
+    ),
+  );
   const copy = value().themes.at(-1);
   expect(copy?.name).toBe('찬양 복사본');
   expect(currentTextX(copy)).toBe(EDITED_X);
@@ -737,7 +745,11 @@ it('saves a copy from a theme with no edits', async () => {
   );
   const dialog = await screen.findByRole('dialog');
   fireEvent.click(within(dialog).getByRole('button', {name: '저장'}));
-  await waitFor(() => expect(value().themes).toHaveLength(6));
+  await waitFor(() =>
+    expect(value().themes).toHaveLength(
+      createDefaultThemes().themes.length + 1,
+    ),
+  );
   expect(currentTextX(value().themes.at(-1))).toBe(original);
   expect(value().themes.at(-1)?.name).toBe('찬양 복사본');
 });

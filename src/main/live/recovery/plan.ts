@@ -2,7 +2,6 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LabelColor} from '@core/labels/colors';
 import type {SingleLiveCommand} from '@core/live/commands';
 import type {ActiveMessage, LiveState} from '@core/live/state';
-import {noticePosition} from '@core/overlays/noticeClock';
 import type {ScreenId} from '@core/schema/ids';
 import type {RecoverySummary} from '@core/schema/recovery';
 import type {RecoveryRecord} from '@core/schema/recoveryRecord';
@@ -46,7 +45,7 @@ export interface RecoverySources {
  * them: outputs, then the live 슬라이드 as it was captured and its background,
  * then the items that were showing. A row with nothing left to restore is left
  * out. Clocks resume from the record's time: a message keeps the display time
- * it had left and a 공지 restarts from the image it showed.
+ * it had left.
  */
 export function planRecovery(
   record: RecoveryRecord,
@@ -153,17 +152,15 @@ function showingStep(
     savedAtMs,
   );
   const stage = stageMessageCommands(state);
-  const notice = noticeCommands(state, settings, savedAtMs);
   const counts = {
     messages: messages.length,
     props: props.length,
     stageMessages: stage.length,
-    notices: notice.length === 0 ? 0 : 1,
   };
   if (Object.values(counts).every(count => count === 0)) return null;
   return {
     row: {kind: 'showing', counts},
-    commands: [...props, ...messages, ...stage, ...notice],
+    commands: [...props, ...messages, ...stage],
   };
 }
 
@@ -224,29 +221,4 @@ function stageMessageCommands({stageMessage}: LiveState): SingleLiveCommand[] {
   return stageMessage == null
     ? []
     : [{type: 'stage.message.set', text: stageMessage}];
-}
-
-function noticeCommands(
-  {layers: {notice}}: LiveState,
-  settings: Pick<SettingsReader, 'get'>,
-  savedAt: number,
-): SingleLiveCommand[] {
-  if (notice === null) return [];
-  const document = settings.get('notices');
-  const set =
-    document.name === 'notices'
-      ? document.value.sets.find(({id}) => id === notice.noticeId)
-      : undefined;
-  if (set === undefined || set.media.length === 0) return [];
-  const {playback} = notice;
-  const shown =
-    playback === undefined
-      ? undefined
-      : playback.media[noticePosition(playback, savedAt)];
-  const start: SingleLiveCommand = {
-    type: 'notice.start',
-    noticeId: set.id,
-    position: shown === undefined ? 0 : Math.max(0, set.media.indexOf(shown)),
-  };
-  return playback?.pausedAt == null ? [start] : [start, {type: 'notice.pause'}];
 }

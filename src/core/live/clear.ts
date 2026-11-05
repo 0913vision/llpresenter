@@ -8,8 +8,7 @@ export type ClearCommandId =
   | 'clear.media'
   | 'clear.prop'
   | 'clear.audio'
-  | 'clear.message'
-  | 'clear.notice';
+  | 'clear.message';
 
 export interface ClearButtonSpec {
   readonly command: ClearCommandId;
@@ -57,12 +56,6 @@ export const clearButtons: readonly ClearButtonSpec[] = [
     target: 'message',
     label: '메시지',
     icon: 'msg',
-  },
-  {
-    command: 'clear.notice',
-    target: 'notice',
-    label: '공지',
-    icon: 'notice',
   },
 ];
 

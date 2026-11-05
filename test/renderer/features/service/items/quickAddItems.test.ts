@@ -1,6 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import * as v from 'valibot';
-import {createMediaId, noticeSetIdSchema} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
@@ -8,10 +7,6 @@ import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
 
 const warm = createMediaId('60000000-0000-4000-8000-000000000021');
 const song = createMediaId('60000000-0000-4000-8000-000000000022');
-const noticeSet = v.parse(
-  noticeSetIdSchema,
-  '65000000-0000-4000-8000-000000000001',
-);
 const media: readonly MediaItem[] = [
   {id: warm, name: '따뜻한 빛', kind: 'image', file: 'a.png', size: 0},
   {id: song, name: '찬송 반주', kind: 'audio', file: 'b.mp3', size: 0},
@@ -30,7 +25,6 @@ function entry(entries: readonly MenuEntry[], id: string): MenuItem {
 function build(onInsert: (item: ServiceItem) => void) {
   return otherItemEntries({
     media,
-    notices: [{id: noticeSet, name: '주일 광고'}],
     onInsert,
     onBible: () => undefined,
   });
@@ -50,7 +44,6 @@ describe('quick add other items', () => {
       '광고',
       '미디어',
       '성경 구절…',
-      '공지',
       '영상 스트림 항목…',
       '오디오 스트림 항목…',
     ]);
@@ -64,7 +57,6 @@ describe('quick add other items', () => {
       ['광고', false],
       ['미디어', false],
       ['성경 구절…', false],
-      ['공지', false],
       ['영상 스트림 항목…', true],
       ['오디오 스트림 항목…', true],
     ]);
@@ -99,33 +91,26 @@ describe('quick add other items', () => {
     },
   );
 
-  it('offers media without audio and the 공지 sets', () => {
+  it('offers media without audio', () => {
     const onInsert = vi.fn<(item: ServiceItem) => void>();
     const entries = build(onInsert);
     const mediaChoices = items(entry(entries, 'other:media').submenu ?? []);
     expect(mediaChoices.map(item => item.label)).toEqual(['따뜻한 빛']);
     mediaChoices[0]?.onSelect?.();
-    const notices = items(entry(entries, 'other:notice').submenu ?? []);
-    notices[0]?.onSelect?.();
     expect(onInsert.mock.calls.map(([item]) => item)).toMatchObject([
       {media: warm},
-      {notice: noticeSet},
     ]);
   });
 
   it('shows a disabled note when there is nothing to choose', () => {
     const entries = otherItemEntries({
       media: [],
-      notices: [],
       onInsert: () => undefined,
       onBible: () => undefined,
     });
     expect(items(entry(entries, 'other:media').submenu ?? [])[0]).toMatchObject(
       {label: '미디어 없음', disabled: true},
     );
-    expect(
-      items(entry(entries, 'other:notice').submenu ?? [])[0],
-    ).toMatchObject({label: '공지 없음', disabled: true});
   });
 
   it('retains unnamed videos and their insertion target while excluding audio', () => {
@@ -136,7 +121,6 @@ describe('quick add other items', () => {
         ...media,
         {id: unnamed, name: '', kind: 'video', file: 'c.mp4', size: 0},
       ],
-      notices: [],
       onInsert,
       onBible: () => undefined,
     });

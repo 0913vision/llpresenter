@@ -38,12 +38,10 @@ export function registerMediaUses(
       if (media === null || settings === null || opened === null) {
         throw new Error('The documents that use media are unavailable');
       }
-      const notices = settings.get('notices');
       const props = settings.get('props');
       const themes = settings.get('themes');
       const macros = settings.get('macros');
       if (
-        notices.name !== 'notices' ||
         props.name !== 'props' ||
         themes.name !== 'themes' ||
         macros.name !== 'macros'
@@ -52,7 +50,6 @@ export function registerMediaUses(
       }
       return countMediaUses(request.value.mediaId, {
         media: media.get().value,
-        notices: notices.value,
         props: props.value,
         themes: themes.value,
         macros: macros.value,

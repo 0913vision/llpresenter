@@ -22,7 +22,6 @@ const uuid = (index: number) =>
 const themeIds = {
   song: createThemeId(uuid(101)),
   bible: createThemeId(uuid(102)),
-  notice: createThemeId(uuid(103)),
   media: createThemeId(uuid(104)),
   blank: createThemeId(uuid(102)),
   ad: createThemeId(uuid(105)),
@@ -30,7 +29,6 @@ const themeIds = {
 const names = {
   song: '찬양',
   bible: '말씀',
-  notice: '공지',
   media: '영상',
   blank: '말씀',
   ad: '광고',

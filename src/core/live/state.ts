@@ -1,8 +1,4 @@
-import type {
-  ActiveMessage,
-  ActiveProp,
-  NoticePlayback,
-} from '../schema/overlayState';
+import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
 import type {MacroId, MediaId, ScreenId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
 import type {AudioPlayback} from '../schema/audioState';
@@ -14,11 +10,7 @@ import type {
   LiveThemeMode,
   LiveThemeOutput,
 } from '../schema/liveTheme';
-export type {
-  ActiveMessage,
-  ActiveProp,
-  NoticePlayback,
-} from '../schema/overlayState';
+export type {ActiveMessage, ActiveProp} from '../schema/overlayState';
 
 /** Layer kinds from bottom to top. */
 export const layerKinds = [
@@ -27,7 +19,6 @@ export const layerKinds = [
   'prop',
   'audio',
   'message',
-  'notice',
 ] as const;
 
 export type LayerKind = (typeof layerKinds)[number];
@@ -98,18 +89,12 @@ export interface MessageLayer {
   readonly items?: readonly ActiveMessage[];
 }
 
-export interface NoticeLayer {
-  readonly noticeId: string;
-  readonly playback?: NoticePlayback;
-}
-
 export interface LiveLayers {
   readonly media: MediaLayer | null;
   readonly slide: SlideLayer | null;
   readonly prop: PropLayer | null;
   readonly audio: AudioLayer | null;
   readonly message: MessageLayer | null;
-  readonly notice: NoticeLayer | null;
 }
 
 /** The live output state. The main process owns it; windows receive copies. */
@@ -152,7 +137,6 @@ export function emptyLayers(): LiveLayers {
     prop: null,
     audio: null,
     message: null,
-    notice: null,
   };
 }
 

@@ -20,7 +20,6 @@ const PALETTE_ORDER: readonly MacroActionKind[] = [
   'media',
   'prop',
   'message',
-  'notice',
   'audio',
   'audioPlaylist',
   'timer',

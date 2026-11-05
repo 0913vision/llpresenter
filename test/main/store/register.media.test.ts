@@ -181,9 +181,9 @@ describe('registerStore', () => {
     );
     await ask(mediaEndpoints.get.channel);
     expect(
-      await ask(settingsEndpoints.get.channel, {name: 'notices'}),
+      await ask(settingsEndpoints.get.channel, {name: 'props'}),
     ).toMatchObject({
-      name: 'notices',
+      name: 'props',
     });
     expect(problems).toEqual(['media.json']);
     expect(await readFile(file, 'utf8')).toBe('{broken media');

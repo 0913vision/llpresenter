@@ -19,7 +19,6 @@ const kinds: readonly MacroActionKind[] = [
   'theme',
   'media',
   'prop',
-  'notice',
   'audio',
   'audioPlaylist',
   'timer',

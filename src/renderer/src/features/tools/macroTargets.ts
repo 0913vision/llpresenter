@@ -22,7 +22,6 @@ export interface MacroTargetSources {
   readonly messages: {
     readonly templates: ReadonlyArray<Named & {readonly text: string}>;
   };
-  readonly notices: {readonly sets: readonly Named[]};
   readonly timers: {readonly timers: readonly Named[]};
   readonly macros: {readonly macros: readonly Named[]};
   readonly media: {
@@ -38,7 +37,6 @@ export interface MacroTargetSources {
 const CLEARED_LAYERS = [
   'slide',
   'media',
-  'notice',
   'prop',
   'message',
   'audio',
@@ -83,7 +81,6 @@ export function buildMacroTargets(source: MacroTargetSources): {
         blanks: messageBlankNames(text),
         text,
       })),
-      notice: choices(source.notices.sets),
       audio: choices(source.media.items.filter(item => item.kind === 'audio')),
       audioPlaylist: choices(source.media.audioPlaylists),
       timer: choices(source.timers.timers),

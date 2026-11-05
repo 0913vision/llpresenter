@@ -75,7 +75,6 @@ const VIEW_TOOLS: readonly ShowTool[] = [
   'stage',
   'timer',
   'message',
-  'notice',
   'prop',
   'macro',
 ];
@@ -85,7 +84,6 @@ const toolCommands: Readonly<Record<ShowTool, string>> = {
   stage: 'tools.stage',
   timer: 'tools.timers',
   message: 'tools.messages',
-  notice: 'tools.notices',
   prop: 'tools.props',
   macro: 'tools.macros',
 };

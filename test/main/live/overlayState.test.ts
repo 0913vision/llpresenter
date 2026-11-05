@@ -20,15 +20,6 @@ const prop = (index = 1) => ({
   content: {kind: 'image', media: uuid(3)},
   targets: [uuid(4)],
 });
-const playback = () => ({
-  media: [uuid(3), uuid(4)],
-  position: 1,
-  interval: 5,
-  loop: true,
-  targets: [uuid(5)],
-  startedAt: NOW,
-  pausedAt: null,
-});
 function state(layers: object = {}, addition: object = {}) {
   const empty = emptyLiveState();
   return {...empty, layers: {...empty.layers, ...layers}, ...addition};
@@ -42,7 +33,6 @@ describe('clearing overlays', () => {
           {
             message: {messageId: 'summary', text: '', items: [message()]},
             prop: {propId: 'summary', items: [prop()]},
-            notice: {noticeId: 'summary', playback: playback()},
           },
           {stageMessage: 'Invented stage cue'},
         ),
@@ -53,7 +43,6 @@ describe('clearing overlays', () => {
     expect(store.state.stageMessage).toBe(initial.stageMessage);
     expect(store.state.layers.message).toBeNull();
     expect(store.state.layers.prop).toBeNull();
-    expect(store.state.layers.notice).toBeNull();
     store.dispatch({type: 'clear.undo'});
     expect(store.state.stageMessage).toBe(initial.stageMessage);
     expect(store.state.layers).toEqual(initial.layers);

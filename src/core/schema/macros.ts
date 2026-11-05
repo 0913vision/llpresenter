@@ -18,7 +18,6 @@ import {
   macroIdSchema,
   mediaIdSchema,
   messageTemplateIdSchema,
-  noticeSetIdSchema,
   propIdSchema,
   timerIdSchema,
   themeIdSchema,
@@ -51,7 +50,6 @@ export const macroActionKinds = [
   'media',
   'prop',
   'message',
-  'notice',
   'audio',
   'audioPlaylist',
   'timer',
@@ -110,7 +108,6 @@ const actionSchemas = {
     ),
     duration: messageDurationSchema,
   }),
-  notice: jsonObject({kind: v.literal('notice'), notice: noticeSetIdSchema}),
   audio: v.variant('operation', [
     v.looseObject({
       kind: v.literal('audio'),
@@ -141,7 +138,6 @@ const knownActionSchema = v.union([
   actionSchemas.media,
   actionSchemas.prop,
   actionSchemas.message,
-  actionSchemas.notice,
   actionSchemas.audio,
   actionSchemas.audioPlaylist,
   actionSchemas.timer,

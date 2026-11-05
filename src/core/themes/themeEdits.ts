@@ -167,7 +167,7 @@ export function editThemeList(
     return {ok: false, error: 'confirmation-required'};
   }
   let defaults = file.defaults;
-  for (const kind of ['song', 'bible', 'notice', 'media'] as const) {
+  for (const kind of ['song', 'bible', 'media'] as const) {
     if (defaults[kind] === theme.id) {
       const {[kind]: removed, ...rest} = defaults;
       defaults = rest;

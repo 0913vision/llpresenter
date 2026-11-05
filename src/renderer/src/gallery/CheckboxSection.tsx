@@ -86,7 +86,7 @@ export function CheckboxSection(): JSX.Element {
               label="예배 전 카운트다운"
               initial={false}
             />
-            <Row variant="list" icon="notice" label="주일 광고" initial />
+            <Row variant="list" icon="film" label="예배 영상" initial />
             <Row variant="group" label="찬양" initial={false} />
             <Row
               variant="list"

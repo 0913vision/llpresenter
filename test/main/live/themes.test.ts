@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {createMediaId, createThemeId} from '@core/schema/ids';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
-import {NOTICE, overlaySettings} from '@fixtures/core/overlays';
+import {overlaySettings} from '@fixtures/core/overlays';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {ContentStoreOptions} from '@main/store/contentStore';
@@ -41,7 +41,6 @@ const HYMN_TITLE = '만복의 근원 하나님';
 const SONG_ITEM = itemId(61);
 const BIBLE_ITEM = itemId(62);
 const MEDIA_ITEM = itemId(63);
-const NOTICE_ITEM = itemId(64);
 const SLOT_ITEM = itemId(65);
 const MEDIA_ID = createMediaId(itemId(70));
 const LONG_TEXT = 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 20);
@@ -67,7 +66,6 @@ function setup(
     {id: SONG_ITEM, song: HYMN_ONE_ID, theme: THEME, memo: LONG_TEXT},
     bibleItem,
     {id: MEDIA_ITEM, media: MEDIA_ID},
-    {id: NOTICE_ITEM, notice: NOTICE},
     {id: SLOT_ITEM, slot: 'song', title: 'Open slot'},
   ];
   const {store: content} = setUp([serviceFile(SUNDAY_ID, items)], options);
@@ -109,15 +107,11 @@ describe('registerThemeOutput item resolver', () => {
     });
   });
 
-  it('names a Bible item by its reference and a notice item by its set', async () => {
+  it('names a Bible item by its reference', async () => {
     const item = await resolver(setup());
     expect(item(BIBLE_ITEM)).toMatchObject({
       kind: 'bible',
       title: '창세기 1:1',
-    });
-    expect(item(NOTICE_ITEM)).toMatchObject({
-      kind: 'notice',
-      title: 'Fixture notices',
     });
   });
 

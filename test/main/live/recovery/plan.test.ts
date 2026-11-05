@@ -3,9 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {createMediaId, createMessageId} from '@core/schema/ids';
 import {
   CAPTIONS,
-  IMAGES,
   MAIN,
-  NOTICE,
   overlaySettings,
   overlayUuid,
   PROP,
@@ -189,18 +187,6 @@ describe('recovery plan', () => {
             message(5, {targets: 'all'}),
           ],
         },
-        notice: {
-          noticeId: NOTICE,
-          playback: {
-            media: IMAGES,
-            position: 0,
-            interval: 5,
-            loop: false,
-            targets: [MAIN],
-            startedAt: SAVED_AT_MS - 6000,
-            pausedAt: SAVED_AT_MS - 1000,
-          },
-        },
       },
     });
     expect(planRecovery(record, sources())).toEqual([
@@ -211,7 +197,6 @@ describe('recovery plan', () => {
             messages: 3,
             props: 1,
             stageMessages: 1,
-            notices: 1,
           },
         },
         commands: [
@@ -235,61 +220,9 @@ describe('recovery plan', () => {
             duration: null,
           },
           {type: 'stage.message.set', text: 'Fixture stage note'},
-          {type: 'notice.start', noticeId: NOTICE, position: 1},
-          {type: 'notice.pause'},
         ],
       },
     ]);
-  });
-
-  it('restarts a 공지 from the image it showed in its current set', () => {
-    const fixture = sources();
-    fixture.update(
-      settingsDocument('notices', {
-        sets: [
-          {
-            id: NOTICE,
-            name: 'Fixture notices',
-            media: [IMAGES[2], IMAGES[1]],
-            interval: 5,
-            loop: true,
-            targets: [MAIN],
-          },
-        ],
-      }),
-    );
-    const playing = (startedAt: number) =>
-      recoveryRecordOf({
-        layers: {
-          notice: {
-            noticeId: NOTICE,
-            playback: {
-              media: IMAGES,
-              position: 0,
-              interval: 5,
-              loop: true,
-              targets: [MAIN],
-              startedAt,
-              pausedAt: null,
-            },
-          },
-        },
-      });
-    const positionAfter = (elapsedMs: number) =>
-      planRecovery(playing(SAVED_AT_MS - elapsedMs), fixture).flatMap(
-        ({commands}) => commands,
-      );
-    expect(positionAfter(11_000)).toEqual([
-      {type: 'notice.start', noticeId: NOTICE, position: 0},
-    ]);
-    expect(positionAfter(6000)).toEqual([
-      {type: 'notice.start', noticeId: NOTICE, position: 1},
-    ]);
-    expect(positionAfter(0)).toEqual([
-      {type: 'notice.start', noticeId: NOTICE, position: 0},
-    ]);
-    fixture.update(settingsDocument('notices', {sets: []}));
-    expect(planRecovery(playing(SAVED_AT_MS), fixture)).toEqual([]);
   });
 
   it('keeps an M2 message layer as it was', () => {

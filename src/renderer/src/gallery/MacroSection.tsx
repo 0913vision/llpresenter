@@ -33,7 +33,7 @@ const macros: readonly Macro[] = [
   },
   {name: '찬양', icon: 'song', color: 'teal', actionCount: 2},
   {name: '말씀', icon: 'mic', color: 'slate', actionCount: 3},
-  {name: '광고', icon: 'notice', color: 'yellow', actionCount: 2},
+  {name: '예배 영상', icon: 'film', color: 'yellow', actionCount: 2},
   {name: '헌금', icon: 'coins', color: 'orange', actionCount: 2},
   {name: '영상', icon: 'film', color: 'rose', actionCount: 2},
   {name: '축도', icon: 'pray', color: 'violet', actionCount: 1},
@@ -50,7 +50,6 @@ const toolTabs = [
   {value: 'stage', label: '무대'},
   {value: 'timer', label: '타이머'},
   {value: 'message', label: '메시지'},
-  {value: 'notice', label: '공지'},
   {value: 'prop', label: '그래픽'},
   {value: 'macro', label: '매크로'},
 ];

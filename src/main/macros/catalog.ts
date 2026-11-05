@@ -2,7 +2,6 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import type {MacrosFile} from '@core/schema/macros';
 import type {MediaList} from '@core/schema/mediaList';
 import type {MessagesFile} from '@core/schema/messages';
-import type {NoticesFile} from '@core/schema/notices';
 import type {PropsFile} from '@core/schema/props';
 import type {ScreensFile} from '@core/schema/screens';
 import type {TimersFile} from '@core/schema/timers';
@@ -13,7 +12,6 @@ export interface MacroCatalog {
   readonly macros: MacrosFile;
   readonly media: MediaList;
   readonly messages: MessagesFile;
-  readonly notices: NoticesFile;
   readonly props: PropsFile;
   readonly screens: ScreensFile;
   readonly timers: TimersFile;
@@ -26,7 +24,6 @@ export function readMacroCatalog(
   const macros = settings.get('macros');
   const themes = settings.get('themes');
   const messages = settings.get('messages');
-  const notices = settings.get('notices');
   const props = settings.get('props');
   const screens = settings.get('screens');
   const timers = settings.get('timers');
@@ -34,7 +31,6 @@ export function readMacroCatalog(
     macros.name !== 'macros' ||
     themes.name !== 'themes' ||
     messages.name !== 'messages' ||
-    notices.name !== 'notices' ||
     props.name !== 'props' ||
     screens.name !== 'screens' ||
     timers.name !== 'timers'
@@ -46,7 +42,6 @@ export function readMacroCatalog(
     themes: themes.value,
     media,
     messages: messages.value,
-    notices: notices.value,
     props: props.value,
     screens: screens.value,
     timers: timers.value,

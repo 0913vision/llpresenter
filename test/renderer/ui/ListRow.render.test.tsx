@@ -15,14 +15,14 @@ vi.mock('@renderer/ui/Icon', () => ({
 
 const rows = [
   {value: 'count', icon: 'film', title: '예배 전 카운트다운'},
-  {value: 'notice', icon: 'notice', title: '주일 광고'},
+  {value: 'video', icon: 'film', title: '예배 영상'},
   {value: 'hymn', icon: 'song', title: '만복의 근원 하나님'},
   {value: 'word', icon: 'book', title: '요한복음 3장 16절'},
 ] as const;
 
 function ServiceOrder(): JSX.Element {
   const [selected, setSelected] = useState<string | undefined>('count');
-  const [live, setLive] = useState('notice');
+  const [live, setLive] = useState('video');
   return (
     <>
       <button type="button" onClick={() => setLive('word')}>
@@ -55,6 +55,6 @@ describe('ListBox rendering', () => {
     render(<ServiceOrder />);
     iconRenders.length = 0;
     await userEvent.click(screen.getByRole('button', {name: '다음 항목'}));
-    expect(iconRenders.toSorted()).toEqual(['book', 'notice']);
+    expect(iconRenders.toSorted()).toEqual(['book', 'film']);
   });
 });

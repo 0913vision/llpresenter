@@ -23,7 +23,6 @@ const counts = {
   messages: 1,
   props: 2,
   stageMessages: 1,
-  notices: 1,
 };
 const showing = {kind: 'showing', counts};
 
@@ -70,7 +69,6 @@ describe('recovery summaries', () => {
             messages: 0,
             props: 0,
             stageMessages: 0,
-            notices: 0,
           },
         },
       ],

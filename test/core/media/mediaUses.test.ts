@@ -17,12 +17,6 @@ const target = IMAGES[0];
 const other = IMAGES[1];
 if (target === undefined || other === undefined) throw new Error('No ids');
 
-function fixtureNotices(): MediaUseSources['notices'] {
-  const value = overlaySettings().reader.get('notices');
-  if (value.name !== 'notices') throw new Error('Missing notices');
-  return value.value;
-}
-
 function fixtureProps(): MediaUseSources['props'] {
   const value = overlaySettings().reader.get('props');
   if (value.name !== 'props') throw new Error('Missing props');
@@ -73,7 +67,6 @@ function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
   if (macros.name !== 'macros') throw new Error('Missing macros');
   return {
     media: mediaList(),
-    notices: fixtureNotices(),
     props: fixtureProps(),
     themes,
     macros: macros.value,
@@ -84,16 +77,14 @@ function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
 }
 
 describe('the places that use a media item', () => {
-  it('counts playlists, 공지 sets, and 그래픽 that hold it', () => {
+  it('counts playlists and 그래픽 that hold it', () => {
     const uses = countMediaUses(target, sources());
     expect(uses).toMatchObject({
       playlists: 2,
-      notices: 1,
       graphics: 1,
     });
     expect(countMediaUses(createMediaId(uuid(777)), sources())).toEqual({
       playlists: 0,
-      notices: 0,
       graphics: 0,
       songBackgrounds: 0,
       serviceItems: 0,
@@ -209,7 +200,6 @@ describe('the media:uses payloads', () => {
     expect(
       parseMediaUses({
         playlists: 0,
-        notices: 1,
         graphics: 2,
         songBackgrounds: 3,
         serviceItems: 4,

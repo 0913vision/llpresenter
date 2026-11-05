@@ -1,0 +1,1 @@
+export const MAX_OVERLAY_TIMER_MS = 2_147_483_647;

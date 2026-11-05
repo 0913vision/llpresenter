@@ -6,7 +6,7 @@ import styles from './ServiceTable.module.css';
 
 // NOTE(0913vision): Keys the row and the list would take for their own:
 // Space selects the row, the arrows and Home and End move between rows. The
-// field keeps them, and with them its own behavior. F1 to F7 and shortcuts
+// field keeps them, and with them its own behavior. F1 to F6 and shortcuts
 // still reach the window.
 const LIST_KEYS: ReadonlySet<string> = new Set([
   ' ',

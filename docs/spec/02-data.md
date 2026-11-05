@@ -7,21 +7,21 @@ marked as proposals.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 그래픽
-(prop), 공지 (notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch),
-청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
-captions). See 01 for the full list.
+(prop), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch), 청중 화면
+(main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions). See 01
+for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                                       | Source                                                           |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                             | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                         | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 문구, 공지 sets, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                      | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                         | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                             |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                            | Source                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                  | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.              | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 문구, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                     | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                           | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                              | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                  |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -226,7 +226,6 @@ new item IDs (proposal).
 | Bible passage      | `bible`: object (see below)  | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
 | 빈 슬라이드 / 광고 | `slides`: object (see below) | `background`, `macro`, `memo`                               | User decision, November 5.                                               |
 | Media              | `media`: media ID            | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
-| 공지               | `notice`: 공지 set ID        | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
 
 Keep an item with an unknown kind key unchanged. Show it as a row with a warning
 icon, and don't let the operator output it (proposal).
@@ -309,9 +308,8 @@ the slot behavior in the earlier service samples and draft boards.
   time of a new service (proposal).
 - A 템플릿 holds empty sections where content will be added later. Empty
   sections stay in its order and in the 새 예배 source tree. It can also hold
-  content such as songs, media, and 공지. For example, the `NewService` board
-  shows 예배 전 카운트다운, 주일 광고, and 축도 in a 템플릿. It has no slot
-  items.
+  content such as songs, media. For example, the `NewService` board shows 예배
+  전 카운트다운, 주일 광고, and 축도 in a 템플릿. It has no slot items.
 
 Source: `Main` service notes (same file format), `NewService`, and the user's
 decision from the m3-check3 check, October 26 (empty sections replace slot
@@ -329,7 +327,6 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
 | `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
 | `messages.json`                       | `llsettings.messages`    | 메시지 문구 and styles                              |
-| `notices.json`                        | `llsettings.notices`     | 공지 sets                                           |
 | `props.json`                          | `llsettings.props`       | 그래픽                                              |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                              |
 | `labels.json`                         | `llsettings.labels`      | 이름표 list                                         |
@@ -349,7 +346,6 @@ sections below don't say otherwise):
 | `macros.json`      | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                            |
 | `quick.json`       | One item, 검은 화면 (`"black"`).                                                                                                      |
 | `messages.json`    | No templates and no `messageStyles`.                                                                                                  |
-| `notices.json`     | No sets.                                                                                                                              |
 | `props.json`       | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                      |
 | `timers.json`      | No 타이머.                                                                                                                            |
 | `labels.json`      | See "이름표 list" below.                                                                                                              |
@@ -393,11 +389,11 @@ Don't save whether a screen output is on. At launch, the 환경설정 option 켤
 
 The 테마 lay out all three screens for every 예배 순서 item. Behavior is in 12.
 
-| Field      | Type                        | Meaning                                                                              |
-| ---------- | --------------------------- | ------------------------------------------------------------------------------------ |
-| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.                                        |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.                                        |
-| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, `notice`, and `media`. |
+| Field      | Type                        | Meaning                                                                    |
+| ---------- | --------------------------- | -------------------------------------------------------------------------- |
+| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.                              |
+| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.                              |
+| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
 
 Theme:
 
@@ -481,17 +477,6 @@ The fixed default style is used when no style is chosen: Pretendard 700, 84 px,
 white, centered horizontally and vertically, line height 1.4, two lines, 6%
 margin, outline off, and shadow on (blur 8, distance 4, angle 45, opacity 60,
 black).
-
-### 공지 sets (`notices.json`)
-
-| Field          | Type                | Meaning                                                  | Source                    |
-| -------------- | ------------------- | -------------------------------------------------------- | ------------------------- |
-| `sets[]`       | Array               | 공지 sets, for example 주일 광고 (Sunday announcements). | `Overlays` 공지 tab       |
-| `.id`, `.name` | String              | ID and name.                                             | `Overlays`                |
-| `.media`       | Array of media IDs  | The images, in order.                                    | `Overlays` (슬라이드 6개) |
-| `.interval`    | Seconds             | Time between images, for example 8.                      | `Overlays` "8초"          |
-| `.loop`        | Boolean             | Loop.                                                    | `Overlays` loop button    |
-| `.targets`     | Array of screen IDs | Target screens.                                          | `Overlays` 보낼 화면      |
 
 ### 그래픽 (`props.json`)
 
@@ -1223,7 +1208,6 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 | `state.layers.prop`     | Complete active 그래픽 layer, including captured item payloads when present                    | 표시 중이던 항목 (items that were showing) |
 | `state.layers.message`  | Complete active 메시지 layer, including displayed text and captured item payloads when present | 표시 중이던 항목                           |
 | `state.stageMessage`    | Captured stage message text when present                                                       | 표시 중이던 항목                           |
-| `state.layers.notice`   | Complete active 공지 layer, including captured playback state when present                     | 표시 중이던 항목                           |
 | Timer state             | Excluded before writing; running timers are not recorded for restart                           | Not restored                               |
 | `state.layers.audio`    | Cleared before writing; audio playback is not recorded for restart                             | Not restored                               |
 | `state.canUndo`         | Written as `false`; the undo history of clears is not recorded                                 | Not restored                               |

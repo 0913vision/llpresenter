@@ -14,11 +14,7 @@ import {
   liveNonBlankTextSchema,
   liveOutputsSchema,
 } from './liveLimits';
-import {
-  activeMessagesSchema,
-  activePropsSchema,
-  noticePlaybackSchema,
-} from './overlayState';
+import {activeMessagesSchema, activePropsSchema} from './overlayState';
 import {timerRunsSchema} from './timerState';
 import {audioPlaybackSchema} from './audioState';
 import {percent, seconds} from './primitives';
@@ -92,10 +88,6 @@ export const layerSchemas = {
     text: liveTextSchema,
     items: v.exactOptional(activeMessagesSchema),
   }),
-  notice: payloadObject({
-    noticeId: id,
-    playback: v.exactOptional(noticePlaybackSchema),
-  }),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
@@ -115,7 +107,6 @@ export const liveStateSchema = payloadObject({
     prop: v.nullable(layerSchemas.prop),
     audio: v.nullable(layerSchemas.audio),
     message: v.nullable(layerSchemas.message),
-    notice: v.nullable(layerSchemas.notice),
   }),
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),

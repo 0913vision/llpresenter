@@ -3,8 +3,8 @@
 Status: M4. The concept was agreed with the user on October 30, and the open
 points on October 31 (the approval page, accepted as proposed).
 
-This file is the single source for what a screen shows. 메시지 styles, 공지
-sets, and 그래픽 keep their own files and behavior.
+This file is the single source for what a screen shows. 메시지 styles and 그래픽
+keep their own files and behavior.
 
 ## Why
 
@@ -47,7 +47,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 - An element is one of a fixed set of kinds (see "Elements"). There are no
   free-form objects.
 - Every 예배 순서 item uses one 테마: the one it names, or else the default 테마
-  of its kind (곡, 성경, 공지, 미디어).
+  of its kind (곡, 성경, 미디어).
 - The 대기 화면 (standby screen) is a special 테마 that shows when nothing is
   live. See "항목 끄기 and the 대기 화면".
 - An 오버레이 (overlay) is content that stays on screen across a range of
@@ -80,9 +80,9 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   sees them. The editor offers them only there, and a paste onto another screen
   is refused.
 - A Bible verse is a 슬라이드, so 현재 가사 shows it. Only 성경 출처 is extra.
-- 공지, 메시지, and 그래픽 are not elements. Each keeps its own appearance and
-  the screens it is sent to, and they always draw on top of the 테마 in the
-  order 공지, 그래픽, 메시지. A 테마 can't hide them.
+- 메시지 and 그래픽 are not elements. Each keeps its own appearance and the
+  screens it is sent to, and they always draw on top of the 테마 in the order
+  그래픽, 메시지. A 테마 can't hide them.
 - A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
   over ProPresenter's style per 메시지 문구 (user decision, October 28). Each
   screen picks its style in its 메시지 스타일 row in the 화면 설정 window, not
@@ -165,8 +165,7 @@ until the operator or an action changes it (S4 pp. 37 to 38).
    screen's composition; the editor never lets two screens point at each other.
 2. In 직접 배치, draw the elements from the bottom of the element list to the
    top. The top of the list is in front.
-3. Draw 공지, 그래픽, and 메시지 above them, each only on the screens it was
-   sent to.
+3. Draw 그래픽 and 메시지 above them, each only on the screens it was sent to.
 4. A cleared layer draws nothing in the elements that show it: 지우기 가사
    empties 현재 가사, 다음 가사, 이름표, and 성경 출처; 지우기 미디어 empties
    미디어 and 배경; 지우기 모두 empties every element that shows live content.
@@ -260,12 +259,12 @@ Saving (user decision, November 1):
   other settings do (06).
 
 The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › (곡, 성경,
-공지, 미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제.
-The row shows the kinds that use it as small tags. The live 테마's row shows
-LIVE to the left of those tags (user, October 31), because saving it changes the
-output at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제
-asks first when a kind or an item uses the 테마; its items fall back to their
-kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
+미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제. The
+row shows the kinds that use it as small tags. The live 테마's row shows LIVE to
+the left of those tags (user, October 31), because saving it changes the output
+at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제 asks
+first when a kind or an item uses the 테마; its items fall back to their kind's
+default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 ## 오버레이
 
@@ -291,13 +290,13 @@ kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
   배경, and its 오버레이. Its control is a 항목 button first in 진행's 지우기
   row, shaped like the other clear buttons, with the tooltip 항목 끄기, and a
   출력 menu row. Its shortcut comes with the shortcut review (B7). Unlike 지우기
-  모두, it leaves 공지, 그래픽, and 메시지 on screen. 실행 취소 (undo) brings
-  the item back, as for a clear (03, "Undo").
+  모두, it leaves 그래픽 and 메시지 on screen. 실행 취소 (undo) brings the item
+  back, as for a clear (03, "Undo").
 - After stopping, the 항목 button stays bright and pressed with the tooltip 항목
   복원. Pressing it again restores that item's 슬라이드, 배경, and 오버레이,
-  resuming captured playback positions. It does not change the current 공지,
-  그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
-  and new output content invalidates it, as for the other clear keys.
+  resuming captured playback positions. It does not change the current 그래픽,
+  메시지, or audio, including their clocks. Its one capture is temporary and new
+  output content invalidates it, as for the other clear keys.
 - With nothing live, every screen shows the 대기 화면 테마, for example the
   church logo on the 청중 화면, the clock on the 무대 화면, and nothing on the
   방송 화면. The same screens show at launch when outputs turn on and nothing is
@@ -310,11 +309,11 @@ kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 ### `Settings\themes.json`
 
-| Field      | Type                        | Meaning                                                                              |
-| ---------- | --------------------------- | ------------------------------------------------------------------------------------ |
-| `standby`  | Theme                       | The 대기 화면.                                                                       |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list.                                                                       |
-| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, `notice`, and `media`. |
+| Field      | Type                        | Meaning                                                                    |
+| ---------- | --------------------------- | -------------------------------------------------------------------------- |
+| `standby`  | Theme                       | The 대기 화면.                                                             |
+| `themes[]` | Array of Theme, at most 200 | The 테마 list.                                                             |
+| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
 
 Theme:
 
@@ -359,8 +358,8 @@ does (02).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.
-- The other built-in defaults are 찬양 for 곡, 말씀 for 성경, 공지 for 공지, and
-  영상 for 미디어. The 대기 화면 starts with a clock and timer on stage.
+- The other built-in defaults are 찬양 for 곡, 말씀 for 성경, and 영상 for
+  미디어. The 대기 화면 starts with a clock and timer on stage.
 
 ## Where the rest of the spec uses 테마
 

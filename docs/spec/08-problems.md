@@ -7,8 +7,8 @@ must never happen during a service.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
-captions), 그래픽 (prop), 공지 (notice), 메시지 (message), 매크로 (macro), 진행
-도구 (show tools). See 01.
+captions), 그래픽 (prop), 메시지 (message), 매크로 (macro), 진행 도구 (show
+tools). See 01.
 
 ## Problem states
 
@@ -56,14 +56,13 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 ### Showing it
 
-| Place                                                      | Appearance                                                                  | Tooltip                                                                                                  |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Media tile (media strip, media view)                       | Hatched frame with an amber file icon. The picture and duration are hidden. | "파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4" (file not found, with the path)             |
-| Background select in the 슬라이드 panel header             | Amber file icon before the name, and a 다시 연결 button                     | "배경 파일을 찾을 수 없음" (background file not found)                                                   |
-| 예배 순서 row                                              | Amber warning icon after the name                                           | "미디어 파일 없음" (media file missing)                                                                  |
-| 슬라이드 thumbnail with an image (for example 공지 images) | Hatched canvas with an amber file icon                                      | The path, as above                                                                                       |
-| 공지 image or 그래픽 tile whose media left the library     | Hatched frame with an amber file icon                                       | "미디어 파일을 찾을 수 없습니다" (no path to name)                                                       |
-| 표시 중 row and preview of a background that froze         | Pause icon                                                                  | "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중" (background video file not found, showing a still) |
+| Place                                              | Appearance                                                                  | Tooltip                                                                                                  |
+| -------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Media tile (media strip, media view)               | Hatched frame with an amber file icon. The picture and duration are hidden. | "파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4" (file not found, with the path)             |
+| Background select in the 슬라이드 panel header     | Amber file icon before the name, and a 다시 연결 button                     | "배경 파일을 찾을 수 없음" (background file not found)                                                   |
+| 예배 순서 row                                      | Amber warning icon after the name                                           | "미디어 파일 없음" (media file missing)                                                                  |
+| 슬라이드 thumbnail with an image                   | Hatched canvas with an amber file icon                                      | The path, as above                                                                                       |
+| 표시 중 row and preview of a background that froze | Pause icon                                                                  | "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중" (background video file not found, showing a still) |
 
 - A missing media file doesn't open a notification card. It shows in place
   (`Notification` README).
@@ -98,10 +97,10 @@ rehearsal 4 B1).
 ### The question
 
 - 삭제 asks first (the Delete rule in 11) and names every place that uses the
-  media, with a count for each kind: 재생목록, 공지 세트, 그래픽, 곡 배경, 예배
-  순서 항목 (an item's own background, or a media item), 항목 오버레이, 테마 (an
-  image element), and 매크로 (a media or audio action). They show as a list
-  under the label `쓰는 곳`, one short line per kind with its count at the right
+  media, with a count for each kind: 재생목록, 그래픽, 곡 배경, 예배 순서 항목
+  (an item's own background, or a media item), 항목 오버레이, 테마 (an image
+  element), and 매크로 (a media or audio action). They show as a list under the
+  label `쓰는 곳`, one short line per kind with its count at the right
   (`재생목록  2곳`), in that order; a kind with no use is left out, and the list
   is left out when nothing uses the media. The meta line is
   `파일은 그대로 남음`.
@@ -110,16 +109,10 @@ rehearsal 4 B1).
 
 ### A use whose media is gone
 
-- It is marked as missing media, the same way everywhere: a 공지 image tile or a
-  그래픽 tile of a deleted image shows the hatched frame with the amber file
-  icon, and its tooltip reads `미디어 파일을 찾을 수 없습니다` (there is no path
-  to name). A 예배 순서 row and a background already do this (the table above).
-- Starting a 공지 skips its missing images: the first image that is left shows
-  first, and a missing image can't be chosen. A 공지 whose images are all gone
-  can't start, and 재생 is off with that tooltip. A running 공지 whose last
-  image leaves the library keeps the image on screen until the end of its
-  interval, then stops (the same take-down as 정지). A paused one stays held;
-  after 재생 it ends at the end of the rest of its interval.
+- It is marked as missing media, the same way everywhere: a 그래픽 tile of a
+  deleted image shows the hatched frame with the amber file icon, and its
+  tooltip reads `미디어 파일을 찾을 수 없습니다` (there is no path to name). A
+  예배 순서 row and a background already do this (the table above).
 - A 그래픽 whose image is gone can't be shown, and its tile says why. One that
   is already on screen can still be taken down.
 
@@ -129,14 +122,10 @@ An edit reaches the output at the next natural step; nothing on screen is
 interrupted (decision of 2026-11-03). So deleting a media item changes nothing
 on the screens at that moment:
 
-- The picture on screen stays until its next step: a 공지 image until its
-  interval ends, a 그래픽 until it is taken down, a background until the next
-  슬라이드.
-- At that next step it is no longer drawn. A running 공지 learns which of its
-  images are gone (`gone` in the 공지 playback state, capped like the set) and
-  its clock skips them when it advances; the image on screen at that moment
-  stays for the rest of its interval and is skipped in later rounds. The next
-  슬라이드 clears a background that is no longer in the media list.
+- The picture on screen stays until its next step: a 그래픽 until it is taken
+  down, a background until the next 슬라이드.
+- At that next step it is no longer drawn. The next 슬라이드 clears a background
+  that is no longer in the media list.
 
 ## Output window crash
 
@@ -286,18 +275,18 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 | Group   | "복구할 상태" (states to restore), with three check rows, all checked by default              |
 | Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.               |
 
-| Row                                        | Value example                       | Restores                                                                                                                 |
-| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 화면 출력 (screen output)                  | "청중 화면, 무대 화면, 방송 화면"   | Turns on the outputs that were on.                                                                                       |
-| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background).                             |
-| 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed),. |
+| Row                                        | Value example                       | Restores                                                                                     |
+| ------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| 화면 출력 (screen output)                  | "청중 화면, 무대 화면, 방송 화면"   | Turns on the outputs that were on.                                                           |
+| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"                | The live 슬라이드 (same item and position) and its background (proposal for the background). |
+| 표시 중이던 항목 (items that were showing) | "메시지 1, 그래픽 1, 무대 메시지 1" | 그래픽, 메시지 (with the display time they had left, proposal), and the stage message.       |
 
 - Hide a row that has nothing to restore (proposal). If the record has nothing
   at all to restore, don't show the dialog, and launch normally (proposal).
 - With every row unchecked, 복구 is unavailable.
 - Enter is 복구. Esc is 새로 시작. The dialog has no close button, and clicking
   outside it doesn't close it.
-- F1 to F7 still work while the dialog is open.
+- F1 to F6 still work while the dialog is open.
 - Timers and audio aren't restored (proposal; see 02).
 
 ### After the answer
@@ -382,7 +371,7 @@ writing rules.
   mouse pointer stays visible over outputs, and 항상 위 is a screen option that
   is off by default (03, "Rules for output windows").
 - Never ask for confirmation before an action that affects the output. Never
-  block F1 to F7: they work with a dialog open and with a text field focused.
+  block F1 to F6: they work with a dialog open and with a text field focused.
 - Never depend on the network. Bible texts, fonts, and icons are bundled. Media
   are local files.
 - Never install an update, restart the app on its own, or show an update prompt
@@ -402,10 +391,10 @@ writing rules.
   frame.
 - Never change the output without an action by the operator, except for actions
   the operator set up in advance: start 매크로, startup 매크로, 메시지 display
-  times, 공지 rotation, and media that ends.
+  times rotation, and media that ends.
 - Never show Windows toast notifications from the app (proposal).
 
-Source: design system principle 6, `Dialog` and `ClearButton` READMEs (F1 to F7
+Source: design system principle 6, `Dialog` and `ClearButton` READMEs (F1 to F6
 always work), `Screens` (항상 위, 절전 막기), `Prefs` (출력 중 절전 막기),
 `docs/TECH.md` principles and operating rules, product log (stability first,
 offline).

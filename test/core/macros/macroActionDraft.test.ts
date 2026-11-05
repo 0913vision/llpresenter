@@ -19,7 +19,6 @@ const drafts: readonly MacroActionDraft[] = [
     targets: [id],
     duration: 30,
   },
-  {kind: 'notice', target: id},
   {kind: 'audio', target: id, operation: 'play'},
   {kind: 'audioPlaylist', target: id},
   {kind: 'timer', target: id, operation: 'pause'},

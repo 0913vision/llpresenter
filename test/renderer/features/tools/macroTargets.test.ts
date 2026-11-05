@@ -12,7 +12,6 @@ const source: MacroTargetSources = {
       {id: 'message', name: 'Message', text: '{name} {name} {place}'},
     ],
   },
-  notices: {sets: [{id: 'notice', name: 'Notice'}]},
   timers: {timers: [{id: 'timer', name: 'Timer'}]},
   macros: {macros: [{id: 'macro', name: 'Macro'}]},
   media: {
@@ -37,7 +36,6 @@ describe('buildMacroTargets', () => {
     expect(choices.audio?.map(item => item.id)).toEqual(['audio']);
     expect(choices.audioPlaylist?.map(item => item.id)).toEqual(['playlist']);
     expect(choices.prop?.map(item => item.id)).toEqual(['prop-id']);
-    expect(choices.notice?.map(item => item.id)).toEqual(['notice']);
     expect(choices.timer?.map(item => item.id)).toEqual(['timer']);
     expect(choices.macro?.map(item => item.id)).toEqual(['macro']);
     expect(choices.message).toEqual([
@@ -69,6 +67,6 @@ describe('buildMacroTargets', () => {
         props: {...source.props, props: []},
         screens: [],
       }).choices.clearLayer,
-    ).toHaveLength(6);
+    ).toHaveLength(5);
   });
 });

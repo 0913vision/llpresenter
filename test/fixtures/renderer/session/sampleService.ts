@@ -13,7 +13,6 @@ const sampleRows: readonly ServiceRow[] = [
   {kind: 'bible', id: 'psalm-23', title: '시편 23편 1절부터 6절'},
   {kind: 'header', id: 'offering', title: '헌금 찬양'},
   {kind: 'header', id: 'closing', title: '마무리'},
-  {kind: 'notice', id: 'notice-sunday', title: '주일 광고'},
 ];
 
 const labelColors: Readonly<Record<string, LabelColor>> = {
@@ -55,7 +54,6 @@ const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   'song-river': river,
   'psalm-23': psalm,
   countdown: [tile(null)],
-  'notice-sunday': [tile(null, '주일 광고')],
 };
 
 const sampleJumpKeys: Readonly<Record<string, string>> = {

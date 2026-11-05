@@ -73,7 +73,6 @@ describe('theme composition drawing', () => {
       root.querySelector<HTMLElement>(`[data-layer="${kind}"]`)?.style.zIndex;
     renderer.render(song, frame([fixedThemeText()]));
     expect(z('theme')).toBe('1');
-    expect(z('notice')).toBe('2');
     expect(z('prop')).toBe('3');
     expect(z('message')).toBe('4');
     expect(

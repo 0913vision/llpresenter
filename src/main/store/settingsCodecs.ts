@@ -6,7 +6,6 @@ import * as labels from '@core/schema/labels';
 import * as themes from '@core/schema/themes';
 import * as macros from '@core/schema/macros';
 import * as messages from '@core/schema/messages';
-import * as notices from '@core/schema/notices';
 import * as preferences from '@core/schema/preferences';
 import * as props from '@core/schema/props';
 import * as quick from '@core/schema/quick';
@@ -57,11 +56,6 @@ export const settingsCodecs = {
     'llsettings.messages',
     messages.parseMessages,
     messages.serializeMessages,
-  ),
-  notices: codec(
-    'llsettings.notices',
-    notices.parseNotices,
-    notices.serializeNotices,
   ),
   props: codec('llsettings.props', props.parseProps, props.serializeProps),
   timers: codec(

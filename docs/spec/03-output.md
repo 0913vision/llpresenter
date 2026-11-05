@@ -8,10 +8,10 @@ this document is a command that the main process handles.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 구성 (arrangement), 이름표 (label), 청중 화면 (main screen), 무대 화면
-(stage screen), 방송 화면 (broadcast captions), 그래픽 (prop), 공지 (notice),
-메시지 (message), 타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵
-실행 (quick launch), 진행 (Show workspace), 준비 (Prep workspace), 화면 설정
-(Screen settings workspace).
+(stage screen), 방송 화면 (broadcast captions), 그래픽 (prop), 메시지 (message),
+타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵 실행 (quick launch),
+진행 (Show workspace), 준비 (Prep workspace), 화면 설정 (Screen settings
+workspace).
 
 ## Screens and output windows
 
@@ -148,9 +148,9 @@ The live 테마 lays out every screen (12). A screen draws, from the bottom up:
 1. The elements of its 테마, from the bottom of the element list to the top (12,
    "Drawing a screen"). 배경, 미디어, 현재 가사, and the other elements are
    placed by the 테마, so their order is the element list order.
-2. 공지, then 그래픽, then 메시지, above the elements, each only on the screens
-   it was sent to (see "Where 메시지, 공지, 그래픽, and stage messages go"). A
-   테마 can't hide them.
+2. 그래픽, then 메시지, above the elements, each only on the screens it was sent
+   to (see "Where 메시지, 그래픽, and stage messages go"). A 테마 can't hide
+   them.
 
 - With nothing live and no 대기 화면 element, the screen shows its 빈 화면 색:
   black (`output-black`) by default, and chroma key green for the 방송 화면
@@ -244,9 +244,8 @@ colors), 12.
   이름표, 다음 이름표). The 배경 전환 draws the 배경 and 미디어 elements. These
   stay fixed and are not settings: clears happen at once or fade as in "Clear
   buttons and shortcuts", a 메시지 fades in as a 슬라이드 does at the default
-  time, a 공지 changes image at its own interval, and the other text elements of
-  a 테마 (the clock, the 타이머, the 항목 이름) dissolve at the default 0.2
-  seconds.
+  time, and the other text elements of a 테마 (the clock, the 타이머, the 항목
+  이름) dissolve at the default 0.2 seconds.
 
 Source: `ShowH` (clicking a 슬라이드 changes all three previews), `Main`
 decisions "출력은 누르면 바로" and "구성대로 진행", 12 (text element
@@ -299,7 +298,7 @@ range, speed, fit, sound), `Problems`.
 
 The clear row in the right column of 진행, and the shortcuts, clear the screens.
 The clear happens without confirmation on every screen. The default is at once.
-Each F1 to F7 key and each macro clear action has its own fade choice and
+Each F1 to F6 key and each macro clear action has its own fade choice and
 duration (user decision, m3-check3). An absent choice, disabled fade or zero
 duration clears at once; an enabled fade uses its configured duration, capped at
 30 seconds. Key options belong to `preferences.clearKeys`; macro actions carry
@@ -313,16 +312,14 @@ duration clears at once; an enabled fade uses its configured duration, capped at
 | F4       | 그래픽         | Every 그래픽 that is on                                                  |
 | F5       | 오디오 (audio) | Audio that is playing, at once by default or with its configured fade    |
 | F6       | 메시지         | Every 메시지 that is showing                                             |
-| F7       | 공지           | The 공지, and stops its rotation                                         |
 
 - The order and keys follow ProPresenter's current shortcuts: F1 all, F2 lyrics,
-  F3 media, F4 props, F5 audio, F6 messages, F7 announcements (S1). The 7.5
-  guide still lists F3 as Clear Background and F6 as Clear Logo (S4 pp. 25 to
-  26).
+  F3 media, F4 props, F5 audio, F6 messages (S1). The 7.5 guide still lists F3
+  as Clear Background and F6 as Clear Logo (S4 pp. 25 to 26).
 - Clears don't touch: whether outputs are on, the live 테마, 타이머 (they keep
   running), the stage message (proposal: the stage message comes down from the
   진행 도구 무대 tab), and the current item in the 예배 순서.
-- F1 to F7 and their buttons toggle: the first press clears the target, and the
+- F1 to F6 and their buttons toggle: the first press clears the target, and the
   next press restores what that same key cleared. Each key retains one capture;
   F1 restores every layer it actually cleared without replacing other restored
   layers (user decision, m3-check3).
@@ -331,17 +328,17 @@ duration clears at once; an enabled fade uses its configured duration, capped at
   new content. Captures are temporary and are not restored after app recovery.
 - A fade clears the logical live layer immediately while its outgoing picture or
   audio fades. Restoring or replacing that content cancels its outgoing fade.
-  Cleared video and notice rotation hold their current frame; restoring resumes
-  from the captured clear position. A slide clear fades stage lyrics and labels,
-  leaving stage clocks, timers and messages alone. Fade metadata is temporary
-  and does not recover after restarting the app.
+  Cleared video holds its current frame; restoring resumes from the captured
+  clear position. A slide clear fades stage lyrics and labels, leaving stage
+  clocks, timers and messages alone. Fade metadata is temporary and does not
+  recover after restarting the app.
 - A button is bright when it can clear content or restore its capture. A
   captured key shows its pressed state and the tooltip changes to 복원. It is
   dim and does nothing only when it can do neither. Content that the 테마 has no
   element for still counts as something to clear.
 - 모두 has something to clear while any layer has something.
 - Don't show a message after a clear.
-- F1 to F7 work wherever the focus is: in every workspace, in the 환경설정
+- F1 to F6 work wherever the focus is: in every workspace, in the 환경설정
   window, with a dialog or a confirmation dialog open, and while a text field
   has focus. The only exception is the key field on the 단축키 page while it
   records (decided; 10, focus precedence).
@@ -367,16 +364,15 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   toggle is a user rule, not a documented ProPresenter behavior.
 - 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 controls the button. It is off
   by default (proposal pending user confirmation; M2 check 1 row 7; 10). Turning
-  it on adds a separator and 되돌리기 after 공지 in the clear row. When nothing
-  can be restored, the button is dim and does nothing. The command `clear.undo`
-  has no default key; Ctrl Z never calls it.
+  it on adds a separator and 되돌리기 after 메시지 in the clear row. When
+  nothing can be restored, the button is dim and does nothing. The command
+  `clear.undo` has no default key; Ctrl Z never calls it.
 - The optional button undoes the last clear, including 모두. It shows again what
   those layers held just before the clear:
   - Lyrics: the same 슬라이드 becomes the live 슬라이드 again.
   - Media: the same media plays again from the position at the moment of the
     clear (proposal).
-  - 그래픽 and 공지: the same ones turn on again. A 공지 resumes rotating from
-    the image it showed (proposal).
+  - 그래픽: the same ones turn on again.
   - 메시지: the same 메시지 shows again with the display time it had left
     (proposal).
   - Audio: the same track plays again from the position at the moment of the
@@ -400,19 +396,16 @@ Source: M2 check 1 feedback rows 7 and 8, S1 (Edit Undo), S21 (clear controls),
 레이어 지우기는 v1에서 뺌", `Dialog` README, `AlertDialog` README. The feedback
 supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
-## Where 메시지, 공지, 그래픽, and stage messages go
+## Where 메시지, 그래픽, and stage messages go
 
 | Content       | Sent to                                                            | Layer                               | Controlled from               |
 | ------------- | ------------------------------------------------------------------ | ----------------------------------- | ----------------------------- |
 | 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                              | 진행 도구 메시지 tab (see 04) |
-| 공지          | Chosen screens (청중 화면, 무대, 방송 화면)                        | 공지                                | 진행 도구 공지 tab            |
 | 그래픽        | The screens set for each 그래픽                                    | 그래픽                              | 진행 도구 그래픽 tab, 퀵 실행 |
 | Stage message | 무대 화면                                                          | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab            |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).
-- One 공지 set runs at a time. Starting another set replaces the previous one
-  (proposal).
 - Several 그래픽 can be on at the same time (proposal).
 - A 메시지 with a set display time comes down by itself when the time ends.
 - The built-in 기본 메시지 style is a band across the top of the screen (user
@@ -429,7 +422,7 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
   메시지 style draws as before, as text in its own font, size, and position.
 
 Source: `Overlays`, `ShowH` (target screens in the showing list), product log
-(메시지 and 공지 to specific screens or all screens).
+(메시지 to specific screens or all screens).
 
 ## 방송 화면
 

@@ -90,7 +90,7 @@ describe('local song preview model', () => {
       startedAt: 0,
       loop: true,
     });
-    expect(layers).toMatchObject({notice: null, prop: null, message: null});
+    expect(layers).toMatchObject({prop: null, message: null});
     expect(
       selectedPreview(song, {block: 99, background: undefined}).slide,
     ).toBeNull();

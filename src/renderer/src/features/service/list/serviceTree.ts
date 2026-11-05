@@ -26,7 +26,6 @@ const DEFAULT_ARRANGEMENT = '기본';
 const MISSING_SONG = '곡을 찾을 수 없음';
 const kindLabels = {
   media: '미디어',
-  notice: '공지',
   unknown: '알 수 없는 항목',
 } as const;
 // NOTE(0913vision): The same icons as the 예배 순서 list (show/ServiceOrderList).
@@ -34,7 +33,6 @@ const icons = {
   song: 'song',
   bible: 'book',
   media: 'film',
-  notice: 'notice',
   unknown: 'filex',
 } as const;
 
@@ -54,7 +52,7 @@ function rowOf(
     return {label: item.bible.ref, icon: icons.bible};
   }
   const kind = serviceItemKind(item);
-  return kind === 'media' || kind === 'notice'
+  return kind === 'media'
     ? {label: kindLabels[kind], icon: icons[kind]}
     : {label: kindLabels.unknown, icon: icons.unknown};
 }

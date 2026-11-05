@@ -4,9 +4,7 @@ import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
   IMAGE_PROP,
-  IMAGES,
   MAIN,
-  NOTICE,
   overlaySettings,
   PROP,
   STAGE,
@@ -17,7 +15,6 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {OverlayImageView} from '@renderer/rendering/overlayImage';
 import type {RenderScreen} from '@renderer/rendering/layer';
 
 const disposers: Array<() => void> = [];
@@ -229,39 +226,6 @@ describe('registered overlay layers', () => {
     ).toEqual(['', '']);
   });
 
-  it('holds notice rotation throughout a clear fade and releases its ticker', () => {
-    const images = vi.spyOn(OverlayImageView.prototype, 'show');
-    const {send, render} = setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    render();
-    send({
-      type: 'layer.clear',
-      target: 'notice',
-      transition: {fade: true, durationMs: 6000},
-    });
-    render();
-    vi.advanceTimersByTime(5100);
-    expect(images).not.toHaveBeenCalledWith(IMAGES[1]);
-    vi.advanceTimersByTime(1000);
-    expect(vi.getTimerCount()).toBe(0);
-  });
-  it('logs an asynchronous notice drawing failure and still advances to the next image', () => {
-    const images = vi.spyOn(OverlayImageView.prototype, 'show');
-    const {send, render, onError} = setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    render();
-    images.mockImplementationOnce(() => {
-      throw new Error('Drawing failure');
-    });
-    expect(() => vi.advanceTimersByTime(5_000)).not.toThrow();
-    expect(onError).toHaveBeenCalledExactlyOnceWith(
-      'could not draw the notice layer',
-      expect.any(Error),
-    );
-    vi.advanceTimersByTime(5_000);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[2]);
-  });
-
   it('draws the target message only and clears every reusable page at once', () => {
     const {store, send, render, renderer, box, shownText} = setup();
     send({
@@ -315,74 +279,6 @@ describe('registered overlay layers', () => {
     send({type: 'stage.message.set', text: null});
     render({id: STAGE, kind: 'stage'});
     expect(shownText('stage-message')).toBeNull();
-  });
-
-  it('advances notices at the shared clock interval and holds the final image without a timer', () => {
-    const images = vi.spyOn(OverlayImageView.prototype, 'show');
-    const {send, render, renderer} = setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    render();
-    expect(images).toHaveBeenLastCalledWith(IMAGES[0]);
-    vi.advanceTimersByTime(4_999);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[0]);
-    vi.advanceTimersByTime(1);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[1]);
-    vi.advanceTimersByTime(5_000);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[2]);
-    expect(vi.getTimerCount()).toBe(0);
-    vi.advanceTimersByTime(100_000);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[2]);
-    render({id: CAPTIONS, kind: 'audience'});
-    expect(images).toHaveBeenLastCalledWith(null);
-    renderer.dispose();
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it('rejoins a looping notice at its current image and releases pause, clear and disposal timers', () => {
-    const images = vi.spyOn(OverlayImageView.prototype, 'show');
-    const {settings, send, render, renderer} = setup();
-    settings.update(
-      settingsDocument(
-        'notices',
-        {
-          sets: [
-            {
-              id: NOTICE,
-              name: 'Loop',
-              media: IMAGES,
-              interval: 5,
-              loop: true,
-              targets: [MAIN],
-            },
-          ],
-        },
-        2,
-      ),
-    );
-    send({type: 'notice.start', noticeId: NOTICE});
-    vi.advanceTimersByTime(17_000);
-    render();
-    expect(images).toHaveBeenLastCalledWith(IMAGES[0]);
-    vi.advanceTimersByTime(3_000);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[1]);
-    send({type: 'notice.pause'});
-    render();
-    expect(vi.getTimerCount()).toBe(0);
-    vi.advanceTimersByTime(60_000);
-    send({type: 'notice.start', noticeId: NOTICE});
-    render();
-    vi.advanceTimersByTime(5_000);
-    expect(images).toHaveBeenLastCalledWith(IMAGES[2]);
-    send({type: 'layer.clear', target: 'notice'});
-    render();
-    expect(vi.getTimerCount()).toBe(0);
-    expect(images).toHaveBeenLastCalledWith(null);
-    send({type: 'clear.undo'});
-    render();
-    expect(images).toHaveBeenLastCalledWith(IMAGES[2]);
-    expect(vi.getTimerCount()).toBe(1);
-    renderer.dispose();
-    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('routes several image and text props and reuses their elements across clears', () => {

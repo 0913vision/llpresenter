@@ -55,9 +55,6 @@ export function registerThemeOutput({
           if (entry === undefined) return undefined;
           const kind = itemThemeKind(entry);
           if (kind === undefined) return undefined;
-          const notices = isItemOfKind(entry, 'notice')
-            ? settings.get('notices')
-            : undefined;
           const title = isItemOfKind(entry, 'slides')
             ? entry.slides.name
             : isItemOfKind(entry, 'song')
@@ -67,10 +64,7 @@ export function registerThemeOutput({
                     ?.name
                 : isItemOfKind(entry, 'bible')
                   ? entry.bible.ref
-                  : isItemOfKind(entry, 'notice') && notices?.name === 'notices'
-                    ? notices.value.sets.find(set => set.id === entry.notice)
-                        ?.name
-                    : undefined;
+                  : undefined;
           return {
             id,
             kind,

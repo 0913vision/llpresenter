@@ -7,9 +7,9 @@ boards.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
 (label), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
-captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 공지
-(notice), 메시지 (message), 타이머 (timer), 매크로 (macro), 라이브러리
-(library), 준비 (Prep workspace). See 01.
+captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 메시지
+(message), 타이머 (timer), 매크로 (macro), 라이브러리 (library), 준비 (Prep
+workspace). See 01.
 
 ## Layout
 
@@ -52,7 +52,6 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 | Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
 | Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
 | Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                     |
-| 공지           | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드.                              |
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
@@ -183,9 +182,6 @@ service needs no confirmation), product log version 63.
   - Media: one media tile. Clicking it outputs that media to the media layer.
     Audio and a missing file have no tile; a missing file shows the row's
     warning "미디어 파일을 찾을 수 없습니다."
-  - 공지: the images of the 공지 set, laid out like 슬라이드. Clicking one
-    starts the 공지 from that image (same behavior as the 공지 tab). A missing
-    set shows the same row warning.
   - Section (구역): no tiles.
 
 ### Keyboard
@@ -279,8 +275,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
   a stage layout object (guide p. 41), and its main window has no next slide
   preview (guide pp. 24 to 26).
 - A screen in 비움, or one whose 테마 has no element for some content, shows
-  nothing of that content in its preview (12). A 공지, 그래픽, or 메시지 shows
-  only on the screens it was sent to, in the output and in the preview alike.
+  nothing of that content in its preview (12). A 그래픽 or 메시지 shows only on
+  the screens it was sent to, in the output and in the preview alike.
 - A live background video whose file is missing shows a pause mark on every
   preview frame whose 테마 shows that media, with the tooltip "배경 영상 파일을
   찾을 수 없어 정지 화면으로 표시 중" (08). A frame that has no 배경 or 미디어
@@ -302,13 +298,12 @@ each preview follows ProPresenter's rule: it shows what goes out.
 
 - The first button in the clear row is 항목, with the tooltip 항목 끄기. It
   removes the live item's slide, background, and overlays from every screen
-  together. Notices, graphics, messages, and audio keep running. Each screen
-  shows its standby theme behind those independent layers (12). Clear undo
-  restores the item. After stopping, the button stays bright and pressed with
-  the tooltip 항목 복원. Pressing it again restores only that item's content;
-  independent layers keep their current state and playback. Like the other clear
-  keys, new output content invalidates the capture. The command has no default
-  shortcut.
+  together. Graphics, messages, and audio keep running. Each screen shows its
+  standby theme behind those independent layers (12). Clear undo restores the
+  item. After stopping, the button stays bright and pressed with the tooltip
+  항목 복원. Pressing it again restores only that item's content; independent
+  layers keep their current state and playback. Like the other clear keys, new
+  output content invalidates the capture. The command has no default shortcut.
 
 - A clear removes its layer from the previews at the same moment as from the
   outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
@@ -352,15 +347,15 @@ Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
 ## Clear row
 
 The row holds 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽, 오디오 (audio),
-메시지, and 공지, in that order. When 지우기 되돌리기 단추 보이기 is on, append
-a separator and 되돌리기 (undo); the default is off (proposal). 03 defines the
+메시지, in that order. When 지우기 되돌리기 단추 보이기 is on, append a
+separator and 되돌리기 (undo); the default is off (proposal). 03 defines the
 behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구
 
-The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 공지, 그래픽, and
-매크로, in that order. Fit complete tab labels to the actual panel width; keep
-the selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
+The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 그래픽, and 매크로,
+in that order. Fit complete tab labels to the actual panel width; keep the
+selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
 output state belongs in the previews, whole-layer take-down in the 지우기 row,
 and per-item controls in the owning tool tab (October 31 B16).
 
@@ -545,35 +540,6 @@ T03, T07 and T09.
 - No board shows where to add or edit templates (open question). Version 1 uses
   a plus button in the tab and a right-click menu (edit, delete) to set the name
   and sentence (proposal).
-
-### 공지
-
-- Top: the 공지 set select (for example 주일 광고), the image count ("슬라이드
-  6개"), the interval ("8초"), 반복 (repeat), and 일시 정지 (pause) or 재생
-  (play).
-- Middle: the grid of 공지 images. The image that is showing has a red ring. An
-  image whose media was deleted shows as missing media and is skipped when the
-  공지 plays (08, "Deleting a media item that is in use").
-- Bottom: 보낼 화면 chips (청중 화면, 무대, 방송 화면).
-- Clicking an image shows it at once on the 공지 layer of the target screens,
-  and then advances to the next image at each interval. After the last image,
-  the set starts over if 반복 is on, and otherwise stays on the last image
-  (proposal).
-- 일시 정지 stops advancing and keeps the current image.
-- If the image that is showing leaves the set, the set continues at the same
-  place, with the image that followed it (the last one when none did).
-- Changing the target screens while a 공지 runs applies at once (proposal).
-- The interval, 반복, and the target screens are part of the 공지 set
-  (`notices.json`, 02). Changing them in the tab saves them to the set and
-  applies them to a running 공지 at once (proposal).
-- The running set shows its current position (for example "3 / 6") beside the
-  playback controls, with 정지 to stop and take it down using the existing 공지
-  clear and undo. Opening the tab initially selects the running set when one
-  exists; an explicit selection is retained. The 공지 clear (F7) also stops the
-  공지 and takes it down.
-- No board shows where to create a 공지 set or add images (open question).
-  Version 1 has a plus button in the tab that makes a 공지 set from a media
-  image playlist. Clicking the interval value changes it (proposal).
 
 ### 그래픽
 
@@ -920,7 +886,7 @@ The features are the same. Only the layout differs.
 | Media strip         | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
 | 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
-| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 공지, 그래픽 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                 | `Compact`, `Layout` README       |
+| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 그래픽 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                       | `Compact`, `Layout` README       |
 | Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
 | 퀵 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
 | 예배 순서 header    | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |
@@ -940,7 +906,7 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)                  | No ProPresenter source found                                                             |
 | Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)                 | Follows ProPresenter (Show Triggered Presentation, S1)                                   |
 | Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |
-| F1 to F7                                         | Clear all, lyrics, media, 그래픽, audio, 메시지, 공지                    | Follows ProPresenter (S1)                                                                |
+| F1 to F6                                         | Clear all, lyrics, media, 그래픽, audio, 메시지                          | Follows ProPresenter (S1)                                                                |
 | Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)                  | M2 check 1 row 8; never restores cleared output (03, 10)                                 |
 | Ctrl 1                                           | Audience screen outputs (청중 화면 and 방송 화면) on or off              | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |

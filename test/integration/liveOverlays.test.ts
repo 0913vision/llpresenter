@@ -5,24 +5,16 @@ import {
   parseActiveMessages,
   parseActiveProps,
   MAX_ACTIVE_PROPS,
-  MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
-import type {MediaId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {
-  noticePosition,
-  nextNoticeChange,
-  MAX_OVERLAY_TIMER_MS,
-} from '@core/overlays/noticeClock';
+import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
 import {startOverlays} from '@main/live/overlays';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
   IMAGE_PROP,
-  IMAGES,
   MAIN,
-  NOTICE,
   overlaySettings,
   overlayUuid,
   PROP,
@@ -65,12 +57,11 @@ async function setup() {
   return {store, settings, log, stop, send, message};
 }
 
-describe('messages, 그래픽, and 공지 on the live screens over time', () => {
-  it('classifies all three invalid overlay children once and continues the batch without losing undo', async () => {
+describe('messages and 그래픽 on the live screens over time', () => {
+  it('classifies both invalid overlay children once and continues the batch without losing undo', async () => {
     const {store, settings, send, message, log} = await setup();
     send({type: 'prop.set', propId: PROP, on: true});
     message();
-    send({type: 'notice.start', noticeId: NOTICE});
     send({type: 'layer.clear', target: 'prop'});
     settings.update(
       settingsDocument(
@@ -104,7 +95,6 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
           duration: Number.MAX_SAFE_INTEGER,
         },
         {type: 'prop.set', propId: PROP, on: true},
-        {type: 'notice.start', noticeId: NOTICE, position: IMAGES.length},
         {type: 'stage.message.set', text: 'Accepted sibling'},
       ],
     });
@@ -132,20 +122,10 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
           error: {field: '0.targets'},
         },
       },
-      {
-        level: 'warn',
-        message: 'skipped live command',
-        detail: {
-          type: 'notice.start',
-          reason: 'invalid-overlay',
-          error: {field: 'position'},
-        },
-      },
     ]);
     send({type: 'clear.undo'});
     expect(store.state.layers.prop?.items?.[0]?.propId).toBe(PROP);
     expect(store.state.layers.message).toBe(before.layers.message);
-    expect(store.state.layers.notice).toBe(before.layers.notice);
   });
 
   it('keeps state, undo and listeners unchanged when the entire batch fails overlay validation', async () => {
@@ -164,18 +144,17 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
           targets: [MAIN],
           duration: Number.MAX_SAFE_INTEGER,
         },
-        {type: 'notice.start', noticeId: NOTICE, position: IMAGES.length},
       ],
     });
     expect(store.state).toBe(before);
     expect(changed).not.toHaveBeenCalled();
-    expect(log.entries).toHaveLength(2);
+    expect(log.entries).toHaveLength(1);
     expect(log.messages('error')).toEqual([]);
     send({type: 'clear.undo'});
     expect(store.state.layers.message?.text).toBe('Fixture message');
   });
 
-  it('retains a legacy message on untouched screens and makes repeated prop and notice starts no-ops', async () => {
+  it('retains a legacy message on untouched screens and makes repeated prop starts no-ops', async () => {
     const {store, send, message} = await setup();
     send({
       type: 'message.show',
@@ -189,10 +168,8 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
       ['New', [MAIN]],
     ]);
     send({type: 'prop.set', propId: PROP, on: true});
-    send({type: 'notice.start', noticeId: NOTICE});
     const before = store.state;
     send({type: 'prop.set', propId: PROP, on: true});
-    send({type: 'notice.start', noticeId: NOTICE});
     expect(store.state).toBe(before);
   });
 
@@ -298,7 +275,6 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
   it('keeps an expiry between batch clears out of the grouped undo snapshot', async () => {
     const {store, send, message, stop} = await setup();
     send({type: 'prop.set', propId: PROP, on: true});
-    send({type: 'notice.start', noticeId: NOTICE});
     message();
     const item = store.state.layers.message?.items?.[0];
     if (item?.expiresAt == null) throw new Error('Missing message');
@@ -313,133 +289,23 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
           messageId: item.messageId,
           expiresAt: item.expiresAt,
         },
-        {type: 'layer.clear', target: 'notice'},
       ],
     });
     send({type: 'clear.undo'});
     expect(store.state.layers.prop).not.toBeNull();
-    expect(store.state.layers.notice).not.toBeNull();
     expect(store.state.layers.message).toBeNull();
   });
 
-  it('rotates without main broadcasts, pauses, resumes, and holds the nonloop final image', async () => {
-    const {store, send} = await setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    const playback = () => {
-      const value = store.state.layers.notice?.playback;
-      if (value === undefined) throw new Error('Missing playback');
-      return value;
-    };
-    const changed = vi.fn();
-    store.subscribe(changed);
-    vi.advanceTimersByTime(7_000);
-    expect(noticePosition(playback(), Date.now())).toBe(1);
-    expect(changed).not.toHaveBeenCalled();
-    send({type: 'notice.pause'});
-    vi.advanceTimersByTime(60_000);
-    expect(noticePosition(playback(), Date.now())).toBe(1);
-    expect(nextNoticeChange(playback(), Date.now())).toBeNull();
-    send({type: 'notice.start', noticeId: NOTICE});
-    vi.advanceTimersByTime(2_999);
-    expect(noticePosition(playback(), Date.now())).toBe(1);
-    vi.advanceTimersByTime(1);
-    expect(noticePosition(playback(), Date.now())).toBe(2);
-    expect(nextNoticeChange(playback(), Date.now())).toBeNull();
-    vi.advanceTimersByTime(100_000);
-    expect(noticePosition(playback(), Date.now())).toBe(2);
-    send({type: 'notice.start', noticeId: NOTICE, position: 0});
-    expect(noticePosition(playback(), Date.now())).toBe(0);
-  });
-
-  it('applies notice interval, looping and targets edits immediately, retaining pause', async () => {
-    const {store, settings, send} = await setup();
-    send({type: 'notice.start', noticeId: NOTICE});
-    vi.advanceTimersByTime(7_000);
-    send({type: 'notice.pause'});
-    settings.update(
-      settingsDocument(
-        'notices',
-        {
-          sets: [
-            {
-              id: NOTICE,
-              name: 'Edited',
-              media: IMAGES,
-              interval: 2,
-              loop: true,
-              targets: [CAPTIONS],
-            },
-          ],
-        },
-        2,
-      ),
-    );
-    const playback = store.state.layers.notice?.playback;
-    expect(playback).toMatchObject({
-      position: 1,
-      interval: 2,
-      loop: true,
-      targets: [CAPTIONS],
-      pausedAt: Date.now(),
-    });
-    send({type: 'notice.start', noticeId: NOTICE});
-    const resumed = store.state.layers.notice?.playback;
-    if (resumed === undefined) throw new Error('Missing playback');
-    vi.advanceTimersByTime(4_000);
-    expect(noticePosition(resumed, Date.now())).toBe(0);
-    settings.update(settingsDocument('notices', {sets: []}, 3));
-    expect(store.state.layers.notice).toBeNull();
-  });
-
-  it('continues the 공지 where it stood when the showing image leaves the set', async () => {
-    const {store, settings, send} = await setup();
-    const edit = (media: readonly MediaId[], revision: number): void =>
-      settings.update(
-        settingsDocument(
-          'notices',
-          {
-            sets: [
-              {
-                id: NOTICE,
-                name: 'Edited',
-                media,
-                interval: 5,
-                loop: false,
-                targets: [MAIN],
-              },
-            ],
-          },
-          revision,
-        ),
-      );
-    send({type: 'notice.start', noticeId: NOTICE});
-    vi.advanceTimersByTime(7_000);
-    edit(
-      IMAGES.filter((_, index) => index !== 1),
-      2,
-    );
-    const playback = store.state.layers.notice?.playback;
-    if (playback === undefined) throw new Error('Missing playback');
-    expect(playback.media[noticePosition(playback, Date.now())]).toBe(
-      IMAGES[2],
-    );
-    edit(IMAGES.slice(0, 1), 3);
-    const last = store.state.layers.notice?.playback;
-    if (last === undefined) throw new Error('Missing playback');
-    expect(noticePosition(last, Date.now())).toBe(0);
-  });
-
-  it('restores props, message time left and notice phase from one batch clear, keeping stage text', async () => {
+  it('restores props and message time left from one batch clear, keeping stage text', async () => {
     const {store, message, send} = await setup();
     send({type: 'prop.set', propId: PROP, on: true});
     send({type: 'prop.set', propId: IMAGE_PROP, on: true});
     message();
-    send({type: 'notice.start', noticeId: NOTICE});
     send({type: 'stage.message.set', text: 'Stage only'});
     vi.advanceTimersByTime(7_000);
     send({
       type: 'live.batch',
-      commands: ['prop', 'message', 'notice'].map(target => ({
+      commands: ['prop', 'message'].map(target => ({
         type: 'layer.clear',
         target,
       })),
@@ -447,7 +313,6 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(store.state.layers).toMatchObject({
       prop: null,
       message: null,
-      notice: null,
     });
     expect(store.state.stageMessage).toBe('Stage only');
     vi.advanceTimersByTime(60_000);
@@ -456,9 +321,6 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(store.state.layers.message?.items?.[0]?.expiresAt).toBe(
       BASE + 90_000,
     );
-    const notice = store.state.layers.notice?.playback;
-    if (notice === undefined) throw new Error('Missing notice');
-    expect(noticePosition(notice, Date.now())).toBe(1);
     send({type: 'layer.clear', target: 'all'});
     expect(store.state.stageMessage).toBe('Stage only');
     send({type: 'stage.message.set', text: null});
@@ -506,12 +368,10 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
           targets: [overlayUuid(999)],
           duration: 30,
         },
-        {type: 'notice.start', noticeId: NOTICE, position: IMAGES.length},
         {type: 'prop.set', propId: PROP, on: true},
       ],
     });
     expect(log.messages('warn')).toEqual([
-      'skipped live command',
       'skipped live command',
       'skipped live command',
     ]);
@@ -519,14 +379,12 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(log.entries.map(entry => entry.detail)).toMatchObject([
       {reason: 'missing-target'},
       {reason: 'missing-target'},
-      {reason: 'invalid-overlay', error: {field: 'position'}},
     ]);
     expect(store.state.layers.prop?.items).toHaveLength(1);
-    expect(store.state.layers.notice).toBeNull();
     expect(store.state.layers.message).toBeNull();
   });
 
-  it('caps active props and notice images without replacing the last good state', async () => {
+  it('caps active props without replacing the last good state', async () => {
     const {store, settings, send, log} = await setup();
     const props = Array.from({length: MAX_ACTIVE_PROPS + 1}, (_, index) => ({
       id: overlayUuid(1000 + index),
@@ -539,39 +397,10 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
       send({type: 'prop.set', propId: prop.id, on: true});
     }
     expect(store.state.layers.prop?.items).toHaveLength(MAX_ACTIVE_PROPS);
-    send({type: 'notice.start', noticeId: NOTICE});
-    const before = store.state.layers.notice;
-    settings.update(
-      settingsDocument(
-        'notices',
-        {
-          sets: [
-            {
-              id: NOTICE,
-              name: 'Too many',
-              media: Array.from(
-                {length: MAX_NOTICE_IMAGES + 1},
-                () => IMAGES[0],
-              ),
-              interval: 5,
-              loop: true,
-              targets: [MAIN],
-            },
-          ],
-        },
-        2,
-      ),
-    );
-    expect(store.state.layers.notice).toBe(before);
     expect(log.messages('error')).toHaveLength(0);
-    expect(log.entries).toHaveLength(2);
+    expect(log.entries).toHaveLength(1);
     expect(log.entries.map(entry => entry.detail)).toMatchObject([
       {type: 'prop.set', reason: 'invalid-overlay'},
-      {
-        type: 'notice.start',
-        reason: 'invalid-overlay',
-        error: {field: 'media'},
-      },
     ]);
   });
 
@@ -585,7 +414,7 @@ describe('messages, 그래픽, and 공지 on the live screens over time', () => 
     expect(store.state.layers.message).not.toBeNull();
     expect(vi.getTimerCount()).toBe(1);
     expect(settings.listeners.size).toBe(1);
-    expect(store.listenerCount).toBe(3);
+    expect(store.listenerCount).toBe(2);
     stop();
     stop();
     expect(vi.getTimerCount()).toBe(0);

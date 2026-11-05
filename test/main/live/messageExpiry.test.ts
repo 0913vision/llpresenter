@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
-import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/noticeClock';
+import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
 import {parseLiveState} from '@core/schema/liveState';
 import type {MessageExpiry} from '@core/schema/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';

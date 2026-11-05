@@ -22,12 +22,6 @@ const TOOLS_MACRO_ACTIONS = {
     icon: 'msg',
     paletteGroup: '내용',
   },
-  notice: {
-    kind: 'notice',
-    label: '공지',
-    icon: 'notice',
-    paletteGroup: '내용',
-  },
   macro: {
     kind: 'macro',
     label: '매크로',

@@ -4,11 +4,8 @@ import {isKeyCode} from '@core/schema/shortcuts';
 import {
   parseActiveMessages,
   parseActiveProps,
-  parseNoticePlayback,
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
-  MAX_NOTICE_IMAGES,
-  MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -27,43 +24,24 @@ const prop = (index = 1) => ({
   content: {kind: 'image', media: uuid(2)},
   targets: [],
 });
-const playback = () => ({
-  media: [uuid(2), uuid(3)],
-  position: 0,
-  interval: 5,
-  loop: true,
-  targets: [uuid(4)],
-  startedAt: 1000,
-  pausedAt: null,
-});
 
 describe('public overlay parse helpers', () => {
-  it('returns normalized values for valid and empty active lists and notice playback', () => {
+  it('returns normalized values for valid and empty active lists', () => {
     expect(expectSuccess(parseActiveMessages([]))).toEqual([]);
     expect(expectSuccess(parseActiveProps([]))).toEqual([]);
     expect(expectSuccess(parseActiveMessages([message()]))).toEqual([
       message(),
     ]);
     expect(expectSuccess(parseActiveProps([prop()]))).toEqual([prop()]);
-    expect(expectSuccess(parseNoticePlayback(playback()))).toEqual(playback());
     expect(
       expectSuccess(parseActiveMessages([{...message(), ignored: true}])),
     ).toEqual([message()]);
   });
 
-  it('returns field errors for malformed lists and playback without throwing', () => {
+  it('returns field errors for malformed lists without throwing', () => {
     for (const value of [null, {}, 'bad', [3]]) {
       expect(parseActiveMessages(value).ok).toBe(false);
       expect(parseActiveProps(value).ok).toBe(false);
-    }
-    for (const value of [
-      null,
-      [],
-      {...playback(), position: 2},
-      {...playback(), targets: []},
-      {...playback(), pausedAt: 999},
-    ]) {
-      expect(parseNoticePlayback(value).ok).toBe(false);
     }
     const invalidMessage = parseActiveMessages([{...message(), startedAt: -1}]);
     const invalidProp = parseActiveProps([{...prop(), propId: 'bad'}]);
@@ -83,7 +61,6 @@ describe('public overlay parse helpers', () => {
     const props = Array.from({length: MAX_ACTIVE_PROPS}, (_value, index) =>
       prop(index + 1),
     );
-    const media = Array.from({length: MAX_NOTICE_IMAGES}, () => uuid(2));
     expect(parseActiveMessages(messages).ok).toBe(true);
     expect(
       parseActiveMessages([...messages, message(MAX_ACTIVE_MESSAGES + 1)]).ok,
@@ -92,18 +69,6 @@ describe('public overlay parse helpers', () => {
     expect(parseActiveProps([...props, prop(MAX_ACTIVE_PROPS + 1)]).ok).toBe(
       false,
     );
-    expect(parseNoticePlayback({...playback(), media}).ok).toBe(true);
-    expect(
-      parseNoticePlayback({...playback(), media: [...media, uuid(2)]}).ok,
-    ).toBe(false);
-    expect(
-      parseNoticePlayback({
-        ...playback(),
-        targets: Array.from({length: MAX_TARGET_SCREENS + 1}, (_value, index) =>
-          uuid(index + 1),
-        ),
-      }).ok,
-    ).toBe(false);
   });
 });
 

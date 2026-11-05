@@ -63,8 +63,6 @@ function targetId(action: MacroAction): string | undefined {
       return action.prop;
     case 'message':
       return action.template;
-    case 'notice':
-      return action.notice;
     case 'audio':
       return action.operation === 'play' ? action.media : undefined;
     case 'audioPlaylist':
@@ -184,7 +182,6 @@ function addActionEntries(
         row('timer'),
         row('prop'),
         row('message'),
-        row('notice'),
         row('media'),
         row('audio'),
         row('audioPlaylist'),

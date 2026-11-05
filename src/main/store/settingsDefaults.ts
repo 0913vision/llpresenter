@@ -45,7 +45,6 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   messages: {
     templates: [],
   },
-  notices: {sets: []},
   props: {props: []},
   timers: {timers: []},
   labels: {labels: DEFAULT_LABELS},

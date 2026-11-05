@@ -67,9 +67,6 @@ export function prepareMacroAction(
         duration: draft.duration ?? null,
       };
       break;
-    case 'notice':
-      value = {kind: draft.kind, notice: target};
-      break;
     case 'audio':
       value =
         draft.operation === 'fadeOut' || draft.operation === 'stop'
@@ -130,8 +127,6 @@ export function draftMacroAction(action: KnownMacroAction): MacroActionDraft {
         targets: action.targets,
         duration: action.duration,
       };
-    case 'notice':
-      return {kind: action.kind, target: action.notice};
     case 'audio':
       return {
         kind: action.kind,

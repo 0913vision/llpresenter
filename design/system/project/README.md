@@ -20,7 +20,6 @@ is never wrong.
    the gray steps from `bg-app` to `bg-control-hover`.
 2. **Follow ProPresenter.** A feature that ProPresenter also has goes in the
    same place and behaves the same way: a click on a 슬라이드 outputs it at
-   once, the F1 to F7 지우기 actions, song 구성, screen configuration, the
    right-click menu on 매크로, 예배 순서 템플릿, and autosave. Where the app
    differs, it has a reason, written in the component document or the spec.
 3. **Show state with shape and color.** Don't add text, chips, or dots that
@@ -346,7 +345,7 @@ remaining space.
 | 테마                          | theme                                         | A saved preset that sets what each of the three screens shows           |
 | 진행 도구                     | show tools                                    | The group of tabs at the bottom right of the 진행 workspace             |
 | 퀵 실행                       | quick launch                                  | Frequently used items at the bottom left of the 진행 workspace          |
-| 그래픽, 공지, 메시지, 타이머  | prop, notice, message, timer                  | Layers placed over the lyrics                                           |
+| 그래픽, 메시지, 타이머  | prop, message, timer                  | Layers placed over the lyrics                                           |
 | 라이브러리                    | library                                       | Where the source songs are kept                                         |
 | 매크로                        | macro                                         | A button that runs several actions at once                              |
 

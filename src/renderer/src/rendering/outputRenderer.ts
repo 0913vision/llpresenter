@@ -15,7 +15,6 @@ import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
 const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
-  notice: 2,
   prop: 3,
   message: 4,
 };

@@ -54,7 +54,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 - Don't open another confirmation dialog on top of a confirmation dialog.
 - Before opening an import overwrite confirmation, ensure the fetched song and current library entry still match the draft title. If the target changed while loading, keep the draft and show a warning; the next Save checks again.
 - 출력 상태 복구 opens as soon as the app starts, and the three screens wait until the user answers (status bar "대기").
-- The 지우기 (clear) shortcuts for 출력 (output) (F1 to F7) work even while a confirmation dialog is open (same as `Dialog`).
+- The 지우기 (clear) shortcuts for 출력 (output) (F1 to F6) work even while a confirmation dialog is open (same as `Dialog`).
 - aria: `role="alertdialog"`, `aria-modal="true"`, `aria-labelledby` set to the title, `aria-describedby` set to the extra info. The list section is `role="group"` + the group name.
 - Recalculate head overflow after its viewport or text size changes. Release size observers when the dialog closes.
 

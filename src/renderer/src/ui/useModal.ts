@@ -174,7 +174,7 @@ function useKeysFromNotificationCards(
  * The behavior every modal shares: everything behind it is inert, focus
  * starts inside it and cycles there and through the notification cards,
  * Enter and Esc press its buttons, and
- * focus goes back to where it was when the modal closes. The F1 to F7
+ * focus goes back to where it was when the modal closes. The F1 to F6
  * 지우기 keys pass through, so the screens can still be cleared.
  *
  * @returns The key handler for the modal surface.

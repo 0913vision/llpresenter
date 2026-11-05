@@ -1,24 +1,14 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
-import {
-  mediaIdSchema,
-  messageIdSchema,
-  propIdSchema,
-  screenIdSchema,
-} from './ids';
+import {messageIdSchema, propIdSchema, screenIdSchema} from './ids';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {
-  nonNegativeInteger,
-  nonNegativeNumber,
-  positiveSeconds,
-} from './primitives';
+import {nonNegativeNumber} from './primitives';
 import {propContentSchema} from './props';
 import type {Result} from '../common/result';
 import {LIVE_STATE_LIMITS, liveNonBlankTextSchema} from './liveLimits';
 
 export const MAX_ACTIVE_MESSAGES = 200;
 export const MAX_ACTIVE_PROPS = 64;
-export const MAX_NOTICE_IMAGES = 512;
 export const MAX_TARGET_SCREENS = 200;
 
 export const epochMillisecondsSchema = v.pipe(
@@ -99,41 +89,6 @@ export const activePropsSchema = v.pipe(
   ),
 );
 
-export const noticePlaybackSchema = v.pipe(
-  payloadObject({
-    media: v.pipe(
-      v.array(mediaIdSchema),
-      v.minLength(1),
-      v.maxLength(MAX_NOTICE_IMAGES),
-    ),
-    /** The ids that left the library; the clock skips them. */
-    gone: v.exactOptional(
-      v.pipe(v.array(mediaIdSchema), v.maxLength(MAX_NOTICE_IMAGES)),
-    ),
-    position: nonNegativeInteger,
-    interval: positiveSeconds,
-    loop: v.boolean(),
-    targets: v.pipe(overlayScreenIdsSchema, v.minLength(1)),
-    startedAt: epochMillisecondsSchema,
-    pausedAt: v.nullable(epochMillisecondsSchema),
-  }),
-  v.forward(
-    v.check(
-      playback => playback.position < playback.media.length,
-      'The notice position is outside its images',
-    ),
-    ['position'],
-  ),
-  v.forward(
-    v.check(
-      playback =>
-        playback.pausedAt === null || playback.pausedAt >= playback.startedAt,
-      'A notice cannot pause before it starts',
-    ),
-    ['pausedAt'],
-  ),
-);
-
 export const messageExpirySchema = v.object({
   type: v.literal('message.expire'),
   messageId: messageIdSchema,
@@ -145,9 +100,6 @@ export type ActiveMessage = ReadonlyKnown<
   v.InferOutput<typeof activeMessageSchema>
 >;
 export type ActiveProp = ReadonlyKnown<v.InferOutput<typeof activePropSchema>>;
-export type NoticePlayback = ReadonlyKnown<
-  v.InferOutput<typeof noticePlaybackSchema>
->;
 /** A deadline-bearing expiry request for one active message. */
 export type MessageExpiry = ReadonlyKnown<
   v.InferOutput<typeof messageExpirySchema>
@@ -163,10 +115,4 @@ export function parseActiveProps(
   value: unknown,
 ): Result<readonly ActiveProp[], PayloadError> {
   return parsePayload(activePropsSchema, value);
-}
-
-export function parseNoticePlayback(
-  value: unknown,
-): Result<NoticePlayback, PayloadError> {
-  return parsePayload(noticePlaybackSchema, value);
 }

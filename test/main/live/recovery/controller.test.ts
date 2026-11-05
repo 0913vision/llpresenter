@@ -46,7 +46,7 @@ const STEPS: readonly RecoveryStep[] = [
   {
     row: {
       kind: 'showing',
-      counts: {messages: 0, props: 0, stageMessages: 1, notices: 0},
+      counts: {messages: 0, props: 0, stageMessages: 1},
     },
     commands: [{type: 'stage.message.set', text: 'Fixture stage note'}],
   },

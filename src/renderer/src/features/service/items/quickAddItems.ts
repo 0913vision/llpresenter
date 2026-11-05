@@ -1,4 +1,4 @@
-import {createServiceItemId, type NoticeSetId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {
@@ -11,14 +11,8 @@ import {newSlidesItem} from '@core/services/slidesEdits';
 
 const SECTION_NAME = '새 구역';
 
-export interface NoticeSetChoice {
-  readonly id: NoticeSetId;
-  readonly name: string;
-}
-
 export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
-  readonly notices: readonly NoticeSetChoice[];
   readonly onInsert: (item: ServiceItem) => void;
   /** Switches the popover to typing a passage reference. */
   readonly onBible: () => void;
@@ -49,7 +43,6 @@ function submenu(
 /** Commands in the service order's other-items group. */
 export function otherItemEntries({
   media,
-  notices,
   onInsert,
   onBible,
 }: OtherItemChoices): readonly MenuEntry[] {
@@ -91,21 +84,6 @@ export function otherItemEntries({
       label: '성경 구절…',
       keepsOpen: true,
       onSelect: onBible,
-    },
-    {
-      kind: 'item',
-      id: 'other:notice',
-      label: '공지',
-      submenu: submenu(
-        'notice',
-        notices.map((set): MenuEntry => ({
-          kind: 'item',
-          id: `notice:${set.id}`,
-          label: set.name,
-          onSelect: () => onInsert({id: newId(), notice: set.id}),
-        })),
-        '공지 없음',
-      ),
     },
     laterRow('other:video-stream', '영상 스트림 항목…'),
     laterRow('other:audio-stream', '오디오 스트림 항목…'),

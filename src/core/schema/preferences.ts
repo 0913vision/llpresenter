@@ -138,7 +138,6 @@ export const preferencesSchema = jsonObject({
       prop: v.exactOptional(clearFadeSchema),
       audio: v.exactOptional(clearFadeSchema),
       message: v.exactOptional(clearFadeSchema),
-      notice: v.exactOptional(clearFadeSchema),
     }),
   ),
   show: v.exactOptional(

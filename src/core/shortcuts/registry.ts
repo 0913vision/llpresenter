@@ -61,7 +61,7 @@ function command([
           ? 'zoom'
           : 'normal',
     output:
-      /^(clear|show|output|audio|notice|stage)\./.test(id) ||
+      /^(clear|show|output|audio|stage)\./.test(id) ||
       id === 'item.stop' ||
       [
         'service.nextItem',
@@ -134,7 +134,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['clear.prop', '그래픽 지우기 / 복원', '지우기', ['control'], ['F4']],
     ['clear.audio', '오디오 지우기 / 복원', '지우기', ['control'], ['F5']],
     ['clear.message', '메시지 지우기 / 복원', '지우기', ['control'], ['F6']],
-    ['clear.notice', '공지 지우기 / 복원', '지우기', ['control'], ['F7']],
     ['clear.undo', '되돌리기', '지우기', ['control'], []],
     ['item.stop', '항목 끄기', '지우기', ['control'], []],
     ['stage.hideMessage', '무대 메시지 지우기', '지우기', ['control'], []],
@@ -152,7 +151,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['tools.stage', '무대', '진행 도구', ['show'], []],
     ['tools.timers', '타이머', '진행 도구', ['show'], []],
     ['tools.messages', '메시지', '진행 도구', ['show'], []],
-    ['tools.notices', '공지', '진행 도구', ['show'], []],
     ['tools.props', '그래픽', '진행 도구', ['show'], []],
     ['tools.macros', '매크로', '진행 도구', ['show'], []],
     ['tools.actionPalette', '동작 팔레트', '진행 도구', ['show'], []],
@@ -167,13 +165,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['audio.next', '다음 곡', '진행 도구', ['control'], []],
     ['audio.previous', '이전 곡', '진행 도구', ['control'], []],
     ['audio.fadeOut', '오디오 페이드 아웃', '진행 도구', ['control'], []],
-    [
-      'notice.pauseResume',
-      '공지 일시 정지 또는 재생',
-      '진행 도구',
-      ['control'],
-      [],
-    ],
     ['stage.sendMessage', '무대 메시지 보내기', '진행 도구', ['show'], []],
     ['message.send', '메시지 보내기', '진행 도구', ['show'], []],
     ['audio.toggleRepeat', '오디오 반복', '진행 도구', ['control'], []],

@@ -33,7 +33,6 @@ const fixtures = {
     schemaVersion: 1,
     templates: [],
   },
-  notices: {format: 'llsettings.notices', schemaVersion: 1, sets: []},
   props: {format: 'llsettings.props', schemaVersion: 1, props: []},
   timers: {format: 'llsettings.timers', schemaVersion: 1, timers: []},
   labels: {format: 'llsettings.labels', schemaVersion: 1, labels: []},

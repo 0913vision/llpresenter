@@ -23,9 +23,8 @@ const layers: readonly ClearTarget[] = [
   'prop',
   'audio',
   'message',
-  'notice',
 ];
-const OFF: ReadonlySet<ClearTarget> = new Set(['audio', 'notice']);
+const OFF: ReadonlySet<ClearTarget> = new Set(['audio']);
 
 function Row({
   onClear = () => {},
@@ -61,7 +60,6 @@ describe('ClearRow', () => {
   it('gives each clear button its key and shows it in a tooltip', async () => {
     render(<Row />);
     expect(button('모두 지우기').getAttribute('aria-keyshortcuts')).toBe('F1');
-    expect(button('공지 지우기').getAttribute('aria-keyshortcuts')).toBe('F7');
     expect((await hoverForTooltip(button('가사 지우기')))?.textContent).toBe(
       '가사 지우기F2',
     );

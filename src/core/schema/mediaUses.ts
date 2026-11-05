@@ -7,7 +7,6 @@ const mediaUsesRequestSchema = payloadObject({mediaId: mediaIdSchema});
 
 const mediaUsesSchema = payloadObject({
   playlists: nonNegativeInteger,
-  notices: nonNegativeInteger,
   graphics: nonNegativeInteger,
   songBackgrounds: nonNegativeInteger,
   serviceItems: nonNegativeInteger,
@@ -23,7 +22,7 @@ export type MediaUsesRequest = Readonly<
 
 /**
  * How many places use a media item (spec 08, "Deleting a media item that is
- * in use"): 재생목록, 공지 세트, 그래픽, 곡 배경, and 예배 순서 항목 (an item's
+ * in use"): 재생목록, 그래픽, 곡 배경, and 예배 순서 항목 (an item's
  * own background, or a media item), 항목 오버레이, 테마 (an image element),
  * and 매크로 (a media or audio action).
  */

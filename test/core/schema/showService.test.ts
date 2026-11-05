@@ -284,7 +284,7 @@ describe('parseShowService', () => {
     ).toBe(false);
   });
 
-  it('keeps the media of a media tile and the start of a 공지 tile', () => {
+  it('keeps the media of a media tile', () => {
     const tiles = [
       {
         label: null,
@@ -292,29 +292,12 @@ describe('parseShowService', () => {
         lines: ['카운트다운'],
         media: {mediaId: '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293', loop: true},
       },
-      {
-        label: null,
-        labelColor: 'none',
-        lines: ['광고'],
-        notice: {noticeId: '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f', position: 1},
-      },
     ];
     const parsed = parseShowService({
       ...showService(),
       tiles: {'item-2': tiles},
     });
     expect(parsed.ok && parsed.value?.tiles['item-2']).toEqual(tiles);
-  });
-
-  it.each([
-    {noticeId: 'not-a-uuid', position: 0},
-    {noticeId: '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f', position: -1},
-    {noticeId: '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f'},
-  ])('rejects the 공지 tile start %j', notice => {
-    const tile = {label: null, labelColor: 'none', lines: [], notice};
-    expect(
-      parseShowService({...showService(), tiles: {'item-2': [tile]}}).ok,
-    ).toBe(false);
   });
 
   it('keeps the source slide and hot key of a tile', () => {

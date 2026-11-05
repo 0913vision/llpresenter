@@ -1,18 +1,7 @@
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import {act, render, renderHook, screen, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import * as v from 'valibot';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import {
-  createServiceItemId,
-  noticeSetIdSchema,
-  screenIdSchema,
-  type MediaId,
-} from '@core/schema/ids';
-import {
-  parseSettingsDocument,
-  type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+import {createServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {
@@ -26,80 +15,15 @@ import {useOtherSources} from '@renderer/features/service/items/useOtherSources'
 afterEach(() => {
   delete window.llp;
 });
-
-const noticeSet = v.parse(
-  noticeSetIdSchema,
-  '80000000-0000-4000-8000-000000000001',
-);
 const itemId = createServiceItemId('50000000-0000-4000-8000-000000000009');
 
-function noticesDocument({
-  media = [fixtureMedia.warm, fixtureMedia.dawn],
-  revision = 1,
-  name = '주보 공지',
-}: {
-  readonly media?: readonly MediaId[];
-  readonly revision?: number;
-  readonly name?: string;
-} = {}) {
-  const parsed = parseSettingsDocument({
-    name: 'notices',
-    revision,
-    access: 'editable',
-    value: {
-      format: 'llsettings.notices',
-      schemaVersion: 1,
-      sets: [
-        {
-          id: noticeSet,
-          name,
-          media,
-          interval: 5,
-          loop: true,
-          targets: [
-            v.parse(screenIdSchema, '90000000-0000-4000-8000-000000000001'),
-          ],
-        },
-      ],
-    },
-  });
-  if (!parsed.ok || parsed.value.name !== 'notices') {
-    throw new Error('Invalid notices fixture');
-  }
-  return parsed.value;
-}
-
-function sourcesFixture(
-  document: MediaDocument = itemMedia(),
-  notices = noticesDocument(),
-) {
+function sourcesFixture(document: MediaDocument = itemMedia()) {
   const fixture = mediaFixture(document);
-  const listeners = new Set<(document: SettingsDocument) => void>();
   const getMedia = vi.fn(() => Promise.resolve(document));
-  const getNotices = vi.fn(() => Promise.resolve(notices));
-  const api = {
-    ...fixture.api,
-    media: {...fixture.api.media, get: getMedia},
-    settings: {
-      ...fixture.api.settings,
-      get: getNotices,
-      subscribe: (listener: (document: SettingsDocument) => void) => {
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-        };
-      },
-    },
-  };
   return {
     ...fixture,
-    api,
+    api: {...fixture.api, media: {...fixture.api.media, get: getMedia}},
     getMedia,
-    getNotices,
-    noticesListeners: listeners,
-    pushNotices: (next: SettingsDocument) => {
-      for (const listener of listeners) listener(next);
-    },
   };
 }
 
@@ -112,60 +36,6 @@ function show(item: ServiceItem | null, fixture = sourcesFixture()) {
 }
 
 describe('the center panel of other item kinds', () => {
-  it('shows the images of a 공지 set without a way to change them', async () => {
-    show({id: itemId, notice: noticeSet});
-    expect(await screen.findByText('주보 공지')).toBeDefined();
-    expect(screen.getByText('2개')).toBeDefined();
-    const names = screen
-      .getAllByRole('option')
-      .map(tile => tile.getAttribute('aria-label'));
-    expect(names).toEqual(['따뜻한 빛', '새벽 하늘']);
-    expect(
-      [...document.querySelectorAll('img')].map(image =>
-        image.getAttribute('src'),
-      ),
-    ).toEqual([
-      thumbnailUrl(fixtureMedia.warm),
-      thumbnailUrl(fixtureMedia.dawn),
-    ]);
-    expect(document.querySelector('video')).toBeNull();
-  });
-
-  it('follows notice names, membership, media renames, and deletions without remounting', async () => {
-    const fixture = show({id: itemId, notice: noticeSet});
-    await screen.findByRole('option', {name: '따뜻한 빛'});
-    act(() =>
-      fixture.pushDocument(
-        mediaDocument(
-          itemMedia().value.items.map(item => ({...item, name: 'Renamed'})),
-          2,
-        ),
-      ),
-    );
-    expect(screen.getAllByRole('option', {name: 'Renamed'})).toHaveLength(2);
-    act(() =>
-      fixture.pushNotices(
-        noticesDocument({
-          name: 'Updated',
-          media: [fixtureMedia.dawn],
-          revision: 2,
-        }),
-      ),
-    );
-    expect(screen.getByText('Updated')).toBeDefined();
-    expect(screen.getByText('1개')).toBeDefined();
-    act(() => fixture.pushDocument(mediaDocument([], 3)));
-    expect(screen.queryAllByRole('option')).toHaveLength(0);
-    expect(screen.getByText('0개')).toBeDefined();
-    const latest = noticesDocument({revision: 3});
-    act(() =>
-      fixture.pushNotices({...latest, value: {...latest.value, sets: []}}),
-    );
-    expect(
-      screen.getByRole('region', {name: '예배 순서 항목'}).textContent,
-    ).toBe('');
-  });
-
   it('updates and clears a mounted media header when its item changes or disappears', async () => {
     const fixture = show({id: itemId, media: fixtureMedia.dawn});
     await screen.findByText('새벽 하늘');
@@ -188,45 +58,30 @@ describe('the center panel of other item kinds', () => {
     expect(screen.queryByText('Renamed')).toBeNull();
   });
 
-  it('keeps newer pushes over deferred reads and stale pushes, then releases both feeds', async () => {
+  it('keeps newer pushes over deferred reads and stale pushes, then releases the feed', async () => {
     const fixture = sourcesFixture();
     let finishMedia: (document: MediaDocument) => void = () => undefined;
-    let finishNotices: (
-      document: ReturnType<typeof noticesDocument>,
-    ) => void = () => undefined;
     fixture.getMedia.mockReturnValueOnce(
       new Promise(resolve => {
         finishMedia = resolve;
       }),
     );
-    fixture.getNotices.mockReturnValueOnce(
-      new Promise(resolve => {
-        finishNotices = resolve;
-      }),
-    );
     window.llp = fixture.api;
     const {result, unmount} = renderHook(() => useOtherSources(true));
     const latestMedia = mediaDocument([mediaItem(8)], 3);
-    const latestNotices = noticesDocument({name: 'Latest', revision: 3});
     act(() => {
       fixture.pushDocument(latestMedia);
-      fixture.pushNotices(latestNotices);
     });
     await act(async () => {
       finishMedia(itemMedia());
-      finishNotices(noticesDocument());
     });
     act(() => {
       fixture.pushDocument(mediaDocument([], 2));
-      fixture.pushNotices(noticesDocument({revision: 2}));
     });
     expect(result.current.media).toEqual(latestMedia.value.items);
-    expect(result.current.notices).toEqual(latestNotices.value.sets);
     expect(fixture.listeners.document.size).toBe(1);
-    expect(fixture.noticesListeners.size).toBe(1);
     unmount();
     expect(fixture.listeners.document.size).toBe(0);
-    expect(fixture.noticesListeners.size).toBe(0);
   });
 
   it('subscribes only while open and ignores late responses after closing', async () => {
@@ -245,19 +100,15 @@ describe('the center panel of other item kinds', () => {
     expect(fixture.getMedia).not.toHaveBeenCalled();
     expect(fixture.listeners.document.size).toBe(0);
     rerender({open: true});
-    await waitFor(() => expect(result.current.notices).toHaveLength(1));
     expect(fixture.listeners.document.size).toBe(1);
-    expect(fixture.noticesListeners.size).toBe(1);
     rerender({open: false});
     expect(fixture.listeners.document.size).toBe(0);
-    expect(fixture.noticesListeners.size).toBe(0);
     await act(async () => finish(mediaDocument([mediaItem(9)], 9)));
     expect(result.current.media).toHaveLength(0);
     rerender({open: true});
     await waitFor(() => expect(result.current.media).toHaveLength(3));
     unmount();
     expect(fixture.listeners.document.size).toBe(0);
-    expect(fixture.noticesListeners.size).toBe(0);
   });
 
   it('leaves the panel empty for a header, a slot, and no selection', () => {

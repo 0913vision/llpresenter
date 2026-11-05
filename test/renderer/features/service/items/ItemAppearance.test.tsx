@@ -16,7 +16,6 @@ import {
   createThemeElementId,
   createItemOverlayId,
 } from '@core/schema/ids';
-import {createNoticeSetId} from '@core/schema/ids';
 import {checkPart} from '@core/schema/fileFormat';
 import {biblePassageSchema} from '@core/schema/biblePassage';
 import {createDefaultThemes} from '@core/themes/defaults';
@@ -91,9 +90,6 @@ async function setup(
     }
     if (request.name === 'screens') {
       return Promise.resolve(settingsDocument('screens', {screens}));
-    }
-    if (request.name === 'notices') {
-      return Promise.resolve(settingsDocument('notices', {sets: []}));
     }
     return read(request);
   });
@@ -531,7 +527,7 @@ it('confirms deletion in the popover and clears the last overlay', async () => {
   await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
 });
 
-it.each(['bible', 'notice', 'media'] as const)(
+it.each(['bible', 'media'] as const)(
   'stores a theme for a %s item without changing its source',
   async kind => {
     const {user, service, pushService, stored} = await setup();
@@ -545,11 +541,7 @@ it.each(['bible', 'notice', 'media'] as const)(
     });
     if (!passage.ok) throw new Error('Invalid Bible fixture');
     const source =
-      kind === 'media'
-        ? {media: fixtureMedia.warm}
-        : kind === 'notice'
-          ? {notice: createNoticeSetId('90000000-0000-4000-8000-000000000020')}
-          : {bible: passage.value};
+      kind === 'media' ? {media: fixtureMedia.warm} : {bible: passage.value};
     const document = service();
     act(() =>
       pushService({

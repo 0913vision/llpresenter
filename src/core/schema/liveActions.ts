@@ -4,7 +4,6 @@ import {
   audioPlaylistIdSchema,
   macroIdSchema,
   mediaIdSchema,
-  noticeSetIdSchema,
   propIdSchema,
   serviceItemIdSchema,
   timerIdSchema,
@@ -50,13 +49,6 @@ export const liveActionOptions = [
     propId: propIdSchema,
     on: v.boolean(),
   }),
-  v.object({
-    type: v.literal('notice.start'),
-    noticeId: noticeSetIdSchema,
-    position: v.exactOptional(nonNegativeInteger),
-  }),
-  v.object({type: v.literal('notice.pause')}),
-  v.object({type: v.literal('notice.stop')}),
   v.object({
     type: v.literal('message.send'),
     text: liveNonBlankTextSchema,

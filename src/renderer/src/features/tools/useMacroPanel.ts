@@ -339,7 +339,6 @@ export function useMacroPanel({
         action.kind === 'timer' ||
         action.kind === 'prop' ||
         action.kind === 'message' ||
-        action.kind === 'notice' ||
         action.kind === 'audio' ||
         action.kind === 'macro'
       ) {

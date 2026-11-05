@@ -5,7 +5,6 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import {
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
-  MAX_NOTICE_IMAGES,
   MAX_TARGET_SCREENS,
 } from '@core/schema/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -26,15 +25,6 @@ const prop = (index = 1) => ({
   content: {kind: 'image', media: uuid(3)},
   targets: [uuid(4)],
 });
-const playback = () => ({
-  media: [uuid(3), uuid(4)],
-  position: 1,
-  interval: 5,
-  loop: true,
-  targets: [uuid(5)],
-  startedAt: NOW,
-  pausedAt: null,
-});
 function state(layers: object = {}, addition: object = {}) {
   const empty = emptyLiveState();
   return {...empty, layers: {...empty.layers, ...layers}, ...addition};
@@ -44,9 +34,6 @@ function messageState(items: readonly unknown[]) {
 }
 function propState(items: readonly unknown[]) {
   return state({prop: {propId: 'legacy-prop', items}});
-}
-function noticeState(value: unknown) {
-  return state({notice: {noticeId: 'legacy-notice', playback: value}});
 }
 
 describe('additive overlay state contracts', () => {
@@ -81,7 +68,7 @@ describe('additive overlay state contracts', () => {
     ).toBe(false);
   });
 
-  it('round-trips per-screen messages, concurrent props, notice playback, and a separate stage message', () => {
+  it('round-trips per-screen messages, concurrent props, and a separate stage message', () => {
     const value = state(
       {
         message: {
@@ -93,10 +80,6 @@ describe('additive overlay state contracts', () => {
           ],
         },
         prop: {propId: 'summary', items: [prop(), prop(2)]},
-        notice: {
-          noticeId: 'summary',
-          playback: {...playback(), pausedAt: NOW + 2_000},
-        },
       },
       {stageMessage: 'Invented stage cue'},
     );
@@ -151,41 +134,6 @@ describe('additive overlay state contracts', () => {
     ).toBe(false);
   });
 
-  it.each([
-    ['empty images', {...playback(), media: []}],
-    ['an invalid media id', {...playback(), media: ['bad']}],
-    ['an out-of-range position', {...playback(), position: 2}],
-    ['a fractional position', {...playback(), position: 0.5}],
-    ['a zero interval', {...playback(), interval: 0}],
-    ['a pause before start', {...playback(), pausedAt: NOW - 1}],
-    ['an invalid target', {...playback(), targets: ['stage']}],
-    ['no target screens', {...playback(), targets: []}],
-    ['an invalid gone id', {...playback(), gone: ['bad']}],
-    [
-      'too many gone ids',
-      {
-        ...playback(),
-        gone: Array.from({length: MAX_NOTICE_IMAGES + 1}, () => uuid(3)),
-      },
-    ],
-  ])('rejects notice playback with %s', (_name, value) => {
-    expect(parseLiveState(noticeState(value)).ok).toBe(false);
-  });
-
-  it('accepts the ids that left the library, up to the image cap', () => {
-    expect(
-      parseLiveState(noticeState({...playback(), gone: [uuid(3)]})).ok,
-    ).toBe(true);
-    expect(
-      parseLiveState(
-        noticeState({
-          ...playback(),
-          gone: Array.from({length: MAX_NOTICE_IMAGES}, () => uuid(3)),
-        }),
-      ).ok,
-    ).toBe(true);
-  });
-
   it('accepts each list at its cap and rejects the next item', () => {
     const messages = Array.from(
       {length: MAX_ACTIVE_MESSAGES},
@@ -204,14 +152,6 @@ describe('additive overlay state contracts', () => {
     expect(
       parseLiveState(propState([...props, prop(MAX_ACTIVE_PROPS + 1)])).ok,
     ).toBe(false);
-    const images = Array.from({length: MAX_NOTICE_IMAGES}, () => uuid(3));
-    expect(parseLiveState(noticeState({...playback(), media: images})).ok).toBe(
-      true,
-    );
-    expect(
-      parseLiveState(noticeState({...playback(), media: [...images, uuid(3)]}))
-        .ok,
-    ).toBe(false);
     const screens = Array.from({length: MAX_TARGET_SCREENS}, (_value, index) =>
       uuid(index + 1),
     );
@@ -220,7 +160,6 @@ describe('additive overlay state contracts', () => {
       (excludedTargets: readonly string[]) =>
         messageState([{...message(), excludedTargets}]),
       (targets: readonly string[]) => propState([{...prop(), targets}]),
-      (targets: readonly string[]) => noticeState({...playback(), targets}),
     ]) {
       expect(parseLiveState(value(screens)).ok).toBe(true);
       expect(

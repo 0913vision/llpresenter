@@ -55,7 +55,6 @@ describe('item theme selection', () => {
     defaults: {
       song: primary.id,
       bible: primary.id,
-      notice: primary.id,
       media: primary.id,
     },
   };

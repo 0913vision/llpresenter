@@ -13,7 +13,6 @@ import {
 } from './fileFormat';
 import {
   mediaIdSchema,
-  noticeSetIdSchema,
   serviceIdSchema,
   serviceItemIdSchema,
   slideIdSchema,
@@ -46,7 +45,6 @@ export const serviceItemKinds = [
   'bible',
   'slides',
   'media',
-  'notice',
 ] as const;
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
@@ -165,11 +163,6 @@ const itemSchemas = {
     ...startFields,
   }),
   media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
-  notice: jsonObject({
-    ...itemFields,
-    notice: noticeSetIdSchema,
-    ...startFields,
-  }),
 };
 
 const unknownItemSchema = jsonObject(itemFields);

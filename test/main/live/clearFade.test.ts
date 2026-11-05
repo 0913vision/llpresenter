@@ -171,7 +171,7 @@ it('admits rotating prop clears in a batch by retaining only the newest bounded 
   expect(store.state.clearEffects).toHaveLength(MAX_CLEAR_EFFECTS);
   expect(store.state.clearEffects?.[0]?.target).toEqual({
     kind: 'prop',
-    propId: overlayUuid(2015),
+    propId: overlayUuid(2000 + document.value.props.length - MAX_CLEAR_EFFECTS),
   });
   expect(store.state.clearEffects?.at(-1)?.target).toEqual({
     kind: 'prop',

@@ -1,6 +1,6 @@
 /**
  * The attribute that marks a field while it records a shortcut. Window
- * shortcuts, the 지우기 keys F1 to F7 included, skip a key press inside it
+ * shortcuts, the 지우기 keys F1 to F6 included, skip a key press inside it
  * (docs/spec/10-shortcuts-and-settings.md, focus precedence rule 1).
  */
 export const SHORTCUT_RECORDING_ATTRIBUTE = 'data-shortcut-recording';

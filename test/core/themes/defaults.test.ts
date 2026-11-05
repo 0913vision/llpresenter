@@ -132,7 +132,6 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
   expect(defaults.themes.map(entry => entry.name)).toEqual([
     '찬양',
     '말씀',
-    '공지',
     '영상',
     '광고',
   ]);

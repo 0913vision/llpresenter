@@ -135,10 +135,6 @@ async function createContent(
       bible,
       bibleMaxLines: readBibleMaxLines,
       mediaItems: () => media?.get().value.items ?? [],
-      noticeSets: () => {
-        const document = settings?.get('notices');
-        return document?.name === 'notices' ? document.value.sets : [];
-      },
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
@@ -153,8 +149,7 @@ async function createContent(
       if (
         document.name === 'labels' ||
         document.name === 'bible' ||
-        maxLinesChanged ||
-        document.name === 'notices'
+        maxLinesChanged
       ) {
         feed
           .refresh()

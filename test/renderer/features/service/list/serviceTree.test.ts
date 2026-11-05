@@ -62,12 +62,11 @@ describe('treeRows', () => {
     ]);
   });
 
-  it('names media, notices, unknown items, and songs it can not find', () => {
+  it('names media, unknown items, and songs it can not find', () => {
     expect(
       treeRows(otherItems, new Map()).map(({label, icon}) => [label, icon]),
     ).toEqual([
       ['미디어', 'film'],
-      ['공지', 'notice'],
       ['알 수 없는 항목', 'filex'],
     ]);
     expect(treeRows(templateOrder, new Map())[1]?.label).toBe(

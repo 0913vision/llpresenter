@@ -18,7 +18,7 @@ function renderGrid(arrowsMove: 'selection' | 'focus' = 'selection') {
   const onOutput = vi.fn();
   render(
     <VirtualMediaGrid
-      label="공지"
+      label="이미지"
       count={COUNT}
       columns={COLUMNS}
       selected={undefined}
@@ -36,7 +36,7 @@ function renderGrid(arrowsMove: 'selection' | 'focus' = 'selection') {
       )}
     />,
   );
-  const viewport = screen.getByRole('listbox', {name: '공지'}).parentElement
+  const viewport = screen.getByRole('listbox', {name: '이미지'}).parentElement
     ?.parentElement;
   if (viewport === null || viewport === undefined) {
     throw new Error('Missing viewport');

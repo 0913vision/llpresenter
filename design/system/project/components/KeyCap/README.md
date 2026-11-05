@@ -4,14 +4,14 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 
 ## Where to use
 
-- The shortcut cells of the shortcut table in Preferences > 단축키 (Shortcuts) (다음 슬라이드 → Space, 되돌리기 Ctrl Z, 지우기 (clear) F1~F7)
+- The shortcut cells of the shortcut table in Preferences > 단축키 (Shortcuts) (다음 슬라이드 → Space, 되돌리기 Ctrl Z, 지우기 (clear) F1~F6)
 - Marking a shortcut conflict (찬양 and 출력 켜기 are both Ctrl 1)
 - Text shortcuts: tooltips ("되돌리기 Ctrl Z"), the right side of menu items
 
 ## Where not to use
 
 - Inside tooltips and menus: don't draw key boxes. Write the shortcut as text only (`ll-tooltip__key` of `Tooltip`, `ll-menu__meta` of `Menu`).
-- F1~F7 on the 지우기 buttons of the 진행 (Show) workspace: don't put keys inside the buttons. Show them only in tooltips (`ClearButton`).
+- F1~F6 on the 지우기 buttons of the 진행 (Show) workspace: don't put keys inside the buttons. Show them only in tooltips (`ClearButton`).
 - Inside a button name: don't mix a shortcut into a button name, as in "Ctrl Z로 되돌리기". Show it in a tooltip.
 
 ## Anatomy
@@ -45,7 +45,7 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 ## Behavior
 
 - A key is a display that can't be pressed. To change a shortcut, double-click its row or press Enter to open the key recording field.
-- In the key recording field, Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves keyboard focus. A reserved key isn't taken: the field keeps recording, shows the error ring, and gives the reason in a tooltip (the list is "Reserved keys" in `docs/spec/10-shortcuts-and-settings.md`). Any other combination becomes the shortcut, F1 to F7 included. The field records the physical key (`KeyboardEvent.code`) and doesn't record keys with an empty `code` (한/영, 한자). If the combination is already in use, both rows show a conflict.
+- In the key recording field, Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves keyboard focus. A reserved key isn't taken: the field keeps recording, shows the error ring, and gives the reason in a tooltip (the list is "Reserved keys" in `docs/spec/10-shortcuts-and-settings.md`). Any other combination becomes the shortcut, F1 to F6 included. The field records the physical key (`KeyboardEvent.code`) and doesn't record keys with an empty `code` (한/영, 한자). If the combination is already in use, both rows show a conflict.
 - When the user hovers over the conflict icon, a tooltip says what it conflicts with.
 - aria: write keys with `kbd`. Give the conflict icon an `aria-label` with the same text as the tooltip. Give the row of a changed shortcut `aria-description="바꾼 단축키"`.
 

@@ -539,7 +539,6 @@ describe('media view', () => {
     );
     vi.spyOn(fixture.api.media, 'uses').mockResolvedValue({
       playlists: 2,
-      notices: 1,
       graphics: 1,
       songBackgrounds: 3,
       serviceItems: 4,
@@ -556,7 +555,6 @@ describe('media view', () => {
       [...group.querySelectorAll('p')].slice(1).map(row => row.textContent),
     ).toEqual([
       '재생목록2곳',
-      '공지 세트1곳',
       '그래픽1곳',
       '곡 배경3곳',
       '예배 순서 항목4곳',

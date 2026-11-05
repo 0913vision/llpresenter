@@ -219,7 +219,7 @@ describe('applyCommand', () => {
       {type: 'slide.show', slide: slide(2)},
       {type: 'layer.clear', target: 'slide'},
     ]);
-    expect(applyCommand(cleared, {type: 'layer.clear', target: 'notice'})).toBe(
+    expect(applyCommand(cleared, {type: 'layer.clear', target: 'prop'})).toBe(
       cleared,
     );
   });

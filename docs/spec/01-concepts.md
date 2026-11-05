@@ -30,7 +30,6 @@ including the words the app must not use.
 | 진행 도구       | show tools         | The tabbed panel at the bottom right of the 진행 workspace.                                                                       |
 | 퀵 실행         | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
 | 그래픽          | prop               | A logo, caption, or notice card that sits above the lyrics.                                                                       |
-| 공지            | notice             | A rotating set of announcement images.                                                                                            |
 | 메시지          | message            | A short text, such as a car number call, sent to chosen screens.                                                                  |
 | 타이머          | timer              | A countdown, elapsed time, or clock.                                                                                              |
 | 라이브러리      | library            | The collection of source songs.                                                                                                   |
@@ -41,21 +40,21 @@ including the words the app must not use.
 
 This spec also uses these English terms:
 
-| Term             | Meaning                                                                                                                                                                                                                           |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current service  | The open 예배 순서. Its name shows in the middle of the menu bar.                                                                                                                                                                 |
-| Output state     | Everything the main process holds about what is on the screens now: which outputs are on, the live 테마, the live 슬라이드, the background, 그래픽, 메시지, the stage message, the 공지, audio, 타이머 state, and the last clear. |
-| Live 슬라이드    | The 슬라이드 on the lyrics layer now. There is one live 슬라이드 or none.                                                                                                                                                         |
-| Current item     | The 예배 순서 item that the live 슬라이드 came from. It stays the current item after a clear of the lyrics layer, until a 슬라이드 from another item goes out (proposal).                                                         |
-| Start an item    | The moment the current item changes to another item. Start macros run at this moment (see 04 and 07).                                                                                                                             |
-| During a service | While at least one screen output is on (proposal).                                                                                                                                                                                |
-| Recovery record  | The file where the main process writes the output state at short intervals. The app uses it to restore the output state after a crash (see 02 and 08).                                                                            |
-| Sequence         | The order of 슬라이드 in the 슬라이드 panel. For a song item, this is the order of the chosen 구성.                                                                                                                               |
+| Term             | Meaning                                                                                                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current service  | The open 예배 순서. Its name shows in the middle of the menu bar.                                                                                                                                                       |
+| Output state     | Everything the main process holds about what is on the screens now: which outputs are on, the live 테마, the live 슬라이드, the background, 그래픽, 메시지, the stage message, audio, 타이머 state, and the last clear. |
+| Live 슬라이드    | The 슬라이드 on the lyrics layer now. There is one live 슬라이드 or none.                                                                                                                                               |
+| Current item     | The 예배 순서 item that the live 슬라이드 came from. It stays the current item after a clear of the lyrics layer, until a 슬라이드 from another item goes out (proposal).                                               |
+| Start an item    | The moment the current item changes to another item. Start macros run at this moment (see 04 and 07).                                                                                                                   |
+| During a service | While at least one screen output is on (proposal).                                                                                                                                                                      |
+| Recovery record  | The file where the main process writes the output state at short intervals. The app uses it to restore the output state after a crash (see 02 and 08).                                                                  |
+| Sequence         | The order of 슬라이드 in the 슬라이드 panel. For a song item, this is the order of the chosen 구성.                                                                                                                     |
 
 ## What the product is
 
 LoveLight Presenter is a Windows desktop app that outputs lyrics, Bible verses,
-공지, and 메시지 to several screens during the services of one church. It uses
+and 메시지 to several screens during the services of one church. It uses
 Electron, electron-vite, React, TypeScript, Zustand, and Pretendard. The
 operator watches the service from a dark room and changes the screens with one
 click.
@@ -65,7 +64,7 @@ The app must do these four things:
 - Show different content on each monitor.
 - Step through lyrics one 슬라이드 at a time over a looping background video.
 - Use a different text layout on each monitor.
-- Send 메시지 and 공지 to specific screens or to all screens.
+- Send 메시지 to specific screens or to all screens.
 
 Stability and smooth operation come before the number of features.
 
@@ -124,9 +123,9 @@ Source: product log ("How to apply": main-process-owned live state),
 
 ### A click outputs at once
 
-- When the operator clicks a 슬라이드, a media tile, a 그래픽, a 공지 image, a
-  퀵 실행 item, or a 매크로, the app outputs or runs it at once, without asking.
-  The app has no cue-then-take mode.
+- When the operator clicks a 슬라이드, a media tile, a 그래픽, a 퀵 실행 item,
+  or a 매크로, the app outputs or runs it at once, without asking. The app has
+  no cue-then-take mode.
 - Actions that affect the output (clicking a 슬라이드, clearing, turning a
   screen output on or off, opening another 예배 순서) never show a confirmation
   dialog. The operator fixes a mistake with undo, by clicking again, or by
@@ -154,9 +153,9 @@ versions 61 and 63.
 ### Red is only for output
 
 - Red (`live`) marks only what is on the screens now: the live 슬라이드, the
-  current background, 그래픽 and 공지 that are on, the dot on an output toggle
-  that is on, the LIVE badge in the 예배 순서, a 퀵 실행 row that is on, and the
-  stage message.
+  current background, 그래픽 that are on, the dot on an output toggle that is
+  on, the LIVE badge in the 예배 순서, a 퀵 실행 row that is on, and the stage
+  message.
 - Selection is blue, problems are amber, and healthy state is a green dot. Clear
   buttons, delete menu items, and problem notifications don't use red. The
   design system makes one exception: the error ring on a field whose value can't
@@ -344,7 +343,7 @@ All three workspaces use the same three-column frame (left, center, right). The
   a check build.
 - All three workspaces share the current service. The 예배 순서 panels in 진행
   and 준비 show the same 예배 순서.
-- F1 to F7 work in every workspace, even with a dialog open (10, focus
+- F1 to F6 work in every workspace, even with a dialog open (10, focus
   precedence). Ctrl Z only undoes edits. Clear undo has no default key and its
   optional button is hidden by default (proposal; 03, 10; M2 check 1 rows 7 and
   8). The `ClearButton` README needs the same scope and button update.
@@ -383,7 +382,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | 이름표                         | The name of a 슬라이드. Its color comes from the shared list; a hot key belongs to a particular source slide.     | App-wide 이름표 list                     | Name (string)                                     |
 | 구성                           | A named group-ID order stored in the song, with repeats. "기본" expands each master group once and is not stored. | Inside the song file                     | 구성 name                                         |
 | 예배 순서                      | The item list of one service. Name, date, items.                                                                  | One `.llservice` file per service        | Service ID                                        |
-| 예배 순서 item                 | Section (구역, stored as `header`), song, Bible passage, media, or 공지.                                          | Inside the service file                  | Item ID (proposal)                                |
+| 예배 순서 item                 | Section (구역, stored as `header`), song, Bible passage, media,.                                                  | Inside the service file                  | Item ID (proposal)                                |
 | 템플릿                         | A 예배 순서 used to create a new one. It retains empty sections (구역) instead of slot items (02, 05).            | One `.llservice` file per 템플릿         | 템플릿 ID                                         |
 | Media                          | One video, image, or audio file and its playback properties.                                                      | Media list                               | Media ID                                          |
 | Media playlist, audio playlist | A list of media.                                                                                                  | Media list                               | Playlist ID                                       |
@@ -392,7 +391,6 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
 | 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
 | 메시지 문구                    | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
-| 공지 set                       | A list of 공지 images that advance in turn.                                                                       | App-wide settings                        | Set ID                                            |
 | 그래픽                         | An element above the lyrics, such as a logo, a caption, or a notice card.                                         | App-wide settings                        | 그래픽 ID                                         |
 | 타이머                         | Time left until a set time, a fixed duration, time since a set time, or a clock.                                  | App-wide settings                        | 타이머 ID                                         |
 | Bible translation              | A bundled Bible text.                                                                                             | Translation files in the app data folder | Translation ID                                    |
@@ -415,8 +413,8 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
   the media list.
 - A 테마 holds, for each screen ID, a mode and its elements. A 예배 순서 item
   names its 테마 by ID (12).
-- 매크로 actions refer to 테마, media, 그래픽, 메시지 문구, 공지 sets, 타이머,
-  audio playlists, and other 매크로 by ID.
+- 매크로 actions refer to 테마, media, 그래픽, 메시지 문구, 타이머, audio
+  playlists, and other 매크로 by ID.
 - A 퀵 실행 item points to a song, a Bible passage, a 그래픽, a 타이머, or a
   매크로. See 04.
 
@@ -429,7 +427,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | The 구성 name each song item picks    | Default background                      |                                         |
 | Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                  |
 | Start 매크로 of each song item        |                                         | 퀵 실행                                 |
-| Memo of each song item                |                                         | 메시지 문구, 공지 sets, 그래픽, 타이머  |
+| Memo of each song item                |                                         | 메시지 문구, 그래픽, 타이머             |
 |                                       |                                         | 이름표 list (name, color)               |
 |                                       |                                         | 환경설정, shortcuts, Bible translations |
 |                                       |                                         | Media list and playlists                |
@@ -452,7 +450,6 @@ clears.
 | ------------------------ | ---------------------------------------------- | ------------------------------------------- |
 | Media (background media) | Looping background video, image, or media item | F3 미디어                                   |
 | Lyrics                   | The live 슬라이드 (lyrics or Bible verse)      | F2 가사                                     |
-| 공지                     | Images from a 공지 set                         | F7 공지                                     |
 | 그래픽                   | Logo, caption, notice card                     | F4 그래픽                                   |
 | 메시지                   | Text made from a 메시지 문구                   | F6 메시지                                   |
 | Audio                    | Audio playback (no picture)                    | F5 오디오                                   |

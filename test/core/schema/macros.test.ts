@@ -27,7 +27,6 @@ const PRAISE_THEME = '44444444-4444-4444-8444-444444444444';
 const WARM_LIGHT = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const COUNTDOWN_PROP = 'e1e2e3e4-1111-4222-8333-444455556666';
 const CAR_TEMPLATE = 'f1f2f3f4-1111-4222-8333-444455556666';
-const SUNDAY_NOTICES = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
 const OFFERING_MUSIC = 'a9a8a7a6-1111-4222-8333-444455556666';
 const PRE_SERVICE_MUSIC = 'c1c2c3c4-1111-4222-8333-444455556666';
 const ELAPSED_TIMER = 'b9b8b7b6-1111-4222-8333-444455556666';
@@ -46,7 +45,6 @@ function everyAction() {
       targets: 'all',
       duration: null,
     },
-    {kind: 'notice', notice: SUNDAY_NOTICES},
     {kind: 'audio', operation: 'play', media: OFFERING_MUSIC},
     {kind: 'audioPlaylist', playlist: PRE_SERVICE_MUSIC},
     {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},

@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
   createMessageTemplateId,
-  createNoticeSetId,
   createPropId,
   createTimerId,
   parseMacroCollectionId,
@@ -18,10 +17,6 @@ import {
   MAX_MESSAGE_TEMPLATES,
   saveMessageEdit,
 } from '@renderer/features/tools/messageEdits';
-import {
-  MAX_NOTICE_SETS,
-  saveNoticeEdit,
-} from '@renderer/features/tools/noticeEdits';
 import {MAX_PROPS, savePropEdit} from '@renderer/features/tools/propEdits';
 import {duplicateTimer} from '@renderer/features/tools/timerEdits';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
@@ -128,74 +123,6 @@ describe('복제 of a 메시지 문구', () => {
     ).rejects.toThrow('no longer exists');
     expect(edit).not.toHaveBeenCalled();
     expect(few.edit).not.toHaveBeenCalled();
-  });
-});
-
-describe('복제 of a 공지 세트', () => {
-  const set = (n: number, name: string) => ({
-    id: uuid(2, n),
-    name,
-    media: [MEDIA],
-    interval: 8,
-    loop: true,
-    targets: [SCREEN],
-  });
-  const file = (sets: readonly object[]) => ({
-    format: 'llsettings.notices',
-    schemaVersion: 1,
-    sets,
-  });
-
-  it('keeps the images, interval, and screens and numbers the name when taken', async () => {
-    const {api, edit} = apiWith(
-      documentOf(
-        'notices',
-        file([
-          set(1, '주일 광고'),
-          {...set(2, '주일 광고 복사본'), loop: false},
-        ]),
-      ),
-    );
-    const copyId = createNoticeSetId(uuid(2, 50));
-    await saveNoticeEdit(api, {
-      kind: 'duplicate',
-      id: createNoticeSetId(uuid(2, 1)),
-      copyId,
-    });
-    expect(written(edit)).toMatchObject({
-      sets: [
-        {id: uuid(2, 1), name: '주일 광고'},
-        {
-          id: copyId,
-          name: '주일 광고 복사본 2',
-          media: [MEDIA],
-          interval: 8,
-          loop: true,
-          targets: [SCREEN],
-        },
-        {id: uuid(2, 2)},
-      ],
-    });
-  });
-
-  it('refuses a copy past the cap', async () => {
-    const {api} = apiWith(
-      documentOf(
-        'notices',
-        file(
-          Array.from({length: MAX_NOTICE_SETS}, (_, n) =>
-            set(n + 1, `세트 ${n + 1}`),
-          ),
-        ),
-      ),
-    );
-    await expect(
-      saveNoticeEdit(api, {
-        kind: 'duplicate',
-        id: createNoticeSetId(uuid(2, 1)),
-        copyId: createNoticeSetId(uuid(2, 900)),
-      }),
-    ).rejects.toThrow('is full');
   });
 });
 

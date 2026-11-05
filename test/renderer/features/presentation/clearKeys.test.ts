@@ -141,7 +141,7 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe('useClearKeys F1 to F7', () => {
+describe('useClearKeys F1 to F6', () => {
   let stop: () => void = () => undefined;
   beforeEach(() => {
     stop = renderHook(() => useClearKeys()).unmount;
@@ -155,7 +155,6 @@ describe('useClearKeys F1 to F7', () => {
     ['F4', 'prop'],
     ['F5', 'audio'],
     ['F6', 'message'],
-    ['F7', 'notice'],
   ])('clears with %s the layer %s and swallows the key', (code, target) => {
     expect(press(code).defaultPrevented).toBe(true);
     expect(clearState.clearLayer).toHaveBeenCalledWith(target);

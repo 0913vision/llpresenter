@@ -180,7 +180,7 @@ describe('ClearRow', () => {
       render(<ClearRow compact={false} />);
       await act(async () => undefined);
       const group = screen.getByRole('group', {name: '지우기'});
-      expect(group.querySelectorAll('button')).toHaveLength(8);
+      expect(group.querySelectorAll('button')).toHaveLength(7);
       expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
       expect(group.querySelector('[aria-hidden="true"]')).toBeNull();
       expect(useLive.getState().state).toBe(state);
@@ -192,7 +192,7 @@ describe('ClearRow', () => {
     delete window.llp;
     render(<ClearRow compact={false} />);
     expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-    expect(screen.getAllByRole('button')).toHaveLength(8);
+    expect(screen.getAllByRole('button')).toHaveLength(7);
   });
 
   it('shows only undo and its divider after an enabled preference arrives', async () => {

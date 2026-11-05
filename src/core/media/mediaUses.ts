@@ -2,7 +2,6 @@ import type {MediaId} from '../schema/ids';
 import type {GroupedSong} from '../schema/groupedSong';
 import type {MediaList} from '../schema/mediaList';
 import type {MediaUses} from '../schema/mediaUses';
-import type {NoticesFile} from '../schema/notices';
 import type {MacrosFile} from '../schema/macros';
 import type {PropsFile} from '../schema/props';
 import type {ThemesFile} from '../schema/themes';
@@ -11,7 +10,6 @@ import {isItemOfKind, type Service} from '../schema/service';
 /** The documents that can use a media item. */
 export interface MediaUseSources {
   readonly media: MediaList;
-  readonly notices: NoticesFile;
   readonly props: PropsFile;
   readonly themes: ThemesFile;
   readonly macros: MacrosFile;
@@ -21,8 +19,7 @@ export interface MediaUseSources {
 
 /**
  * Counts the places that use a media item, for the delete question (spec 08,
- * "Deleting a media item that is in use"). A 공지 set counts once however many
- * times it lists the image.
+ * "Deleting a media item that is in use").
  */
 export function countMediaUses(
   mediaId: MediaId,
@@ -72,8 +69,6 @@ export function countMediaUses(
     themes,
     macros,
     playlists,
-    notices: sources.notices.sets.filter(set => set.media.includes(mediaId))
-      .length,
     graphics: sources.props.props.filter(
       prop => prop.content.kind === 'image' && prop.content.media === mediaId,
     ).length,

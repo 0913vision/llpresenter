@@ -17,7 +17,6 @@ const showingOrder = [
   ['messages', '메시지'],
   ['props', '그래픽'],
   ['stageMessages', '무대 메시지'],
-  ['notices', '공지'],
 ] as const satisfies ReadonlyArray<readonly [keyof ShowingCounts, string]>;
 
 function showingValue(counts: ShowingCounts): string {

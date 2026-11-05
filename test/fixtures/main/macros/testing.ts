@@ -23,7 +23,6 @@ export const IDS = {
   playlist: uuid(11),
   prop: uuid(12),
   message: uuid(13),
-  notice: uuid(14),
   image: uuid(15),
   timer: uuid(16),
   macro: uuid(20),
@@ -55,18 +54,6 @@ export function environment(
     messages: {
       templates: [
         {id: IDS.message, name: 'Notice', icon: 'msg', text: 'Invented {name}'},
-      ],
-    },
-    notices: {
-      sets: [
-        {
-          id: IDS.notice,
-          name: 'Notice',
-          media: [IDS.image],
-          interval: 5,
-          loop: true,
-          targets: [IDS.main],
-        },
       ],
     },
     props: {

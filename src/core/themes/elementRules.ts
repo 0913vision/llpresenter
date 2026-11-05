@@ -45,7 +45,6 @@ export const themeItemKinds = [
   'bible',
   'blank',
   'ad',
-  'notice',
   'media',
 ] as const;
 export type ThemeItemKind = (typeof themeItemKinds)[number];

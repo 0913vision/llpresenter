@@ -161,10 +161,10 @@ describe('show state', () => {
 
   it('does nothing on the last tile of the last item with 다음 항목', () => {
     setAtLastSlide('nextItem');
-    openItem('notice-sunday');
+    openItem('closing');
     const last = useShow.getState().rows.at(-1);
-    expect(last?.id).toBe('notice-sunday');
-    setLive('notice-sunday', 99);
+    expect(last?.id).toBe('closing');
+    setLive('closing', 99);
     outputNext();
     expect(sent).toHaveLength(0);
   });

@@ -18,14 +18,6 @@ export const CAPTIONS = fixtureScreenId(2);
 export const STAGE = fixtureScreenId(3);
 export const PROP = fixturePropId(10);
 export const IMAGE_PROP = fixturePropId(11);
-const noticeCommand = parseLiveCommand({
-  type: 'notice.start',
-  noticeId: overlayUuid(20),
-});
-if (!noticeCommand.ok || noticeCommand.value.type !== 'notice.start') {
-  throw new Error('Invalid notice fixture id');
-}
-export const NOTICE = noticeCommand.value.noticeId;
 export const IMAGES = [30, 31, 32].map(id => createMediaId(overlayUuid(id)));
 
 function fixtureScreenId(id: number) {
@@ -102,21 +94,6 @@ export function overlaySettings() {
             name: 'Image',
             targets: [MAIN, CAPTIONS],
             content: {kind: 'image', media: IMAGES[0]},
-          },
-        ],
-      }),
-    ],
-    [
-      'notices',
-      settingsDocument('notices', {
-        sets: [
-          {
-            id: NOTICE,
-            name: 'Fixture notices',
-            media: IMAGES,
-            interval: 5,
-            loop: false,
-            targets: [MAIN],
           },
         ],
       }),

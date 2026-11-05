@@ -4,7 +4,6 @@ import type {LoadedFile} from '@core/schema/fileFormat';
 import type {GroupedSong, SongGroup} from '@core/schema/groupedSong';
 import type {Label} from '@core/schema/labels';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {NoticeSet} from '@core/schema/notices';
 import {
   isItemOfKind,
   type Service,
@@ -38,8 +37,6 @@ export interface ShowServiceSources {
   readonly passages?: ServicePassages;
   /** The media list by id, for the names and kinds of media items. */
   readonly media?: ReadonlyMap<string, MediaItem>;
-  /** The 공지 sets by id. */
-  readonly notices?: ReadonlyMap<string, NoticeSet>;
 }
 
 export interface ProjectedSongTiles {
@@ -61,7 +58,6 @@ export function buildShowService({
   backgrounds = new Map(),
   passages,
   media,
-  notices,
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
   const colors = new Map(
@@ -87,7 +83,7 @@ export function buildShowService({
     itemTiles[itemId] = tiles;
   }
   for (const item of order) {
-    const tiles = otherTiles(item, {backgrounds, media, notices});
+    const tiles = otherTiles(item, {backgrounds, media});
     if (tiles !== undefined) itemTiles[item.id] = tiles;
   }
   const rowSources: RowSources = {
@@ -96,7 +92,6 @@ export function buildShowService({
     cappedItems,
     passages,
     media,
-    notices,
   };
   return {
     revision,
@@ -115,7 +110,6 @@ interface RowSources {
   readonly cappedItems: ReadonlySet<string>;
   readonly passages: ServicePassages | undefined;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
-  readonly notices: ReadonlyMap<string, NoticeSet> | undefined;
 }
 
 const UNNAMED_MEDIA = '이름 없는 미디어';
@@ -127,17 +121,14 @@ function mediaTitle(media: MediaItem): string {
 interface OtherSources {
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
-  readonly notices: ReadonlyMap<string, NoticeSet> | undefined;
 }
 
 /**
- * The tiles of a media item (one, that outputs the media) or a 공지 item (one
- * per image, each starting the 공지 from it). Audio and missing media have no
- * tile.
+ * The single tile of a media item. Audio and missing media have no tile.
  */
 function otherTiles(
   item: ServiceItem,
-  {backgrounds, media, notices}: OtherSources,
+  {backgrounds, media}: OtherSources,
 ): readonly ShowTile[] | undefined {
   if (isItemOfKind(item, 'slides')) return projectSlides(item, media);
   if (isItemOfKind(item, 'media')) {
@@ -153,25 +144,6 @@ function otherTiles(
         media: choice,
       },
     ];
-  }
-  if (isItemOfKind(item, 'notice')) {
-    if (notices === undefined) return undefined;
-    const set = notices.get(item.notice);
-    if (set === undefined) return [];
-    const tiles: ShowTile[] = [];
-    set.media.forEach((mediaId, position) => {
-      const found = media?.get(mediaId);
-      if (found === undefined || tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
-        return;
-      }
-      tiles.push({
-        label: null,
-        labelColor: NO_LABEL_COLOR,
-        lines: [mediaTitle(found)],
-        notice: {noticeId: set.id, position, media: mediaId},
-      });
-    });
-    return tiles;
   }
   return undefined;
 }
@@ -242,17 +214,6 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       id,
       title: found === undefined ? '' : mediaTitle(found),
       ...problem,
-    };
-  }
-  if (isItemOfKind(item, 'notice')) {
-    const set = sources.notices?.get(item.notice);
-    return {
-      kind: 'notice',
-      id,
-      title: set?.name ?? '',
-      ...(sources.notices === undefined || set !== undefined
-        ? {}
-        : {problem: 'missing-media' as const}),
     };
   }
   return {kind: 'unknown', id, title: '', problem: 'unknown-kind'};

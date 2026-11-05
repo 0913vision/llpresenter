@@ -103,7 +103,6 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
     case 'bible':
     case 'slides':
     case 'media':
-    case 'notice':
     case 'unknown':
       return openInPrep === undefined
         ? []
@@ -137,7 +136,6 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
       return [];
     case 'bible':
     case 'media':
-    case 'notice':
     case 'unknown':
       return [laterRow('rename', '이름 바꾸기')];
   }

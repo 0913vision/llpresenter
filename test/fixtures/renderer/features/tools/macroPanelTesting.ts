@@ -57,7 +57,6 @@ export function mockMacroPanel(actions: readonly object[] = []) {
       collections: [group],
     }),
     settingsDocument('props', {props: []}),
-    settingsDocument('notices', {sets: []}),
   ]);
   const api = window.llp;
   if (!api) throw new Error('Missing API');

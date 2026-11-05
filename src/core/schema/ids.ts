@@ -22,7 +22,6 @@ export const serviceItemIdSchema = uuidId('ServiceItemId');
 export const slideIdSchema = uuidId('SlideId');
 export const mediaIdSchema = uuidId('MediaId');
 export const messageIdSchema = uuidId('MessageId');
-export const noticeSetIdSchema = uuidId('NoticeSetId');
 export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
 export const themeIdSchema = uuidId('ThemeId');
@@ -52,7 +51,6 @@ export type ServiceItemId = v.InferOutput<typeof serviceItemIdSchema>;
 export type SlideId = v.InferOutput<typeof slideIdSchema>;
 export type MediaId = v.InferOutput<typeof mediaIdSchema>;
 export type MessageId = v.InferOutput<typeof messageIdSchema>;
-export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
 export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
 export type ThemeId = v.InferOutput<typeof themeIdSchema>;
@@ -162,11 +160,6 @@ export function parseMediaId(value: unknown) {
 /** Brands a reserved media or copy-job UUID; throws unless it is version 4. */
 export function createMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
-}
-
-/** Brands a generated notice set UUID; throws unless it is lowercase version 4. */
-export function createNoticeSetId(uuid: string): NoticeSetId {
-  return v.parse(noticeSetIdSchema, uuid);
 }
 
 /** Brands a generated prop UUID; throws unless it is lowercase version 4. */

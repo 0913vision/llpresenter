@@ -14,21 +14,20 @@ function actionFrom(draft: MacroActionDraft | undefined) {
   return prepareMacroAction(draft);
 }
 
-it.each<MacroActionKind>([
-  'theme',
-  'notice',
-  'media',
-  'audioPlaylist',
-  'macro',
-])('builds a validated %s action from its target', kind => {
-  const choose = vi.fn((draft: MacroActionDraft) => prepareMacroAction(draft));
-  const [row] = menuItems(
-    macroActionChoices({kind, targets: [{id, name: '대상'}], choose}),
-  );
-  row?.onSelect?.();
-  expect(choose).toHaveBeenCalledOnce();
-  expect(actionFrom(choose.mock.calls[0]?.[0])?.kind).toBe(kind);
-});
+it.each<MacroActionKind>(['theme', 'media', 'audioPlaylist', 'macro'])(
+  'builds a validated %s action from its target',
+  kind => {
+    const choose = vi.fn((draft: MacroActionDraft) =>
+      prepareMacroAction(draft),
+    );
+    const [row] = menuItems(
+      macroActionChoices({kind, targets: [{id, name: '대상'}], choose}),
+    );
+    row?.onSelect?.();
+    expect(choose).toHaveBeenCalledOnce();
+    expect(actionFrom(choose.mock.calls[0]?.[0])?.kind).toBe(kind);
+  },
+);
 
 it.each(['prop', 'timer'] as const)(
   'lists %s operations and marks the current target and operation',

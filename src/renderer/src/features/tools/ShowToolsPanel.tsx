@@ -10,7 +10,6 @@ import {StageTab} from './StageTab';
 import {MessageTab} from './MessageTab';
 import {TimerTab} from './TimerTab';
 import {PropTab} from './PropTab';
-import {NoticeTab} from './NoticeTab';
 import {MacroTab} from './MacroTab';
 import styles from './ShowToolsPanel.module.css';
 
@@ -43,7 +42,6 @@ export function ShowToolsPanel({
           {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
           {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
           {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}
-          {selected === 'notice' ? <NoticeTab onProblem={onProblem} /> : null}
           {selected === 'prop' ? <PropTab onProblem={onProblem} /> : null}
           {selected === 'macro' ? <MacroTab onProblem={onProblem} /> : null}
         </PanelBody>

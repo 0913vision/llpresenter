@@ -108,7 +108,6 @@ it('ignores other settings and releases its definition subscription on dispose',
   const f = await setup();
   f.send({type: 'timer.start', timerId: B});
   const before = f.store.state;
-  f.settings.update(settingsDocument('notices', {sets: []}));
   expect(f.store.state).toBe(before);
   f.stop();
   f.update([]);

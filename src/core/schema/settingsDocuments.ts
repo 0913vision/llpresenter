@@ -8,7 +8,6 @@ import {labelsSchema} from './labels';
 import {themesSchema} from './themes';
 import {macrosSchema} from './macros';
 import {messagesSchema} from './messages';
-import {noticesSchema} from './notices';
 import {payloadObject, plainObject, type PayloadError} from './payload';
 import {preferencesSchema} from './preferences';
 import {propsSchema} from './props';
@@ -41,7 +40,6 @@ const schemas = {
   macros: macrosSchema,
   quick: quickSchema,
   messages: messagesSchema,
-  notices: noticesSchema,
   props: propsSchema,
   timers: timersSchema,
   labels: labelsSchema,
@@ -57,7 +55,6 @@ export const settingsNames = [
   'macros',
   'quick',
   'messages',
-  'notices',
   'props',
   'timers',
   'labels',
@@ -79,7 +76,6 @@ const settingsDocument = v.pipe(
     settingsDocumentSchema('macros', schemas.macros),
     settingsDocumentSchema('quick', schemas.quick),
     settingsDocumentSchema('messages', schemas.messages),
-    settingsDocumentSchema('notices', schemas.notices),
     settingsDocumentSchema('props', schemas.props),
     settingsDocumentSchema('timers', schemas.timers),
     settingsDocumentSchema('labels', schemas.labels),
@@ -108,7 +104,6 @@ const settingsUpdateSchema = v.variant('name', [
   updateSchema('macros', schemas.macros),
   updateSchema('quick', schemas.quick),
   updateSchema('messages', schemas.messages),
-  updateSchema('notices', schemas.notices),
   updateSchema('props', schemas.props),
   updateSchema('timers', schemas.timers),
   updateSchema('labels', schemas.labels),

@@ -30,7 +30,6 @@ const allRows = [
       messages: 1,
       props: 1,
       stageMessages: 1,
-      notices: 0,
     },
   },
 ] as const;

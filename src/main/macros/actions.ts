@@ -131,17 +131,6 @@ export const macroActionHandlers = [
     },
   }),
   defineMacroAction({
-    kind: 'notice',
-    compile: (action, {catalog}) => {
-      requireMacroTarget(
-        catalog.notices.sets.find(item => item.id === action.notice),
-        'notice',
-        action.notice,
-      );
-      return command({type: 'notice.start', noticeId: action.notice});
-    },
-  }),
-  defineMacroAction({
     kind: 'audio',
     compile: (action, {catalog}) => {
       if (action.operation === 'play') {

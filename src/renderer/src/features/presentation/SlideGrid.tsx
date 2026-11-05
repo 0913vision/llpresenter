@@ -86,7 +86,7 @@ export function SlideGrid({
         className={styles.grid}
       >
         {tiles?.map((tile, index) => {
-          const picture = tile.media?.mediaId ?? tile.notice?.media;
+          const picture = tile.media?.mediaId;
           const slide =
             openItemId === null
               ? null

@@ -130,7 +130,6 @@ describe('main-process theme runtime', () => {
       const {store, dispatch, slide, advance, current} = setup([overlay], {
         media: {mediaId: 'background', loop: true, startedAt: 500},
         prop: {propId: 'prop'},
-        notice: {noticeId: 'notice'},
         audio: {mediaId: 'audio'},
         message: {
           messageId: 'message',
@@ -182,7 +181,7 @@ describe('main-process theme runtime', () => {
         ).toEqual(overlay);
         expect(store.state.layers.slide).toBe(layers.slide);
         expect(store.state.layers.media?.startedAt).toBe(500 + cycle * 1000);
-        for (const kind of ['prop', 'notice', 'message', 'audio'] as const) {
+        for (const kind of ['prop', 'message', 'audio'] as const) {
           expect(store.state.layers[kind]).toBe(layers[kind]);
         }
         expect(store.state.themeOutput?.themeId).toBe(themeId);
@@ -196,20 +195,19 @@ describe('main-process theme runtime', () => {
   it('keeps independent layers cleared and their key captures when restoring the item', () => {
     const {store, dispatch, slide} = setup(undefined, {
       prop: {propId: 'prop'},
-      notice: {noticeId: 'notice'},
       message: {messageId: 'message', text: 'Independent message'},
     });
     slide();
     dispatch({type: 'item.stop'});
-    for (const target of ['prop', 'notice', 'message'] as const) {
+    for (const target of ['prop', 'message'] as const) {
       dispatch({type: 'layer.clear.toggle', target});
     }
     dispatch({type: 'item.restore'});
     expect(store.state.layers.slide?.itemId).toBe(ITEM);
-    for (const kind of ['prop', 'notice', 'message'] as const) {
+    for (const kind of ['prop', 'message'] as const) {
       expect(store.state.layers[kind]).toBeNull();
     }
-    expect(store.state.clearToggles).toEqual(['prop', 'message', 'notice']);
+    expect(store.state.clearToggles).toEqual(['prop', 'message']);
   });
 
   it('preserves independent clear-key captures made before stopping and restoring the item', () => {
@@ -217,11 +215,10 @@ describe('main-process theme runtime', () => {
       prop: {propId: 'prop'},
       audio: {mediaId: 'audio'},
       message: {messageId: 'message', text: 'Independent message'},
-      notice: {noticeId: 'notice'},
     });
     slide();
     const original = store.state.layers;
-    const targets = ['prop', 'audio', 'message', 'notice'] as const;
+    const targets = ['prop', 'audio', 'message'] as const;
     for (const target of targets) {
       dispatch({type: 'layer.clear.toggle', target});
     }
