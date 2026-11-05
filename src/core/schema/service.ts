@@ -15,6 +15,7 @@ import {
   noticeSetIdSchema,
   serviceIdSchema,
   serviceItemIdSchema,
+  slideIdSchema,
   songGroupIdSchema,
   songIdSchema,
   templateIdSchema,
@@ -22,12 +23,15 @@ import {
 } from './ids';
 import {SONG_GROUP_LIMITS} from './groupedSong';
 import {itemOverlaysSchema} from './itemOverlays';
+import {LIVE_STATE_LIMITS} from './liveLimits';
+import {SONG_NAME_MAX_LENGTH} from './song';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
   listWithUniqueIds,
   localDateTime,
   positiveInteger,
+  positiveSeconds,
   timeOfDay,
 } from './primitives';
 
@@ -38,11 +42,58 @@ export const serviceItemKinds = [
   'header',
   'song',
   'bible',
+  'slides',
   'media',
   'notice',
 ] as const;
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
+
+export const SLIDES_LIMITS = {
+  slides: 200,
+  text: LIVE_STATE_LIMITS.textCharacters,
+  name: SONG_NAME_MAX_LENGTH,
+} as const;
+
+const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
+
+export const slideSchema = v.pipe(
+  v.union([
+    jsonObject({
+      id: slideIdSchema,
+      text: v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text)),
+      name: v.exactOptional(slideNameSchema),
+    }),
+    jsonObject({id: slideIdSchema, media: mediaIdSchema}),
+  ]),
+  v.check(
+    slide =>
+      !Object.hasOwn(slide, 'media') ||
+      (!Object.hasOwn(slide, 'text') && !Object.hasOwn(slide, 'name')),
+    'A slide contains either text with an optional name or media',
+  ),
+);
+
+const slidesSchema = v.pipe(
+  jsonObject({
+    form: v.picklist(['blank', 'ad']),
+    name: slideNameSchema,
+    slides: v.pipe(
+      listWithUniqueIds(slideSchema),
+      v.maxLength(SLIDES_LIMITS.slides),
+    ),
+    advance: v.exactOptional(positiveSeconds),
+    loop: v.exactOptional(v.boolean()),
+  }),
+  v.check(
+    item =>
+      item.form !== 'blank' ||
+      item.slides.every(slide => !Object.hasOwn(slide, 'name')),
+    'Blank slides do not have names',
+  ),
+);
+
+export type Slide = ReadonlyKnown<v.InferOutput<typeof slideSchema>>;
 
 const itemFields = {
   id: serviceItemIdSchema,
@@ -73,6 +124,12 @@ const itemSchemas = {
   bible: jsonObject({
     ...itemFields,
     bible: biblePassageSchema,
+    ...startFields,
+  }),
+  slides: jsonObject({
+    ...itemFields,
+    slides: slidesSchema,
+    background: v.exactOptional(mediaIdSchema),
     ...startFields,
   }),
   media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),

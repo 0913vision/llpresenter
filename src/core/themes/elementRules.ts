@@ -28,6 +28,7 @@ export const themeElementKinds = [
   'background',
   'overlay',
   'itemName',
+  'slideName',
   'text',
   'image',
   'box',
@@ -39,7 +40,14 @@ export const themeElementKinds = [
 ] as const;
 export type ThemeElementKind = (typeof themeElementKinds)[number];
 
-export const themeItemKinds = ['song', 'bible', 'notice', 'media'] as const;
+export const themeItemKinds = [
+  'song',
+  'bible',
+  'blank',
+  'ad',
+  'notice',
+  'media',
+] as const;
 export type ThemeItemKind = (typeof themeItemKinds)[number];
 
 const repeatable = new Set<ThemeElementKind>(['text', 'image', 'box', 'timer']);

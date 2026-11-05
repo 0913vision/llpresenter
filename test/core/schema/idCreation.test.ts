@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   createServiceId,
   createServiceItemId,
+  createSlideId,
   createSongId,
   createTemplateId,
   createMediaId,
@@ -18,6 +19,7 @@ const factories = {
   service: createServiceId,
   template: createTemplateId,
   item: createServiceItemId,
+  slide: createSlideId,
   media: createMediaId,
   message: createMessageId,
   mediaPlaylist: createMediaPlaylistId,

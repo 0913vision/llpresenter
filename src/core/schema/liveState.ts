@@ -58,6 +58,7 @@ export const layerSchemas = {
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     reference: v.exactOptional(liveTextSchema),
+    name: v.exactOptional(liveTextSchema),
     kind: v.exactOptional(v.picklist(themeItemKinds)),
     title: v.exactOptional(liveTextSchema),
     memo: v.exactOptional(liveTextSchema),

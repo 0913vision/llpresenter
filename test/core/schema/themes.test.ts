@@ -1,7 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
 import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
-import {themeElementKinds} from '@core/themes/elementRules';
+import {
+  availableThemeElementKinds,
+  themeElementKinds,
+  themeElementProblem,
+} from '@core/themes/elementRules';
 import {
   parseThemes,
   serializeThemes,
@@ -42,6 +46,28 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('accepts slideName with only the common text fields on every screen, once per screen', () => {
+    const slideName = {id: uuid(1), kind: 'slideName', frame, text};
+    expect(v.safeParse(themeElementSchema, slideName).success).toBe(true);
+    for (const screen of ['audience', 'stage', 'broadcast'] as const) {
+      expect(availableThemeElementKinds([], screen, false)).toContain(
+        'slideName',
+      );
+      expect(
+        themeElementProblem([{kind: 'slideName'}], screen),
+      ).toBeUndefined();
+    }
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        ...layout,
+        elements: [slideName, {...slideName, id: uuid(2)}],
+      }).success,
+    ).toBe(false);
+    expect(
+      v.safeParse(themeElementSchema, {...slideName, text: undefined}).success,
+    ).toBe(false);
+  });
+
   it.each(themeElementKinds)('parses the %s element variant', kind => {
     expect(v.safeParse(themeElementSchema, {...element, kind}).success).toBe(
       true,
@@ -204,6 +230,46 @@ describe('theme element properties', () => {
 });
 
 describe('theme documents', () => {
+  it('round-trips blank and ad default references with a slideName theme', () => {
+    const data = {
+      ...file,
+      defaults: {blank: uuid(4), ad: uuid(4)},
+      themes: [
+        {
+          ...theme,
+          screens: {
+            [uuid(5)]: {
+              ...layout,
+              elements: [{id: uuid(1), kind: 'slideName', frame, text}],
+            },
+          },
+        },
+      ],
+    };
+    const parsed = expectSuccess(
+      parseThemes(JSON.stringify(data), 'themes.json'),
+    );
+    expect(
+      JSON.parse(expectSuccess(serializeThemes(parsed.data, 'themes.json'))),
+    ).toEqual(data);
+  });
+
+  it.each(['blank', 'ad'])(
+    'validates the optional %s default identity',
+    kind => {
+      expect(
+        v.safeParse(themesSchema, {...file, defaults: {[kind]: uuid(999)}})
+          .success,
+      ).toBe(true);
+      for (const value of ['missing', null, 1, undefined]) {
+        expect(
+          v.safeParse(themesSchema, {...file, defaults: {[kind]: value}})
+            .success,
+        ).toBe(false);
+      }
+    },
+  );
+
   it.each([{kind: 'own'}, {kind: 'empty'}, {kind: 'same', screen: uuid(5)}])(
     'accepts screen mode %j',
     mode => {

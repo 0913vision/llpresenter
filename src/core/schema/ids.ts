@@ -19,6 +19,7 @@ export const songGroupIdSchema = uuidId('SongGroupId');
 export const serviceIdSchema = uuidId('ServiceId');
 export const templateIdSchema = uuidId('TemplateId');
 export const serviceItemIdSchema = uuidId('ServiceItemId');
+export const slideIdSchema = uuidId('SlideId');
 export const mediaIdSchema = uuidId('MediaId');
 export const messageIdSchema = uuidId('MessageId');
 export const noticeSetIdSchema = uuidId('NoticeSetId');
@@ -48,6 +49,7 @@ export type SongGroupId = v.InferOutput<typeof songGroupIdSchema>;
 export type ServiceId = v.InferOutput<typeof serviceIdSchema>;
 export type TemplateId = v.InferOutput<typeof templateIdSchema>;
 export type ServiceItemId = v.InferOutput<typeof serviceItemIdSchema>;
+export type SlideId = v.InferOutput<typeof slideIdSchema>;
 export type MediaId = v.InferOutput<typeof mediaIdSchema>;
 export type MessageId = v.InferOutput<typeof messageIdSchema>;
 export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
@@ -133,6 +135,10 @@ export function createTemplateId(uuid: string): TemplateId {
 /** Brands a generated item UUID; throws unless it is lowercase version 4. */
 export function createServiceItemId(uuid: string): ServiceItemId {
   return v.parse(serviceItemIdSchema, uuid);
+}
+
+export function createSlideId(uuid: string): SlideId {
+  return v.parse(slideIdSchema, uuid);
 }
 
 /** Checks a service item ID received from a view without throwing. */

@@ -61,6 +61,7 @@ export function newThemeElement({
     case 'label':
     case 'nextLabel':
     case 'itemName':
+    case 'slideName':
     case 'timer':
     case 'videoTimeLeft':
     case 'stageMessage':

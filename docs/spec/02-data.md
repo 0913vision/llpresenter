@@ -219,13 +219,14 @@ Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them
 new item IDs (proposal).
 
-| Kind           | Kind key                    | Other fields                                                | Source                                                                   |
-| -------------- | --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Section (구역) | `header`: name              | None                                                        | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
-| Song           | `song`: song ID             | `arrangement`, `customOrder`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
-| Bible passage  | `bible`: object (see below) | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
-| Media          | `media`: media ID           | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
-| 공지           | `notice`: 공지 set ID       | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
+| Kind               | Kind key                     | Other fields                                                | Source                                                                   |
+| ------------------ | ---------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Section (구역)     | `header`: name               | None                                                        | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
+| Song               | `song`: song ID              | `arrangement`, `customOrder`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
+| Bible passage      | `bible`: object (see below)  | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
+| 빈 슬라이드 / 광고 | `slides`: object (see below) | `background`, `macro`, `memo`                               | User decision, November 5.                                               |
+| Media              | `media`: media ID            | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
+| 공지               | `notice`: 공지 set ID        | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
 
 Keep an item with an unknown kind key unchanged. Show it as a row with a warning
 icon, and don't let the operator output it (proposal).
@@ -240,6 +241,31 @@ icon, and don't let the operator output it (proposal).
 | `background`  | String (media ID)  | No       | Background override for this service. If absent, the item uses the song's default background.                                                                                                                                                                                                                                                              |
 | `macro`       | String             | No       | The 매크로 to run when the item starts. Version 1 stores the 매크로 ID.                                                                                                                                                                                                                                                                                    |
 | `memo`        | String             | No       | Memo. Can have several lines.                                                                                                                                                                                                                                                                                                                              |
+
+### Slides item fields
+
+빈 슬라이드 and 광고 share the `slides` kind key. The value is an object:
+
+| Field     | Type                           | Required | Meaning                                             |
+| --------- | ------------------------------ | -------- | --------------------------------------------------- |
+| `form`    | `"blank"` \| `"ad"`            | Yes      | 빈 슬라이드 or 광고.                                |
+| `name`    | String, at most 512 characters | Yes      | The item's name, using the song title cap.          |
+| `slides`  | Array, at most 200             | Yes      | Slides in playback order; an empty list is allowed. |
+| `advance` | Positive finite seconds        | No       | Automatic advance interval. Absent: manual.         |
+| `loop`    | Boolean                        | No       | Repeat after the last slide. Absent: off.           |
+
+Each slide is either `{id, text, name?}` or `{id, media}`, never both. `id` is a
+lowercase UUID v4, unique within this item, with the separate `SlideId` type.
+Text is a string of at most 4,000 characters, following the live song text cap.
+An optional slide `name` is at most 512 characters, following the song title
+cap, and is allowed only for `ad` text slides. Even an empty name is invalid on
+a `blank` slide. `media` is a media ID, never a file path. Empty text and names
+are allowed. Unknown fields survive at every level.
+
+At item level, `theme`, `overlays`, `background`, `macro`, and `memo` are
+optional, as on song items. `background` is a media ID. The live slide carries
+an optional `name` for the theme's `slideName` element, separately from the item
+title, label, and Bible reference.
 
 ### Bible passage object (proposal)
 
@@ -357,11 +383,11 @@ Don't save whether a screen output is on. At launch, the 환경설정 option 켤
 
 The 테마 lay out all three screens for every 예배 순서 item. Behavior is in 12.
 
-| Field      | Type                        | Meaning                                                     |
-| ---------- | --------------------------- | ----------------------------------------------------------- |
-| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.               |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.               |
-| `defaults` | Object: kind to theme ID    | The default 테마 of `song`, `bible`, `notice`, and `media`. |
+| Field      | Type                        | Meaning                                                                              |
+| ---------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.                                        |
+| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.                                        |
+| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, `notice`, and `media`. |
 
 Theme:
 

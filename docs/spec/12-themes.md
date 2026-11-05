@@ -55,25 +55,26 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 
 ## Elements
 
-| Element        | Content comes from                                           | Screens        | Per screen |
-| -------------- | ------------------------------------------------------------ | -------------- | ---------- |
-| 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse            | All            | One        |
-| 성경 출처      | The live Bible 슬라이드's reference; empty on other 슬라이드 | All            | One        |
-| 다음 가사      | The next 슬라이드's text                                     | All            | One        |
-| 이름표         | The live 슬라이드's 이름표                                   | All            | One        |
-| 다음 이름표    | The next 슬라이드's 이름표                                   | All            | One        |
-| 미디어         | The live 슬라이드 when it is a photo or a video              | All            | One        |
-| 배경           | The item's background (the 곡 배경 today)                    | All            | One        |
-| 오버레이       | The item's 오버레이 for the live 슬라이드                    | All            | One        |
-| 항목 이름      | The live item's name                                         | All            | One        |
-| 글             | Fixed text written in the 테마                               | All            | Several    |
-| 이미지         | A fixed image from the media list                            | All            | Several    |
-| 사각형         | A filled box                                                 | All            | Several    |
-| 시계           | The current time                                             | All            | One        |
-| 타이머         | A 타이머 picked in the element                               | All            | Several    |
-| 영상 남은 시간 | Time left of the video playing on the media layer            | All            | One        |
-| 무대 메시지    | The stage message sent from 진행 도구                        | 무대 화면 only | One        |
-| 메모           | The live 슬라이드's memo                                     | 무대 화면 only | One        |
+| Element        | Content comes from                                                                 | Screens        | Per screen |
+| -------------- | ---------------------------------------------------------------------------------- | -------------- | ---------- |
+| 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse                                  | All            | One        |
+| 성경 출처      | The live Bible 슬라이드's reference; empty on other 슬라이드                       | All            | One        |
+| 다음 가사      | The next 슬라이드's text                                                           | All            | One        |
+| 이름표         | The live 슬라이드's 이름표                                                         | All            | One        |
+| 다음 이름표    | The next 슬라이드's 이름표                                                         | All            | One        |
+| 미디어         | The live 슬라이드 when it is a photo or a video                                    | All            | One        |
+| 배경           | The item's background (the 곡 배경 today)                                          | All            | One        |
+| 오버레이       | The item's 오버레이 for the live 슬라이드                                          | All            | One        |
+| 항목 이름      | The live item's name                                                               | All            | One        |
+| 슬라이드 이름  | The live 슬라이드's name (`slideName`), an 광고 text slide's name; empty otherwise | All            | One        |
+| 글             | Fixed text written in the 테마                                                     | All            | Several    |
+| 이미지         | A fixed image from the media list                                                  | All            | Several    |
+| 사각형         | A filled box                                                                       | All            | Several    |
+| 시계           | The current time                                                                   | All            | One        |
+| 타이머         | A 타이머 picked in the element                                                     | All            | Several    |
+| 영상 남은 시간 | Time left of the video playing on the media layer                                  | All            | One        |
+| 무대 메시지    | The stage message sent from 진행 도구                                              | 무대 화면 only | One        |
+| 메모           | The live 슬라이드's memo                                                           | 무대 화면 only | One        |
 
 - 무대 메시지 and 메모 exist only on the 무대 화면 so that the audience never
   sees them. The editor offers them only there, and a paste onto another screen
@@ -116,7 +117,8 @@ one-pixel increment (ten with Shift).
 | 맞춤             | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)    |
 
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
-이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
+이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
+`slideName` has only the common text element properties.
 
 On and off properties (외곽선, 그림자, 채우기) are checkboxes, not switches
 (user, October 31).
@@ -308,11 +310,11 @@ kind's default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
 
 ### `Settings\themes.json`
 
-| Field      | Type                        | Meaning                                                     |
-| ---------- | --------------------------- | ----------------------------------------------------------- |
-| `standby`  | Theme                       | The 대기 화면.                                              |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list.                                              |
-| `defaults` | Object: kind to theme ID    | The default 테마 of `song`, `bible`, `notice`, and `media`. |
+| Field      | Type                        | Meaning                                                                              |
+| ---------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| `standby`  | Theme                       | The 대기 화면.                                                                       |
+| `themes[]` | Array of Theme, at most 200 | The 테마 list.                                                                       |
+| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, `notice`, and `media`. |
 
 Theme:
 
@@ -329,12 +331,13 @@ Screen layout:
 | `elements` | Array of Element, at most 10, bottom first                                         | Used only in `own`.                    |
 
 Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
-`background`, `overlay`, `itemName`, `text`, `image`, `box`, `clock`, `timer`,
-`stageMessage`, `memo`, `nextLabel`, `videoTimeLeft`), `frame` `{ x, y, w, h }`,
-and the properties of its kind from "Element properties" (`text` fields as the
-text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
-`content` for 글, `mediaId` for 이미지, `timerId` for 타이머, `clockFormat` for
-시계). Keep unknown fields, as every settings file does (02).
+`background`, `overlay`, `itemName`, `slideName`, `text`, `image`, `box`,
+`clock`, `timer`, `stageMessage`, `memo`, `nextLabel`, `videoTimeLeft`), `frame`
+`{ x, y, w, h }`, and the properties of its kind from "Element properties"
+(`text` fields as the text style of 02, `box` with fill, opacity, and radius,
+`fit`, and per kind `content` for 글, `mediaId` for 이미지, `timerId` for
+타이머, `clockFormat` for 시계). Keep unknown fields, as every settings file
+does (02).
 
 ### Item fields (`.llservice`)
 
@@ -344,6 +347,10 @@ text style of 02, `box` with fill, opacity, and radius, `fit`, and per kind
 | `overlays[]` | Array, at most 50, optional | `id`, `name`, `from`, `to` (슬라이드 positions, 1-based), `screens[]`, `content` (`{ "media": ID, "loop": Boolean, "sound": Boolean }` or `{ "text": String }`). |
 
 ### Defaults
+
+- `defaults.blank` and `defaults.ad` optionally select the 테마 for 빈 슬라이드
+  and 광고 items respectively. The intended defaults are 말씀 for 빈 슬라이드
+  and 광고 for 광고.
 
 - A new `themes.json` holds 찬양, 말씀, 광고, and 영상 as the defaults of 곡,
   성경, 공지, and 미디어 (draft E's names), and a 대기 화면 with nothing on any

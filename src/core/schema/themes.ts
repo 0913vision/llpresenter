@@ -97,6 +97,7 @@ export const themeElementSchema = v.pipe(
     textElement('label', {}),
     textElement('nextLabel', {}),
     textElement('itemName', {}),
+    textElement('slideName', {}),
     textElement('text', {content: v.string()}),
     textElement('clock', {clockFormat: v.picklist(['24h', '12h'])}),
     textElement('timer', {timerId: v.exactOptional(timerIdSchema)}),
@@ -183,6 +184,8 @@ export const themesSchema = v.pipe(
     defaults: jsonObject({
       song: v.exactOptional(themeIdSchema),
       bible: v.exactOptional(themeIdSchema),
+      blank: v.exactOptional(themeIdSchema),
+      ad: v.exactOptional(themeIdSchema),
       notice: v.exactOptional(themeIdSchema),
       media: v.exactOptional(themeIdSchema),
     }),

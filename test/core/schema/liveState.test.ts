@@ -29,6 +29,41 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('carries a bounded optional slide name separately from label, title, and reference', () => {
+    const slide = {
+      itemId: 'item-1',
+      position: 0,
+      label: 'Label',
+      lines: [],
+      title: 'Item',
+      reference: '3:16',
+    };
+    for (const name of [
+      '',
+      'Event',
+      'x'.repeat(LIVE_STATE_LIMITS.textCharacters),
+    ]) {
+      const state = {
+        ...emptyLiveState(),
+        layers: {...emptyLiveState().layers, slide: {...slide, name}},
+      };
+      expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    }
+    for (const name of [
+      null,
+      1,
+      undefined,
+      'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+    ]) {
+      expect(
+        parseLiveState({
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: {...slide, name}},
+        }).ok,
+      ).toBe(false);
+    }
+  });
+
   it.each([true, false])(
     'accepts an item restore flag of %s',
     canRestoreItem => {

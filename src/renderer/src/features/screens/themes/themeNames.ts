@@ -12,6 +12,7 @@ export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
   background: '배경',
   overlay: '오버레이',
   itemName: '항목 이름',
+  slideName: '슬라이드 이름',
   text: '글자',
   image: '이미지',
   box: '사각형',
@@ -24,6 +25,8 @@ export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
 export const themeKindNames: Readonly<Record<ThemeItemKind, string>> = {
   song: '곡',
   bible: '성경',
+  blank: '빈 슬라이드',
+  ad: '광고',
   notice: '공지',
   media: '미디어',
 };

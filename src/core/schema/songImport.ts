@@ -5,6 +5,7 @@ import {payloadObject, plainObject} from './payload';
 import {nonBlankText} from './primitives';
 import {groupArrangementSchema, songGroupSchema} from './groupedSong';
 import {uniqueNames} from './uniqueNames';
+import {SONG_NAME_MAX_LENGTH} from './song';
 
 export const SONG_IMPORT_LIMITS = {
   slides: 5000,
@@ -12,7 +13,7 @@ export const SONG_IMPORT_LIMITS = {
   characters: 1_500_000,
   arrangements: 1000,
   picks: 20_000,
-  name: 512,
+  name: SONG_NAME_MAX_LENGTH,
   labels: 10_000,
 } as const;
 

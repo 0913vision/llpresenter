@@ -28,7 +28,9 @@ export function useItemTheme(
   const kind =
     item === null
       ? undefined
-      : themeItemKinds.find(kind => isItemOfKind(item, kind));
+      : themeItemKinds.find(
+          kind => kind !== 'blank' && kind !== 'ad' && isItemOfKind(item, kind),
+        );
   const theme =
     kind === undefined
       ? undefined

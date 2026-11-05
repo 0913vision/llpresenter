@@ -177,9 +177,11 @@ export function builtInTheme(
   kind: ThemeItemKind,
   screens: readonly ThemeScreen[] = starterScreens,
 ): Theme {
+  const fallbackKind =
+    kind === 'blank' ? 'bible' : kind === 'ad' ? 'notice' : kind;
   return {
-    id: themeIds[kind],
-    name: names[kind],
+    id: themeIds[fallbackKind],
+    name: names[fallbackKind],
     screens: Object.fromEntries(
       screens.map(screen => [screen.id, layoutFor(screen, kind)]),
     ),
@@ -201,7 +203,9 @@ export function createDefaultThemes(
           .map(screen => [screen.id, standbyStageLayout()]),
       ),
     },
-    themes: themeItemKinds.map(kind => builtInTheme(kind, screens)),
+    themes: themeItemKinds
+      .filter(kind => kind !== 'blank' && kind !== 'ad')
+      .map(kind => builtInTheme(kind, screens)),
     defaults: {...themeIds},
   };
 }

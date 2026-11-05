@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import {nonBlankText} from './primitives';
 
+export const SONG_NAME_MAX_LENGTH = 512;
+
 /** The name of the default 구성. It is never stored, so no 구성 may use it. */
 export const DEFAULT_ARRANGEMENT_NAME = '기본';
 

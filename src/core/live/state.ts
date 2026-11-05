@@ -66,6 +66,7 @@ export interface SlideLayer {
   readonly lines: readonly string[];
   /** A Bible reference, separate from the operator's slide label. */
   readonly reference?: string;
+  readonly name?: string;
   readonly kind?: LiveThemeItem['kind'];
   readonly title?: string;
   readonly memo?: string;
