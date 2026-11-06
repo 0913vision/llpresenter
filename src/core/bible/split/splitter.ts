@@ -28,7 +28,7 @@ export interface SplitChunk {
   readonly nLines: number;
   readonly fillRatio: number;
   readonly boundaryRule: string;
-  readonly chosenBy: 'fit' | 'forced' | 'rules';
+  readonly chosenBy: 'fit' | 'forced' | 'rules' | 'llm';
 }
 
 export interface SplitCandidate {
@@ -247,12 +247,31 @@ class SplitSearch {
   }
 }
 
-/** Copible 1.6's global DP with the rules-only candidate choice. */
-export function splitVerse(
+export type BoundaryChooser = (
+  fullText: string,
+  remaining: string,
+  candidates: readonly SplitCandidate[],
+) => Promise<number>;
+
+interface SplitChoice {
+  readonly index: number;
+  readonly by: 'rules' | 'llm';
+}
+interface SplitStep {
+  readonly text: string;
+  readonly remaining: string;
+  readonly candidates: readonly SplitCandidate[];
+}
+interface SplitOptions {
+  readonly prefix?: string;
+  readonly extraSlides?: number;
+}
+
+function* splitSteps(
   rawText: string,
   sourceLayout: SplitLayout,
-  options: {readonly prefix?: string; readonly extraSlides?: number} = {},
-): SplitResult {
+  options: SplitOptions,
+): Generator<SplitStep, SplitResult, SplitChoice> {
   const text = rawText.trim().replace(/\s+/g, ' ');
   if (
     text.length > BIBLE_LOOKUP_LIMITS.verseText ||
@@ -327,7 +346,12 @@ export function splitVerse(
   let i = 0;
   while (i < search.tokens.length) {
     const candidates = search.candidates(i, slidesLeft, solution);
-    const pick = candidates[0];
+    const choice = yield {
+      text,
+      remaining: text.slice(search.tokens[i]?.start ?? 0),
+      candidates,
+    };
+    const pick = candidates[choice.index];
     if (pick === undefined) throw new Error('No Bible split candidate');
     chunks.push(
       makeChunk({
@@ -336,11 +360,52 @@ export function splitVerse(
         continued: pick.tokenIndex !== search.tokens.length,
         index: chunks.length,
         boundaryRule: pick.ruleLabel,
-        chosenBy: candidates.length === 1 ? 'forced' : 'rules',
+        chosenBy: candidates.length === 1 ? 'forced' : choice.by,
       }),
     );
     i = pick.tokenIndex;
     slidesLeft--;
   }
   return {chunks, nSlides: chunks.length, minSlides: solution.minSlides};
+}
+
+/** Copible's global DP without any asynchronous work on the rules-only path. */
+export function splitVerse(
+  text: string,
+  layout: SplitLayout,
+  options: SplitOptions = {},
+): SplitResult {
+  const steps = splitSteps(text, layout, options);
+  let step = steps.next();
+  while (!step.done) step = steps.next({index: 0, by: 'rules'});
+  return step.value;
+}
+
+/** Asks only between fitting candidates and falls back independently at each boundary. */
+export async function splitVerseWithChooser(
+  text: string,
+  layout: SplitLayout,
+  options: SplitOptions & {readonly chooser: BoundaryChooser},
+): Promise<SplitResult> {
+  const steps = splitSteps(text, layout, options);
+  let step = steps.next();
+  while (!step.done) {
+    const {text: fullText, remaining, candidates} = step.value;
+    let choice: SplitChoice = {index: 0, by: 'rules'};
+    if (candidates.length > 1) {
+      try {
+        const selected = await options.chooser(fullText, remaining, candidates);
+        choice = {
+          index: Number.isFinite(selected)
+            ? Math.max(0, Math.min(Math.trunc(selected), candidates.length - 1))
+            : 0,
+          by: 'llm',
+        };
+      } catch {
+        choice = {index: 0, by: 'rules'};
+      }
+    }
+    step = steps.next(choice);
+  }
+  return step.value;
 }

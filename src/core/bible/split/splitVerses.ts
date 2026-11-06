@@ -65,9 +65,11 @@ export function splitVerseParts(
   {
     saved,
     prefix = '',
+    refined,
   }: {
     readonly saved?: BibleCutsFile | undefined;
     readonly prefix?: string;
+    readonly refined?: readonly number[] | undefined;
   } = {},
 ): readonly VersePart[] {
   try {
@@ -81,6 +83,15 @@ export function splitVerseParts(
         : planSlides(verse.text, cuts, {...layout, prefix});
     if (plan?.ok && plan.cuts.length === cuts?.length) {
       return itemsFromCuts(verse, plan.cuts, {...layout, prefix});
+    }
+    if (
+      refined !== undefined &&
+      planSlides(verse.text, refined, {...layout, prefix}).ok
+    ) {
+      return itemsFromCuts(verse, refined, {...layout, prefix}).map(part => ({
+        ...part,
+        manual: false,
+      }));
     }
     const result = splitVerse(verse.text, layout, {prefix});
     if (result.chunks.length > 0) {

@@ -1,5 +1,13 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
@@ -13,6 +21,8 @@ import * as bibleRendering from '@renderer/rendering/bibleMeasure';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
+import {QuickPanel} from '@renderer/features/quick/QuickPanel';
+import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {
   openBiblePassage,
   showBiblePassage,
@@ -34,7 +44,9 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
-import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {defaultPreferences} from '@core/schema/preferences';
+import {quickDocument} from '@fixtures/renderer/features/tools/quickTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -205,6 +217,225 @@ function setup() {
 }
 
 describe('prepare and reuse theme-fitted Bible slides', () => {
+  it.each(['click', 'Enter'])(
+    'outputs a saved quick Bible item by %s without AI or review',
+    async activation => {
+      vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(
+        mockSplitLayout(),
+      );
+      const f = setup();
+      const api = window.llp;
+      if (api === undefined) throw Error('Missing API');
+      const quick = quickDocument();
+      f.documents.set('quick', {
+        ...quick,
+        value: {
+          ...quick.value,
+          items: quick.value.items.filter(item => item.kind === 'bible'),
+        },
+      });
+      f.documents.set('timers', settingsDocument('timers', {timers: []}));
+      vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+        status: 'ready',
+        available: true,
+        reason: '',
+      });
+      const chooser = vi
+        .spyOn(api.bible, 'chooseBoundary')
+        .mockResolvedValue(0);
+      const text = MOCK_LONG_VERSE.replaceAll('.', '').replace(
+        '작은',
+        activation === 'click' ? '작은' : '고운',
+      );
+      const range = {...passage, verses: [{chapter: 3, verse: 16, text}]};
+      vi.spyOn(api.bible, 'lookup').mockImplementation(async request => ({
+        ...request,
+        suggestions: [],
+        result: {ok: true, value: range},
+      }));
+      const opened: Array<boolean | undefined> = [];
+      const stop = useShow.subscribe(view => {
+        if (view.bibleSource !== null) opened.push(view.bibleSource.review);
+      });
+      const view = render(
+        <>
+          <QuickPanel selectionVersion={0} onProblem={vi.fn()} />
+          <BiblePanel sizeClass="normal" />
+          <BibleSplitTools onProblem={vi.fn()} />
+        </>,
+      );
+      try {
+        const item = await screen.findByRole('button', {name: '저장된 구절'});
+        if (activation === 'click') fireEvent.click(item);
+        else {
+          item.focus();
+          await userEvent.setup().keyboard('{Enter}');
+        }
+        await waitFor(() => expect(f.send).toHaveBeenCalled());
+        const panel = screen.getByRole('region', {name: '성경'});
+        await within(panel).findByText('AI 켜짐');
+        expect(
+          within(panel).getByRole('checkbox', {name: '역본 이름'}),
+        ).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(chooser).not.toHaveBeenCalled();
+        expect(opened.length).toBeGreaterThan(0);
+        expect(opened.every(review => review === false)).toBe(true);
+        expect(f.send.mock.calls.at(-1)?.[0]).toMatchObject({
+          type: 'slide.show',
+          slide: {position: 0},
+        });
+        await act(async () => openBiblePassage(range, {verseNumbers: false}));
+        await waitFor(() => expect(chooser).toHaveBeenCalled());
+        expect(
+          chooser.mock.calls.every(
+            ([request]) => request.candidates.length > 1,
+          ),
+        ).toBe(true);
+        await screen.findByRole('dialog', {name: '절 나누기'});
+      } finally {
+        stop();
+        view.unmount();
+      }
+    },
+  );
+
+  it('outputs a quick lookup immediately without AI or a review window even when AI is ready', async () => {
+    const f = setup();
+    const api = window.llp;
+    if (api === undefined) throw Error('Missing API');
+    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+      status: 'ready',
+      available: true,
+      reason: '',
+    });
+    const chooser = vi.spyOn(api.bible, 'chooseBoundary').mockResolvedValue(0);
+    const view = render(
+      <>
+        <BibleQuickField api={api} />
+        <BibleSplitTools onProblem={vi.fn()} />
+      </>,
+    );
+    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+    await waitFor(() => expect(book.disabled).toBe(false));
+    fireEvent.change(book, {target: {value: '요한복음'}});
+    for (const [label, value] of [
+      ['장', '3'],
+      ['시작절', '16'],
+      ['끝절', '17'],
+    ] as const) {
+      const input = screen.getByRole<HTMLInputElement>('textbox', {
+        name: label,
+      });
+      await waitFor(() => expect(input.disabled).toBe(false));
+      fireEvent.change(input, {target: {value}});
+    }
+    const end = screen.getByRole('textbox', {name: '끝절'});
+    await waitFor(() =>
+      expect(useShow.getState().bibleSource?.passage.ref).toBe(passage.ref),
+    );
+    await act(async () =>
+      fireEvent.keyDown(end, {key: 'Enter', code: 'Enter'}),
+    );
+    await waitFor(() => expect(f.send).toHaveBeenCalled());
+    expect(useShow.getState().bibleSource?.review).toBe(false);
+    expect(chooser).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    view.unmount();
+  });
+  it('opens after the first AI verse, shows a pending next page, and preserves the 400ms guard', async () => {
+    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
+    const f = setup();
+    const api = window.llp;
+    if (api === undefined) throw Error('Missing API');
+    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+      status: 'ready',
+      available: true,
+      reason: '',
+    });
+    let firstReady = (): void => undefined;
+    let secondReady = (): void => undefined;
+    const first = new Promise<void>(resolve => {
+      firstReady = resolve;
+    });
+    const second = new Promise<void>(resolve => {
+      secondReady = resolve;
+    });
+    const chooser = vi
+      .spyOn(api.bible, 'chooseBoundary')
+      .mockImplementation(async request => {
+        await (request.fullText === MOCK_LONG_VERSE ? first : second);
+        return 0;
+      });
+    const range = {
+      ...passage,
+      verses: [
+        {chapter: 3, verse: 16, text: MOCK_LONG_VERSE},
+        {chapter: 3, verse: 17, text: MOCK_LONG_VERSE.replace('작은', '멋진')},
+      ],
+    };
+    openBiblePassage(range, {verseNumbers: false});
+    const view = render(<BibleSplitTools onProblem={vi.fn()} />);
+    await waitFor(() => expect(chooser).toHaveBeenCalled());
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await act(async () => firstReady());
+    await screen.findByText('1 / 2');
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', {name: '확정'})),
+    );
+    expect(screen.getByText('2 / 2')).toBeDefined();
+    expect(screen.getByRole('status', {name: 'AI 분할 대기'})).toBeDefined();
+    await act(async () => secondReady());
+    await waitFor(() =>
+      expect(screen.queryByRole('status', {name: 'AI 분할 대기'})).toBeNull(),
+    );
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', {name: '확정'})),
+    );
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(f.edit).toHaveBeenCalledTimes(1);
+    await waitFor(async () => {
+      await act(async () =>
+        fireEvent.click(screen.getByRole('button', {name: '확정'})),
+      );
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    expect(f.edit).toHaveBeenCalledTimes(2);
+    view.unmount();
+  });
+
+  it('refines with automatic review disabled, and Ctrl E reuses the current cuts without AI', async () => {
+    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
+    setup();
+    const api = window.llp;
+    if (api === undefined) throw Error('Missing API');
+    vi.spyOn(api.preferences, 'get').mockResolvedValue({
+      ...defaultPreferences,
+      bible: {...defaultPreferences.bible, splitEditorAutoOpen: false},
+    });
+    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+      status: 'ready',
+      available: true,
+      reason: '',
+    });
+    const chooser = vi.spyOn(api.bible, 'chooseBoundary').mockResolvedValue(0);
+    openBiblePassage({
+      ...passage,
+      verses: [
+        {chapter: 3, verse: 16, text: MOCK_LONG_VERSE.replace('작은', '밝은')},
+      ],
+    });
+    const view = render(<ShowShortcuts onProblem={vi.fn()} />);
+    await waitFor(() => expect(chooser).toHaveBeenCalled());
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const before = chooser.mock.calls.length;
+    await act(async () =>
+      fireEvent.keyDown(document.body, {key: 'e', code: 'KeyE', ctrlKey: true}),
+    );
+    await screen.findByRole('dialog', {name: '절 나누기'});
+    expect(chooser.mock.calls.length).toBe(before);
+    view.unmount();
+  });
   it.each([false, true])(
     'retains a continuation selection across a workspace round trip, respecting a new selection %s',
     async changedWhileAway => {

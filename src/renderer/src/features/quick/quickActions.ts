@@ -103,11 +103,13 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           );
           if (!current()) return;
           if (!reply.result.ok) throw new Error(reply.result.error.message);
-          openBiblePassage(reply.result.value, {
+          const display = {
             verseNumbers: item.ref.verseNumbers,
-          });
+            review: false,
+          };
+          openBiblePassage(reply.result.value, display);
           selectTile(0);
-          showBiblePassage(reply.result.value);
+          showBiblePassage(reply.result.value, display);
           return;
         }
         case 'prop':

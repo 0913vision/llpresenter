@@ -1,0 +1,25 @@
+.status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-6);
+  margin-left: auto;
+  color: var(--text-3);
+  font: var(--type-label);
+  white-space: nowrap;
+}
+.dot {
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--text-off);
+}
+.status[data-status='ready'] .dot {
+  background: var(--ok);
+}
+.status[data-status='starting'] .dot {
+  background: var(--warning);
+}
+.status[data-status='failed'] .dot {
+  background: var(--live);
+}

@@ -15,6 +15,7 @@ import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
 import type {BibleSource} from '@core/bible/source';
 import styles from './BiblePanel.module.css';
+import {BibleAiStatus} from '../bible/BibleAiStatus';
 
 /** Changes this preview's supported display options without changing defaults. */
 export function BibleDisplayControls({
@@ -175,6 +176,7 @@ export function BibleDisplayControls({
           openBiblePassage(source.passage, {...source, translationName});
         }}
       />
+      <BibleAiStatus api={api?.bible} />
     </div>
   );
 }

@@ -4,10 +4,10 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type JSX,
 } from 'react';
-import {cutsOfVerse, versesToReview} from '@core/bible/split/splitVerses';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {versesToReview} from '@core/bible/split/splitVerses';
 import type {VerseSlide} from '@core/schema/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
@@ -24,7 +24,10 @@ import {
   sourceContent,
   type BibleProjection,
 } from './splitProjection';
-import {SplitEditor} from './SplitEditor';
+import {SplitReview} from './SplitReview';
+import {bibleRefinements, verseKey} from './BibleRefinements';
+import {useBibleRefinement} from './useBibleRefinement';
+import {useBibleReviewPreference} from './useBibleReviewPreference';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {installBibleReviewHandler} from './actions';
@@ -32,7 +35,7 @@ import {installBibleReviewHandler} from './actions';
 interface EditorSession {
   readonly source: BibleProjection;
   readonly references: ReadonlyArray<VerseSlide['verse']>;
-  readonly index: number;
+  readonly identity: object | null;
   readonly automatic: boolean;
   readonly output?: () => void;
 }
@@ -43,6 +46,12 @@ export function BibleSplitTools({
 }: {
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
+  const api = window.llp;
+  const autoOpen = useBibleReviewPreference(api?.preferences);
+  const refinementRevision = useSyncExternalStore(
+    bibleRefinements.subscribe,
+    bibleRefinements.getSnapshot,
+  );
   const themes = useSettingsDocument('themes', '테마', onProblem);
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const saved = useSettingsDocument('bibleCuts', '절 나누기', onProblem);
@@ -57,7 +66,7 @@ export function BibleSplitTools({
       active.current = false;
     };
   }, []);
-  const [seen, setSeen] = useState<BibleProjection['source'] | null>(null);
+  const [seen, setSeen] = useState<object | null>(null);
   useEffect(() => {
     const update = (): void =>
       setMeasurement(value => ({canvas: value.canvas}));
@@ -100,31 +109,64 @@ export function BibleSplitTools({
             bibleCuts: saved.revision,
           },
     );
-  }, [projections, themes, screens, saved]);
-  useLayoutEffect(
-    () =>
-      installBibleReviewHandler((id, output) => {
-        const source = splitSourceFor(useShow.getState(), id);
-        const projection = source === null ? null : projections?.get(source);
-        if (projection === null || projection === undefined) return false;
-        const references = versesToReview(projection.parts);
-        if (references.length === 0) return false;
-        setSession({
-          source: projection,
-          references,
-          index: 0,
-          automatic: true,
-          output,
-        });
-        return true;
-      }),
-    [projections],
-  );
+  }, [projections, themes, screens, saved, refinementRevision]);
   const projection = useShow(view => {
     if (view.openItemId === null || projections === null) return null;
     const source = splitSourceFor(view, view.openItemId);
     return source === null ? null : projections.get(source);
   });
+  const refinement = useBibleRefinement(api?.bible, projection);
+  if (
+    session !== null &&
+    session.identity === null &&
+    refinement.initialized &&
+    projection?.source.id === session.source.source.id
+  ) {
+    setSession({...session, identity: refinement.identity});
+  } else if (
+    session?.identity != null &&
+    session.identity !== refinement.identity
+  ) {
+    setSession(null);
+  }
+  useEffect(() => {
+    if (session === null || !session.automatic || autoOpen !== false) return;
+    let current = true;
+    queueMicrotask(() => {
+      if (current) {
+        setSession(null);
+        session.output?.();
+      }
+    });
+    return () => {
+      current = false;
+    };
+  }, [session, autoOpen]);
+  useLayoutEffect(
+    () =>
+      installBibleReviewHandler((id, output) => {
+        const source = splitSourceFor(useShow.getState(), id);
+        const requested = source === null ? null : projections?.get(source);
+        if (
+          requested == null ||
+          requested.source.review === false ||
+          autoOpen === false
+        ) {
+          return false;
+        }
+        const references = versesToReview(requested.parts);
+        if (references.length === 0) return false;
+        setSession({
+          source: requested,
+          references,
+          identity: null,
+          automatic: true,
+          output,
+        });
+        return true;
+      }),
+    [projections, autoOpen],
+  );
   const selected = useShow(view => view.selectedTile);
   const liveId = useLive(view => view.state?.layers.slide?.itemId ?? null);
   const liveProjection = useShow(view => {
@@ -164,17 +206,28 @@ export function BibleSplitTools({
     saved !== null &&
     themes !== null &&
     screens !== null &&
-    (seen?.id !== projection.source.id ||
-      sourceContent(seen) !== sourceContent(projection.source))
+    refinement.initialized &&
+    autoOpen !== null &&
+    (session?.identity == null || session.identity === refinement.identity) &&
+    seen !== refinement.identity
   ) {
-    setSeen(projection.source);
     const references = versesToReview(projection.parts);
-    if (
-      references.length > 0 &&
-      projection.source.review !== false &&
-      session === null
-    ) {
-      setSession({source: projection, references, index: 0, automatic: true});
+    const first = references[0];
+    if (first === undefined || !refinement.pending.has(verseKey(first))) {
+      setSeen(refinement.identity);
+      if (
+        autoOpen &&
+        references.length > 0 &&
+        projection.source.review !== false &&
+        session === null
+      ) {
+        setSession({
+          source: projection,
+          references,
+          identity: refinement.identity,
+          automatic: true,
+        });
+      }
     }
   }
   useWindowShortcuts([
@@ -184,41 +237,35 @@ export function BibleSplitTools({
       run: () => {
         const part = projection?.partsByTile[selected];
         if (projection !== null && part != null) {
+          refinement.cancel();
           setSession({
             source: projection,
             references: [part.reference],
-            index: 0,
+            identity: refinement.identity,
             automatic: false,
           });
         }
       },
     },
   ]);
-  const reference = session?.references[session.index];
   const current =
     session !== null && projection?.source.id === session.source.source.id
       ? projection
       : session?.source;
-  const verse =
-    reference === undefined
-      ? undefined
-      : current?.verses.find(
-          verse =>
-            verse.reference.translation === reference.translation &&
-            verse.reference.book === reference.book &&
-            verse.reference.chapter === reference.chapter &&
-            verse.reference.verse === reference.verse,
-        );
+  if (session === null || current === undefined) {
+    return null;
+  }
+  const first = session.references[0];
   if (
-    session === null ||
-    reference === undefined ||
-    current === undefined ||
-    verse === undefined
+    session.automatic &&
+    (autoOpen !== true ||
+      !refinement.initialized ||
+      (first !== undefined && refinement.pending.has(verseKey(first))))
   ) {
     return null;
   }
-  const prefix = current.numbered ? `${reference.verse} ` : '';
   const cancel = (): void => {
+    refinement.cancel();
     setSession(null);
     if (session.automatic && current.source.source === 'external') {
       useShow.setState({bibleSource: null, openItemId: null, selectedTile: 0});
@@ -232,31 +279,20 @@ export function BibleSplitTools({
     }
   };
   return (
-    <SplitEditor
-      key={`${current.source.id}:${reference.chapter}:${reference.verse}:${session.index}`}
-      verse={verse}
-      label={`${BIBLE_BOOKS.find(book => book.id === reference.book)?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`}
-      cuts={cutsOfVerse(current.parts, reference)}
-      layout={current.layout}
-      element={current.element}
-      appearance={current.appearance}
-      prefix={prefix}
-      position={session.index}
-      total={session.references.length}
+    <SplitReview
+      key={`${current.source.id}:${session.automatic}`}
+      projection={current}
+      references={session.references}
+      pending={session.automatic ? refinement.pending : new Set()}
       onCancel={cancel}
-      onConfirm={async cuts => {
+      onConfirm={async (verse, cuts) => {
         const api = window.llp;
         if (api === undefined) throw new Error('절 나누기 저장 불가');
         await confirmBibleCuts(api.settings, verse, cuts);
-        if (!active.current) return;
-        setSession(value =>
-          value !== session
-            ? value
-            : session.index + 1 >= session.references.length
-              ? null
-              : {...session, index: session.index + 1},
-        );
-        if (session.index + 1 >= session.references.length) session.output?.();
+      }}
+      onComplete={() => {
+        setSession(null);
+        session.output?.();
       }}
     />
   );

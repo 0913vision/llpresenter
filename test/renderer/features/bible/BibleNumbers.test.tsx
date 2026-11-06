@@ -152,6 +152,7 @@ describe('quick Bible verse-number defaults', () => {
     expect(command.slide.lines).toEqual([
       'Invented book 43, chapter 3, verse 17',
     ]);
+    expect(useShow.getState().bibleSource?.review).toBe(false);
     const live = emptyLiveState();
     act(() =>
       useLive.setState({

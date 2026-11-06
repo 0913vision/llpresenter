@@ -108,13 +108,21 @@ export function BibleQuickField({
           }
         }}
         onShow={passage => {
+          if (display === null) return;
           const view = useShow.getState();
           const prepared = bibleSourceFor(view, view.openItemId);
           const expanded =
             prepared?.enteredRef === passage.ref &&
             (prepared.enteredTranslation ?? prepared.passage.translation) ===
               passage.translation;
-          showBiblePassage(expanded ? prepared.passage : passage);
+          const samePassage =
+            prepared?.passage.ref === passage.ref &&
+            prepared.passage.translation === passage.translation;
+          const options = expanded || samePassage ? prepared : display;
+          showBiblePassage(expanded ? prepared.passage : passage, {
+            ...options,
+            review: false,
+          });
         }}
       />
     </div>

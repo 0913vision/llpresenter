@@ -949,6 +949,13 @@ version, the basis, and the reason.
 
 #### 성경 (Bible)
 
+The 새 구절 group includes the CheckboxRow 절 나누기 창 저절로 열기, stored as
+optional `bible.splitEditorAutoOpen`, default on, with no helper text. Off skips
+automatic review after a panel lookup or verse insertion; rules and optional AI
+refinement still run, and Ctrl E opens the current cuts. 퀵 실행 always uses
+rules and confirmed cuts only, never requests AI, and outputs immediately
+without review regardless of this preference.
+
 | Group                   | Row                                             | Control and range                                            | Default             | Stored in                                                         | Applies                      | Ver. | Basis                                                                                             | Reason                                                                                         |
 | ----------------------- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------- | ----------------------------------------------------------------- | ---------------------------- | ---- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | 설치된 역본 (installed) | One row per installed translation               | Name, language, size, 기본 tag, more menu (기본으로)         | 개역한글 기본       | `bible.json` `translations[]` (Kept, 02)                          | At once                      | 1    | User decision, 2026-10-26; `Prefs` installed list                                                 | Prepared translation files arrive with app updates.                                            |

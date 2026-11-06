@@ -5,11 +5,75 @@ import {cutsFromChunks, planSlides} from '@core/bible/split/manualSplit';
 import {
   FILL_WEIGHT,
   splitVerse,
+  splitVerseWithChooser,
+  type BoundaryChooser,
   SPLIT_LIMITS,
 } from '@core/bible/split/splitter';
 import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 
 describe('copible global DP splitter', () => {
+  it('asks only for multiple candidates, preserves rule order, and clamps the chosen index', async () => {
+    const chooser = vi.fn<BoundaryChooser>(
+      async (text, remaining, candidates) => {
+        expect(text).toBe(MOCK_LONG_VERSE);
+        expect(text.endsWith(remaining)).toBe(true);
+        expect(candidates.length).toBeGreaterThan(1);
+        expect(
+          candidates.every(candidate => remaining.startsWith(candidate.text)),
+        ).toBe(true);
+        expect(candidates.map(candidate => candidate.totalCost)).toEqual(
+          candidates
+            .map(candidate => candidate.totalCost)
+            .sort((a, b) => a - b),
+        );
+        return 999;
+      },
+    );
+    const result = await splitVerseWithChooser(
+      MOCK_LONG_VERSE,
+      mockSplitLayout(),
+      {chooser},
+    );
+    expect(chooser).toHaveBeenCalled();
+    expect(result.chunks.some(chunk => chunk.chosenBy === 'llm')).toBe(true);
+    expect(result.chunks.map(chunk => chunk.text).join(' ')).toBe(
+      MOCK_LONG_VERSE,
+    );
+    expect(
+      planSlides(
+        MOCK_LONG_VERSE,
+        cutsFromChunks(result.chunks),
+        mockSplitLayout(),
+      ).ok,
+    ).toBe(true);
+  });
+
+  it('uses rule choices after a chooser throws and continues asking later boundaries', async () => {
+    const chooser = vi.fn<BoundaryChooser>(async () => {
+      throw Error('HTTP failure');
+    });
+    const layout = mockSplitLayout();
+    expect(
+      await splitVerseWithChooser(MOCK_LONG_VERSE, layout, {chooser}),
+    ).toEqual(splitVerse(MOCK_LONG_VERSE, layout));
+    expect(chooser.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('skips the chooser for fitting and forced parts', async () => {
+    const chooser = vi.fn<BoundaryChooser>();
+    await splitVerseWithChooser('작은 새', mockSplitLayout(), {chooser});
+    const result = await splitVerseWithChooser(
+      '가나 다라 마바 사아 자차',
+      mockSplitLayout(8, 1),
+      {chooser},
+    );
+    expect(chooser).not.toHaveBeenCalled();
+    expect(
+      result.chunks
+        .filter(chunk => chunk.continued)
+        .every(chunk => chunk.chosenBy === 'forced'),
+    ).toBe(true);
+  });
   it('keeps a fitting verse whole and normalizes whitespace', () => {
     const layout = mockSplitLayout();
     const short = splitVerse(' 작은 \n 새가 노래한다 ', layout);

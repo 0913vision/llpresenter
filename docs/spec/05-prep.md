@@ -92,11 +92,18 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   one reference-only row per verse after the selected row. The entire range is
   one local undo step, and a range exceeding the remaining 200-row capacity is
   refused before insertion. Ad items do not offer this action.
-- Verses needing review open 절 나누기 in order, with `1/2`, `2/2`, before the
-  rows are inserted. The window follows 04, using this item's current text
+- Verses needing review open 절 나누기 in order, with `1 / 2`, `2 / 2`, before
+  the rows are inserted. The window follows 04, using this item's current text
   element and saved cuts. Esc cancels the pending insertion, including a lookup
   still loading; cuts already confirmed remain saved. Ctrl E on a verse row
   reopens its current cuts without changing the draft's references.
+  - Rules and confirmed cuts are available first. The optional local AI refines
+    unconfirmed split verses sequentially as in 04. The first ready verse opens
+    review while later pages can still show a spinner; only a page that
+    displayed the spinner has the 400ms confirmation guard. Cancelling or
+    closing drops late results and stops remaining requests.
+  - When 절 나누기 창 저절로 열기 is off, refinement still completes before
+    insertion but no review window opens. Ctrl E remains available afterward.
 - Verse thumbnails and previews resolve the installed translation and use the
   same measured parts as 진행. The preview offers previous and next parts of the
   selected verse; editing a reference never creates copied verse text in the

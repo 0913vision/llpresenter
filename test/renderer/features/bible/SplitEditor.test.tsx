@@ -60,6 +60,46 @@ function key(
 }
 
 describe('Bible split editor', () => {
+  it('shows only a fixed-height pending body and ignores confirmation until ready', () => {
+    const view = setup({pending: true});
+    expect(screen.getByRole('dialog').style.height).toBe('640px');
+    expect(screen.getByRole('status', {name: 'AI 분할 대기'})).toBeDefined();
+    expect(screen.queryByLabelText('나눈 결과')).toBeNull();
+    key('Enter');
+    key('Space');
+    expect(view.onConfirm).not.toHaveBeenCalled();
+    key('Escape');
+    expect(view.onCancel).toHaveBeenCalledOnce();
+  });
+
+  it('guards keyboard and button confirmation for 400ms only after a displayed spinner', async () => {
+    vi.useFakeTimers();
+    try {
+      const view = setup({pending: true});
+      view.rerender(<SplitEditor {...view.props} pending={false} />);
+      await act(async () => {
+        key('Enter');
+        fireEvent.click(screen.getByRole('button', {name: '확정'}));
+      });
+      expect(view.onConfirm).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(399);
+      });
+      await act(async () => key('Space'));
+      expect(view.onConfirm).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      await act(async () => key('Enter'));
+      expect(view.onConfirm).toHaveBeenCalledOnce();
+      view.unmount();
+      const ready = setup();
+      await act(async () => key('Enter'));
+      expect(ready.onConfirm).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it('keeps the editor open when saving fails', async () => {
     const onConfirm = vi.fn(async () => {
       throw Error('절 나누기 저장 실패');
@@ -208,14 +248,14 @@ describe('Bible split editor', () => {
     );
     for (const code of ['KeyA', 'KeyS', 'KeyD', 'KeyF']) key(code);
     expect(screen.getAllByRole('img')).toHaveLength(5);
-    expect(area.scrollTop).toBe(220);
+    expect(area.scrollTop).toBe(224);
     area.scrollTop = 0;
     key('Backspace');
-    expect(area.scrollTop).toBe(220);
+    expect(area.scrollTop).toBe(224);
     key('KeyZ', {ctrlKey: true});
-    expect(area.scrollTop).toBe(0);
+    expect(area.scrollTop).toBe(4);
     key('KeyY', {ctrlKey: true});
-    expect(area.scrollTop).toBe(220);
+    expect(area.scrollTop).toBe(224);
     area.scrollTop = 73;
     view.rerender(<SplitEditor {...view.props} position={1} />);
     expect(area.scrollTop).toBe(73);

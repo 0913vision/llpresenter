@@ -6,11 +6,7 @@ import {
 } from '@renderer/session/showOutput';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
-import {
-  bibleSource,
-  type BibleDisplayOptions,
-  type BiblePreviewOptions,
-} from '@core/bible/source';
+import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import {retainedBibleSelection} from '@core/bible/selection';
 
 type ReviewHandler = (sourceId: string, output: () => void) => boolean;
@@ -71,7 +67,7 @@ export function openBiblePassage(
 /** Outputs the selected Bible tile through the standard slide command path. */
 export function showBiblePassage(
   passage: BibleLookupPassage,
-  options?: BibleDisplayOptions,
+  options?: BiblePreviewOptions,
 ): void {
   const current = useShow.getState();
   const prepared = bibleSourceFor(current, current.openItemId);
@@ -84,12 +80,13 @@ export function showBiblePassage(
           translationName: prepared.translationName,
           enteredRef: prepared.enteredRef,
           enteredTranslation: prepared.enteredTranslation,
+          review: true,
         }
       : undefined);
   openBiblePassage(passage, {
     ...display,
     verseNumbers: display?.verseNumbers ?? true,
-    review: true,
+    review: display?.review ?? true,
   });
   const view = useShow.getState();
   if (view.openItemId !== null) {

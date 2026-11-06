@@ -755,6 +755,17 @@ advance pauses until a projection using the current revisions arrives. A clear
 or item stop stays stopped through projection updates and workspace changes;
 only explicitly outputting a slide starts advance again.
 
+Rules split all verses first. Valid confirmed cuts skip both AI and review. If
+the local AI is ready when a lookup starts, unconfirmed multi-part verses are
+refined in queue order, one at a time. A fitting candidate is forced when it is
+the only one; otherwise the chooser's clamped index selects it. A failed
+comparison falls back to the rule choice for that boundary and continues.
+Refined cuts remain in a bounded memory cache by normalized text, prefix and
+text layout. Projections and navigation reuse them; only confirmation writes
+them to `bibleCuts.json`. New lookups, theme changes and closing review cancel
+remaining work and discard late results. A server becoming ready later does not
+restart an existing lookup.
+
 After opening a passage with unconfirmed split verses, 절 나누기 opens for each
 of them in order. Its subtitle shows only the verse reference. When several need
 review, the header shows `1 / 2`, `2 / 2` before the close button. No
@@ -781,12 +792,21 @@ available while the dialog owns the editing keys.
 
 The dialog is 1080 wide and 640 high, capped at the window height minus 64. Its
 height stays fixed across cuts and verses, and the focused surface has no focus
-ring. The 22px text with 46px line height scrolls inside the remaining space
-above a fixed 250px results area. Results have one consistent width, three per
-row; one or two are centered. From four parts, results scroll inside their area
-and snap by row. A cut, undo, or redo scrolls to the row containing the changed
-gap; other updates preserve the scroll position. Removing all cuts shows one
-centered overflowing result. A fitting single slide skips review.
+ring. With AI, it opens as soon as the first review verse is ready; without AI
+it opens immediately. Later pages use the current refined results while the
+visible verse retains its edits. A waiting page contains only a centered
+spinner, with 확정 disabled and Esc available. When that page becomes ready, all
+confirm actions ignore the first 400 ms. Pages ready before they appear have no
+delay. Ready plans are measured ahead of navigation. Ctrl E uses the current
+cuts and starts no AI work.
+
+The 22px text with 46px line height scrolls inside the remaining space above a
+fixed 250px results area. Results have one consistent width, three per row; one
+or two are centered. From four parts, results scroll inside their area and snap
+by row. A cut, undo, or redo scrolls to the row containing the changed gap with
+enough clearance to hide the preceding row, including its overflow ring; other
+updates preserve the scroll position. Removing all cuts shows one centered
+overflowing result. A fitting single slide skips review.
 
 Thumbnails use the slides editor's renderer and the item's audience theme,
 including background, text box, font, reference, measured lines and smaller
@@ -822,7 +842,7 @@ waiting requests and a 30 s timeout per HTTP request. Cancellation drops a
 window's active and waiting requests for its lookup ID; closing the window
 cancels its work. Missing, unready, failed, timed-out, or cancelled AI work
 rejects so the caller can use rules for that verse. Split-flow and UI
-integration are separate from this main-process contract.
+integration use this contract, with a distinct cancellable ID per lookup.
 
 ### Bible panel
 
@@ -830,6 +850,9 @@ integration are separate from this main-process contract.
   3개").
 - Settings row: the installed translation select (개역한글), 절 번호 (verse
   numbers), and 역본 이름 (translation name).
+  - At the right, a 6px dot and AI 켜짐, AI 켜는 중, or AI 꺼짐 show the
+    optional chooser's state. Only a failed state has a tooltip containing its
+    reason; no explanatory helper text is shown.
   - The installed translation, 절 번호, and 역본 이름 controls change this
     preview only; they do not change the defaults, saved items, or live output.
     A translation lookup retains the range and selected verse when available. If

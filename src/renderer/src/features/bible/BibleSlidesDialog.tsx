@@ -5,13 +5,14 @@ import {createSlideId} from '@core/schema/ids';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
 import {passageBook} from '@core/bible/adjacentVerses';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {cutsOfVerse, versesToReview} from '@core/bible/split/splitVerses';
-import {cacheKey} from '@core/bible/split/splitCache';
+import {versesToReview} from '@core/bible/split/splitVerses';
 import {Dialog} from '@renderer/ui/Dialog';
 import {useBibleTranslation} from './useBibleTranslation';
 import {BiblePassageDialog} from './BiblePassageDialog';
-import {SplitEditor} from './SplitEditor';
+import {SplitReview} from './SplitReview';
+import {verseKey} from './BibleRefinements';
+import {useBibleRefinement} from './useBibleRefinement';
+import {useBibleReviewPreference} from './useBibleReviewPreference';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {loadSlidesProjection} from './loadSlidesProjection';
 import {useSlidesVerseProjection} from './useSlidesVerseProjection';
@@ -22,7 +23,7 @@ interface Review {
   readonly projection: BibleProjection;
   readonly references: ReadonlyArray<VerseSlide['verse']>;
   readonly added: readonly VerseSlide[];
-  readonly index: number;
+  readonly explicit: boolean;
 }
 
 /** Confirms all required cuts before inserting the range as one local draft edit. */
@@ -42,6 +43,7 @@ export function BibleSlidesDialog({
   readonly onClose: () => void;
 }): JSX.Element {
   const translation = useBibleTranslation(api);
+  const autoOpen = useBibleReviewPreference(api.preferences);
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(reference !== undefined);
   const [problem, setProblem] = useState<string | null>(null);
@@ -51,6 +53,39 @@ export function BibleSlidesDialog({
     review?.item ?? item,
     review !== null,
   );
+  const refinement = useBibleRefinement(
+    api.bible,
+    review?.explicit === false ? refreshed : null,
+  );
+  const projection = refreshed ?? review?.projection;
+  const cancel = (): void => {
+    active.current = false;
+    refinement.cancel();
+    onClose();
+  };
+  useEffect(() => {
+    if (
+      !active.current ||
+      review === null ||
+      review.explicit ||
+      refreshed === null ||
+      autoOpen !== false ||
+      !refinement.initialized ||
+      refinement.pending.size > 0
+    ) {
+      return;
+    }
+    onInsert(review.added);
+    onClose();
+  }, [
+    review,
+    autoOpen,
+    refinement.initialized,
+    refinement.pending.size,
+    onInsert,
+    onClose,
+    refreshed,
+  ]);
   const prepare = async (
     target: SlidesItem,
     added: readonly VerseSlide[],
@@ -68,7 +103,15 @@ export function BibleSlidesDialog({
       if (references.length === 0) {
         onInsert(added);
         onClose();
-      } else setReview({item: target, projection, references, added, index: 0});
+      } else {
+        setReview({
+          item: target,
+          projection,
+          references,
+          added,
+          explicit: explicit !== undefined,
+        });
+      }
     } catch (error: unknown) {
       if (active.current) {
         setProblem(
@@ -102,7 +145,7 @@ export function BibleSlidesDialog({
             projection,
             references: [value.reference],
             added: [],
-            index: 0,
+            explicit: true,
           });
           setLoading(false);
         },
@@ -158,86 +201,75 @@ export function BibleSlidesDialog({
       }
     });
   };
+  const awaitingRefinement =
+    review !== null &&
+    !review.explicit &&
+    (refreshed === null ||
+      autoOpen !== true ||
+      !refinement.initialized ||
+      (review.references[0] !== undefined &&
+        refinement.pending.has(verseKey(review.references[0]))));
   if (problem !== null) {
     return (
       <Dialog
         title="성경 구절"
         size="s"
-        onCancel={onClose}
-        primary={{label: '닫기', onSelect: onClose}}
+        onCancel={cancel}
+        primary={{label: '닫기', onSelect: cancel}}
       >
         <span role="alert">{problem}</span>
       </Dialog>
     );
   }
+  if ((review === null && loading) || awaitingRefinement) {
+    return (
+      <Dialog
+        title={reference === undefined ? '성경 구절' : '절 나누기'}
+        size="s"
+        onCancel={cancel}
+        initialFocus="surface"
+        primary={{label: '확정', disabled: true, onSelect: () => undefined}}
+      >
+        <span role="status">불러오는 중</span>
+      </Dialog>
+    );
+  }
   if (review === null) {
-    if (loading) {
-      return (
-        <Dialog
-          title="절 나누기"
-          size="s"
-          onCancel={onClose}
-          initialFocus="surface"
-          primary={{label: '확정', disabled: true, onSelect: () => undefined}}
-        >
-          <span role="status">불러오는 중</span>
-        </Dialog>
-      );
-    }
     return (
       <BiblePassageDialog
         api={api.bible}
         translation={translation}
         limit={SLIDES_LIMITS.slides - item.slides.slides.length}
         onChoose={choose}
-        onClose={onClose}
+        onClose={cancel}
       />
     );
   }
-  const projection = refreshed ?? review.projection;
-  const ref = review.references[review.index];
-  const verse =
-    ref === undefined
-      ? undefined
-      : projection.verses.find(
-          verse =>
-            verse.reference.translation === ref.translation &&
-            cacheKey(verse.reference) === cacheKey(ref),
-        );
-  if (ref === undefined || verse === undefined) {
+  if (projection === undefined) {
     return (
       <Dialog
         title="절 나누기"
         size="s"
-        onCancel={onClose}
-        primary={{label: '닫기', onSelect: onClose}}
+        onCancel={cancel}
+        primary={{label: '닫기', onSelect: cancel}}
       >
         <span role="alert">성경 구절 불러오기 실패</span>
       </Dialog>
     );
   }
   return (
-    <SplitEditor
-      key={`${review.index}:${ref.translation}:${ref.book}:${ref.chapter}:${ref.verse}`}
-      verse={verse}
-      label={`${BIBLE_BOOKS.find(book => book.id === ref.book)?.korean ?? '성경'} ${ref.chapter}:${ref.verse}`}
-      cuts={cutsOfVerse(projection.parts, ref)}
-      layout={projection.layout}
-      element={projection.element}
-      appearance={projection.appearance}
-      prefix={projection.numbered ? `${ref.verse} ` : ''}
-      position={review.index}
-      total={review.references.length}
-      onCancel={onClose}
-      onConfirm={async cuts => {
+    <SplitReview
+      projection={projection}
+      references={review.references}
+      pending={refinement.pending}
+      onCancel={cancel}
+      onConfirm={async (verse, cuts) => {
         await confirmBibleCuts(api.settings, verse, cuts);
+      }}
+      onComplete={() => {
         if (!active.current) return;
-        if (review.index + 1 < review.references.length) {
-          setReview({...review, index: review.index + 1});
-        } else {
-          if (review.added.length > 0) onInsert(review.added);
-          onClose();
-        }
+        if (review.added.length > 0) onInsert(review.added);
+        onClose();
       }}
     />
   );

@@ -27,6 +27,8 @@ import {SplitSlidePicture} from './SplitSlidePicture';
 import styles from './SplitEditor.module.css';
 
 export interface SplitEditorProps {
+  readonly pending?: boolean;
+  readonly preparedPlan?: ReturnType<typeof planSlides> | undefined;
   readonly verse: VerseInput;
   readonly label: string;
   readonly cuts: readonly number[];
@@ -42,10 +44,74 @@ export interface SplitEditorProps {
 
 const DIALOG_HEIGHT = 640;
 const RESULTS_PER_ROW = 3;
-const RESULT_TOP_INSET = 16;
+const RESULT_TOP_INSET = 12;
+const CONFIRM_GUARD_MS = 400;
+
+/** Keeps one surface size while pending text is replaced by an editable verse. */
+export function SplitEditor(props: SplitEditorProps): JSX.Element {
+  const [spun, setSpun] = useState(props.pending === true);
+  if (props.pending && !spun) setSpun(true);
+  if (props.pending) {
+    return (
+      <div
+        onKeyDownCapture={event => {
+          if (
+            event.code === 'Tab' ||
+            /^F\d+$/.test(event.code) ||
+            event.ctrlKey ||
+            event.altKey ||
+            event.metaKey
+          ) {
+            return;
+          }
+          event.stopPropagation();
+          event.preventDefault();
+          if (event.code === 'Escape') props.onCancel();
+        }}
+      >
+        <Dialog
+          title="절 나누기"
+          subtitle={{text: props.label}}
+          size="xl"
+          height={DIALOG_HEIGHT}
+          headerEnd={
+            props.total > 1 ? (
+              <span className={styles.position}>
+                {props.position + 1} / {props.total}
+              </span>
+            ) : undefined
+          }
+          bodyClassName={styles.body}
+          initialFocus="surface"
+          onCancel={props.onCancel}
+          primary={{label: '확정', disabled: true, onSelect: () => undefined}}
+        >
+          <div
+            className={styles.pending}
+            role="status"
+            aria-label="AI 분할 대기"
+          >
+            <span className={styles.spinner} />
+          </div>
+        </Dialog>
+      </div>
+    );
+  }
+  return <VerseSplitEditor {...props} afterSpinner={spun} />;
+}
 
 /** Copible's word-gap editor. Its parent remounts it for each verse. */
-export function SplitEditor(props: SplitEditorProps): JSX.Element {
+function VerseSplitEditor(
+  props: SplitEditorProps & {readonly afterSpinner: boolean},
+): JSX.Element {
+  const guarded = useRef(props.afterSpinner);
+  useEffect(() => {
+    if (!props.afterSpinner) return;
+    const timer = setTimeout(() => {
+      guarded.current = false;
+    }, CONFIRM_GUARD_MS);
+    return () => clearTimeout(timer);
+  }, [props.afterSpinner]);
   const [history, setHistory] = useState(() => initialEditHistory(props.cuts));
   const [buffer, setBuffer] = useState('');
   const [busy, setBusy] = useState(false);
@@ -60,14 +126,25 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
       active.current = false;
     };
   }, []);
-  const plan = useMemo(
-    () =>
-      planSlides(props.verse.text, effectiveCuts(history.present), {
-        ...props.layout,
-        prefix: props.prefix,
-      }),
-    [props.verse.text, history.present, props.layout, props.prefix],
-  );
+  const plan = useMemo(() => {
+    const cuts = effectiveCuts(history.present);
+    if (
+      cuts.length === props.preparedPlan?.cuts.length &&
+      cuts.every((cut, i) => props.preparedPlan?.cuts[i] === cut)
+    ) {
+      return props.preparedPlan;
+    }
+    return planSlides(props.verse.text, cuts, {
+      ...props.layout,
+      prefix: props.prefix,
+    });
+  }, [
+    props.verse.text,
+    history.present,
+    props.layout,
+    props.prefix,
+    props.preparedPlan,
+  ]);
   useLayoutEffect(() => {
     const gap = changedGap.current;
     const area = previews.current;
@@ -77,7 +154,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
     const rowStart = Math.floor(part / RESULTS_PER_ROW) * RESULTS_PER_ROW;
     const target = area.children.item(rowStart);
     if (target instanceof HTMLElement) {
-      area.scrollTop = target.offsetTop - RESULT_TOP_INSET;
+      area.scrollTop = Math.ceil(target.offsetTop - RESULT_TOP_INSET);
     }
   }, [plan]);
   const labels = hintLabels(Math.max(0, plan.words.length - 1));
@@ -115,6 +192,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
   };
   const confirm = (): void => {
     if (locked.current) return;
+    if (guarded.current) return;
     if (!plan.ok) {
       previews.current
         ?.querySelectorAll<HTMLElement>('figure[data-overflow="true"]')

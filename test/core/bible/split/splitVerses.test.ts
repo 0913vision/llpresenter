@@ -12,6 +12,7 @@ import {
   cutsOfVerse,
   firstSlidePrefix,
   splitVersesForSlides,
+  splitVerseParts,
   versesToReview,
 } from '@core/bible/split/splitVerses';
 import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
@@ -66,6 +67,24 @@ describe('copible verse parts and saved cuts', () => {
     expect(parts[0]).toMatchObject({part: 1, partCount: parts.length});
     expect(JSON.stringify(saved)).toBe(snapshot);
     expect(verse.text).toBe(MOCK_LONG_VERSE);
+  });
+
+  it('keeps refined cuts reviewable and lets valid confirmed cuts take precedence', () => {
+    const automatic = splitVersesForSlides([verse], layout);
+    const cuts = cutsOfVerse(automatic, reference);
+    const refined = [...new Set([1, ...cuts])].sort((a, b) => a - b);
+    const saved = saveCuts(
+      empty(),
+      reference,
+      entryFor(verse.text, cuts, confirmedAt),
+    );
+    if (saved === null) throw Error('Cache full');
+    const parts = splitVerseParts(verse, layout, {refined});
+    expect(cutsOfVerse(parts, reference)).toEqual(refined);
+    expect(versesToReview(parts)).toEqual([reference]);
+    expect(
+      cutsOfVerse(splitVerseParts(verse, layout, {saved, refined}), reference),
+    ).toEqual(cuts);
   });
 
   it('ignores changed text, translation mismatches, invalid indices, and currently overflowing saved cuts without deleting them', () => {

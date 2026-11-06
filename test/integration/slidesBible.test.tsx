@@ -27,6 +27,8 @@ import type {SlidesItem} from '@core/services/slidesEdits';
 import {SlidesEditorWindow} from '@renderer/app/SlidesEditorWindow';
 import {ControlSession} from '@renderer/app/controlSession';
 import {ShowShortcuts} from '@renderer/app/workspaces/showPanels';
+import {defaultPreferences} from '@core/schema/preferences';
+import * as bibleRendering from '@renderer/rendering/bibleMeasure';
 import {
   applyService,
   outputTile,
@@ -38,7 +40,7 @@ import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
-import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {slidesItem, SLIDE_PICTURE} from '@fixtures/core/slides';
 import {
   slidesBibleItem,
@@ -336,8 +338,41 @@ async function chooseRange(
   beforeAdd();
   fireEvent.click(add);
   if (waitForCuts) await screen.findByRole('button', {name: 'A에서 자르기'});
-  return screen.findByRole('dialog', {name: '절 나누기'});
+  return screen.findByRole('dialog', {
+    name: waitForCuts ? '절 나누기' : '성경 구절',
+  });
 }
+
+it('inserts the range without review when automatic opening is off', async () => {
+  const f = fixture(slidesItem('blank'), true);
+  vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
+    ...defaultPreferences,
+    bible: {...defaultPreferences.bible, splitEditorAutoOpen: false},
+  });
+  const session = new ControlSession(f.api);
+  const view = render(<SlidesEditorWindow session={session} />);
+  await screen.findByRole('button', {name: '성경 구절 추가…'});
+  fireEvent.click(screen.getByRole('button', {name: '성경 구절 추가…'}));
+  await screen.findByRole('dialog', {name: '성경 구절'});
+  const fields = ['책', '장', '시작절', '끝절'];
+  const values = ['요한복음', '3', '16', '17'];
+  fields.forEach((label, i) =>
+    fireEvent.change(screen.getByLabelText(label), {
+      target: {value: values[i]},
+    }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', {name: '추가'}).getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', {name: '추가'})),
+  );
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  expect(screen.queryByRole('status', {name: 'AI 분할 대기'})).toBeNull();
+  view.unmount();
+});
 
 it('inserts the reviewed range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
   const f = fixture(slidesItem('blank'), true);
@@ -456,6 +491,75 @@ it('discards a late lookup after cancelling the loading window', async () => {
     await session.dispose();
   }
 });
+
+it.each([true, false])(
+  'cancels before the first AI result with automatic opening %s and discards the late result',
+  async autoOpen => {
+    const f = fixture(slidesItem('blank'), true);
+    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
+    vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
+      ...defaultPreferences,
+      bible: {...defaultPreferences.bible, splitEditorAutoOpen: autoOpen},
+    });
+    vi.spyOn(f.api.bible, 'getLlmStatus').mockResolvedValue({
+      status: 'ready',
+      available: true,
+      reason: '',
+    });
+    let release: (index: number) => void = () => undefined;
+    const held = new Promise<number>(resolve => {
+      release = resolve;
+    });
+    const chooser = vi
+      .spyOn(f.api.bible, 'chooseBoundary')
+      .mockReturnValue(held);
+    const cancel = vi.spyOn(f.api.bible, 'cancelBoundary');
+    const session = new ControlSession(f.api);
+    const view = render(<SlidesEditorWindow session={session} />);
+    try {
+      await chooseRange(false);
+      await waitFor(() => expect(chooser).toHaveBeenCalledOnce());
+      const loading = screen.getByRole('dialog', {name: '성경 구절'});
+      expect(within(loading).getByRole('status').textContent).toBe(
+        '불러오는 중',
+      );
+      expect(
+        within(loading)
+          .getByRole('button', {name: '확정'})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
+      expect(loading.contains(document.activeElement)).toBe(true);
+      fireEvent.keyDown(document.activeElement ?? document.body, {
+        code: 'Escape',
+        key: 'Escape',
+      });
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(cancel).toHaveBeenCalledExactlyOnceWith({
+        lookupId: chooser.mock.calls[0]?.[0].lookupId,
+      });
+      await act(async () => {
+        release(0);
+        await held;
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(chooser).toHaveBeenCalledOnce();
+      expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
+        3,
+      );
+      expect(
+        screen
+          .getByRole('button', {name: '저장'})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
+      expect(f.content).not.toHaveBeenCalled();
+      expect(f.send).not.toHaveBeenCalled();
+    } finally {
+      release(0);
+      view.unmount();
+      await session.dispose();
+    }
+  },
+);
 
 it('presents mixed verse slots as parts and keeps repeated verses distinct in live navigation', async () => {
   const f = fixture(slidesBibleItem());

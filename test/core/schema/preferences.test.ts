@@ -24,6 +24,24 @@ function parse(json: unknown) {
 }
 
 describe('parsePreferences', () => {
+  it('defaults Bible review on and round-trips an explicit false without dropping unknown fields', () => {
+    expect(
+      withPreferenceDefaults(parse(HEADER)).bible.splitEditorAutoOpen,
+    ).toBe(true);
+    const stored = {
+      ...HEADER,
+      bible: {splitEditorAutoOpen: false, future: 'keep'},
+    };
+    expectRoundTrip(codec, stored);
+    expect(
+      withPreferenceDefaults(parse(stored)).bible.splitEditorAutoOpen,
+    ).toBe(false);
+    expectInvalidField(
+      codec,
+      {...HEADER, bible: {splitEditorAutoOpen: 'false'}},
+      'bible.splitEditorAutoOpen',
+    );
+  });
   it('reads a file with only the header', () => {
     expectRoundTrip(codec, HEADER);
   });

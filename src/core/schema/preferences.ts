@@ -189,6 +189,7 @@ export const preferencesSchema = jsonObject({
         }),
       ),
       maxLines: v.exactOptional(bibleMaxLinesSchema),
+      splitEditorAutoOpen: optionalBoolean,
       sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
   ),
@@ -282,6 +283,7 @@ export const defaultPreferences: Preferences = {
       translationName: false,
     },
     maxLines: 4,
+    splitEditorAutoOpen: true,
     sourcePosition: 'bottomRight',
   },
   import: {

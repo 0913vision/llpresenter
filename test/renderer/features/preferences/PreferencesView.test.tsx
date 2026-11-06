@@ -136,6 +136,19 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
+  it('saves the Bible auto-open setting from the new-passage group', async () => {
+    await mount();
+    await openPage('성경');
+    const toggle = screen.getByRole('checkbox', {
+      name: '절 나누기 창 저절로 열기',
+    });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(toggle);
+    await waitFor(() =>
+      expect(written().bible?.splitEditorAutoOpen).toBe(false),
+    );
+    expect(written()).toMatchObject(UNKNOWN_FIELDS);
+  });
   it('opens on the page main hands over once, also when StrictMode runs its effects twice', async () => {
     let answers: Array<PreferencePageId | null> = ['shortcuts', null];
     const preferencesPage = vi.fn(() =>

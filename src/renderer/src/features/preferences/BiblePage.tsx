@@ -114,6 +114,18 @@ export function BiblePage({
       </PropertyGroup>
       {preferences === null ? null : (
         <PropertyGroup title="새 구절">
+          <CheckboxRow
+            label="절 나누기 창 저절로 열기"
+            disabled={lockedReason !== undefined}
+            title={lockedReason}
+            checked={preferences.bible.splitEditorAutoOpen}
+            onChange={splitEditorAutoOpen =>
+              change(stored => ({
+                ...stored,
+                bible: {...stored.bible, splitEditorAutoOpen},
+              }))
+            }
+          />
           <SelectRow
             label="나누기"
             disabled={lockedReason !== undefined}

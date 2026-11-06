@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useState, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {VerseSlide} from '@core/schema/service';
@@ -8,6 +8,7 @@ import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {BibleProjections} from './splitProjection';
 import {loadVersePassages} from './loadSlidesProjection';
+import {bibleRefinements} from './BibleRefinements';
 
 /** Resolves only the verse slots of a local draft, dropping stale lookup replies. */
 export function useSlidesVerseProjection(
@@ -15,6 +16,10 @@ export function useSlidesVerseProjection(
   item: SlidesItem,
   enabled = true,
 ) {
+  const refinementRevision = useSyncExternalStore(
+    bibleRefinements.subscribe,
+    bibleRefinements.getSnapshot,
+  );
   const references = item.slides.slides.filter(
     (slide): slide is VerseSlide => 'verse' in slide,
   );
@@ -103,18 +108,31 @@ export function useSlidesVerseProjection(
       screens: screenFile.value.screens,
       saved: cutFile.value,
       canvas: measurement.canvas,
-    }).get({
-      kind: 'slides',
-      id: item.id,
-      input: projectSlides(item, undefined, loaded.passages),
-      verseNumbers: true,
-      reference: 'every',
-      translationName: false,
-      source: 'service',
-      ...(item.background === undefined ? {} : {background: item.background}),
-      ...(item.theme === undefined ? {} : {theme: item.theme}),
-    });
-  }, [active, loaded, request, measurement, themes, screens, cuts, item]);
+    }).get(
+      {
+        kind: 'slides',
+        id: item.id,
+        input: projectSlides(item, undefined, loaded.passages),
+        verseNumbers: true,
+        reference: 'every',
+        translationName: false,
+        source: 'service',
+        ...(item.background === undefined ? {} : {background: item.background}),
+        ...(item.theme === undefined ? {} : {theme: item.theme}),
+      },
+      refinementRevision,
+    );
+  }, [
+    active,
+    loaded,
+    request,
+    measurement,
+    themes,
+    screens,
+    cuts,
+    item,
+    refinementRevision,
+  ]);
   return {
     projection,
     failed:
