@@ -1,3 +1,4 @@
+import {labelInk} from '@renderer/ui/labelInk';
 import type {GroupedSong} from '@core/schema/groupedSong';
 import {
   useEffect,
@@ -268,7 +269,7 @@ export function ContentPreviewFrame({
           {color === 'none' ? null : (
             <span
               className={styles.swatch}
-              style={{background: `var(--label-${color})`}}
+              style={{background: labelInk(color)['--label-fill']}}
             />
           )}
           <span>{labelName}</span>

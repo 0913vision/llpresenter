@@ -1,8 +1,8 @@
 import {memo, type JSX, type ReactNode} from 'react';
 import type {MacroColor} from '@core/labels/colors';
+import type {LabelInkStyle} from './labelInk';
 import {classNames} from './classNames';
 import {hasIcon, Icon} from './Icon';
-import {labelInk} from './labelInk';
 import type {MenuAnchor} from './Menu';
 import {gridMoves, rowMoves, TileList} from './TileList';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
@@ -20,6 +20,13 @@ function macroIcon(icon: string): string {
 }
 const NEW_MACRO = '새 매크로';
 const ONE_COLUMN = 1;
+
+function macroInk(color: MacroColor): LabelInkStyle {
+  return {
+    '--label-fill': `var(--label-${color})`,
+    '--label-ink': 'var(--text-on-label)',
+  };
+}
 
 /**
  * When a 매크로 runs on its own: once after the app starts (시작할 때 실행),
@@ -92,7 +99,7 @@ export const MacroTile = memo((props: MacroProps): JSX.Element => {
       data-state={macroState(lastRun)}
       className={styles.macro}
     >
-      <span className={styles.tile} style={labelInk(color)}>
+      <span className={styles.tile} style={macroInk(color)}>
         <Icon name={macroIcon(icon)} size={TILE_ICON_SIZE} />
         {schedule === undefined ? null : (
           <span className={styles.clock}>
@@ -124,7 +131,7 @@ export const MacroRow = memo((props: MacroRowProps): JSX.Element => {
       data-state={macroState(lastRun)}
       className={styles.row}
     >
-      <span className={styles.swatch} style={labelInk(color)}>
+      <span className={styles.swatch} style={macroInk(color)}>
         <Icon name={macroIcon(icon)} size={ROW_ICON_SIZE} />
       </span>
       <span className={styles.rowName}>{name}</span>

@@ -19,7 +19,7 @@ function labelsFile(name: string, key: string | null = null) {
   return {
     format: 'llsettings.labels',
     schemaVersion: 1,
-    labels: [{name, color: 'teal', key}],
+    labels: [{name, color: '#5FB8C2', key}],
   };
 }
 
@@ -78,7 +78,7 @@ describe('readSettingsFile', () => {
     const read = await readSettingsFile(location, parseLabels);
 
     expect(read.data?.labels).toEqual([
-      {name: '후렴', color: 'teal', key: null},
+      {name: '후렴', color: '#5FB8C2', key: null},
     ]);
     expect(read.problems).toEqual([
       expect.objectContaining({
@@ -136,7 +136,7 @@ describe('readSettingsFile', () => {
     const read = await readSettingsFile(location, parseLabels);
 
     expect(read.data?.labels).toEqual([
-      {name: '후렴', color: 'teal', key: null},
+      {name: '후렴', color: '#5FB8C2', key: null},
     ]);
     expect(read.problems).toMatchObject([
       {kind: 'json', file: location.file},

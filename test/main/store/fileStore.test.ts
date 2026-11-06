@@ -91,7 +91,7 @@ describe('loadStore', () => {
     await writeJson(join(root, 'Settings', 'labels.json'), {
       format: 'llsettings.labels',
       schemaVersion: 1,
-      labels: [{name: '후렴', color: 'yellow', key: 'KeyC'}],
+      labels: [{name: '후렴', color: '#D6B35F', key: 'KeyC'}],
     });
 
     const store = await loadedStore(context);
@@ -99,7 +99,7 @@ describe('loadStore', () => {
     expect(store.songs.get(HYMN_ONE_ID)?.data.title).toBe('만복의 근원 하나님');
     expect(store.services.get(SUNDAY_ID)?.data.order).toHaveLength(1);
     expect(store.labels).toEqual([
-      {name: '후렴', color: 'yellow', key: 'KeyC'},
+      {name: '후렴', color: '#D6B35F', key: 'KeyC'},
     ]);
     expect(store.openServiceId).toBe(SUNDAY_ID);
     expect(store.problems).toEqual([]);
@@ -267,14 +267,14 @@ describe('loadStore', () => {
       {
         format: 'llsettings.labels',
         schemaVersion: 1,
-        labels: [{name: '후렴', color: 'yellow', key: 'KeyC'}],
+        labels: [{name: '후렴', color: '#D6B35F', key: 'KeyC'}],
       },
     );
 
     const store = await loadedStore(context);
 
     expect(store.labels).toEqual([
-      {name: '후렴', color: 'yellow', key: 'KeyC'},
+      {name: '후렴', color: '#D6B35F', key: 'KeyC'},
     ]);
     expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
   });
@@ -327,12 +327,12 @@ describe('loadStore', () => {
     await writeJson(join(dataRoot(context), 'Settings', 'labels.json'), {
       format: 'llsettings.labels',
       schemaVersion: 1,
-      labels: [{name: '후렴', color: 'yellow', key: 'C'}],
+      labels: [{name: '후렴', color: '#D6B35F', key: 'C'}],
     });
 
     const store = await loadedStore(context);
 
-    expect(store.labels).toEqual([{name: '후렴', color: 'yellow', key: null}]);
+    expect(store.labels).toEqual([{name: '후렴', color: '#D6B35F', key: null}]);
     expect(store.problems).toEqual([
       expect.objectContaining({kind: 'invalid', field: 'labels.0.key'}),
     ]);

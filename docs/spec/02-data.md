@@ -550,15 +550,17 @@ unknown fields are preserved; stage and prop references continue resolving by ID
 | ---------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                                                                     | `Reflow` 이름표 menu                                             |
 | `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                                                             | `Reflow`                                                         |
-| `.color`   | One of the eight colors above, or `"none"`                                                               | Color.                                                                                                                                                                | `Reflow` color row, `LabelColorPicker` README                    |
+| `.color`   | Six-digit `#RRGGBB`, or `"none"`                                                                         | Color.                                                                                                                                                                | `Reflow` color row, `LabelColorPicker` README                    |
 | `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Legacy label assignment retained when reading/writing existing settings. It does not assign a source-slide hot key; use `groups[].slides[].hotKey` (S26, October 27). | Earlier product log; superseded by the October 27 user decision. |
 
-Defaults, in order: 전주 (slate), 1절 (teal), 2절 (teal), 3절 (teal), 4절
-(teal), 프리코러스 (green), 후렴 (yellow), 포스트코러스 (orange), 브리지
-(violet), 간주 (gray), 후주 (slate). New labels retain `key: null` for legacy
-compatibility. Source-slide hot keys start unassigned; these names do not
-generate assignments (October 27 S26 decision, 10). The board spells 브릿지 and
-the design system spells 브리지. This spec follows the design system.
+Defaults, in order: 전주 (`#7D8FD6`), 1절 to 4절 (`#5FB8C2`), 프리코러스
+(`#8FBF7A`), 후렴 (`#D6B35F`), 포스트코러스 (`#D68F5F`), 브리지 (`#A99AE0`),
+간주 (`#A3A3A3`), 후주 (`#7D8FD6`). Palette names are invalid; no legacy color
+reader or conversion is provided before the first release. New labels retain
+`key: null` for legacy compatibility. Source-slide hot keys start unassigned;
+these names do not generate assignments (October 27 S26 decision, 10). The board
+spells 브릿지 and the design system spells 브리지. This spec follows the design
+system.
 
 ### 환경설정 (`preferences.json`)
 

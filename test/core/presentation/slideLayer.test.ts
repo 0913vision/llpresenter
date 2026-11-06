@@ -4,7 +4,7 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 
 const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
   song: [
-    {label: '1절', labelColor: 'teal', lines: ['a', 'b']},
+    {label: '1절', labelColor: '#5FB8C2', lines: ['a', 'b']},
     {label: null, labelColor: 'none', lines: ['c']},
   ],
 };

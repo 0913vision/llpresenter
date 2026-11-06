@@ -20,7 +20,7 @@ function ChorusColor({
 }: {
   readonly onChange?: (color: LabelColor) => void;
 }): JSX.Element {
-  const [color, setColor] = useState<LabelColor>('yellow');
+  const [color, setColor] = useState<LabelColor>('#D6B35F');
   return (
     <LabelColorPicker
       label="후렴 색"
@@ -53,7 +53,7 @@ describe('LabelColorPicker', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(checkedColor()).toBe('노랑');
     fireEvent.click(target, {detail: 1, ctrlKey: true});
-    expect(onChange).toHaveBeenCalledExactlyOnceWith('violet');
+    expect(onChange).toHaveBeenCalledExactlyOnceWith('#A99AE0');
   });
 
   it('enters on the current color and moves with the arrows', async () => {
@@ -74,7 +74,7 @@ describe('LabelColorPicker', () => {
       <LabelColorPicker
         label="후렴 색"
         scope={paletteColorScopes.label}
-        value="yellow"
+        value="#D6B35F"
         onChange={onChange}
       />,
     );

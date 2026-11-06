@@ -1,3 +1,4 @@
+import {labelInk} from '@renderer/ui/labelInk';
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
@@ -56,7 +57,9 @@ export function LabelChoices({
                 <span
                   className={menuStyles.swatch}
                   data-color={entry.swatch}
-                  style={{backgroundColor: `var(--label-${entry.swatch})`}}
+                  style={{
+                    backgroundColor: labelInk(entry.swatch)['--label-fill'],
+                  }}
                 />
               )}
               <span className={menuStyles.label}>{entry.label}</span>

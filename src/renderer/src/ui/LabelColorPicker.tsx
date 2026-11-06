@@ -2,6 +2,7 @@ import type {JSX, KeyboardEvent} from 'react';
 import {
   NO_LABEL_COLOR,
   paletteColors,
+  paletteHex,
   type LabelColor,
   type PaletteColor,
 } from '@core/labels/colors';
@@ -15,17 +16,18 @@ import styles from './LabelColorPicker.module.css';
 const NONE_ICON_SIZE = 12;
 
 /** The color names for tooltips and `aria-label`; no other names are used. */
-export const labelColorNames: Readonly<Record<LabelColor, string>> = {
-  teal: '청록',
-  green: '초록',
-  yellow: '노랑',
-  orange: '주황',
-  rose: '분홍',
-  violet: '보라',
-  slate: '남색',
-  gray: '회색',
-  none: '없음',
-};
+export const labelColorNames: Readonly<Record<PaletteColor | 'none', string>> =
+  {
+    teal: '청록',
+    green: '초록',
+    yellow: '노랑',
+    orange: '주황',
+    rose: '분홍',
+    violet: '보라',
+    slate: '남색',
+    gray: '회색',
+    none: '없음',
+  };
 
 /**
  * What a palette color applies to, said in the tooltip of every swatch, so
@@ -37,7 +39,7 @@ export const paletteColorScopes = {
 } as const;
 
 interface SwatchProps {
-  readonly color: LabelColor;
+  readonly color: PaletteColor | 'none';
   readonly scope: string;
   readonly checked: boolean;
   readonly disabled: boolean;
@@ -93,9 +95,9 @@ function Swatch({
 }
 
 /** The props of a color row; the pickers fill in the colors. */
-export interface SwatchRowProps<T extends LabelColor> {
+export interface SwatchRowProps<T extends string> {
   readonly colors: readonly T[];
-  readonly value: T;
+  readonly value: T | undefined;
   readonly onChange: (color: T) => void;
   /** The row name for assistive technology, such as 후렴 색. */
   readonly label: string;
@@ -106,9 +108,10 @@ export interface SwatchRowProps<T extends LabelColor> {
   /** Draws the row inside a menu, lined up with the menu items. */
   readonly inMenu?: boolean | undefined;
   readonly disabled?: boolean | undefined;
+  readonly onSelectCurrent?: (() => void) | undefined;
 }
 
-function SwatchRow<T extends LabelColor>({
+function SwatchRow<T extends PaletteColor | 'none'>({
   colors,
   value,
   onChange,
@@ -117,9 +120,17 @@ function SwatchRow<T extends LabelColor>({
   name,
   inMenu = false,
   disabled = false,
+  onSelectCurrent,
 }: SwatchRowProps<T>): JSX.Element {
   const items = colors.map(color => ({value: color}));
-  const roving = useRovingSelection({items, value, onChange, disabled});
+  const roving = useRovingSelection<T | undefined>({
+    items,
+    value,
+    onChange: color => {
+      if (color !== undefined) onChange(color);
+    },
+    disabled,
+  });
   return (
     <div
       role="radiogroup"
@@ -142,6 +153,7 @@ function SwatchRow<T extends LabelColor>({
           elementRef={roving.refOf(index)}
           onSelect={() => {
             if (color !== value) onChange(color);
+            else onSelectCurrent?.();
           }}
           onKeyDown={event => roving.onKeyDown(index, event)}
         />
@@ -150,7 +162,10 @@ function SwatchRow<T extends LabelColor>({
   );
 }
 
-const labelColors: readonly LabelColor[] = [NO_LABEL_COLOR, ...paletteColors];
+const labelColors: ReadonlyArray<PaletteColor | 'none'> = [
+  NO_LABEL_COLOR,
+  ...paletteColors,
+];
 
 export type LabelColorPickerProps = Omit<SwatchRowProps<LabelColor>, 'colors'>;
 
@@ -160,7 +175,23 @@ export type LabelColorPickerProps = Omit<SwatchRowProps<LabelColor>, 'colors'>;
  * right arrows move and pick.
  */
 export function LabelColorPicker(props: LabelColorPickerProps): JSX.Element {
-  return <SwatchRow colors={labelColors} {...props} />;
+  const value =
+    props.value === 'none'
+      ? 'none'
+      : paletteColors.find(
+          color =>
+            paletteHex[color].toUpperCase() === props.value?.toUpperCase(),
+        );
+  return (
+    <SwatchRow
+      {...props}
+      colors={labelColors}
+      value={value}
+      onChange={color =>
+        props.onChange(color === 'none' ? color : paletteHex[color])
+      }
+    />
+  );
 }
 
 export type MacroColorPickerProps = Omit<

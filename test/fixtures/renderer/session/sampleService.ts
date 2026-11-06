@@ -16,16 +16,16 @@ const sampleRows: readonly ServiceRow[] = [
 ];
 
 const labelColors: Readonly<Record<string, LabelColor>> = {
-  '1절': 'teal',
-  '2절': 'teal',
-  후렴: 'orange',
-  브리지: 'violet',
+  '1절': '#5FB8C2',
+  '2절': '#5FB8C2',
+  후렴: '#D68F5F',
+  브리지: '#A99AE0',
 };
 
 function tile(label: string | null, ...lines: string[]): SlideTile {
   return {
     label,
-    labelColor: label ? (labelColors[label] ?? 'gray') : 'none',
+    labelColor: label ? (labelColors[label] ?? '#A3A3A3') : 'none',
     lines,
   };
 }

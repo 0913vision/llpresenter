@@ -132,7 +132,7 @@ describe('parseService', () => {
       ...service,
       order: [
         ...service.order.map(item => ({...item, flag: 'x'})),
-        {id: itemId(7), bible: {...PASSAGE, highlight: 'yellow'}},
+        {id: itemId(7), bible: {...PASSAGE, highlight: '#D6B35F'}},
       ],
       theme: 'dark',
     };
@@ -142,7 +142,7 @@ describe('parseService', () => {
 
     expect(loaded.data).toEqual(withUnknown);
     expect(expectSuccess(parseService(text, FILE)).data).toEqual(withUnknown);
-    expect(text).toContain('"highlight": "yellow"');
+    expect(text).toContain('"highlight": "#D6B35F"');
   });
 
   it.each([

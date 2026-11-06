@@ -37,9 +37,64 @@ describe('song editor label menu', () => {
     expect(labels().value.labels[0]?.name).toBe('1절');
     expect(labelEdits).toHaveLength(0);
     await user.tab();
+
     expect(document.activeElement).toBe(
       within(dialog).getByRole('textbox', {name: '1절 이름'}),
     );
+  });
+
+  it('saves a keyboard reorder and uses catalog order in the label menu', async () => {
+    const {user, labels, labelEdits} = await editorSetup();
+    const dialog = await openManager(user);
+    const handle = within(dialog).getByRole('button', {name: '후렴 순서 이동'});
+    handle.focus();
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    await waitFor(() =>
+      expect(labels().value.labels.map(label => label.name)).toEqual([
+        '후렴',
+        '1절',
+      ]),
+    );
+    expect(document.activeElement).toBe(handle);
+    expect(labelEdits).toHaveLength(1);
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    expect(labelEdits).toHaveLength(1);
+    await user.click(
+      within(dialog).getAllByRole('button', {name: '닫기'}).at(-1) ?? dialog,
+    );
+    const menu = await openMenu(user);
+    expect(
+      within(menu)
+        .getAllByRole('menuitemradio')
+        .map(row => row.textContent),
+    ).toEqual(['이름표 없음', '후렴', '1절']);
+  });
+
+  it('drags only from the grip, marks the insertion, and saves the drop', async () => {
+    const {user, labels, labelEdits} = await editorSetup();
+    const dialog = await openManager(user);
+    const row = within(dialog).getByRole('group', {name: '1절'});
+    const grip = within(dialog).getByRole('button', {name: '후렴 순서 이동'});
+    const data = new Map<string, string>();
+    const dataTransfer = {
+      types: ['application/x-llp-label'],
+      setData: (type: string, value: string) => data.set(type, value),
+      getData: (type: string) => data.get(type) ?? '',
+      effectAllowed: '',
+      dropEffect: '',
+    };
+    expect(row.draggable).toBe(false);
+    expect(grip.draggable).toBe(true);
+    fireEvent.dragStart(grip, {dataTransfer});
+    vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 0, 400, 30),
+    );
+    fireEvent.dragOver(row, {dataTransfer, clientY: 1});
+    expect(row.getAttribute('data-drop')).toBe('before');
+    fireEvent.drop(row, {dataTransfer, clientY: 1});
+    await waitFor(() => expect(labels().value.labels[0]?.name).toBe('후렴'));
+    expect(labelEdits).toHaveLength(1);
+    expect(row.getAttribute('data-drop')).toBeNull();
   });
 
   it('only offers selection and the single manager without row context menus', async () => {
@@ -71,7 +126,7 @@ describe('song editor label menu', () => {
         within(row).getByRole('textbox', {name: `${label.name} 이름`}),
       ).toHaveProperty('value', label.name);
       expect(
-        within(row).getByRole('radiogroup', {name: `${label.name} 색`}),
+        within(row).getByRole('button', {name: `${label.name} 색`}),
       ).toBeDefined();
       expect(within(row).queryByText(`${label.name} 색`)).toBeNull();
     }
@@ -177,7 +232,8 @@ describe('song editor label menu', () => {
   it('applies shared colors without changing legacy keys or assigning newly created labels', async () => {
     const {user, labels, session} = await editorSetup();
     const dialog = await openManager(user);
-    const colors = within(dialog).getByRole('radiogroup', {name: '1절 색'});
+    await user.click(within(dialog).getByRole('button', {name: '1절 색'}));
+    const colors = screen.getByRole('radiogroup', {name: '1절 색'});
     expect(within(colors).getAllByRole('radio')).toHaveLength(9);
     expect(
       (await hoverForTooltip(within(colors).getByRole('radio', {name: '초록'})))
@@ -185,7 +241,9 @@ describe('song editor label menu', () => {
     ).toBe(`초록${paletteColorScopes.label}`);
     vi.useRealTimers();
     await user.click(within(colors).getByRole('radio', {name: '초록'}));
-    await waitFor(() => expect(labels().value.labels[0]?.color).toBe('green'));
+    await waitFor(() =>
+      expect(labels().value.labels[0]?.color).toBe('#8FBF7A'),
+    );
     expect(labels().value.labels[1]?.key).toBe('KeyC');
     await user.click(screen.getByRole('button', {name: '새 이름표'}));
     await waitFor(() => expect(labels().value.labels).toHaveLength(3));
@@ -198,15 +256,16 @@ describe('song editor label menu', () => {
     const field = screen.getByRole('textbox', {name: '1절 이름'});
     await user.clear(field);
     await user.type(field, '새 절');
+    await user.click(within(dialog).getByRole('button', {name: '1절 색'}));
     await user.click(
       within(
-        within(dialog).getByRole('radiogroup', {name: '1절 색'}),
+        await screen.findByRole('radiogroup', {name: '새 절 색'}),
       ).getByRole('radio', {name: '초록'}),
     );
     await waitFor(() =>
       expect(labels().value.labels[0]).toMatchObject({
         name: '새 절',
-        color: 'green',
+        color: '#8FBF7A',
       }),
     );
   });
@@ -284,8 +343,17 @@ describe('song editor label menu', () => {
     for (const field of within(dialog).getAllByRole('textbox')) {
       expect(field).toHaveProperty('readOnly', true);
     }
-    for (const radio of within(dialog).getAllByRole('radio')) {
-      expect(radio.getAttribute('aria-disabled')).toBe('true');
+    for (const label of fixture.labels().value.labels) {
+      expect(
+        within(dialog)
+          .getByRole('button', {name: `${label.name} 색`})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
+      expect(
+        within(dialog)
+          .getByRole('button', {name: `${label.name} 순서 이동`})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
     }
     const add = within(dialog).getByRole('button', {name: '새 이름표'});
     expect(add.getAttribute('aria-disabled')).toBe('true');

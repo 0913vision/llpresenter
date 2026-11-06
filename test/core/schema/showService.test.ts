@@ -17,7 +17,7 @@ function showService() {
     ],
     tiles: {
       'item-2': [
-        {label: '1절', labelColor: 'teal', lines: ['만복의 근원 하나님']},
+        {label: '1절', labelColor: '#5FB8C2', lines: ['만복의 근원 하나님']},
         {label: null, labelColor: 'none', lines: []},
       ],
     },

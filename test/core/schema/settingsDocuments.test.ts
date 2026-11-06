@@ -317,7 +317,7 @@ describe('app-wide settings contracts', () => {
         name: 'labels',
         value: {
           ...fixtures.labels,
-          labels: [{name: 'Old', color: 'teal', key: null, future: true}],
+          labels: [{name: 'Old', color: '#5FB8C2', key: null, future: true}],
         },
         revision: 1,
         access: 'editable',
@@ -329,7 +329,7 @@ describe('app-wide settings contracts', () => {
         name: 'labels',
         value: {
           ...fixtures.labels,
-          labels: [{name: 'New', color: 'teal', key: null}],
+          labels: [{name: 'New', color: '#5FB8C2', key: null}],
         },
         baseRevision: 1,
       }),

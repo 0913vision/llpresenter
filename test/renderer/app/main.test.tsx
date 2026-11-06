@@ -42,7 +42,7 @@ it('creates a window session outside render and releases its resources on pagehi
     }
     expect(session.editor).toBeUndefined();
     session.startEditor();
-    expect(fixture.listenerCount()).toBe(3);
+    expect(fixture.listenerCount()).toBe(4);
     const dispose = vi.spyOn(session, 'dispose');
     await act(async () => {
       window.dispatchEvent(new Event('pagehide'));

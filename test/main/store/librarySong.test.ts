@@ -59,8 +59,8 @@ function sources(overrides: object = {}) {
   return {
     song: vi.fn(() => parsed.value),
     labels: [
-      {name: 'Verse', color: 'teal', key: 'Digit1'},
-      {name: 'Later', color: 'rose', key: 'Digit1'},
+      {name: 'Verse', color: '#5FB8C2', key: 'Digit1'},
+      {name: 'Later', color: '#D07A8A', key: 'Digit1'},
     ],
     backgroundOf: vi.fn(() => Promise.resolve(null)),
   } satisfies LibrarySongSources;
@@ -91,7 +91,7 @@ describe('library song projection', () => {
       tiles: [
         {
           label: 'Verse',
-          labelColor: 'teal',
+          labelColor: '#5FB8C2',
           lines: ['First'],
           sourceSlide: {
             songId,
@@ -115,10 +115,10 @@ describe('library song projection', () => {
     expect(source.backgroundOf).not.toHaveBeenCalled();
     const next = {
       ...source,
-      labels: [{name: 'Verse', color: 'rose', key: null}] as const,
+      labels: [{name: 'Verse', color: '#D07A8A', key: null}] as const,
     };
     expect(await showLibrarySong(next, songId)).toMatchObject({
-      tiles: [{labelColor: 'rose'}, {}],
+      tiles: [{labelColor: '#D07A8A'}, {}],
       jumpKeys: {},
     });
   });
@@ -151,7 +151,7 @@ describe('library song projection', () => {
         revision: 4,
         access: 'editable' as const,
       })),
-      labels: [{name: 'Verse', color: 'teal', key: 'Digit1'}],
+      labels: [{name: 'Verse', color: '#5FB8C2', key: 'Digit1'}],
       backgroundOf: vi.fn(() => Promise.resolve(null)),
     };
     expect(await showLibrarySong(source, gSongId)).toEqual({
@@ -162,7 +162,7 @@ describe('library song projection', () => {
       tiles: [
         {
           label: 'Verse',
-          labelColor: 'teal',
+          labelColor: '#5FB8C2',
           lines: ['G1 Line 1'],
           sourceSlide: {
             songId: gSongId,

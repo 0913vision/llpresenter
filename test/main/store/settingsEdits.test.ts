@@ -55,7 +55,7 @@ function edit(label: string, baseRevision: number) {
       type: 'settings.update',
       name: 'labels',
       baseRevision,
-      value: {...value, labels: [{name: label, color: 'teal', key: null}]},
+      value: {...value, labels: [{name: label, color: '#5FB8C2', key: null}]},
     }),
   );
 }

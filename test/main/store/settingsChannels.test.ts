@@ -1,4 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {EventEmitter} from 'node:events';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import type {EditResult} from '@core/schema/contentEdit';
 import {defaultPreferences} from '@core/schema/preferences';
@@ -91,6 +92,54 @@ function mockStore() {
 }
 
 describe('settings channels', () => {
+  it('broadcasts validated color previews without saving and clears them on sender destruction or persistence', async () => {
+    const {store, emit} = mockStore();
+    const document = documentOf('labels', {
+      format: 'llsettings.labels',
+      schemaVersion: 1,
+      labels: [{name: '1절', color: '#5FB8C2', key: null}],
+    });
+    store.get.mockReturnValue(document);
+    const channels = registerSettingsChannels(
+      Promise.resolve(store),
+      recordingLogger(),
+    );
+    onTestFinished(() => channels.dispose());
+    await vi.waitFor(() => expect(store.subscribe).toHaveBeenCalledOnce());
+    const sender = Object.assign(new EventEmitter(), {
+      isDestroyed: () => false,
+    });
+    const request = handler(settingsEndpoints.previewLabelColor.channel);
+    electron.send.mockClear();
+    expect(await request({sender}, {name: '1절', color: 'teal'})).toBe(false);
+    expect(await request({sender}, {name: 'missing', color: '#123456'})).toBe(
+      false,
+    );
+    expect(electron.send).not.toHaveBeenCalled();
+    expect(await request({sender}, {name: '1절', color: '#123456'})).toBe(true);
+    expect(electron.send).toHaveBeenLastCalledWith(
+      settingsEndpoints.labelColorPreview.channel,
+      {name: '1절', color: '#123456'},
+    );
+    expect(store.apply).not.toHaveBeenCalled();
+    sender.emit('destroyed');
+    expect(electron.send).toHaveBeenLastCalledWith(
+      settingsEndpoints.labelColorPreview.channel,
+      null,
+    );
+    expect(sender.listenerCount('destroyed')).toBe(0);
+    await request({sender}, {name: '1절', color: '#654321'});
+    emit(document);
+    expect(electron.send.mock.calls.slice(-2)).toEqual([
+      [settingsEndpoints.labelColorPreview.channel, null],
+      [settingsEndpoints.changed.channel, document],
+    ]);
+    expect(sender.listenerCount('destroyed')).toBe(0);
+    store.get.mockReturnValue({...document, access: 'readOnly'});
+    expect(await request({sender}, {name: '1절', color: '#123456'})).toBe(
+      false,
+    );
+  });
   it('sends every changed document, and the normalized preferences after a preferences change', async () => {
     const {store, emit} = mockStore();
     const channels = registerSettingsChannels(

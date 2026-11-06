@@ -321,13 +321,13 @@ describe('buildShowService', () => {
     expect(show.tiles[itemId(1)]).toMatchObject([
       {
         label: '1절',
-        labelColor: 'teal',
+        labelColor: '#5FB8C2',
         lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
         sourceSlide: {groupId: HYMN_ONE_GROUPS[0], slideIndex: 0},
       },
       {
         label: '후렴',
-        labelColor: 'yellow',
+        labelColor: '#D6B35F',
         lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령'],
       },
       {label: null, labelColor: 'none', lines: ['아멘']},
@@ -337,11 +337,11 @@ describe('buildShowService', () => {
   it('gives a 이름표 that is not in the list no color', () => {
     const show = build(
       [{id: itemId(1), song: HYMN_ONE_ID}],
-      [{name: '1절', color: 'rose', key: null}],
+      [{name: '1절', color: '#D07A8A', key: null}],
     );
 
     expect(show.tiles[itemId(1)]?.map(({labelColor}) => labelColor)).toEqual([
-      'rose',
+      '#D07A8A',
       'none',
       'none',
     ]);
@@ -351,10 +351,10 @@ describe('buildShowService', () => {
     const show = build(
       [],
       [
-        {name: '1절', color: 'teal', key: 'Digit1'},
-        {name: '후렴', color: 'yellow', key: 'KeyC'},
-        {name: '브리지', color: 'violet', key: 'KeyC'},
-        {name: '간주', color: 'gray', key: null},
+        {name: '1절', color: '#5FB8C2', key: 'Digit1'},
+        {name: '후렴', color: '#D6B35F', key: 'KeyC'},
+        {name: '브리지', color: '#A99AE0', key: 'KeyC'},
+        {name: '간주', color: '#A3A3A3', key: null},
       ],
     );
 
@@ -401,8 +401,8 @@ describe('buildShowService', () => {
         ],
       ]),
       labels: [
-        {name: '1절', color: 'teal', key: null},
-        {name: '후렴', color: 'yellow', key: null},
+        {name: '1절', color: '#5FB8C2', key: null},
+        {name: '후렴', color: '#D6B35F', key: null},
       ],
       revision: 1,
     });
@@ -410,7 +410,7 @@ describe('buildShowService', () => {
     expect(show.tiles[itemId(1)]).toEqual([
       {
         label: '1절',
-        labelColor: 'teal',
+        labelColor: '#5FB8C2',
         lines: ['1절 첫 줄'],
         sourceSlide: {
           songId: gSongId,
@@ -421,7 +421,7 @@ describe('buildShowService', () => {
       },
       {
         label: '1절',
-        labelColor: 'teal',
+        labelColor: '#5FB8C2',
         lines: ['1절 둘째 줄'],
         sourceSlide: {
           songId: gSongId,
@@ -431,7 +431,7 @@ describe('buildShowService', () => {
       },
       {
         label: '후렴',
-        labelColor: 'yellow',
+        labelColor: '#D6B35F',
         lines: ['후렴 줄'],
         sourceSlide: {
           songId: gSongId,
@@ -474,7 +474,7 @@ describe('buildShowService', () => {
           },
         ],
       ]),
-      labels: [{name: '1절', color: 'teal', key: null}],
+      labels: [{name: '1절', color: '#5FB8C2', key: null}],
       revision: 1,
     });
 

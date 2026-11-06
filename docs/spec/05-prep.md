@@ -362,11 +362,13 @@ decision). The same editor is also available at 환경설정 > 이름표, after
 라이브러리 in the page list (November 5 user decision). Both surfaces share
 their controls, validation, rename contract and immediate catalog updates; edits
 appear in open dialogs and song editors at once. Each row contains an editable
-name, the shared color palette with an accessible name, and 삭제. Do not repeat
-the palette name as visible text. Name changes use the shared rename contract:
-Enter or blur accepts a valid draft, Esc cancels it, and a failed save keeps its
-applied identity for retry or correction. Color and rename tooltips explain
-their library-wide scope.
+name, a small color button with a 16px sample and chevron, and 삭제. A 16px grip
+at the left is the only drag source. Its focusable handle accepts Alt Up and Alt
+Down to move one row, retaining focus; a drop line marks insertion. Every label
+menu, including import matching, follows this saved catalog order. Name changes
+use the shared rename contract: Enter or blur accepts a valid draft, Esc cancels
+it, and a failed save keeps its applied identity for retry or correction. Color
+and rename tooltips explain their library-wide scope.
 
 새 이름표 at the bottom left appends a uniquely named row with no color and
 focuses and selects its name. Creation does not assign it to the current group.
@@ -377,6 +379,19 @@ settles name drafts first. A refused save keeps the page and typed name open for
 correction; an in-flight save must finish before navigation proceeds. Hot keys
 belong to particular source slides, not this shared name/color registry (October
 27 S26 user decision).
+
+The color is `#RRGGBB` or `none`; palette names are not stored. Click, Enter,
+Space or Alt Down opens the menu-surface popover below the color button, left
+aligned and flipping above near the viewport bottom. Its only text is values:
+none and eight preset swatches, a separator, a saturation/brightness area (about
+216 by 120px), a 12px hue bar and a small hex field with a 20px sample. Preset
+tooltips keep their shared label scope and roving arrows. Picking a preset
+applies and closes. Pointer movement previews across open catalog views; release
+saves once. Arrows move by 1%, Shift by 10%; key release saves once. The hex
+field accepts Enter or blur and reports "#RRGGBB 형식으로 입력" for an invalid
+value. Esc or an outside click closes and retains applied changes. Chips, bands,
+swatches and captions paint the stored hex; band text uses WCAG relative
+luminance to choose dark or white ink. Macros keep their eight colors.
 
 On open, focus the dialog surface with no name selected or rename tooltip. Tab
 enters the first name field. 새 이름표 still focuses and selects the new row's

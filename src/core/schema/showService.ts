@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {NO_LABEL_COLOR, paletteColors} from '../labels/colors';
+import {labelColorSchema} from './labelColor';
 import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePartSchema, mediaChoiceSchema} from './liveState';
@@ -124,7 +124,7 @@ export type SongSlideSource = ReadonlyKnown<
 export const showTileSchema = v.pipe(
   payloadObject({
     label: v.nullable(v.string()),
-    labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
+    labelColor: labelColorSchema,
     lines: v.array(v.string()),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),

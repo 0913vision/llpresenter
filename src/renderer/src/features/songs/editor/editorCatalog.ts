@@ -1,5 +1,7 @@
 import type {LibrarySong, SongChange} from '@core/schema/contentDocuments';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {LabelColor} from '@core/labels/colors';
+import type {LabelColorPreview} from '@core/schema/labelColorPreview';
 import type {
   EditorApi,
   EditorLabels,
@@ -27,6 +29,8 @@ export interface EditorCatalogOptions {
 export class EditorCatalog {
   private stops: ReadonlyArray<() => void> = [];
   private labels: EditorLabels | null = null;
+  private preview: LabelColorPreview | null = null;
+  private displayedLabels: EditorLabels | null = null;
   private library: readonly LibrarySong[] = [];
   private libraryStatus: EditorState['libraryStatus'] = 'loading';
   private libraryVersion = 0;
@@ -41,7 +45,7 @@ export class EditorCatalog {
   }
   getSnapshot(): Pick<EditorState, 'labels' | 'library' | 'libraryStatus'> {
     return {
-      labels: this.labels,
+      labels: this.displayedLabels,
       library: this.library,
       libraryStatus: this.libraryStatus,
     };
@@ -54,6 +58,10 @@ export class EditorCatalog {
     const api = this.context.api;
     this.stops = [
       api.settings.subscribe(document => this.acceptLabels(document)),
+      api.settings.subscribeLabelColorPreview(preview => {
+        this.preview = preview;
+        this.publishLabels();
+      }),
       api.songs.subscribe(change => this.context.songChanged(change)),
       api.songs.subscribeList(entries => {
         this.libraryVersion++;
@@ -66,6 +74,31 @@ export class EditorCatalog {
 
   dispose(): void {
     for (const stop of this.stops) stop();
+  }
+
+  previewLabelColor(name: string, color: LabelColor | null): void {
+    this.preview = color === null ? null : {name, color};
+    this.publishLabels();
+    editorTask(this.context.api.settings.previewLabelColor({name, color}));
+  }
+
+  private publishLabels(): void {
+    const preview = this.preview;
+    this.displayedLabels =
+      this.labels === null || preview === null
+        ? this.labels
+        : {
+            ...this.labels,
+            value: {
+              ...this.labels.value,
+              labels: this.labels.value.labels.map(label =>
+                label.name === preview.name
+                  ? {...label, color: preview.color}
+                  : label,
+              ),
+            },
+          };
+    this.context.host.publish();
   }
 
   async readLabels(): Promise<void> {
@@ -117,7 +150,8 @@ export class EditorCatalog {
       (this.labels === null || document.revision > this.labels.revision)
     ) {
       this.labels = document;
-      this.context.host.publish();
+      this.preview = null;
+      this.publishLabels();
     }
   }
 }

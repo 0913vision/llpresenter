@@ -411,11 +411,19 @@ output.
   color list, delete; Arrangements video 1:02). Rows follow the list-row rule
   plus the color that PP keeps per group.
 
-Each row has an editable name, the shared palette (none and eight colors), and
-삭제. Names and colors save immediately. Renaming rewrites matching names in
-every song; deleting only removes the catalog definition and keeps song names.
-Keep scope tooltips on these controls. The palette's name is accessible without
-repeating it visibly beside the name field.
+Each row has a focusable grip, an editable name, a small color button and 삭제.
+Only the grip drags; Alt Up/Down moves one row and preserves focus. Catalog
+order is saved immediately and is used by every label menu. The color button
+opens the menu-surface popover below it, left aligned, flipping above near the
+window bottom. It contains none and eight presets, a separator, a
+saturation/brightness area, a hue bar and a hex field with a sample. Colors
+store any `#RRGGBB` or `none`. Presets apply and close; dragging previews live
+and saves once on release. Arrows move 1%, Shift 10%. Hex applies on Enter or
+blur; Esc and outside clicks close without reverting applied changes (05). Names
+and colors save immediately. Renaming rewrites matching names in every song;
+deleting only removes the catalog definition and keeps song names. Keep scope
+tooltips on these controls. The palette's name is accessible without repeating
+it visibly beside the name field.
 
 새 이름표 at the footer's left adds a uniquely named row and selects its name
 for editing. It does not assign the label to a group. 닫기 is the only footer

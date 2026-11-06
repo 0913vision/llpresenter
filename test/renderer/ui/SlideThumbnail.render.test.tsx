@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import type {PaletteColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels/colors';
 import {describe, expect, it, vi} from 'vitest';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 
@@ -14,7 +14,12 @@ vi.mock('@renderer/ui/labelInk', () => ({
   },
 }));
 
-const colors: readonly PaletteColor[] = ['teal', 'green', 'yellow', 'violet'];
+const colors: readonly LabelColor[] = [
+  '#5FB8C2',
+  '#8FBF7A',
+  '#D6B35F',
+  '#A99AE0',
+];
 
 function SongGrid(): JSX.Element {
   const [selected, setSelected] = useState(0);
@@ -43,6 +48,6 @@ describe('ThumbnailGrid rendering', () => {
     render(<SongGrid />);
     inkRenders.length = 0;
     await userEvent.click(screen.getByRole('option', {name: '3'}));
-    expect(inkRenders.toSorted()).toEqual(['teal', 'yellow']);
+    expect(inkRenders.toSorted()).toEqual(['#5FB8C2', '#D6B35F']);
   });
 });

@@ -8,7 +8,7 @@ import {
 
 const VERSE = createSongGroupId('11111111-1111-4111-a111-111111111111');
 const CHORUS = createSongGroupId('22222222-2222-4222-a222-222222222222');
-const LABELS = [{name: '후렴', color: 'orange', key: null}] as const;
+const LABELS = [{name: '후렴', color: '#D68F5F', key: null}] as const;
 
 describe('orderTiles', () => {
   const song = sampleGroupedSong();
@@ -22,7 +22,7 @@ describe('orderTiles', () => {
       [3, 1, 'second'],
       [4, 2, 'third'],
     ]);
-    expect(tiles[0]).toMatchObject({label: '후렴', color: 'orange'});
+    expect(tiles[0]).toMatchObject({label: '후렴', color: '#D68F5F'});
     expect(tiles[1]).toMatchObject({label: '1절', color: 'none'});
   });
 

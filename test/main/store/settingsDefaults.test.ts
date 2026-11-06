@@ -6,17 +6,17 @@ import {DEFAULT_LABELS} from '@main/store/defaults';
 
 it('starts the label menu with the ordered import labels and colors', () => {
   expect(DEFAULT_LABELS.map(({name, color}) => [name, color])).toEqual([
-    ['전주', 'slate'],
-    ['1절', 'teal'],
-    ['2절', 'teal'],
-    ['3절', 'teal'],
-    ['4절', 'teal'],
-    ['프리코러스', 'green'],
-    ['후렴', 'yellow'],
-    ['포스트코러스', 'orange'],
-    ['브리지', 'violet'],
-    ['간주', 'gray'],
-    ['후주', 'slate'],
+    ['전주', '#7D8FD6'],
+    ['1절', '#5FB8C2'],
+    ['2절', '#5FB8C2'],
+    ['3절', '#5FB8C2'],
+    ['4절', '#5FB8C2'],
+    ['프리코러스', '#8FBF7A'],
+    ['후렴', '#D6B35F'],
+    ['포스트코러스', '#D68F5F'],
+    ['브리지', '#A99AE0'],
+    ['간주', '#A3A3A3'],
+    ['후주', '#7D8FD6'],
   ]);
   expect(DEFAULT_LABELS.every(label => label.key === null)).toBe(true);
 });

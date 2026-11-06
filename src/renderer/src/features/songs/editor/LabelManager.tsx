@@ -7,15 +7,14 @@ import {
   useSyncExternalStore,
   type JSX,
   type Ref,
+  type DragEvent,
 } from 'react';
 import {Button} from '@renderer/ui/Button';
 import type {Label} from '@core/schema/labels';
 import {Dialog} from '@renderer/ui/Dialog';
 import {IconButton} from '@renderer/ui/IconButton';
-import {
-  LabelColorPicker,
-  paletteColorScopes,
-} from '@renderer/ui/LabelColorPicker';
+import {Icon} from '@renderer/ui/Icon';
+import {LabelColorControl} from '@renderer/ui/LabelColorPopover';
 import {LabelDeleteDialog} from './LabelDeleteDialog';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
@@ -25,6 +24,7 @@ import styles from './LabelMenu.module.css';
 
 const DELETE_SCOPE = '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다';
 const EMPTY_LABELS: readonly Label[] = [];
+const LABEL_DRAG = 'application/x-llp-label';
 
 export interface LabelManagerHandle {
   readonly settle: () => Promise<boolean>;
@@ -59,6 +59,8 @@ export function LabelManager({
   const addButton = useRef<HTMLButtonElement>(null);
   const drafts = useRef(new Map<number, () => Promise<boolean>>());
   const acting = useRef(false);
+  const dragging = useRef<string | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
   const {rows, prepareRename} = useLabelRows(labels);
   useEffect(() => {
     if (focusRequest === null || focused.current === focusRequest || busy) {
@@ -82,8 +84,7 @@ export function LabelManager({
         ?.focus();
     }
   }, [focusRequest, busy, frame.placement]);
-  const currentLabels = (): readonly Label[] =>
-    store.getSnapshot().labels?.value.labels ?? EMPTY_LABELS;
+  const currentLabels = (): readonly Label[] => store.getStoredLabels();
   const settleDrafts = async (): Promise<boolean> => {
     for (const save of [...drafts.current.values()]) {
       if (!(await save())) return false;
@@ -91,12 +92,12 @@ export function LabelManager({
     return true;
   };
   useImperativeHandle(managerRef, () => ({settle: settleDrafts}));
-  const runAction = async (action: () => unknown): Promise<void> => {
+  const runAction = async (action: () => unknown): Promise<unknown> => {
     if (acting.current) return;
     acting.current = true;
     try {
       if (!(await settleDrafts())) return;
-      await action();
+      return await action();
     } finally {
       acting.current = false;
     }
@@ -122,6 +123,35 @@ export function LabelManager({
       setFocusRequest({name});
     }
   };
+  const move = (name: string, target: number): void => {
+    const source = currentLabels().findIndex(label => label.name === name);
+    editorTask(
+      runAction(async () => {
+        const labels = [...currentLabels()];
+        const index = source;
+        if (
+          locked ||
+          index < 0 ||
+          index === target ||
+          target < 0 ||
+          target >= labels.length
+        ) {
+          return;
+        }
+        const [label] = labels.splice(index, 1);
+        if (label === undefined) return;
+        labels.splice(target, 0, label);
+        await store.updateLabels(labels);
+      }),
+    );
+  };
+  const dropPosition = (
+    event: DragEvent<HTMLDivElement>,
+    index: number,
+  ): number => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return index + (event.clientY >= bounds.top + bounds.height / 2 ? 1 : 0);
+  };
   const add = (
     <Button
       ref={addButton}
@@ -143,7 +173,89 @@ export function LabelManager({
           role="group"
           aria-label={label.name}
           className={styles.settingsRow}
+          data-drop={
+            dropIndex === index
+              ? 'before'
+              : index === rows.length - 1 && dropIndex === rows.length
+                ? 'after'
+                : undefined
+          }
+          onDragOver={event => {
+            if (
+              locked ||
+              dragging.current === null ||
+              !event.dataTransfer.types.includes(LABEL_DRAG)
+            ) {
+              return;
+            }
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            setDropIndex(dropPosition(event, index));
+          }}
+          onDragLeave={event => {
+            if (!(
+              event.relatedTarget instanceof Node &&
+              event.currentTarget.contains(event.relatedTarget)
+            )) {
+              setDropIndex(null);
+            }
+          }}
+          onDrop={event => {
+            event.preventDefault();
+            const name = dragging.current;
+            dragging.current = null;
+            setDropIndex(null);
+            if (
+              locked ||
+              name === null ||
+              event.dataTransfer.getData(LABEL_DRAG) !== name
+            ) {
+              return;
+            }
+            const source = currentLabels().findIndex(
+              label => label.name === name,
+            );
+            const insertion = dropPosition(event, index);
+            move(name, insertion - (source < insertion ? 1 : 0));
+          }}
         >
+          <button
+            type="button"
+            className={styles.grip}
+            aria-label={`${label.name} 순서 이동`}
+            aria-disabled={locked || undefined}
+            draggable={!locked}
+            onDragStart={event => {
+              if (locked) {
+                event.preventDefault();
+                return;
+              }
+              dragging.current = label.name;
+              event.dataTransfer.setData(LABEL_DRAG, label.name);
+              event.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragEnd={() => {
+              dragging.current = null;
+              setDropIndex(null);
+            }}
+            onKeyDown={event => {
+              if (
+                locked ||
+                !event.altKey ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey ||
+                !['ArrowUp', 'ArrowDown'].includes(event.key)
+              ) {
+                return;
+              }
+              event.preventDefault();
+              event.stopPropagation();
+              move(label.name, index + (event.key === 'ArrowUp' ? -1 : 1));
+            }}
+          >
+            <Icon name="grip" size={16} />
+          </button>
           <div className={styles.name}>
             <LabelNameField
               label={label}
@@ -157,22 +269,31 @@ export function LabelManager({
               }}
             />
           </div>
-          <LabelColorPicker
+          <LabelColorControl
             label={`${label.name} 색`}
-            scope={paletteColorScopes.label}
             value={label.color}
             disabled={locked}
-            onChange={color =>
-              editorTask(
-                runAction(() =>
-                  store.updateLabels(
-                    currentLabels().map((item, itemIndex) =>
-                      itemIndex === index ? {...item, color} : item,
-                    ),
-                  ),
-                ),
-              )
-            }
+            onOpen={open => editorTask(runAction(open))}
+            onPreview={color => store.previewLabelColor(label.name, color)}
+            onChange={async color => {
+              try {
+                return (
+                  (await runAction(() => {
+                    const labels = currentLabels();
+                    if (!labels.some(item => item.name === label.name)) {
+                      return false;
+                    }
+                    return store.updateLabels(
+                      labels.map(item =>
+                        item.name === label.name ? {...item, color} : item,
+                      ),
+                    );
+                  })) === true
+                );
+              } finally {
+                store.previewLabelColor(label.name, null);
+              }
+            }}
           />
           <IconButton
             icon="trash"

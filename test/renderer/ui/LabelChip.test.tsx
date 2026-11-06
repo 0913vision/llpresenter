@@ -21,8 +21,8 @@ import {
 afterEach(resetTooltips);
 
 const chips: readonly ArrangementChip[] = [
-  {key: 'a', name: '1절', color: 'teal', number: 1},
-  {key: 'b', name: '후렴', color: 'yellow', number: 2},
+  {key: 'a', name: '1절', color: '#5FB8C2', number: 1},
+  {key: 'b', name: '후렴', color: '#D6B35F', number: 2},
   {key: 'c', name: undefined, color: 'none', number: 4},
 ];
 
@@ -131,7 +131,7 @@ describe('ArrangementStrip', () => {
     render(
       <LabelTag
         name="후렴"
-        color="yellow"
+        color="#D6B35F"
         picker={{expanded: false, onOpen}}
       />,
     );
@@ -241,9 +241,9 @@ describe('ArrangementStrip', () => {
 
   it('focuses the place a chip moved to, also between chips that look the same', async () => {
     const twins: readonly ArrangementChip[] = [
-      {key: 'x', name: '1절', color: 'teal', number: 1},
-      {key: 'y', name: '후렴', color: 'yellow', number: 2},
-      {key: 'z', name: '후렴', color: 'yellow', number: 2},
+      {key: 'x', name: '1절', color: '#5FB8C2', number: 1},
+      {key: 'y', name: '후렴', color: '#D6B35F', number: 2},
+      {key: 'z', name: '후렴', color: '#D6B35F', number: 2},
     ];
     function Twins(): JSX.Element {
       const [selected, setSelected] = useState(2);
@@ -360,7 +360,7 @@ describe('ArrangementStrip', () => {
 
 describe('LabelTag', () => {
   it('shows the 이름표 name', () => {
-    render(<LabelTag name="후렴" color="yellow" />);
+    render(<LabelTag name="후렴" color="#D6B35F" />);
     expect(screen.getByText('후렴')).toBeDefined();
   });
 
@@ -383,7 +383,7 @@ describe('LabelTag', () => {
 
 describe('LabelSwatch', () => {
   it('is hidden from assistive technology', () => {
-    const {container} = render(<LabelSwatch color="green" />);
+    const {container} = render(<LabelSwatch color="#8FBF7A" />);
     expect(container.firstElementChild?.getAttribute('aria-hidden')).toBe(
       'true',
     );
@@ -391,9 +391,21 @@ describe('LabelSwatch', () => {
 });
 
 describe('labelInk', () => {
+  it.each(['#FFFFFF', '#5FB8C2', '#D6B35F'] as const)(
+    'uses dark ink for %s',
+    color => {
+      expect(labelInk(color)['--label-ink']).toBe('var(--text-on-label)');
+    },
+  );
+  it.each(['#000000', '#102030', '#0000FF'] as const)(
+    'uses white ink for %s',
+    color => {
+      expect(labelInk(color)['--label-ink']).toBe('var(--text-on-fill)');
+    },
+  );
   it('paints an 이름표 color with the label text color', () => {
-    expect(labelInk('teal')).toEqual({
-      '--label-fill': 'var(--label-teal)',
+    expect(labelInk('#5FB8C2')).toEqual({
+      '--label-fill': '#5FB8C2',
       '--label-ink': 'var(--text-on-label)',
     });
   });

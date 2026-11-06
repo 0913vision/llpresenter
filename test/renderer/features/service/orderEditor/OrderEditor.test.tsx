@@ -25,7 +25,7 @@ const SERVICE_ID = '30000000-0000-4000-8000-000000000001';
 const ITEM_ID = '40000000-0000-4000-8000-000000000001';
 const VERSE = createSongGroupId('11111111-1111-4111-a111-111111111111');
 const CHORUS = createSongGroupId('22222222-2222-4222-a222-222222222222');
-const LABELS: readonly Label[] = [{name: '후렴', color: 'orange', key: null}];
+const LABELS: readonly Label[] = [{name: '후렴', color: '#D68F5F', key: null}];
 
 function serviceWith(extra: object): ServiceDocument {
   const {data} = expectSuccess(

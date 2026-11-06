@@ -178,8 +178,8 @@ async function setupGrouped(
   const onSelect = vi.fn();
   const onEditSong = vi.fn();
   const labels = [
-    {name: '1절', color: 'teal' as const, key: null},
-    {name: '후렴', color: 'orange' as const, key: null},
+    {name: '1절', color: '#5FB8C2' as const, key: null},
+    {name: '후렴', color: '#D68F5F' as const, key: null},
   ];
 
   const view = render(

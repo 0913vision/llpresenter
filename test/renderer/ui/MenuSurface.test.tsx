@@ -308,7 +308,7 @@ describe('MenuSurface', () => {
             label: '1절',
             check: 'radio',
             checked: true,
-            swatch: 'teal',
+            swatch: '#5FB8C2',
           },
           {
             kind: 'item',
@@ -316,7 +316,7 @@ describe('MenuSurface', () => {
             label: '후렴',
             check: 'radio',
             checked: false,
-            swatch: 'rose',
+            swatch: '#D07A8A',
           },
         ]}
       />,

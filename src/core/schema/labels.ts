@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {NO_LABEL_COLOR, paletteColors} from '../labels/colors';
+import {labelColorSchema} from './labelColor';
 import {isRecord} from '../common/guards';
 import type {Result} from '../common/result';
 import {
@@ -28,7 +28,7 @@ const jumpKeySchema = v.nullable(
 
 const labelSchema = jsonObject({
   name: nonBlankText,
-  color: v.picklist([...paletteColors, NO_LABEL_COLOR]),
+  color: labelColorSchema,
   key: jumpKeySchema,
 });
 

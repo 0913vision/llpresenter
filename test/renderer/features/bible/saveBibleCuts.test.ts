@@ -3,6 +3,7 @@ import {confirmBibleCuts} from '@renderer/features/bible/saveBibleCuts';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import type {LlpApi} from '@contracts/ipc/api';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 describe('confirmed cut writes', () => {
   it('rereads after a stale edit and preserves another window confirmation', async () => {
@@ -33,7 +34,12 @@ describe('confirmed cut writes', () => {
         error: {reason: 'stale', message: 'Stale'},
       })
       .mockResolvedValue({ok: true, value: {id: 'bibleCuts', revision: 3}});
-    const api = {get, edit, subscribe: vi.fn(() => () => undefined)};
+    const api = {
+      ...mockLlpApi().settings,
+      get,
+      edit,
+      subscribe: vi.fn(() => () => undefined),
+    };
     const verse = {
       reference: {
         translation: lookupRequest().translation,

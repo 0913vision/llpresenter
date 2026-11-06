@@ -1,6 +1,7 @@
 import {useState, type JSX} from 'react';
 import {
   paletteColors,
+  paletteHex,
   type LabelColor,
   type PaletteColor,
 } from '@core/labels/colors';
@@ -29,13 +30,13 @@ const STRIP_WIDTH = 440;
 const CAPTION_WIDTH = 300;
 
 const songChips: readonly ArrangementChip[] = [
-  {key: '1', name: '1절', color: 'teal', number: 1},
-  {key: '2', name: '프리코러스', color: 'green', number: 2},
-  {key: '3', name: '후렴', color: 'yellow', number: 3},
-  {key: '4', name: '2절', color: 'teal', number: 4},
+  {key: '1', name: '1절', color: '#5FB8C2', number: 1},
+  {key: '2', name: '프리코러스', color: '#8FBF7A', number: 2},
+  {key: '3', name: '후렴', color: '#D6B35F', number: 3},
+  {key: '4', name: '2절', color: '#5FB8C2', number: 4},
   {key: '5', name: undefined, color: 'none', number: 5},
-  {key: '6', name: '후렴', color: 'yellow', number: 6},
-  {key: '7', name: '후주', color: 'slate', number: 7},
+  {key: '6', name: '후렴', color: '#D6B35F', number: 6},
+  {key: '7', name: '후주', color: '#7D8FD6', number: 7},
 ];
 
 function TryStrip(): JSX.Element {
@@ -72,7 +73,12 @@ interface ChipState {
   readonly pin?: SpecPin;
 }
 
-const teal: ArrangementChip = {key: 'a', name: '1절', color: 'teal', number: 1};
+const teal: ArrangementChip = {
+  key: 'a',
+  name: '1절',
+  color: '#5FB8C2',
+  number: 1,
+};
 const unnamed: ArrangementChip = {
   key: 'n',
   name: undefined,
@@ -85,22 +91,22 @@ const namedChipStates: readonly ChipState[] = [
   {label: 'Hover', chip: teal, pin: 'hover'},
   {
     label: 'Selected',
-    chip: {key: 'p', name: '프리코러스', color: 'green', number: 2},
+    chip: {key: 'p', name: '프리코러스', color: '#8FBF7A', number: 2},
     selected: true,
   },
   {
     label: 'Live',
-    chip: {key: 'c', name: '후렴', color: 'yellow', number: 3},
+    chip: {key: 'c', name: '후렴', color: '#D6B35F', number: 3},
     live: true,
   },
   {
     label: 'Focus',
-    chip: {key: 'e', name: '후주', color: 'slate', number: 7},
+    chip: {key: 'e', name: '후주', color: '#7D8FD6', number: 7},
     pin: 'focus',
   },
   {
     label: 'Dragging',
-    chip: {key: 'c', name: '후렴', color: 'yellow', number: 3},
+    chip: {key: 'c', name: '후렴', color: '#D6B35F', number: 3},
     dragging: true,
   },
 ];
@@ -157,7 +163,10 @@ function InsertOnly(): JSX.Element {
   );
 }
 
-const allColors: readonly LabelColor[] = [...paletteColors, 'none'];
+const allColors: readonly LabelColor[] = [
+  ...paletteColors.map(color => paletteHex[color]),
+  'none',
+];
 
 export function LabelSection(): JSX.Element {
   return (
@@ -209,14 +218,14 @@ export function LabelSection(): JSX.Element {
         surface="panel"
       >
         <SpecItem label="Display only">
-          <LabelTag name="1절" color="teal" />
+          <LabelTag name="1절" color="#5FB8C2" />
         </SpecItem>
         <SpecItem label="Picker button">
           <Stateful<boolean> initial={false}>
             {(expanded, setExpanded) => (
               <LabelTag
                 name="후렴"
-                color="yellow"
+                color="#D6B35F"
                 picker={{expanded, onOpen: () => setExpanded(!expanded)}}
               />
             )}
@@ -225,7 +234,7 @@ export function LabelSection(): JSX.Element {
         <SpecItem label="Menu open">
           <LabelTag
             name="후렴"
-            color="yellow"
+            color="#D6B35F"
             picker={{expanded: true, onOpen: ignore}}
           />
         </SpecItem>
@@ -246,7 +255,7 @@ export function LabelSection(): JSX.Element {
         <SpecItem label="Focus" pin="focus">
           <LabelTag
             name="1절"
-            color="teal"
+            color="#5FB8C2"
             picker={{expanded: false, onOpen: ignore}}
           />
         </SpecItem>
@@ -254,7 +263,7 @@ export function LabelSection(): JSX.Element {
       <SpecGroup title="Color swatch 10, preview name row" surface="panel">
         <SpecItem label="Under the 준비 preview" width={CAPTION_WIDTH}>
           <span className={styles.caption}>
-            <LabelSwatch color="green" />
+            <LabelSwatch color="#8FBF7A" />
             <b>프리코러스</b>
             <span className={styles.meta}>5 / 9</span>
           </span>
@@ -267,7 +276,7 @@ export function LabelSection(): JSX.Element {
       </SpecGroup>
       <SpecGroup title="LabelColorPicker" surface="panel">
         <SpecItem label="이름표 color row">
-          <Stateful<LabelColor> initial="yellow">
+          <Stateful<LabelColor> initial="#D6B35F">
             {(value, setValue) => (
               <LabelColorPicker
                 label="후렴 색"

@@ -151,6 +151,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.preferences,
     },
     settings: {
+      previewLabelColor: () => Promise.resolve(true),
+      subscribeLabelColorPreview: () => () => undefined,
       get: request => {
         const document = EMPTY_SHOW_SETTINGS.get(request.name);
         return document === undefined

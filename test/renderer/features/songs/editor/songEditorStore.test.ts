@@ -135,7 +135,7 @@ describe('song editor persistence', () => {
     store.open(editorSong(4, 'readOnly'));
     store.getSnapshot().session?.edit({type: 'insert'});
     expect(edits).toHaveLength(0);
-    expect(listenerCount()).toBe(3);
+    expect(listenerCount()).toBe(4);
     await store.dispose();
     expect(listenerCount()).toBe(0);
     expect(api).toBeDefined();
@@ -219,7 +219,7 @@ describe('song editor persistence', () => {
     );
     text('keep open');
     expect(await store.flush()).toBe(false);
-    expect(listenerCount()).toBe(3);
+    expect(listenerCount()).toBe(4);
     expect(store.getSnapshot().session).toBe(session);
     expect(
       session.history.snapshot.song.groups.flatMap(group => group.slides)[0]

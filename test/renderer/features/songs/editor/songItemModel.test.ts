@@ -72,14 +72,14 @@ describe('song item model', () => {
         grouped,
         [g1, g2, g1],
         [
-          {name: '1절', color: 'teal', key: null},
-          {name: '후렴', color: 'orange', key: null},
+          {name: '1절', color: '#5FB8C2', key: null},
+          {name: '후렴', color: '#D68F5F', key: null},
         ],
       ),
     ).toEqual([
-      {key: `${g1}:1`, name: '1절', color: 'teal', number: 1},
-      {key: `${g2}:1`, name: '후렴', color: 'orange', number: 2},
-      {key: `${g1}:2`, name: '1절', color: 'teal', number: 1},
+      {key: `${g1}:1`, name: '1절', color: '#5FB8C2', number: 1},
+      {key: `${g2}:1`, name: '후렴', color: '#D68F5F', number: 2},
+      {key: `${g1}:2`, name: '1절', color: '#5FB8C2', number: 1},
     ]);
   });
 

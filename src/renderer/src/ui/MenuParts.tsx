@@ -1,3 +1,4 @@
+import {labelInk} from '@renderer/ui/labelInk';
 import {useShortcutText} from './commandBindings';
 import {contextMenuTarget} from '@renderer/ui/contextMenu';
 import {useRef, type JSX} from 'react';
@@ -145,7 +146,7 @@ export function MenuItemRow({
         <span
           className={styles.swatch}
           data-color={item.swatch}
-          style={{backgroundColor: `var(--label-${item.swatch})`}}
+          style={{backgroundColor: labelInk(item.swatch)['--label-fill']}}
         />
       )}
       <span

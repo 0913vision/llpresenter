@@ -2,6 +2,7 @@ import type {SongDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {SongId} from '@core/schema/ids';
 import type {Label} from '@core/schema/labels';
+import type {LabelColor} from '@core/labels/colors';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {EditorCatalog} from './editorCatalog';
@@ -229,6 +230,15 @@ export class SongEditorStore {
 
   updateLabels(labels: readonly Label[]): Promise<boolean> {
     return this.sharedEdits.updateLabels(labels);
+  }
+
+  /** The authoritative catalog, excluding colors still being previewed. */
+  getStoredLabels(): readonly Label[] {
+    return this.catalog.labelsDocument?.value.labels ?? [];
+  }
+
+  previewLabelColor(name: string, color: LabelColor | null): void {
+    this.catalog.previewLabelColor(name, color);
   }
 
   renameLabel(

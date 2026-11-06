@@ -258,7 +258,7 @@ export function importSetup(
       schemaVersion: 1,
       labels: Array.from({length: labelOptions.count ?? 0}, (_, index) => ({
         name: `Existing ${index}`,
-        color: 'teal',
+        color: '#5FB8C2',
         key: null,
       })),
       future: 'kept',

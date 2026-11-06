@@ -3,6 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {followSettingsDocument} from '@renderer/rendering/settingsFeed';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 function screensOf(document: SettingsDocument) {
   return document.name === 'screens' ? document.value.screens : undefined;
@@ -16,6 +17,7 @@ function setup(
   const unsubscribe = vi.fn();
   const order: string[] = [];
   const settings = {
+    ...mockLlpApi().settings,
     get: vi.fn(() => {
       order.push('get');
       return read();

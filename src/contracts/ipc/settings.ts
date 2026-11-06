@@ -13,6 +13,13 @@ import {
   type SettingsReadRequest,
 } from '@core/schema/settingsDocuments';
 import {push, query, request, type IpcPort} from './endpoint';
+import {
+  parseLabelColorPreview,
+  parseLabelColorPreviewRequest,
+  parseLabelColorPreviewReply,
+  type LabelColorPreview,
+  type LabelColorPreviewRequest,
+} from '@core/schema/labelColorPreview';
 
 /** The calls that read and edit the preferences and the settings files. */
 export const settingsEndpoints = {
@@ -30,6 +37,17 @@ export const settingsEndpoints = {
     reply: parseEditResult,
   }),
   changed: push<SettingsDocument>('settings:changed', parseSettingsDocument),
+  previewLabelColor: request<LabelColorPreviewRequest, boolean>(
+    'labels:preview-color',
+    {
+      request: parseLabelColorPreviewRequest,
+      reply: parseLabelColorPreviewReply,
+    },
+  ),
+  labelColorPreview: push<LabelColorPreview | null>(
+    'labels:color-preview',
+    parseLabelColorPreview,
+  ),
 };
 
 /** The preferences part of `window.llp`. */
@@ -60,6 +78,12 @@ export function settingsApi(port: IpcPort) {
      * @returns A function that removes the listener. Always call it.
      */
     subscribe: port.subscribe(settingsEndpoints.changed),
+    /** Publishes an unsaved color while dragging; null releases the preview. */
+    previewLabelColor: port.request(settingsEndpoints.previewLabelColor),
+    /** Follows transient label colors without changing a document revision. */
+    subscribeLabelColorPreview: port.subscribe(
+      settingsEndpoints.labelColorPreview,
+    ),
   };
 }
 

@@ -2,11 +2,11 @@
 
 Modified Space and Enter pass through without choosing a color; unmodified activation and pointer presses still choose it.
 
-A row of color swatches for picking the color of an 이름표 (label) or a macro. It goes inside the 이름표 menu in library song editing and inside the macro right-click menu.
+A row of preset swatches inside the 이름표 color popover or macro color popover. Label colors store any `#RRGGBB` or `none`; macros keep their fixed palette.
 
 ## Where to use
 
-- Library song editing (Reflow), imported song editing (ImportEdit): the color row (none + 8 colors) in the 이름표 menu that opens when you click the 이름표 chip of a block
+- The shared catalog row in 환경설정 > 이름표 and 이름표 관리: a small button with a 16px color sample, a 12px down chevron and the tooltip 색. Click, Enter, Space or Alt Down opens a popover below it, aligned left and flipping above near the window bottom.
 - Macros: the "색" (color) row in the tile right-click menu (8 colors, no none)
 
 ## Where not to use
@@ -65,3 +65,15 @@ A row of color swatches for picking the color of an 이름표 (label) or a macro
 
 - Color row in the Reflow 이름표 menu: color 18 → 16, gap between swatches 4 → 0 (24px swatches touch), selected ring 2px outside the swatch → 2px inside the swatch, row padding 4 8 6 → 2 4, none border #4a4a4a → `line-control`, none x #6e6e6e → `text-2`.
 - Color row in the Macros right-click menu: 24px swatches added (color stays 16, radius 4 → `radius-sm`), gap between colors 5 → 0, selected ring 1px with a 2px offset → 2px inside the swatch, order green, teal, slate, yellow, orange, rose, violet, gray → teal, green, yellow, orange, rose, violet, slate, gray, row height 32 → 28, menu width 210 → 240, gap between "색" and the first color 11 → 8.
+
+## Label color popover
+
+Use the menu surface, radius, shadow and padding in the popover layer. Below
+none and the eight presets, place a separator, a 216 by 120px saturation and
+brightness area with a round handle, a 12px hue bar with a handle and one row
+with a small hex field and a 20px color sample. There are no headings or apply
+button. Hex validation uses "#RRGGBB 형식으로 입력". Presets apply and close.
+Dragging previews across open catalog views and saves once on release. Arrows
+move 1%, Shift 10%; hex saves on Enter or blur. Esc and outside clicks close
+and keep applied changes. Stored hex colors paint every label surface; WCAG
+relative luminance chooses dark or white ink. Macro colors remain fixed.

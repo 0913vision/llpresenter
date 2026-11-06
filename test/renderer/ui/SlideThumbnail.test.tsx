@@ -157,14 +157,14 @@ describe('SlideThumbnail', () => {
       <SlideThumbnail
         number={2}
         label="프리코러스"
-        labelColor="green"
+        labelColor="#8FBF7A"
         text={lyrics}
       />,
     );
     expect(option.getAttribute('aria-label')).toBe(
       '2 프리코러스, 만복의 근원 하나님',
     );
-    expect(option.getAttribute('data-color')).toBe('green');
+    expect(option.getAttribute('data-color')).toBe('#8FBF7A');
     expect(option.textContent).toBe(`${lyrics}2프리코러스`);
   });
 

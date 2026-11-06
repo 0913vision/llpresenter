@@ -21,6 +21,7 @@ interface PopupOptions {
   readonly onClose: (restoreFocus: boolean) => void;
   readonly onEscape: () => void;
   readonly activeId?: string | undefined;
+  readonly closeWithinLayers?: boolean | undefined;
 }
 
 /** Initializes focus and releases every outside/viewport listener on close. */
@@ -29,6 +30,7 @@ export function useChoicePopup({
   onClose,
   onEscape,
   activeId,
+  closeWithinLayers = false,
 }: PopupOptions): {
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
@@ -64,9 +66,11 @@ export function useChoicePopup({
         const target = event.target;
         if (
           !(target instanceof Element) ||
-          target.closest(
-            '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
-          ) !== null ||
+          surface.current?.contains(target) ||
+          (!closeWithinLayers &&
+            target.closest(
+              '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
+            ) !== null) ||
           anchor.contains(target)
         ) {
           return;
@@ -88,7 +92,7 @@ export function useChoicePopup({
       {signal, capture: true},
     );
     return () => controller.abort();
-  }, [anchor]);
+  }, [anchor, closeWithinLayers]);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isComposing(event)) return;
     if (event.key === 'Escape' && !hasModifier(event)) {

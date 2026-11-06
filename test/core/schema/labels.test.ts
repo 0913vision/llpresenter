@@ -13,17 +13,17 @@ function defaultLabels() {
     format: 'llsettings.labels',
     schemaVersion: 1,
     labels: [
-      {name: '전주', color: 'slate', key: null},
-      {name: '1절', color: 'teal', key: null},
-      {name: '2절', color: 'teal', key: null},
-      {name: '3절', color: 'teal', key: null},
-      {name: '4절', color: 'teal', key: null},
-      {name: '프리코러스', color: 'green', key: null},
-      {name: '후렴', color: 'yellow', key: null},
-      {name: '포스트코러스', color: 'orange', key: null},
-      {name: '브리지', color: 'violet', key: null},
-      {name: '간주', color: 'gray', key: null},
-      {name: '후주', color: 'slate', key: null},
+      {name: '전주', color: '#7D8FD6', key: null},
+      {name: '1절', color: '#5FB8C2', key: null},
+      {name: '2절', color: '#5FB8C2', key: null},
+      {name: '3절', color: '#5FB8C2', key: null},
+      {name: '4절', color: '#5FB8C2', key: null},
+      {name: '프리코러스', color: '#8FBF7A', key: null},
+      {name: '후렴', color: '#D6B35F', key: null},
+      {name: '포스트코러스', color: '#D68F5F', key: null},
+      {name: '브리지', color: '#A99AE0', key: null},
+      {name: '간주', color: '#A3A3A3', key: null},
+      {name: '후주', color: '#7D8FD6', key: null},
     ],
   };
 }
@@ -41,15 +41,33 @@ describe('parseLabels', () => {
     expectRoundTrip(codec, defaultLabels());
   });
 
+  it.each(['#5FB8C2', '#00ff7f', '#000000', '#FFFFFF', 'none'])(
+    'accepts the stored color %s',
+    color => {
+      expectRoundTrip(codec, withLabel({name: '1절', color, key: null}));
+    },
+  );
+
+  it.each(['teal', '#5FB8C', '#5FB8C22', '#GG0000', 'transparent', 17])(
+    'rejects the stored color %s',
+    color => {
+      expectInvalidField(
+        codec,
+        withLabel({name: '1절', color, key: null}),
+        'labels.0.color',
+      );
+    },
+  );
+
   it('keeps unknown fields in a label', () => {
     expectRoundTrip(
       codec,
-      withLabel({name: '1절', color: 'teal', key: 'Digit1', shape: 'pill'}),
+      withLabel({name: '1절', color: '#5FB8C2', key: 'Digit1', shape: 'pill'}),
     );
   });
 
   it.each([
-    ['a blank name', {name: ' ', color: 'teal', key: null}, 'labels.0.name'],
+    ['a blank name', {name: ' ', color: '#5FB8C2', key: null}, 'labels.0.name'],
     [
       'a color outside the palette',
       {name: '1절', color: 'red', key: null},
@@ -72,8 +90,8 @@ describe('parseLabels', () => {
       parseLabels(
         JSON.stringify(
           withLabelList([
-            {name: '후렴', color: 'yellow', key},
-            {name: '1절', color: 'teal', key: 'Digit1'},
+            {name: '후렴', color: '#D6B35F', key},
+            {name: '1절', color: '#5FB8C2', key: 'Digit1'},
           ]),
         ),
         'labels.json',
@@ -81,8 +99,8 @@ describe('parseLabels', () => {
     );
 
     expect(loaded.data.labels).toEqual([
-      {name: '후렴', color: 'yellow', key: null},
-      {name: '1절', color: 'teal', key: 'Digit1'},
+      {name: '후렴', color: '#D6B35F', key: null},
+      {name: '1절', color: '#5FB8C2', key: 'Digit1'},
     ]);
     expect(loaded.dropped.map(({field}) => field)).toEqual(['labels.0.key']);
     expect(loaded.dropped[0]?.message).not.toBe('');
@@ -91,13 +109,13 @@ describe('parseLabels', () => {
   it('gives a label without a key field no jump key', () => {
     const loaded = expectSuccess(
       parseLabels(
-        JSON.stringify(withLabel({name: '1절', color: 'teal'})),
+        JSON.stringify(withLabel({name: '1절', color: '#5FB8C2'})),
         'labels.json',
       ),
     );
 
     expect(loaded.data.labels).toEqual([
-      {name: '1절', color: 'teal', key: null},
+      {name: '1절', color: '#5FB8C2', key: null},
     ]);
     expect(loaded.dropped.map(({field}) => field)).toEqual(['labels.0.key']);
   });
@@ -106,8 +124,8 @@ describe('parseLabels', () => {
     const labels = {
       ...defaultLabels(),
       labels: [
-        {name: '후렴', color: 'yellow', key: null},
-        {name: '후렴', color: 'rose', key: null},
+        {name: '후렴', color: '#D6B35F', key: null},
+        {name: '후렴', color: '#D07A8A', key: null},
       ],
     };
 
@@ -122,7 +140,7 @@ describe('serializeLabels', () => {
     ).data;
 
     const written = serializeLabels(
-      {...labels, labels: [{name: '후렴', color: 'yellow', key: 'C'}]},
+      {...labels, labels: [{name: '후렴', color: '#D6B35F', key: 'C'}]},
       'labels.json',
     );
 

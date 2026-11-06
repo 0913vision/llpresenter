@@ -21,9 +21,9 @@ function serviceOf(overrides: Partial<ShowService> = {}): ShowService {
     ],
     tiles: {
       a: [
-        {label: '1절', labelColor: 'teal', lines: ['one']},
-        {label: '후렴', labelColor: 'orange', lines: ['two']},
-        {label: '2절', labelColor: 'teal', lines: ['three']},
+        {label: '1절', labelColor: '#5FB8C2', lines: ['one']},
+        {label: '후렴', labelColor: '#D68F5F', lines: ['two']},
+        {label: '2절', labelColor: '#5FB8C2', lines: ['three']},
       ],
     },
     jumpKeys: {KeyC: '후렴'},

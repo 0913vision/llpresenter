@@ -47,14 +47,14 @@ interface ThumbnailState {
 const thumbnailStates: readonly ThumbnailState[] = [
   {
     label: 'Default',
-    thumbnail: {number: 1, label: '1절', labelColor: 'teal', text: verse},
+    thumbnail: {number: 1, label: '1절', labelColor: '#5FB8C2', text: verse},
   },
   {
     label: 'Hover, 1px line-control',
     thumbnail: {
       number: 2,
       label: '프리코러스',
-      labelColor: 'green',
+      labelColor: '#8FBF7A',
       text: preChorus,
     },
     pin: 'hover',
@@ -64,7 +64,7 @@ const thumbnailStates: readonly ThumbnailState[] = [
     thumbnail: {
       number: 3,
       label: '후렴',
-      labelColor: 'yellow',
+      labelColor: '#D6B35F',
       text: chorus,
       selected: true,
     },
@@ -74,7 +74,7 @@ const thumbnailStates: readonly ThumbnailState[] = [
     thumbnail: {
       number: 5,
       label: '프리코러스',
-      labelColor: 'green',
+      labelColor: '#8FBF7A',
       text: preChorus,
       live: true,
     },
@@ -105,37 +105,37 @@ interface ColorSample {
 }
 
 const colorSamples: readonly ColorSample[] = [
-  {color: 'teal', label: '1절', text: '만복의 근원 하나님'},
-  {color: 'green', label: '프리코러스', text: '저 천사여 찬송하세'},
-  {color: 'yellow', label: '후렴', text: '찬송 성부 성자 성령'},
-  {color: 'orange', label: '태그', text: '만복의 근원 하나님'},
-  {color: 'rose', label: '인트로', text: '내 주를 가까이 하게 함은'},
-  {color: 'violet', label: '브리지', text: '아멘'},
-  {color: 'slate', label: '후주', text: '찬송 성부 성자 성령'},
-  {color: 'gray', label: '간주', text: '주 하나님 지으신 모든 세계'},
+  {color: '#5FB8C2', label: '1절', text: '만복의 근원 하나님'},
+  {color: '#8FBF7A', label: '프리코러스', text: '저 천사여 찬송하세'},
+  {color: '#D6B35F', label: '후렴', text: '찬송 성부 성자 성령'},
+  {color: '#D68F5F', label: '태그', text: '만복의 근원 하나님'},
+  {color: '#D07A8A', label: '인트로', text: '내 주를 가까이 하게 함은'},
+  {color: '#A99AE0', label: '브리지', text: '아멘'},
+  {color: '#7D8FD6', label: '후주', text: '찬송 성부 성자 성령'},
+  {color: '#A3A3A3', label: '간주', text: '주 하나님 지으신 모든 세계'},
 ];
 
 const sampleNumbers: Readonly<Record<LabelColor, number>> = {
-  teal: 1,
-  green: 2,
-  yellow: 3,
-  orange: 4,
-  rose: 1,
-  violet: 6,
-  slate: 9,
-  gray: 5,
+  '#5FB8C2': 1,
+  '#8FBF7A': 2,
+  '#D6B35F': 3,
+  '#D68F5F': 4,
+  '#D07A8A': 1,
+  '#A99AE0': 6,
+  '#7D8FD6': 9,
+  '#A3A3A3': 5,
   none: 4,
 };
 
 const songSlides: readonly SlideThumbnailProps[] = [
-  {number: 1, label: '1절', labelColor: 'teal', text: verse},
-  {number: 2, label: '프리코러스', labelColor: 'green', text: preChorus},
-  {number: 3, label: '후렴', labelColor: 'yellow', text: chorus},
+  {number: 1, label: '1절', labelColor: '#5FB8C2', text: verse},
+  {number: 2, label: '프리코러스', labelColor: '#8FBF7A', text: preChorus},
+  {number: 3, label: '후렴', labelColor: '#D6B35F', text: chorus},
   {number: 4, text: verseTwo},
-  {number: 5, label: '프리코러스', labelColor: 'green', text: preChorus},
-  {number: 6, label: '후렴', labelColor: 'yellow', text: chorus},
+  {number: 5, label: '프리코러스', labelColor: '#8FBF7A', text: preChorus},
+  {number: 6, label: '후렴', labelColor: '#D6B35F', text: chorus},
   {number: 7, text: verseTwo},
-  {number: 8, label: '후렴', labelColor: 'yellow', text: chorus},
+  {number: 8, label: '후렴', labelColor: '#D6B35F', text: chorus},
 ];
 
 const DEFAULT_LIVE = 4;
@@ -236,7 +236,7 @@ export function ThumbnailSection(): JSX.Element {
             <OneThumbnail
               name={sample.color}
               thumbnail={{
-                number: sampleNumbers[sample.color],
+                number: sampleNumbers[sample.color] ?? 1,
                 label: sample.label,
                 labelColor: sample.color,
                 text: sample.text,
@@ -259,7 +259,7 @@ export function ThumbnailSection(): JSX.Element {
               thumbnail={{
                 number: 1,
                 label: '1절',
-                labelColor: 'teal',
+                labelColor: '#5FB8C2',
                 text: verse,
               }}
             />

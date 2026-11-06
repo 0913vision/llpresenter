@@ -15,6 +15,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
+import type {LabelColorPreview} from '@core/schema/labelColorPreview';
 
 /** Invented source documents for the editor gallery and focused tests. */
 export function editorSong(
@@ -101,6 +102,7 @@ export function editorFixture() {
   const songs = new Set<(change: SongChange) => void>();
   const lists = new Set<(entries: readonly LibrarySong[]) => void>();
   const settings = new Set<(document: SettingsDocument) => void>();
+  const colorPreviews = new Set<(preview: LabelColorPreview | null) => void>();
   const edits: ContentEdit[] = [];
   const labelEdits: SettingsEdit[] = [];
   let labels = labelsDocument({
@@ -109,8 +111,8 @@ export function editorFixture() {
       format: 'llsettings.labels',
       schemaVersion: 1,
       labels: [
-        {name: '1절', color: 'teal', key: null},
-        {name: '후렴', color: 'orange', key: 'KeyC'},
+        {name: '1절', color: '#5FB8C2', key: null},
+        {name: '후렴', color: '#D68F5F', key: 'KeyC'},
       ],
     },
     revision: 1,
@@ -257,6 +259,18 @@ export function editorFixture() {
       },
     },
     settings: {
+      previewLabelColor: ({name, color}) => {
+        for (const listener of colorPreviews) {
+          listener(color === null ? null : {name, color});
+        }
+        return Promise.resolve(true);
+      },
+      subscribeLabelColorPreview: listener => {
+        colorPreviews.add(listener);
+        return () => {
+          colorPreviews.delete(listener);
+        };
+      },
       get: request =>
         Promise.resolve(
           request.name === 'themes'
@@ -330,6 +344,7 @@ export function editorFixture() {
       for (const listener of songs) listener({songId: id, document: null});
     },
     labels: () => labels,
-    listenerCount: () => songs.size + lists.size + settings.size,
+    listenerCount: () =>
+      songs.size + lists.size + settings.size + colorPreviews.size,
   };
 }

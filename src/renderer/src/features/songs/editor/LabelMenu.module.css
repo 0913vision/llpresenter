@@ -40,12 +40,53 @@
 }
 
 .settingsRow {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-12);
 }
 
+.settingsRow[data-drop]::before {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(-1 * var(--space-6));
+  height: var(--space-2);
+  background: var(--accent);
+  content: '';
+  pointer-events: none;
+}
+
+.settingsRow[data-drop='after']::before {
+  top: auto;
+  bottom: calc(-1 * var(--space-6));
+}
+
+.grip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: grab;
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.grip[aria-disabled='true'] {
+  color: var(--text-off);
+  cursor: default;
+}
+
 .name {
   min-width: 0;
   flex: 1;
+  max-width: var(--size-prop-control-max);
 }

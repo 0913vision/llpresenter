@@ -106,8 +106,8 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
         schemaVersion: 1,
         future: 'kept',
         labels: [
-          {name: 'Before', color: 'teal', key: 'KeyA', future: 'kept'},
-          {name: 'Other', color: 'green', key: null},
+          {name: 'Before', color: '#5FB8C2', key: 'KeyA', future: 'kept'},
+          {name: 'Other', color: '#8FBF7A', key: null},
         ],
       },
     }),

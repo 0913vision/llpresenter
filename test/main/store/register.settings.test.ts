@@ -33,7 +33,7 @@ describe('registerStore', () => {
     await writeJson(labelFile, {
       format: 'llsettings.labels',
       schemaVersion: 1,
-      labels: [{name: 'Before', color: 'teal', key: null, future: 'kept'}],
+      labels: [{name: 'Before', color: '#5FB8C2', key: null, future: 'kept'}],
       future: 'kept',
     });
     const ids = [itemId(1), itemId(2)];

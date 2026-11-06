@@ -18,8 +18,8 @@ function song(overrides: Partial<ShowLibrarySong> = {}): ShowLibrarySong {
     title: '새벽의 빛',
     readOnly: false,
     tiles: [
-      {label: '1절', labelColor: 'teal', lines: ['창작한 첫 줄']},
-      {label: '후렴', labelColor: 'orange', lines: ['창작한 두 번째 줄']},
+      {label: '1절', labelColor: '#5FB8C2', lines: ['창작한 첫 줄']},
+      {label: '후렴', labelColor: '#D68F5F', lines: ['창작한 두 번째 줄']},
     ],
     jumpKeys: {KeyC: '후렴'},
     background: {mediaId, loop: true},

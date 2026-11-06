@@ -89,7 +89,7 @@ function renderBlock(
       active={options.active ?? false}
       locked={options.locked ?? false}
       editable={options.editable ?? true}
-      color="teal"
+      color="#5FB8C2"
       expanded={false}
       onOpen={onOpen}
       top={block * 80}
@@ -140,7 +140,7 @@ describe('SongBlock', () => {
         active={true}
         locked={false}
         editable={true}
-        color="teal"
+        color="#5FB8C2"
         expanded={false}
         onOpen={onOpen}
         top={80}

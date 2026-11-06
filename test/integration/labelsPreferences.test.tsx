@@ -85,8 +85,9 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   const name = within(page).getByRole('textbox', {name: '1절 이름'});
   await f.user.clear(name);
   await f.user.type(name, '새 절');
+  await f.user.click(within(page).getByRole('button', {name: '1절 색'}));
   await f.user.click(
-    within(within(page).getByRole('radiogroup', {name: '1절 색'})).getByRole(
+    within(await screen.findByRole('radiogroup', {name: '새 절 색'})).getByRole(
       'radio',
       {name: '초록'},
     ),
@@ -94,7 +95,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   await waitFor(() =>
     expect(f.labels().value.labels[0]).toMatchObject({
       name: '새 절',
-      color: 'green',
+      color: '#8FBF7A',
       key: null,
     }),
   );
@@ -104,11 +105,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   expect(
     within(dialog).getByRole('textbox', {name: '새 절 이름'}),
   ).toHaveProperty('value', '새 절');
-  expect(
-    within(within(dialog).getByRole('radiogroup', {name: '새 절 색'}))
-      .getByRole('radio', {name: '초록'})
-      .getAttribute('aria-checked'),
-  ).toBe('true');
+  expect(f.other.getSnapshot().labels?.value.labels[0]?.color).toBe('#8FBF7A');
   expect(
     f.other.getSnapshot().session?.history.snapshot.song.groups[0]?.name,
   ).toBe('새 절');
@@ -164,12 +161,7 @@ it('keeps an invalid page draft for correction before a palette action', async (
   const name = screen.getByRole('textbox', {name: '1절 이름'});
   await f.user.clear(name);
   await f.user.type(name, '후렴');
-  await f.user.click(
-    within(screen.getByRole('radiogroup', {name: '1절 색'})).getByRole(
-      'radio',
-      {name: '초록'},
-    ),
-  );
+  await f.user.click(screen.getByRole('button', {name: '1절 색'}));
   expect(name.getAttribute('aria-invalid')).toBe('true');
   expect(f.labelEdits).toHaveLength(0);
   await f.user.click(name);
@@ -180,6 +172,114 @@ it('keeps an invalid page draft for correction before a palette action', async (
   fireEvent.keyDown(restored, {key: 'Enter', ctrlKey: true});
   fireEvent.keyDown(restored, {key: 'Enter', isComposing: true});
   expect(f.labelEdits).toHaveLength(0);
+});
+
+it('previews a color across open catalog views without writing until release', async () => {
+  const f = await mount();
+  render(
+    <>
+      <LabelsPage store={f.store} />
+      <LabelManagerDialog store={f.other} onClose={vi.fn()} />
+    </>,
+  );
+  await f.user.click(
+    screen.getAllByRole('button', {name: '1절 색'})[0] ?? document.body,
+  );
+  const area = screen.getByRole('slider', {name: '채도와 밝기'});
+  area.focus();
+  fireEvent.keyDown(area, {key: 'ArrowDown', shiftKey: true});
+  const preview = f.other.getSnapshot().labels?.value.labels[0]?.color;
+  expect(preview).not.toBe('#5FB8C2');
+  expect(f.store.getSnapshot().labels?.value.labels[0]?.color).toBe(preview);
+  expect(f.labelEdits).toHaveLength(0);
+  fireEvent.keyUp(area, {key: 'ArrowDown'});
+  await waitFor(() => expect(f.labelEdits).toHaveLength(1));
+  expect(f.labels().value.labels[0]?.color).toBe(preview);
+});
+
+it('discards an active color when another window deletes its label', async () => {
+  const f = await mount();
+  const remaining = f.other
+    .getStoredLabels()
+    .filter(label => label.name !== '1절');
+  render(<LabelsPage store={f.store} />);
+  await f.user.click(screen.getByRole('button', {name: '1절 색'}));
+  const area = screen.getByRole('slider', {name: '채도와 밝기'});
+  area.focus();
+  fireEvent.keyDown(area, {key: 'ArrowDown', shiftKey: true});
+  expect(f.store.getSnapshot().labels?.value.labels[0]?.color).not.toBe(
+    '#5FB8C2',
+  );
+  expect(f.labelEdits).toHaveLength(0);
+  await act(async () => {
+    expect(await f.other.updateLabels(remaining)).toBe(true);
+  });
+  expect(screen.queryByRole('dialog', {name: '1절 색'})).toBeNull();
+  expect(f.labels().value.labels).toEqual(remaining);
+  expect(f.labelEdits).toHaveLength(1);
+});
+
+it('retries a refused hex color without changing or reopening its draft', async () => {
+  const f = await mount();
+  const edit = vi.spyOn(f.api.settings, 'edit').mockResolvedValueOnce({
+    ok: false,
+    error: {reason: 'stale', message: 'Invented catalog conflict'},
+  });
+  render(<LabelsPage store={f.store} />);
+  await f.user.click(screen.getByRole('button', {name: '1절 색'}));
+  const field = screen.getByRole('textbox', {name: '색 코드'});
+  await f.user.clear(field);
+  await f.user.type(field, '#123456{Enter}');
+  await waitFor(() => expect(f.store.getSnapshot().busy).toBe(false));
+  expect(edit).toHaveBeenCalledTimes(1);
+  expect(f.labels().value.labels[0]?.color).toBe('#5FB8C2');
+  expect(field).toHaveProperty('value', '#123456');
+  await f.user.keyboard('{Enter}');
+  await waitFor(() =>
+    expect(f.labels().value.labels[0]?.color).toBe('#123456'),
+  );
+  expect(edit).toHaveBeenCalledTimes(2);
+});
+
+it('keeps hex focus through persistence so Escape closes only its popover', async () => {
+  const f = editorFixture();
+  window.llp = f.api;
+  const user = userEvent.setup();
+  const session = new ControlSession(f.api);
+  session.startEditor();
+  onTestFinished(async () => {
+    cleanup();
+    await session.dispose();
+    expect(f.listenerCount()).toBe(0);
+  });
+  const control = vi.spyOn(f.api.window, 'control');
+  render(<PreferencesWindow session={session} />);
+  await user.click(screen.getByRole('option', {name: '이름표'}));
+  await user.click(await screen.findByRole('button', {name: '1절 색'}));
+  const field = screen.getByRole('textbox', {name: '색 코드'});
+  await user.clear(field);
+  await user.type(field, '#123456{Enter}');
+  await waitFor(() =>
+    expect(f.labels().value.labels[0]?.color).toBe('#123456'),
+  );
+  expect(document.activeElement).toBe(field);
+  await user.keyboard('{Escape}');
+  expect(screen.queryByRole('dialog', {name: '1절 색'})).toBeNull();
+  expect(control).not.toHaveBeenCalled();
+});
+
+it('keeps another window color preview out of a catalog reorder save', async () => {
+  const f = await mount();
+  render(<LabelsPage store={f.other} />);
+  act(() => f.store.previewLabelColor('1절', '#123456'));
+  expect(f.other.getSnapshot().labels?.value.labels[0]?.color).toBe('#123456');
+  const handle = screen.getByRole('button', {name: '후렴 순서 이동'});
+  handle.focus();
+  await f.user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+  await waitFor(() => expect(f.labels().value.labels[0]?.name).toBe('후렴'));
+  expect(f.labels().value.labels[1]?.color).toBe('#5FB8C2');
+  expect(f.labelEdits).toHaveLength(1);
+  act(() => f.store.previewLabelColor('1절', null));
 });
 
 it('keeps the preferences catalog read-only when its file is newer', async () => {
@@ -236,6 +336,7 @@ it('reports and dismisses a label save failure in the preferences window', async
   });
   render(<PreferencesWindow session={session} />);
   await user.click(screen.getByRole('option', {name: '이름표'}));
+  await user.click(await screen.findByRole('button', {name: '1절 색'}));
   const colors = await screen.findByRole('radiogroup', {name: '1절 색'});
   await user.click(within(colors).getByRole('radio', {name: '초록'}));
   const notice = await screen.findByRole('alert');

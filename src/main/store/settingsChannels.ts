@@ -1,4 +1,5 @@
-import {ipcMain} from 'electron';
+import {ipcMain, type WebContents} from 'electron';
+import {parseLabelColorPreviewRequest} from '@core/schema/labelColorPreview';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
@@ -37,9 +38,18 @@ export function registerSettingsChannels(
     return null;
   });
   let removeChanges: (() => void) | undefined;
+  let previewOwner: WebContents | undefined;
+  const clearPreview = (): void => {
+    previewOwner?.removeListener('destroyed', clearPreview);
+    previewOwner = undefined;
+    broadcast(settingsEndpoints.labelColorPreview.channel, null, log);
+  };
   const changes = ready.then(store => {
     if (disposed || store === null) return;
     removeChanges = store.subscribe(document => {
+      if (document.name === 'labels' && previewOwner !== undefined) {
+        clearPreview();
+      }
       broadcast(settingsEndpoints.changed.channel, document, log);
       if (document.name === 'preferences') {
         broadcast(
@@ -50,6 +60,44 @@ export function registerSettingsChannels(
       }
     });
   });
+  ipcMain.handle(
+    settingsEndpoints.previewLabelColor.channel,
+    async (event, value: unknown) => {
+      const parsed = parseLabelColorPreviewRequest(value);
+      if (!parsed.ok) {
+        log.warn('dropped a malformed label color preview', parsed.error);
+        return false;
+      }
+      const store = await ready;
+      if (disposed || store === null || event.sender.isDestroyed()) {
+        return false;
+      }
+      const {name, color} = parsed.value;
+      if (color === null) {
+        if (previewOwner === event.sender) clearPreview();
+        return true;
+      }
+      const document = store.get('labels');
+      if (
+        document.name !== 'labels' ||
+        document.access !== 'editable' ||
+        !document.value.labels.some(label => label.name === name)
+      ) {
+        return false;
+      }
+      if (previewOwner !== event.sender) {
+        if (previewOwner !== undefined) clearPreview();
+        previewOwner = event.sender;
+        previewOwner.once('destroyed', clearPreview);
+      }
+      broadcast(
+        settingsEndpoints.labelColorPreview.channel,
+        {name, color},
+        log,
+      );
+      return true;
+    },
+  );
   ipcMain.handle(
     settingsEndpoints.get.channel,
     async (_event, value: unknown) => {
@@ -119,6 +167,8 @@ export function registerSettingsChannels(
       disposed = true;
       ipcMain.removeHandler(settingsEndpoints.get.channel);
       ipcMain.removeHandler(settingsEndpoints.edit.channel);
+      ipcMain.removeHandler(settingsEndpoints.previewLabelColor.channel);
+      if (previewOwner !== undefined) clearPreview();
       removeChanges?.();
       closing = (async () => {
         await changes;
