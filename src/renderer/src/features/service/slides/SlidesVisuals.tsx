@@ -7,6 +7,7 @@ import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/features/songs/editor/SongPreview';
 import {
@@ -137,12 +138,14 @@ export function SlidesCanvas({
   appearance,
   projection,
   part,
+  thumbnail = false,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
   readonly appearance: ReturnType<typeof previewAppearance>;
   readonly projection?: BibleProjection | null;
   readonly part?: number;
+  readonly thumbnail?: boolean;
 }): JSX.Element {
   const layers = useMemo(
     () => slideLayers(item, index, {projection, part}),
@@ -167,7 +170,15 @@ export function SlidesCanvas({
   }, []);
   return (
     <div ref={host} className={styles.canvas}>
-      {visible ? (
+      {visible && thumbnail && layers.slide?.biblePart !== undefined ? (
+        <SlidePicture
+          slide={layers.slide}
+          layout={appearance.theme.layout}
+          emptyColor={appearance.theme.emptyColor}
+          item={appearance.theme.item}
+          background={layers.media?.mediaId}
+        />
+      ) : visible ? (
         <Picture layers={layers} appearance={appearance} animate={false} />
       ) : null}
     </div>

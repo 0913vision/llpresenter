@@ -73,7 +73,7 @@ export function ServiceItemPanel({
         onSelect={index => items.selectPosition(index)}
         sizeClass={sizeClass}
       >
-        <ItemSlideGrid items={items} editor={editor} />
+        <ItemSlideGrid items={items} editor={editor} sizeClass={sizeClass} />
       </BibleItemPanel>
     );
   }

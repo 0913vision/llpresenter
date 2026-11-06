@@ -9,6 +9,7 @@ import {classes} from '@renderer/rendering/classes';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
 
 vi.mock('@renderer/rendering/stageClock', () => ({
   STAGE_TICK_MS: 1000,
@@ -34,6 +35,59 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   if (value === undefined) throw new Error('Missing picture fixture');
   return value;
 }
+
+it('keeps measured Bible rows at the theme size and frame instead of fitting or rewrapping them', () => {
+  const source = element('currentText', 1);
+  if (source.kind !== 'currentText') throw Error('Expected current text');
+  const frame = {x: 115.2, y: 100, w: 1689.6, h: 600};
+  const value = {...source, frame, text: {...source.text, size: 84}};
+  const lines = [
+    '16 성경이 아닌 창작 점검 문장입니다. 3장 16절',
+    '위치를 확인합니다. (계속)',
+  ];
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(2000);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(1000);
+  const view = render(
+    <SlidePicture
+      slide={{
+        itemId: 'bible',
+        position: 0,
+        label: '3:16',
+        biblePart: 1,
+        continued: true,
+        lines,
+      }}
+      layout={{mode: {kind: 'own'}, elements: [value]}}
+    />,
+  );
+  const first = screen.getByText(lines[0] ?? '');
+  const block = first.parentElement;
+  expect(block?.style.fontSize).toBe('84px');
+  expect(block?.children).toHaveLength(2);
+  expect(Array.from(block?.children ?? []).map(row => row.textContent)).toEqual(
+    lines,
+  );
+  expect(screen.getByText('(계속)').style.fontSize).toBe('72px');
+  const box = block?.parentElement?.parentElement;
+  expect(box?.style.left).toBe('115.2px');
+  expect(box?.style.width).toBe('1689.6px');
+  view.rerender(
+    <SlidePicture
+      slide={{
+        itemId: 'bible',
+        position: 1,
+        label: '3:16',
+        biblePart: 2,
+        lines: ['Final measured line'],
+      }}
+      layout={{mode: {kind: 'own'}, elements: [value]}}
+    />,
+  );
+  expect(
+    screen.getByText('Final measured line').parentElement?.children,
+  ).toHaveLength(1);
+  expect(screen.queryByText('(계속)')).toBeNull();
+});
 
 it('keeps the fill opacity separate from its fitted text', () => {
   const source = element('currentText', 1);

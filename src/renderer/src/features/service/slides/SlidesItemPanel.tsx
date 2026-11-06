@@ -90,6 +90,7 @@ export function SlidesItemPanel({
                     index={index}
                     appearance={appearance}
                     projection={projection}
+                    thumbnail
                   />
                 }
               />

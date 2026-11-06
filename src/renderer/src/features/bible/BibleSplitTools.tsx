@@ -1,15 +1,6 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {versesToReview} from '@core/bible/split/splitVerses';
 import type {VerseSlide} from '@core/schema/service';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   publishSlidesProjection,
@@ -19,17 +10,16 @@ import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
-  BibleProjections,
   splitSourceFor,
   sourceContent,
   type BibleProjection,
 } from './splitProjection';
 import {SplitReview} from './SplitReview';
-import {bibleRefinements, verseKey} from './BibleRefinements';
+import {verseKey} from './BibleRefinements';
 import {useBibleRefinement} from './useBibleRefinement';
 import {useBibleReviewPreference} from './useBibleReviewPreference';
 import {confirmBibleCuts} from './saveBibleCuts';
-import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
+import {useBibleProjections} from './useBibleProjections';
 import {installBibleReviewHandler} from './actions';
 
 interface EditorSession {
@@ -48,16 +38,8 @@ export function BibleSplitTools({
 }): JSX.Element | null {
   const api = window.llp;
   const autoOpen = useBibleReviewPreference(api?.preferences);
-  const refinementRevision = useSyncExternalStore(
-    bibleRefinements.subscribe,
-    bibleRefinements.getSnapshot,
-  );
-  const themes = useSettingsDocument('themes', '테마', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
-  const saved = useSettingsDocument('bibleCuts', '절 나누기', onProblem);
-  const [measurement, setMeasurement] = useState(() => ({
-    canvas: createBibleMeasureContext(),
-  }));
+  const {projections, themes, screens, saved, refinementRevision} =
+    useBibleProjections({onProblem});
   const [session, setSession] = useState<EditorSession | null>(null);
   const active = useRef(true);
   useEffect(() => {
@@ -67,29 +49,6 @@ export function BibleSplitTools({
     };
   }, []);
   const [seen, setSeen] = useState<object | null>(null);
-  useEffect(() => {
-    const update = (): void =>
-      setMeasurement(value => ({canvas: value.canvas}));
-    const fonts = document.fonts;
-    if (typeof fonts === 'undefined') return undefined;
-    fonts.addEventListener('loadingdone', update);
-    return () => fonts.removeEventListener('loadingdone', update);
-  }, []);
-  const projections = useMemo(
-    () =>
-      measurement.canvas === null ||
-      themes === null ||
-      screens === null ||
-      saved === null
-        ? null
-        : new BibleProjections({
-            themes: themes.value,
-            screens: screens.value.screens,
-            saved: saved.value,
-            canvas: measurement.canvas,
-          }),
-    [themes, screens, saved, measurement],
-  );
   useLayoutEffect(() => () => setBibleTileResolver(null), []);
   useLayoutEffect(() => {
     setBibleTileResolver(

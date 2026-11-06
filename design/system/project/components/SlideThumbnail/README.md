@@ -21,6 +21,7 @@ A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 2
 - Lyrics: text `text-on-fill`, weight 700, line height 1.45, centered, horizontal padding 10%. Keep the line breaks as written in the 슬라이드 (`white-space: pre-line`, `word-break: keep-all`).
 - Lyric font size = canvas width × 0.044. In CSS, set `container-type: inline-size` on the canvas and `font-size: 4.4cqw` on the text. Don't set a minimum, because the thumbnail must break lines in the same places as the output.
   - The draft ShowH formula `thumbFont = 48 / column count` (px) fits only a center column of 1144 (1116 inside the body). As width ratios, 2 columns 552px→24px (0.0435), 4 columns 270px→12px (0.0444), and 6 columns 176px→8px (0.0455), so a single 0.044 is used.
+- Measured Bible parts use their output lines and resolved theme text box instead of the generic lyric font and inset. Scale the theme's reference-pixel frame and font to the canvas; keep each measured line on one row with no wrapping or refitting. Keep the smaller continuation marker. The same lines, box and size apply in 진행, 준비 and verse editor thumbnails at every thumbnail percentage; song tiles retain the lyric style above.
 - 이름표 band: height `size-thumb-band` (24px), text `band` (16/22/600), left padding `space-8`, gap between number and name `space-8`, number in `tabular-nums`. If the 이름표 has a color, paint the whole band in that color (`label-teal` and so on) with `text-on-label` text. Otherwise use `label-none` with `label-gray` text, and write only the number. Truncate a long name with an ellipsis.
 - Grid (`ll-thumb-grid`): `ThumbnailSizeControl` in the panel's bottom row sets a continuous percentage from 50% to 200%, default 100%, with a synchronized % field. Gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset` (14). The window size range sets the baseline column count (narrow window 3, regular 4, wide 6. See Layout).
   - `thumbnailWidth` scales the baseline tile width by the percentage and caps it at the usable grid width. Moving the control right makes thumbnails larger; tiles wrap without stretching. The resulting column count follows the available width, not a fixed 2–8 mapping.
@@ -31,6 +32,7 @@ A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 2
 | Name | Height | Text | Where to use |
 |---|---|---|---|
 | Lyrics 슬라이드 | width × 9/16 + 24 | lyrics width × 0.044 / band `band` | 슬라이드 panel in 진행, 예배 순서 items, library song 슬라이드 panel |
+| Measured Bible part | width × 9/16 + 24 | theme size and text box scaled from 1920 × 1080, fixed measured rows | 진행 Bible tiles, 준비 Bible items, verse thumbnails |
 | Media 슬라이드 | width × 9/16 + 24 | band `band` | A 슬라이드 with an image or video (Sunday announcement) |
 
 The thumbnail itself has no size variants. Its fixed tile width sets its size; integer column tracks remain available for compatibility callers.

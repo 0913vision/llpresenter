@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   type JSX,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import type {Label} from '@core/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
@@ -78,6 +79,7 @@ export function VirtualSlides({
   onEdit,
   onHotKey,
   hotKeyReason,
+  canvasFor,
 }: {
   readonly song: SlideSource | GroupedSong;
   readonly numbers: readonly number[];
@@ -89,6 +91,7 @@ export function VirtualSlides({
   readonly onEdit?: ((index: number) => void) | undefined;
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly hotKeyReason?: string | undefined;
+  readonly canvasFor?: ((index: number) => ReactNode) | undefined;
 }): JSX.Element {
   const [menu, setMenu] = useState<{
     index: number;
@@ -247,6 +250,7 @@ export function VirtualSlides({
                   'none'
                 }
                 text={slide.lines.join('\n')}
+                canvas={canvasFor?.(number - 1)}
                 selected={start + index === selected}
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
               />

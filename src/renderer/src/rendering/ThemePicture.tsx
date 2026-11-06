@@ -10,12 +10,19 @@ import type {ThemeElement, ThemeText} from '@core/schema/themes';
 import {mediaObjectFit} from '@core/media/objectFit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
 import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
+import {continuationText} from '@core/bible/split/continuation';
+import {contSizeOf} from '@core/bible/split/layout';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {fontFamilyFor} from './slideLayer';
 import {fitTextInFrame} from './fitText';
 import {stageClockText, STAGE_TICK_MS} from './stageClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
+
+interface MeasuredText {
+  readonly lines: readonly string[];
+  readonly continued: boolean;
+}
 
 function textEffects(text: ThemeText): CSSProperties {
   const {outline, shadow} = text;
@@ -39,14 +46,20 @@ function textEffects(text: ThemeText): CSSProperties {
 function ThemeTextBox({
   element,
   content,
+  measured,
 }: {
   readonly element: TextThemeElement;
   readonly content: string;
+  readonly measured?: MeasuredText | undefined;
 }): JSX.Element {
   const block = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const target = block.current;
     if (target === null) return;
+    if (measured !== undefined) {
+      target.style.fontSize = `${element.text.size}px`;
+      return;
+    }
     const maximumLines =
       element.kind === 'currentText' || element.kind === 'nextText'
         ? element.text.maxLines
@@ -65,7 +78,7 @@ function ThemeTextBox({
       },
     );
     target.style.fontSize = `${size}px`;
-  }, [element, content]);
+  }, [element, content, measured]);
   return (
     <div
       className={styles.textBox}
@@ -82,7 +95,28 @@ function ThemeTextBox({
         className={styles.text}
         style={{...textEffects(element.text), fontSize: element.text.size}}
       >
-        {content}
+        {measured === undefined
+          ? content
+          : measured.lines.map((line, index) => {
+              const run = continuationText(
+                line,
+                measured.continued && index === measured.lines.length - 1,
+              );
+              return (
+                <div
+                  key={index}
+                  className={styles.measuredLine}
+                  data-measured-line=""
+                >
+                  {run.body || (run.marker === '' ? '\u00a0' : '')}
+                  {run.marker === '' ? null : (
+                    <span style={{fontSize: contSizeOf(element.text)}}>
+                      {run.marker}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
       </div>
     </div>
   );
@@ -94,6 +128,7 @@ function contents(
     samples: Partial<Record<ThemeElementKind, string>>;
     timers: RenderTimers | undefined;
     media: Partial<Record<'media' | 'background', string>> | undefined;
+    measuredText: MeasuredText | undefined;
   },
 ): JSX.Element | null {
   const {samples, timers} = context;
@@ -125,6 +160,9 @@ function contents(
     return (
       <ThemeTextBox
         element={element}
+        measured={
+          element.kind === 'currentText' ? context.measuredText : undefined
+        }
         content={
           element.kind === 'text'
             ? element.content
@@ -188,12 +226,15 @@ export function ThemePicture({
   samples,
   timers,
   media,
+  measuredText,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: string;
   readonly samples: Partial<Record<ThemeElementKind, string>>;
   readonly timers?: RenderTimers | undefined;
   readonly media?: Partial<Record<'media' | 'background', string>> | undefined;
+  /** Already measured output rows, drawn at the theme size without fitting or wrapping. */
+  readonly measuredText?: MeasuredText | undefined;
 }): JSX.Element {
   return (
     <svg
@@ -233,7 +274,7 @@ export function ThemePicture({
                     }}
                   />
                 ) : null}
-                {contents(element, {samples, timers, media})}
+                {contents(element, {samples, timers, media, measuredText})}
               </div>
             );
           })}

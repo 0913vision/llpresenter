@@ -310,6 +310,8 @@ describe('Bible preview display controls', () => {
 
   it('follows installed-list pushes and releases its subscription on close', async () => {
     const fixture = await setup();
+    const listeners = fixture.listenerCount();
+    expect(listeners).toBeGreaterThan(0);
     const document = translations();
     act(() =>
       fixture.push({
@@ -323,7 +325,7 @@ describe('Bible preview display controls', () => {
     );
     fireEvent.click(screen.getByRole('button', {name: '역본'}));
     expect(screen.queryByRole('menuitemradio', {name: 'Alternate'})).toBeNull();
-    expect(fixture.listenerCount()).toBe(1);
+    expect(fixture.listenerCount()).toBe(listeners);
     fixture.unmount();
     expect(fixture.listenerCount()).toBe(0);
   });

@@ -438,6 +438,7 @@ function SlidesEditorBody({
                     index={index}
                     appearance={appearance}
                     projection={projection}
+                    thumbnail
                   />
                 </div>
                 <SlideFields

@@ -210,6 +210,12 @@ export function ContentPreviewFrame({
               position: tilePicture.position - 1,
               label: tilePicture.tile.label,
               lines: tilePicture.tile.lines,
+              ...(tilePicture.tile.biblePart === undefined
+                ? {}
+                : {biblePart: tilePicture.tile.biblePart}),
+              ...(tilePicture.tile.continued === undefined
+                ? {}
+                : {continued: tilePicture.tile.continued}),
               ...(tilePicture.tile.reference === undefined
                 ? {}
                 : {reference: tilePicture.tile.reference}),

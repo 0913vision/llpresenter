@@ -3,7 +3,7 @@ import {outputTile, selectTile, useShow} from '@renderer/session/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
-import {useGridMeasure} from './useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
@@ -11,6 +11,7 @@ import {isItemRow} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from './useSlideTheme';
+import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
 
 const GRID_SELECTOR = '[role="listbox"]';
@@ -37,6 +38,7 @@ export function SlideGrid({
   const theme = useSlideTheme(
     row !== undefined && isItemRow(row) ? row : undefined,
   );
+  const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();
   const [menu, setMenu] = useState<{
     itemId: string;
@@ -91,12 +93,22 @@ export function SlideGrid({
             openItemId === null
               ? null
               : slideLayerOf({itemId: openItemId, index}, () => tiles);
+          const appearance =
+            tile.biblePart === undefined ? undefined : bible?.appearance;
           return (
             <SlideThumbnail
               key={index}
               number={index + 1}
               canvas={
-                theme === undefined || slide === null ? undefined : (
+                appearance !== undefined && slide !== null ? (
+                  <SlidePicture
+                    slide={slide}
+                    layout={appearance.theme.layout}
+                    emptyColor={appearance.theme.emptyColor}
+                    item={appearance.theme.item}
+                    background={appearance.background}
+                  />
+                ) : theme === undefined || slide === null ? undefined : (
                   <SlidePicture {...theme} slide={slide} />
                 )
               }

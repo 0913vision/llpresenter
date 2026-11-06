@@ -19,6 +19,9 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
 import {shownPosition} from '../../songs/editor/songItemModel';
 import {savedPassageTiles} from './bibleItemModel';
+import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import styles from './OtherItemPanel.module.css';
 
 /** Local selection over main's saved passage projection; no output handlers. */
@@ -37,7 +40,9 @@ export function BibleItemPanel({
   readonly sizeClass: SizeClass;
   readonly children?: ReactNode;
 }): JSX.Element {
-  const tiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
+  const rawTiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
+  const projection = useBibleTileProjection({itemId: item.id, serviceId});
+  const tiles = projection?.tiles ?? rawTiles;
   const scale = useThumbnailScale(sizeClass);
   const projected = useMemo(
     () => ({
@@ -65,19 +70,29 @@ export function BibleItemPanel({
             onSelect={onSelect}
             baseline={defaultThumbnailColumns[sizeClass]}
             scale={scale}
+            canvasFor={index => {
+              const appearance = projection?.appearance;
+              const slide = slideLayerOf({itemId: item.id, index}, () => tiles);
+              return appearance === undefined || slide === null ? undefined : (
+                <SlidePicture
+                  slide={slide}
+                  layout={appearance.theme.layout}
+                  emptyColor={appearance.theme.emptyColor}
+                  item={appearance.theme.item}
+                />
+              );
+            }}
           />
         )}
       </PanelBody>
       <PanelFooter
         count={tiles.length}
         end={
-          children === undefined ? (
-            <ThumbnailSizeControl
-              value={scale}
-              onChange={value => showThumbnailScale(sizeClass, value)}
-              onCommit={value => saveThumbnailScale(sizeClass, value)}
-            />
-          ) : undefined
+          <ThumbnailSizeControl
+            value={scale}
+            onChange={value => showThumbnailScale(sizeClass, value)}
+            onCommit={value => saveThumbnailScale(sizeClass, value)}
+          />
         }
       />
     </Panel>

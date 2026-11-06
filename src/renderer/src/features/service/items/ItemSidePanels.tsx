@@ -22,6 +22,7 @@ import {
 import {itemPicture, shownPosition} from '../../songs/editor/songItemModel';
 import {useShow} from '@renderer/session/show';
 import {savedPassageTiles} from './bibleItemModel';
+import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {openItemSong} from './openItemSong';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
@@ -44,13 +45,18 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     items.subscribe,
     items.getSnapshot,
   );
-  const tiles = useShow(view =>
+  const rawTiles = useShow(view =>
     savedPassageTiles(
       view,
       service?.service.id,
       item !== null && isItemOfKind(item, 'bible') ? item.id : undefined,
     ),
   );
+  const projection = useBibleTileProjection({
+    itemId: item !== null && isItemOfKind(item, 'bible') ? item.id : null,
+    ...(service === null ? {} : {serviceId: service.service.id}),
+  });
+  const tiles = projection?.tiles ?? rawTiles;
   const at = shownPosition(position, tiles.length);
   const tile = at === undefined ? undefined : tiles[at];
   const labels =

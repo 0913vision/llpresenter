@@ -13,7 +13,8 @@ import type {
   SettingsDocument,
   SettingsName,
 } from '@core/schema/settingsDocuments';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -23,6 +24,10 @@ import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
+import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
+import {SongEditorStore} from '@renderer/features/songs/editor';
+import {splitVerse} from '@core/bible/split/splitter';
 import {
   openBiblePassage,
   showBiblePassage,
@@ -217,6 +222,109 @@ function setup() {
 }
 
 describe('prepare and reuse theme-fitted Bible slides', () => {
+  it.each(['show', 'prep'])(
+    'draws the measured Bible rows at the theme size in the %s tiles',
+    async workspace => {
+      const layout = mockSplitLayout();
+      vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(layout);
+      setup();
+      const api = window.llp;
+      if (api === undefined) throw Error('Missing API');
+      const serviceId = createServiceId('00000000-0000-4000-8000-000000000098');
+      const item = {
+        id: sourceId,
+        bible: {
+          translation: passage.translation,
+          ref: passage.ref,
+          split: 'verse' as const,
+          reference: 'every' as const,
+          verseNumbers: true,
+          translationName: false,
+        },
+      };
+      const service = parseServiceDocument({
+        service: {
+          format: 'llservice',
+          schemaVersion: 1,
+          id: serviceId,
+          name: 'Sample',
+          date: '2026-11-07T10:00',
+          order: [item],
+        },
+        revision: 1,
+        access: 'editable',
+      });
+      if (!service.ok || service.value === null) throw Error('Invalid service');
+      vi.spyOn(api.services, 'get').mockResolvedValue(service.value);
+      if (workspace === 'show') {
+        openBiblePassage(passage, {review: false, verseNumbers: true});
+      } else {
+        applyService({
+          revision: 1,
+          id: serviceId,
+          name: 'Sample',
+          readOnly: false,
+          rows: [
+            {
+              id: sourceId,
+              kind: 'bible',
+              title: passage.ref,
+              bible: {...item.bible, passage},
+            },
+          ],
+          tiles: {[sourceId]: bibleVerseTiles(passage)},
+          jumpKeys: {},
+        });
+        useShow.setState({openItemId: sourceId});
+      }
+      const editor =
+        workspace === 'prep' ? new SongEditorStore(api, vi.fn()) : null;
+      const items =
+        editor === null ? null : new ServiceItemStore(api, editor, vi.fn());
+      const view = render(
+        workspace === 'show' ? (
+          <>
+            <BibleSplitTools onProblem={vi.fn()} />
+            <BiblePanel sizeClass="normal" />
+          </>
+        ) : items === null || editor === null ? null : (
+          <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />
+        ),
+      );
+      try {
+        const verse = passage.verses[0];
+        if (verse === undefined) throw Error('Missing verse');
+        const expected = splitVerse(verse.text, layout, {prefix: '16 '})
+          .chunks[0]?.lines;
+        await waitFor(() => {
+          const first = screen.getAllByRole('option')[0];
+          const rows = first?.querySelectorAll<HTMLElement>(
+            '[data-measured-line]',
+          );
+          expect(Array.from(rows ?? []).map(row => row.textContent)).toEqual(
+            expected,
+          );
+          expect(rows?.[0]?.parentElement?.style.fontSize).toBe('36px');
+        });
+        expect(
+          screen.getByRole('group', {name: '슬라이드 크기'}),
+        ).toBeDefined();
+        if (workspace === 'prep') {
+          const first = screen.getAllByRole('option')[0];
+          if (first === undefined) throw Error('Missing tile');
+          fireEvent.contextMenu(first);
+          expect(
+            screen.getByRole('menuitem', {name: '오버레이 추가…'}),
+          ).toBeDefined();
+        }
+      } finally {
+        view.unmount();
+        items?.dispose();
+        await editor?.dispose();
+      }
+    },
+  );
+
   it.each(['click', 'Enter'])(
     'outputs a saved quick Bible item by %s without AI or review',
     async activation => {

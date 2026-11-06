@@ -47,11 +47,23 @@ describe('SongPreviewFrame', () => {
     const passage = panelPassage();
     const [tile, next] = bibleVerseTiles(passage);
     if (tile === undefined) throw new Error('Missing Bible tile');
+    const measured = {
+      ...tile,
+      lines: ['16 Measured line', 'Second line (계속)'],
+      biblePart: 1,
+      continued: true,
+    };
     render(
       <SongPreviewFrame
         settings={fixture.api.settings}
         labels={[]}
-        picture={{itemId: 'bible-item', tile, next, position: 1, total: 3}}
+        picture={{
+          itemId: 'bible-item',
+          tile: measured,
+          next,
+          position: 1,
+          total: 3,
+        }}
         item={{
           id: 'bible-item',
           kind: 'bible',
@@ -61,6 +73,11 @@ describe('SongPreviewFrame', () => {
       />,
     );
     await waitFor(() => expect(drawing.render).toHaveBeenCalled());
+    expect(drawing.render.mock.lastCall?.[0].slide).toMatchObject({
+      lines: measured.lines,
+      biblePart: 1,
+      continued: true,
+    });
 
     await userEvent.click(screen.getByRole('radio', {name: '방송 화면'}));
     expect(drawing.render.mock.lastCall?.[0].slide?.label).toBe('3:16');

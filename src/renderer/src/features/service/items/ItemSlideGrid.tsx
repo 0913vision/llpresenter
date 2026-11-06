@@ -1,11 +1,17 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useMemo, useRef, useState, useSyncExternalStore, type JSX} from 'react';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuSeparator} from '@renderer/ui/menuRows';
-import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
+import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
+import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {useGridMeasure} from '@renderer/ui/useGridMeasure';
+import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {OverlayWarning} from './ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
@@ -24,12 +30,40 @@ const TILE_WIDTH = 128;
 export function ItemSlideGrid({
   items,
   editor,
+  sizeClass = 'normal',
 }: {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
+  readonly sizeClass?: SizeClass;
 }): JSX.Element {
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
-  const slides = useItemSlides(items, editor);
+  const rawSlides = useItemSlides(items, editor);
+  const bible = state.item !== null && isItemOfKind(state.item, 'bible');
+  const projection = useBibleTileProjection({
+    itemId: bible ? state.item.id : null,
+    ...(state.service === null ? {} : {serviceId: state.service.service.id}),
+  });
+  const slides = useMemo(
+    () =>
+      projection?.tiles.map(tile => ({
+        text: tile.lines.join('\n'),
+        label: tile.label ?? undefined,
+        color: tile.labelColor,
+        media: undefined,
+      })) ?? rawSlides,
+    [projection, rawSlides],
+  );
+  const grid = useRef<HTMLDivElement>(null);
+  const {width, gap} = useGridMeasure(grid, '[role="listbox"]');
+  const scale = useThumbnailScale(sizeClass);
+  const tileWidth = bible
+    ? thumbnailWidth({
+        gridWidth: width,
+        gap,
+        columns: defaultThumbnailColumns[sizeClass],
+        scalePercent: scale,
+      })
+    : TILE_WIDTH;
   const [menu, setMenu] = useState<{
     index: number;
     anchor: MenuAnchor;
@@ -57,8 +91,27 @@ export function ItemSlideGrid({
   const edit = (index: number): void => {
     if (song) openItemSong({items, editor, position: index});
   };
+  const canvasFor = (index: number): JSX.Element | undefined => {
+    const appearance = projection?.appearance;
+    const layer =
+      projection === null
+        ? null
+        : slideLayerOf(
+            {itemId: projection.source.id, index},
+            () => projection.tiles,
+          );
+    return appearance === undefined || layer === null ? undefined : (
+      <SlidePicture
+        slide={layer}
+        layout={appearance.theme.layout}
+        emptyColor={appearance.theme.emptyColor}
+        item={appearance.theme.item}
+      />
+    );
+  };
   return (
     <div
+      ref={grid}
       key={`${state.service?.service.id}:${state.item.id}`}
       className={styles.slideList}
     >
@@ -87,7 +140,7 @@ export function ItemSlideGrid({
           workspace="prep"
           label={GRID_LABEL}
           columns={COLUMNS}
-          tileWidth={TILE_WIDTH}
+          tileWidth={tileWidth}
           selected={slides.length === 0 ? undefined : selected}
           onSelect={index => items.selectPosition(index)}
           onMenu={(index, anchor) => {
@@ -102,6 +155,7 @@ export function ItemSlideGrid({
               label={slide.label}
               labelColor={slide.color}
               text={slide.media === undefined ? slide.text : undefined}
+              canvas={canvasFor(index)}
               media={
                 slide.media === undefined
                   ? undefined

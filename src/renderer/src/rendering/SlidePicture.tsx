@@ -32,6 +32,11 @@ export function SlidePicture({
       elements={layout.mode.kind === 'own' ? layout.elements : []}
       background={layout.background ?? emptyColor}
       samples={samples}
+      measuredText={
+        slide.biblePart === undefined
+          ? undefined
+          : {lines: slide.lines, continued: slide.continued ?? false}
+      }
       media={{
         ...(slide.picture === undefined
           ? {}

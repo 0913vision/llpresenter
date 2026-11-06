@@ -398,6 +398,14 @@ it('inserts the reviewed range after selection as one undo step, saves reference
         5,
       ),
     );
+    const verseThumbnail = view.container.querySelector(
+      '[data-slide-id] [data-measured-line]',
+    );
+    expect(verseThumbnail).not.toBeNull();
+    expect(verseThumbnail?.parentElement?.style.fontSize).toBe('36px');
+    expect(verseThumbnail?.closest('svg')?.getAttribute('viewBox')).toBe(
+      '0 0 1920 1080',
+    );
     expect(f.content).not.toHaveBeenCalled();
     const selected = view.container.querySelector<HTMLElement>(
       '[data-selected=true][data-slide-id]',
