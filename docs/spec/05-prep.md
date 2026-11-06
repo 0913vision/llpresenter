@@ -816,11 +816,10 @@ row-menu decision.
   distinct header lacks an exact match in the 이름표 list. Don't open it if all
   headers match or there are no headers. Turning recognition off and on opens it
   again with the last choices.
-- 이름표 맞추기 uses Dialog size m. Its introduction is "머리줄마다 이름표를
-  고르거나 적으세요. 비슷한 이름표를 먼저 넣어 두었습니다." Its scrolling list
-  has one row per distinct header in file order, including exact matches.
-  Columns are 머리줄 (the name in brackets), 이름표, and 첫 줄 (the first lyric
-  line under that header's first use, truncated to one line).
+- 이름표 맞추기 uses Dialog size m. Its scrolling list has one row per distinct
+  header in file order, including exact matches. Columns are 머리줄 (the name in
+  brackets), 이름표, and 첫 줄 (the first lyric line under that header's first
+  use, truncated to one line).
 - Each 이름표 field starts with its suggestion and color swatch. Click the field
   or its chevron for the song editor's 이름표 menu: 이름표 없음, then the list
   with swatches and a check on the current choice, without 이름표 관리…. Picking

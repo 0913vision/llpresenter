@@ -146,10 +146,6 @@ export function ImportLabelMappingDialog({
       }}
     >
       <div className={styles.content}>
-        <p className={styles.intro}>
-          머리줄마다 이름표를 고르거나 적으세요. 비슷한 이름표를 먼저 넣어
-          두었습니다.
-        </p>
         <div
           role="table"
           aria-label="머리줄 이름표"

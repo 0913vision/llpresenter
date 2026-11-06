@@ -79,6 +79,19 @@ beforeEach(() => {
 });
 
 describe('text import dialog', () => {
+  it('starts label mapping with the table and no introductory paragraph', async () => {
+    const f = fixture();
+    render(
+      <TextImportDialog
+        {...f.props}
+        source={{...source, text: '[Verse]\nFirst\n[Unknown]\nSecond'}}
+      />,
+    );
+    const dialog = await screen.findByRole('dialog', {name: '이름표 맞추기'});
+    const table = within(dialog).getByRole('table', {name: '머리줄 이름표'});
+    expect(table.parentElement?.firstElementChild).toBe(table);
+  });
+
   it('refuses a mapping that expands 3000 accepted sections beyond the saved-song limit and recovers after correction', async () => {
     const f = fixture();
     render(

@@ -7,13 +7,6 @@
   );
 }
 
-.intro {
-  flex: none;
-  margin: 0 0 var(--space-16);
-  color: var(--text-2);
-  font: var(--type-label);
-}
-
 .heading,
 .row {
   display: grid;
