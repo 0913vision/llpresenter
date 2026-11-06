@@ -80,6 +80,14 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   row; 그림 추가… and 바꾸기… choose pictures from the media list. A structured
   verse slide shows its read-only Bible reference and stays intact when other
   item fields are saved.
+- Rows use the song editor's 14px padding, 18px number column, and 16px gaps:
+  number, a fixed 112px 16:9 thumbnail, then top-aligned body content. There is
+  no kind column. Ad field labels stay on one line. Text uses a two-line
+  TextArea that grows with its content; picture filename and 바꾸기… share one
+  line. Verse rows show the full reference (`요한복음 3:34`) in strong body
+  text, then at most two lines of read-only verse text with an ellipsis. A split
+  verse shows the thumbnail's first piece and its part (`1/2`). Add actions
+  start at the content column; the slide count stays in the footer.
 - In a blank item, 성경 구절 추가 opens the shared passage dialog. It inserts
   one reference-only row per verse after the selected row. The entire range is
   one local undo step, and a range exceeding the remaining 200-row capacity is

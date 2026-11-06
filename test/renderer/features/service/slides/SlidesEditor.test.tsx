@@ -29,6 +29,8 @@ import {
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {parsePayload} from '@core/schema/payload';
 import type {SlidesItem} from '@core/services/slidesEdits';
+import {NO_LABEL_COLOR} from '@core/labels/colors';
+import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {SlidesEditorWindow} from '@renderer/app/SlidesEditorWindow';
 import {ControlSession} from '@renderer/app/controlSession';
@@ -43,12 +45,24 @@ import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixt
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
   Picture: () => <div />,
 }));
+const {mockVerseProjection} = vi.hoisted(() => ({
+  mockVerseProjection: vi.fn<
+    () => Pick<BibleProjection, 'tiles' | 'partsByTile'> | null
+  >(() => null),
+}));
+vi.mock('@renderer/features/bible/useSlidesVerseProjection', () => ({
+  useSlidesVerseProjection: () => ({
+    projection: mockVerseProjection(),
+    failed: false,
+  }),
+}));
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const itemId = createServiceItemId('00000000-0000-4000-8000-000000000002');
 const mediaId = createMediaId('00000000-0000-4000-8000-000000000003');
 const slideId = createSlideId('00000000-0000-4000-8000-000000000004');
 
 beforeEach(() => {
+  mockVerseProjection.mockReturnValue(null);
   HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 afterEach(cleanup);
@@ -302,8 +316,9 @@ describe('slides editor', () => {
       f.view.unmount();
       await f.session.dispose();
     });
-    await screen.findByText('성경 구절');
-    expect(screen.getAllByText('요 3:16').length).toBeGreaterThan(0);
+    await screen.findAllByText('요한복음 3:16');
+    expect(screen.queryByText('요 3:16')).toBeNull();
+    expect(screen.queryByText('성경 구절')).toBeNull();
     expect(screen.queryByRole('textbox', {name: '글'})).toBeNull();
     fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
       target: {value: 'Updated verse item'},
@@ -314,6 +329,77 @@ describe('slides editor', () => {
       slides: {name: 'Updated verse item', slides: [verse]},
     });
   });
+
+  it.each([false, true])(
+    'shows the full reference and read-only verse piece after a text row (split: %s)',
+    async split => {
+      const parsed = parsePayload(translationIdSchema, 'sample');
+      if (!parsed.ok) throw new Error('Invalid translation fixture');
+      const verse = {
+        id: slideId,
+        verse: {translation: parsed.value, book: 43, chapter: 3, verse: 35},
+      };
+      const textSlide = {
+        id: createSlideId('00000000-0000-4000-8000-000000000005'),
+        text: '설교',
+      };
+      const part = {
+        reference: verse.verse,
+        text: '아버지께서 아들을 사랑하사',
+        display: '아버지께서 아들을 사랑하사',
+        part: 1,
+        partCount: split ? 2 : 1,
+        continued: split,
+        manual: split,
+      };
+      const tile = {
+        sourceSlideId: verse.id,
+        reference: '요한복음 3:35',
+        label: '3:35',
+        labelColor: NO_LABEL_COLOR,
+        lines: [part.text],
+      } satisfies BibleProjection['tiles'][number];
+      mockVerseProjection.mockReturnValue({
+        tiles: [
+          {
+            sourceSlideId: textSlide.id,
+            label: '',
+            labelColor: NO_LABEL_COLOR,
+            lines: [textSlide.text],
+          },
+          tile,
+          ...(split
+            ? [{...tile, lines: ['만물을 다 그의 손에 주셨으니']}]
+            : []),
+        ],
+        partsByTile: [
+          null,
+          part,
+          ...(split
+            ? [{...part, part: 2, text: '만물을 다 그의 손에 주셨으니'}]
+            : []),
+        ],
+      });
+      const f = setup('blank', [textSlide, verse]);
+      onTestFinished(async () => {
+        f.view.unmount();
+        await f.session.dispose();
+      });
+      const reference = await screen.findByText(
+        split ? '요한복음 3:35 (1/2)' : '요한복음 3:35',
+        {selector: '[data-slide-id] span'},
+      );
+      const row = reference.closest('[data-slide-id]');
+      if (!(row instanceof HTMLElement)) throw new Error('Missing verse row');
+      expect(within(row).getByText(part.text)).toBeTruthy();
+      expect(within(row).queryByRole('textbox')).toBeNull();
+      expect(
+        within(row).queryByText('만물을 다 그의 손에 주셨으니'),
+      ).toBeNull();
+      expect(screen.queryByText('성경 구절')).toBeNull();
+      expect(screen.queryByText('글')).toBeNull();
+    },
+  );
 
   it('preserves concurrent control-window fields when only editor text changes, including another save', async () => {
     const f = setup();
@@ -569,6 +655,17 @@ describe('slides editor', () => {
       ).toBe(form === 'ad');
       expect(await screen.findAllByText('poster.jpg')).not.toHaveLength(0);
       expect(screen.getByRole('button', {name: '바꾸기…'})).toBeTruthy();
+      const list = screen.getByLabelText('슬라이드 편집 목록');
+      expect(within(list).queryByText('그림', {exact: true})).toBeNull();
+      expect(within(list).queryByText('글', {exact: true})).toBeNull();
+      if (form === 'ad') {
+        expect(
+          within(list).getByText('이름', {selector: 'label'}),
+        ).toBeTruthy();
+        expect(
+          within(list).getByText('내용', {selector: 'label'}),
+        ).toBeTruthy();
+      }
       expect(screen.getByRole('radio', {name: '청중 화면'})).toBeTruthy();
       view.unmount();
       await session.dispose();

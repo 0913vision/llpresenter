@@ -12,6 +12,7 @@ import {parsePayload} from '@core/schema/payload';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import {BibleSlidesDialog} from '@renderer/features/bible/BibleSlidesDialog';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
+import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {
   newTextSlide,
   SLIDES_LIMIT,
@@ -130,6 +131,7 @@ function SlideFields({
   slide,
   form,
   name,
+  projection,
   replace,
   change,
   endTyping,
@@ -137,36 +139,44 @@ function SlideFields({
   readonly slide: Slide;
   readonly form: SlidesItem['slides']['form'];
   readonly name: string;
+  readonly projection: BibleProjection | null;
   readonly replace: (button: HTMLElement) => void;
   readonly change: (slide: Slide, field: string) => void;
   readonly endTyping: () => void;
 }): JSX.Element {
   if ('verse' in slide) {
+    const index = projection?.tiles.findIndex(
+      tile => tile.sourceSlideId === slide.id,
+    );
+    const tile = index === undefined ? undefined : projection?.tiles[index];
+    const part =
+      index === undefined ? undefined : projection?.partsByTile[index];
     return (
       <div className={styles.fields}>
-        <span>성경 구절</span>
-        <span>{name}</span>
+        <span className={styles.verseReference}>
+          {tile?.reference ?? name}
+          {part !== null && part !== undefined && part.partCount > 1
+            ? ` (${part.part}/${part.partCount})`
+            : ''}
+        </span>
+        <span className={styles.verseText}>
+          {part?.text ?? tile?.lines.join('\n')}
+        </span>
       </div>
     );
   }
   if ('media' in slide) {
     return (
-      <div className={styles.fields}>
-        <span>그림</span>
-        <div className={styles.pictureFile}>
-          <span>{name}</span>
-          <Button
-            variant="ghost"
-            onClick={event => replace(event.currentTarget)}
-          >
-            바꾸기…
-          </Button>
-        </div>
+      <div className={styles.pictureFile}>
+        <span>{name}</span>
+        <Button variant="ghost" onClick={event => replace(event.currentTarget)}>
+          바꾸기…
+        </Button>
       </div>
     );
   }
   return (
-    <div className={styles.fields}>
+    <div className={styles.fields} data-form={form}>
       {form === 'ad' ? (
         <>
           <label htmlFor={`name-${slide.id}`}>이름</label>
@@ -181,9 +191,7 @@ function SlideFields({
           />
         </>
       ) : null}
-      <label htmlFor={`text-${slide.id}`}>
-        {form === 'ad' ? '내용' : '글'}
-      </label>
+      {form === 'ad' ? <label htmlFor={`text-${slide.id}`}>내용</label> : null}
       <TextArea
         id={`text-${slide.id}`}
         aria-label={form === 'ad' ? '내용' : '글'}
@@ -436,6 +444,7 @@ function SlidesEditorBody({
                   slide={slide}
                   form={item.slides.form}
                   name={slideBand(slide, media)}
+                  projection={projection}
                   replace={button => showPicker(button, slide.id)}
                   change={(next, field) => changeSlide(index, next, field)}
                   endTyping={() => draft.endTyping()}

@@ -22,7 +22,7 @@ import styles from './SlidesEditor.module.css';
 export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
-    return `${book?.koreanShort ?? '성경'} ${slide.verse.chapter}:${slide.verse.verse}`;
+    return `${book?.korean ?? '성경'} ${slide.verse.chapter}:${slide.verse.verse}`;
   }
   if ('media' in slide) {
     const file = media.find(file => file.id === slide.media);
