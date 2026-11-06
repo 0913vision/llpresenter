@@ -77,6 +77,62 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('theme composition drawing', () => {
+  it('draws the split guide at a moved three-line text box and marks its overflow', () => {
+    const root = document.createElement('div');
+    const element: ThemeElement = {
+      ...themeElementBase(),
+      kind: 'currentText',
+      frame: {x: 140, y: 200, w: 1400, h: 600},
+      text: {
+        ...themeElementBase().text,
+        size: 80,
+        lineHeight: 1.5,
+        maxLines: 3,
+        vAlign: 'middle',
+      },
+    };
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      biblePreview: {elementId: element.id, maxLines: 3},
+    });
+    const content = {
+      ...song,
+      slide: {
+        itemId: 'split',
+        position: 0,
+        label: null,
+        lines: ['One', 'Two', 'Three', 'Four'],
+      },
+    };
+    view.render(content, frame([element]));
+    const box = root.querySelector<HTMLElement>('[data-kind="currentText"]');
+    expect(box?.style.left).toBe('140px');
+    expect(box?.style.top).toBe('200px');
+    expect(box?.style.height).toBe('600px');
+    const guideArea = box?.querySelector(
+      `.${classes.bibleGuide}`,
+    )?.parentElement;
+    expect(guideArea?.style.top).toBe('120px');
+    expect(guideArea?.style.height).toBe('360px');
+    expect(box?.style.overflow).toBe('visible');
+    expect(box?.dataset['overflow']).toBe('true');
+    expect(box?.querySelector(`.${classes.bibleGuide}`)).not.toBeNull();
+    expect(box?.querySelector(`.${classes.bibleOverflow}`)?.textContent).toBe(
+      'Four',
+    );
+    view.render(
+      {...content, slide: {...content.slide, lines: ['One']}},
+      frame([element]),
+    );
+    expect(box?.dataset['overflow']).toBe('false');
+    expect(
+      box?.querySelector(`.${classes.shown} .${classes.bibleOverflow}`),
+    ).toBeNull();
+    view.dispose();
+    expect(root.querySelector('[data-kind="currentText"]')).toBeNull();
+  });
   it('draws the full Bible reference and translation on the screen reference element', () => {
     const {view, text} = setup();
     const elements: ThemeElement[] = [

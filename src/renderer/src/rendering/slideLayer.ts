@@ -142,6 +142,7 @@ export class SlideLayerView {
   constructor(
     parent: HTMLElement,
     private style: TextStyle,
+    private readonly previewMaxLines?: number,
   ) {
     this.element.className = classes.layer;
     this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
@@ -254,6 +255,18 @@ export class SlideLayerView {
         marker.style.fontSize = `${contSizeOf({size: px / this.scale}) * this.scale}px`;
       }
     };
+    const maxLines = this.previewMaxLines;
+    if (maxLines !== undefined) {
+      setSize(size);
+      element.style.justifyContent =
+        block.children.length > maxLines
+          ? 'flex-start'
+          : JUSTIFY[this.style.vAlign];
+      Array.from(block.children).forEach((row, index) => {
+        row.classList.toggle(classes.bibleOverflow, index >= maxLines);
+      });
+      return;
+    }
     const fontSize = fitTextInFrame(
       {
         size,

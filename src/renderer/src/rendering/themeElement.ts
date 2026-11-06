@@ -11,6 +11,7 @@ import {
 } from '@core/themes/content';
 import {BackgroundLayerView} from './backgroundLayer';
 import {SlideLayerView} from './slideLayer';
+import {classes} from './classes';
 import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
@@ -49,6 +50,7 @@ export class ThemeElementView {
   private readonly gaps: ThemeGaps;
   private shownText: string | null = null;
   private shownContinued = false;
+  private readonly previewMaxLines: number | undefined;
   private mediaId: string | null = null;
   private mediaStartedAt: number | null = null;
 
@@ -63,6 +65,10 @@ export class ThemeElementView {
     this.options = options;
     this.gaps = gaps;
     const {frame} = element;
+    this.previewMaxLines =
+      options.biblePreview?.elementId === element.id
+        ? options.biblePreview.maxLines
+        : undefined;
     Object.assign(this.box.style, {
       position: 'absolute',
       left: `${frame.x}px`,
@@ -74,6 +80,24 @@ export class ThemeElementView {
     });
     this.box.dataset['themeElement'] = element.id;
     this.box.dataset['kind'] = element.kind;
+    let textParent = this.box;
+    if (this.previewMaxLines !== undefined && element.kind === 'currentText') {
+      const height =
+        element.text.size * element.text.lineHeight * this.previewMaxLines;
+      const ratio = {top: 0, middle: 0.5, bottom: 1}[element.text.vAlign];
+      this.box.style.overflow = 'visible';
+      textParent = document.createElement('div');
+      Object.assign(textParent.style, {
+        position: 'absolute',
+        left: '0',
+        width: '100%',
+        top: `${(frame.h - height) * ratio}px`,
+        height: `${height}px`,
+      });
+      const guide = document.createElement('div');
+      guide.className = classes.bibleGuide;
+      textParent.append(guide);
+    }
     parent.append(this.box);
     const fill =
       element.kind === 'box' || isThemeTextElement(element)
@@ -92,9 +116,14 @@ export class ThemeElementView {
     if ('radius' in element) {
       this.box.style.borderRadius = `${element.radius}px`;
     }
+    if (textParent !== this.box) this.box.append(textParent);
     this.text =
       isThemeTextElement(element) || element.kind === 'overlay'
-        ? new SlideLayerView(this.box, DEFAULT_TEXT_STYLE)
+        ? new SlideLayerView(
+            textParent,
+            DEFAULT_TEXT_STYLE,
+            this.previewMaxLines,
+          )
         : null;
     this.image =
       element.kind === 'image' ? document.createElement('img') : null;
@@ -124,6 +153,11 @@ export class ThemeElementView {
     frame: RenderFrame,
     videoRemaining?: number,
   ): void {
+    if (this.previewMaxLines !== undefined) {
+      this.box.dataset['overflow'] = String(
+        (layers.slide?.lines.length ?? 0) > this.previewMaxLines,
+      );
+    }
     const {element} = this;
     const item = frame.theme?.item ?? null;
     if (element.kind === 'media' || element.kind === 'background') {

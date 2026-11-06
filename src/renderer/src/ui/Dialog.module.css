@@ -53,6 +53,18 @@
   width: var(--dialog-s);
 }
 
+.dialog:focus {
+  outline: none;
+}
+
+.headerEnd {
+  margin-left: auto;
+}
+
+.headerEnd + .close {
+  margin-left: 0;
+}
+
 .m {
   width: var(--dialog-m);
 }

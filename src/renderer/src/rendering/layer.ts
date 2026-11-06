@@ -64,6 +64,11 @@ export interface RenderFrame {
 }
 
 export interface RenderLayerOptions {
+  /** Shows fixed-size verse text and its line budget in the split preview. */
+  readonly biblePreview?: {
+    readonly elementId: string;
+    readonly maxLines: number;
+  };
   readonly textStyle: TextStyle;
   /** The URL that plays a library media file. */
   readonly mediaUrl: (mediaId: string) => string;

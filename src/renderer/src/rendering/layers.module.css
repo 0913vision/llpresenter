@@ -72,6 +72,27 @@
   overflow-wrap: break-word;
 }
 
+.bibleGuide {
+  position: absolute;
+  inset: 0;
+  outline: var(--bible-guide-width, 1px) dashed
+    color-mix(in srgb, var(--text-on-fill) 20%, transparent);
+  pointer-events: none;
+}
+
+[data-overflow='true'] .bibleGuide {
+  outline: var(--bible-guide-width, 1px) solid var(--live);
+}
+
+.bibleOverflow {
+  color: color-mix(in srgb, var(--live) 40%, var(--text-on-fill));
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--live) 34%, transparent) 0 3px,
+    color-mix(in srgb, var(--live) 12%, transparent) 3px 6px
+  );
+}
+
 .shadow .block {
   text-shadow: var(--lyric-shadow-x) var(--lyric-shadow-y)
     var(--lyric-shadow-blur)

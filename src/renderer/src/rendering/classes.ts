@@ -16,6 +16,8 @@ export const classes = {
   instant: classOf('instant'),
   shown: classOf('shown'),
   block: classOf('block'),
+  bibleOverflow: classOf('bibleOverflow'),
+  bibleGuide: classOf('bibleGuide'),
   shadow: classOf('shadow'),
   outline: classOf('outline'),
   hidden: classOf('hidden'),

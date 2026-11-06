@@ -111,6 +111,7 @@ export function useSlidesVerseProjection(
       reference: 'every',
       translationName: false,
       source: 'service',
+      ...(item.background === undefined ? {} : {background: item.background}),
       ...(item.theme === undefined ? {} : {theme: item.theme}),
     });
   }, [active, loaded, request, measurement, themes, screens, cuts, item]);

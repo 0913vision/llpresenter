@@ -224,6 +224,7 @@ export function BibleSlidesDialog({
       cuts={cutsOfVerse(projection.parts, ref)}
       layout={projection.layout}
       element={projection.element}
+      appearance={projection.appearance}
       prefix={projection.numbered ? `${ref.verse} ` : ''}
       position={review.index}
       total={review.references.length}

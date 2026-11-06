@@ -1,76 +1,153 @@
-.words {
-  font: var(--type-body);
-  color: var(--text);
-  margin-bottom: var(--space-20);
+.body {
+  --split-text-size: 22px;
+  --split-line-height: 46px;
+  --split-inline-inset: 28px;
+  --split-results-height: 250px;
+
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
 }
+
+.position {
+  color: var(--text-3);
+  font: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.words {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-18) var(--split-inline-inset);
+  overflow-y: auto;
+  color: var(--text);
+  font: 500 var(--split-text-size) / var(--split-line-height) var(--font-ui);
+  word-break: keep-all;
+}
+
+.group {
+  white-space: nowrap;
+}
+
 .word {
   appearance: none;
-  border: 0;
   padding: 0;
+  border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   cursor: pointer;
+  transition: color var(--motion-hover);
 }
 .word:disabled {
   cursor: default;
 }
 .word:hover:not(:disabled) {
-  background: var(--bg-raised);
+  color: var(--accent);
 }
+
 .hint {
+  display: inline-block;
+  min-width: var(--space-20);
+  height: var(--space-20);
+  margin-inline: var(--space-6);
+  padding: 0 var(--space-4);
   border: 0;
-  background: var(--bg-raised);
+  border-radius: var(--radius-sm);
+  background: var(--bg-control);
   color: var(--text-2);
-  font: var(--type-caption);
-  padding: var(--space-2);
-  margin-inline: var(--space-2);
+  font: var(--type-label);
+  font-weight: 600;
+  text-align: center;
+  vertical-align: var(--space-focus-preview-cell);
   cursor: pointer;
+  transition:
+    background var(--motion-hover),
+    opacity var(--motion-hover);
 }
-.hint[aria-pressed='true'] {
-  background: var(--accent);
-  color: var(--text-on-fill);
-}
-.hint[data-match='false'] {
-  color: var(--text-off);
-}
-.previews {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-12);
-  align-items: start;
-}
-.preview {
-  margin: 0;
-  color: var(--text-2);
-  font: var(--type-caption);
-}
-.preview svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: var(--bg-inset);
-  overflow: visible;
-}
-.box {
-  fill: none;
-  stroke: var(--line-strong);
-  stroke-width: var(--space-2);
-  stroke-dasharray: var(--space-6);
-}
-.line {
-  white-space: pre;
+.hint:hover:not(:disabled) {
+  background: var(--bg-control-hover);
   color: var(--text);
 }
-.line[data-overflow='true'],
+.hint[aria-pressed='true'] {
+  margin-inline: var(--space-10);
+  background: var(--accent-fill);
+  color: var(--text-on-fill);
+}
+.hint[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--accent-fill-hover);
+}
+.hint[data-match='false'] {
+  opacity: 0.18;
+}
+.typed {
+  color: var(--accent);
+}
+.hint[aria-pressed='true'] .typed {
+  color: var(--text-on-selection);
+}
+
+.previews {
+  position: relative;
+  display: flex;
+  flex: 0 0 var(--split-results-height);
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: var(--space-16) var(--space-14);
+  padding: var(--space-16) var(--split-text-size) var(--space-20)
+    var(--split-inline-inset);
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  background: var(--bg-well);
+  scrollbar-gutter: stable;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: var(--space-16);
+}
+.previews[data-centered='true'] {
+  justify-content: center;
+}
+.preview {
+  flex: 0 0 calc((100% - 2 * var(--space-14)) / 3);
+  min-width: 0;
+  margin: 0;
+  color: var(--text-2);
+  font: var(--type-label);
+  font-weight: 600;
+  scroll-snap-align: start;
+}
+.preview figcaption {
+  margin-bottom: var(--space-6);
+}
+.slide,
+.picture {
+  position: relative;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--output-black);
+}
+.preview[data-overflow='true'] .slide {
+  box-shadow: 0 0 0 2px var(--live);
+}
 .preview[data-overflow='true'] figcaption,
 .problem {
   color: var(--live);
 }
-.preview[data-overflow='true'] .box {
-  stroke: var(--live);
+.shake {
+  animation: shake 340ms ease-in-out;
 }
-.state {
-  font: var(--type-caption);
-  color: var(--text-3);
+@keyframes shake {
+  20%,
+  80% {
+    transform: translateX(-3px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
 }

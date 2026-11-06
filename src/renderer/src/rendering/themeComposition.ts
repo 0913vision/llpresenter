@@ -167,6 +167,12 @@ export class ThemeCompositionView {
     for (const page of [this.page, this.leaving]) {
       if (page !== null) {
         page.canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        if (this.options.biblePreview !== undefined && scale > 0) {
+          page.canvas.style.setProperty(
+            '--bible-guide-width',
+            `${1 / scale}px`,
+          );
+        }
       }
     }
   }

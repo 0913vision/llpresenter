@@ -52,6 +52,12 @@ import {SUNDAY_ID} from '@fixtures/main/store/testFiles';
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
   Picture: () => <div />,
 }));
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
 vi.mock('@renderer/rendering/bibleMeasure', async importOriginal => ({
   ...(await importOriginal<
     typeof import('@renderer/rendering/bibleMeasure')
@@ -339,14 +345,14 @@ it('inserts the reviewed range after selection as one undo step, saves reference
   const view = render(<SlidesEditorWindow session={session} />);
   try {
     const first = await chooseRange();
-    expect(first.textContent).toContain('1/2');
+    expect(first.textContent).toContain('1 / 2');
     await act(async () =>
       fireEvent.click(within(first).getByRole('button', {name: '확정'})),
     );
     await waitFor(() =>
       expect(
         screen.getByRole('dialog', {name: '절 나누기'}).textContent,
-      ).toContain('2/2'),
+      ).toContain('2 / 2'),
     );
     await act(async () =>
       fireEvent.click(screen.getByRole('button', {name: '확정'})),

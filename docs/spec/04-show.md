@@ -756,18 +756,21 @@ or item stop stays stopped through projection updates and workspace changes;
 only explicitly outputting a slide starts advance again.
 
 After opening a passage with unconfirmed split verses, 절 나누기 opens for each
-of them in order. Its subtitle shows the verse reference and `1/2`, `2/2` when
-several need review. Ctrl E on a Bible slide reopens that verse from its current
-cuts, including a saved 성경 구절 item. This replaces Ctrl E's old 준비 alias;
-Ctrl R still opens 준비.
+of them in order. Its subtitle shows only the verse reference. When several need
+review, the header shows `1 / 2`, `2 / 2` before the close button. No
+automatic-state label is shown. Ctrl E on a Bible slide reopens that verse from
+its current cuts, including a saved 성경 구절 item. This replaces Ctrl E's old
+준비 alias; Ctrl R still opens 준비.
 
 The text has labels between words, in Copible's order
 `asdfghjkl qwertyuiop zxcvbnm 1234567890`. Above 36 gaps, all labels have two
 letters. Physical key codes work with either keyboard language and Caps Lock;
-Shift does not change the selected label. A label cuts before its word; clicking
-a word cuts after it. Pressing the same gap removes it. An automatic gap is
-dismissed only when that gap itself is removed; removing an alternative user cut
-returns to the automatic cuts unless they were dismissed.
+Shift does not change the selected label. Each label cuts after its preceding
+word and wraps with that word, so a line never starts with a key. Clicking a
+word cuts after it. While typing a two-letter label, nonmatching keys fade and
+the typed prefix uses the accent color. Pressing the same gap removes it. An
+automatic gap is dismissed only when that gap itself is removed; removing an
+alternative user cut returns to the automatic cuts unless they were dismissed.
 
 Ctrl Z or Backspace undoes, Ctrl Y or Ctrl Shift Z redoes. Enter or Space
 confirms only when every part fits; holding either key confirms once. Esc
@@ -776,11 +779,25 @@ panel review clears that lookup's preview and returns to 끝절; cancelling a Ct
 E reopening leaves its previous cuts unchanged. The output clear keys remain
 available while the dialog owns the editing keys.
 
-Thumbnails show the measured line breaks, the current text box boundary, and the
-smaller continuation marker. An overflowing part has a red boundary and red
-overflow lines with `4/3줄`; 확정 stays disabled. Confirming saves only the
-verse hash, word indices and time through the settings store. A failed save
-keeps the dialog open and reports the failure. There is no editable verse text.
+The dialog is 1080 wide and 640 high, capped at the window height minus 64. Its
+height stays fixed across cuts and verses, and the focused surface has no focus
+ring. The 22px text with 46px line height scrolls inside the remaining space
+above a fixed 250px results area. Results have one consistent width, three per
+row; one or two are centered. From four parts, results scroll inside their area
+and snap by row. A cut, undo, or redo scrolls to the row containing the changed
+gap; other updates preserve the scroll position. Removing all cuts shows one
+centered overflowing result. A fitting single slide skips review.
+
+Thumbnails use the slides editor's renderer and the item's audience theme,
+including background, text box, font, reference, measured lines and smaller
+continuation marker. Part numbers appear above them, without line counts. A
+dashed white 20% guide shows the theme's maximum-line area. An overflowing part
+has a 2px live ring, a solid live guide and light live overflow text over live
+hatching, at the configured font size. 확정 stays disabled and Enter or Space
+shakes the overflowing results. The footer's left side shows only a save
+failure. Confirming saves only the verse hash, word indices and time through the
+settings store. A failed save keeps the dialog open and reports the failure.
+There is no editable verse text.
 
 ### Bible panel
 

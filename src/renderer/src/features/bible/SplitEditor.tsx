@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -8,21 +9,21 @@ import {
 } from 'react';
 import type {VerseInput} from '@core/bible/split/splitVerses';
 import {planSlides} from '@core/bible/split/manualSplit';
-import {contSizeOf, type SplitLayout} from '@core/bible/split/layout';
-import {continuationText} from '@core/bible/split/continuation';
+import type {SplitLayout} from '@core/bible/split/layout';
 import {
   effectiveCuts,
   hintCharFromEvent,
   hintLabels,
   initialEditHistory,
-  isShowingAuto,
   pressGap,
   redoEdit,
   undoEdit,
+  type EditHistory,
 } from '@core/bible/split/cutState';
 import {Dialog} from '@renderer/ui/Dialog';
-import {fontFamilyFor} from '@renderer/rendering/slideLayer';
 import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
+import type {SplitAppearance} from './splitProjection';
+import {SplitSlidePicture} from './SplitSlidePicture';
 import styles from './SplitEditor.module.css';
 
 export interface SplitEditorProps {
@@ -31,6 +32,7 @@ export interface SplitEditorProps {
   readonly cuts: readonly number[];
   readonly layout: SplitLayout;
   readonly element: BibleTextElement;
+  readonly appearance?: SplitAppearance | undefined;
   readonly prefix: string;
   readonly position: number;
   readonly total: number;
@@ -38,81 +40,9 @@ export interface SplitEditorProps {
   readonly onCancel: () => void;
 }
 
-function SplitPreviews({
-  plan,
-  element,
-}: {
-  readonly plan: ReturnType<typeof planSlides>;
-  readonly element: BibleTextElement;
-}): JSX.Element {
-  const {text, frame} = element;
-  const pitch = text.size * text.lineHeight;
-  return (
-    <div className={styles.previews}>
-      {plan.slides.map(slide => {
-        const height = Math.max(frame.h, pitch * slide.nLines);
-        return (
-          <figure
-            key={slide.index}
-            className={styles.preview}
-            data-overflow={!slide.fits}
-          >
-            <svg
-              viewBox={`0 0 ${frame.w} ${height}`}
-              role="img"
-              aria-label={`슬라이드 ${slide.index + 1}`}
-            >
-              <rect
-                x="0"
-                y="0"
-                width={frame.w}
-                height={frame.h}
-                className={styles.box}
-              />
-              <foreignObject width={frame.w} height={height}>
-                <div
-                  style={{
-                    fontFamily: fontFamilyFor(text.font),
-                    fontWeight: text.weight,
-                    fontSize: text.size,
-                    lineHeight: text.lineHeight,
-                    textAlign: text.align,
-                  }}
-                >
-                  {slide.lines.map((line, index) => {
-                    const run = continuationText(
-                      line,
-                      !slide.isLast && index === slide.lines.length - 1,
-                    );
-                    return (
-                      <div
-                        key={index}
-                        data-overflow={index >= slide.maxLines}
-                        className={styles.line}
-                      >
-                        {run.body}
-                        {run.marker === '' ? null : (
-                          <span
-                            style={{fontSize: contSizeOf({size: text.size})}}
-                          >
-                            {run.marker}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </foreignObject>
-            </svg>
-            <figcaption>
-              {slide.nLines}/{slide.maxLines}줄
-            </figcaption>
-          </figure>
-        );
-      })}
-    </div>
-  );
-}
+const DIALOG_HEIGHT = 640;
+const RESULTS_PER_ROW = 3;
+const RESULT_TOP_INSET = 16;
 
 /** Copible's word-gap editor. Its parent remounts it for each verse. */
 export function SplitEditor(props: SplitEditorProps): JSX.Element {
@@ -122,6 +52,8 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
   const [problem, setProblem] = useState<string>();
   const active = useRef(true);
   const locked = useRef(false);
+  const previews = useRef<HTMLDivElement>(null);
+  const changedGap = useRef<number | undefined>(undefined);
   useEffect(() => {
     active.current = true;
     return () => {
@@ -136,12 +68,43 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
       }),
     [props.verse.text, history.present, props.layout, props.prefix],
   );
+  useLayoutEffect(() => {
+    const gap = changedGap.current;
+    const area = previews.current;
+    if (gap === undefined || area === null) return;
+    changedGap.current = undefined;
+    const part = plan.cuts.filter(cut => cut <= gap).length;
+    const rowStart = Math.floor(part / RESULTS_PER_ROW) * RESULTS_PER_ROW;
+    const target = area.children.item(rowStart);
+    if (target instanceof HTMLElement) {
+      area.scrollTop = target.offsetTop - RESULT_TOP_INSET;
+    }
+  }, [plan]);
   const labels = hintLabels(Math.max(0, plan.words.length - 1));
+  const edit = (next: EditHistory, gap?: number): void => {
+    if (next === history) return;
+    const previous = effectiveCuts(history.present);
+    const cuts = effectiveCuts(next.present);
+    const userGap = [...history.present.user, ...next.present.user].find(
+      value =>
+        history.present.user.includes(value) !==
+        next.present.user.includes(value),
+    );
+    const effectiveGap = [...previous, ...cuts].find(
+      value => previous.includes(value) !== cuts.includes(value),
+    );
+    changedGap.current =
+      gap ??
+      (history.present.dismissed !== next.present.dismissed
+        ? effectiveGap
+        : (userGap ?? effectiveGap));
+    setHistory(next);
+  };
   const cut = (j: number): void => {
     if (locked.current) return;
     setBuffer('');
     try {
-      setHistory(pressGap(history, j));
+      edit(pressGap(history, j), j);
       setProblem(undefined);
     } catch {
       setProblem('되돌리기 기록이 가득 참');
@@ -151,7 +114,17 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
     if (!locked.current) props.onCancel();
   };
   const confirm = (): void => {
-    if (!plan.ok || locked.current) return;
+    if (locked.current) return;
+    if (!plan.ok) {
+      previews.current
+        ?.querySelectorAll<HTMLElement>('figure[data-overflow="true"]')
+        .forEach(preview => {
+          preview.classList.remove(styles.shake ?? 'shake');
+          preview.getBoundingClientRect();
+          preview.classList.add(styles.shake ?? 'shake');
+        });
+      return;
+    }
     locked.current = true;
     setBusy(true);
     setProblem(undefined);
@@ -186,7 +159,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
       event.preventDefault();
       if (locked.current) return;
       setBuffer('');
-      setHistory(
+      edit(
         event.code === 'KeyY' || event.shiftKey
           ? redoEdit(history)
           : undoEdit(history),
@@ -207,7 +180,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
       if (!event.repeat) confirm();
     } else if (event.code === 'Backspace') {
       if (buffer !== '') setBuffer('');
-      else setHistory(undoEdit(history));
+      else edit(undoEdit(history));
     } else if (event.code === 'Escape') {
       if (buffer !== '') setBuffer('');
       else cancel();
@@ -217,10 +190,17 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
     <div onKeyDownCapture={keyDown}>
       <Dialog
         title="절 나누기"
-        subtitle={{
-          text: `${props.label}${props.total > 1 ? ` ${props.position + 1}/${props.total}` : ''}`,
-        }}
-        size="l"
+        subtitle={{text: props.label}}
+        headerEnd={
+          props.total > 1 ? (
+            <span className={styles.position}>
+              {props.position + 1} / {props.total}
+            </span>
+          ) : undefined
+        }
+        size="xl"
+        height={DIALOG_HEIGHT}
+        bodyClassName={styles.body}
         initialFocus="surface"
         onCancel={cancel}
         primary={{
@@ -230,11 +210,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
           title: !plan.ok ? '한 슬라이드에 들어가지 않는 구절 있음' : undefined,
         }}
         footerStart={
-          problem === undefined ? (
-            isShowingAuto(history.present) ? (
-              <span className={styles.state}>자동</span>
-            ) : null
-          ) : (
+          problem === undefined ? undefined : (
             <span role="alert" className={styles.problem}>
               {problem}
             </span>
@@ -243,34 +219,79 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
       >
         <div className={styles.words}>
           {plan.words.map((word, index) => {
-            const label = labels[index - 1];
+            const label = labels[index];
+            const matches = label?.startsWith(buffer) === true;
             return (
               <span key={word.start}>
-                {label === undefined ? null : (
+                <span className={styles.group}>
                   <button
                     type="button"
-                    className={styles.hint}
-                    aria-label={`${label.toUpperCase()}에서 자르기`}
-                    aria-pressed={plan.cuts.includes(index)}
-                    data-match={buffer === '' || label.startsWith(buffer)}
-                    onClick={() => cut(index)}
+                    className={styles.word}
+                    disabled={index === plan.words.length - 1 || busy}
+                    onClick={() => cut(index + 1)}
                   >
-                    {label.toUpperCase()}
+                    {word.text}
                   </button>
-                )}
-                <button
-                  type="button"
-                  className={styles.word}
-                  disabled={index === plan.words.length - 1 || busy}
-                  onClick={() => cut(index + 1)}
-                >
-                  {word.text}
-                </button>{' '}
+                  {label === undefined ? null : (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        className={styles.hint}
+                        aria-label={`${label.toUpperCase()}에서 자르기`}
+                        aria-pressed={plan.cuts.includes(index + 1)}
+                        data-match={buffer === '' || matches}
+                        disabled={busy}
+                        onClick={() => cut(index + 1)}
+                      >
+                        {buffer !== '' && matches ? (
+                          <>
+                            <span className={styles.typed}>
+                              {buffer.toUpperCase()}
+                            </span>
+                            {label.slice(buffer.length).toUpperCase()}
+                          </>
+                        ) : (
+                          label.toUpperCase()
+                        )}
+                      </button>
+                    </>
+                  )}
+                </span>{' '}
               </span>
             );
           })}
         </div>
-        <SplitPreviews plan={plan} element={props.element} />
+        <div
+          ref={previews}
+          className={styles.previews}
+          data-centered={plan.slides.length < RESULTS_PER_ROW}
+          aria-label="나눈 결과"
+        >
+          {plan.slides.map(slide => (
+            <figure
+              key={slide.index}
+              className={styles.preview}
+              data-overflow={!slide.fits}
+            >
+              <figcaption>{slide.index + 1}</figcaption>
+              <div
+                role="img"
+                aria-label={`슬라이드 ${slide.index + 1}`}
+                className={styles.slide}
+              >
+                <SplitSlidePicture
+                  lines={slide.lines}
+                  continued={!slide.isLast}
+                  reference={props.label}
+                  element={props.element}
+                  maxLines={slide.maxLines}
+                  appearance={props.appearance}
+                />
+              </div>
+            </figure>
+          ))}
+        </div>
       </Dialog>
     </div>
   );

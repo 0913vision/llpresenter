@@ -239,6 +239,7 @@ export function BibleSplitTools({
       cuts={cutsOfVerse(current.parts, reference)}
       layout={current.layout}
       element={current.element}
+      appearance={current.appearance}
       prefix={prefix}
       position={session.index}
       total={session.references.length}

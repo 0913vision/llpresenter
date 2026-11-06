@@ -36,6 +36,13 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
 vi.mock('@renderer/rendering/bibleMeasure', async importOriginal => {
   const original =
     await importOriginal<typeof import('@renderer/rendering/bibleMeasure')>();

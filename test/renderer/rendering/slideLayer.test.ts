@@ -28,6 +28,34 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('keeps split preview text at its configured size and marks only excess lines', () => {
+    const parent = document.createElement('div');
+    const view = new SlideLayerView(parent, DEFAULT_TEXT_STYLE, 2);
+    view.show({
+      ...VERSE,
+      continued: true,
+      lines: ['One', 'Two', 'Three (계속)'],
+    });
+    const page = parent.querySelector<HTMLElement>(`.${classes.shown}`);
+    const block = page?.querySelector<HTMLElement>(`.${classes.block}`);
+    expect(block?.style.fontSize).toBe('84px');
+    expect(page?.style.justifyContent).toBe('flex-start');
+    expect(block?.querySelectorAll(`.${classes.bibleOverflow}`)).toHaveLength(
+      1,
+    );
+    expect(block?.querySelector(`.${classes.bibleOverflow}`)?.textContent).toBe(
+      'Three (계속)',
+    );
+    expect(
+      block?.querySelector<HTMLElement>('[data-bible-continuation]')?.style
+        .fontSize,
+    ).toBe('72px');
+    view.show({...VERSE, lines: ['One']});
+    const next = parent.querySelector<HTMLElement>(`.${classes.shown}`);
+    expect(next?.style.justifyContent).toBe('center');
+    expect(next?.querySelectorAll(`.${classes.bibleOverflow}`)).toHaveLength(0);
+    view.dispose();
+  });
   it('draws detailed outline and shadow at screen scale and updates without a dissolve', () => {
     const {parent, view, shownPage} = setUp();
     view.show(VERSE);

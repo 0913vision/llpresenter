@@ -26,8 +26,16 @@ import type {SplitLayout} from '@core/bible/split/layout';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
 import {projectSlidesBible} from './projectSlidesBible';
+import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
+
+export interface SplitAppearance {
+  readonly background?: string | undefined;
+  readonly screen: RenderScreen;
+  readonly theme: ThemeFrame;
+}
 
 interface SplitOptions {
+  readonly background?: string;
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -54,6 +62,7 @@ export interface ProjectionLayout {
 }
 
 export interface BibleProjection {
+  readonly appearance?: SplitAppearance;
   readonly source: SplitSource;
   readonly element: BibleTextElement;
   readonly layout: SplitLayout;
@@ -116,6 +125,9 @@ export function splitSourceFor(
       reference: 'every',
       translationName: false,
       ...(row.theme === undefined ? {} : {theme: row.theme}),
+      ...(row.background === undefined
+        ? {}
+        : {background: row.background.mediaId}),
     };
   }
   if (row?.kind !== 'bible' || row.bible?.passage === undefined) return null;
@@ -225,6 +237,7 @@ export class BibleProjections {
       cached !== undefined &&
       sourceContent(cached.source) === sourceContent(source) &&
       cached.source.theme === source.theme &&
+      cached.source.background === source.background &&
       cached.source.verseNumbers === source.verseNumbers &&
       cached.source.reference === source.reference &&
       cached.source.translationName === source.translationName &&
@@ -243,20 +256,39 @@ export class BibleProjections {
       screens,
       ...(source.theme === undefined ? {} : {theme: source.theme}),
     });
-    const element = resolveThemeScreen(
-      theme,
-      screen.id,
-      screens,
-    ).layout.elements.find(
+    const resolved = resolveThemeScreen(theme, screen.id, screens);
+    const element = resolved.layout.elements.find(
       (element): element is BibleTextElement => element.kind === 'currentText',
     );
     if (element === undefined) return null;
-    const projection = projectBible(source, {
+    const projected = projectBible(source, {
       element,
       layout: bibleMeasure(element, this.context.canvas),
       saved: this.context.saved,
     });
-    if (projection === null) return null;
+    if (projected === null) return null;
+    const projection: BibleProjection = {
+      ...projected,
+      appearance: {
+        background: source.background,
+        screen,
+        theme: {
+          ...resolved,
+          emptyColor:
+            'emptyColor' in screen && typeof screen.emptyColor === 'string'
+              ? screen.emptyColor
+              : '#000000',
+          themeId: theme.id,
+          revision: 0,
+          missing: [],
+          item: {
+            id: source.id,
+            kind: source.kind === 'slides' ? 'blank' : 'bible',
+            source: source.source,
+          },
+        },
+      },
+    };
     if (this.cache.size >= CACHE_LIMIT) {
       const oldest = this.cache.keys().next().value;
       if (oldest !== undefined) this.cache.delete(oldest);

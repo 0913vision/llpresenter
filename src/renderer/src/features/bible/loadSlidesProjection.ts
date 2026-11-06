@@ -91,6 +91,7 @@ export async function loadSlidesProjection(
     reference: 'every',
     translationName: false,
     source: 'service',
+    ...(item.background === undefined ? {} : {background: item.background}),
     ...(item.theme === undefined ? {} : {theme: item.theme}),
   });
   if (projection === null) throw Error('테마에 현재 가사 요소 없음');

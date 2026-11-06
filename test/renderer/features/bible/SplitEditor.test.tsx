@@ -7,6 +7,11 @@ import {
 import {mockSplitLayout} from '@fixtures/core/bibleSplit';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
+import styles from '@renderer/features/bible/SplitEditor.module.css';
+
+vi.mock('@renderer/features/bible/SplitSlidePicture', () => ({
+  SplitSlidePicture: () => <div />,
+}));
 
 function setup(overrides: Partial<SplitEditorProps> = {}) {
   const layout = mockSplitLayout(10, 1);
@@ -68,7 +73,7 @@ describe('Bible split editor', () => {
     const view = setup();
     expect(
       screen.getByRole('dialog', {name: '절 나누기'}).textContent,
-    ).toContain('1/2');
+    ).toContain('1 / 2');
     expect(
       screen
         .getByRole('button', {name: 'S에서 자르기'})
@@ -109,15 +114,11 @@ describe('Bible split editor', () => {
     expect(view.onCancel).toHaveBeenCalledOnce();
   });
 
-  it('confirms only fitting parts, blocks held confirm keys, and renders the smaller marker', async () => {
+  it('confirms only fitting parts, blocks held confirm keys, and shakes overflow without a line count', async () => {
     const view = setup();
     expect(
       screen.getByRole('button', {name: '확정'}).hasAttribute('disabled'),
     ).toBe(false);
-    const preview = screen.getByRole('img', {name: '슬라이드 1'});
-    expect(preview.querySelector<HTMLElement>('span')?.style.fontSize).toBe(
-      '28px',
-    );
     key('Space', {repeat: true});
     expect(view.onConfirm).not.toHaveBeenCalled();
     await act(async () => key('Enter'));
@@ -129,6 +130,94 @@ describe('Bible split editor', () => {
     ).toBe('true');
     key('Space');
     expect(overflow.onConfirm).not.toHaveBeenCalled();
-    expect(screen.getByText('2/1줄')).not.toBeNull();
+    expect(screen.queryByText(/\d+\/\d+줄/)).toBeNull();
+    expect(
+      screen
+        .getByRole('img', {name: '슬라이드 1'})
+        .closest('figure')
+        ?.classList.contains(styles.shake ?? 'shake'),
+    ).toBe(true);
+  });
+
+  it('groups each gap key after its preceding word, including a typed prefix', () => {
+    const view = setup();
+    const hint = screen.getByRole('button', {name: 'A에서 자르기'});
+    expect(hint.parentElement?.className).toBe(styles.group);
+    expect(hint.previousElementSibling?.textContent).toBe('가나');
+    expect(hint.parentElement?.textContent).toBe('가나 A');
+    expect(
+      screen
+        .getByRole('button', {name: '자차'})
+        .parentElement?.querySelector('[aria-pressed]'),
+    ).toBeNull();
+    view.unmount();
+    setup({
+      verse: {
+        ...view.props.verse,
+        text: Array.from({length: 40}, (_, i) => `단어${i}`).join(' '),
+      },
+    });
+    key('KeyA');
+    expect(
+      screen.getByRole('button', {name: 'AA에서 자르기'}).querySelector('span')
+        ?.textContent,
+    ).toBe('A');
+    expect(
+      screen.getByRole('button', {name: 'SA에서 자르기'}).dataset['match'],
+    ).toBe('false');
+    key('Escape');
+    expect(
+      screen.getByRole('button', {name: 'SA에서 자르기'}).dataset['match'],
+    ).toBe('true');
+  });
+
+  it('keeps the same dialog height and centers one or two results, without the automatic label', () => {
+    const view = setup();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.style.height).toBe('640px');
+    expect(screen.queryByText('자동')).toBeNull();
+    expect(screen.getByLabelText('나눈 결과').dataset['centered']).toBe('true');
+    expect(screen.getAllByRole('img')).toHaveLength(2);
+    key('KeyS');
+    expect(screen.getAllByRole('img')).toHaveLength(1);
+    expect(screen.getByLabelText('나눈 결과').dataset['centered']).toBe('true');
+    for (const code of ['KeyA', 'KeyS', 'KeyD', 'KeyF']) key(code);
+    expect(screen.getAllByRole('img')).toHaveLength(5);
+    expect(screen.getByLabelText('나눈 결과').dataset['centered']).toBe(
+      'false',
+    );
+    expect(dialog.style.height).toBe('640px');
+    view.rerender(<SplitEditor {...view.props} total={1} />);
+    expect(screen.queryByText('1 / 2')).toBeNull();
+    expect(dialog.style.height).toBe('640px');
+  });
+
+  it('jumps to the changed gap row on cut, undo and redo, and preserves scroll for other updates', () => {
+    const view = setup({cuts: []});
+    const area = screen.getByLabelText('나눈 결과');
+    vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return (
+          16 +
+          Math.floor(
+            Array.from(this.parentElement?.children ?? []).indexOf(this) / 3,
+          ) *
+            220
+        );
+      },
+    );
+    for (const code of ['KeyA', 'KeyS', 'KeyD', 'KeyF']) key(code);
+    expect(screen.getAllByRole('img')).toHaveLength(5);
+    expect(area.scrollTop).toBe(220);
+    area.scrollTop = 0;
+    key('Backspace');
+    expect(area.scrollTop).toBe(220);
+    key('KeyZ', {ctrlKey: true});
+    expect(area.scrollTop).toBe(0);
+    key('KeyY', {ctrlKey: true});
+    expect(area.scrollTop).toBe(220);
+    area.scrollTop = 73;
+    view.rerender(<SplitEditor {...view.props} position={1} />);
+    expect(area.scrollTop).toBe(73);
   });
 });

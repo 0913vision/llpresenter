@@ -35,6 +35,8 @@ export interface DialogProps {
   readonly cancelLabel?: string | null | undefined;
   /** An auxiliary action at the left of the footer. */
   readonly footerStart?: ReactNode;
+  readonly headerEnd?: ReactNode;
+  readonly bodyClassName?: string | undefined;
   /** Focus the surface to keep existing autosaving names unarmed on open. */
   readonly initialFocus?: InitialFocus | undefined;
   /** The one primary button at the far right; Enter presses it. */
@@ -89,12 +91,16 @@ function DialogBody({
   aside,
   asideFoot,
   children,
+  className,
 }: {
   readonly aside: ReactNode;
   readonly asideFoot: ReactNode;
   readonly children: ReactNode;
+  readonly className: string | undefined;
 }): JSX.Element {
-  if (aside === undefined) return <div className={styles.body}>{children}</div>;
+  if (aside === undefined) {
+    return <div className={classNames(styles.body, className)}>{children}</div>;
+  }
   return (
     <div className={classNames(styles.body, styles.split)}>
       <div className={styles.aside}>
@@ -149,6 +155,8 @@ export function Dialog({
   onCancel,
   cancelLabel = CANCEL_LABEL,
   footerStart,
+  headerEnd,
+  bodyClassName,
   initialFocus = 'text-field',
   primary,
   secondary = [],
@@ -190,6 +198,9 @@ export function Dialog({
               {subtitle.text}
             </span>
           )}
+          {headerEnd === undefined ? null : (
+            <div className={styles.headerEnd}>{headerEnd}</div>
+          )}
           <IconButton
             icon="x"
             label={CLOSE_LABEL}
@@ -202,7 +213,11 @@ export function Dialog({
         {topBar === undefined ? null : (
           <div className={classNames(styles.bar, styles.barTop)}>{topBar}</div>
         )}
-        <DialogBody aside={aside} asideFoot={asideFoot}>
+        <DialogBody
+          aside={aside}
+          asideFoot={asideFoot}
+          className={bodyClassName}
+        >
           {children}
         </DialogBody>
         {bottomBar === undefined ? null : (
