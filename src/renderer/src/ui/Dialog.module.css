@@ -26,7 +26,6 @@
   border-radius: var(--radius-2xl);
   background: var(--bg-dialog);
   color: var(--text);
-  color-scheme: dark;
 }
 
 /* NOTE(0913vision): The frame draws the modal's shadow behind the surface,
@@ -48,11 +47,6 @@
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-dialog);
   pointer-events: none;
-}
-
-.dialog * {
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }
 
 .s {

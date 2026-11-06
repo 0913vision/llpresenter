@@ -4,8 +4,6 @@
   grid-template-rows: minmax(var(--workspace-upper-min-height), 1fr);
   min-height: 0;
   overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
 }
 
 .mediaAvailable {
@@ -83,11 +81,6 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-}
-
-.screenSettings .body {
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
 }
 
 .stableScrollbar {

@@ -15,8 +15,6 @@
 .viewport {
   min-height: 0;
   overflow-y: auto;
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }
 .option {
   position: absolute;

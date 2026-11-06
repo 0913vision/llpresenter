@@ -17,6 +17,4 @@
   height: 100%;
   overflow: auto;
   padding-bottom: var(--space-8);
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }

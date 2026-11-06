@@ -2,6 +2,7 @@
 @import './tokens.css';
 
 :root {
+  color-scheme: dark;
   /* NOTE(0913vision): A menu or tooltip that opens inside a dialog must show
      over it, yet stay below notifications (--z-notification). */
   --z-popover-over-modal: calc(var(--z-dialog) + 1);
@@ -12,6 +13,27 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* NOTE(0913vision): Chromium's standard thin scrollbar keeps arrow buttons on
+   Windows. The WebKit form uses the shared width token without those buttons. */
+::-webkit-scrollbar {
+  width: var(--size-scrollbar-thumb);
+  height: var(--size-scrollbar-thumb);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-full);
+  background: var(--line-strong);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
 }
 
 html,

@@ -23,7 +23,6 @@
   border-radius: var(--radius-lg);
   background: var(--bg-panel);
   color: var(--text);
-  color-scheme: dark;
 }
 
 .header {
@@ -230,8 +229,6 @@
   min-height: 0;
   padding: var(--panel-inset);
   overflow: auto;
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }
 
 .list {

@@ -60,7 +60,6 @@
   color: var(--text);
   font: var(--type-body);
   resize: none;
-  scrollbar-width: thin;
 }
 
 .lyrics:focus-visible {

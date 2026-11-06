@@ -23,8 +23,6 @@
   gap: var(--space-14);
   min-height: 0;
   overflow-y: auto;
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }
 
 .head:focus-visible {
@@ -82,8 +80,6 @@
   margin-top: var(--space-16);
   overflow-y: auto;
   border-top: 1px solid var(--line);
-  scrollbar-color: var(--line-strong) transparent;
-  scrollbar-width: thin;
 }
 
 .listLabel {
