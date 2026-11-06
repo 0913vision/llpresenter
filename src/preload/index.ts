@@ -4,15 +4,15 @@ import {outputEndpoints} from '@contracts/ipc/output';
 import {badValueLog, createIpcPort} from './port';
 import {windowPlatform} from './platform';
 import {slidesEditorPreload} from './slidesEditor';
+import {biblePreload} from './bible';
 
 const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 const port = createIpcPort(ipcRenderer, log);
 
 contextBridge.exposeInMainWorld(
   'llp',
-  llpApi(
-    port,
-    windowPlatform({webFrame, webUtils}, log),
-    slidesEditorPreload(port),
-  ),
+  llpApi(port, windowPlatform({webFrame, webUtils}, log), {
+    slidesEditor: slidesEditorPreload(port),
+    bible: biblePreload(port),
+  }),
 );

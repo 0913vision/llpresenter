@@ -55,6 +55,10 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
     expect(mocks.bibleStop).toHaveBeenCalledOnce();
+    expect(mocks.bibleAiStop).toHaveBeenCalledOnce();
+    expect(mocks.bibleAiStop.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.recordStop.mock.invocationCallOrder[0] ?? Infinity,
+    );
     expect(mocks.bibleStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );

@@ -73,6 +73,19 @@ function recordingPort() {
 const PLATFORM: WindowPlatform = {pathForFile: () => '', zoomFactor: () => 1};
 
 describe('window.llp', () => {
+  it('accepts the existing slides bridge argument and additive preload bridges', () => {
+    const {port} = recordingPort();
+    const original = llpApi(port, PLATFORM);
+    expect(llpApi(port, PLATFORM, original.slidesEditor).slidesEditor).toBe(
+      original.slidesEditor,
+    );
+    const custom = llpApi(port, PLATFORM, {
+      bible: original.bible,
+      slidesEditor: original.slidesEditor,
+    });
+    expect(custom.bible).toBe(original.bible);
+    expect(custom.slidesEditor).toBe(original.slidesEditor);
+  });
   it('exposes every declared endpoint through exactly one member', () => {
     const {port, used} = recordingPort();
     llpApi(port, PLATFORM);

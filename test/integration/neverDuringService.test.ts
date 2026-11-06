@@ -4,7 +4,7 @@ import {describe, expect, it} from 'vitest';
 
 // NOTE(0913vision): Spec 08, "What must never happen during a service". These
 // scan the source for what the app must never contain: an updater, a toast, a
-// network call, a window question on an output, or a page that reaches out.
+// remote network call, a window question on an output, or a page that reaches out.
 
 const ROOT = join(__dirname, '..', '..');
 const SOURCE = join(ROOT, 'src');
@@ -43,11 +43,18 @@ describe('never during a service', () => {
     ).toEqual([]);
   });
 
-  it('depends on no network: no fetch, request, socket, or remote address in the code', () => {
+  it('allows only the loopback LLM transport and no remote address in the code', () => {
+    const productCode = code.filter(file => !file.includes('gallery'));
     expect(
       mentions(
-        /\bfetch\(|XMLHttpRequest|new WebSocket|net\.(request|fetch)|https?\.(get|request)\(|https?:\/\/(?!localhost|127\.0\.0\.1|www\.w3\.org)/,
-        code.filter(file => !file.includes('gallery')),
+        /\bfetch\(|XMLHttpRequest|new WebSocket|net\.(request|fetch)|https?\.(get|request)\(/,
+        productCode,
+      ),
+    ).toEqual(['src/main/bible/llm/http.ts']);
+    expect(
+      mentions(
+        /https?:\/\/(?!localhost|127\.0\.0\.1|www\.w3\.org)/,
+        productCode,
       ),
     ).toEqual([]);
   });

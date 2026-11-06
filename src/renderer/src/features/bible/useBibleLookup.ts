@@ -1,5 +1,5 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
-import type {LlpApi} from '@contracts/ipc/api';
+import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {TranslationId} from '@core/schema/ids';
 import type {
   BibleLookupPassage,
@@ -13,7 +13,7 @@ export function useBibleLookup({
   translation,
   onPreview,
 }: {
-  readonly api: LlpApi['bible'];
+  readonly api: BibleLookupApi;
   readonly input: string;
   readonly translation: TranslationId | undefined;
   readonly onPreview: (passage: BibleLookupPassage) => void;

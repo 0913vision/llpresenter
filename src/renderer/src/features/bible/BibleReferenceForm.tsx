@@ -6,7 +6,7 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {LlpApi} from '@contracts/ipc/api';
+import type {BibleLookupApi} from '@contracts/ipc/bible';
 import {findBibleBooks} from '@core/bible/bibleMatching';
 import {recentPassages} from '@core/bible/bibleRecents';
 import type {RecentPassage} from '@core/schema/bible';
@@ -29,7 +29,7 @@ import {
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
-  readonly api: LlpApi['bible'];
+  readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly onPreview: (passage: BibleLookupPassage) => void;
   readonly onSubmit: (passage: BibleLookupPassage) => void;

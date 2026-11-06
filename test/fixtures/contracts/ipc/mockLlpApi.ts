@@ -47,6 +47,11 @@ export type MockLlpApiParts = {
 export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
     bible: {
+      chooseBoundary: () => Promise.reject(new Error('Local LLM unavailable')),
+      cancelBoundary: () => Promise.resolve(false),
+      getLlmStatus: () =>
+        Promise.resolve({status: 'stopped', available: false, reason: ''}),
+      onLlmStatus: () => () => undefined,
       lookup: request =>
         Promise.resolve({
           ...request,

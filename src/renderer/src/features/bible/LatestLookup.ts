@@ -1,4 +1,4 @@
-import type {LlpApi} from '@contracts/ipc/api';
+import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {
   BibleLookupReply,
   BibleLookupRequest,
@@ -12,7 +12,7 @@ export class LatestLookup {
   private closed = false;
 
   constructor(
-    private readonly api: LlpApi['bible'],
+    private readonly api: BibleLookupApi,
     private readonly accept: (reply: BibleLookupReply) => void,
     private readonly fail: (
       request: BibleLookupRequest,

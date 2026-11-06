@@ -799,6 +799,31 @@ failure. Confirming saves only the verse hash, word indices and time through the
 settings store. A failed save keeps the dialog open and reports the failure.
 There is no editable verse text.
 
+### Local AI boundary chooser
+
+The optional local chooser follows Copible 1.6's Korean prompt, completion
+settings, probabilities, and two-way comparison against the rule winner. Its
+states are `missing`, `starting`, `ready`, `failed`, and `stopped`; `available`
+is true only for `ready`. A query and a change event expose
+`{status, available, reason}`. Startup continues while the model loads.
+
+An existing healthy server at `http://127.0.0.1:8080` is reused. Otherwise, main
+looks for `llama/llama-server.exe` and
+`models/Qwen3-4B-Instruct-2507-Q4_K_M.gguf` under
+`%LOCALAPPDATA%/LoveLight/llm`, then `%LOCALAPPDATA%/copible/llm`.
+`LLP_LLM_HOME` overrides both paths. Missing files produce `missing`. Main
+launches the engine without a window, polls health every 500 ms for up to 180 s,
+and stops only its own child when the app quits.
+
+The chooser accepts a lookup ID, full normalized verse text, remaining text, and
+up to three candidate texts in rule order, and returns a zero-based index. Texts
+have the Bible verse text cap. Comparisons run in FIFO order, with up to eight
+waiting requests and a 30 s timeout per HTTP request. Cancellation drops a
+window's active and waiting requests for its lookup ID; closing the window
+cancels its work. Missing, unready, failed, timed-out, or cancelled AI work
+rejects so the caller can use rules for that verse. Split-flow and UI
+integration are separate from this main-process contract.
+
 ### Bible panel
 
 - Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드

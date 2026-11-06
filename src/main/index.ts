@@ -2,6 +2,7 @@ import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@core/live/state';
 import {registerBible} from './bible/register';
+import {registerBibleAi} from './bible/registerAi';
 import {registerFonts} from './fonts/register';
 import {registerTextImport} from './import/register';
 import {startMediaAnalysis} from './media/analysis';
@@ -184,6 +185,8 @@ function start(): void {
         session: dataStore.bible,
         log,
       });
+      const stopBibleAi = registerBibleAi({log});
+      shutdown.add({name: 'stop local Bible AI', run: stopBibleAi});
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
       const stopOverlays = startOverlays({

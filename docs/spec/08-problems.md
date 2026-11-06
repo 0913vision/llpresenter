@@ -373,7 +373,9 @@ writing rules.
 - Never ask for confirmation before an action that affects the output. Never
   block F1 to F6: they work with a dialog open and with a text field focused.
 - Never depend on the network. Bible texts, fonts, and icons are bundled. Media
-  are local files.
+  are local files. The optional local AI chooser may contact only the IPv4
+  loopback HTTP server and never follow a redirect. Missing or failed AI uses
+  rules for that verse (04, "Local AI boundary chooser").
 - Never install an update, restart the app on its own, or show an update prompt
   while any output is on. Version 1 has no updater. `docs/TECH.md` says the user
   installs new versions by hand, and not on the day of a service or the day

@@ -109,10 +109,16 @@ export interface LlpApi {
 export function llpApi(
   port: IpcPort,
   platform: WindowPlatform,
-  slidesEditor: SlidesEditorApi = slidesEditorApi(port),
+  bridges:
+    | SlidesEditorApi
+    | {
+        readonly slidesEditor?: SlidesEditorApi;
+        readonly bible?: BibleApi;
+      } = {},
 ): LlpApi {
+  const custom = 'open' in bridges ? {slidesEditor: bridges} : bridges;
   return {
-    bible: bibleApi(port),
+    bible: custom.bible ?? bibleApi(port),
     app: appApi(port),
     problems: problemsApi(port),
     live: liveApi(port),
@@ -136,6 +142,6 @@ export function llpApi(
     locations: locationsApi(port),
     orderEditor: orderEditorApi(port),
     songEditorWindow: songEditorWindowApi(port),
-    slidesEditor,
+    slidesEditor: custom.slidesEditor ?? slidesEditorApi(port),
   };
 }

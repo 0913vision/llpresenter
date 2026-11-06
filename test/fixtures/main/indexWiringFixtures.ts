@@ -76,6 +76,7 @@ const mocks = vi.hoisted(() => {
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
+    bibleAiStop: vi.fn<() => void>(),
     fontContexts: new Array<unknown>(),
     fontsStop: vi.fn<() => void>(),
     mediaBackendContexts: new Array<MediaBackendRegistration>(),
@@ -181,6 +182,9 @@ vi.mock('@main/bible/register', () => ({
     mocks.bibleContexts.push(context);
     return mocks.bibleStop;
   },
+}));
+vi.mock('@main/bible/registerAi', () => ({
+  registerBibleAi: () => mocks.bibleAiStop,
 }));
 vi.mock('@main/fonts/register', () => ({
   registerFonts: (control: unknown, log: unknown) => {
@@ -442,6 +446,7 @@ beforeEach(async () => {
   mocks.textImportStop.mockReset();
   mocks.bibleContexts.length = 0;
   mocks.bibleStop.mockReset();
+  mocks.bibleAiStop.mockReset();
   mocks.fontContexts.length = 0;
   mocks.fontsStop.mockReset();
   mocks.mediaBackendContexts.length = 0;
