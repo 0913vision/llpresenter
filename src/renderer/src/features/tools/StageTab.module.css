@@ -2,10 +2,14 @@
   padding: var(--space-8) var(--panel-inset) var(--space-14);
 }
 
+/* NOTE(0913vision): The message reads as a second group of the tab: the same
+   hairline and space above it as between property groups. */
 .message {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--line);
 }
 
 .heading {

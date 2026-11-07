@@ -76,7 +76,7 @@
   flex: none;
   justify-content: flex-end;
   gap: var(--space-8);
-  padding-bottom: var(--panel-gap);
+  padding: 0 var(--panel-inset) var(--panel-gap);
 }
 .canvas > section {
   flex: 1;

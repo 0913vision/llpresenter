@@ -17,7 +17,7 @@ A row that places one name and one control side by side in a property field or a
 ## Anatomy
 
 - Group `ll-prop-group`: top `space-12`, bottom `space-8`, a 1px `line` below. The last group has no line.
-- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text-3`, bottom `space-4`. If it needs a leading icon, use 12px, 6px from the name (메모).
+- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text-2`, bottom `space-4`. Every group head and message head of a panel reads the same, so none looks dimmer than the next. If it needs a leading icon, use 12px, 6px from the name (메모).
 - Row `ll-prop`: name cell + control cell, vertically centered.
 - Name `ll-prop__label`: `label` (14/20), `text-2`. Write it as `label for` so that it connects to the control.
 - Control cell `ll-prop__control`: the remaining width. Gap between the items inside it `space-8`. Place md controls (`size-control-md` 30) in it: `TextField`, `Select` (`--block`), `SegmentedControl` (`--fill`), `Checkbox`, `Slider` (`--block`), number field + unit.
@@ -48,7 +48,7 @@ The place where the row sits sets the name cell width. Don't set it separately f
 | --- | --- | --- | --- |
 | Panel row | 36 | Name `label` 14/20 `text-2` | Property panels, 테마 grid |
 | Window row `ll-props--window` | 38 | Same | Preferences |
-| Group name | 22 | `caption-strong` 16/22/600 `text-3` | All groups |
+| Group name | 22 | `caption-strong` 16/22/600 `text-2` | All groups |
 | Value | 22 | `body` 16/22 `text-2` | Read-only values |
 
 ## States

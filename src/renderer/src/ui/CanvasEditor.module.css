@@ -12,7 +12,7 @@
 }
 .measure {
   position: absolute;
-  inset: var(--space-16);
+  inset: var(--panel-inset);
   visibility: hidden;
   pointer-events: none;
 }
@@ -23,7 +23,7 @@
   align-items: center;
   justify-content: center;
   min-height: 0;
-  padding: var(--space-16);
+  padding: var(--panel-inset);
   overflow: hidden;
   background: var(--bg-well);
 }
