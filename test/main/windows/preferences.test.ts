@@ -19,6 +19,10 @@ const mocks = await vi.hoisted(async () => {
       id: created.length + 1,
       isLoadingMainFrame: () => false,
       setAudioMuted: vi.fn(),
+      setBackgroundThrottling: vi.fn(),
+      stopPainting: vi.fn(),
+      startPainting: vi.fn(),
+      invalidate: vi.fn(),
       send: vi.fn(),
       capturePage: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
       isDestroyed: () => this.destroyed,
@@ -127,6 +131,10 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 async function drawn(win: (typeof mocks.created)[number]) {
+  mocks.handlers.get(windowEndpoints.beginSettingsRequest.channel)?.(
+    {sender: win.webContents},
+    mocks.handlers.get(windowEndpoints.settingsRequest.channel)?.(),
+  );
   mocks.ipc.emit(
     windowEndpoints.preferencesReady.channel,
     {
@@ -134,6 +142,7 @@ async function drawn(win: (typeof mocks.created)[number]) {
     },
     mocks.handlers.get(windowEndpoints.preferencesRequest.channel)?.(),
   );
+  await Promise.resolve();
 }
 
 function setup(mode: 'normal' | 'offscreen' = 'normal') {
@@ -157,17 +166,21 @@ function setup(mode: 'normal' | 'offscreen' = 'normal') {
 }
 
 describe('환경설정 window', () => {
-  it('opens one frameless window of a fixed size on the preferences page', () => {
+  it('prepares a zero-size frame and sizes it only for the requested page', async () => {
     const {open, last, zoom} = setup();
     open();
 
     expect(last().options).toMatchObject({
-      width: PREFERENCES_WIDTH,
-      height: PREFERENCES_HEIGHT,
+      width: 0,
+      height: 0,
+      minWidth: 0,
+      minHeight: 0,
       frame: false,
+      show: false,
+      paintWhenInitiallyHidden: false,
       resizable: false,
       title: '환경설정',
-      webPreferences: {backgroundThrottling: false},
+      webPreferences: {backgroundThrottling: true},
     });
     expect(loadPage).toHaveBeenCalledWith(
       last(),
@@ -175,6 +188,14 @@ describe('환경설정 window', () => {
       expect.anything(),
     );
     expect(zoom.attachControl).toHaveBeenCalledOnce();
+    expect(last().setBounds).not.toHaveBeenCalled();
+    await drawn(last());
+    expect(last().setBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: PREFERENCES_WIDTH,
+        height: PREFERENCES_HEIGHT,
+      }),
+    );
   });
 
   it('brings the open window to the front instead of opening another', async () => {
@@ -182,6 +203,7 @@ describe('환경설정 window', () => {
     open();
     const first = last();
     await drawn(first);
+    const captures = first.webContents.capturePage.mock.calls.length;
     first.restore.mockClear();
     first.focus.mockClear();
     open();
@@ -189,6 +211,7 @@ describe('환경설정 window', () => {
     expect(mocks.created).toHaveLength(2);
     expect(first.restore).toHaveBeenCalledOnce();
     expect(first.focus).toHaveBeenCalledOnce();
+    expect(first.webContents.capturePage).toHaveBeenCalledTimes(captures);
   });
 
   it('opens at the requested page once, and tells an open window to show a later one', () => {
@@ -257,8 +280,15 @@ describe('환경설정 window', () => {
     const prepared = last();
     await drawn(prepared);
     expect(prepared.show).not.toHaveBeenCalled();
+    expect(prepared.webContents.capturePage).not.toHaveBeenCalled();
+    expect(prepared.webContents.setBackgroundThrottling).not.toHaveBeenCalled();
     open();
     expect(last()).toBe(prepared);
+    expect(prepared.webContents.setBackgroundThrottling).toHaveBeenCalledWith(
+      false,
+    );
+    expect(prepared.show).not.toHaveBeenCalled();
+    await drawn(prepared);
     expect(prepared.show).toHaveBeenCalledOnce();
     expect(mocks.created).toHaveLength(2);
   });
@@ -276,6 +306,20 @@ describe('환경설정 window', () => {
     expect(prepared.show).toHaveBeenCalledOnce();
     await drawn(prepared);
     expect(prepared.show).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts offscreen painting only when the prepared window is requested', async () => {
+    const {open, last} = setup('offscreen');
+    vi.advanceTimersByTime(1000);
+    const prepared = last();
+    expect(prepared.webContents.stopPainting).toHaveBeenCalledOnce();
+    await drawn(prepared);
+    expect(prepared.webContents.startPainting).not.toHaveBeenCalled();
+    open();
+    await drawn(prepared);
+    expect(prepared.webContents.startPainting).toHaveBeenCalledOnce();
+    expect(prepared.webContents.capturePage).not.toHaveBeenCalled();
+    expect(prepared.show).not.toHaveBeenCalled();
   });
 
   it('ignores a prepared page readiness signal superseded by a later request', async () => {
@@ -328,6 +372,9 @@ describe('환경설정 window', () => {
     expect(control.focus).toHaveBeenCalledOnce();
     vi.advanceTimersByTime(1000);
     expect(last()).not.toBe(previous);
+    expect(last().options).toMatchObject({paintWhenInitiallyHidden: false});
+    await drawn(last());
+    expect(last().webContents.capturePage).not.toHaveBeenCalled();
     expect(last().show).not.toHaveBeenCalled();
     await owner.dispose();
     vi.advanceTimersByTime(2000);
@@ -435,6 +482,7 @@ describe('the shared prepared settings window', () => {
         {sender: win().webContents},
         value,
       );
+      await Promise.resolve();
     };
     return {owner, config, win, request, accept, ready};
   }
@@ -454,12 +502,68 @@ describe('the shared prepared settings window', () => {
     }
     expect(mocks.created).toHaveLength(2);
     expect(win().show).not.toHaveBeenCalled();
+    expect(win().webContents.capturePage).not.toHaveBeenCalled();
+    expect(win().setBounds).not.toHaveBeenCalled();
+    expect(win().setMinimumSize).not.toHaveBeenCalled();
+  });
+
+  it('paints the committed explicit request before revealing a never-painted window', async () => {
+    const {win, request, accept, ready} = shared();
+    vi.advanceTimersByTime(1000);
+    for (let step = 0; step < 4; step++) {
+      expect(accept()).toBe(true);
+      await ready();
+    }
+    expect(win().webContents.capturePage).not.toHaveBeenCalled();
+    mocks.ipc.emit(windowEndpoints.openScreens.channel);
+    expect(request()).toMatchObject({view: 'screens', preparing: false});
+    expect(accept()).toBe(true);
+    let finish: () => void = () => undefined;
+    win().webContents.capturePage.mockReturnValueOnce(
+      new Promise<void>(resolve => {
+        finish = resolve;
+      }),
+    );
+    await ready();
+    expect(win().webContents.capturePage).toHaveBeenCalledOnce();
+    expect(win().show).not.toHaveBeenCalled();
+    finish();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(win().show).toHaveBeenCalledOnce();
+    expect(win().webContents.capturePage).toHaveBeenCalledBefore(win().show);
+  });
+
+  it('never reveals a painted frame whose window closed while capture was pending', async () => {
+    const {owner, win, ready, accept} = shared();
+    mocks.ipc.emit(CHANNEL);
+    expect(accept()).toBe(true);
+    let finish: () => void = () => undefined;
+    win().webContents.capturePage.mockReturnValueOnce(
+      new Promise<void>(resolve => {
+        finish = resolve;
+      }),
+    );
+    await ready();
+    const previous = win();
+    await owner.close();
+    finish();
+    await Promise.resolve();
+    expect(previous.destroy).toHaveBeenCalledOnce();
+    expect(previous.show).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
+    const prepared = mocks.created.at(-1);
+    expect(prepared).not.toBe(previous);
+    expect(prepared?.options).toMatchObject({paintWhenInitiallyHidden: false});
+    expect(prepared?.webContents.capturePage).not.toHaveBeenCalled();
   });
 
   it('changes geometry only after the renderer settles, and reveals only the matching view', async () => {
     const {win, request, accept, ready, config} = shared();
     mocks.ipc.emit(CHANNEL);
+    expect(accept()).toBe(true);
     await ready();
+    win().setBounds.mockClear();
     const stale = request();
     mocks.ipc.emit(windowEndpoints.openScreens.channel);
     expect(win().hide).not.toHaveBeenCalled();
@@ -494,8 +598,9 @@ describe('the shared prepared settings window', () => {
   });
 
   it('restores the committed preferences page after a refused view change', async () => {
-    const {win, request, ready} = shared();
+    const {win, request, ready, accept} = shared();
     mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'labels');
+    expect(accept()).toBe(true);
     await ready();
     mocks.ipc.emit(windowEndpoints.openScreens.channel);
     const refused = request();
@@ -516,6 +621,7 @@ describe('the shared prepared settings window', () => {
   it('ignores a superseded page when its native paint completes late', async () => {
     const {win, ready, accept} = shared();
     mocks.ipc.emit(CHANNEL);
+    expect(accept()).toBe(true);
     let release: () => void = () => undefined;
     win().webContents.capturePage.mockReturnValueOnce(
       new Promise<void>(resolve => {

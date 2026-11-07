@@ -42,15 +42,21 @@ export function createPreferencesWindow({
 }: SettingsWindowFrameOptions): BrowserWindow {
   const bounds = preferencesBounds(control);
   const {webPreferences, ...testOptions} = windowTestOptions(mode);
+  // NOTE(0913vision): Even a hidden full-size native view can retain raster and
+  // swapchain images. Keep its display area empty until a request is accepted.
   const created = new BrowserWindow({
-    ...bounds,
-    minWidth: bounds.width,
-    minHeight: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
+    width: 0,
+    height: 0,
+    minWidth: 0,
+    minHeight: 0,
     resizable: false,
     maximizable: false,
     title: '환경설정',
     frame: false,
     show: false,
+    paintWhenInitiallyHidden: false,
     parent: control,
     skipTaskbar: true,
     backgroundColor: '#0e0e0e',
@@ -61,11 +67,14 @@ export function createPreferencesWindow({
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
-      backgroundThrottling: false,
+      backgroundThrottling: true,
       ...webPreferences,
     },
   });
   created.removeMenu();
+  // NOTE(0913vision): Offscreen rendering has its own frame pump, independent
+  // of the initially-hidden native-window flag. Start it only on an open.
+  if (mode === 'offscreen') created.webContents.stopPainting();
   created.webContents.setAudioMuted(true);
   discardTestFrames(created.webContents, mode);
   zoom.attachControl(created.webContents);

@@ -855,8 +855,13 @@ same place.
   exposing a blank frame. After saving on close, hide the window before
   releasing it and return focus to its opener. A refused save keeps it open.
 - 환경설정, 편집 > 단축키, and 화면 설정 use the same prepared window (06).
-  단축키 is prepared before it is requested. Only the active view handles keys
-  or runs previews; switching views preserves controls without another resident
+  Preparation loads JavaScript, data, fonts and layout without painting or
+  retaining full-size display surfaces. The native display area stays empty
+  until an open request applies its bounds. Only an explicit open captures the
+  requested committed frame before reveal. After the close/save handshake,
+  destroy the painted window and prepare a fresh unpainted one. 단축키 is
+  prepared before it is requested. Only the active view handles keys or runs
+  previews; switching views preserves controls without another resident
   renderer. A page readiness signal belongs to its current request, including
   after a renderer reload.
 - The window and its frame stay as in 06: a separate window titled "환경설정",

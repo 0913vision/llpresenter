@@ -49,8 +49,9 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private stopping = false;
   private wanted = false;
   private rendered = false;
+  private presented: SettingsRequest | null = null;
   private applyingGeometry = false;
-  private geometryView: SettingsRequest['view'] = 'preferences';
+  private geometryView: SettingsRequest['view'] | null = null;
   private opener: BrowserWindow | null = null;
   private warmup: ReturnType<typeof setTimeout> | undefined;
   private warmTargets: Target[] = [];
@@ -126,15 +127,26 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       !force &&
       this.win !== null &&
       this.rendered &&
+      !this.request.preparing &&
       this.request.view === target.view &&
       this.request.page === target.page
     ) {
-      this.reveal();
+      if (this.presented === this.request) {
+        this.show();
+        return;
+      }
+      this.reveal().catch((error: unknown) =>
+        this.options.log.error('could not paint the settings frame', error),
+      );
       return;
     }
     const existing = this.win !== null && !this.win.isDestroyed();
     this.select(target, false);
     this.prepare();
+    this.win?.webContents.setBackgroundThrottling(false);
+    if (this.options.mode === 'offscreen') {
+      this.win?.webContents.startPainting();
+    }
     if (existing) this.pushRequest();
     if (this.win?.isVisible() && this.options.mode === 'normal') {
       this.win.focus();
@@ -145,6 +157,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.request = {...target, requestId: this.nextId(), preparing};
     this.requested = target.page;
     this.rendered = false;
+    this.presented = null;
   }
 
   private pushRequest(): void {
@@ -166,7 +179,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (this.win !== null && !this.win.isDestroyed()) return;
     clearTimeout(this.warmup);
     this.rendered = false;
-    this.geometryView = 'preferences';
+    this.geometryView = null;
     if (!this.wanted && this.options.screens !== undefined) {
       this.warmTargets = [
         {view: 'screens', page: 'general'},
@@ -192,11 +205,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     win.on('resize', this.remember);
     win.webContents.on('did-start-loading', () => {
       this.rendered = false;
+      this.presented = null;
       this.requested = this.request.page;
     });
     win.webContents.on('render-process-gone', (_event, details) => {
       if (win.isDestroyed() || details.reason === 'clean-exit') return;
       this.rendered = false;
+      this.presented = null;
       this.request = {...this.request, requestId: this.nextId()};
       this.requested = this.request.page;
     });
@@ -226,9 +241,14 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (request.view === 'screens' && this.options.screens === undefined) {
       return false;
     }
+    // NOTE(0913vision): Resizing a hidden native view can start GPU raster work.
+    // Warm the data at the prepared size; apply the requested frame on open.
+    if (request.preparing) return true;
     if (this.geometryView === request.view) return true;
     this.remember();
-    if (this.options.mode === 'normal') win.hide();
+    if (this.options.mode === 'normal' && this.geometryView !== null) {
+      win.hide();
+    }
     this.applyingGeometry = true;
     this.geometryView = request.view;
     try {
@@ -245,6 +265,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
         win.setBounds(bounds);
       }
       win.setTitle(request.view === 'screens' ? '화면 설정' : '환경설정');
+      win.webContents.setBackgroundThrottling(false);
     } finally {
       this.applyingGeometry = false;
     }
@@ -260,21 +281,16 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private async painted(event: IpcMainEvent, value: unknown): Promise<void> {
     if (
       this.incoming(event, value) === null ||
-      this.geometryView !== this.request.view
+      (!this.request.preparing && this.geometryView !== this.request.view)
     ) {
       return;
-    }
-    const win = this.win;
-    if (this.options.mode === 'normal' && win !== null) {
-      await win.webContents.capturePage();
-      if (this.incoming(event, value) === null || win.isDestroyed()) return;
     }
     this.rendered = true;
     if (this.wanted) {
       if (this.request.view === 'preferences') {
         this.preferencesPage = this.request.page;
       }
-      this.reveal();
+      await this.reveal();
       return;
     }
     const next = this.warmTargets.shift();
@@ -302,20 +318,53 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private readonly reject = (event: IpcMainEvent, value: unknown): void => {
     if (this.incoming(event, value) === null) return;
-    this.select({view: this.geometryView, page: this.preferencesPage}, false);
+    this.select(
+      {view: this.geometryView ?? 'preferences', page: this.preferencesPage},
+      false,
+    );
     this.pushRequest();
   };
 
-  private reveal(): void {
+  private async reveal(): Promise<void> {
     const win = this.win;
+    const request = this.request;
+    const active = (): boolean => this.wanted && this.rendered;
+    if (!active() || win === null) {
+      return;
+    }
+    // NOTE(0913vision): Capture only on an explicit open: it starts painting a
+    // never-shown renderer without exposing its first incomplete native frame.
+    if (this.options.mode === 'offscreen') {
+      win.webContents.invalidate();
+      return;
+    }
+    await win.webContents.capturePage();
     if (
-      !this.wanted ||
-      !this.rendered ||
-      this.options.mode === 'offscreen' ||
-      win === null
+      this.win !== win ||
+      win.isDestroyed() ||
+      this.request !== request ||
+      !active()
     ) {
       return;
     }
+    // NOTE(0913vision): The first frame delivers resized view measurements.
+    // Capture their committed layout before the native window is revealed.
+    await win.webContents.capturePage();
+    if (
+      this.win !== win ||
+      win.isDestroyed() ||
+      this.request !== request ||
+      !active()
+    ) {
+      return;
+    }
+    this.presented = request;
+    this.show();
+  }
+
+  private show(): void {
+    const win = this.win;
+    if (win === null || this.options.mode === 'offscreen') return;
     if (win.isMinimized()) win.restore();
     win.show();
     win.focus();
@@ -358,6 +407,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.closing = undefined;
     this.stopPatterns = undefined;
     this.win = null;
+    this.presented = null;
     this.wanted = false;
     this.preferencesPage = 'general';
     this.requested = null;

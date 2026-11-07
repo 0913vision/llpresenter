@@ -26,7 +26,7 @@ export class LoadReadiness {
 
 export const LoadReadinessContext = createContext<LoadReadiness | null>(null);
 
-/** Reports committed data and fonts; main paints the hidden native frame before reveal. */
+/** Reports committed data and fonts without requiring a hidden window to paint. */
 export function usePaintedReadiness(
   readiness: LoadReadiness,
   onReady: (() => void) | undefined,
