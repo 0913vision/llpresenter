@@ -1,4 +1,9 @@
-import {useSyncExternalStore, type RefObject} from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type RefObject,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
 import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
@@ -219,6 +224,32 @@ export function usePrepPanels({
     },
   );
   const hasDraft = editorKind !== 'table' || prep?.slides?.draft != null;
+  const editorId = useSyncExternalStore(
+    prep?.editor.subscribe ?? noSubscribe,
+    () => prep?.editor.getSnapshot().session?.document.song.id ?? null,
+  );
+  const origin = useRef<{id: string; library: boolean} | null>(null);
+  useLayoutEffect(() => {
+    const slides = prep?.slides?.draft;
+    if (hasDraft) {
+      const id = slides?.snapshot.item.id ?? editorId;
+      origin.current =
+        id === null ? null : {id, library: editorKind === 'library'};
+      return;
+    }
+    const previous = origin.current;
+    origin.current = null;
+    if (previous === null) return;
+    const label = previous.library ? '라이브러리 곡' : '예배 순서';
+    const list = document.querySelector<HTMLElement>(
+      `[data-workspace-layout="prep"] [role="listbox"][aria-label="${label}"]`,
+    );
+    const row =
+      list?.querySelector<HTMLElement>(`[data-value="${previous.id}"]`) ??
+      list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    row?.focus({preventScroll: true});
+    row?.scrollIntoView({block: 'nearest'});
+  }, [prep, hasDraft, editorId, editorKind]);
   return {
     columns: hasDraft ? PREP_DRAFT_COLUMNS : PREP_COLUMNS,
     partsOf: title =>

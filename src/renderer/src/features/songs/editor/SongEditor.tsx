@@ -26,6 +26,7 @@ import {SongSlideSurface} from './SongSlideSurface';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
+import {useEditorFocus} from './useEditorFocus';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -44,22 +45,10 @@ export function SongEditor({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const serviceName = useShow(view => view.serviceName);
+  const root = useRef<HTMLElement>(null);
+  useEditorFocus(root, state.session, {onBack, request: state.openRequest});
   return (
-    <section
-      aria-label="곡 편집"
-      className={styles.editor}
-      onKeyDown={event => {
-        if (
-          event.key === 'Escape' &&
-          !(event.target instanceof HTMLTextAreaElement) &&
-          !(event.target instanceof HTMLInputElement)
-        ) {
-          event.preventDefault();
-          event.stopPropagation();
-          onBack?.();
-        }
-      }}
-    >
+    <section ref={root} aria-label="곡 편집" className={styles.editor}>
       {state.session === null ? null : (
         <div key={state.session.document.song.id} className={styles.content}>
           <SongHeader

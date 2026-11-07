@@ -22,6 +22,7 @@ import {
 } from '@core/services/slidesEdits';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import {useEditorFocus} from '@renderer/features/songs/editor/useEditorFocus';
 import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
 import {TextArea} from '@renderer/ui/TextArea';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -280,6 +281,15 @@ function SlidesEditorBody({
   const {item, selected} = draft.snapshot;
   const serviceName = useShow(view => view.serviceName);
   const root = useRef<HTMLDivElement>(null);
+  const {focusText, consumeTextFocus} = model;
+  useEditorFocus(root, model.session, {onBack});
+  useLayoutEffect(() => {
+    if (!focusText) return;
+    root.current
+      ?.querySelector<HTMLTextAreaElement>('[data-slide-index="0"] textarea')
+      ?.focus({preventScroll: true});
+    consumeTextFocus();
+  }, [draft, focusText, consumeTextFocus]);
   useWindowShortcuts([
     {
       id: 'songWindow.save',

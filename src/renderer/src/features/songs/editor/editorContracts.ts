@@ -55,6 +55,7 @@ export interface EditorState {
   readonly library: readonly LibrarySong[];
   readonly libraryStatus: 'loading' | 'ready' | 'failed';
   readonly titleFocus: number;
+  readonly openRequest: number;
   readonly imported: boolean;
   readonly discardRequested: boolean;
 }

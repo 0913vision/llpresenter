@@ -7,6 +7,7 @@ import type {ReadonlyKnown} from './fileFormat';
 const targetSchema = payloadObject({
   serviceId: serviceIdSchema,
   itemId: serviceItemIdSchema,
+  focusText: v.exactOptional(v.boolean()),
 });
 const savedSchema = payloadObject({
   before: serviceSchema,

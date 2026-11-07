@@ -42,6 +42,7 @@ export class SongEditorStore {
   private operation: Promise<boolean> | undefined;
   private focusSerial = 0;
   private titleFocus = 0;
+  private openRequest = 0;
   private actionRequest: EditorActionRequest | null = null;
   private actionSerial = 0;
   private state: EditorState = {
@@ -52,6 +53,7 @@ export class SongEditorStore {
     library: [],
     libraryStatus: 'loading',
     titleFocus: 0,
+    openRequest: 0,
     imported: false,
     discardRequested: false,
   };
@@ -142,6 +144,7 @@ export class SongEditorStore {
       document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
     this.actionRequest = null;
     if (document !== null) {
+      this.openRequest++;
       const session = this.pool.attach(
         document,
         options.content,
@@ -382,6 +385,7 @@ export class SongEditorStore {
       library: catalog.library,
       libraryStatus: catalog.libraryStatus,
       titleFocus: this.titleFocus,
+      openRequest: this.openRequest,
       imported: this.importedDraft.session !== null,
       discardRequested: this.importedDraft.discardRequested,
     };

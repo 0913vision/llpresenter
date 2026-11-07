@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useEffectEvent,
   useLayoutEffect,
@@ -40,6 +41,8 @@ export function useSlidesEditor(
     () => api === undefined || pendingWritesOf(api).isStopped,
   );
   const [session, setSession] = useState<SlidesListSession | null>(null);
+  const [focusText, setFocusText] = useState(false);
+  const consumeTextFocus = useCallback(() => setFocusText(false), []);
   const target = useRef<SlidesEditorTarget | null>(null);
   const generation = useRef(0);
   const latest = useRef(options);
@@ -59,6 +62,7 @@ export function useSlidesEditor(
     target.current = null;
     pool.pin(null);
     setSession(null);
+    setFocusText(false);
   };
   const requestLeave = (proceed: () => void): void => {
     close();
@@ -95,6 +99,7 @@ export function useSlidesEditor(
           target.current = next;
           pool.pin(commands);
           setSession(commands);
+          setFocusText(next.focusText === true);
           latest.current.onOpened?.(next);
         } catch (error) {
           console.error('Could not open slides', error);
@@ -141,6 +146,8 @@ export function useSlidesEditor(
   return {
     draft: session?.draft ?? null,
     session,
+    focusText,
+    consumeTextFocus,
     sessionFor: pool.sessionFor,
     requestLeave,
     close,

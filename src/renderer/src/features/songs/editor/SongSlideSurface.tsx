@@ -395,6 +395,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         dragClick.props.onClickCapture(event);
         if (!event.defaultPrevented) focusList(event.target);
       }}
+      data-slide-surface
       onKeyDownCapture={event => {
         if (
           !event.defaultPrevented &&

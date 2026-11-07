@@ -6,6 +6,20 @@ import {
 
 const id = '00000000-0000-4000-8000-000000000001';
 describe('slides editor IPC', () => {
+  it('accepts an explicit first-text focus request and rejects invalid flags', () => {
+    for (const focusText of [true, false]) {
+      const target = {serviceId: id, itemId: id, focusText};
+      expect(parseSlidesEditorTarget(target)).toEqual({
+        ok: true,
+        value: target,
+      });
+    }
+    for (const focusText of [null, 'true', 1]) {
+      expect(
+        parseSlidesEditorTarget({serviceId: id, itemId: id, focusText}).ok,
+      ).toBe(false);
+    }
+  });
   it('checks target ids and drops unknown target fields', () => {
     expect(
       parseSlidesEditorTarget({serviceId: id, itemId: id, extra: true}),

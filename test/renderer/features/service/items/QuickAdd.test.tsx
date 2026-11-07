@@ -209,6 +209,7 @@ describe('항목 추가', () => {
       expect(open).toHaveBeenCalledWith({
         serviceId: fixtureServiceId,
         itemId: added?.id,
+        ...(label === '빈 슬라이드' ? {focusText: true} : {}),
       });
     },
   );

@@ -74,8 +74,8 @@ have landed.
 - 항목 추가 offers 빈 슬라이드 and 광고 before 미디어. Each inserts after the
   selected row, selects the item, and opens 슬라이드 편집. Without a selection
   it appends. 빈 슬라이드 starts with one empty text slide and manual advance.
-  광고 starts with one empty named text slide, 8-second advance, and 반복
-  enabled.
+  Its editor puts the caret in slide 1's text field, ready to type. 광고 starts
+  with one empty named text slide, 8-second advance, and 반복 enabled.
 - Both forms use the same slides icon. The table shows the editable item name,
   slide count, item theme or form default, background, start macro, and memo.
   The right column shows the preview, item name, 슬라이드 편집… and themed
@@ -88,6 +88,11 @@ have landed.
   field selects its row; subsequent presses clear selection and go back. The
   right column keeps the selected draft's preview and slide grid. Its edit
   button is hidden while that item's editor is open, including song items.
+- Opening an item or library song by double-click, Enter, or its edit action
+  focuses the editor's list command surface with the first slide or the source
+  slide selected. Editing keys work without another click. A new song opened by
+  Ctrl N keeps focus in its title. Returning from the editor focuses the
+  originating service or library row.
 - The header edits 이름, 테마, 넘기기 (손으로 or every 3, 5, 8, 10, 15, 20, or
   30 seconds), and 반복. Its first row uses the song editor's height, padding,
   and alignment: back, name field, then actions. Theme, advance, and loop sit
@@ -427,9 +432,10 @@ name.
 - The preview follows selection without output. Esc in a slide's lyrics, 글,
   이름, or 내용 field leaves text editing and selects that row, focusing the
   list command surface without changing its text. The next Esc clears selection
-  or the insertion caret; with neither, Esc returns to the table. Leaving a
-  dirty library song still asks 저장, 저장 안 함, or 취소. IME composition keeps
-  its own Escape behavior.
+  or the insertion caret; with neither, Esc returns to the table from anywhere
+  in the editor, including when focus has fallen to the body. Leaving a dirty
+  library song still asks 저장, 저장 안 함, or 취소. IME composition keeps its
+  own Escape behavior.
 - A thumbnail size slider sits in the footer.
 
 Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,

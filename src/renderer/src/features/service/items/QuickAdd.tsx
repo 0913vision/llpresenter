@@ -73,6 +73,7 @@ export function ServiceQuickAdd({
         const opened = await api.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
+          ...(item.slides.form === 'blank' ? {focusText: true} : {}),
         });
         if (!opened.ok) throw new Error('Could not open the added slides item');
       }
