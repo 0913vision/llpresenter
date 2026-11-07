@@ -16,6 +16,7 @@ import {menuAvailability} from '@renderer/ui/menuModel';
 import {withParticle} from '@renderer/ui/korean';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeElementProperties} from './ThemeElementProperties';
+import {ThemeNumber} from './ThemePropertyFields';
 import {themeSamples} from './ThemeCanvas';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
@@ -169,6 +170,45 @@ function ThemeScreenProperties({
           value={`${THEME_LIMITS.width} × ${THEME_LIMITS.height}`}
         />
       </PropertyGroup>
+      <ThemeBibleSplitProperties model={model} />
     </Properties>
+  );
+}
+
+function ThemeBibleSplitProperties({
+  model,
+}: {
+  readonly model: ThemeModel;
+}): JSX.Element | null {
+  const primaryScreen = model.bibleSplitScreen;
+  if (model.theme === undefined || primaryScreen === undefined) return null;
+  const resolved = resolveThemeScreen(
+    model.theme,
+    primaryScreen.id,
+    model.screens,
+  );
+  const text = resolved.layout.elements.find(
+    element => element.kind === 'currentText',
+  );
+  if (resolved.sourceScreenId !== model.screen?.id || text === undefined) {
+    return null;
+  }
+  return (
+    <PropertyGroup title="성경">
+      <ThemeNumber
+        label="성경 분할 줄 수"
+        value={text.text.maxLines}
+        min={1}
+        max={THEME_LIMITS.maxLines}
+        reason={model.elementReason}
+        change={maxLines =>
+          model.property(text.id, current =>
+            current.kind === 'currentText'
+              ? {...current, text: {...current.text, maxLines}}
+              : current,
+          )
+        }
+      />
+    </PropertyGroup>
   );
 }

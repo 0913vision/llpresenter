@@ -123,16 +123,6 @@ export function ThemeTextProperties({
             />
           )}
         </PropertyRow>
-        {element.kind === 'currentText' ? (
-          <ThemeNumber
-            label="성경 분할 줄 수"
-            value={element.text.maxLines}
-            min={1}
-            max={THEME_LIMITS.maxLines}
-            reason={reason}
-            change={maxLines => change(value => ({...value, maxLines}))}
-          />
-        ) : null}
       </PropertyGroup>
       <PropertyGroup title="효과">
         <ThemeCheck

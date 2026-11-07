@@ -20,6 +20,7 @@ import {
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {Theme} from '@core/schema/themes';
+import type {Screen} from '@core/schema/screens';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useLive} from '@renderer/session/live';
 import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
@@ -42,11 +43,13 @@ function setup({
   idle = false,
   services,
   oldStandby = false,
+  screenOrder,
 }: {
   readonly idle?: boolean;
   /** A 대기 화면 saved before it had any screen layout. */
   readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
+  readonly screenOrder?: readonly Screen[];
 } = {}) {
   const initial = settingsDocument('themes', createDefaultThemes());
   if (initial.name !== 'themes') throw new Error('Expected themes');
@@ -62,7 +65,7 @@ function setup({
   const song = themes.value.themes[0];
   if (song === undefined) throw new Error('Expected song theme');
   const screens = settingsDocument('screens', {
-    screens: [
+    screens: screenOrder ?? [
       {
         id: '00000000-0000-4000-8000-000000000001',
         name: '청중 화면',
@@ -336,10 +339,8 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
       .getAttribute('aria-valuemax'),
   ).toBe('400');
   expect(
-    screen
-      .getByRole('spinbutton', {name: '성경 분할 줄 수'})
-      .getAttribute('aria-valuemax'),
-  ).toBe('12');
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
   const size = screen.getByRole('spinbutton', {name: '크기'});
   fireEvent.change(size, {target: {value: '72'}});
   fireEvent.keyDown(size, {key: 'Enter'});
@@ -352,6 +353,177 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
     expect(current?.text.size).toBe(72);
     expect(current?.box?.on).toBe(true);
   });
+});
+
+it('edits the Bible split count from screen properties and keeps text properties free of split budgets', async () => {
+  const {value} = setup();
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  fireEvent.click(screen.getByRole('button', {name: '현재 가사'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  const songBefore = value().themes[0];
+  fireEvent.click(within(themes).getByRole('option', {name: '말씀'}));
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  const count = screen.getByRole('spinbutton', {name: '성경 분할 줄 수'});
+  expect(count.getAttribute('aria-valuemin')).toBe('1');
+  expect(count.getAttribute('aria-valuemax')).toBe('12');
+  fireEvent.change(count, {target: {value: '3'}});
+  fireEvent.keyDown(count, {key: 'Enter'});
+  await saveEdits();
+  const bible = value().themes.find(
+    theme => theme.id === value().defaults.bible,
+  );
+  const current = bible?.screens[MAIN]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  expect(current?.text.maxLines).toBe(3);
+  fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  fireEvent.click(screen.getByRole('button', {name: '다음 가사'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  fireEvent.click(within(themes).getByRole('option', {name: '찬양'}));
+  expect(value().themes[0]).toEqual(songBefore);
+});
+
+it('saves a nondefault theme split budget shared by Bible and blank verse items without changing defaults', async () => {
+  const defaults = createDefaultThemes();
+  const theme = defaults.themes[0];
+  if (theme === undefined) throw new Error('Expected song theme');
+  const entries = parseServiceEntries([
+    {
+      id: SERVICE_ID,
+      name: '예배',
+      date: '2026-11-01T11:00',
+      access: 'editable',
+    },
+  ]);
+  const document = parseServiceDocument({
+    revision: 1,
+    access: 'editable',
+    service: {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: SERVICE_ID,
+      name: '예배',
+      date: '2026-11-01T11:00',
+      order: [
+        {
+          id: itemId(300),
+          theme: theme.id,
+          bible: {
+            translation: 'krv',
+            ref: '요한복음 1:1',
+            split: 'fit',
+            reference: 'every',
+            verseNumbers: true,
+            translationName: false,
+          },
+        },
+        {
+          id: itemId(301),
+          theme: theme.id,
+          slides: {
+            form: 'blank',
+            name: '말씀 구절',
+            slides: [
+              {
+                id: itemId(302),
+                verse: {translation: 'krv', book: 43, chapter: 1, verse: 1},
+              },
+            ],
+          },
+        },
+      ],
+    },
+  });
+  if (!entries.ok || !document.ok || document.value === null) {
+    throw new Error('Invalid Bible and blank verse service');
+  }
+  const service = document.value;
+  const {value} = setup({
+    services: {
+      list: async () => entries.value,
+      get: async () => service,
+    },
+  });
+  await screen.findByRole('listbox', {name: '테마'});
+  expect(value().defaults.bible).not.toBe(theme.id);
+  expect(value().defaults.blank).not.toBe(theme.id);
+  fireEvent.click(screen.getByRole('button', {name: '현재 가사'}));
+  expect(
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
+  ).toBeNull();
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  const count = within(screen.getByRole('group', {name: '성경'})).getByRole(
+    'spinbutton',
+    {name: '성경 분할 줄 수'},
+  );
+  fireEvent.change(count, {target: {value: '5'}});
+  fireEvent.keyDown(count, {key: 'Enter'});
+  await saveEdits();
+  expect(value().defaults).toEqual(defaults.defaults);
+  expect(
+    value()
+      .themes.find(saved => saved.id === theme.id)
+      ?.screens[MAIN]?.elements.find(element => element.kind === 'currentText')
+      ?.text.maxLines,
+  ).toBe(5);
+  expect(
+    value().themes.find(saved => saved.id === defaults.defaults.bible),
+  ).toEqual(
+    defaults.themes.find(saved => saved.id === defaults.defaults.bible),
+  );
+  expect(service.service.order.every(item => item.theme === theme.id)).toBe(
+    true,
+  );
+});
+
+it('edits the first saved screen split budget without audience screens despite the editor display order', async () => {
+  const broadcast = createScreenId('00000000-0000-4000-8000-000000000002');
+  const {value} = setup({
+    screenOrder: [
+      {id: STAGE, name: '무대 화면', kind: 'stage', method: 'fullscreen'},
+      {id: broadcast, name: '방송 화면', kind: 'broadcast', method: 'capture'},
+    ],
+  });
+  await screen.findByRole('listbox', {name: '테마'});
+  const displayed = screen.getAllByRole('button', {name: /화면 편집$/});
+  expect(displayed.map(button => button.getAttribute('aria-label'))).toEqual([
+    '방송 화면 편집',
+    '무대 화면 편집',
+  ]);
+  const themeBefore = value().themes[0];
+  const count = () =>
+    screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'});
+  expect(count()).toBeNull();
+  fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+  const field = screen.getByRole('spinbutton', {name: '성경 분할 줄 수'});
+  fireEvent.change(field, {target: {value: '6'}});
+  fireEvent.keyDown(field, {key: 'Enter'});
+  await saveEdits();
+  expect(
+    value().themes[0]?.screens[STAGE]?.elements.find(
+      element => element.kind === 'currentText',
+    )?.text.maxLines,
+  ).toBe(6);
+  expect(value().themes[0]?.screens[broadcast]).toEqual(
+    themeBefore?.screens[broadcast],
+  );
+  fireEvent.click(screen.getByRole('button', {name: '방송 화면 편집'}));
+  expect(count()).toBeNull();
 });
 
 it('renders the edited background through a screen link and restores retained elements after empty mode', async () => {

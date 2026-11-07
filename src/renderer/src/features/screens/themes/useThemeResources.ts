@@ -85,10 +85,14 @@ export function useThemeResources(
     };
   }, [active, api]);
 
-  const screens = themeScreenOrder(screensDocument?.value.screens ?? []);
+  const savedScreens = screensDocument?.value.screens ?? [];
+  const screens = themeScreenOrder(savedScreens);
+  const bibleSplitScreen =
+    savedScreens.find(screen => screen.kind === 'audience') ?? savedScreens[0];
   return {
     document,
     screens,
+    bibleSplitScreen,
     timers: timers?.value.timers ?? [],
     renderTimers: {
       list: timers?.value.timers ?? [],

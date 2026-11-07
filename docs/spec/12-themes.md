@@ -115,7 +115,7 @@ one-pixel increment (ten with Shift).
 | 줄 간격          | Text elements                               | 0.8 to 3.0                                              |
 | 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                    |
 | 세로 위치        | Text elements                               | 위, 가운데, 아래                                        |
-| 성경 분할 줄 수  | 현재 가사                                   | 1 to 12; Bible split budget at the configured size (04) |
+| 성경 분할 줄 수  | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04) |
 | 외곽선, 그림자   | Text elements                               | On or off                                               |
 | 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                     |
 | 모서리           | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                |
@@ -127,10 +127,17 @@ Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음
 
 All text keeps its theme size while wrapped lines fit the full element frame;
 only actual overflow shrinks it (03). The stored `maxLines` property is the
-Bible split budget, exposed as 성경 분할 줄 수. It does not shrink lyrics,
-including current/next text on stage and broadcast layouts. The legacy
-`nextText.maxLines` field remains readable for compatibility but has no editor
-control and does not constrain text fitting.
+Bible split budget, exposed as 성경 분할 줄 수 under 화면 > 성경 for every
+theme's first audience screen in saved screen order (or its first saved screen
+if there is no audience screen). The editor's display sorting does not change
+this choice. Follow screen links to the source screen to edit its first
+current-text element's budget. Other screens and the text element properties do
+not expose it. This editing path also covers nondefault themes assigned to Bible
+items or blank items containing verses, without changing any default assignment.
+Stored line budgets are retained when a theme's default assignment changes. It
+does not shrink lyrics, including current/next text on stage and broadcast
+layouts. The legacy `nextText.maxLines` field remains readable for compatibility
+but has no editor control and does not constrain text fitting.
 
 On and off properties (외곽선, 그림자, 채우기) are checkboxes, not switches
 (user, October 31).
