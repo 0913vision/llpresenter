@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/session/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
@@ -131,7 +131,7 @@ export function SlideGrid({
               }
               labelColor={tile.labelColor}
               text={picture === undefined ? tile.lines.join('\n') : undefined}
-              media={picture === undefined ? undefined : thumbnailUrl(picture)}
+              media={picture === undefined ? undefined : thumbnailSrc(picture)}
               selected={index === selectedTile}
               live={index === liveIndex}
               hotKey={tile.hotKey}

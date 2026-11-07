@@ -35,6 +35,21 @@ describe('thumbnail cache', () => {
     expect(await cache.fileOf(mediaId(2))).toBeNull();
   });
 
+  it('keeps the stamp of the file a thumbnail was made from, and drops it with the thumbnail', async () => {
+    const {folder, cache} = await setup();
+    await cache.put(mediaId(1), JPEG, '8:1700000000000');
+    expect(await cache.stampOf(mediaId(1))).toBe('8:1700000000000');
+    expect(await cache.stampOf(mediaId(2))).toBeNull();
+    await cache.put(mediaId(1), JPEG, '9:1700000000001');
+    expect(await cache.stampOf(mediaId(1))).toBe('9:1700000000001');
+    await cache.put(mediaId(1), JPEG);
+    expect(await cache.stampOf(mediaId(1))).toBeNull();
+    await cache.put(mediaId(1), JPEG, '8:1700000000000');
+    await cache.remove(mediaId(1));
+    expect(await cache.stampOf(mediaId(1))).toBeNull();
+    expect(await readdir(folder)).toEqual([]);
+  });
+
   it('removes the least recently used thumbnail past the cap', async () => {
     const {folder, cache} = await setup();
     for (const index of [1, 2, 3]) await cache.put(mediaId(index), JPEG);

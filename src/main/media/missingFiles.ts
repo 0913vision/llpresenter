@@ -1,7 +1,7 @@
 import {stat} from 'node:fs/promises';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MissingMedia} from '@core/schema/mediaFiles';
+import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
 
 /** How many media files the check reads at once. */
 export const MAX_PARALLEL_FILE_CHECKS = 8;
@@ -29,11 +29,28 @@ export async function fileExists(file: string): Promise<boolean> {
   }
 }
 
+/**
+ * When a file was last changed, in whole milliseconds, or null when it is not a
+ * file that can be read. Never throws.
+ */
+export async function fileModified(file: string): Promise<number | null> {
+  try {
+    const found = await stat(file);
+    return found.isFile() ? Math.floor(found.mtimeMs) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The arguments of the {@link MissingFiles} constructor. */
 export interface MissingFilesOptions {
   readonly source: MissingFilesSource;
   readonly onChange: (missing: MissingMedia) => void;
+  /** Hears when the last-changed times of the files change. */
+  readonly onStamps?: ((stamps: MediaStamps) => void) | undefined;
   readonly exists?: (file: string) => Promise<boolean>;
+  /** {@link fileModified} by default. */
+  readonly modified?: (file: string) => Promise<number | null>;
   /** {@link MISSING_PUBLISH_DELAY_MS} by default. */
   readonly publishDelayMs?: number;
 }
@@ -46,6 +63,7 @@ export interface MissingFilesOptions {
  */
 export class MissingFiles {
   private readonly missing = new Set<MediaId>();
+  private readonly stamps = new Map<MediaId, number>();
   private readonly checkedFiles = new Map<MediaId, string | null>();
   private readonly checks = new Map<MediaId, number>();
   // NOTE(0913vision): A Set keeps the order and lets each item wait once.
@@ -53,6 +71,7 @@ export class MissingFiles {
   private running = 0;
   private serial = 0;
   private published: MissingMedia = [];
+  private publishedStamps: MediaStamps = {};
   private publishTimer: ReturnType<typeof setTimeout> | null = null;
   private stopSource: (() => void) | null = null;
   private disposed = false;
@@ -90,6 +109,11 @@ export class MissingFiles {
       .filter(id => this.missing.has(id));
   }
 
+  /** When each readable file was last changed now. */
+  stampList(): MediaStamps {
+    return Object.fromEntries(this.stamps);
+  }
+
   dispose(): void {
     this.disposed = true;
     this.stopSource?.();
@@ -106,6 +130,7 @@ export class MissingFiles {
       this.checkedFiles.delete(id);
       this.checks.delete(id);
       this.missing.delete(id);
+      this.stamps.delete(id);
       this.queue.delete(id);
     }
     for (const item of document.value.items) {
@@ -152,6 +177,10 @@ export class MissingFiles {
     const file = this.checkedFiles.get(mediaId) ?? null;
     const exists =
       file !== null && (await (this.options.exists ?? fileExists)(file));
+    const modified =
+      file !== null && exists
+        ? await (this.options.modified ?? fileModified)(file)
+        : null;
     if (
       this.disposed ||
       check === undefined ||
@@ -161,6 +190,8 @@ export class MissingFiles {
     }
     if (exists) this.missing.delete(mediaId);
     else this.missing.add(mediaId);
+    if (modified === null) this.stamps.delete(mediaId);
+    else this.stamps.set(mediaId, modified);
     this.schedulePublish();
   }
 
@@ -174,6 +205,7 @@ export class MissingFiles {
 
   private publish(): void {
     if (this.disposed) return;
+    this.publishStamps();
     const next = this.list();
     if (
       next.length === this.published.length &&
@@ -183,5 +215,18 @@ export class MissingFiles {
     }
     this.published = next;
     this.options.onChange(next);
+  }
+
+  private publishStamps(): void {
+    const next = this.stampList();
+    const before = new Map(Object.entries(this.publishedStamps));
+    if (
+      before.size === this.stamps.size &&
+      [...this.stamps].every(([id, time]) => before.get(id) === time)
+    ) {
+      return;
+    }
+    this.publishedStamps = next;
+    this.options.onStamps?.(next);
   }
 }

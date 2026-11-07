@@ -1,5 +1,5 @@
 import {useMemo, useRef, useState, useSyncExternalStore, type JSX} from 'react';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
@@ -184,7 +184,7 @@ export function ItemSlideGrid({
               media={
                 slide.media === undefined
                   ? undefined
-                  : thumbnailUrl(slide.media)
+                  : thumbnailSrc(slide.media)
               }
               selected={index === selected}
             />

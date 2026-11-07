@@ -226,3 +226,49 @@ describe('MediaTile drag', () => {
     expect(tile('고정').getAttribute('draggable')).toBeNull();
   });
 });
+
+describe('a tile picture with a revision', () => {
+  const KEPT =
+    'llp-media://thumbnail/00000000-0000-4000-8000-000000000009?v=0a1b2c3d';
+
+  it('hands its image element to the next tile with the same address', () => {
+    const first = render(<MediaTile name="새벽" picture={KEPT} />);
+    const before = first.container.querySelector('img');
+    expect(before?.getAttribute('src')).toBe(KEPT);
+    first.unmount();
+    const second = render(<MediaTile name="새벽" picture={KEPT} />);
+    expect(second.container.querySelector('img')).toBe(before);
+  });
+
+  it('does not keep a picture that failed, so the next tile asks again', () => {
+    const address = `${KEPT}0`;
+    const first = render(<MediaTile name="새벽" picture={address} />);
+    const failedImage = first.container.querySelector('img');
+    failedImage?.dispatchEvent(new Event('error'));
+    first.unmount();
+    const second = render(<MediaTile name="새벽" picture={address} />);
+    const again = second.container.querySelector('img');
+    expect(again).not.toBeNull();
+    expect(again).not.toBe(failedImage);
+    expect(again?.getAttribute('src')).toBe(address);
+  });
+
+  it('gives a second tile at the same time its own element', () => {
+    const view = render(
+      <>
+        <MediaTile name="하나" picture={KEPT} />
+        <MediaTile name="둘" picture={KEPT} />
+      </>,
+    );
+    const images = view.container.querySelectorAll('img');
+    expect(images).toHaveLength(2);
+    expect(images[0]).not.toBe(images[1]);
+  });
+
+  it('draws a plain image element for an address without a revision', () => {
+    const view = render(<MediaTile name="새벽" picture="blob:plain" />);
+    expect(view.container.querySelector('img')?.getAttribute('decoding')).toBe(
+      'async',
+    );
+  });
+});

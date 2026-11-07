@@ -1,3 +1,4 @@
+import {stat} from 'node:fs/promises';
 import {relative} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaDocument} from '@core/schema/mediaEdit';
@@ -29,9 +30,23 @@ function samePath(current: string | null, file: string): boolean {
   );
 }
 
+// NOTE(0913vision): A thumbnail is kept with a stamp of the file it was made
+// from, its size and last-changed time, and made again whenever either
+// differs: a file replaced by one of the same size, or by one with an older
+// date (copied from an archive), counts too. A file that can't be read has no
+// stamp, and its thumbnail stays.
+async function stampOf(file: string): Promise<string | null> {
+  try {
+    const {size, mtimeMs} = await stat(file);
+    return `${size}:${Math.floor(mtimeMs)}`;
+  } catch {
+    return null;
+  }
+}
+
 /** The arguments of the {@link Thumbnails} constructor. */
 export interface ThumbnailsOptions {
-  readonly cache: Pick<ThumbnailCache, 'fileOf' | 'put' | 'remove'>;
+  readonly cache: Pick<ThumbnailCache, 'fileOf' | 'put' | 'remove' | 'stampOf'>;
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   readonly source: Promise<ThumbnailSource | null>;
   readonly log: Logger;
@@ -67,9 +82,17 @@ export class Thumbnails {
     const id = parseMediaId(value);
     if (!id.ok || this.disposed) return null;
     const mediaId = id.value;
-    if ((await this.picture(mediaId)) === null) return null;
+    const picture = await this.picture(mediaId);
+    if (picture === null) return null;
     const cached = await this.options.cache.fileOf(mediaId);
-    if (cached !== null) return cached;
+    if (cached !== null) {
+      const [now, made] = await Promise.all([
+        stampOf(picture.file),
+        this.options.cache.stampOf(mediaId),
+      ]);
+      if (now === null || now === made) return cached;
+      await this.options.cache.remove(mediaId);
+    }
     const running = this.making.get(mediaId);
     if (running !== undefined) return running;
     if (this.making.size >= MAX_THUMBNAILS_IN_PROGRESS) return null;
@@ -88,7 +111,7 @@ export class Thumbnails {
   async save(mediaId: MediaId, jpeg: Uint8Array, file: string): Promise<void> {
     const picture = await this.picture(mediaId);
     if (picture !== null && samePath(picture.file, file)) {
-      await this.keep(picture, mediaId, jpeg);
+      await this.keep(picture, mediaId, {jpeg});
     }
   }
 
@@ -141,6 +164,7 @@ export class Thumbnails {
     if (picture === null || this.failed.get(mediaId) === picture.file) {
       return null;
     }
+    const stamp = await stampOf(picture.file);
     const analysis = await this.options.analyse({
       file: picture.file,
       kind: picture.kind,
@@ -153,7 +177,10 @@ export class Thumbnails {
       return null;
     }
     if (analysis.kind === 'read' && analysis.facts.thumbnail !== undefined) {
-      return this.keep(picture, mediaId, analysis.facts.thumbnail);
+      return this.keep(picture, mediaId, {
+        jpeg: analysis.facts.thumbnail,
+        stamp,
+      });
     }
     if (analysis.kind !== 'unavailable') this.remember(mediaId, picture.file);
     return null;
@@ -164,9 +191,10 @@ export class Thumbnails {
   private async keep(
     {source, file}: Picture,
     mediaId: MediaId,
-    jpeg: Uint8Array,
+    {jpeg, stamp}: {readonly jpeg: Uint8Array; readonly stamp?: string | null},
   ): Promise<string | null> {
-    const kept = await this.options.cache.put(mediaId, jpeg);
+    const made = stamp === undefined ? await stampOf(file) : stamp;
+    const kept = await this.options.cache.put(mediaId, jpeg, made ?? undefined);
     if (samePath(source.fileOf(mediaId), file)) return kept;
     await this.options.cache.remove(mediaId);
     return null;

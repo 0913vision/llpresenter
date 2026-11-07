@@ -197,6 +197,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
         }),
       missing: () => Promise.resolve([]),
       subscribeMissing: () => () => undefined,
+      stamps: () => Promise.resolve({}),
+      subscribeStamps: () => () => undefined,
       check: () => undefined,
       reveal: () => undefined,
       ...overrides.media,

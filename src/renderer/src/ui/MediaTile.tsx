@@ -1,5 +1,7 @@
 import {
   memo,
+  useLayoutEffect,
+  useRef,
   type CSSProperties,
   type DragEvent,
   type JSX,
@@ -123,6 +125,76 @@ function Copying({
   );
 }
 
+// NOTE(0913vision): A picture whose address names a revision (`?v=`) never
+// changes, so its image element is kept after its tile goes, and the next tile
+// with the same address takes the element back before it paints. A grid that
+// mounts again (the 미디어 panel unfolding) then draws its pictures in its
+// first frame, and nothing is fetched again. Pictures without a revision are
+// plain elements that load off the paint, so a long grid does not stall.
+const KEPT_PICTURE = /\?v=[0-9a-f]+$/;
+const KEPT_LIMIT = 600;
+const keptPictures = new Map<string, HTMLImageElement>();
+const inUse = new Set<HTMLImageElement>();
+
+function newPicture(src: string): HTMLImageElement {
+  const image = new Image();
+  image.alt = '';
+  image.decoding = 'sync';
+  image.src = src;
+  image.addEventListener('error', () => {
+    if (keptPictures.get(src) === image) keptPictures.delete(src);
+  });
+  return image;
+}
+
+function keepPicture(src: string, image: HTMLImageElement): void {
+  keptPictures.delete(src);
+  keptPictures.set(src, image);
+  if (keptPictures.size > KEPT_LIMIT) {
+    const oldest = keptPictures.keys().next();
+    if (!oldest.done) keptPictures.delete(oldest.value);
+  }
+}
+
+// NOTE(0913vision): A picture that failed (a thumbnail that was not ready yet)
+// is not kept: the next tile with the address asks again.
+function failed(image: HTMLImageElement): boolean {
+  return image.complete && image.naturalWidth === 0;
+}
+
+function takePicture(src: string): HTMLImageElement {
+  const kept = keptPictures.get(src);
+  const reusable =
+    kept !== undefined && !inUse.has(kept) && !failed(kept) ? kept : undefined;
+  const image = reusable ?? newPicture(src);
+  if (kept === undefined || image === kept || failed(kept)) {
+    keepPicture(src, image);
+  }
+  inUse.add(image);
+  return image;
+}
+
+function KeptPicture({src}: {readonly src: string}): JSX.Element {
+  const host = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const image = takePicture(src);
+    host.current?.replaceChildren(image);
+    return () => {
+      inUse.delete(image);
+      image.remove();
+    };
+  }, [src]);
+  return <span ref={host} className={styles.picture} />;
+}
+
+function Picture({src}: {readonly src: string}): JSX.Element {
+  return KEPT_PICTURE.test(src) ? (
+    <KeptPicture src={src} />
+  ) : (
+    <img className={styles.picture} src={src} alt="" decoding="async" />
+  );
+}
+
 function Frame(props: MediaTileProps): JSX.Element {
   const {
     name,
@@ -143,7 +215,7 @@ function Frame(props: MediaTileProps): JSX.Element {
   return (
     <span className={styles.frame}>
       {typeof picture === 'string' ? (
-        <img className={styles.picture} src={picture} alt="" decoding="async" />
+        <Picture src={picture} />
       ) : picture === undefined ? null : (
         <span className={styles.picture}>{picture}</span>
       )}

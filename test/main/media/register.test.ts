@@ -374,12 +374,16 @@ describe('media backend registration', () => {
     expect(
       await electron.handlers.get(mediaEndpoints.missing.channel)?.(),
     ).toEqual([MISSING]);
+    expect(
+      await electron.handlers.get(mediaEndpoints.stamps.channel)?.(),
+    ).toEqual(expect.any(Object));
     const check = electron.listeners.get(mediaEndpoints.check.channel);
     check?.({}, {mediaId: MISSING});
     check?.({}, {mediaId: 'not an id'});
     expect(log.messages('warn')).toEqual(['dropped a malformed media check']);
     await stop();
     expect(electron.handlers.has(mediaEndpoints.missing.channel)).toBe(false);
+    expect(electron.handlers.has(mediaEndpoints.stamps.channel)).toBe(false);
     expect(electron.listeners.has(mediaEndpoints.check.channel)).toBe(false);
   });
 

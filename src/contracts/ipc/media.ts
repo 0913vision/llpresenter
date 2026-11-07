@@ -22,7 +22,9 @@ import {
 import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
+  parseMediaStamps,
   parseMissingMedia,
+  type MediaStamps,
   type MissingMedia,
 } from '@core/schema/mediaFiles';
 import {
@@ -61,6 +63,8 @@ export const mediaEndpoints = {
   }),
   missing: query<MissingMedia>('media:missing:get', parseMissingMedia),
   missingChanged: push<MissingMedia>('media:missing', parseMissingMedia),
+  stamps: query<MediaStamps>('media:stamps:get', parseMediaStamps),
+  stampsChanged: push<MediaStamps>('media:stamps', parseMediaStamps),
   check: message<MediaFileRequest>('media:check', parseMediaCheckRequest),
   reveal: message<MediaFileRequest>('media:reveal', parseMediaRevealRequest),
 };
@@ -98,6 +102,13 @@ export function mediaApi(port: IpcPort, platform: WindowPlatform) {
      * @returns A function that removes the listener. Always call it.
      */
     subscribeMissing: port.subscribe(mediaEndpoints.missingChanged),
+    /** Reads when each media file was last changed, for thumbnail addresses. */
+    stamps: port.query(mediaEndpoints.stamps),
+    /**
+     * Follows those times as main checks the files again.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribeStamps: port.subscribe(mediaEndpoints.stampsChanged),
     /** Asks main to check one media file again, as after it failed to play. */
     check: (mediaId: MediaId): void => check({mediaId}),
     /** Shows the media file in Explorer (파일 위치 열기). */

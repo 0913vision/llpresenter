@@ -705,7 +705,10 @@ change this picker preference.
 
 - One media item can be in several playlists (proposal). Removing it from a
   playlist keeps it in the media list.
-- Thumbnails and durations live in `cache\`. If they're deleted, rebuild them.
+- Thumbnails and durations live in `cache\`. If they're deleted, rebuild them. A
+  window asks for a thumbnail by an address that carries a revision of the
+  item's file, and keeps the picture for good; a relinked or replaced file has a
+  new revision, so its new thumbnail shows at once.
 - Importing media always copies the file into the media folder, except a file
   already inside it (November 7 user decision; see 05).
 

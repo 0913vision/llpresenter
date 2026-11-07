@@ -114,6 +114,9 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
         onChange: value => {
           broadcast(mediaEndpoints.missingChanged.channel, value, log);
         },
+        onStamps: value => {
+          broadcast(mediaEndpoints.stampsChanged.channel, value, log);
+        },
       });
       missing.start();
     },
@@ -124,6 +127,10 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
   ipcMain.handle(mediaEndpoints.missing.channel, async () => {
     await ready;
     return missing?.list() ?? [];
+  });
+  ipcMain.handle(mediaEndpoints.stamps.channel, async () => {
+    await ready;
+    return missing?.stampList() ?? {};
   });
   const check = (_event: IpcMainEvent, value: unknown): void => {
     const parsed = parseMediaCheckRequest(value);
@@ -140,6 +147,7 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
       stopped = true;
       missing?.dispose();
       ipcMain.removeHandler(mediaEndpoints.missing.channel);
+      ipcMain.removeHandler(mediaEndpoints.stamps.channel);
       ipcMain.removeListener(mediaEndpoints.check.channel, check);
     },
   };

@@ -3,7 +3,8 @@ import {emptyLayers, type SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeElementText} from '@core/themes/content';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {ThemePicture} from './ThemePicture';
 
 /** Shared slide canvas for presentation tiles, item previews, and slide editors. */
@@ -43,7 +44,7 @@ export function SlidePicture({
           : {media: mediaUrl(slide.picture)}),
         ...(background === undefined || slide.picture !== undefined
           ? {}
-          : {background: thumbnailUrl(background)}),
+          : {background: thumbnailSrc(background)}),
       }}
     />
   );

@@ -239,6 +239,14 @@ describe('createMediaHandler', () => {
     expect(response.headers.get('content-type')).toBe('image/jpeg');
     expect(response.headers.get('cache-control')).toBe('no-cache');
     expect(await response.text()).toBe(CONTENT);
+    const kept = await handle(new Request(thumbnailUrl('dawn', '0a1b2c3d')));
+    expect(kept.status).toBe(200);
+    expect(kept.headers.get('cache-control')).toBe(
+      'public, max-age=31536000, immutable',
+    );
+    const missing = await handle(new Request(thumbnailUrl('song', '0a1b2c3d')));
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get('cache-control')).toBeNull();
     expect((await handle(new Request(thumbnailUrl('song')))).status).toBe(404);
     expect((await handle(new Request(thumbnailUrl('broken')))).status).toBe(
       404,

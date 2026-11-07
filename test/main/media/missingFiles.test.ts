@@ -1,7 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
-import type {MissingMedia} from '@core/schema/mediaFiles';
+import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import {
@@ -243,5 +243,41 @@ describe('missing media files', () => {
     expect(pushed).not.toHaveBeenCalled();
     missing.start();
     expect(listeners.size).toBe(0);
+  });
+});
+
+describe('media file times', () => {
+  it('reads when each present file was last changed, pushes them once, and again when one changes', async () => {
+    const {source} = mockSource(
+      new Map([
+        [A, 'D:/media/a.png'],
+        [B, 'D:/media/b.png'],
+        [C, null],
+      ]),
+    );
+    const times = new Map([
+      ['D:/media/a.png', 100],
+      ['D:/media/b.png', 200],
+    ]);
+    const stamped = vi.fn<(stamps: MediaStamps) => void>();
+    const missing = new MissingFiles({
+      source,
+      onChange: () => undefined,
+      onStamps: stamped,
+      exists: file => Promise.resolve(times.has(file)),
+      modified: file => Promise.resolve(times.get(file) ?? null),
+      publishDelayMs: 5,
+    });
+    onTestFinished(() => {
+      missing.dispose();
+    });
+    missing.start();
+    await vi.waitFor(() => expect(stamped).toHaveBeenCalled());
+    expect(stamped).toHaveBeenCalledExactlyOnceWith({[A]: 100, [B]: 200});
+    expect(missing.stampList()).toEqual({[A]: 100, [B]: 200});
+    times.set('D:/media/a.png', 101);
+    missing.check(A);
+    await vi.waitFor(() => expect(stamped).toHaveBeenCalledTimes(2));
+    expect(stamped).toHaveBeenLastCalledWith({[A]: 101, [B]: 200});
   });
 });

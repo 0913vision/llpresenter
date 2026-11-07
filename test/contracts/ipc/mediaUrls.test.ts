@@ -6,6 +6,7 @@ import {
   mediaIdFromUrl,
   mediaUrl,
   thumbnailIdFromUrl,
+  thumbnailRevisionFromUrl,
   thumbnailUrl,
 } from '@contracts/ipc/mediaUrls';
 
@@ -58,5 +59,17 @@ describe('thumbnail URLs', () => {
     expect(thumbnailIdFromUrl(thumbnailUrl(id))).toBe(id);
     expect(mediaIdFromUrl(thumbnailUrl(id))).toBeNull();
     expect(thumbnailIdFromUrl(mediaUrl(id))).toBeNull();
+    expect(thumbnailRevisionFromUrl(thumbnailUrl(id))).toBeNull();
+  });
+
+  it('carries a revision as a hex query that no other media URL takes', () => {
+    const id = '00000000-0000-4000-8000-000000000002';
+    const url = thumbnailUrl(id, '0a1b2c3d');
+    expect(url).toBe(`llp-media://thumbnail/${id}?v=0a1b2c3d`);
+    expect(thumbnailIdFromUrl(url)).toBe(id);
+    expect(thumbnailRevisionFromUrl(url)).toBe('0a1b2c3d');
+    expect(thumbnailIdFromUrl(`llp-media://thumbnail/${id}?v=xyz`)).toBeNull();
+    expect(thumbnailIdFromUrl(`llp-media://thumbnail/${id}?w=0a1b`)).toBeNull();
+    expect(mediaIdFromUrl(`llp-media://media/${id}?v=0a1b2c3d`)).toBeNull();
   });
 });

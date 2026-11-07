@@ -1,4 +1,7 @@
+import {stat, utimes, writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {makeTempDir} from '@fixtures/tempDir';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -68,12 +71,15 @@ function setup(
     for (const listener of listeners) listener(state.document);
   };
   const kept = new Map<MediaId, Uint8Array>();
+  const stamps = new Map<MediaId, string>();
   const cache = {
+    stampOf: vi.fn((id: MediaId) => Promise.resolve(stamps.get(id) ?? null)),
     fileOf: vi.fn((id: MediaId) =>
       Promise.resolve(kept.has(id) ? `cache/${id}.jpg` : null),
     ),
-    put: vi.fn((id: MediaId, jpeg: Uint8Array) => {
+    put: vi.fn((id: MediaId, jpeg: Uint8Array, stamp?: string) => {
       kept.set(id, jpeg);
+      if (stamp !== undefined) stamps.set(id, stamp);
       return Promise.resolve<string | null>(`cache/${id}.jpg`);
     }),
     remove: vi.fn((id: MediaId) => {
@@ -93,7 +99,7 @@ function setup(
   onTestFinished(() => {
     thumbnails.dispose();
   });
-  return {thumbnails, cache, kept, analyse, change, listeners};
+  return {thumbnails, cache, kept, stamps, analyse, change, listeners};
 }
 
 describe('media thumbnails', () => {
@@ -223,5 +229,74 @@ describe('media thumbnails', () => {
     await thumbnails.save(VIDEO, JPEG, 'D:/media/dawn.mp4');
     expect(kept.size).toBe(0);
     expect(cache.remove).toHaveBeenCalledWith(VIDEO);
+  });
+});
+
+describe('a thumbnail and a file replaced in place', () => {
+  async function made(stampOfFile: (size: number, modified: number) => string) {
+    const folder = await makeTempDir();
+    const source = join(folder, 'dawn.mp4');
+    await writeFile(source, 'invented');
+    const dated = Date.now() / 1000 - 100;
+    await utimes(source, dated, dated);
+    const {size, mtimeMs} = await stat(source);
+    const fixture = setup(new Map([[VIDEO, {kind: 'video', file: source}]]));
+    fixture.kept.set(VIDEO, JPEG);
+    fixture.stamps.set(VIDEO, stampOfFile(size, Math.floor(mtimeMs)));
+    fixture.cache.fileOf.mockImplementation(() =>
+      Promise.resolve(join(folder, 'thumb.jpg')),
+    );
+    return {...fixture, source, size, mtimeMs};
+  }
+
+  it('keeps the thumbnail made from this very file', async () => {
+    const {thumbnails, cache, analyse} = await made(
+      (size, modified) => `${size}:${modified}`,
+    );
+    expect(await thumbnails.thumbnailOf(VIDEO)).toContain('thumb.jpg');
+    expect(cache.remove).not.toHaveBeenCalled();
+    expect(analyse).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'an older time',
+      (size: number, modified: number) => `${size}:${modified - 5000}`,
+    ],
+    [
+      'a newer time, as after a replacement by an older-dated file',
+      (size: number, modified: number) => `${size}:${modified + 5000}`,
+    ],
+    [
+      'another size at the same time',
+      (size: number, modified: number) => `${size + 1}:${modified}`,
+    ],
+    ['no stamp', () => ''],
+  ])(
+    'makes the thumbnail again when it was made from a file with %s',
+    async (_name, stampOf) => {
+      const {thumbnails, cache, analyse} = await made(stampOf);
+      await thumbnails.thumbnailOf(VIDEO);
+      expect(cache.remove).toHaveBeenCalledWith(VIDEO);
+      expect(analyse).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('keeps a new thumbnail with the size and time of the file it was made from', async () => {
+    const folder = await makeTempDir();
+    const source = join(folder, 'dawn.mp4');
+    await writeFile(source, 'invented');
+    const dated = Date.now() / 1000 - 5000;
+    await utimes(source, dated, dated);
+    const {thumbnails, cache} = setup(
+      new Map([[VIDEO, {kind: 'video', file: source}]]),
+    );
+    await thumbnails.thumbnailOf(VIDEO);
+    const {size, mtimeMs} = await stat(source);
+    expect(cache.put).toHaveBeenCalledWith(
+      VIDEO,
+      JPEG,
+      `${size}:${Math.floor(mtimeMs)}`,
+    );
   });
 });

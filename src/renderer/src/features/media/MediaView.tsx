@@ -9,7 +9,7 @@ import {
   type DragEvent,
   type JSX,
 } from 'react';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -106,7 +106,7 @@ function EntryTile({
   return (
     <MediaTile
       name={nameOf(entry)}
-      picture={showsPicture ? thumbnailUrl(item.id) : undefined}
+      picture={showsPicture ? thumbnailSrc(item.id) : undefined}
       duration={item.kind === 'image' ? undefined : durationText(item.duration)}
       loop={item.kind === 'video' && mediaLoops(item)}
       copying={copying}

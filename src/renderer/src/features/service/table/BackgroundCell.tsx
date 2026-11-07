@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {ItemRow} from '@core/presentation/model';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -29,7 +29,7 @@ function Shown({
   return (
     <>
       {media === undefined ? null : (
-        <img className={styles.thumb} src={thumbnailUrl(media)} alt="" />
+        <img className={styles.thumb} src={thumbnailSrc(media)} alt="" />
       )}
       <span className={styles.truncate}>{name}</span>
     </>

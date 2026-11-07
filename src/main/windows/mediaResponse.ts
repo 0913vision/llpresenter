@@ -6,6 +6,7 @@ import {
   analysisTokenFromUrl,
   mediaIdFromUrl,
   thumbnailIdFromUrl,
+  thumbnailRevisionFromUrl,
 } from '@contracts/ipc/mediaUrls';
 import type {Logger} from '../log';
 import {realPathInside} from './insideRoots';
@@ -128,9 +129,14 @@ export interface MediaHandlerOptions {
   readonly log: Logger;
 }
 
-// NOTE(0913vision): A relinked file gets a new thumbnail at the same URL, so
-// windows ask again instead of reusing what they have.
+// NOTE(0913vision): A URL without a revision may get a new thumbnail after a
+// relink, so windows ask again. A URL with one names a file that has not
+// changed (the revision changes with the file), so a window keeps the picture
+// for good and a remounted grid draws it at once.
 const THUMBNAIL_HEADERS = {'Cache-Control': 'no-cache'} as const;
+const REVISIONED_HEADERS = {
+  'Cache-Control': 'public, max-age=31536000, immutable',
+} as const;
 
 async function serveThumbnail(
   mediaId: string,
@@ -143,7 +149,9 @@ async function serveThumbnail(
     return await createFileResponse(
       path,
       request.headers.get('range'),
-      THUMBNAIL_HEADERS,
+      thumbnailRevisionFromUrl(request.url) === null
+        ? THUMBNAIL_HEADERS
+        : REVISIONED_HEADERS,
     );
   } catch (error: unknown) {
     log.warn('could not serve a thumbnail', error);

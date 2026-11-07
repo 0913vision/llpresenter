@@ -1,4 +1,4 @@
-import {readdir, rm, stat} from 'node:fs/promises';
+import {readdir, readFile, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {Logger} from '../log';
@@ -9,6 +9,7 @@ import {fileExists} from './missingFiles';
 export const MAX_CACHED_THUMBNAILS = 2_000;
 
 const EXTENSION = '.jpg';
+const STAMP_EXTENSION = '.stamp';
 
 /** The arguments of the {@link ThumbnailCache} constructor. */
 export interface ThumbnailCacheOptions {
@@ -61,8 +62,29 @@ export class ThumbnailCache {
     });
   }
 
-  /** Keeps a thumbnail. @returns Its file, or null when it can't be written. */
-  put(mediaId: MediaId, jpeg: Uint8Array): Promise<string | null> {
+  /**
+   * The stamp a thumbnail was kept with: what its source file looked like
+   * when it was made. Null when it has none.
+   */
+  stampOf(mediaId: MediaId): Promise<string | null> {
+    return this.serial(mediaId, async () => {
+      try {
+        return await readFile(this.stampPathOf(mediaId), 'utf8');
+      } catch {
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Keeps a thumbnail with the stamp of the file it was made from.
+   * @returns Its file, or null when it can't be written.
+   */
+  put(
+    mediaId: MediaId,
+    jpeg: Uint8Array,
+    stamp?: string,
+  ): Promise<string | null> {
     return this.serial(mediaId, async () => {
       await this.load();
       const file = this.pathOf(mediaId);
@@ -71,6 +93,7 @@ export class ThumbnailCache {
         this.options.log.warn('could not keep a thumbnail', written.error);
         return null;
       }
+      await this.writeStamp(mediaId, stamp);
       this.entries.delete(mediaId);
       this.entries.add(mediaId);
       await this.trim();
@@ -103,6 +126,29 @@ export class ThumbnailCache {
 
   private pathOf(mediaId: MediaId): string {
     return join(this.options.folder, `${mediaId}${EXTENSION}`);
+  }
+
+  private stampPathOf(mediaId: MediaId): string {
+    return join(this.options.folder, `${mediaId}${STAMP_EXTENSION}`);
+  }
+
+  // NOTE(0913vision): Without its stamp a thumbnail is made again at the next
+  // request, so a stamp that can't be written is only logged.
+  private async writeStamp(
+    mediaId: MediaId,
+    stamp: string | undefined,
+  ): Promise<void> {
+    if (stamp === undefined) {
+      await rm(this.stampPathOf(mediaId), {force: true});
+      return;
+    }
+    const written = await writeFileAtomically(
+      this.stampPathOf(mediaId),
+      new TextEncoder().encode(stamp),
+    );
+    if (!written.ok) {
+      this.options.log.warn('could not keep a thumbnail stamp', written.error);
+    }
   }
 
   private load(): Promise<void> {
@@ -150,6 +196,7 @@ export class ThumbnailCache {
   private async removeFile(mediaId: MediaId): Promise<void> {
     try {
       await rm(this.pathOf(mediaId), {force: true});
+      await rm(this.stampPathOf(mediaId), {force: true});
     } catch (error: unknown) {
       this.options.log.warn('could not remove a cached thumbnail', error);
     }

@@ -1,11 +1,15 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {
+  noteThumbnailItems,
+  noteThumbnailStamps,
+} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaId} from '@core/schema/ids';
 import type {
   MediaDocument,
   MediaImportProgress,
   MediaImportRequest,
 } from '@core/schema/mediaEdit';
-import type {MissingMedia} from '@core/schema/mediaFiles';
+import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -118,6 +122,7 @@ export class MediaLibrary {
   start(onProblem: (notice: Notice) => void): () => void {
     let following = true;
     let missingPushed = false;
+    let stampsPushed = false;
     this.onProblem = onProblem;
     const {media} = this.api;
     const stops = [
@@ -130,6 +135,10 @@ export class MediaLibrary {
       media.subscribeMissing(missing => {
         missingPushed = true;
         if (following) this.setMissing(missing);
+      }),
+      media.subscribeStamps(stamps => {
+        stampsPushed = true;
+        if (following) this.setStamps(stamps);
       }),
     ];
     media.get().then(
@@ -147,6 +156,12 @@ export class MediaLibrary {
     media.missing().then(
       missing => {
         if (following && !missingPushed) this.setMissing(missing);
+      },
+      () => undefined,
+    );
+    media.stamps().then(
+      stamps => {
+        if (following && !stampsPushed) this.setStamps(stamps);
       },
       () => undefined,
     );
@@ -532,11 +547,19 @@ export class MediaLibrary {
     }
   }
 
+  private setStamps(stamps: MediaStamps): void {
+    noteThumbnailStamps(stamps);
+    this.update({});
+  }
+
   private setMissing(missing: MissingMedia): void {
     this.update({missing: new Set(missing)});
   }
 
   private update(change: Partial<MediaLibraryView>): void {
+    if (change.document !== undefined && change.document !== null) {
+      noteThumbnailItems(change.document.value.items);
+    }
     this.view = {...this.view, ...change};
     for (const listener of this.listeners) listener();
   }

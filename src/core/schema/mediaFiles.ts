@@ -8,6 +8,11 @@ const missingMediaSchema = v.pipe(
   v.maxLength(MEDIA_LIMITS.items),
 );
 
+const mediaStampsSchema = v.pipe(
+  v.record(mediaIdSchema, v.pipe(v.number(), v.integer(), v.minValue(0))),
+  v.maxEntries(MEDIA_LIMITS.items),
+);
+
 const mediaCheckSchema = payloadObject({mediaId: mediaIdSchema});
 
 /**
@@ -16,6 +21,19 @@ const mediaCheckSchema = payloadObject({mediaId: mediaIdSchema});
  * read on `media:missing:get`.
  */
 export type MissingMedia = Readonly<v.InferOutput<typeof missingMediaSchema>>;
+
+/**
+ * When each media file was last changed, in milliseconds, for the items whose
+ * file main could read: pushed on `media:stamps` whenever it changes, and read
+ * on `media:stamps:get`. A window puts it in the thumbnail address, so a file
+ * replaced by one of the same size gets a new thumbnail.
+ */
+export type MediaStamps = Readonly<v.InferOutput<typeof mediaStampsSchema>>;
+
+/** Checks a `media:stamps` push or `media:stamps:get` reply. Never throws. */
+export function parseMediaStamps(value: unknown) {
+  return parsePayload(mediaStampsSchema, value);
+}
 
 /** A window's request to check one media file again, as after it failed to play. */
 export type MediaCheckRequest = Readonly<

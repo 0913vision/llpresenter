@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState, type JSX, type RefCallback} from 'react';
 import {createPortal} from 'react-dom';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
@@ -102,7 +102,7 @@ export function OverlayPopover({
               {file === undefined ? null : (
                 <span
                   className={styles.contentThumbnail}
-                  style={{backgroundImage: `url("${thumbnailUrl(file.id)}")`}}
+                  style={{backgroundImage: `url("${thumbnailSrc(file.id)}")`}}
                   aria-hidden="true"
                 >
                   <Icon

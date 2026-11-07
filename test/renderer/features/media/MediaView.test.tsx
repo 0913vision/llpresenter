@@ -7,7 +7,7 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {
   mediaDocument,
   mediaFixture,
@@ -309,15 +309,37 @@ describe('media view', () => {
     expect(importFiles).toHaveBeenCalledTimes(2);
   });
   it('shows every item with its thumbnail and duration, and the total size', async () => {
-    setup();
+    const fixture = mediaFixture(
+      mediaDocument([
+        mediaItem(1, {name: 'Dawn', size: 1024}),
+        mediaItem(2, {
+          name: 'Notice',
+          kind: 'image',
+          file: 'notice.png',
+          size: 1024,
+        }),
+        mediaItem(3, {
+          name: 'Hymn',
+          kind: 'audio',
+          file: 'hymn.mp3',
+          size: 1024,
+        }),
+      ]),
+    );
+    vi.spyOn(fixture.api.media, 'stamps').mockResolvedValue({
+      [mediaId(1)]: 5,
+      [mediaId(2)]: 6,
+    });
+    setup(fixture);
     const video = await tile('Dawn');
     expect(video.querySelector('img')?.getAttribute('src')).toBe(
-      thumbnailUrl(mediaId(1)),
+      thumbnailSrc(mediaId(1)),
     );
+    expect(video.querySelector('img')?.getAttribute('src')).toContain('?v=');
     expect(video.textContent).toContain('0:30');
     const image = await tile('Notice');
     expect(image.querySelector('img')?.getAttribute('src')).toBe(
-      thumbnailUrl(mediaId(2)),
+      thumbnailSrc(mediaId(2)),
     );
     expect(image.textContent).not.toContain('0:30');
     expect((await tile('Hymn')).querySelector('img')).toBeNull();
