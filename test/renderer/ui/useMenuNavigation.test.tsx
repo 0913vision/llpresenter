@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {installMockClock} from '@fixtures/mockClock';
+import type {MenuEntry} from '@renderer/ui/menuModel';
 import {describe, expect, it, vi} from 'vitest';
 import {letTimePass, pointAway} from '@fixtures/renderer/ui/tooltipTesting';
 import {
@@ -18,6 +19,135 @@ const SUBMENU_GRACE_MS = 400;
 installMenuTestHooks();
 
 describe('useMenuNavigation', () => {
+  it.each([1, 2])(
+    'cancels %s ancestor exit timers when keyboard navigation takes over',
+    async levels => {
+      let entries: readonly MenuEntry[] = [
+        {kind: 'item', id: 'run', label: '실행'},
+      ];
+      for (let level = levels; level > 0; level--) {
+        entries = [
+          {
+            kind: 'item',
+            id: `level-${level}`,
+            label: `메뉴 ${level}`,
+            submenu: entries,
+          },
+        ];
+      }
+      render(<Harness entries={entries} />);
+      await openMenu();
+      const clock = installMockClock();
+      let child = screen.getByRole('menu', {name: '파일'});
+      for (let level = 1; level <= levels; level++) {
+        pointAt(screen.getByRole('menuitem', {name: `메뉴 ${level}`}));
+        await letTimePass(clock, SUBMENU_DELAY_MS);
+        child = screen.getByRole('menu', {name: `메뉴 ${level}`});
+        pointAt(child);
+      }
+      pointAway(child);
+      await letTimePass(clock, SUBMENU_GRACE_MS - 1);
+      fireEvent.keyDown(child, {key: 'ArrowDown'});
+      await letTimePass(clock, SUBMENU_GRACE_MS * 2);
+      expect(screen.getAllByRole('menu')).toHaveLength(levels + 1);
+      expect(document.activeElement).toBe(child);
+      expect(
+        screen
+          .getByRole('menuitem', {name: '실행'})
+          .getAttribute('data-pointed'),
+      ).toBe('true');
+      pointAt(child);
+      pointAway(child);
+      await letTimePass(clock, SUBMENU_GRACE_MS);
+      expect(screen.getAllByRole('menu')).toHaveLength(1);
+    },
+  );
+  it.each(['내보내기', '인쇄', '사용 불가'])(
+    'removes the expanded parent highlight immediately on entering %s',
+    async label => {
+      render(
+        <Harness
+          entries={[
+            ...twoSubmenus,
+            {
+              kind: 'item',
+              id: 'disabled',
+              label: '사용 불가',
+              disabled: true,
+              title: '사용할 수 없음',
+            },
+          ]}
+        />,
+      );
+      await openMenu();
+      const clock = installMockClock();
+      const parent = screen.getByRole('menuitem', {name: '가져오기'});
+      pointAt(parent);
+      await letTimePass(clock, SUBMENU_DELAY_MS);
+      expect(parent.getAttribute('data-submenu-highlighted')).toBe('true');
+      pointAway(parent);
+      pointAt(screen.getByRole('menuitem', {name: label}));
+      expect(parent.getAttribute('aria-expanded')).toBe('true');
+      expect(parent.getAttribute('data-submenu-highlighted')).toBe('false');
+      await letTimePass(clock, SUBMENU_DELAY_MS - 1);
+      expect(parent.getAttribute('data-submenu-highlighted')).toBe('false');
+      expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+      pointAt(screen.getByRole('menu', {name: '가져오기'}));
+      expect(parent.getAttribute('data-submenu-highlighted')).toBe('true');
+      await letTimePass(clock, SUBMENU_DELAY_MS * 2);
+      expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+    },
+  );
+
+  it.each(['pointer', 'keyboard'])(
+    'keeps ancestors after %s opening, then closes when the pointer leaves',
+    async opener => {
+      render(
+        <Harness
+          entries={[
+            {
+              kind: 'item',
+              id: 'first',
+              label: '첫 메뉴',
+              submenu: [
+                {
+                  kind: 'item',
+                  id: 'second',
+                  label: '둘째 메뉴',
+                  submenu: [{kind: 'item', id: 'last', label: '마지막'}],
+                },
+              ],
+            },
+          ]}
+        />,
+      );
+      await openMenu();
+      const clock = installMockClock();
+      const first = screen.getByRole('menuitem', {name: '첫 메뉴'});
+      if (opener === 'pointer') {
+        pointAt(first);
+        await letTimePass(clock, SUBMENU_DELAY_MS);
+      } else {
+        fireEvent.keyDown(screen.getByRole('menu', {name: '파일'}), {
+          key: 'ArrowRight',
+        });
+      }
+      const second = screen.getByRole('menuitem', {name: '둘째 메뉴'});
+      pointAway(first);
+      pointAt(second);
+      await letTimePass(clock, SUBMENU_DELAY_MS);
+      const menu = screen.getByRole('menu', {name: '둘째 메뉴'});
+      pointAway(screen.getByRole('menu', {name: '첫 메뉴'}));
+      pointAt(menu);
+      await letTimePass(clock, SUBMENU_DELAY_MS * 2);
+      expect(screen.getAllByRole('menu')).toHaveLength(3);
+      expect(first.getAttribute('data-submenu-highlighted')).toBe('true');
+      expect(second.getAttribute('data-submenu-highlighted')).toBe('true');
+      pointAway(menu);
+      await letTimePass(clock, SUBMENU_DELAY_MS);
+      expect(screen.getAllByRole('menu')).toHaveLength(1);
+    },
+  );
   it.each(['ArrowLeft', 'Escape'])(
     'restores the parent after pointer entry and %s, then supports Right and Down',
     async key => {
@@ -44,7 +174,7 @@ describe('useMenuNavigation', () => {
       ).toBe('true');
     },
   );
-  it('lights only the hovered row and leaves the expanded parent marked without pointing to it', async () => {
+  it('keeps the expanded parent only during the pointer travel delay', async () => {
     render(<Harness entries={twoSubmenus} />);
     await openMenu();
     const clock = installMockClock();
@@ -61,7 +191,7 @@ describe('useMenuNavigation', () => {
     pointAway(next);
     await letTimePass(clock, SUBMENU_DELAY_MS * 2);
     expect(pointedName()).toBeNull();
-    expect(parent.getAttribute('aria-expanded')).toBe('true');
+    expect(parent.getAttribute('aria-expanded')).toBe('false');
     expect(next.getAttribute('data-pointed')).toBe('false');
   });
   it('clears pointer pointing on leaving a row for a separator or leaving the menu', async () => {
@@ -335,7 +465,7 @@ describe('useMenuNavigation', () => {
   });
 
   it.each(['row', 'menu'])(
-    'cancels a pending submenu switch on leaving the %s',
+    'cancels the pending switch and closes after leaving the %s',
     async target => {
       render(<Harness entries={twoSubmenus} />);
       await openMenu();
@@ -349,7 +479,7 @@ describe('useMenuNavigation', () => {
         target === 'row' ? next : screen.getByRole('menu', {name: '파일'}),
       );
       await letTimePass(clock, SUBMENU_GRACE_MS);
-      expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+      expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
       expect(screen.queryByRole('menu', {name: '내보내기'})).toBeNull();
     },
   );

@@ -1,7 +1,11 @@
 .root {
-  height: 100%;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .panel {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }

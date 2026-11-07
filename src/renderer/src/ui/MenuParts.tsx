@@ -56,6 +56,7 @@ export interface MenuItemRowProps {
   readonly pointed: boolean;
   /** Whether the submenu of this item is open. */
   readonly expanded: boolean;
+  readonly submenuHighlighted?: boolean | undefined;
   readonly elementRef: (element: HTMLDivElement | null) => void;
   readonly onPoint: () => void;
   readonly onLeave: () => void;
@@ -72,6 +73,7 @@ export function MenuItemRow({
   iconColumn,
   pointed,
   expanded,
+  submenuHighlighted = expanded,
   elementRef,
   onPoint,
   onLeave,
@@ -108,6 +110,7 @@ export function MenuItemRow({
       aria-haspopup={hasSubmenu ? 'menu' : undefined}
       aria-expanded={hasSubmenu ? expanded : undefined}
       data-pointed={pointed}
+      data-submenu-highlighted={expanded && submenuHighlighted}
       className={styles.item}
       onPointerEnter={event => {
         targetProps.onPointerEnter(event);

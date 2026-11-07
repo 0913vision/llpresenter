@@ -49,6 +49,8 @@ export interface MenuSurfaceProps {
   readonly onClose: (reason: MenuCloseReason) => void;
   readonly onBack?: (() => void) | undefined;
   readonly onPointerEnter?: (() => void) | undefined;
+  readonly onPointerLeave?: (() => void) | undefined;
+  readonly onKeyboardNavigate?: (() => void) | undefined;
   readonly search?: MenuSearch | undefined;
   readonly width?: number | string | undefined;
   readonly minWidth?: number | undefined;
@@ -122,6 +124,7 @@ export function MenuSurface(props: MenuSurfaceProps): JSX.Element {
         iconColumn={iconColumn}
         pointed={!nav.renaming && index === nav.pointed}
         expanded={nav.submenu?.index === index}
+        submenuHighlighted={nav.pointed < 0 || nav.pointed === index}
         elementRef={element => {
           nav.itemElements.current[index] = element;
         }}
@@ -193,12 +196,16 @@ export function MenuSurface(props: MenuSurfaceProps): JSX.Element {
           } else {
             nav.onKeyDown(event);
           }
+          if (event.defaultPrevented) props.onKeyboardNavigate?.();
         }}
         onPointerEnter={() => {
           focusMenu(surface.current);
           props.onPointerEnter?.();
         }}
-        onPointerLeave={nav.leave}
+        onPointerLeave={() => {
+          nav.leave();
+          props.onPointerLeave?.();
+        }}
         onPointerMove={event => {
           if (
             event.target instanceof Element &&
@@ -224,6 +231,18 @@ export function MenuSurface(props: MenuSurfaceProps): JSX.Element {
         parent={surface}
         ancestors={props.ancestors ?? []}
         onClose={onClose}
+        onKeepOpen={() => {
+          nav.keepSubmenuOpen();
+          props.onPointerEnter?.();
+        }}
+        onLeave={() => {
+          nav.leave();
+          props.onPointerLeave?.();
+        }}
+        onKeyboardNavigate={() => {
+          nav.keepSubmenuForKeyboard();
+          props.onKeyboardNavigate?.();
+        }}
       />
     </>
   );
@@ -234,11 +253,17 @@ function Submenu({
   parent,
   ancestors,
   onClose,
+  onKeepOpen,
+  onLeave,
+  onKeyboardNavigate,
 }: {
   readonly nav: MenuNavigation;
   readonly parent: RefObject<HTMLDivElement | null>;
   readonly ancestors: ReadonlyArray<RefObject<HTMLDivElement | null>>;
   readonly onClose: (reason: MenuCloseReason) => void;
+  readonly onKeepOpen: () => void;
+  readonly onLeave: () => void;
+  readonly onKeyboardNavigate: () => void;
 }): JSX.Element | null {
   const {submenu} = nav;
   const item = submenu === null ? undefined : nav.items[submenu.index];
@@ -276,7 +301,9 @@ function Submenu({
       place={place}
       onClose={onClose}
       onBack={nav.closeSubmenu}
-      onPointerEnter={nav.keepSubmenuOpen}
+      onPointerEnter={onKeepOpen}
+      onPointerLeave={onLeave}
+      onKeyboardNavigate={onKeyboardNavigate}
       autoFocus={submenu.takesFocus}
       ancestors={[...ancestors, parent]}
     />

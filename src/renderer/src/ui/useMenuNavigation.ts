@@ -67,6 +67,7 @@ export interface MenuNavigation {
   readonly leave: () => void;
   readonly closeSubmenu: () => void;
   readonly keepSubmenuOpen: () => void;
+  readonly keepSubmenuForKeyboard: () => void;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
 }
 
@@ -173,8 +174,13 @@ export function useMenuNavigation({
   };
   const leave = (): void => {
     hovered.current = null;
-    timers.stop('open', 'close');
-    if (pointing.current === 'pointer') setPointed(-1);
+    timers.stop('open');
+    if (pointing.current === 'pointer') {
+      setPointed(-1);
+      if (submenu !== null) {
+        timers.start('close', SUBMENU_SHOW_DELAY_MS, () => setSubmenu(null));
+      }
+    }
   };
   const closeSubmenu = (): void => {
     timers.stop('open', 'close');
@@ -186,7 +192,14 @@ export function useMenuNavigation({
   };
   const keepSubmenuOpen = (): void => {
     timers.stop('open', 'close');
+    pointing.current = 'pointer';
+    hovered.current = null;
     setPointed(-1);
+  };
+  const keepSubmenuForKeyboard = (): void => {
+    timers.stop('open', 'close');
+    pointing.current = 'keyboard';
+    hovered.current = null;
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const closeChild = submenu === null ? undefined : closeSubmenu;
@@ -208,6 +221,7 @@ export function useMenuNavigation({
     leave,
     closeSubmenu,
     keepSubmenuOpen,
+    keepSubmenuForKeyboard,
     onKeyDown,
   };
 }

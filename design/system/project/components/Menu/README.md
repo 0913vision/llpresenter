@@ -73,6 +73,14 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
   global hover transition to menu items: the previous row must lose its highlight
   as soon as the pointer or keyboard moves to another row. The submenu opening
   delay and diagonal-movement grace period remain separate behavior.
+- An expanded parent keeps its background only while it is the active row or
+  the pointer is in its submenu or traveling there within 400ms. Another row
+  removes that background immediately while the submenu's close delay runs.
+  Travel into deeper submenus keeps the ancestor chain open; leaving the chain
+  closes it after the same delay.
+- Keyboard navigation in a submenu cancels pending pointer-exit timers in all
+  its ancestors and keeps focus in that submenu. Entering it again with the
+  pointer restores the pointer travel and exit rules.
 - aria: surface `role="menu"` + `aria-label`, item `role="menuitem"`, an item that picks one of several `menuitemradio`, an item that toggles on and off `menuitemcheckbox`, both with `aria-checked`. Submenu parent `aria-haspopup="menu"` + `aria-expanded`. Divider `role="separator"`, group `role="group"` + `aria-labelledby`. Disabled `aria-disabled="true"`.
 
 ## Writing

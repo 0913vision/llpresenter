@@ -366,6 +366,11 @@ selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
 output state belongs in the previews, whole-layer take-down in the 지우기 row,
 and per-item controls in the owning tool tab (October 31 B16).
 
+At the panel's 240px minimum, every tool tab fits its allocated body or scrolls
+inside it. Headers stay visible, and all fields and actions, including 메시지's
+표시 시간 and 보내기, remain fully reachable. Tab content never enlarges its
+panel past the resizable border or disappears below that border.
+
 ### 오디오 (Audio)
 
 - Top: the audio playlist select (for example 예배 전 음악, pre-service music),

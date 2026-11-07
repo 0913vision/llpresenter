@@ -36,6 +36,13 @@ feature we lack), Moved, Removed.
   inset 1px rgba(255,255,255,0.2) plus outer 1px rgba(0,0,0,0.6) and shadow 0 12
   32 rgba(0,0,0,0.55), text weight about 460, hover accent-fill with white text,
   the parent of an open submenu rgba(255,255,255,0.13).
+- **One highlighted row per menu:** Entering another row removes the open
+  submenu parent's background immediately, even while its submenu remains open
+  for the 400ms travel delay. Keep the parent marked while the pointer is in its
+  submenu or crossing the gap within that delay. Entering a deeper submenu
+  preserves its ancestor chain; leaving the chain closes it after the delay.
+  Keyboard navigation cancels pending ancestor exit timers, keeping the focused
+  submenu open until keyboard navigation closes it or the pointer takes over.
 - **Check:** A ✓ (14px) sits in the left padding, 10 from the edge. Text never
   moves, and no row keeps an empty leading slot.
 - **Submenu:** A › (about 6x11) 19 from the right edge. Targets in a submenu may

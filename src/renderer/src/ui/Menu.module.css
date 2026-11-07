@@ -79,7 +79,7 @@
   padding-left: var(--space-14);
 }
 
-.item[aria-expanded='true'] {
+.item[data-submenu-highlighted='true'] {
   background: var(--bg-menu-open);
 }
 
