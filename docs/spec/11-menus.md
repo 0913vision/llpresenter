@@ -68,9 +68,11 @@ feature we lack), Moved, Removed.
   미디어, 재생목록, 예배, 템플릿, 화면, and 퀵 실행 항목. Not covered: 단축키
   지우기 and 재생목록에서 빼기 (a removal that keeps the thing itself) ask
   nothing and have no undo; the lead decides whether they get an undo.
-- **Wording:** 이름 바꾸기 everywhere (not 이름 변경). A row that opens a dialog
-  or asks for more input ends with "…" as in PP (수정…, 전환 효과…).
-- **Editing commands:** 곡 편집… opens the inline editor in 준비. 환경설정… and
+- **Wording:** 이름 바꾸기 everywhere (not 이름 변경). An ellipsis marks a
+  command that asks for input in a dialog or another window (수정…, 전환 효과…).
+  Inline editors, workspace or tool-tab switches, and menus or pickers have no
+  ellipsis: 곡 편집, 테마 편집, 이름표, 미디어 속성, and 그림 추가.
+- **Editing commands:** 곡 편집 opens the inline editor in 준비. 환경설정… and
   화면 설정… open their windows. Every entry point uses the same label for the
   same task (`windowCommandLabels`).
 - **Row actions in a footer:** When a list keeps a row's actions in a bar below
@@ -150,9 +152,9 @@ output.
 | 2     | 시작할 때 실행           | Turns run-at-startup on or off; ✓ when on. The tile keeps its clock mark.                                                                                                                                                                                                                                                                                                                                                                                                                                     | Now                                                                                                                                                                                    |
 | 3     | 동작 추가 ›              | Submenu of action kinds in PP order: 지우기 ›, 테마 바꾸기 ›, 슬라이드 출력 대상 › (off), 타이머 ›, 그래픽 ›, 메시지 ›, 배경 미디어 ›, 오디오 ›, 오디오 재생목록 ›, 외부 장치 신호 › (off), 오디오 입력 › (off), 영상 입력 › (off), 매크로 ›, 녹화와 방송 › (off), then 동작 팔레트. 지우기 › lists 모두 지우기 and then each layer (가사, 미디어, 그래픽, 메시지, 오디오) directly, with no 레이어 지우기 level in between: newer than PP (B5). Each kind opens its targets; picking one appends the action. | Now                                                                                                                                                                                    |
 | 3     | 미디어 동작 추가…        | PP: adds a media action from a file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Off                                                                                                                                                                                    |
-| 4     | 동작 편집: <대상> ›      | One row per action, with the kind icon (for example "동작 편집: 찬양" for a theme action). Submenu: that kind's choices with ✓ on the current one (which theme, which timer and operation)                                                                                                                                                                                                                                                                                                                    | 동작 삭제: <대상>                                                                                                                                                                      | <종류> 열기… (for example 테마 편집…). PP Edit Action (Actions video 2:36). Replaces 동작 편집 › and its popover. Hidden when the 매크로 has no actions. | New |
+| 4     | 동작 편집: <대상> ›      | One row per action, with the kind icon (for example "동작 편집: 찬양" for a theme action). Submenu: that kind's choices with ✓ on the current one (which theme, which timer and operation)                                                                                                                                                                                                                                                                                                                    | 동작 삭제: <대상>                                                                                                                                                                      | <종류> 열기 (for example 테마 편집). PP Edit Action (Actions video 2:36). Replaces 동작 편집 › and its popover. Hidden when the 매크로 has no actions. | New |
 | 4     | 동작 삭제: <대상>        | With exactly one action: one row with the kind icon, right under its 동작 편집 row; removes it.                                                                                                                                                                                                                                                                                                                                                                                                               | New                                                                                                                                                                                    |
-| 5     | 동작 삭제 ›              | With two or more actions: submenu of the actions, each with its kind icon                                                                                                                                                                                                                                                                                                                                                                                                                                     | 모두 삭제. Picking one removes it. Hidden when there are none. PP switches between the two forms the same way (Actions video 2:52 and 2:53; Remove All in the Looks setup video 5:25). | Now                                                                                                                                                      |
+| 5     | 동작 삭제 ›              | With two or more actions: submenu of the actions, each with its kind icon                                                                                                                                                                                                                                                                                                                                                                                                                                     | 모두 삭제. Picking one removes it. Hidden when there are none. PP switches between the two forms the same way (Actions video 2:52 and 2:53; Remove All in the Looks setup video 5:25). | Now                                                                                                                                                    |
 | 6     | 속성…                    | PP Inspector….                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Off                                                                                                                                                                                    |
 | 7     | 잘라내기, 복사, 붙여넣기 | PP clipboard rows.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Off                                                                                                                                                                                    |
 | 7     | 복제                     | Adds "<name> 복사본" after it ("<name> 복사본 2", 3, … when taken).                                                                                                                                                                                                                                                                                                                                                                                                                                           | Now                                                                                                                                                                                    |
@@ -185,7 +187,7 @@ output.
 
 ### 슬라이드 오른쪽 클릭
 
-In 준비's editable song rows and grids, the menu offers 이름표…, 복사, 잘라내기,
+In 준비's editable song rows and grids, the menu offers 이름표, 복사, 잘라내기,
 붙여넣기, 복제, 삭제, 실행 취소 and 다시 실행 with the same selection, caret and
 guards as their keys. Right-clicking a selected slide keeps the selection; an
 unselected slide selects itself. The item grid keeps its 오버레이 commands and
@@ -197,17 +199,17 @@ bar handles.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
   1:58).
 
-| Group | Row                                                | Does                                                                                                                          | Status |
-| ----- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                                | Off    |
-| 1     | 곡 편집…                                           | Opens the inline 곡 편집 editor (05) with this slide selected and scrolled into view, like 곡 편집… on a 예배 순서 song item. | New    |
-| 2     | 사용 안 함                                         | PP Disable.                                                                                                                   | Off    |
-| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                            | Off    |
-| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 삭제: <대상>" rows here.                                                        | Off    |
-| 5     | 이름표 ›                                           | 이름표 없음, every 이름표 with its color swatch and current check, then 이름표 관리…. The same list as the 이름표 popover.    | Off    |
-| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                                                     | Off    |
-| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                                 | Off    |
-| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                            | Off    |
+| Group | Row                                                | Does                                                                                                                         | Status |
+| ----- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                               | Off    |
+| 1     | 곡 편집                                            | Opens the inline 곡 편집 editor (05) with this slide selected and scrolled into view, like 곡 편집 on a 예배 순서 song item. | New    |
+| 2     | 사용 안 함                                         | PP Disable.                                                                                                                  | Off    |
+| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                           | Off    |
+| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 삭제: <대상>" rows here.                                                       | Off    |
+| 5     | 이름표 ›                                           | 이름표 없음, every 이름표 with its color swatch and current check, then 이름표 관리…. The same list as the 이름표 popover.   | Off    |
+| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                                                    | Off    |
+| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                                | Off    |
+| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                           | Off    |
 
 - Song grids share one row set (`slideMenuEntries`); the item grid adds only the
   오버레이 rows after it, as 준비's right column does. In 준비, 단축키… opens
@@ -336,7 +338,7 @@ bar handles.
 | ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1      | 항목 숨기기                            | PP Hide Item.                                                                                                                                                     | Off    |
 | song   | 출력 대상 ›                            | PP Destination.                                                                                                                                                   | Off    |
-| song   | 곡 편집…                               | Opens the song in the inline 곡 편집 editor (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                | Moved  |
+| song   | 곡 편집                                | Opens the song in the inline 곡 편집 editor (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                | Moved  |
 | other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                       | Now    |
 | header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
 | 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Now    |
@@ -403,7 +405,7 @@ replace only this item's slides. Both capture the service and song revisions. �
 | ----- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1     | 예배 순서에 추가                                                          | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu.                                           | Now    |
 | 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
-| 3     | 곡 편집…                                                                  | Opens the song in the inline 곡 편집 editor (05; PP Reflow).                                                                                                                                                            | New    |
+| 3     | 곡 편집                                                                   | Opens the song in the inline 곡 편집 editor (05; PP Reflow).                                                                                                                                                            | New    |
 | 4     | 복사, 붙여넣기                                                            | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
 | 4     | 복제                                                                      | Copies the song (see "복제 by kind"); Ctrl D with the focus on the list.                                                                                                                                                | Now    |
 | 4     | 이름 바꾸기                                                               | No icon, text aligned with the icon rows. Opens a 곡 이름 바꾸기 dialog with the title rule of the 곡 편집 title field (not empty, at most 200 characters, no other song has it); off for a song a newer version wrote. | Now    |
@@ -474,7 +476,7 @@ page shares the row controls, save and rename behavior, deletion question and �
 | Group | Row                      | Does                                                                                                                                                                                                                                      | Status |
 | ----- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 0     | 다시 연결…               | Only when the file is missing; first row (ours).                                                                                                                                                                                          | Now    |
-| 1     | 속성…                    | Opens the media properties editor (PP Inspector).                                                                                                                                                                                         | Now    |
+| 1     | 속성                     | Selects the media tile and shows its properties in place (PP Inspector).                                                                                                                                                                  | Now    |
 | 1     | 전환 효과…               | PP Transitions.                                                                                                                                                                                                                           | Off    |
 | 2     | 동작 ›, 알파 ›           | PP Behavior, Alpha Type.                                                                                                                                                                                                                  | Off    |
 | 2     | 맞춤 ›                   | PP Scaling. Choices 맞추기, 채우기, 늘리기 with a check on the current one (default 채우기); writes `props.fit` like 미디어 속성 (one write). Off for a list a newer version wrote; not on audio.                                         | Now    |
@@ -491,8 +493,8 @@ page shares the row controls, save and rename behavior, deletion question and �
 | -     | 복사 멈추기              | While the file is being copied, the menu holds only this row (ours).                                                                                                                                                                      | Now    |
 
 - Audio files in a 오디오 playlist follow the PP audio item menu (same video
-  0:26): 탐색기에서 보기 (now), 재생 › (off), 효과음으로 지정 (off) | 속성…
-  (now, opens media properties), 이름 바꾸기 (now) | 삭제.
+  0:26): 탐색기에서 보기 (now), 재생 › (off), 효과음으로 지정 (off) | 속성 (now,
+  opens media properties), 이름 바꾸기 (now) | 삭제.
 
 ### 재생목록 오른쪽 클릭
 
@@ -518,7 +520,7 @@ page shares the row controls, save and rename behavior, deletion question and �
 | Group | Row         | Does                                          | Status |
 | ----- | ----------- | --------------------------------------------- | ------ |
 | 1     | <테마 이름> | Radio check on the confirmed live theme.      | Now    |
-| 2     | 테마 편집…  | After a separator, opens the theme workspace. | Now    |
+| 2     | 테마 편집   | After a separator, opens the theme workspace. | Now    |
 
 ### 화면 추가 (+)
 
@@ -690,7 +692,7 @@ Which thing a row acts on:
 | Group | Row            | Does                                                                                                | Command        | Status |
 | ----- | -------------- | --------------------------------------------------------------------------------------------------- | -------------- | ------ |
 | 1     | 시작 안내      | PP Welcome to ProPresenter. The app has no walkthrough.                                             | None           | Off    |
-| 2     | 로그 폴더 열기 | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs` | Now    |
+| 2     | 기록 폴더 열기 | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs` | Now    |
 | 2     | 버전 정보      | A small dialog with the app name and version and one 확인 button, no links (the app works offline). | `app.about`    | Now    |
 
 - PP's links to online resources are left out: the app works without the
@@ -719,6 +721,6 @@ Which thing a row acts on:
 - 글꼴
 - 날짜 선택
 
-The Output theme submenu uses the same radio rows, separator, and 테마 편집…
+The Output theme submenu uses the same radio rows, separator, and 테마 편집
 entry as the toolbar. 항목 끄기 removes only the live item from every screen,
 reveals standby, and supports clear undo. It has no default key (12).

@@ -45,7 +45,7 @@ export function helpMenuEntries(actions: {
     {
       kind: 'item',
       id: 'logs',
-      label: '로그 폴더 열기',
+      label: '기록 폴더 열기',
       command: 'app.openLogs',
       onSelect: () => window.llp?.window.openLogFolder(),
     },

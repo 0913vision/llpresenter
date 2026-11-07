@@ -4,6 +4,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useState, type JSX} from 'react';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import {shortcutCommands} from '@core/shortcuts/registry';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
@@ -346,11 +347,14 @@ describe('the 도움말 menu', () => {
     const rows = within(menu).getAllByRole('menuitem');
     expect(rows.map(row => row.textContent)).toEqual([
       '시작 안내',
-      '로그 폴더 열기',
+      '기록 폴더 열기',
       '버전 정보',
     ]);
+    expect(
+      shortcutCommands.find(command => command.id === 'app.openLogs')?.name,
+    ).toBe(rowOf(menu, '기록 폴더 열기').textContent);
     expect(await reasonOf(rowOf(menu, '시작 안내'))).toBe(NOT_YET);
-    expect(isOff(rowOf(menu, '로그 폴더 열기'))).toBe(false);
+    expect(isOff(rowOf(menu, '기록 폴더 열기'))).toBe(false);
     expect(isOff(rowOf(menu, '버전 정보'))).toBe(false);
   });
 
@@ -360,7 +364,7 @@ describe('the 도움말 menu', () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     const menu = await openMenu(user, '도움말');
-    await user.click(rowOf(menu, '로그 폴더 열기'));
+    await user.click(rowOf(menu, '기록 폴더 열기'));
     expect(openLogFolder).toHaveBeenCalledOnce();
   });
 

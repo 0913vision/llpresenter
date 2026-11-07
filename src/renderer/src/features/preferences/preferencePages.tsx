@@ -353,7 +353,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
           }
         />
         <CountRow
-          label="곡 겹치기"
+          label="오디오 겹치기"
           unit="초"
           disabled={disabled}
           title={lockedReason}

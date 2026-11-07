@@ -161,7 +161,7 @@ it('stores a chosen theme, follows its kind default again, and opens the theme w
   await user.click(screen.getByRole('menuitemradio', {name: '특송'}));
   await waitFor(() => expect(stored()?.theme).toBe(SPECIAL));
   expect(stored()).toMatchObject({memo: '천천히', future: {keep: true}});
-  await user.click(screen.getByRole('button', {name: '테마 편집…'}));
+  await user.click(screen.getByRole('button', {name: '테마 편집'}));
   expect(navigate).toHaveBeenCalledWith('screens');
   await user.click(screen.getByRole('button', {name: '테마'}));
   await user.click(screen.getByRole('menuitemradio', {name: /찬양/}));
@@ -230,7 +230,7 @@ it('warns about an overlay without a theme element and clears the warning for a 
     name: '무대 화면 화면에 오버레이 요소 없음',
   });
   expect(warning).toBeDefined();
-  expect(screen.getAllByRole('button', {name: '테마 편집…'})).toHaveLength(2);
+  expect(screen.getAllByRole('button', {name: '테마 편집'})).toHaveLength(2);
   await user.click(screen.getByRole('button', {name: '테마'}));
   await user.click(screen.getByRole('menuitemradio', {name: '특송'}));
   await waitFor(() =>

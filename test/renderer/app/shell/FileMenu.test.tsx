@@ -1,4 +1,5 @@
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
+import {shortcutCommands} from '@core/shortcuts/registry';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -71,6 +72,10 @@ describe('the 파일 menu', () => {
     const save = screen.getByRole('menuitem', {
       name: '예배를 템플릿으로 저장…',
     });
+    expect(
+      shortcutCommands.find(command => command.id === 'service.saveAsTemplate')
+        ?.name,
+    ).toBe(save.textContent.replace('…', ''));
     expect(save.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
     const item = screen.getByRole('menuitem', {name: '다른 예배…'});

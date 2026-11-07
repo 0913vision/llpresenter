@@ -22,6 +22,7 @@ import {LabelMenu} from './LabelMenu';
 import type {SongEditorStore} from './songEditorStore';
 import {readSlideText, writeSlideText} from './systemSlideClipboard';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 
 /** Rows and thumbnails dispatch to the same session, including its insertion caret. */
@@ -261,7 +262,7 @@ export function SongSlideSurface({
           {
             kind: 'item' as const,
             id: 'edit',
-            label: '곡 편집…',
+            label: windowCommandLabels.editSong,
             onSelect: () => onEdit(menuIndex),
           },
         ]),
@@ -271,7 +272,7 @@ export function SongSlideSurface({
           {
             kind: 'item' as const,
             id: 'label',
-            label: '이름표…',
+            label: '이름표',
             command: 'editor.labelMenu',
             ...menuAvailability(editReason ?? selectionReason),
             onSelect: () => labelAfterMenu(menu?.target ?? surfaceRef.current),

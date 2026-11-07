@@ -43,7 +43,7 @@ export function themeMenuEntries({
       kind: 'item',
       id: 'edit',
       command: 'workspace.themes',
-      label: '테마 편집…',
+      label: '테마 편집',
       ...menuAvailability(edit === undefined ? NOT_IN_THIS_WINDOW : undefined),
       onSelect: edit,
     },

@@ -265,8 +265,8 @@ function editEntries(
                     id: 'open',
                     label:
                       action.kind === 'theme'
-                        ? '테마 편집…'
-                        : `${MACRO_ACTIONS[action.kind].label} 열기…`,
+                        ? '테마 편집'
+                        : `${MACRO_ACTIONS[action.kind].label} 열기`,
                     onSelect: () => handlers.openAction(action),
                   },
                 ]),

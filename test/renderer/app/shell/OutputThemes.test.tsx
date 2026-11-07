@@ -105,7 +105,7 @@ it('loads themes when Output opens and lists confirmed radios and the editor', a
       .getByRole('menuitemradio', {name: '설교'})
       .getAttribute('aria-checked'),
   ).toBe('false');
-  expect(screen.getByRole('menuitem', {name: '테마 편집…'})).toBeTruthy();
+  expect(screen.getByRole('menuitem', {name: '테마 편집'})).toBeTruthy();
 });
 
 it('executes an assigned theme command with the Output menu closed', async () => {

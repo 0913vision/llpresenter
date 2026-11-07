@@ -32,7 +32,7 @@ export function ThemeImageChoice({
         aria-label="이미지"
         ref={setButton}
         block
-        value={image?.name ?? '이미지 선택…'}
+        value={image?.name ?? '이미지 선택'}
         lead={{kind: 'icon', icon: 'image'}}
         expanded={open}
         onExpandedChange={setOpen}

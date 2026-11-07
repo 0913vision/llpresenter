@@ -95,7 +95,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 청중 화면, the item's settings show a warning
-  mark with the reason in its tooltip and a 테마 편집… button.
+  mark with the reason in its tooltip and a 테마 편집 button.
 
 ### Element properties
 
@@ -167,7 +167,7 @@ is no 다음 항목 이름 element.
 
 - The toolbar button shows only the live 테마's name under its icon, with 테마
   바꾸기 in its tooltip and accessible name. Its menu lists the 테마 as radio
-  rows, a separator, and 테마 편집…, which opens the 테마 workspace. The 출력
+  rows, a separator, and 테마 편집, which opens the 테마 workspace. The 출력
   menu rows follow it.
 - The 매크로 action 테마 바꾸기 has a 테마 as its target (07).
 - A 테마 picked by hand or by a 매크로 holds until the next item starts; then
@@ -298,7 +298,7 @@ default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
   "오버레이 on 슬라이드").
 - When an item has an 오버레이 but its 테마 has no 오버레이 element on a screen
   the 오버레이 targets, the 슬라이드 list in 준비 shows a warning mark above the
-  thumbnails with the reason in its tooltip and 테마 편집….
+  thumbnails with the reason in its tooltip and 테마 편집.
 - Example (user, October 30): a 특송 item with an MR video on the 무대 화면
   only, across every lyric 슬라이드, while the 청중 화면 and the 방송 화면 show
   the lyrics as usual.

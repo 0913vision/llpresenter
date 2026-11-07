@@ -253,10 +253,10 @@ source was found.
 
 ### Editing a song that is on output
 
-곡 편집… on a service item or slide switches to 준비 and opens that item's
-inline editor at the clicked slide. A library source opens its library song. An
-unsaved draft asks before switching; cancel keeps it. No song editing window
-opens, and entering the editor never outputs a slide.
+곡 편집 on a service item or slide switches to 준비 and opens that item's inline
+editor at the clicked slide. A library source opens its library song. An unsaved
+draft asks before switching; cancel keeps it. No song editing window opens, and
+entering the editor never outputs a slide.
 
 If the operator edits the lyrics of a song on output in 준비, the output screens
 don't change until the next 슬라이드 goes out (proposal). The tiles in the
@@ -718,11 +718,11 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 - In 진행, clicking a playable tile clears slide text and shows that media alone
   (03) without changing the bin's selection or properties. Enter on a focused
   tile does the same. LIVE marks the media on output. In both workspaces, the
-  tile's right-click 속성… selects it and shows its properties without output.
-  In 준비, one click selects and shows properties; double-clicking outputs (05).
-  A copying tile cannot output; a missing tile offers 다시 연결 (08). This
-  follows the October 31 user decision and ProPresenter's click-to-fire and
-  right-click Inspector actions (S4 in 10, pp. 21 and 104).
+  tile's right-click 속성 selects it and shows its properties without output. In
+  준비, one click selects and shows properties; double-clicking outputs (05). A
+  copying tile cannot output; a missing tile offers 다시 연결 (08). This follows
+  the October 31 user decision and ProPresenter's click-to-fire and right-click
+  Inspector actions (S4 in 10, pp. 21 and 104).
 
 Source: the user's October 26 decision that media lives in one bottom 미디어
 bin. Renewed Vision's

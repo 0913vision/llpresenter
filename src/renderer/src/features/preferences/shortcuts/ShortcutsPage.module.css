@@ -35,7 +35,8 @@
   flex: none;
   align-items: center;
   height: var(--size-row);
-  padding: 0 var(--space-12);
+  padding: 0 calc(var(--space-12) + var(--size-scrollbar-thumb)) 0
+    var(--space-12);
   border-bottom: var(--radius-hairline) solid var(--line);
   font: var(--type-caption-strong);
   color: var(--text-3);
@@ -53,6 +54,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .group {
@@ -66,7 +68,7 @@
   display: flex;
   align-items: center;
   min-height: var(--size-row);
-  padding: 0 var(--space-12);
+  padding: var(--space-4) var(--space-12);
   border-radius: var(--radius-sm);
   font: var(--type-body);
 }
@@ -82,6 +84,12 @@
 
 .keys {
   flex: 0 0 var(--size-field-key);
+  min-width: 0;
+}
+
+.keys > span {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .bar {

@@ -273,7 +273,10 @@ function PreferencesContent({
             <ShortcutsPage onProblem={onProblem} />
           </Activity>
         ) : null}
-        <Properties placement="window">
+        <Properties
+          placement="window"
+          className={page === 'labels' ? styles.labels : undefined}
+        >
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
           {page === 'storage' ? (

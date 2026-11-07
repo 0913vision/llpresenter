@@ -36,7 +36,7 @@ const entry = {kind: 'media' as const, id: item.id, item, copying: undefined};
 it('lists the media tile rows and icons in ProPresenter order', () => {
   const entries = mediaTileMenuEntries(entry, actions());
   expect(rows(entries)).toEqual([
-    '속성…',
+    '속성',
     '전환 효과…',
     '|',
     '동작',
@@ -95,7 +95,7 @@ it('lists the audio playlist item rows without icons', () => {
     '재생',
     '효과음으로 지정',
     '|',
-    '속성…',
+    '속성',
     '복제',
     '이름 바꾸기',
     '|',
@@ -109,7 +109,7 @@ it('lists the audio playlist item rows without icons', () => {
 it('keeps relink first, removal before delete, and only cancellation while copying', () => {
   const handlers = actions({missing: true, inPlaylist: true});
   const entries = mediaTileMenuEntries(entry, handlers);
-  expect(rows(entries).slice(0, 3)).toEqual(['다시 연결…', '|', '속성…']);
+  expect(rows(entries).slice(0, 3)).toEqual(['다시 연결…', '|', '속성']);
   expect(rows(entries).slice(-5)).toEqual([
     '재생목록에서 빼기',
     '삭제',

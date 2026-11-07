@@ -31,7 +31,7 @@ function propertiesRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   return {
     kind: 'item',
     id: 'properties',
-    label: '속성…',
+    label: '속성',
     onSelect: () => actions.properties(item.id),
   };
 }

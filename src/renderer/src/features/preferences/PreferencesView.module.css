@@ -27,3 +27,7 @@
   margin: 0 0 var(--space-4);
   font: var(--type-title);
 }
+
+.labels {
+  padding-top: var(--space-24);
+}

@@ -3,7 +3,6 @@
   align-items: center;
   gap: var(--space-12);
   min-height: var(--size-row-double);
-  max-width: calc(var(--size-field-title) * 2);
   border-top: var(--radius-hairline) solid var(--line);
 }
 

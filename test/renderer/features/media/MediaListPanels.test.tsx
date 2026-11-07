@@ -413,7 +413,7 @@ describe('media list panels', () => {
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
     ).toEqual([
-      '속성…',
+      '속성',
       '맞춤',
       '끝나면',
       '복제',

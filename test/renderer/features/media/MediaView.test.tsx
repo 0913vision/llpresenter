@@ -166,7 +166,7 @@ describe('media view', () => {
       '재생',
       '효과음으로 지정',
       '|',
-      '속성…',
+      '속성',
       '복제',
       '이름 바꾸기',
       '|',
@@ -483,7 +483,7 @@ describe('media view', () => {
       fireEvent.keyDown(video, {key: 'ArrowRight'});
       fireEvent.contextMenu(video);
       expect(selected.getAttribute('aria-selected')).toBe('true');
-      const properties = screen.getByRole('menuitem', {name: '속성…'});
+      const properties = screen.getByRole('menuitem', {name: '속성'});
       expect(properties.getAttribute('aria-disabled')).not.toBe('true');
       fireEvent.click(properties);
       expect(video.getAttribute('aria-selected')).toBe('true');
@@ -602,7 +602,7 @@ describe('media view', () => {
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
     ).toEqual([
-      '속성…',
+      '속성',
       '맞춤',
       '끝나면',
       '복제',
@@ -751,6 +751,6 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성…', '탐색기에서 보기']);
+    ).toEqual(['속성', '탐색기에서 보기']);
   });
 });

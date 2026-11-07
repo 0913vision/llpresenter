@@ -52,7 +52,7 @@ have landed.
   Bible passages, blank slides, announcements, sermons, videos, and images.
   Media previews show the file and name. With no item or a section selected, the
   stage and caption stay blank at the same size so the panels below do not move.
-- Double-click or Enter on a song row, or 곡 편집…, opens the existing song
+- Double-click or Enter on a song row, or 곡 편집, opens the existing song
   editor inside 준비 on that item's deck. A library row opens its library song
   instead.
 - Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
@@ -86,7 +86,7 @@ have landed.
   (손으로 or every 3, 5, 8, 10, 15, 20, or 30 seconds), and 반복. Each row has a
   thumbnail in the item's theme. Ad text rows have 이름 and 내용; blank text
   rows have 글. A picture row has its filename and 바꾸기…. 글 추가 adds a text
-  row; 그림 추가… and 바꾸기… choose pictures from the media list. A structured
+  row; 그림 추가 and 바꾸기 choose pictures from the media list. A structured
   verse slide shows its read-only Bible reference and stays intact when other
   item fields are saved.
 - Rows use the song editor's 14px padding, 18px number column, and 16px gaps:
@@ -859,11 +859,11 @@ and 59.
   inside the bin. Double-clicking clears slide text and shows the media alone
   (03). In 진행, clicking a playable tile or pressing Enter on a focused tile
   outputs it without changing selection or properties (04). LIVE marks what is
-  on output. In both workspaces, right-click 속성… selects the tile and shows
-  its properties without output. These actions follow the October 31 user
-  decision and ProPresenter's click-to-fire and right-click Inspector actions
-  (S4 in 10, pp. 21 and 104). Playing the local preview does not affect output.
-  Changing playlists clears an excluded selection.
+  on output. In both workspaces, right-click 속성 selects the tile and shows its
+  properties without output. These actions follow the October 31 user decision
+  and ProPresenter's click-to-fire and right-click Inspector actions (S4 in 10,
+  pp. 21 and 104). Playing the local preview does not affect output. Changing
+  playlists clears an excluded selection.
 - The same 가져오기 action in both workspaces opens a file dialog immediately
   for one or more video, image, or audio files, starting in the last import
   folder (02). Cancellation keeps that folder. Supported formats come from the

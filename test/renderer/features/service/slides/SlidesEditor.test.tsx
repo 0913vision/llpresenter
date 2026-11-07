@@ -655,7 +655,7 @@ describe('slides editor', () => {
         screen.queryByRole('textbox', {name: '슬라이드 이름'}) !== null,
       ).toBe(form === 'ad');
       expect(await screen.findAllByText('poster.jpg')).not.toHaveLength(0);
-      expect(screen.getByRole('button', {name: '바꾸기…'})).toBeTruthy();
+      expect(screen.getByRole('button', {name: '바꾸기'})).toBeTruthy();
       const list = screen.getByLabelText('슬라이드 편집 목록');
       expect(within(list).queryByText('그림', {exact: true})).toBeNull();
       expect(within(list).queryByText('글', {exact: true})).toBeNull();

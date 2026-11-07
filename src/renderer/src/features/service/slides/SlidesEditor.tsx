@@ -169,7 +169,7 @@ function SlideFields({
       <div className={styles.pictureFile}>
         <span>{name}</span>
         <Button variant="ghost" onClick={event => replace(event.currentTarget)}>
-          바꾸기…
+          바꾸기
         </Button>
       </div>
     );
@@ -407,7 +407,7 @@ function SlidesEditorBody({
                 disabled={rows.length >= SLIDES_LIMIT}
                 onClick={event => showPicker(event.currentTarget)}
               >
-                그림 추가…
+                그림 추가
               </Button>
               {item.slides.form !== 'blank' ? null : (
                 <Button

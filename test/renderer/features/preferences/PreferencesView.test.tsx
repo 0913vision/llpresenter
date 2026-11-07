@@ -476,7 +476,7 @@ describe('PreferencesView', () => {
       await mount();
       await openPage('미디어');
       expect(
-        screen.getByRole('spinbutton', {name: '곡 겹치기'}),
+        screen.getByRole('spinbutton', {name: '오디오 겹치기'}),
       ).toHaveProperty('value', '0.5');
       expect(
         screen.getByRole('spinbutton', {name: '페이드 아웃'}),

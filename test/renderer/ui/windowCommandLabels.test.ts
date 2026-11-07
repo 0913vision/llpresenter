@@ -1,8 +1,8 @@
 import {expect, it} from 'vitest';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 
-it('writes every command that opens a window with an ellipsis', () => {
-  for (const label of Object.values(windowCommandLabels)) {
-    expect(label.endsWith('…')).toBe(true);
-  }
+it('reserves ellipses for settings windows and names the inline song editor directly', () => {
+  expect(windowCommandLabels.editSong).toBe('곡 편집');
+  expect(windowCommandLabels.preferences).toBe('환경설정…');
+  expect(windowCommandLabels.screens).toBe('화면 설정…');
 });

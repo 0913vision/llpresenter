@@ -212,7 +212,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ],
     [
       'service.saveAsTemplate',
-      '지금 예배를 템플릿으로 저장',
+      '예배를 템플릿으로 저장',
       '준비 편집',
       ['control'],
       [],
@@ -303,7 +303,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['stageEditor.addElement', '요소 추가', '화면 설정 편집', ['control'], []],
     ['app.preferences', '환경설정', '창과 메뉴', ['control'], []],
     ['app.quit', '종료', '창과 메뉴', ['control'], []],
-    ['app.openLogs', '로그 폴더 열기', '창과 메뉴', ['control'], []],
+    ['app.openLogs', '기록 폴더 열기', '창과 메뉴', ['control'], []],
     ['app.about', '버전 정보', '창과 메뉴', ['control'], []],
     ['window.minimize', '최소화', '창과 메뉴', ['control'], []],
     ['window.maximize', '최대화', '창과 메뉴', ['control'], []],

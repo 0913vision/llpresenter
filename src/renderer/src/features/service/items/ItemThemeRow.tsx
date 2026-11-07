@@ -80,7 +80,7 @@ export function EditItemTheme(): JSX.Element {
       title={navigate === undefined ? '테마 편집을 열 수 없습니다' : undefined}
       onClick={() => navigate?.('screens')}
     >
-      테마 편집…
+      테마 편집
     </Button>
   );
 }

@@ -489,13 +489,13 @@ it('lists action kinds in order and opens the theme workspace', async () => {
     ...themes.map(theme => theme.name),
     '|',
     `동작 삭제: ${first.name}`,
-    '테마 편집…',
+    '테마 편집',
   ]);
   expect(
     screen
       .getByRole('menuitemradio', {name: first.name})
       .getAttribute('aria-checked'),
   ).toBe('true');
-  fireEvent.click(screen.getByRole('menuitem', {name: '테마 편집…'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: '테마 편집'}));
   expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
 });

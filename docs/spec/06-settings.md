@@ -35,10 +35,12 @@ The screen editor keeps its saved geometry separately from the fixed preferences
 dialog. Switching settles pending drafts first; canceling keeps the current
 view. Closing saves, hides, releases the window, and returns focus to its
 opener; a refused save keeps it open. A replacement is prepared after close. The
-prepared native window keeps background throttling off while hidden. Readiness
-waits for committed data and fonts, then main captures the requested native
-frame before revealing it, without waiting on an occluded window's animation
-frames. Inactive views still suspend their effects and previews.
+prepared native window uses background throttling and does not paint or allocate
+full-size surfaces while hidden. An explicit open applies the requested
+geometry, disables throttling, and enables painting. Readiness waits for
+committed data and fonts, then main captures the requested native frames before
+revealing it, without waiting on an occluded window's animation frames. Inactive
+views still suspend their effects and previews.
 
 | Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
 | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |

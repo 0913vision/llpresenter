@@ -138,7 +138,7 @@ it('lists radio themes followed by a separator and editor, and waits for live ac
   );
   expect(button.textContent).toContain(second.name);
   await user.click(button);
-  await user.click(screen.getByRole('menuitem', {name: '테마 편집…'}));
+  await user.click(screen.getByRole('menuitem', {name: '테마 편집'}));
   expect(onEdit).toHaveBeenCalledOnce();
   expect(document.activeElement).toBe(button);
 });
