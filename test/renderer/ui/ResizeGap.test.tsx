@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {fireEvent, render} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
@@ -76,5 +77,19 @@ describe('ResizeGap', () => {
     setCommandDragActive(true);
     fireEvent.pointerDown(gap, {button: 0, pointerId: 1});
     expect(begin).not.toHaveBeenCalled();
+  });
+
+  it('grabs 8px across every border: the drawn gap plus the same reach on each side', () => {
+    const read = (path: string): string => readFileSync(path, 'utf-8');
+    const tokens = read('src/renderer/src/styles/tokens.css');
+    const css = read('src/renderer/src/ui/ResizeGap.module.css');
+    const px = (name: string): number =>
+      Number(new RegExp(String.raw`--${name}:\s*(\d+)px`).exec(tokens)?.[1]);
+    const grab = px('panel-gap') + 2 * px('space-2');
+    expect(grab).toBe(8);
+    expect(css).toContain('inset: 0 calc(-1 * var(--space-2))');
+    expect(css).toContain('inset: calc(-1 * var(--space-2)) 0');
+    expect(css).toMatch(/\.column \{\s*width: var\(--panel-gap\)/);
+    expect(css).toMatch(/\.row \{[^}]*height: var\(--panel-gap\)/);
   });
 });
