@@ -26,8 +26,6 @@ import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
 import {TextArea} from '@renderer/ui/TextArea';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
 import {useItemMedia} from '../items/useItemSources';
 import {
@@ -38,6 +36,7 @@ import {
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
 import {useSlidesSaveFocus} from './useSlidesSaveFocus';
+import {SlideRows} from './SlideRows';
 import styles from './SlidesEditor.module.css';
 
 const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
@@ -246,10 +245,6 @@ function SlidesEditorBody({
     slideId?: string;
   } | null>(null);
   const [query, setQuery] = useState('');
-  const [menu, setMenu] = useState<{index: number; anchor: MenuAnchor} | null>(
-    null,
-  );
-  const dragging = useRef<string | null>(null);
   const rowList = useRef<HTMLDivElement>(null);
   const focusAfterRemove = useRef(false);
   const update = (): void => model.update();
@@ -270,18 +265,15 @@ function SlidesEditorBody({
   useLayoutEffect(() => {
     if (!focusAfterRemove.current) return;
     focusAfterRemove.current = false;
-    const row =
-      rowList.current?.querySelectorAll<HTMLElement>('[data-slide-id]')[at];
-    (
-      row ?? rowList.current?.querySelector<HTMLButtonElement>('button')
-    )?.focus();
-  }, [rows, at]);
-  const remove = (index: number): void => {
-    if (draft.snapshot.item.slides.slides[index] === undefined) return;
-    focusAfterRemove.current = true;
-    draft.remove(index);
-    update();
-  };
+    const caret = draft.snapshot.selection.caret;
+    const target =
+      caret === null
+        ? rowList.current?.querySelectorAll<HTMLElement>('[data-slide-id]')[at]
+        : rowList.current?.querySelector<HTMLElement>(
+            `[data-gap-index="${caret}"]`,
+          );
+    (target ?? rowList.current)?.focus();
+  });
   const showPicker = (anchor: HTMLElement, slideId?: string): void => {
     setQuery('');
     setPicker({anchor, ...(slideId === undefined ? {} : {slideId})});
@@ -345,9 +337,6 @@ function SlidesEditorBody({
           slide => slide.id === focusedRow.dataset['slideId'],
         );
       update();
-    } else if (event.key === 'Delete' && !isInTextEntry(event.target)) {
-      event.preventDefault();
-      remove(at);
     }
   };
   return (
@@ -364,73 +353,20 @@ function SlidesEditorBody({
             themes={themes}
             themeName={appearance.themeName}
           />
-          <div
-            ref={rowList}
-            className={styles.rows}
-            aria-label="슬라이드 편집 목록"
-          >
-            {rows.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={styles.row}
-                data-selected={index === at || undefined}
-                tabIndex={index === at ? 0 : -1}
-                data-slide-id={slide.id}
-                draggable
-                onFocus={() => {
-                  if (draft.snapshot.selected !== index) {
-                    draft.select(index);
-                    update();
-                  }
-                }}
-                onClick={() => {
-                  if (draft.snapshot.selected !== index) {
-                    draft.select(index);
-                    update();
-                  }
-                }}
-                onDragStart={event => {
-                  if (isInTextEntry(event.target)) {
-                    event.preventDefault();
-                    return;
-                  }
-                  dragging.current = slide.id;
-                  event.dataTransfer.setData('text/plain', slide.id);
-                  event.dataTransfer.effectAllowed = 'move';
-                }}
-                onDragEnd={() => {
-                  dragging.current = null;
-                }}
-                onDragOver={event => {
-                  if (dragging.current !== null) {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }
-                }}
-                onDrop={event => {
-                  if (dragging.current === null) return;
-                  event.preventDefault();
-                  draft.move(
-                    rows.findIndex(row => row.id === dragging.current),
-                    index,
-                  );
-                  dragging.current = null;
-                  update();
-                }}
-                onContextMenu={event => {
-                  event.preventDefault();
-                  draft.select(index);
-                  update();
-                  setMenu({
-                    index,
-                    anchor: {
-                      kind: 'point',
-                      point: {x: event.clientX, y: event.clientY},
-                      target: event.currentTarget,
-                    },
-                  });
-                }}
-              >
+          <SlideRows
+            draft={draft}
+            blocked={
+              model.saving ||
+              model.stopped ||
+              model.leave !== null ||
+              bibleDialog !== null ||
+              picker !== null
+            }
+            update={update}
+            report={model.problem}
+            list={rowList}
+            renderRow={(slide, index) => (
+              <>
                 <span className={styles.number}>{index + 1}</span>
                 <div className={styles.thumbnail}>
                   <SlidesCanvas
@@ -450,8 +386,9 @@ function SlidesEditorBody({
                   change={(next, field) => changeSlide(index, next, field)}
                   endTyping={() => draft.endTyping()}
                 />
-              </div>
-            ))}
+              </>
+            )}
+          >
             <div className={styles.add}>
               <Button
                 variant="ghost"
@@ -483,7 +420,7 @@ function SlidesEditorBody({
                 </Button>
               )}
             </div>
-          </div>
+          </SlideRows>
         </fieldset>
         <PanelFooter count={rows.length} />
       </div>
@@ -550,23 +487,6 @@ function SlidesEditorBody({
             if (restore) picker.anchor.focus();
             setPicker(null);
           }}
-        />
-      )}
-      {menu === null ? null : (
-        <Menu
-          label="슬라이드 메뉴"
-          anchor={menu.anchor}
-          onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'remove',
-              label: '삭제',
-              onSelect: () => {
-                remove(menu.index);
-              },
-            },
-          ]}
         />
       )}
       {model.leave === null ? null : (

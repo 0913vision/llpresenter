@@ -1,4 +1,18 @@
-import {createSlideId} from '../schema/ids';
+import {createSlideId, type SlideId} from '../schema/ids';
+import {
+  copySlideList,
+  editSlideList,
+  slidesFromPlainText,
+  type SlideListCommand,
+} from '../songs/slideListEdits';
+import {
+  emptySlideSelection,
+  selectSlideList,
+  slideInsertionIndex,
+  type SlideListSelection,
+  type SlideSelectionAction,
+} from '../songs/slideListSelection';
+import {slideRowsAdapter} from './slideRows';
 import type {ServiceItemOf} from '../schema/service';
 import {SLIDES_LIMITS} from '../schema/service';
 
@@ -101,6 +115,7 @@ export function newSlidesItem(
 interface Snapshot {
   readonly item: SlidesItem;
   readonly selected: number;
+  readonly selection: SlideListSelection<SlideId>;
 }
 
 /** A bounded local draft; 저장 commits the whole item as one service edit. */
@@ -113,7 +128,7 @@ export class SlidesDraft {
   private current: Snapshot;
 
   constructor(item: SlidesItem) {
-    this.current = {item, selected: 0};
+    this.current = {item, selected: 0, selection: this.single(item, 0)};
     this.saved = JSON.stringify(item);
     this.savedItem = item;
   }
@@ -129,7 +144,88 @@ export class SlidesDraft {
   }
   select(selected: number): void {
     this.endTyping();
-    this.current = {...this.current, selected};
+    this.current = {
+      ...this.current,
+      selected,
+      selection: this.single(this.current.item, selected),
+    };
+  }
+  get canUndo(): boolean {
+    return this.past.length > 0;
+  }
+  get canRedo(): boolean {
+    return this.future.length > 0;
+  }
+  selectRows(action: SlideSelectionAction<SlideId>): void {
+    this.endTyping();
+    const selection = selectSlideList(
+      this.current.item.slides.slides.map(slide => slide.id),
+      this.current.selection,
+      action,
+    );
+    this.current = {
+      ...this.current,
+      selection,
+      selected: this.focusIndex(selection),
+    };
+  }
+  copyRows() {
+    return copySlideList(
+      {
+        slides: this.current.item.slides.slides,
+        selection: this.current.selection,
+      },
+      slideRowsAdapter(this.current.item.slides.form),
+    );
+  }
+  commandRows(command: SlideListCommand<Slide>): boolean {
+    const {item, selection} = this.current;
+    const snapshot = {slides: item.slides.slides, selection};
+    const result = editSlideList(
+      snapshot,
+      command,
+      slideRowsAdapter(item.slides.form),
+    );
+    if (!result.ok) return false;
+    if (result.value === snapshot) return true;
+    this.commit({
+      item: {...item, slides: {...item.slides, slides: result.value.slides}},
+      selected: this.focusIndex(result.value.selection, result.value.slides),
+      selection: result.value.selection,
+    });
+    return true;
+  }
+  pasteText(text: unknown): boolean {
+    const result = slidesFromPlainText(
+      text,
+      slideRowsAdapter(this.current.item.slides.form),
+    );
+    return result.ok && this.commandRows({type: 'paste', slides: result.value});
+  }
+  private single(item: SlidesItem, index: number): SlideListSelection<SlideId> {
+    const slide = item.slides.slides[index];
+    return slide === undefined
+      ? emptySlideSelection()
+      : selectSlideList(
+          item.slides.slides.map(slide => slide.id),
+          emptySlideSelection(),
+          {type: 'click', id: slide.id},
+        );
+  }
+  private focusIndex(
+    selection: SlideListSelection<SlideId>,
+    slides = this.current.item.slides.slides,
+  ): number {
+    const focus = selection.focus;
+    return Math.max(
+      0,
+      Math.min(
+        slides.length - 1,
+        focus?.kind === 'slide'
+          ? slides.findIndex(slide => slide.id === focus.id)
+          : (selection.caret ?? this.current.selected),
+      ),
+    );
   }
   endTyping(): void {
     this.typing = undefined;
@@ -139,14 +235,27 @@ export class SlidesDraft {
     selected = this.current.selected,
     typing?: string,
   ): void {
-    if (JSON.stringify(item) === JSON.stringify(this.current.item)) return;
+    this.commit(
+      {
+        item,
+        selected,
+        selection:
+          typing !== undefined
+            ? this.current.selection
+            : this.single(item, selected),
+      },
+      typing,
+    );
+  }
+  private commit(next: Snapshot, typing?: string): void {
+    if (JSON.stringify(next.item) === JSON.stringify(this.current.item)) return;
     if (typing === undefined || this.typing !== typing) {
       this.past.push(this.current);
       if (this.past.length > HISTORY_LIMIT) this.past.shift();
     }
     this.future = [];
     this.typing = typing;
-    this.current = {item, selected};
+    this.current = next;
   }
   add(slide: Slide): void {
     const {item} = this.current;
@@ -160,14 +269,17 @@ export class SlidesDraft {
     );
   }
   insert(slides: readonly Slide[]): boolean {
-    const {item, selected} = this.current;
+    const {item} = this.current;
     if (
       slides.length === 0 ||
       item.slides.slides.length + slides.length > SLIDES_LIMIT
     ) {
       return false;
     }
-    const at = Math.min(selected + 1, item.slides.slides.length);
+    const at = slideInsertionIndex(
+      item.slides.slides.map(slide => slide.id),
+      this.current.selection,
+    );
     this.change(
       {
         ...item,

@@ -198,6 +198,7 @@ export function useSlidesEditor(api: LlpApi, report: (notice: Notice) => void) {
   };
   return {
     draft,
+    problem,
     update,
     leave,
     saving,

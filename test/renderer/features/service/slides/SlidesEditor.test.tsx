@@ -585,16 +585,15 @@ describe('slides editor', () => {
     act(() => last.focus());
     await userEvent.keyboard('{Delete}');
     expect(rows()).toHaveLength(1);
-    expect(document.activeElement).toBe(rows()[0]);
+    expect(document.activeElement?.getAttribute('data-gap-index')).toBe('1');
     await userEvent.keyboard('{Control>}z{/Control}');
     expect(rows()).toHaveLength(2);
     await userEvent.keyboard('{Control>}y{/Control}');
     expect(rows()).toHaveLength(1);
+    await userEvent.keyboard('{Control>}a{/Control}');
     await userEvent.keyboard('{Delete}');
     expect(rows()).toHaveLength(0);
-    expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: '글 추가'}),
-    );
+    expect(document.activeElement?.getAttribute('data-gap-index')).toBe('0');
     await userEvent.keyboard('{Control>}z{/Control}');
     expect(rows()).toHaveLength(1);
   });
@@ -629,7 +628,9 @@ describe('slides editor', () => {
       );
       expect(input.isConnected).toBe(false);
       expect(screen.getAllByRole('textbox', {name: '내용'})).toHaveLength(1);
-      expect(document.activeElement?.closest('[data-slide-id]')).toBeTruthy();
+      expect(
+        document.activeElement?.closest('[data-slide-id], [data-gap-index]'),
+      ).toBeTruthy();
       await userEvent.keyboard(
         action === 'undo-add'
           ? '{Control>}y{/Control}'
@@ -712,7 +713,7 @@ describe('slides editor', () => {
       document.querySelector('[data-slide-id]')?.getAttribute('data-slide-id'),
     ).toBe(second.dataset.slideId);
     fireEvent.contextMenu(first);
-    await userEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: /^삭제/}));
     expect(screen.queryByRole('textbox', {name: '내용'})).toBeNull();
   });
 

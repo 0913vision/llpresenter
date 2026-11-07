@@ -98,7 +98,7 @@ export const slideSchema = v.pipe(
   ),
 );
 
-const slidesSchema = v.pipe(
+export const slidesSchema = v.pipe(
   jsonObject({
     form: v.picklist(['blank', 'ad']),
     name: slideNameSchema,

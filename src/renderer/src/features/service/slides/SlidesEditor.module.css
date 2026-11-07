@@ -81,6 +81,27 @@
   outline: var(--radius-hairline) solid var(--accent);
   outline-offset: calc(-1 * var(--radius-hairline));
 }
+.gap {
+  display: block;
+  width: 100%;
+  height: var(--space-8);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.gap::after {
+  content: '';
+  display: block;
+  height: var(--space-2);
+  margin-inline: var(--space-14);
+  background: transparent;
+}
+.gap[data-caret]::after,
+.gap:hover::after,
+.gap:focus-visible::after {
+  background: var(--accent);
+}
 .number {
   font: var(--type-caption);
   color: var(--text-3);

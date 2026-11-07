@@ -116,15 +116,25 @@ have landed.
   selected verse; editing a reference never creates copied verse text in the
   service file. Missing source text or a failed measurement refuses the
   insertion with a reason, retaining the draft.
-- Drag rows to reorder. Delete outside a text field or 삭제 on a row's context
-  menu removes it. Ctrl Z and Ctrl Y undo and redo local changes. The preview
-  has 청중 화면, 무대 화면, and 방송 화면 tabs and a position caption. Removing
-  a focused row focuses the next remaining row, or 글 추가 when empty, so
-  keyboard undo remains available. Undo or redo that removes the focused row
-  restores focus the same way, including focus inside its input. Keyboard 저장
-  preserves the focused control and its selection while editing is disabled,
-  restoring both when the same draft is editable again. Saving ends the current
-  typing group, so continued typing can be undone to the saved text.
+- Click a row to select it, Shift to extend a range, or Ctrl to toggle one. Ctrl
+  A selects all and Esc clears. Clicking a gap clears selection and sets a 2px
+  insertion caret; arrows move it and Shift arrows extend selection. Ctrl C/X/V
+  copy, cut, and paste; Ctrl D duplicates after the selection. Paste inserts at
+  the caret or after the last selected row. Copies get new IDs and retain
+  picture IDs, ad names, and verse references. Structured rows paste between
+  items of the same form; outside plain text (including copied song lines) makes
+  text rows split at blank lines.
+- Drag moves the whole selection. Delete outside a text field removes the
+  selection. The row and gap context menus expose clipboard, duplicate, delete,
+  undo, and redo commands with shortcuts. Text fields keep native text selection
+  and clipboard behavior. Ctrl Z and Ctrl Y undo and redo local item edits and
+  row commands in one shared, 100-step history, restoring row selection and the
+  caret. Removing rows focuses the insertion gap, including an empty list, so
+  keyboard undo remains available. The preview has 청중 화면, 무대 화면, and
+  방송 화면 tabs and a position caption. Keyboard 저장 preserves the focused
+  control and its selection while editing is disabled, restoring both when the
+  same draft is editable again. Saving ends the current typing group, so
+  continued typing can be undone to the saved text.
 - 저장 writes the draft into its service item through the service edit path. All
   changes make one undo step in the main window. Closing or opening a different
   item with unsaved edits asks 저장, 저장 안 함, or 취소, as in the song editor.
