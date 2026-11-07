@@ -340,6 +340,31 @@ export class ServiceOrderEdits {
     });
   }
 
+  /** Inserts the whole copied selection after a row, as one undo step. */
+  insertItems(
+    serviceId: ServiceId,
+    items: readonly ServiceItem[],
+    afterId: ServiceItemId | null,
+  ) {
+    return this.update(serviceId, service => {
+      const selected =
+        afterId === null
+          ? service.order.length - 1
+          : service.order.findIndex(item => item.id === afterId);
+      if (afterId !== null && selected < 0) {
+        return refuse('not-found', 'The paste target is gone');
+      }
+      return {
+        ok: true,
+        value: [
+          ...service.order.slice(0, selected + 1),
+          ...items,
+          ...service.order.slice(selected + 1),
+        ],
+      };
+    });
+  }
+
   /** Prepares an item under the close gate and inserts it in the current section. */
   insertItemInSection(
     serviceId: ServiceId,

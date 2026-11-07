@@ -332,7 +332,7 @@ output.
 | song   | 곡 편집…                               | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                       | Moved  |
 | other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                       | Now    |
 | header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
-| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Off    |
+| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Now    |
 | 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list. | Now    |
 | 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, or 미디어 item has no name of its own (it shows its source's name), so its row stays disabled as Later.           | Now    |
 | 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                             | Now    |
@@ -341,6 +341,12 @@ output.
 
 - Groups: 숨기기 | 라이브러리에 저장… and 라이브러리에서 다시 불러오기 | 곡
   편집… | 출력 대상 | clipboard and 삭제 | 라이브러리와 내보내기.
+
+The 예배 순서 item menu's 복사 and 붙여넣기 rows run the same item clipboard
+commands as Ctrl C/V and 편집. A selected row copies the whole selection; an
+unselected clicked row copies itself. Paste uses the clicked row as its anchor.
+An empty item clipboard, read-only destination or full destination disables
+붙여넣기 with its reason. Text fields keep their native clipboard commands.
 
 ### 예배 순서 고르기
 

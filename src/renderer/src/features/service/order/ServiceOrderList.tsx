@@ -30,6 +30,7 @@ import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
+import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -38,6 +39,8 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
+import {useServiceItemSelection} from './useServiceItemSelection';
+import {useServiceItemClipboard} from './useServiceItemClipboard';
 import {serviceOrderMenuEntries} from './serviceOrderMenu';
 import type {ServiceTableParts} from './serviceTableParts';
 import {useServiceSongMenu} from './useServiceSongMenu';
@@ -123,8 +126,10 @@ function ItemRows({
   numbers,
   renaming,
   rename,
+  selected,
 }: {
   readonly items: readonly ServiceRow[];
+  readonly selected: ReadonlySet<string>;
   readonly liveItemId: string | null;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
@@ -147,6 +152,7 @@ function ItemRows({
           <div key={row.id} data-order-id={row.id} draggable={editable}>
             {insertBefore === row.id ? <ListInsertLine /> : null}
             <ListRow
+              selected={selected.has(row.id)}
               value={row.id}
               title={row.title}
               rename={renaming === row.id ? rename(row) : undefined}
@@ -283,6 +289,38 @@ export function ServiceOrderList({
     onProblem,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  const selectableIds = useMemo(
+    () =>
+      rows
+        .filter(row => workspace === 'prep' || row.kind !== 'header')
+        .map(row => row.id),
+    [rows, workspace],
+  );
+  const selection = useServiceItemSelection({
+    serviceId,
+    cursor: openItemId,
+    ids: selectableIds,
+    onSelect: itemId => {
+      onOpenItem?.();
+      openItem(itemId);
+    },
+  });
+  const clipboard = useServiceItemClipboard({
+    serviceId,
+    selected: selection.selected,
+    editable,
+    itemCount: rows.length,
+    editing,
+    onProblem,
+    onPasted: ids => {
+      const last = ids.at(-1);
+      if (last !== undefined) selection.replace(ids, last);
+    },
+  });
+  const pasteAfter = (): string | null =>
+    openItemId !== null && selection.selected.has(openItemId)
+      ? openItemId
+      : (rows.filter(row => selection.selected.has(row.id)).at(-1)?.id ?? null);
   const [chosenRename, setRenaming] = useState<string | null>(null);
   const requestedRename = useHeaderRename(state => state.requested);
   const clearRenameRequest = useHeaderRename(state => state.clear);
@@ -412,12 +450,31 @@ export function ServiceOrderList({
   };
   useWindowShortcuts([
     {
+      id: 'edit.copy',
+      fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
+      context: 'service',
+      when: ownsCommand,
+      unavailable: () => clipboard.copyReason,
+      run: () => clipboard.copyReason === undefined && clipboard.copy(),
+    },
+    {
+      id: 'edit.paste',
+      fixedBindings: [{code: 'KeyV', mods: ['ctrl']}],
+      context: 'service',
+      when: ownsCommand,
+      unavailable: () => clipboard.pasteReason,
+      run: () => clipboard.paste(pasteAfter()),
+    },
+    {
       id: 'edit.undo',
       context: 'service',
       when: ownsCommand,
       unavailable: () => historyReason('undo'),
       run: () => {
-        if (editable) editing.run((edits, service) => edits.undo(service));
+        if (editable) {
+          listRef.current?.focus();
+          editing.run((edits, service) => edits.undo(service));
+        }
       },
     },
     {
@@ -426,7 +483,10 @@ export function ServiceOrderList({
       when: ownsCommand,
       unavailable: () => historyReason('redo'),
       run: () => {
-        if (editable) editing.run((edits, service) => edits.redo(service));
+        if (editable) {
+          listRef.current?.focus();
+          editing.run((edits, service) => edits.redo(service));
+        }
       },
     },
     {
@@ -545,6 +605,27 @@ export function ServiceOrderList({
         setMenu(null);
       },
       full,
+      clipboard: {
+        copy: () => {
+          editorTask(
+            clipboard.copy(
+              selection.selected.has(target.id)
+                ? selection.selected
+                : new Set([target.id]),
+            ),
+          );
+          setMenu(null);
+        },
+        paste: () => {
+          editorTask(clipboard.paste(target.id));
+          setMenu(null);
+        },
+        copyReason:
+          window.llp === undefined || serviceId === null
+            ? '예배 순서 불러오기 불가'
+            : undefined,
+        pasteReason: clipboard.pasteReason,
+      },
       duplicate: () => {
         duplicateItem(target.id);
         setMenu(null);
@@ -559,11 +640,16 @@ export function ServiceOrderList({
   };
   return (
     <div
+      {...clickFocusProps}
       ref={listRef}
       tabIndex={-1}
       className={styles.list}
       aria-busy={editing.busy}
       {...dragProps}
+      onClickCapture={event => {
+        dragProps.onClickCapture(event);
+        if (!event.defaultPrevented) selection.captureClick(event);
+      }}
       onContextMenu={event => {
         const id = serviceOrderRowId(event.target);
         if (id === null) return;
@@ -584,6 +670,8 @@ export function ServiceOrderList({
       }}
       onKeyDownCapture={event => {
         if (isInTextEntry(event.target)) return;
+        selection.captureKey(event);
+        if (event.defaultPrevented) return;
         if (event.key === 'Enter' && !hasModifier(event)) {
           openOrderOfSongRow(serviceOrderRowId(event.target));
         }
@@ -599,19 +687,18 @@ export function ServiceOrderList({
     >
       {table?.header}
       <ListBox
+        multiple
         workspace={workspace}
         label="예배 순서"
         selected={openItemId ?? undefined}
-        onSelect={itemId => {
-          onOpenItem?.();
-          openItem(itemId);
-        }}
+        onSelect={selection.select}
       >
         {groupRows(rows).map(group =>
           group.label === undefined ? (
             <ItemRows
               key={group.id}
               items={group.items}
+              selected={selection.selected}
               liveItemId={liveItemId}
               editable={editable}
               insertBefore={insertBefore}
@@ -645,6 +732,7 @@ export function ServiceOrderList({
             >
               {insertBefore === group.id ? <ListInsertLine /> : null}
               <ListGroup
+                selected={selection.selected.has(group.id)}
                 // NOTE(0913vision): In 진행 a section is a plain label: no
                 // click, hover, selection, or arrow stop (spec 04).
                 value={workspace === 'prep' ? group.id : undefined}
@@ -667,6 +755,7 @@ export function ServiceOrderList({
               >
                 <ItemRows
                   items={group.items}
+                  selected={selection.selected}
                   liveItemId={liveItemId}
                   editable={editable}
                   insertBefore={insertBefore}

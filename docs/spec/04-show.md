@@ -105,6 +105,23 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
   and Ctrl Z or 편집 > 실행 취소 restores the item (proposal). Both always run
   edit undo and never restore cleared output (M2 check 1 row 8; 03, 10).
 - Deleting or moving the item that is on output doesn't change the output.
+- Ctrl C and 복사 copy the selected 예배 순서 rows. Shift selects a range (also
+  with the up/down arrows, Home and End), Ctrl toggles individual rows, and an
+  unmodified click or arrow returns to one selected row. 구역 labels remain
+  passive in 진행; in 준비 they can join the selection.
+- Ctrl V and 붙여넣기 insert the copied rows after the selected cursor row, or
+  at the end with no selection. The row menu pastes after its clicked row;
+  copying from a selected row copies the whole selection, otherwise just that
+  clicked row. Rows keep their service order and all item fields, including
+  nested slides and settings; each pasted item gets a new id and independent
+  data. The source service and output stay unchanged.
+- The in-app item clipboard survives workspace and service switches, so items
+  can be pasted into another 예배 순서. It holds one snapshot, at most 1,000
+  items and 16 MiB of serialized UTF-8 data. A refused copy keeps its previous
+  contents. A paste exceeding the destination item limit is refused whole.
+  Read-only services allow copying but not pasting. The entire paste is one
+  undo/redo step. These commands also work through 편집; text fields retain
+  their native clipboard behavior.
 
 Source: `ShowH`, `Compact`, `Problems` (warning icon), `ListRow` README, `Panel`
 README, `Main` decision "구성대로 진행".

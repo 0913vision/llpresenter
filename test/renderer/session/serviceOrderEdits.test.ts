@@ -126,6 +126,84 @@ function fixture() {
 }
 
 describe('service order edits', () => {
+  it('pastes several complete items after a row as one undo and redo step, or appends them', async () => {
+    const {edits, ids, edit} = fixture();
+    const copied = [
+      {
+        id: createServiceItemId('20000000-0000-4000-8000-000000000011'),
+        header: 'Copied header',
+      },
+      {
+        id: createServiceItemId('20000000-0000-4000-8000-000000000012'),
+        futureKind: {slides: ['Keep']},
+      },
+    ];
+    expect(await edits.insertItems(serviceId, copied, first)).toEqual({
+      ok: true,
+      value: true,
+    });
+    expect(ids()).toEqual([
+      first,
+      ...copied.map(item => item.id),
+      second,
+      third,
+    ]);
+    expect(edit).toHaveBeenCalledOnce();
+    await edits.undo(serviceId);
+    expect(ids()).toEqual([first, second, third]);
+    await edits.redo(serviceId);
+    expect(ids()).toEqual([
+      first,
+      ...copied.map(item => item.id),
+      second,
+      third,
+    ]);
+    await edits.undo(serviceId);
+    await edits.insertItems(serviceId, copied, null);
+    expect(ids()).toEqual([
+      first,
+      second,
+      third,
+      ...copied.map(item => item.id),
+    ]);
+  });
+
+  it('refuses an entire paste if its anchor disappeared or the whole selection cannot fit', async () => {
+    const {edits, state, edit} = fixture();
+    const copied = [
+      {
+        id: createServiceItemId('20000000-0000-4000-8000-000000000011'),
+        header: 'One',
+      },
+      {
+        id: createServiceItemId('20000000-0000-4000-8000-000000000012'),
+        header: 'Two',
+      },
+    ];
+    expect(
+      await edits.insertItems(serviceId, copied, copied[0]?.id ?? first),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    if (state.document === null) throw new Error('Missing document');
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: Array.from({length: SERVICE_LIMITS.items - 1}, (_, index) => ({
+          id: createServiceItemId(
+            `90000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+          ),
+          header: 'Header',
+        })),
+      },
+    };
+    expect(await edits.insertItems(serviceId, copied, null)).toMatchObject({
+      ok: false,
+      error: {reason: 'full'},
+    });
+    expect(edit).not.toHaveBeenCalled();
+    expect(edits.canUndo(serviceId)).toBe(false);
+  });
+
   it('runs through the window pending writes and refuses edits once they stop', async () => {
     const {api, edits, edit} = fixture();
     const writes = pendingWritesOf(api);

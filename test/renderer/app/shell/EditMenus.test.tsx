@@ -115,7 +115,63 @@ async function reasonOf(row: HTMLElement): Promise<string | undefined> {
     : undefined;
 }
 
+function ClipboardCommands({
+  pasteReason,
+  run,
+}: {
+  readonly pasteReason: string | undefined;
+  readonly run: (id: string) => void;
+}): JSX.Element {
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  useWindowShortcuts([
+    {
+      id: 'edit.copy',
+      context: 'service',
+      when: event => event.target === target,
+      run: () => run('copy'),
+    },
+    {
+      id: 'edit.paste',
+      context: 'service',
+      when: event => event.target === target,
+      unavailable: () => pasteReason,
+      run: () => run('paste'),
+    },
+  ]);
+  return <button ref={setTarget}>clipboard list</button>;
+}
+
 describe('the 편집 menu', () => {
+  it('uses the focused item clipboard commands and their availability before falling back to text editing', async () => {
+    const user = userEvent.setup();
+    const run = vi.fn();
+    const {rerender} = render(
+      <>
+        <MenuBar title="" />
+        <ClipboardCommands pasteReason={undefined} run={run} />
+      </>,
+    );
+    screen.getByRole('button', {name: 'clipboard list'}).focus();
+    let menu = await openMenu(user, '편집');
+    expect(isOff(rowOf(menu, '복사'))).toBe(false);
+    expect(isOff(rowOf(menu, '붙여넣기'))).toBe(false);
+    await user.click(rowOf(menu, '복사'));
+    await waitFor(() => expect(run).toHaveBeenCalledWith('copy'));
+    menu = await openMenu(user, '편집');
+    await user.click(rowOf(menu, '붙여넣기'));
+    await waitFor(() => expect(run).toHaveBeenCalledWith('paste'));
+    expect(editText).not.toHaveBeenCalled();
+    rerender(
+      <>
+        <MenuBar title="" />
+        <ClipboardCommands pasteReason="복사한 항목 없음" run={run} />
+      </>,
+    );
+    screen.getByRole('button', {name: 'clipboard list'}).focus();
+    menu = await openMenu(user, '편집');
+    expect(await reasonOf(rowOf(menu, '붙여넣기'))).toBe('복사한 항목 없음');
+  });
+
   it('shows every row, off where the focused place cannot do it', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);

@@ -10,6 +10,7 @@ import {
   type ShortcutFocus,
 } from '@core/shortcuts/precedence';
 import type {CommandContext, CommandPriority} from '@core/shortcuts/registry';
+import type {KeyBinding} from '@core/schema/shortcuts';
 import {commandBindingStore} from './commandBindings';
 import {commitDraftBeforeShortcut} from './commitDraft';
 import {modalStack} from './modalStack';
@@ -19,6 +20,8 @@ import {isCommandDragActive} from './commandDrag';
 
 export interface WindowShortcut {
   readonly id: string;
+  /** Native editing keys owned by a control, outside the configurable key map. */
+  readonly fixedBindings?: readonly KeyBinding[];
   readonly context?: CommandContext;
   readonly when?: (event: KeyboardEvent) => boolean;
   /**
@@ -171,9 +174,9 @@ export function dispatchShortcut(
       if ((spec?.priority ?? 'normal') !== tier) continue;
       const matched =
         slideCode === null
-          ? commandBindings(handler.id, overrides).find(binding =>
-              matchesBinding(event, binding),
-            )
+          ? (
+              handler.fixedBindings ?? commandBindings(handler.id, overrides)
+            ).find(binding => matchesBinding(event, binding))
           : sourceSlideCode(event) === slideCode
             ? {code: event.code, mods: []}
             : undefined;
@@ -362,6 +365,7 @@ export function useCommandShortcuts(
   const enabled = handlers.filter(
     handler =>
       handler.id.startsWith('slide.') ||
+      (handler.fixedBindings?.length ?? 0) > 0 ||
       commandBindings(handler.id, bindings).length > 0,
   );
   const commands = useEffectEvent(() => enabled);

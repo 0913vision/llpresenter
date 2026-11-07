@@ -29,7 +29,7 @@ const MODIFIED_LABEL = '저장하지 않은 변경';
 export type GroupRename = RenameContract;
 
 export interface ListRowProps {
-  readonly selected?: boolean;
+  readonly selected?: boolean | undefined;
   /** The value the list reports when this row is selected. */
   readonly value: string;
   readonly title: string;
@@ -218,11 +218,10 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
     disabled = false,
   } = props;
   const {selection, onSelect, workspace} = useContext(ListBoxContext);
-  const selectedInList = useSyncExternalStore(
+  const isSelected = useSyncExternalStore(
     selection.subscribe,
-    () => selection.get() === value,
+    () => props.selected ?? selection.get() === value,
   );
-  const isSelected = props.selected ?? selectedInList;
   const titleId = useId();
   const {targetProps, tooltip} = useTooltip(titleTooltip(props.reason));
   const select = (): void => onSelect(value);
@@ -338,12 +337,14 @@ export function NameField({
 export function ListGroup({
   label,
   value,
+  selected,
   rename,
   actions,
   children,
 }: {
   readonly label: string;
   readonly value?: string | undefined;
+  readonly selected?: boolean | undefined;
   readonly rename?: GroupRename | undefined;
   readonly actions?: ReactNode;
   readonly children: ReactNode;
@@ -353,6 +354,7 @@ export function ListGroup({
     value !== undefined ? (
       <ListRow
         value={value}
+        selected={selected}
         title={label}
         rename={rename}
         className={classNames(styles.group, styles.groupRow)}

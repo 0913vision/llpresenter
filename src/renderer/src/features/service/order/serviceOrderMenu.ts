@@ -17,6 +17,12 @@ export interface ServiceOrderMenuInput {
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
   readonly duplicate: () => void;
+  readonly clipboard?: {
+    readonly copy: () => void;
+    readonly paste: () => void;
+    readonly copyReason: string | undefined;
+    readonly pasteReason: string | undefined;
+  };
   /** Whether the 예배 순서 is at its item limit, which stops a copy. */
   readonly full?: boolean;
   readonly remove: () => void;
@@ -174,8 +180,32 @@ export function serviceOrderMenuEntries(
     laterRow('hide', '항목 숨기기'),
     ...(open.length > 0 ? [menuSeparator('open-separator'), ...open] : []),
     menuSeparator('clipboard-separator'),
-    laterRow('copy', '복사', {meta: 'Ctrl C'}),
-    laterRow('paste', '붙여넣기', {meta: 'Ctrl V'}),
+    {
+      kind: 'item',
+      id: 'copy',
+      label: '복사',
+      meta: 'Ctrl C',
+      ...menuAvailability(
+        input.clipboard?.copyReason ??
+          (input.clipboard === undefined
+            ? '선택한 항목이 없습니다'
+            : undefined),
+      ),
+      onSelect: input.clipboard?.copy,
+    },
+    {
+      kind: 'item',
+      id: 'paste',
+      label: '붙여넣기',
+      meta: 'Ctrl V',
+      ...menuAvailability(
+        input.clipboard?.pasteReason ??
+          (input.clipboard === undefined
+            ? '복사한 예배 순서 항목이 없습니다'
+            : undefined),
+      ),
+      onSelect: input.clipboard?.paste,
+    },
     {
       kind: 'item',
       id: 'duplicate',

@@ -63,6 +63,10 @@ have landed.
 - Cells without a background, start macro, or memo stay empty while retaining
   their menu or field on click and a frame on hover. Item rows are 44px and
   section rows 32px; section names have a thin line above except the first.
+- The table shares 진행's item selection and clipboard (04, "Editing the 예배
+  순서 in 진행"): Shift selects a range, Ctrl toggles rows, and Ctrl C/V, 편집
+  and the row menu copy/paste complete items within or across services. Pasting
+  is one undo step and never changes output or the source item.
 
 ### Slides items and 슬라이드 편집
 

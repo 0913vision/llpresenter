@@ -77,8 +77,15 @@ function textRow(
 ): MenuItem {
   const field = textField(place);
   const needsSelection = action === 'cut' || action === 'copy';
-  const reason =
-    field === null
+  const command =
+    action === 'copy' || action === 'paste' ? `edit.${action}` : undefined;
+  const probe =
+    field === null && command !== undefined
+      ? probeCommand(command, place)
+      : ({found: false} as const);
+  const reason = probe.found
+    ? probe.reason
+    : field === null
       ? TEXT_FIELD_ONLY
       : needsSelection && !hasSelection(field)
         ? NO_SELECTION
@@ -91,6 +98,10 @@ function textRow(
     ...menuAvailability(reason),
     onSelect: afterMenu(() => {
       if (field !== null) edit(field, action);
+      else if (command !== undefined) {
+        if (place instanceof HTMLElement) place.focus();
+        runCommandAt(command, place);
+      }
     }),
   };
 }
