@@ -174,11 +174,13 @@ describe('theme composition drawing', () => {
       const lyrics = root.querySelector<HTMLElement>(
         '[data-kind="currentText"]',
       );
-      const video = background?.querySelector<HTMLVideoElement>('video[src]');
+      const video = background?.querySelector<
+        HTMLVideoElement | HTMLImageElement
+      >(mode === 'preview' ? 'img[src]' : 'video[src]');
       if (background == null || lyrics == null || video == null) {
         throw new Error('Missing composition');
       }
-      video.dispatchEvent(new Event('playing'));
+      video.dispatchEvent(new Event(mode === 'preview' ? 'load' : 'playing'));
       expect(video.style.zIndex).toBe('1');
       expect(
         background.compareDocumentPosition(lyrics) &

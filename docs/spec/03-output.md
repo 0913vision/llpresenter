@@ -567,9 +567,18 @@ empty picture and the main process retries after a cool-down. See 08.
 
 ## Previews and frame rate
 
-- The previews in 진행 and 준비 show a scaled copy drawn by the same rendering
-  code as the output windows. They draw at the 환경설정 미리보기 (preview) rate,
-  30 fps by default, to lighten the load (proposal).
+- Control-window previews, screen tiles, preparation previews, slide thumbnails,
+  theme editor canvases, and song background controls show video as its cached
+  media-bin thumbnail, using the element's fit. They never create a video
+  element or decode the video. Their theme layout, text, and live position
+  indicator still follow the output state.
+- Only real outputs play video automatically. The media properties player shows
+  the cached thumbnail until the operator presses its play button; only then
+  does it load and play the file locally.
+- Image media keeps its original file in previews, preserving portrait content
+  and transparency. Cached video thumbnails are never substituted for images.
+  Theme video countdowns in live previews read main's media progress, without a
+  decoder or a separate playback clock.
 - Output windows aim for 60 fps. Each second, they measure their actual frame
   rate and report it to the main process. The status bar shows the value. If the
   rate stays more than 10% below the target for 2 seconds, the status turns to a

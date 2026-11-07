@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {ComponentProps} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {
   createMediaId,
   createServiceItemId,
@@ -152,16 +152,14 @@ describe('slide-header background control', () => {
     expect(onChoose).toHaveBeenCalledWith(video.id);
   });
 
-  it('keeps the video paused and releases its source when the selection changes', () => {
+  it('shows the cached video thumbnail without a decoder and follows the selection', () => {
     const {container, rerender, onChoose} = setup({
       selection: {...selection, mediaId: video.id},
     });
-    const element = container.querySelector('video');
-    if (element === null) throw new Error('Missing video thumbnail');
-    expect(element.muted).toBe(true);
-    expect(element.autoplay).toBe(false);
-    expect(element.preload).toBe('metadata');
-    expect(element.getAttribute('src')).toBe(mediaUrl(video.id));
+    expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      thumbnailUrl(video.id),
+    );
     rerender(
       <SongBackgroundSelect
         items={items}
@@ -169,9 +167,9 @@ describe('slide-header background control', () => {
         onChoose={onChoose}
       />,
     );
-    expect(element.getAttribute('src')).toBeNull();
-    expect(element.pause).toHaveBeenCalledOnce();
-    expect(element.load).toHaveBeenCalledOnce();
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      mediaUrl(image.id),
+    );
   });
 
   it.each([{readOnly: true}, {busy: true}])(

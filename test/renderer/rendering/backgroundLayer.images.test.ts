@@ -40,7 +40,7 @@ function incomingImage(parent: HTMLElement): HTMLImageElement {
   return image;
 }
 
-describe.each<RenderMode>(['output', 'preview'])(
+describe.each<RenderMode>(['output'])(
   'BackgroundLayerView images in %s mode',
   mode => {
     it('shows an image background after decoding it without a video playback error', async () => {

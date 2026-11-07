@@ -31,7 +31,7 @@ describe('BackgroundLayerView handovers', () => {
     expect(front.getAttribute('src')).toBe(urlOf('still-water'));
   });
 
-  it.each<RenderMode>(['output', 'preview'])(
+  it.each<RenderMode>(['output'])(
     'holds the last frame of the outgoing background while the next one is slow to start (%s)',
     mode => {
       const {view, videos} = setUp(mode);
@@ -86,112 +86,6 @@ describe('BackgroundLayerView rapid changes', () => {
     expect(isShown(second)).toBe(true);
     expect(second.classList.contains(classes.dissolving)).toBe(true);
     expect(second.style.zIndex).toBe('1');
-  });
-});
-
-describe('BackgroundLayerView in a preview', () => {
-  it('loops on the one video that shows the background and lets the other go', async () => {
-    const clock = installMockClock();
-    const {view, videos} = setUp('preview');
-    const [spare, front] = videos;
-    view.show(WARM_LIGHT);
-    expect(front.loop).toBe(true);
-    front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
-    expect(spare.hasAttribute('src')).toBe(false);
-    front.dispatchEvent(new Event('ended'));
-    expect(playsOf(spare)).toBe(0);
-    expect(playsOf(front)).toBe(1);
-  });
-
-  it('still dissolves to a new background on the other video', async () => {
-    const clock = installMockClock();
-    const {view, videos} = setUp('preview');
-    const [older, first] = videos;
-    view.show(WARM_LIGHT);
-    first.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
-    view.show(STILL_WATER);
-    expect(older.getAttribute('src')).toBe(urlOf('still-water'));
-    expect(older.loop).toBe(true);
-    older.dispatchEvent(new Event('playing'));
-    expect(older.classList.contains(classes.dissolving)).toBe(true);
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
-    expect(first.hasAttribute('src')).toBe(false);
-  });
-
-  it('dissolves for the time of the setting from the next background on', async () => {
-    const clock = installMockClock();
-    const {view, videos, parent} = setUp('preview');
-    const [older, first] = videos;
-    const layer = parent.firstElementChild;
-    view.show(WARM_LIGHT);
-    first.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
-    view.setDissolveMs(1200);
-    view.show(STILL_WATER);
-    older.dispatchEvent(new Event('playing'));
-    expect(older.classList.contains(classes.dissolving)).toBe(true);
-    expect(
-      layer instanceof HTMLElement &&
-        layer.style.getPropertyValue('--background-dissolve'),
-    ).toBe('1200ms');
-  });
-
-  it('cuts to the next background when the time is 0', async () => {
-    const clock = installMockClock();
-    const {view, videos} = setUp('preview');
-    const [older, first] = videos;
-    view.show(WARM_LIGHT);
-    first.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
-    view.setDissolveMs(0);
-    view.show(STILL_WATER);
-    older.dispatchEvent(new Event('playing'));
-    expect(older.classList.contains(classes.dissolving)).toBe(false);
-    expect(older.classList.contains(classes.shown)).toBe(true);
-  });
-
-  it('follows a change of the loop setting on the same background', () => {
-    const {view, videos} = setUp('preview');
-    view.show(WARM_LIGHT);
-    videos[1].dispatchEvent(new Event('playing'));
-    view.show({...WARM_LIGHT, loop: false});
-    expect(videos[1].loop).toBe(false);
-  });
-
-  it.each([true, false])(
-    'gives a loop change before the next background plays to its video (loop %s)',
-    loop => {
-      const {view, videos} = setUp('preview');
-      const [incoming, outgoing] = videos;
-      view.show(STILL_WATER);
-      outgoing.dispatchEvent(new Event('playing'));
-      view.show({...WARM_LIGHT, loop: !loop});
-      view.show({...WARM_LIGHT, loop});
-      expect(incoming.loop).toBe(loop);
-      expect(outgoing.loop).toBe(false);
-      incoming.dispatchEvent(new Event('playing'));
-      expect(incoming.loop).toBe(loop);
-    },
-  );
-
-  it('does not loop the old background when the new one fails to start', () => {
-    const {view, videos} = setUp('preview');
-    const [incoming, outgoing] = videos;
-    view.show(STILL_WATER);
-    outgoing.dispatchEvent(new Event('playing'));
-    view.show(WARM_LIGHT);
-    incoming.dispatchEvent(new Event('error'));
-    view.show(WARM_LIGHT);
-    expect(outgoing.loop).toBe(false);
-    expect(incoming.loop).toBe(false);
-  });
-
-  it('never loops natively in an output window', () => {
-    const {view, videos} = setUp();
-    view.show(WARM_LIGHT);
-    expect(videos[1].loop).toBe(false);
   });
 });
 

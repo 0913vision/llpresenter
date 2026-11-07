@@ -1,9 +1,21 @@
 import {resolveThemeOutput} from '@core/themes/output';
-import {themeFile, themeScreens, THEME_MAIN} from '@fixtures/core/themeOutput';
+import {
+  themeFile,
+  themeScreens,
+  THEME_MAIN,
+  themeElementBase,
+} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {
+  mediaDocument,
+  mediaItem,
+  mediaId,
+} from '@fixtures/renderer/features/media/mediaTesting';
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
+import type {MediaProgress} from '@core/schema/mediaProgress';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
@@ -17,6 +29,8 @@ import {
   STAGE_SCREEN,
 } from '@fixtures/core/screenIds';
 
+const progressListeners = new Set<(reading: MediaProgress | null) => void>();
+
 class MockResizeObserver {
   observe(): void {}
   disconnect(): void {}
@@ -24,6 +38,7 @@ class MockResizeObserver {
 
 beforeEach(() => {
   vi.useFakeTimers();
+  progressListeners.clear();
   vi.stubGlobal('ResizeObserver', MockResizeObserver);
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
@@ -40,7 +55,20 @@ beforeEach(() => {
     item: themeItem,
     revision: 1,
   });
-  const main = themeOutput.screens[THEME_MAIN];
+  const initialMain = themeOutput.screens[THEME_MAIN];
+  const main =
+    initialMain === undefined
+      ? undefined
+      : {
+          ...initialMain,
+          layout: {
+            ...initialMain.layout,
+            elements: [
+              ...initialMain.layout.elements,
+              {...themeElementBase(99), kind: 'videoTimeLeft' as const},
+            ],
+          },
+        };
   if (main === undefined) throw new Error('Missing main theme');
   useLive.setState({
     state: {
@@ -59,12 +87,39 @@ beforeEach(() => {
       },
       layers: {
         ...emptyLiveState().layers,
-        media: {mediaId: 'preview-loop', loop: true, startedAt: Date.now()},
+        media: {mediaId: mediaId(1), loop: true, startedAt: Date.now()},
       },
     },
   });
   window.llp = mockLlpApi({
-    live: {send: vi.fn()},
+    live: {
+      send: vi.fn(),
+      mediaProgress: async () => ({
+        mediaId: mediaId(1),
+        startedAt: useLive.getState().state?.layers.media?.startedAt ?? 1,
+        positionSeconds: 0,
+        durationSeconds: 12,
+      }),
+      subscribeMediaProgress: listener => {
+        progressListeners.add(listener);
+        return () => {
+          progressListeners.delete(listener);
+        };
+      },
+    },
+    media: {
+      get: async () =>
+        mediaDocument([
+          mediaItem(1, {duration: 12}),
+          mediaItem(2, {
+            kind: 'image',
+            file: 'portrait.png',
+            width: 200,
+            height: 600,
+          }),
+          mediaItem(3, {kind: 'image', file: 'transparent.png'}),
+        ]),
+    },
     settings: {
       get: async ({name}) =>
         name === 'screens'
@@ -83,42 +138,126 @@ afterEach(() => {
 });
 
 describe('PreviewPanel real renderer lifecycle', () => {
-  it('keeps all videos, their parents and playback positions across selection and resizing', async () => {
+  it('keeps the stage video countdown advancing without any video element', async () => {
+    const {container, unmount} = render(<PreviewPanel compact={false} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const countdowns = [
+      ...container.querySelectorAll('[data-kind="videoTimeLeft"]'),
+    ];
+    expect(countdowns).toHaveLength(3);
+    await act(async () => {
+      for (const listener of progressListeners) {
+        listener({
+          mediaId: mediaId(1),
+          startedAt: useLive.getState().state?.layers.media?.startedAt ?? 1,
+          positionSeconds: 1,
+          durationSeconds: 12,
+        });
+      }
+      vi.advanceTimersByTime(1000);
+    });
+    expect(countdowns.map(view => view.textContent)).toEqual([
+      '0:11',
+      '0:11',
+      '0:11',
+    ]);
+    await act(async () => {
+      for (const listener of progressListeners) {
+        listener({
+          mediaId: mediaId(1),
+          startedAt: useLive.getState().state?.layers.media?.startedAt ?? 1,
+          positionSeconds: 3,
+          durationSeconds: 12,
+        });
+      }
+      vi.advanceTimersByTime(2000);
+    });
+    expect(countdowns.map(view => view.textContent)).toEqual([
+      '0:09',
+      '0:09',
+      '0:09',
+    ]);
+    expect(container.querySelector('video')).toBeNull();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each([
+    {id: 2, name: 'portrait'},
+    {id: 3, name: 'transparent'},
+  ])(
+    'keeps the original $name image instead of a cropped JPEG thumbnail',
+    async ({id}) => {
+      const live = useLive.getState().state;
+      if (live === null) throw Error('Missing live state');
+      useLive.setState({
+        state: {
+          ...live,
+          layers: {
+            ...live.layers,
+            media: {mediaId: mediaId(id), loop: false, startedAt: Date.now()},
+          },
+        },
+      });
+      const {container, unmount} = render(<PreviewPanel compact={false} />);
+      await act(async () => {
+        await Promise.resolve();
+      });
+      const images = [
+        ...container.querySelectorAll<HTMLImageElement>('img[src]'),
+      ];
+      expect(images).toHaveLength(3);
+      expect(
+        images.every(
+          image => image.getAttribute('src') === mediaUrl(mediaId(id)),
+        ),
+      ).toBe(true);
+      expect(
+        images.some(
+          image => image.getAttribute('src') === thumbnailUrl(mediaId(id)),
+        ),
+      ).toBe(false);
+      expect(container.querySelector('video')).toBeNull();
+      unmount();
+    },
+  );
+
+  it('keeps cached stills across selection and resizing without ever creating video elements', async () => {
     const {container, rerender, unmount} = render(
       <PreviewPanel compact={false} />,
     );
     await act(async () => {
       await Promise.resolve();
     });
-    const videos = [...container.querySelectorAll('video')];
-    const playing = [
-      ...container.querySelectorAll<HTMLVideoElement>('video[src]'),
+    const pictures = [...container.querySelectorAll('img')];
+    const stills = [
+      ...container.querySelectorAll<HTMLImageElement>('img[src]'),
     ];
     expect(container.querySelectorAll(`.${classes.root}`)).toHaveLength(3);
-    expect(videos.length).toBeGreaterThanOrEqual(playing.length);
-    expect(playing).toHaveLength(3);
-    for (const video of playing) fireEvent.playing(video);
-    act(() => {
+    expect(container.querySelector('video')).toBeNull();
+    expect(stills).toHaveLength(3);
+    expect(
+      stills.every(image => image.src.startsWith('llp-media://thumbnail/')),
+    ).toBe(true);
+    for (const image of stills) fireEvent.load(image);
+    await act(async () => {
       vi.advanceTimersByTime(BACKGROUND_DISSOLVE_MS);
     });
-    for (const [index, video] of playing.entries()) {
-      video.currentTime = 12 + index;
-    }
-    const parents = videos.map(video => video.parentElement);
+    const parents = pictures.map(image => image.parentElement);
     const live = useLive.getState().state;
-    vi.mocked(HTMLMediaElement.prototype.play).mockClear();
-    vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
-    vi.mocked(HTMLMediaElement.prototype.load).mockClear();
 
     for (const compact of [true, false]) {
       rerender(<PreviewPanel compact={compact} />);
       for (const name of ['무대 화면', '방송 화면', '청중 화면']) {
         fireEvent.click(screen.getByRole('button', {name: new RegExp(name)}));
-        expect([...container.querySelectorAll('video')]).toEqual(videos);
-        expect(videos.map(video => video.parentElement)).toEqual(parents);
-        expect(videos.every(video => video.isConnected)).toBe(true);
-        expect(playing.map(video => video.currentTime)).toEqual([12, 13, 14]);
-        expect([...container.querySelectorAll('video[src]')]).toEqual(playing);
+        expect(container.querySelector('video')).toBeNull();
+        expect([...container.querySelectorAll('img')]).toEqual(pictures);
+        expect(pictures.map(image => image.parentElement)).toEqual(parents);
+        expect(pictures.every(image => image.isConnected)).toBe(true);
+        expect([...container.querySelectorAll('img[src]')]).toEqual(stills);
       }
     }
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
@@ -128,14 +267,10 @@ describe('PreviewPanel real renderer lifecycle', () => {
     expect(window.llp?.live.send).not.toHaveBeenCalled();
 
     unmount();
-    expect(videos.every(video => !video.hasAttribute('src'))).toBe(true);
-    expect(videos.every(video => !video.isConnected)).toBe(true);
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(
-      videos.length,
-    );
-    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(
-      videos.length,
-    );
+    expect(pictures.every(image => !image.hasAttribute('src'))).toBe(true);
+    expect(pictures.every(image => !image.isConnected)).toBe(true);
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   });
 });

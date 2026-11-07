@@ -1,11 +1,17 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MediaPreviewPlayer} from '@renderer/features/media/MediaPreviewPlayer';
@@ -38,11 +44,36 @@ function player(item: MediaItem, missing = false) {
   const view = render(
     <MediaPreviewPlayer item={item} missing={missing} onReveal={onReveal} />,
   );
+  if (item.kind === 'video' && !missing) {
+    fireEvent.click(within(view.container).getByRole('button', {name: '재생'}));
+    const element = view.container.querySelector('video');
+    if (element !== null) fireEvent.loadedMetadata(element);
+    vi.mocked(HTMLMediaElement.prototype.play).mockClear();
+  }
   const media = view.container.querySelector<HTMLMediaElement>('video, audio');
   return {...view, onReveal, media};
 }
 
 describe('media preview player', () => {
+  it('shows only the cached video thumbnail until the operator requests playback', () => {
+    const item = mediaItem(1);
+    const view = render(
+      <MediaPreviewPlayer item={item} missing={false} onReveal={vi.fn()} />,
+    );
+    expect(view.container.querySelector('video')).toBeNull();
+    expect(view.container.querySelector('img')?.getAttribute('src')).toBe(
+      thumbnailUrl(item.id),
+    );
+    expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', {name: '재생'}));
+    const video = view.container.querySelector('video');
+    expect(video?.getAttribute('src')).toBe(mediaUrl(item.id));
+    if (video === null) throw Error('Missing requested player');
+    fireEvent.loadedMetadata(video);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+  });
+
   afterEach(resetTooltips);
 
   it.each(['video', 'audio'] as const)(
@@ -54,13 +85,21 @@ describe('media preview player', () => {
           <MediaPreviewPlayer item={item} missing={false} onReveal={vi.fn()} />
         </StrictMode>,
       );
+      if (kind === 'video') {
+        expect(view.container.querySelector('video')).toBeNull();
+      }
+      fireEvent.click(screen.getByRole('button', {name: '재생'}));
       const element = view.container.querySelector('video, audio');
       expect(element?.getAttribute('src')).toBe(mediaUrl(item.id));
-      fireEvent.click(screen.getByRole('button', {name: '재생'}));
+      if (kind === 'video' && element !== null) {
+        fireEvent.loadedMetadata(element);
+      }
       expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
       view.unmount();
       expect(element?.hasAttribute('src')).toBe(false);
-      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(2);
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(
+        kind === 'video' ? 1 : 2,
+      );
     },
   );
 
@@ -164,8 +203,17 @@ describe('media preview player', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const error = new Error('Invented decoder refusal');
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(error);
-    player(mediaItem(1));
+    const view = render(
+      <MediaPreviewPlayer
+        item={mediaItem(1)}
+        missing={false}
+        onReveal={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', {name: '재생'}));
+    const video = view.container.querySelector('video');
+    if (video === null) throw Error('Missing requested player');
+    fireEvent.loadedMetadata(video);
     await vi.waitFor(() =>
       expect(warn).toHaveBeenCalledExactlyOnceWith(
         'Could not play the media preview',

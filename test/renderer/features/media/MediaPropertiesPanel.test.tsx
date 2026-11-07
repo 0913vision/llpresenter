@@ -90,13 +90,11 @@ describe('media properties panel', () => {
       for (let round = 0; round < 20; round += 1) {
         await choose('Dawn');
         expect(panel.querySelectorAll('*')).toHaveLength(videoCount);
-        expect(panel.querySelectorAll('video')).toHaveLength(1);
+        expect(panel.querySelector('video')).toBeNull();
         expect(within(panel).getAllByRole('spinbutton')).toHaveLength(1);
         await choose('Notice');
         expect(panel.querySelectorAll('*')).toHaveLength(imageCount);
-        expect(panel.querySelectorAll('video')).toHaveLength(
-          kind === 'video' ? 1 : 0,
-        );
+        expect(panel.querySelector('video')).toBeNull();
         expect(within(panel).queryAllByRole('spinbutton')).toHaveLength(
           kind === 'video' ? 1 : 0,
         );
@@ -234,6 +232,8 @@ describe('media properties panel', () => {
     const fixture = setup();
     const reveal = vi.spyOn(fixture.api.media, 'reveal');
     const panel = await choose('Dawn');
+    expect(panel.querySelector('video')).toBeNull();
+    fireEvent.click(within(panel).getByRole('button', {name: '재생'}));
     expect(panel.querySelector('video')).not.toBeNull();
     fireEvent.click(
       within(panel).getByRole('button', {name: '파일 위치 열기'}),

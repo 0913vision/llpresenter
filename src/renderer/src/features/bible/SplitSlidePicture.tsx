@@ -3,6 +3,7 @@ import {emptyLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
 import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
 import type {SplitAppearance} from './splitProjection';
@@ -75,9 +76,11 @@ export function SplitSlidePicture({
   });
   useLayoutEffect(() => {
     if (parent.current === null) return;
+    const previewMedia = openPreviewMedia(window.llp);
     const view = new OutputRenderer(parent.current, {
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
+      previewMedia,
       mode: 'preview',
       biblePreview: {elementId: element.id, maxLines},
       onError: (message, error) => console.error(message, error),
@@ -87,6 +90,7 @@ export function SplitSlidePicture({
     return () => {
       renderer.current = null;
       view.dispose();
+      previewMedia?.dispose();
     };
   }, [element.id, maxLines]);
   useLayoutEffect(

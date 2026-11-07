@@ -1,7 +1,7 @@
 import {NOT_YET} from '@renderer/ui/menuRows';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useEffect, useId, useRef, useState, type JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {useId, useState, type JSX} from 'react';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';
@@ -26,27 +26,11 @@ const CHEVRON_SIZE = 12;
 // TODO(0913vision): Enable relinking when P6a implements media.relink.
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
-  const video = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const element = video.current;
-    return () => {
-      if (element === null) return;
-      element.pause();
-      element.removeAttribute('src');
-      element.load();
-    };
-  }, [media.id, media.kind]);
-  return media.kind === 'image' ? (
-    <img className={styles.picture} src={mediaUrl(media.id)} alt="" />
-  ) : (
-    <video
-      key={media.id}
-      ref={video}
+  return (
+    <img
       className={styles.picture}
-      src={mediaUrl(media.id)}
-      muted
-      preload="metadata"
-      aria-hidden="true"
+      src={media.kind === 'video' ? thumbnailUrl(media.id) : mediaUrl(media.id)}
+      alt=""
     />
   );
 }
@@ -82,7 +66,7 @@ interface BackgroundSelectProps {
   readonly onChoose: (mediaId: MediaId | null) => void;
 }
 
-/** The header's media choice with a still image or a paused video frame. */
+/** The header's media choice with a still image or cached video thumbnail. */
 export function SongBackgroundSelect({
   items,
   defaultMediaId,

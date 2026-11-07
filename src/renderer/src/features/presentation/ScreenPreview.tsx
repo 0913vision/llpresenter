@@ -3,6 +3,7 @@ import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {useLive} from '@renderer/session/live';
 import styles from './ScreenPreview.module.css';
@@ -33,9 +34,11 @@ export function ScreenPreview({
   useEffect(() => {
     const screen = screenRef.current;
     if (!screen) return undefined;
+    const previewMedia = openPreviewMedia(window.llp);
     const renderer = new OutputRenderer(screen, {
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
+      previewMedia,
       onError: reportDrawingError,
       mode: 'preview',
     });
@@ -70,6 +73,7 @@ export function ScreenPreview({
       unsubscribe();
       frames?.dispose();
       renderer.dispose();
+      previewMedia?.dispose();
     };
   }, [screenId]);
 

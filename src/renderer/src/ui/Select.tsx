@@ -1,6 +1,4 @@
 import {
-  useEffect,
-  useRef,
   type ComponentPropsWithRef,
   type JSX,
   type KeyboardEvent,
@@ -21,7 +19,6 @@ export type SelectLead =
   | {
       readonly kind: 'media';
       readonly src: string;
-      readonly mediaType?: 'image' | 'video';
     }
   | {readonly kind: 'tile'; readonly color: MacroColor; readonly icon: string};
 
@@ -70,11 +67,7 @@ function Lead({
         <Icon name={lead.icon} size={iconSize[size]} className={styles.icon} />
       );
     case 'media':
-      return lead.mediaType === 'video' ? (
-        <VideoLead src={lead.src} />
-      ) : (
-        <img className={styles.media} src={lead.src} alt="" />
-      );
+      return <img className={styles.media} src={lead.src} alt="" />;
     case 'tile':
       return (
         <span
@@ -85,31 +78,6 @@ function Lead({
         </span>
       );
   }
-}
-
-function VideoLead({src}: {readonly src: string}): JSX.Element {
-  const element = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const video = element.current;
-    if (video === null) return undefined;
-    video.src = src;
-    video.load();
-    return () => {
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-    };
-  }, [src]);
-  return (
-    <video
-      ref={element}
-      className={styles.media}
-      muted
-      preload="metadata"
-      playsInline
-      aria-hidden="true"
-    />
-  );
 }
 
 /**

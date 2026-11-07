@@ -6,20 +6,22 @@ import {applySink} from './audioSink';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
 import {mediaObjectFit} from '@core/media/objectFit';
+import {StillBackgroundLayerView} from './stillBackgroundLayer';
+import type {PreviewMediaSource} from './previewMedia';
 
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
 export const BACKGROUND_DISSOLVE_MS = OUTPUT_TRANSITIONS.backgroundMs;
 
 /**
  * Where a renderer draws: an output window, or a small preview in the control
- * window. A preview keeps one video playing per background, to spare
- * decoders over long runs.
+ * window. A preview draws cached thumbnails without creating video elements.
  */
 export type RenderMode = 'output' | 'preview';
 
 export interface BackgroundLayerOptions {
-  /** The URL that plays a library media file. */
+  /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
+  readonly previewMedia?: PreviewMediaSource | undefined;
   readonly onError: (message: string, error: unknown) => void;
   /** `output` when absent. */
   readonly mode?: RenderMode;
@@ -106,7 +108,7 @@ function unload(video: HTMLVideoElement): void {
  * the spare, loaded at the start, when the front ends. A new background
  * starts on the spare and dissolves over the old one.
  */
-export class BackgroundLayerView {
+class PlaybackBackgroundLayerView {
   private readonly options: Omit<BackgroundLayerOptions, 'onError'>;
   private onError: BackgroundLayerOptions['onError'];
   private readonly element = document.createElement('div');
@@ -207,7 +209,6 @@ export class BackgroundLayerView {
       }
     }
     if (unchanged) {
-      this.loopNativelyInPreview();
       return;
     }
     this.failed = false;
@@ -310,7 +311,6 @@ export class BackgroundLayerView {
     this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: this.transitions, contentChange: true};
-    this.loopNativelyInPreview();
     this.play(video);
   }
 
@@ -369,10 +369,7 @@ export class BackgroundLayerView {
     try {
       video.playbackRate = properties?.speed ?? 1;
       video.volume = ((properties?.volume ?? 100) / 100) * this.audioGain;
-      video.muted =
-        (this.options.muted ?? true) ||
-        this.isPreview() ||
-        properties?.audio !== true;
+      video.muted = (this.options.muted ?? true) || properties?.audio !== true;
     } catch (error) {
       this.onError('could not apply background media properties', error);
     }
@@ -484,29 +481,9 @@ export class BackgroundLayerView {
     this.spareTimer = setTimeout(() => this.prepareSpare(), SPARE_DELAY_MS);
   }
 
-  private isPreview(): boolean {
-    return this.options.mode === 'preview';
-  }
-
-  private loopNativelyInPreview(): void {
-    // NOTE(0913vision): A preview loops on the one video that shows, or is
-    // about to show, the current background. The loop point may hitch for a
-    // frame, which is fine on a small preview and halves its decoders. The
-    // outgoing video holds its last frame, as in an output window.
-    const showing = this.handover?.to ?? this.front;
-    for (const index of VIDEO_INDEXES) {
-      this.videos[index].loop =
-        this.isPreview() &&
-        !this.isImage(index) &&
-        index === showing &&
-        this.holdsCurrent(index) &&
-        this.current?.loop === true;
-    }
-  }
-
   private handleEnded(index: VideoIndex): void {
     if (this.held) return;
-    if (this.isPreview() || this.isImage(index)) return;
+    if (this.isImage(index)) return;
     // NOTE(0913vision): An outgoing background that ends while the next one
     // starts holds its last frame; only the current background loops.
     if (index !== this.front || !this.holdsCurrent(index)) return;
@@ -543,7 +520,7 @@ export class BackgroundLayerView {
     this.spareTimer = null;
     const spareIndex = otherOf(this.front);
     this.hideAt(spareIndex);
-    if (this.current === null || this.isPreview() || this.isImage(this.front)) {
+    if (this.current === null || this.isImage(this.front)) {
       this.unloadAt(spareIndex);
       return;
     }
@@ -613,7 +590,6 @@ export class BackgroundLayerView {
         this.onError('could not load a background media file', {src});
       },
     });
-    this.loopNativelyInPreview();
     return true;
   }
 
@@ -654,5 +630,61 @@ export class BackgroundLayerView {
     const timer = this.frameDeadlines[index];
     if (timer !== null) clearTimeout(timer);
     this.frameDeadlines[index] = null;
+  }
+}
+
+/** Selects still-only control previews or the real output's retained players. */
+export class BackgroundLayerView {
+  private readonly view: PlaybackBackgroundLayerView | StillBackgroundLayerView;
+
+  constructor(parent: HTMLElement, options: BackgroundLayerOptions) {
+    this.view =
+      options.mode === 'preview'
+        ? new StillBackgroundLayerView(parent, options)
+        : new PlaybackBackgroundLayerView(parent, options);
+  }
+
+  setSink(sinkId: string): void {
+    if (this.view instanceof PlaybackBackgroundLayerView) {
+      this.view.setSink(sinkId);
+    }
+  }
+
+  setOnError(onError: BackgroundLayerOptions['onError']): void {
+    this.view.setOnError(onError);
+  }
+
+  setDissolveMs(ms: number): void {
+    this.view.setDissolveMs(ms);
+  }
+
+  show(media: MediaLayer | null, transitions = true): void {
+    this.view.show(media, transitions);
+  }
+
+  remaining(): number | undefined {
+    return this.view.remaining();
+  }
+
+  setAudioGain(gain: number): void {
+    if (this.view instanceof PlaybackBackgroundLayerView) {
+      this.view.setAudioGain(gain);
+    }
+  }
+
+  hold(): void {
+    if (this.view instanceof PlaybackBackgroundLayerView) this.view.hold();
+  }
+
+  ready(): boolean {
+    return this.view.ready();
+  }
+
+  moveTo(parent: HTMLElement): boolean {
+    return this.view.moveTo(parent);
+  }
+
+  dispose(): void {
+    this.view.dispose();
   }
 }

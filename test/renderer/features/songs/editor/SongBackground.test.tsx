@@ -3,7 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {EditResult} from '@core/schema/contentEdit';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {
   editorSetup,
@@ -101,9 +101,12 @@ describe('song header background connection', () => {
     fireEvent.change(search, {target: {value: '따뜻'}});
     fireEvent.keyDown(search, {key: 'Enter'});
     await act(() => session.flush());
-    const video = trigger().querySelector('video');
-    expect(video?.muted).toBe(true);
-    expect(video?.autoplay).toBe(false);
+    expect(trigger().querySelector('video')).toBeNull();
+    const video = trigger().querySelector('img');
+    const videoId = fixture.document.value.items[1]?.id;
+    expect(video?.getAttribute('src')).toBe(
+      videoId === undefined ? undefined : thumbnailUrl(videoId),
+    );
     expect(documents.get(first.song.id)?.song.background).toBe(
       fixture.document.value.items[1]?.id,
     );
@@ -113,7 +116,7 @@ describe('song header background connection', () => {
     expect(
       Object.hasOwn(documents.get(first.song.id)?.song ?? {}, 'background'),
     ).toBe(false);
-    expect(video?.hasAttribute('src')).toBe(false);
+    expect(trigger().querySelector('video')).toBeNull();
     expect(trigger().textContent).toBe('없음');
   });
 

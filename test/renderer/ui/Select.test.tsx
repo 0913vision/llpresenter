@@ -29,32 +29,18 @@ function trigger(): HTMLElement {
 }
 
 describe('Select', () => {
-  it('loads a muted video lead without playing and releases it on change and unmount', () => {
-    const load = vi
-      .spyOn(HTMLMediaElement.prototype, 'load')
-      .mockImplementation(() => undefined);
-    const pause = vi
-      .spyOn(HTMLMediaElement.prototype, 'pause')
-      .mockImplementation(() => undefined);
-    const {container, rerender, unmount} = render(
-      <Background
-        lead={{kind: 'media', src: 'first.webm', mediaType: 'video'}}
-      />,
+  it('draws a media lead as a still without creating a video element', () => {
+    const {container, rerender} = render(
+      <Background lead={{kind: 'media', src: 'first.jpg'}} />,
     );
-    const video = container.querySelector('video');
-    expect(video?.muted).toBe(true);
-    expect(video?.autoplay).toBe(false);
-    rerender(
-      <Background
-        lead={{kind: 'media', src: 'second.webm', mediaType: 'video'}}
-      />,
+    expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      'first.jpg',
     );
-    expect(video?.getAttribute('src')).toBe('second.webm');
-    expect(pause).toHaveBeenCalledOnce();
-    unmount();
-    expect(pause).toHaveBeenCalledTimes(2);
-    expect(load).toHaveBeenCalledTimes(4);
-    expect(video?.hasAttribute('src')).toBe(false);
+    rerender(<Background lead={{kind: 'media', src: 'second.jpg'}} />);
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      'second.jpg',
+    );
   });
   it('announces the list it opens and whether it is open', () => {
     render(<Background />);

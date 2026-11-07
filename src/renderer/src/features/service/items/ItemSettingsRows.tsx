@@ -8,7 +8,7 @@ import {
   type JSX,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {ServiceItemOf} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
@@ -132,8 +132,10 @@ export function ItemBackgroundRow({
                 ? undefined
                 : {
                     kind: 'media',
-                    src: mediaUrl(selected.id),
-                    mediaType: selected.kind === 'video' ? 'video' : 'image',
+                    src:
+                      selected.kind === 'video'
+                        ? thumbnailUrl(selected.id)
+                        : mediaUrl(selected.id),
                   }
             }
             title={reason}

@@ -44,7 +44,7 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
   const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
     textStyle: DEFAULT_TEXT_STYLE,
-    mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
+    mediaUrl: mediaId => `https://media.test/${mediaId}.jpg`,
     onError,
     ...(mode === undefined ? {} : {mode}),
   });
@@ -312,17 +312,19 @@ describe('OutputRenderer', () => {
     renderer.dispose();
   });
 
-  it('passes the preview mode to the background', () => {
+  it('draws a cached still without video elements in preview mode', () => {
     const parent = document.createElement('div');
     const renderer = new OutputRenderer(parent, {
       textStyle: DEFAULT_TEXT_STYLE,
-      mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
+      mediaUrl: mediaId => `https://media.test/${mediaId}.jpg`,
       onError: vi.fn(),
       mode: 'preview',
     });
     renderer.render(WITH_SLIDE);
-    const video = parent.querySelector<HTMLVideoElement>('video[src]');
-    expect(video?.loop).toBe(true);
+    expect(parent.querySelector('video')).toBeNull();
+    expect(parent.querySelector('img[src]')?.getAttribute('src')).toContain(
+      '.jpg',
+    );
     renderer.dispose();
   });
 });

@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
 import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -94,11 +94,13 @@ export function MediaPreviewPlayer({
 }: MediaPreviewPlayerProps): JSX.Element {
   const media = useRef<HTMLMediaElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [activated, setActivated] = useState(false);
+  const requestedPlay = useRef(false);
   const shown = shownProps(item);
   const [position, setPosition] = useState(shown.start);
   const stop = shown.stop;
   const source = mediaUrl(item.id);
-  usePreviewSink(media, `${item.kind}:${source}`);
+  usePreviewSink(media, `${item.kind}:${source}:${activated}`);
   useEffect(() => {
     const element = media.current;
     if (element !== null && element.getAttribute('src') !== source) {
@@ -108,19 +110,24 @@ export function MediaPreviewPlayer({
     return () => {
       release(element);
     };
-  }, [item.kind, missing, source]);
+  }, [item.kind, missing, source, activated]);
   useEffect(() => {
     const element = media.current;
     if (element === null) return;
     element.muted = !shown.audio;
     element.volume = shown.volume / MAX_VOLUME;
     applyPlaybackRate(element, shown.speed);
-  }, [item.kind, missing, shown.audio, shown.volume, shown.speed]);
+  }, [item.kind, missing, shown.audio, shown.volume, shown.speed, activated]);
   const failed = (error: unknown): void => {
     console.warn('Could not play the media preview', error);
     setPlaying(false);
   };
   const toggle = (): void => {
+    if (item.kind === 'video' && !activated) {
+      requestedPlay.current = true;
+      setActivated(true);
+      return;
+    }
     const element = media.current;
     if (element === null) return;
     if (playing) {
@@ -154,6 +161,10 @@ export function MediaPreviewPlayer({
       const element = media.current;
       if (element !== null) element.currentTime = shown.start;
       setPlaying(false);
+      if (element !== null && requestedPlay.current) {
+        requestedPlay.current = false;
+        element.play().catch(failed);
+      }
     },
     onPlay: () => setPlaying(true),
     onPause: () => setPlaying(false),
@@ -175,7 +186,20 @@ export function MediaPreviewPlayer({
         {missing ? (
           <MissingFileMark />
         ) : item.kind === 'video' ? (
-          <video {...events} className={styles.picture} playsInline />
+          activated ? (
+            <video
+              {...events}
+              className={styles.picture}
+              poster={thumbnailUrl(item.id)}
+              playsInline
+            />
+          ) : (
+            <img
+              className={styles.picture}
+              src={thumbnailUrl(item.id)}
+              alt=""
+            />
+          )
         ) : item.kind === 'image' ? (
           <img className={styles.picture} src={mediaUrl(item.id)} alt="" />
         ) : (

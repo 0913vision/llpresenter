@@ -62,6 +62,7 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   const stopMedia = vi.fn();
   const stopCopies = vi.fn();
   const subscribe = vi.spyOn(api.media, 'subscribe').mockReturnValue(stopMedia);
+  const previewProgress = vi.spyOn(api.live, 'subscribeMediaProgress');
   vi.spyOn(api.media, 'subscribeImports').mockReturnValue(stopCopies);
   mount();
   await screen.findByRole('region', {name: '미디어'});
@@ -72,6 +73,7 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   await userEvent.click(mediaBinToggle());
   await screen.findByRole('region', {name: '미디어'});
   expect(subscribe).toHaveBeenCalledOnce();
+  expect(previewProgress).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole('tab', {name: '테마'}));
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopCopies).toHaveBeenCalledOnce();

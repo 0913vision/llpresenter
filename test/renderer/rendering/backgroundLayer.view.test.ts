@@ -4,8 +4,6 @@ import {
   BACKGROUND_DISSOLVE_MS,
   SPARE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
-  BackgroundLayerView,
-  startOffsetSeconds,
 } from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
 import {
@@ -177,27 +175,6 @@ describe('BackgroundLayerView', () => {
       view.dispose();
     },
   );
-  it('joins the rate-adjusted position and keeps previews muted even when service sound is allowed', () => {
-    const parent = document.createElement('div');
-    const view = new BackgroundLayerView(parent, {
-      mediaUrl: urlOf,
-      onError: vi.fn(),
-      mode: 'preview',
-      muted: false,
-    });
-    const media = {
-      ...WARM_LIGHT,
-      properties: {speed: 2, fit: 'fit' as const, volume: 40, audio: true},
-      positionSeconds: 3,
-      startedAt: 1000,
-    };
-    expect(startOffsetSeconds(media, 100, 3000)).toBe(7);
-    view.show(media);
-    expect(
-      [...parent.querySelectorAll('video')].every(video => video.muted),
-    ).toBe(true);
-    view.dispose();
-  });
   it('starts a background on the spare and dissolves it in once it plays', () => {
     const {view, videos} = setUp();
     view.show(WARM_LIGHT);

@@ -13,6 +13,7 @@ import type {
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {MessageBand} from '@core/screens/messageStyle';
 import type {TransitionTimes} from '@core/output/transitions';
+import type {PreviewMediaSource} from './previewMedia';
 
 export interface ThemeFrame extends ThemeComposition {
   readonly themeId: LiveThemeOutput['themeId'];
@@ -70,11 +71,12 @@ export interface RenderLayerOptions {
     readonly maxLines: number;
   };
   readonly textStyle: TextStyle;
-  /** The URL that plays a library media file. */
+  /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
+  readonly previewMedia?: PreviewMediaSource | undefined;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
-  /** A preview keeps one looping video playing; `output` when absent. */
+  /** A preview draws still pictures without video elements; `output` when absent. */
   readonly mode?: RenderMode;
   readonly muted?: boolean;
 }

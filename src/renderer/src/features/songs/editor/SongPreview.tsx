@@ -21,6 +21,7 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {PreviewScreenPicker} from '@renderer/ui/PreviewScreenPicker';
 import {RolePreview} from './RolePreview';
@@ -101,9 +102,11 @@ export function Picture({
   });
   useLayoutEffect(() => {
     if (parent.current === null) return;
+    const previewMedia = openPreviewMedia(window.llp);
     const view = new OutputRenderer(parent.current, {
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
+      previewMedia,
       mode: 'preview',
       onError: (message, error) => console.error(message, error),
     });
@@ -112,6 +115,7 @@ export function Picture({
     return () => {
       renderer.current = null;
       view.dispose();
+      previewMedia?.dispose();
     };
   }, []);
   useLayoutEffect(() => {
